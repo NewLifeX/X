@@ -538,6 +538,13 @@ namespace XCode.DataAccessLayer
             }
             #endregion
 
+            // 修正可能的主字段
+            if (!table.Columns.Any(e => e.Master))
+            {
+                var f = table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("Name", "Title"));
+                if (f != null) f.Master = true;
+            }
+
             return table;
         }
 

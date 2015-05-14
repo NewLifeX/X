@@ -51,6 +51,10 @@ namespace XCode.Configuration
         /// <summary>是否主键</summary>
         public Boolean PrimaryKey { get { return _PrimaryKey; } internal set { _PrimaryKey = value; } }
 
+        private Boolean _Master;
+        /// <summary>是否主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
+        public Boolean Master { get { return _Master; } private set { _Master = value; } }
+
         private Boolean _IsNullable;
         /// <summary>是否允许空</summary>
         public Boolean IsNullable { get { return _IsNullable; } internal set { _IsNullable = value; } }
@@ -158,7 +162,11 @@ namespace XCode.Configuration
                     IsDataObjectField = true;
                 }
 
-                if (dc != null) _ID = dc.Order;
+                if (dc != null)
+                {
+                    _ID = dc.Order;
+                    Master = dc.Master;
+                }
 
                 if (dc != null && !dc.Name.IsNullOrWhiteSpace())
                     ColumnName = dc.Name;
@@ -184,11 +192,6 @@ namespace XCode.Configuration
         /// <returns></returns>
         public override string ToString()
         {
-            //if (String.IsNullOrEmpty(Description))
-            //    return Name;
-            //else
-            //    return String.Format("{1}（{0}）", Name, Description);
-
             // 为了保持兼容旧的_.Name等代码，必须只能返回字段名
             return ColumnName;
         }
@@ -230,13 +233,11 @@ namespace XCode.Configuration
                 if (dc.Precision == 0) dc.Precision = 18;
             }
 
-            //if (_DataObjectField != null)
-            {
-                dc.Length = Length;
-                dc.Identity = IsIdentity;
-                dc.PrimaryKey = PrimaryKey;
-                dc.Nullable = IsNullable;
-            }
+            dc.Length = Length;
+            dc.Identity = IsIdentity;
+            dc.PrimaryKey = PrimaryKey;
+            dc.Nullable = IsNullable;
+            dc.Master = Master;
         }
 
         /// <summary>建立表达式</summary>

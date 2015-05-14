@@ -4,41 +4,25 @@ using XCode.DataAccessLayer;
 namespace XCode
 {
     /// <summary>用于指定数据类所绑定到的关系</summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = true)]
     public class BindRelationAttribute : Attribute
     {
         #region 属性
         private String _Column;
         /// <summary>数据列</summary>
-        public String Column
-        {
-            get { return _Column; }
-            set { _Column = value; }
-        }
+        public String Column { get { return _Column; } set { _Column = value; } }
 
         private String _RelationTable;
         /// <summary>引用表</summary>
-        public String RelationTable
-        {
-            get { return _RelationTable; }
-            set { _RelationTable = value; }
-        }
+        public String RelationTable { get { return _RelationTable; } set { _RelationTable = value; } }
 
         private String _RelationColumn;
         /// <summary>引用列</summary>
-        public String RelationColumn
-        {
-            get { return _RelationColumn; }
-            set { _RelationColumn = value; }
-        }
+        public String RelationColumn { get { return _RelationColumn; } set { _RelationColumn = value; } }
 
         private Boolean _Unique;
         /// <summary>是否唯一</summary>
-        public Boolean Unique
-        {
-            get { return _Unique; }
-            set { _Unique = value; }
-        }
+        public Boolean Unique { get { return _Unique; } set { _Unique = value; } }
         #endregion
 
         #region 构造
@@ -57,24 +41,6 @@ namespace XCode
         #endregion
 
         #region 方法
-        ///// <summary>
-        ///// 检索应用于类型成员的自定义属性。
-        ///// </summary>
-        ///// <param name="element"></param>
-        ///// <returns></returns>
-        //public new static BindRelationAttribute[] GetCustomAttributes(MemberInfo element)
-        //{
-        //    Attribute[] atts = GetCustomAttributes(element, typeof(BindRelationAttribute), true);
-        //    if (atts == null || atts.Length < 1) return null;
-
-        //    List<BindRelationAttribute> list = new List<BindRelationAttribute>();
-        //    foreach (Attribute item in atts)
-        //    {
-        //        list.Add(item as BindRelationAttribute);
-        //    }
-        //    return list.ToArray();
-        //}
-
         /// <summary>填充关系</summary>
         /// <param name="relation"></param>
         internal void Fill(IDataRelation relation)

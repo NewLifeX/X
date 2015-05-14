@@ -69,11 +69,11 @@ namespace XCode
 
         private Boolean _IsUnicode;
         /// <summary>是否Unicode</summary>
-        public Boolean IsUnicode
-        {
-            get { return _IsUnicode; }
-            set { _IsUnicode = value; }
-        }
+        public Boolean IsUnicode        {            get { return _IsUnicode; }            set { _IsUnicode = value; }        }
+
+        private Boolean _Master;
+        /// <summary>是否主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
+        public Boolean Master { get { return _Master; } set { _Master = value; } }
         #endregion
 
         #region 构造

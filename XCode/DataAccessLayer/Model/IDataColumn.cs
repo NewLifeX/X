@@ -31,6 +31,9 @@ namespace XCode.DataAccessLayer
         /// <summary>主键</summary>
         Boolean PrimaryKey { get; set; }
 
+        /// <summary>是否主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
+        Boolean Master { get; set; }
+
         /// <summary>长度</summary>
         Int32 Length { get; set; }
 

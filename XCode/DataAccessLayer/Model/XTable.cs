@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -132,6 +133,10 @@ namespace XCode.DataAccessLayer
         [DisplayName("索引集合")]
         [Description("索引集合")]
         public List<IDataIndex> Indexes { get { return _Indexes ?? (_Indexes = new List<IDataIndex>()); } }
+
+        /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
+        [XmlIgnore]
+        public IDataColumn Master { get { return Columns.FirstOrDefault(e => e.Master) ?? Columns.FirstOrDefault(e => e.PrimaryKey); } }
 
         /// <summary>主键集合。可以是空集合，但不能为null。</summary>
         [XmlIgnore]
