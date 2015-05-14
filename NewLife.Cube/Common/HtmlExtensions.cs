@@ -100,7 +100,8 @@ namespace NewLife.Cube
                         var root = entity.GetType().GetValue("Root") as IEntityTree;
                         // 找到完整菜单树，但是排除当前节点这个分支
                         var list = root.FindAllChildsExcept(entity as IEntityTree);
-                        return Html.DropDownList(field.Name, list.Cast<IEntityTree>().Select(e => new SelectListItem { Text = e.TreeNodeText, Value = e[set.Key] + "" }));
+                        var data = new SelectList(list, set.Key, "TreeNodeText", entity[field.Name]);
+                        return Html.DropDownList(field.Name, data);
                     }
                 }
                 // 如果有表间关系，且是当前字段
@@ -112,7 +113,8 @@ namespace NewLife.Cube
                     {
                         var rt = EntityFactory.CreateOperate(dr.RelationTable);
                         var list = rt.FindAllWithCache();
-                        return Html.DropDownList(field.Name, list.Select(e => new SelectListItem { Text = e[rt.Master.Name] + "", Value = e[dr.RelationColumn] + "" }));
+                        var data = new SelectList(list, dr.RelationColumn, rt.Master.Name, entity[field.Name]);
+                        return Html.DropDownList(field.Name, data, "无");
                     }
                 }
 
