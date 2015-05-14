@@ -46,11 +46,6 @@ namespace NewLife.Cube
             var list = new List<PrecompiledViewAssembly>();
             foreach (var asm in FindAllArea())
             {
-                //var pme = new PrecompiledMvcEngine(asm)
-                //{
-                //    UsePhysicalViewsIfNewer = HttpContext.Current.Request.IsLocal
-                //};
-                //list.Add(pme);
                 XTrace.WriteLine("注册区域视图程序集：{0}", asm.FullName);
 
                 var pva = new PrecompiledViewAssembly(asm);

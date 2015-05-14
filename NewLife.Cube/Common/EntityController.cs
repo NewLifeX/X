@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
+using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;
@@ -155,26 +157,69 @@ namespace NewLife.Cube
         }
         #endregion
 
-        #region 辅助
+        #region 列表字段和表单字段
+        private static List<FieldItem> _ListFields;
         /// <summary>列表字段过滤</summary>
-        protected static List<FieldItem> ListFields;
+        protected static List<FieldItem> ListFields { get { if (_ListFields == null) { InitFields(); } return _ListFields; } set { _ListFields = value; } }
 
+        private static List<FieldItem> _FormFields;
         /// <summary>表单字段过滤</summary>
-        protected static List<FieldItem> FormFields;
+        protected static List<FieldItem> FormFields { get { if (_FormFields == null) { InitFields(); } return _FormFields; } set { _FormFields = value; } }
+
+        private static void InitFields()
+        {
+            if (ListFields == null)
+            {
+                var list = Entity<TEntity>.Meta.Fields.ToList();
+
+                var type = typeof(TEntity);
+                // 扩展属性
+                foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    var dr = pi.GetCustomAttribute<BindRelationAttribute>();
+                    if (dr != null && !dr.RelationTable.IsNullOrEmpty())
+                    {
+                        var rt = EntityFactory.CreateOperate(dr.RelationTable);
+                        if (rt != null && rt.Master != null)
+                        {
+                            // 找到扩展表主字段是否属于当前实体类扩展属性
+                            // 首先用对象扩展属性名加上外部主字段名
+                            var master = type.GetProperty(pi.Name + rt.Master.Name);
+                            // 再用外部类名加上外部主字段名
+                            if (master == null) master = type.GetProperty(dr.RelationTable + rt.Master.Name);
+                            if (master != null)
+                            {
+                                // 去掉本地用于映射的字段（如果不是主键），替换为扩展属性
+                                Replace(list, dr.Column, master.Name);
+                            }
+                        }
+                    }
+                }
+
+                ListFields = list;
+            }
+            if (FormFields == null)
+            {
+                var list = Entity<TEntity>.Meta.Fields.ToList();
+                FormFields = list;
+            }
+        }
+
+        /// <summary>操作字段列表，把旧项换成新项</summary>
+        /// <param name="list"></param>
+        /// <param name="oriName"></param>
+        /// <param name="newName"></param>
+        /// <returns></returns>
+        protected static List<FieldItem> Replace(List<FieldItem> list, String oriName, String newName)
+        {
+
+        }
 
         /// <summary>获取要显示的字段列表</summary>
         /// <param name="isForm">是否是表单</param>
         /// <returns></returns>
         protected virtual List<FieldItem> GetFields(Boolean isForm)
         {
-            //var fs = Entity<TEntity>.Meta.Fields.ToList();
-
-            //var filter = isForm ? FormFields : ListFields;
-            //if (filter == null || filter.Length == 0) return fs;
-
-            //fs = Entity<TEntity>.Meta.AllFields.ToList();
-            //return fs.Where(e => filter.Contains(e.Name)).ToList();
-
             return (isForm ? FormFields : ListFields) ?? Entity<TEntity>.Meta.Fields.ToList();
         }
         #endregion
