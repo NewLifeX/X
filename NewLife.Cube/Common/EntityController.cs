@@ -4,8 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
-using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
+using XCode.Membership;
 
 namespace NewLife.Cube.Admin.Controllers
 {
@@ -15,6 +13,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>系统设置</summary>
         /// <param name="config"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
         [DisplayName("系统设置")]
         public ActionResult Index(SysConfig config)
         {

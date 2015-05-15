@@ -26,6 +26,7 @@ namespace NewLife.Cube
                 if (!typeof(ActionResult).IsAssignableFrom(method.ReturnType)) continue;
 
                 if (method.GetCustomAttribute<HttpPostAttribute>() != null) continue;
+                if (method.GetCustomAttribute<AllowAnonymousAttribute>() != null) continue;
 
                 var att = method.GetCustomAttribute<EntityAuthorizeAttribute>();
                 if (att == null)
