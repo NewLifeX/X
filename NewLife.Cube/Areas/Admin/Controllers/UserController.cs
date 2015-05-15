@@ -41,23 +41,27 @@ namespace NewLife.Cube.Admin.Controllers
         }
 
         /// <summary>登录</summary>
+        /// <param name="returnUrl"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public ActionResult Login()
+        public ActionResult Login(String returnUrl)
         {
+            ViewBag.ReturnUrl = returnUrl;
+            
             return View();
         }
 
         /// <summary>登录</summary>
-        /// <param name="user"></param>
-        /// <param name="pass"></param>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
         /// <param name="remember"></param>
+        /// <param name="returnUrl"></param>
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        public ActionResult Login(String user, String pass, Boolean remember)
+        public ActionResult Login(String username, String password, Boolean remember, String returnUrl)
         {
-            var entity = UserX.Login(user, pass, remember);
+            var entity = UserX.Login(username, password, remember);
 
             return View();
         }
