@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.Mvc;
+using System.Web.Security;
 using NewLife.Web;
 using XCode.Configuration;
 using XCode.Membership;
@@ -47,7 +48,7 @@ namespace NewLife.Cube.Admin.Controllers
         public ActionResult Login(String returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
-            
+
             return View();
         }
 
@@ -59,9 +60,29 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        public ActionResult Login(String username, String password, Boolean remember, String returnUrl)
+        public ActionResult Login(String username, String password, Boolean? remember, String returnUrl)
         {
-            var entity = UserX.Login(username, password, remember);
+            try
+            {
+                var provider = ManageProvider.Provider;
+                if (ModelState.IsValid && provider.Login(username, password, remember ?? false) != null)
+                {
+                    FormsAuthentication.SetAuthCookie(username, remember ?? false);
+                    //FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
+
+                    if (Url.IsLocalUrl(returnUrl))
+                        return Redirect(returnUrl);
+                    else
+                        return RedirectToAction("Index", "Index");
+                }
+
+                // 如果我们进行到这一步时某个地方出错，则重新显示表单
+                ModelState.AddModelError("", "提供的用户名或密码不正确。");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
 
             return View();
         }
@@ -74,13 +95,13 @@ namespace NewLife.Cube.Admin.Controllers
             ManageProvider.User.Logout();
             //ManageProvider.User = null;
 
-            return RedirectToAction("Main", "Index");
+            return RedirectToAction("Index", "Index");
         }
 
         /// <summary>用户资料</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public ActionResult Profile(Int32? id)
+        public ActionResult Info(Int32? id)
         {
             if (id == null || id.Value <= 0) throw new Exception("无效用户编号！");
 
@@ -96,7 +117,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult Profile(UserX user)
+        public ActionResult Info(UserX user)
         {
             return View();
         }

@@ -362,6 +362,8 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" class=\"ace\"");
 
+WriteLiteral(" value=\"true\"");
+
 WriteLiteral(" />\r\n                                                        <span");
 
 WriteLiteral(" class=\"lbl\"");
@@ -369,7 +371,7 @@ WriteLiteral(" class=\"lbl\"");
 WriteLiteral("> 自动登录</span>\r\n                                                    </label>\r\n\r\n  " +
 "                                                  <button");
 
-WriteLiteral(" type=\"button\"");
+WriteLiteral(" type=\"submit\"");
 
 WriteLiteral(" class=\"width-35 pull-right btn btn-sm btn-primary\"");
 
@@ -510,7 +512,7 @@ WriteLiteral(" class=\"clearfix\"");
 
 WriteLiteral(">\r\n                                                    <button");
 
-WriteLiteral(" type=\"button\"");
+WriteLiteral(" type=\"submit\"");
 
 WriteLiteral(" class=\"width-35 pull-right btn btn-sm btn-danger\"");
 
@@ -732,7 +734,7 @@ WriteLiteral(" class=\"bigger-110\"");
 WriteLiteral(">重置</span>\r\n                                                    </button>\r\n\r\n    " +
 "                                                <button");
 
-WriteLiteral(" type=\"button\"");
+WriteLiteral(" type=\"submit\"");
 
 WriteLiteral(" class=\"width-65 pull-right btn btn-sm btn-success\"");
 
@@ -822,45 +824,45 @@ WriteLiteral(@">明亮</a>
     <!-- JQuery作为一等公民，页面内部随时可能使用 -->
     <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14683), Tuple.Create("\"", 14721)
-, Tuple.Create(Tuple.Create("", 14689), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 14689), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 14696), Tuple.Create("\"", 14734)
+, Tuple.Create(Tuple.Create("", 14702), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 14702), false)
 );
 
 WriteLiteral("></script>\r\n    <!-- 最早引入基本脚本 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14768), Tuple.Create("\"", 14813)
-, Tuple.Create(Tuple.Create("", 14774), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 14774), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 14781), Tuple.Create("\"", 14826)
+, Tuple.Create(Tuple.Create("", 14787), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 14787), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14837), Tuple.Create("\"", 14879)
-, Tuple.Create(Tuple.Create("", 14843), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
-, 14843), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 14850), Tuple.Create("\"", 14892)
+, Tuple.Create(Tuple.Create("", 14856), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
+, 14856), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14903), Tuple.Create("\"", 14950)
-, Tuple.Create(Tuple.Create("", 14909), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
-, 14909), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 14916), Tuple.Create("\"", 14963)
+, Tuple.Create(Tuple.Create("", 14922), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
+, 14922), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements" +
 " and media queries -->\r\n    <!--[if lte IE 8]>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 15091), Tuple.Create("\"", 15126)
-, Tuple.Create(Tuple.Create("", 15097), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
-, 15097), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15104), Tuple.Create("\"", 15139)
+, Tuple.Create(Tuple.Create("", 15110), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
+, 15110), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 15150), Tuple.Create("\"", 15183)
-, Tuple.Create(Tuple.Create("", 15156), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
-, 15156), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15163), Tuple.Create("\"", 15196)
+, Tuple.Create(Tuple.Create("", 15169), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
+, 15169), false)
 );
 
 WriteLiteral("></script>\r\n    <![endif]-->\r\n    <!-- inline scripts related to this page -->\r\n " +

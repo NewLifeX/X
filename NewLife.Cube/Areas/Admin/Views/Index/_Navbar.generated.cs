@@ -741,16 +741,16 @@ WriteLiteral(">\r\n                    <a");
 
 WriteLiteral(" data-toggle=\"dropdown\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 15055), Tuple.Create("\"", 15091)
-, Tuple.Create(Tuple.Create("", 15062), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Profile/")
+WriteAttribute("href", Tuple.Create(" href=\"", 15055), Tuple.Create("\"", 15088)
+, Tuple.Create(Tuple.Create("", 15062), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
 , 15062), false)
             
             #line 294 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-, Tuple.Create(Tuple.Create("", 15083), Tuple.Create<System.Object, System.Int32>(User.ID
+, Tuple.Create(Tuple.Create("", 15080), Tuple.Create<System.Object, System.Int32>(User.ID
             
             #line default
             #line hidden
-, 15083), false)
+, 15080), false)
 );
 
 WriteLiteral(" class=\"dropdown-toggle\"");
@@ -761,19 +761,19 @@ WriteLiteral(">\r\n                        <img");
 
 WriteLiteral(" class=\"nav-user-photo\"");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 15184), Tuple.Create("\"", 15220)
-, Tuple.Create(Tuple.Create("", 15190), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/avatars/user.jpg")
-, 15190), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15181), Tuple.Create("\"", 15217)
+, Tuple.Create(Tuple.Create("", 15187), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/avatars/user.jpg")
+, 15187), false)
 );
 
-WriteAttribute("alt", Tuple.Create(" alt=\"", 15221), Tuple.Create("\"", 15243)
+WriteAttribute("alt", Tuple.Create(" alt=\"", 15218), Tuple.Create("\"", 15240)
             
             #line 295 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-             , Tuple.Create(Tuple.Create("", 15227), Tuple.Create<System.Object, System.Int32>(User.FriendName
+             , Tuple.Create(Tuple.Create("", 15224), Tuple.Create<System.Object, System.Int32>(User.FriendName
             
             #line default
             #line hidden
-, 15227), false)
+, 15224), false)
 );
 
 WriteLiteral(" />\r\n                        <span");
@@ -811,9 +811,9 @@ WriteLiteral(" class=\"user-menu dropdown-menu-right dropdown-menu dropdown-yell
 
 WriteLiteral(">\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 15716), Tuple.Create("\"", 15734)
-, Tuple.Create(Tuple.Create("", 15723), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/Sys")
-, 15723), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 15713), Tuple.Create("\"", 15731)
+, Tuple.Create(Tuple.Create("", 15720), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/Sys")
+, 15720), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -826,16 +826,16 @@ WriteLiteral("></i>\r\n                                设置\r\n               
 "                    </li>\r\n\r\n                        <li>\r\n                     " +
 "       <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 15983), Tuple.Create("\"", 16019)
-, Tuple.Create(Tuple.Create("", 15990), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Profile/")
-, 15990), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 15980), Tuple.Create("\"", 16013)
+, Tuple.Create(Tuple.Create("", 15987), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
+, 15987), false)
             
             #line 313 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-, Tuple.Create(Tuple.Create("", 16011), Tuple.Create<System.Object, System.Int32>(User.ID
+, Tuple.Create(Tuple.Create("", 16005), Tuple.Create<System.Object, System.Int32>(User.ID
             
             #line default
             #line hidden
-, 16011), false)
+, 16005), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -851,9 +851,9 @@ WriteLiteral(" class=\"divider\"");
 
 WriteLiteral("></li>\r\n\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 16324), Tuple.Create("\"", 16350)
-, Tuple.Create(Tuple.Create("", 16331), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
-, 16331), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 16318), Tuple.Create("\"", 16344)
+, Tuple.Create(Tuple.Create("", 16325), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
+, 16325), false)
 );
 
 WriteLiteral(">\r\n                                <i");

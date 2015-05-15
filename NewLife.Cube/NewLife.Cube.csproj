@@ -148,8 +148,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Login.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\Profile.generated.cs">
-      <DependentUpon>Profile.cshtml</DependentUpon>
+    <Compile Include="Areas\Admin\Views\User\Info.generated.cs">
+      <DependentUpon>Info.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
@@ -483,9 +483,9 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Login.generated.cs</LastGenOutput>
     </None>
-    <None Include="Areas\Admin\Views\User\Profile.cshtml">
+    <None Include="Areas\Admin\Views\User\Info.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Profile.generated.cs</LastGenOutput>
+      <LastGenOutput>Info.generated.cs</LastGenOutput>
     </None>
     <None Include="Areas\Admin\Views\User\_List_Toolbar.cshtml">
       <Generator>RazorGenerator</Generator>
