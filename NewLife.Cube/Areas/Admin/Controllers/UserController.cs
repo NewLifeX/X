@@ -110,11 +110,17 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>用户资料</summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         public ActionResult Info(Int32? id)
         {
             if (id == null || id.Value <= 0) throw new Exception("无效用户编号！");
 
-            var user = UserX.FindByID(id.Value);
+            var user = ManageProvider.User;
+            if (user == null) return RedirectToAction("Login");
+
+            if (id.Value != user.ID) throw new Exception("禁止修改非当前登录用户资料");
+
+            user = UserX.FindByID(id.Value);
             if (user == null) throw new Exception("无效用户编号！");
 
             user.Password = null;
@@ -126,8 +132,14 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPost]
+        [AllowAnonymous]
         public ActionResult Info(UserX user)
         {
+            var cur = ManageProvider.User;
+            if (cur == null) return RedirectToAction("Login");
+
+            if (user.ID != cur.ID) throw new Exception("禁止修改非当前登录用户资料");
+
             return View();
         }
     }
