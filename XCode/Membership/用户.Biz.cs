@@ -486,6 +486,7 @@ namespace XCode.Membership
         /// <summary>角色</summary>
         /// <remarks>扩展属性不缓存空对象，一般来说，每个管理员都有对应的角色，如果没有，可能是在初始化</remarks>
         [XmlIgnore]
+        [BindRelation("RoleID", false, "Role", "ID")]
         public virtual IRole Role
         {
             get

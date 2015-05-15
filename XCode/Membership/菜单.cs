@@ -35,7 +35,7 @@ namespace XCode.Membership
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(2, "Name", "名称", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(2, "Name", "名称", null, "nvarchar(50)", 0, 0, true, Master=true)]
         public virtual String Name
         {
             get { return _Name; }
