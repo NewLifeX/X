@@ -134,6 +134,21 @@ namespace NewLife.Cube
             return txt;
         }
 
+        /// <summary>输出编辑框</summary>
+        /// <param name="Html"></param>
+        /// <param name="name"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForEditor(this HtmlHelper Html, String name, IEntity entity = null)
+        {
+            if (entity == null) entity = Html.ViewData.Model as IEntity;
+
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var field = fact.Table.FindByName(name);
+
+            return Html.ForEditor(field, entity);
+        }
+
         #region 基础属性
         /// <summary>输出字符串</summary>
         /// <param name="Html"></param>
@@ -158,19 +173,19 @@ namespace NewLife.Cube
             else if (name.EqualIgnoreCase("Phone"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-phone-alt\"></i></span>";
-                if (!atts.ContainsKey("@type")) atts.Add("@type", "phone");
+                if (!atts.ContainsKey("type")) atts.Add("type", "phone");
                 txt = Html.TextBox(name, (String)value, atts);
             }
             else if (name.EqualIgnoreCase("email", "mail"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-envelope\"></i></span>";
-                if (!atts.ContainsKey("@type")) atts.Add("@type", "email");
+                if (!atts.ContainsKey("type")) atts.Add("type", "email");
                 txt = Html.TextBox(name, (String)value, atts);
             }
             else if (name.EndsWithIgnoreCase("url"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-home\"></i></span>";
-                if (!atts.ContainsKey("@type")) atts.Add("@type", "url");
+                if (!atts.ContainsKey("type")) atts.Add("type", "url");
                 txt = Html.TextBox(name, (String)value, atts);
             }
             else if (length < 0 || length > 300)
@@ -312,6 +327,20 @@ namespace NewLife.Cube
             if (des.IsNullOrWhiteSpace()) return new MvcHtmlString(null);
 
             return new MvcHtmlString("<p class=\"help-block\">{0}</p>".F(des));
+        }
+
+        /// <summary>输出描述</summary>
+        /// <param name="Html"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForDescription(this HtmlHelper Html, String name)
+        {
+            var entity = Html.ViewData.Model as IEntity;
+
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var field = fact.Table.FindByName(name);
+
+            return Html.ForDescription(field);
         }
         #endregion
     }
