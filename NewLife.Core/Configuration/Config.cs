@@ -19,9 +19,9 @@ namespace NewLife.Configuration
         private static List<String> hasLoad = new List<String>();
 
 #if Android
-        //private static NameValueCollection _AppSettings = new NameValueCollection();
+        private static NameValueCollection _AppSettings = new NameValueCollection();
         /// <summary>应用设置。Android不支持这种配置，仅用该技巧欺骗编译器</summary>
-        public static NameValueCollection AppSettings { get { return new NameValueCollection(); } }
+        public static NameValueCollection AppSettings{get { return _AppSettings; }}
 
         class ConfigurationErrorsException : Exception { }
 #else
