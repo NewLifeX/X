@@ -128,11 +128,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Form.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Role\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Areas\Admin\Views\Role\SetPermission.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -491,10 +486,6 @@
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
     </None>
     <None Include="Areas\Admin\Views\Web.config" />
-    <None Include="Areas\Admin\Views\Role\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </None>
     <None Include="Views\Shared\NoPermission.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>NoPermission.generated.cs</LastGenOutput>
