@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web.Mvc;
 using System.Web.Security;
 using NewLife.Web;
+using XCode;
 using XCode.Configuration;
 using XCode.Membership;
 
@@ -139,6 +140,10 @@ namespace NewLife.Cube.Admin.Controllers
             if (cur == null) return RedirectToAction("Login");
 
             if (user.ID != cur.ID) throw new Exception("禁止修改非当前登录用户资料");
+
+            var entity = user as IEntity;
+            if (entity.Dirtys["RoleID"]) throw new Exception("禁止修改角色！");
+            if (entity.Dirtys["Enable"]) throw new Exception("禁止修改禁用！");
 
             return View();
         }
