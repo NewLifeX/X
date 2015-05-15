@@ -3,7 +3,11 @@
 @using XCode.Configuration
 @{
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
+    var fields = ViewBag.Fields as FieldCollection;
     var isNew = (Model as IEntity).IsNullKey;
+
+    // 个人不允许编辑角色和禁用
+    fields.RemoveField("RoleID").RemoveField("Enable");
 }
 <div class="panel panel-default">
     <div class="form-horizontal">
@@ -18,7 +22,7 @@
         {
             @Html.AntiForgeryToken()
             @Html.ValidationSummary()
-            foreach (var item in fact.Fields)
+            foreach (var item in fields)
             {
                 if (!item.PrimaryKey)
                 {

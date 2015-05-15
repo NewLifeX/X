@@ -2,7 +2,7 @@
 @if (ManageProvider.User != null)
 {
     <text>
-        你好，@Html.ActionLink(ManageProvider.User + "", "Info", "Admin/User", routeValues: null, htmlAttributes: new { @class = "username", title = "管理" })!
+        你好，@Html.ActionLink(ManageProvider.User + "", "Info", "Admin/User", routeValues: new { id = ManageProvider.User.ID }, htmlAttributes: new { @class = "username", title = "管理" })!
         @Html.ActionLink("注销", "Logout", "Admin/User")
     </text>
 }

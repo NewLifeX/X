@@ -64,6 +64,7 @@ namespace ASP
             #line 4 "..\..\Areas\Admin\Views\User\Form.cshtml"
   
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
+    var fields = ViewBag.Fields as List<FieldItem>;
     var isNew = (Model as IEntity).IsNullKey;
 
             
@@ -80,13 +81,13 @@ WriteLiteral(" class=\"form-horizontal\"");
 WriteLiteral(">\r\n");
 
             
-            #line 10 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 11 "..\..\Areas\Admin\Views\User\Form.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 10 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 11 "..\..\Areas\Admin\Views\User\Form.cshtml"
          if (ViewBag.StatusMessage != null)
         {
 
@@ -116,7 +117,7 @@ WriteLiteral(" aria-hidden=\"true\"");
 WriteLiteral(">&times;</span></button>\r\n                <strong>");
 
             
-            #line 14 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 15 "..\..\Areas\Admin\Views\User\Form.cshtml"
                    Write(ViewBag.StatusMessage);
 
             
@@ -125,7 +126,7 @@ WriteLiteral(">&times;</span></button>\r\n                <strong>");
 WriteLiteral("</strong>\r\n            </div>\r\n");
 
             
-            #line 16 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 17 "..\..\Areas\Admin\Views\User\Form.cshtml"
         }
 
             
@@ -134,7 +135,7 @@ WriteLiteral("</strong>\r\n            </div>\r\n");
 WriteLiteral("        ");
 
             
-            #line 17 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 18 "..\..\Areas\Admin\Views\User\Form.cshtml"
          using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
         {
             
@@ -142,30 +143,30 @@ WriteLiteral("        ");
             #line default
             #line hidden
             
-            #line 19 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 20 "..\..\Areas\Admin\Views\User\Form.cshtml"
        Write(Html.AntiForgeryToken());
 
             
             #line default
             #line hidden
             
-            #line 19 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 20 "..\..\Areas\Admin\Views\User\Form.cshtml"
                                     
             
             
             #line default
             #line hidden
             
-            #line 20 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 21 "..\..\Areas\Admin\Views\User\Form.cshtml"
        Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
             
-            #line 20 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 21 "..\..\Areas\Admin\Views\User\Form.cshtml"
                                      
-            foreach (var item in fact.Fields)
+            foreach (var item in fields)
             {
                 if (!item.PrimaryKey)
                 {
@@ -186,7 +187,7 @@ WriteLiteral(" class=\"control-label col-md-2\"");
 WriteLiteral(">");
 
             
-            #line 28 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 29 "..\..\Areas\Admin\Views\User\Form.cshtml"
                                                              Write(item.DisplayName);
 
             
@@ -201,7 +202,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                                ");
 
             
-            #line 30 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 31 "..\..\Areas\Admin\Views\User\Form.cshtml"
                            Write(Html.DropDownList(item.Name, Role.FindAllWithCache().ToList().Select(r => new SelectListItem { Text = r.Name, Value = r.ID + "" })));
 
             
@@ -210,13 +211,13 @@ WriteLiteral("                                ");
 WriteLiteral("\r\n");
 
             
-            #line 31 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 32 "..\..\Areas\Admin\Views\User\Form.cshtml"
                                 
             
             #line default
             #line hidden
             
-            #line 31 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 32 "..\..\Areas\Admin\Views\User\Form.cshtml"
                                  if (!item.Description.TrimStart(item.DisplayName).TrimStart("。").IsNullOrWhiteSpace())
                                 {
 
@@ -230,7 +231,7 @@ WriteLiteral(" class=\"help-block\"");
 WriteLiteral(">");
 
             
-            #line 33 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 34 "..\..\Areas\Admin\Views\User\Form.cshtml"
                                                       Write(item.Description.TrimStart(item.DisplayName).TrimStart("。"));
 
             
@@ -239,7 +240,7 @@ WriteLiteral(">");
 WriteLiteral("</p>\r\n");
 
             
-            #line 34 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 35 "..\..\Areas\Admin\Views\User\Form.cshtml"
                                 }
 
             
@@ -248,7 +249,7 @@ WriteLiteral("</p>\r\n");
 WriteLiteral("                            </div>\r\n                        </div>\r\n");
 
             
-            #line 37 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 38 "..\..\Areas\Admin\Views\User\Form.cshtml"
                     }
                     else
                     {
@@ -265,7 +266,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                            ");
 
             
-            #line 41 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 42 "..\..\Areas\Admin\Views\User\Form.cshtml"
                        Write(Html.Partial("_Form_Item", new Pair(Model, item)));
 
             
@@ -274,7 +275,7 @@ WriteLiteral("                            ");
 WriteLiteral("\r\n                        </div>\r\n");
 
             
-            #line 43 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 44 "..\..\Areas\Admin\Views\User\Form.cshtml"
                     }
                 }
             }
@@ -283,14 +284,14 @@ WriteLiteral("\r\n                        </div>\r\n");
             #line default
             #line hidden
             
-            #line 46 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 47 "..\..\Areas\Admin\Views\User\Form.cshtml"
        Write(Html.Partial("_Form_Action", isNew));
 
             
             #line default
             #line hidden
             
-            #line 46 "..\..\Areas\Admin\Views\User\Form.cshtml"
+            #line 47 "..\..\Areas\Admin\Views\User\Form.cshtml"
                                                 
         }
 

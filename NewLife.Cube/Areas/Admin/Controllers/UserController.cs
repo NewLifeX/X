@@ -126,6 +126,10 @@ namespace NewLife.Cube.Admin.Controllers
 
             user.Password = null;
 
+            // 用于显示的列
+            if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
+            ViewBag.Factory = UserX.Meta.Factory;
+            
             return View(user);
         }
 

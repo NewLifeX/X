@@ -62,7 +62,7 @@ WriteLiteral("\r\n        你好，");
 
             
             #line 5 "..\..\Views\Shared\_LoginPartial.cshtml"
-      Write(Html.ActionLink(ManageProvider.User + "", "Info", "Admin/User", routeValues: null, htmlAttributes: new { @class = "username", title = "管理" }));
+      Write(Html.ActionLink(ManageProvider.User + "", "Info", "Admin/User", routeValues: new { id = ManageProvider.User.ID }, htmlAttributes: new { @class = "username", title = "管理" }));
 
             
             #line default
