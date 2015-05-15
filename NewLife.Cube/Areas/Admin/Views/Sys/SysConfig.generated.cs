@@ -531,17 +531,6 @@ WriteLiteral("                    ");
             
             #line default
             #line hidden
-WriteLiteral("\r\n");
-
-WriteLiteral("                    ");
-
-            
-            #line 84 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
-               Write(Html.ValidationMessageFor(model => model.InstallTime));
-
-            
-            #line default
-            #line hidden
 WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
 
 WriteLiteral("            <div");
@@ -560,22 +549,22 @@ WriteLiteral(" class=\"btn btn-success\"");
 
 WriteLiteral("><i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 4165), Tuple.Create("\"", 4219)
-, Tuple.Create(Tuple.Create("", 4173), Tuple.Create("glyphicon", 4173), true)
-, Tuple.Create(Tuple.Create(" ", 4182), Tuple.Create("glyphicon-", 4183), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 4089), Tuple.Create("\"", 4143)
+, Tuple.Create(Tuple.Create("", 4097), Tuple.Create("glyphicon", 4097), true)
+, Tuple.Create(Tuple.Create(" ", 4106), Tuple.Create("glyphicon-", 4107), true)
             
-            #line 89 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
-             , Tuple.Create(Tuple.Create("", 4193), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
+            #line 88 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+             , Tuple.Create(Tuple.Create("", 4117), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
             
             #line default
             #line hidden
-, 4193), false)
+, 4117), false)
 );
 
 WriteLiteral("></i><strong>");
 
             
-            #line 89 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 88 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
                                                                                                                                 Write(isNew ? "新增" : "保存");
 
             
@@ -596,7 +585,7 @@ WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 WriteLiteral("></i><strong>取消</strong></button>\r\n            </div>\r\n");
 
             
-            #line 92 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 91 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
         }
 
             
@@ -611,7 +600,7 @@ WriteLiteral("\r\n");
 WriteLiteral("    ");
 
             
-            #line 97 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 96 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
 Write(Scripts.Render("~/bundles/jqueryval"));
 
             
