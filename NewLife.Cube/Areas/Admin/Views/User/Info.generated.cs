@@ -66,6 +66,7 @@ namespace ASP
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
     var fields = ViewBag.Fields as FieldCollection;
     var isNew = (Model as IEntity).IsNullKey;
+    var user = Model as IUser;
 
     // 个人不允许编辑角色和禁用
     fields.RemoveField("RoleID").RemoveField("Enable");
@@ -84,13 +85,13 @@ WriteLiteral(" class=\"form-horizontal\"");
 WriteLiteral(">\r\n");
 
             
-            #line 14 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 15 "..\..\Areas\Admin\Views\User\Info.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 14 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 15 "..\..\Areas\Admin\Views\User\Info.cshtml"
          if (ViewBag.StatusMessage != null)
         {
 
@@ -120,7 +121,7 @@ WriteLiteral(" aria-hidden=\"true\"");
 WriteLiteral(">&times;</span></button>\r\n                <strong>");
 
             
-            #line 18 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 19 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(ViewBag.StatusMessage);
 
             
@@ -129,7 +130,7 @@ WriteLiteral(">&times;</span></button>\r\n                <strong>");
 WriteLiteral("</strong>\r\n            </div>\r\n");
 
             
-            #line 20 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 21 "..\..\Areas\Admin\Views\User\Info.cshtml"
         }
 
             
@@ -138,23 +139,9 @@ WriteLiteral("</strong>\r\n            </div>\r\n");
 WriteLiteral("        ");
 
             
-            #line 21 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 22 "..\..\Areas\Admin\Views\User\Info.cshtml"
          using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
         {
-            
-            
-            #line default
-            #line hidden
-            
-            #line 23 "..\..\Areas\Admin\Views\User\Info.cshtml"
-       Write(Html.AntiForgeryToken());
-
-            
-            #line default
-            #line hidden
-            
-            #line 23 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                                    
             
             
             #line default
@@ -169,132 +156,297 @@ WriteLiteral("        ");
             
             #line 24 "..\..\Areas\Admin\Views\User\Info.cshtml"
                                      
-            foreach (var item in fields)
-            {
-                if (!item.PrimaryKey)
-                {
-                    if (item.Name == "RoleID")
-                    {
 
             
             #line default
             #line hidden
-WriteLiteral("                        <div");
+WriteLiteral("            <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n                            <label");
+WriteLiteral(">\r\n\r\n                <label");
 
 WriteLiteral(" class=\"control-label col-md-2\"");
 
-WriteLiteral(">");
+WriteLiteral(">名称</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                    ");
 
             
-            #line 32 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                                                             Write(item.DisplayName);
+            #line 29 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(user.Name);
 
             
             #line default
             #line hidden
-WriteLiteral("</label>\r\n                            <div");
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
 
-WriteLiteral(" class=\"input-group col-md-2\"");
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">密码</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
 
 WriteLiteral(">\r\n");
 
-WriteLiteral("                                ");
+WriteLiteral("                    ");
 
             
-            #line 34 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                           Write(Html.DropDownList(item.Name, Role.FindAllWithCache().ToList().Select(r => new SelectListItem { Text = r.Name, Value = r.ID + "" })));
+            #line 35 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(Html.ForEditor("Password"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
+
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">显示名</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 41 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(Html.ForEditor("DisplayName"));
 
             
             #line default
             #line hidden
 WriteLiteral("\r\n");
 
+WriteLiteral("                    ");
+
             
-            #line 35 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                                
-            
-            #line default
-            #line hidden
-            
-            #line 35 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                                 if (!item.Description.TrimStart(item.DisplayName).TrimStart("。").IsNullOrWhiteSpace())
-                                {
+            #line 42 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(Html.ForDescription("DisplayName"));
 
             
             #line default
             #line hidden
-WriteLiteral("                                    <p");
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
 
-WriteLiteral(" class=\"help-block\"");
-
-WriteLiteral(">");
-
-            
-            #line 37 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                                                      Write(item.Description.TrimStart(item.DisplayName).TrimStart("。"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</p>\r\n");
-
-            
-            #line 38 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                                }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                            </div>\r\n                        </div>\r\n");
-
-            
-            #line 41 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                    }
-                    else
-                    {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                        <div");
+WriteLiteral("            <div");
 
 WriteLiteral(" class=\"form-group\"");
 
+WriteLiteral(">\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">邮件</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
+
 WriteLiteral(">\r\n");
 
-WriteLiteral("                            ");
+WriteLiteral("                    ");
 
             
-            #line 45 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                       Write(Html.Partial("_Form_Item", new Pair(Model, item)));
+            #line 48 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(Html.ForEditor("Mail"));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                        </div>\r\n");
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
+
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">电话</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                    ");
 
             
-            #line 47 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                    }
-                }
-            }
+            #line 54 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(Html.ForEditor("Phone"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
+
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">代码</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 60 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(Html.ForEditor("Code"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 61 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(Html.ForDescription("Code"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
+
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">登录次数</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-2\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 68 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(user.Logins);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
+
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">最后登录</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-2\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 75 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(user.LastLogin.ToFullString());
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
+
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">最后登录IP</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 82 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(user.LastLoginIP);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
+
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">配置信息</label>\r\n                <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 89 "..\..\Areas\Admin\Views\User\Info.cshtml"
+               Write(user.Profile);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
+
+            
+            #line 92 "..\..\Areas\Admin\Views\User\Info.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 50 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 92 "..\..\Areas\Admin\Views\User\Info.cshtml"
        Write(Html.Partial("_Form_Action", isNew));
 
             
             #line default
             #line hidden
             
-            #line 50 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 92 "..\..\Areas\Admin\Views\User\Info.cshtml"
                                                 
         }
 

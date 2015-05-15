@@ -5,6 +5,7 @@
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
     var fields = ViewBag.Fields as FieldCollection;
     var isNew = (Model as IEntity).IsNullKey;
+    var user = Model as IUser;
 
     // 个人不允许编辑角色和禁用
     fields.RemoveField("RoleID").RemoveField("Enable");
@@ -20,33 +21,74 @@
         }
         @using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
         {
-            @Html.AntiForgeryToken()
             @Html.ValidationSummary()
-            foreach (var item in fields)
-            {
-                if (!item.PrimaryKey)
-                {
-                    if (item.Name == "RoleID")
-                    {
-                        <div class="form-group">
-                            <label class="control-label col-md-2">@item.DisplayName</label>
-                            <div class="input-group col-md-2">
-                                @Html.DropDownList(item.Name, Role.FindAllWithCache().ToList().Select(r => new SelectListItem { Text = r.Name, Value = r.ID + "" }))
-                                @if (!item.Description.TrimStart(item.DisplayName).TrimStart("。").IsNullOrWhiteSpace())
-                                {
-                                    <p class="help-block">@(item.Description.TrimStart(item.DisplayName).TrimStart("。"))</p>
-                                }
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="form-group">
-                            @Html.Partial("_Form_Item", new Pair(Model, item))
-                        </div>
-                    }
-                }
-            }
+            <div class="form-group">
+
+                <label class="control-label col-md-2">名称</label>
+                <div class="input-group col-md-6">
+                    @user.Name
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">密码</label>
+                <div class="input-group col-md-6">
+                    @Html.ForEditor("Password")
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">显示名</label>
+                <div class="input-group col-md-6">
+                    @Html.ForEditor("DisplayName")
+                    @Html.ForDescription("DisplayName")
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">邮件</label>
+                <div class="input-group col-md-6">
+                    @Html.ForEditor("Mail")
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">电话</label>
+                <div class="input-group col-md-6">
+                    @Html.ForEditor("Phone")
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2">代码</label>
+                <div class="input-group col-md-6">
+                    @Html.ForEditor("Code")
+                    @Html.ForDescription("Code")
+                </div>
+            </div>
+            <div class="form-group">
+
+                <label class="control-label col-md-2">登录次数</label>
+                <div class="input-group col-md-2">
+                    @user.Logins
+                </div>
+            </div>
+            <div class="form-group">
+
+                <label class="control-label col-md-2">最后登录</label>
+                <div class="input-group col-md-2">
+                    @user.LastLogin.ToFullString()
+                </div>
+            </div>
+            <div class="form-group">
+
+                <label class="control-label col-md-2">最后登录IP</label>
+                <div class="input-group col-md-6">
+                    @user.LastLoginIP
+                </div>
+            </div>
+            <div class="form-group">
+
+                <label class="control-label col-md-2">配置信息</label>
+                <div class="input-group col-md-6">
+                    @user.Profile
+                </div>
+            </div>
             @Html.Partial("_Form_Action", isNew)
         }
     </div>
