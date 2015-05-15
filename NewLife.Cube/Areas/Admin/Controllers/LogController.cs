@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
-using NewLife.Cube.Controllers;
 using XCode.Membership;
 using XLog = XCode.Membership.Log;
 
@@ -14,6 +13,12 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("日志")]
     public class LogController : EntityController<XLog>
     {
+        static LogController()
+        {
+            // 日志列表需要显示详细信息，不需要显示用户编号
+            ListFields.AddField("Remark").RemoveField("UserID");
+        }
+
         /// <summary>不允许添加修改日志</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
