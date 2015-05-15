@@ -187,12 +187,11 @@ WriteAttribute("src", Tuple.Create(" src=\"", 1579), Tuple.Create("\"", 1612)
 , 1585), false)
 );
 
-WriteLiteral("></script>\r\n    <![endif]-->\r\n\r\n    <!-- JQuery作为一等公民，页面内部随时可能使用 -->\r\n    <script" +
-"");
+WriteLiteral("></script>\r\n    <![endif]-->\r\n    <!-- JQuery作为一等公民，页面内部随时可能使用 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 1694), Tuple.Create("\"", 1732)
-, Tuple.Create(Tuple.Create("", 1700), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 1700), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 1692), Tuple.Create("\"", 1730)
+, Tuple.Create(Tuple.Create("", 1698), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 1698), false)
 );
 
 WriteLiteral("></script>\r\n</head>\r\n<body");
@@ -206,7 +205,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 49 "..\..\Areas\Admin\Views\Index\Index.cshtml"
+            #line 48 "..\..\Areas\Admin\Views\Index\Index.cshtml"
 Write(Html.Partial("_Navbar"));
 
             
@@ -222,8 +221,9 @@ WriteLiteral(">\r\n        <script");
 
 WriteLiteral(" type=\"text/javascript\"");
 
-WriteLiteral(">\r\n            try { ace.settings.check(\'main-container\', \'fixed\') } catch (e) { " +
-"}\r\n        </script>\r\n\r\n        <!-- #section:basics/sidebar -->\r\n        <div");
+WriteLiteral(">\r\n            $(function () {\r\n                try { ace.settings.check(\'main-co" +
+"ntainer\', \'fixed\') } catch (e) { }\r\n            });\r\n        </script>\r\n\r\n      " +
+"  <!-- #section:basics/sidebar -->\r\n        <div");
 
 WriteLiteral(" id=\"sidebar\"");
 
@@ -233,8 +233,9 @@ WriteLiteral(">\r\n            <script");
 
 WriteLiteral(" type=\"text/javascript\"");
 
-WriteLiteral(">\r\n                try { ace.settings.check(\'sidebar\', \'fixed\') } catch (e) { }\r\n" +
-"            </script>\r\n\r\n            <div");
+WriteLiteral(">\r\n                $(function () {\r\n                    try { ace.settings.check(" +
+"\'sidebar\', \'fixed\') } catch (e) { }\r\n                });\r\n            </script>\r" +
+"\n\r\n            <div");
 
 WriteLiteral(" class=\"sidebar-shortcuts\"");
 
@@ -308,7 +309,7 @@ WriteLiteral("></span>\r\n                </div>\r\n            </div>\r\n      
 WriteLiteral("            ");
 
             
-            #line 94 "..\..\Areas\Admin\Views\Index\Index.cshtml"
+            #line 97 "..\..\Areas\Admin\Views\Index\Index.cshtml"
        Write(Html.Partial("_Left"));
 
             
@@ -333,9 +334,9 @@ WriteLiteral("></i>\r\n            </div>\r\n\r\n            <!-- /section:basic
 
 WriteLiteral(" type=\"text/javascript\"");
 
-WriteLiteral(">\r\n    try { ace.settings.check(\'sidebar\', \'collapsed\') } catch (e) { }\r\n        " +
-"    </script>\r\n        </div>\r\n\r\n        <!-- /section:basics/sidebar -->\r\n     " +
-"   <div");
+WriteLiteral(">\r\n                $(function () {\r\n                    try { ace.settings.check(" +
+"\'sidebar\', \'collapsed\') } catch (e) { }\r\n                })\r\n            </scrip" +
+"t>\r\n        </div>\r\n\r\n        <!-- /section:basics/sidebar -->\r\n        <div");
 
 WriteLiteral(" class=\"main-content\"");
 
@@ -614,14 +615,14 @@ WriteLiteral(" id=\"main\"");
 
 WriteLiteral(" name=\"main\"");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 10100), Tuple.Create("\"", 10119)
+WriteAttribute("src", Tuple.Create(" src=\"", 10275), Tuple.Create("\"", 10294)
             
-            #line 199 "..\..\Areas\Admin\Views\Index\Index.cshtml"
-                                              , Tuple.Create(Tuple.Create("", 10106), Tuple.Create<System.Object, System.Int32>(ViewBag.Main
+            #line 204 "..\..\Areas\Admin\Views\Index\Index.cshtml"
+                                              , Tuple.Create(Tuple.Create("", 10281), Tuple.Create<System.Object, System.Int32>(ViewBag.Main
             
             #line default
             #line hidden
-, 10106), false)
+, 10281), false)
 );
 
 WriteLiteral("></iframe>\r\n                </div>\r\n                <!-- /.page-content -->\r\n    " +
@@ -648,7 +649,7 @@ WriteLiteral(" class=\"blue bolder\"");
 WriteLiteral(">");
 
             
-            #line 210 "..\..\Areas\Admin\Views\Index\Index.cshtml"
+            #line 215 "..\..\Areas\Admin\Views\Index\Index.cshtml"
                                              Write(Config.DisplayName);
 
             
@@ -659,7 +660,7 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("                        ");
 
             
-            #line 211 "..\..\Areas\Admin\Views\Index\Index.cshtml"
+            #line 216 "..\..\Areas\Admin\Views\Index\Index.cshtml"
                    Write(Config.Company);
 
             
@@ -668,7 +669,7 @@ WriteLiteral("                        ");
 WriteLiteral(" &copy; 2002-");
 
             
-            #line 211 "..\..\Areas\Admin\Views\Index\Index.cshtml"
+            #line 216 "..\..\Areas\Admin\Views\Index\Index.cshtml"
                                                Write(DateTime.Now.Year);
 
             
@@ -720,37 +721,37 @@ WriteLiteral(" class=\"ace-icon fa fa-angle-double-up icon-only bigger-110\"");
 WriteLiteral("></i>\r\n        </a>\r\n    </div>\r\n    <!-- /.main-container -->\r\n    <!-- basic sc" +
 "ripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 11644), Tuple.Create("\"", 11689)
-, Tuple.Create(Tuple.Create("", 11650), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 11650), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 11819), Tuple.Create("\"", 11864)
+, Tuple.Create(Tuple.Create("", 11825), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 11825), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 11713), Tuple.Create("\"", 11755)
-, Tuple.Create(Tuple.Create("", 11719), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
-, 11719), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 11888), Tuple.Create("\"", 11930)
+, Tuple.Create(Tuple.Create("", 11894), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
+, 11894), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 11779), Tuple.Create("\"", 11826)
-, Tuple.Create(Tuple.Create("", 11785), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
-, 11785), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 11954), Tuple.Create("\"", 12001)
+, Tuple.Create(Tuple.Create("", 11960), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
+, 11960), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- ace scripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 11878), Tuple.Create("\"", 11920)
-, Tuple.Create(Tuple.Create("", 11884), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
-, 11884), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12053), Tuple.Create("\"", 12095)
+, Tuple.Create(Tuple.Create("", 12059), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
+, 12059), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 11944), Tuple.Create("\"", 11977)
-, Tuple.Create(Tuple.Create("", 11950), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
-, 11950), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12119), Tuple.Create("\"", 12152)
+, Tuple.Create(Tuple.Create("", 12125), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
+, 12125), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <script");

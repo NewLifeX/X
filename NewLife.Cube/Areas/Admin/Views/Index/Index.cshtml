@@ -41,7 +41,6 @@
     <script src="~/Content/js/html5shiv.min.js"></script>
     <script src="~/Content/js/respond.min.js"></script>
     <![endif]-->
-
     <!-- JQuery作为一等公民，页面内部随时可能使用 -->
     <script src="~/Content/js/jquery-2.1.3.min.js"></script>
 </head>
@@ -49,13 +48,17 @@
     @Html.Partial("_Navbar")
     <div class="main-container" id="main-container">
         <script type="text/javascript">
-            try { ace.settings.check('main-container', 'fixed') } catch (e) { }
+            $(function () {
+                try { ace.settings.check('main-container', 'fixed') } catch (e) { }
+            });
         </script>
 
         <!-- #section:basics/sidebar -->
         <div id="sidebar" class="sidebar                  responsive">
             <script type="text/javascript">
-                try { ace.settings.check('sidebar', 'fixed') } catch (e) { }
+                $(function () {
+                    try { ace.settings.check('sidebar', 'fixed') } catch (e) { }
+                });
             </script>
 
             <div class="sidebar-shortcuts" id="sidebar-shortcuts">
@@ -99,7 +102,9 @@
 
             <!-- /section:basics/sidebar.layout.minimize -->
             <script type="text/javascript">
-    try { ace.settings.check('sidebar', 'collapsed') } catch (e) { }
+                $(function () {
+                    try { ace.settings.check('sidebar', 'collapsed') } catch (e) { }
+                })
             </script>
         </div>
 
