@@ -15,22 +15,6 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("用户")]
     public class UserController : EntityController<UserX>
     {
-        /// <summary>列表页视图。子控制器可重载，以传递更多信息给视图，比如修改要显示的列</summary>
-        /// <param name="p"></param>
-        /// <returns></returns>
-        protected override ActionResult IndexView(Pager p)
-        {
-            // 让角色ID字段变为角色名字段，友好显示
-            var fields = ViewBag.Fields as List<FieldItem>;
-            for (int i = 0; i < fields.Count; i++)
-            {
-                if (fields[i].Name.EqualIgnoreCase("RoleID"))
-                    fields[i] = UserX.Meta.AllFields.FirstOrDefault(e => e.Name == "RoleName");
-            }
-
-            return base.IndexView(p);
-        }
-
         /// <summary>表单页视图。</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -87,7 +71,7 @@ namespace NewLife.Cube.Admin.Controllers
                 }
 
                 // 如果我们进行到这一步时某个地方出错，则重新显示表单
-                ModelState.AddModelError("", "提供的用户名或密码不正确。");
+                ModelState.AddModelError("username", "提供的用户名或密码不正确。");
             }
             catch (Exception ex)
             {

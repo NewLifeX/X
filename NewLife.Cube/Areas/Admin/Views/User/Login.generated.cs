@@ -149,22 +149,31 @@ WriteAttribute("href", Tuple.Create(" href=\"", 921), Tuple.Create("\"", 960)
 , 928), false)
 );
 
-WriteLiteral(" />\r\n    <![endif]-->\r\n    <!-- 最后引入基本样式 -->\r\n    <link");
+WriteLiteral(" />\r\n    <![endif]-->\r\n\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1033), Tuple.Create("\"", 1081)
-, Tuple.Create(Tuple.Create("", 1040), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap.min.css")
-, 1040), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 1012), Tuple.Create("\"", 1037)
+, Tuple.Create(Tuple.Create("", 1019), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Site.css")
+, 1019), false)
+);
+
+WriteLiteral(" />\r\n\r\n    <!-- 最后引入基本样式 -->\r\n    <link");
+
+WriteLiteral(" rel=\"stylesheet\"");
+
+WriteAttribute("href", Tuple.Create(" href=\"", 1094), Tuple.Create("\"", 1142)
+, Tuple.Create(Tuple.Create("", 1101), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap.min.css")
+, 1101), false)
 );
 
 WriteLiteral(" />\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1113), Tuple.Create("\"", 1164)
-, Tuple.Create(Tuple.Create("", 1120), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/font-awesome.min.css")
-, 1120), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 1174), Tuple.Create("\"", 1225)
+, Tuple.Create(Tuple.Create("", 1181), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/font-awesome.min.css")
+, 1181), false)
 );
 
 WriteLiteral(" />\r\n</head>\r\n<body");
@@ -206,7 +215,7 @@ WriteLiteral(" class=\"red\"");
 WriteLiteral(">");
 
             
-            #line 41 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 44 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                              Write(SysConfig.Current.DisplayName.Substring(0, 3));
 
             
@@ -221,7 +230,7 @@ WriteLiteral(" id=\"id-text2\"");
 WriteLiteral(">");
 
             
-            #line 42 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 45 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                                              Write(SysConfig.Current.DisplayName.Substring(3));
 
             
@@ -236,7 +245,7 @@ WriteLiteral(" id=\"id-company-text\"");
 WriteLiteral(">&copy; ");
 
             
-            #line 44 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 47 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                                                     Write(SysConfig.Current.Company);
 
             
@@ -280,15 +289,29 @@ WriteLiteral(" class=\"space-6\"");
 WriteLiteral("></div>\r\n\r\n");
 
             
-            #line 60 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 63 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                         
             
             #line default
             #line hidden
             
-            #line 60 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 63 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                          using (Html.BeginForm("Login", "User", new { ReturnUrl = ViewBag.ReturnUrl }))
                                         {
+                                            
+            
+            #line default
+            #line hidden
+            
+            #line 65 "..\..\Areas\Admin\Views\User\Login.cshtml"
+                                       Write(Html.ValidationSummary());
+
+            
+            #line default
+            #line hidden
+            
+            #line 65 "..\..\Areas\Admin\Views\User\Login.cshtml"
+                                                                     
 
             
             #line default
@@ -316,9 +339,18 @@ WriteLiteral(" />\r\n                                                        <i"
 
 WriteLiteral(" class=\"ace-icon fa fa-user\"");
 
-WriteLiteral("></i>\r\n                                                    </span>\r\n             " +
-"                                   </label>\r\n\r\n                                 " +
-"               <label");
+WriteLiteral("></i>");
+
+            
+            #line 70 "..\..\Areas\Admin\Views\User\Login.cshtml"
+                                                                                      Write(Html.ValidationMessage("username"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                                                    </span>\r\n                  " +
+"                              </label>\r\n\r\n                                      " +
+"          <label");
 
 WriteLiteral(" class=\"block clearfix\"");
 
@@ -340,9 +372,18 @@ WriteLiteral(" />\r\n                                                        <i"
 
 WriteLiteral(" class=\"ace-icon fa fa-lock\"");
 
-WriteLiteral("></i>\r\n                                                    </span>\r\n             " +
-"                                   </label>\r\n\r\n                                 " +
-"               <div");
+WriteLiteral("></i>");
+
+            
+            #line 77 "..\..\Areas\Admin\Views\User\Login.cshtml"
+                                                                                      Write(Html.ValidationMessage("password"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                                                    </span>\r\n                  " +
+"                              </label>\r\n\r\n                                      " +
+"          <div");
 
 WriteLiteral(" class=\"space\"");
 
@@ -392,7 +433,7 @@ WriteLiteral(" class=\"space-4\"");
 WriteLiteral("></div>\r\n                                            </fieldset>\r\n");
 
             
-            #line 93 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 97 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                         }
 
             
@@ -470,13 +511,13 @@ WriteLiteral("></div>\r\n                                        <p>\r\n        
 "                 输入你的邮箱地址\r\n                                        </p>\r\n\r\n");
 
             
-            #line 127 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 131 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                         
             
             #line default
             #line hidden
             
-            #line 127 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 131 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                          using (Html.BeginForm("ForgetPassword"))
                                         {
 
@@ -529,7 +570,7 @@ WriteLiteral(">发送</span>\r\n                                                
 "              </fieldset>\r\n");
 
             
-            #line 144 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 148 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                         }
 
             
@@ -586,13 +627,13 @@ WriteLiteral(" class=\"space-6\"");
 WriteLiteral("></div>\r\n                                        <p> 输入你的信息 </p>\r\n\r\n");
 
             
-            #line 167 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 171 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                         
             
             #line default
             #line hidden
             
-            #line 167 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 171 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                          using (Html.BeginForm("Register"))
                                         {
 
@@ -751,7 +792,7 @@ WriteLiteral("></i>\r\n                                                    </but
 "         </fieldset>\r\n");
 
             
-            #line 221 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 225 "..\..\Areas\Admin\Views\User\Login.cshtml"
                                         }
 
             
@@ -824,45 +865,45 @@ WriteLiteral(@">明亮</a>
     <!-- JQuery作为一等公民，页面内部随时可能使用 -->
     <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14696), Tuple.Create("\"", 14734)
-, Tuple.Create(Tuple.Create("", 14702), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 14702), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 14898), Tuple.Create("\"", 14936)
+, Tuple.Create(Tuple.Create("", 14904), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 14904), false)
 );
 
 WriteLiteral("></script>\r\n    <!-- 最早引入基本脚本 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14781), Tuple.Create("\"", 14826)
-, Tuple.Create(Tuple.Create("", 14787), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 14787), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 14983), Tuple.Create("\"", 15028)
+, Tuple.Create(Tuple.Create("", 14989), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 14989), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14850), Tuple.Create("\"", 14892)
-, Tuple.Create(Tuple.Create("", 14856), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
-, 14856), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15052), Tuple.Create("\"", 15094)
+, Tuple.Create(Tuple.Create("", 15058), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
+, 15058), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14916), Tuple.Create("\"", 14963)
-, Tuple.Create(Tuple.Create("", 14922), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
-, 14922), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15118), Tuple.Create("\"", 15165)
+, Tuple.Create(Tuple.Create("", 15124), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
+, 15124), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements" +
 " and media queries -->\r\n    <!--[if lte IE 8]>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 15104), Tuple.Create("\"", 15139)
-, Tuple.Create(Tuple.Create("", 15110), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
-, 15110), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15306), Tuple.Create("\"", 15341)
+, Tuple.Create(Tuple.Create("", 15312), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
+, 15312), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 15163), Tuple.Create("\"", 15196)
-, Tuple.Create(Tuple.Create("", 15169), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
-, 15169), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15365), Tuple.Create("\"", 15398)
+, Tuple.Create(Tuple.Create("", 15371), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
+, 15371), false)
 );
 
 WriteLiteral("></script>\r\n    <![endif]-->\r\n    <!-- inline scripts related to this page -->\r\n " +

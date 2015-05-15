@@ -25,6 +25,9 @@
     <!--[if lte IE 9]>
         <link rel="stylesheet" href="~/Content/ace/css/ace-ie.min.css" />
     <![endif]-->
+
+    <link rel="stylesheet" href="~/Content/Site.css" />
+
     <!-- 最后引入基本样式 -->
     <link rel="stylesheet" href="~/Content/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/Content/bootstrap/css/font-awesome.min.css" />
@@ -59,18 +62,19 @@
 
                                         @using (Html.BeginForm("Login", "User", new { ReturnUrl = ViewBag.ReturnUrl }))
                                         {
+                                            @Html.ValidationSummary()
                                             <fieldset>
                                                 <label class="block clearfix">
                                                     <span class="block input-icon input-icon-right">
                                                         <input name="username" type="text" class="form-control" placeholder="用户名" />
-                                                        <i class="ace-icon fa fa-user"></i>
+                                                        <i class="ace-icon fa fa-user"></i>@Html.ValidationMessage("username")
                                                     </span>
                                                 </label>
 
                                                 <label class="block clearfix">
                                                     <span class="block input-icon input-icon-right">
                                                         <input name="password" type="password" class="form-control" placeholder="密码" />
-                                                        <i class="ace-icon fa fa-lock"></i>
+                                                        <i class="ace-icon fa fa-lock"></i>@Html.ValidationMessage("password")
                                                     </span>
                                                 </label>
 
