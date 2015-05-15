@@ -31,6 +31,8 @@ namespace System
         /// <returns></returns>
         public static Boolean StartsWithIgnoreCase(this String value, params String[] strs)
         {
+            if (String.IsNullOrEmpty(value)) return false;
+
             foreach (var item in strs)
             {
                 if (value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
@@ -44,6 +46,8 @@ namespace System
         /// <returns></returns>
         public static Boolean EndsWithIgnoreCase(this String value, params String[] strs)
         {
+            if (String.IsNullOrEmpty(value)) return false;
+
             foreach (var item in strs)
             {
                 if (value.EndsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
