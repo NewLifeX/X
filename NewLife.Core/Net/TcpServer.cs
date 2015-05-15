@@ -213,16 +213,17 @@ namespace NewLife.Net
             // 设置心跳时间
             client.Client.SetTcpKeepAlive(true);
 
-            _Sessions.Add(session);
+            if (_Sessions.Add(session))
+            {
+                WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
 
-            WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
+                if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
 
-            if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
-
-            //// 必须在ReceiveAsync之前设定是否使用异步处理，否则ReceiveAsync可能马上有数据返回
-            //session.UseProcessAsync = UseProcessAsync;
-            // 自动开始异步接收处理
-            if (AutoReceiveAsync) session.ReceiveAsync();
+                //// 必须在ReceiveAsync之前设定是否使用异步处理，否则ReceiveAsync可能马上有数据返回
+                //session.UseProcessAsync = UseProcessAsync;
+                // 自动开始异步接收处理
+                if (AutoReceiveAsync) session.ReceiveAsync();
+            }
         }
         #endregion
 
@@ -295,7 +296,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
-            var ss=Sessions;
+            var ss = Sessions;
             var count = ss != null ? ss.Count : 0;
             if (count > 0)
                 return String.Format("{0} [{1}]", Local, count);

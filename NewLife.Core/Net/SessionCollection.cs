@@ -38,16 +38,22 @@ namespace NewLife.Net
         #region 主要方法
         /// <summary>添加新会话，并设置会话编号</summary>
         /// <param name="session"></param>
-        public void Add(ISocketSession session)
+        public Boolean Add(ISocketSession session)
         {
+            var key = session.Remote.EndPoint + "";
+            if (_dic.ContainsKey(key)) return false;
             lock (_dic)
             {
+                if (_dic.ContainsKey(key)) return false;
+                
                 //session.ID = ++sessionID;
                 session.OnDisposed += (s, e) => { lock (_dic) { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); } };
-                _dic.Add(session.Remote.EndPoint + "", session);
+                _dic.Add(key, session);
 
                 if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, ClearPeriod, ClearPeriod);
             }
+
+            return true;
         }
 
         /// <summary>获取会话，加锁</summary>

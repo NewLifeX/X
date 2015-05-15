@@ -482,16 +482,18 @@ namespace NewLife.Net
             if (session == null)
             {
                 var us = new UdpSession(this, remoteEP);
-                us.ID = g_ID++;
                 session = us;
                 //Interlocked.Increment(ref _Sessions);
                 //session.OnDisposed += (s, e) => Interlocked.Decrement(ref _Sessions);
-                _Sessions.Add(session);
+                if (_Sessions.Add(session))
+                {
+                    us.ID = g_ID++;
+                    
+                    WriteLog("{0}[{1}].NewSession {2}", Name, us.ID, remoteEP);
 
-                WriteLog("{0}[{1}].NewSession {2}", Name, us.ID, remoteEP);
-
-                // 触发新会话事件
-                if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
+                    // 触发新会话事件
+                    if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
+                }
             }
 
             return session;
