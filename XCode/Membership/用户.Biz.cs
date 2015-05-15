@@ -45,17 +45,13 @@ namespace XCode.Membership
 
             if (Meta.Count > 0) return;
 
-            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}管理员数据……", typeof(TEntity).Name);
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}用户数据……", typeof(TEntity).Name);
 
-            var user = new TEntity();
-            user.Name = "admin";
-            user.Password = DataHelper.Hash("admin");
-            user.DisplayName = "管理员";
-            user.RoleID = 1;
-            user.Enable = true;
-            user.Insert();
+            Add("admin", null, 1, "管理员");
+            Add("poweruser", null, 2, "高级用户");
+            Add("user", null, 3, "普通用户");
 
-            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}管理员数据！", typeof(TEntity).Name);
+            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}用户数据！", typeof(TEntity).Name);
         }
 
         /// <summary>验证</summary>
@@ -171,7 +167,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Name, name);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(__.Name, name);
+                return Meta.Cache.Entities.FindIgnoreCase(__.Name, name);
         }
 
         /// <summary>根据邮箱地址查找</summary>
@@ -182,7 +178,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Mail, mail);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(__.Mail, mail);
+                return Meta.Cache.Entities.FindIgnoreCase(__.Mail, mail);
         }
 
         /// <summary>根据手机号码查找</summary>
@@ -204,7 +200,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Code, code);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(__.Code, code);
+                return Meta.Cache.Entities.FindIgnoreCase(__.Code, code);
         }
 
         /// <summary>查询满足条件的记录集，分页、排序</summary>
@@ -286,6 +282,31 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展操作
+        /// <summary>添加用户，如果存在则直接返回</summary>
+        /// <param name="name"></param>
+        /// <param name="pass"></param>
+        /// <param name="roleid"></param>
+        /// <param name="display"></param>
+        /// <returns></returns>
+        public static TEntity Add(String name, String pass, Int32 roleid = 1, String display = null)
+        {
+            var entity = FindByName(name);
+            if (entity != null) return entity;
+
+            if (pass.IsNullOrEmpty()) pass = name;
+
+            entity = new TEntity();
+            entity.Name = name;
+            entity.Password = pass.MD5();
+            entity.DisplayName = display;
+            entity.RoleID = roleid;
+            entity.Enable = true;
+
+            entity.Save();
+
+            return entity;
+        }
+
         /// <summary>已重载。显示友好名字</summary>
         /// <returns></returns>
         public override string ToString() { return FriendName; }

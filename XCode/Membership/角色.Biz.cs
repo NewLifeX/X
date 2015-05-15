@@ -88,10 +88,9 @@ namespace XCode.Membership
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
 
-            var entity = new TEntity();
-            entity.Name = "管理员";
-            entity.IsSystem = true;
-            entity.Save();
+            Add("管理员", true);
+            Add("高级用户", true);
+            Add("普通用户", true);
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
 
@@ -118,7 +117,7 @@ namespace XCode.Membership
                 }
             }
 
-            var sys = list.FirstOrDefault(e => e.IsSystem);
+            var sys = list.LastOrDefault(e => e.IsSystem);
             if (sys == null) return;
 
             // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
@@ -377,14 +376,24 @@ namespace XCode.Membership
         {
             if (String.IsNullOrEmpty(name)) return null;
 
-            var role = FindByName(name);
-            if (role != null) return role;
+            return Add(name, false);
+        }
 
-            role = new TEntity();
-            role.Name = name;
-            role.Insert();
+        /// <summary>添加角色，如果存在，则直接返回，否则创建</summary>
+        /// <param name="name"></param>
+        /// <param name="issys"></param>
+        /// <returns></returns>
+        public static TEntity Add(String name, Boolean issys)
+        {
+            var entity = FindByName(name);
+            if (entity != null) return entity;
 
-            return role;
+            entity = new TEntity();
+            entity.Name = name;
+            entity.IsSystem = issys;
+            entity.Save();
+
+            return entity;
         }
         #endregion
 
