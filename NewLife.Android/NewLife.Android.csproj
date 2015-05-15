@@ -111,6 +111,9 @@
     <Compile Include="..\NewLife.Core\Log\LogLevel.cs">
       <Link>Log\LogLevel.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Log\NetworkLog.cs">
+      <Link>Log\NetworkLog.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Log\TextFileLog.cs">
       <Link>Log\TextFileLog.cs</Link>
     </Compile>
