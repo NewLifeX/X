@@ -29,10 +29,6 @@
                     @Config.DisplayName
                 </small>
             </a>
-
-            <!-- /section:basics/navbar.layout.brand -->
-            <!-- #section:basics/navbar.toggle -->
-            <!-- /section:basics/navbar.toggle -->
         </div>
 
         <!-- #section:basics/navbar.dropdown -->
@@ -295,7 +291,7 @@
 
                 <!-- #section:basics/navbar.user_menu -->
                 <li class="light-blue">
-                    <a data-toggle="dropdown" href="#" class="dropdown-toggle">
+                    <a data-toggle="dropdown" href="~/Admin/User/Profile/@User.ID" class="dropdown-toggle" target="main">
                         <img class="nav-user-photo" src="~/Content/ace/avatars/user.jpg" alt="@User.FriendName" />
                         <span class="user-info">
                             <small>欢迎，</small>
@@ -307,14 +303,14 @@
 
                     <ul class="user-menu dropdown-menu-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
                         <li>
-                            <a href="#">
+                            <a href="~/Admin/Sys" target="main">
                                 <i class="ace-icon fa fa-cog"></i>
                                 设置
                             </a>
                         </li>
 
                         <li>
-                            <a href="Sys/AdminInfo.aspx?ID=@User.ID">
+                            <a href="~/Admin/User/Profile/@User.ID" target="main">
                                 <i class="ace-icon fa fa-user"></i>
                                 个人信息
                             </a>
@@ -323,7 +319,7 @@
                         <li class="divider"></li>
 
                         <li>
-                            <a href="Login.aspx?act=logout">
+                            <a href="~/Admin/User/Logout">
                                 <i class="ace-icon fa fa-power-off"></i>
                                 注销
                             </a>

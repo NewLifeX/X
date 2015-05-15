@@ -143,6 +143,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SysConfig.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\User\Login.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Login.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\User\Profile.generated.cs">
+      <DependentUpon>Profile.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Areas\Admin\Views\User\Form.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -322,6 +332,8 @@
     <Content Include="Content\ace\css\ace-part2.min.css" />
     <Content Include="Content\ace\css\ace.css" />
     <Content Include="Content\ace\css\ace.min.css" />
+    <Content Include="Content\ace\css\images\meteorshower2.jpg" />
+    <Content Include="Content\ace\css\images\pattern.jpg" />
     <Content Include="Content\ace\js\ace-elements.min.js" />
     <Content Include="Content\ace\js\ace-extra.js" />
     <Content Include="Content\ace\js\ace-extra.min.js" />
@@ -467,6 +479,14 @@
     <Content Include="Content\themes\base\minified\jquery.ui.tabs.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
     <Content Include="favicon.ico" />
+    <None Include="Areas\Admin\Views\User\Login.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Login.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Areas\Admin\Views\User\Profile.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Profile.generated.cs</LastGenOutput>
+    </None>
     <None Include="Areas\Admin\Views\User\_List_Toolbar.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>

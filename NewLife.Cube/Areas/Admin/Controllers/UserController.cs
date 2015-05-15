@@ -39,5 +39,62 @@ namespace NewLife.Cube.Admin.Controllers
 
             return base.FormView(entity);
         }
+
+        /// <summary>登录</summary>
+        /// <returns></returns>
+        [AllowAnonymous]
+        public ActionResult Login()
+        {
+            return View();
+        }
+
+        /// <summary>登录</summary>
+        /// <param name="user"></param>
+        /// <param name="pass"></param>
+        /// <param name="remember"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [AllowAnonymous]
+        public ActionResult Login(String user, String pass, Boolean remember)
+        {
+            var entity = UserX.Login(user, pass, remember);
+
+            return View();
+        }
+
+        /// <summary>注销</summary>
+        /// <returns></returns>
+        [AllowAnonymous]
+        public ActionResult Logout()
+        {
+            ManageProvider.User.Logout();
+            //ManageProvider.User = null;
+
+            return RedirectToAction("Main", "Index");
+        }
+
+        /// <summary>用户资料</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public ActionResult Profile(Int32? id)
+        {
+            if (id == null || id.Value <= 0) throw new Exception("无效用户编号！");
+
+            var user = UserX.FindByID(id.Value);
+            if (user == null) throw new Exception("无效用户编号！");
+
+            user.Password = null;
+
+            return View(user);
+        }
+
+        /// <summary>用户资料</summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult Profile(UserX user)
+        {
+            return View();
+        }
     }
 }
