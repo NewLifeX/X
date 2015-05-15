@@ -144,30 +144,14 @@ WriteLiteral(" /></a></p>\r\n                </div>\r\n                <div");
 
 WriteLiteral(" class=\"float-right\"");
 
-WriteLiteral(">\r\n                    <section");
-
-WriteLiteral(" id=\"login\"");
-
-WriteLiteral(">\r\n");
-
-WriteLiteral("                        ");
-
-            
-            #line 21 "..\..\Views\Shared\_Layout.cshtml"
-                   Write(Html.Partial("_LoginPartial"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                    </section>\r\n                    <nav>\r\n                    " +
-"    <ul");
+WriteLiteral(">\r\n                    <nav>\r\n                        <ul");
 
 WriteLiteral(" id=\"menu\"");
 
 WriteLiteral(">\r\n                            <li>");
 
             
-            #line 25 "..\..\Views\Shared\_Layout.cshtml"
+            #line 22 "..\..\Views\Shared\_Layout.cshtml"
                            Write(Html.ActionLink("主页", "Index", "Home"));
 
             
@@ -176,7 +160,7 @@ WriteLiteral(">\r\n                            <li>");
 WriteLiteral("</li>\r\n                            <li>");
 
             
-            #line 26 "..\..\Views\Shared\_Layout.cshtml"
+            #line 23 "..\..\Views\Shared\_Layout.cshtml"
                            Write(Html.ActionLink("关于", "About", "Home"));
 
             
@@ -185,7 +169,7 @@ WriteLiteral("</li>\r\n                            <li>");
 WriteLiteral("</li>\r\n                            <li>");
 
             
-            #line 27 "..\..\Views\Shared\_Layout.cshtml"
+            #line 24 "..\..\Views\Shared\_Layout.cshtml"
                            Write(Html.ActionLink("联系方式", "Contact", "Home"));
 
             
@@ -194,7 +178,7 @@ WriteLiteral("</li>\r\n                            <li>");
 WriteLiteral("</li>\r\n                            <li>");
 
             
-            #line 28 "..\..\Views\Shared\_Layout.cshtml"
+            #line 25 "..\..\Views\Shared\_Layout.cshtml"
                            Write(Html.ActionLink("管理后台", "Index", "Admin"));
 
             
@@ -210,7 +194,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("            ");
 
             
-            #line 35 "..\..\Views\Shared\_Layout.cshtml"
+            #line 32 "..\..\Views\Shared\_Layout.cshtml"
        Write(RenderSection("featured", required: false));
 
             
@@ -225,7 +209,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 37 "..\..\Views\Shared\_Layout.cshtml"
+            #line 34 "..\..\Views\Shared\_Layout.cshtml"
            Write(RenderBody());
 
             
@@ -242,7 +226,7 @@ WriteLiteral(" class=\"float-left\"");
 WriteLiteral(">\r\n                    <p>&copy; ");
 
             
-            #line 43 "..\..\Views\Shared\_Layout.cshtml"
+            #line 40 "..\..\Views\Shared\_Layout.cshtml"
                          Write(DateTime.Now.Year);
 
             
@@ -251,7 +235,7 @@ WriteLiteral(">\r\n                    <p>&copy; ");
 WriteLiteral(" - ");
 
             
-            #line 43 "..\..\Views\Shared\_Layout.cshtml"
+            #line 40 "..\..\Views\Shared\_Layout.cshtml"
                                               Write(SysConfig.Current.DisplayName);
 
             
@@ -262,7 +246,7 @@ WriteLiteral("</p>\r\n                </div>\r\n            </div>\r\n        </
 WriteLiteral("        ");
 
             
-            #line 48 "..\..\Views\Shared\_Layout.cshtml"
+            #line 45 "..\..\Views\Shared\_Layout.cshtml"
    Write(Scripts.Render("~/bundles/jquery"));
 
             
@@ -273,7 +257,7 @@ WriteLiteral("\r\n");
 WriteLiteral("        ");
 
             
-            #line 49 "..\..\Views\Shared\_Layout.cshtml"
+            #line 46 "..\..\Views\Shared\_Layout.cshtml"
    Write(RenderSection("scripts", required: false));
 
             

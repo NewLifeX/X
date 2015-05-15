@@ -2,18 +2,14 @@
 @if (ManageProvider.User != null)
 {
     <text>
-        你好，@Html.ActionLink(ManageProvider.User + "", "Manage", "Account", routeValues: null, htmlAttributes: new { @class = "username", title = "管理" })!
-        @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" }))
-        {
-            @Html.AntiForgeryToken()
-            <a href="javascript:document.getElementById('logoutForm').submit()">注销</a>
-        }
+        你好，@Html.ActionLink(ManageProvider.User + "", "Info", "Admin/User", routeValues: null, htmlAttributes: new { @class = "username", title = "管理" })!
+        @Html.ActionLink("注销", "Logout", "Admin/User")
     </text>
 }
 else
 {
     <ul>
-        <li>@Html.ActionLink("注册", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
-        <li>@Html.ActionLink("登录", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+        <li>@Html.ActionLink("注册", "Login", "Admin/User", routeValues: new { ReturnUrl = Request.Url, act = "Register" }, htmlAttributes: new { id = "registerLink" })</li>
+        <li>@Html.ActionLink("登录", "Login", "Admin/User", routeValues: new { ReturnUrl = Request.Url }, htmlAttributes: new { id = "loginLink" })</li>
     </ul>
 }

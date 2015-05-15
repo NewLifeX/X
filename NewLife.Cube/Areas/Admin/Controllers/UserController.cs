@@ -47,6 +47,15 @@ namespace NewLife.Cube.Admin.Controllers
         [AllowAnonymous]
         public ActionResult Login(String returnUrl)
         {
+            // 如果已登录，直接跳转
+            if (ManageProvider.User != null)
+            {
+                if (Url.IsLocalUrl(returnUrl))
+                    return Redirect(returnUrl);
+                else
+                    return RedirectToAction("Index", "Index");
+            }
+
             ViewBag.ReturnUrl = returnUrl;
 
             return View();
@@ -95,7 +104,7 @@ namespace NewLife.Cube.Admin.Controllers
             ManageProvider.User.Logout();
             //ManageProvider.User = null;
 
-            return RedirectToAction("Index", "Index");
+            return RedirectToAction("Login");
         }
 
         /// <summary>用户资料</summary>

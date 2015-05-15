@@ -2,10 +2,10 @@
     var User = ViewBag.User;
     var Config = ViewBag.Config;
 }
-    <!-- #section:basics/navbar.layout -->
+<!-- #section:basics/navbar.layout -->
 <div id="navbar" class="navbar navbar-default">
     <script type="text/javascript">
-            try { ace.settings.check('navbar', 'fixed') } catch (e) { }
+        try { ace.settings.check('navbar', 'fixed') } catch (e) { }
     </script>
 
     <div class="navbar-container" id="navbar-container">
@@ -303,11 +303,21 @@
 
                     <ul class="user-menu dropdown-menu-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
                         <li>
-                            <a href="~/Admin/Sys" target="main">
+                            <a href="~/" target="_blank">
                                 <i class="ace-icon fa fa-cog"></i>
-                                设置
+                                网站首页
                             </a>
                         </li>
+
+                        @if (ManageProvider.User.Has("Admin/Sys", PermissionFlags.Detail))
+                        {
+                            <li>
+                                <a href="~/Admin/Sys" target="main">
+                                    <i class="ace-icon fa fa-cog"></i>
+                                    设置
+                                </a>
+                            </li>
+                        }
 
                         <li>
                             <a href="~/Admin/User/Info/@User.ID" target="main">

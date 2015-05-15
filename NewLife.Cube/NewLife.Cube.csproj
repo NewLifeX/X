@@ -182,7 +182,6 @@
     <Compile Include="Common\AreaRegistrationBase.cs" />
     <Compile Include="Common\EntityModelBinder.cs" />
     <Compile Include="Common\MembershipExtensions.cs" />
-    <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Common\EntityController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Common\EntityAuthorizeAttribute.cs" />
@@ -190,7 +189,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Precompiled\AssemblyExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -206,21 +204,6 @@
     <Compile Include="Precompiled\PrecompiledMvcView.cs" />
     <Compile Include="Precompiled\PrecompiledViewAssembly.cs" />
     <Compile Include="Precompiled\PrecompiledViewLocationCache.cs" />
-    <Compile Include="Views\Account\Login.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Login.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Account\Manage.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Manage.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Account\Register.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Register.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Home\About.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -330,6 +313,7 @@
     <Content Include="Content\ace\css\ace-fonts.min.css" />
     <Content Include="Content\ace\css\ace-ie.min.css" />
     <Content Include="Content\ace\css\ace-part2.min.css" />
+    <Content Include="Content\ace\css\ace-skins.min.css" />
     <Content Include="Content\ace\css\ace.css" />
     <Content Include="Content\ace\css\ace.min.css" />
     <Content Include="Content\ace\css\images\meteorshower2.jpg" />
@@ -599,18 +583,6 @@
     <None Include="Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Account\Login.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Login.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Account\Manage.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Manage.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Account\Register.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Register.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Home\About.cshtml">
       <Generator>RazorGenerator</Generator>

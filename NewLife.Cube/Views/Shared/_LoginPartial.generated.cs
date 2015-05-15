@@ -62,60 +62,28 @@ WriteLiteral("\r\n        你好，");
 
             
             #line 5 "..\..\Views\Shared\_LoginPartial.cshtml"
-      Write(Html.ActionLink(ManageProvider.User + "", "Manage", "Account", routeValues: null, htmlAttributes: new { @class = "username", title = "管理" }));
+      Write(Html.ActionLink(ManageProvider.User + "", "Info", "Admin/User", routeValues: null, htmlAttributes: new { @class = "username", title = "管理" }));
 
             
             #line default
             #line hidden
 WriteLiteral("!\r\n");
 
+WriteLiteral("        ");
+
             
             #line 6 "..\..\Views\Shared\_LoginPartial.cshtml"
-        
-            
-            #line default
-            #line hidden
-            
-            #line 6 "..\..\Views\Shared\_LoginPartial.cshtml"
-         using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" }))
-        {
-            
-            
-            #line default
-            #line hidden
-            
-            #line 8 "..\..\Views\Shared\_LoginPartial.cshtml"
-       Write(Html.AntiForgeryToken());
+   Write(Html.ActionLink("注销", "Logout", "Admin/User"));
 
             
             #line default
             #line hidden
-            
-            #line 8 "..\..\Views\Shared\_LoginPartial.cshtml"
-                                    
-
-            
-            #line default
-            #line hidden
-WriteLiteral("            <a");
-
-WriteLiteral(" href=\"javascript:document.getElementById(\'logoutForm\').submit()\"");
-
-WriteLiteral(">注销</a>\r\n");
-
-            
-            #line 10 "..\..\Views\Shared\_LoginPartial.cshtml"
-        }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    ");
+WriteLiteral("\r\n    ");
 
 WriteLiteral("\r\n");
 
             
-            #line 12 "..\..\Views\Shared\_LoginPartial.cshtml"
+            #line 8 "..\..\Views\Shared\_LoginPartial.cshtml"
 }
 else
 {
@@ -126,8 +94,8 @@ else
 WriteLiteral("    <ul>\r\n        <li>");
 
             
-            #line 16 "..\..\Views\Shared\_LoginPartial.cshtml"
-       Write(Html.ActionLink("注册", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" }));
+            #line 12 "..\..\Views\Shared\_LoginPartial.cshtml"
+       Write(Html.ActionLink("注册", "Login", "Admin/User", routeValues: new { ReturnUrl = Request.Url, act = "Register" }, htmlAttributes: new { id = "registerLink" }));
 
             
             #line default
@@ -135,8 +103,8 @@ WriteLiteral("    <ul>\r\n        <li>");
 WriteLiteral("</li>\r\n        <li>");
 
             
-            #line 17 "..\..\Views\Shared\_LoginPartial.cshtml"
-       Write(Html.ActionLink("登录", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" }));
+            #line 13 "..\..\Views\Shared\_LoginPartial.cshtml"
+       Write(Html.ActionLink("登录", "Login", "Admin/User", routeValues: new { ReturnUrl = Request.Url }, htmlAttributes: new { id = "loginLink" }));
 
             
             #line default
@@ -144,9 +112,8 @@ WriteLiteral("</li>\r\n        <li>");
 WriteLiteral("</li>\r\n    </ul>\r\n");
 
             
-            #line 19 "..\..\Views\Shared\_LoginPartial.cshtml"
+            #line 15 "..\..\Views\Shared\_LoginPartial.cshtml"
 }
-
             
             #line default
             #line hidden
