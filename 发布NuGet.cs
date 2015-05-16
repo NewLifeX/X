@@ -1,15 +1,11 @@
 using System;
-using System.Collections;
-using System.Diagnostics;
-using System.Reflection;
-using System.Text;
-using System.Linq;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
-using System.Collections.Generic;
-using NewLife.Xml;
 using NewLife.Log;
+using NewLife.Xml;
 
 namespace NewLife.Reflection
 {
@@ -17,7 +13,7 @@ namespace NewLife.Reflection
     {
         static void Main()
         {
-            //PathHelper.BaseDirectory = @"C:\X\Src\NewLife.Core";
+            PathHelper.BaseDirectory = @"E:\X\Src\NewLife.Cube";
             XTrace.Debug = true;
             XTrace.UseConsole();
 
@@ -27,7 +23,12 @@ namespace NewLife.Reflection
             Console.WriteLine("项目：{0}", proj);
 
             var spec = name + ".nuspec";
-            if (!File.Exists(spec.GetFullPath())) "NuGet".Run("spec", 5000);
+            if (!File.Exists(spec.GetFullPath()))
+            {
+                "NuGet".Run("spec", 5000);
+                var spec2 = ".".AsDirectory().GetAllFiles("*.nuspec").First().Name;
+                if (!spec.EqualIgnoreCase(spec2)) File.Move(spec2, spec);
+            }
 
             // 部分项目加上前缀
             var name2 = name.EnsureStart("NewLife.");
@@ -43,8 +44,13 @@ namespace NewLife.Reflection
             cfg.Metadata.Tags = "新生命团队 X组件 NewLife";
             cfg.Metadata.ReleaseNotes = "http://www.newlifex.com/showtopic-51.aspx";
 
+            // 清空依赖
+            if (cfg.Metadata.DependencySets != null && cfg.Metadata.DependencySets.Dependencies != null)
+                cfg.Metadata.DependencySets.Dependencies.Clear();
+
             // 自动添加所有文件
             if (cfg.Files == null) cfg.Files = new List<ManifestFile>();
+            cfg.Files.Clear();
             if (cfg.Files.Count == 0)
             {
                 AddFile(cfg, name, "dll");
@@ -52,10 +58,10 @@ namespace NewLife.Reflection
                 AddFile(cfg, name, "pdb");
                 AddFile(cfg, name, "exe");
 
-                AddFile(cfg, name, "dll", false);
-                AddFile(cfg, name, "xml", false);
+                //AddFile(cfg, name, "dll", false);
+                //AddFile(cfg, name, "xml", false);
                 AddFile(cfg, name, "pdb", false);
-                AddFile(cfg, name, "exe", false);
+                //AddFile(cfg, name, "exe", false);
             }
 
             cfg.Save();
@@ -153,9 +159,6 @@ namespace NewLife.Reflection
 
         [XmlElement("requireLicenseAcceptance")]
         public bool RequireLicenseAcceptance { get; set; }
-
-        [XmlElement("developmentDependency")]
-        public bool DevelopmentDependency { get; set; }
 
         [XmlElement("description")]
         public string Description { get; set; }

@@ -10,7 +10,6 @@
     <projectUrl>http://www.NewLifeX.com/showtopic-51.aspx</projectUrl>
     <iconUrl>http://www.NewLifeX.com/favicon.ico</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <developmentDependency>false</developmentDependency>
     <description>$description$</description>
     <releaseNotes>http://www.newlifex.com/showtopic-51.aspx</releaseNotes>
     <copyright>Copyright 2002-2015 新生命开发团队 http://www.NewLifeX.com</copyright>
@@ -19,10 +18,8 @@
   </metadata>
   <files>
     <file src="..\..\Bin\NewLife.Core.dll" target="lib\net20\NewLife.Core.dll" />
-    <file src="..\..\Bin\NewLife.Core.pdb" target="lib\net20\NewLife.Core.pdb" />
     <file src="..\..\Bin\NewLife.Core.xml" target="lib\net20\NewLife.Core.xml" />
-    <file src="..\..\Bin4\NewLife.Core.dll" target="lib\net40\NewLife.Core.dll" />
+    <file src="..\..\Bin\NewLife.Core.pdb" target="lib\net20\NewLife.Core.pdb" />
     <file src="..\..\Bin4\NewLife.Core.pdb" target="lib\net40\NewLife.Core.pdb" />
-    <file src="..\..\Bin4\NewLife.Core.XML" target="lib\net40\NewLife.Core.XML" />
   </files>
 </package>
