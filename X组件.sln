@@ -23,40 +23,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net", "NewLife.Net\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test2", "Test2\Test2.csproj", "{181FE587-CA12-49DF-9A7C-96697C41F32D}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Web", "http://localhost:17686", "{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}"
-	ProjectSection(WebsiteProperties) = preProject
-		UseIISExpress = "true"
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
-		ProjectReferences = "{50D7FAE5-2304-4395-A6FA-7D35279D9D84}|NewLife.CommonEntity.dll;{5813C22E-EEB3-4DEE-A45C-BB218041193A}|NewLife.Core.dll;{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}|XCode.dll;{A82E3AA8-6181-460D-A6EE-CC453B83D340}|XControl.dll;"
-		Debug.AspNetCompiler.VirtualPath = "/Web"
-		Debug.AspNetCompiler.PhysicalPath = "Web\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\Web\"
-		Debug.AspNetCompiler.Updateable = "true"
-		Debug.AspNetCompiler.ForceOverwrite = "true"
-		Debug.AspNetCompiler.FixedNames = "false"
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/Web"
-		Release.AspNetCompiler.PhysicalPath = "Web\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\Web\"
-		Release.AspNetCompiler.Updateable = "true"
-		Release.AspNetCompiler.ForceOverwrite = "true"
-		Release.AspNetCompiler.FixedNames = "false"
-		Release.AspNetCompiler.Debug = "False"
-		SlnRelativePath = "Web\"
-		DefaultWebSiteLanguage = "Visual C#"
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Bootstrap", "NewLife.Bootstrap\NewLife.Bootstrap.csproj", "{95272F1D-5ED9-423D-AB5F-DECBD89B032F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.IP", "NewLife.IP\NewLife.IP.csproj", "{B2D1B525-2D28-405B-AE41-9D8B76D34A9F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Cube", "NewLife.Cube\NewLife.Cube.csproj", "{7AC0E99B-CFD8-4B59-8838-503EAA30523F}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "单元测试", "单元测试", "{5CF60ECB-45AD-46FD-8A84-43BC20E0C486}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core.Test", "NewLife.Core.Test\NewLife.Core.Test.csproj", "{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net.Test", "NewLife.Net.Test\NewLife.Net.Test.csproj", "{6D5EA117-7DC7-4390-935A-97C36F0BB29C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -146,11 +117,6 @@ Global
 		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Net4Release|Any CPU.Build.0 = Net4Release|Any CPU
 		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}.Net4Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{AAC0A525-4C8D-4D30-B145-288E8CB5CF8A}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95272F1D-5ED9-423D-AB5F-DECBD89B032F}.Net4Debug|Any CPU.ActiveCfg = Net4Debug|Any CPU
@@ -175,28 +141,8 @@ Global
 		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Net4Release|Any CPU.Build.0 = Release|Any CPU
 		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}.Net4Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}.Net4Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}.Net4Release|Any CPU.Build.0 = Release|Any CPU
-		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Net4Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Net4Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Net4Release|Any CPU.Build.0 = Release|Any CPU
-		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6D5EA117-7DC7-4390-935A-97C36F0BB29C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{ADC0BECC-C59A-4A82-BFCE-02EBD2966204} = {5CF60ECB-45AD-46FD-8A84-43BC20E0C486}
-		{6D5EA117-7DC7-4390-935A-97C36F0BB29C} = {5CF60ECB-45AD-46FD-8A84-43BC20E0C486}
 	EndGlobalSection
 EndGlobal
