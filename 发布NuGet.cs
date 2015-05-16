@@ -13,7 +13,7 @@ namespace NewLife.Reflection
     {
         static void Main()
         {
-            PathHelper.BaseDirectory = @"E:\X\Src\NewLife.Cube";
+            //PathHelper.BaseDirectory = @"E:\X\Src\NewLife.Cube";
             XTrace.Debug = true;
             XTrace.UseConsole();
 
