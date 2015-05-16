@@ -1,0 +1,207 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A82E3AA8-6181-460D-A6EE-CC453B83D340}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>XControl</RootNamespace>
+    <AssemblyName>XControl</AssemblyName>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>..\..\Bin\XControl.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Bin\XControl.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>..\..\Bin4\XControl.XML</DocumentationFile>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Release|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;NET4</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>..\..\Bin4\XControl.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
+    <Compile Include="Box\BoxControl.cs" />
+    <Compile Include="Box\LinkBox.cs" />
+    <Compile Include="Box\LinkBoxField.cs" />
+    <Compile Include="Button\LinkButtonField.cs" />
+    <Compile Include="MenuField\MenuParameterItem.cs" />
+    <Compile Include="Menu\TreeMenu.cs" />
+    <Compile Include="XControlConfig.cs" />
+    <Compile Include="MenuField\MenuTemplateItem.cs" />
+    <Compile Include="MenuField\MenuField.cs" />
+    <Compile Include="MenuField\XLiteral.cs" />
+    <Compile Include="ScriptHelper.cs" />
+    <Compile Include="TextBox\DateTime.cs" />
+    <Compile Include="TextBox\DecimalBox.cs" />
+    <Compile Include="View\GridViewExtenderDesigner.cs" />
+    <Compile Include="扩展\ExtenderControl.cs" />
+    <Compile Include="Helper.cs" />
+    <Compile Include="Button\ChooseButton.cs" />
+    <Compile Include="TextBox\VerifyCodeBox.cs" />
+    <Compile Include="TextBox\VerifyCodeImageHttpHandler.cs" />
+    <Compile Include="View\GridViewExtender.cs" />
+    <Compile Include="分页\DataControlImageButton.cs" />
+    <Compile Include="分页\DataControlLinkButtoncs.cs" />
+    <Compile Include="分页\DataControlPagerLinkButton.cs" />
+    <Compile Include="分页\DataPagerItem.cs" />
+    <Compile Include="分页\IPagedDataSource.cs" />
+    <Compile Include="包装\SR.cs" />
+    <Compile Include="包装\StringUtil.cs" />
+    <Compile Include="包装\WebCategoryAttribute.cs" />
+    <Compile Include="包装\WebSysDefaultValueAttribute.cs" />
+    <Compile Include="包装\WebSysDescriptionAttribute.cs" />
+    <Compile Include="包装\WebSysDisplayNameAttribute.cs" />
+    <Compile Include="View\ViewHelper.cs" />
+    <Compile Include="View\XFormView.cs" />
+    <Compile Include="View\XGridView.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TextBox\DateBox\DateBox.cs" />
+    <Compile Include="TextBox\IntCheckBox.cs" />
+    <Compile Include="TextBox\IPBox.cs" />
+    <Compile Include="TextBox\MailBox.cs" />
+    <Compile Include="TextBox\NumberBox.cs" />
+    <Compile Include="TextBox\RealBox.cs" />
+    <Compile Include="View\XPanel.cs" />
+    <Compile Include="View\XTable.cs" />
+    <Compile Include="分页\DataPager.cs" />
+    <Compile Include="分页\DataPagerActionList.cs" />
+    <Compile Include="分页\DataPagerDesigner.cs" />
+    <Compile Include="列表\CheckBoxList.cs" />
+    <Compile Include="TextBox\DateTimePicker.cs" />
+    <Compile Include="列表\DropDownList.cs" />
+    <Compile Include="扩展\ExtenderControlDesigner.cs" />
+    <Compile Include="扩展\TargetControlTypeAttribute.cs" />
+    <Compile Include="数据源\ObjectDataSourceExtender.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TextBox\DateBox\SelectDate.js" />
+    <EmbeddedResource Include="TextBox\Validator.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TextBox\DateTimePicker\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Button\choose.gif" />
+    <EmbeddedResource Include="Button\choose.js" />
+    <EmbeddedResource Include="Button\choose.css" />
+    <EmbeddedResource Include="Box\Box.js" />
+    <EmbeddedResource Include="Box\Dialog\dialog_bg.jpg" />
+    <EmbeddedResource Include="Box\Dialog\dialog_cb.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_closebtn.gif" />
+    <EmbeddedResource Include="Box\Dialog\dialog_closebtn.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_closebtn_over.gif" />
+    <EmbeddedResource Include="Box\Dialog\dialog_closebtn_over.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_ct.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_footercenter.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_footerleft.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_footerright.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_lb.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_lt.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_mc.gif" />
+    <EmbeddedResource Include="Box\Dialog\dialog_mc.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_mlb.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_mlm.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_mlt.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_mrb.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_mrm.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_mrt.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_rb.png" />
+    <EmbeddedResource Include="Box\Dialog\dialog_rt.png" />
+    <EmbeddedResource Include="Box\Dialog\icon_alert.gif" />
+    <EmbeddedResource Include="Box\Dialog\icon_dialog.gif" />
+    <EmbeddedResource Include="Box\Dialog\icon_query.gif" />
+    <EmbeddedResource Include="Box\Dialog\window.gif" />
+    <EmbeddedResource Include="TextBox\VerifyCode.js" />
+    <EmbeddedResource Include="UpdateInfo.txt" />
+    <EmbeddedResource Include="MenuField\jquery.contextmenu.r2.packed.js" />
+    <EmbeddedResource Include="MenuField\MenuFieldCss.css" />
+    <EmbeddedResource Include="MenuField\dropdown.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\datePicker.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_bg.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_month.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_x.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\images\lhgcal_year.gif" />
+    <EmbeddedResource Include="TextBox\DateTime\lhgcalendar.css" />
+    <EmbeddedResource Include="TextBox\DateTime\lhgcalendar.min.js" />
+    <EmbeddedResource Include="TextBox\DateTime\lhgcore.min.js" />
+    <EmbeddedResource Include="View\GridViewExtender.js" />
+    <EmbeddedResource Include="Menu\RS\book.gif" />
+    <EmbeddedResource Include="Menu\RS\bookopen.gif" />
+    <EmbeddedResource Include="Menu\RS\paper.gif" />
+    <EmbeddedResource Include="Menu\RS\tree.js" />
+    <EmbeddedResource Include="Menu\RS\XSL.xsl">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TextBox\VerifyCodeImage.gif" />
+    <Content Include="说明.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Convert\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

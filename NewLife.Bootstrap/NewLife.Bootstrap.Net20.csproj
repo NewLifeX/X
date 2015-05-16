@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{95272F1D-5ED9-423D-AB5F-DECBD89B032F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NewLife.Bootstrap</RootNamespace>
+    <AssemblyName>NewLife.Bootstrap</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Bin\NewLife.Bootstrap.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Bin\NewLife.Bootstrap.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>..\..\Bin4\NewLife.Bootstrap.XML</DocumentationFile>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Release|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;NET4</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>..\..\Bin4\NewLife.Bootstrap.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
+    <Compile Include="BootstrapJs.cs" />
+    <Compile Include="Controls\AccordionContentHeaderPanel.cs" />
+    <Compile Include="Controls\AccordionContentPanel.cs" />
+    <Compile Include="Controls\AccordionControl.cs" />
+    <Compile Include="Controls\AccordionPane.cs" />
+    <Compile Include="Controls\AccordionPaneCollection.cs" />
+    <Compile Include="Controls\Alert.cs" />
+    <Compile Include="Controls\Badge.cs" />
+    <Compile Include="Controls\BoundColumn.cs" />
+    <Compile Include="Controls\Breadcrumbs.cs" />
+    <Compile Include="Controls\Button.cs" />
+    <Compile Include="Controls\ButtonGroup.cs" />
+    <Compile Include="Controls\CheckBoxColumn.cs" />
+    <Compile Include="Controls\DateColumn.cs" />
+    <Compile Include="Controls\DropdownMenu.cs" />
+    <Compile Include="Controls\FieldSet.cs" />
+    <Compile Include="Controls\Heading.cs" />
+    <Compile Include="Controls\Hero.cs" />
+    <Compile Include="Controls\HyperlinkColumn.cs" />
+    <Compile Include="Controls\Image.cs" />
+    <Compile Include="Controls\ListItem.cs" />
+    <Compile Include="Controls\ListItemCollection.cs" />
+    <Compile Include="Controls\MediaObject.cs" />
+    <Compile Include="Controls\NavBar.cs" />
+    <Compile Include="Controls\NavList.cs" />
+    <Compile Include="Controls\NavListCollection.cs" />
+    <Compile Include="Controls\NavListItem.cs" />
+    <Compile Include="Controls\PageHeader.cs" />
+    <Compile Include="Controls\Paginator.cs" />
+    <Compile Include="Controls\ProgressBar.cs" />
+    <Compile Include="Controls\TabCollection.cs" />
+    <Compile Include="Controls\TabControl.cs" />
+    <Compile Include="Controls\Table.cs" />
+    <Compile Include="Controls\TabPage.cs" />
+    <Compile Include="Controls\TextBox.cs" />
+    <Compile Include="Controls\Window.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

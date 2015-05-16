@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{50D7FAE5-2304-4395-A6FA-7D35279D9D84}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NewLife.CommonEntity</RootNamespace>
+    <AssemblyName>NewLife.CommonEntity</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Bin\NewLife.CommonEntity.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Bin\NewLife.CommonEntity.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
+    <DocumentationFile>..\..\Bin4\NewLife.CommonEntity.XML</DocumentationFile>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Release|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;NET4</DefineConstants>
+    <DocumentationFile>..\..\Bin4\NewLife.CommonEntity.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="实体\XCoder.log">
+      <DependentUpon>XCoder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="实体\XCoder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>XCoder.log</LastGenOutput>
+    </None>
+    <None Include="附件\AttachmentEntityAccessor.cs" />
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
+    <Compile Include="Common\CommonService.cs" />
+    <Compile Include="Common\EntityCacheConfig.cs" />
+    <Compile Include="Interfaces\IEntityForm.cs" />
+    <Compile Include="Interfaces\IManagePage.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="实体\SysSetting.cs" />
+    <Compile Include="帮助\手册.Biz.cs" />
+    <Compile Include="帮助\手册.cs" />
+    <Compile Include="附件\AttachmentHttpHandler.cs" />
+    <Compile Include="附件\DownloadFile.cs" />
+    <Compile Include="Web\EntityForm.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Web\EntityForm2.cs" />
+    <Compile Include="附件\ShowPicture.cs" />
+    <Compile Include="Web\WebPageBase.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="实体\Guid分类.Biz.cs">
+      <DependentUpon>Guid分类.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\Guid分类.cs" />
+    <!--<Compile Include="实体\分类.Biz.cs" />-->
+    <Compile Include="实体\分类.cs" />
+    <Compile Include="实体\分类.Biz.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>分类.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\地区.Biz.cs">
+      <DependentUpon>地区.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\地区.cs" />
+    <Compile Include="实体\地区.Init.cs">
+      <DependentUpon>地区.cs</DependentUpon>
+    </Compile>
+    <None Include="实体\地区编码.Biz.cs">
+      <DependentUpon>地区编码.cs</DependentUpon>
+    </None>
+    <None Include="实体\地区编码.cs" />
+    <Compile Include="实体\序列.Biz.cs">
+      <DependentUpon>序列.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\序列.cs" />
+    <Compile Include="实体\用户配置.Biz.cs">
+      <DependentUpon>用户配置.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\用户配置.cs" />
+    <Compile Include="实体\简单信息.Biz.cs">
+      <DependentUpon>简单信息.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\简单信息.cs" />
+    <Compile Include="实体\简单分类.Biz.cs">
+      <DependentUpon>简单分类.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\简单分类.cs">
+    </Compile>
+    <Compile Include="实体\设置.Biz.cs">
+      <DependentUpon>设置.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\设置.cs" />
+    <Compile Include="模版\模版.Biz.cs">
+      <DependentUpon>模版.cs</DependentUpon>
+    </Compile>
+    <Compile Include="模版\模版.cs" />
+    <Compile Include="模版\模版内容.Biz.cs">
+      <DependentUpon>模版内容.cs</DependentUpon>
+    </Compile>
+    <Compile Include="模版\模版内容.cs" />
+    <Compile Include="模版\模版项.Biz.cs">
+      <DependentUpon>模版项.cs</DependentUpon>
+    </Compile>
+    <Compile Include="模版\模版项.cs" />
+    <Compile Include="实体\统计.Biz.cs">
+      <DependentUpon>统计.cs</DependentUpon>
+    </Compile>
+    <Compile Include="实体\统计.cs" />
+    <Compile Include="附件\附件.Biz.cs">
+      <DependentUpon>附件.cs</DependentUpon>
+    </Compile>
+    <Compile Include="附件\附件.cs">
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="App.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UpdateInfo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="附件\nopic.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="实体\AreaCode.txt">
+      <!--       <DependentUpon>地区.cs</DependentUpon> -->
+    </EmbeddedResource>
+    <Content Include="实体\Common.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="模版\模版.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="说明.txt" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\XCode\XCode.csproj">
+      <Project>{b49aba5a-c5da-45f4-87f1-b435ec51d710}</Project>
+      <Name>XCode</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

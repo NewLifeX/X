@@ -1,0 +1,378 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NewLife</RootNamespace>
+    <AssemblyName>NewLife.Core</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <BuildPackage>true</BuildPackage>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NO_RXINTERFACES;NO_VARIANCE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Bin\NewLife.Core.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>TRACE;NO_RXINTERFACES;NO_VARIANCE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Bin\NewLife.Core.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>..\..\Bin4\NewLife.Core.XML</DocumentationFile>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Release|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;NET4</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>..\..\Bin4\NewLife.Core.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Collections\CollectionHelper.cs" />
+    <Compile Include="Collections\ConcurrentDictionary.cs" />
+    <Compile Include="Collections\ConcurrentQueue.cs" />
+    <Compile Include="Collections\DictionaryCache.cs" />
+    <Compile Include="Collections\HashSet.cs" />
+    <Compile Include="Collections\IStack.cs" />
+    <Compile Include="Collections\ListBase.cs" />
+    <Compile Include="Collections\LockStack.cs" />
+    <Compile Include="Collections\NullableDictionary.cs" />
+    <Compile Include="Collections\ObjectPool.cs" />
+    <Compile Include="Collections\ObjectPoolTest.cs" />
+    <Compile Include="Collections\SafeStack.cs" />
+    <Compile Include="Collections\SingleListNode.cs" />
+    <Compile Include="Collections\ConcurrentStack.cs" />
+    <Compile Include="Collections\WeakRefDictionary.cs" />
+    <Compile Include="Common\CombGuid.cs" />
+    <Compile Include="Common\PinYin.cs" />
+    <Compile Include="Common\Runtime.cs" />
+    <Compile Include="Common\SysConfig.cs" />
+    <Compile Include="Common\Utility.cs" />
+    <Compile Include="Compression\ZipException.cs" />
+    <Compile Include="Compression\ZipConstants.cs" />
+    <Compile Include="Compression\ZipEntry.cs" />
+    <Compile Include="Compression\ZipFile.cs" />
+    <Compile Include="Configuration\CombConfig.cs" />
+    <Compile Include="Extension\BitHelper.cs" />
+    <Compile Include="Extension\CaCollectionExtensions.cs" />
+    <Compile Include="Extension\SpeakProvider.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Aggregates.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Buffering.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Creation.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Exceptions.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Imperative.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Multiple.cs" />
+    <Compile Include="Extension\System.Interactive\EnumerableEx.Single.cs" />
+    <Compile Include="IO\EncodingHelper.cs" />
+    <Compile Include="IO\PathHelper.cs" />
+    <Compile Include="IO\StreamReaderX.cs" />
+    <Compile Include="IO\StreamWriterX.cs" />
+    <Compile Include="Log\CompositeLog.cs" />
+    <Compile Include="Log\ConsoleLog.cs" />
+    <Compile Include="Log\ILog.cs" />
+    <Compile Include="Log\Logger.cs" />
+    <Compile Include="Log\LogLevel.cs" />
+    <Compile Include="Log\NetworkLog.cs" />
+    <Compile Include="Log\TextControlLog.cs" />
+    <Compile Include="Messaging\ChannelMessage.cs" />
+    <Compile Include="Messaging\CompressionMessage.cs" />
+    <Compile Include="Messaging\DataMessage.cs" />
+    <Compile Include="Messaging\EntitiesMessage.cs" />
+    <Compile Include="Messaging\HttpClientMessageProvider.cs" />
+    <Compile Include="Messaging\HttpServerMessageProvider.cs" />
+    <Compile Include="Messaging\IMessage.cs" />
+    <Compile Include="Messaging\IMessageProvider.cs" />
+    <None Include="Messaging\MessageHeader.cs" />
+    <Compile Include="Messaging\MessageBase.cs" />
+    <Compile Include="Messaging\MessageKind.cs" />
+    <Compile Include="Messaging\EntityMessage.cs" />
+    <Compile Include="Messaging\MethodMessage.cs" />
+    <Compile Include="Messaging\StringMessage.cs" />
+    <Compile Include="Messaging\GroupMessage.cs" />
+    <Compile Include="Model\IPlugin.cs" />
+    <Compile Include="Model\ModelExtension.cs" />
+    <Compile Include="Model\ObjectContainerHelper.cs" />
+    <Compile Include="Net\ISocket.cs" />
+    <Compile Include="Net\ISocketServer.cs" />
+    <Compile Include="Net\ISocketClient.cs" />
+    <Compile Include="Net\IStatistics.cs" />
+    <Compile Include="Net\NetException.cs" />
+    <Compile Include="Net\NetHelper.cs" />
+    <Compile Include="Net\PacketStream.cs" />
+    <Compile Include="Net\ReceivedEventArgs.cs" />
+    <Compile Include="Net\ITransport.cs" />
+    <Compile Include="Net\NetUri.cs" />
+    <Compile Include="Net\SerialTransport.cs" />
+    <Compile Include="Net\Statistics.cs" />
+    <Compile Include="Net\TcpSession.cs" />
+    <Compile Include="Net\TcpServer.cs" />
+    <Compile Include="Net\SessionCollection.cs" />
+    <Compile Include="Net\UdpServer.cs" />
+    <Compile Include="Net\UdpSession.cs" />
+    <Compile Include="Net\Upgrade.cs" />
+    <Compile Include="Net\SessionBase.cs" />
+    <Compile Include="Net\ISocketSession.cs" />
+    <Compile Include="Properties\AssemblyInfo_.cs" />
+    <Compile Include="Reflection\Action.cs" />
+    <Compile Include="Extension\EnumHelper.cs" />
+    <Compile Include="Extension\Linq\Buffer.cs" />
+    <Compile Include="Extension\Linq\EmptyEnumerable.cs" />
+    <Compile Include="Extension\Linq\Enumerable.cs" />
+    <Compile Include="Extension\Linq\EnumerableSorter.cs" />
+    <Compile Include="Extension\Linq\ExtensionAttribute.cs" />
+    <Compile Include="Extension\Linq\GroupedEnumerable.cs" />
+    <Compile Include="Extension\Linq\IdentityFunction.cs" />
+    <Compile Include="Extension\Linq\IGrouping.cs" />
+    <Compile Include="Extension\Linq\ILookup.cs" />
+    <Compile Include="Extension\Linq\IOrderedEnumerable.cs" />
+    <Compile Include="Extension\Linq\Lookup.cs" />
+    <Compile Include="Extension\Linq\OrderedEnumerable.cs" />
+    <Compile Include="Extension\Linq\Set.cs" />
+    <Compile Include="Extension\StringHelper.cs" />
+    <Compile Include="Configuration\Config.cs" />
+    <Compile Include="Common\DisposeBase.cs" />
+    <Compile Include="Event\WeakAction.cs" />
+    <Compile Include="Event\WeakEventHandler.cs" />
+    <Compile Include="Exceptions\XException.cs" />
+    <Compile Include="Extension\Linq\TargetedPatchingOptOutAttribute.cs" />
+    <Compile Include="IO\FileSource.cs" />
+    <Compile Include="IOModel\StreamHttpHandler.cs" />
+    <Compile Include="IOModel\IStreamHandler.cs" />
+    <Compile Include="IO\IOHelper.cs" />
+    <Compile Include="Log\TraceStream.cs" />
+    <Compile Include="Log\TextFileLog.cs" />
+    <Compile Include="Model\IObjectContainer.cs" />
+    <Compile Include="Model\ObjectContainer.cs" />
+    <Compile Include="Model\IServer.cs" />
+    <Compile Include="Reflection\ApiHook.cs" />
+    <None Include="Reflection\AsmX86.cs" />
+    <Compile Include="Reflection\CodeDomDuckTypeGenerator.cs" />
+    <Compile Include="Reflection\DuckTyping.cs" />
+    <Compile Include="Reflection\EmitReflect.cs" />
+    <Compile Include="Reflection\IL\ILInstruction.cs" />
+    <Compile Include="Reflection\IL\MethodBodyReader.cs" />
+    <Compile Include="Reflection\IReflect.cs" />
+    <Compile Include="Reflection\PEImage.cs" />
+    <Compile Include="Reflection\Reflect.cs" />
+    <Compile Include="Reflection\快速反射\EventInfoX.cs" />
+    <Compile Include="Reflection\OrcasNamer.cs" />
+    <Compile Include="Reflection\ScriptEngine.cs" />
+    <Compile Include="Security\Certificate.cs" />
+    <Compile Include="Security\Crc16.cs" />
+    <Compile Include="Security\DSAHelper.cs" />
+    <Compile Include="Security\RC4.cs" />
+    <Compile Include="Security\RSAHelper.cs" />
+    <Compile Include="Security\SecurityHelper.cs" />
+    <Compile Include="Serialization\Base\TextReaderBase.cs" />
+    <Compile Include="Serialization\Binary\BinaryDictionary.cs" />
+    <Compile Include="Serialization\Binary\BinaryList.cs" />
+    <Compile Include="Serialization\Binary\BinaryReaderX.cs" />
+    <Compile Include="Serialization\Binary\Binary.cs" />
+    <Compile Include="Serialization\Binary\BinarySettings.cs" />
+    <Compile Include="Serialization\Binary\BinaryWriterX.cs" />
+    <Compile Include="Serialization\Binary\BinaryComposite.cs" />
+    <Compile Include="Serialization\Binary\BitSizeAttribute.cs" />
+    <Compile Include="Serialization\Binary\FieldSizeAttribute.cs" />
+    <Compile Include="Serialization\Binary\BinaryGeneral.cs" />
+    <Compile Include="Serialization\Binary\IBinary.cs" />
+    <Compile Include="Serialization\Binary\BinaryUnknown.cs" />
+    <Compile Include="Serialization\Binary\BinaryFont.cs" />
+    <Compile Include="Serialization\Binary\BinaryColor.cs" />
+    <Compile Include="Serialization\Interface\IFormatterX.cs" />
+    <Compile Include="Serialization\Interface\IReader2.cs" />
+    <Compile Include="Serialization\Interface\IWriter2.cs" />
+    <Compile Include="Serialization\Json\JsonAtomStringReader.cs" />
+    <Compile Include="Serialization\Json\SimpleJsonUtil.cs" />
+    <Compile Include="Serialization\NameValue\NameValueReader.cs" />
+    <Compile Include="Serialization\Interface\IAccessor.cs" />
+    <Compile Include="Serialization\Info\IObjectMemberInfo.cs" />
+    <Compile Include="Serialization\Interface\IReader.cs" />
+    <Compile Include="Serialization\Interface\IReaderWriter.cs" />
+    <Compile Include="Serialization\Interface\IWriter.cs" />
+    <Compile Include="IO\Json.cs" />
+    <Compile Include="Serialization\Json\JsonReader.cs" />
+    <Compile Include="Serialization\Json\JsonSettings.cs" />
+    <Compile Include="Serialization\Json\JsonWriter.cs" />
+    <Compile Include="Serialization\Base\ReaderBase.cs" />
+    <Compile Include="Serialization\Base\ReaderWriterBase.cs" />
+    <Compile Include="IO\ReadWriteStream.cs" />
+    <Compile Include="IOModel\StreamClient.cs" />
+    <Compile Include="IOModel\HttpStreamClient.cs" />
+    <Compile Include="Serialization\Info\ReflectMemberInfo.cs" />
+    <Compile Include="Serialization\Info\SimpleMemberInfo.cs" />
+    <Compile Include="Serialization\Info\ObjectInfo.cs" />
+    <Compile Include="Serialization\Event\ReaderEventArgs.cs" />
+    <Compile Include="Serialization\Event\ReadMemberEventArgs.cs" />
+    <Compile Include="Serialization\Event\ReadObjectEventArgs.cs" />
+    <Compile Include="Serialization\NameValue\NameValueSetting.cs" />
+    <Compile Include="Serialization\NameValue\NameValueWriter.cs" />
+    <Compile Include="Serialization\Base\WriterBase.cs" />
+    <Compile Include="Log\CodeTimer.cs" />
+    <Compile Include="Messaging\ExceptionMessage.cs" />
+    <Compile Include="Messaging\Message.cs" />
+    <Compile Include="Messaging\NullMessage.cs" />
+    <Compile Include="Reflection\AssemblyX.cs" />
+    <Compile Include="Reflection\AttributeX.cs" />
+    <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
+    <Compile Include="Reflection\EmitHelper.cs" />
+    <Compile Include="Reflection\DynamicAssembly.cs" />
+    <Compile Include="Remoting\EntityMessage.cs" />
+    <Compile Include="Remoting\MethodMessage.cs" />
+    <Compile Include="Remoting\RemotingClient.cs" />
+    <Compile Include="Remoting\RemotingMessage.cs" />
+    <Compile Include="Remoting\RemotingMessageHandler.cs" />
+    <Compile Include="Remoting\RemotingMessageType.cs" />
+    <Compile Include="Remoting\RemotingStreamHandler.cs" />
+    <Compile Include="Serialization\Base\ReaderWriterSettings.cs" />
+    <Compile Include="Serialization\Event\ReaderWriterEventArgs.cs" />
+    <Compile Include="Serialization\Base\TextWriterBase.cs" />
+    <Compile Include="Serialization\Base\TextReaderWriterSetting.cs" />
+    <Compile Include="Serialization\Event\WriterEventArgs.cs" />
+    <Compile Include="Serialization\Event\WriteMemberEventArgs.cs" />
+    <Compile Include="Serialization\Event\WriteObjectEventArgs.cs" />
+    <Compile Include="Serialization\RWKinds.cs" />
+    <Compile Include="Serialization\RWService.cs" />
+    <Compile Include="Serialization\Xml\XmlComposite.cs" />
+    <Compile Include="Serialization\Xml\XmlGeneral.cs" />
+    <Compile Include="Serialization\Xml\IXml.cs" />
+    <Compile Include="Serialization\Xml\Xml.cs" />
+    <Compile Include="Serialization\XSerializationException.cs" />
+    <Compile Include="Threading\ReadWriteLock.cs" />
+    <Compile Include="Reflection\快速反射\TypeX.cs" />
+    <Compile Include="Common\WeakReference.cs" />
+    <Compile Include="Event\EventArgs.cs" />
+    <Compile Include="IO\ReadWriteMemoryStream.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reflection\FastIndexAccessor.cs" />
+    <Compile Include="Reflection\快速反射\FieldInfoX.cs" />
+    <Compile Include="Reflection\Func.cs" />
+    <Compile Include="Reflection\IIndexAccessor.cs" />
+    <Compile Include="Reflection\快速反射\MemberInfoX.cs" />
+    <Compile Include="Reflection\快速反射\MethodInfoX.cs" />
+    <Compile Include="Reflection\快速反射\PropertyInfoX.cs" />
+    <Compile Include="Security\Crc32.cs" />
+    <Compile Include="Security\DataHelper.cs" />
+    <Compile Include="Common\HardInfo.cs" />
+    <Compile Include="Common\IdentityCard.cs" />
+    <None Include="Serialization\Event\事件参数.cd" />
+    <Compile Include="Threading\SpinWait.cs" />
+    <Compile Include="Threading\TaskState.cs" />
+    <Compile Include="Threading\ThreadPoolX.cs" />
+    <Compile Include="Threading\ThreadTask.cs" />
+    <Compile Include="Threading\ThreadX.cs" />
+    <Compile Include="Threading\TimerX.cs" />
+    <Compile Include="Web\Css.cs" />
+    <Compile Include="Web\Js.cs" />
+    <Compile Include="Web\Link.cs" />
+    <Compile Include="Web\Modules\ErrorModule.cs" />
+    <Compile Include="Web\Modules\HttpModuleLoader.cs" />
+    <Compile Include="Web\Modules\CompressionModule.cs" />
+    <Compile Include="Web\ControlHelper.cs" />
+    <Compile Include="Web\HttpStream.cs" />
+    <Compile Include="Log\WriteLogEventArgs.cs" />
+    <Compile Include="Log\XTrace.cs" />
+    <Compile Include="Web\Modules\RunTimeModule.cs" />
+    <Compile Include="Web\Modules\ViewStateCompressionModule.cs" />
+    <Compile Include="Web\Modules\SystemStartModule.cs" />
+    <Compile Include="Web\Modules\UrlRewrite.cs" />
+    <Compile Include="Data\PageParameter.cs" />
+    <Compile Include="Web\Pager.cs" />
+    <Compile Include="Web\WebClientX.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Web\WebDownload.cs" />
+    <Compile Include="Web\WebHelper.cs" />
+    <Compile Include="Net\SerialPortConfig.cs" />
+    <Compile Include="Windows\ControlHelper.cs" />
+    <Compile Include="Windows\SerialPortList.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Windows\SerialPortList.designer.cs">
+      <DependentUpon>SerialPortList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Xml\ExtendData.cs" />
+    <Compile Include="Xml\SerializableDictionary.cs" />
+    <Compile Include="Xml\XmlConfig.cs" />
+    <Compile Include="Xml\XmlConfigFileAttribute.cs" />
+    <Compile Include="Xml\XmlEntity.cs" />
+    <Compile Include="Xml\XmlHelper.cs" />
+    <Compile Include="Xml\XmlReaderX.cs" />
+    <Compile Include="Xml\XmlReaderWriterSettings.cs" />
+    <Compile Include="Xml\XmlWriterX.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Windows\SerialPortList.resx">
+      <DependentUpon>SerialPortList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="X组件.txt" />
+    <EmbeddedResource Include="Web\Modules\SystemStart.htm" />
+    <Content Include="说明.txt" />
+    <EmbeddedResource Include="UpdateInfo.txt" />
+    <None Include="Serialization\序列化_写入器.png" />
+    <None Include="Serialization\序列化_读取器.png" />
+    <None Include="Serialization\说明.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="App.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="Serialization\序列化架构.edx" />
+    <None Include="Serialization\读写器模型.cd" />
+    <None Include="IOModel\数据流总线模型.cd" />
+    <None Include="Messaging\消息总线模型.cd" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

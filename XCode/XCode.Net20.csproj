@@ -1,0 +1,336 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>XCode</RootNamespace>
+    <AssemblyName>XCode</AssemblyName>
+    <SignAssembly>false</SignAssembly>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Bin\XCode.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>2</WarningLevel>
+    <DocumentationFile>..\..\Bin\XCode.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
+    <DocumentationFile>..\..\Bin4\XCode.XML</DocumentationFile>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Release|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <OutputPath>..\..\Bin4\</OutputPath>
+    <DefineConstants>TRACE;NET4</DefineConstants>
+    <DocumentationFile>..\..\Bin4\XCode.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <WarningLevel>2</WarningLevel>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Release|AnyCPU'">
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
+    <Compile Include="Accessors\BinaryEntityAccessor.cs">
+    </Compile>
+    <Compile Include="Accessors\EntityAccessorBase.cs">
+    </Compile>
+    <Compile Include="Accessors\EntityAccessorEventArgs.cs" />
+    <Compile Include="Accessors\EntityAccessorFactory.cs" />
+    <Compile Include="Accessors\EntityAccessorOptions.cs" />
+    <Compile Include="Accessors\EntityAccessorTypes.cs" />
+    <Compile Include="Accessors\HttpEntityAccessor.cs">
+    </Compile>
+    <Compile Include="Accessors\JsonEntityAccessor.cs">
+    </Compile>
+    <Compile Include="Accessors\SerializationEntityAccessorBase.cs">
+    </Compile>
+    <Compile Include="Accessors\WebFormEntityAccessor.cs">
+    </Compile>
+    <Compile Include="Accessors\WinFormEntityAccessor.cs">
+    </Compile>
+    <Compile Include="Accessors\XmlEntityAccessor.cs">
+    </Compile>
+    <Compile Include="Attributes\BindColumnAttribute.cs" />
+    <Compile Include="Attributes\BindIndexAttribute.cs" />
+    <Compile Include="Attributes\BindTableAttribute.cs" />
+    <Compile Include="Attributes\BindRelationAttribute.cs" />
+    <Compile Include="Cache\CacheSetting.cs" />
+    <Compile Include="Code\CodeDomHelper.cs" />
+    <Compile Include="Configuration\FieldExtension.cs" />
+    <Compile Include="DataAccessLayer\Model\NullableDictionary.cs" />
+    <Compile Include="Entity\IEntityAddition.cs" />
+    <Compile Include="Entity\EntityExtend.cs" />
+    <Compile Include="Entity\EntitySession.cs" />
+    <Compile Include="Entity\IEntitySession.cs" />
+    <Compile Include="Entity\SelectModes.cs" />
+    <Compile Include="Exceptions\EntityException.cs" />
+    <Compile Include="Membership\EntityBase.cs" />
+    <Compile Include="Membership\IManageProvider.cs" />
+    <Compile Include="Membership\IManageUser.cs" />
+    <Compile Include="Membership\MenuProvider.cs" />
+    <Compile Include="Membership\LogProvider.cs" />
+    <Compile Include="Membership\日志.cs" />
+    <Compile Include="Membership\日志.Biz.cs">
+    </Compile>
+    <Compile Include="Membership\用户.Biz.cs">
+    </Compile>
+    <Compile Include="Membership\用户.cs" />
+    <Compile Include="Membership\菜单.Biz.cs">
+    </Compile>
+    <Compile Include="Membership\菜单.cs" />
+    <Compile Include="Membership\角色.Biz.cs">
+    </Compile>
+    <Compile Include="Membership\角色.cs" />
+    <Compile Include="Model\ConcatExpression.cs" />
+    <Compile Include="Model\Expression.cs" />
+    <Compile Include="Model\FormatExpression.cs" />
+    <Compile Include="Model\FieldExpression.cs" />
+    <Compile Include="Sync\ISyncMaster.cs" />
+    <Compile Include="Sync\ISyncSlave.cs" />
+    <Compile Include="Sync\SyncManager.cs" />
+    <Compile Include="Attributes\ModelCheckModeAttribute.cs" />
+    <Compile Include="Attributes\ModelSortMode.cs" />
+    <Compile Include="Cache\EntityDependency.cs" />
+    <Compile Include="Cache\IEntityCache.cs" />
+    <Compile Include="Cctor.cs" />
+    <Compile Include="Code\EntityAssembly.cs" />
+    <Compile Include="Code\EntityClass.cs" />
+    <Compile Include="Code\EntityClassBiz.cs" />
+    <Compile Include="Common\Helper.cs" />
+    <Compile Include="Configuration\TableItem.cs" />
+    <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
+    <Compile Include="DataAccessLayer\Common\FileDb.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\Common\RemoteDb.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\DAL_DbOperate.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\DAL_Setting.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\Database\Distributed.cs" />
+    <Compile Include="DataAccessLayer\Database\Firebird.cs" />
+    <Compile Include="DataAccessLayer\Database\Network.cs" />
+    <Compile Include="DataAccessLayer\Database\PostgreSQL.cs" />
+    <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
+    <Compile Include="DataAccessLayer\Common\DbBase.cs" />
+    <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
+    <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Negative.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\MetaData\NegativeSetting.cs" />
+    <Compile Include="DataAccessLayer\Model\IModelResolver.cs" />
+    <Compile Include="DataAccessLayer\Model\ModelHelper.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataRelation.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataIndex.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataTable.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData.cs" />
+    <Compile Include="DataAccessLayer\MetaData\IMetaData.cs" />
+    <Compile Include="DataAccessLayer\Model\SerializableDataMember.cs" />
+    <Compile Include="DataAccessLayer\MSPageSplit.cs" />
+    <Compile Include="DataAccessLayer\XDbConnectionStringBuilder.cs" />
+    <Compile Include="DataAccessLayer\Model\XIndex.cs" />
+    <Compile Include="DataAccessLayer\Model\XRelation.cs" />
+    <Compile Include="Entity\DataRowEntityAccessor.cs" />
+    <Compile Include="Entity\EntityListView.cs" />
+    <Compile Include="Entity\EntityBase_Interface.cs">
+    </Compile>
+    <Compile Include="Entity\EntityTransaction.cs" />
+    <Compile Include="Entity\IEntityList.cs" />
+    <Compile Include="Entity\IEntityPersistence.cs" />
+    <Compile Include="Exceptions\XDbException.cs" />
+    <Compile Include="Exceptions\XCodeException.cs" />
+    <Compile Include="Exceptions\XDbMetaDataException.cs" />
+    <Compile Include="Exceptions\XDbSessionException.cs" />
+    <Compile Include="Exceptions\XSqlException.cs" />
+    <Compile Include="Configuration\FieldItem.cs" />
+    <Compile Include="DataAccessLayer\Database\Access.cs" />
+    <Compile Include="DataAccessLayer\DAL.cs" />
+    <Compile Include="DataAccessLayer\Common\DbSession.cs" />
+    <Compile Include="DataAccessLayer\Common\IDbSession.cs" />
+    <Compile Include="DataAccessLayer\Database\MySql.cs" />
+    <Compile Include="DataAccessLayer\Database\Oracle.cs" />
+    <Compile Include="DataAccessLayer\SelectBuilder.cs" />
+    <Compile Include="DataAccessLayer\Database\SQLite.cs" />
+    <Compile Include="DataAccessLayer\Database\SqlServer.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DDLSchema.cs" />
+    <Compile Include="DataAccessLayer\Model\XField.cs" />
+    <Compile Include="DataAccessLayer\Model\XTable.cs" />
+    <Compile Include="Cache\CacheItem.cs" />
+    <Compile Include="Cache\XCache.cs" />
+    <Compile Include="Cache\CacheBase.cs" />
+    <Compile Include="Entity\DirtyCollection.cs" />
+    <Compile Include="Entity\Entity.cs" />
+    <Compile Include="Entity\EntityBase.cs" />
+    <Compile Include="Cache\EntityCache.cs" />
+    <Compile Include="Entity\EntityFactory.cs" />
+    <Compile Include="Entity\EntityList.cs" />
+    <Compile Include="Entity\Entity_Meta.cs">
+    </Compile>
+    <Compile Include="Entity\Entity_Operate.cs">
+    </Compile>
+    <Compile Include="Entity\IEntity.cs" />
+    <Compile Include="Entity\IEntityOperate.cs" />
+    <Compile Include="Cache\SingleEntityCache.cs" />
+    <Compile Include="Accessors\IEntityAccessor.cs" />
+    <Compile Include="Model\OrderExpression.cs" />
+    <Compile Include="Model\WhereExpression.cs" />
+    <Compile Include="Model\XCodeService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Web\EntityForm.cs" />
+    <Compile Include="Web\EntityGrid.cs" />
+    <None Include="Membership\XCoder.log">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>XCoder.tt</DependentUpon>
+    </None>
+    <None Include="Membership\XCoder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>XCoder.log</LastGenOutput>
+    </None>
+    <None Include="Transform\DataTransform.cs" />
+    <Compile Include="Transform\EntityTransform.cs" />
+    <None Include="Transform\TransformBase.cs" />
+    <Compile Include="Tree\IEntityTreeSettting.cs" />
+    <Compile Include="Web\DbRunTimeModule.cs" />
+    <Compile Include="Test\TestHelper.cs" />
+    <Compile Include="Test\实体测试.Biz.cs">
+      <DependentUpon>实体测试.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Test\实体测试.cs" />
+    <Compile Include="Tree\EntityTree.cs" />
+    <Compile Include="Tree\IEntityTree.cs" />
+    <None Include="DataAccessLayer\Model\数据模型.cd" />
+    <None Include="Test\XCodeTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="App.config">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DataAccessLayer\Database\Database.mdb">
+      <DependentUpon>Access.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="ADODB">
+      <Guid>{2A75196C-D9EB-4129-B803-931327F72D5C}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>8</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="ADOX">
+      <Guid>{00000600-0000-0010-8000-00AA006D2EA4}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>8</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="DAO">
+      <Guid>{00025E01-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>5</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DataAccessLayer\DAL结构.cd">
+      <DependentUpon>DAL.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UpdateInfo.txt" />
+    <Content Include="..\NewLife.Core\X组件.txt">
+      <Link>X组件.txt</Link>
+    </Content>
+    <None Include="Membership\Member.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Test\EntityTest.xml" />
+    <Content Include="Sync\同步机制.txt" />
+    <Content Include="说明.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="文档\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>
