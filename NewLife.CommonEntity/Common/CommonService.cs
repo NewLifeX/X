@@ -27,5 +27,10 @@ namespace NewLife.CommonEntity
             //    .AutoRegister<IMenu, Menu>()
             //    .AutoRegister<ILog, Log>();
         }
+
+        /// <summary>获取</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T Get<T>() { return Container.Resolve<T>(); }
     }
 }

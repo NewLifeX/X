@@ -26,7 +26,7 @@ public abstract class MyEntityList : Page
 
     protected override void OnPreInit(EventArgs e)
     {
-        Manager = CommonService.Container.Resolve<IManagePage>().Init(this, EntityType);
+        Manager = CommonService.Get<IManagePage>().Init(this, EntityType);
 
         base.OnPreInit(e);
     }

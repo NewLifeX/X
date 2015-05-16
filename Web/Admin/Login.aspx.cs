@@ -39,7 +39,7 @@ public partial class Admin_Login : System.Web.UI.Page
             String user = Request["user"];
             String pass = Request["pass"];
 
-            Provider.Login(user, pass);
+            Provider.Login(user, pass, false);
             if (Provider.Current != null)
             {
                 // 处理记住密码

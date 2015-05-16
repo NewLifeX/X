@@ -24,7 +24,7 @@ public class MyEntityUserControl : UserControl
 
     protected override void OnInit(EventArgs e)
     {
-        EntityForm = ObjectContainer.Current.Resolve<IEntityForm>().Init(this, EntityType);
+        EntityForm = CommonService.Get<IEntityForm>().Init(this, EntityType);
 
         base.OnInit(e);
     }

@@ -28,8 +28,8 @@ public class MyEntityForm : Page
     protected override void OnPreInit(EventArgs e)
     {
         // 让页面管理器先注册，因为页面管理器要控制权限
-        Manager = CommonService.Container.Resolve<IManagePage>().Init(this, EntityType);
-        EntityForm = CommonService.Container.Resolve<IEntityForm>().Init(this, EntityType);
+        Manager = CommonService.Get<IManagePage>().Init(this, EntityType);
+        EntityForm = CommonService.Get<IEntityForm>().Init(this, EntityType);
 
         base.OnPreInit(e);
     }

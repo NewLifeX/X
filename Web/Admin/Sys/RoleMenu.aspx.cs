@@ -66,7 +66,7 @@ public partial class Pages_RoleMenu : MyEntityList
         if (RoleID < 1) return;
 
         IRole role = Role.FindByID(RoleID);
-        if (!Role.CheckedChanged(sender, e, role)) return;
+        if (!Role.CheckedChanged(sender, e, role, "权限管理")) return;
 
         // 清空缓存，否则一会绑定的时候会绑定旧数据
         //_rms = null;
@@ -78,7 +78,7 @@ public partial class Pages_RoleMenu : MyEntityList
         if (RoleID < 1) return;
 
         IRole role = Role.FindByID(RoleID);
-        if (!Role.SelectedIndexChanged(sender, e, role)) return;
+        if (!Role.SelectedIndexChanged(sender, e, role, "权限管理")) return;
 
         //// 清空缓存，否则一会绑定的时候会绑定旧数据
         //_rms = null;
