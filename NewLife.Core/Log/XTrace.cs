@@ -146,7 +146,7 @@ namespace NewLife.Log
                 {
                     cmp = new CompositeLog();
                     cmp.Add(clg);
-                    cmp.Add(_Log);
+                    if (_Log != null) cmp.Add(_Log);
                     Log = cmp;
                 }
             }
@@ -156,7 +156,7 @@ namespace NewLife.Log
                 cmp.Add(clg);
                 if (ftl == null)
                 {
-                    cmp.Add(_Log);
+                    if (_Log != null) cmp.Add(_Log);
                     ftl = TextFileLog.Create(null);
                     cmp.Add(ftl);
                 }
