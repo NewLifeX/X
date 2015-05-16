@@ -359,6 +359,7 @@ namespace NewLife.Net
             var e = new ReceivedEventArgs();
             e.Data = data;
             e.Length = count;
+            e.UserState = Remote.EndPoint;
 
             RaiseReceive(this, e);
 

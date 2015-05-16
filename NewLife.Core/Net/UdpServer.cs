@@ -439,9 +439,10 @@ namespace NewLife.Net
             }
 
             // 分析处理
-            var e = new UdpReceivedEventArgs();
+            var e = new ReceivedEventArgs();
             e.Data = data;
-            e.Remote = remote;
+            //e.Remote = remote;
+            e.UserState = remote;
 
             // 为该连接单独创建一个会话，方便直接通信
             var session = CreateSession(remote);
@@ -449,7 +450,12 @@ namespace NewLife.Net
             RaiseReceive(session, e);
 
             // 数据发回去
-            if (e.Feedback) Client.Send(e.Data, e.Length, e.Remote);
+            if (e.Feedback)
+            {
+                // 有没有可能事件处理者修改了这个用户对象？要求转发给别人？
+                remote = e.UserState as IPEndPoint;
+                Client.Send(e.Data, e.Length, remote);
+            }
         }
         #endregion
 
@@ -542,13 +548,13 @@ namespace NewLife.Net
         #endregion
     }
 
-    /// <summary>收到Udp数据包的事件参数</summary>
-    public class UdpReceivedEventArgs : ReceivedEventArgs
-    {
-        private IPEndPoint _Remote;
-        /// <summary>远程地址</summary>
-        public IPEndPoint Remote { get { return _Remote; } set { _Remote = value; } }
-    }
+    ///// <summary>收到Udp数据包的事件参数</summary>
+    //public class UdpReceivedEventArgs : ReceivedEventArgs
+    //{
+    //    private IPEndPoint _Remote;
+    //    /// <summary>远程地址</summary>
+    //    public IPEndPoint Remote { get { return _Remote; } set { _Remote = value; } }
+    //}
 
     /// <summary>Udp扩展</summary>
     public static class UdpHelper

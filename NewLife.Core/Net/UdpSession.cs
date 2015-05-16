@@ -198,8 +198,10 @@ namespace NewLife.Net
             //if (Received == null) return;
 
             // 判断是否自己的数据
-            var udp = e as UdpReceivedEventArgs;
-            if (CheckFilter(udp.Remote))
+            //var udp = e as UdpReceivedEventArgs;
+            //if (CheckFilter(udp.Remote))
+            var remote = e.UserState as IPEndPoint;
+            if (CheckFilter(remote))
             {
                 _LastTime = DateTime.Now;
 

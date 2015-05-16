@@ -9,7 +9,7 @@ namespace NewLife.Net
     {
         #region 属性
         private Byte[] _Data;
-        /// <summary>数据</summary>
+        /// <summary>数据。设置数据时会修改Length属性</summary>
         public Byte[] Data
         {
             get { return _Data; }
@@ -36,7 +36,7 @@ namespace NewLife.Net
         public Boolean Feedback { get { return _Feedback; } set { _Feedback = value; } }
 
         private Object _UserState;
-        /// <summary>用户数据</summary>
+        /// <summary>用户数据。比如远程地址等</summary>
         public Object UserState { get { return _UserState; } set { _UserState = value; } }
 
         //private IDictionary<String, Object> _Properties = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
