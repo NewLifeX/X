@@ -133,9 +133,9 @@ namespace NewLife.Net.UPnP
             var content = e.Stream.ToStr();
             if (String.IsNullOrEmpty(content)) return;
 
-            var udp = e as UdpReceivedEventArgs;
+            //var udp = e as UdpReceivedEventArgs;
 
-            var remote = udp.Remote;
+            var remote = e.UserState as IPEndPoint;
             var address = remote.Address;
             WriteLog("发现UPnP设备：{0}", remote);
 
