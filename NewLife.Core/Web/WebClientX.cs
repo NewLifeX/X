@@ -163,6 +163,14 @@ namespace NewLife.Web
         /// <returns>返回已下载的文件，无效时返回空</returns>
         public String DownloadLink(String url, String name, String destdir)
         {
+            // 猜测本地可能存在的文件
+            var fi = destdir.AsDirectory().GetFiles(name + "*.zip").FirstOrDefault();
+            if (fi != null && fi.Exists)
+            {
+                Log.Info("目标文件{0}已存在，无需下载", fi.FullName);
+                return fi.FullName;
+            }
+
             var ls = GetLinks(url);
             if (ls.Length == 0) return null;
 
@@ -175,9 +183,17 @@ namespace NewLife.Web
             if (ls.Length == 0) return null;
 
             var link = ls[0];
+            var file = destdir.CombinePath(link.Name).EnsureDirectory();
+
+            if (File.Exists(file))
+            {
+                Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", link.Name, link.Url);
+                return file;
+            }
+
             Log.Info("分析得到文件 {0}，准备下载 {1}", link.Name, link.Url);
             // 开始下载文件，注意要提前建立目录，否则会报错
-            var file = destdir.CombinePath(link.Name).EnsureDirectory();
+            file = file.EnsureDirectory();
             DownloadFile(link.Url, file);
             return file;
         }

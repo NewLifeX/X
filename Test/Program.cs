@@ -202,37 +202,7 @@ namespace Test
 
         static void Test9()
         {
-            var tb = UserX.Meta.Table.DataTable;
-            var table = ObjectContainer.Current.Resolve<IDataTable>();
-            table = table.CopyAllFrom(tb);
-
-            // 添加两个字段
-            var fi = table.CreateColumn();
-            fi.ColumnName = "LastUpdate";
-            fi.DataType = typeof(DateTime);
-            table.Columns.Add(fi);
-
-            fi = table.CreateColumn();
-            fi.ColumnName = "LastSync";
-            fi.DataType = typeof(DateTime);
-            table.Columns.Add(fi);
-
-            var dal = DAL.Create("Common99");
-            // 检查架构
-            dal.SetTables(table);
-
-            var sl = new SyncSlave();
-            sl.Factory = dal.CreateOperate(table.TableName);
-
-            var mt = new SyncMaster();
-            mt.Facotry = UserX.Meta.Factory;
-            //mt.LastUpdateName = Administrator._.LastLogin;
-
-            var sm = new SyncManager();
-            sm.Slave = sl;
-            sm.Master = mt;
-
-            sm.Start();
+            "学无先后达者为师".Speak();
         }
 
         static void Test10()
