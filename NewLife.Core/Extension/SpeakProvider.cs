@@ -51,7 +51,15 @@ namespace NewLife.Extension
                 else
                     LoadType(file);
             }
-            CheckVoice();
+
+            try
+            {
+                CheckVoice();
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
         }
 
         Boolean LoadType(String file)
@@ -72,18 +80,25 @@ namespace NewLife.Extension
         {
             if (_type == null) return;
 
-            var synth = _type.CreateInstance(new Object[0]);
-            var vs = synth.Invoke("GetInstalledVoices") as IList;
-            if (vs != null && vs.Count > 0)
+            try
             {
-                var flag = false;
-                foreach (var item in vs)
+                var synth = _type.CreateInstance(new Object[0]);
+                var vs = synth.Invoke("GetInstalledVoices") as IList;
+                if (vs != null && vs.Count > 0)
                 {
-                    XTrace.WriteLine("语音库：{0}", item.GetValue("VoiceInfo").GetValue("Description"));
+                    var flag = false;
+                    foreach (var item in vs)
+                    {
+                        XTrace.WriteLine("语音库：{0}", item.GetValue("VoiceInfo").GetValue("Description"));
 
-                    if ((Boolean)item.GetValue("Enabled")) flag = true;
+                        if ((Boolean)item.GetValue("Enabled")) flag = true;
+                    }
+                    if (flag) return;
                 }
-                if (flag) return;
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
             }
 
             var url = "http://www.newlifex.com/showtopic-51.aspx";
