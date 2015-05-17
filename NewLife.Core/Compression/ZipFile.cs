@@ -342,16 +342,26 @@ namespace NewLife.Compression
         /// <param name="fileName"></param>
         /// <param name="outputPath"></param>
         /// <param name="overrideExisting"></param>
-        public static void Extract(String fileName, String outputPath, Boolean overrideExisting = true)
+        /// <param name="throwException"></param>
+        public static void Extract(String fileName, String outputPath, Boolean overrideExisting = true, Boolean throwException = true)
         {
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
             // 默认使用没有后缀的路径作为目录
             if (String.IsNullOrEmpty(outputPath)) outputPath = Path.GetFileNameWithoutExtension(fileName);
             if (String.IsNullOrEmpty(outputPath)) throw new ArgumentNullException("outputPath");
 
-            using (ZipFile zf = new ZipFile(fileName))
+            using (var zf = new ZipFile(fileName))
             {
-                zf.Extract(outputPath, overrideExisting);
+                if (throwException)
+                    zf.Extract(outputPath, overrideExisting);
+                else
+                {
+                    try
+                    {
+                        zf.Extract(outputPath, overrideExisting);
+                    }
+                    catch { }
+                }
             }
         }
         #endregion

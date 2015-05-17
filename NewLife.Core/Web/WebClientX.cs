@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using NewLife.Compression;
 using NewLife.Log;
 
 namespace NewLife.Web
@@ -174,12 +175,60 @@ namespace NewLife.Web
             if (ls.Length == 0) return null;
 
             var link = ls[0];
-            if (XTrace.Debug) XTrace.WriteLine("分析得到文件 {0}，准备下载 {1}", link.Name, link.Url);
+            Log.Info("分析得到文件 {0}，准备下载 {1}", link.Name, link.Url);
             // 开始下载文件，注意要提前建立目录，否则会报错
             var file = destdir.CombinePath(link.Name).EnsureDirectory();
             DownloadFile(link.Url, file);
             return file;
         }
+
+        /// <summary>分析指定页面指定名称的链接，并下载到目标目录，解压Zip后返回目标文件</summary>
+        /// <param name="url">指定页面</param>
+        /// <param name="name">页面上指定名称的链接</param>
+        /// <param name="destdir">要下载到的目标目录</param>
+        /// <returns></returns>
+        public String DownloadLinkAndExtract(String url, String name, String destdir)
+        {
+            var file = "";
+            try
+            {
+                var sw = new Stopwatch();
+                sw.Start();
+                file = DownloadLink(url, name, destdir);
+                sw.Stop();
+
+                if (!file.IsNullOrEmpty())
+                {
+                    Log.Info("下载完成，共{0:n0}字节，耗时{1}毫秒", file.AsFile().Length, sw.ElapsedMilliseconds);
+
+                    ZipFile.Extract(file, destdir, true, false);
+
+                    return file;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+
+                // 这个时候出现异常，删除zip
+                if (!file.IsNullOrEmpty() && File.Exists(file))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch { }
+                }
+            }
+
+            return null;
+        }
+        #endregion
+
+        #region 日志
+        private ILog _Log = Logger.Null;
+        /// <summary>日志</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
         #endregion
     }
 }

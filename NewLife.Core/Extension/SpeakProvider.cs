@@ -18,38 +18,41 @@ namespace NewLife.Extension
         public SpeakProvider()
         {
             //AssemblyX.AssemblyPaths.Add("C:\\X\\");
-            _type = typeName.GetTypeEx(true);
-            if (_type == null)
+            try
             {
-                var file = "Microsoft.Speech.dll";
-                if (Runtime.IsWeb) file = "Bin".CombinePath(file);
-                file = file.EnsureDirectory();
-
-                if (!File.Exists(file))
+                _type = typeName.GetTypeEx(true);
+                if (_type == null)
                 {
-                    var url = "http://www.newlifex.com/showtopic-51.aspx";
-                    XTrace.WriteLine("没有找到语音驱动库，准备联网获取 {0}", url);
+                    var file = "Microsoft.Speech.dll";
+                    if (Runtime.IsWeb) file = "Bin".CombinePath(file);
+                    file = file.EnsureDirectory();
 
-                    var client = new WebClientX(true, true);
-                    var dir = Path.GetDirectoryName(file);
-                    var sw = new Stopwatch();
-                    sw.Start();
-                    var file2 = client.DownloadLink(url, "Microsoft.Speech", dir);
-                    sw.Stop();
-
-                    if (!file2.IsNullOrEmpty())
+                    if (!File.Exists(file))
                     {
-                        XTrace.WriteLine("下载完成，共{0:n0}字节，耗时{1}毫秒", file2.AsFile().Length, sw.ElapsedMilliseconds);
+                        var url = "http://www.newlifex.com/showtopic-51.aspx";
+                        XTrace.WriteLine("没有找到语音驱动库，准备联网获取 {0}", url);
 
-                        ZipFile.Extract(file2, dir);
+                        var client = new WebClientX(true, true);
+                        client.Log = XTrace.Log;
+                        var dir = Path.GetDirectoryName(file);
 
-                        // 尝试加载，如果成功，则说明已经安装运行时，仅仅缺类库
-                        LoadType(file);
+                        var file2 = client.DownloadLinkAndExtract(url, "Microsoft.Speech", dir);
+
+                        if (!file2.IsNullOrEmpty())
+                        {
+                            // 尝试加载，如果成功，则说明已经安装运行时，仅仅缺类库
+                            LoadType(file);
+                        }
                     }
-
+                    else
+                        LoadType(file);
                 }
-                else
-                    LoadType(file);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+
+                return;
             }
 
             try
@@ -96,10 +99,7 @@ namespace NewLife.Extension
                     if (flag) return;
                 }
             }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
+            catch { }
 
             var url = "http://www.newlifex.com/showtopic-51.aspx";
             XTrace.WriteLine("没有找到语音运行时，准备联网获取 {0}", url);
@@ -109,17 +109,12 @@ namespace NewLife.Extension
             dir.EnsureDirectory();
 
             var client = new WebClientX(true, true);
-            var sw = new Stopwatch();
-            sw.Start();
-            var file2 = client.DownloadLink(url, "SpeechRuntime", dir);
-            sw.Stop();
+            client.Log = XTrace.Log;
+
+            var file2 = client.DownloadLinkAndExtract(url, "SpeechRuntime", dir);
 
             if (!file2.IsNullOrEmpty())
             {
-                XTrace.WriteLine("下载完成，共{0:n0}字节，耗时{1}毫秒", file2.AsFile().Length, sw.ElapsedMilliseconds);
-
-                ZipFile.Extract(file2, dir);
-
                 // 安装语音库
                 var msi = "SpeechPlatformRuntime_x{0}.msi".F(Runtime.Is64BitOperatingSystem ? 64 : 86);
                 msi = dir.CombinePath(msi);
