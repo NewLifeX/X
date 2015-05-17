@@ -103,6 +103,11 @@ namespace NewLife.Log
 #endif
             }
 
+            WriteVersion();
+        }
+
+        static void WriteVersion()
+        {
             var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
             WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
@@ -162,6 +167,8 @@ namespace NewLife.Log
                 }
                 Log = cmp;
             }
+
+            WriteVersion();
         }
 #endif
         #endregion
