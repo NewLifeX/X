@@ -205,7 +205,7 @@ namespace Test
         {
             "学无先后达者为师".Speak();
 
-            var ip = IPAddress.Parse("113.79.27.204");
+            var ip = IPAddress.Parse("183.63.213.113");
 
             //var file = @"Data\_qqwry.dat";
             //var fs = File.OpenRead(file);
