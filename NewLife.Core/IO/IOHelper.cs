@@ -208,7 +208,9 @@ namespace System
                     }
 
                     // 如果还有数据，说明是目标数据流缓冲区不够大
+#if DEBUG
                     XTrace.WriteLine("目标数据流缓冲区不够大，设计上建议加大（>{0}）以提升性能！", count);
+#endif
                 }
             }
 
