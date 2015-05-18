@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
@@ -54,6 +56,20 @@ namespace NewLife.Cube.Admin.Controllers
             ViewBag.WebServerName = name;
 
             return View();
+        }
+
+        /// <summary>菜单不可见</summary>
+        /// <param name="menu"></param>
+        /// <returns></returns>
+        protected override IDictionary<MethodInfo, int> ScanActionMenu(IMenu menu)
+        {
+            if (menu.Visible)
+            {
+                menu.Visible = false;
+                menu.Save();
+            }
+
+            return base.ScanActionMenu(menu);
         }
     }
 }
