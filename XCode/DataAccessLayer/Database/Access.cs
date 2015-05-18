@@ -7,18 +7,20 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using ADODB;
-using ADOX;
-using DAO;
 using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Exceptions;
 
+#if ACCESS
+using ADODB;
+using ADOX;
+using DAO;
 #if NET4
 using ConnectionClass = ADODB.Connection;
 using DBEngineClass = DAO.DBEngine;
 using CatalogClass = ADOX.Catalog;
+#endif
 #endif
 
 namespace XCode.DataAccessLayer
@@ -27,10 +29,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.Access; }
-        }
+        public override DatabaseType DbType { get { return DatabaseType.Access; } }
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>工厂</summary>
@@ -74,17 +73,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new AccessSession();
-        }
+        protected override IDbSession OnCreateSession() { return new AccessSession(); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData()
-        {
-            return new AccessMetaData();
-        }
+        protected override IMetaData OnCreateMetaData() { return new AccessMetaData(); }
 
         public override bool Support(string providerName)
         {
@@ -121,11 +114,6 @@ namespace XCode.DataAccessLayer
 
         /// <summary>长文本长度</summary>
         public override Int32 LongTextLength { get { return 255; } }
-
-        //protected override string ReservedWordsStr
-        //{
-        //    get { return "ABSOLUTE,ACTION,ADD,ALL,ALLOCATE,ALTER,AND,ANY,ARE,AS,ASC,ASSERTION,AT,AUTHORIZATION,AVG,BEGIN,BETWEEN,BIT,BIT_LENGTH,BOTH,BY,CASCADE,CASCADED,CASE,CAST,CATALOG,CHAR,CHAR_LENGTH,CHARACTER,CHARACTER_LENGTH,CHECK,CLOSE,COALESCE,COLLATE,COLLATION,COLUMN,COMMIT,CONNECT,CONNECTION,CONSTRAINT,CONSTRAINTS,CONTINUE,CONVERT,CORRESPONDING,COUNT,CREATE,CROSS,CURRENT,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,CURSOR,DATE,DAY,DEALLOCATE,DEC,DECIMAL,DECLARE,DEFAULT,DEFERRABLE,DEFERRED,DELETE,DESC,DESCRIBE,DESCRIPTOR,DIAGNOSTICS,DISCONNECT,DISTINCT,DISTINCTROW,DOMAIN,DOUBLE,DROP,ELSE,END,END-EXEC,ESCAPE,EXCEPT,EXCEPTION,EXEC,EXECUTE,EXISTS,EXTERNAL,EXTRACT,FALSE,FETCH,FIRST,FLOAT,FOR,FOREIGN,FOUND,FROM,FULL,GET,GLOBAL,GO,GOTO,GRANT,GROUP,HAVING,HOUR,IDENTITY,IMMEDIATE,IN,INDICATOR,INITIALLY,INNER,INPUT,INSENSITIVE,INSERT,INT,INTEGER,INTERSECT,INTERVAL,INTO,IS,ISOLATION,JOIN,KEY,LANGUAGE,LAST,LEADING,LEFT,LEVEL,LIKE,LOCAL,LOWER,MATCH,MAX,MIN,MINUTE,MODULE,MONTH,NAMES,NATIONAL,NATURAL,NCHAR,NEXT,NO,NOT,NULL,NULLIF,NUMERIC,OCTET_LENGTH,OF,ON,ONLY,OPEN,OPTION,OR,ORDER,OUTER,OUTPUT,OVERLAPS,PARTIAL,POSITION,PRECISION,PREPARE,PRESERVE,PRIMARY,PRIOR,PRIVILEGES,PROCEDURE,PUBLIC,READ,REAL,REFERENCES,RELATIVE,RESTRICT,REVOKE,RIGHT,ROLLBACK,ROWS,SCHEMA,SCROLL,SECOND,SECTION,SELECT,SESSION,SESSION_USER,SET,SIZE,SMALLINT,SOME,SQL,SQLCODE,SQLERROR,SQLSTATE,SUBSTRING,SUM,SYSTEM_USER,TABLE,TEMPORARY,THEN,TIME,TIMESTAMP,TIMEZONE_HOUR,TIMEZONE_MINUTE,TO,TRAILING,TRANSACTION,TRANSLATE,TRANSLATION,TRIGGER,TRIM,TRUE,UNION,UNIQUE,UNKNOWN,UPDATE,UPPER,USAGE,USER,USING,VALUE,VALUES,VARCHAR,VARYING,VIEW,WHEN,WHENEVER,WHERE,WITH,WORK,WRITE,YEAR,ZONE,AdminDB,Alphanumeric,Autoincrement,BAND,Binary,BNOT,BOR,BXOR,Byte,Comp,Compression,Container,Counter,CreateDB,Currency,Database,DateTime,Disallow,ExclusiveConnect,Float4,Float8,General,Guid,IEEEDouble,IEEESingle,Ignore,Image,Index,Inheritable,Integer1,Integer2,Integer4,Logical,Logical1,Long,LongBinary,LongChar,LongText,Memo,Money,Note,Number,Object,OLEObject,OwnerAccess,Pad,Parameters,Password,Percent,Pivot,Proc,SelectSchema,SelectSecurity,Short,Single,Space,String,Tableid,Text,Top,Transform,Uniqueidentifier,UpdateIdentity,UpdateOwner,UpdateSecurity,Varbinary,YesNo"; }
-        //}
 
         public override string FormatName(string name)
         {
@@ -256,6 +244,7 @@ namespace XCode.DataAccessLayer
             return GetTables(rows);
         }
 
+#if ACCESS
         protected override List<IDataColumn> GetFields(IDataTable xt)
         {
             var list = base.GetFields(xt);
@@ -288,6 +277,7 @@ namespace XCode.DataAccessLayer
 
             return list;
         }
+#endif
 
         protected override void FixField(IDataColumn field, DataRow drColumn)
         {
@@ -402,6 +392,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
+#if ACCESS
         /// <summary>设置数据定义模式</summary>
         /// <param name="schema"></param>
         /// <param name="values"></param>
@@ -441,9 +432,11 @@ namespace XCode.DataAccessLayer
             }
             return base.SetSchema(schema, values);
         }
+#endif
         #endregion
 
         #region 创建数据库
+#if ACCESS
         const string dbLangChineseSimplified = ";LANGID=0x0804;CP=936;COUNTRY=0";
 
         /// <summary>创建数据库</summary>
@@ -474,6 +467,7 @@ namespace XCode.DataAccessLayer
                 Marshal.ReleaseComObject(dbe);
             }
         }
+#endif
         #endregion
 
         #region 反向工程创建表
@@ -548,6 +542,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 表和字段备注
+#if ACCESS
         public Boolean AddTableDescription(IDataTable table, String value)
         {
             try
@@ -593,9 +588,11 @@ namespace XCode.DataAccessLayer
         {
             return AddColumnDescription(field, null);
         }
+#endif
         #endregion
 
         #region 默认值
+#if ACCESS
         public virtual Boolean AddDefault(IDataColumn field, String value)
         {
             //if (field.DataType == typeof(DateTime))
@@ -628,6 +625,7 @@ namespace XCode.DataAccessLayer
         {
             return AddDefault(field, null);
         }
+#endif
         #endregion
 
         #region 数据类型
@@ -681,13 +679,16 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助函数
+#if ACCESS
         ADOTabe GetTable(String tableName)
         {
             return new ADOTabe(Database.ConnectionString, FileName, tableName);
         }
+#endif
         #endregion
     }
 
+#if ACCESS
     #region ADOX封装
     internal class ADOTabe : /*DisposeBase*/IDisposable
     {
@@ -1063,4 +1064,5 @@ namespace XCode.DataAccessLayer
         #endregion
     }
     #endregion
+#endif
 }
