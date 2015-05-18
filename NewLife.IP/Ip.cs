@@ -65,6 +65,7 @@ namespace NewLife.IP
                     XTrace.WriteLine("无法找到IP数据库{0}", _DbFile);
                     return false;
                 }
+                XTrace.WriteLine("使用IP数据库{0}", _DbFile);
                 using (var fs = File.OpenRead(_DbFile))
                 {
                     try

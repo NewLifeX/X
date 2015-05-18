@@ -210,12 +210,12 @@ namespace Test
             //var file = @"Data\_qqwry.dat";
             //var fs = File.OpenRead(file);
             //var ms = new MemoryStream();
-            //fs.CompressGZip(ms);
+            //fs.Compress(ms);
             //File.WriteAllBytes(@"Data\ip.gz", ms.ToArray());
 
             //ms.Position = 0;
             //var ms2 = new MemoryStream();
-            //ms.DecompressGZip(ms2);
+            //ms.Decompress(ms2);
             //File.WriteAllBytes(@"Data\ip.data", ms2.ToArray());
 
             Console.WriteLine(ip.GetAddress());
