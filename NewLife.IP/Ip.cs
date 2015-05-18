@@ -45,6 +45,13 @@ namespace NewLife.IP
                     client.Log = XTrace.Log;
                     var dir = Runtime.IsWeb ? "App_Data" : "Data";
                     var file = client.DownloadLink(url, "ip.gz", dir.GetFullPath());
+
+                    if (File.Exists(file))
+                    {
+                        _DbFile = file.GetFullPath();
+                        // 让它重新初始化
+                        _inited = null;
+                    }
                 });
             }
         }
@@ -56,6 +63,7 @@ namespace NewLife.IP
             lock (typeof(Ip))
             {
                 if (_inited != null) return _inited.Value;
+                _inited = false;
 
                 var z = new Zip();
 
@@ -75,7 +83,7 @@ namespace NewLife.IP
                     catch (Exception ex)
                     {
                         XTrace.WriteException(ex);
-                        _inited = false;
+
                         return false;
                     }
                 }
@@ -83,6 +91,7 @@ namespace NewLife.IP
             }
 
             if (zip.Stream == null) throw new InvalidOperationException("无法打开IP数据库" + _DbFile + "！");
+
             _inited = true;
             return true;
         }
