@@ -328,13 +328,23 @@ namespace NewLife.Compression
         /// <summary>解压缩</summary>
         /// <param name="outputPath">目标路径</param>
         /// <param name="overrideExisting">是否覆盖已有文件</param>
-        public void Extract(String outputPath, Boolean overrideExisting = true)
+        /// <param name="throwException"></param>
+        public void Extract(String outputPath, Boolean overrideExisting = true, Boolean throwException = true)
         {
             if (String.IsNullOrEmpty(outputPath)) throw new ArgumentNullException("outputPath");
 
             foreach (var item in Entries.Values)
             {
-                item.Extract(outputPath, overrideExisting);
+                if (throwException)
+                    item.Extract(outputPath, overrideExisting);
+                else
+                {
+                    try
+                    {
+                        item.Extract(outputPath, overrideExisting);
+                    }
+                    catch { }
+                }
             }
         }
 
@@ -352,16 +362,7 @@ namespace NewLife.Compression
 
             using (var zf = new ZipFile(fileName))
             {
-                if (throwException)
-                    zf.Extract(outputPath, overrideExisting);
-                else
-                {
-                    try
-                    {
-                        zf.Extract(outputPath, overrideExisting);
-                    }
-                    catch { }
-                }
+                zf.Extract(outputPath, overrideExisting, throwException);
             }
         }
         #endregion
