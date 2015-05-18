@@ -29,6 +29,9 @@ namespace Test
         {
             XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
+#if DEBUG
+            XTrace.Debug = true;
+#endif
             while (true)
             {
                 Stopwatch sw = new Stopwatch();
