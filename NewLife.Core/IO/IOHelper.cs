@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using NewLife.Reflection;
-using NewLife;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace System
 {
@@ -24,7 +23,7 @@ namespace System
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
 #if NET45
-            using (var stream = new DeflateStream(outStream, CompressionLevel.Optimal, true))
+            using (var stream = new DeflateStream(outStream, (CompressionLevel)9, true))
 #else
             using (var stream = new DeflateStream(outStream, CompressionMode.Compress, true))
 #endif
