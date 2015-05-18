@@ -52,8 +52,8 @@
                 {
                     if (item.ID != 0)
                     {
-            <a href="@(item.Url!=null? Url.Content(item.Url):"#")" class="h4">@item.DisplayName</a>
-            <text>&nbsp;/&nbsp;</text>
+                        <a href="@(item.Url!=null? Url.Content(item.Url):"#")" class="h4">@item.DisplayName</a>
+                        <text>&nbsp;/&nbsp;</text>
                     }
                 }
             }
@@ -64,11 +64,17 @@
                 @RenderBody()
             </section>
         </div>
+        @if (DbRunTimeModule.Enable)
+        {
+            <div class="panel-footer">
+                @DbRunTimeModule.GetInfo()
+            </div>
+        }
     </div>
     <!-- 最早引入基本脚本 -->
     <script src="~/Content/bootstrap/js/bootstrap.min.js"></script>
     @*<script src="~/Content/js/jquery-ui.custom.min.js"></script>
-    <script src="~/Content/js/jquery.ui.touch-punch.min.js"></script>*@
+        <script src="~/Content/js/jquery.ui.touch-punch.min.js"></script>*@
 
     <!-- ace 设置 -->
     <script src="~/Content/ace/js/ace.min.js"></script>
@@ -80,7 +86,6 @@
     <script src="~/Content/js/html5shiv.min.js"></script>
     <script src="~/Content/js/respond.min.js"></script>
     <![endif]-->
-
     @*@Scripts.Render("~/bootstrap_js")*@
     @RenderSection("scripts", required: false)
 
@@ -132,11 +137,11 @@
 
     <!--开关插件-->
     @*<script src="~/Content/bootstrap-switch/bootstrapSwitch.js"></script>
-    <script>
-        $(function () {
-            $("input[type=checkbox]").bootstrapSwitch();
-        })
-    </script>*@
+        <script>
+            $(function () {
+                $("input[type=checkbox]").bootstrapSwitch();
+            })
+        </script>*@
 
     <script src="~/Content/fuelux/fuelux.spinner.min.js"></script>
 </body>
