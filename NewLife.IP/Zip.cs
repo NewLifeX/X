@@ -47,7 +47,7 @@ namespace NewLife.IP
 
             // 仅支持Gzip压缩，可用7z软件先压缩为gz格式
             if (buf[0] == 0x1F & buf[1] == 0x8B && buf[2] == 0x08)
-                IOHelper.Decompress(stream, ms);
+                IOHelper.DecompressGZip(stream, ms);
             else
                 IOHelper.CopyTo(stream, ms);
 

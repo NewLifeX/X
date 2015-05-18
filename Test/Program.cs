@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using NewLife.Common;
@@ -18,7 +19,7 @@ using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Sync;
-using XCode.Transform; 
+using XCode.Transform;
 
 namespace Test
 {
@@ -203,6 +204,21 @@ namespace Test
         static void Test9()
         {
             "学无先后达者为师".Speak();
+
+            var ip = IPAddress.Parse("113.79.27.204");
+
+            //var file = @"Data\_qqwry.dat";
+            //var fs = File.OpenRead(file);
+            //var ms = new MemoryStream();
+            //fs.CompressGZip(ms);
+            //File.WriteAllBytes(@"Data\ip.gz", ms.ToArray());
+
+            //ms.Position = 0;
+            //var ms2 = new MemoryStream();
+            //ms.DecompressGZip(ms2);
+            //File.WriteAllBytes(@"Data\ip.data", ms2.ToArray());
+
+            Console.WriteLine(ip.GetAddress());
         }
 
         static void Test10()

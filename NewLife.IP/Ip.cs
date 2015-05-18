@@ -42,24 +42,20 @@ namespace NewLife.IP
                     XTrace.WriteLine("没有找到IP数据库，准备联网获取 {0}", url);
 
                     var client = new WebClientX();
-
-                    var sw = new Stopwatch();
-                    sw.Start();
+                    client.Log = XTrace.Log;
                     var dir = Runtime.IsWeb ? "App_Data" : "Data";
                     var file = client.DownloadLink(url, "ip.gz", dir.GetFullPath());
-                    sw.Stop();
-
-                    XTrace.WriteLine("下载IP数据库完成，共{0:n0}字节，耗时{1}毫秒", file.AsFile().Length, sw.ElapsedMilliseconds);
                 });
             }
         }
 
+        static Boolean? _inited;
         static Boolean Init()
         {
-            if (zip != null) return true;
+            if (_inited != null) return _inited.Value;
             lock (typeof(Ip))
             {
-                if (zip != null) return true;
+                if (_inited != null) return _inited.Value;
 
                 var z = new Zip();
 
@@ -71,12 +67,22 @@ namespace NewLife.IP
                 }
                 using (var fs = File.OpenRead(_DbFile))
                 {
-                    z.SetStream(fs);
+                    try
+                    {
+                        z.SetStream(fs);
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                        _inited = false;
+                        return false;
+                    }
                 }
                 zip = z;
             }
 
             if (zip.Stream == null) throw new InvalidOperationException("无法打开IP数据库" + _DbFile + "！");
+            _inited = true;
             return true;
         }
 
