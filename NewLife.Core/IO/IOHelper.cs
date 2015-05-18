@@ -200,12 +200,16 @@ namespace System
                     else
                         ms.SetLength(len);
                     // 如果得到的数据没有达到预期，说明读完了
-                    if (rs <= count) return rs;
+                    if (rs < count) return rs;
+                    // 如果相等，则只有特殊情况才是达到预期
+                    if (rs == count)
+                    {
+                        if (count != max && count != 256) return rs;
+                    }
 
                     // 如果还有数据，说明是目标数据流缓冲区不够大
                     XTrace.WriteLine("目标数据流缓冲区不够大，设计上建议加大（>{0}）以提升性能！", count);
                 }
-
             }
 
             if (bufferSize <= 0) bufferSize = 1024;
