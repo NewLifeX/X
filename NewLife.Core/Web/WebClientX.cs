@@ -164,11 +164,15 @@ namespace NewLife.Web
         public String DownloadLink(String url, String name, String destdir)
         {
             // 猜测本地可能存在的文件
-            var fi = destdir.AsDirectory().GetFiles(name + "*.zip").FirstOrDefault();
-            if (fi != null && fi.Exists)
+            var di = destdir.AsDirectory();
+            if (di != null && di.Exists)
             {
-                Log.Info("目标文件{0}已存在，无需下载", fi.FullName);
-                return fi.FullName;
+                var fi = di.GetFiles(name + "*.zip").FirstOrDefault();
+                if (fi != null && fi.Exists)
+                {
+                    Log.Info("目标文件{0}已存在，无需下载", fi.FullName);
+                    return fi.FullName;
+                }
             }
 
             var ls = GetLinks(url);
@@ -194,7 +198,15 @@ namespace NewLife.Web
             Log.Info("分析得到文件 {0}，准备下载 {1}", link.Name, link.Url);
             // 开始下载文件，注意要提前建立目录，否则会报错
             file = file.EnsureDirectory();
+
+            var sw = new Stopwatch();
+            sw.Start();
             DownloadFile(link.Url, file);
+            sw.Stop();
+
+            if (File.Exists(file))
+                Log.Info("下载完成，共{0:n0}字节，耗时{1}毫秒", file.AsFile().Length, sw.ElapsedMilliseconds);
+
             return file;
         }
 
@@ -208,15 +220,10 @@ namespace NewLife.Web
             var file = "";
             try
             {
-                var sw = new Stopwatch();
-                sw.Start();
                 file = DownloadLink(url, name, destdir);
-                sw.Stop();
 
                 if (!file.IsNullOrEmpty())
                 {
-                    Log.Info("下载完成，共{0:n0}字节，耗时{1}毫秒", file.AsFile().Length, sw.ElapsedMilliseconds);
-
                     ZipFile.Extract(file, destdir, true, false);
 
                     return file;
