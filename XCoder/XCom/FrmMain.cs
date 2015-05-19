@@ -89,6 +89,15 @@ namespace XCom
             // 需要考虑UI线程
             st.Disconnected += (s, e) => this.Invoke(Disconnect);
 
+            // 发现USB2401端口，自动发送设置命令
+            if (st.Description.Contains("USB2401") || st.Description.Contains("USBSER"))
+            {
+                var cmd = "AT+SET=00070000000000";
+                st.Send(cmd.GetBytes());
+                //XTrace.WriteLine(cmd);
+                TextControlLog.WriteLog(txtReceive, cmd);
+            }
+
             btnConnect.Text = "关闭";
         }
 
