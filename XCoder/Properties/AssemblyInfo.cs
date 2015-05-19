@@ -25,10 +25,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("6.3.*")]
-[assembly: AssemblyFileVersion("6.3.2015.0511")]
+[assembly: AssemblyVersion("6.4.*")]
+[assembly: AssemblyFileVersion("6.4.2015.0519")]
 
 /*
+ * v6.4.2015.0519   改进串口调试工具，显示设备友好名
+ * 
  * v6.3.2015.0511   改进网络调试工具，列出网络库的所有网络服务器
  * 
  * v6.2.2014.1225   增加网络调试工具，支持TCP/UDP混合，支持内置基础网络服务协议解析
