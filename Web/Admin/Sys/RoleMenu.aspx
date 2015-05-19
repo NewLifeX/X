@@ -21,6 +21,8 @@
                     <HeaderStyle Width="50px" />
                     <ItemStyle HorizontalAlign="Center" />
                 </asp:BoundField>
+                <asp:BoundField DataField="TreeNodeName" HeaderText="名称" SortExpression="Name" />
+                <asp:BoundField DataField="DisplayName" HeaderText="显示名" SortExpression="DisplayName" />
                 <asp:TemplateField HeaderText="权限名称" SortExpression="Permission">
                     <ItemTemplate>
                         <%# new String('　', (Convert.ToInt32(Eval("Deepth"))-1)*2)%><asp:Label ID="Label1"

@@ -1,15 +1,13 @@
 ﻿using System;
-using NewLife.Reflection;
-using System.ComponentModel;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Accessors;
 using XCode.Configuration;
-using XCode.Exceptions;
 using XCode.Membership;
 
 namespace NewLife.CommonEntity.Web
@@ -160,7 +158,7 @@ namespace NewLife.CommonEntity.Web
 
         private IManagePage _ManagePage;
         /// <summary>管理页。用于控制权限</summary>
-        public virtual IManagePage ManagePage { get { return _ManagePage ?? (_ManagePage = ManageProvider.Provider.GetService<IManagePage>()); } set { _ManagePage = value; } }
+        public virtual IManagePage ManagePage { get { return _ManagePage ?? (_ManagePage = CommonService.Get<IManagePage>()); } set { _ManagePage = value; } }
         #endregion
 
         #region 事件
@@ -352,15 +350,12 @@ namespace NewLife.CommonEntity.Web
             Control btncopy = CopyButton;
             if (!Page.IsPostBack)
             {
-                // 尝试获取页面控制器，如果取得，则可以控制权限
-                //IManagePage manager = ManageProvider.Provider.GetService<IManagePage>();
-                var manager = ManagePage;
-                if (manager != null && manager.Container != null && manager.ValidatePermission)
+                if (ManagePage != null && ManagePage.Container != null && ManagePage.ValidatePermission)
                 {
-                    CanSave = entity.IsNullKey && manager.Acquire(PermissionFlags.Insert) || manager.Acquire(PermissionFlags.Update);
+                    CanSave = entity.IsNullKey && ManagePage.Acquire(PermissionFlags.Insert) || ManagePage.Acquire(PermissionFlags.Update);
 
                     // 复制只需要新增权限
-                    if (btncopy != null) btncopy.Visible = manager.Acquire(PermissionFlags.Insert);
+                    if (btncopy != null) btncopy.Visible = ManagePage.Acquire(PermissionFlags.Insert);
                 }
 
                 // 新增数据时，不显示复制按钮
