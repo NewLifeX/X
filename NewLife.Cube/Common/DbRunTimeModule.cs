@@ -31,11 +31,14 @@ namespace NewLife.Cube
         /// <summary>执行时间字符串</summary>
         public static String DbRunTimeFormat { get { return _RunTimeFormat; } set { _RunTimeFormat = value; } }
 
+        const String _QueryTimes = "DAL.QueryTimes";
+        const String _ExecuteTimes = "DAL.ExecuteTimes";
+
         /// <summary>初始化模块，准备拦截请求。</summary>
         void OnInit()
         {
-            Context.Items["DAL.QueryTimes"] = DAL.QueryTimes;
-            Context.Items["DAL.ExecuteTimes"] = DAL.ExecuteTimes;
+            Context.Items[_QueryTimes] = DAL.QueryTimes;
+            Context.Items[_ExecuteTimes] = DAL.ExecuteTimes;
         }
 
         /// <summary>获取执行时间和查询次数等信息</summary>
@@ -44,10 +47,10 @@ namespace NewLife.Cube
         {
             var ts = DateTime.Now - HttpContext.Current.Timestamp;
 
-            if (!Context.Items.Contains("") || !Context.Items.Contains("")) throw new XException("设计错误！需要在web.config中配置{0}", typeof(DbRunTimeModule).FullName);
+            if (!Context.Items.Contains(_QueryTimes) || !Context.Items.Contains(_ExecuteTimes)) throw new XException("设计错误！需要在web.config中配置{0}", typeof(DbRunTimeModule).FullName);
 
-            Int32 StartQueryTimes = (Int32)Context.Items["DAL.QueryTimes"];
-            Int32 StartExecuteTimes = (Int32)Context.Items["DAL.ExecuteTimes"];
+            Int32 StartQueryTimes = (Int32)Context.Items[_QueryTimes];
+            Int32 StartExecuteTimes = (Int32)Context.Items[_ExecuteTimes];
 
             return String.Format(DbRunTimeFormat, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
         }
