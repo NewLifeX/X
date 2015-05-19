@@ -156,7 +156,7 @@
             // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(371, 8);
+            this.btnConnect.Location = new System.Drawing.Point(466, 8);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(67, 29);
             this.btnConnect.TabIndex = 3;
@@ -178,7 +178,7 @@
             this.spList.Name = "spList";
             this.spList.Port = null;
             this.spList.SelectedPort = "COM1(Serial0)";
-            this.spList.Size = new System.Drawing.Size(341, 29);
+            this.spList.Size = new System.Drawing.Size(415, 29);
             this.spList.TabIndex = 6;
             this.spList.ReceivedString += new System.EventHandler<NewLife.Windows.StringEventArgs>(this.OnReceived);
             // 

@@ -55,7 +55,7 @@
             // 
             this.cbBaundrate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbBaundrate.FormattingEnabled = true;
-            this.cbBaundrate.Location = new System.Drawing.Point(274, 3);
+            this.cbBaundrate.Location = new System.Drawing.Point(335, 3);
             this.cbBaundrate.Name = "cbBaundrate";
             this.cbBaundrate.Size = new System.Drawing.Size(62, 20);
             this.cbBaundrate.TabIndex = 7;
@@ -63,7 +63,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(226, 7);
+            this.label2.Location = new System.Drawing.Point(287, 7);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(53, 12);
             this.label2.TabIndex = 6;
@@ -75,7 +75,7 @@
             this.cbName.FormattingEnabled = true;
             this.cbName.Location = new System.Drawing.Point(41, 3);
             this.cbName.Name = "cbName";
-            this.cbName.Size = new System.Drawing.Size(162, 20);
+            this.cbName.Size = new System.Drawing.Size(240, 20);
             this.cbName.TabIndex = 5;
             // 
             // label3
@@ -133,21 +133,21 @@
             // miDTR
             // 
             this.miDTR.Name = "miDTR";
-            this.miDTR.Size = new System.Drawing.Size(152, 22);
+            this.miDTR.Size = new System.Drawing.Size(110, 22);
             this.miDTR.Text = "DTR";
             this.miDTR.Click += new System.EventHandler(this.miDTR_Click);
             // 
             // miRTS
             // 
             this.miRTS.Name = "miRTS";
-            this.miRTS.Size = new System.Drawing.Size(152, 22);
+            this.miRTS.Size = new System.Drawing.Size(110, 22);
             this.miRTS.Text = "RTS";
             this.miRTS.Click += new System.EventHandler(this.miDTR_Click);
             // 
             // miBreak
             // 
             this.miBreak.Name = "miBreak";
-            this.miBreak.Size = new System.Drawing.Size(152, 22);
+            this.miBreak.Size = new System.Drawing.Size(110, 22);
             this.miBreak.Text = "Break";
             this.miBreak.Click += new System.EventHandler(this.miDTR_Click);
             // 
@@ -211,7 +211,7 @@
             this.Controls.Add(this.cbName);
             this.Controls.Add(this.label3);
             this.Name = "SerialPortList";
-            this.Size = new System.Drawing.Size(341, 29);
+            this.Size = new System.Drawing.Size(400, 29);
             this.Load += new System.EventHandler(this.SerialPortList_Load);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);

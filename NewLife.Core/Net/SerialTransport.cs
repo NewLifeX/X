@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.Win32;
 using NewLife.Log;
 using NewLife.Threading;
+using NewLife;
 
 namespace NewLife.Net
 {
@@ -350,17 +351,44 @@ namespace NewLife.Net
         {
             var dic = new Dictionary<String, String>();
             using (var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DEVICEMAP\SERIALCOMM", false))
+            using (var usb = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\USB", false))
             {
                 if (key != null)
                 {
                     foreach (var item in key.GetValueNames())
                     {
-                        var value = key.GetValue(item) + "";
-                        var name = item;
-                        var p = item.LastIndexOf('\\');
-                        if (p >= 0) name = name.Substring(p + 1);
+                        var name = key.GetValue(item) + "";
+                        var des = "";
 
-                        dic.Add(value, name);
+                        // 尝试枚举USB串口
+                        foreach (var vid in usb.GetSubKeyNames())
+                        {
+                            var usbvid = usb.OpenSubKey(vid);
+                            foreach (var elm in usbvid.GetSubKeyNames())
+                            {
+                                var sub = usbvid.OpenSubKey(elm);
+                                if (sub.GetValue("Class") + "" == "Ports")
+                                {
+                                    var FriendlyName = sub.GetValue("FriendlyName") + "";
+                                    if (FriendlyName.Contains("({0})".F(name)))
+                                    {
+                                        des = FriendlyName.TrimEnd("({0})".F(name)).Trim();
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!des.IsNullOrEmpty()) break;
+                        }
+
+                        // 最后选择设备映射的串口名
+                        if (des.IsNullOrEmpty())
+                        {
+                            des = item;
+                            var p = item.LastIndexOf('\\');
+                            if (p >= 0) des = des.Substring(p + 1);
+                        }
+
+                        dic.Add(name, des);
                     }
                 }
             }
