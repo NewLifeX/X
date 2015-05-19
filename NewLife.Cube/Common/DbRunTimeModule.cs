@@ -42,7 +42,9 @@ namespace NewLife.Cube
         /// <returns></returns>
         public static String GetInfo()
         {
-            TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
+            var ts = DateTime.Now - HttpContext.Current.Timestamp;
+
+            if (!Context.Items.Contains("") || !Context.Items.Contains("")) throw new XException("设计错误！需要在web.config中配置{0}", typeof(DbRunTimeModule).FullName);
 
             Int32 StartQueryTimes = (Int32)Context.Items["DAL.QueryTimes"];
             Int32 StartExecuteTimes = (Int32)Context.Items["DAL.ExecuteTimes"];
