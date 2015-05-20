@@ -33,6 +33,8 @@
             this.gbReceive = new System.Windows.Forms.GroupBox();
             this.txtReceive = new System.Windows.Forms.RichTextBox();
             this.gbSend = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.numSleep = new System.Windows.Forms.NumericUpDown();
             this.txtSend = new System.Windows.Forms.RichTextBox();
             this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
@@ -46,20 +48,21 @@
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
             this.gbReceive.SuspendLayout();
             this.gbSend.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numSleep)).BeginInit();
             this.menuSend.SuspendLayout();
             this.SuspendLayout();
             // 
             // numMutilSend
             // 
             this.numMutilSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.numMutilSend.Location = new System.Drawing.Point(502, 23);
+            this.numMutilSend.Location = new System.Drawing.Point(436, 22);
             this.numMutilSend.Maximum = new decimal(new int[] {
             10000,
             0,
             0,
             0});
             this.numMutilSend.Name = "numMutilSend";
-            this.numMutilSend.Size = new System.Drawing.Size(42, 21);
+            this.numMutilSend.Size = new System.Drawing.Size(52, 21);
             this.numMutilSend.TabIndex = 14;
             this.numMutilSend.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.numMutilSend.Value = new decimal(new int[] {
@@ -95,16 +98,47 @@
             // 
             this.gbSend.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbSend.Controls.Add(this.numSleep);
             this.gbSend.Controls.Add(this.txtSend);
-            this.gbSend.Controls.Add(this.label7);
             this.gbSend.Controls.Add(this.btnSend);
             this.gbSend.Controls.Add(this.numMutilSend);
+            this.gbSend.Controls.Add(this.label1);
+            this.gbSend.Controls.Add(this.label7);
             this.gbSend.Location = new System.Drawing.Point(9, 290);
             this.gbSend.Name = "gbSend";
             this.gbSend.Size = new System.Drawing.Size(550, 84);
             this.gbSend.TabIndex = 5;
             this.gbSend.TabStop = false;
             this.gbSend.Text = "发送区：已发送0字节";
+            // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(401, 53);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(41, 12);
+            this.label1.TabIndex = 17;
+            this.label1.Text = "间隔：";
+            // 
+            // numSleep
+            // 
+            this.numSleep.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.numSleep.Location = new System.Drawing.Point(436, 49);
+            this.numSleep.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.numSleep.Name = "numSleep";
+            this.numSleep.Size = new System.Drawing.Size(52, 21);
+            this.numSleep.TabIndex = 16;
+            this.numSleep.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.numSleep.Value = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
             // 
             // txtSend
             // 
@@ -115,7 +149,7 @@
             this.txtSend.HideSelection = false;
             this.txtSend.Location = new System.Drawing.Point(0, 19);
             this.txtSend.Name = "txtSend";
-            this.txtSend.Size = new System.Drawing.Size(451, 59);
+            this.txtSend.Size = new System.Drawing.Size(395, 59);
             this.txtSend.TabIndex = 2;
             this.txtSend.Text = "";
             // 
@@ -137,7 +171,7 @@
             // 
             this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(457, 27);
+            this.label7.Location = new System.Drawing.Point(401, 26);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(41, 12);
             this.label7.TabIndex = 15;
@@ -146,9 +180,9 @@
             // btnSend
             // 
             this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSend.Location = new System.Drawing.Point(457, 50);
+            this.btnSend.Location = new System.Drawing.Point(494, 18);
             this.btnSend.Name = "btnSend";
-            this.btnSend.Size = new System.Drawing.Size(87, 29);
+            this.btnSend.Size = new System.Drawing.Size(50, 61);
             this.btnSend.TabIndex = 1;
             this.btnSend.Text = "发送";
             this.btnSend.UseVisualStyleBackColor = true;
@@ -199,6 +233,7 @@
             this.gbReceive.ResumeLayout(false);
             this.gbSend.ResumeLayout(false);
             this.gbSend.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numSleep)).EndInit();
             this.menuSend.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -220,6 +255,8 @@
         private System.Windows.Forms.RichTextBox txtSend;
         private System.Windows.Forms.FontDialog fontDialog1;
         private System.Windows.Forms.ColorDialog colorDialog1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.NumericUpDown numSleep;
     }
 }
 

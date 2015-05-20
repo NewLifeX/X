@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
+using NewLife.Threading;
 using NewLife.Windows;
 using XCoder;
 
@@ -171,12 +172,25 @@ namespace XCom
 
             // 多次发送
             var count = (Int32)numMutilSend.Value;
-            for (int i = 0; i < count; i++)
+            var sleep = (Int32)numSleep.Value;
+            if (count <= 0) count = 1;
+            if (sleep <= 0) sleep = 100;
+
+            if (count == 1)
             {
                 spList.Send(str);
-
-                Thread.Sleep(100);
+                return;
             }
+
+            ThreadPoolX.QueueUserWorkItem(() =>
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    spList.Send(str);
+
+                    if (count > 1) Thread.Sleep(sleep);
+                }
+            });
         }
         #endregion
 
