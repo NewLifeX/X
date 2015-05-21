@@ -591,24 +591,7 @@ WriteLiteral("></i><strong>取消</strong></button>\r\n            </div>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("    </div>\r\n</div>\r\n\r\n");
-
-DefineSection("Scripts", () => {
-
-WriteLiteral("\r\n");
-
-WriteLiteral("    ");
-
-            
-            #line 96 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
-Write(Scripts.Render("~/bundles/jqueryval"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
-
-});
+WriteLiteral("    </div>\r\n</div>");
 
         }
     }

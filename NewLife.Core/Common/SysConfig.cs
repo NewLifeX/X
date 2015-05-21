@@ -11,6 +11,7 @@ namespace NewLife.Common
 
     /// <summary>系统设置。提供系统名称、版本等基本设置。泛型基类，可继承扩展。</summary>
     /// <typeparam name="TSetting"></typeparam>
+    [DisplayName("系统设置")]
     [XmlConfigFile("Config/Sys.config", 15000)]
     public class SysConfig<TSetting> : XmlConfig<TSetting> where TSetting : SysConfig<TSetting>, new()
     {
