@@ -153,6 +153,21 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\User\_Login_Forgot.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_Login_Forgot.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\User\_Login_Login.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_Login_Login.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\User\_Login_Register.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_Login_Register.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Views\_ViewStart.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -485,6 +500,18 @@
     <None Include="Areas\Admin\Views\Role\SetPermission.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>SetPermission.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Areas\Admin\Views\User\_Login_Login.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Login_Login.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Areas\Admin\Views\User\_Login_Forgot.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Login_Forgot.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Areas\Admin\Views\User\_Login_Register.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Login_Register.generated.cs</LastGenOutput>
     </None>
     <None Include="Global.asax" />
     <None Include="Areas\Admin\Views\_ViewStart.cshtml">

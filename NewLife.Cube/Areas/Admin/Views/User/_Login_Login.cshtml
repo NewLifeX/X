@@ -1,0 +1,64 @@
+﻿<div id="login-box" class="login-box visible widget-box no-border">
+    <div class="widget-body">
+        <div class="widget-main">
+            <h4 class="header blue lighter bigger">
+                <i class="ace-icon fa fa-coffee green"></i>
+                精彩总在登录后
+            </h4>
+
+            <div class="space-6"></div>
+
+            @using (Html.BeginForm("Login", "User", new { ReturnUrl = ViewBag.ReturnUrl }))
+            {
+                @Html.ValidationSummary()
+                <fieldset>
+                    <label class="block clearfix">
+                        <span class="block input-icon input-icon-right">
+                            <input name="username" type="text" class="form-control" placeholder="用户名" />
+                            <i class="ace-icon fa fa-user"></i>@Html.ValidationMessage("username")
+                        </span>
+                    </label>
+
+                    <label class="block clearfix">
+                        <span class="block input-icon input-icon-right">
+                            <input name="password" type="password" class="form-control" placeholder="密码" />
+                            <i class="ace-icon fa fa-lock"></i>@Html.ValidationMessage("password")
+                        </span>
+                    </label>
+
+                    <div class="space"></div>
+
+                    <div class="clearfix">
+                        <label class="inline">
+                            <input name="remember" type="checkbox" class="ace" value="true" />
+                            <span class="lbl"> 自动登录</span>
+                        </label>
+
+                        <button type="submit" class="width-35 pull-right btn btn-sm btn-primary">
+                            <i class="ace-icon fa fa-key"></i>
+                            <span class="bigger-110">登录</span>
+                        </button>
+                    </div>
+
+                    <div class="space-4"></div>
+                </fieldset>
+            }
+        </div><!-- /.widget-main -->
+
+        <div class="toolbar clearfix">
+            <div>
+                <a href="#" data-target="#forgot-box" class="forgot-password-link">
+                    <i class="ace-icon fa fa-arrow-left"></i>
+                    忘记密码？
+                </a>
+            </div>
+
+            <div>
+                <a href="#" data-target="#signup-box" class="user-signup-link">
+                    我要注册
+                    <i class="ace-icon fa fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div><!-- /.widget-body -->
+</div><!-- /.login-box -->
