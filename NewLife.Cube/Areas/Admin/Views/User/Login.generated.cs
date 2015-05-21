@@ -281,8 +281,8 @@ WriteLiteral(">\r\n                                            <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-coffee green\"");
 
-WriteLiteral("></i>\r\n                                            请您快到碗里来……\r\n                   " +
-"                     </h4>\r\n\r\n                                        <div");
+WriteLiteral("></i>\r\n                                            精彩总在登录后\r\n                     " +
+"                   </h4>\r\n\r\n                                        <div");
 
 WriteLiteral(" class=\"space-6\"");
 
@@ -865,45 +865,45 @@ WriteLiteral(@">明亮</a>
     <!-- JQuery作为一等公民，页面内部随时可能使用 -->
     <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14898), Tuple.Create("\"", 14936)
-, Tuple.Create(Tuple.Create("", 14904), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 14904), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 14896), Tuple.Create("\"", 14934)
+, Tuple.Create(Tuple.Create("", 14902), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 14902), false)
 );
 
 WriteLiteral("></script>\r\n    <!-- 最早引入基本脚本 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 14983), Tuple.Create("\"", 15028)
-, Tuple.Create(Tuple.Create("", 14989), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 14989), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 14981), Tuple.Create("\"", 15026)
+, Tuple.Create(Tuple.Create("", 14987), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 14987), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 15052), Tuple.Create("\"", 15094)
-, Tuple.Create(Tuple.Create("", 15058), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
-, 15058), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15050), Tuple.Create("\"", 15092)
+, Tuple.Create(Tuple.Create("", 15056), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
+, 15056), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 15118), Tuple.Create("\"", 15165)
-, Tuple.Create(Tuple.Create("", 15124), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
-, 15124), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15116), Tuple.Create("\"", 15163)
+, Tuple.Create(Tuple.Create("", 15122), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
+, 15122), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements" +
 " and media queries -->\r\n    <!--[if lte IE 8]>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 15306), Tuple.Create("\"", 15341)
-, Tuple.Create(Tuple.Create("", 15312), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
-, 15312), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15304), Tuple.Create("\"", 15339)
+, Tuple.Create(Tuple.Create("", 15310), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
+, 15310), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 15365), Tuple.Create("\"", 15398)
-, Tuple.Create(Tuple.Create("", 15371), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
-, 15371), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 15363), Tuple.Create("\"", 15396)
+, Tuple.Create(Tuple.Create("", 15369), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
+, 15369), false)
 );
 
 WriteLiteral("></script>\r\n    <![endif]-->\r\n    <!-- inline scripts related to this page -->\r\n " +
