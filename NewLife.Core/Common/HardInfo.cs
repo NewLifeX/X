@@ -13,7 +13,8 @@ namespace NewLife.Common
     public class HardInfo
     {
         #region 获取信息
-        class _
+        /// <summary>内部获取</summary>
+        public class _
         {
             private static String _BaseBoard;
             /// <summary>主板序列号</summary>
@@ -39,7 +40,11 @@ namespace NewLife.Common
                 {
                     if (_Processors == null)
                     {
-                        _Processors = GetInfo("Win32_Processor", "Caption") + ";" + GetInfo("Win32_Processor", "MaxClockSpeed") + ";" + GetInfo("Win32_Processor", "ProcessorId");
+                        var name = GetInfo("Win32_Processor", "Name");
+                        var MaxClockSpeed = GetInfo("Win32_Processor", "MaxClockSpeed").ToDouble() / 1000;
+                        var ProcessorId = GetInfo("Win32_Processor", "ProcessorId");
+
+                        _Processors = name + " " + MaxClockSpeed + "G " + ProcessorId;
                     }
                     return _Processors;
                 }
@@ -175,40 +180,6 @@ namespace NewLife.Common
                     return _IPs;
                 }
             }
-
-            public static String GetInfo(String path, String property)
-            {
-                var wql = String.Format("Select {0} From {1}", property, path);
-                var cimobject = new ManagementObjectSearcher(wql);
-                var moc = cimobject.Get();
-                var bbs = new List<String>();
-                try
-                {
-                    foreach (ManagementObject mo in moc)
-                    {
-                        if (mo != null &&
-                            mo.Properties != null &&
-                            mo.Properties[property] != null &&
-                            mo.Properties[property].Value != null)
-                            bbs.Add(mo.Properties[property].Value.ToString());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Debug)
-                    {
-                        XTrace.WriteLine("获取{0} {1}硬件信息失败\r\n{2}", path, property, ex);
-                    }
-                }
-                bbs.Sort();
-                var sb = new StringBuilder(bbs.Count * 15);
-                foreach (var s in bbs)
-                {
-                    if (sb.Length > 0) sb.Append(",");
-                    sb.Append(s);
-                }
-                return sb.ToString().Trim();
-            }
         }
         #endregion
 
@@ -333,21 +304,18 @@ namespace NewLife.Common
             IPs = _.IPs;
             OSVersion = Environment.OSVersion.ToString();
             Memory = _.Memory;
-            String str = _.GetInfo("Win32_DesktopMonitor", "ScreenWidth");
-            Int32 m = 0;
-            if (Int32.TryParse(str, out m)) ScreenWidth = m;
-            str = _.GetInfo("Win32_DesktopMonitor", "ScreenHeight");
-            if (Int32.TryParse(str, out m)) ScreenHeight = m;
+            ScreenWidth = GetInfo("Win32_DesktopMonitor", "ScreenWidth").ToInt();
+            ScreenHeight = GetInfo("Win32_DesktopMonitor", "ScreenHeight").ToInt();
 
-            str = _.GetInfo("Win32_DiskDrive", "Size");
+            var str = GetInfo("Win32_DiskDrive", "Size");
             Int64 n = 0;
             if (Int64.TryParse(str, out n)) DiskSize = n;
             if (DiskSize <= 0)
             {
-                DriveInfo[] drives = DriveInfo.GetDrives();
+                var drives = DriveInfo.GetDrives();
                 if (drives != null && drives.Length > 0)
                 {
-                    foreach (DriveInfo item in drives)
+                    foreach (var item in drives)
                     {
                         if (item.DriveType == DriveType.CDRom ||
                             item.DriveType == DriveType.Network ||
@@ -383,6 +351,46 @@ namespace NewLife.Common
                     return _Current;
                 }
             }
+        }
+        #endregion
+
+        #region WMI辅助
+        /// <summary>获取WMI信息</summary>
+        /// <param name="path"></param>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public static String GetInfo(String path, String property)
+        {
+            var wql = String.Format("Select {0} From {1}", property, path);
+            var cimobject = new ManagementObjectSearcher(wql);
+            var moc = cimobject.Get();
+            var bbs = new List<String>();
+            try
+            {
+                foreach (ManagementObject mo in moc)
+                {
+                    if (mo != null &&
+                        mo.Properties != null &&
+                        mo.Properties[property] != null &&
+                        mo.Properties[property].Value != null)
+                        bbs.Add(mo.Properties[property].Value.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                if (XTrace.Debug)
+                {
+                    XTrace.WriteLine("获取{0} {1}硬件信息失败\r\n{2}", path, property, ex);
+                }
+            }
+            bbs.Sort();
+            var sb = new StringBuilder(bbs.Count * 15);
+            foreach (var s in bbs)
+            {
+                if (sb.Length > 0) sb.Append(",");
+                sb.Append(s);
+            }
+            return sb.ToString().Trim();
         }
         #endregion
 

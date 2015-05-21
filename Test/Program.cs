@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Management;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+using Microsoft.VisualBasic.Devices;
 using NewLife.Common;
 using NewLife.Compression;
 using NewLife.Log;
@@ -40,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                Test9();
+                    Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -206,22 +209,28 @@ namespace Test
 
         static void Test9()
         {
-            "学无先后达者为师".Speak();
+            //var wql = "Select * From Win32_Processor";
+            //var cimobject = new ManagementObjectSearcher(wql);
+            //var moc = cimobject.Get();
+            //var bbs = new List<String>();
+            //foreach (ManagementObject mo in moc)
+            //{
+            //    foreach (var item in mo.Properties)
+            //    {
+            //        Console.WriteLine("{0,-20}{1}", item.Name, item.Value);
+            //    }
+            //}
 
-            var ip = IPAddress.Parse("183.63.213.113");
+            var sw = new Stopwatch();
+            sw.Start();
 
-            //var file = @"Data\_qqwry.dat";
-            //var fs = File.OpenRead(file);
-            //var ms = new MemoryStream();
-            //fs.Compress(ms);
-            //File.WriteAllBytes(@"Data\ip.gz", ms.ToArray());
+            var hi = HardInfo.Current;
+            sw.Stop();
+            Console.WriteLine(sw.Elapsed);
+            Console.WriteLine(hi);
 
-            //ms.Position = 0;
-            //var ms2 = new MemoryStream();
-            //ms.Decompress(ms2);
-            //File.WriteAllBytes(@"Data\ip.data", ms2.ToArray());
-
-            Console.WriteLine(ip.GetAddress());
+            //var ci = new ComputerInfo();
+            //Console.WriteLine(ci);
         }
 
         static void Test10()
