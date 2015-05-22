@@ -399,21 +399,21 @@ WriteLiteral(">\r\n                    物理内存：");
 
             
             #line 99 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-                     Write(((Double)Runtime.AvailableMemory / 1024).ToString("n2"));
+                     Write(Runtime.AvailableMemory.ToString("n0"));
 
             
             #line default
             #line hidden
-WriteLiteral("GB / ");
+WriteLiteral("M / ");
 
             
             #line 99 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-                                                                                    Write(((Double)Runtime.PhysicalMemory / 1024).ToString("n2"));
+                                                                  Write(Runtime.PhysicalMemory.ToString("n0"));
 
             
             #line default
             #line hidden
-WriteLiteral("GB\r\n                    工作集: ");
+WriteLiteral("M\r\n                    工作集: ");
 
             
             #line 100 "..\..\Areas\Admin\Views\Index\Main.cshtml"
@@ -442,14 +442,14 @@ WriteLiteral("MB\r\n                    GC: ");
             #line hidden
 WriteLiteral("MB\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 3717), Tuple.Create("\"", 3758)
+WriteAttribute("href", Tuple.Create(" href=\"", 3681), Tuple.Create("\"", 3722)
             
             #line 103 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-, Tuple.Create(Tuple.Create("", 3724), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/ProcessModules")
+, Tuple.Create(Tuple.Create("", 3688), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/ProcessModules")
             
             #line default
             #line hidden
-, 3724), false)
+, 3688), false)
 );
 
 WriteLiteral(" target=\"_blank\"");

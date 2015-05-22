@@ -96,7 +96,7 @@
                     内存：
                 </td>
                 <td class="value">
-                    物理内存：@(((Double)Runtime.AvailableMemory / 1024).ToString("n2"))GB / @(((Double)Runtime.PhysicalMemory / 1024).ToString("n2"))GB
+                    物理内存：@(Runtime.AvailableMemory.ToString("n0"))M / @(Runtime.PhysicalMemory.ToString("n0"))M
                     工作集: @((process.WorkingSet64 / 1024 / 1024).ToString("n0"))MB
                     提交: @((process.PrivateMemorySize64 / 1024 / 1024).ToString("n0"))MB
                     GC: @((GC.GetTotalMemory(false) / 1024 / 1024).ToString("n0"))MB
