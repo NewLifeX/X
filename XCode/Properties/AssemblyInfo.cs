@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("8.18.*")]
-[assembly: AssemblyFileVersion("8.18.2015.0425")]
+[assembly: AssemblyFileVersion("8.18.2015.0522")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.18.2015.0522  增加用户时间实体基类UserTimeEntityBase，便于扩展创建人和更新人以及时间等信息
+ * 
  * v8.18.2015.0425  实体类支持动态增加字段Meta.Table.Add，享受读写数据以及反向工程的完整支持
  * 
  * v8.17.2015.0425  升级实体类SearchWhereByKeys方法，支持指定对哪些字段进行模糊查询

@@ -92,6 +92,7 @@
     <Compile Include="Membership\IManageUser.cs" />
     <Compile Include="Membership\MenuProvider.cs" />
     <Compile Include="Membership\LogProvider.cs" />
+    <Compile Include="Membership\UserTimeEntityBase.cs" />
     <Compile Include="Membership\日志.cs" />
     <Compile Include="Membership\日志.Biz.cs">
     </Compile>
