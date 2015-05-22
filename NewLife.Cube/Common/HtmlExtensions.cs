@@ -234,7 +234,8 @@ namespace NewLife.Cube
             if (!atts.ContainsKey("class")) atts.Add("class", "form-control date form_datetime");
 
             var obj = value.ToFullString();
-            if (value <= DateTime.MinValue) obj = null;
+            // 最小时间不显示
+            if (value <= DateTime.MinValue || value.Year <= 1900) obj = "";
             //if (format.IsNullOrWhiteSpace()) format = "yyyy-MM-dd HH:mm:ss";
 
             // 首先输出图标
