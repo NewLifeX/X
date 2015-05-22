@@ -160,7 +160,7 @@ namespace NewLife.Cube
         public static MvcHtmlString ForString(this HtmlHelper Html, String name, String value, Int32 length = 0, Object htmlAttributes = null)
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
-            if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
+            if (!atts.ContainsKey("class")) atts.Add("class", "col-xs-10 col-sm-5");
 
             // 首先输出图标
             var ico = "";
@@ -196,8 +196,9 @@ namespace NewLife.Cube
             {
                 txt = Html.TextBox(name, (String)value, atts);
             }
-
-            return new MvcHtmlString(ico.ToString() + txt);
+            string icog = "<div class=\"input-group\">{0}</div>";
+            string html = !string.IsNullOrWhiteSpace(ico) ? string.Format(icog, ico.ToString() + txt.ToString()) : txt.ToString();
+            return new MvcHtmlString(html);
         }
 
         /// <summary>输出整数</summary>
@@ -274,7 +275,7 @@ namespace NewLife.Cube
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
             if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
-
+            //var html="<div><label><input name=\"{0}\" value=\"{1}\" type=\"checkbox\" class=\"ace\"><span class=\"lbl\"> Latest news and announcements</span></label></div>";
             return Html.CheckBox(name, value, atts);
         }
 
@@ -327,7 +328,8 @@ namespace NewLife.Cube
             var des = field.Description.TrimStart(field.DisplayName).TrimStart("。");
             if (des.IsNullOrWhiteSpace()) return new MvcHtmlString(null);
 
-            return new MvcHtmlString("<p class=\"help-block\">{0}</p>".F(des));
+
+            return new MvcHtmlString("<span class=\"help-inline col-xs-12 col-sm-7\">	<span class=\"middle\">{0}</span></span>".F(des));
         }
 
         /// <summary>输出描述</summary>

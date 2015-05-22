@@ -5,30 +5,32 @@
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
 }
-<div class="form-inline">
-    <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true)) " method="post" role="form">
-        <div class="validation-summary-valid" data-valmsg-summary="true">
-            <ul>
-                <li style="display:none"></li>
-            </ul>
-        </div>
-        <div class="form-group">
-            @if (ManageProvider.User.Has(PermissionFlags.Insert))
-            {
-                @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" })
-            }
-            <div class="input-group">
-                <span class="input-group-addon">
-                    <i class="ace-icon fa fa-check"></i>
-                </span>
-                <input name="q" type="search" id="q" value="@Request["q"]" class="form-control" placeholder="搜索关键字" />
-                <span class="input-group-btn">
-                    <button type="submit" class="btn btn-purple btn-sm">
-                        <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>
-                        查询
-                    </button>
-                </span>
+<div class="pull-right tableTools-container">
+    <div class="form-inline">
+        <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true)) " method="post" role="form">
+            <div class="validation-summary-valid" data-valmsg-summary="true">
+                <ul>
+                    <li style="display:none"></li>
+                </ul>
             </div>
-        </div>
-    </form>
+            <div class="form-group">
+                @if (ManageProvider.User.Has(PermissionFlags.Insert))
+                {
+                    @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
+                }
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        <i class="ace-icon fa fa-check"></i>
+                    </span>
+                    <input name="q" type="search" id="q" value="@Request["q"]" class="form-control" placeholder="搜索关键字" />
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-purple btn-sm">
+                            <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>
+                            查询
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>

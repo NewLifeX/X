@@ -7,8 +7,9 @@
     var fields = ViewBag.Fields as List<FieldItem>;
     var isNew = (Model as IEntity).IsNullKey;
 }
-<div class="panel panel-default">
+
     <div class="form-horizontal">
+
         @if (ViewBag.StatusMessage != null)
         {
             <div class="alert alert-success alert-dismissible text-center" role="alert">
@@ -32,4 +33,3 @@
             @Html.Partial("_Form_Action", isNew)
         }
     </div>
-</div>

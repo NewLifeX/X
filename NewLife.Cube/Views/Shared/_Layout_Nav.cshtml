@@ -1,16 +1,21 @@
 ﻿@{
     var menu = ManageProvider.Menu.Current;
 }
-<i class="ace-icon fa fa-home home-icon"></i>
+<li>
+    <i class="ace-icon fa fa-home home-icon"></i>
 @if (menu != null)
 {
     foreach (IMenu item in menu.AllParents)
     {
         if (item.ID != 0)
         {
-            <a href="@(item.Url!=null? Url.Content(item.Url):"#")" class="h4">@item.DisplayName</a>
-            <text>&nbsp;/&nbsp;</text>
+            <a href="@(item.Url!=null? Url.Content(item.Url):"#")" >@item.DisplayName</a>
+
         }
     }
 }
-<a href="@Url.Action("Index")" class="h4"><strong>@(menu != null ? menu.DisplayName : ViewBag.Title)</strong></a>
+</li>
+
+<li>
+    <a href="@Url.Action("Index")">@(menu != null ? menu.DisplayName : ViewBag.Title)</a>
+</li>

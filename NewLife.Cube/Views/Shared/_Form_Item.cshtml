@@ -13,12 +13,12 @@
             width = 2;
             break;
         case TypeCode.String:
-            width = 6;
+            width = 9;
             break;
     }
 }
 <label class="control-label col-md-2">@item.DisplayName</label>
-<div class="input-group col-md-@width">
+<div class="col-xs-12 col-md-@width">
     @Html.ForEditor(item, entity)
     @Html.ForDescription(item)
 </div>
