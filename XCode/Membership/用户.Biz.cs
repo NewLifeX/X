@@ -20,7 +20,7 @@ namespace XCode.Membership
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class User<TEntity> : LogEntityBase<TEntity>, IUser, IManageUser//, IPrincipal//, IIdentity
+    public abstract partial class User<TEntity> : LogEntity<TEntity>, IUser, IManageUser//, IPrincipal//, IIdentity
         where TEntity : User<TEntity>, new()
     {
         #region 对象操作

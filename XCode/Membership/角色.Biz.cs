@@ -48,7 +48,7 @@ namespace XCode.Membership
 
     /// <summary>角色</summary>
     /// <typeparam name="TEntity"></typeparam>
-    public abstract partial class Role<TEntity> : LogEntityBase<TEntity>
+    public abstract partial class Role<TEntity> : LogEntity<TEntity>
           where TEntity : Role<TEntity>, new()
     {
         #region 对象操作

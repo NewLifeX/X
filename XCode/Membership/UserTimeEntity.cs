@@ -7,7 +7,7 @@ namespace XCode.Membership
 {
     /// <summary>用户时间实体基类</summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class UserTimeEntityBase<TEntity> : Entity<TEntity>, IUserInfo, ITimeInfo where TEntity : UserTimeEntityBase<TEntity>, new()
+    public class UserTimeEntity<TEntity> : Entity<TEntity>, IUserInfo, ITimeInfo where TEntity : UserTimeEntity<TEntity>, new()
     {
         #region 静态引用
         /// <summary>字段名</summary>
