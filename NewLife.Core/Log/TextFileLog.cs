@@ -135,103 +135,15 @@ namespace NewLife.Log
             {
                 isFirst = true;
 
-                WriteHead(writer);
+                // 通过判断LogWriter.BaseStream.Length，解决有时候日志文件为空但仍然加空行的问题
+                //if (File.Exists(logfile) && LogWriter.BaseStream.Length > 0) LogWriter.WriteLine();
+                // 因为指定了编码，比如UTF8，开头就会写入3个字节，所以这里不能拿长度跟0比较
+                if (writer.BaseStream.Length > 10) writer.WriteLine();
+
+                //WriteHead(writer);
+                writer.Write(GetHead());
             }
             LogWriter = writer;
-        }
-
-        private void WriteHead(StreamWriter writer)
-        {
-            var process = Process.GetCurrentProcess();
-            var name = String.Empty;
-            var asm = Assembly.GetEntryAssembly();
-            if (asm != null)
-            {
-                if (String.IsNullOrEmpty(name))
-                {
-                    var att = asm.GetCustomAttribute<AssemblyTitleAttribute>();
-                    if (att != null) name = att.Title;
-                }
-
-                if (String.IsNullOrEmpty(name))
-                {
-                    var att = asm.GetCustomAttribute<AssemblyProductAttribute>();
-                    if (att != null) name = att.Product;
-                }
-
-                if (String.IsNullOrEmpty(name))
-                {
-                    var att = asm.GetCustomAttribute<AssemblyDescriptionAttribute>();
-                    if (att != null) name = att.Description;
-                }
-            }
-            if (String.IsNullOrEmpty(name))
-            {
-                try
-                {
-                    name = process.ProcessName;
-                }
-                catch { }
-            }
-            // 通过判断LogWriter.BaseStream.Length，解决有时候日志文件为空但仍然加空行的问题
-            //if (File.Exists(logfile) && LogWriter.BaseStream.Length > 0) LogWriter.WriteLine();
-            // 因为指定了编码，比如UTF8，开头就会写入3个字节，所以这里不能拿长度跟0比较
-            if (writer.BaseStream.Length > 10) writer.WriteLine();
-            writer.WriteLine("#Software: {0}", name);
-            writer.WriteLine("#ProcessID: {0}{1}", process.Id, Runtime.Is64BitProcess ? " x64" : "");
-            writer.WriteLine("#AppDomain: {0}", AppDomain.CurrentDomain.FriendlyName);
-
-            var fileName = String.Empty;
-            try
-            {
-                fileName = process.StartInfo.FileName;
-                if (fileName.IsNullOrWhiteSpace()) fileName = process.MainModule.FileName;
-
-                if (!String.IsNullOrEmpty(fileName)) writer.WriteLine("#FileName: {0}", fileName);
-            }
-            catch { }
-
-            // 应用域目录
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            writer.WriteLine("#BaseDirectory: {0}", baseDir);
-
-            // 当前目录。如果由别的进程启动，默认的当前目录就是父级进程的当前目录
-            var curDir = Environment.CurrentDirectory;
-            //if (!curDir.EqualIC(baseDir) && !(curDir + "\\").EqualIC(baseDir))
-            if (!baseDir.EqualIgnoreCase(curDir, curDir + "\\"))
-                writer.WriteLine("#CurrentDirectory: {0}", curDir);
-
-            // 命令行不为空，也不是文件名时，才输出
-            // 当使用cmd启动程序时，这里就是用户输入的整个命令行，所以可能包含空格和各种符号
-            var line = Environment.CommandLine;
-            if (!String.IsNullOrEmpty(line))
-            {
-                line = line.Trim().TrimStart('\"');
-                if (!String.IsNullOrEmpty(fileName) && line.StartsWithIgnoreCase(fileName))
-                    line = line.Substring(fileName.Length).TrimStart().TrimStart('\"').TrimStart();
-                if (!String.IsNullOrEmpty(line))
-                {
-                    writer.WriteLine("#CommandLine: {0}", line);
-                }
-            }
-
-#if Android
-            writer.WriteLine("#ApplicationType: {0}", "Android");
-#else
-            writer.WriteLine("#ApplicationType: {0}", Runtime.IsConsole ? "Console" : (Runtime.IsWeb ? "Web" : "WinForm"));
-#endif
-            writer.WriteLine("#CLR: {0}", Environment.Version);
-
-            writer.WriteLine("#OS: {0}, {1}/{2}", Runtime.OSName, Environment.UserName, Environment.MachineName);
-#if !Android
-            var hi = NewLife.Common.HardInfo.Current;
-            writer.WriteLine("#CPU: {0}", hi.Processors);
-            writer.WriteLine("#Memory: {0:n0}M/{1:n0}M", Runtime.AvailableMemory,
-                Runtime.PhysicalMemory);
-#endif
-
-            writer.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
-            writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
         }
 
         /// <summary>停止日志</summary>

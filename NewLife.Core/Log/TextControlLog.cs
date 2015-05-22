@@ -14,19 +14,12 @@ namespace NewLife.Log
         /// <summary>最大行数，超过该行数讲清空文本控件。默认1000行</summary>
         public Int32 MaxLines { get { return _MaxLines; } set { _MaxLines = value; } }
 
-        //private Boolean _Timestamp;
-        ///// <summary>是否输出时间戳</summary>
-        //public Boolean Timestamp { get { return _Timestamp; } set { _Timestamp = value; } }
-
         /// <summary>写日志</summary>
         /// <param name="level"></param>
         /// <param name="format"></param>
         /// <param name="args"></param>
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
-            //var e = WriteLogEventArgs.Current.Set(level, Format(format, args), null, true);
-            //WriteLog(Control, e.ToString(), MaxLines);
-
             WriteLog(Control, Format(format, args) + Environment.NewLine, MaxLines);
         }
 

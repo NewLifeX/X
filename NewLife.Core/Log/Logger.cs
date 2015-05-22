@@ -1,5 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Reflection;
+using System.Text;
 using NewLife.Configuration;
 
 namespace NewLife.Log
@@ -131,6 +134,104 @@ namespace NewLife.Log
         class NullLogger : Logger
         {
             protected override void OnWrite(LogLevel level, string format, params object[] args) { }
+        }
+        #endregion
+
+        #region 日志头
+        /// <summary>输出日志头，包含所有环境信息</summary>
+
+        protected static String GetHead()
+        {
+            var process = Process.GetCurrentProcess();
+            var name = String.Empty;
+            var asm = Assembly.GetEntryAssembly();
+            if (asm != null)
+            {
+                if (String.IsNullOrEmpty(name))
+                {
+                    var att = asm.GetCustomAttribute<AssemblyTitleAttribute>();
+                    if (att != null) name = att.Title;
+                }
+
+                if (String.IsNullOrEmpty(name))
+                {
+                    var att = asm.GetCustomAttribute<AssemblyProductAttribute>();
+                    if (att != null) name = att.Product;
+                }
+
+                if (String.IsNullOrEmpty(name))
+                {
+                    var att = asm.GetCustomAttribute<AssemblyDescriptionAttribute>();
+                    if (att != null) name = att.Description;
+                }
+            }
+            if (String.IsNullOrEmpty(name))
+            {
+                try
+                {
+                    name = process.ProcessName;
+                }
+                catch { }
+            }
+            var sb = new StringBuilder();
+            sb.AppendFormat("#Software: {0}\r\n", name);
+            sb.AppendFormat("#ProcessID: {0}{1}\r\n", process.Id, Runtime.Is64BitProcess ? " x64" : "");
+            sb.AppendFormat("#AppDomain: {0}\r\n", AppDomain.CurrentDomain.FriendlyName);
+
+            var fileName = String.Empty;
+            try
+            {
+                fileName = process.StartInfo.FileName;
+                if (fileName.IsNullOrWhiteSpace()) fileName = process.MainModule.FileName;
+
+                if (!String.IsNullOrEmpty(fileName)) sb.AppendFormat("#FileName: {0}\r\n", fileName);
+            }
+            catch { }
+
+            // 应用域目录
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            sb.AppendFormat("#BaseDirectory: {0}\r\n", baseDir);
+
+            // 当前目录。如果由别的进程启动，默认的当前目录就是父级进程的当前目录
+            var curDir = Environment.CurrentDirectory;
+            //if (!curDir.EqualIC(baseDir) && !(curDir + "\\").EqualIC(baseDir))
+            if (!baseDir.EqualIgnoreCase(curDir, curDir + "\\"))
+                sb.AppendFormat("#CurrentDirectory: {0}\r\n", curDir);
+
+            // 命令行不为空，也不是文件名时，才输出
+            // 当使用cmd启动程序时，这里就是用户输入的整个命令行，所以可能包含空格和各种符号
+            var line = Environment.CommandLine;
+            if (!String.IsNullOrEmpty(line))
+            {
+                line = line.Trim().TrimStart('\"');
+                if (!String.IsNullOrEmpty(fileName) && line.StartsWithIgnoreCase(fileName))
+                    line = line.Substring(fileName.Length).TrimStart().TrimStart('\"').TrimStart();
+                if (!String.IsNullOrEmpty(line))
+                {
+                    sb.AppendFormat("#CommandLine: {0}\r\n", line);
+                }
+            }
+
+#if Android
+            sb.AppendFormat("#ApplicationType: {0}", "Android");
+#else
+            sb.AppendFormat("#ApplicationType: {0}\r\n", Runtime.IsConsole ? "Console" : (Runtime.IsWeb ? "Web" : "WinForm"));
+#endif
+            sb.AppendFormat("#CLR: {0}\r\n", Environment.Version);
+
+            sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Runtime.OSName, Environment.UserName, Environment.MachineName);
+#if !Android
+            var hi = NewLife.Common.HardInfo.Current;
+            sb.AppendFormat("#CPU: {0}\r\n", hi.Processors);
+            sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", Runtime.AvailableMemory,
+                Runtime.PhysicalMemory);
+#endif
+
+            sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
+            sb.AppendFormat("#字段: 时间 线程ID 线程池Y网页W普通N 线程名 消息内容\r\n");
+            sb.AppendFormat("#Fields: Time ThreadID IsPoolThread ThreadName Message\r\n");
+
+            return sb.ToString();
         }
         #endregion
     }

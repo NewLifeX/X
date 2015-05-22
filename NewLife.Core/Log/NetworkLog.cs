@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-//using System.Windows.Forms;
 
 namespace NewLife.Log
 {
@@ -34,6 +33,9 @@ namespace NewLife.Log
 
             try
             {
+                // 首先发送日志头
+                client.SendTo(GetHead().GetBytes(), Remote);
+
                 // 尝试向日志服务器表名身份
                 var buf = "{0} {1}/{2} 准备上报日志".F(DateTime.Now.ToFullString(), Environment.UserName, Environment.MachineName).GetBytes();
                 client.SendTo(buf, Remote);
@@ -54,7 +56,18 @@ namespace NewLife.Log
             var e = WriteLogEventArgs.Current.Set(level, Format(format, args), null, true);
             var buf = e.ToString().GetBytes();
             if (Client.ProtocolType == ProtocolType.Udp)
-                Client.SendTo(buf, Remote);
+            {
+                // 捕获异常，不能因为写日志异常导致上层出错
+                try
+                {
+                    Client.SendTo(buf, Remote);
+                }
+                catch
+                {
+                    // 出错后重新初始化
+                    _inited = false;
+                }
+            }
         }
     }
 }
