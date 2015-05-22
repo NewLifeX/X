@@ -43,7 +43,10 @@ namespace NewLife.Cube
                 case TypeCode.UInt16:
                 case TypeCode.UInt32:
                 case TypeCode.UInt64:
-                    return Html.ForInt(name, Convert.ToInt64(value));
+                    if (type.IsEnum)
+                        return Html.ForEnum(name, value, format);
+                    else
+                        return Html.ForInt(name, Convert.ToInt64(value));
                 case TypeCode.String:
                     return Html.ForString(name, value + "");
                 default:
@@ -344,6 +347,19 @@ namespace NewLife.Cube
             var field = fact.Table.FindByName(name);
 
             return Html.ForDescription(field);
+        }
+
+        /// <summary>枚举</summary>
+        /// <param name="Html"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <param name="label"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForEnum(this HtmlHelper Html, String name, Object value, String label = null)
+        {
+            var dic = EnumHelper.GetDescriptions(value.GetType());
+            var data = new SelectList(dic, "Key", "Value", value);
+            return Html.DropDownList(name, data, label);
         }
         #endregion
     }
