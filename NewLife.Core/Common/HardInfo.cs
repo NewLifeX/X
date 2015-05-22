@@ -44,7 +44,14 @@ namespace NewLife.Common
                         var MaxClockSpeed = GetInfo("Win32_Processor", "MaxClockSpeed").ToDouble() / 1000;
                         var ProcessorId = GetInfo("Win32_Processor", "ProcessorId");
 
-                        _Processors = name + " " + MaxClockSpeed + "G " + ProcessorId;
+                        while (name.Contains("  ")) name = name.Replace("  ", " ");
+                        var speed = MaxClockSpeed.ToString("n2") + "GHz";
+                        if (name.Contains(speed))
+                            speed = null;
+                        else
+                            speed += " ";
+
+                        _Processors = name + " " + speed + ProcessorId;
                     }
                     return _Processors;
                 }
