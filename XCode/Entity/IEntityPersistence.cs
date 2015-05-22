@@ -531,7 +531,8 @@ namespace XCode
                 sb.Append(name);
                 sb.Append("=");
 
-                if (UseParam(fi, entity))
+                /*注释的是之前的代码,看起来应该是传错了参数 树獭*/
+                if (UseParam(fi, value))  //if (UseParam(fi, entity))
                     dps.Add(CreateParameter(sb, op, fi, value));
                 else
                 {
