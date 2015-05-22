@@ -28,7 +28,15 @@ else
             }
             break;
         case TypeCode.DateTime:
-        <td>@(((DateTime)entity[item.Name]).ToFullString())</td>
+            var dt = (DateTime)entity[item.Name];
+            if (dt > DateTime.MinValue && dt.Year > 1900)
+            {
+                <td>@(((DateTime)entity[item.Name]).ToFullString())</td>
+            }
+            else
+            {
+                <td></td>
+            }
             break;
         case TypeCode.Decimal:
         <td>@entity[item.Name]</td>
@@ -43,7 +51,7 @@ else
         case TypeCode.UInt16:
         case TypeCode.UInt32:
         case TypeCode.UInt64:
-        <td>@entity[item.Name]</td>
+        <td>@Convert.ToInt64(entity[item.Name]).ToString("n0")</td>
             break;
         case TypeCode.String:
         <td>@entity[item.Name]</td>
