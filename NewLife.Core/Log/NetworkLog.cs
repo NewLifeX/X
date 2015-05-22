@@ -30,14 +30,13 @@ namespace NewLife.Log
             // 默认Udp广播
             var client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             client.EnableBroadcast = true;
+            Client = client;
 
             try
             {
                 // 尝试向日志服务器表名身份
                 var buf = "{0} {1}/{2} 准备上报日志".F(DateTime.Now.ToFullString(), Environment.UserName, Environment.MachineName).GetBytes();
                 client.SendTo(buf, Remote);
-
-                Client = client;
             }
             catch { }
 

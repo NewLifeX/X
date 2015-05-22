@@ -5,7 +5,9 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using NewLife.Collections;
+#if !Android
 using NewLife.Common;
+#endif
 using NewLife.Configuration;
 
 namespace NewLife.Log
@@ -224,8 +226,11 @@ namespace NewLife.Log
             writer.WriteLine("#CLR: {0}", Environment.Version);
 
             writer.WriteLine("#OS: {0}, {1}/{2}", Runtime.OSName, Environment.UserName, Environment.MachineName);
+#if !Android
             var hi = HardInfo.Current;
-            writer.WriteLine("#Hard: {0} {1:n2}G/{2:n2}G", hi.Processors, (Double)Runtime.AvailableMemory / 1024, (Double)Runtime.PhysicalMemory / 1024);
+            writer.WriteLine("#Hard: {0} {1:n2}G/{2:n2}G", hi.Processors, (Double)Runtime.AvailableMemory / 1024, (Double)
+                Runtime.PhysicalMemory / 1024);
+#endif
 
             writer.WriteLine("#Date: {0:yyyy-MM-dd}", DateTime.Now);
             writer.WriteLine("#Fields: Time ThreadID IsPoolThread ThreadName Message");
