@@ -362,13 +362,7 @@ WriteLiteral("，开机");
 
             
             #line 90 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-                                      var ts = new TimeSpan(Environment.TickCount);
-            
-            #line default
-            #line hidden
-            
-            #line 90 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-                                                                               Write(ts);
+                                Write(new TimeSpan(0, 0, 0, 0, Environment.TickCount));
 
             
             #line default
@@ -422,7 +416,7 @@ WriteLiteral("M\r\n                    工作集: ");
             
             #line default
             #line hidden
-WriteLiteral("MB\r\n                    提交: ");
+WriteLiteral("M\r\n                    提交: ");
 
             
             #line 101 "..\..\Areas\Admin\Views\Index\Main.cshtml"
@@ -431,7 +425,7 @@ WriteLiteral("MB\r\n                    提交: ");
             
             #line default
             #line hidden
-WriteLiteral("MB\r\n                    GC: ");
+WriteLiteral("M\r\n                    GC: ");
 
             
             #line 102 "..\..\Areas\Admin\Views\Index\Main.cshtml"
@@ -440,16 +434,16 @@ WriteLiteral("MB\r\n                    GC: ");
             
             #line default
             #line hidden
-WriteLiteral("MB\r\n                    <a");
+WriteLiteral("M\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 3681), Tuple.Create("\"", 3722)
+WriteAttribute("href", Tuple.Create(" href=\"", 3677), Tuple.Create("\"", 3718)
             
             #line 103 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-, Tuple.Create(Tuple.Create("", 3688), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/ProcessModules")
+, Tuple.Create(Tuple.Create("", 3684), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/ProcessModules")
             
             #line default
             #line hidden
-, 3688), false)
+, 3684), false)
 );
 
 WriteLiteral(" target=\"_blank\"");
