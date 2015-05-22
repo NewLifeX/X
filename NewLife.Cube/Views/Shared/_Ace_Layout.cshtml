@@ -17,7 +17,7 @@
     @RenderSection("css", required: false)
 
 
-
+    <link rel="stylesheet" href="~/Content/ace/css/bootstrap-multiselect.css" />
     <!--[if lte IE 9]>
         <link rel="stylesheet" href="~/Content/ace/css/ace-part2.min.css" class="ace-main-stylesheet" />
     <![endif]-->
@@ -76,6 +76,7 @@
     <script src="~/Content/bootstrap/js/bootstrap.min.js"></script>
     @*<script src="~/Content/js/jquery-ui.custom.min.js"></script>
         <script src="~/Content/js/jquery.ui.touch-punch.min.js"></script>*@
+    <script src="~/Content/ace/js/bootstrap-multiselect.js"></script>
 
     <!-- ace 设置 -->
     <script src="~/Content/ace/js/ace.min.js"></script>
@@ -132,6 +133,19 @@
                 $(this).removeAttr('class');
                 $(this).addClass('spinbox-input form-control text-center');
                 $(this).ace_spinner({ on_sides: true, icon_up: 'ace-icon fa fa-plus bigger-110', icon_down: 'ace-icon fa fa-minus bigger-110', btn_up_class: 'btn-success', btn_down_class: 'btn-danger' });
+            });
+            $('.multiselect').multiselect({
+                enableFiltering: true,
+                buttonClass: 'btn btn-white btn-primary',
+                templates: {
+                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"></button>',
+                    ul: '<ul class="multiselect-container dropdown-menu"></ul>',
+                    filter: '<li class="multiselect-item filter"><div class="input-group"><span class="input-group-addon"><i class="fa fa-search"></i></span><input class="form-control multiselect-search" type="text"></div></li>',
+                    filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default btn-white btn-grey multiselect-clear-filter" type="button"><i class="fa fa-times-circle red2"></i></button></span>',
+                    li: '<li><a href="javascript:void(0);"><label></label></a></li>',
+                    divider: '<li class="multiselect-item divider"></li>',
+                    liGroup: '<li class="multiselect-item group"><label class="multiselect-group"></label></li>'
+                }
             });
         });
     </script>
