@@ -201,21 +201,25 @@ WriteLiteral("</td>\r\n");
             
             #line 47 "..\..\Views\Shared\_List_Data_Item.cshtml"
             break;
+        case TypeCode.Byte:
         case TypeCode.Int16:
         case TypeCode.Int32:
         case TypeCode.Int64:
         case TypeCode.UInt16:
         case TypeCode.UInt32:
         case TypeCode.UInt64:
+            //特殊处理枚举
+            if (item.Type.IsEnum)
+            {
 
             
             #line default
             #line hidden
-WriteLiteral("        <td>");
+WriteLiteral("                <td>");
 
             
-            #line 54 "..\..\Views\Shared\_List_Data_Item.cshtml"
-       Write(Convert.ToInt64(entity[item.Name]).ToString("n0"));
+            #line 58 "..\..\Views\Shared\_List_Data_Item.cshtml"
+               Write(entity[item.Name]);
 
             
             #line default
@@ -223,7 +227,28 @@ WriteLiteral("        <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 55 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 59 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            }
+            else
+            {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                <td>");
+
+            
+            #line 62 "..\..\Views\Shared\_List_Data_Item.cshtml"
+               Write(Convert.ToInt64(entity[item.Name]).ToString("n0"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</td>\r\n");
+
+            
+            #line 63 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            }
             break;
         case TypeCode.String:
 
@@ -233,7 +258,7 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("        <td>");
 
             
-            #line 57 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 66 "..\..\Views\Shared\_List_Data_Item.cshtml"
        Write(entity[item.Name]);
 
             
@@ -242,7 +267,7 @@ WriteLiteral("        <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 58 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 67 "..\..\Views\Shared\_List_Data_Item.cshtml"
             break;
         default:
 
@@ -252,7 +277,7 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("        <td>");
 
             
-            #line 60 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 69 "..\..\Views\Shared\_List_Data_Item.cshtml"
        Write(entity[item.Name]);
 
             
@@ -261,7 +286,7 @@ WriteLiteral("        <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 61 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 70 "..\..\Views\Shared\_List_Data_Item.cshtml"
             break;
     }
 }

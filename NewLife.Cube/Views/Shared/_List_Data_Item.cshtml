@@ -45,13 +45,22 @@ else
         case TypeCode.Double:
         <td>@entity[item.Name]</td>
             break;
+        case TypeCode.Byte:
         case TypeCode.Int16:
         case TypeCode.Int32:
         case TypeCode.Int64:
         case TypeCode.UInt16:
         case TypeCode.UInt32:
         case TypeCode.UInt64:
-        <td>@Convert.ToInt64(entity[item.Name]).ToString("n0")</td>
+            //特殊处理枚举
+            if (item.Type.IsEnum)
+            {
+                <td>@entity[item.Name]</td>
+            }
+            else
+            {
+                <td>@Convert.ToInt64(entity[item.Name]).ToString("n0")</td>
+            }
             break;
         case TypeCode.String:
         <td>@entity[item.Name]</td>
