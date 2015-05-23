@@ -40,7 +40,7 @@ namespace NewLife.Log
                 var buf = "{0} {1}/{2} 准备上报日志".F(DateTime.Now.ToFullString(), Environment.UserName, Environment.MachineName).GetBytes();
                 client.SendTo(buf, Remote);
             }
-            catch { }
+            catch (Exception ex) { client.SendTo(("读取环境变量错误=>" + ex.Message).GetBytes(), Remote); }
 
             _inited = true;
         }
