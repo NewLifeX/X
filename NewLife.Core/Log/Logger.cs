@@ -182,11 +182,13 @@ namespace NewLife.Log
             try
             {
                 fileName = process.StartInfo.FileName;
+#if !Android
+                // MonoAndroid无法识别MainModule，致命异常
                 if (fileName.IsNullOrWhiteSpace()) fileName = process.MainModule.FileName;
-
-                if (!String.IsNullOrEmpty(fileName)) sb.AppendFormat("#FileName: {0}\r\n", fileName);
+#endif
             }
             catch { }
+            if (!String.IsNullOrEmpty(fileName)) sb.AppendFormat("#FileName: {0}\r\n", fileName);
 
             // 应用域目录
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
