@@ -257,27 +257,27 @@ WriteLiteral("\r\n            </ul>\r\n        </div>\r\n        <div");
 
 WriteLiteral(" class=\"page-content\"");
 
-WriteLiteral(">\r\n\r\n            <section");
+WriteLiteral(">\r\n            <section");
 
 WriteLiteral(" class=\"content-wrapper main-content clear-fix\"");
 
-WriteLiteral(">\r\n                <div");
-
-WriteLiteral(" class=\"page-header\"");
-
-WriteLiteral(">\r\n                    <h1>\r\n                        FAQ\r\n                       " +
-" <small>\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-angle-double-right\"");
-
-WriteLiteral("></i>\r\n                            frequently asked questions using tabs and acco" +
-"rdions\r\n                        </small>\r\n                    </h1>\r\n           " +
-"     </div>\r\n");
+WriteLiteral(">\r\n");
 
 WriteLiteral("                ");
 
             
-            #line 64 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 54 "..\..\Views\Shared\_Ace_Layout.cshtml"
+           Write(Html.Partial("_Layout_Header"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+WriteLiteral("                ");
+
+            
+            #line 55 "..\..\Views\Shared\_Ace_Layout.cshtml"
            Write(RenderBody());
 
             
@@ -286,13 +286,13 @@ WriteLiteral("                ");
 WriteLiteral("\r\n            </section>\r\n        </div>\r\n");
 
             
-            #line 67 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 58 "..\..\Views\Shared\_Ace_Layout.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 67 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 58 "..\..\Views\Shared\_Ace_Layout.cshtml"
          if (DbRunTimeModule.Enable)
         {
 
@@ -308,7 +308,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 70 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 61 "..\..\Views\Shared\_Ace_Layout.cshtml"
            Write(DbRunTimeModule.GetInfo());
 
             
@@ -317,7 +317,7 @@ WriteLiteral("                ");
 WriteLiteral("\r\n            </div>\r\n");
 
             
-            #line 72 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 63 "..\..\Views\Shared\_Ace_Layout.cshtml"
         }
 
             
@@ -325,54 +325,54 @@ WriteLiteral("\r\n            </div>\r\n");
             #line hidden
 WriteLiteral("    </div>\r\n    <!-- 最早引入基本脚本 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2843), Tuple.Create("\"", 2888)
-, Tuple.Create(Tuple.Create("", 2849), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 2849), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2513), Tuple.Create("\"", 2558)
+, Tuple.Create(Tuple.Create("", 2519), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 2519), false)
 );
 
 WriteLiteral("></script>\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3057), Tuple.Create("\"", 3104)
-, Tuple.Create(Tuple.Create("", 3063), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/bootstrap-multiselect.js")
-, 3063), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2727), Tuple.Create("\"", 2774)
+, Tuple.Create(Tuple.Create("", 2733), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/bootstrap-multiselect.js")
+, 2733), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- ace 设置 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3151), Tuple.Create("\"", 3184)
-, Tuple.Create(Tuple.Create("", 3157), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
-, 3157), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2821), Tuple.Create("\"", 2854)
+, Tuple.Create(Tuple.Create("", 2827), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
+, 2827), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3208), Tuple.Create("\"", 3250)
-, Tuple.Create(Tuple.Create("", 3214), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
-, 3214), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2878), Tuple.Create("\"", 2920)
+, Tuple.Create(Tuple.Create("", 2884), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
+, 2884), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3274), Tuple.Create("\"", 3313)
-, Tuple.Create(Tuple.Create("", 3280), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-extra.min.js")
-, 3280), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2944), Tuple.Create("\"", 2983)
+, Tuple.Create(Tuple.Create("", 2950), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-extra.min.js")
+, 2950), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements" +
 " and media queries -->\r\n    <!--[if lte IE 8]>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3454), Tuple.Create("\"", 3489)
-, Tuple.Create(Tuple.Create("", 3460), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
-, 3460), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3124), Tuple.Create("\"", 3159)
+, Tuple.Create(Tuple.Create("", 3130), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
+, 3130), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3513), Tuple.Create("\"", 3546)
-, Tuple.Create(Tuple.Create("", 3519), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
-, 3519), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3183), Tuple.Create("\"", 3216)
+, Tuple.Create(Tuple.Create("", 3189), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
+, 3189), false)
 );
 
 WriteLiteral("></script>\r\n    <![endif]-->\r\n    ");
@@ -382,7 +382,7 @@ WriteLiteral("\r\n");
 WriteLiteral("    ");
 
             
-            #line 91 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 82 "..\..\Views\Shared\_Ace_Layout.cshtml"
 Write(RenderSection("scripts", required: false));
 
             
@@ -392,16 +392,16 @@ WriteLiteral("\r\n\r\n    <!--日历控件支持-->\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3773), Tuple.Create("\"", 3835)
-, Tuple.Create(Tuple.Create("", 3779), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.js")
-, 3779), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3443), Tuple.Create("\"", 3505)
+, Tuple.Create(Tuple.Create("", 3449), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.js")
+, 3449), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3859), Tuple.Create("\"", 3931)
-, Tuple.Create(Tuple.Create("", 3865), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js")
-, 3865), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3529), Tuple.Create("\"", 3601)
+, Tuple.Create(Tuple.Create("", 3535), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js")
+, 3535), false)
 );
 
 WriteLiteral("></script>\r\n    <script>\r\n        //$(function () {\r\n        //    // 给所有type=dat" +
@@ -445,9 +445,9 @@ WriteLiteral("></script>\r\n    <script>\r\n        //$(function () {\r\n       
 
 WriteLiteral("\r\n\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7136), Tuple.Create("\"", 7180)
-, Tuple.Create(Tuple.Create("", 7142), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
-, 7142), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 6806), Tuple.Create("\"", 6850)
+, Tuple.Create(Tuple.Create("", 6812), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
+, 6812), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");

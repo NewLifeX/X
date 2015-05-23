@@ -596,6 +596,7 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_Layout_Header.cshtml" />
     <None Include="Views\Shared\_Layout_Nav.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Layout_Nav.generated.cs</LastGenOutput>

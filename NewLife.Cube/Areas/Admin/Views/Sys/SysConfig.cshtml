@@ -72,10 +72,17 @@
                 </div>
             </div>
             <div class="form-group">
-                @Html.LabelFor(model => model.IsEnable, new { @class = "control-label col-md-2" })
+                @Html.LabelFor(model => model.Develop, new { @class = "control-label col-md-2" })
                 <div class="input-group col-md-2">
-                    @Html.ForEditor(model => model.IsEnable)
-                    @Html.ValidationMessageFor(model => model.IsEnable)
+                    @Html.ForEditor(model => model.Develop)
+                    @Html.ValidationMessageFor(model => model.Develop)
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Enable, new { @class = "control-label col-md-2" })
+                <div class="input-group col-md-2">
+                    @Html.ForEditor(model => model.Enable)
+                    @Html.ValidationMessageFor(model => model.Enable)
                 </div>
             </div>
             <div class="form-group">

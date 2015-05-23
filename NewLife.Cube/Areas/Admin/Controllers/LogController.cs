@@ -19,6 +19,15 @@ namespace NewLife.Cube.Admin.Controllers
             ListFields.AddField("Remark").RemoveField("UserID");
         }
 
+        /// <summary>动作执行前</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            ViewBag.HeaderContent = "系统内重要操作均记录日志，便于审计。任何人都不能删除、修改或伪造操作日志。";
+
+            base.OnActionExecuting(filterContext);
+        }
+
         /// <summary>不允许添加修改日志</summary>
         /// <param name="entity"></param>
         /// <returns></returns>

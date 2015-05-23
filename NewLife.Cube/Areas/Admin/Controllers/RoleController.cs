@@ -11,6 +11,16 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("角色")]
     public class RoleController : EntityController<Role>
     {
+        /// <summary>动作执行前</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            ViewBag.HeaderTitle = "角色管理";
+            ViewBag.HeaderContent = "系统基于角色授权，每个角色对不同的功能模块具备添删改查以及自定义权限等多种权限设定。";
+
+            base.OnActionExecuting(filterContext);
+        }
+
         /// <summary>保存</summary>
         /// <param name="entity"></param>
         /// <returns></returns>

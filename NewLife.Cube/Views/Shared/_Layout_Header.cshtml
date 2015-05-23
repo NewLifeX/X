@@ -1,0 +1,12 @@
+﻿@if (ViewBag.HeaderTitle != null || ViewBag.HeaderContent != null)
+{
+    <div class="page-header">
+        <h1>
+            @ViewBag.HeaderTitle
+            <small>
+                <i class="ace-icon fa fa-angle-double-right"></i>
+                @ViewBag.HeaderContent
+            </small>
+        </h1>
+    </div>
+}

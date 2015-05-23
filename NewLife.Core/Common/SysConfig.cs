@@ -58,10 +58,15 @@ namespace NewLife.Common
         [DisplayName("电子邮件")]
         public String EMail { get { return _EMail; } set { _EMail = value; } }
 
-        private Boolean _IsEnable = true;
-        /// <summary>是否启用</summary>
-        [DisplayName("是否启用")]
-        public Boolean IsEnable { get { return _IsEnable; } set { _IsEnable = value; } }
+        private Boolean _Develop = true;
+        /// <summary>开发者模式</summary>
+        [DisplayName("开发者模式")]
+        public Boolean Develop { get { return _Develop; } set { _Develop = value; } }
+
+        private Boolean _Enable = true;
+        /// <summary>启用</summary>
+        [DisplayName("启用")]
+        public Boolean Enable { get { return _Enable; } set { _Enable = value; } }
 
         private DateTime _InstallTime = DateTime.Now;
         /// <summary>安装时间</summary>

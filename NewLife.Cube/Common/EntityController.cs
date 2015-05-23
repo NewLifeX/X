@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
+using NewLife.Common;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;
@@ -200,6 +201,19 @@ namespace NewLife.Cube
             }
 
             return base.ScanActionMenu(menu);
+        }
+        #endregion
+
+        #region 默认页头
+        /// <summary>动作执行前</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
+            if (ViewBag.HeaderContent == null && SysConfig.Current.Develop)
+                ViewBag.HeaderContent = "这里是页头内容，你可以通过重载OnActionExecuting然后设置ViewBag.HeaderTitle/HeaderContent来修改";
+
+            base.OnActionExecuting(filterContext);
         }
         #endregion
     }

@@ -11,16 +11,6 @@ namespace NewLife.Cube.Admin.Controllers
     public class SysController : ControllerBaseX
     {
         //protected override void OnActionExecuting(ActionExecutingContext filterContext)
-        //{
-        //    var act = filterContext.ActionDescriptor;
-        //    if (act.ActionName == "Index")
-        //    {
-
-        //    }
-
-        //    base.OnActionExecuting(filterContext);
-        //}
-
         /// <summary>系统设置</summary>
         /// <param name="config"></param>
         /// <returns></returns>
@@ -28,6 +18,9 @@ namespace NewLife.Cube.Admin.Controllers
         [DisplayName("系统设置")]
         public ActionResult Index(SysConfig config)
         {
+            ViewBag.HeaderTitle = "系统设置";
+            ViewBag.HeaderContent = "设置系统全局参数";
+            
             if (HttpContext.Request.HttpMethod == "POST")
             {
                 LogProvider.Provider.WriteLog(config.GetType(), "修改", null);

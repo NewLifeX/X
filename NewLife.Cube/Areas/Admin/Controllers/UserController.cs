@@ -15,6 +15,15 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("用户")]
     public class UserController : EntityController<UserX>
     {
+        /// <summary>动作执行前</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            ViewBag.HeaderContent = "系统基于角色授权，每个角色对不同的功能模块具备添删改查以及自定义权限等多种权限设定。";
+
+            base.OnActionExecuting(filterContext);
+        }
+
         /// <summary>表单页视图。</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
