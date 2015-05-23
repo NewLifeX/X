@@ -139,7 +139,6 @@ namespace NewLife.Log
 
         #region 日志头
         /// <summary>输出日志头，包含所有环境信息</summary>
-
         protected static String GetHead()
         {
             var process = Process.GetCurrentProcess();

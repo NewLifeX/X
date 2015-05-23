@@ -82,7 +82,7 @@ namespace NewLife
             {
                 if (Is64BitProcess) return true;
 
-#if !Android
+#if !Android && !NET4
                 Boolean flag;
                 return Win32Native.DoesWin32MethodExist("kernel32.dll", "IsWow64Process") && Win32Native.IsWow64Process(Win32Native.GetCurrentProcess(), out flag) && flag;
 #else
