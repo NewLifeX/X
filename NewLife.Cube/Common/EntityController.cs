@@ -95,6 +95,12 @@ namespace NewLife.Cube
         [HttpPost]
         public virtual ActionResult Add(TEntity entity)
         {
+            if (!Valid(entity))
+            {
+                ViewBag.StatusMessage = "验证失败！";
+                return FormView(entity);
+            }
+
             entity.Insert();
 
             ViewBag.StatusMessage = "保存成功！";
@@ -123,6 +129,12 @@ namespace NewLife.Cube
         [HttpPost]
         public virtual ActionResult Edit(TEntity entity)
         {
+            if (!Valid(entity))
+            {
+                ViewBag.StatusMessage = "验证失败！";
+                return FormView(entity);
+            }
+
             var isnew = entity.IsNullKey;
 
             entity.Save();
@@ -148,6 +160,11 @@ namespace NewLife.Cube
 
             return View("Form", entity);
         }
+
+        /// <summary>验证实体对象</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        protected virtual Boolean Valid(TEntity entity) { return true; }
         #endregion
 
         #region 列表字段和表单字段
