@@ -144,6 +144,11 @@ namespace XCode
         ///// <param name="json"></param>
         ///// <returns></returns>
         //IEntityList FromJson(String json);
+
+        /// <summary>实体列表转为字典。主键为Key</summary>
+        /// <param name="valueField">作为Value部分的字段，默认为空表示整个实体对象为值</param>
+        /// <returns></returns>
+        IDictionary ToDictionary(String valueField = null);
         #endregion
 
         #region 导出DataSet数据集

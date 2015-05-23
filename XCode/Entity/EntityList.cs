@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+using NewLife;
 using NewLife.IO;
 using NewLife.Reflection;
 using XCode.Common;
@@ -861,6 +862,37 @@ namespace XCode
         /// <summary>转为泛型List，方便进行Linq</summary>
         /// <returns></returns>
         public List<T> ToList() { return this; }
+
+        /// <summary>实体列表转为字典。主键为Key</summary>
+        /// <param name="valueField">作为Value部分的字段，默认为空表示整个实体对象为值</param>
+        /// <returns></returns>
+        public IDictionary ToDictionary(String valueField = null)
+        {
+            // 构造主键类型和值类型
+            var key = Factory.Unique;
+            var ktype = key.Type;
+
+            var vtype = EntityType;
+            if (!valueField.IsNullOrEmpty())
+            {
+                var fi = Factory.Table.FindByName(valueField) as FieldItem;
+                if (fi == null) throw new XException("无法找到名为{0}的字段", valueField);
+
+                vtype = fi.Type;
+            }
+
+            // 创建字典
+            var dic = typeof(Dictionary<,>).MakeGenericType(ktype, vtype).CreateInstance() as IDictionary;
+            foreach (var item in this)
+            {
+                if (!valueField.IsNullOrEmpty())
+                    dic.Add(item[key.Name], item[valueField]);
+                else
+                    dic.Add(item[key.Name], item);
+            }
+
+            return dic;
+        }
 
         /// <summary>任意集合转为实体集合</summary>
         /// <param name="collection"></param>
