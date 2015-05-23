@@ -45,7 +45,7 @@ namespace ASP
         {
             
             #line 1 "..\..\Views\Shared\_Layout_Header.cshtml"
- if (ViewBag.HeaderTitle != null || ViewBag.HeaderContent != null)
+ if (ViewBag.HeaderTitle + "" != "" || ViewBag.HeaderContent + "" != "")
 {
 
             
