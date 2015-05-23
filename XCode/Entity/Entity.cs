@@ -1420,6 +1420,9 @@ namespace XCode
         /// <returns></returns>
         public override string ToString()
         {
+            // 优先主字段作为实体对象的字符串显示
+            if (Meta.Master != null && Meta.Master != Meta.Unique) return this[Meta.Master.Name] + "";
+
             // 优先采用业务主键，也就是唯一索引
             var table = Meta.Table.DataTable;
             if (table.Indexes != null && table.Indexes.Count > 0)
