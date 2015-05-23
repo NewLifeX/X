@@ -176,7 +176,7 @@ namespace NewLife.Cube
             else if (name.EqualIgnoreCase("Phone"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-phone-alt\"></i></span>";
-                if (!atts.ContainsKey("type")) atts.Add("type", "phone");
+                if (!atts.ContainsKey("type")) atts.Add("type", "tel");
                 txt = Html.TextBox(name, (String)value, atts);
             }
             else if (name.EqualIgnoreCase("email", "mail"))
