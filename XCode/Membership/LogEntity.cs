@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using XCode;
 
 namespace XCode.Membership
 {
@@ -14,17 +13,21 @@ namespace XCode.Membership
         /// <returns></returns>
         public override int Save()
         {
-            if ((this as IEntity).IsNullKey)
-                WriteLog("添加", this);
-            else
+            //更改日志保存顺序，先保存才能获取到id
+            string action = "添加";
+            if (!(this as IEntity).IsNullKey)
             {
                 // 没有修改时不写日志
                 if (!HasDirty) return 0;
 
-                WriteLog("修改", this);
+                action = "修改";
             }
 
-            return base.Save();
+            int result = base.Save();
+
+            WriteLog(action, this);
+
+            return result;
         }
 
         /// <summary>删除时写日志</summary>
