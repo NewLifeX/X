@@ -360,7 +360,7 @@ namespace NewLife.Cube
         {
             var dic = EnumHelper.GetDescriptions(value.GetType());
             var data = new SelectList(dic, "Key", "Value", value);
-            return Html.DropDownList(name, data, label);
+            return Html.DropDownList(name, data, label, new { @class = "multiselect" });
         }
         #endregion
 
