@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Web.Mvc;
@@ -360,6 +361,63 @@ namespace NewLife.Cube
             var dic = EnumHelper.GetDescriptions(value.GetType());
             var data = new SelectList(dic, "Key", "Value", value);
             return Html.DropDownList(name, data, label);
+        }
+        #endregion
+
+        #region 下拉列表
+        //public static SelectList ToList(this IDictionary dic, Object selectedValue = null)
+        //{
+        //    return new SelectList(dic, "Value", "Key", selectedValue);
+        //}
+
+        /// <summary>字典的下拉列表</summary>
+        /// <param name="Html"></param>
+        /// <param name="name"></param>
+        /// <param name="dic"></param>
+        /// <param name="selectedValue"></param>
+        /// <param name="optionLabel"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IDictionary dic, Object selectedValue = null, String optionLabel = null)
+        {
+            return Html.DropDownList(name, new SelectList(dic, "Key", "Value", selectedValue), optionLabel, new { @class = "multiselect" });
+        }
+
+        /// <summary>实体列表的下拉列表。单选，自动匹配当前模型的选中项</summary>
+        /// <param name="Html"></param>
+        /// <param name="name"></param>
+        /// <param name="list"></param>
+        /// <param name="optionLabel"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IEntityList list, String optionLabel = null)
+        {
+            var selectedValue = (Html.ViewData.Model as IEntity)[name];
+
+            return Html.DropDownList(name, new SelectList(list.ToDictionary(), "Key", "Value", selectedValue), optionLabel, new { @class = "multiselect" });
+        }
+
+        /// <summary>字典的下拉列表</summary>
+        /// <param name="Html"></param>
+        /// <param name="name"></param>
+        /// <param name="dic"></param>
+        /// <param name="selectedValues"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IDictionary dic, IEnumerable selectedValues)
+        {
+            return Html.ListBox(name, new MultiSelectList(dic, "Key", "Value", selectedValues), new { @class = "multiselect", @multiple = "" });
+        }
+
+        /// <summary>实体列表的下拉列表。多选，自动匹配当前模型的选中项，支持数组类型或字符串类型（自动分割）的选中项</summary>
+        /// <param name="Html"></param>
+        /// <param name="name"></param>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IEntityList list)
+        {
+            var vs = (Html.ViewData.Model as IEntity)[name];
+            // 如果是字符串，分割为整型数组，全局约定逗号分割
+            if (vs is String) vs = (vs as String).SplitAsInt();
+
+            return Html.ListBox(name, new MultiSelectList(list.ToDictionary(), "Key", "Value", vs as IEnumerable), new { @class = "multiselect", @multiple = "" });
         }
         #endregion
     }
