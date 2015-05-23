@@ -67,163 +67,195 @@ namespace ASP
             
             #line default
             #line hidden
-WriteLiteral("\r\n<div");
+WriteLiteral("\r\n\r\n<div");
 
-WriteLiteral(" class=\"panel panel-default\"");
-
-WriteLiteral(">\r\n    <div");
-
-WriteLiteral(" class=\"panel-body\"");
+WriteLiteral(" class=\"clearfix\"");
 
 WriteLiteral(">\r\n");
 
-WriteLiteral("        ");
+WriteLiteral("    ");
 
             
             #line 11 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-   Write(Html.Partial("_List_Toolbar"));
+Write(Html.Partial("_List_Toolbar"));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n    </div>\r\n    <div");
+WriteLiteral("\r\n</div>\r\n<div");
 
 WriteLiteral(" class=\"table-responsive\"");
 
-WriteLiteral(">\r\n        <table");
+WriteLiteral(">\r\n    <table");
 
 WriteLiteral(" class=\"table table-bordered table-hover table-striped table-condensed\"");
 
-WriteLiteral(@">
-            <thead>
-                <tr>
-                    <th>编号</th>
-                    <th>名称</th>
-                    <th>显示名</th>
-                    <th>链接</th>
-                    <th>排序</th>
-                    <th>是否可见</th>
-                    <th>必要的菜单</th>
-                    <th>升</th>
-                    <th>降</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody>
-");
+WriteLiteral(">\r\n        <thead>\r\n            <tr>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">编号</th>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">名称</th>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">显示名</th>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">链接</th>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">排序</th>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">是否可见</th>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">必要的菜单</th>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">升</th>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">降</th>\r\n                <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">操作</th>\r\n            </tr>\r\n        </thead>\r\n        <tbody>\r\n");
 
             
             #line 30 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                
+            
             
             #line default
             #line hidden
             
             #line 30 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                 foreach (var entity in Model)
+             foreach (var entity in Model)
+            {
+                var p = entity.Parent;
+                if (p == null)
                 {
-                    var p = entity.Parent;
-                    if (p == null)
-                    {
-                        p = Menu.Root;
-                    }
+                    p = Menu.Root;
+                }
 
             
             #line default
             #line hidden
-WriteLiteral("                    <tr>\r\n                        <td>");
+WriteLiteral("                <tr>\r\n                    <td");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">");
 
             
             #line 38 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                       Write(entity.ID);
+                                       Write(entity.ID);
 
             
             #line default
             #line hidden
-WriteLiteral("</td>\r\n                        <td>");
+WriteLiteral("</td>\r\n                    <td>");
 
             
             #line 39 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                       Write(entity.TreeNodeName);
+                   Write(entity.TreeNodeName);
 
             
             #line default
             #line hidden
-WriteLiteral("</td>\r\n                        <td>");
+WriteLiteral("</td>\r\n                    <td>");
 
             
             #line 40 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                       Write(entity.DisplayName);
+                   Write(entity.DisplayName);
 
             
             #line default
             #line hidden
-WriteLiteral("</td>\r\n                        <td>");
+WriteLiteral("</td>\r\n                    <td>");
 
             
             #line 41 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                       Write(entity.Url);
+                   Write(entity.Url);
 
             
             #line default
             #line hidden
-WriteLiteral("</td>\r\n                        <td>");
+WriteLiteral("</td>\r\n                    <td");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">");
 
             
             #line 42 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                       Write(entity.Sort);
+                                       Write(entity.Sort);
 
             
             #line default
             #line hidden
 WriteLiteral("</td>\r\n");
 
-WriteLiteral("                        ");
+WriteLiteral("                    ");
 
             
             #line 43 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                   Write(Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Visible"))));
+               Write(Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Visible"))));
 
             
             #line default
             #line hidden
 WriteLiteral("\r\n");
 
-WriteLiteral("                        ");
+WriteLiteral("                    ");
 
             
             #line 44 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                   Write(Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Necessary"))));
+               Write(Html.Partial("_List_Data_Item", new Pair(entity, fact.Table.FindByName("Necessary"))));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                        <td>\r\n");
+WriteLiteral("\r\n                    <td");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">\r\n");
 
             
             #line 46 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                            
+                        
             
             #line default
             #line hidden
             
             #line 46 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                             if (p != null && entity != p.Childs[0])
-                            {
+                         if (p != null && entity != p.Childs[0])
+                        {
 
             
             #line default
             #line hidden
-WriteLiteral("                                <a");
+WriteLiteral("                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1761), Tuple.Create("\"", 1809)
+WriteAttribute("href", Tuple.Create(" href=\"", 1830), Tuple.Create("\"", 1878)
             
             #line 48 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 1768), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id = entity.ID })
+, Tuple.Create(Tuple.Create("", 1837), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id = entity.ID })
             
             #line default
             #line hidden
-, 1768), false)
+, 1837), false)
 );
 
 WriteLiteral("><span");
@@ -236,37 +268,41 @@ WriteLiteral("></span></a>\r\n");
 
             
             #line 49 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                            }
+                        }
 
             
             #line default
             #line hidden
-WriteLiteral("                        </td>\r\n                        <td>\r\n");
+WriteLiteral("                    </td>\r\n                    <td");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">\r\n");
 
             
             #line 52 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                            
+                        
             
             #line default
             #line hidden
             
             #line 52 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                             if (p != null && entity != p.Childs[p.Childs.Count - 1])
-                            {
+                         if (p != null && entity != p.Childs[p.Childs.Count - 1])
+                        {
 
             
             #line default
             #line hidden
-WriteLiteral("                                <a");
+WriteLiteral("                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2133), Tuple.Create("\"", 2183)
+WriteAttribute("href", Tuple.Create(" href=\"", 2198), Tuple.Create("\"", 2248)
             
             #line 54 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 2140), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id = entity.ID })
+, Tuple.Create(Tuple.Create("", 2205), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id = entity.ID })
             
             #line default
             #line hidden
-, 2140), false)
+, 2205), false)
 );
 
 WriteLiteral("><span");
@@ -279,47 +315,51 @@ WriteLiteral("></span></a>\r\n");
 
             
             #line 55 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                            }
+                        }
 
             
             #line default
             #line hidden
-WriteLiteral("                        </td>\r\n                        <td>\r\n");
+WriteLiteral("                    </td>\r\n                    <td");
 
-WriteLiteral("                            ");
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                        ");
 
             
             #line 58 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                       Write(Html.Partial("_List_Data_Action", entity.ID));
+                   Write(Html.Partial("_List_Data_Action", entity.ID));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                        </td>\r\n                    </tr>\r\n");
+WriteLiteral("\r\n                    </td>\r\n                </tr>\r\n");
 
             
             #line 61 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-                }
+            }
 
             
             #line default
             #line hidden
-WriteLiteral("            </tbody>\r\n        </table>\r\n    </div>\r\n    <div");
+WriteLiteral("        </tbody>\r\n    </table>\r\n</div>\r\n<div");
 
 WriteLiteral(" class=\"panel-footer\"");
 
-WriteLiteral(">\r\n        <p>\r\n");
+WriteLiteral(">\r\n    <p>\r\n");
 
-WriteLiteral("            ");
+WriteLiteral("        ");
 
             
             #line 67 "..\..\Areas\Admin\Views\Menu\Index.cshtml"
-       Write(Html.Partial("_List_Pager"));
+   Write(Html.Partial("_List_Pager"));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n        </p>\r\n    </div>\r\n</div>");
+WriteLiteral("\r\n    </p>\r\n</div>\r\n");
 
         }
     }

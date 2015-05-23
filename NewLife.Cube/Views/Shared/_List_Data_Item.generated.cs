@@ -74,11 +74,15 @@ WriteLiteral("\r\n");
             
             #line default
             #line hidden
-WriteLiteral("    <td>");
+WriteLiteral("    <td");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">");
 
             
             #line 10 "..\..\Views\Shared\_List_Data_Item.cshtml"
-   Write(entity[item.Name]);
+                       Write(entity[item.Name]);
 
             
             #line default
@@ -99,7 +103,11 @@ else
             
             #line default
             #line hidden
-WriteLiteral("                <td>\r\n                    <i");
+WriteLiteral("                <td");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">\r\n                    <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-ok\"");
 
@@ -116,7 +124,11 @@ WriteLiteral("></i>\r\n                </td>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("                <td>\r\n                    <i");
+WriteLiteral("                <td");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">\r\n                    <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 
@@ -215,11 +227,15 @@ WriteLiteral("</td>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("                <td>");
+WriteLiteral("                <td");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">");
 
             
             #line 58 "..\..\Views\Shared\_List_Data_Item.cshtml"
-               Write(entity[item.Name]);
+                                   Write(entity[item.Name]);
 
             
             #line default
@@ -235,11 +251,15 @@ WriteLiteral("</td>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("                <td>");
+WriteLiteral("                <td");
+
+WriteLiteral(" class=\"text-right\"");
+
+WriteLiteral(">");
 
             
             #line 62 "..\..\Views\Shared\_List_Data_Item.cshtml"
-               Write(Convert.ToInt64(entity[item.Name]).ToString("n0"));
+                                  Write(Convert.ToInt64(entity[item.Name]).ToString("n0"));
 
             
             #line default

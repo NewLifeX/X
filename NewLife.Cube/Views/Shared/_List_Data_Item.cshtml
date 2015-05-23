@@ -7,7 +7,7 @@
 }
 @if (item.PrimaryKey)
 {
-    <td>@entity[item.Name]</td>
+    <td class="text-center">@entity[item.Name]</td>
 }
 else
 {
@@ -16,13 +16,13 @@ else
         case TypeCode.Boolean:
             if ((Boolean)entity[item.Name])
             {
-                <td>
+                <td class="text-center">
                     <i class="glyphicon glyphicon-ok" style="color: green;"></i>
                 </td>
             }
             else
             {
-                <td>
+                <td class="text-center">
                     <i class="glyphicon glyphicon-remove" style="color: red;"></i>
                 </td>
             }
@@ -55,11 +55,11 @@ else
             //特殊处理枚举
             if (item.Type.IsEnum)
             {
-                <td>@entity[item.Name]</td>
+                <td class="text-center">@entity[item.Name]</td>
             }
             else
             {
-                <td>@Convert.ToInt64(entity[item.Name]).ToString("n0")</td>
+                <td class="text-right">@Convert.ToInt64(entity[item.Name]).ToString("n0")</td>
             }
             break;
         case TypeCode.String:

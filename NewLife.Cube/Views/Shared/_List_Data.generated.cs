@@ -94,23 +94,27 @@ WriteLiteral(">\r\n    <thead>\r\n        <tr>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("                <th><a");
+WriteLiteral("                <th");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 419), Tuple.Create("\"", 463)
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral("><a");
+
+WriteAttribute("href", Tuple.Create(" href=\"", 439), Tuple.Create("\"", 483)
             
             #line 15 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 426), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl(item.Name))
+, Tuple.Create(Tuple.Create("", 446), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl(item.Name))
             
             #line default
             #line hidden
-, 426), false)
+, 446), false)
 );
 
 WriteLiteral(">");
 
             
             #line 15 "..\..\Views\Shared\_List_Data.cshtml"
-                                                               Write(item.DisplayName);
+                                                                                   Write(item.DisplayName);
 
             
             #line default
@@ -124,7 +128,11 @@ WriteLiteral("</a></th>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("            <th>操作</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
+WriteLiteral("            <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">操作</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
 
             
             #line 21 "..\..\Views\Shared\_List_Data.cshtml"
@@ -181,7 +189,11 @@ WriteLiteral("                ");
             
             #line default
             #line hidden
-WriteLiteral("                    <td>\r\n");
+WriteLiteral("                    <td");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">\r\n");
 
 WriteLiteral("                        ");
 

@@ -12,9 +12,9 @@
         <tr>
             @foreach (var item in fields)
             {
-                <th><a href="@Html.Raw(page.GetSortUrl(item.Name))">@item.DisplayName</a></th>
+                <th class="text-center"><a href="@Html.Raw(page.GetSortUrl(item.Name))">@item.DisplayName</a></th>
             }
-            <th>操作</th>
+            <th class="text-center">操作</th>
         </tr>
     </thead>
     <tbody>
@@ -27,7 +27,7 @@
                 }
                 @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
-                    <td>
+                    <td class="text-center">
                         @Html.Partial("_List_Data_Action", (Object)entity[fact.Unique])
                     </td>
                 }
