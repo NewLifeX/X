@@ -51,7 +51,8 @@ namespace System
             //    return atts == null ? new TAttribute[0] : atts;
             //});
         }
-
+        
+#if !Android
         /// <summary>获取自定义属性</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <param name="member"></param>
@@ -180,6 +181,8 @@ namespace System
 
             return default(TResult);
         }
+     
+#endif
         #endregion
     }
 }
