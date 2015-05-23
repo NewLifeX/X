@@ -15,7 +15,9 @@ namespace NewLife
     public static class Runtime
     {
         #region 控制台
-        static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+#if !Android
+       static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+#endif
 
         private static Boolean? _IsConsole;
         /// <summary>是否控制台。用于判断是否可以执行一些控制台操作。</summary>
@@ -25,6 +27,7 @@ namespace NewLife
             {
                 if (_IsConsole != null) return _IsConsole.Value;
 
+#if !Android
                 IntPtr ip = Win32Native.GetStdHandle(-11);
                 if (ip == IntPtr.Zero || ip == INVALID_HANDLE_VALUE)
                     _IsConsole = false;
@@ -36,6 +39,9 @@ namespace NewLife
                     else
                         _IsConsole = true;
                 }
+#else
+                _IsConsole = false;
+#endif
 
                 return _IsConsole.Value;
             }
@@ -46,6 +52,9 @@ namespace NewLife
 #if !Android
         /// <summary>是否Web环境</summary>
         public static Boolean IsWeb { get { return !String.IsNullOrEmpty(HttpRuntime.AppDomainAppId); } }
+#else
+        /// <summary>是否Web环境</summary>
+        public static Boolean IsWeb { get { return false; } }
 #endif
         #endregion
 
@@ -73,8 +82,13 @@ namespace NewLife
             {
                 if (Is64BitProcess) return true;
 
+#if !Android
                 Boolean flag;
                 return Win32Native.DoesWin32MethodExist("kernel32.dll", "IsWow64Process") && Win32Native.IsWow64Process(Win32Native.GetCurrentProcess(), out flag) && flag;
+#else
+
+                return Environment.Is64BitOperatingSystem;
+#endif
             }
         }
 
@@ -84,6 +98,7 @@ namespace NewLife
         #endregion
 
         #region 操作系统
+#if !Android
         private static String _OSName;
         /// <summary>操作系统</summary>
         public static String OSName
@@ -97,7 +112,7 @@ namespace NewLife
                 var is64 = Is64BitOperatingSystem;
                 var sys = "";
 
-                #region Win32
+        #region Win32
                 if (os.Platform == PlatformID.Win32Windows)
                 {
                     // 非NT系统
@@ -120,7 +135,7 @@ namespace NewLife
                             break;
                     }
                 }
-                #endregion
+        #endregion
                 else if (os.Platform == PlatformID.Win32NT)
                     sys = GetNTName(vs);
                 else
@@ -238,9 +253,25 @@ namespace NewLife
 
             return sys;
         }
+#else
+        private static String _OSName;
+        /// <summary>操作系统</summary>
+        public static String OSName
+        {
+            get
+            {
+                if (_OSName != null) return _OSName;
+
+                _OSName = Environment.OSVersion.ToString();
+
+                return _OSName;
+            }
+        }
+#endif
         #endregion
 
         #region 内存设置
+#if !Android
         /// <summary>设置进程的程序集大小，将部分物理内存占用转移到虚拟内存</summary>
         /// <param name="pid">要设置的进程ID</param>
         /// <param name="min">最小值</param>
@@ -309,9 +340,11 @@ namespace NewLife
             //_VirtualMemory = (Int32)(st.ullTotalVirtual / 1024 / 1024);
 
         }
+#endif
         #endregion
     }
 
+#if !Android
     /// <summary>标识系统上的程序组</summary>
     [Flags]
     enum OSSuites : ushort
@@ -427,4 +460,5 @@ namespace NewLife
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
     }
+#endif
 }

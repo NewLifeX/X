@@ -10,7 +10,6 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
-#if !Android
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
 
@@ -96,7 +95,7 @@ namespace System
 
             return avs[0];
         }
-#endif
+
         /// <summary>获取成员绑定的显示名，优先DisplayName，然后Description</summary>
         /// <param name="member"></param>
         /// <param name="inherit"></param>
@@ -111,7 +110,6 @@ namespace System
 
             return null;
         }
-
 
         /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
         /// <typeparam name="TAttribute"></typeparam>
