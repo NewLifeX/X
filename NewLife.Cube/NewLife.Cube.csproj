@@ -260,6 +260,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Layout.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_Layout_Header.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_Layout_Header.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Shared\_Layout_Nav.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -596,7 +601,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\_Layout_Header.cshtml" />
+    <None Include="Views\Shared\_Layout_Header.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Layout_Header.generated.cs</LastGenOutput>
+    </None>
     <None Include="Views\Shared\_Layout_Nav.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Layout_Nav.generated.cs</LastGenOutput>

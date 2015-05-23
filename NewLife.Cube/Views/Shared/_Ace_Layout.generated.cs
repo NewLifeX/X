@@ -440,14 +440,15 @@ WriteLiteral("></script>\r\n    <script>\r\n        //$(function () {\r\n       
 "ref=\"javascript:void(0);\"><label></label></a></li>\',\r\n                    divide" +
 "r: \'<li class=\"multiselect-item divider\"></li>\',\r\n                    liGroup: \'" +
 "<li class=\"multiselect-item group\"><label class=\"multiselect-group\"></label></li" +
-">\'\r\n                }\r\n            });\r\n        });\r\n    </script>\r\n\r\n    <!--开关" +
-"插件-->\r\n    ");
+">\'\r\n                },\r\n                filterPlaceholder: \'搜索\',\r\n              " +
+"  nonSelectedText: \'没有选中\',\r\n                allSelectedText: \'全部选中\'\r\n           " +
+" });\r\n        });\r\n    </script>\r\n\r\n    <!--开关插件-->\r\n    ");
 
 WriteLiteral("\r\n\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 6806), Tuple.Create("\"", 6850)
-, Tuple.Create(Tuple.Create("", 6812), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
-, 6812), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 6932), Tuple.Create("\"", 6976)
+, Tuple.Create(Tuple.Create("", 6938), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
+, 6938), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");
