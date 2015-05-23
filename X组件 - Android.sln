@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test2", "Test2\Test2.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Android", "NewLife.Android\NewLife.Android.csproj", "{19B3CD60-CE6C-4EB8-8FCE-67ABC1D7727A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AndroidTest", "AndroidTest\AndroidTest.csproj", "{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,18 @@ Global
 		{19B3CD60-CE6C-4EB8-8FCE-67ABC1D7727A}.Net4Release|Any CPU.Build.0 = Release|Any CPU
 		{19B3CD60-CE6C-4EB8-8FCE-67ABC1D7727A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19B3CD60-CE6C-4EB8-8FCE-67ABC1D7727A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Net4Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Net4Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Net4Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Net4Release|Any CPU.Build.0 = Release|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Net4Release|Any CPU.Deploy.0 = Release|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF9B9BB1-B688-4DB5-864D-4BC7898ABD17}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
