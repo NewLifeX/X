@@ -142,7 +142,7 @@ namespace NewLife.Net
 
             // 分析端口
             p = uri.LastIndexOf(":");
-            if (p > 0)
+            if (p >= 0)
             {
                 var pt = uri.Substring(p + 1);
                 Int32 port = 0;
