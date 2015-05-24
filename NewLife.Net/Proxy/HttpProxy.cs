@@ -262,7 +262,7 @@ namespace NewLife.Net.Proxy
                 // 检查缓存
                 if (GetCache(entity, e)) return false;
 
-                var remote = RemoteClientSession;
+                var remote = RemoteServer;
                 var ruri = RemoteServerUri;
                 if (entity.Url.IsAbsoluteUri)
                 {
@@ -273,7 +273,7 @@ namespace NewLife.Net.Proxy
                     if (remote != null && (uri.Host != ruri.Host || uri.Port != ruri.Port))
                     {
                         remote.Dispose();
-                        RemoteClientSession = null;
+                        RemoteServer = null;
                     }
                     //RemoteHost = uri.Host;
                     //LastPort = uri.Port;
@@ -335,7 +335,7 @@ namespace NewLife.Net.Proxy
                 try
                 {
                     // 连接远程服务器，启动数据交换
-                    if (RemoteClientSession == null) StartRemote(e);
+                    if (RemoteServer == null) StartRemote(e);
 
                     rs.StatusCode = 200;
                     rs.StatusDescription = "OK";

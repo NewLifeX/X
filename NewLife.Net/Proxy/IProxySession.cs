@@ -1,6 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
-using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy
@@ -8,8 +8,8 @@ namespace NewLife.Net.Proxy
     /// <summary>代理会话接口。客户端的一次转发请求（或者Tcp连接），就是一个会话。转发的全部操作都在会话中完成。</summary>
     /// <remarks>
     /// 一个会话应该包含两端，两个Socket，服务端和客户端。
-    /// 客户端<see cref="INetSession.Session"/>发来的数据，在这里经过一系列过滤器后，转发给服务端<see cref="RemoteClientSession"/>；
-    /// 服务端<see cref="RemoteClientSession"/>返回的数据，在这里经过过滤器后，转发给客户端<see cref="INetSession.Session"/>。
+    /// 客户端<see cref="INetSession.Session"/>发来的数据，在这里经过一系列过滤器后，转发给服务端<see cref="RemoteServer"/>；
+    /// 服务端<see cref="RemoteServer"/>返回的数据，在这里经过过滤器后，转发给客户端<see cref="INetSession.Session"/>。
     /// 会话进行业务处理的过程中，可以通过多个SendRemote方法向远程服务端发送数据。
     /// </remarks>
     public interface IProxySession : INetSession
@@ -18,17 +18,14 @@ namespace NewLife.Net.Proxy
         /// <summary>代理对象</summary>
         IProxy Proxy { get; set; }
 
-        /// <summary>远程客户端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        ISocketClient RemoteClientSession { get; set; }
-
-        ///// <summary>远程客户端IP终结点</summary>
-        //IPEndPoint RemoteEndPoint { get; set; }
-
-        ///// <summary>服务端协议。默认与客户端协议相同</summary>
-        //ProtocolType RemoteProtocolType { get; set; }
+        /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpSession/UdpSession</summary>
+        ISocketClient RemoteServer { get; set; }
 
         /// <summary>服务端地址</summary>
         NetUri RemoteServerUri { get; }
+
+        /// <summary>是否中转空数据包。默认true</summary>
+        Boolean ExchangeEmptyData { get; set; }
         #endregion
 
         #region 发送

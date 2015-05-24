@@ -3,6 +3,9 @@
 namespace NewLife.Net.Proxy
 {
     /// <summary>网络数据转发代理基类</summary>
+    /// <remarks>
+    /// 网络代理分为本地服务器、客户端、远程服务器三种角色，本地服务器负责监听并转发客户端和远程服务器之间的所有数据。
+    /// </remarks>
     /// <typeparam name="TProxySession">代理会话类型</typeparam>
     public abstract class ProxyBase<TProxySession> : NetServer<TProxySession>, IProxy
         where TProxySession : ProxySession, new()
@@ -17,16 +20,6 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 业务
-        //protected override void OnStart()
-        //{
-        //    base.OnStart();
-
-        //    foreach (var item in Servers)
-        //    {
-                
-        //    }
-        //}
-
         /// <summary>创建会话</summary>
         /// <param name="session"></param>
         /// <returns></returns>

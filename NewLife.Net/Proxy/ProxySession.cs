@@ -20,8 +20,8 @@ namespace NewLife.Net.Proxy
     /// <summary>代理会话。客户端的一次转发请求（或者Tcp连接），就是一个会话。转发的全部操作都在会话中完成。</summary>
     /// <remarks>
     /// 一个会话应该包含两端，两个Socket，服务端和客户端
-    /// 客户端<see cref="INetSession.Session"/>发来的数据，在这里经过一系列过滤器后，转发给服务端<see cref="RemoteClientSession"/>；
-    /// 服务端<see cref="RemoteClientSession"/>返回的数据，在这里经过过滤器后，转发给客户端<see cref="INetSession.Session"/>。
+    /// 客户端<see cref="INetSession.Session"/>发来的数据，在这里经过一系列过滤器后，转发给服务端<see cref="RemoteServer"/>；
+    /// 服务端<see cref="RemoteServer"/>返回的数据，在这里经过过滤器后，转发给客户端<see cref="INetSession.Session"/>。
     /// </remarks>
     public class ProxySession : NetSession, IProxySession
     {
@@ -30,33 +30,22 @@ namespace NewLife.Net.Proxy
         /// <summary>代理对象</summary>
         IProxy IProxySession.Proxy { get { return _Proxy; } set { _Proxy = value; } }
 
-        private ISocketClient _Remote;
-        /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
-        public ISocketClient RemoteClientSession { get { return _Remote; } set { _Remote = value; } } 
+        private ISocketClient _RemoteServer;
+        /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpSession/UdpServer</summary>
+        public ISocketClient RemoteServer { get { return _RemoteServer; } set { _RemoteServer = value; } }
 
-        //private IPEndPoint _RemoteEndPoint;
-        ///// <summary>服务端远程IP终结点</summary>
-        //public IPEndPoint RemoteEndPoint { get { return _RemoteEndPoint; } set { _RemoteEndPoint = value; } }
-
-        //private ProtocolType _RemoteProtocolType;
-        ///// <summary>服务端协议。默认与客户端协议相同</summary>
-        //public ProtocolType RemoteProtocolType { get { return _RemoteProtocolType; } set { _RemoteProtocolType = value; } }
-
-        private NetUri _RemoteUri;
+        private NetUri _RemoteServerUri = new NetUri();
         /// <summary>服务端地址</summary>
-        public NetUri RemoteServerUri { get { return _RemoteUri ?? (_RemoteUri = new NetUri()); } }
+        public NetUri RemoteServerUri { get { return _RemoteServerUri; } set { _RemoteServerUri = value; } }
 
-        //private String _RemoteHost;
-        ///// <summary>远程主机</summary>
-        //public virtual String RemoteHost { get { return _RemoteHost; } set { _RemoteHost = value; } }
+        private Boolean _ExchangeEmptyData = true;
+        /// <summary>是否中转空数据包。默认true</summary>
+        public Boolean ExchangeEmptyData { get { return _ExchangeEmptyData; } set { _ExchangeEmptyData = value; } }
         #endregion
 
         #region 构造
         /// <summary>实例化一个代理会话</summary>
-        public ProxySession()
-        {
-            //DisposeWhenSendError = true;            
-        }
+        public ProxySession() { }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
@@ -64,10 +53,10 @@ namespace NewLife.Net.Proxy
         {
             base.OnDispose(disposing);
 
-            var remote = RemoteClientSession;
+            var remote = RemoteServer;
             if (remote != null)
             {
-                RemoteClientSession = null;
+                RemoteServer = null;
                 remote.Dispose();
             }
         }
@@ -79,6 +68,8 @@ namespace NewLife.Net.Proxy
         {
             // 如果未指定远程协议，则与来源协议一致
             if (RemoteServerUri.ProtocolType == 0) RemoteServerUri.ProtocolType = Session.Local.ProtocolType;
+            // 如果是Tcp，收到空数据时不要断开。为了稳定可靠，默认设置
+            if (Session is TcpSession) (Session as TcpSession).DisconnectWhenEmptyData = false;
 
             base.Start();
         }
@@ -87,14 +78,15 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            WriteDebugLog("Proxy[{0}].OnReceive {1} => {2}", ID, Session.Remote.EndPoint, e.Stream.Length);
+            WriteLog("客户端[{0}] {1}", e.Length, e.ToHex());
 
-            if (e.Stream != null)
+            if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
             {
-                if (RemoteClientSession == null) StartRemote(e);
+                // 如果未建立到远程服务器链接，则建立
+                if (RemoteServer == null) StartRemote(e);
 
-                //Remote.Send(stream, RemoteEndPoint);
-                if (RemoteClientSession != null) SendRemote(e.Stream);
+                // 如果已存在到远程服务器的链接，则把数据发向远程服务器
+                if (RemoteServer != null) SendRemote(e.Stream);
             }
         }
 
@@ -106,38 +98,31 @@ namespace NewLife.Net.Proxy
             ISocketClient session = null;
             try
             {
-                WriteDebugLog("Proxy[{0}].StartRemote {1}", ID, RemoteServerUri);
+                WriteLog("连接远程服务器 {0} 解析 {1}", RemoteServerUri, RemoteServerUri.Address);
 
                 session = CreateRemote(e);
-                //if (client.ProtocolType == ProtocolType.Tcp && !client.Client.Connected) client.Connect(RemoteEndPoint);
                 session.OnDisposed += (s, e2) =>
                 {
                     // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定
-                    _Remote = null;
+                    _RemoteServer = null;
                     OnRemoteDispose(s as ISocketClient);
                 };
                 session.Received += Remote_Received;
                 session.ReceiveAsync();
 
-                //Debug.Assert(session.Client.Connected);
-                RemoteClientSession = session;
+                RemoteServer = session;
             }
             catch (Exception ex)
             {
+                var ts = DateTime.Now - start;
+                WriteError("无法为{0}连接远程服务器{1}！耗时{2}！{3}", Remote, RemoteServerUri, ts, ex.Message);
+
                 if (session != null) session.Dispose();
                 this.Dispose();
-
-                var ts = DateTime.Now - start;
-                //var host = String.IsNullOrEmpty(RemoteHost) ? "" + RemoteEndPoint : RemoteHost;
-                //throw new XException(ex, "无法连接远程服务器{0}！耗时{1}！", RemoteUri, ts);
-                WriteLog("无法为{0}连接远程服务器{1}！耗时{2}！{3}", Remote, RemoteServerUri, ts, ex.Message);
             }
         }
 
-        ///// <summary>用于记录不可连接的地址，带超时时间。</summary>
-        //static Dictionary<String, DateTime> _NotConnected = new Dictionary<string, DateTime>();
-
-        /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。默认实现创建与服务器相同类型的客户端</summary>
+        /// <summary>为会话创建与远程服务器通讯的Socket。可以使用Socket池达到重用的目的。</summary>
         /// <param name="e"></param>
         /// <returns></returns>
         protected virtual ISocketClient CreateRemote(ReceivedEventArgs e)
@@ -155,16 +140,20 @@ namespace NewLife.Net.Proxy
             {
                 OnReceiveRemote(e);
             }
-            catch (Exception ex) { this.Dispose(); WriteLog(ex.Message); throw; }
+            catch (Exception ex)
+            {
+                WriteError(ex.Message);
+                this.Dispose();
+            }
         }
 
         /// <summary>收到远程服务器返回的数据</summary>
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            WriteDebugLog("Proxy[{0}].OnReceiveRemote {1} <= {2}", ID, RemoteServerUri.EndPoint, e.Stream.Length);
+            WriteLog("服务端[{0}] {1}", e.Length, e.ToHex());
 
-            if (e.Stream != null)
+            if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
             {
                 var session = Session;
                 if (session == null || session.Disposed)
@@ -175,7 +164,13 @@ namespace NewLife.Net.Proxy
                     {
                         Send(e.Stream);
                     }
-                    catch { this.Dispose(); throw; }
+                    catch (Exception ex)
+                    {
+                        WriteError("转发给客户端出错，{0}", ex.Message);
+
+                        this.Dispose();
+                        throw;
+                    }
                 }
             }
         }
@@ -190,7 +185,7 @@ namespace NewLife.Net.Proxy
         {
             try
             {
-                RemoteClientSession.Send(buffer, offset, size);
+                RemoteServer.Send(buffer, offset, size);
             }
             catch { this.Dispose(); throw; }
 
@@ -204,9 +199,15 @@ namespace NewLife.Net.Proxy
         {
             try
             {
-                RemoteClientSession.Send(stream);
+                RemoteServer.Send(stream);
             }
-            catch { this.Dispose(); throw; }
+            catch (Exception ex)
+            {
+                WriteError("转发给服务端出错，{0}", ex.Message);
+
+                this.Dispose();
+                throw;
+            }
 
             return this;
         }
@@ -214,11 +215,11 @@ namespace NewLife.Net.Proxy
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        public virtual IProxySession SendRemote(string msg, Encoding encoding = null)
+        public virtual IProxySession SendRemote(String msg, Encoding encoding = null)
         {
             try
             {
-                RemoteClientSession.Send(msg, encoding);
+                RemoteServer.Send(msg, encoding);
             }
             catch { this.Dispose(); throw; }
 
@@ -237,9 +238,26 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 辅助
+        private String _LogPrefix;
+        /// <summary>日志前缀</summary>
+        public override String LogPrefix
+        {
+            get
+            {
+                if (_LogPrefix == null)
+                {
+                    var session = this as INetSession;
+                    var name = session.Host == null ? "" : session.Host.Name.TrimEnd("Proxy");
+                    _LogPrefix = "{0}[{1}] ".F(name, ID);
+                }
+                return _LogPrefix;
+            }
+            set { _LogPrefix = value; }
+        }
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return base.ToString() + "=>" + RemoteClientSession; }
+        public override string ToString() { return base.ToString() + "=>" + RemoteServerUri; }
         #endregion
     }
 }

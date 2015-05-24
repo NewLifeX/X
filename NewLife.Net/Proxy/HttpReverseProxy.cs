@@ -77,7 +77,7 @@ namespace NewLife.Net.Proxy
                 Request = entity;
                 if (OnRequest != null) OnRequest(this, e);
 
-                var host = entity.Url.IsAbsoluteUri ? entity.Url.Host : Proxy.ServerHost;
+                var host = entity.Url.IsAbsoluteUri ? entity.Url.Host : Proxy.RemoteServer.Host;
                 Host = host;
                 RawHost = entity.Host;
                 entity.Host = host;
