@@ -7,7 +7,7 @@ using NewLife.Threading;
 namespace NewLife.Net
 {
     /// <summary>增强TCP客户端</summary>
-    public class TcpSession : SessionBase, ISocketSession, ITransport
+    public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
         private TcpClient _Client;
@@ -19,7 +19,7 @@ namespace NewLife.Net
         internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
 
         private Boolean _DisconnectWhenEmptyData = true;
-        /// <summary>收到空数据时抛出异常并断开连接。</summary>
+        /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
 
         private Stream _Stream;
@@ -117,9 +117,9 @@ namespace NewLife.Net
         }
 
         /// <summary>关闭</summary>
-        protected override Boolean OnClose()
+        protected override Boolean OnClose(String reason)
         {
-            WriteLog("{0}.Close {1}", Name, this);
+            WriteLog("{0}.Close {1} {2}", Name, reason, this);
 
             if (Client != null)
             {
@@ -129,6 +129,8 @@ namespace NewLife.Net
                 {
                     if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
 
+                    // 温和一点关闭连接
+                    Client.Client.Shutdown();
                     Client.Close();
 
                     // 如果是服务端，这个时候就是销毁
@@ -176,7 +178,7 @@ namespace NewLife.Net
                     OnError("Send", ex);
 
                     // 发送异常可能是连接出了问题，需要关闭
-                    Close();
+                    Close("发送出错");
                     Reconnect();
 
                     if (ThrowException) throw;
@@ -238,7 +240,7 @@ namespace NewLife.Net
                     OnError("Receive", ex);
 
                     // 发送异常可能是连接出了问题，需要关闭
-                    Close();
+                    Close("同步接收出错");
                     Reconnect();
 
                     if (ThrowException) throw;
@@ -276,7 +278,7 @@ namespace NewLife.Net
                     OnError("ReceiveAsync", ex);
 
                     // 异常一般是网络错误
-                    Close();
+                    Close("开始异步接收出错");
                     Reconnect();
 
                     if (ThrowException) throw;
@@ -311,7 +313,7 @@ namespace NewLife.Net
                     OnError("EndReceive", ex);
 
                     // 异常一般是网络错误
-                    Close();
+                    Close("完成异步接收出错");
                     Reconnect();
                 }
                 return;
@@ -319,7 +321,7 @@ namespace NewLife.Net
 
             if (DisconnectWhenEmptyData && count == 0)
             {
-                Close();
+                Close("收到空数据");
                 return;
             }
 

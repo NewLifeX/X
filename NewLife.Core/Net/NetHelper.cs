@@ -411,11 +411,11 @@ namespace System
         /// <summary>关闭连接</summary>
         /// <param name="socket"></param>
         /// <param name="reuseAddress"></param>
-        internal static void Close(Socket socket, Boolean reuseAddress = false)
+        internal static void Shutdown(this Socket socket, Boolean reuseAddress = false)
         {
             if (socket == null || mSafeHandle == null) return;
 
-            var value = mSafeHandle is PropertyInfo ? socket.GetValue(mSafeHandle as PropertyInfo) : socket.GetValue(mSafeHandle as FieldInfo);
+            var value = socket.GetValue(mSafeHandle);
             var hand = value as SafeHandle;
             if (hand == null || hand.IsClosed) return;
 
@@ -526,7 +526,6 @@ namespace System
             }
         }
         #endregion
-
 
         #region Tcp参数
 #if !Android

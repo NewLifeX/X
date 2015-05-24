@@ -7,7 +7,7 @@ using NewLife.Log;
 namespace NewLife.Net
 {
     /// <summary>会话基类</summary>
-    public abstract class SessionBase : DisposeBase, ISocketClient
+    public abstract class SessionBase : DisposeBase, ISocketClient, ITransport
     {
         #region 属性
         private String _Name;
@@ -80,7 +80,7 @@ namespace NewLife.Net
 
             try
             {
-                Close();
+                Close("销毁");
             }
             catch (Exception ex) { OnError("Dispose", ex); }
         }
@@ -129,11 +129,11 @@ namespace NewLife.Net
 
         /// <summary>关闭</summary>
         /// <returns>是否成功</returns>
-        public virtual Boolean Close()
+        public virtual Boolean Close(String reason = null)
         {
             if (!Active) return true;
 
-            if (OnClose()) Active = false;
+            if (OnClose(reason)) Active = false;
 
             // 触发关闭完成的事件
             if (Closed != null) Closed(this, EventArgs.Empty);
@@ -146,7 +146,9 @@ namespace NewLife.Net
 
         /// <summary>关闭</summary>
         /// <returns></returns>
-        protected abstract Boolean OnClose();
+        protected abstract Boolean OnClose(String reason);
+
+        Boolean ITransport.Close() { return Close("传输口关闭"); }
 
         /// <summary>打开后触发。</summary>
         public event EventHandler Opened;

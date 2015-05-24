@@ -14,7 +14,7 @@ namespace NewLife.Net
     /// <remarks>
     /// 如果已经打开异步接收，还要使用同步接收，则同步Receive内部不再调用底层Socket，而是等待截走异步数据。
     /// </remarks>
-    public class UdpServer : SessionBase, ISocketServer, ITransport
+    public class UdpServer : SessionBase, ISocketServer
     {
         #region 属性
         private UdpClient _Client;
@@ -87,9 +87,9 @@ namespace NewLife.Net
         }
 
         /// <summary>关闭</summary>
-        protected override Boolean OnClose()
+        protected override Boolean OnClose(String reason)
         {
-            WriteLog("{0}.Close {1}", Name, this);
+            WriteLog("{0}.Close {1} {2}", Name, reason, this);
 
             if (Client != null)
             {
@@ -494,7 +494,7 @@ namespace NewLife.Net
                 if (_Sessions.Add(session))
                 {
                     us.ID = g_ID++;
-                    
+
                     WriteLog("{0}[{1}].NewSession {2}", Name, us.ID, remoteEP);
 
                     // 触发新会话事件
@@ -530,7 +530,7 @@ namespace NewLife.Net
 
         void IServer.Stop()
         {
-            Close();
+            Close("服务停止");
         }
         #endregion
 

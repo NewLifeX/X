@@ -27,7 +27,7 @@ namespace NewLife.Net
 
         /// <summary>关闭</summary>
         /// <returns>是否成功</returns>
-        Boolean Close();
+        Boolean Close(String reason = null);
 
         /// <summary>打开后触发。</summary>
         event EventHandler Opened;

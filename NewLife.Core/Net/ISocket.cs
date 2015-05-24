@@ -114,8 +114,11 @@ namespace NewLife.Net
         {
             // UDP的最大缓冲区
             var size = 1460L;
-            // TCP可以加大
             var remain = stream.Length - stream.Position;
+            // 空数据直接发出
+            if (remain == 0) return session.Send(new Byte[0]);
+
+            // TCP可以加大
             if (remain > size && session.Socket.SocketType == SocketType.Stream)
             {
                 // 至少使用发送缓冲区的大小，默认8k

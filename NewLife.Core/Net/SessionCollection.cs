@@ -45,7 +45,7 @@ namespace NewLife.Net
             lock (_dic)
             {
                 if (_dic.ContainsKey(key)) return false;
-                
+
                 //session.ID = ++sessionID;
                 session.OnDisposed += (s, e) => { lock (_dic) { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); } };
                 _dic.Add(key, session);
@@ -126,6 +126,8 @@ namespace NewLife.Net
             // 已经离开了锁，慢慢释放各个会话
             foreach (var item in values)
             {
+                Server.Log.Info("销毁超过{0}秒不活跃的会话 {1}", Server.MaxNotActive, item);
+
                 item.Dispose();
             }
         }
