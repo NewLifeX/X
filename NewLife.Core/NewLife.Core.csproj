@@ -248,6 +248,7 @@
     <Compile Include="Serialization\Event\WriterEventArgs.cs" />
     <Compile Include="Serialization\Event\WriteMemberEventArgs.cs" />
     <Compile Include="Serialization\Event\WriteObjectEventArgs.cs" />
+    <Compile Include="Serialization\Protocol.cs" />
     <Compile Include="Serialization\RWKinds.cs" />
     <Compile Include="Serialization\RWService.cs" />
     <Compile Include="Serialization\Xml\XmlComposite.cs" />
