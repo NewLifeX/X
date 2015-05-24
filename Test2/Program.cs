@@ -8,6 +8,7 @@ using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Application;
 using NewLife.Net.Modbus;
+using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
 using NewLife.Net.Stress;
 using NewLife.Security;
@@ -26,7 +27,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test3();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -165,25 +166,18 @@ namespace Test2
 
         static void Test4()
         {
-            var sw = new Stopwatch();
-            sw.Start();
-            //var ip = IPAddress.Parse("192.168.0.1");
-            //var mac = ip.GetMac();
-            //Console.WriteLine(mac.ToHex("-"));
-            for (int i = 1; i < 256; i++)
+            var proxy = new NATProxy("s3.peacemoon.cn", 3389);
+            //proxy.Port = 89;
+            proxy.Local = "tcp://:89";
+            proxy.Log = XTrace.Log;
+            proxy.SessionLog = XTrace.Log;
+            proxy.Start();
+
+            while (true)
             {
-                //var ip = IPAddress.Parse("192.168.0." + i);
-                //var mac = ip.GetMac();
-                //if (mac != null) Console.WriteLine("{0}\t{1}", ip, mac.ToHex("-"));
-                ThreadPool.QueueUserWorkItem(GetMac, i);
+                Console.Title = "会话数：{0}".F(proxy.SessionCount);
+                Thread.Sleep(1000);
             }
-            while (total < 255)
-            {
-                Console.Title = String.Format("完成：{0}/{1} {2}", success, total, sw.Elapsed);
-                Thread.Sleep(500);
-            }
-            sw.Stop();
-            Console.WriteLine("耗时 {0}", sw.Elapsed);
         }
 
         static Int32 success = 0;
