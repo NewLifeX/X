@@ -37,8 +37,7 @@ namespace NewLife.Net.Application
             }
 
             /// <summary>已重载。</summary>
-            /// <param name="session"></param>
-            /// <param name="stream"></param>
+            /// <param name="e"></param>
             protected override void OnReceive(ReceivedEventArgs e)
             {
                 if (e.Length == 0) return;
