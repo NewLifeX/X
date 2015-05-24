@@ -33,7 +33,7 @@ namespace NewLife.Net.Sockets
         public ISocketSession Session { get { return _Session; } set { _Session = value; } }
 
         private ISocketServer _Server;
-        /// <summary>服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpClientX/UdpClientX</summary>
+        /// <summary>服务端</summary>
         public ISocketServer Server { get { return _Server; } set { _Server = value; } }
 
         /// <summary>客户端地址</summary>
@@ -125,7 +125,7 @@ namespace NewLife.Net.Sockets
         #region 辅助
         private String _LogPrefix;
         /// <summary>日志前缀</summary>
-        public String LogPrefix
+        public virtual String LogPrefix
         {
             get
             {

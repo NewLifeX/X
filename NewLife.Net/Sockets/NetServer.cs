@@ -39,7 +39,15 @@ namespace NewLife.Net.Sockets
 
         private NetUri _Local = new NetUri();
         /// <summary>本地结点</summary>
-        public NetUri Local { get { return _Local; } set { _Local = value; } }
+        public NetUri Local
+        {
+            get { return _Local; }
+            set
+            {
+                _Local = value;
+                if (AddressFamily == AddressFamily.Unknown) AddressFamily = value.Address.AddressFamily;
+            }
+        }
 
         /// <summary>端口</summary>
         public Int32 Port { get { return _Local.Port; } set { _Local.Port = value; } }
@@ -153,7 +161,7 @@ namespace NewLife.Net.Sockets
 
             server.Name = String.Format("{0}{1}{2}", Name, server.Local.IsTcp ? "Tcp" : "Udp", server.Local.Address.IsIPv4() ? "" : "6");
             // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
-            server.Log = Log;
+            server.Log = SessionLog;
             server.NewSession += Server_NewSession;
 
             server.Error += OnError;
@@ -447,6 +455,10 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 辅助
+        private ILog _SessionLog = NetHelper.Debug ? XTrace.Log : Logger.Null;
+        /// <summary>用于会话的日志提供者</summary>
+        public ILog SessionLog { get { return _SessionLog; } set { _SessionLog = value; } }
+
         /// <summary>已重载。日志加上前缀</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
@@ -454,7 +466,7 @@ namespace NewLife.Net.Sockets
         {
             base.WriteLog(String.Format("{0} {1}", Name, format), args);
         }
-       
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()

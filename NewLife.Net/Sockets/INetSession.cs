@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Text;
-using NewLife.Net.Common;
 
 namespace NewLife.Net.Sockets
 {
@@ -26,9 +24,6 @@ namespace NewLife.Net.Sockets
 
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpSession</summary>
         ISocketSession Session { get; set; }
-
-        ///// <summary>客户端远程IP终结点</summary>
-        //IPEndPoint ClientEndPoint { get; set; }
 
         /// <summary>客户端地址</summary>
         NetUri Remote { get; }
