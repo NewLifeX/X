@@ -105,12 +105,6 @@ namespace NewLife.Log
 
             WriteVersion();
         }
-
-        static void WriteVersion()
-        {
-            var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
-        }
         #endregion
 
         #region 使用控制台输出
@@ -495,6 +489,25 @@ namespace NewLife.Log
                 maxNum--;
             }
             return sb.ToString();
+        }
+        #endregion
+
+        #region 版本信息
+        static void WriteVersion()
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            WriteVersion(asm);
+
+            var asm2 = Assembly.GetEntryAssembly();
+            if (asm2 != asm) WriteVersion(asm2);
+        }
+
+        /// <summary>输出程序集版本</summary>
+        /// <param name="asm"></param>
+        public static void WriteVersion(this Assembly asm)
+        {
+            var asmx = AssemblyX.Create(asm);
+            WriteLine("{0,-12} v{1,-13} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
         #endregion
     }

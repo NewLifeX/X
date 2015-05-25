@@ -99,8 +99,9 @@ namespace XCode.DataAccessLayer
             if (Interlocked.CompareExchange(ref hasInitLog, 1, 0) > 0) return;
 
             // 输出当前版本
-            var asm = AssemblyX.Create(System.Reflection.Assembly.GetExecutingAssembly());
-            XTrace.WriteLine("NewLife.{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asm.Name, asm.FileVersion, asm.Compile);
+            //var asm = AssemblyX.Create(System.Reflection.Assembly.GetExecutingAssembly());
+            //XTrace.WriteLine("NewLife.{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asm.Name, asm.FileVersion, asm.Compile);
+            System.Reflection.Assembly.GetExecutingAssembly().WriteVersion();
 
             if (DAL.Debug && DAL.NegativeEnable)
             {

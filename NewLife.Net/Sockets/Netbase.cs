@@ -13,8 +13,9 @@ namespace NewLife.Net.Sockets
         static Netbase()
         {
             // 输出网络库版本
-            var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            XTrace.WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
+            //var asmx = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            //XTrace.WriteLine("{0,-16} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
+            Assembly.GetExecutingAssembly().WriteVersion();
         }
 
         //public Netbase()
