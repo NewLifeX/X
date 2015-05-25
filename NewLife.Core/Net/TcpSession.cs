@@ -476,7 +476,12 @@ namespace NewLife.Net
         public override string ToString()
         {
             if (Remote != null && !Remote.EndPoint.IsAny())
-                return String.Format("{0}=>{1}", Local, Remote.EndPoint);
+            {
+                if (_Server == null)
+                    return String.Format("{0}=>{1}", Local, Remote.EndPoint);
+                else
+                    return String.Format("{0}<={1}", Local, Remote.EndPoint);
+            }
             else
                 return Local.ToString();
         }
