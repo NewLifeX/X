@@ -205,7 +205,7 @@ namespace NewLife.Net
         {
             var session = CreateSession(client);
             // 服务端不支持掉线重连
-            session.AutoReconnect = false;
+            session.AutoReconnect = 0;
             session.Log = Log;
             //session.MessageDgram = MessageDgram;
             //if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });

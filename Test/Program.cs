@@ -335,7 +335,7 @@ namespace Test
             tcp.Log = XTrace.Log;
             tcp.Remote = "tcp://127.0.0.1:8";
             //tcp.MessageDgram = true;
-            tcp.AutoReconnect = false;
+            tcp.AutoReconnect = 0;
             //tcp.Send("我是大石头！");
             tcp.Open();
             tcp.Stream = new PacketStream(tcp.Stream);

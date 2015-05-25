@@ -30,9 +30,9 @@ namespace NewLife.Net
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
         ISocketServer ISocketSession.Server { get { return _Server; } }
 
-        private Boolean _AutoReconnect = true;
-        /// <summary>是否自动重连，默认true。发生异常断开连接时，自动重连服务端。</summary>
-        public Boolean AutoReconnect { get { return _AutoReconnect; } set { _AutoReconnect = value; } }
+        private Int32 _AutoReconnect = 3;
+        /// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
+        public Int32 AutoReconnect { get { return _AutoReconnect; } set { _AutoReconnect = value; } }
         #endregion
 
         #region 构造
@@ -112,6 +112,8 @@ namespace NewLife.Net
                     return false;
                 }
             }
+
+            _Reconnect = 0;
 
             return true;
         }
@@ -463,9 +465,13 @@ namespace NewLife.Net
         #endregion
 
         #region 自动重连
+        /// <summary>重连次数</summary>
+        private Int32 _Reconnect;
         void Reconnect()
         {
-            if (!AutoReconnect || Disposed) return;
+            if (Disposed) return;
+            // 如果重连次数达到最大重连次数，则退出
+            if (_Reconnect++ >= AutoReconnect) return;
 
             WriteLog("{0}.Reconnect {1}", Name, this);
 
