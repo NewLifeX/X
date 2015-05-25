@@ -179,9 +179,7 @@ namespace XCode.Membership
 
                 throw new XException(msg);
             }
-
-            WriteLog("删除", this);
-
+            
             return base.Delete();
         }
 

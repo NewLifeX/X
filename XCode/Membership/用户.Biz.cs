@@ -68,21 +68,6 @@ namespace XCode.Membership
                 if (!String.IsNullOrEmpty(Password) && Password.Length != 32) Password = Password.MD5();
             }
         }
-
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override int Delete()
-        {
-            String name = Name;
-            if (String.IsNullOrEmpty(name))
-            {
-                var entity = Find("ID", ID);
-                if (entity != null) name = entity.Name;
-            }
-            WriteLog("删除", name);
-
-            return base.Delete();
-        }
         #endregion
 
         #region 扩展属性

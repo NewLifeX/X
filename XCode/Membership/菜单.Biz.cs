@@ -72,31 +72,26 @@ namespace XCode.Membership
             // 先处理一次，否则可能因为别的字段没有修改而没有脏数据
             SavePermission();
 
-            if (!String.IsNullOrEmpty(Url))
+            string action = "添加";
+            if (!(this as IEntity).IsNullKey)
             {
-                // 删除两端空白
-                if (Url != Url.Trim()) Url = Url.Trim();
+                if (!HasDirty) return 0;
+
+                action = "修改";
             }
 
-            if (ID == 0)
-                WriteLog("添加", Name + " " + Url);
-            else if (HasDirty)
-                WriteLog("修改", Name + " " + Url);
+            int result = base.Save();
 
-            return base.Save();
+            WriteLog(action, this);
+
+            return result;
         }
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override int Delete()
         {
-            var name = Name;
-            if (String.IsNullOrEmpty(name))
-            {
-                var entity = FindByID(ID);
-                if (entity != null) name = entity.Name;
-            }
-            WriteLog("删除", name + " " + Url);
+            WriteLog("删除", this);
 
             return base.Delete();
         }
@@ -489,6 +484,23 @@ namespace XCode.Membership
         public static void WriteLog(String action, String remark)
         {
             LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
+        }
+
+        /// <summary>输出实体对象日志</summary>
+        /// <param name="action"></param>
+        /// <param name="entity"></param>
+        protected static void WriteLog(String action, IEntity entity)
+        {
+            // 构造字段数据的字符串表示形式
+            var sb = new StringBuilder();
+            foreach (var fi in Meta.Fields)
+            {
+                if (action == "修改" && !entity.Dirtys[fi.Name]) continue;
+
+                sb.Separate(",").AppendFormat("{0}={1}", fi.Name, entity[fi.Name]);
+            }
+
+            WriteLog(action, sb.ToString());
         }
         #endregion
 
