@@ -105,7 +105,7 @@ namespace NewLife.Cube
                         // 找到完整菜单树，但是排除当前节点这个分支
                         var list = root.FindAllChildsExcept(entity as IEntityTree);
                         var data = new SelectList(list, set.Key, "TreeNodeText", entity[field.Name]);
-                        return Html.DropDownList(field.Name, data);
+                        return Html.DropDownList(field.Name, data, new { @class = "multiselect" });
                     }
                 }
                 // 如果有表间关系，且是当前字段
@@ -118,7 +118,7 @@ namespace NewLife.Cube
                         var rt = EntityFactory.CreateOperate(dr.RelationTable);
                         var list = rt.FindAllWithCache();
                         var data = new SelectList(list, dr.RelationColumn, rt.Master.Name, entity[field.Name]);
-                        return Html.DropDownList(field.Name, data, "无");
+                        return Html.DropDownList(field.Name, data, field.IsNullable ? "无" : null, new { @class = "multiselect" });
                     }
                 }
 

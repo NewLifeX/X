@@ -35,7 +35,7 @@ namespace XCode.Membership
         /// <summary>名称。登录用户名</summary>
         [DisplayName("名称")]
         [Description("名称。登录用户名")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, false, 50)]
         [BindColumn(2, "Name", "名称。登录用户名", null, "nvarchar(50)", 0, 0, true, Master=true)]
         public virtual String Name
         {
@@ -107,7 +107,7 @@ namespace XCode.Membership
         /// <summary>角色</summary>
         [DisplayName("角色")]
         [Description("角色")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(8, "RoleID", "角色", null, "int", 10, 0, false)]
         public virtual Int32 RoleID
         {

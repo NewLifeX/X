@@ -3,13 +3,13 @@
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称。登录用户名" />
+      <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称。登录用户名" />
       <Column Name="Password" DataType="String" Description="密码" />
       <Column Name="DisplayName" DataType="String" Description="显示名。昵称、中文名等" />
       <Column Name="Mail" DataType="String" Description="邮件" />
       <Column Name="Phone" DataType="String" Description="电话" />
       <Column Name="Code" DataType="String" Description="代码。身份证、员工编号等" />
-      <Column Name="RoleID" DataType="Int32" Description="角色" />
+      <Column Name="RoleID" DataType="Int32" Nullable="False" Description="角色" />
       <Column Name="Logins" DataType="Int32" Description="登录次数" />
       <Column Name="LastLogin" DataType="DateTime" Description="最后登录" />
       <Column Name="LastLoginIP" DataType="String" Description="最后登录IP" />
@@ -27,7 +27,7 @@
   <Table Name="Role" Description="角色" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称" />
+      <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
       <Column Name="IsSystem" DataType="Boolean" Description="是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除" />
       <Column Name="Permission" DataType="String" Length="500" Description="权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔" />
     </Columns>
@@ -38,7 +38,7 @@
   <Table Name="Menu" Description="菜单" DbType="SqlServer" BaseType="EntityTree" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称" />
+      <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
       <Column Name="DisplayName" DataType="String" Description="显示名" />
       <Column Name="ParentID" DataType="Int32" Description="父编号" />
       <Column Name="Url" DataType="String" Length="200" Description="链接" />
