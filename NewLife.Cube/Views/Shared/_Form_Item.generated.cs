@@ -129,22 +129,47 @@ Write(Html.ForDescription(item));
             
             #line default
             #line hidden
-WriteLiteral("\r\n    <span");
+WriteLiteral("\r\n");
+
+            
+            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
+    
+            
+            #line default
+            #line hidden
+            
+            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
+     if (ViewData.ModelState.ContainsKey(item.Name))
+    {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        <span");
 
 WriteLiteral(" class=\"alert-danger\"");
 
 WriteLiteral(">\r\n");
 
-WriteLiteral("        ");
+WriteLiteral("            ");
 
             
-            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
-   Write(Html.ValidationMessage(item.Name));
+            #line 27 "..\..\Views\Shared\_Form_Item.cshtml"
+       Write(Html.ValidationMessage(item.Name));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n    </span>\r\n</div>");
+WriteLiteral("\r\n        </span>\r\n");
+
+            
+            #line 29 "..\..\Views\Shared\_Form_Item.cshtml"
+    }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</div>");
 
         }
     }

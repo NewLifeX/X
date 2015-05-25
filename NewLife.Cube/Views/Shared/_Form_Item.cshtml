@@ -21,7 +21,10 @@
 <div class="col-xs-12 col-md-@width">
     @Html.ForEditor(item, entity)
     @Html.ForDescription(item)
-    <span class="alert-danger">
-        @Html.ValidationMessage(item.Name)
-    </span>
+    @if (ViewData.ModelState.ContainsKey(item.Name))
+    {
+        <span class="alert-danger">
+            @Html.ValidationMessage(item.Name)
+        </span>
+    }
 </div>
