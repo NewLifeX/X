@@ -1,8 +1,8 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using NewLife.Collections;
 using NewLife.Reflection;
-using System.ComponentModel;
 
 namespace System
 {
@@ -10,6 +10,7 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
+#if !NET45 && !Android
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
 
@@ -51,8 +52,7 @@ namespace System
             //    return atts == null ? new TAttribute[0] : atts;
             //});
         }
-        
-#if !Android
+
         /// <summary>获取自定义属性</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <param name="member"></param>
@@ -181,7 +181,7 @@ namespace System
 
             return default(TResult);
         }
-     
+
 #endif
         #endregion
     }
