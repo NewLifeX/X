@@ -102,9 +102,28 @@ namespace NewLife.Cube
                 return FormView(entity);
             }
 
-            entity.Insert();
+            var rs = false;
+            try
+            {
+                entity.Insert();
+                rs = true;
+            }
+            catch (ArgumentException aex)
+            {
+                ModelState.AddModelError(aex.ParamName, aex.Message);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
 
-            ViewBag.StatusMessage = "保存成功！";
+            if (!rs)
+            {
+                ViewBag.StatusMessage = "添加失败！";
+                return FormView(entity);
+            }
+
+            ViewBag.StatusMessage = "添加成功！";
 
             // 新增完成跳到列表页，更新完成保持本页
             return RedirectToAction("Index");
@@ -138,7 +157,26 @@ namespace NewLife.Cube
 
             var isnew = entity.IsNullKey;
 
-            entity.Save();
+            var rs = false;
+            try
+            {
+                entity.Save();
+                rs = true;
+            }
+            catch (ArgumentException aex)
+            {
+                ModelState.AddModelError(aex.ParamName, aex.Message);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            if (!rs)
+            {
+                ViewBag.StatusMessage = "保存失败！";
+                return FormView(entity);
+            }
 
             ViewBag.StatusMessage = "保存成功！";
 

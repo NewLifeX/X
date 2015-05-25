@@ -71,25 +71,63 @@ namespace ASP
             
             #line default
             #line hidden
-WriteLiteral("\r\n<div");
-
-WriteLiteral(" class=\"panel panel-default\"");
-
-WriteLiteral(">\r\n    <div");
+WriteLiteral("\r\n\r\n<div");
 
 WriteLiteral(" class=\"form-horizontal\"");
 
-WriteLiteral(">\r\n");
+WriteLiteral(">\r\n\r\n");
 
             
-            #line 12 "..\..\Views\Shared\Form.cshtml"
-        
+            #line 13 "..\..\Views\Shared\Form.cshtml"
+    
             
             #line default
             #line hidden
             
-            #line 12 "..\..\Views\Shared\Form.cshtml"
-         if (ViewBag.StatusMessage != null)
+            #line 13 "..\..\Views\Shared\Form.cshtml"
+     if (ViewBag.StatusMessage != null)
+    {
+        if (ViewData.ModelState.Count > 0)
+        {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"alert alert-danger alert-dismissible text-center\"");
+
+WriteLiteral(" role=\"alert\"");
+
+WriteLiteral(">\r\n                <button");
+
+WriteLiteral(" type=\"button\"");
+
+WriteLiteral(" class=\"close\"");
+
+WriteLiteral(" data-dismiss=\"alert\"");
+
+WriteLiteral(" aria-label=\"Close\"");
+
+WriteLiteral("><span");
+
+WriteLiteral(" aria-hidden=\"true\"");
+
+WriteLiteral(">&times;</span></button>\r\n                <strong>");
+
+            
+            #line 19 "..\..\Views\Shared\Form.cshtml"
+                   Write(ViewBag.StatusMessage);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</strong>\r\n            </div>\r\n");
+
+            
+            #line 21 "..\..\Views\Shared\Form.cshtml"
+        }
+        else
         {
 
             
@@ -118,7 +156,7 @@ WriteLiteral(" aria-hidden=\"true\"");
 WriteLiteral(">&times;</span></button>\r\n                <strong>");
 
             
-            #line 16 "..\..\Views\Shared\Form.cshtml"
+            #line 26 "..\..\Views\Shared\Form.cshtml"
                    Write(ViewBag.StatusMessage);
 
             
@@ -127,95 +165,96 @@ WriteLiteral(">&times;</span></button>\r\n                <strong>");
 WriteLiteral("</strong>\r\n            </div>\r\n");
 
             
-            #line 18 "..\..\Views\Shared\Form.cshtml"
+            #line 28 "..\..\Views\Shared\Form.cshtml"
         }
+    }
 
             
             #line default
             #line hidden
-WriteLiteral("        ");
+WriteLiteral("    ");
 
             
-            #line 19 "..\..\Views\Shared\Form.cshtml"
-         using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
+            #line 30 "..\..\Views\Shared\Form.cshtml"
+     using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
+    {
+        
+            
+            #line default
+            #line hidden
+            
+            #line 32 "..\..\Views\Shared\Form.cshtml"
+   Write(Html.AntiForgeryToken());
+
+            
+            #line default
+            #line hidden
+            
+            #line 32 "..\..\Views\Shared\Form.cshtml"
+                                
+        
+            
+            #line default
+            #line hidden
+            
+            #line 33 "..\..\Views\Shared\Form.cshtml"
+   Write(Html.ValidationSummary());
+
+            
+            #line default
+            #line hidden
+            
+            #line 33 "..\..\Views\Shared\Form.cshtml"
+                                 
+        foreach (var item in fields)
         {
-            
-            
-            #line default
-            #line hidden
-            
-            #line 21 "..\..\Views\Shared\Form.cshtml"
-       Write(Html.AntiForgeryToken());
-
-            
-            #line default
-            #line hidden
-            
-            #line 21 "..\..\Views\Shared\Form.cshtml"
-                                    
-            
-            
-            #line default
-            #line hidden
-            
-            #line 22 "..\..\Views\Shared\Form.cshtml"
-       Write(Html.ValidationSummary());
-
-            
-            #line default
-            #line hidden
-            
-            #line 22 "..\..\Views\Shared\Form.cshtml"
-                                     
-            foreach (var item in fields)
+            if (!item.PrimaryKey)
             {
-                if (!item.PrimaryKey)
-                {
 
             
             #line default
             #line hidden
-WriteLiteral("                    <div");
+WriteLiteral("                <div");
 
 WriteLiteral(" class=\"form-group\"");
 
 WriteLiteral(">\r\n");
 
-WriteLiteral("                        ");
+WriteLiteral("                    ");
 
             
-            #line 28 "..\..\Views\Shared\Form.cshtml"
-                   Write(Html.Partial("_Form_Item", new Pair(Model, item)));
+            #line 39 "..\..\Views\Shared\Form.cshtml"
+               Write(Html.Partial("_Form_Item", new Pair(Model, item)));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                    </div>\r\n");
+WriteLiteral("\r\n                </div>\r\n");
 
             
-            #line 30 "..\..\Views\Shared\Form.cshtml"
-                }
+            #line 41 "..\..\Views\Shared\Form.cshtml"
             }
-            
-            
-            #line default
-            #line hidden
-            
-            #line 32 "..\..\Views\Shared\Form.cshtml"
-       Write(Html.Partial("_Form_Action", isNew));
-
-            
-            #line default
-            #line hidden
-            
-            #line 32 "..\..\Views\Shared\Form.cshtml"
-                                                
         }
+        
+            
+            #line default
+            #line hidden
+            
+            #line 43 "..\..\Views\Shared\Form.cshtml"
+   Write(Html.Partial("_Form_Action", isNew));
 
             
             #line default
             #line hidden
-WriteLiteral("    </div>\r\n</div>");
+            
+            #line 43 "..\..\Views\Shared\Form.cshtml"
+                                            
+    }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</div>\r\n");
 
         }
     }

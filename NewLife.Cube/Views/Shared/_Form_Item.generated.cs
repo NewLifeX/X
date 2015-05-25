@@ -73,7 +73,7 @@ namespace ASP
             width = 2;
             break;
         case TypeCode.String:
-            width = 6;
+            width = 9;
             break;
     }
 
@@ -95,16 +95,16 @@ WriteLiteral(">");
             #line hidden
 WriteLiteral("</label>\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 480), Tuple.Create("\"", 513)
-, Tuple.Create(Tuple.Create("", 488), Tuple.Create("input-group", 488), true)
-, Tuple.Create(Tuple.Create(" ", 499), Tuple.Create("col-md-", 500), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 480), Tuple.Create("\"", 511)
+, Tuple.Create(Tuple.Create("", 488), Tuple.Create("col-xs-12", 488), true)
+, Tuple.Create(Tuple.Create(" ", 497), Tuple.Create("col-md-", 498), true)
             
             #line 21 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 507), Tuple.Create<System.Object, System.Int32>(width
+, Tuple.Create(Tuple.Create("", 505), Tuple.Create<System.Object, System.Int32>(width
             
             #line default
             #line hidden
-, 507), false)
+, 505), false)
 );
 
 WriteLiteral(">\r\n");
@@ -129,7 +129,22 @@ Write(Html.ForDescription(item));
             
             #line default
             #line hidden
-WriteLiteral("\r\n</div>");
+WriteLiteral("\r\n    <span");
+
+WriteLiteral(" class=\"alert-danger\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("        ");
+
+            
+            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
+   Write(Html.ValidationMessage(item.Name));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n    </span>\r\n</div>");
 
         }
     }
