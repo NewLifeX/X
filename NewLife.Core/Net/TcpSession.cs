@@ -130,7 +130,7 @@ namespace NewLife.Net
                     if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
 
                     // 温和一点关闭连接
-                    Client.Client.Shutdown();
+                    //Client.Client.Shutdown();
                     Client.Close();
 
                     // 如果是服务端，这个时候就是销毁

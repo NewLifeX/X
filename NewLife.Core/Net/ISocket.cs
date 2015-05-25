@@ -47,6 +47,11 @@ namespace NewLife.Net
 
         ///// <summary>关闭网络操作</summary>
         //void Close();
+
+        /// <summary>已重载。日志加上前缀</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        void WriteLog(string format, params object[] args);
         #endregion
 
         #region 事件

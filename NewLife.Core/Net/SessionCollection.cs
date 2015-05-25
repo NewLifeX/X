@@ -126,7 +126,7 @@ namespace NewLife.Net
             // 已经离开了锁，慢慢释放各个会话
             foreach (var item in values)
             {
-                Server.Log.Info("销毁超过{0}秒不活跃的会话 {1}", Server.MaxNotActive, item);
+                item.WriteLog("超过{0}秒不活跃销毁 {1}", Server.MaxNotActive, item);
 
                 item.Dispose();
             }

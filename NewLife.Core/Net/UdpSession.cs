@@ -246,5 +246,15 @@ namespace NewLife.Net
 
         bool ITransport.Close() { return true; }
         #endregion
+
+        #region 日志
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            if (Log != null) Log.Info(format, args);
+        }
+        #endregion
     }
 }
