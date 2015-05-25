@@ -152,7 +152,7 @@ WriteLiteral("                <td>");
 
             
             #line 34 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                Write(((DateTime)entity[item.Name]).ToFullString());
+                Write(((DateTime)entity[item.Name]).ToFullString(""));
 
             
             #line default

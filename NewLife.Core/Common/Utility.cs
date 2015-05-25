@@ -54,6 +54,13 @@ namespace System
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
         public static String ToFullString(this DateTime value) { return _Convert.ToFullString(value); }
+
+        /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串，支持指定最小时间的字符串</summary>
+        /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
+        /// <param name="value">待转换对象</param>
+        /// <param name="emptyValue">字符串空值时（DateTime.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
+        /// <returns></returns>
+        public static String ToFullString(this DateTime value, String emptyValue = null) { return _Convert.ToFullString(value, emptyValue); }
         #endregion
     }
 
@@ -250,8 +257,14 @@ namespace System
         }
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
-        /// <param name="value"></param>
+        /// <param name="value">待转换对象</param>
+        /// <param name="emptyValue">字符串空值时显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
-        public virtual String ToFullString(DateTime value) { return value.ToString("yyyy-MM-dd HH:mm:ss"); }
+        public virtual String ToFullString(DateTime value, String emptyValue = null)
+        {
+            if (emptyValue != null && value <= DateTime.MinValue) return emptyValue;
+
+            return value.ToString("yyyy-MM-dd HH:mm:ss");
+        }
     }
 }

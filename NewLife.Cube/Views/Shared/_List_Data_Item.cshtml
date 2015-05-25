@@ -31,7 +31,7 @@ else
             var dt = (DateTime)entity[item.Name];
             if (dt > DateTime.MinValue && dt.Year > 1900)
             {
-                <td>@(((DateTime)entity[item.Name]).ToFullString())</td>
+                <td>@(((DateTime)entity[item.Name]).ToFullString(""))</td>
             }
             else
             {

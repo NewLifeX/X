@@ -375,7 +375,7 @@ WriteLiteral("                    ");
 
             
             #line 75 "..\..\Areas\Admin\Views\User\Info.cshtml"
-               Write(user.LastLogin.ToFullString());
+               Write(user.LastLogin.ToFullString(""));
 
             
             #line default
