@@ -169,7 +169,10 @@ namespace NewLife.Net
                 // 修改发送缓冲区
                 if (Client.SendBufferSize < count) Client.SendBufferSize = count;
 
-                Stream.Write(buffer, offset, count);
+                if (count == 0)
+                    Client.Client.Send(new Byte[0]);
+                else
+                    Stream.Write(buffer, offset, count);
             }
             catch (Exception ex)
             {

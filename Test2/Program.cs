@@ -167,7 +167,7 @@ namespace Test2
         static void Test4()
         {
             //var proxy = new NATProxy("s3.peacemoon.cn", 3389);
-            var proxy = new NATProxy("s3", 3389);
+            var proxy = new NATProxy("192.168.0.85", 3389);
             //proxy.Port = 89;
             proxy.Local = "tcp://:89";
             proxy.Log = XTrace.Log;
