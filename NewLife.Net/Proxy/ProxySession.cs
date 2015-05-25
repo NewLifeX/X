@@ -79,7 +79,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            WriteLog("客户端[{0}] {1}", e.Length, e.ToHex());
+            WriteLog("客户端[{0}] {1}", e.Length, e.ToHex(16));
 
             if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
             {
@@ -153,7 +153,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            WriteLog("服务端[{0}] {1}", e.Length, e.ToHex());
+            WriteLog("服务端[{0}] {1}", e.Length, e.ToHex(16));
 
             if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
             {
