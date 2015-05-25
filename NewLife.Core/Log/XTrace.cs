@@ -506,8 +506,10 @@ namespace NewLife.Log
         /// <param name="asm"></param>
         public static void WriteVersion(this Assembly asm)
         {
+            if (asm == null) return;
+
             var asmx = AssemblyX.Create(asm);
-            WriteLine("{0,-12} v{1,-13} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
+            if (asmx != null) WriteLine("{0,-12} v{1,-13} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
         #endregion
     }
