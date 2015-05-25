@@ -216,7 +216,7 @@ namespace NewLife.Log
 #if Android
             sb.AppendFormat("#ApplicationType: {0}\r\n", "Android");
 #else
-            sb.AppendFormat("#ApplicationType: {0}\r\n", Runtime.IsConsole ? "Console" : (Runtime.IsWeb ? "Web" : "WinForm"));
+            sb.AppendFormat("#ApplicationType: {0}\r\n", Runtime.IsWeb ? "Web" : (Runtime.IsConsole ? "Console" : "WinForm"));
 #endif
             sb.AppendFormat("#CLR: {0}\r\n", Environment.Version);
 
