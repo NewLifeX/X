@@ -111,7 +111,8 @@ namespace System
 
             return null;
         }
-
+        
+#endif
         /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <typeparam name="TResult"></typeparam>
@@ -182,7 +183,6 @@ namespace System
             return default(TResult);
         }
 
-#endif
         #endregion
     }
 }
