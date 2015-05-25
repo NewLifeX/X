@@ -66,14 +66,14 @@ namespace ASP
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
-    var width = 2;
+    var width = 4;
     switch (Type.GetTypeCode(item.Type))
     {
         case TypeCode.Boolean:
-            width = 2;
+            width = 4;
             break;
         case TypeCode.String:
-            width = 9;
+            width = 8;
             break;
     }
 
@@ -82,30 +82,38 @@ namespace ASP
             #line hidden
 WriteLiteral("\r\n<label");
 
-WriteLiteral(" class=\"control-label col-md-2\"");
+WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-4\"");
 
 WriteLiteral(">");
 
             
             #line 20 "..\..\Views\Shared\_Form_Item.cshtml"
-                                 Write(item.DisplayName);
+                                                   Write(item.DisplayName);
 
             
             #line default
             #line hidden
 WriteLiteral("</label>\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 480), Tuple.Create("\"", 523)
-, Tuple.Create(Tuple.Create("", 488), Tuple.Create("col-xs-12", 488), true)
-, Tuple.Create(Tuple.Create(" ", 497), Tuple.Create("col-md-", 498), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 498), Tuple.Create("\"", 559)
+, Tuple.Create(Tuple.Create("", 506), Tuple.Create("col-xs-10", 506), true)
+, Tuple.Create(Tuple.Create(" ", 515), Tuple.Create("col-sm-", 516), true)
             
             #line 21 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 505), Tuple.Create<System.Object, System.Int32>(width
+, Tuple.Create(Tuple.Create("", 523), Tuple.Create<System.Object, System.Int32>(width+2
             
             #line default
             #line hidden
-, 505), false)
-, Tuple.Create(Tuple.Create(" ", 511), Tuple.Create("input-group", 512), true)
+, 523), false)
+, Tuple.Create(Tuple.Create(" ", 533), Tuple.Create("col-md-", 534), true)
+            
+            #line 21 "..\..\Views\Shared\_Form_Item.cshtml"
+, Tuple.Create(Tuple.Create("", 541), Tuple.Create<System.Object, System.Int32>(width
+            
+            #line default
+            #line hidden
+, 541), false)
+, Tuple.Create(Tuple.Create(" ", 547), Tuple.Create("input-group", 548), true)
 );
 
 WriteLiteral(">\r\n");

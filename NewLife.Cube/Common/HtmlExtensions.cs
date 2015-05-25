@@ -331,9 +331,8 @@ namespace NewLife.Cube
         {
             var des = field.Description.TrimStart(field.DisplayName).TrimStart("。");
             if (des.IsNullOrWhiteSpace()) return new MvcHtmlString(null);
-
-
-            return new MvcHtmlString("<span class=\"help-inline col-xs-12 col-sm-7\">	<span class=\"middle\">{0}</span></span>".F(des));
+            
+            return new MvcHtmlString("<span class=\"help-inline col-xs-12 col-sm-3 col-md-3\"><span class=\"middle\">{0}</span></span>".F(des));
         }
 
         /// <summary>输出描述</summary>
