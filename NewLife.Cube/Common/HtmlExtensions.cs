@@ -362,6 +362,25 @@ namespace NewLife.Cube
             var data = new SelectList(dic, "Key", "Value", value);
             return Html.DropDownList(name, data, label, new { @class = "multiselect" });
         }
+
+        /// <summary>枚举多选，支持默认全选或不选。需要部分选中可使用ForListBox</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="Html"></param>
+        /// <param name="name"></param>
+        /// <param name="selectAll">是否全部选中。默认false</param>
+        /// <returns></returns>
+        public static MvcHtmlString ForEnum<T>(this HtmlHelper Html, String name, Boolean selectAll = false)
+        {
+            var dic = EnumHelper.GetDescriptions(typeof(T));
+            IEnumerable values = null;
+            if (selectAll)
+            {
+                var arr = Enum.GetValues(typeof(T)) as T[];
+                values = arr.Cast<Int32>().ToArray();
+            }
+
+            return Html.ForListBox(name, dic, values);
+        }
         #endregion
 
         #region 下拉列表
@@ -390,7 +409,8 @@ namespace NewLife.Cube
         /// <returns></returns>
         public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IEntityList list, String optionLabel = null)
         {
-            var selectedValue = (Html.ViewData.Model as IEntity)[name];
+            var entity = Html.ViewData.Model as IEntity;
+            var selectedValue = entity == null ? null : entity[name];
 
             return Html.DropDownList(name, new SelectList(list.ToDictionary(), "Key", "Value", selectedValue), optionLabel, new { @class = "multiselect" });
         }
@@ -413,7 +433,8 @@ namespace NewLife.Cube
         /// <returns></returns>
         public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IEntityList list)
         {
-            var vs = (Html.ViewData.Model as IEntity)[name];
+            var entity = Html.ViewData.Model as IEntity;
+            var vs = entity == null ? null : entity[name];
             // 如果是字符串，分割为整型数组，全局约定逗号分割
             if (vs is String) vs = (vs as String).SplitAsInt();
 
