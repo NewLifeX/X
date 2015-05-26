@@ -69,50 +69,54 @@ namespace ASP
             #line hidden
 WriteLiteral("\r\n<div");
 
+WriteLiteral(" class=\"tableTools-container\"");
+
+WriteLiteral(">\r\n    <div");
+
 WriteLiteral(" class=\"form-inline\"");
 
 WriteLiteral(">\r\n");
 
             
-            #line 9 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-    
-            
-            #line default
-            #line hidden
-            
-            #line 9 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-     if (ManageProvider.User.Has(PermissionFlags.Insert))
-    {
+            #line 10 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 11 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-   Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" }));
+            #line 10 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+         if (ManageProvider.User.Has(PermissionFlags.Insert))
+        {
+            
+            
+            #line default
+            #line hidden
+            
+            #line 12 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+       Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" }));
 
             
             #line default
             #line hidden
             
-            #line 11 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-                                                                                                                                   
-    }
+            #line 12 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+                                                                                                                                              
+        }
 
             
             #line default
             #line hidden
-WriteLiteral("    <div");
+WriteLiteral("        <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n        <label");
+WriteLiteral(">\r\n            <label");
 
 WriteLiteral(" for=\"ddlCategory\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">类别：</label>\r\n        <select");
+WriteLiteral(">类别：</label>\r\n            <select");
 
 WriteLiteral(" name=\"ddlCategory\"");
 
@@ -122,21 +126,21 @@ WriteLiteral(" class=\"form-control\"");
 
 WriteLiteral(" onchange=\"$(\':submit\').click();\"");
 
-WriteLiteral(">\r\n            <option");
+WriteLiteral(">\r\n                <option");
 
 WriteLiteral(" value=\"\"");
 
-WriteLiteral(">全部</option>\r\n        </select>\r\n    </div>\r\n    <div");
+WriteLiteral(">全部</option>\r\n            </select>\r\n        </div>\r\n        <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n        <label");
+WriteLiteral(">\r\n            <label");
 
 WriteLiteral(" class=\"control-label\"");
 
 WriteLiteral(" for=\"ddlAdmin\"");
 
-WriteLiteral(">管理员：</label>\r\n        <select");
+WriteLiteral(">管理员：</label>\r\n            <select");
 
 WriteLiteral(" name=\"ddlAdminID\"");
 
@@ -146,21 +150,21 @@ WriteLiteral(" class=\"form-control\"");
 
 WriteLiteral(" onchange=\"$(\':submit\').click();\"");
 
-WriteLiteral(">\r\n            <option");
+WriteLiteral(">\r\n                <option");
 
 WriteLiteral(" value=\"\"");
 
-WriteLiteral(">全部</option>\r\n        </select>\r\n    </div>\r\n    <div");
+WriteLiteral(">全部</option>\r\n            </select>\r\n        </div>\r\n        <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n        <label");
+WriteLiteral(">\r\n            <label");
 
 WriteLiteral(" for=\"dtStart\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">时间：</label>\r\n        <input");
+WriteLiteral(">时间：</label>\r\n            <input");
 
 WriteLiteral(" name=\"dtStart\"");
 
@@ -172,17 +176,17 @@ WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
 
 WriteLiteral(" class=\"form-control form_datetime\"");
 
-WriteLiteral(" />\r\n    </div>\r\n    <div");
+WriteLiteral(" />\r\n        </div>\r\n        <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n        <label");
+WriteLiteral(">\r\n            <label");
 
 WriteLiteral(" for=\"dtEnd\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">至</label>\r\n        <input");
+WriteLiteral(">至</label>\r\n            <input");
 
 WriteLiteral(" name=\"dtEnd\"");
 
@@ -194,23 +198,23 @@ WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
 
 WriteLiteral(" class=\"form-control form_datetime\"");
 
-WriteLiteral(" />\r\n    </div>\r\n    <div");
+WriteLiteral(" />\r\n        </div>\r\n        <div");
 
-WriteLiteral(" class=\"form-group\"");
+WriteLiteral(" class=\"pull-right form-group\"");
 
-WriteLiteral(">\r\n        <div");
+WriteLiteral(">\r\n            <div");
 
 WriteLiteral(" class=\"input-group\"");
 
-WriteLiteral(">\r\n            <span");
+WriteLiteral(">\r\n                <span");
 
 WriteLiteral(" class=\"input-group-addon\"");
 
-WriteLiteral(">\r\n                <i");
+WriteLiteral(">\r\n                    <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-check\"");
 
-WriteLiteral("></i>\r\n            </span>\r\n            <input");
+WriteLiteral("></i>\r\n                </span>\r\n                <input");
 
 WriteLiteral(" name=\"q\"");
 
@@ -218,36 +222,36 @@ WriteLiteral(" type=\"search\"");
 
 WriteLiteral(" id=\"q\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1611), Tuple.Create("\"", 1632)
+WriteAttribute("value", Tuple.Create(" value=\"", 1789), Tuple.Create("\"", 1810)
             
-            #line 38 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 1619), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            #line 39 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 1797), Tuple.Create<System.Object, System.Int32>(Request["q"]
             
             #line default
             #line hidden
-, 1619), false)
+, 1797), false)
 );
 
 WriteLiteral(" class=\"form-control\"");
 
 WriteLiteral(" placeholder=\"搜索关键字\"");
 
-WriteLiteral(" />\r\n            <span");
+WriteLiteral(" />\r\n                <span");
 
 WriteLiteral(" class=\"input-group-btn\"");
 
-WriteLiteral(">\r\n                <button");
+WriteLiteral(">\r\n                    <button");
 
 WriteLiteral(" type=\"submit\"");
 
 WriteLiteral(" class=\"btn btn-purple btn-sm\"");
 
-WriteLiteral(">\r\n                    <span");
+WriteLiteral(">\r\n                        <span");
 
 WriteLiteral(" class=\"ace-icon fa fa-search icon-on-right bigger-110\"");
 
-WriteLiteral("></span>\r\n                    查询\r\n                </button>\r\n            </span>\r" +
-"\n        </div>\r\n    </div>\r\n</div>\r\n");
+WriteLiteral("></span>\r\n                        查询\r\n                    </button>\r\n            " +
+"    </span>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n");
 
         }
     }

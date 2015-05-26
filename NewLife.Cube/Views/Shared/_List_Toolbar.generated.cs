@@ -69,90 +69,98 @@ namespace ASP
             #line hidden
 WriteLiteral("\r\n<div");
 
+WriteLiteral(" class=\"tableTools-container\"");
+
+WriteLiteral(">\r\n    <div");
+
 WriteLiteral(" class=\"form-inline\"");
 
-WriteLiteral(">\r\n    <form");
+WriteLiteral(">\r\n        <form");
 
-WriteAttribute("action", Tuple.Create(" action=\"", 186), Tuple.Create("\"", 267)
+WriteAttribute("action", Tuple.Create(" action=\"", 230), Tuple.Create("\"", 311)
             
-            #line 9 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 195), Tuple.Create<System.Object, System.Int32>(Url.Action("index")
-            
-            #line default
-            #line hidden
-, 195), false)
-            
-            #line 9 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 215), Tuple.Create<System.Object, System.Int32>(Html.Raw("?" + page.GetBaseUrl(false, true, true))
+            #line 10 "..\..\Views\Shared\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 239), Tuple.Create<System.Object, System.Int32>(Url.Action("index")
             
             #line default
             #line hidden
-, 215), false)
-, Tuple.Create(Tuple.Create(" ", 266), Tuple.Create("", 266), true)
+, 239), false)
+            
+            #line 10 "..\..\Views\Shared\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 259), Tuple.Create<System.Object, System.Int32>(Html.Raw("?" + page.GetBaseUrl(false, true, true))
+            
+            #line default
+            #line hidden
+, 259), false)
+, Tuple.Create(Tuple.Create(" ", 310), Tuple.Create("", 310), true)
 );
 
 WriteLiteral(" method=\"post\"");
 
 WriteLiteral(" role=\"form\"");
 
-WriteLiteral(">\r\n        <div");
+WriteLiteral(">\r\n            <div");
 
 WriteLiteral(" class=\"validation-summary-valid\"");
 
 WriteLiteral(" data-valmsg-summary=\"true\"");
 
-WriteLiteral(">\r\n            <ul>\r\n                <li");
+WriteLiteral(">\r\n                <ul>\r\n                    <li");
 
 WriteLiteral(" style=\"display:none\"");
 
-WriteLiteral("></li>\r\n            </ul>\r\n        </div>\r\n        <div");
+WriteLiteral("></li>\r\n                </ul>\r\n            </div>\r\n            <div");
 
 WriteLiteral(" class=\"form-group\"");
 
 WriteLiteral(">\r\n");
 
             
-            #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
-            
-            
-            #line default
-            #line hidden
-            
-            #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
-             if (ManageProvider.User.Has(PermissionFlags.Insert))
-            {
+            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 18 "..\..\Views\Shared\_List_Toolbar.cshtml"
-           Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success" }));
+            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
+                 if (ManageProvider.User.Has(PermissionFlags.Insert))
+                {
+                    
+            
+            #line default
+            #line hidden
+            
+            #line 19 "..\..\Views\Shared\_List_Toolbar.cshtml"
+               Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" }));
 
             
             #line default
             #line hidden
             
-            #line 18 "..\..\Views\Shared\_List_Toolbar.cshtml"
-                                                                                                                                           
-            }
+            #line 19 "..\..\Views\Shared\_List_Toolbar.cshtml"
+                                                                                                                                                      
+                }
 
             
             #line default
             #line hidden
-WriteLiteral("            <div");
+WriteLiteral("           </div>\r\n            <div");
+
+WriteLiteral(" class=\"pull-right form-group\"");
+
+WriteLiteral(">\r\n                <div");
 
 WriteLiteral(" class=\"input-group\"");
 
-WriteLiteral(">\r\n                <span");
+WriteLiteral(">\r\n                    <span");
 
 WriteLiteral(" class=\"input-group-addon\"");
 
-WriteLiteral(">\r\n                    <i");
+WriteLiteral(">\r\n                        <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-check\"");
 
-WriteLiteral("></i>\r\n                </span>\r\n                <input");
+WriteLiteral("></i>\r\n                    </span>\r\n                    <input");
 
 WriteLiteral(" name=\"q\"");
 
@@ -160,36 +168,37 @@ WriteLiteral(" type=\"search\"");
 
 WriteLiteral(" id=\"q\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 969), Tuple.Create("\"", 990)
+WriteAttribute("value", Tuple.Create(" value=\"", 1148), Tuple.Create("\"", 1169)
             
-            #line 24 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 977), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            #line 27 "..\..\Views\Shared\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 1156), Tuple.Create<System.Object, System.Int32>(Request["q"]
             
             #line default
             #line hidden
-, 977), false)
+, 1156), false)
 );
 
 WriteLiteral(" class=\"form-control\"");
 
 WriteLiteral(" placeholder=\"搜索关键字\"");
 
-WriteLiteral(" />\r\n                <span");
+WriteLiteral(" />\r\n                    <span");
 
 WriteLiteral(" class=\"input-group-btn\"");
 
-WriteLiteral(">\r\n                    <button");
+WriteLiteral(">\r\n                        <button");
 
 WriteLiteral(" type=\"submit\"");
 
 WriteLiteral(" class=\"btn btn-purple btn-sm\"");
 
-WriteLiteral(">\r\n                        <span");
+WriteLiteral(">\r\n                            <span");
 
 WriteLiteral(" class=\"ace-icon fa fa-search icon-on-right bigger-110\"");
 
-WriteLiteral("></span>\r\n                        查询\r\n                    </button>\r\n            " +
-"    </span>\r\n            </div>\r\n        </div>\r\n    </form>\r\n</div>\r\n");
+WriteLiteral("></span>\r\n                            查询\r\n                        </button>\r\n    " +
+"                </span>\r\n                </div>\r\n            </div>\r\n        </f" +
+"orm>\r\n    </div>\r\n</div>");
 
         }
     }
