@@ -22,9 +22,29 @@ namespace XCode.Configuration
 
         private DescriptionAttribute _Description;
 
+        private DisplayNameAttribute _DisplayName;
+
         private String _des;
         /// <summary>备注</summary>
         public String Description { get { return _des; } internal set { _des = value; } }
+
+        private String _dis;
+        /// <summary>说明</summary>
+        public String DisplayName
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_dis)) return _dis;
+                var name = Description;
+                if (String.IsNullOrEmpty(name)) return Name;
+
+                var p = name.IndexOf("。");
+                if (p > 0) name = name.Substring(0, p);
+
+                return name;
+            }
+            internal set { _dis = value; }
+        }
 
         /// <summary>顺序标识</summary>
         internal Int32 _ID;
@@ -70,20 +90,20 @@ namespace XCode.Configuration
         /// <summary>是否动态字段</summary>
         public Boolean IsDynamic { get { return _Property == null; } }
 
-        /// <summary>显示名。如果备注不为空则采用备注，否则采用属性名</summary>
-        public String DisplayName
-        {
-            get
-            {
-                var name = Description;
-                if (String.IsNullOrEmpty(name)) return Name;
+        ///// <summary>显示名。如果备注不为空则采用备注，否则采用属性名</summary>
+        //public String DisplayName
+        //{
+        //    get
+        //    {
+        //        var name = Description;
+        //        if (String.IsNullOrEmpty(name)) return Name;
 
-                var p = name.IndexOf("。");
-                if (p > 0) name = name.Substring(0, p);
+        //        var p = name.IndexOf("。");
+        //        if (p > 0) name = name.Substring(0, p);
 
-                return name;
-            }
-        }
+        //        return name;
+        //    }
+        //}
 
         /// <summary>字段名要过滤掉的标识符，考虑MSSQL、MySql、SQLite、Oracle等</summary>
         static Char[] COLUMNNAME_FLAG = new Char[] { '[', ']', '\'', '"', '`' };
@@ -146,8 +166,7 @@ namespace XCode.Configuration
                 var dc = _Column = BindColumnAttribute.GetCustomAttribute(property);
                 var df = _DataObjectField = property.GetCustomAttribute<DataObjectFieldAttribute>();
                 var ds = _Description = property.GetCustomAttribute<DescriptionAttribute>();
-                var di = property.GetCustomAttribute<DisplayNameAttribute>();
-
+                var di = _DisplayName = property.GetCustomAttribute<DisplayNameAttribute>();
                 Name = property.Name;
                 Type = property.PropertyType;
                 DeclaringType = property.DeclaringType;
@@ -177,8 +196,8 @@ namespace XCode.Configuration
                     Description = ds.Description;
                 else if (dc != null && !String.IsNullOrEmpty(dc.Description))
                     Description = dc.Description;
-                else if (di != null && !di.DisplayName.IsNullOrEmpty())
-                    Description = di.DisplayName;
+                if (di != null && !di.DisplayName.IsNullOrEmpty())
+                    DisplayName = di.DisplayName;
 
                 _ReadOnly = !property.CanWrite;
                 var ra = property.GetCustomAttribute<ReadOnlyAttribute>();
