@@ -18,15 +18,20 @@ namespace NewLife.Reflection
             XTrace.UseConsole();
 
             // 找到名称
-            var proj = ".".AsDirectory().GetAllFiles("*.csproj").First().Name;
-            var name = Path.GetFileNameWithoutExtension(proj);
-            Console.WriteLine("项目：{0}", proj);
+            var proj = ".".AsDirectory().FullName.EnsureEnd("\\");
 
+            Console.WriteLine("proj项目：{0}", proj);
+            string[] pathsplit = proj.Split("\\");
+
+            var name = pathsplit[pathsplit.Count() - 1];
+                Console.WriteLine("项目：{0}", name);
+            proj = name+".csproj";
             var spec = name + ".nuspec";
+
             if (!File.Exists(spec.GetFullPath()))
             {
-                "NuGet".Run("spec", 5000);
-                var spec2 = ".".AsDirectory().GetAllFiles("*.nuspec").First().Name;
+                "NuGet".Run("spec -f -a obj\\release\\"+name+".dll", 5000);
+                var spec2 = ".".AsDirectory().GetAllFiles(spec).First().Name;
                 if (!spec.EqualIgnoreCase(spec2)) File.Move(spec2, spec);
             }
 
@@ -34,6 +39,8 @@ namespace NewLife.Reflection
             var name2 = name.EnsureStart("NewLife.");
 
             var cfg = Manifest.Load(spec.GetFullPath());
+
+
 
             // 修改配置文件
             cfg.Metadata.Id = name2;
@@ -53,14 +60,14 @@ namespace NewLife.Reflection
             cfg.Files.Clear();
             if (cfg.Files.Count == 0)
             {
-                AddFile(cfg, name, "dll");
-                AddFile(cfg, name, "xml");
-                AddFile(cfg, name, "pdb");
-                AddFile(cfg, name, "exe");
+                //AddFile(cfg, name, "dll");
+                //AddFile(cfg, name, "xml");
+                //AddFile(cfg, name, "pdb");
+                //AddFile(cfg, name, "exe");
 
-                //AddFile(cfg, name, "dll", false);
-                //AddFile(cfg, name, "xml", false);
-                AddFile(cfg, name, "pdb", false);
+                AddFile(cfg, name, "dll", false);
+                AddFile(cfg, name, "xml", false);
+                //AddFile(cfg, name, "pdb", false);
                 //AddFile(cfg, name, "exe", false);
             }
 
