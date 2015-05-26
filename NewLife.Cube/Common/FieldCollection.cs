@@ -51,6 +51,8 @@ namespace NewLife.Cube
                             var master = type.GetProperty(pi.Name + rt.Master.Name);
                             // 再用外部类名加上外部主字段名
                             if (master == null) master = type.GetProperty(dr.RelationTable + rt.Master.Name);
+                            // 再试试加上Name
+                            if (master == null) master = type.GetProperty(pi.Name + "Name");
                             if (master != null)
                             {
                                 // 去掉本地用于映射的字段（如果不是主键），替换为扩展属性
