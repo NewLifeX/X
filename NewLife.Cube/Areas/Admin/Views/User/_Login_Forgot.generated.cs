@@ -79,7 +79,7 @@ WriteLiteral("></div>\r\n            <p>\r\n                输入你的邮箱�
             #line hidden
             
             #line 14 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
-             using (Html.BeginForm("ForgetPassword"))
+             using (Html.BeginForm("ForgetPassword", "User"))
             {
 
             
@@ -98,6 +98,8 @@ WriteLiteral(">\r\n                            <input");
 WriteLiteral(" type=\"email\"");
 
 WriteLiteral(" class=\"form-control\"");
+
+WriteLiteral(" name=\"email\"");
 
 WriteLiteral(" placeholder=\"Email\"");
 

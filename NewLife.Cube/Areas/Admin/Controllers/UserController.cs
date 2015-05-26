@@ -122,7 +122,7 @@ namespace NewLife.Cube.Admin.Controllers
             // 用于显示的列
             if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
             ViewBag.Factory = UserX.Meta.Factory;
-            
+
             return View(user);
         }
 
@@ -143,6 +143,50 @@ namespace NewLife.Cube.Admin.Controllers
             if (entity.Dirtys["Enable"]) throw new Exception("禁止修改禁用！");
 
             return View();
+        }
+
+        /// <summary>忘记密码</summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [AllowAnonymous]
+        public ActionResult ForgetPassword(String email)
+        {
+            throw new NotImplementedException("未实现！");
+        }
+
+        /// <summary>注册</summary>
+        /// <param name="email"></param>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="password2"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [AllowAnonymous]
+        public ActionResult Register(String email, String username, String password, String password2)
+        {
+            try
+            {
+                if (String.IsNullOrEmpty(email)) throw new ArgumentNullException("email", "邮箱地址不能为空！");
+                if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username", "用户名不能为空！");
+                if (String.IsNullOrEmpty(password)) throw new ArgumentNullException("password", "密码不能为空！");
+                if (String.IsNullOrEmpty(password2)) throw new ArgumentNullException("password2", "重复密码不能为空！");
+                if (password != password2) throw new ArgumentOutOfRangeException("password2", "两次密码必须一致！");
+
+                var user = new UserX();
+                user.Name = username;
+                user.Password = password.MD5();
+                user.Mail = email;
+                user.Register();
+
+                // 注册成功
+            }
+            catch (ArgumentException aex)
+            {
+                ModelState.AddModelError(aex.ParamName, aex.Message);
+            }
+
+            return View("Login");
         }
     }
 }

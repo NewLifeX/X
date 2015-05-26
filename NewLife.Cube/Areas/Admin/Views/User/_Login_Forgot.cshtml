@@ -11,12 +11,12 @@
                 输入你的邮箱地址
             </p>
 
-            @using (Html.BeginForm("ForgetPassword"))
+            @using (Html.BeginForm("ForgetPassword", "User"))
             {
                 <fieldset>
                     <label class="block clearfix">
                         <span class="block input-icon input-icon-right">
-                            <input type="email" class="form-control" placeholder="Email" />
+                            <input type="email" class="form-control" name="email" placeholder="Email" />
                             <i class="ace-icon fa fa-envelope"></i>
                         </span>
                     </label>

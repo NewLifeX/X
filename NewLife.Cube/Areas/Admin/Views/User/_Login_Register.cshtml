@@ -9,33 +9,33 @@
             <div class="space-6"></div>
             <p> 输入你的信息 </p>
 
-            @using (Html.BeginForm("Register"))
+            @using (Html.BeginForm("Register", "User"))
             {
                 <fieldset>
                     <label class="block clearfix">
                         <span class="block input-icon input-icon-right">
-                            <input type="email" class="form-control" placeholder="Email" />
+                            <input type="email" class="form-control" name="email" placeholder="Email" />
                             <i class="ace-icon fa fa-envelope"></i>
                         </span>
                     </label>
 
                     <label class="block clearfix">
                         <span class="block input-icon input-icon-right">
-                            <input type="text" class="form-control" placeholder="用户名" />
+                            <input type="text" class="form-control" name="username" placeholder="用户名" />
                             <i class="ace-icon fa fa-user"></i>
                         </span>
                     </label>
 
                     <label class="block clearfix">
                         <span class="block input-icon input-icon-right">
-                            <input type="password" class="form-control" placeholder="密码" />
+                            <input type="password" class="form-control" name="password" placeholder="密码" />
                             <i class="ace-icon fa fa-lock"></i>
                         </span>
                     </label>
 
                     <label class="block clearfix">
                         <span class="block input-icon input-icon-right">
-                            <input type="password" class="form-control" placeholder="重复密码" />
+                            <input type="password" class="form-control" name="password2" placeholder="重复密码" />
                             <i class="ace-icon fa fa-retweet"></i>
                         </span>
                     </label>

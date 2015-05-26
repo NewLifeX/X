@@ -79,7 +79,7 @@ WriteLiteral("></div>\r\n            <p> 输入你的信息 </p>\r\n\r\n");
             #line hidden
             
             #line 12 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
-             using (Html.BeginForm("Register"))
+             using (Html.BeginForm("Register", "User"))
             {
 
             
@@ -98,6 +98,8 @@ WriteLiteral(">\r\n                            <input");
 WriteLiteral(" type=\"email\"");
 
 WriteLiteral(" class=\"form-control\"");
+
+WriteLiteral(" name=\"email\"");
 
 WriteLiteral(" placeholder=\"Email\"");
 
@@ -120,6 +122,8 @@ WriteLiteral(" type=\"text\"");
 
 WriteLiteral(" class=\"form-control\"");
 
+WriteLiteral(" name=\"username\"");
+
 WriteLiteral(" placeholder=\"用户名\"");
 
 WriteLiteral(" />\r\n                            <i");
@@ -141,6 +145,8 @@ WriteLiteral(" type=\"password\"");
 
 WriteLiteral(" class=\"form-control\"");
 
+WriteLiteral(" name=\"password\"");
+
 WriteLiteral(" placeholder=\"密码\"");
 
 WriteLiteral(" />\r\n                            <i");
@@ -161,6 +167,8 @@ WriteLiteral(">\r\n                            <input");
 WriteLiteral(" type=\"password\"");
 
 WriteLiteral(" class=\"form-control\"");
+
+WriteLiteral(" name=\"password2\"");
 
 WriteLiteral(" placeholder=\"重复密码\"");
 
