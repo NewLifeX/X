@@ -1,7 +1,7 @@
 ﻿@if (ManageProvider.User.Has(PermissionFlags.Update))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-    @Html.ActionLink("编辑", "Edit", new { id = @Model })
+    @Html.ActionLink("编辑", "Edit", new { id = @Model }, new { @class = "editcell" })
 }
 else if (ManageProvider.User.Has(PermissionFlags.Detail))
 {
