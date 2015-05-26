@@ -31,13 +31,13 @@ namespace ASP
     using NewLife.Cube;
     using NewLife.Reflection;
     
-    #line 1 "..\..\Views\Shared\Index.cshtml"
+    #line 1 "..\..\Views\Shared\List.cshtml"
     using NewLife.Web;
     
     #line default
     #line hidden
     
-    #line 2 "..\..\Views\Shared\Index.cshtml"
+    #line 2 "..\..\Views\Shared\List.cshtml"
     using XCode;
     
     #line default
@@ -45,16 +45,16 @@ namespace ASP
     using XCode.Membership;
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "2.0.0.0")]
-    [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/Index.cshtml")]
-    public partial class _Views_Shared_Index_cshtml : System.Web.Mvc.WebViewPage<dynamic>
+    [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/List.cshtml")]
+    public partial class _Views_Shared_List_cshtml : System.Web.Mvc.WebViewPage<dynamic>
     {
-        public _Views_Shared_Index_cshtml()
+        public _Views_Shared_List_cshtml()
         {
         }
         public override void Execute()
         {
             
-            #line 3 "..\..\Views\Shared\Index.cshtml"
+            #line 3 "..\..\Views\Shared\List.cshtml"
   
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
 
@@ -64,56 +64,52 @@ namespace ASP
             
             #line default
             #line hidden
-WriteLiteral("\r\n<div");
+WriteLiteral("\r\n\r\n<div");
 
-WriteLiteral(" class=\"panel panel-default\"");
-
-WriteLiteral(">\r\n    <div");
-
-WriteLiteral(" class=\"panel-body\"");
+WriteLiteral(" class=\"clearfix\"");
 
 WriteLiteral(">\r\n");
 
-WriteLiteral("        ");
+WriteLiteral("    ");
 
             
-            #line 11 "..\..\Views\Shared\Index.cshtml"
-   Write(Html.Partial("_List_Toolbar"));
+            #line 11 "..\..\Views\Shared\List.cshtml"
+Write(Html.Partial("_List_Toolbar"));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n    </div>\r\n    <div");
+WriteLiteral("\r\n</div>\r\n<div");
 
 WriteLiteral(" class=\"table-responsive\"");
 
 WriteLiteral(">\r\n");
 
-WriteLiteral("        ");
+WriteLiteral("    ");
 
             
-            #line 14 "..\..\Views\Shared\Index.cshtml"
-   Write(Html.Partial("_List_Data"));
+            #line 14 "..\..\Views\Shared\List.cshtml"
+Write(Html.Partial("_List_Data"));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n    </div>\r\n    <div");
+WriteLiteral("\r\n</div>\r\n<div");
 
 WriteLiteral(" class=\"panel-footer\"");
 
-WriteLiteral(">\r\n        <p>\r\n");
+WriteLiteral(">\r\n    <p>\r\n");
 
-WriteLiteral("            ");
+WriteLiteral("        ");
 
             
-            #line 18 "..\..\Views\Shared\Index.cshtml"
-       Write(Html.Partial("_List_Pager"));
+            #line 18 "..\..\Views\Shared\List.cshtml"
+   Write(Html.Partial("_List_Pager"));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n        </p>\r\n    </div>\r\n</div>");
+WriteLiteral("\r\n    </p>\r\n</div>\r\n");
 
         }
     }

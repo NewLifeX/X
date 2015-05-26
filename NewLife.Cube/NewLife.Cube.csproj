@@ -118,10 +118,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Navbar.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Menu\Index.generated.cs">
+    <Compile Include="Areas\Admin\Views\Menu\List.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
+      <DependentUpon>List.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Views\Role\Form.generated.cs">
       <AutoGen>True</AutoGen>
@@ -235,10 +235,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Form.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Shared\Index.generated.cs">
+    <Compile Include="Views\Shared\List.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
+      <DependentUpon>List.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Shared\_Ace_Layout.generated.cs">
       <AutoGen>True</AutoGen>
@@ -545,17 +545,17 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Form.generated.cs</LastGenOutput>
     </None>
-    <None Include="Views\Shared\Index.cshtml">
+    <None Include="Views\Shared\List.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
+      <LastGenOutput>List.generated.cs</LastGenOutput>
     </None>
     <None Include="Areas\Admin\Views\Sys\SysConfig.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>SysConfig.generated.cs</LastGenOutput>
     </None>
-    <None Include="Areas\Admin\Views\Menu\Index.cshtml">
+    <None Include="Areas\Admin\Views\Menu\List.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
+      <LastGenOutput>List.generated.cs</LastGenOutput>
     </None>
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <Content Include="Scripts\jquery-1.8.2.intellisense.js" />

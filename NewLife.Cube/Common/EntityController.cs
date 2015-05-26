@@ -49,7 +49,7 @@ namespace NewLife.Cube
         {
             var list = Entity<TEntity>.Search(p["Q"], p);
 
-            return View(list);
+            return View("List", list);
         }
 
         /// <summary>表单，查看</summary>
@@ -271,7 +271,7 @@ namespace NewLife.Cube
 
             var list = EntityTree<TEntity>.Root.AllChilds;
 
-            return View(list);
+            return View("List", list);
         }
 
         /// <summary>上升</summary>
