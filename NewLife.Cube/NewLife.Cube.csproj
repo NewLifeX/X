@@ -320,25 +320,16 @@
     <Content Include="Content\ace\avatars\avatar5.png" />
     <Content Include="Content\ace\avatars\profile-pic.jpg" />
     <Content Include="Content\ace\avatars\user.jpg" />
-    <Content Include="Content\ace\css\ace-fonts.css" />
     <Content Include="Content\ace\css\ace-fonts.min.css" />
     <Content Include="Content\ace\css\ace-ie.min.css" />
     <Content Include="Content\ace\css\ace-part2.min.css" />
     <Content Include="Content\ace\css\ace-skins.min.css" />
-    <Content Include="Content\ace\css\ace.css" />
     <Content Include="Content\ace\css\ace.min.css" />
-    <Content Include="Content\ace\css\bootstrap-duallistbox.css" />
     <Content Include="Content\ace\css\bootstrap-multiselect.css" />
     <Content Include="Content\ace\css\images\meteorshower2.jpg" />
     <Content Include="Content\ace\css\images\pattern.jpg" />
-    <Content Include="Content\ace\css\select2-spinner.gif" />
-    <Content Include="Content\ace\css\select2.css" />
-    <Content Include="Content\ace\css\select2.png" />
-    <Content Include="Content\ace\css\select2x2.png" />
     <Content Include="Content\ace\js\ace-elements.min.js" />
-    <Content Include="Content\ace\js\ace-extra.js" />
     <Content Include="Content\ace\js\ace-extra.min.js" />
-    <Content Include="Content\ace\js\ace.js" />
     <Content Include="Content\ace\js\ace.min.js" />
     <Content Include="Content\ace\js\additional-methods.min.js" />
     <Content Include="Content\ace\js\bootbox.min.js" />
@@ -349,7 +340,6 @@
     <Content Include="Content\ace\js\fullcalendar.min.js" />
     <Content Include="Content\ace\js\pace.min.js" />
     <Content Include="Content\ace\js\prettify.min.js" />
-    <Content Include="Content\ace\js\select2.js" />
     <Content Include="Content\ace\js\select2.min.js" />
     <Content Include="Content\ace\js\spin.min.js" />
     <Content Include="Content\ace\js\typeahead.jquery.min.js" />
@@ -371,12 +361,9 @@
     <Content Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.es.js" />
     <Content Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.zh-CN.js" />
     <Content Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.zh-TW.js" />
-    <Content Include="Content\bootstrap\css\bootstrap-theme.css" />
     <Content Include="Content\bootstrap\css\bootstrap-theme.min.css" />
-    <Content Include="Content\bootstrap\css\bootstrap.css" />
     <Content Include="Content\bootstrap\css\bootstrap.min.css" />
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.svg" />
-    <Content Include="Content\bootstrap\js\bootstrap.js" />
     <Content Include="Content\bootstrap\js\bootstrap.min.js" />
     <Content Include="Content\fuelux\fuelux.spinner.min.js" />
     <Content Include="Content\fuelux\fuelux.tree.min.js" />
@@ -494,8 +481,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Content\bootstrap\css\bootstrap-theme.css.map" />
-    <Content Include="Content\bootstrap\css\bootstrap.css.map" />
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.woff" />
