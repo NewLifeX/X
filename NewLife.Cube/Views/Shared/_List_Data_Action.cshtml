@@ -6,7 +6,7 @@
 else if (ManageProvider.User.Has(PermissionFlags.Detail))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-    @Html.ActionLink("查看", "Detail", new { id = @Model })
+    @Html.ActionLink("查看", "Detail", new { id = @Model }, new { @class = "editcell" })
 }
 @if (ManageProvider.User.Has(PermissionFlags.Delete))
 {
