@@ -34,7 +34,6 @@ popd
 set vs="B:\MS\Microsoft Visual Studio 12.0\Common7\IDE\devenv.com"
 for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate) do (
 	%vs% X组件.sln /Build Release /Project %%i
-	%vs% X组件.Net20.sln /Build Release /Project %%i.Net20
 )
 for %%i in (XCoder NewLife.Cube) do (
 	%vs% X组件.sln /Build Release /Project %%i
