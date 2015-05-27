@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,10 +13,11 @@ namespace NewLife.Reflection
     {
         static void Main()
         {
+
             //PathHelper.BaseDirectory = @"E:\X\Src\NewLife.Cube";
             XTrace.Debug = true;
             XTrace.UseConsole();
-
+            "cmd".Run("/c del *.nuspec /f/q");
             // 找到名称
             var proj = ".".AsDirectory().FullName.EnsureEnd("\\");
 
@@ -27,10 +28,38 @@ namespace NewLife.Reflection
                 Console.WriteLine("项目：{0}", name);
             proj = name+".csproj";
             var spec = name + ".nuspec";
+            
 
             if (!File.Exists(spec.GetFullPath()))
             {
-                "NuGet".Run("spec -f -a obj\\release\\"+name+".dll", 5000);
+                if (File.Exists("..\\..\\bin4\\" + name + ".dll"))
+                {
+                    Console.WriteLine("在bin4目录找到{0}.DLL", name);
+                    "NuGet".Run("spec -f -a ..\\..\\bin4\\" + name + ".dll", 5000);
+                }
+                else
+                {
+                    if (File.Exists("..\\..\\bin\\" + name + ".dll"))
+                    {
+                        Console.WriteLine("在bin目录找到{0}.DLL", name);
+                        "NuGet".Run("spec -f -a ..\\..\\bin\\" + name + ".dll", 5000);
+                    }
+                    else
+                    {
+                        if (File.Exists("obj\\release\\" + name + ".exe"))
+                        {
+                            Console.WriteLine("XCoder项目");
+                            "NuGet".Run("spec -f -a obj\\release\\" + name + ".exe", 5000);
+                        }
+                        else
+                        {
+                            Console.WriteLine("只能找项目文件了，总得做点啥不是");
+                            "NuGet".Run("spec -f -a " + name, 5000);
+                            //编译当前工程
+                            "msbuild".Run(proj + " /t:Rebuild /p:Configuration=Release /p:VisualStudioVersion=12.0 /noconlog /nologo", 8000);
+                        }
+                    }
+                }
                 var spec2 = ".".AsDirectory().GetAllFiles(spec).First().Name;
                 if (!spec.EqualIgnoreCase(spec2)) File.Move(spec2, spec);
             }
@@ -50,7 +79,8 @@ namespace NewLife.Reflection
             cfg.Metadata.Copyright = "Copyright 2002-{0} 新生命开发团队 http://www.NewLifeX.com".F(DateTime.Now.Year);
             cfg.Metadata.Tags = "新生命团队 X组件 NewLife";
             cfg.Metadata.ReleaseNotes = "http://www.newlifex.com/showtopic-51.aspx";
-
+            //cfg.Metadata.Authors="新生命开发团队";
+            //cfg.Metadata.Owners="新生命开发团队";
             // 清空依赖
             if (cfg.Metadata.DependencySets != null && cfg.Metadata.DependencySets.Dependencies != null)
                 cfg.Metadata.DependencySets.Dependencies.Clear();
@@ -60,15 +90,15 @@ namespace NewLife.Reflection
             cfg.Files.Clear();
             if (cfg.Files.Count == 0)
             {
-                //AddFile(cfg, name, "dll");
-                //AddFile(cfg, name, "xml");
-                //AddFile(cfg, name, "pdb");
-                //AddFile(cfg, name, "exe");
+                AddFile(cfg, name, "dll");
+                AddFile(cfg, name, "xml");
+                AddFile(cfg, name, "pdb");
+                AddFile(cfg, name, "exe");
 
                 AddFile(cfg, name, "dll", false);
                 AddFile(cfg, name, "xml", false);
-                //AddFile(cfg, name, "pdb", false);
-                //AddFile(cfg, name, "exe", false);
+                AddFile(cfg, name, "pdb", false);
+                AddFile(cfg, name, "exe", false);
             }
 
             cfg.Save();
@@ -76,9 +106,9 @@ namespace NewLife.Reflection
             //var pack = "pack {0} -IncludeReferencedProjects -Build -Prop Configuration={1} -Exclude **\\*.txt;**\\*.png;content\\*.xml";
             // *\\*.*干掉下级的所有文件
             var pack = "pack {0} -IncludeReferencedProjects -Exclude **\\*.txt;**\\*.png;*.jpg;*.xml;*\\*.*";
-            Console.WriteLine("打包：{0}", proj);
+             Console.WriteLine("打包：{0}", proj);
             "cmd".Run("/c del *.nupkg /f/q");
-            "NuGet".Run(pack.F(proj, "Release"), 30000);
+            "NuGet".Run(pack.F(proj), 30000);
             var fi = ".".AsDirectory().GetAllFiles("*.nupkg").FirstOrDefault();
             if (fi != null)
             {
@@ -94,12 +124,12 @@ namespace NewLife.Reflection
 
             if (fx2)
             {
-                mf.Source = @"..\..\Bin\{0}.{1}".F(name, ext);
+                mf.Source = @"..\..\BIN\{0}.{1}".F(name, ext);
                 mf.Target = @"lib\net20\{0}.{1}".F(name, ext);
             }
             else
             {
-                mf.Source = @"..\..\Bin4\{0}.{1}".F(name, ext);
+                mf.Source = @"..\..\BIN4\{0}.{1}".F(name, ext);
                 mf.Target = @"lib\net40\{0}.{1}".F(name, ext);
             }
             if (File.Exists(mf.Source.GetFullPath())) cfg.Files.Add(mf);
