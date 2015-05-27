@@ -34,9 +34,9 @@ popd
 set vs="B:\MS\Microsoft Visual Studio 12.0\Common7\IDE\devenv.com"
 for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate) do (
 	%vs% X组件.sln /Build Release /Project %%i
-	%vs% X组件.sln /Build Net4Release /Project %%i
+	%vs% X组件.Net20.sln /Build Release /Project %%i.Net20
 )
-for %%i in (XCoder) do (
+for %%i in (XCoder NewLife.Cube) do (
 	%vs% X组件.sln /Build Release /Project %%i
 )
 
@@ -76,17 +76,6 @@ del Src*.zip /f/q
 move /y Src*.zip %dest%\%zipfile%
 
 :: 发布XCode例子源码
-rd YWS\bin /s/q
-rd YWS\obj /s/q
-rd Web\bin /s/q
-rd Web\Log /s/q
-rd Web\App_Data /s/q
-md Web\Bin
-Copy ..\DLL\XControl.* Web\Bin\ /y
-set zipfile=XCodeSample.zip
-del XCodeSample*.zip /f/q
-%zip% -r %zipfile% YWS\*.* Web\*.* XCodeSample.sln
-move /y XCodeSample*.zip %dest%\%zipfile%
 
 :: 发布DLL压缩包
 :: 保存当前目录，并切换目录
