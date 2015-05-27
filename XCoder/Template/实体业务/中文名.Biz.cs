@@ -17,9 +17,9 @@ namespace <#=Config.NameSpace#>
     if(!String.IsNullOrEmpty(tdes)) tdes=tdes.Replace("\r\n"," ").Replace("\\", "\\\\").Replace("'", "").Replace("\"", "");
     if(String.IsNullOrEmpty(tdis)) tdis=tdes;
 
-    String myClassName=Config.RenderGenEntity?"TEntity":Table.Name;
+    String myClassName = Config.RenderGenEntity ? "TEntity" : Table.Name;
 
-   String baseType = !String.IsNullOrEmpty(Table.BaseType) ? Table.BaseType : Config.BaseClass;
+    String baseType = !String.IsNullOrEmpty(Table.BaseType) ? Table.BaseType : Config.BaseClass;
     if(Config.RenderGenEntity)
 {#>
     /// <summary><#=tdis#></summary><# if(tdis!=tdes){#>

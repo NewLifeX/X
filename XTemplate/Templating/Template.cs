@@ -812,6 +812,8 @@ namespace XTemplate.Templating
             var sb = new StringBuilder();
             foreach (var item in tmp.Templates)
             {
+                if (item.Included) continue;
+
                 if (sb.Length > 0) sb.AppendLine();
                 sb.Append(item.Source);
             }
@@ -901,7 +903,7 @@ namespace XTemplate.Templating
             {
                 options.GenerateInMemory = true;
 
-                results = provider.CompileAssemblyFromSource(options, tmp.Templates.Select(e => e.Source).ToArray());
+                results = provider.CompileAssemblyFromSource(options, tmp.Templates.Where(e => !e.Included).Select(e => e.Source).ToArray());
             }
 
             #region 编译错误处理
