@@ -58,7 +58,7 @@
         @if (DbRunTimeModule.Enable)
         {
             <div class="panel-footer">
-                @DbRunTimeModule.GetInfo()
+                @Html.Raw(DbRunTimeModule.GetInfo())
             </div>
         }
     </div>
@@ -143,12 +143,12 @@
             @*双击跳转到form
             _List_Data_Action.cshtml变更
     @Html.ActionLink("编辑", "Edit", new { id = @Model },new{@class="editcell"})*@
-    $('tr').dblclick(function () {
-        var $this = $(this);
-        var row = $this.closest("tr");
-        var findcell = row.find('.editcell');
-        if (findcell.length > 0) window.location.href = findcell.attr("href");
-    });
+            $('tr').dblclick(function () {
+                var $this = $(this);
+                var row = $this.closest("tr");
+                var findcell = row.find('.editcell');
+                if (findcell.length > 0) window.location.href = findcell.attr("href");
+            });
 
         });
     </script>

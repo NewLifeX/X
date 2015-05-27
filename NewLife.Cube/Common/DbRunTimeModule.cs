@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Web;
+using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Web;
@@ -39,6 +41,9 @@ namespace NewLife.Cube
         {
             Context.Items[_QueryTimes] = DAL.QueryTimes;
             Context.Items[_ExecuteTimes] = DAL.ExecuteTimes;
+
+            // 设计时收集执行的SQL语句
+            if (SysConfig.Current.Develop) Context.Items["XCode_SQLList"] = new List<String>();
         }
 
         /// <summary>获取执行时间和查询次数等信息</summary>
@@ -52,7 +57,16 @@ namespace NewLife.Cube
             Int32 StartQueryTimes = (Int32)Context.Items[_QueryTimes];
             Int32 StartExecuteTimes = (Int32)Context.Items[_ExecuteTimes];
 
-            return String.Format(DbRunTimeFormat, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
+            var inf = String.Format(DbRunTimeFormat, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
+
+            // 设计时收集执行的SQL语句
+            if (SysConfig.Current.Develop)
+            {
+                var list = Context.Items["XCode_SQLList"] as List<String>;
+                if (list != null && list.Count > 0) inf += "<br />" + list.Join("<br />" + Environment.NewLine);
+            }
+
+            return inf;
         }
 
         private static Boolean? _Enable;
