@@ -393,13 +393,27 @@ namespace NewLife.Cube
         /// <summary>字典的下拉列表</summary>
         /// <param name="Html"></param>
         /// <param name="name"></param>
-        /// <param name="dic"></param>
+        /// <param name="items"></param>
         /// <param name="selectedValue"></param>
         /// <param name="optionLabel"></param>
+        /// <param name="autoPostback">自动回发</param>
         /// <returns></returns>
-        public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IDictionary dic, Object selectedValue = null, String optionLabel = null)
+        public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IEnumerable items, Object selectedValue = null, String optionLabel = null, Boolean autoPostback = false)
         {
-            return Html.DropDownList(name, new SelectList(dic, "Key", "Value", selectedValue), optionLabel, new { @class = "multiselect" });
+            //return Html.DropDownList(name, new SelectList(dic, "Key", "Value", selectedValue), optionLabel, new { @class = "multiselect" });
+
+            //var data = new SelectList(dic, "Key", "Value", selectedValue);
+            SelectList data = null;
+            if (items is IDictionary)
+                data = new SelectList(items, "Key", "Value", selectedValue);
+            else
+                data = new SelectList(items, selectedValue);
+
+            // 处理自动回发
+            if (autoPostback)
+                return Html.DropDownList(name, data, optionLabel, new { @class = "multiselect", onchange = "$(':submit').click();" });
+            else
+                return Html.DropDownList(name, data, optionLabel, new { @class = "multiselect" });
         }
 
         /// <summary>实体列表的下拉列表。单选，自动匹配当前模型的选中项</summary>
@@ -407,6 +421,7 @@ namespace NewLife.Cube
         /// <param name="name"></param>
         /// <param name="list"></param>
         /// <param name="optionLabel"></param>
+        /// <param name="autoPostback">自动回发</param>
         /// <returns></returns>
         public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IEntityList list, String optionLabel = null, Boolean autoPostback = false)
         {

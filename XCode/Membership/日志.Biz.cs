@@ -3,6 +3,7 @@ using System.ComponentModel;
 using NewLife.Collections;
 using NewLife.Web;
 using XCode.Cache;
+using System.Linq;
 
 namespace XCode.Membership
 {
@@ -108,6 +109,11 @@ namespace XCode.Membership
 
             return exp;
         }
+
+        public static EntityList<TEntity> Search(String key, Int32 adminid, String category, DateTime start, DateTime end, Pager p)
+        {
+            return FindAll(SearchWhere(key, adminid, category, start, end), p);
+        }
         #endregion
 
         #region 扩展操作
@@ -135,6 +141,13 @@ namespace XCode.Membership
         public static EntityList<TEntity> FindAllCategory()
         {
             return CategoryCache.Entities;
+        }
+
+        /// <summary>获取所有类别名称</summary>
+        /// <returns></returns>
+        public static String[] FindAllCategoryName()
+        {
+            return CategoryCache.Entities.ToList().Select(e => e.Category).ToArray();
         }
         #endregion
 

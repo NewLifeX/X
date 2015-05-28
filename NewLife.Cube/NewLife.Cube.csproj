@@ -118,6 +118,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Navbar.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\Log\_List_Toolbar.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Views\Menu\List.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -428,6 +433,10 @@
     <Content Include="Content\themes\base\images\ui-icons_888888_256x240.png" />
     <Content Include="Content\themes\base\images\ui-icons_cd0a0a_256x240.png" />
     <Content Include="favicon.ico" />
+    <Content Include="Areas\Admin\Views\Log\_List_Toolbar.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Areas\Admin\Views\User\Login.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Login.generated.cs</LastGenOutput>
