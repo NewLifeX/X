@@ -125,7 +125,7 @@
                 $(this).ace_spinner({ on_sides: true, icon_up: 'ace-icon fa fa-plus bigger-110', icon_down: 'ace-icon fa fa-minus bigger-110', btn_up_class: 'btn-success', btn_down_class: 'btn-danger' });
             });
             $('.multiselect').multiselect({
-                enableFiltering: true,
+                enableFiltering: $(this).ops > 10,
                 buttonClass: 'btn btn-white btn-primary',
                 templates: {
                     button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"></button>',
@@ -137,8 +137,8 @@
                     liGroup: '<li class="multiselect-item group"><label class="multiselect-group"></label></li>'
                 },
                 filterPlaceholder: '搜索',
-                nonSelectedText: '没有选中',
-                allSelectedText: '全部选中'
+                nonSelectedText: '无',
+                allSelectedText: '全选'
             });
             @*双击跳转到form
             _List_Data_Action.cshtml变更

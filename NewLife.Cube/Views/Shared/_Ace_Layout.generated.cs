@@ -427,22 +427,22 @@ WriteLiteral("></script>\r\n    <script>\r\n        //$(function () {\r\n       
 "ides: true, icon_up: \'ace-icon fa fa-plus bigger-110\', icon_down: \'ace-icon fa f" +
 "a-minus bigger-110\', btn_up_class: \'btn-success\', btn_down_class: \'btn-danger\' }" +
 ");\r\n            });\r\n            $(\'.multiselect\').multiselect({\r\n              " +
-"  enableFiltering: true,\r\n                buttonClass: \'btn btn-white btn-primar" +
-"y\',\r\n                templates: {\r\n                    button: \'<button type=\"bu" +
-"tton\" class=\"multiselect dropdown-toggle\" data-toggle=\"dropdown\"></button>\',\r\n  " +
-"                  ul: \'<ul class=\"multiselect-container dropdown-menu\"></ul>\',\r\n" +
-"                    filter: \'<li class=\"multiselect-item filter\"><div class=\"inp" +
-"ut-group\"><span class=\"input-group-addon\"><i class=\"fa fa-search\"></i></span><in" +
-"put class=\"form-control multiselect-search\" type=\"text\"></div></li>\',\r\n         " +
-"           filterClearBtn: \'<span class=\"input-group-btn\"><button class=\"btn btn" +
-"-default btn-white btn-grey multiselect-clear-filter\" type=\"button\"><i class=\"fa" +
-" fa-times-circle red2\"></i></button></span>\',\r\n                    li: \'<li><a h" +
-"ref=\"javascript:void(0);\"><label></label></a></li>\',\r\n                    divide" +
-"r: \'<li class=\"multiselect-item divider\"></li>\',\r\n                    liGroup: \'" +
-"<li class=\"multiselect-item group\"><label class=\"multiselect-group\"></label></li" +
-">\'\r\n                },\r\n                filterPlaceholder: \'搜索\',\r\n              " +
-"  nonSelectedText: \'没有选中\',\r\n                allSelectedText: \'全部选中\'\r\n           " +
-" });\r\n            ");
+"  enableFiltering: $(this).ops > 10,\r\n                buttonClass: \'btn btn-whit" +
+"e btn-primary\',\r\n                templates: {\r\n                    button: \'<but" +
+"ton type=\"button\" class=\"multiselect dropdown-toggle\" data-toggle=\"dropdown\"></b" +
+"utton>\',\r\n                    ul: \'<ul class=\"multiselect-container dropdown-men" +
+"u\"></ul>\',\r\n                    filter: \'<li class=\"multiselect-item filter\"><di" +
+"v class=\"input-group\"><span class=\"input-group-addon\"><i class=\"fa fa-search\"></" +
+"i></span><input class=\"form-control multiselect-search\" type=\"text\"></div></li>\'" +
+",\r\n                    filterClearBtn: \'<span class=\"input-group-btn\"><button cl" +
+"ass=\"btn btn-default btn-white btn-grey multiselect-clear-filter\" type=\"button\">" +
+"<i class=\"fa fa-times-circle red2\"></i></button></span>\',\r\n                    l" +
+"i: \'<li><a href=\"javascript:void(0);\"><label></label></a></li>\',\r\n              " +
+"      divider: \'<li class=\"multiselect-item divider\"></li>\',\r\n                  " +
+"  liGroup: \'<li class=\"multiselect-item group\"><label class=\"multiselect-group\">" +
+"</label></li>\'\r\n                },\r\n                filterPlaceholder: \'搜索\',\r\n  " +
+"              nonSelectedText: \'无\',\r\n                allSelectedText: \'全选\'\r\n    " +
+"        });\r\n            ");
 
 WriteLiteral(@"
             $('tr').dblclick(function () {
@@ -460,9 +460,9 @@ WriteLiteral(@"
 
 WriteLiteral("\r\n\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7381), Tuple.Create("\"", 7425)
-, Tuple.Create(Tuple.Create("", 7387), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
-, 7387), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7388), Tuple.Create("\"", 7432)
+, Tuple.Create(Tuple.Create("", 7394), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
+, 7394), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");
