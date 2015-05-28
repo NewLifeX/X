@@ -401,7 +401,13 @@ namespace XCode.Membership
                 // 填写角色。最后一个普通角色，如果没有，再管理员角色
                 var eop = ManageProvider.GetFactory<IRole>();
                 var list = eop.FindAllWithCache().Cast<IRole>();
-                var role = list.LastOrDefault(e => !e.IsSystem);
+
+                // 找游客组
+                var role = list.FirstOrDefault(e => e.Name == "游客");
+
+                // 最后一个非系统角色
+                if (role == null) role = list.LastOrDefault(e => !e.IsSystem);
+                // 没有非系统角色，随便一个啦
                 if (role == null) role = list.LastOrDefault();
 
                 RoleID = role.ID;

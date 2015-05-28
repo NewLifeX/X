@@ -96,6 +96,19 @@ WriteLiteral(" class=\"panel-footer\"");
 
 WriteLiteral(">\r\n        <a");
 
+WriteAttribute("href", Tuple.Create(" href=\"", 604), Tuple.Create("\"", 630)
+, Tuple.Create(Tuple.Create("", 611), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
+, 611), false)
+);
+
+WriteLiteral(" class=\"btn btn-primary\"");
+
+WriteLiteral(">\r\n            <i");
+
+WriteLiteral(" class=\"ace-icon fa fa-power-off\"");
+
+WriteLiteral("></i>\r\n            以其它身份登录\r\n        </a>\r\n        <a");
+
 WriteLiteral(" href=\"javascript: history.go(-1);\"");
 
 WriteLiteral(" class=\"btn btn-info\"");

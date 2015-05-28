@@ -177,6 +177,7 @@ namespace NewLife.Cube.Admin.Controllers
                 user.Name = username;
                 user.Password = password.MD5();
                 user.Mail = email;
+                user.Enable = true;
                 user.Register();
 
                 // 注册成功

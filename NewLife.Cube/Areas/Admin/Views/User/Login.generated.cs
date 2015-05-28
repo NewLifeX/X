@@ -198,7 +198,7 @@ WriteLiteral(">\r\n                        <div");
 
 WriteLiteral(" class=\"center\"");
 
-WriteLiteral(">\r\n                            <h1>\r\n                                <i");
+WriteLiteral(">\r\n                            <h2>\r\n                                <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-leaf green\"");
 
@@ -230,7 +230,7 @@ WriteLiteral(">");
             
             #line default
             #line hidden
-WriteLiteral("</span>\r\n                            </h1>\r\n                            <h4");
+WriteLiteral("</span>\r\n                            </h2>\r\n                            <h4");
 
 WriteLiteral(" class=\"blue\"");
 
