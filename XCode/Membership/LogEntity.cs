@@ -13,19 +13,23 @@ namespace XCode.Membership
         /// <returns></returns>
         public override int Save()
         {
-            //更改日志保存顺序，先保存才能获取到id
+            // 更改日志保存顺序，先保存才能获取到id
             string action = "添加";
-            if (!(this as IEntity).IsNullKey)
+            var isNew = IsNullKey;
+            if (!isNew)
             {
                 // 没有修改时不写日志
                 if (!HasDirty) return 0;
 
                 action = "修改";
+
+                // 必须提前写修改日志，否则修改后脏数据失效，保存的日志为空
+                LogProvider.Provider.WriteLog(action, this);
             }
 
             int result = base.Save();
 
-            WriteLog(action, this);
+            if (isNew) LogProvider.Provider.WriteLog(action, this);
 
             return result;
         }
@@ -34,7 +38,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public override int Delete()
         {
-            WriteLog("删除", this);
+            LogProvider.Provider.WriteLog("删除", this);
 
             return base.Delete();
         }
@@ -47,23 +51,6 @@ namespace XCode.Membership
         public static void WriteLog(String action, String remark)
         {
             LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
-        }
-
-        /// <summary>输出实体对象日志</summary>
-        /// <param name="action"></param>
-        /// <param name="entity"></param>
-        protected static void WriteLog(String action, IEntity entity)
-        {
-            // 构造字段数据的字符串表示形式
-            var sb = new StringBuilder();
-            foreach (var fi in Meta.Fields)
-            {
-                if (action == "修改" && !entity.Dirtys[fi.Name]) continue;
-
-                sb.Separate(",").AppendFormat("{0}={1}", fi.Name, entity[fi.Name]);
-            }
-
-            WriteLog(action, sb.ToString());
         }
         #endregion
     }

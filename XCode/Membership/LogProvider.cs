@@ -16,6 +16,34 @@ namespace XCode.Membership
         /// <param name="remark">备注</param>
         public abstract void WriteLog(Type type, String action, String remark);
 
+        /// <summary>输出实体对象日志</summary>
+        /// <param name="action"></param>
+        /// <param name="entity"></param>
+        public void WriteLog(String action, IEntity entity)
+        {
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+
+            // 构造字段数据的字符串表示形式
+            var sb = new StringBuilder();
+            foreach (var fi in fact.Fields)
+            {
+                if (action == "修改" && !fi.PrimaryKey && !entity.Dirtys[fi.Name]) continue;
+                // 空字符串不写日志
+                if (action == "添加" || action == "删除")
+                {
+                    var v = entity[fi.Name];
+                    if (v + "" == "") continue;
+                    if (v is Boolean && (Boolean)v == false) continue;
+                    if (v is Int32 && (Int32)v == 0) continue;
+                    if (v is DateTime && (DateTime)v == DateTime.MinValue) continue;
+                }
+
+                sb.Separate(",").AppendFormat("{0}={1}", fi.Name, entity[fi.Name]);
+            }
+
+            WriteLog(entity.GetType(), action, sb.ToString());
+        }
+
         private Boolean _Enable = true;
         /// <summary>是否使用日志</summary>
         public Boolean Enable { get { return _Enable; } set { _Enable = value; } }
