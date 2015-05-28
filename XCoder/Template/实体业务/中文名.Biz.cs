@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Web;
+﻿using NewLife.Data;
 using XCode;
 using XCode.Configuration;
 using XCode.Membership;
@@ -36,11 +37,17 @@ if(Config.RenderGenEntity){#>
     public partial class <#=Table.Name#> : <#=baseType#><<#=Table.Name#>><#
 }#>
     {
-        #region 对象操作<#@include Name="对象操作.xt"#>        #endregion
+        #region 对象操作
+            <#@include Name="对象操作.xt"#>
+        #endregion
 
-        #region 扩展属性<#@include Name="扩展属性.xt"#>        #endregion
+        #region 扩展属性
+            <#@include Name="扩展属性.xt"#>
+        #endregion
 
-        #region 扩展查询<#@include Name="扩展查询.xt"#>        #endregion
+        #region 扩展查询
+            <#@include Name="扩展查询.xt"#>
+        #endregion
 
         #region 高级查询
         // 以下为自定义高级查询的例子
