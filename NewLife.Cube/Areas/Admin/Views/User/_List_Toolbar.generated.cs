@@ -132,9 +132,13 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("            <div");
 
+WriteLiteral(" class=\"pull-right form-group\"");
+
+WriteLiteral(">\r\n                <div");
+
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n                <label");
+WriteLiteral(">\r\n                    <label");
 
 WriteLiteral(" for=\"RoleID\"");
 
@@ -142,64 +146,16 @@ WriteLiteral(" class=\"control-label\"");
 
 WriteLiteral(">角色：</label>\r\n");
 
-WriteLiteral("                ");
+WriteLiteral("                    ");
 
             
-            #line 17 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-           Write(Html.DropDownList("RoleID", new SelectList(Role.FindAllWithCache().ToDictionary(), "Key", "Value", Request["RoleID"]), "全部", new { @class = "multiselect", onchange = "$(':submit').click();" }));
+            #line 18 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+               Write(Html.ForDropDownList("RoleID", Role.FindAllWithCache(), "全部", true));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n            </div>\r\n            <div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n                <label");
-
-WriteLiteral(" for=\"dtStart\"");
-
-WriteLiteral(" class=\"control-label\"");
-
-WriteLiteral(">时间：</label>\r\n                <input");
-
-WriteLiteral(" name=\"dtStart\"");
-
-WriteLiteral(" type=\"date\"");
-
-WriteLiteral(" id=\"dtStart\"");
-
-WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
-
-WriteLiteral(" class=\"form-control form_datetime\"");
-
-WriteLiteral(" />\r\n            </div>\r\n            <div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n                <label");
-
-WriteLiteral(" for=\"dtEnd\"");
-
-WriteLiteral(" class=\"control-label\"");
-
-WriteLiteral(">至</label>\r\n                <input");
-
-WriteLiteral(" name=\"dtEnd\"");
-
-WriteLiteral(" type=\"date\"");
-
-WriteLiteral(" id=\"dtEnd\"");
-
-WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
-
-WriteLiteral(" class=\"form-control form_datetime\"");
-
-WriteLiteral(" />\r\n            </div>\r\n            <div");
-
-WriteLiteral(" class=\"pull-right form-group\"");
-
-WriteLiteral(">\r\n                <div");
+WriteLiteral("\r\n                </div>\r\n                <div");
 
 WriteLiteral(" class=\"input-group\"");
 
@@ -219,14 +175,14 @@ WriteLiteral(" type=\"search\"");
 
 WriteLiteral(" id=\"q\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1723), Tuple.Create("\"", 1744)
+WriteAttribute("value", Tuple.Create(" value=\"", 1110), Tuple.Create("\"", 1131)
             
-            #line 32 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 1731), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            #line 24 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 1118), Tuple.Create<System.Object, System.Int32>(Request["q"]
             
             #line default
             #line hidden
-, 1731), false)
+, 1118), false)
 );
 
 WriteLiteral(" class=\"form-control\"");

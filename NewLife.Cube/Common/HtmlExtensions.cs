@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using NewLife.Reflection;
+using NewLife.Web;
 using XCode;
 using XCode.Configuration;
 
@@ -407,12 +408,17 @@ namespace NewLife.Cube
         /// <param name="list"></param>
         /// <param name="optionLabel"></param>
         /// <returns></returns>
-        public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IEntityList list, String optionLabel = null)
+        public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IEntityList list, String optionLabel = null, Boolean autoPostback = false)
         {
             var entity = Html.ViewData.Model as IEntity;
-            var selectedValue = entity == null ? null : entity[name];
+            var selectedValue = entity == null ? WebHelper.Params[name] : entity[name];
 
-            return Html.DropDownList(name, new SelectList(list.ToDictionary(), "Key", "Value", selectedValue), optionLabel, new { @class = "multiselect" });
+            var data = new SelectList(list.ToDictionary(), "Key", "Value", selectedValue);
+            // 处理自动回发
+            if (autoPostback)
+                return Html.DropDownList(name, data, optionLabel, new { @class = "multiselect", onchange = "$(':submit').click();" });
+            else
+                return Html.DropDownList(name, data, optionLabel, new { @class = "multiselect" });
         }
 
         /// <summary>字典的下拉列表</summary>
