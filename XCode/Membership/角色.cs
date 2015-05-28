@@ -53,12 +53,24 @@ namespace XCode.Membership
             set { if (OnPropertyChanging(__.IsSystem, value)) { _IsSystem = value; OnPropertyChanged(__.IsSystem); } }
         }
 
+        private String _Remark;
+        /// <summary>说明</summary>
+        [DisplayName("说明")]
+        [Description("说明")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn(4, "Remark", "说明", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String Remark
+        {
+            get { return _Remark; }
+            set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } }
+        }
+
         private String _Permission;
         /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
         [DisplayName("权限")]
         [Description("权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(4, "Permission", "权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔", null, "nvarchar(500)", 0, 0, true)]
+        [BindColumn(5, "Permission", "权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔", null, "nvarchar(500)", 0, 0, true)]
         public virtual String Permission
         {
             get { return _Permission; }
@@ -83,6 +95,7 @@ namespace XCode.Membership
                     case __.ID : return _ID;
                     case __.Name : return _Name;
                     case __.IsSystem : return _IsSystem;
+                    case __.Remark : return _Remark;
                     case __.Permission : return _Permission;
                     default: return base[name];
                 }
@@ -94,6 +107,7 @@ namespace XCode.Membership
                     case __.ID : _ID = Convert.ToInt32(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.IsSystem : _IsSystem = Convert.ToBoolean(value); break;
+                    case __.Remark : _Remark = Convert.ToString(value); break;
                     case __.Permission : _Permission = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
@@ -114,6 +128,9 @@ namespace XCode.Membership
             ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
             public static readonly Field IsSystem = FindByName(__.IsSystem);
 
+            ///<summary>说明</summary>
+            public static readonly Field Remark = FindByName(__.Remark);
+
             ///<summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
             public static readonly Field Permission = FindByName(__.Permission);
 
@@ -131,6 +148,9 @@ namespace XCode.Membership
 
             ///<summary>是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
             public const String IsSystem = "IsSystem";
+
+            ///<summary>说明</summary>
+            public const String Remark = "Remark";
 
             ///<summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
             public const String Permission = "Permission";
@@ -151,6 +171,9 @@ namespace XCode.Membership
 
         /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
         Boolean IsSystem { get; set; }
+
+        /// <summary>说明</summary>
+        String Remark { get; set; }
 
         /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
         String Permission { get; set; }

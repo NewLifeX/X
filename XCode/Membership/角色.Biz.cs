@@ -88,9 +88,10 @@ namespace XCode.Membership
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
 
-            Add("管理员", true);
-            Add("高级用户", true);
-            Add("普通用户", true);
+            Add("管理员", true, "默认拥有全部最高权限，由系统工程师使用，安装配置整个系统");
+            Add("高级用户", true, "业务管理人员，可以管理业务模块，可以分配授权用户等级");
+            Add("普通用户", true, "普通业务人员，可以使用系统常规业务模块功能");
+            Add("游客", true, "新注册用户默认属于游客组");
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
 
@@ -179,7 +180,7 @@ namespace XCode.Membership
 
                 throw new XException(msg);
             }
-            
+
             return base.Delete();
         }
 
@@ -380,8 +381,9 @@ namespace XCode.Membership
         /// <summary>添加角色，如果存在，则直接返回，否则创建</summary>
         /// <param name="name"></param>
         /// <param name="issys"></param>
+        /// <param name="remark"></param>
         /// <returns></returns>
-        public static TEntity Add(String name, Boolean issys)
+        public static TEntity Add(String name, Boolean issys, String remark = null)
         {
             var entity = FindByName(name);
             if (entity != null) return entity;
@@ -389,6 +391,7 @@ namespace XCode.Membership
             entity = new TEntity();
             entity.Name = name;
             entity.IsSystem = issys;
+            entity.Remark = remark;
             entity.Save();
 
             return entity;
