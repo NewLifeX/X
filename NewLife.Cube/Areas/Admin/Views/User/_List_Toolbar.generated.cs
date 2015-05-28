@@ -75,96 +75,93 @@ WriteLiteral(">\r\n    <div");
 
 WriteLiteral(" class=\"form-inline\"");
 
+WriteLiteral(">\r\n        <form");
+
+WriteAttribute("action", Tuple.Create(" action=\"", 230), Tuple.Create("\"", 311)
+            
+            #line 10 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 239), Tuple.Create<System.Object, System.Int32>(Url.Action("index")
+            
+            #line default
+            #line hidden
+, 239), false)
+            
+            #line 10 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 259), Tuple.Create<System.Object, System.Int32>(Html.Raw("?" + page.GetBaseUrl(false, true, true))
+            
+            #line default
+            #line hidden
+, 259), false)
+, Tuple.Create(Tuple.Create(" ", 310), Tuple.Create("", 310), true)
+);
+
+WriteLiteral(" method=\"post\"");
+
+WriteLiteral(" role=\"form\"");
+
 WriteLiteral(">\r\n");
 
             
-            #line 10 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-        
-            
-            #line default
-            #line hidden
-            
-            #line 10 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-         if (ManageProvider.User.Has(PermissionFlags.Insert))
-        {
+            #line 11 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 12 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-       Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" }));
+            #line 11 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+             if (ManageProvider.User.Has(PermissionFlags.Insert))
+            {
+                
+            
+            #line default
+            #line hidden
+            
+            #line 13 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+           Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" }));
 
             
             #line default
             #line hidden
             
-            #line 12 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-                                                                                                                                              
-        }
+            #line 13 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+                                                                                                                                                  
+            }
 
             
             #line default
             #line hidden
-WriteLiteral("        <div");
+WriteLiteral("            <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n            <label");
+WriteLiteral(">\r\n                <label");
 
-WriteLiteral(" for=\"ddlCategory\"");
+WriteLiteral(" for=\"RoleID\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">类别：</label>\r\n            <select");
+WriteLiteral(">角色：</label>\r\n");
 
-WriteLiteral(" name=\"ddlCategory\"");
+WriteLiteral("                ");
 
-WriteLiteral(" id=\"ddlCategory\"");
+            
+            #line 17 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+           Write(Html.DropDownList("RoleID", new SelectList(Role.FindAllWithCache().ToDictionary(), "Key", "Value", Request["RoleID"]), "全部", new { @class = "multiselect", onchange = "$(':submit').click();" }));
 
-WriteLiteral(" class=\"form-control\"");
-
-WriteLiteral(" onchange=\"$(\':submit\').click();\"");
-
-WriteLiteral(">\r\n                <option");
-
-WriteLiteral(" value=\"\"");
-
-WriteLiteral(">全部</option>\r\n            </select>\r\n        </div>\r\n        <div");
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n            </div>\r\n            <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n            <label");
-
-WriteLiteral(" class=\"control-label\"");
-
-WriteLiteral(" for=\"ddlAdmin\"");
-
-WriteLiteral(">管理员：</label>\r\n            <select");
-
-WriteLiteral(" name=\"ddlAdminID\"");
-
-WriteLiteral(" id=\"ddlAdminID\"");
-
-WriteLiteral(" class=\"form-control\"");
-
-WriteLiteral(" onchange=\"$(\':submit\').click();\"");
-
-WriteLiteral(">\r\n                <option");
-
-WriteLiteral(" value=\"\"");
-
-WriteLiteral(">全部</option>\r\n            </select>\r\n        </div>\r\n        <div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n            <label");
+WriteLiteral(">\r\n                <label");
 
 WriteLiteral(" for=\"dtStart\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">时间：</label>\r\n            <input");
+WriteLiteral(">时间：</label>\r\n                <input");
 
 WriteLiteral(" name=\"dtStart\"");
 
@@ -176,17 +173,17 @@ WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
 
 WriteLiteral(" class=\"form-control form_datetime\"");
 
-WriteLiteral(" />\r\n        </div>\r\n        <div");
+WriteLiteral(" />\r\n            </div>\r\n            <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n            <label");
+WriteLiteral(">\r\n                <label");
 
 WriteLiteral(" for=\"dtEnd\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">至</label>\r\n            <input");
+WriteLiteral(">至</label>\r\n                <input");
 
 WriteLiteral(" name=\"dtEnd\"");
 
@@ -198,23 +195,23 @@ WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
 
 WriteLiteral(" class=\"form-control form_datetime\"");
 
-WriteLiteral(" />\r\n        </div>\r\n        <div");
+WriteLiteral(" />\r\n            </div>\r\n            <div");
 
 WriteLiteral(" class=\"pull-right form-group\"");
 
-WriteLiteral(">\r\n            <div");
+WriteLiteral(">\r\n                <div");
 
 WriteLiteral(" class=\"input-group\"");
 
-WriteLiteral(">\r\n                <span");
+WriteLiteral(">\r\n                    <span");
 
 WriteLiteral(" class=\"input-group-addon\"");
 
-WriteLiteral(">\r\n                    <i");
+WriteLiteral(">\r\n                        <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-check\"");
 
-WriteLiteral("></i>\r\n                </span>\r\n                <input");
+WriteLiteral("></i>\r\n                    </span>\r\n                    <input");
 
 WriteLiteral(" name=\"q\"");
 
@@ -222,36 +219,37 @@ WriteLiteral(" type=\"search\"");
 
 WriteLiteral(" id=\"q\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1789), Tuple.Create("\"", 1810)
+WriteAttribute("value", Tuple.Create(" value=\"", 1723), Tuple.Create("\"", 1744)
             
-            #line 39 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 1797), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            #line 32 "..\..\Areas\Admin\Views\User\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 1731), Tuple.Create<System.Object, System.Int32>(Request["q"]
             
             #line default
             #line hidden
-, 1797), false)
+, 1731), false)
 );
 
 WriteLiteral(" class=\"form-control\"");
 
 WriteLiteral(" placeholder=\"搜索关键字\"");
 
-WriteLiteral(" />\r\n                <span");
+WriteLiteral(" />\r\n                    <span");
 
 WriteLiteral(" class=\"input-group-btn\"");
 
-WriteLiteral(">\r\n                    <button");
+WriteLiteral(">\r\n                        <button");
 
 WriteLiteral(" type=\"submit\"");
 
 WriteLiteral(" class=\"btn btn-purple btn-sm\"");
 
-WriteLiteral(">\r\n                        <span");
+WriteLiteral(">\r\n                            <span");
 
 WriteLiteral(" class=\"ace-icon fa fa-search icon-on-right bigger-110\"");
 
-WriteLiteral("></span>\r\n                        查询\r\n                    </button>\r\n            " +
-"    </span>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n");
+WriteLiteral("></span>\r\n                            查询\r\n                        </button>\r\n    " +
+"                </span>\r\n                </div>\r\n            </div>\r\n        </f" +
+"orm>\r\n    </div>\r\n</div>\r\n");
 
         }
     }

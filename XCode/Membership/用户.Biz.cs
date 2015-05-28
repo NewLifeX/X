@@ -247,22 +247,20 @@ namespace XCode.Membership
         /// <returns></returns>
         private static String SearchWhere(String key, Int32 roleId, Boolean? isEnable = null)
         {
-            //var exp = new WhereExpression();
-
-            //// SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索
-            //if (!String.IsNullOrEmpty(key)) exp &= SearchWhereByKey(key);
-
-            //if (roleId > 0) exp &= _.RoleID == roleId;
-            //if (isEnable != null) exp &= _.IsEnable == isEnable.Value;
-
-            //var where = exp.ToString();
-            //XTrace.WriteLine(where);
-
             var exp2 = SearchWhereByKey(key) & _.RoleID == roleId & _.Enable == isEnable;
-            //var where2 = exp2.SetStrict().GetString();
-            //XTrace.WriteLine(where2);
 
             return exp2.SetStrict();
+        }
+
+        /// <summary>参数化查询</summary>
+        /// <param name="key"></param>
+        /// <param name="roleId"></param>
+        /// <param name="isEnable"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p)
+        {
+            return FindAll(SearchWhere(key, roleId, isEnable), p);
         }
         #endregion
 
