@@ -94,6 +94,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         [EntityAuthorize(PermissionFlags.Insert)]
         [HttpPost]
+        [ValidateInput(false)]
         public virtual ActionResult Add(TEntity entity)
         {
             if (!Valid(entity))
@@ -147,6 +148,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         [EntityAuthorize(PermissionFlags.Update)]
         [HttpPost]
+        [ValidateInput(false)]
         public virtual ActionResult Edit(TEntity entity)
         {
             if (!Valid(entity))
