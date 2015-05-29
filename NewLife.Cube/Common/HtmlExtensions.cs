@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
+using System.Web.Routing;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
@@ -369,18 +370,23 @@ namespace NewLife.Cube
         /// <param name="Html"></param>
         /// <param name="name"></param>
         /// <param name="selectAll">是否全部选中。默认false</param>
+        /// <param name="autoPostback">自动回发</param>
         /// <returns></returns>
-        public static MvcHtmlString ForEnum<T>(this HtmlHelper Html, String name, Boolean selectAll = false)
+        public static MvcHtmlString ForEnum<T>(this HtmlHelper Html, String name, Boolean selectAll = false, Boolean autoPostback = false)
         {
             var dic = EnumHelper.GetDescriptions(typeof(T));
+
             IEnumerable values = null;
-            if (selectAll)
+            var vs = WebHelper.Params[name].SplitAsInt();
+            if (vs != null && vs.Length > 0)
+                values = vs;
+            else if (selectAll)
             {
                 var arr = Enum.GetValues(typeof(T)) as T[];
                 values = arr.Cast<Int32>().ToArray();
             }
 
-            return Html.ForListBox(name, dic, values);
+            return Html.ForListBox(name, dic, values, autoPostback);
         }
         #endregion
 
@@ -400,20 +406,18 @@ namespace NewLife.Cube
         /// <returns></returns>
         public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IEnumerable items, Object selectedValue = null, String optionLabel = null, Boolean autoPostback = false)
         {
-            //return Html.DropDownList(name, new SelectList(dic, "Key", "Value", selectedValue), optionLabel, new { @class = "multiselect" });
-
-            //var data = new SelectList(dic, "Key", "Value", selectedValue);
             SelectList data = null;
             if (items is IDictionary)
                 data = new SelectList(items, "Key", "Value", selectedValue);
             else
                 data = new SelectList(items, selectedValue);
 
+            var atts = new RouteValueDictionary();
+            atts.Add("class", "multiselect");
             // 处理自动回发
-            if (autoPostback)
-                return Html.DropDownList(name, data, optionLabel, new { @class = "multiselect", onchange = "$(':submit').click();" });
-            else
-                return Html.DropDownList(name, data, optionLabel, new { @class = "multiselect" });
+            if (autoPostback) atts.Add("onchange", "$(':submit').click();");
+
+            return Html.DropDownList(name, data, optionLabel, atts);
         }
 
         /// <summary>实体列表的下拉列表。单选，自动匹配当前模型的选中项</summary>
@@ -428,12 +432,13 @@ namespace NewLife.Cube
             var entity = Html.ViewData.Model as IEntity;
             var selectedValue = entity == null ? WebHelper.Params[name] : entity[name];
 
-            var data = new SelectList(list.ToDictionary(), "Key", "Value", selectedValue);
+            var atts = new RouteValueDictionary();
+            atts.Add("class", "multiselect");
             // 处理自动回发
-            if (autoPostback)
-                return Html.DropDownList(name, data, optionLabel, new { @class = "multiselect", onchange = "$(':submit').click();" });
-            else
-                return Html.DropDownList(name, data, optionLabel, new { @class = "multiselect" });
+            if (autoPostback) atts.Add("onchange", "$(':submit').click();");
+
+            var data = new SelectList(list.ToDictionary(), "Key", "Value", selectedValue);
+            return Html.DropDownList(name, data, optionLabel, atts);
         }
 
         /// <summary>字典的下拉列表</summary>
@@ -441,25 +446,39 @@ namespace NewLife.Cube
         /// <param name="name"></param>
         /// <param name="dic"></param>
         /// <param name="selectedValues"></param>
+        /// <param name="autoPostback">自动回发</param>
         /// <returns></returns>
-        public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IDictionary dic, IEnumerable selectedValues)
+        public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IDictionary dic, IEnumerable selectedValues, Boolean autoPostback = false)
         {
-            return Html.ListBox(name, new MultiSelectList(dic, "Key", "Value", selectedValues), new { @class = "multiselect", @multiple = "" });
+            var atts = new RouteValueDictionary();
+            atts.Add("class", "multiselect");
+            atts.Add("multiple", "");
+            // 处理自动回发
+            if (autoPostback) atts.Add("onchange", "$(':submit').click();");
+
+            return Html.ListBox(name, new MultiSelectList(dic, "Key", "Value", selectedValues), atts);
         }
 
         /// <summary>实体列表的下拉列表。多选，自动匹配当前模型的选中项，支持数组类型或字符串类型（自动分割）的选中项</summary>
         /// <param name="Html"></param>
         /// <param name="name"></param>
         /// <param name="list"></param>
+        /// <param name="autoPostback">自动回发</param>
         /// <returns></returns>
-        public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IEntityList list)
+        public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IEntityList list, Boolean autoPostback = false)
         {
             var entity = Html.ViewData.Model as IEntity;
-            var vs = entity == null ? null : entity[name];
+            var vs = entity == null ? WebHelper.Params[name] : entity[name];
             // 如果是字符串，分割为整型数组，全局约定逗号分割
             if (vs is String) vs = (vs as String).SplitAsInt();
 
-            return Html.ListBox(name, new MultiSelectList(list.ToDictionary(), "Key", "Value", vs as IEnumerable), new { @class = "multiselect", @multiple = "" });
+            var atts = new RouteValueDictionary();
+            atts.Add("class", "multiselect");
+            atts.Add("multiple", "");
+            // 处理自动回发
+            if (autoPostback) atts.Add("onchange", "$(':submit').click();");
+
+            return Html.ListBox(name, new MultiSelectList(list.ToDictionary(), "Key", "Value", vs as IEnumerable), atts);
         }
         #endregion
     }
