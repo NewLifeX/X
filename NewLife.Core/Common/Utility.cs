@@ -61,6 +61,13 @@ namespace System
         /// <param name="emptyValue">字符串空值时（DateTime.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
         public static String ToFullString(this DateTime value, String emptyValue = null) { return _Convert.ToFullString(value, emptyValue); }
+
+        /// <summary>时间日期转为指定格式字符串</summary>
+        /// <param name="value">待转换对象</param>
+        /// <param name="format">格式化字符串</param>
+        /// <param name="emptyValue">字符串空值时显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
+        /// <returns></returns>
+        public static String ToString(this DateTime value, String format, String emptyValue) { return _Convert.ToString(value, format, emptyValue); }
         #endregion
     }
 
@@ -265,6 +272,18 @@ namespace System
             if (emptyValue != null && value <= DateTime.MinValue) return emptyValue;
 
             return value.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
+        /// <summary>时间日期转为指定格式字符串</summary>
+        /// <param name="value">待转换对象</param>
+        /// <param name="format">格式化字符串</param>
+        /// <param name="emptyValue">字符串空值时显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
+        /// <returns></returns>
+        public virtual String ToString(DateTime value, String format, String emptyValue)
+        {
+            if (emptyValue != null && value <= DateTime.MinValue) return emptyValue;
+
+            return value.ToString(format ?? "yyyy-MM-dd HH:mm:ss");
         }
     }
 }
