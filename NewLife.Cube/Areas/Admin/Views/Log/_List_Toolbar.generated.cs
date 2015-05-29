@@ -186,7 +186,19 @@ WriteLiteral(" for=\"dtStart\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">时间：</label>\r\n                    <input");
+WriteLiteral(">时间：</label>\r\n                    <div");
+
+WriteLiteral(" class=\"input-group\"");
+
+WriteLiteral(">\r\n                        <span");
+
+WriteLiteral(" class=\"input-group-addon\"");
+
+WriteLiteral("><i");
+
+WriteLiteral(" class=\"fa fa-calendar\"");
+
+WriteLiteral("></i></span>\r\n                        <input");
 
 WriteLiteral(" name=\"dtStart\"");
 
@@ -194,11 +206,21 @@ WriteLiteral(" type=\"date\"");
 
 WriteLiteral(" id=\"dtStart\"");
 
+WriteAttribute("value", Tuple.Create(" value=\"", 1457), Tuple.Create("\"", 1484)
+            
+            #line 28 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 1465), Tuple.Create<System.Object, System.Int32>(Request["dtStart"]
+            
+            #line default
+            #line hidden
+, 1465), false)
+);
+
 WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
 
 WriteLiteral(" class=\"form-control form_datetime\"");
 
-WriteLiteral(" />\r\n                </div>\r\n                <div");
+WriteLiteral(" />\r\n                    </div>\r\n                </div>\r\n                <div");
 
 WriteLiteral(" class=\"form-group\"");
 
@@ -208,7 +230,19 @@ WriteLiteral(" for=\"dtEnd\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">至</label>\r\n                    <input");
+WriteLiteral(">至</label>\r\n                    <div");
+
+WriteLiteral(" class=\"input-group\"");
+
+WriteLiteral(">\r\n                        <span");
+
+WriteLiteral(" class=\"input-group-addon\"");
+
+WriteLiteral("><i");
+
+WriteLiteral(" class=\"fa fa-calendar\"");
+
+WriteLiteral("></i></span>\r\n                        <input");
 
 WriteLiteral(" name=\"dtEnd\"");
 
@@ -216,11 +250,21 @@ WriteLiteral(" type=\"date\"");
 
 WriteLiteral(" id=\"dtEnd\"");
 
+WriteAttribute("value", Tuple.Create(" value=\"", 1923), Tuple.Create("\"", 1948)
+            
+            #line 35 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 1931), Tuple.Create<System.Object, System.Int32>(Request["dtEnd"]
+            
+            #line default
+            #line hidden
+, 1931), false)
+);
+
 WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
 
 WriteLiteral(" class=\"form-control form_datetime\"");
 
-WriteLiteral(" />\r\n                </div>\r\n                <div");
+WriteLiteral(" />\r\n                    </div>\r\n                </div>\r\n                <div");
 
 WriteLiteral(" class=\"input-group\"");
 
@@ -240,14 +284,14 @@ WriteLiteral(" type=\"search\"");
 
 WriteLiteral(" id=\"q\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1907), Tuple.Create("\"", 1928)
+WriteAttribute("value", Tuple.Create(" value=\"", 2309), Tuple.Create("\"", 2330)
             
-            #line 36 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 1915), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            #line 42 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 2317), Tuple.Create<System.Object, System.Int32>(Request["q"]
             
             #line default
             #line hidden
-, 1915), false)
+, 2317), false)
 );
 
 WriteLiteral(" class=\"form-control\"");
