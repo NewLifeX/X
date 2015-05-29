@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using XCode.DataAccessLayer;
+using System.Linq;
 
 namespace XCode.Configuration
 {
@@ -355,6 +356,16 @@ namespace XCode.Configuration
                 list.Add(str);
             }
             if (list.Count <= 0) return new Expression();
+
+            // 特殊处理枚举全选，如果全选了枚举的所有项，则跳过当前条件构造
+            if (vs[0].GetType().IsEnum)
+            {
+                var es = Enum.GetValues(vs[0].GetType());
+                if (es.Length == vs.Count)
+                {
+                    if (vs.SequenceEqual(es.Cast<Object>())) return new Expression();
+                }
+            }
 
             // 如果In操作且只有一项，修改为等于
             if (list.Count == 1) return CreateFieldExpression(this, flag ? "=" : "<>", vs[0]);
