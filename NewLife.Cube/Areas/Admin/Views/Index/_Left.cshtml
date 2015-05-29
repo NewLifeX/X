@@ -31,7 +31,7 @@
             <b class="arrow"></b>
 
             <ul class="submenu">
-                @foreach (IMenu menu2 in menu.Childs.Where(m => m.Visible))
+                @foreach (IMenu menu2 in fact.GetMySubMenus(menu.ID).Where(m => m.Visible))
                 {
                     <li>
                         @if (menu2.Childs.Count > 0)
@@ -51,7 +51,7 @@
 
                         <b class="arrow"></b>
                         <ul class="submenu">
-                            @foreach (IMenu menu3 in menu2.Childs.Where(m => m.Visible))
+                            @foreach (IMenu menu3 in fact.GetMySubMenus(menu2.ID).Where(m => m.Visible))
                             {
                                 <li>
                                     <a href="@Url.Content(menu3.Url)" target="main">

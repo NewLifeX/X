@@ -156,7 +156,7 @@ WriteLiteral(">\r\n");
             #line hidden
             
             #line 34 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-                 foreach (IMenu menu2 in menu.Childs.Where(m => m.Visible))
+                 foreach (IMenu menu2 in fact.GetMySubMenus(menu.ID).Where(m => m.Visible))
                 {
 
             
@@ -212,14 +212,14 @@ WriteLiteral("\r\n                            </a>\r\n");
             #line hidden
 WriteLiteral("                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1718), Tuple.Create("\"", 1748)
+WriteAttribute("href", Tuple.Create(" href=\"", 1734), Tuple.Create("\"", 1764)
             
             #line 46 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create("", 1725), Tuple.Create<System.Object, System.Int32>(Url.Content(menu2.Url)
+, Tuple.Create(Tuple.Create("", 1741), Tuple.Create<System.Object, System.Int32>(Url.Content(menu2.Url)
             
             #line default
             #line hidden
-, 1725), false)
+, 1741), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -266,7 +266,7 @@ WriteLiteral(">\r\n");
             #line hidden
             
             #line 54 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-                             foreach (IMenu menu3 in menu2.Childs.Where(m => m.Visible))
+                             foreach (IMenu menu3 in fact.GetMySubMenus(menu2.ID).Where(m => m.Visible))
                             {
 
             
@@ -274,14 +274,14 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                                <li>\r\n                                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2248), Tuple.Create("\"", 2278)
+WriteAttribute("href", Tuple.Create(" href=\"", 2280), Tuple.Create("\"", 2310)
             
             #line 57 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create("", 2255), Tuple.Create<System.Object, System.Int32>(Url.Content(menu3.Url)
+, Tuple.Create(Tuple.Create("", 2287), Tuple.Create<System.Object, System.Int32>(Url.Content(menu3.Url)
             
             #line default
             #line hidden
-, 2255), false)
+, 2287), false)
 );
 
 WriteLiteral(" target=\"main\"");
