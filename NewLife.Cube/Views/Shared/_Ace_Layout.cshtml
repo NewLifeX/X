@@ -101,11 +101,18 @@
                 var df = $(this).attr('dateformat');
                 if (!df) {
                     $(this).attr('dateformat', 'yyyy-mm-dd hh:ii:ss');
+                    $(this).width(140);
                 }
                 else {
                     // 把C#标准格式化替换为控件格式
                     df = df.replace('mm', 'ii').replace('MM', 'mm').replace('HH', 'hh');
                     $(this).attr('dateformat', df);
+
+                    // 根据时间日期格式，锁定日期输入框宽度
+                    if (df.indexOf('hh') >= 0)
+                        $(this).width(140);
+                    else
+                        $(this).width(80);
                 }
             });
             $("[dateformat]").each(function () {
