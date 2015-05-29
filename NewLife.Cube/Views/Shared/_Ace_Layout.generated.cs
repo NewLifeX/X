@@ -426,23 +426,25 @@ WriteLiteral("></script>\r\n    <script>\r\n        //$(function () {\r\n       
 "ox-input form-control text-center\');\r\n                $(this).ace_spinner({ on_s" +
 "ides: true, icon_up: \'ace-icon fa fa-plus bigger-110\', icon_down: \'ace-icon fa f" +
 "a-minus bigger-110\', btn_up_class: \'btn-success\', btn_down_class: \'btn-danger\' }" +
-");\r\n            });\r\n            $(\'.multiselect\').multiselect({\r\n              " +
-"  enableFiltering: $(this).ops > 10,\r\n                buttonClass: \'btn btn-whit" +
-"e btn-primary\',\r\n                templates: {\r\n                    button: \'<but" +
-"ton type=\"button\" class=\"multiselect dropdown-toggle\" data-toggle=\"dropdown\"></b" +
-"utton>\',\r\n                    ul: \'<ul class=\"multiselect-container dropdown-men" +
-"u\"></ul>\',\r\n                    filter: \'<li class=\"multiselect-item filter\"><di" +
-"v class=\"input-group\"><span class=\"input-group-addon\"><i class=\"fa fa-search\"></" +
-"i></span><input class=\"form-control multiselect-search\" type=\"text\"></div></li>\'" +
-",\r\n                    filterClearBtn: \'<span class=\"input-group-btn\"><button cl" +
-"ass=\"btn btn-default btn-white btn-grey multiselect-clear-filter\" type=\"button\">" +
-"<i class=\"fa fa-times-circle red2\"></i></button></span>\',\r\n                    l" +
-"i: \'<li><a href=\"javascript:void(0);\"><label></label></a></li>\',\r\n              " +
-"      divider: \'<li class=\"multiselect-item divider\"></li>\',\r\n                  " +
-"  liGroup: \'<li class=\"multiselect-item group\"><label class=\"multiselect-group\">" +
-"</label></li>\'\r\n                },\r\n                filterPlaceholder: \'搜索\',\r\n  " +
-"              nonSelectedText: \'无\',\r\n                allSelectedText: \'全选\'\r\n    " +
-"        });\r\n            ");
+");\r\n            });\r\n            $(\'.multiselect\').each(function () {\r\n         " +
+"       $(this).multiselect({\r\n                    // 下拉列表仅在列表项比较多时显示过滤框\r\n       " +
+"             enableFiltering: $(this).children().length > 10,\r\n                 " +
+"   buttonClass: \'btn btn-white btn-primary\',\r\n                    templates: {\r\n" +
+"                        button: \'<button type=\"button\" class=\"multiselect dropdo" +
+"wn-toggle\" data-toggle=\"dropdown\"></button>\',\r\n                        ul: \'<ul " +
+"class=\"multiselect-container dropdown-menu\"></ul>\',\r\n                        fil" +
+"ter: \'<li class=\"multiselect-item filter\"><div class=\"input-group\"><span class=\"" +
+"input-group-addon\"><i class=\"fa fa-search\"></i></span><input class=\"form-control" +
+" multiselect-search\" type=\"text\"></div></li>\',\r\n                        filterCl" +
+"earBtn: \'<span class=\"input-group-btn\"><button class=\"btn btn-default btn-white " +
+"btn-grey multiselect-clear-filter\" type=\"button\"><i class=\"fa fa-times-circle re" +
+"d2\"></i></button></span>\',\r\n                        li: \'<li><a href=\"javascript" +
+":void(0);\"><label></label></a></li>\',\r\n                        divider: \'<li cla" +
+"ss=\"multiselect-item divider\"></li>\',\r\n                        liGroup: \'<li cla" +
+"ss=\"multiselect-item group\"><label class=\"multiselect-group\"></label></li>\'\r\n   " +
+"                 },\r\n                    filterPlaceholder: \'搜索\',\r\n             " +
+"       nonSelectedText: \'无\',\r\n                    allSelectedText: \'全选\'\r\n       " +
+"         });\r\n            })\r\n            ");
 
 WriteLiteral(@"
             $('tr').dblclick(function () {
@@ -460,9 +462,9 @@ WriteLiteral(@"
 
 WriteLiteral("\r\n\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7388), Tuple.Create("\"", 7432)
-, Tuple.Create(Tuple.Create("", 7394), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
-, 7394), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7565), Tuple.Create("\"", 7609)
+, Tuple.Create(Tuple.Create("", 7571), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
+, 7571), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");
