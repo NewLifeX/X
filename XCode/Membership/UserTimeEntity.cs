@@ -70,6 +70,7 @@ namespace XCode.Membership
         private IManageUser _CreateUser;
         /// <summary>创建人</summary>
         [DisplayName("创建人")]
+        [BindRelation("CreateUserID", false, "User", "ID")]
         public IManageUser CreateUser
         {
             get
@@ -92,6 +93,7 @@ namespace XCode.Membership
         private IManageUser _UpdateUser;
         /// <summary>更新人</summary>
         [DisplayName("更新人")]
+        [BindRelation("UpdateUserID", false, "User", "ID")]
         public IManageUser UpdateUser
         {
             get

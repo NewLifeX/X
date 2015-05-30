@@ -217,8 +217,9 @@ namespace XCode
         private static Type GetTypeInternal(String typeName)
         {
             var type = typeName.GetTypeEx(true);
-            if (type != null) return type;
+            if (type != null && typeof(IEntity).IsAssignableFrom(type)) return type;
 
+            type = null;
             var entities = LoadEntities();
             if (entities == null || entities.Count <= 0) return null;
 
