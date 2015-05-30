@@ -106,11 +106,9 @@ WriteLiteral(" href=\"#\"");
 
 WriteLiteral(" class=\"navbar-brand\"");
 
-WriteLiteral(">\r\n                <small>\r\n                    <i");
+WriteLiteral(">\r\n                <small>\r\n                    ");
 
-WriteLiteral(" class=\"fa fa-leaf\"");
-
-WriteLiteral("></i>\r\n");
+WriteLiteral("\r\n");
 
 WriteLiteral("                    ");
 
@@ -132,608 +130,10 @@ WriteLiteral(">\r\n            <ul");
 
 WriteLiteral(" class=\"nav ace-nav\"");
 
-WriteLiteral(">\r\n                <li");
+WriteLiteral(">\r\n                ");
 
-WriteLiteral(" class=\"grey\"");
-
-WriteLiteral(">\r\n                    <a");
-
-WriteLiteral(" data-toggle=\"dropdown\"");
-
-WriteLiteral(" class=\"dropdown-toggle\"");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-tasks\"");
-
-WriteLiteral("></i>\r\n                        <span");
-
-WriteLiteral(" class=\"badge badge-grey\"");
-
-WriteLiteral(">4</span>\r\n                    </a>\r\n\r\n                    <ul");
-
-WriteLiteral(" class=\"dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown" +
-"-close\"");
-
-WriteLiteral(">\r\n                        <li");
-
-WriteLiteral(" class=\"dropdown-header\"");
-
-WriteLiteral(">\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-check\"");
-
-WriteLiteral("></i>\r\n                            4个任务待完成\r\n                        </li>\r\n\r\n    " +
-"                    <li");
-
-WriteLiteral(" class=\"dropdown-content\"");
-
-WriteLiteral(">\r\n                            <ul");
-
-WriteLiteral(" class=\"dropdown-menu dropdown-navbar\"");
-
-WriteLiteral(">\r\n                                <li>\r\n                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                        <div");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-left\"");
-
-WriteLiteral(">Software Update</span>\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-right\"");
-
-WriteLiteral(">65%</span>\r\n                                        </div>\r\n\r\n                  " +
-"                      <div");
-
-WriteLiteral(" class=\"progress progress-mini\"");
-
-WriteLiteral(">\r\n                                            <div");
-
-WriteLiteral(" style=\"width: 65%\"");
-
-WriteLiteral(" class=\"progress-bar\"");
-
-WriteLiteral("></div>\r\n                                        </div>\r\n                        " +
-"            </a>\r\n                                </li>\r\n\r\n                     " +
-"           <li>\r\n                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                        <div");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-left\"");
-
-WriteLiteral(">Hardware Upgrade</span>\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-right\"");
-
-WriteLiteral(">35%</span>\r\n                                        </div>\r\n\r\n                  " +
-"                      <div");
-
-WriteLiteral(" class=\"progress progress-mini\"");
-
-WriteLiteral(">\r\n                                            <div");
-
-WriteLiteral(" style=\"width: 35%\"");
-
-WriteLiteral(" class=\"progress-bar progress-bar-danger\"");
-
-WriteLiteral("></div>\r\n                                        </div>\r\n                        " +
-"            </a>\r\n                                </li>\r\n\r\n                     " +
-"           <li>\r\n                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                        <div");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-left\"");
-
-WriteLiteral(">Unit Testing</span>\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-right\"");
-
-WriteLiteral(">15%</span>\r\n                                        </div>\r\n\r\n                  " +
-"                      <div");
-
-WriteLiteral(" class=\"progress progress-mini\"");
-
-WriteLiteral(">\r\n                                            <div");
-
-WriteLiteral(" style=\"width: 15%\"");
-
-WriteLiteral(" class=\"progress-bar progress-bar-warning\"");
-
-WriteLiteral("></div>\r\n                                        </div>\r\n                        " +
-"            </a>\r\n                                </li>\r\n\r\n                     " +
-"           <li>\r\n                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                        <div");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-left\"");
-
-WriteLiteral(">Bug Fixes</span>\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-right\"");
-
-WriteLiteral(">90%</span>\r\n                                        </div>\r\n\r\n                  " +
-"                      <div");
-
-WriteLiteral(" class=\"progress progress-mini progress-striped active\"");
-
-WriteLiteral(">\r\n                                            <div");
-
-WriteLiteral(" style=\"width: 90%\"");
-
-WriteLiteral(" class=\"progress-bar progress-bar-success\"");
-
-WriteLiteral("></div>\r\n                                        </div>\r\n                        " +
-"            </a>\r\n                                </li>\r\n                       " +
-"     </ul>\r\n                        </li>\r\n\r\n                        <li");
-
-WriteLiteral(" class=\"dropdown-footer\"");
-
-WriteLiteral(">\r\n                            <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                查看任务明细\r\n                                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-arrow-right\"");
-
-WriteLiteral("></i>\r\n                            </a>\r\n                        </li>\r\n         " +
-"           </ul>\r\n                </li>\r\n\r\n                <li");
-
-WriteLiteral(" class=\"purple\"");
-
-WriteLiteral(">\r\n                    <a");
-
-WriteLiteral(" data-toggle=\"dropdown\"");
-
-WriteLiteral(" class=\"dropdown-toggle\"");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-bell icon-animated-bell\"");
-
-WriteLiteral("></i>\r\n                        <span");
-
-WriteLiteral(" class=\"badge badge-important\"");
-
-WriteLiteral(">8</span>\r\n                    </a>\r\n\r\n                    <ul");
-
-WriteLiteral(" class=\"dropdown-menu-right dropdown-navbar navbar-pink dropdown-menu dropdown-ca" +
-"ret dropdown-close\"");
-
-WriteLiteral(">\r\n                        <li");
-
-WriteLiteral(" class=\"dropdown-header\"");
-
-WriteLiteral(">\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-exclamation-triangle\"");
-
-WriteLiteral("></i>\r\n                            8 个通知\r\n                        </li>\r\n\r\n      " +
-"                  <li");
-
-WriteLiteral(" class=\"dropdown-content\"");
-
-WriteLiteral(">\r\n                            <ul");
-
-WriteLiteral(" class=\"dropdown-menu dropdown-navbar navbar-pink\"");
-
-WriteLiteral(">\r\n                                <li>\r\n                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                        <div");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-left\"");
-
-WriteLiteral(">\r\n                                                <i");
-
-WriteLiteral(" class=\"btn btn-xs no-hover btn-pink fa fa-comment\"");
-
-WriteLiteral("></i>\r\n                                                New Comments\r\n            " +
-"                                </span>\r\n                                       " +
-"     <span");
-
-WriteLiteral(" class=\"pull-right badge badge-info\"");
-
-WriteLiteral(">+12</span>\r\n                                        </div>\r\n                    " +
-"                </a>\r\n                                </li>\r\n\r\n                 " +
-"               <li>\r\n                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                        <i");
-
-WriteLiteral(" class=\"btn btn-xs btn-primary fa fa-user\"");
-
-WriteLiteral("></i>\r\n                                        Bob just signed up as an editor .." +
-".\r\n                                    </a>\r\n                                </l" +
-"i>\r\n\r\n                                <li>\r\n                                    " +
-"<a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                        <div");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-left\"");
-
-WriteLiteral(">\r\n                                                <i");
-
-WriteLiteral(" class=\"btn btn-xs no-hover btn-success fa fa-shopping-cart\"");
-
-WriteLiteral("></i>\r\n                                                New Orders\r\n              " +
-"                              </span>\r\n                                         " +
-"   <span");
-
-WriteLiteral(" class=\"pull-right badge badge-success\"");
-
-WriteLiteral(">+8</span>\r\n                                        </div>\r\n                     " +
-"               </a>\r\n                                </li>\r\n\r\n                  " +
-"              <li>\r\n                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                        <div");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"pull-left\"");
-
-WriteLiteral(">\r\n                                                <i");
-
-WriteLiteral(" class=\"btn btn-xs no-hover btn-info fa fa-twitter\"");
-
-WriteLiteral("></i>\r\n                                                Followers\r\n               " +
-"                             </span>\r\n                                          " +
-"  <span");
-
-WriteLiteral(" class=\"pull-right badge badge-info\"");
-
-WriteLiteral(">+11</span>\r\n                                        </div>\r\n                    " +
-"                </a>\r\n                                </li>\r\n                   " +
-"         </ul>\r\n                        </li>\r\n\r\n                        <li");
-
-WriteLiteral(" class=\"dropdown-footer\"");
-
-WriteLiteral(">\r\n                            <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                                查看所有通知\r\n                                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-arrow-right\"");
-
-WriteLiteral("></i>\r\n                            </a>\r\n                        </li>\r\n         " +
-"           </ul>\r\n                </li>\r\n\r\n                <li");
-
-WriteLiteral(" class=\"green\"");
-
-WriteLiteral(">\r\n                    <a");
-
-WriteLiteral(" data-toggle=\"dropdown\"");
-
-WriteLiteral(" class=\"dropdown-toggle\"");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-envelope icon-animated-vertical\"");
-
-WriteLiteral("></i>\r\n                        <span");
-
-WriteLiteral(" class=\"badge badge-success\"");
-
-WriteLiteral(">5</span>\r\n                    </a>\r\n\r\n                    <ul");
-
-WriteLiteral(" class=\"dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown" +
-"-close\"");
-
-WriteLiteral(">\r\n                        <li");
-
-WriteLiteral(" class=\"dropdown-header\"");
-
-WriteLiteral(">\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-envelope-o\"");
-
-WriteLiteral("></i>\r\n                            5 个消息\r\n                        </li>\r\n\r\n      " +
-"                  <li");
-
-WriteLiteral(" class=\"dropdown-content\"");
-
-WriteLiteral(">\r\n                            <ul");
-
-WriteLiteral(" class=\"dropdown-menu dropdown-navbar\"");
-
-WriteLiteral(">\r\n                                <li>\r\n                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                        <img");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 9593), Tuple.Create("\"", 9631)
-, Tuple.Create(Tuple.Create("", 9599), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/avatars/avatar.png")
-, 9599), false)
-);
-
-WriteLiteral(" class=\"msg-photo\"");
-
-WriteLiteral(" alt=\"Alex\'s Avatar\"");
-
-WriteLiteral(" />\r\n                                        <span");
-
-WriteLiteral(" class=\"msg-body\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"msg-title\"");
-
-WriteLiteral(">\r\n                                                <span");
-
-WriteLiteral(" class=\"blue\"");
-
-WriteLiteral(">Alex:</span>\r\n                                                Ciao sociis natoqu" +
-"e penatibus et auctor ...\r\n                                            </span>\r\n" +
-"\r\n                                            <span");
-
-WriteLiteral(" class=\"msg-time\"");
-
-WriteLiteral(">\r\n                                                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-clock-o\"");
-
-WriteLiteral(@"></i>
-                                                <span>a moment ago</span>
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-
-                                <li>
-                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                        <img");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 10605), Tuple.Create("\"", 10644)
-, Tuple.Create(Tuple.Create("", 10611), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/avatars/avatar3.png")
-, 10611), false)
-);
-
-WriteLiteral(" class=\"msg-photo\"");
-
-WriteLiteral(" alt=\"Susan\'s Avatar\"");
-
-WriteLiteral(" />\r\n                                        <span");
-
-WriteLiteral(" class=\"msg-body\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"msg-title\"");
-
-WriteLiteral(">\r\n                                                <span");
-
-WriteLiteral(" class=\"blue\"");
-
-WriteLiteral(">Susan:</span>\r\n                                                Vestibulum id lig" +
-"ula porta felis euismod ...\r\n                                            </span>" +
-"\r\n\r\n                                            <span");
-
-WriteLiteral(" class=\"msg-time\"");
-
-WriteLiteral(">\r\n                                                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-clock-o\"");
-
-WriteLiteral(@"></i>
-                                                <span>20 minutes ago</span>
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-
-                                <li>
-                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                        <img");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 11623), Tuple.Create("\"", 11662)
-, Tuple.Create(Tuple.Create("", 11629), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/avatars/avatar4.png")
-, 11629), false)
-);
-
-WriteLiteral(" class=\"msg-photo\"");
-
-WriteLiteral(" alt=\"Bob\'s Avatar\"");
-
-WriteLiteral(" />\r\n                                        <span");
-
-WriteLiteral(" class=\"msg-body\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"msg-title\"");
-
-WriteLiteral(">\r\n                                                <span");
-
-WriteLiteral(" class=\"blue\"");
-
-WriteLiteral(">Bob:</span>\r\n                                                Nullam quis risus e" +
-"get urna mollis ornare ...\r\n                                            </span>\r" +
-"\n\r\n                                            <span");
-
-WriteLiteral(" class=\"msg-time\"");
-
-WriteLiteral(">\r\n                                                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-clock-o\"");
-
-WriteLiteral(@"></i>
-                                                <span>3:15 pm</span>
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-
-                                <li>
-                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                        <img");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 12631), Tuple.Create("\"", 12670)
-, Tuple.Create(Tuple.Create("", 12637), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/avatars/avatar2.png")
-, 12637), false)
-);
-
-WriteLiteral(" class=\"msg-photo\"");
-
-WriteLiteral(" alt=\"Kate\'s Avatar\"");
-
-WriteLiteral(" />\r\n                                        <span");
-
-WriteLiteral(" class=\"msg-body\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"msg-title\"");
-
-WriteLiteral(">\r\n                                                <span");
-
-WriteLiteral(" class=\"blue\"");
-
-WriteLiteral(">Kate:</span>\r\n                                                Ciao sociis natoqu" +
-"e eget urna mollis ornare ...\r\n                                            </spa" +
-"n>\r\n\r\n                                            <span");
-
-WriteLiteral(" class=\"msg-time\"");
-
-WriteLiteral(">\r\n                                                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-clock-o\"");
-
-WriteLiteral(@"></i>
-                                                <span>1:33 pm</span>
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-
-                                <li>
-                                    <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                                        <img");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 13643), Tuple.Create("\"", 13682)
-, Tuple.Create(Tuple.Create("", 13649), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/avatars/avatar5.png")
-, 13649), false)
-);
-
-WriteLiteral(" class=\"msg-photo\"");
-
-WriteLiteral(" alt=\"Fred\'s Avatar\"");
-
-WriteLiteral(" />\r\n                                        <span");
-
-WriteLiteral(" class=\"msg-body\"");
-
-WriteLiteral(">\r\n                                            <span");
-
-WriteLiteral(" class=\"msg-title\"");
-
-WriteLiteral(">\r\n                                                <span");
-
-WriteLiteral(" class=\"blue\"");
-
-WriteLiteral(">Fred:</span>\r\n                                                Vestibulum id pena" +
-"tibus et auctor  ...\r\n                                            </span>\r\n\r\n   " +
-"                                         <span");
-
-WriteLiteral(" class=\"msg-time\"");
-
-WriteLiteral(">\r\n                                                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-clock-o\"");
-
-WriteLiteral(@"></i>
-                                                <span>10:09 am</span>
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <li");
-
-WriteLiteral(" class=\"dropdown-footer\"");
-
-WriteLiteral(">\r\n                            <a");
-
-WriteLiteral(" href=\"inbox.html\"");
-
-WriteLiteral(">\r\n                                查看所有消息\r\n                                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-arrow-right\"");
-
-WriteLiteral("></i>\r\n                            </a>\r\n                        </li>\r\n         " +
-"           </ul>\r\n                </li>\r\n\r\n                <!-- #section:basics/" +
-"navbar.user_menu -->\r\n                <li");
+WriteLiteral("\r\n\r\n                <!-- #section:basics/navbar.user_menu -->\r\n                <l" +
+"i");
 
 WriteLiteral(" class=\"light-blue\"");
 
@@ -741,46 +141,31 @@ WriteLiteral(">\r\n                    <a");
 
 WriteLiteral(" data-toggle=\"dropdown\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 15047), Tuple.Create("\"", 15080)
-, Tuple.Create(Tuple.Create("", 15054), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
-, 15054), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 15055), Tuple.Create("\"", 15088)
+, Tuple.Create(Tuple.Create("", 15062), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
+, 15062), false)
             
             #line 294 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-, Tuple.Create(Tuple.Create("", 15072), Tuple.Create<System.Object, System.Int32>(User.ID
+, Tuple.Create(Tuple.Create("", 15080), Tuple.Create<System.Object, System.Int32>(User.ID
             
             #line default
             #line hidden
-, 15072), false)
+, 15080), false)
 );
 
 WriteLiteral(" class=\"dropdown-toggle\"");
 
 WriteLiteral(" target=\"main\"");
 
-WriteLiteral(">\r\n                        <img");
+WriteLiteral(">\r\n                        ");
 
-WriteLiteral(" class=\"nav-user-photo\"");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 15173), Tuple.Create("\"", 15209)
-, Tuple.Create(Tuple.Create("", 15179), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/avatars/user.jpg")
-, 15179), false)
-);
-
-WriteAttribute("alt", Tuple.Create(" alt=\"", 15210), Tuple.Create("\"", 15232)
-            
-            #line 295 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-             , Tuple.Create(Tuple.Create("", 15216), Tuple.Create<System.Object, System.Int32>(User.FriendName
-            
-            #line default
-            #line hidden
-, 15216), false)
-);
-
-WriteLiteral(" />\r\n                        <span");
+WriteLiteral("\r\n                        <span");
 
 WriteLiteral(" class=\"user-info\"");
 
-WriteLiteral(">\r\n                            <small>欢迎，</small>\r\n");
+WriteLiteral(">\r\n                            ");
+
+WriteLiteral("\r\n");
 
 WriteLiteral("                            ");
 
@@ -791,16 +176,9 @@ WriteLiteral("                            ");
             
             #line default
             #line hidden
-WriteLiteral(" [");
+WriteLiteral(" ");
 
-            
-            #line 298 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-                              Write(User["RoleName"]);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("]\r\n                        </span>\r\n\r\n                        <i");
+WriteLiteral("\r\n                        </span>\r\n\r\n                        <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-caret-down\"");
 
@@ -811,9 +189,9 @@ WriteLiteral(" class=\"user-menu dropdown-menu-right dropdown-menu dropdown-yell
 
 WriteLiteral(">\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 15705), Tuple.Create("\"", 15714)
-, Tuple.Create(Tuple.Create("", 15712), Tuple.Create<System.Object, System.Int32>(Href("~/")
-, 15712), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 15725), Tuple.Create("\"", 15734)
+, Tuple.Create(Tuple.Create("", 15732), Tuple.Create<System.Object, System.Int32>(Href("~/")
+, 15732), false)
 );
 
 WriteLiteral(" target=\"_blank\"");
@@ -841,9 +219,9 @@ WriteLiteral("></i>\r\n                                网站首页\r\n         
             #line hidden
 WriteLiteral("                            <li>\r\n                                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 16094), Tuple.Create("\"", 16112)
-, Tuple.Create(Tuple.Create("", 16101), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/Sys")
-, 16101), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 16114), Tuple.Create("\"", 16132)
+, Tuple.Create(Tuple.Create("", 16121), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/Sys")
+, 16121), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -864,16 +242,16 @@ WriteLiteral("></i>\r\n                                    设置\r\n           
             #line hidden
 WriteLiteral("\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 16404), Tuple.Create("\"", 16437)
-, Tuple.Create(Tuple.Create("", 16411), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
-, 16411), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 16424), Tuple.Create("\"", 16457)
+, Tuple.Create(Tuple.Create("", 16431), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
+, 16431), false)
             
             #line 323 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-, Tuple.Create(Tuple.Create("", 16429), Tuple.Create<System.Object, System.Int32>(User.ID
+, Tuple.Create(Tuple.Create("", 16449), Tuple.Create<System.Object, System.Int32>(User.ID
             
             #line default
             #line hidden
-, 16429), false)
+, 16449), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -889,9 +267,9 @@ WriteLiteral(" class=\"divider\"");
 
 WriteLiteral("></li>\r\n\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 16742), Tuple.Create("\"", 16768)
-, Tuple.Create(Tuple.Create("", 16749), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
-, 16749), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 16762), Tuple.Create("\"", 16788)
+, Tuple.Create(Tuple.Create("", 16769), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
+, 16769), false)
 );
 
 WriteLiteral(">\r\n                                <i");

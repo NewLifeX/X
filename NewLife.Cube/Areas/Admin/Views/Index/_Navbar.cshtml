@@ -25,7 +25,7 @@
             <!-- #section:basics/navbar.layout.brand -->
             <a href="#" class="navbar-brand">
                 <small>
-                    <i class="fa fa-leaf"></i>
+                    @*<i class="fa fa-leaf"></i>*@
                     @Config.DisplayName
                 </small>
             </a>
@@ -34,7 +34,7 @@
         <!-- #section:basics/navbar.dropdown -->
         <div class="navbar-buttons navbar-header pull-right" role="navigation">
             <ul class="nav ace-nav">
-                <li class="grey">
+                @*<li class="grey">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                         <i class="ace-icon fa fa-tasks"></i>
                         <span class="badge badge-grey">4</span>
@@ -287,15 +287,15 @@
                             </a>
                         </li>
                     </ul>
-                </li>
+                </li>*@
 
                 <!-- #section:basics/navbar.user_menu -->
                 <li class="light-blue">
                     <a data-toggle="dropdown" href="~/Admin/User/Info/@User.ID" class="dropdown-toggle" target="main">
-                        <img class="nav-user-photo" src="~/Content/ace/avatars/user.jpg" alt="@User.FriendName" />
+                        @*<img class="nav-user-photo" src="~/Content/ace/avatars/user.jpg" alt="@User.FriendName" />*@
                         <span class="user-info">
-                            <small>欢迎，</small>
-                            @User [@User["RoleName"]]
+                            @*<small>欢迎，</small>*@
+                            @User @*[@User["RoleName"]]*@
                         </span>
 
                         <i class="ace-icon fa fa-caret-down"></i>
