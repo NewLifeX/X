@@ -8,7 +8,35 @@ namespace NewLife.Data
         #region 核心属性
         private String _Sort;
         /// <summary>排序字段</summary>
-        public virtual String Sort { get { return _Sort; } set { _Sort = value; } }
+        public virtual String Sort
+        {
+            get { return _Sort; }
+            set
+            {
+                _Sort = value;
+
+                // 自动识别带有Asc/Desc的排序
+                if (!_Sort.IsNullOrEmpty())
+                {
+                    _Sort = _Sort.Trim();
+                    var p = _Sort.LastIndexOf(" ");
+                    if (p > 0)
+                    {
+                        var dir = _Sort.Substring(p + 1);
+                        if (dir.EqualIgnoreCase("asc"))
+                        {
+                            Desc = false;
+                            _Sort = _Sort.Substring(0, p).Trim();
+                        }
+                        else if (dir.EqualIgnoreCase("desc"))
+                        {
+                            Desc = false;
+                            _Sort = _Sort.Substring(0, p).Trim();
+                        }
+                    }
+                }
+            }
+        }
 
         private Boolean _Desc;
         /// <summary>是否降序</summary>
