@@ -124,7 +124,7 @@ namespace NewLife.Cube.Admin.Controllers
 
             if (id.Value != user.ID) throw new Exception("禁止修改非当前登录用户资料");
 
-            user = UserX.FindByID(id.Value);
+            user = UserX.FindByKeyForEdit(id.Value);
             if (user == null) throw new Exception("无效用户编号！");
 
             user.Password = null;
