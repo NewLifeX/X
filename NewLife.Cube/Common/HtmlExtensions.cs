@@ -280,7 +280,8 @@ namespace NewLife.Cube
         public static MvcHtmlString ForBoolean(this HtmlHelper Html, String name, Boolean value, Object htmlAttributes = null)
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
-            if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
+            // 因为得不到很好的样式支撑，暂时去掉CheckBox的Boostrap样式
+            //if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
             //var html="<div><label><input name=\"{0}\" value=\"{1}\" type=\"checkbox\" class=\"ace\"><span class=\"lbl\"> Latest news and announcements</span></label></div>";
             return Html.CheckBox(name, value, atts);
         }
@@ -334,8 +335,10 @@ namespace NewLife.Cube
             var des = field.Description.TrimStart(field.DisplayName).TrimStart("。");
             if (des.IsNullOrWhiteSpace()) return new MvcHtmlString(null);
 
-
-            return new MvcHtmlString("<span class=\"help-inline\"><span class=\"middle\">{0}</span></span>".F(des));
+            if (field.Type == typeof(Boolean))
+                return Html.Label(field.Name, des);
+            else
+                return new MvcHtmlString("<span class=\"help-inline\"><span class=\"middle\">{0}</span></span>".F(des));
         }
 
         /// <summary>输出描述</summary>
