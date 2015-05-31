@@ -675,38 +675,10 @@ WriteLiteral(" &copy; 2002-");
             
             #line default
             #line hidden
-WriteLiteral("\r\n                    </span>\r\n\r\n                    &nbsp; &nbsp;\r\n             " +
-"       <span");
+WriteLiteral("\r\n                    </span>\r\n\r\n                    ");
 
-WriteLiteral(" class=\"action-buttons\"");
-
-WriteLiteral(">\r\n                        <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-twitter-square light-blue bigger-150\"");
-
-WriteLiteral("></i>\r\n                        </a>\r\n\r\n                        <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-facebook-square text-primary bigger-150\"");
-
-WriteLiteral("></i>\r\n                        </a>\r\n\r\n                        <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-rss-square orange bigger-150\"");
-
-WriteLiteral("></i>\r\n                        </a>\r\n                    </span>\r\n               " +
-" </div>\r\n\r\n                <!-- /section:basics/footer -->\r\n            </div>\r\n" +
-"        </div>\r\n\r\n        <a");
+WriteLiteral("\r\n                </div>\r\n\r\n                <!-- /section:basics/footer -->\r\n    " +
+"        </div>\r\n        </div>\r\n\r\n        <a");
 
 WriteLiteral(" href=\"#\"");
 
@@ -721,37 +693,37 @@ WriteLiteral(" class=\"ace-icon fa fa-angle-double-up icon-only bigger-110\"");
 WriteLiteral("></i>\r\n        </a>\r\n    </div>\r\n    <!-- /.main-container -->\r\n    <!-- basic sc" +
 "ripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 11819), Tuple.Create("\"", 11864)
-, Tuple.Create(Tuple.Create("", 11825), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 11825), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 11823), Tuple.Create("\"", 11868)
+, Tuple.Create(Tuple.Create("", 11829), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 11829), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 11888), Tuple.Create("\"", 11930)
-, Tuple.Create(Tuple.Create("", 11894), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
-, 11894), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 11892), Tuple.Create("\"", 11934)
+, Tuple.Create(Tuple.Create("", 11898), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
+, 11898), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 11954), Tuple.Create("\"", 12001)
-, Tuple.Create(Tuple.Create("", 11960), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
-, 11960), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 11958), Tuple.Create("\"", 12005)
+, Tuple.Create(Tuple.Create("", 11964), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
+, 11964), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- ace scripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12053), Tuple.Create("\"", 12095)
-, Tuple.Create(Tuple.Create("", 12059), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
-, 12059), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12057), Tuple.Create("\"", 12099)
+, Tuple.Create(Tuple.Create("", 12063), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
+, 12063), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12119), Tuple.Create("\"", 12152)
-, Tuple.Create(Tuple.Create("", 12125), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
-, 12125), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12123), Tuple.Create("\"", 12156)
+, Tuple.Create(Tuple.Create("", 12129), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
+, 12129), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <script");

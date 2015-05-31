@@ -51,88 +51,85 @@ namespace ASP
             
             #line default
             #line hidden
-WriteLiteral("\r\n<i");
+WriteLiteral("\r\n<li>\r\n    <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-home home-icon\"");
 
 WriteLiteral("></i>\r\n");
 
             
-            #line 5 "..\..\Views\Shared\_Layout_Nav.cshtml"
- if (menu != null)
-{
-    foreach (IMenu item in menu.AllParents)
+            #line 6 "..\..\Views\Shared\_Layout_Nav.cshtml"
+    
+            
+            #line default
+            #line hidden
+            
+            #line 6 "..\..\Views\Shared\_Layout_Nav.cshtml"
+     if (menu != null)
     {
-        if (item.ID != 0)
+        foreach (IMenu item in menu.AllParents)
         {
+            if (item.ID != 0)
+            {
 
             
             #line default
             #line hidden
-WriteLiteral("            <a");
+WriteLiteral("                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 226), Tuple.Create("\"", 277)
+WriteAttribute("href", Tuple.Create(" href=\"", 264), Tuple.Create("\"", 315)
             
-            #line 11 "..\..\Views\Shared\_Layout_Nav.cshtml"
-, Tuple.Create(Tuple.Create("", 233), Tuple.Create<System.Object, System.Int32>(item.Url!=null? Url.Content(item.Url):"#"
+            #line 12 "..\..\Views\Shared\_Layout_Nav.cshtml"
+, Tuple.Create(Tuple.Create("", 271), Tuple.Create<System.Object, System.Int32>(item.Url!=null? Url.Content(item.Url):"#"
             
             #line default
             #line hidden
-, 233), false)
+, 271), false)
 );
-
-WriteLiteral(" class=\"h4\"");
 
 WriteLiteral(">");
 
             
-            #line 11 "..\..\Views\Shared\_Layout_Nav.cshtml"
-                                                                         Write(item.DisplayName);
+            #line 12 "..\..\Views\Shared\_Layout_Nav.cshtml"
+                                                                  Write(item.DisplayName);
 
             
             #line default
             #line hidden
 WriteLiteral("</a>\r\n");
 
-WriteLiteral("            ");
-
-WriteLiteral("&nbsp;/&nbsp;");
-
-WriteLiteral("\r\n");
-
             
             #line 13 "..\..\Views\Shared\_Layout_Nav.cshtml"
+
+            }
         }
     }
-}
 
             
             #line default
             #line hidden
-WriteLiteral("<a");
+WriteLiteral("</li>\r\n\r\n<li>\r\n    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 376), Tuple.Create("\"", 403)
+WriteAttribute("href", Tuple.Create(" href=\"", 396), Tuple.Create("\"", 423)
             
-            #line 16 "..\..\Views\Shared\_Layout_Nav.cshtml"
-, Tuple.Create(Tuple.Create("", 383), Tuple.Create<System.Object, System.Int32>(Url.Action("Index")
+            #line 20 "..\..\Views\Shared\_Layout_Nav.cshtml"
+, Tuple.Create(Tuple.Create("", 403), Tuple.Create<System.Object, System.Int32>(Url.Action("Index")
             
             #line default
             #line hidden
-, 383), false)
+, 403), false)
 );
 
-WriteLiteral(" class=\"h4\"");
-
-WriteLiteral("><strong>");
+WriteLiteral(">");
 
             
-            #line 16 "..\..\Views\Shared\_Layout_Nav.cshtml"
-                                              Write(menu != null ? menu.DisplayName : ViewBag.Title);
+            #line 20 "..\..\Views\Shared\_Layout_Nav.cshtml"
+                               Write(menu != null ? menu.DisplayName : ViewBag.Title);
 
             
             #line default
             #line hidden
-WriteLiteral("</strong></a>");
+WriteLiteral("</a>\r\n</li>\r\n");
 
         }
     }

@@ -3,17 +3,17 @@
 }
 <li>
     <i class="ace-icon fa fa-home home-icon"></i>
-@if (menu != null)
-{
-    foreach (IMenu item in menu.AllParents)
+    @if (menu != null)
     {
-        if (item.ID != 0)
+        foreach (IMenu item in menu.AllParents)
         {
-            <a href="@(item.Url!=null? Url.Content(item.Url):"#")" >@item.DisplayName</a>
+            if (item.ID != 0)
+            {
+                <a href="@(item.Url!=null? Url.Content(item.Url):"#")">@item.DisplayName</a>
 
+            }
         }
     }
-}
 </li>
 
 <li>
