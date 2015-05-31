@@ -30,7 +30,7 @@ namespace NewLife.Data
                         }
                         else if (dir.EqualIgnoreCase("desc"))
                         {
-                            Desc = false;
+                            Desc = true;
                             _Sort = _Sort.Substring(0, p).Trim();
                         }
                     }
