@@ -10,7 +10,6 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("高级设置")]
     public class SysController : ControllerBaseX
     {
-        //protected override void OnActionExecuting(ActionExecutingContext filterContext)
         /// <summary>系统设置</summary>
         /// <param name="config"></param>
         /// <returns></returns>
@@ -35,12 +34,5 @@ namespace NewLife.Cube.Admin.Controllers
 
             return View("SysConfig", config);
         }
-
-        //public ActionResult Index(SysConfig config)
-        //{
-        //    config.Save();
-
-        //    return View("SysConfig", config);
-        //}
     }
 }

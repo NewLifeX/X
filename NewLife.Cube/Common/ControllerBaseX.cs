@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Web.Mvc;
+using NewLife.Log;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -47,10 +48,12 @@ namespace NewLife.Cube
                         if ((Int32)att.Permission >= 0x10) pm = method.GetDisplayName() ?? method.Name;
 
                         // 指定了资源名称，也就是专有菜单
-                        var node = menu.Parent.FindByPath(name);
+                        var nodeName = method.Name;
+                        var node = menu.Parent.FindByPath(nodeName);
                         if (node == null)
                         {
-                            node = menu.Parent.Add(name, method.GetDisplayName(), menu.Url + "/" + name);
+                            XTrace.WriteLine("为控制器{0}添加独立菜单{1}[{2}]", type.FullName, nodeName, name);
+                            node = menu.Parent.Add(nodeName, method.GetDisplayName(), menu.Url + "/" + nodeName);
                         }
                         node.Permissions[(Int32)att.Permission] = pm;
                         node.Save();
