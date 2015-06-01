@@ -410,44 +410,44 @@ WriteLiteral("></script>\r\n    <script>\r\n        //$(function () {\r\n       
 "yy-MM-dd HH:mm:ss\');\r\n        //    }\r\n        //    if (!dt.data(\'click\')) {\r\n " +
 "       //        dt.click(function () { WdatePicker({ skin: \'whyGreen\', dateFmt:" +
 " dt.data(\'datd-date-format\') }); });\r\n        //    }\r\n        //});\r\n        $(" +
-"function () {\r\n            $(\'input[type=date]\').each(function () {\r\n           " +
-"     var df = $(this).attr(\'dateformat\');\r\n                if (!df) {\r\n         " +
-"           $(this).attr(\'dateformat\', \'yyyy-mm-dd hh:ii:ss\');\r\n                 " +
-"   $(this).width(140);\r\n                }\r\n                else {\r\n             " +
-"       // 把C#标准格式化替换为控件格式\r\n                    df = df.replace(\'mm\', \'ii\').repla" +
-"ce(\'MM\', \'mm\').replace(\'HH\', \'hh\');\r\n                    $(this).attr(\'dateforma" +
-"t\', df);\r\n\r\n                    // 根据时间日期格式，锁定日期输入框宽度\r\n                    if (d" +
-"f.indexOf(\'hh\') >= 0)\r\n                        $(this).width(140);\r\n            " +
-"        else\r\n                        $(this).width(80);\r\n                }\r\n   " +
-"         });\r\n            $(\"[dateformat]\").each(function () {\r\n                " +
-"$(this).datetimepicker({\r\n                    format: $(this).attr(\"dateformat\")" +
-",\r\n                    autoclose: true,\r\n                    language: \"zh-CN\",\r" +
-"\n                    forceParse: false,\r\n                    startView: 2,\r\n    " +
-"                minView: 2,\r\n                })\r\n                //console.trace" +
-"($(this));\r\n            })\r\n            $(\'input[role=number]\').each(function ()" +
-" {\r\n                $(this).removeAttr(\'class\');\r\n                $(this).addCla" +
-"ss(\'spinbox-input form-control text-center\');\r\n                $(this).ace_spinn" +
-"er({ on_sides: true, icon_up: \'ace-icon fa fa-plus bigger-110\', icon_down: \'ace-" +
-"icon fa fa-minus bigger-110\', btn_up_class: \'btn-success\', btn_down_class: \'btn-" +
-"danger\' });\r\n            });\r\n            $(\'.multiselect\').each(function () {\r\n" +
-"                $(this).multiselect({\r\n                    // 下拉列表仅在列表项比较多时显示过滤框" +
-"\r\n                    enableFiltering: $(this).children().length > 10,\r\n        " +
-"            buttonClass: \'btn btn-white btn-primary\',\r\n                    templ" +
-"ates: {\r\n                        button: \'<button type=\"button\" class=\"multisele" +
-"ct dropdown-toggle\" data-toggle=\"dropdown\"></button>\',\r\n                        " +
-"ul: \'<ul class=\"multiselect-container dropdown-menu\"></ul>\',\r\n                  " +
-"      filter: \'<li class=\"multiselect-item filter\"><div class=\"input-group\"><spa" +
-"n class=\"input-group-addon\"><i class=\"fa fa-search\"></i></span><input class=\"for" +
-"m-control multiselect-search\" type=\"text\"></div></li>\',\r\n                       " +
-" filterClearBtn: \'<span class=\"input-group-btn\"><button class=\"btn btn-default b" +
-"tn-white btn-grey multiselect-clear-filter\" type=\"button\"><i class=\"fa fa-times-" +
-"circle red2\"></i></button></span>\',\r\n                        li: \'<li><a href=\"j" +
-"avascript:void(0);\"><label></label></a></li>\',\r\n                        divider:" +
-" \'<li class=\"multiselect-item divider\"></li>\',\r\n                        liGroup:" +
-" \'<li class=\"multiselect-item group\"><label class=\"multiselect-group\"></label></" +
-"li>\'\r\n                    },\r\n                    filterPlaceholder: \'搜索\',\r\n    " +
-"                nonSelectedText: \'无\',\r\n                    allSelectedText: \'全选\'" +
-"\r\n                });\r\n            })\r\n            ");
+"function () {\r\n            $(\'.form_datetime\').each(function () {\r\n             " +
+"   var df = $(this).attr(\'dateformat\');\r\n                if (!df) {\r\n           " +
+"         $(this).attr(\'dateformat\', \'yyyy-mm-dd hh:ii:ss\');\r\n                   " +
+" $(this).width(140);\r\n                }\r\n                else {\r\n               " +
+"     // 把C#标准格式化替换为控件格式\r\n                    df = df.replace(\'mm\', \'ii\').replace" +
+"(\'MM\', \'mm\').replace(\'HH\', \'hh\');\r\n                    $(this).attr(\'dateformat\'" +
+", df);\r\n\r\n                    // 根据时间日期格式，锁定日期输入框宽度\r\n                    if (df." +
+"indexOf(\'hh\') >= 0)\r\n                        $(this).width(140);\r\n              " +
+"      else\r\n                        $(this).width(80);\r\n                }\r\n     " +
+"       });\r\n            $(\"[dateformat]\").each(function () {\r\n                $(" +
+"this).datetimepicker({\r\n                    format: $(this).attr(\"dateformat\"),\r" +
+"\n                    autoclose: true,\r\n                    language: \"zh-CN\",\r\n " +
+"                   forceParse: false,\r\n                    startView: 2,\r\n      " +
+"              minView: 2,\r\n                })\r\n                //console.trace($" +
+"(this));\r\n            })\r\n            $(\'input[role=number]\').each(function () {" +
+"\r\n                $(this).removeAttr(\'class\');\r\n                $(this).addClass" +
+"(\'spinbox-input form-control text-center\');\r\n                $(this).ace_spinner" +
+"({ on_sides: true, icon_up: \'ace-icon fa fa-plus bigger-110\', icon_down: \'ace-ic" +
+"on fa fa-minus bigger-110\', btn_up_class: \'btn-success\', btn_down_class: \'btn-da" +
+"nger\' });\r\n            });\r\n            $(\'.multiselect\').each(function () {\r\n  " +
+"              $(this).multiselect({\r\n                    // 下拉列表仅在列表项比较多时显示过滤框\r\n" +
+"                    enableFiltering: $(this).children().length > 10,\r\n          " +
+"          buttonClass: \'btn btn-white btn-primary\',\r\n                    templat" +
+"es: {\r\n                        button: \'<button type=\"button\" class=\"multiselect" +
+" dropdown-toggle\" data-toggle=\"dropdown\"></button>\',\r\n                        ul" +
+": \'<ul class=\"multiselect-container dropdown-menu\"></ul>\',\r\n                    " +
+"    filter: \'<li class=\"multiselect-item filter\"><div class=\"input-group\"><span " +
+"class=\"input-group-addon\"><i class=\"fa fa-search\"></i></span><input class=\"form-" +
+"control multiselect-search\" type=\"text\"></div></li>\',\r\n                        f" +
+"ilterClearBtn: \'<span class=\"input-group-btn\"><button class=\"btn btn-default btn" +
+"-white btn-grey multiselect-clear-filter\" type=\"button\"><i class=\"fa fa-times-ci" +
+"rcle red2\"></i></button></span>\',\r\n                        li: \'<li><a href=\"jav" +
+"ascript:void(0);\"><label></label></a></li>\',\r\n                        divider: \'" +
+"<li class=\"multiselect-item divider\"></li>\',\r\n                        liGroup: \'" +
+"<li class=\"multiselect-item group\"><label class=\"multiselect-group\"></label></li" +
+">\'\r\n                    },\r\n                    filterPlaceholder: \'搜索\',\r\n      " +
+"              nonSelectedText: \'无\',\r\n                    allSelectedText: \'全选\'\r\n" +
+"                });\r\n            })\r\n            ");
 
 WriteLiteral(@"
             $('tr').dblclick(function () {
@@ -465,9 +465,9 @@ WriteLiteral(@"
 
 WriteLiteral("\r\n\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7814), Tuple.Create("\"", 7858)
-, Tuple.Create(Tuple.Create("", 7820), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
-, 7820), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7812), Tuple.Create("\"", 7856)
+, Tuple.Create(Tuple.Create("", 7818), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
+, 7818), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");
