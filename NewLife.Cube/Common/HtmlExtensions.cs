@@ -191,7 +191,7 @@ namespace NewLife.Cube
             else if (name.EndsWithIgnoreCase("url"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-home\"></i></span>";
-                if (!atts.ContainsKey("type")) atts.Add("type", "url");
+                //if (!atts.ContainsKey("type")) atts.Add("type", "url");
                 txt = Html.TextBox(name, (String)value, atts);
             }
             else if (length < 0 || length > 300)
@@ -237,7 +237,7 @@ namespace NewLife.Cube
             //    throw new ArgumentException("", "name");
 
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
-            if (!atts.ContainsKey("type")) atts.Add("type", "date");
+            //if (!atts.ContainsKey("type")) atts.Add("type", "date");
             if (!atts.ContainsKey("class")) atts.Add("class", "form-control date form_datetime");
 
             var obj = value.ToFullString();
