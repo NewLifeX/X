@@ -330,7 +330,7 @@ WriteLiteral("                        ");
 
             
             #line 58 "..\..\Areas\Admin\Views\Menu\List.cshtml"
-                   Write(Html.Partial("_List_Data_Action", entity.ID));
+                   Write(Html.Partial("_List_Data_Action", entity));
 
             
             #line default
