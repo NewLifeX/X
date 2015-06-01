@@ -67,6 +67,11 @@ namespace XCode.Membership
             {
                 if (!String.IsNullOrEmpty(Password) && Password.Length != 32) Password = Password.MD5();
             }
+            else
+            {
+                // 编辑修改密码
+                if (Dirtys[__.Password] && !Password.IsNullOrEmpty()) Password = Password.MD5();
+            }
         }
         #endregion
 
