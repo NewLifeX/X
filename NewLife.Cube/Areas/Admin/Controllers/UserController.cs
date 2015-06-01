@@ -40,7 +40,8 @@ namespace NewLife.Cube.Admin.Controllers
         protected override ActionResult FormView(UserX entity)
         {
             // 清空密码，不向浏览器输出
-            entity.Password = null;
+            //entity.Password = null;
+            entity["Password"] = null;
 
             return base.FormView(entity);
         }
@@ -127,7 +128,8 @@ namespace NewLife.Cube.Admin.Controllers
             user = UserX.FindByKeyForEdit(id.Value);
             if (user == null) throw new Exception("无效用户编号！");
 
-            user.Password = null;
+            //user.Password = null;
+            user["Password"] = null;
 
             // 用于显示的列
             if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);

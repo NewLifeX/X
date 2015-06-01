@@ -70,7 +70,13 @@ namespace XCode.Membership
             else
             {
                 // 编辑修改密码
-                if (Dirtys[__.Password] && !Password.IsNullOrEmpty()) Password = Password.MD5();
+                if (Dirtys[__.Password])
+                {
+                    if (!Password.IsNullOrEmpty())
+                        Password = Password.MD5();
+                    else
+                        Dirtys.Remove(__.Password);
+                }
             }
         }
         #endregion
@@ -332,9 +338,11 @@ namespace XCode.Membership
         {
             if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username", "该帐号不存在！");
 
-            //过滤帐号中的空格，防止出现无操作无法登录的情况
+            // 过滤帐号中的空格，防止出现无操作无法登录的情况
             var account = username.Trim();
-            var user = FindByName(account);
+            //var user = FindByName(account);
+            // 登录时必须从数据库查找用户，缓存中的用户对象密码字段可能为空
+            var user = Find(__.Name, account);
             if (user == null) throw new EntityException("帐号{0}不存在！", account);
 
             if (!user.Enable) throw new EntityException("账号{0}被禁用！", account);
