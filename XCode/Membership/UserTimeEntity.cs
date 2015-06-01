@@ -53,8 +53,9 @@ namespace XCode.Membership
             }
             if (isNew)
                 SetDirtyItem(__Name.CreateTime, DateTime.Now);
-            else
-                SetDirtyItem(__Name.UpdateTime, DateTime.Now);
+
+            // 不管新建还是更新，都改变更新时间
+            SetDirtyItem(__Name.UpdateTime, DateTime.Now);
         }
 
         /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
