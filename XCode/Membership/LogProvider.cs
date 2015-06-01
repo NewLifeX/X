@@ -28,17 +28,20 @@ namespace XCode.Membership
             foreach (var fi in fact.Fields)
             {
                 if (action == "修改" && !fi.PrimaryKey && !entity.Dirtys[fi.Name]) continue;
+                var v = entity[fi.Name];
                 // 空字符串不写日志
                 if (action == "添加" || action == "删除")
                 {
-                    var v = entity[fi.Name];
                     if (v + "" == "") continue;
                     if (v is Boolean && (Boolean)v == false) continue;
                     if (v is Int32 && (Int32)v == 0) continue;
                     if (v is DateTime && (DateTime)v == DateTime.MinValue) continue;
                 }
 
-                sb.Separate(",").AppendFormat("{0}={1}", fi.Name, entity[fi.Name]);
+                // 日志里面不要出现密码
+                if (fi.Name.EqualIgnoreCase("pass", "password")) v = null;
+
+                sb.Separate(",").AppendFormat("{0}={1}", fi.Name, v);
             }
 
             WriteLog(entity.GetType(), action, sb.ToString());
