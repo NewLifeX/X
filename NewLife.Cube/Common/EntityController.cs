@@ -75,7 +75,11 @@ namespace NewLife.Cube
             var entity = Entity<TEntity>.FindByKey(id);
             entity.Delete();
 
-            return RedirectToAction("Index");
+            // 跳转到来源地址
+            if (Request.UrlReferrer != null)
+                return Redirect(Request.UrlReferrer.ToString());
+            else
+                return RedirectToAction("Index");
         }
 
         /// <summary>表单，添加/修改</summary>
@@ -85,6 +89,9 @@ namespace NewLife.Cube
         public virtual ActionResult Add()
         {
             var entity = Entity<TEntity>.Meta.Factory.Create() as TEntity;
+
+            // 记下添加前的来源页，待会添加成功以后跳转
+            Session["Cube_Add_Referrer"] = Request.UrlReferrer.ToString();
 
             return FormView(entity);
         }
@@ -126,8 +133,12 @@ namespace NewLife.Cube
 
             ViewBag.StatusMessage = "添加成功！";
 
-            // 新增完成跳到列表页，更新完成保持本页
-            return RedirectToAction("Index");
+            var url = Session["Cube_Add_Referrer"] + "";
+            if (!url.IsNullOrEmpty())
+                return Redirect(url);
+            else
+                // 新增完成跳到列表页，更新完成保持本页
+                return RedirectToAction("Index");
         }
 
         /// <summary>表单，添加/修改</summary>
