@@ -45,6 +45,19 @@ namespace ASP
         {
             
             #line 1 "..\..\Views\Shared\_List_Data_Action.cshtml"
+  
+    var fact = ViewBag.Factory as IEntityOperate;
+    var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
+    var entity = Model as IEntity;
+    var key = entity[fact.Unique];
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+            
+            #line 7 "..\..\Views\Shared\_List_Data_Action.cshtml"
  if (ManageProvider.User.Has(PermissionFlags.Update))
 {
 
@@ -60,21 +73,21 @@ WriteLiteral(" style=\"color: blue;\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 4 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 10 "..\..\Views\Shared\_List_Data_Action.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 4 "..\..\Views\Shared\_List_Data_Action.cshtml"
-Write(Html.ActionLink("编辑", "Edit", new { id = @Model }, new { @class = "editcell" }));
+            #line 10 "..\..\Views\Shared\_List_Data_Action.cshtml"
+Write(Html.ActionLink("编辑", "Edit", new { id = @key }, new { @class = "editcell" }));
 
             
             #line default
             #line hidden
             
-            #line 4 "..\..\Views\Shared\_List_Data_Action.cshtml"
-                                                                                    
+            #line 10 "..\..\Views\Shared\_List_Data_Action.cshtml"
+                                                                                  
 }
 else if (ManageProvider.User.Has(PermissionFlags.Detail))
 {
@@ -91,35 +104,68 @@ WriteLiteral(" style=\"color: blue;\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 9 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 15 "..\..\Views\Shared\_List_Data_Action.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 9 "..\..\Views\Shared\_List_Data_Action.cshtml"
-Write(Html.ActionLink("查看", "Detail", new { id = @Model }, new { @class = "editcell" }));
+            #line 15 "..\..\Views\Shared\_List_Data_Action.cshtml"
+Write(Html.ActionLink("查看", "Detail", new { id = @key }, new { @class = "editcell" }));
 
             
             #line default
             #line hidden
             
-            #line 9 "..\..\Views\Shared\_List_Data_Action.cshtml"
-                                                                                      
+            #line 15 "..\..\Views\Shared\_List_Data_Action.cshtml"
+                                                                                    
 }
 
             
             #line default
             #line hidden
             
-            #line 11 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 17 "..\..\Views\Shared\_List_Data_Action.cshtml"
  if (ManageProvider.User.Has(PermissionFlags.Delete))
 {
+    if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
+    {
 
             
             #line default
             #line hidden
-WriteLiteral("    <i");
+WriteLiteral("        <i");
+
+WriteLiteral(" class=\"glyphicon glyphicon-transfer\"");
+
+WriteLiteral(" style=\"color: green;\"");
+
+WriteLiteral("></i>\r\n");
+
+            
+            #line 22 "..\..\Views\Shared\_List_Data_Action.cshtml"
+        
+            
+            #line default
+            #line hidden
+            
+            #line 22 "..\..\Views\Shared\_List_Data_Action.cshtml"
+   Write(Html.ActionLink("恢复", "Delete", new { id = @key }, new { onclick = "return confirm('确认恢复？');" }));
+
+            
+            #line default
+            #line hidden
+            
+            #line 22 "..\..\Views\Shared\_List_Data_Action.cshtml"
+                                                                                                         
+    }
+    else
+    {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 
@@ -128,21 +174,22 @@ WriteLiteral(" style=\"color: red;\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
-    
+            #line 27 "..\..\Views\Shared\_List_Data_Action.cshtml"
+        
             
             #line default
             #line hidden
             
-            #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
-Write(Html.ActionLink("删除", "Delete", new { id = @Model }, new { onclick = "return confirm('确认删除？');" }));
+            #line 27 "..\..\Views\Shared\_List_Data_Action.cshtml"
+   Write(Html.ActionLink("删除", "Delete", new { id = @key }, new { onclick = "return confirm('确认删除？');" }));
 
             
             #line default
             #line hidden
             
-            #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
-                                                                                                       
+            #line 27 "..\..\Views\Shared\_List_Data_Action.cshtml"
+                                                                                                         
+    }
 }
             
             #line default

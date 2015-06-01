@@ -199,7 +199,7 @@ WriteLiteral("                        ");
 
             
             #line 31 "..\..\Views\Shared\_List_Data.cshtml"
-                   Write(Html.Partial("_List_Data_Action", (Object)entity[fact.Unique]));
+                   Write(Html.Partial("_List_Data_Action", (Object)entity));
 
             
             #line default

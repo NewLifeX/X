@@ -1,15 +1,29 @@
-﻿@if (ManageProvider.User.Has(PermissionFlags.Update))
+﻿@{
+    var fact = ViewBag.Factory as IEntityOperate;
+    var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
+    var entity = Model as IEntity;
+    var key = entity[fact.Unique];
+}
+@if (ManageProvider.User.Has(PermissionFlags.Update))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-    @Html.ActionLink("编辑", "Edit", new { id = @Model }, new { @class = "editcell" })
+    @Html.ActionLink("编辑", "Edit", new { id = @key }, new { @class = "editcell" })
 }
 else if (ManageProvider.User.Has(PermissionFlags.Detail))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-    @Html.ActionLink("查看", "Detail", new { id = @Model }, new { @class = "editcell" })
+    @Html.ActionLink("查看", "Detail", new { id = @key }, new { @class = "editcell" })
 }
 @if (ManageProvider.User.Has(PermissionFlags.Delete))
 {
-    <i class="glyphicon glyphicon-remove" style="color: red;"></i>
-    @Html.ActionLink("删除", "Delete", new { id = @Model }, new { onclick = "return confirm('确认删除？');" })
+    if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
+    {
+        <i class="glyphicon glyphicon-transfer" style="color: green;"></i>
+        @Html.ActionLink("恢复", "Delete", new { id = @key }, new { onclick = "return confirm('确认恢复？');" })
+    }
+    else
+    {
+        <i class="glyphicon glyphicon-remove" style="color: red;"></i>
+        @Html.ActionLink("删除", "Delete", new { id = @key }, new { onclick = "return confirm('确认删除？');" })
+    }
 }

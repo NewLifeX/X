@@ -28,7 +28,7 @@
                 @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
                     <td class="text-center">
-                        @Html.Partial("_List_Data_Action", (Object)entity[fact.Unique])
+                        @Html.Partial("_List_Data_Action", (Object)entity)
                     </td>
                 }
             </tr>
