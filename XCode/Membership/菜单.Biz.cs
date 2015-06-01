@@ -630,11 +630,16 @@ namespace XCode.Membership
                     {
                         var ss = context.Request.AppRelativeCurrentExecutionFilePath.Split("/");
                         // 默认路由包括区域、控制器、动作，Url有时候会省略动作，再往后的就是参数了，动作和参数不参与菜单匹配
-                        var max = 2;
+                        var max = ss.Length - 1;
                         if (ss[0] == "~") max++;
-                        var url = ss.Take(max).Join("/");
 
-                        menu = FindByUrl(url);
+                        // 寻找当前所属菜单，路径倒序，从最长Url路径查起
+                        for (int i = max; i > 0 && menu == null; i--)
+                        {
+                            var url = ss.Take(i).Join("/");
+                            menu = FindByUrl(url);
+                        }
+
                         context.Items["CurrentMenu"] = menu;
                     }
                     return menu;
