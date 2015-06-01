@@ -33,7 +33,7 @@ namespace NewLife.Cube
         public virtual ActionResult Index(Pager p)
         {
             ViewBag.Page = p;
-            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
+            //ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             // 用于显示的列
             var fields = GetFields(false);
@@ -197,7 +197,7 @@ namespace NewLife.Cube
         {
             // 用于显示的列
             if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
-            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
+            //ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             return View("Form", entity);
         }
@@ -249,6 +249,9 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            // 默认加上实体工厂
+            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
+
             if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
             if (ViewBag.HeaderContent == null && SysConfig.Current.Develop)
                 ViewBag.HeaderContent = "这里是页头内容，你可以通过重载OnActionExecuting然后设置ViewBag.HeaderTitle/HeaderContent来修改";
