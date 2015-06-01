@@ -77,11 +77,16 @@ namespace NewLife.Log
         #endregion
 
         #region 线程专有实例
+        /*2015-06-01 @宁波-小董
+         * 将Current以及Set方法组从internal修改为Public
+         * 原因是 Logger在进行扩展时，重载OnWrite需要用到该静态属性以及方法，internal无法满足扩展要求
+         * */
         [ThreadStatic]
         private static WriteLogEventArgs _Current;
         /// <summary>线程专有实例。线程静态，每个线程只用一个，避免GC浪费</summary>
-        internal static WriteLogEventArgs Current { get { return _Current ?? (_Current = new WriteLogEventArgs()); } }
+        public static WriteLogEventArgs Current { get { return _Current ?? (_Current = new WriteLogEventArgs()); } }
         #endregion
+        
 
         #region 方法
         /// <summary>初始化为新日志</summary>
@@ -90,7 +95,7 @@ namespace NewLife.Log
         /// <param name="exception">异常</param>
         /// <param name="isNewLine">是否换行</param>
         /// <returns>返回自身，链式写法</returns>
-        internal WriteLogEventArgs Set(LogLevel level, String message, Exception exception, Boolean isNewLine)
+        public WriteLogEventArgs Set(LogLevel level, String message, Exception exception, Boolean isNewLine)
         {
             Level = level;
             Message = message;
@@ -107,7 +112,7 @@ namespace NewLife.Log
         /// <param name="exception">异常</param>
         /// <param name="isNewLine">是否换行</param>
         /// <returns>返回自身，链式写法</returns>
-        internal WriteLogEventArgs Set(String message, Exception exception, Boolean isNewLine)
+        public WriteLogEventArgs Set(String message, Exception exception, Boolean isNewLine)
         {
             Message = message;
             Exception = exception;
@@ -119,7 +124,7 @@ namespace NewLife.Log
         }
 
         /// <summary>清空日志特别是异常对象，避免因线程静态而导致内存泄漏</summary>
-        internal void Clear()
+        public void Clear()
         {
             Message = null;
             Exception = null;

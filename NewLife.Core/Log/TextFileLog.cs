@@ -9,7 +9,9 @@ using NewLife.Configuration;
 
 namespace NewLife.Log
 {
-    /// <summary>文本文件日志类。提供向文本文件写日志的能力</summary>
+    /// <summary>文本文件日志类。提供向文本文件写日志的能力
+    /// 2015-06-01 为了继承TextFileLog，增加了无参构造函数，修改了异步写日志方法为虚方法，可以进行重载
+    /// </summary>
     public class TextFileLog : Logger, IDisposable
     {
         #region 构造
@@ -20,6 +22,8 @@ namespace NewLife.Log
             else
                 LogFile = path;
         }
+        /// <summary>该构造函数没有作用，为了继承而设置</summary>
+        public TextFileLog() { }
 
         static DictionaryCache<String, TextFileLog> cache = new DictionaryCache<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
@@ -147,7 +151,7 @@ namespace NewLife.Log
         }
 
         /// <summary>停止日志</summary>
-        private void CloseWriter(Object obj)
+        protected virtual void CloseWriter(Object obj)
         {
             var writer = LogWriter;
             if (writer == null) return;
@@ -172,7 +176,7 @@ namespace NewLife.Log
 
         /// <summary>使用线程池线程异步执行日志写入动作</summary>
         /// <param name="e"></param>
-        private void PerformWriteLog(WriteLogEventArgs e)
+        protected virtual void PerformWriteLog(WriteLogEventArgs e)
         {
             lock (Log_Lock)
             {
