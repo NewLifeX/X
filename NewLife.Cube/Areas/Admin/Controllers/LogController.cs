@@ -69,6 +69,17 @@ namespace NewLife.Cube.Admin.Controllers
             throw new Exception("不允许删除日志");
         }
 
+        /// <summary>不允许删除日志</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [DisplayName()]
+        public override JsonResult DeleteAjax(Int32 id)
+        {
+            var url = Request.UrlReferrer + "";
+
+            return Json(new { msg = "不允许删除日志！", code = -1, url = url }, JsonRequestBehavior.AllowGet);
+        }
+
         /// <summary>获取可用于生成权限菜单的Action集合</summary>
         /// <param name="menu"></param>
         /// <returns></returns>

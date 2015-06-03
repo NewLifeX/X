@@ -33,7 +33,6 @@ namespace NewLife.Cube
         public virtual ActionResult Index(Pager p)
         {
             ViewBag.Page = p;
-            //ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             // 用于显示的列
             var fields = GetFields(false);
@@ -77,7 +76,7 @@ namespace NewLife.Cube
             try
             {
                 var entity = Entity<TEntity>.FindByKey(id);
-                entity.Delete();
+                OnDelete(entity);
 
                 Js.Alert("删除成功！").Redirect(url);
                 return new EmptyResult();
@@ -88,11 +87,11 @@ namespace NewLife.Cube
                 return new EmptyResult();
             }
 
-            // 跳转到来源地址
-            if (url != "")
-                return Redirect(url);
-            else
-                return RedirectToAction("Index");
+            //// 跳转到来源地址
+            //if (url != "")
+            //    return Redirect(url);
+            //else
+            //    return RedirectToAction("Index");
         }
 
         /// <summary>
@@ -102,14 +101,14 @@ namespace NewLife.Cube
         /// <returns></returns>
         [EntityAuthorize(PermissionFlags.Delete)]
         [DisplayName("删除{type}")]
-        public JsonResult DeleteAjax(int id)
+        public virtual JsonResult DeleteAjax(Int32 id)
         {
             var url = Request.UrlReferrer + "";
 
             try
             {
                 var entity = Entity<TEntity>.FindByKey(id);
-                entity.Delete();
+                OnDelete(entity);
 
                 return Json(new { msg = "删除成功！", code = 0, url = url }, JsonRequestBehavior.AllowGet);
             }
@@ -151,7 +150,7 @@ namespace NewLife.Cube
             var rs = false;
             try
             {
-                entity.Insert();
+                OnInsert(entity);
                 rs = true;
             }
             catch (ArgumentException aex)
@@ -206,12 +205,10 @@ namespace NewLife.Cube
                 return FormView(entity);
             }
 
-            var isnew = entity.IsNullKey;
-
             var rs = false;
             try
             {
-                entity.Save();
+                OnUpdate(entity);
                 rs = true;
             }
             catch (ArgumentException aex)
@@ -231,12 +228,8 @@ namespace NewLife.Cube
 
             ViewBag.StatusMessage = "保存成功！";
 
-            // 新增完成跳到列表页，更新完成保持本页
-            if (isnew)
-                return RedirectToAction("Index");
-            else
-                return FormView(entity);
-            //return RedirectToAction("Form", new { id = entity[Entity<TEntity>.Meta.Unique.Name] });
+            // 更新完成保持本页
+            return FormView(entity);
         }
 
         /// <summary>表单页视图。子控制器可以重载，以传递更多信息给视图，比如修改要显示的列</summary>
@@ -246,10 +239,26 @@ namespace NewLife.Cube
         {
             // 用于显示的列
             if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
-            //ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             return View("Form", entity);
         }
+        #endregion
+
+        #region 实体操作重载
+        /// <summary>添加实体对象</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        protected virtual Int32 OnInsert(TEntity entity) { return entity.Insert(); }
+
+        /// <summary>更新实体对象</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        protected virtual Int32 OnUpdate(TEntity entity) { return entity.Update(); }
+
+        /// <summary>删除实体对象</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        protected virtual Int32 OnDelete(TEntity entity) { return entity.Delete(); }
 
         /// <summary>验证实体对象</summary>
         /// <param name="entity"></param>
