@@ -202,18 +202,16 @@ WriteLiteral("></i></span>\r\n                        <input");
 
 WriteLiteral(" name=\"dtStart\"");
 
-WriteLiteral(" type=\"date\"");
-
 WriteLiteral(" id=\"dtStart\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1457), Tuple.Create("\"", 1484)
+WriteAttribute("value", Tuple.Create(" value=\"", 1445), Tuple.Create("\"", 1472)
             
             #line 28 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 1465), Tuple.Create<System.Object, System.Int32>(Request["dtStart"]
+, Tuple.Create(Tuple.Create("", 1453), Tuple.Create<System.Object, System.Int32>(Request["dtStart"]
             
             #line default
             #line hidden
-, 1465), false)
+, 1453), false)
 );
 
 WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
@@ -246,18 +244,16 @@ WriteLiteral("></i></span>\r\n                        <input");
 
 WriteLiteral(" name=\"dtEnd\"");
 
-WriteLiteral(" type=\"date\"");
-
 WriteLiteral(" id=\"dtEnd\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1923), Tuple.Create("\"", 1948)
+WriteAttribute("value", Tuple.Create(" value=\"", 1899), Tuple.Create("\"", 1924)
             
             #line 35 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 1931), Tuple.Create<System.Object, System.Int32>(Request["dtEnd"]
+, Tuple.Create(Tuple.Create("", 1907), Tuple.Create<System.Object, System.Int32>(Request["dtEnd"]
             
             #line default
             #line hidden
-, 1931), false)
+, 1907), false)
 );
 
 WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
@@ -284,14 +280,14 @@ WriteLiteral(" type=\"search\"");
 
 WriteLiteral(" id=\"q\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 2309), Tuple.Create("\"", 2330)
+WriteAttribute("value", Tuple.Create(" value=\"", 2285), Tuple.Create("\"", 2306)
             
             #line 42 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 2317), Tuple.Create<System.Object, System.Int32>(Request["q"]
+, Tuple.Create(Tuple.Create("", 2293), Tuple.Create<System.Object, System.Int32>(Request["q"]
             
             #line default
             #line hidden
-, 2317), false)
+, 2293), false)
 );
 
 WriteLiteral(" class=\"form-control\"");
