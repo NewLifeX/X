@@ -358,12 +358,6 @@
     <Content Include="Content\artDialog\css\ui-dialog.css" />
     <Content Include="Content\artDialog\dist\dialog-min.js" />
     <Content Include="Content\artDialog\dist\dialog-plus-min.js" />
-    <Content Include="Content\artDialog\dist\dialog-plus.js" />
-    <Content Include="Content\artDialog\dist\dialog.js" />
-    <Content Include="Content\artDialog\Gruntfile.js" />
-    <Content Include="Content\artDialog\lib\jquery-1.10.2.js" />
-    <Content Include="Content\artDialog\lib\require.js" />
-    <Content Include="Content\artDialog\lib\sea.js" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.css" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.js" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.min.css" />
@@ -495,8 +489,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Login_Register.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Content\artDialog\bower.json" />
-    <Content Include="Content\artDialog\package.json" />
     <Content Include="Content\artDialog\dist\dialog.new.life.js" />
     <None Include="Global.asax" />
     <None Include="Areas\Admin\Views\_ViewStart.cshtml">
