@@ -79,6 +79,13 @@ namespace XCode.Membership
                 }
             }
         }
+
+        protected override int OnDelete()
+        {
+            if (Meta.Count <= 1) throw new Exception("必须保留至少一个可用账号！");
+
+            return base.OnDelete();
+        }
         #endregion
 
         #region 扩展属性
