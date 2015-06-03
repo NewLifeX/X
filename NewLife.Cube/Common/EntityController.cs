@@ -111,11 +111,11 @@ namespace NewLife.Cube
                 var entity = Entity<TEntity>.FindByKey(id);
                 entity.Delete();
 
-                return Json(new { msg = "删除成功！", code = 0, url = url });
+                return Json(new { msg = "删除成功！", code = 0, url = url }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                return Json(new { msg = "删除失败！" + ex.Message, url, code = -1 });
+                return Json(new { msg = "删除失败！" + ex.Message, url, code = -1 }, JsonRequestBehavior.AllowGet);
 
             }
         }
