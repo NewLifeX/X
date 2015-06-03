@@ -14,8 +14,8 @@ namespace NewLife.Bootstrap
         /// <returns></returns>
         protected override void OnAlert(String message, String title, Int32 delaySecond, String kind)
         {
-            message = "Bootstrap " + message;
-            base.OnAlert(message, title, delaySecond, kind);
+            var script = Encode(string.Format("(parent[\"infoDialog\"] || window[\"infoDialog\"] || (function(title,msg){{alert(msg);}}))(\"{0}\",\"{1}\",true);", title, message));
+            WriteScript(script, true);
         }
     }
 }

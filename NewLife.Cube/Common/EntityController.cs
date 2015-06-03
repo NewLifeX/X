@@ -79,8 +79,8 @@ namespace NewLife.Cube
                 var entity = Entity<TEntity>.FindByKey(id);
                 entity.Delete();
 
-                //Js.Alert("删除成功！").Redirect(url);
-                //return new EmptyResult();
+                Js.Alert("删除成功！").Redirect(url);
+                return new EmptyResult();
             }
             catch (Exception ex)
             {

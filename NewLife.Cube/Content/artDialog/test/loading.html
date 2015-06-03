@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>test</title>
+	<style>
+		html, body {
+			height: 100%;
+		}
+		#fixed {
+			position: fixed;
+			bottom: 0;
+			left: 20%;
+		}
+	</style>
+</head>
+<body>
+<button id="test">content('hello world')</button>
+<script src="../lib/sea.js"></script>
+<script>
+seajs.config({
+  alias: {
+    "jquery": "jquery-1.10.2.js"
+  }
+});
+</script>
+
+<script>
+seajs.use(['jquery', '../src/dialog'], function ($, dialog) {
+	
+	var d = dialog({
+		width: 60,
+		height: 60
+	});
+
+	d.show();
+
+	$('#test').on('click', function () {
+		d.width('auto');
+		d.height('auto');
+		d.content('hello world');
+	});
+
+});
+</script>
+</body>
+</html>

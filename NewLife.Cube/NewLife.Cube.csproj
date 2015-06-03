@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -20,6 +20,12 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <MvcProjectUpgradeChecked>true</MvcProjectUpgradeChecked>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>15.0</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -349,6 +355,48 @@
     <Content Include="Content\ace\js\select2.min.js" />
     <Content Include="Content\ace\js\spin.min.js" />
     <Content Include="Content\ace\js\typeahead.jquery.min.js" />
+    <Content Include="Content\artDialog\.gitignore" />
+    <Content Include="Content\artDialog\css\ui-dialog.css" />
+    <Content Include="Content\artDialog\dist\dialog-min.js" />
+    <Content Include="Content\artDialog\dist\dialog-plus-min.js" />
+    <Content Include="Content\artDialog\dist\dialog-plus.js" />
+    <Content Include="Content\artDialog\dist\dialog.js" />
+    <Content Include="Content\artDialog\doc\css\doc.css" />
+    <Content Include="Content\artDialog\doc\index.html" />
+    <Content Include="Content\artDialog\doc\js\doc.js" />
+    <Content Include="Content\artDialog\doc\js\sh_languages.js" />
+    <Content Include="Content\artDialog\Gruntfile.js" />
+    <Content Include="Content\artDialog\lib\jquery-1.10.2.js" />
+    <Content Include="Content\artDialog\lib\require.js" />
+    <Content Include="Content\artDialog\lib\sea.js" />
+    <Content Include="Content\artDialog\src\dialog-config.js" />
+    <Content Include="Content\artDialog\src\dialog-plus.js" />
+    <Content Include="Content\artDialog\src\dialog.js" />
+    <Content Include="Content\artDialog\src\drag.js" />
+    <Content Include="Content\artDialog\src\global_modules\jquery.js" />
+    <Content Include="Content\artDialog\src\popup.js" />
+    <Content Include="Content\artDialog\test\align-overflow.html" />
+    <Content Include="Content\artDialog\test\align.html" />
+    <Content Include="Content\artDialog\test\button.html" />
+    <Content Include="Content\artDialog\test\close.html" />
+    <Content Include="Content\artDialog\test\content-element.html" />
+    <Content Include="Content\artDialog\test\content.html" />
+    <Content Include="Content\artDialog\test\dialog-drag.html" />
+    <Content Include="Content\artDialog\test\fixed.html" />
+    <Content Include="Content\artDialog\test\focus.html" />
+    <Content Include="Content\artDialog\test\follow.html" />
+    <Content Include="Content\artDialog\test\iframe.html" />
+    <Content Include="Content\artDialog\test\iframe\dialog-content.html" />
+    <Content Include="Content\artDialog\test\iframe\dialog-input.html" />
+    <Content Include="Content\artDialog\test\iframe\index.html" />
+    <Content Include="Content\artDialog\test\iframe\main.html" />
+    <Content Include="Content\artDialog\test\loading.html" />
+    <Content Include="Content\artDialog\test\quickClose.html" />
+    <Content Include="Content\artDialog\test\show-element.html" />
+    <Content Include="Content\artDialog\test\show-event.html" />
+    <Content Include="Content\artDialog\test\show.html" />
+    <Content Include="Content\artDialog\test\showModal.html" />
+    <Content Include="Content\artDialog\test\title.html" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.css" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.js" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.min.css" />
@@ -480,6 +528,12 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Login_Register.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Content\artDialog\bower.json" />
+    <Content Include="Content\artDialog\doc\index.md" />
+    <Content Include="Content\artDialog\LICENSE.md" />
+    <Content Include="Content\artDialog\package.json" />
+    <Content Include="Content\artDialog\README.md" />
+    <Content Include="Content\artDialog\dist\dialog.new.life.js" />
     <None Include="Global.asax" />
     <None Include="Areas\Admin\Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -635,11 +689,11 @@
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v12.0</VSToolsPath>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v14.0</VSToolsPath>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v14.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
     <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
   </Target>
