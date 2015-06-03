@@ -7,23 +7,23 @@
 @if (ManageProvider.User.Has(PermissionFlags.Update))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-    @Html.ActionLink("编辑", "Edit", new { id = @key }, new { data_action = "edit", data_ajax = "1", @class = "editcell" })
+    @Html.ActionLink("编辑", "Edit", new { id = @key }, new { @class = "editcell" })
 }
 else if (ManageProvider.User.Has(PermissionFlags.Detail))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-    @Html.ActionLink("查看", "Detail", new { id = @key }, new { data_action = "edit", data_ajax = "1", @class = "editcell" })
+    @Html.ActionLink("查看", "Detail", new { id = @key }, new { @class = "editcell" })
 }
 @if (ManageProvider.User.Has(PermissionFlags.Delete))
 {
     if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
     {
         <i class="glyphicon glyphicon-transfer" style="color: green;"></i>
-        @Html.ActionLink("恢复", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "0", onclick = "return confirm('确认恢复？');" })
+        @Html.ActionLink("恢复", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认恢复？');" })
     }
     else
     {
         <i class="glyphicon glyphicon-remove" style="color: red;"></i>
-        @Html.ActionLink("删除", "DeleteAjax", new { id = @key }, new { data_action="delete",  data_ajax="1", onclick = "return confirm('确认删除？');" })
+        @Html.ActionLink("删除", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认删除？');" })
     }
 }

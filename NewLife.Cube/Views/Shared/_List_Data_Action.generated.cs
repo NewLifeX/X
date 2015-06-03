@@ -150,14 +150,14 @@ WriteLiteral("></i>\r\n");
             #line hidden
             
             #line 22 "..\..\Views\Shared\_List_Data_Action.cshtml"
-   Write(Html.ActionLink("恢复", "Delete", new { id = @key }, new { onclick = "return confirm('确认恢复？');" }));
+   Write(Html.ActionLink("恢复", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认恢复？');" }));
 
             
             #line default
             #line hidden
             
             #line 22 "..\..\Views\Shared\_List_Data_Action.cshtml"
-                                                                                                         
+                                                                                                                                                      
     }
     else
     {
@@ -181,14 +181,14 @@ WriteLiteral("></i>\r\n");
             #line hidden
             
             #line 27 "..\..\Views\Shared\_List_Data_Action.cshtml"
-   Write(Html.ActionLink("删除", "Delete", new { id = @key }, new { onclick = "return confirm('确认删除？');" }));
+   Write(Html.ActionLink("删除", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认删除？');" }));
 
             
             #line default
             #line hidden
             
             #line 27 "..\..\Views\Shared\_List_Data_Action.cshtml"
-                                                                                                         
+                                                                                                                                                      
     }
 }
             
