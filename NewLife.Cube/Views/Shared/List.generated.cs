@@ -123,7 +123,7 @@ WriteLiteral("\r\n    </p>\r\n</div>\r\n\r\n<script>\r\n    $(function () {\r\n\
 "g(\'delete\');\r\n                        confirmDialog(\'确认删除？\', function () {\r\n    " +
 "                        $.post(that.attr(\'href\'),\r\n                             " +
 " function (data) {\r\n                                  //console.log(data);\r\n\r\n  " +
-"                                tips(data.msg, 1, 2000, \'iframe|\'+ data.url); \r\n" +
+"                                tips(data.msg, 1, 1000, \'iframe|\'+ data.url); \r\n" +
 "                                  \r\n                              }).error(funct" +
 "ion (error) {\r\n                                  infoDialog(\'提示\', error || \'删除失败" +
 "\', 1);\r\n                              });\r\n                        }); \r\n\r\n     " +

@@ -95,6 +95,31 @@ namespace NewLife.Cube
                 return RedirectToAction("Index");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Delete)]
+        [DisplayName("删除{type}")]
+        public JsonResult DeleteAjax(int id)
+        {
+            var url = Request.UrlReferrer + "";
+
+            try
+            {
+                var entity = Entity<TEntity>.FindByKey(id);
+                entity.Delete();
+
+                return Json(new { msg = "删除成功！", code = 0, url = url });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { msg = "删除失败！" + ex.Message, url, code = -1 });
+
+            }
+        }
+
         /// <summary>表单，添加/修改</summary>
         /// <returns></returns>
         [EntityAuthorize(PermissionFlags.Insert)]

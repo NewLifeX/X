@@ -51,7 +51,7 @@
                               function (data) {
                                   //console.log(data);
 
-                                  tips(data.msg, 1, 2000, 'iframe|'+ data.url); 
+                                  tips(data.msg, 1, 1000, 'iframe|'+ data.url); 
                                   
                               }).error(function (error) {
                                   infoDialog('提示', error || '删除失败', 1);
