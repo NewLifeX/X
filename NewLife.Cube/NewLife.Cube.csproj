@@ -129,11 +129,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Menu\List.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>List.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Areas\Admin\Views\Role\Form.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -232,6 +227,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Index.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\ListTree.generated.cs">
+      <DependentUpon>ListTree.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Shared\NoPermission.generated.cs">
       <DependentUpon>NoPermission.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -281,6 +281,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>_Layout_Nav.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Shared\_ListTree_Data.generated.cs">
+      <DependentUpon>_ListTree_Data.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Views\Shared\_List_Data.generated.cs">
       <AutoGen>True</AutoGen>
@@ -497,6 +502,10 @@
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
     </None>
     <None Include="Areas\Admin\Views\Web.config" />
+    <Content Include="Views\Shared\ListTree.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ListTree.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\NoPermission.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>NoPermission.generated.cs</LastGenOutput>
@@ -533,10 +542,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>SysConfig.generated.cs</LastGenOutput>
     </None>
-    <None Include="Areas\Admin\Views\Menu\List.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>List.generated.cs</LastGenOutput>
-    </None>
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <Content Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="Scripts\jquery.unobtrusive-ajax.js" />
@@ -570,6 +575,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Layout_Nav.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_ListTree_Data.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>

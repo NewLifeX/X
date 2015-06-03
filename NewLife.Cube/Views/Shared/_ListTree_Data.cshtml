@@ -1,0 +1,56 @@
+﻿@using NewLife;
+@using NewLife.Web;
+@using XCode;
+@using XCode.Configuration;
+@{
+    var fact = ViewBag.Factory as IEntityOperate;
+    var page = ViewBag.Page as Pager;
+    var fields = ViewBag.Fields as List<FieldItem>;
+}
+<table class="table table-bordered table-hover table-striped table-condensed">
+    <thead>
+        <tr>
+            @foreach (var item in fields)
+            {
+                <th class="text-center"><a href="@Html.Raw(page.GetSortUrl(item.Name))">@item.DisplayName</a></th>
+            }
+            <th class="text-center">升</th>
+            <th class="text-center">降</th>
+            <th class="text-center">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entity in Model)
+        {
+            var p = entity.Parent;
+            if (p == null)
+            {
+                p = fact.EntityType.GetValue("Root") as IEntityTree;
+            }
+            <tr>
+                @foreach (var item in fields)
+                {
+                    @Html.Partial("_List_Data_Item", new Pair(entity, item))
+                }
+                <td class="text-center">
+                    @if (p != null && entity != p.Childs[0])
+                    {
+                        <a href="@Url.Action("Up", new { id = entity.ID })"><span class="glyphicon glyphicon-arrow-up" style="color: green;"></span></a>
+                    }
+                </td>
+                <td class="text-center">
+                    @if (p != null && entity != p.Childs[p.Childs.Count - 1])
+                    {
+                        <a href="@Url.Action("Down", new { id = entity.ID })"><span class="glyphicon glyphicon-arrow-down" style="color: red;"></span></a>
+                    }
+                </td>
+                @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                {
+                    <td class="text-center">
+                        @Html.Partial("_List_Data_Action", (Object)entity)
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

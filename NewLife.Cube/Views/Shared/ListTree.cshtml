@@ -1,0 +1,20 @@
+﻿@using NewLife.Web;
+@using XCode;
+@{
+    Layout = "~/Views/Shared/_Ace_Layout.cshtml";
+
+    var fact = ViewBag.Factory as IEntityOperate;
+    var page = ViewBag.Page as Pager;
+}
+
+<div class="clearfix">
+    @Html.Partial("_List_Toolbar")
+</div>
+<div class="table-responsive">
+    @Html.Partial("_ListTree_Data")
+</div>
+<div class="panel-footer">
+    <p>
+        @Html.Partial("_List_Pager")
+    </p>
+</div>

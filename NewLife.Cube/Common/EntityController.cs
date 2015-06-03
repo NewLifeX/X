@@ -323,6 +323,30 @@ namespace NewLife.Cube
     /// <typeparam name="TEntity"></typeparam>
     public class EntityTreeController<TEntity> : EntityController<TEntity> where TEntity : EntityTree<TEntity>, new()
     {
+        static EntityTreeController()
+        {
+            var type = typeof(TEntity);
+            var all = Entity<TEntity>.Meta.AllFields;
+            var list = new List<FieldItem>();
+            var names = "ID,TreeNodeName".Split(",");
+            foreach (var item in names)
+            {
+                var fi = all.FirstOrDefault(e => e.Name.EqualIgnoreCase(item));
+                if (fi != null) list.Add(fi);
+            }
+
+            foreach (var item in all)
+            {
+                var pi = type.GetProperty(item.Name);
+                if (pi == null || pi.GetCustomAttribute<DisplayNameAttribute>() == null) continue;
+
+                if (!list.Contains(item)) list.Add(item);
+            }
+
+            ListFields.Clear();
+            ListFields.AddRange(list);
+        }
+
         /// <summary>列表页视图。子控制器可重载，以传递更多信息给视图，比如修改要显示的列</summary>
         /// <param name="p"></param>
         /// <returns></returns>
@@ -334,7 +358,7 @@ namespace NewLife.Cube
 
             var list = EntityTree<TEntity>.Root.AllChilds;
 
-            return View("List", list);
+            return View("ListTree", list);
         }
 
         /// <summary>上升</summary>

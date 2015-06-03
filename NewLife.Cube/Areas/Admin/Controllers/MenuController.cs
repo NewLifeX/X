@@ -1,9 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Web.Mvc;
-using NewLife.Cube.Controllers;
-using NewLife.Web;
-using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube.Admin.Controllers
@@ -12,6 +10,17 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("菜单")]
     public class MenuController : EntityTreeController<Menu>
     {
+        //static MenuController()
+        //{
+        //    // 过滤要显示的字段
+        //    var names = "ID,TreeNodeName,DisplayName,Url,Sort,Visible,Necessary".Split(",");
+        //    var fs = Menu.Meta.AllFields;
+        //    var list = names.Select(e => fs.FirstOrDefault(f => f.Name.EqualIgnoreCase(e))).Where(e => e != null);
+        //    //list.RemoveAll(e => !names.Contains(e.Name));
+        //    ListFields.Clear();
+        //    ListFields.AddRange(list);
+        //}
+
         /// <summary>动作执行前</summary>
         /// <param name="filterContext"></param>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
