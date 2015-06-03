@@ -54,14 +54,14 @@ namespace NewLife.Web
         }
 
         /// <summary>弹出页面提示</summary>
-        /// <param name="format">格式化字符串</param>
-        /// <param name="args">格式化参数</param>
+        /// <param name="message">消息内容</param>
+        /// <param name="title">标题</param>
         /// <returns></returns>
-        public static IJs Alert(String format, params Object[] args)
+        public static IJs Alert(String message, String title = null)
         {
-            if (String.IsNullOrEmpty(format)) return Current;
+            if (String.IsNullOrEmpty(message)) return Current;
 
-            return Current.Alert(format, args);
+            return Current.Alert(message, title);
         }
         #endregion
 
@@ -94,27 +94,25 @@ namespace NewLife.Web
         }
 
         /// <summary>弹出页面提示</summary>
-        /// <param name="format">格式化字符串</param>
-        /// <param name="args">格式化参数</param>
+        /// <param name="message">消息内容</param>
+        /// <param name="title">标题</param>
         /// <returns></returns>
-        IJs IJs.Alert(String format, params Object[] args)
+        IJs IJs.Alert(String message, String title)
         {
-            if (String.IsNullOrEmpty(format)) return this;
+            if (String.IsNullOrEmpty(message)) return this;
 
-            var msg = String.Format(format, args);
-            //msg = Encode(msg);
-
-            OnAlert(msg);
+            OnAlert(message, title);
 
             return this;
         }
 
         /// <summary>弹出页面提示</summary>
-        /// <param name="msg">字符串</param>
+        /// <param name="message">消息内容</param>
+        /// <param name="title">标题</param>
         /// <returns></returns>
-        protected virtual void OnAlert(String msg)
+        protected virtual void OnAlert(String message, String title)
         {
-            WriteScript("alert('" + Encode(msg) + "');", true);
+            WriteScript("alert('" + Encode(message) + "');", true);
         }
 
         /// <summary>停止输出</summary>
@@ -168,10 +166,10 @@ namespace NewLife.Web
         IJs WriteScript(String script, Boolean addScriptTags);
 
         /// <summary>弹出页面提示</summary>
-        /// <param name="format">格式化字符串</param>
-        /// <param name="args">格式化参数</param>
+        /// <param name="message">消息内容</param>
+        /// <param name="title">标题</param>
         /// <returns></returns>
-        IJs Alert(String format, params Object[] args);
+        IJs Alert(String message, String title = null);
 
         /// <summary>停止输出</summary>
         IJs End();
