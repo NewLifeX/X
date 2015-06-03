@@ -2,7 +2,7 @@
 
     window.infoDialog = parent['infoDialog'] || function (title, msg) { alert(msg); };
     window.confirmDialog = parent['confirmDialog'] || function (msg, func) { if(confirm(msg)) func(); };
-    window.tips = parent['tips'] || function (msg) { alert(msg); };
+    window.tips = parent['tips'] || function (msg, modal, time, jumpUrl) { alert(msg); location.reload(); };
 
     //为所有data-action加上事件
     $('[data-action]').each(function () {
