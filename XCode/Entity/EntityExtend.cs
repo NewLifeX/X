@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Xml.Serialization;
 using NewLife.Collections;
-using NewLife.Reflection;
 
 namespace XCode
 {
     /// <summary>实体扩展</summary>
     public class EntityExtend : DictionaryCache<String, Object>, IDictionary<String, Object>
     {
-        /// <summary>实体类一个不区分键大小写的实体扩展</summary>
+        /// <summary>实例化一个不区分键大小写的实体扩展</summary>
         public EntityExtend() : base(StringComparer.OrdinalIgnoreCase) { }
 
         [NonSerialized]
