@@ -109,28 +109,7 @@ WriteLiteral("        ");
             
             #line default
             #line hidden
-WriteLiteral("\r\n    </p>\r\n</div>\r\n\r\n<script>\r\n    $(function () {\r\n\r\n        //为所有data-action加上" +
-"事件\r\n        $(\'[data-action]\').each(function () {\r\n            $(this).data(\'cli" +
-"ck\', this.onclick);\r\n            this.onclick = null;\r\n        });\r\n\r\n        $(" +
-"document).on(\'click\', \'[data-action]\', function (e) {\r\n\r\n            var that = " +
-"$(this),\r\n                oldClick = that.data(\'click\');\r\n            isAjax = t" +
-"hat.data(\'ajax\');\r\n            action = that.data(\'action\');\r\n            if (!!" +
-"isAjax) {\r\n                //如果标志为ajax，阻止默认事件，\r\n                this.onclick = n" +
-"ull;\r\n                e.stopPropagation();\r\n                e.preventDefault();\r" +
-"\n                switch (action) {\r\n                    case \'view\':\r\n          " +
-"              break;\r\n                    case \'edit\':\r\n                        " +
-"break;\r\n                    case \'delete\':\r\n                        //console.lo" +
-"g(\'delete\');\r\n                        confirmDialog(\'确认删除？\', function () {\r\n    " +
-"                        $.post(that.attr(\'href\'),\r\n                             " +
-" function (data) {\r\n                                  //console.log(data);\r\n\r\n  " +
-"                                tips(data.msg, 1, 1000, \'iframe|\'+ data.url); \r\n" +
-"                                  \r\n                              }).error(funct" +
-"ion (error) {\r\n                                  infoDialog(\'提示\', error || \'删除失败" +
-"\', 1);\r\n                              });\r\n                        }); \r\n\r\n     " +
-"                   break;\r\n                    case \'add\':\r\n                    " +
-"    break;\r\n                }\r\n\r\n                return false;\r\n            } el" +
-"se {\r\n\r\n                oldClick && oldClick.call(this);\r\n            }\r\n       " +
-" });\r\n    });\r\n\r\n</script>");
+WriteLiteral("\r\n    </p>\r\n</div>");
 
         }
     }
