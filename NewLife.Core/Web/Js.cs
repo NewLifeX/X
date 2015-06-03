@@ -56,12 +56,14 @@ namespace NewLife.Web
         /// <summary>弹出页面提示</summary>
         /// <param name="message">消息内容</param>
         /// <param name="title">标题</param>
+        /// <param name="delaySecond">延迟指定秒数以后自动关闭，默认0表示不关闭</param>
+        /// <param name="kind">种类，info/success/error等</param>
         /// <returns></returns>
-        public static IJs Alert(String message, String title = null)
+        public static IJs Alert(String message, String title = null, Int32 delaySecond = 0, String kind = null)
         {
             if (String.IsNullOrEmpty(message)) return Current;
 
-            return Current.Alert(message, title);
+            return Current.Alert(message, title, delaySecond, kind);
         }
         #endregion
 
@@ -96,12 +98,14 @@ namespace NewLife.Web
         /// <summary>弹出页面提示</summary>
         /// <param name="message">消息内容</param>
         /// <param name="title">标题</param>
+        /// <param name="delaySecond">延迟指定秒数以后自动关闭，默认0表示不关闭</param>
+        /// <param name="kind">种类，info/success/error等</param>
         /// <returns></returns>
-        IJs IJs.Alert(String message, String title)
+        IJs IJs.Alert(String message, String title, Int32 delaySecond, String kind)
         {
             if (String.IsNullOrEmpty(message)) return this;
 
-            OnAlert(message, title);
+            OnAlert(message, title, delaySecond, kind);
 
             return this;
         }
@@ -109,8 +113,10 @@ namespace NewLife.Web
         /// <summary>弹出页面提示</summary>
         /// <param name="message">消息内容</param>
         /// <param name="title">标题</param>
+        /// <param name="delaySecond">延迟指定秒数以后自动关闭，默认0表示不关闭</param>
+        /// <param name="kind">种类，info/success/error等</param>
         /// <returns></returns>
-        protected virtual void OnAlert(String message, String title)
+        protected virtual void OnAlert(String message, String title, Int32 delaySecond, String kind)
         {
             WriteScript("alert('" + Encode(message) + "');", true);
         }
@@ -168,8 +174,10 @@ namespace NewLife.Web
         /// <summary>弹出页面提示</summary>
         /// <param name="message">消息内容</param>
         /// <param name="title">标题</param>
+        /// <param name="delaySecond">延迟指定秒数以后自动关闭，默认0表示不关闭</param>
+        /// <param name="kind">种类，info/success/error等</param>
         /// <returns></returns>
-        IJs Alert(String message, String title = null);
+        IJs Alert(String message, String title = null, Int32 delaySecond = 0, String kind = null);
 
         /// <summary>停止输出</summary>
         IJs End();

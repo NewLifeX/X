@@ -9,11 +9,13 @@ namespace NewLife.Bootstrap
         /// <summary>重载Alert实现</summary>
         /// <param name="message">消息内容</param>
         /// <param name="title">标题</param>
+        /// <param name="delaySecond">延迟指定秒数以后自动关闭，默认0表示不关闭</param>
+        /// <param name="kind">种类，info/success/error等</param>
         /// <returns></returns>
-        protected override void OnAlert(String message, String title)
+        protected override void OnAlert(String message, String title, Int32 delaySecond, String kind)
         {
             message = "Bootstrap " + message;
-            base.OnAlert(message, title);
+            base.OnAlert(message, title, delaySecond, kind);
         }
     }
 }
