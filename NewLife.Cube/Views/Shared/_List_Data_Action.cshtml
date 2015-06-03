@@ -3,6 +3,12 @@
     var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
     var entity = Model as IEntity;
     var key = entity[fact.Unique];
+
+    var ajax = true;
+    if (ViewBag.AjaxDelete is Boolean)
+    {
+        ajax = (Boolean)ViewBag.AjaxDelete;
+    }
 }
 @if (ManageProvider.User.Has(PermissionFlags.Update))
 {
@@ -19,11 +25,25 @@ else if (ManageProvider.User.Has(PermissionFlags.Detail))
     if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
     {
         <i class="glyphicon glyphicon-transfer" style="color: green;"></i>
-        @Html.ActionLink("恢复", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认恢复？');" })
+        if (ajax)
+        {
+            @Html.ActionLink("恢复", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认恢复？');" })
+        }
+        else
+        {
+            @Html.ActionLink("恢复", "Delete", new { id = @key }, new { onclick = "return confirm('确认恢复？');" })
+        }
     }
     else
     {
         <i class="glyphicon glyphicon-remove" style="color: red;"></i>
-        @Html.ActionLink("删除", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认删除？');" })
+        if (ajax)
+        {
+            @Html.ActionLink("删除", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认删除？');" })
+        }
+        else
+        {
+            @Html.ActionLink("删除", "Delete", new { id = @key }, new { onclick = "return confirm('确认删除？');" })
+        }
     }
 }
