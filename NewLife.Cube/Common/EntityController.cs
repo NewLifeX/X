@@ -72,12 +72,25 @@ namespace NewLife.Cube
         [DisplayName("删除{type}")]
         public virtual ActionResult Delete(Int32 id)
         {
-            var entity = Entity<TEntity>.FindByKey(id);
-            entity.Delete();
+            var url = Request.UrlReferrer + "";
+
+            try
+            {
+                var entity = Entity<TEntity>.FindByKey(id);
+                entity.Delete();
+
+                //Js.Alert("删除成功！").Redirect(url);
+                //return new EmptyResult();
+            }
+            catch (Exception ex)
+            {
+                Js.Alert("删除失败！" + ex.Message).Redirect(url);
+                return new EmptyResult();
+            }
 
             // 跳转到来源地址
-            if (Request.UrlReferrer != null)
-                return Redirect(Request.UrlReferrer.ToString());
+            if (url != "")
+                return Redirect(url);
             else
                 return RedirectToAction("Index");
         }
