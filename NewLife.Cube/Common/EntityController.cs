@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
 using NewLife.Common;
+using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;
@@ -21,6 +22,9 @@ namespace NewLife.Cube
         /// <summary>构造函数</summary>
         public EntityController()
         {
+            // 强行实例化一次，初始化实体对象
+            var entity = new TEntity();
+
             ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
         }
         #endregion
@@ -328,7 +332,9 @@ namespace NewLife.Cube
             var type = typeof(TEntity);
             var all = Entity<TEntity>.Meta.AllFields;
             var list = new List<FieldItem>();
-            var names = "ID,TreeNodeName".Split(",");
+            var set = type.GetValue("Setting") as IEntityTreeSetting;
+            //var names = "ID,TreeNodeName".Split(",");
+            var names = new String[] { set.Key, "TreeNodeName" };
             foreach (var item in names)
             {
                 var fi = all.FirstOrDefault(e => e.Name.EqualIgnoreCase(item));
@@ -337,6 +343,8 @@ namespace NewLife.Cube
 
             foreach (var item in all)
             {
+                if (set != null && item.Name.EqualIgnoreCase(set.Name, set.Parent)) continue;
+
                 var pi = type.GetProperty(item.Name);
                 if (pi == null || pi.GetCustomAttribute<DisplayNameAttribute>() == null) continue;
 
