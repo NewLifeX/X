@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using NewLife.Collections;
 using NewLife.Web;
 using XCode.Cache;
-using System.Linq;
 
 namespace XCode.Membership
 {
@@ -51,6 +51,20 @@ namespace XCode.Membership
             {
                 Remark = Remark.Substring(0, 500);
             }
+        }
+
+        /// <summary></summary>
+        /// <returns></returns>
+        protected override int OnUpdate()
+        {
+            throw new Exception("禁止修改日志！");
+        }
+
+        /// <summary></summary>
+        /// <returns></returns>
+        protected override int OnDelete()
+        {
+            throw new Exception("禁止删除日志！");
         }
         #endregion
 
