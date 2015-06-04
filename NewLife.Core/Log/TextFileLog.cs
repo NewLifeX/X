@@ -31,7 +31,8 @@ namespace NewLife.Log
         /// <returns></returns>
         public static TextFileLog Create(String path)
         {
-            if (String.IsNullOrEmpty(path)) path = Config.GetConfig<String>("NewLife.LogPath", "Log");
+            // Web日志目录默认放到外部
+            if (String.IsNullOrEmpty(path)) path = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
 
             String key = path.ToLower();
             return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p, false));
