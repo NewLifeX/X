@@ -169,6 +169,8 @@ namespace NewLife.Cube
             if (!rs)
             {
                 ViewBag.StatusMessage = "添加失败！";
+                // 添加失败，ID清零，否则会显示保存按钮
+                entity[Entity<TEntity>.Meta.Unique.Name] = 0;
                 return FormView(entity);
             }
 
