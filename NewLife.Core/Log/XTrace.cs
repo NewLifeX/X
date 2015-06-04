@@ -292,7 +292,8 @@ namespace NewLife.Log
         {
             get
             {
-                if (_LogPath == null) _LogPath = Config.GetConfig<String>("NewLife.LogPath", "Log");
+                // Web日志目录默认放到外部
+                if (_LogPath == null) _LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
                 return _LogPath;
             }
             set { _LogPath = value; }
