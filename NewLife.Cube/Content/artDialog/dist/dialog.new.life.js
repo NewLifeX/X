@@ -48,12 +48,25 @@
 						window.close();
 					} else if ($.type(jumpUrl) == 'function') {
 
-						if (jumpUrl() === false) {
-							//回调返回flase阻止关闭dialog
-							return false;
-						}
-					} else
-						window.location.href = jumpUrl;
+					    if (jumpUrl() === false) {
+					        //回调返回flase阻止关闭dialog
+					        return false;
+					    }
+					} else {
+					    if (jumpUrl.indexOf('iframe') > -1) {
+					        var url = jumpUrl.substr(6).split('|'),
+								fid = url[0],
+								url = url[1];
+					        console.log(fid)
+					        var iframe = $(fid || 'iframe');
+					        if (iframe.length) {
+					            iframe.get('0').src = url;
+					        }
+					    }
+					    else {
+					        window.location.href = jumpUrl;
+					    }
+					}
 				}
 				this.close().remove();
 			}
@@ -156,7 +169,8 @@
 		d[modal ? 'showModal' : 'show']();
 
 		if (time > 0) {
-			setTimeout(function () {
+		    setTimeout(function () {
+		        
 				if (jumpUrl) {
 					if (jumpUrl == 'close') {
 						window.opener && window.opener.setTimeout('location.reload()', 800);

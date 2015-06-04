@@ -32,8 +32,11 @@
                         $.get(that.attr('href'),
                           function (data) {
                               //console.log(data);
-
-                              tips(data.msg, 1, 1000, 'iframe|' + data.url);
+                              var url  = 'iframe|' + data.url;
+                              if (data.code != 0) {
+                                  url = null;
+                              } 
+                              tips(data.msg, 0, 1000, url );
 
                           }).error(function (error) {
                               infoDialog('提示', error || '删除失败', 1);
