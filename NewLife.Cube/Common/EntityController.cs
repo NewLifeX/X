@@ -281,11 +281,11 @@ namespace NewLife.Cube
         #endregion
 
         #region 列表字段和表单字段
-        private static FieldCollection _ListFields = new FieldCollection(Entity<TEntity>.Meta.Factory).SetRelation(false);
+        private static FieldCollection _ListFields = new FieldCollection(Factory).SetRelation(false);
         /// <summary>列表字段过滤</summary>
         protected static FieldCollection ListFields { get { return _ListFields; } set { _ListFields = value; } }
 
-        private static FieldCollection _FormFields = new FieldCollection(Entity<TEntity>.Meta.Factory).SetRelation(true);
+        private static FieldCollection _FormFields = new FieldCollection(Factory).SetRelation(true);
         /// <summary>表单字段过滤</summary>
         protected static FieldCollection FormFields { get { return _FormFields; } set { _FormFields = value; } }
 

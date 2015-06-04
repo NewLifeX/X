@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using NewLife.Collections;
 using NewLife.Web;
 using XCode.Cache;
@@ -69,6 +70,20 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
+        /// <summary>物理地址</summary>
+        [DisplayName("物理地址")]
+        public String Address
+        {
+            get
+            {
+                if (IP.IsNullOrEmpty()) return null;
+
+                IPAddress ip = null;
+                if (!IPAddress.TryParse(IP, out ip)) return null;
+
+                return ip.GetAddress();
+            }
+        }
         #endregion
 
         #region 扩展查询

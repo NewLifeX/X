@@ -74,6 +74,14 @@ namespace NewLife.Cube
                         }
                     }
                 }
+                // IP地址字段
+                var p = this.FindIndex(e => e.Name.EqualIgnoreCase("IP"));
+                if (p >= 0)
+                {
+                    var addr = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Address"));
+                    // 加到后面
+                    if (addr != null) Insert(p + 1, addr);
+                }
             }
 
             return this;
