@@ -18,6 +18,11 @@ namespace NewLife.Cube
     [EntityAuthorize]
     public class EntityController<TEntity> : ControllerBaseX where TEntity : Entity<TEntity>, new()
     {
+        #region 属性
+        /// <summary>实体工厂</summary>
+        public static IEntityOperate Factory { get { return Entity<TEntity>.Meta.Factory; } }
+        #endregion
+
         #region 构造
         /// <summary>构造函数</summary>
         public EntityController()
@@ -129,7 +134,7 @@ namespace NewLife.Cube
         [DisplayName("添加{type}")]
         public virtual ActionResult Add()
         {
-            var entity = Entity<TEntity>.Meta.Factory.Create() as TEntity;
+            var entity = Factory.Create() as TEntity;
 
             // 记下添加前的来源页，待会添加成功以后跳转
             Session["Cube_Add_Referrer"] = Request.UrlReferrer.ToString();
@@ -145,6 +150,9 @@ namespace NewLife.Cube
         [ValidateInput(false)]
         public virtual ActionResult Add(TEntity entity)
         {
+            // 检测避免乱用Add/id
+            if (Factory.Unique.IsIdentity && entity[Factory.Unique.Name].ToInt() != 0) throw new Exception("我们约定添加数据时路由id部分默认没有数据，以免模型绑定器错误识别！");
+
             if (!Valid(entity))
             {
                 ViewBag.StatusMessage = "验证失败！";
