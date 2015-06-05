@@ -87,6 +87,8 @@ WriteLiteral(">\r\n");
             #line 20 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
      foreach (IMenu menu in Menus.Where(m => m.Visible))
     {
+        var childs = fact.GetMySubMenus(menu.ID).Where(m => m.Visible);
+        if (childs.IsEmpty()) { continue; }
         if (_idx >= icos.Length) { _idx = 0; }
 
             
@@ -95,7 +97,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("        <li ");
 
             
-            #line 23 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 25 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
        Write(Html.Raw(menu == Menus[0] ? "class=\"active open\"" : ""));
 
             
@@ -109,16 +111,16 @@ WriteLiteral(" class=\"dropdown-toggle\"");
 
 WriteLiteral(">\r\n                <i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 915), Tuple.Create("\"", 949)
-, Tuple.Create(Tuple.Create("", 923), Tuple.Create("menu-icon", 923), true)
-, Tuple.Create(Tuple.Create(" ", 932), Tuple.Create("fa", 933), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1033), Tuple.Create("\"", 1067)
+, Tuple.Create(Tuple.Create("", 1041), Tuple.Create("menu-icon", 1041), true)
+, Tuple.Create(Tuple.Create(" ", 1050), Tuple.Create("fa", 1051), true)
             
-            #line 25 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create(" ", 935), Tuple.Create<System.Object, System.Int32>(icos[_idx++]
+            #line 27 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+, Tuple.Create(Tuple.Create(" ", 1053), Tuple.Create<System.Object, System.Int32>(icos[_idx++]
             
             #line default
             #line hidden
-, 936), false)
+, 1054), false)
 );
 
 WriteLiteral("></i>\r\n                <span");
@@ -128,7 +130,7 @@ WriteLiteral(" class=\"menu-text\"");
 WriteLiteral(">");
 
             
-            #line 26 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 28 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                                    Write(menu.DisplayName);
 
             
@@ -149,15 +151,17 @@ WriteLiteral(" class=\"submenu\"");
 WriteLiteral(">\r\n");
 
             
-            #line 34 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 36 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 34 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-                 foreach (IMenu menu2 in fact.GetMySubMenus(menu.ID).Where(m => m.Visible))
+            #line 36 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+                 foreach (IMenu menu2 in childs)
                 {
+                    var childs2 = fact.GetMySubMenus(menu2.ID).Where(m => m.Visible);
+                    if (childs2.IsEmpty()) { continue; }
 
             
             #line default
@@ -165,13 +169,13 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    <li>\r\n");
 
             
-            #line 37 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 41 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                         
             
             #line default
             #line hidden
             
-            #line 37 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 41 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                          if (menu2.Childs.Count > 0)
                         {
 
@@ -193,7 +197,7 @@ WriteLiteral("></i>\r\n");
 WriteLiteral("                                ");
 
             
-            #line 41 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 45 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                            Write(menu2.DisplayName);
 
             
@@ -202,7 +206,7 @@ WriteLiteral("                                ");
 WriteLiteral("\r\n                            </a>\r\n");
 
             
-            #line 43 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 47 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                         }
                         else
                         {
@@ -212,14 +216,14 @@ WriteLiteral("\r\n                            </a>\r\n");
             #line hidden
 WriteLiteral("                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1734), Tuple.Create("\"", 1764)
+WriteAttribute("href", Tuple.Create(" href=\"", 1954), Tuple.Create("\"", 1984)
             
-            #line 46 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create("", 1741), Tuple.Create<System.Object, System.Int32>(Url.Content(menu2.Url)
+            #line 50 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+, Tuple.Create(Tuple.Create("", 1961), Tuple.Create<System.Object, System.Int32>(Url.Content(menu2.Url)
             
             #line default
             #line hidden
-, 1741), false)
+, 1961), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -233,7 +237,7 @@ WriteLiteral("></i>\r\n");
 WriteLiteral("                                ");
 
             
-            #line 48 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 52 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                            Write(menu2.DisplayName);
 
             
@@ -242,7 +246,7 @@ WriteLiteral("                                ");
 WriteLiteral("\r\n                            </a>\r\n");
 
             
-            #line 50 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 54 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                         }
 
             
@@ -259,14 +263,14 @@ WriteLiteral(" class=\"submenu\"");
 WriteLiteral(">\r\n");
 
             
-            #line 54 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 58 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                             
             
             #line default
             #line hidden
             
-            #line 54 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-                             foreach (IMenu menu3 in fact.GetMySubMenus(menu2.ID).Where(m => m.Visible))
+            #line 58 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+                             foreach (IMenu menu3 in childs2)
                             {
 
             
@@ -274,14 +278,14 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                                <li>\r\n                                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2280), Tuple.Create("\"", 2310)
+WriteAttribute("href", Tuple.Create(" href=\"", 2457), Tuple.Create("\"", 2487)
             
-            #line 57 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create("", 2287), Tuple.Create<System.Object, System.Int32>(Url.Content(menu3.Url)
+            #line 61 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+, Tuple.Create(Tuple.Create("", 2464), Tuple.Create<System.Object, System.Int32>(Url.Content(menu3.Url)
             
             #line default
             #line hidden
-, 2287), false)
+, 2464), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -295,7 +299,7 @@ WriteLiteral("></i>\r\n");
 WriteLiteral("                                        ");
 
             
-            #line 59 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 63 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                                    Write(menu3.DisplayName);
 
             
@@ -309,7 +313,7 @@ WriteLiteral(" class=\"arrow\"");
 WriteLiteral("></b>\r\n                                </li>\r\n");
 
             
-            #line 64 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 68 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                             }
 
             
@@ -318,7 +322,7 @@ WriteLiteral("></b>\r\n                                </li>\r\n");
 WriteLiteral("                        </ul>\r\n                    </li>\r\n");
 
             
-            #line 67 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 71 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
                 }
 
             
@@ -327,7 +331,7 @@ WriteLiteral("                        </ul>\r\n                    </li>\r\n");
 WriteLiteral("            </ul>\r\n        </li>\r\n");
 
             
-            #line 70 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
+            #line 74 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
     }
 
             

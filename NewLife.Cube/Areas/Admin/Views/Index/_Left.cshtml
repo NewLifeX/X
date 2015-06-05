@@ -19,6 +19,8 @@
 <ul class="nav nav-list">
     @foreach (IMenu menu in Menus.Where(m => m.Visible))
     {
+        var childs = fact.GetMySubMenus(menu.ID).Where(m => m.Visible);
+        if (childs.IsEmpty()) { continue; }
         if (_idx >= icos.Length) { _idx = 0; }
         <li @Html.Raw(menu == Menus[0] ? "class=\"active open\"" : "")>
             <a href="#" class="dropdown-toggle">
@@ -31,8 +33,10 @@
             <b class="arrow"></b>
 
             <ul class="submenu">
-                @foreach (IMenu menu2 in fact.GetMySubMenus(menu.ID).Where(m => m.Visible))
+                @foreach (IMenu menu2 in childs)
                 {
+                    var childs2 = fact.GetMySubMenus(menu2.ID).Where(m => m.Visible);
+                    if (childs2.IsEmpty()) { continue; }
                     <li>
                         @if (menu2.Childs.Count > 0)
                         {
@@ -51,7 +55,7 @@
 
                         <b class="arrow"></b>
                         <ul class="submenu">
-                            @foreach (IMenu menu3 in fact.GetMySubMenus(menu2.ID).Where(m => m.Visible))
+                            @foreach (IMenu menu3 in childs2)
                             {
                                 <li>
                                     <a href="@Url.Content(menu3.Url)" target="main">
