@@ -294,6 +294,11 @@ namespace System
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetIPs()
         {
+#if Android
+            return Dns.GetHostAddresses(Dns.GetHostName());
+#endif
+#if !Android
+
             var list = new List<IPAddress>();
             foreach (var item in GetActiveInterfaces())
             {
@@ -308,6 +313,7 @@ namespace System
                     }
                 }
             }
+#endif
         }
 
         private static DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expriod = 60, Asynchronous = true };
