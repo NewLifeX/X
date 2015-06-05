@@ -768,6 +768,11 @@ WriteLiteral(@">
             }
             fixFrmContentSize();
             $(window).resize(fixFrmContentSize);
+
+            //增加iframe被嵌套的检测2015-6-4 景裔增加
+            if (window != top) {
+                top.location.href = location.href;
+            }
         });
 
     </script>
