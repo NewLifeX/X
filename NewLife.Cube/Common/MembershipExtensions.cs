@@ -20,12 +20,18 @@ namespace NewLife.Cube
             var menu = ManageProvider.Menu.Current;
             if (menu == null) throw new Exception("无法定位当前权限菜单！");
 
+            // 如果没有指定权限子项，则指判断是否拥有资源
+            if (flags == null || flags.Length == 0) return user.Role.Has(menu.ID);
+
             //return user.Role.Has(menu.ID, flag);
             foreach (var item in flags)
             {
                 // 菜单必须拥有这些权限位才行
                 if (menu.Permissions.ContainsKey((Int32)item))
                 {
+                    // 如果判断None，则直接返回
+                    if (item == PermissionFlags.None) return true;
+
                     if (user.Role.Has(menu.ID, item)) return true;
                 }
             }
@@ -44,11 +50,17 @@ namespace NewLife.Cube
             var menu = ManageProvider.Menu.Root.FindByPath(respath);
             if (menu == null) throw new XException("无法定位权限菜单{0}！", respath);
 
+            // 如果没有指定权限子项，则指判断是否拥有资源
+            if (flags == null || flags.Length == 0) return user.Role.Has(menu.ID);
+
             foreach (var item in flags)
             {
                 // 菜单必须拥有这些权限位才行
                 if (menu.Permissions.ContainsKey((Int32)item))
                 {
+                    // 如果判断None，则直接返回
+                    if (item == PermissionFlags.None) return true;
+
                     if (user.Role.Has(menu.ID, item)) return true;
                 }
             }
