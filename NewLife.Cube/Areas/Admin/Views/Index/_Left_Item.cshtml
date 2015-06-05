@@ -1,0 +1,33 @@
+﻿@using NewLife.Model;
+@{
+    var user = ManageProvider.User;
+
+    var fact = ObjectContainer.Current.Resolve<IMenuFactory>();
+
+    var item = Model as IMenu;
+    var childs = fact.GetMySubMenus(item.ID).Where(m => m.Visible);
+}
+<li>
+    @if (childs.Any())
+    {
+        <a href="#" class="dropdown-toggle">
+            <i class="menu-icon fa fa-caret-right"></i>
+            @item.DisplayName
+        </a>
+    }
+    else
+    {
+        <a href="@Url.Content(item.Url)" target="main">
+            <i class="menu-icon fa fa-caret-right"></i>
+            @item.DisplayName
+        </a>
+
+        <b class="arrow"></b>
+        <ul class="submenu">
+            @foreach (IMenu menu in childs)
+            {
+                @Html.Partial("_Left_Item", menu);
+            }
+        </ul>
+    }
+</li>

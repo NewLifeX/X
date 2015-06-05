@@ -114,6 +114,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Main.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\Index\_Left_Item.generated.cs">
+      <DependentUpon>_Left_Item.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Areas\Admin\Views\Index\_Left.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -452,6 +457,10 @@
     <Content Include="Areas\Admin\Views\Log\_List_Toolbar.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\Index\_Left_Item.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Left_Item.generated.cs</LastGenOutput>
     </Content>
     <None Include="Areas\Admin\Views\User\Login.cshtml">
       <Generator>RazorGenerator</Generator>

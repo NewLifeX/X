@@ -1,6 +1,6 @@
 ﻿@using NewLife.Model;
 @{
-    var user = ManageProvider.Provider.Current as IUser;
+    var user = ManageProvider.User;
 
     var fact = ObjectContainer.Current.Resolve<IMenuFactory>();
 
@@ -35,39 +35,7 @@
                 <ul class="submenu">
                     @foreach (IMenu menu2 in childs)
                     {
-                        var childs2 = fact.GetMySubMenus(menu2.ID).Where(m => m.Visible);
-                        //if (childs2.IsEmpty()) { continue; }
-                        <li>
-                            @if (childs2.Any())
-                            {
-                                <a href="#" class="dropdown-toggle">
-                                    <i class="menu-icon fa fa-caret-right"></i>
-                                    @menu2.DisplayName
-                                </a>
-                            }
-                            else
-                            {
-                                <a href="@Url.Content(menu2.Url)" target="main">
-                                    <i class="menu-icon fa fa-caret-right"></i>
-                                    @menu2.DisplayName
-                                </a>
-
-                                <b class="arrow"></b>
-                                <ul class="submenu">
-                                    @foreach (IMenu menu3 in childs2)
-                                    {
-                                        <li>
-                                            <a href="@Url.Content(menu3.Url)" target="main">
-                                                <i class="menu-icon fa fa-caret-right"></i>
-                                                @menu3.DisplayName
-                                            </a>
-
-                                            <b class="arrow"></b>
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                        </li>
+                        @Html.Partial("_Left_Item", menu2);
                     }
                 </ul>
             }
