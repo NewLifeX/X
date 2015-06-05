@@ -98,14 +98,14 @@ namespace NewLife.Web
         /// <summary>弹出页面提示</summary>
         /// <param name="message">消息内容</param>
         /// <param name="title">标题</param>
-        /// <param name="delaySecond">延迟指定秒数以后自动关闭，默认0表示不关闭</param>
+        /// <param name="msDelay">延迟指定毫秒数以后自动关闭，默认0表示不关闭</param>
         /// <param name="kind">种类，info/success/error等</param>
         /// <returns></returns>
-        IJs IJs.Alert(String message, String title, Int32 delaySecond, String kind)
+        IJs IJs.Alert(String message, String title, Int32 msDelay, String kind)
         {
             if (String.IsNullOrEmpty(message)) return this;
 
-            OnAlert(message, title, delaySecond, kind);
+            OnAlert(message, title, msDelay, kind);
 
             return this;
         }
@@ -113,10 +113,10 @@ namespace NewLife.Web
         /// <summary>弹出页面提示</summary>
         /// <param name="message">消息内容</param>
         /// <param name="title">标题</param>
-        /// <param name="delaySecond">延迟指定秒数以后自动关闭，默认0表示不关闭</param>
+        /// <param name="msDelay">延迟指定毫秒数以后自动关闭，默认0表示不关闭</param>
         /// <param name="kind">种类，info/success/error等</param>
         /// <returns></returns>
-        protected virtual void OnAlert(String message, String title, Int32 delaySecond, String kind)
+        protected virtual void OnAlert(String message, String title, Int32 msDelay, String kind)
         {
             WriteScript("alert('" + Encode(message) + "');", true);
         }
@@ -174,10 +174,10 @@ namespace NewLife.Web
         /// <summary>弹出页面提示</summary>
         /// <param name="message">消息内容</param>
         /// <param name="title">标题</param>
-        /// <param name="delaySecond">延迟指定秒数以后自动关闭，默认0表示不关闭</param>
+        /// <param name="msDelay">延迟指定毫秒数以后自动关闭，默认0表示不关闭</param>
         /// <param name="kind">种类，info/success/error等</param>
         /// <returns></returns>
-        IJs Alert(String message, String title = null, Int32 delaySecond = 0, String kind = null);
+        IJs Alert(String message, String title = null, Int32 msDelay = 0, String kind = null);
 
         /// <summary>停止输出</summary>
         IJs End();
