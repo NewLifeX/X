@@ -3,12 +3,7 @@
 @using XCode.Configuration
 @{
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
-    var fields = ViewBag.Fields as FieldCollection;
-    var isNew = (Model as IEntity).IsNullKey;
     var user = Model as IUser;
-
-    // 个人不允许编辑角色和禁用
-    fields.RemoveField("RoleID").RemoveField("Enable");
 }
 <div class="panel panel-default">
     <div class="form-horizontal">
@@ -19,7 +14,7 @@
                 <strong>@ViewBag.StatusMessage</strong>
             </div>
         }
-        @using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
+        @using (Html.BeginForm("Info", null, new { id = Model[fact.Unique.Name] }))
         {
             @Html.ValidationSummary()
             <div class="form-group">
@@ -89,7 +84,11 @@
                     @user.Profile
                 </div>
             </div>
-            @Html.Partial("_Form_Action", isNew)
+            <div class="clearfix form-actions">
+                <label class="control-label col-md-4"></label>
+                <button type="submit" class="btn btn-success btn-sm"><i class="glyphicon glyphicon-save")"></i><strong>保存</strong></button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
+            </div>
         }
     </div>
 </div>

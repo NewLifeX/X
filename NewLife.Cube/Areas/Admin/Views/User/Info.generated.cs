@@ -64,12 +64,7 @@ namespace ASP
             #line 4 "..\..\Areas\Admin\Views\User\Info.cshtml"
   
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
-    var fields = ViewBag.Fields as FieldCollection;
-    var isNew = (Model as IEntity).IsNullKey;
     var user = Model as IUser;
-
-    // 个人不允许编辑角色和禁用
-    fields.RemoveField("RoleID").RemoveField("Enable");
 
             
             #line default
@@ -85,13 +80,13 @@ WriteLiteral(" class=\"form-horizontal\"");
 WriteLiteral(">\r\n");
 
             
-            #line 15 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 10 "..\..\Areas\Admin\Views\User\Info.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 15 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 10 "..\..\Areas\Admin\Views\User\Info.cshtml"
          if (ViewBag.StatusMessage != null)
         {
 
@@ -121,7 +116,7 @@ WriteLiteral(" aria-hidden=\"true\"");
 WriteLiteral(">&times;</span></button>\r\n                <strong>");
 
             
-            #line 19 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 14 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(ViewBag.StatusMessage);
 
             
@@ -130,7 +125,7 @@ WriteLiteral(">&times;</span></button>\r\n                <strong>");
 WriteLiteral("</strong>\r\n            </div>\r\n");
 
             
-            #line 21 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 16 "..\..\Areas\Admin\Views\User\Info.cshtml"
         }
 
             
@@ -139,22 +134,22 @@ WriteLiteral("</strong>\r\n            </div>\r\n");
 WriteLiteral("        ");
 
             
-            #line 22 "..\..\Areas\Admin\Views\User\Info.cshtml"
-         using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
+            #line 17 "..\..\Areas\Admin\Views\User\Info.cshtml"
+         using (Html.BeginForm("Info", null, new { id = Model[fact.Unique.Name] }))
         {
             
             
             #line default
             #line hidden
             
-            #line 24 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 19 "..\..\Areas\Admin\Views\User\Info.cshtml"
        Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
             
-            #line 24 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 19 "..\..\Areas\Admin\Views\User\Info.cshtml"
                                      
 
             
@@ -177,7 +172,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 29 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 24 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(user.Name);
 
             
@@ -202,7 +197,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 35 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 30 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(Html.ForEditor("Password"));
 
             
@@ -227,7 +222,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 41 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 36 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(Html.ForEditor("DisplayName"));
 
             
@@ -238,7 +233,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 42 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 37 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(Html.ForDescription("DisplayName"));
 
             
@@ -263,7 +258,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 48 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 43 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(Html.ForEditor("Mail"));
 
             
@@ -288,7 +283,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 54 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 49 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(Html.ForEditor("Phone"));
 
             
@@ -313,7 +308,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 60 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 55 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(Html.ForEditor("Code"));
 
             
@@ -324,7 +319,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 61 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 56 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(Html.ForDescription("Code"));
 
             
@@ -349,7 +344,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 68 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 63 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(user.Logins);
 
             
@@ -374,7 +369,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 75 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 70 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(user.LastLogin.ToFullString(""));
 
             
@@ -399,7 +394,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 82 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 77 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(user.LastLoginIP);
 
             
@@ -424,7 +419,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 89 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 84 "..\..\Areas\Admin\Views\User\Info.cshtml"
                Write(user.Profile);
 
             
@@ -432,22 +427,40 @@ WriteLiteral("                    ");
             #line hidden
 WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
 
-            
-            #line 92 "..\..\Areas\Admin\Views\User\Info.cshtml"
-            
-            
-            #line default
-            #line hidden
-            
-            #line 92 "..\..\Areas\Admin\Views\User\Info.cshtml"
-       Write(Html.Partial("_Form_Action", isNew));
+WriteLiteral("            <div");
+
+WriteLiteral(" class=\"clearfix form-actions\"");
+
+WriteLiteral(">\r\n                <label");
+
+WriteLiteral(" class=\"control-label col-md-4\"");
+
+WriteLiteral("></label>\r\n                <button");
+
+WriteLiteral(" type=\"submit\"");
+
+WriteLiteral(" class=\"btn btn-success btn-sm\"");
+
+WriteLiteral("><i");
+
+WriteLiteral(" class=\"glyphicon glyphicon-save\"");
+
+WriteLiteral(")\"></i><strong>保存</strong></button>\r\n                <button");
+
+WriteLiteral(" type=\"button\"");
+
+WriteLiteral(" class=\"btn btn-danger btn-sm\"");
+
+WriteLiteral(" onclick=\"history.go(-1);\"");
+
+WriteLiteral("><i");
+
+WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
+
+WriteLiteral("></i><strong>取消</strong></button>\r\n            </div>\r\n");
 
             
-            #line default
-            #line hidden
-            
             #line 92 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                                                
         }
 
             

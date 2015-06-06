@@ -154,7 +154,9 @@ namespace NewLife.Cube.Admin.Controllers
             if (entity.Dirtys["RoleID"]) throw new Exception("禁止修改角色！");
             if (entity.Dirtys["Enable"]) throw new Exception("禁止修改禁用！");
 
-            return View();
+            user.Update();
+
+            return View(user);
         }
 
         /// <summary>忘记密码</summary>
