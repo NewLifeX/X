@@ -51,7 +51,6 @@ namespace XCode
         }
 
         /// <summary>子节点</summary>
-        [XmlIgnore]
         public virtual EntityList<TEntity> Childs
         {
             get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("Childs", e => FindChilds(), !IsNullKey) : FindChilds(); }
