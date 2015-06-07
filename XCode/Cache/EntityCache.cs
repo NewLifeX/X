@@ -52,6 +52,9 @@ namespace XCode.Cache
                 // 更新统计信息
                 XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
 
+                // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
+                Using = true;
+
                 // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
                 Boolean nodata = _Entities.Count == 0;
                 if (nodata || DateTime.Now >= ExpiredTime)
@@ -80,8 +83,6 @@ namespace XCode.Cache
                 }
                 else
                     Interlocked.Increment(ref Shoot1);
-
-                Using = true;
 
                 return _Entities;
             }
