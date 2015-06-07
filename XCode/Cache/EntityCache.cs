@@ -2,7 +2,6 @@
 using System.Text;
 using System.Threading;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 
@@ -29,18 +28,6 @@ namespace XCode.Cache
         /// <summary>过期时间。单位是秒，默认60秒</summary>
         public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
 
-        private Boolean _HoldCache = CacheSetting.Alone;
-        /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
-        public Boolean HoldCache
-        {
-            get { return _HoldCache; }
-            set
-            {
-                _HoldCache = value;
-                if (value) Asynchronous = true;
-            }
-        }
-
         private Boolean _Asynchronous = true;
         /// <summary>异步更新，默认打开</summary>
         public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
@@ -56,7 +43,7 @@ namespace XCode.Cache
         #endregion
 
         #region 缓存核心
-        private EntityList<TEntity> _Entities;
+        private EntityList<TEntity> _Entities = new EntityList<TEntity>();
         /// <summary>实体集合。无数据返回空集合而不是null</summary>
         public EntityList<TEntity> Entities
         {
@@ -65,15 +52,8 @@ namespace XCode.Cache
                 // 更新统计信息
                 XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
 
-                // 独占模式下，缓存不再过期
-                if (HoldCache && _Entities != null)
-                {
-                    Interlocked.Increment(ref Shoot1);
-                    return _Entities ?? new EntityList<TEntity>();
-                }
-
                 // 两种情况更新缓存：1，缓存过期；2，不允许空但是集合又是空
-                Boolean nodata = _Entities == null || _Entities.Count == 0;
+                Boolean nodata = _Entities.Count == 0;
                 if (nodata || DateTime.Now >= ExpiredTime)
                 {
                     // 为了确保缓存数据有效可用，这里必须加锁，保证第一个线程更新拿到数据之前其它线程全部排队
@@ -83,13 +63,13 @@ namespace XCode.Cache
                     //!!! 所有加锁的地方都务必消息，同一个线程可以重入同一个锁
                     //if (_thread == Thread.CurrentThread.ManagedThreadId) throw new XCodeException("设计错误！当前线程正在获取缓存，在完成之前，本线程不应该使用实体缓存！");
                     // 同一个线程重入查询实体缓存时，直接返回已有缓存或者空，这符合一般设计逻辑
-                    if (_thread == Thread.CurrentThread.ManagedThreadId) return _Entities ?? new EntityList<TEntity>();
+                    if (_thread == Thread.CurrentThread.ManagedThreadId) return _Entities;
 
                     lock (this)
                     {
                         _thread = Thread.CurrentThread.ManagedThreadId;
 
-                        nodata = _Entities == null || _Entities.Count == 0;
+                        nodata = _Entities.Count == 0;
                         if (nodata || DateTime.Now >= ExpiredTime)
                             UpdateCache(nodata);
                         else
@@ -103,9 +83,7 @@ namespace XCode.Cache
 
                 Using = true;
 
-                //if (_Entities == null) XTrace.WriteLine("实体缓存数据为空 {0}", typeof(TEntity).FullName);
-
-                return _Entities ?? new EntityList<TEntity>();
+                return _Entities;
             }
         }
 
@@ -163,11 +141,6 @@ namespace XCode.Cache
         {
             _Entities = Invoke<Object, EntityList<TEntity>>(s => FillListMethod(), null);
 
-            //if (Debug && _Entities.Count == 0) DAL.WriteLog("实体缓存为空：{0}", typeof(TEntity).FullName);
-
-            // 清空
-            //if (_Entities != null && _Entities.Count == 0) _Entities = null;
-
             if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, state);
         }
 
@@ -176,16 +149,15 @@ namespace XCode.Cache
         {
             lock (this)
             {
-                if (_Entities != null && _Entities.Count > 0 && Debug) DAL.WriteLog("清空实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, reason);
+                if (_Entities.Count > 0 && Debug) DAL.WriteLog("清空实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, reason);
 
                 // 使用异步时，马上打开异步查询更新数据
-                if (Asynchronous && _Entities != null)
+                if (Asynchronous && _Entities.Count > 0)
                     UpdateCache(false);
                 else
                 {
                     // 修改为最小，确保过期
                     ExpiredTime = DateTime.MinValue;
-                    //_Entities = null;
                 }
 
                 // 清空后，表示不使用缓存
@@ -196,9 +168,9 @@ namespace XCode.Cache
         private IEntityOperate Operate = Entity<TEntity>.Meta.Factory;
         internal void Update(TEntity entity)
         {
-            //if (Busy) return;
             // 正在更新当前缓存，跳过
-            if (!Using || _thread > 0 || _Entities == null) return;
+            //if (!Using || _thread > 0 || _Entities == null) return;
+            if (!Using) return;
 
             // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
             var fi = Operate.Unique;
@@ -277,7 +249,6 @@ namespace XCode.Cache
         {
             this.Expriod = ec.Expriod;
             this.Asynchronous = ec.Asynchronous;
-            this.HoldCache = ec.HoldCache;
             this.FillListMethod = ec.FillListMethod;
 
             return this;

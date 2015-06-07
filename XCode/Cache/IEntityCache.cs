@@ -15,9 +15,6 @@ namespace XCode.Cache
     /// <summary>实体缓存接口</summary>
     public interface IEntityCache : IEntityCacheBase
     {
-        /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
-        Boolean HoldCache { get; set; }
-
         /// <summary>实体集合。因为涉及一个转换，数据量大时很耗性能，建议不要使用。</summary>
         EntityList<IEntity> Entities { get; }
 

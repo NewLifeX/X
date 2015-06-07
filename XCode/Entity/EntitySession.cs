@@ -577,7 +577,6 @@ namespace XCode
             set
             {
                 _HoldCache = value;
-                Cache.HoldCache = value;
                 SingleCache.HoldCache = value;
             }
         }
