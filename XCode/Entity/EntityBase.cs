@@ -241,6 +241,7 @@ namespace XCode
 
         #region 主键为空
         /// <summary>主键是否为空</summary>
+        [XmlIgnore]
         public Boolean IsNullKey { get { return Helper.IsEntityNullKey(this); } }
 
         /// <summary>设置主键为空。Save将调用Insert</summary>
