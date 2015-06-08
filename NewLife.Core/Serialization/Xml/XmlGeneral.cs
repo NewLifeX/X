@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace NewLife.Serialization
 {
@@ -106,7 +107,108 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override bool TryRead(Type type, ref object value)
         {
-            throw new NotImplementedException();
+            if (type == null)
+            {
+                if (value == null) return false;
+                type = value.GetType();
+            }
+
+            var reader = Host.GetReader();
+
+            if (type == typeof(Guid))
+            {
+                value = new Guid(reader.ReadElementContentAsString());
+                return true;
+            }
+            else if (type == typeof(Byte[]))
+            {
+                // 用字符串长度作为预设缓冲区的长度
+                var buf = new Byte[reader.Value.Length];
+                var count = reader.ReadElementContentAsBase64(buf, 0, buf.Length);
+                value = buf.ReadBytes(0, count);
+                return true;
+            }
+            else if (type == typeof(Char[]))
+            {
+                value = reader.ReadElementContentAsString().ToCharArray();
+                return true;
+            }
+            else if (type == typeof(DateTimeOffset))
+            {
+                value = reader.ReadElementContentAs(type, null);
+                return true;
+            }
+            else if (type == typeof(TimeSpan))
+            {
+                value = reader.ReadElementContentAs(type, null);
+                return true;
+            }
+
+            var code = Type.GetTypeCode(type);
+            if (code == TypeCode.Object) return false;
+
+            var v = reader.ReadElementContentAsString() + "";
+
+            switch (code)
+            {
+                case TypeCode.Boolean:
+                    value = v.ToBoolean();
+                    return true;
+                case TypeCode.Byte:
+                    value = Byte.Parse(v, NumberStyles.HexNumber);
+                    return true;
+                case TypeCode.Char:
+                    if (v.Length > 0) value = v[0];
+                    return true;
+                case TypeCode.DBNull:
+                    value = DBNull.Value;
+                    return true;
+                case TypeCode.DateTime:
+                    value = v.ToDateTime();
+                    return true;
+                case TypeCode.Decimal:
+                    value = (Decimal)v.ToDouble();
+                    return true;
+                case TypeCode.Double:
+                    value = v.ToDouble();
+                    return true;
+                case TypeCode.Empty:
+                    value = null;
+                    return true;
+                case TypeCode.Int16:
+                    value = (Int16)v.ToInt();
+                    return true;
+                case TypeCode.Int32:
+                    value = v.ToInt();
+                    return true;
+                case TypeCode.Int64:
+                    value = Int64.Parse(v);
+                    return true;
+                case TypeCode.Object:
+                    break;
+                case TypeCode.SByte:
+                    value = SByte.Parse(v, NumberStyles.HexNumber);
+                    return true;
+                case TypeCode.Single:
+                    value = (Single)v.ToDouble();
+                    return true;
+                case TypeCode.String:
+                    value = v;
+                    return true;
+                case TypeCode.UInt16:
+                    value = (UInt16)v.ToInt();
+                    return true;
+                case TypeCode.UInt32:
+                    value = (UInt32)v.ToInt();
+                    return true;
+                case TypeCode.UInt64:
+                    value = UInt64.Parse(v);
+                    return true;
+                default:
+                    break;
+            }
+
+            return false;
         }
     }
 }

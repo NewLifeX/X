@@ -118,6 +118,9 @@ namespace NewLife.Serialization
                 {
                     if (item.Write(value, type)) return true;
                 }
+
+                writer.WriteValue(value);
+
                 return false;
             }
             finally
@@ -178,13 +181,21 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Boolean TryRead(Type type, ref Object value)
         {
+            var reader = GetReader();
+            // 移动到第一个元素
+            while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return false; }
+            
             if (Hosts.Count == 0) WriteLog("XmlRead {0} {1}", type.Name, value);
 
             foreach (var item in Handlers)
             {
-                if (item.Write(value, type)) return true;
+                if (item.TryRead(type, ref value)) return true;
             }
-            return false;
+
+            value = GetReader().ReadContentAs(type, null);
+            return true;
+
+            //return false;
         }
 
         private XmlReader _Reader;
@@ -211,17 +222,6 @@ namespace NewLife.Serialization
             return name;
         }
 
-        #endregion
-
-        #region 跟踪日志
-        /// <summary>使用跟踪流。实际上是重新包装一次Stream，必须在设置Stream，使用之前</summary>
-        public virtual void EnableTrace()
-        {
-            var stream = Stream;
-            if (stream == null || stream is TraceStream) return;
-
-            Stream = new TraceStream(stream) { Encoding = this.Encoding };
-        }
         #endregion
     }
 }

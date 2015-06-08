@@ -210,9 +210,12 @@ namespace Test
         static void Test9()
         {
             var user = UserX.FindAllWithCache()[0];
+            Console.WriteLine(user.RoleName);
+            Console.Clear();
 
-            var bn = new Binary();
-            bn.EnableTrace();
+            //var bn = new Binary();
+            //bn.EnableTrace();
+            var bn = new Xml();
             bn.Write(user);
 
             var sw = new Stopwatch();
@@ -222,9 +225,9 @@ namespace Test
             Console.WriteLine(buf.ToHex());
 
             var ms = new MemoryStream(buf);
-            bn = new Binary();
+            //bn = new Binary();
             bn.Stream = ms;
-            bn.EnableTrace();
+            //bn.EnableTrace();
             var u = bn.Read<UserX>();
 
             foreach (var item in UserX.Meta.AllFields)
