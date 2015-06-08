@@ -370,7 +370,8 @@ namespace NewLife.Serialization
             //Write(value == null ? null : value.ToCharArray());
             if (value == null || value.Length == 0)
             {
-                Write((Byte)0);
+                //Write((Byte)0);
+                Host.WriteSize(0);
                 return;
             }
 

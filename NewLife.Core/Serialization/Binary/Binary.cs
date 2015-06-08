@@ -134,9 +134,8 @@ namespace NewLife.Serialization
             if (EncodeInt)
                 WriteEncoded(size);
             else
-            {
                 Write(size);
-            }
+
             return -1;
         }
 
@@ -194,7 +193,7 @@ namespace NewLife.Serialization
         public virtual Boolean TryRead(Type type, ref Object value)
         {
             if (Hosts.Count == 0) WriteLog("BinaryRead {0} {1}", type.Name, value);
-            
+
             foreach (var item in Handlers)
             {
                 if (item.TryRead(type, ref value)) return true;
