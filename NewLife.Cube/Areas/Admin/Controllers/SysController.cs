@@ -31,8 +31,14 @@ namespace NewLife.Cube.Admin.Controllers
             {
                 config = SysConfig.Current;
             }
-
-            return View("SysConfig", config);
+            if (Request.IsAjaxRequest())
+            {
+                return Json(new { result = "success", content = "保存成功" }); ;
+            }
+            else
+            {
+                return View(config);
+            }
         }
     }
 }
