@@ -40,7 +40,7 @@ namespace NewLife.Serialization
             switch (Type.GetTypeCode(type))
             {
                 case TypeCode.Boolean:
-                    Host.Write((Boolean)value ? 1 : 0);
+                    Host.Write((Byte)((Boolean)value ? 1 : 0));
                     return true;
                 case TypeCode.Byte:
                 case TypeCode.SByte:
