@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Reflection;
@@ -255,6 +256,70 @@ namespace NewLife.Cube
             if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
 
             return View("Form", entity);
+        }
+        #endregion
+
+        #region 高级Action
+        /// <summary>导出Xml</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Export)]
+        [DisplayName("导出")]
+        public virtual ActionResult ExportXml()
+        {
+            var list = Entity<TEntity>.FindAll();
+            var xml = list.ToXml();
+
+            return Content(xml, "text/xml", Encoding.UTF8);
+        }
+
+        /// <summary>导入Xml</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Import)]
+        [DisplayName("导入")]
+        [HttpPost]
+        public virtual ActionResult ImportXml()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>导出Json</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Export)]
+        [DisplayName("导出")]
+        public virtual ActionResult ExportJson()
+        {
+            var list = Entity<TEntity>.FindAll();
+            //var xml = list.ToJson();
+
+            return Json(list, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>导入Json</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Import)]
+        [DisplayName("导入")]
+        [HttpPost]
+        public virtual ActionResult ImportJson()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>导出Excel</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Export)]
+        [DisplayName("导出")]
+        public virtual ActionResult ExportExcel()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>清空全表数据</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Clear)]
+        [DisplayName("清空")]
+        public virtual ActionResult Clear()
+        {
+            throw new NotImplementedException();
         }
         #endregion
 

@@ -36,6 +36,18 @@ namespace XCode.Membership
         [Description("删除")]
         Delete = 8,
 
+        /// <summary>导入权限</summary>
+        [Description("导入")]
+        Import = 0x10,
+
+        /// <summary>删除权限</summary>
+        [Description("导出")]
+        Export = 0x20,
+
+        /// <summary>清空权限</summary>
+        [Description("清空")]
+        Clear = 0x40,
+
         /// <summary>所有权限</summary>
         [Description("所有")]
         All = 0xFF,

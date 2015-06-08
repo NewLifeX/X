@@ -65,23 +65,63 @@ WriteLiteral(" class=\"dropdown-menu dropdown-info dropdown-menu-right\"");
 
 WriteLiteral(">\r\n        <li>\r\n            <a");
 
-WriteLiteral(" href=\"#\"");
+WriteAttribute("href", Tuple.Create(" href=\"", 322), Tuple.Create("\"", 355)
+            
+            #line 9 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
+, Tuple.Create(Tuple.Create("", 329), Tuple.Create<System.Object, System.Int32>(Url.Action("ExportExcel")
+            
+            #line default
+            #line hidden
+, 329), false)
+);
 
 WriteLiteral(">导出Excel</a>\r\n        </li>\r\n        <li>\r\n            <a");
 
-WriteLiteral(" href=\"#\"");
+WriteAttribute("href", Tuple.Create(" href=\"", 413), Tuple.Create("\"", 444)
+            
+            #line 12 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
+, Tuple.Create(Tuple.Create("", 420), Tuple.Create<System.Object, System.Int32>(Url.Action("ExportXml")
+            
+            #line default
+            #line hidden
+, 420), false)
+);
 
 WriteLiteral(">导出Xml</a>\r\n        </li>\r\n        <li>\r\n            <a");
 
-WriteLiteral(" href=\"#\"");
+WriteAttribute("href", Tuple.Create(" href=\"", 500), Tuple.Create("\"", 531)
+            
+            #line 15 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
+, Tuple.Create(Tuple.Create("", 507), Tuple.Create<System.Object, System.Int32>(Url.Action("ImportXml")
+            
+            #line default
+            #line hidden
+, 507), false)
+);
 
 WriteLiteral(">导入Xml</a>\r\n        </li>\r\n        <li>\r\n            <a");
 
-WriteLiteral(" href=\"#\"");
+WriteAttribute("href", Tuple.Create(" href=\"", 587), Tuple.Create("\"", 619)
+            
+            #line 18 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
+, Tuple.Create(Tuple.Create("", 594), Tuple.Create<System.Object, System.Int32>(Url.Action("ExportJson")
+            
+            #line default
+            #line hidden
+, 594), false)
+);
 
 WriteLiteral(">导出Json</a>\r\n        </li>\r\n        <li>\r\n            <a");
 
-WriteLiteral(" href=\"#\"");
+WriteAttribute("href", Tuple.Create(" href=\"", 676), Tuple.Create("\"", 708)
+            
+            #line 21 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
+, Tuple.Create(Tuple.Create("", 683), Tuple.Create<System.Object, System.Int32>(Url.Action("ImportJson")
+            
+            #line default
+            #line hidden
+, 683), false)
+);
 
 WriteLiteral(">导入Json</a>\r\n        </li>\r\n        <li");
 
@@ -89,7 +129,15 @@ WriteLiteral(" class=\"divider\"");
 
 WriteLiteral("></li>\r\n        <li>\r\n            <a");
 
-WriteLiteral(" href=\"#\"");
+WriteAttribute("href", Tuple.Create(" href=\"", 800), Tuple.Create("\"", 827)
+            
+            #line 25 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
+, Tuple.Create(Tuple.Create("", 807), Tuple.Create<System.Object, System.Int32>(Url.Action("Clear")
+            
+            #line default
+            #line hidden
+, 807), false)
+);
 
 WriteLiteral(" onclick=\"return confirm(\'该操作将删除数据表所有数据并不可恢复！\\n确认清空？\');\"");
 
