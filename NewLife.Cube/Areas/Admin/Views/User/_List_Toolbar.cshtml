@@ -18,16 +18,8 @@
                     @Html.ForDropDownList("RoleID", Role.FindAllWithCache(), "全部", true)
                 </div>
                 <div class="input-group">
-                    <span class="input-group-addon">
-                        <i class="ace-icon fa fa-check"></i>
-                    </span>
-                    <input name="q" type="search" id="q" value="@Request["q"]" class="form-control" placeholder="搜索关键字" />
-                    <span class="input-group-btn">
-                        <button type="submit" class="btn btn-purple btn-sm">
-                            <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>
-                            查询
-                        </button>
-                    </span>
+                    @Html.Partial("_List_Toolbar_Search")
+                    @Html.Partial("_List_Toolbar_Adv")
                 </div>
             </div>
         </form>

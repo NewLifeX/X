@@ -36,45 +36,9 @@
                     </div>
                 </div>
                 <div class="input-group">
-                    <span class="input-group-addon">
-                        <i class="ace-icon fa fa-check"></i>
-                    </span>
-                    <input name="q" type="search" id="q" value="@Request["q"]" class="form-control" placeholder="搜索关键字" />
-                    <span class="input-group-btn">
-                        <button type="submit" class="btn btn-purple btn-sm">
-                            <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>
-                            查询
-                        </button>
-                    </span>
+                    @Html.Partial("_List_Toolbar_Search")
+                    @Html.Partial("_List_Toolbar_Adv")
                 </div>
-
-                <div class="btn-group">
-                    <button data-toggle="dropdown" class="btn btn-info btn-sm dropdown-toggle" aria-expanded="false">
-                        Info small
-                        <span class="ace-icon fa fa-caret-down icon-on-right"></span>
-                    </button>
-
-                    <ul class="dropdown-menu dropdown-info dropdown-menu-right">
-                        <li>
-                            <a href="#">Action</a>
-                        </li>
-
-                        <li>
-                            <a href="#">Another action</a>
-                        </li>
-
-                        <li>
-                            <a href="#">Something else here</a>
-                        </li>
-
-                        <li class="divider"></li>
-
-                        <li>
-                            <a href="#">Separated link</a>
-                        </li>
-                    </ul>
-                </div><!-- /.btn-group -->
-
             </div>
         </form>
     </div>

@@ -264,53 +264,30 @@ WriteLiteral(" />\r\n                    </div>\r\n                </div>\r\n   
 
 WriteLiteral(" class=\"input-group\"");
 
-WriteLiteral(">\r\n                    <span");
+WriteLiteral(">\r\n");
 
-WriteLiteral(" class=\"input-group-addon\"");
+WriteLiteral("                    ");
 
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-check\"");
-
-WriteLiteral("></i>\r\n                    </span>\r\n                    <input");
-
-WriteLiteral(" name=\"q\"");
-
-WriteLiteral(" type=\"search\"");
-
-WriteLiteral(" id=\"q\"");
-
-WriteAttribute("value", Tuple.Create(" value=\"", 2285), Tuple.Create("\"", 2306)
             
-            #line 42 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 2293), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            #line 39 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
+               Write(Html.Partial("_List_Toolbar_Search"));
+
             
             #line default
             #line hidden
-, 2293), false)
-);
+WriteLiteral("\r\n");
 
-WriteLiteral(" class=\"form-control\"");
+WriteLiteral("                    ");
 
-WriteLiteral(" placeholder=\"搜索关键字\"");
+            
+            #line 40 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
+               Write(Html.Partial("_List_Toolbar_Adv"));
 
-WriteLiteral(" />\r\n                    <span");
-
-WriteLiteral(" class=\"input-group-btn\"");
-
-WriteLiteral(">\r\n                        <button");
-
-WriteLiteral(" type=\"submit\"");
-
-WriteLiteral(" class=\"btn btn-purple btn-sm\"");
-
-WriteLiteral(">\r\n                            <span");
-
-WriteLiteral(" class=\"ace-icon fa fa-search icon-on-right bigger-110\"");
-
-WriteLiteral("></span>\r\n                            查询\r\n                        </button>\r\n    " +
-"                </span>\r\n                </div>\r\n            </div>\r\n        </f" +
-"orm>\r\n    </div>\r\n</div>\r\n");
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                </div>\r\n            </div>\r\n        </form>\r\n    </div>\r\n</div>" +
+"\r\n");
 
         }
     }

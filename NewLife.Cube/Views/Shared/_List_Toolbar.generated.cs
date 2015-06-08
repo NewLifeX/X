@@ -144,61 +144,33 @@ WriteLiteral(">\r\n");
             
             #line default
             #line hidden
-WriteLiteral("           </div>\r\n            <div");
+WriteLiteral("            </div>\r\n            <div");
 
 WriteLiteral(" class=\"pull-right form-group\"");
 
-WriteLiteral(">\r\n                <div");
+WriteLiteral(">\r\n");
 
-WriteLiteral(" class=\"input-group\"");
+WriteLiteral("                ");
 
-WriteLiteral(">\r\n                    <span");
-
-WriteLiteral(" class=\"input-group-addon\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-check\"");
-
-WriteLiteral("></i>\r\n                    </span>\r\n                    <input");
-
-WriteLiteral(" name=\"q\"");
-
-WriteLiteral(" type=\"search\"");
-
-WriteLiteral(" id=\"q\"");
-
-WriteAttribute("value", Tuple.Create(" value=\"", 1148), Tuple.Create("\"", 1169)
             
-            #line 27 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 1156), Tuple.Create<System.Object, System.Int32>(Request["q"]
+            #line 23 "..\..\Views\Shared\_List_Toolbar.cshtml"
+           Write(Html.Partial("_List_Toolbar_Search"));
+
             
             #line default
             #line hidden
-, 1156), false)
-);
+WriteLiteral("\r\n");
 
-WriteLiteral(" class=\"form-control\"");
+WriteLiteral("                ");
 
-WriteLiteral(" placeholder=\"搜索关键字\"");
+            
+            #line 24 "..\..\Views\Shared\_List_Toolbar.cshtml"
+           Write(Html.Partial("_List_Toolbar_Adv"));
 
-WriteLiteral(" />\r\n                    <span");
-
-WriteLiteral(" class=\"input-group-btn\"");
-
-WriteLiteral(">\r\n                        <button");
-
-WriteLiteral(" type=\"submit\"");
-
-WriteLiteral(" class=\"btn btn-purple btn-sm\"");
-
-WriteLiteral(">\r\n                            <span");
-
-WriteLiteral(" class=\"ace-icon fa fa-search icon-on-right bigger-110\"");
-
-WriteLiteral("></span>\r\n                            查询\r\n                        </button>\r\n    " +
-"                </span>\r\n                </div>\r\n            </div>\r\n        </f" +
-"orm>\r\n    </div>\r\n</div>");
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n            </div>\r\n        </form>\r\n    </div>\r\n</div>");
 
         }
     }

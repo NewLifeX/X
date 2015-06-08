@@ -322,6 +322,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_List_Toolbar_Search.generated.cs">
+      <DependentUpon>_List_Toolbar_Search.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\Shared\_List_Toolbar_Adv.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_List_Toolbar_Adv.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Shared\_LoginPartial.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -588,6 +598,14 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
     </Content>
+    <None Include="Views\Shared\_List_Toolbar_Search.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Toolbar_Search.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Shared\_List_Toolbar_Adv.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Toolbar_Adv.generated.cs</LastGenOutput>
+    </None>
     <None Include="Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
