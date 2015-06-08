@@ -13,7 +13,7 @@ namespace NewLife.Security
     /// 在如今技术支持的前提下，当密钥长度为128比特时，用暴力法搜索密钥已经不太可行，所以可以预见RC4的密钥范围任然可以在今后相当长的时间里抵御暴力搜索密钥的攻击。
     /// 实际上，如今也没有找到对于128bit密钥长度的RC4加密算法的有效攻击方法。
     /// </remarks>
-    class RC4
+    public class RC4
     {
         /// <summary>加密</summary>
         /// <param name="data"></param>
@@ -24,19 +24,22 @@ namespace NewLife.Security
             if (data == null || pass == null) return null;
 
             var output = new Byte[data.Length];
-            var i = 0;
-            var j = 0;
+            Int64 i = 0;
+            Int64 j = 0;
             var box = GetKey(pass, 256);
             // 加密  
-            for (var k = 0; k < data.Length; k++)
+            for (Int64 k = 0; k < data.Length; k++)
             {
                 i = (i + 1) % box.Length;
                 j = (j + box[i]) % box.Length;
                 var temp = box[i];
                 box[i] = box[j];
                 box[j] = temp;
-                output[k] = (Byte)(box[i] ^ (box[(box[i] + box[j]) % box.Length]));
+                var a = data[k];
+                var b = box[(box[i] + box[j]) % box.Length];
+                output[k] = (Byte)((Int32)a ^ (Int32)b);
             }
+
             return output;
         }
 
@@ -47,12 +50,12 @@ namespace NewLife.Security
         private static Byte[] GetKey(Byte[] pass, Int32 len)
         {
             var box = new Byte[len];
-            for (var i = 0; i < len; i++)
+            for (Int64 i = 0; i < len; i++)
             {
                 box[i] = (Byte)i;
             }
-            var j = 0;
-            for (var i = 0; i < len; i++)
+            Int64 j = 0;
+            for (Int64 i = 0; i < len; i++)
             {
                 j = (j + box[i] + pass[i % pass.Length]) % len;
                 var temp = box[i];
