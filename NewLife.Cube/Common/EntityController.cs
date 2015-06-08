@@ -289,9 +289,10 @@ namespace NewLife.Cube
         public virtual ActionResult ExportJson()
         {
             var list = Entity<TEntity>.FindAll();
-            //var xml = list.ToJson();
+            var json = list.ToJson();
+            //var json = new Json().Serialize(list);
 
-            return Json(list, JsonRequestBehavior.AllowGet);
+            return Json(json, JsonRequestBehavior.AllowGet);
         }
 
         /// <summary>导入Json</summary>
