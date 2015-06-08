@@ -223,6 +223,7 @@ namespace Test
 
             var buf = bn.GetBytes();
             Console.WriteLine(buf.ToHex());
+            Console.WriteLine(bn.GetString());
 
             var ms = new MemoryStream(buf);
             //bn = new Binary();

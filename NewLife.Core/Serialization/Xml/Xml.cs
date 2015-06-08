@@ -184,7 +184,7 @@ namespace NewLife.Serialization
             var reader = GetReader();
             // 移动到第一个元素
             while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return false; }
-            
+
             if (Hosts.Count == 0) WriteLog("XmlRead {0} {1}", type.Name, value);
 
             foreach (var item in Handlers)
@@ -222,6 +222,9 @@ namespace NewLife.Serialization
             return name;
         }
 
+        /// <summary>获取字符串</summary>
+        /// <returns></returns>
+        public String GetString() { return GetBytes().ToStr(Encoding); }
         #endregion
     }
 }
