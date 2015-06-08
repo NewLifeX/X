@@ -99,5 +99,14 @@ namespace NewLife.Serialization
 
             return false;
         }
+
+        /// <summary>尝试读取</summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public override bool TryRead(Type type, ref object value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

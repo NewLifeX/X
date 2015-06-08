@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -52,6 +51,7 @@ namespace NewLife.Serialization
         {
             if (handler != null)
             {
+                handler.Host = this;
                 _Handlers.Add(handler);
                 // 根据优先级排序
                 _Handlers.Sort();
@@ -67,6 +67,7 @@ namespace NewLife.Serialization
         public Xml AddHandler<THandler>(Int32 priority = 0) where THandler : IXmlHandler, new()
         {
             var handler = new THandler();
+            handler.Host = this;
             if (priority != 0) handler.Priority = priority;
 
             return AddHandler(handler);
@@ -103,6 +104,9 @@ namespace NewLife.Serialization
                 name = type.GetCustomAttributeValue<XmlRootAttribute, String>(true);
                 if (String.IsNullOrEmpty(name)) name = GetName(type);
             }
+
+            // 一般类型为空是顶级调用
+            if (Hosts.Count == 0) WriteLog("XmlWrite {0} {1}", name ?? type.Name, value);
 
             // 要先写入根
             Depth++;
@@ -174,6 +178,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Boolean TryRead(Type type, ref Object value)
         {
+            if (Hosts.Count == 0) WriteLog("XmlRead {0} {1}", type.Name, value);
+
             foreach (var item in Handlers)
             {
                 if (item.Write(value, type)) return true;

@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test9();
+                Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -209,25 +209,36 @@ namespace Test
 
         static void Test9()
         {
-            //var wql = "Select * From Win32_Processor";
-            //var cimobject = new ManagementObjectSearcher(wql);
-            //var moc = cimobject.Get();
-            //var bbs = new List<String>();
-            //foreach (ManagementObject mo in moc)
-            //{
-            //    foreach (var item in mo.Properties)
-            //    {
-            //        Console.WriteLine("{0,-20}{1}", item.Name, item.Value);
-            //    }
-            //}
+            var user = UserX.FindAllWithCache()[0];
+
+            var bn = new Binary();
+            bn.EnableTrace();
+            bn.Write(user);
 
             var sw = new Stopwatch();
             sw.Start();
 
-            var hi = HardInfo.Current;
-            sw.Stop();
-            Console.WriteLine(sw.Elapsed);
-            Console.WriteLine(hi);
+            var buf = bn.GetBytes();
+            Console.WriteLine(buf.ToHex());
+
+            var ms = new MemoryStream(buf);
+            bn = new Binary();
+            bn.Stream = ms;
+            bn.EnableTrace();
+            var u = bn.Read<UserX>();
+
+            foreach (var item in UserX.Meta.AllFields)
+            {
+                if (user[item.Name] == u[item.Name])
+                    Console.WriteLine("{0} {1} <=> {2} 通过", item.Name, user[item.Name], u[item.Name]);
+                else
+                    Console.WriteLine("{0} {1} <=> {2} 失败", item.Name, user[item.Name], u[item.Name]);
+            }
+
+            //var hi = HardInfo.Current;
+            //sw.Stop();
+            //Console.WriteLine(sw.Elapsed);
+            //Console.WriteLine(hi);
 
             //var ci = new ComputerInfo();
             //Console.WriteLine(ci);

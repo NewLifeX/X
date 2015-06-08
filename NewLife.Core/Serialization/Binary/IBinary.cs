@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Collections.Generic;
+using NewLife.Log;
 
 namespace NewLife.Serialization
 {
@@ -55,75 +56,43 @@ namespace NewLife.Serialization
         /// <returns></returns>
         Int32 ReadSize();
         #endregion
-
-        #region 调试日志
-        /// <summary>是否启用调试</summary>
-        Boolean Debug { get; set; }
-
-        /// <summary>输出日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        void WriteLog(String format, params Object[] args);
-        #endregion
     }
 
     /// <summary>二进制读写处理器接口</summary>
-    public interface IBinaryHandler : IComparable<IBinaryHandler>
+    public interface IBinaryHandler : IHandler<IBinary>
     {
-        /// <summary>宿主读写器</summary>
-        IBinary Host { get; set; }
+        ///// <summary>宿主读写器</summary>
+        //IBinary Host { get; set; }
 
-        /// <summary>优先级</summary>
-        Int32 Priority { get; set; }
+        ///// <summary>优先级</summary>
+        //Int32 Priority { get; set; }
 
-        /// <summary>写入一个对象</summary>
-        /// <param name="value">目标对象</param>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        Boolean Write(Object value, Type type);
+        ///// <summary>写入一个对象</summary>
+        ///// <param name="value">目标对象</param>
+        ///// <param name="type">类型</param>
+        ///// <returns></returns>
+        //Boolean Write(Object value, Type type);
 
-        /// <summary>尝试读取指定类型对象</summary>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        Boolean TryRead(Type type, ref Object value);
+        ///// <summary>尝试读取指定类型对象</summary>
+        ///// <param name="type"></param>
+        ///// <param name="value"></param>
+        ///// <returns></returns>
+        //Boolean TryRead(Type type, ref Object value);
     }
 
     /// <summary>二进制读写处理器基类</summary>
-    public abstract class BinaryHandlerBase : IBinaryHandler
+    public abstract class BinaryHandlerBase : HandlerBase<IBinary, IBinaryHandler>, IBinaryHandler
     {
-        private IBinary _Host;
-        /// <summary>宿主读写器</summary>
-        public IBinary Host { get { return _Host; } set { _Host = value; } }
+        ///// <summary>写入一个对象</summary>
+        ///// <param name="value">目标对象</param>
+        ///// <param name="type">类型</param>
+        ///// <returns></returns>
+        //public abstract Boolean Write(Object value, Type type);
 
-        private Int32 _Priority;
-        /// <summary>优先级</summary>
-        public Int32 Priority { get { return _Priority; } set { _Priority = value; } }
-
-        /// <summary>写入一个对象</summary>
-        /// <param name="value">目标对象</param>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        public abstract Boolean Write(Object value, Type type);
-
-        /// <summary>尝试读取指定类型对象</summary>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public abstract Boolean TryRead(Type type, ref Object value);
-
-        Int32 IComparable<IBinaryHandler>.CompareTo(IBinaryHandler other)
-        {
-            // 优先级较大在前面
-            return this.Priority.CompareTo(other.Priority);
-        }
-
-        /// <summary>输出日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Host.WriteLog(format, args);
-        }
+        ///// <summary>尝试读取指定类型对象</summary>
+        ///// <param name="type"></param>
+        ///// <param name="value"></param>
+        ///// <returns></returns>
+        //public abstract Boolean TryRead(Type type, ref Object value);
     }
 }

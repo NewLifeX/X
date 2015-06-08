@@ -368,18 +368,6 @@ namespace NewLife.Serialization
             Stream = new TraceStream(stream) { Encoding = this.Encoding, IsLittleEndian = this.IsLittleEndian };
         }
 #endif
-
-        private Boolean _Debug;
-        /// <summary>是否调试</summary>
-        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
-
-        /// <summary>输出日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            if (Debug) XTrace.WriteLine(format, args);
-        }
         #endregion
     }
 }

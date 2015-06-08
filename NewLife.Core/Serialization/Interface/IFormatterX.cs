@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using NewLife.Log;
 
 namespace NewLife.Serialization
 {
@@ -43,6 +44,34 @@ namespace NewLife.Serialization
         /// <returns></returns>
         Boolean TryRead(Type type, ref Object value);
         #endregion
+
+        #region 调试日志
+        /// <summary>日志提供者</summary>
+        ILog Log { get; set; }
+        #endregion
+    }
+
+    /// <summary>序列化处理器接口</summary>
+    /// <typeparam name="THost"></typeparam>
+    public interface IHandler<THost> : IComparable<IHandler<THost>> where THost : IFormatterX
+    {
+        /// <summary>宿主读写器</summary>
+        THost Host { get; set; }
+
+        /// <summary>优先级</summary>
+        Int32 Priority { get; set; }
+
+        /// <summary>写入一个对象</summary>
+        /// <param name="value">目标对象</param>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        Boolean Write(Object value, Type type);
+
+        /// <summary>尝试读取指定类型对象</summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        Boolean TryRead(Type type, ref Object value);
     }
 
     /// <summary>序列化接口</summary>
@@ -84,5 +113,59 @@ namespace NewLife.Serialization
             return ms.ReadBytes(pos - _StartPosition);
         }
         #endregion
+
+        #region 跟踪日志
+        private ILog _Log = XTrace.Debug ? XTrace.Log : Logger.Null;
+        /// <summary>日志提供者</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public virtual void WriteLog(String format, params Object[] args)
+        {
+            Log.Info(format, args);
+        }
+        #endregion
+    }
+
+    /// <summary>读写处理器基类</summary>
+    public abstract class HandlerBase<THost, THandler> : IHandler<THost>
+        where THost : IFormatterX
+        where THandler : IHandler<THost>
+    {
+        private THost _Host;
+        /// <summary>宿主读写器</summary>
+        public THost Host { get { return _Host; } set { _Host = value; } }
+
+        private Int32 _Priority;
+        /// <summary>优先级</summary>
+        public Int32 Priority { get { return _Priority; } set { _Priority = value; } }
+
+        /// <summary>写入一个对象</summary>
+        /// <param name="value">目标对象</param>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        public abstract Boolean Write(Object value, Type type);
+
+        /// <summary>尝试读取指定类型对象</summary>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public abstract Boolean TryRead(Type type, ref Object value);
+
+        Int32 IComparable<IHandler<THost>>.CompareTo(IHandler<THost> other)
+        {
+            // 优先级较大在前面
+            return this.Priority.CompareTo(other.Priority);
+        }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Host.Log.Info(format, args);
+        }
     }
 }
