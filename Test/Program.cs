@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Management;
 using System.Net;
 using System.Reflection;
@@ -43,7 +44,7 @@ namespace Test
                 try
                 {
 #endif
-                Test9();
+                Test16();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -395,6 +396,31 @@ namespace Test
             //    XTrace.WriteLine("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
             //    XTrace.WriteLine("公网地址：{0} {1}", rs.Public, Ip.GetAddress(rs.Public.Address.ToString()));
             //}
+        }
+
+        private static void Test16()
+        {
+            var data =System.Text.Encoding.UTF8.GetBytes( "0123456789");
+            var pass = System.Text.Encoding.UTF8.GetBytes("1");
+
+            XTrace.WriteLine("数据:{0} 密码:{1}", data.ToHex(), pass.ToHex());
+
+            var e = NewLife.Security.RC4.Encrypt(data, pass);
+            XTrace.WriteLine("加密后数据:{0}", e.ToHex());
+
+            var d = NewLife.Security.RC4.Encrypt(e, pass);
+            XTrace.WriteLine("解密后数据:{0}", d.ToHex());
+
+
+
+            XTrace.WriteLine("数据:{0} 密码:{1}", data.ToHex(), pass.ToHex());
+
+            var m = NewLife.Security.DataHelper.RC4(data, "1234");
+            XTrace.WriteLine("加密后数据:{0}", m.ToHex());
+
+            var n = NewLife.Security.DataHelper.RC4(m, "1234");
+            XTrace.WriteLine("解密后数据:{0}", n.ToHex());
+
         }
     }
 }
