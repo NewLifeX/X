@@ -16,19 +16,19 @@ namespace NewLife.Security
     public class RC4
     {
         /// <summary>加密</summary>
-        /// <param name="data"></param>
-        /// <param name="pass"></param>
+        /// <param name="data">数据</param>
+        /// <param name="pass">密码</param>
         /// <returns></returns>
         public static Byte[] Encrypt(Byte[] data, Byte[] pass)
         {
             if (data == null || pass == null) return null;
 
             var output = new Byte[data.Length];
-            Int64 i = 0;
-            Int64 j = 0;
+            var i = 0;
+            var j = 0;
             var box = GetKey(pass, 256);
             // 加密  
-            for (Int64 k = 0; k < data.Length; k++)
+            for (var k = 0; k < data.Length; k++)
             {
                 i = (i + 1) % box.Length;
                 j = (j + box[i]) % box.Length;
@@ -37,7 +37,7 @@ namespace NewLife.Security
                 box[j] = temp;
                 var a = data[k];
                 var b = box[(box[i] + box[j]) % box.Length];
-                output[k] = (Byte)((Int32)a ^ (Int32)b);
+                output[k] = (Byte)(a ^ b);
             }
 
             return output;
@@ -50,12 +50,12 @@ namespace NewLife.Security
         private static Byte[] GetKey(Byte[] pass, Int32 len)
         {
             var box = new Byte[len];
-            for (Int64 i = 0; i < len; i++)
+            for (var i = 0; i < len; i++)
             {
                 box[i] = (Byte)i;
             }
-            Int64 j = 0;
-            for (Int64 i = 0; i < len; i++)
+            var j = 0;
+            for (var i = 0; i < len; i++)
             {
                 j = (j + box[i] + pass[i % pass.Length]) % len;
                 var temp = box[i];
