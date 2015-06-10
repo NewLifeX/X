@@ -14,6 +14,9 @@ namespace NewLife.Bootstrap
         /// <returns></returns>
         protected override void OnAlert(String message, String title, Int32 msDelay, String kind)
         {
+            if (!message.IsNullOrEmpty()) message = Encode(message);
+            if (!title.IsNullOrEmpty()) title = Encode(title);
+
             var js = "";
             if (msDelay > 0)
                 js = String.Format("(parent[\"tips\"] || window[\"tips\"] || (function(msg){{alert(msg);}}))(\"{0}\",true,{1},\"close\");", message, msDelay);
