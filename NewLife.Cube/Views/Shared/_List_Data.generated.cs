@@ -98,25 +98,25 @@ WriteLiteral(">\r\n    <thead>\r\n        <tr>\r\n");
             #line hidden
 WriteLiteral("                    <th");
 
-WriteLiteral(" class=\"text-center hidden-md\"");
+WriteLiteral(" class=\"text-center hidden-md hidden-sm hidden-xs\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 510), Tuple.Create("\"", 554)
+WriteAttribute("href", Tuple.Create(" href=\"", 530), Tuple.Create("\"", 574)
             
             #line 17 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 517), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl(item.Name))
+    , Tuple.Create(Tuple.Create("", 537), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl(item.Name))
             
             #line default
             #line hidden
-, 517), false)
+, 537), false)
 );
 
 WriteLiteral(">");
 
             
             #line 17 "..\..\Views\Shared\_List_Data.cshtml"
-                                                                                                 Write(item.DisplayName);
+                                                                                                                     Write(item.DisplayName);
 
             
             #line default
@@ -138,14 +138,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 690), Tuple.Create("\"", 734)
+WriteAttribute("href", Tuple.Create(" href=\"", 710), Tuple.Create("\"", 754)
             
             #line 21 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 697), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl(item.Name))
+, Tuple.Create(Tuple.Create("", 717), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl(item.Name))
             
             #line default
             #line hidden
-, 697), false)
+, 717), false)
 );
 
 WriteLiteral(">");

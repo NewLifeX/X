@@ -19,7 +19,7 @@ namespace NewLife.Cube.Admin.Controllers
         {
             ViewBag.HeaderTitle = "系统设置";
             ViewBag.HeaderContent = "设置系统全局参数";
-            
+
             if (HttpContext.Request.HttpMethod == "POST")
             {
                 LogProvider.Provider.WriteLog(config.GetType(), "修改", null);
@@ -37,7 +37,7 @@ namespace NewLife.Cube.Admin.Controllers
             }
             else
             {
-                return View(config);
+                return View("SysConfig", config);
             }
         }
     }
