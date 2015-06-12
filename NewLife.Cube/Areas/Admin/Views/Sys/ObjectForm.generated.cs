@@ -35,16 +35,16 @@ namespace ASP
     using XCode.Membership;
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "2.0.0.0")]
-    [System.Web.WebPages.PageVirtualPathAttribute("~/Areas/Admin/Views/Sys/SysConfig.cshtml")]
-    public partial class _Areas_Admin_Views_Sys_SysConfig_cshtml : System.Web.Mvc.WebViewPage<NewLife.Common.SysConfig>
+    [System.Web.WebPages.PageVirtualPathAttribute("~/Areas/Admin/Views/Sys/ObjectForm.cshtml")]
+    public partial class _Areas_Admin_Views_Sys_ObjectForm_cshtml : System.Web.Mvc.WebViewPage<NewLife.Common.SysConfig>
     {
-        public _Areas_Admin_Views_Sys_SysConfig_cshtml()
+        public _Areas_Admin_Views_Sys_ObjectForm_cshtml()
         {
         }
         public override void Execute()
         {
             
-            #line 3 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 3 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
   
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
     ViewBag.Title = "系统配置";
@@ -65,13 +65,13 @@ WriteLiteral(" class=\"form-horizontal\"");
 WriteLiteral(">\r\n");
 
             
-            #line 12 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 12 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 12 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 12 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
          using (Html.BeginForm())
         {
             
@@ -79,28 +79,28 @@ WriteLiteral(">\r\n");
             #line default
             #line hidden
             
-            #line 14 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 14 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
        Write(Html.AntiForgeryToken());
 
             
             #line default
             #line hidden
             
-            #line 14 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 14 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                                     
             
             
             #line default
             #line hidden
             
-            #line 15 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 15 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
        Write(Html.ValidationSummary(true));
 
             
             #line default
             #line hidden
             
-            #line 15 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 15 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                                          
 
 
@@ -116,7 +116,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 18 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 18 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.Name, new { @class = "control-label col-md-2" }));
 
             
@@ -131,7 +131,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 20 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 20 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.Name));
 
             
@@ -142,7 +142,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 21 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 21 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.Name));
 
             
@@ -159,7 +159,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 25 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 25 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.Version, new { @class = "control-label col-md-2" }));
 
             
@@ -174,7 +174,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 27 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 27 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.Version));
 
             
@@ -185,7 +185,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 28 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 28 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.Version));
 
             
@@ -202,7 +202,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 32 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 32 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.DisplayName, new { @class = "control-label col-md-2" }));
 
             
@@ -217,7 +217,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 34 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 34 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.DisplayName));
 
             
@@ -228,7 +228,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 35 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 35 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.DisplayName));
 
             
@@ -245,7 +245,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 39 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 39 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.Company, new { @class = "control-label col-md-2" }));
 
             
@@ -260,7 +260,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 41 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 41 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.Company));
 
             
@@ -271,7 +271,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 42 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 42 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.Company));
 
             
@@ -288,7 +288,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 46 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 46 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.Address, new { @class = "control-label col-md-2" }));
 
             
@@ -303,7 +303,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 48 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 48 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.Address));
 
             
@@ -314,7 +314,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 49 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 49 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.Address));
 
             
@@ -331,7 +331,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 53 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 53 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.Tel, new { @class = "control-label col-md-2" }));
 
             
@@ -346,7 +346,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 55 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 55 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.Tel));
 
             
@@ -357,7 +357,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 56 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 56 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.Tel));
 
             
@@ -374,7 +374,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 60 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 60 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.Fax, new { @class = "control-label col-md-2" }));
 
             
@@ -389,7 +389,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 62 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 62 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.Fax));
 
             
@@ -400,7 +400,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 63 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 63 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.Fax));
 
             
@@ -409,7 +409,7 @@ WriteLiteral("                    ");
 WriteLiteral("\r\n                </div>\r\n            </div>\r\n");
 
             
-            #line 66 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 66 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
 
 
             
@@ -424,7 +424,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 68 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 68 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.EMail, new { @class = "control-label col-md-2" }));
 
             
@@ -439,7 +439,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 70 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 70 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.EMail));
 
             
@@ -450,7 +450,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 71 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 71 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.EMail));
 
             
@@ -467,7 +467,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 75 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 75 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.Develop, new { @class = "control-label col-md-2" }));
 
             
@@ -482,7 +482,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 77 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 77 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.Develop));
 
             
@@ -493,7 +493,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 78 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 78 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.Develop));
 
             
@@ -510,7 +510,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 82 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 82 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.Enable, new { @class = "control-label col-md-2" }));
 
             
@@ -525,7 +525,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 84 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 84 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.Enable));
 
             
@@ -536,7 +536,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 85 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 85 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ValidationMessageFor(model => model.Enable));
 
             
@@ -553,7 +553,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 89 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 89 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
            Write(Html.LabelFor(model => model.InstallTime, new { @class = "control-label col-md-2" }));
 
             
@@ -568,7 +568,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 91 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 91 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                Write(Html.ForEditor(model => model.InstallTime));
 
             
@@ -596,7 +596,7 @@ WriteAttribute("class", Tuple.Create(" class=\"", 4451), Tuple.Create("\"", 4505
 , Tuple.Create(Tuple.Create("", 4459), Tuple.Create("glyphicon", 4459), true)
 , Tuple.Create(Tuple.Create(" ", 4468), Tuple.Create("glyphicon-", 4469), true)
             
-            #line 96 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 96 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
              , Tuple.Create(Tuple.Create("", 4479), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
             
             #line default
@@ -607,7 +607,7 @@ WriteAttribute("class", Tuple.Create(" class=\"", 4451), Tuple.Create("\"", 4505
 WriteLiteral("></i><strong>");
 
             
-            #line 96 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 96 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
                                                                                                                                 Write(isNew ? "新增" : "保存");
 
             
@@ -628,7 +628,7 @@ WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 WriteLiteral("></i><strong>取消</strong></button>\r\n            </div>\r\n");
 
             
-            #line 99 "..\..\Areas\Admin\Views\Sys\SysConfig.cshtml"
+            #line 99 "..\..\Areas\Admin\Views\Sys\ObjectForm.cshtml"
         }
 
             
