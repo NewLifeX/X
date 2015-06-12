@@ -61,7 +61,7 @@ if(Table.Relations!=null && Table.Relations.Count>0)
 #>
         /// <summary>该<#=Table.DisplayName#>所对应的<#=rtable.DisplayName#><#=rname.DisplayName#></summary>
         [XmlIgnore]
-        public String <#=keyName#>Name { get { return <#=keyName#> != null ? <#=keyName#>.Name : null; } }
+        public String <#=keyName#>Name { get { return <#=keyName#> != null ? <#=keyName#>.Name : String.Empty; } }
 <#
             }
         }else

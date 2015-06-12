@@ -7,7 +7,8 @@ namespace <#=Config.NameSpace#>
 	/// <summary><#=Table.Description#>接口</summary>
 	public interface I<#=Table.Name#>
 	{
-		#region 属性<#
+		#region 属性
+<#
 		foreach(IDataColumn Field in Table.Columns)
 		{
 #>
@@ -15,7 +16,8 @@ namespace <#=Config.NameSpace#>
 		<#=Field.DataType.Name#> <#=Field.Name#> { get; set; }
 <#
 		}
-#>		#endregion
+#>		
+        #endregion
 
 		#region 获取/设置 字段值
 		/// <summary>获取/设置 字段值。</summary>

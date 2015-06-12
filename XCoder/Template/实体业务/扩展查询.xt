@@ -68,7 +68,7 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
             String pname=columns[0].Name;
     #>
             if (Meta.Count >= 1000)
-                return <#=action#>(_.<#=pname#>, <#=Args[0]#>);
+                return <#=action#>(__.<#=pname#>, <#=Args[0]#>);
             else // 实体缓存
                 return Meta.Cache.Entities.<#=action#>(__.<#=pname#>, <#=Args[0]#>);<#if(di.Unique){#>
             // 单对象缓存

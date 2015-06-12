@@ -10,7 +10,8 @@ namespace <#=Config.NameSpace#>
     [Description("<#=(""+Table.Description).Replace("\\", "\\\\")#>")]
     public partial class <#=Table.Name#>
     {
-        #region 属性<#
+        #region 属性
+<#
         foreach(IDataColumn Field in Table.Columns)
         {
 #>
@@ -22,7 +23,8 @@ namespace <#=Config.NameSpace#>
         public <#=Field.DataType.Name#> <#=Field.Name#> { get { return _<#=Field.Name#>; } set { _<#=Field.Name#> = value; } }
 <#
         }
-#>		#endregion
+#>		
+        #endregion
 
         #region 获取/设置 字段值
         /// <summary>
