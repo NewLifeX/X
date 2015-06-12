@@ -615,6 +615,12 @@ namespace NewLife.Net
         /// <param name="port"></param>
         public static UdpClient Broadcast(this UdpClient udp, Byte[] buffer, Int32 port)
         {
+            if (udp.Client != null && udp.Client.LocalEndPoint != null)
+            {
+                //var ip = udp.Client.LocalEndPoint as IPEndPoint;
+                if (udp.Client.LocalEndPoint.AddressFamily == AddressFamily.InterNetworkV6) throw new NotSupportedException("IPv6不支持广播！");
+            }
+
             if (!udp.EnableBroadcast) udp.EnableBroadcast = true;
 
             udp.Send(buffer, buffer.Length, new IPEndPoint(IPAddress.Broadcast, port));
