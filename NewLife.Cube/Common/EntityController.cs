@@ -262,7 +262,7 @@ namespace NewLife.Cube
         #region 高级Action
         /// <summary>导出Xml</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Export)]
+        [EntityAuthorize(PermissionFlags.Detail)]
         [DisplayName("导出")]
         public virtual ActionResult ExportXml()
         {
@@ -274,7 +274,7 @@ namespace NewLife.Cube
 
         /// <summary>导入Xml</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Import)]
+        [EntityAuthorize(PermissionFlags.Insert)]
         [DisplayName("导入")]
         [HttpPost]
         public virtual ActionResult ImportXml()
@@ -284,7 +284,7 @@ namespace NewLife.Cube
 
         /// <summary>导出Json</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Export)]
+        [EntityAuthorize(PermissionFlags.Detail)]
         [DisplayName("导出")]
         public virtual ActionResult ExportJson()
         {
@@ -297,7 +297,7 @@ namespace NewLife.Cube
 
         /// <summary>导入Json</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Import)]
+        [EntityAuthorize(PermissionFlags.Insert)]
         [DisplayName("导入")]
         [HttpPost]
         public virtual ActionResult ImportJson()
@@ -307,7 +307,7 @@ namespace NewLife.Cube
 
         /// <summary>导出Excel</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Export)]
+        [EntityAuthorize(PermissionFlags.Detail)]
         [DisplayName("导出")]
         public virtual ActionResult ExportExcel()
         {
@@ -316,7 +316,7 @@ namespace NewLife.Cube
 
         /// <summary>清空全表数据</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Clear)]
+        [EntityAuthorize(PermissionFlags.Delete)]
         [DisplayName("清空")]
         public virtual ActionResult Clear()
         {
@@ -449,6 +449,7 @@ namespace NewLife.Cube
         /// <param name="id"></param>
         /// <returns></returns>
         [DisplayName("上升")]
+        [EntityAuthorize(PermissionFlags.Update)]
         public ActionResult Up(Int32 id)
         {
             var menu = FindByID(id);
@@ -461,6 +462,7 @@ namespace NewLife.Cube
         /// <param name="id"></param>
         /// <returns></returns>
         [DisplayName("下降")]
+        [EntityAuthorize(PermissionFlags.Update)]
         public ActionResult Down(Int32 id)
         {
             var menu = FindByID(id);
