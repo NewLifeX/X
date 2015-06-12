@@ -201,7 +201,8 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity Create(Type type, String action)
         {
-            String name = GetDescription(type);
+            var name = type.GetDisplayName();
+            if (String.IsNullOrEmpty(name)) name = GetDescription(type);
             if (String.IsNullOrEmpty(name)) name = type.Name;
 
             return Create(name, action);
