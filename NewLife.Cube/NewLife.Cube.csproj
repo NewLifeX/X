@@ -144,11 +144,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SetPermission.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Sys\ObjectForm.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ObjectForm.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Areas\Admin\Views\User\Login.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -258,6 +253,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>List.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Shared\ObjectForm.generated.cs">
+      <DependentUpon>ObjectForm.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Views\Shared\_Ace_Layout.generated.cs">
       <AutoGen>True</AutoGen>
@@ -531,6 +531,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>NoPermission.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\ObjectForm.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ObjectForm.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\_Ace_Layout.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Ace_Layout.generated.cs</LastGenOutput>
@@ -558,10 +562,6 @@
     <None Include="Views\Shared\List.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>List.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\Sys\ObjectForm.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>ObjectForm.generated.cs</LastGenOutput>
     </None>
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <Content Include="Scripts\jquery-1.8.2.intellisense.js" />
