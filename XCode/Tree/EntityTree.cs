@@ -287,7 +287,7 @@ namespace XCode
         /// <returns></returns>
         public EntityList<TEntity> FindAllChildsExcept(IEntityTree exclude)
         {
-            return FindAllChilds(Root, true, exclude);
+            return FindAllChilds(this, true, exclude);
         }
 
         /// <summary>查找指定键的所有父节点，从高到底以深度层次树结构输出</summary>
