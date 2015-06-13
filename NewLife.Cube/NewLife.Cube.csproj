@@ -185,6 +185,7 @@
       <DependentUpon>_ViewStart.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Common\BootstrapJs.cs" />
+    <Compile Include="Common\ObjectController.cs" />
     <Compile Include="Common\ControllerBaseX.cs" />
     <Compile Include="Common\DbRunTimeModule.cs" />
     <Compile Include="Common\FieldCollection.cs" />

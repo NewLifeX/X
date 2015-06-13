@@ -107,12 +107,20 @@ namespace System
             var att = member.GetCustomAttribute<DisplayNameAttribute>(inherit);
             if (att != null && !att.DisplayName.IsNullOrWhiteSpace()) return att.DisplayName;
 
+            return null;
+        }
+
+        /// <summary>获取成员绑定的显示名，优先DisplayName，然后Description</summary>
+        /// <param name="member"></param>
+        /// <param name="inherit"></param>
+        /// <returns></returns>
+        public static String GetDescription(this MemberInfo member, Boolean inherit = true)
+        {
             var att2 = member.GetCustomAttribute<DescriptionAttribute>(inherit);
             if (att2 != null && !att2.Description.IsNullOrWhiteSpace()) return att2.Description;
 
             return null;
-        }
-        
+        }        
 
         /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
         /// <typeparam name="TAttribute"></typeparam>

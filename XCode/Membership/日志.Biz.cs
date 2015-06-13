@@ -201,9 +201,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity Create(Type type, String action)
         {
-            var name = type.GetDisplayName();
-            if (String.IsNullOrEmpty(name)) name = GetDescription(type);
-            if (String.IsNullOrEmpty(name)) name = type.Name;
+            var name = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
 
             return Create(name, action);
         }
@@ -213,26 +211,6 @@ namespace XCode.Membership
         /// <param name="action"></param>
         /// <returns></returns>
         ILog ILog.Create(Type type, String action) { return Create(type, action); }
-
-        static DictionaryCache<Type, String> desCache = new DictionaryCache<Type, string>();
-        /// <summary>获取实体类的描述名</summary>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        static String GetDescription(Type type)
-        {
-            return desCache.GetItem(type, delegate(Type key)
-            {
-                if (!typeof(IEntity).IsAssignableFrom(key)) return null;
-
-                var att = AttributeX.GetCustomAttribute<BindColumnAttribute>(key, true);
-                if (att != null && !String.IsNullOrEmpty(att.Description)) return att.Description;
-
-                var att2 = AttributeX.GetCustomAttribute<DescriptionAttribute>(key, true);
-                if (att2 != null && !String.IsNullOrEmpty(att2.Description)) return att2.Description;
-
-                return null;
-            });
-        }
 
         /// <summary>写日志</summary>
         /// <param name="type">类型</param>

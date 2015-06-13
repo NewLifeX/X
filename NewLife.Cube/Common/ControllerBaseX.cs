@@ -46,16 +46,17 @@ namespace NewLife.Cube
                     {
                         // 指定了资源名称，也就是专有菜单
                         var nodeName = method.Name;
+                        var dis = method.GetDisplayName();
                         var node = menu.Parent.FindByPath(nodeName);
                         if (node == null)
                         {
                             XTrace.WriteLine("为控制器{0}添加独立菜单{1}[{2}]", type.FullName, nodeName, name);
-                            node = menu.Parent.Add(nodeName, method.GetDisplayName(), menu.Url + "/" + nodeName);
+                            node = menu.Parent.Add(nodeName, dis, menu.Url + "/" + nodeName);
                         }
 
                         // 权限名
                         if (pm >= 0x10)
-                            node.Permissions[pm] = method.GetDisplayName() ?? method.Name;
+                            node.Permissions[pm] = dis ?? method.Name;
                         else if (att.Permission.ToString().Contains("|"))
                             node.Permissions[pm] = att.Permission.GetDescription();
                         else
