@@ -71,7 +71,7 @@ namespace NewLife.Cube
 
                 var v1 = obj.GetValue(pi);
                 var v2 = cfg.GetValue(pi);
-                if (!Object.Equals(v1, v2))
+                if (!Object.Equals(v1, v2) && (pi.PropertyType != typeof(String) || v1 + "" != v2 + ""))
                 {
                     if (sb.Length > 0) sb.Append(", ");
 
