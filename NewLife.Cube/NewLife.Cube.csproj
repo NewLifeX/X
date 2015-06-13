@@ -531,10 +531,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>NoPermission.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\ObjectForm.cshtml">
+    <None Include="Views\Shared\ObjectForm.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ObjectForm.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\_Ace_Layout.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Ace_Layout.generated.cs</LastGenOutput>

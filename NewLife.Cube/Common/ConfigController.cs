@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Web.Mvc;
 using System.Xml.Serialization;
 using NewLife.Xml;
 
@@ -30,12 +31,12 @@ namespace NewLife.Cube
 
         /// <summary>重载。过滤掉标识为XmlIgnore的属性</summary>
         /// <param name="filterContext"></param>
-        protected override void OnActionExecuting(System.Web.Mvc.ActionExecutingContext filterContext)
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             base.OnActionExecuting(filterContext);
 
-            var pds = ViewBag.Properties as IList<PropertyDescriptor>;
-            pds = pds.Where(e => !e.Attributes.Contains(new XmlIgnoreAttribute())).ToList();
+            var pds = ViewBag.Properties as List<PropertyDescriptor>;
+            pds.RemoveAll(e => e.Attributes.Contains(new XmlIgnoreAttribute()));
         }
     }
 }
