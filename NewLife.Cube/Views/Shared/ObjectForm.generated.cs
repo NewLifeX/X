@@ -55,7 +55,7 @@ namespace ASP
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
 
     var Obj = Model as Object;
-    var pds = TypeDescriptor.GetProperties(Obj);
+    var pds = ViewBag.Properties as IList<PropertyDescriptor>;
 
             
             #line default
@@ -108,7 +108,7 @@ WriteLiteral(">\r\n");
             
             #line 14 "..\..\Views\Shared\ObjectForm.cshtml"
                                          
-            foreach (PropertyDescriptor pd in pds)
+            foreach (var pd in pds)
             {
                 var name = pd.Name;
 

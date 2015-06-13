@@ -1,4 +1,8 @@
-﻿using NewLife.Xml;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Xml.Serialization;
+using NewLife.Xml;
 
 namespace NewLife.Cube
 {
@@ -22,6 +26,16 @@ namespace NewLife.Cube
                 }
                 XmlConfig<TConfig>.Current = value;
             }
+        }
+
+        /// <summary>重载。过滤掉标识为XmlIgnore的属性</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuting(System.Web.Mvc.ActionExecutingContext filterContext)
+        {
+            base.OnActionExecuting(filterContext);
+
+            var pds = ViewBag.Properties as IList<PropertyDescriptor>;
+            pds = pds.Where(e => !e.Attributes.Contains(new XmlIgnoreAttribute())).ToList();
         }
     }
 }

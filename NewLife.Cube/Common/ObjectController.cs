@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Linq;
 using System.Text;
 using System.Web.Mvc;
 using System.Xml.Serialization;
@@ -14,6 +16,8 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            base.OnActionExecuting(filterContext);
+
             var name = this.GetType().GetDisplayName() ?? typeof(TObject).GetDisplayName() ?? typeof(TObject).Name;
 
             var des = this.GetType().GetDescription() ?? typeof(TObject).GetDescription();
@@ -21,7 +25,8 @@ namespace NewLife.Cube
             ViewBag.HeaderTitle = name;
             ViewBag.HeaderContent = des;
 
-            base.OnActionExecuting(filterContext);
+            var pds = TypeDescriptor.GetProperties(Value);
+            ViewBag.Properties = pds.Cast<PropertyDescriptor>().ToList();
         }
 
         /// <summary>显示对象</summary>

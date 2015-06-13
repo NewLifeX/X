@@ -3,7 +3,7 @@
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
 
     var Obj = Model as Object;
-    var pds = TypeDescriptor.GetProperties(Obj);
+    var pds = ViewBag.Properties as IList<PropertyDescriptor>;
 }
 <div class="panel panel-default">
 
@@ -12,7 +12,7 @@
         {
             @Html.AntiForgeryToken()
             @Html.ValidationSummary(true)
-            foreach (PropertyDescriptor pd in pds)
+            foreach (var pd in pds)
             {
                 var name = pd.Name;
                 <div class="form-group">
