@@ -364,7 +364,7 @@ namespace XCode.Membership
                     {
                         for (int i = 0; i < hashTimes; i++)
                         {
-                            p = DataHelper.Hash(p);
+                            p = p.MD5();
                         }
                     }
                     if (!p.EqualIgnoreCase(user.Password)) throw new EntityException("密码不正确！");
@@ -374,7 +374,7 @@ namespace XCode.Membership
                     var p = user.Password;
                     for (int i = 0; i > hashTimes; i--)
                     {
-                        p = DataHelper.Hash(p);
+                        p = p.MD5();
                     }
                     if (!p.EqualIgnoreCase(password)) throw new EntityException("密码不正确！");
                 }
@@ -472,7 +472,7 @@ namespace XCode.Membership
             if (entity != null)
             {
                 var user = HttpUtility.UrlEncode(entity.Name);
-                var pass = !String.IsNullOrEmpty(entity.Password) ? DataHelper.Hash(entity.Password) : null;
+                var pass = !String.IsNullOrEmpty(entity.Password) ? entity.Password.MD5() : null;
                 if (reqcookie == null || user != reqcookie["u"] || pass != reqcookie["p"])
                 {
                     // 只有需要写入Cookie时才设置，否则会清空原来的非会话Cookie

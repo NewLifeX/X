@@ -271,7 +271,6 @@
     <Compile Include="Reflection\快速反射\MethodInfoX.cs" />
     <Compile Include="Reflection\快速反射\PropertyInfoX.cs" />
     <Compile Include="Security\Crc32.cs" />
-    <Compile Include="Security\DataHelper.cs" />
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
     <None Include="Serialization\Event\事件参数.cd" />

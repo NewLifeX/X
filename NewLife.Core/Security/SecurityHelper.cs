@@ -56,9 +56,8 @@ namespace System
         #endregion
 
         #region 同步加密扩展
-        /// <summary>对称加密算法扩展
-        /// <para>注意：CryptoStream会把 outstream 数据流关闭</para>
-        /// </summary>
+        /// <summary>对称加密算法扩展</summary>
+        /// <remarks>注意：CryptoStream会把 outstream 数据流关闭</remarks>
         /// <param name="sa"></param>
         /// <param name="instream"></param>
         /// <param name="outstream"></param>
@@ -125,13 +124,11 @@ namespace System
         #endregion
 
         #region RC4
-#if !Android
         /// <summary>RC4对称加密算法</summary>
         /// <param name="data"></param>
         /// <param name="pass"></param>
         /// <returns></returns>
         public static Byte[] RC4(this Byte[] data, Byte[] pass) { return NewLife.Security.RC4.Encrypt(data, pass); }
-#endif
         #endregion
     }
 }

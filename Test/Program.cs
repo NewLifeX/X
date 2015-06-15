@@ -401,24 +401,14 @@ namespace Test
         private static void Test16()
         {
             var data =System.Text.Encoding.UTF8.GetBytes( "0123456789");
-            var pass = System.Text.Encoding.UTF8.GetBytes("1");
+            var pass = System.Text.Encoding.UTF8.GetBytes("14435");
 
             XTrace.WriteLine("数据:{0} 密码:{1}", data.ToHex(), pass.ToHex());
 
-            var e = NewLife.Security.RC4.Encrypt(data, pass);
-            XTrace.WriteLine("加密后数据:{0}", e.ToHex());
-
-            var d = NewLife.Security.RC4.Encrypt(e, pass);
-            XTrace.WriteLine("解密后数据:{0}", d.ToHex());
-
-
-
-            XTrace.WriteLine("数据:{0} 密码:{1}", data.ToHex(), pass.ToHex());
-
-            var m = NewLife.Security.DataHelper.RC4(data, "1234");
+            var m = data.RC4(pass);
             XTrace.WriteLine("加密后数据:{0}", m.ToHex());
 
-            var n = NewLife.Security.DataHelper.RC4(m, "1234");
+            var n = m.RC4(pass);
             XTrace.WriteLine("解密后数据:{0}", n.ToHex());
 
         }

@@ -140,7 +140,7 @@ namespace XCode.Code
                     sb.Append(dc.ColumnName);
                 }
             }
-            var key = DataHelper.Hash(sb.ToString());
+            var key = sb.ToString().MD5();
 
             return cache.GetItem<String, List<IDataTable>>(key, name, tables, (k, n, ts) =>
             {

@@ -13,7 +13,7 @@ namespace NewLife.Security
     /// 在如今技术支持的前提下，当密钥长度为128比特时，用暴力法搜索密钥已经不太可行，所以可以预见RC4的密钥范围任然可以在今后相当长的时间里抵御暴力搜索密钥的攻击。
     /// 实际上，如今也没有找到对于128bit密钥长度的RC4加密算法的有效攻击方法。
     /// </remarks>
-    public class RC4
+    class RC4
     {
         /// <summary>加密</summary>
         /// <param name="data">数据</param>
@@ -21,7 +21,7 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] Encrypt(Byte[] data, Byte[] pass)
         {
-            if (data == null || pass == null) return null;
+            if (data == null || data.Length == 0 || pass == null || pass.Length == 0) return null;
 
             var output = new Byte[data.Length];
             var i = 0;
