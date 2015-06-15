@@ -400,8 +400,8 @@ namespace Test
 
         private static void Test16()
         {
-            var data =System.Text.Encoding.UTF8.GetBytes( "0123456789");
-            var pass = System.Text.Encoding.UTF8.GetBytes("14435");
+            var data = "I am BigStone!".GetBytes();
+            var pass = "123321".GetBytes();
 
             XTrace.WriteLine("数据:{0} 密码:{1}", data.ToHex(), pass.ToHex());
 
