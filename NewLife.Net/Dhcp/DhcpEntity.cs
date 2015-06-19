@@ -90,13 +90,13 @@ namespace NewLife.Net.Dhcp
         public List<DhcpOption> Options { get { return _Options; } set { _Options = value; } }
 
         /// <summary>消息种类</summary>
-        public Dhcp.DchpMessageType Kind
+        public Dhcp.DhcpMessageType Kind
         {
             get
             {
                 var opt = Options.FirstOrDefault(e => e.Option == DhcpOptions.MessageType);
                 var b = opt != null ? opt.Data[0] : 0;
-                return (DchpMessageType)b;
+                return (DhcpMessageType)b;
             }
         }
         #endregion

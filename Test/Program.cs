@@ -413,10 +413,10 @@ namespace Test
             //XTrace.WriteLine("解密后数据:{0}", n.ToHex());
 
 
-            var udp = new UdpServer(67);
-            udp.Log = XTrace.Log;
-            udp.Received += udp_Received;
-            udp.Open();
+            var dhcp = new DhcpServer();
+            dhcp.Log = XTrace.Log;
+            dhcp.SessionLog = XTrace.Log;
+            dhcp.Start();
         }
 
         static void udp_Received(object sender, ReceivedEventArgs e)

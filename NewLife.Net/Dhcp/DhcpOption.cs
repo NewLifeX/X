@@ -126,7 +126,7 @@ namespace NewLife.Net.Dhcp
                 case DhcpOptions.IPLeaseTime:
                     break;
                 case DhcpOptions.MessageType:
-                    return ((DchpMessageType)Data[0]).ToString();
+                    return ((DhcpMessageType)Data[0]).ToString();
                 case DhcpOptions.ParameterList:
                     break;
                 case DhcpOptions.Message:

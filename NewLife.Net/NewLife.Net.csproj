@@ -57,7 +57,7 @@
     <Compile Include="Common\ClientMessageProvider.cs" />
     <Compile Include="Common\SessionMessageProvider.cs" />
     <Compile Include="Common\ServerMessageProvider.cs" />
-    <Compile Include="Dhcp\DchpMessageType.cs" />
+    <Compile Include="Dhcp\DhcpMessageType.cs" />
     <Compile Include="Dhcp\DhcpEntity.cs" />
     <Compile Include="Dhcp\DhcpOption.cs" />
     <Compile Include="Dhcp\DhcpServer.cs" />
