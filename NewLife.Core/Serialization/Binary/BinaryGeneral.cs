@@ -203,7 +203,7 @@ namespace NewLife.Serialization
             if (buffer == null)
             {
                 var size = Host.WriteSize(0);
-                if (size > 0) Host.Write(new Byte[size - buffer.Length], 0, -1);
+                if (size > 0) Host.Write(new Byte[size], 0, -1);
             }
             else
             {
