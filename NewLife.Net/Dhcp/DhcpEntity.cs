@@ -41,9 +41,9 @@ namespace NewLife.Net.Dhcp
         /// <summary>秒数</summary>
         public Int16 Seconds { get { return _Seconds; } set { _Seconds = value; } }
 
-        private Int16 _BootpFlags = 0x80;
+        private UInt16 _BootpFlags = 0x8000;
         /// <summary>属性说明</summary>
-        public Int16 BootpFlags { get { return _BootpFlags; } set { _BootpFlags = value; } }
+        public UInt16 BootpFlags { get { return _BootpFlags; } set { _BootpFlags = value; } }
 
         [FieldSize(4)]
         private Byte[] _ClientIPAddress;
@@ -179,7 +179,7 @@ namespace NewLife.Net.Dhcp
         {
             var fm = base.GetFormatter(isRead) as Binary;
             fm.UseFieldSize = true;
-            fm.Log = XTrace.Log;
+            //fm.Log = XTrace.Log;
 
             return fm;
         }

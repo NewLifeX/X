@@ -111,6 +111,8 @@ namespace NewLife.Net.Dhcp
         /// <param name="dhcp"></param>
         protected void Send(DhcpEntity dhcp)
         {
+            dhcp.ClientMac = Mac;
+
             var opt = new DhcpOption();
             opt.SetClientId(Mac);
             dhcp.Options.Add(opt);
