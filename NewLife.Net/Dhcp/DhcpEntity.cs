@@ -4,6 +4,9 @@ using System.Reflection;
 using NewLife.Messaging;
 using NewLife.Serialization;
 using System.Net;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace NewLife.Net.Dhcp
 {
@@ -79,7 +82,42 @@ namespace NewLife.Net.Dhcp
         public Int32 Magic { get { return _Magic; } set { _Magic = value; } }
         #endregion
 
+        #region 扩展属性
+        [NonSerialized]
+        private List<DhcpOption> _Options = new List<DhcpOption>();
+        /// <summary>可选项</summary>
+        public List<DhcpOption> Options { get { return _Options; } set { _Options = value; } }
+        #endregion
+
         #region 读写核心
+        /// <summary>读取扩展属性</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public override bool Read(Stream stream)
+        {
+            if (!base.Read(stream)) return false;
+
+            // 读取扩展可选项
+            if (stream.Position < stream.Length)
+            {
+                var binary = GetFormatter(true) as Binary;
+                binary.Stream = stream;
+
+                while (stream.Position < stream.Length)
+                {
+                    if (stream.ReadByte() == 0xFF) break;
+                    stream.Position--;
+
+                    var opt = binary.Read<DhcpOption>();
+                    Options.Add(opt);
+
+                    if (opt.Option == DhcpOptions.End) break;
+                }
+            }
+
+            return true;
+        }
+
         /// <summary>使用字段大小</summary>
         /// <param name="isRead"></param>
         /// <returns></returns>
@@ -93,6 +131,26 @@ namespace NewLife.Net.Dhcp
         #endregion
 
         #region 辅助
+        /// <summary>显示扩展属性</summary>
+        /// <param name="pi"></param>
+        /// <param name="len"></param>
+        /// <param name="sb"></param>
+        protected override void GetMember(PropertyInfo pi, int len, StringBuilder sb)
+        {
+            if (pi.Name == "Options")
+            {
+                foreach (var opt in Options)
+                {
+                    if (sb.Length > 0) sb.AppendLine();
+
+                    sb.AppendFormat("{0," + len + "}: {1}", opt.Option, opt.Data.ToHex());
+                }
+                return;
+            }
+
+            base.GetMember(pi, len, sb);
+        }
+
         /// <summary>获取用于输出的成员值</summary>
         /// <param name="pi"></param>
         /// <returns></returns>

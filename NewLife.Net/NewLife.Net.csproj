@@ -59,6 +59,7 @@
     <Compile Include="Common\ServerMessageProvider.cs" />
     <Compile Include="Dhcp\DchpMessageType.cs" />
     <Compile Include="Dhcp\DhcpEntity.cs" />
+    <Compile Include="Dhcp\DhcpOption.cs" />
     <Compile Include="DNS\BinaryDNS.cs" />
     <Compile Include="DNS\DNSOpcodeType.cs" />
     <Compile Include="DNS\DNSRcodeType.cs" />
