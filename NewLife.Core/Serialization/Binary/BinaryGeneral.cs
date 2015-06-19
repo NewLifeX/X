@@ -200,7 +200,7 @@ namespace NewLife.Serialization
         public virtual void Write(byte[] buffer)
         {
             // 可能因为FieldSize设定需要补充0字节
-            if (buffer == null)
+            if (buffer == null || buffer.Length == 0)
             {
                 var size = Host.WriteSize(0);
                 if (size > 0) Host.Write(new Byte[size], 0, -1);
@@ -367,11 +367,10 @@ namespace NewLife.Serialization
         /// <param name="value">要写入的值。</param>
         public virtual void Write(String value)
         {
-            //Write(value == null ? null : value.ToCharArray());
             if (value == null || value.Length == 0)
             {
-                //Write((Byte)0);
-                Host.WriteSize(0);
+                //Host.WriteSize(0);
+                Write(new Byte[0]);
                 return;
             }
 

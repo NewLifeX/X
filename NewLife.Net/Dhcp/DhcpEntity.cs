@@ -6,7 +6,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
-using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -80,7 +79,7 @@ namespace NewLife.Net.Dhcp
         /// <summary>启动文件名</summary>
         public String BootFileName { get { return _BootFileName; } set { _BootFileName = value; } }
 
-        private Int32 _Magic = 0x63538263;
+        private Int32 _Magic = 0x63825363;
         /// <summary>幻数</summary>
         public Int32 Magic { get { return _Magic; } set { _Magic = value; } }
         #endregion
