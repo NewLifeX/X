@@ -14,9 +14,9 @@ namespace NewLife.Net.Dhcp
     public class DhcpEntity : MessageBase
     {
         #region 属性
-        private DchpMessageType _MessageType;
-        /// <summary>消息类型</summary>
-        public DchpMessageType MessageType { get { return _MessageType; } set { _MessageType = value; } }
+        private Byte _MessageType;
+        /// <summary>消息类型。若是client送给server的封包，设为1，反向为2</summary>
+        public Byte MessageType { get { return _MessageType; } set { _MessageType = value; } }
 
         private Byte _HardwareType;
         /// <summary>硬件类型</summary>
@@ -143,7 +143,7 @@ namespace NewLife.Net.Dhcp
                 {
                     if (sb.Length > 0) sb.AppendLine();
 
-                    sb.AppendFormat("{0," + len + "}: {1}", opt.Option, opt.Data.ToHex());
+                    sb.AppendFormat("{0," + len + "}: {1}", opt.Option, opt.ToStr());
                 }
                 return;
             }

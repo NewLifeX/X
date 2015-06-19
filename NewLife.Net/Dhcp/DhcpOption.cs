@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using NewLife.Serialization;
 
@@ -76,6 +77,7 @@ namespace NewLife.Net.Dhcp
     /// <summary>DHCP可选项</summary>
     public class DhcpOption
     {
+        #region 属性
         private DhcpOptions _Option;
         /// <summary>选项类型</summary>
         public DhcpOptions Option { get { return _Option; } set { _Option = value; } }
@@ -88,5 +90,59 @@ namespace NewLife.Net.Dhcp
         private Byte[] _Data;
         /// <summary>数据部分</summary>
         public Byte[] Data { get { return _Data; } set { _Data = value; } }
+        #endregion
+
+        #region 辅助
+        /// <summary>转为字符串标识</summary>
+        /// <returns></returns>
+        public String ToStr()
+        {
+            switch (Option)
+            {
+                case DhcpOptions.Router:
+                case DhcpOptions.Mask:
+                case DhcpOptions.DNSServer:
+                case DhcpOptions.DHCPServer:
+                    return new IPAddress(Data.ToInt()).ToString();
+                case DhcpOptions.TimeServer:
+                    break;
+                case DhcpOptions.NameServer:
+                    break;
+                case DhcpOptions.LOGServer:
+                    break;
+                case DhcpOptions.HostName:
+                case DhcpOptions.Vendor:
+                    return Data.ToStr();
+                case DhcpOptions.MTU:
+                    break;
+                case DhcpOptions.StaticRout:
+                    break;
+                case DhcpOptions.ARPCacheTimeout:
+                    break;
+                case DhcpOptions.NTPServer:
+                    break;
+                case DhcpOptions.RequestedIP:
+                    break;
+                case DhcpOptions.IPLeaseTime:
+                    break;
+                case DhcpOptions.MessageType:
+                    return ((DchpMessageType)Data[0]).ToString();
+                case DhcpOptions.ParameterList:
+                    break;
+                case DhcpOptions.Message:
+                    break;
+                case DhcpOptions.MaxMessageSize:
+                    break;
+                case DhcpOptions.ClientIdentifier:
+                    return Data.ReadBytes(1, 6).ToHex(":");
+                case DhcpOptions.End:
+                    return "";
+                default:
+                    break;
+            }
+
+            return Data.ToHex();
+        }
+        #endregion
     }
 }
