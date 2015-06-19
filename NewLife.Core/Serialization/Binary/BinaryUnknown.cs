@@ -44,7 +44,7 @@ namespace NewLife.Serialization
             //Host.WriteSize(buf.Length);
             //Host.Write(buf);
 
-            Int32 size = 0;
+            //Int32 size = 0;
             //// 为了预估大小，调试进行两次序列化
             //if (Host.Debug)
             //{
