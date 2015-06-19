@@ -1111,7 +1111,7 @@ namespace System
             {
                 if (sb.Length > 0)
                 {
-                    if (i % groupSize == 0)
+                    if (groupSize > 0 && i % groupSize == 0)
                         sb.AppendLine();
                     else
                         sb.Append(separate);
