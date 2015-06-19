@@ -16,9 +16,44 @@ namespace NewLife.Net.Dhcp
             var dhcp = new DhcpEntity();
             dhcp.Read(e.Stream);
 
-            WriteLog("收到：{0}", dhcp);
+            var kind = dhcp.Kind;
+            WriteLog("收到：{0} {1}", kind, e.UserState);
+            var ds = (this as INetSession).Host as DhcpServer;
+
+            var dme = new DhcpMessageEventArgs();
+            dme.Request = dhcp;
+            dme.UserState = e.UserState;
+
+            if (OnMessage != null) OnMessage(this, dme);
+
+            ds.RaiseMessage(this, dme);
+
+            if (dme.Response != null)
+            {
+                var buf = dme.Response.ToArray();
+                Send(buf);
+            }
 
             base.OnReceive(e);
         }
+
+        /// <summary>收到消息时触发</summary>
+        public event EventHandler<DhcpMessageEventArgs> OnMessage;
+    }
+
+    /// <summary>消息事件参数</summary>
+    public class DhcpMessageEventArgs : EventArgs
+    {
+        private DhcpEntity _Request;
+        /// <summary>收到的消息</summary>
+        public DhcpEntity Request { get { return _Request; } set { _Request = value; } }
+
+        private DhcpEntity _Response;
+        /// <summary>响应消息</summary>
+        public DhcpEntity Response { get { return _Response; } set { _Response = value; } }
+
+        private Object _UserState;
+        /// <summary>用户对象</summary>
+        public Object UserState { get { return _UserState; } set { _UserState = value; } }
     }
 }

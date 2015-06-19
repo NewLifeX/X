@@ -415,8 +415,13 @@ namespace Test
 
             var dhcp = new DhcpServer();
             dhcp.Log = XTrace.Log;
-            dhcp.SessionLog = XTrace.Log;
+            dhcp.OnMessage += dhcp_OnMessage;
             dhcp.Start();
+        }
+
+        static void dhcp_OnMessage(object sender, DhcpMessageEventArgs e)
+        {
+            Console.WriteLine(e.Request);
         }
 
         static void udp_Received(object sender, ReceivedEventArgs e)

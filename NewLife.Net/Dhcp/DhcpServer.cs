@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net.Sockets;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Dhcp
@@ -29,6 +30,14 @@ namespace NewLife.Net.Dhcp
                     AttachServer(item);
                 }
             }
+        }
+
+        /// <summary>收到消息时触发</summary>
+        public event EventHandler<DhcpMessageEventArgs> OnMessage;
+
+        internal void RaiseMessage(DhcpSession session, DhcpMessageEventArgs e)
+        {
+            if (OnMessage != null) OnMessage(session, e);
         }
     }
 }

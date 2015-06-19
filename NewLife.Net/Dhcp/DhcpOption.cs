@@ -103,13 +103,12 @@ namespace NewLife.Net.Dhcp
                 case DhcpOptions.Mask:
                 case DhcpOptions.DNSServer:
                 case DhcpOptions.DHCPServer:
-                    return new IPAddress(Data.ToInt()).ToString();
+                case DhcpOptions.RequestedIP:
+                case DhcpOptions.NTPServer:
                 case DhcpOptions.TimeServer:
-                    break;
                 case DhcpOptions.NameServer:
-                    break;
                 case DhcpOptions.LOGServer:
-                    break;
+                    return new IPAddress(Data.ToInt()).ToString();
                 case DhcpOptions.HostName:
                 case DhcpOptions.Vendor:
                     return Data.ToStr();
@@ -118,10 +117,6 @@ namespace NewLife.Net.Dhcp
                 case DhcpOptions.StaticRout:
                     break;
                 case DhcpOptions.ARPCacheTimeout:
-                    break;
-                case DhcpOptions.NTPServer:
-                    break;
-                case DhcpOptions.RequestedIP:
                     break;
                 case DhcpOptions.IPLeaseTime:
                     break;

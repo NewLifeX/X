@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
+using System.Xml.Serialization;
 
 namespace NewLife.Net.Dhcp
 {
@@ -90,6 +91,7 @@ namespace NewLife.Net.Dhcp
         public List<DhcpOption> Options { get { return _Options; } set { _Options = value; } }
 
         /// <summary>消息种类</summary>
+        [XmlIgnore]
         public Dhcp.DhcpMessageType Kind
         {
             get
