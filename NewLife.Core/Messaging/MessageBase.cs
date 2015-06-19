@@ -32,6 +32,15 @@ namespace NewLife.Messaging
             fm.Write(this);
         }
 
+        /// <summary>消息转为字节数组</summary>
+        /// <returns></returns>
+        public virtual Byte[] ToArray()
+        {
+            var ms = new MemoryStream();
+            Write(ms);
+            return ms.ToArray();
+        }
+
         /// <summary>获取序列化器</summary>
         /// <param name="isRead"></param>
         /// <returns></returns>
