@@ -14,6 +14,7 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Net;
+using NewLife.Net.Dhcp;
 using NewLife.Net.IO;
 using NewLife.Net.Stress;
 using NewLife.Reflection;
@@ -400,17 +401,35 @@ namespace Test
 
         private static void Test16()
         {
-            var data = "I am BigStone!".GetBytes();
-            var pass = "123321".GetBytes();
+            //var data = "I am BigStone!".GetBytes();
+            //var pass = "123321".GetBytes();
 
-            XTrace.WriteLine("数据:{0} 密码:{1}", data.ToHex(), pass.ToHex());
+            //XTrace.WriteLine("数据:{0} 密码:{1}", data.ToHex(), pass.ToHex());
 
-            var m = data.RC4(pass);
-            XTrace.WriteLine("加密后数据:{0}", m.ToHex());
+            //var m = data.RC4(pass);
+            //XTrace.WriteLine("加密后数据:{0}", m.ToHex());
 
-            var n = m.RC4(pass);
-            XTrace.WriteLine("解密后数据:{0}", n.ToHex());
+            //var n = m.RC4(pass);
+            //XTrace.WriteLine("解密后数据:{0}", n.ToHex());
 
+
+            var udp = new UdpServer(67);
+            udp.Log = XTrace.Log;
+            udp.Received += udp_Received;
+            udp.Open();
+        }
+
+        static void udp_Received(object sender, ReceivedEventArgs e)
+        {
+            XTrace.WriteLine(e.ToHex());
+
+            var dhcp = new DhcpEntity();
+            dhcp.Read(e.Stream);
+            Console.WriteLine(dhcp + "");
+            //foreach (var pi in dhcp.GetType().GetProperties())
+            //{
+            //    Console.WriteLine("{0,-16}:{1}", pi.Name, dhcp.GetValue(pi));
+            //}
         }
     }
 }

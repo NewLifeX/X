@@ -1,15 +1,19 @@
 ﻿using System;
+using NewLife.Reflection;
+using System.Reflection;
+using NewLife.Messaging;
 using NewLife.Serialization;
+using System.Net;
 
 namespace NewLife.Net.Dhcp
 {
     /// <summary>DHCP实体</summary>
-    public class DhcpEntity
+    public class DhcpEntity : MessageBase
     {
         #region 属性
-        private Byte _MessageType;
+        private DchpMessageType _MessageType;
         /// <summary>消息类型</summary>
-        public Byte MessageType { get { return _MessageType; } set { _MessageType = value; } }
+        public DchpMessageType MessageType { get { return _MessageType; } set { _MessageType = value; } }
 
         private Byte _HardwareType;
         /// <summary>硬件类型</summary>
@@ -17,7 +21,7 @@ namespace NewLife.Net.Dhcp
 
         private Byte _HardwareAddressLength;
         /// <summary>硬件地址长度</summary>
-        public Byte HardwareAddressLength { get { return _HardwareAddressLength; } set { _HardwareAddressLength = value; } }
+        public Byte HardAddrLength { get { return _HardwareAddressLength; } set { _HardwareAddressLength = value; } }
 
         private Byte _Hops;
         /// <summary>属性说明</summary>
@@ -38,27 +42,27 @@ namespace NewLife.Net.Dhcp
         [FieldSize(4)]
         private Byte[] _ClientIPAddress;
         /// <summary>客户端IP地址</summary>
-        public Byte[] ClientIPAddress { get { return _ClientIPAddress; } set { _ClientIPAddress = value; } }
+        public Byte[] ClientIP { get { return _ClientIPAddress; } set { _ClientIPAddress = value; } }
 
         [FieldSize(4)]
         private Byte[] _YourIPAddress;
         /// <summary>属性说明</summary>
-        public Byte[] YourIPAddress { get { return _YourIPAddress; } set { _YourIPAddress = value; } }
+        public Byte[] YourIP { get { return _YourIPAddress; } set { _YourIPAddress = value; } }
 
         [FieldSize(4)]
         private Byte[] _NextServerIPAddress;
         /// <summary>属性说明</summary>
-        public Byte[] NextServerIPAddress { get { return _NextServerIPAddress; } set { _NextServerIPAddress = value; } }
+        public Byte[] NextServerIP { get { return _NextServerIPAddress; } set { _NextServerIPAddress = value; } }
 
         [FieldSize(4)]
         private Byte[] _RelayAgentIPAddress;
         /// <summary>属性说明</summary>
-        public Byte[] RelayAgentIPAddress { get { return _RelayAgentIPAddress; } set { _RelayAgentIPAddress = value; } }
+        public Byte[] RelayAgentIP { get { return _RelayAgentIPAddress; } set { _RelayAgentIPAddress = value; } }
 
         [FieldSize(16)]
         private Byte[] _ClientMACAddress;
         /// <summary>客户端MAC地址。占用16字节，实际内存长度由_HardwareAddressLength决定</summary>
-        public Byte[] ClientMACAddress { get { return _ClientMACAddress; } set { _ClientMACAddress = value; } }
+        public Byte[] ClientMac { get { return _ClientMACAddress; } set { _ClientMACAddress = value; } }
 
         [FieldSize(64)]
         private String _ServerName;
@@ -69,6 +73,59 @@ namespace NewLife.Net.Dhcp
         private String _BootFileName;
         /// <summary>启动文件名</summary>
         public String BootFileName { get { return _BootFileName; } set { _BootFileName = value; } }
+
+        private Int32 _Magic;
+        /// <summary>幻数</summary>
+        public Int32 Magic { get { return _Magic; } set { _Magic = value; } }
+        #endregion
+
+        #region 读写核心
+        /// <summary>使用字段大小</summary>
+        /// <param name="isRead"></param>
+        /// <returns></returns>
+        protected override IFormatterX GetFormatter(bool isRead)
+        {
+            var fm = base.GetFormatter(isRead) as Binary;
+            fm.UseFieldSize = true;
+
+            return fm;
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>获取用于输出的成员值</summary>
+        /// <param name="pi"></param>
+        /// <returns></returns>
+        protected override object GetMemberValue(PropertyInfo pi)
+        {
+            var v = base.GetMemberValue(pi);
+            var type = pi.PropertyType;
+
+            if (type.IsEnum) return v;
+
+            if (pi.Name.Contains("IP")) return new IPAddress(v.ToInt());
+            if (pi.Name.Contains("Mac")) return ((Byte[])this.GetValue(pi)).ReadBytes(0, HardAddrLength).ToHex(":");
+
+            var code = Type.GetTypeCode(type);
+            switch (code)
+            {
+                case TypeCode.Byte:
+                    return "0x{0:X2}".F(v.ToInt());
+                case TypeCode.DateTime:
+                    return "{0}".F(v);
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                    return "0x{0:X4}".F(v);
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                    return "0x{0:X8}".F(v);
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    return "0x{0:X16}".F(v);
+            }
+
+            return v;
+        }
         #endregion
     }
 }
