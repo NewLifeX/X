@@ -7,6 +7,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace NewLife.Net.Dhcp
 {
@@ -87,6 +88,17 @@ namespace NewLife.Net.Dhcp
         private List<DhcpOption> _Options = new List<DhcpOption>();
         /// <summary>可选项</summary>
         public List<DhcpOption> Options { get { return _Options; } set { _Options = value; } }
+
+        /// <summary>消息种类</summary>
+        public Dhcp.DchpMessageType Kind
+        {
+            get
+            {
+                var opt = Options.FirstOrDefault(e => e.Option == DhcpOptions.MessageType);
+                var b = opt != null ? opt.Data[0] : 0;
+                return (DchpMessageType)b;
+            }
+        }
         #endregion
 
         #region 读写核心

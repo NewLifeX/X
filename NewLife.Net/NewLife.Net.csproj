@@ -60,6 +60,8 @@
     <Compile Include="Dhcp\DchpMessageType.cs" />
     <Compile Include="Dhcp\DhcpEntity.cs" />
     <Compile Include="Dhcp\DhcpOption.cs" />
+    <Compile Include="Dhcp\DhcpServer.cs" />
+    <Compile Include="Dhcp\DhcpSession.cs" />
     <Compile Include="DNS\BinaryDNS.cs" />
     <Compile Include="DNS\DNSOpcodeType.cs" />
     <Compile Include="DNS\DNSRcodeType.cs" />
