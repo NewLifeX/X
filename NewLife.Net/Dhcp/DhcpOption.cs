@@ -92,6 +92,41 @@ namespace NewLife.Net.Dhcp
         public Byte[] Data { get { return _Data; } set { _Data = value; } }
         #endregion
 
+        #region 方法
+        /// <summary>设置类型</summary>
+        /// <param name="kind"></param>
+        /// <returns></returns>
+        public DhcpOption SetType(DhcpMessageType kind)
+        {
+            Option = DhcpOptions.MessageType;
+            Length = 1;
+            Data = new Byte[] { (Byte)kind };
+
+            return this;
+        }
+
+        /// <summary>设置客户端标识</summary>
+        /// <param name="clientid"></param>
+        public void SetClientId(Byte[] clientid)
+        {
+            Option = DhcpOptions.ClientIdentifier;
+            Length = (Byte)(1 + clientid.Length);
+            Data = new Byte[Length];
+            Data[0] = (Byte)clientid.Length;
+            Data.Write(1, clientid);
+        }
+
+        /// <summary>设置参数</summary>
+        /// <param name="kind"></param>
+        /// <param name="data"></param>
+        public void SetData(DhcpOptions kind, Byte[] data)
+        {
+            Option = kind;
+            Length = (Byte)data.Length;
+            Data = data.ReadBytes();
+        }
+        #endregion
+
         #region 辅助
         /// <summary>转为字符串标识</summary>
         /// <returns></returns>
@@ -121,10 +156,9 @@ namespace NewLife.Net.Dhcp
                 case DhcpOptions.IPLeaseTime:
                     break;
                 case DhcpOptions.MessageType:
+                case DhcpOptions.Message:
                     return ((DhcpMessageType)Data[0]).ToString();
                 case DhcpOptions.ParameterList:
-                    break;
-                case DhcpOptions.Message:
                     break;
                 case DhcpOptions.MaxMessageSize:
                     break;
@@ -137,6 +171,13 @@ namespace NewLife.Net.Dhcp
             }
 
             return Data.ToHex();
+        }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Option + " " + ToStr();
         }
         #endregion
     }

@@ -1,14 +1,15 @@
 ﻿using System;
-using NewLife.Reflection;
-using System.Reflection;
-using NewLife.Messaging;
-using NewLife.Serialization;
-using System.Net;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Text;
 using System.Xml.Serialization;
+using NewLife.Log;
+using NewLife.Messaging;
+using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Net.Dhcp
 {
@@ -16,15 +17,15 @@ namespace NewLife.Net.Dhcp
     public class DhcpEntity : MessageBase
     {
         #region 属性
-        private Byte _MessageType;
+        private Byte _MessageType = 1;
         /// <summary>消息类型。若是client送给server的封包，设为1，反向为2</summary>
         public Byte MessageType { get { return _MessageType; } set { _MessageType = value; } }
 
-        private Byte _HardwareType;
+        private Byte _HardwareType = 1;
         /// <summary>硬件类型</summary>
         public Byte HardwareType { get { return _HardwareType; } set { _HardwareType = value; } }
 
-        private Byte _HardwareAddressLength;
+        private Byte _HardwareAddressLength = 6;
         /// <summary>硬件地址长度</summary>
         public Byte HardAddrLength { get { return _HardwareAddressLength; } set { _HardwareAddressLength = value; } }
 
@@ -40,7 +41,7 @@ namespace NewLife.Net.Dhcp
         /// <summary>秒数</summary>
         public Int16 Seconds { get { return _Seconds; } set { _Seconds = value; } }
 
-        private Int16 _BootpFlags;
+        private Int16 _BootpFlags = 0x80;
         /// <summary>属性说明</summary>
         public Int16 BootpFlags { get { return _BootpFlags; } set { _BootpFlags = value; } }
 
@@ -79,7 +80,7 @@ namespace NewLife.Net.Dhcp
         /// <summary>启动文件名</summary>
         public String BootFileName { get { return _BootFileName; } set { _BootFileName = value; } }
 
-        private Int32 _Magic;
+        private Int32 _Magic = 0x63538263;
         /// <summary>幻数</summary>
         public Int32 Magic { get { return _Magic; } set { _Magic = value; } }
         #endregion
@@ -90,15 +91,35 @@ namespace NewLife.Net.Dhcp
         /// <summary>可选项</summary>
         public List<DhcpOption> Options { get { return _Options; } set { _Options = value; } }
 
+        /// <summary>获取可选项</summary>
+        /// <param name="type"></param>
+        /// <param name="add"></param>
+        /// <returns></returns>
+        public DhcpOption Get(DhcpOptions type, Boolean add = false)
+        {
+            var opt = Options.FirstOrDefault(e => e.Option == type);
+            if (opt == null && add)
+            {
+                opt = new DhcpOption();
+                Options.Add(opt);
+            }
+            return opt;
+        }
+
         /// <summary>消息种类</summary>
         [XmlIgnore]
         public Dhcp.DhcpMessageType Kind
         {
             get
             {
-                var opt = Options.FirstOrDefault(e => e.Option == DhcpOptions.MessageType);
+                var opt = Get(DhcpOptions.MessageType);
                 var b = opt != null ? opt.Data[0] : 0;
                 return (DhcpMessageType)b;
+            }
+            set
+            {
+                var opt = Get(DhcpOptions.MessageType, true);
+                opt.SetType(value);
             }
         }
         #endregion
@@ -132,6 +153,25 @@ namespace NewLife.Net.Dhcp
             return true;
         }
 
+        /// <summary>写入可选项</summary>
+        /// <param name="stream"></param>
+        public override void Write(Stream stream)
+        {
+            base.Write(stream);
+
+            var binary = GetFormatter(true) as Binary;
+            binary.Stream = stream;
+            foreach (var opt in Options)
+            {
+                if (opt.Option == DhcpOptions.End) break;
+
+                binary.Write(opt);
+            }
+
+            // 写入可选项结束符
+            stream.Write(0xFF);
+        }
+
         /// <summary>使用字段大小</summary>
         /// <param name="isRead"></param>
         /// <returns></returns>
@@ -139,6 +179,7 @@ namespace NewLife.Net.Dhcp
         {
             var fm = base.GetFormatter(isRead) as Binary;
             fm.UseFieldSize = true;
+            fm.Log = XTrace.Log;
 
             return fm;
         }
@@ -176,7 +217,12 @@ namespace NewLife.Net.Dhcp
             if (type.IsEnum) return v;
 
             if (pi.Name.Contains("IP")) return new IPAddress(v.ToInt());
-            if (pi.Name.Contains("Mac")) return ((Byte[])this.GetValue(pi)).ReadBytes(0, HardAddrLength).ToHex(":");
+            if (pi.Name.Contains("Mac"))
+            {
+                var buf = (Byte[])this.GetValue(pi);
+                if (buf == null) return null;
+                return buf.ReadBytes(0, HardAddrLength).ToHex(":");
+            }
 
             var code = Type.GetTypeCode(type);
             switch (code)

@@ -412,11 +412,14 @@ namespace Test
             //var n = m.RC4(pass);
             //XTrace.WriteLine("解密后数据:{0}", n.ToHex());
 
+            var client = new DhcpClient();
+            client.Log = XTrace.Log;
+            client.Start();
 
-            var dhcp = new DhcpServer();
-            dhcp.Log = XTrace.Log;
-            dhcp.OnMessage += dhcp_OnMessage;
-            dhcp.Start();
+            //var dhcp = new DhcpServer();
+            //dhcp.Log = XTrace.Log;
+            //dhcp.OnMessage += dhcp_OnMessage;
+            //dhcp.Start();
         }
 
         static void dhcp_OnMessage(object sender, DhcpMessageEventArgs e)
