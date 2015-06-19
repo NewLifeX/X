@@ -115,7 +115,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 跟踪日志
-        private ILog _Log = XTrace.Debug ? XTrace.Log : Logger.Null;
+        private ILog _Log = Logger.Null;
         /// <summary>日志提供者</summary>
         public ILog Log { get { return _Log; } set { _Log = value; } }
 
