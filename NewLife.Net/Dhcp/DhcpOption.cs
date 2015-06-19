@@ -112,7 +112,7 @@ namespace NewLife.Net.Dhcp
             Option = DhcpOptions.ClientIdentifier;
             Length = (Byte)(1 + clientid.Length);
             Data = new Byte[Length];
-            Data[0] = (Byte)clientid.Length;
+            Data[0] = 1;
             Data.Write(1, clientid);
         }
 

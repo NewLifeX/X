@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using NewLife.Common;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -65,6 +66,10 @@ namespace NewLife.Net.Dhcp
 
             var rnd = new Random();
             TransID = rnd.Next();
+            if (_Mac == null || _Mac.Length == 0)
+            {
+                _Mac = HardInfo.Current.Macs.Replace(":", null).ToHex();
+            }
             if (_Mac == null || _Mac.Length == 0)
             {
                 _Mac = new Byte[6];
