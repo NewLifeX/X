@@ -8,7 +8,7 @@ namespace XCode.Membership
 {
     /// <summary>用户时间实体基类</summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class UserTimeEntity<TEntity> : Entity<TEntity>, IUserInfo, ITimeInfo where TEntity : UserTimeEntity<TEntity>, new()
+    public class UserTimeEntity<TEntity> : Entity<TEntity>, IUserInfo2, ITimeInfo where TEntity : UserTimeEntity<TEntity>, new()
     {
         #region 静态引用
         /// <summary>字段名</summary>
@@ -120,9 +120,9 @@ namespace XCode.Membership
         public String UpdateUserName { get { return UpdateUser + ""; } }
 
         [XmlIgnore]
-        Int32 IUserInfo.CreateUserID { get { return (Int32)this[__Name.CreateUserID]; } set { SetItem(__Name.CreateUserID, value); } }
+        Int32 IUserInfo2.CreateUserID { get { return (Int32)this[__Name.CreateUserID]; } set { SetItem(__Name.CreateUserID, value); } }
         [XmlIgnore]
-        Int32 IUserInfo.UpdateUserID { get { return (Int32)this[__Name.UpdateUserID]; } set { SetItem(__Name.UpdateUserID, value); } }
+        Int32 IUserInfo2.UpdateUserID { get { return (Int32)this[__Name.UpdateUserID]; } set { SetItem(__Name.UpdateUserID, value); } }
 
         [XmlIgnore]
         DateTime ITimeInfo.CreateTime { get { return (DateTime)this[__Name.CreateTime]; } set { SetItem(__Name.CreateTime, value); } }
@@ -133,7 +133,7 @@ namespace XCode.Membership
 
     /// <summary>用户时间实体基类</summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class UserTimeEntityTree<TEntity> : EntityTree<TEntity>, IUserInfo, ITimeInfo where TEntity : UserTimeEntityTree<TEntity>, new()
+    public class UserTimeEntityTree<TEntity> : EntityTree<TEntity>, IUserInfo2, ITimeInfo where TEntity : UserTimeEntityTree<TEntity>, new()
     {
         #region 静态引用
         /// <summary>字段名</summary>
@@ -245,9 +245,9 @@ namespace XCode.Membership
         public String UpdateUserName { get { return UpdateUser + ""; } }
 
         [XmlIgnore]
-        Int32 IUserInfo.CreateUserID { get { return (Int32)this[__Name.CreateUserID]; } set { SetItem(__Name.CreateUserID, value); } }
+        Int32 IUserInfo2.CreateUserID { get { return (Int32)this[__Name.CreateUserID]; } set { SetItem(__Name.CreateUserID, value); } }
         [XmlIgnore]
-        Int32 IUserInfo.UpdateUserID { get { return (Int32)this[__Name.UpdateUserID]; } set { SetItem(__Name.UpdateUserID, value); } }
+        Int32 IUserInfo2.UpdateUserID { get { return (Int32)this[__Name.UpdateUserID]; } set { SetItem(__Name.UpdateUserID, value); } }
 
         [XmlIgnore]
         DateTime ITimeInfo.CreateTime { get { return (DateTime)this[__Name.CreateTime]; } set { SetItem(__Name.CreateTime, value); } }
@@ -259,23 +259,27 @@ namespace XCode.Membership
     /// <summary>用户信息接口。包含创建用户和更新用户</summary>
     public interface IUserInfo
     {
-        /// <summary>创建用户ID</summary>
-        Int32 CreateUserID { get; set; }
-
         /// <summary>创建用户</summary>
         IManageUser CreateUser { get; set; }
 
         /// <summary>创建用户名</summary>
         String CreateUserName { get; }
 
-        /// <summary>更新用户ID</summary>
-        Int32 UpdateUserID { get; set; }
-
         /// <summary>更新用户</summary>
         IManageUser UpdateUser { get; set; }
 
         /// <summary>更新用户名</summary>
         String UpdateUserName { get; }
+    }
+
+    /// <summary>用户信息接口。包含创建用户和更新用户</summary>
+    public interface IUserInfo2 : IUserInfo
+    {
+        /// <summary>创建用户ID</summary>
+        Int32 CreateUserID { get; set; }
+
+        /// <summary>更新用户ID</summary>
+        Int32 UpdateUserID { get; set; }
     }
 
     /// <summary>时间信息接口。包含创建时间和更新时间</summary>
