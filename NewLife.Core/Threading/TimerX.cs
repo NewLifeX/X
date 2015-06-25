@@ -255,7 +255,8 @@ namespace NewLife.Threading
                 }
                 catch (ThreadAbortException) { throw; }
                 catch (ThreadInterruptedException) { throw; }
-                catch { }
+                // 如果用户代码没有拦截错误，则这里拦截，避免出错了都不知道怎么回事
+                catch (Exception ex) { XTrace.WriteException(ex); }
                 finally
                 {
                     timer.Timers++;
