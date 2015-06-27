@@ -228,11 +228,12 @@ namespace NewLife.Log
         /// <param name="args"></param>
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
+            var e = WriteLogEventArgs.Current.Set(level);
             // 特殊处理异常对象
             if (args != null && args.Length == 1 && args[0] is Exception && (String.IsNullOrEmpty(format) || format == "{0}"))
-                PerformWriteLog(WriteLogEventArgs.Current.Set(level, null, args[0] as Exception, true));
+                PerformWriteLog(e.Set(null, args[0] as Exception, true));
             else
-                PerformWriteLog(WriteLogEventArgs.Current.Set(level, Format(format, args), null, true));
+                PerformWriteLog(e.Set(Format(format, args), null, true));
         }
 
         /// <summary>输出日志</summary>

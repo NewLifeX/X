@@ -53,7 +53,7 @@ namespace NewLife.Log
         {
             Init();
 
-            var e = WriteLogEventArgs.Current.Set(level, Format(format, args), null, true);
+            var e = WriteLogEventArgs.Current.Set(level).Set(Format(format, args), null, true);
             var buf = e.ToString().GetBytes();
             if (Client.ProtocolType == ProtocolType.Udp)
             {

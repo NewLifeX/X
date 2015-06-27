@@ -16,7 +16,7 @@ namespace NewLife.Log
         /// <param name="args"></param>
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
-            var e = WriteLogEventArgs.Current.Set(level, Format(format, args), null, true);
+            var e = WriteLogEventArgs.Current.Set(level).Set(Format(format, args), null, true);
 
             if (!UseColor)
             {

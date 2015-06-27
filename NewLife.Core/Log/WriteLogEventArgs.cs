@@ -2,6 +2,7 @@
 using System.Threading;
 #if !Android
 using System.Web;
+using System.Text;
 #endif
 
 namespace NewLife.Log
@@ -90,18 +91,10 @@ namespace NewLife.Log
         #region 方法
         /// <summary>初始化为新日志</summary>
         /// <param name="level">日志等级</param>
-        /// <param name="message">日志</param>
-        /// <param name="exception">异常</param>
-        /// <param name="isNewLine">是否换行</param>
         /// <returns>返回自身，链式写法</returns>
-        public WriteLogEventArgs Set(LogLevel level, String message, Exception exception, Boolean isNewLine)
+        public WriteLogEventArgs Set(LogLevel level)
         {
             Level = level;
-            Message = message;
-            Exception = exception;
-            IsNewLine = isNewLine;
-
-            Init();
 
             return this;
         }
@@ -148,13 +141,26 @@ namespace NewLife.Log
         {
             if (Exception != null) Message += Exception.ToString();
 
+            var sb = new StringBuilder();
+
             // 屏蔽小时和分钟部分，仅改变时显示一次
             var now = DateTime.Now;
             if (now.Hour == _Last.Hour && now.Minute == _Last.Minute)
-                return String.Format("{0:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
+                sb.AppendFormat("{0:ss.fff} {1,2}", Time, ThreadID);
+            else
+            {
+                _Last = now;
+                sb.AppendFormat("{0:HH:mm:ss.fff} {1,2}", Time, ThreadID);
+            }
 
-            _Last = now;
-            return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
+            if (!Runtime.IsConsole)
+                sb.AppendFormat(" {0}", IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N');
+
+            if (!ThreadName.IsNullOrEmpty())
+                sb.AppendFormat(" {0}", ThreadName);
+            sb.AppendFormat(" {0}", Message);
+
+            return sb.ToString();
         }
         #endregion
     }
