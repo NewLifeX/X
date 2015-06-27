@@ -86,7 +86,6 @@ namespace NewLife.Log
         /// <summary>线程专有实例。线程静态，每个线程只用一个，避免GC浪费</summary>
         public static WriteLogEventArgs Current { get { return _Current ?? (_Current = new WriteLogEventArgs()); } }
         #endregion
-        
 
         #region 方法
         /// <summary>初始化为新日志</summary>
@@ -142,11 +141,19 @@ namespace NewLife.Log
 #endif
         }
 
+        private static DateTime _Last;
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
         {
             if (Exception != null) Message += Exception.ToString();
+
+            // 屏蔽小时和分钟部分，仅改变时显示一次
+            var now = DateTime.Now;
+            if (now.Hour == _Last.Hour && now.Minute == _Last.Minute)
+                return String.Format("{0:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
+
+            _Last = now;
             return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
         }
         #endregion
