@@ -50,12 +50,13 @@ namespace NewLife.Log
         {
             if (LastIsNewLine)
             {
+                var msg = e.ToShortString();
                 // 如果上一次是换行，则这次需要输出行头信息
                 if (e.IsNewLine)
-                    Console.WriteLine(e.ToString());
+                    Console.WriteLine(msg);
                 else
                 {
-                    Console.Write(e.ToString());
+                    Console.Write(msg);
                     LastIsNewLine = false;
                 }
             }

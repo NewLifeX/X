@@ -137,7 +137,7 @@ namespace NewLife.Log
         private static DateTime _Last;
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public string ToShortString()
         {
             if (Exception != null) Message += Exception.ToString();
 
@@ -161,6 +161,14 @@ namespace NewLife.Log
             sb.AppendFormat(" {0}", Message);
 
             return sb.ToString();
+        }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            if (Exception != null) Message += Exception.ToString();
+            return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', String.IsNullOrEmpty(ThreadName) ? "-" : ThreadName, Message);
         }
         #endregion
     }

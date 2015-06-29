@@ -368,12 +368,12 @@ namespace NewLife.Common
         /// <returns></returns>
         public static String GetInfo(String path, String property)
         {
-            var wql = String.Format("Select {0} From {1}", property, path);
-            var cimobject = new ManagementObjectSearcher(wql);
-            var moc = cimobject.Get();
             var bbs = new List<String>();
             try
             {
+                var wql = String.Format("Select {0} From {1}", property, path);
+                var cimobject = new ManagementObjectSearcher(wql);
+                var moc = cimobject.Get();
                 foreach (ManagementObject mo in moc)
                 {
                     if (mo != null &&
@@ -389,6 +389,7 @@ namespace NewLife.Common
                 {
                     XTrace.WriteLine("获取{0} {1}硬件信息失败\r\n{2}", path, property, ex);
                 }
+                return null;
             }
             bbs.Sort();
             var sb = new StringBuilder(bbs.Count * 15);
