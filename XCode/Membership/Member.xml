@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="8.18.5624.26027">
+<Tables Version="8.18.5644.19957">
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称。登录用户名" />
       <Column Name="Password" DataType="String" Description="密码" />
       <Column Name="DisplayName" DataType="String" Description="显示名。昵称、中文名等" />
+      <Column Name="Sex" DataType="Int32" Description="性别。未知、男、女" />
       <Column Name="Mail" DataType="String" Description="邮件" />
       <Column Name="Phone" DataType="String" Description="电话" />
       <Column Name="Code" DataType="String" Description="代码。身份证、员工编号等" />
       <Column Name="RoleID" DataType="Int32" Nullable="False" Description="角色" />
+      <Column Name="Enable" DataType="Boolean" Description="是否启用" />
+      <Column Name="StartTime" DataType="DateTime" Description="开始时间" />
+      <Column Name="EndTime" DataType="DateTime" Description="结束时间" />
+      <Column Name="RegisterTime" DataType="DateTime" Description="注册时间" />
       <Column Name="Logins" DataType="Int32" Description="登录次数" />
       <Column Name="LastLogin" DataType="DateTime" Description="最后登录" />
       <Column Name="LastLoginIP" DataType="String" Description="最后登录IP" />
-      <Column Name="Enable" DataType="Boolean" Description="是否启用" />
+      <Column Name="Quertion" DataType="String" Description="问题" />
+      <Column Name="Answer" DataType="String" Description="答案" />
       <Column Name="Profile" DataType="String" Length="500" Description="配置信息" />
     </Columns>
     <Indexes>
