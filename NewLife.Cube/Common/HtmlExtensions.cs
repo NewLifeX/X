@@ -166,7 +166,8 @@ namespace NewLife.Cube
         public static MvcHtmlString ForString(this HtmlHelper Html, String name, String value, Int32 length = 0, Object htmlAttributes = null)
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
-            if (!atts.ContainsKey("class")) atts.Add("class", "col-xs-10 col-sm-5");
+            //if (!atts.ContainsKey("class")) atts.Add("class", "col-xs-10 col-sm-5");
+            if (!atts.ContainsKey("class")) atts.Add("class", "col-md-10");
 
             // 首先输出图标
             var ico = "";
