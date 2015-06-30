@@ -271,6 +271,9 @@
     <Compile Include="..\NewLife.Core\Security\DSAHelper.cs">
       <Link>Security\DSAHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Security\RC4.cs">
+      <Link>Security\RC4.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Security\RSAHelper.cs">
       <Link>Security\RSAHelper.cs</Link>
     </Compile>

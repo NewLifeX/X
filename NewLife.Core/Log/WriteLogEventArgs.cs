@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
+using System.Text;
 #if !Android
 using System.Web;
-using System.Text;
 #endif
 
 namespace NewLife.Log
