@@ -135,10 +135,8 @@ namespace NewLife.Extension
         }
 
         private object synth;
-        public void SpeakAsync(String value)
+        void EnsureSynth()
         {
-            if (_type == null) return;
-
             if (synth == null)
             {
                 try
@@ -154,6 +152,20 @@ namespace NewLife.Extension
                     _type = null;
                 }
             }
+        }
+
+        public void Speak(String value)
+        {
+            if (_type == null) return;
+
+            EnsureSynth();
+            if (synth != null) synth.Invoke("Speak", value);
+        }
+        public void SpeakAsync(String value)
+        {
+            if (_type == null) return;
+
+            EnsureSynth();
             if (synth != null) synth.Invoke("SpeakAsync", value);
         }
     }

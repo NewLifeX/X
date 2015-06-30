@@ -729,6 +729,15 @@ namespace System
         {
             if (_provider == null) _provider = new NewLife.Extension.SpeakProvider();
 
+            _provider.Speak(value);
+        }
+
+        /// <summary>调用语音引擎说出指定话</summary>
+        /// <param name="value"></param>
+        public static void SpeakAsync(this String value)
+        {
+            if (_provider == null) _provider = new NewLife.Extension.SpeakProvider();
+
             _provider.SpeakAsync(value);
         }
 #endif
