@@ -5,6 +5,18 @@
     {
         ViewBag.Title = "登录";
     }
+
+    // 根据空格分隔大小标题
+    var dis = SysConfig.Current.DisplayName;
+    var title = "";
+    var title2 = "";
+    var p = dis.IndexOf(" ");
+    if (p < 0)
+    {
+        p = dis.Length > 3 ? 3 : dis.Length;
+    }
+    title = dis.Substring(0, p).Trim();
+    if (p < dis.Length) { title2 = dis.Substring(p).Trim(); }
 }
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -41,8 +53,8 @@
                         <div class="center">
                             <h2>
                                 <i class="ace-icon fa fa-leaf green"></i>
-                                <span class="red">@SysConfig.Current.DisplayName.Substring(0, 3)</span>
-                                <span class="white" id="id-text2">@SysConfig.Current.DisplayName.Substring(3)</span>
+                                <span class="red">@title</span>
+                                <span class="white" id="id-text2">@title2</span>
                             </h2>
                             <h4 class="blue" id="id-company-text">&copy; @SysConfig.Current.Company</h4>
                         </div>
