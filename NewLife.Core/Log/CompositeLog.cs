@@ -33,6 +33,11 @@ namespace NewLife.Log
         /// <returns></returns>
         public CompositeLog Add(ILog log) { Logs.Add(log); return this; }
 
+        /// <summary>删除日志提供者</summary>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        public CompositeLog Remove(ILog log) { if (Logs.Contains(log))Logs.Remove(log); return this; }
+
         /// <summary>写日志</summary>
         /// <param name="level"></param>
         /// <param name="format"></param>
@@ -55,7 +60,18 @@ namespace NewLife.Log
         {
             foreach (var item in Logs)
             {
-                if (item != null && item is TLog) return item as TLog;
+                if (item != null)
+                {
+                    if (item is TLog) return item as TLog;
+
+                    // 递归获取内层日志
+                    var cmp = item as CompositeLog;
+                    if (cmp != null)
+                    {
+                        var log = cmp.Get<TLog>();
+                        if (log != null) return log;
+                    }
+                }
             }
 
             return null;

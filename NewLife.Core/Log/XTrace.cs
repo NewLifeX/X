@@ -143,6 +143,12 @@ namespace NewLife.Log
                 // 否则组件复合日志
                 else
                 {
+                    if (cmp != null)
+                    {
+                        cmp.Remove(clg);
+                        if (cmp.Logs.Count == 0) _Log = null;
+                    }
+
                     cmp = new CompositeLog();
                     cmp.Add(clg);
                     if (_Log != null) cmp.Add(_Log);
@@ -155,10 +161,10 @@ namespace NewLife.Log
                 cmp.Add(clg);
                 if (ftl == null)
                 {
-                    if (_Log != null) cmp.Add(_Log);
+                    //if (_Log != null) cmp.Add(_Log);
                     ftl = TextFileLog.Create(null);
-                    cmp.Add(ftl);
                 }
+                cmp.Add(ftl);
                 Log = cmp;
             }
 

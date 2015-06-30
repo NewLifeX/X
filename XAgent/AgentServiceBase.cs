@@ -686,7 +686,7 @@ namespace XAgent
                 }
                 catch (ThreadAbortException)
                 {
-                    throw;
+                    break;
                 }
                 catch (Exception ex)
                 {
