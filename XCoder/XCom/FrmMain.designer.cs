@@ -33,18 +33,19 @@
             this.gbReceive = new System.Windows.Forms.GroupBox();
             this.txtReceive = new System.Windows.Forms.RichTextBox();
             this.gbSend = new System.Windows.Forms.GroupBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.numSleep = new System.Windows.Forms.NumericUpDown();
             this.txtSend = new System.Windows.Forms.RichTextBox();
             this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.label7 = new System.Windows.Forms.Label();
             this.btnSend = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
             this.btnConnect = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.spList = new NewLife.Windows.SerialPortList();
+            this.cbColor = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
             this.gbReceive.SuspendLayout();
             this.gbSend.SuspendLayout();
@@ -111,16 +112,6 @@
             this.gbSend.TabStop = false;
             this.gbSend.Text = "发送区：已发送0字节";
             // 
-            // label1
-            // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(401, 53);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 12);
-            this.label1.TabIndex = 17;
-            this.label1.Text = "间隔：";
-            // 
             // numSleep
             // 
             this.numSleep.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -167,16 +158,6 @@
             this.mi清空2.Text = "清空";
             this.mi清空2.Click += new System.EventHandler(this.mi清空2_Click);
             // 
-            // label7
-            // 
-            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(401, 26);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(41, 12);
-            this.label7.TabIndex = 15;
-            this.label7.Text = "次数：";
-            // 
             // btnSend
             // 
             this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -188,9 +169,29 @@
             this.btnSend.UseVisualStyleBackColor = true;
             this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
             // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(401, 53);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(41, 12);
+            this.label1.TabIndex = 17;
+            this.label1.Text = "间隔：";
+            // 
+            // label7
+            // 
+            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(401, 26);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(41, 12);
+            this.label7.TabIndex = 15;
+            this.label7.Text = "次数：";
+            // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(466, 8);
+            this.btnConnect.Location = new System.Drawing.Point(501, 8);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(67, 29);
             this.btnConnect.TabIndex = 3;
@@ -216,11 +217,22 @@
             this.spList.TabIndex = 6;
             this.spList.ReceivedString += new System.EventHandler<NewLife.Windows.StringEventArgs>(this.OnReceived);
             // 
+            // cbColor
+            // 
+            this.cbColor.AutoSize = true;
+            this.cbColor.Location = new System.Drawing.Point(423, 14);
+            this.cbColor.Name = "cbColor";
+            this.cbColor.Size = new System.Drawing.Size(72, 16);
+            this.cbColor.TabIndex = 7;
+            this.cbColor.Text = "日志着色";
+            this.cbColor.UseVisualStyleBackColor = true;
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(565, 386);
+            this.Controls.Add(this.cbColor);
             this.Controls.Add(this.spList);
             this.Controls.Add(this.gbSend);
             this.Controls.Add(this.btnConnect);
@@ -236,6 +248,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).EndInit();
             this.menuSend.ResumeLayout(false);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -257,6 +270,7 @@
         private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.NumericUpDown numSleep;
+        private System.Windows.Forms.CheckBox cbColor;
     }
 }
 

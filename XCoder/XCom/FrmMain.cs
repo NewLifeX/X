@@ -155,7 +155,7 @@ namespace XCom
                 }
 
                 //ChangeColor();
-                txtReceive.ColourDefault(_pColor);
+                if (cbColor.Checked) txtReceive.ColourDefault(_pColor);
                 _pColor = txtReceive.TextLength;
             }
         }
