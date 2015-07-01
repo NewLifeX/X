@@ -627,6 +627,8 @@ namespace XCoder
                     up.Download();
                     up.Update();
                 }
+                else if (up.Links != null && up.Links.Length > 0)
+                    MessageBox.Show("没有可用更新！最新{0}".F(up.Links[0].Time), "自动更新");
                 else
                     MessageBox.Show("没有可用更新！", "自动更新");
             }
