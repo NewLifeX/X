@@ -61,10 +61,16 @@ namespace System
         /// <returns></returns>
         public static TAttribute GetCustomAttribute<TAttribute>(this MemberInfo member, Boolean inherit = true)
         {
-            var atts = member.GetCustomAttributes<TAttribute>(inherit);
-            if (atts == null || atts.Length < 1) return default(TAttribute);
+            var atts = member.GetCustomAttributes<TAttribute>(false);
+            if (atts != null && atts.Length > 0) return atts[0];
 
-            return atts[0];
+            if (inherit)
+            {
+                atts = member.GetCustomAttributes<TAttribute>(inherit);
+                if (atts != null && atts.Length > 0) return atts[0];
+            }
+
+            return default(TAttribute);
         }
 
         private static DictionaryCache<String, Object> _asmCache = new DictionaryCache<String, Object>();
@@ -120,7 +126,7 @@ namespace System
             if (att2 != null && !att2.Description.IsNullOrWhiteSpace()) return att2.Description;
 
             return null;
-        }        
+        }
 
         /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
         /// <typeparam name="TAttribute"></typeparam>
