@@ -76,10 +76,13 @@ namespace XCode.Membership
         {
             get
             {
-                if (IP.IsNullOrEmpty()) return null;
+                var addr = IP;
+                if (addr.IsNullOrEmpty()) return null;
+
+                if (addr.Contains(".") && addr.Contains(":")) addr = addr.Substring(null, ":");
 
                 IPAddress ip = null;
-                if (!IPAddress.TryParse(IP, out ip)) return null;
+                if (!IPAddress.TryParse(addr, out ip)) return null;
 
                 return ip.GetAddress();
             }
