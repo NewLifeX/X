@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
@@ -615,10 +616,19 @@ namespace XCoder
 
             try
             {
-                var au = new AutoUpdate();
-                au.Update();
-
-                MessageBox.Show("没有可用更新！", "自动更新");
+                var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                var up = new Upgrade();
+                if (XConfig.Current.Debug) up.Log = XTrace.Log;
+                up.Name = "XCoder";
+                up.Server = "http://www.newlifex.com/showtopic-260.aspx";
+                up.UpdatePath = root.CombinePath(up.UpdatePath);
+                if (up.Check())
+                {
+                    up.Download();
+                    up.Update();
+                }
+                else
+                    MessageBox.Show("没有可用更新！", "自动更新");
             }
             catch (Exception ex)
             {

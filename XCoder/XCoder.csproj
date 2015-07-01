@@ -69,7 +69,6 @@
     <Compile Include="NewModelForm\AddTable.Designer.cs">
       <DependentUpon>AddTable.cs</DependentUpon>
     </Compile>
-    <Compile Include="Network\AutoUpdate.cs" />
     <Compile Include="Network\BingTranslate.cs" />
     <Compile Include="Engine\FileSource.cs" />
     <Compile Include="Engine\XConfig.cs" />
@@ -247,7 +246,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="leaf.ico" />
-    <EmbeddedResource Include="NewLife.ProcessHelper.exe" />
     <EmbeddedResource Include="Template\页面\类名.aspx" />
     <EmbeddedResource Include="Template\页面\类名Form.aspx" />
     <EmbeddedResource Include="UpdateInfo.txt" />

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Threading;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
@@ -35,7 +37,7 @@ namespace XCoder
 
             try
             {
-                Update();
+                Update(true);
 
                 new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
             }
@@ -47,6 +49,14 @@ namespace XCoder
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmMDI());
+
+            // 此时执行自动更新
+            var up = _upgrade;
+            if (up != null)
+            {
+                _upgrade = null;
+                up.Update();
+            }
         }
 
         /// <summary>参数启动</summary>
@@ -102,21 +112,30 @@ namespace XCoder
             }
         }
 
-        static void Update(Boolean isAsync = true)
+        static Upgrade _upgrade;
+        static void Update(Boolean isAsync)
         {
             if (!isAsync) XTrace.WriteLine("自动更新！");
             if (XConfig.Current.LastUpdate.Date < DateTime.Now.Date)
             {
                 XConfig.Current.LastUpdate = DateTime.Now;
 
-                var au = new AutoUpdate();
-                if (isAsync)
-                    au.UpdateAsync();
-                else
-                    au.Update();
+                var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                var up = new Upgrade();
+                if (XConfig.Current.Debug) up.Log = XTrace.Log;
+                up.Name = "XCoder";
+                up.Server = "http://www.newlifex.com/showtopic-260.aspx";
+                up.UpdatePath = root.CombinePath(up.UpdatePath);
+                if (up.Check())
+                {
+                    up.Download();
+                    if (!isAsync)
+                        up.Update();
+                    else
+                        // 留到执行完成以后自动更新
+                        _upgrade = up;
+                }
             }
-            var ProcessHelper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NewLife.ProcessHelper.exe");
-            if (File.Exists(ProcessHelper)) File.Delete(ProcessHelper);
 
             if (isAsync)
             {
