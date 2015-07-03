@@ -85,7 +85,7 @@ namespace XAgent
         }
 
         private static Int32? _MaxActive;
-        /// <summary>最大活动时间。超过最大活动时间都还没有响应的线程将会被重启，防止线程执行时间过长。默认0秒，表示无限</summary>
+        /// <summary>最大活动时间。超过最大活动时间都还没有响应的线程将会被重启，防止线程执行时间过长。默认0，表示无限</summary>
         public static Int32 MaxActive
         {
             get
@@ -97,7 +97,7 @@ namespace XAgent
         }
 
         private static Int32? _MaxMemory;
-        /// <summary>最大占用内存。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限</summary>
+        /// <summary>最大占用内存。超过最大占用时，整个服务进程将会重启，以释放资源。默认0，表示无限</summary>
         public static Int32 MaxMemory
         {
             get
@@ -109,7 +109,7 @@ namespace XAgent
         }
 
         private static Int32? _MaxThread;
-        /// <summary>最大总线程数。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限</summary>
+        /// <summary>最大总线程数。超过最大占用时，整个服务进程将会重启，以释放资源。默认0，表示无限</summary>
         public static Int32 MaxThread
         {
             get
@@ -121,7 +121,7 @@ namespace XAgent
         }
 
         private static Int32? _AutoRestart;
-        /// <summary>自动重启时间，单位：分钟。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0秒，表示无限</summary>
+        /// <summary>自动重启时间，单位：分钟。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0，表示无限</summary>
         public static Int32 AutoRestart
         {
             get
