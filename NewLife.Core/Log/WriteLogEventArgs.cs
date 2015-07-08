@@ -173,6 +173,7 @@ namespace NewLife.Log
             if (name.IsNullOrEmpty()) name = "-";
 #if Android
             if (name.EqualIgnoreCase("Threadpool worker")) name = "P";
+            if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
 #endif
 
             return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', name, Message);
