@@ -102,7 +102,9 @@ namespace NewLife.Net
         #region 收发
         public Boolean Send(byte[] buffer, int offset = 0, int count = -1)
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            //if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) return false;
+            if (Server == null || Server.Disposed) return false;
 
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
@@ -186,7 +188,8 @@ namespace NewLife.Net
         /// <summary>开始异步接收数据</summary>
         public Boolean ReceiveAsync()
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            //if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) return false;
 
             return Server.ReceiveAsync();
         }

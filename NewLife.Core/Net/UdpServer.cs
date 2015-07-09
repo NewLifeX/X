@@ -126,7 +126,8 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            //if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) return false;
 
             if (!Open()) return false;
 
@@ -319,7 +320,8 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public override Boolean ReceiveAsync()
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            //if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) return false;
 
             if (!Open()) return false;
 

@@ -91,7 +91,8 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public virtual Boolean Open()
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            //if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) return false;
 
             //if (Disposed) return false;
             if (Active) return true;
