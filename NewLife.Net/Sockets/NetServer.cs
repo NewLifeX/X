@@ -77,7 +77,7 @@ namespace NewLife.Net.Sockets
         }
 
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return Server != null && Server.Active; } }
+        public Boolean Active { get { return Servers.Count > 0 && Server != null && Server.Active; } }
 
         //private Boolean _ShowAbortAsError;
         ///// <summary>显示取消操作作为错误。默认false</summary>
