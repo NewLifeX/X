@@ -31,7 +31,7 @@ namespace XNet
         private void FrmMain_Load(object sender, EventArgs e)
         {
             txtReceive.UseWinFormControl();
-            NetHelper.Debug = true;
+            //NetHelper.Debug = true;
 
             txtReceive.SetDefaultStyle(12);
             txtSend.SetDefaultStyle(12);
@@ -197,10 +197,10 @@ namespace XNet
                 session = ns.Session;
             }
 
-            var line = String.Format("{0} [{1}]: {2}", session.Remote, e.Length, e.ToHex());
+            //var line = String.Format("{0} [{1}]: {2}", session.Remote, e.Length, e.ToHex());
             //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
             //TextControlLog.WriteLog(txtReceive, line);
-            XTrace.WriteLine(line);
+            //XTrace.WriteLine(line);
             XTrace.WriteLine(e.ToStr());
         }
 
