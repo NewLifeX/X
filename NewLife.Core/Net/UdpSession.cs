@@ -107,7 +107,7 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
-            Server.Log.Debug("{0}[{1}].Send {2} [{3}]: {4}", Server.Name, ID, Remote, count, buffer.ToHex(0, Math.Min(count, 32)));
+            Server.Log.Debug("{0}[{1}].Send [{2}]: {3}", Server.Name, ID, count, buffer.ToHex(0, Math.Min(count, 32)));
 
             _LastTime = DateTime.Now;
 
