@@ -83,6 +83,8 @@ namespace NewLife.Net
             server.Received += server_Received;
             server.ReceiveAsync();
             server.Error += server_Error;
+
+            WriteLog("New {0}", remote);
         }
 
         protected override void OnDispose(bool disposing)
@@ -205,9 +207,7 @@ namespace NewLife.Net
             {
                 _LastTime = DateTime.Now;
 
-                var hex = "";
-                if (e.Length > 0) hex = e.Data.ToHex(0, Math.Min(e.Length, 32));
-                WriteLog("Recv [{0}]: {1}", e.Length, hex);
+                WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
                 if (Received != null) Received(this, e);
             }

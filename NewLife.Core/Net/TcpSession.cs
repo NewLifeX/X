@@ -91,7 +91,7 @@ namespace NewLife.Net
                 Client = new TcpClient(Local.EndPoint);
                 CheckDynamic();
 
-                WriteLog("{0}.Open {1}", Name, this);
+                WriteLog("Open {0}", this);
             }
 
             // 打开端口前如果已设定远程地址，则自动连接
@@ -121,7 +121,7 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose(String reason)
         {
-            WriteLog("{0}.Close {1} {2}", Name, reason, this);
+            WriteLog("Close {0} {1}", reason, this);
 
             if (Client != null)
             {
@@ -165,6 +165,8 @@ namespace NewLife.Net
             if (!Open()) return false;
 
             if (count < 0) count = buffer.Length - offset;
+
+            WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
             try
             {
@@ -368,6 +370,8 @@ namespace NewLife.Net
             e.Length = count;
             e.UserState = Remote.EndPoint;
 
+            WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+
             RaiseReceive(this, e);
 
             // 数据发回去
@@ -473,7 +477,7 @@ namespace NewLife.Net
             // 如果重连次数达到最大重连次数，则退出
             if (_Reconnect++ >= AutoReconnect) return;
 
-            WriteLog("{0}.Reconnect {1}", Name, this);
+            WriteLog("Reconnect {0}", this);
 
             Open();
         }

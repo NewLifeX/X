@@ -80,7 +80,7 @@ namespace NewLife.Net
                 // 如果使用了新会话事件，也需要开启异步接收
                 if (!UseReceiveAsync && NewSession != null) UseReceiveAsync = true;
 
-                WriteLog("{0}.Open {1}", Name, this);
+                WriteLog("Open {0}", this);
             }
 
             return true;
@@ -89,7 +89,7 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose(String reason)
         {
-            WriteLog("{0}.Close {1} {2}", Name, reason, this);
+            WriteLog("Close {0} {1}", reason, this);
 
             if (Client != null)
             {
@@ -495,7 +495,7 @@ namespace NewLife.Net
                 {
                     us.ID = g_ID++;
 
-                    WriteLog("{0}[{1}].NewSession {2}", Name, us.ID, remoteEP);
+                    //WriteLog("{0}[{1}].NewSession {2}", Name, us.ID, remoteEP);
 
                     // 触发新会话事件
                     if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });

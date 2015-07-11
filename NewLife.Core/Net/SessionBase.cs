@@ -226,6 +226,22 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
+        private String _LogPrefix;
+        /// <summary>日志前缀</summary>
+        public virtual String LogPrefix
+        {
+            get
+            {
+                if (_LogPrefix == null)
+                {
+                    var name = Name == null ? "" : this.GetType().Name.TrimEnd("Server", "Session", "Client");
+                    _LogPrefix = "{0}.".F(name);
+                }
+                return _LogPrefix;
+            }
+            set { _LogPrefix = value; }
+        }
+
 #if DEBUG
         private ILog _Log = XTrace.Log;
 #else
@@ -239,7 +255,7 @@ namespace NewLife.Net
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (Log != null) Log.Info(format, args);
+            if (Log != null) Log.Info(LogPrefix + format, args);
         }
         #endregion
 
