@@ -107,7 +107,7 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
-            Server.Log.Debug("{0}[{1}].Send [{2}]: {3}", Server.Name, ID, count, buffer.ToHex(0, Math.Min(count, 32)));
+            WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
             _LastTime = DateTime.Now;
 
@@ -205,6 +205,10 @@ namespace NewLife.Net
             {
                 _LastTime = DateTime.Now;
 
+                var hex = "";
+                if (e.Length > 0) hex = e.Data.ToHex(0, Math.Min(e.Length, 32));
+                WriteLog("Recv [{0}]: {1}", e.Length, hex);
+
                 if (Received != null) Received(this, e);
             }
         }
@@ -224,7 +228,7 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            if (Server.Log != null) Server.Log.Error("{0}[{1}].{2}Error {3} {4}", Server.Name, ID, action, this, ex == null ? null : ex.Message);
+            if (Server.Log != null) Server.Log.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
         }
         #endregion
@@ -248,12 +252,28 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
+        private String _LogPrefix;
+        /// <summary>日志前缀</summary>
+        public virtual String LogPrefix
+        {
+            get
+            {
+                if (_LogPrefix == null)
+                {
+                    var name = Server == null ? "" : Server.Name;
+                    _LogPrefix = "{0}[{1}].".F(name, ID);
+                }
+                return _LogPrefix;
+            }
+            set { _LogPrefix = value; }
+        }
+
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (Log != null) Log.Info(format, args);
+            if (Log != null) Log.Info(LogPrefix + format, args);
         }
         #endregion
     }
