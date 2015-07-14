@@ -77,12 +77,25 @@ namespace NewLife.Cube
                     }
                 }
                 // IP地址字段
-                var p = this.FindIndex(e => e.Name.EqualIgnoreCase("IP"));
-                if (p >= 0)
+                //var p = this.FindIndex(e => e.Name.EndsWithIgnoreCase("IP", "Uri"));
+                //if (p >= 0)
+                //{
+                //    var name = this[p].Name.TrimEnd("IP", "Uri");
+                //    name += "Address";
+                //    var addr = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+                //    // 加到后面
+                //    if (addr != null) Insert(p + 1, addr);
+                //}
+                for (int i = Count - 1; i >= 0; i--)
                 {
-                    var addr = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Address"));
-                    // 加到后面
-                    if (addr != null) Insert(p + 1, addr);
+                    if (this[i].Name.EndsWithIgnoreCase("IP", "Uri"))
+                    {
+                        var name = this[i].Name.TrimEnd("IP", "Uri");
+                        name += "Address";
+                        var addr = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+                        // 加到后面
+                        if (addr != null) Insert(i + 1, addr);
+                    }
                 }
             }
 

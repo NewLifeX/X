@@ -503,6 +503,24 @@ namespace System
             return _IpProvider.GetAddress(addr);
         }
 
+        /// <summary>根据字符串形式IP地址转为物理地址</summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        public static String IPToAddress(this String addr)
+        {
+            if (addr.IsNullOrEmpty()) return null;
+
+            // 有可能是NetUri
+            var p = addr.IndexOf("://");
+            if (p >= 0) addr = addr.Substring(p + 3);
+            if (addr.Contains(".") && addr.Contains(":")) addr = addr.Substring(null, ":");
+
+            IPAddress ip = null;
+            if (!IPAddress.TryParse(addr, out ip)) return null;
+
+            return ip.GetAddress();
+        }
+
         /// <summary>IP地址提供者接口</summary>
         public interface IpProvider
         {

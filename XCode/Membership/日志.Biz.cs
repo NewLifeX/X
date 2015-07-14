@@ -72,21 +72,7 @@ namespace XCode.Membership
         #region 扩展属性
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
-        public String Address
-        {
-            get
-            {
-                var addr = IP;
-                if (addr.IsNullOrEmpty()) return null;
-
-                if (addr.Contains(".") && addr.Contains(":")) addr = addr.Substring(null, ":");
-
-                IPAddress ip = null;
-                if (!IPAddress.TryParse(addr, out ip)) return null;
-
-                return ip.GetAddress();
-            }
-        }
+        public String Address { get { return IP.IPToAddress(); } }
         #endregion
 
         #region 扩展查询
