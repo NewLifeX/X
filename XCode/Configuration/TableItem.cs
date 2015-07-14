@@ -269,6 +269,27 @@ namespace XCode.Configuration
                 if (fi.IsIdentity) _Identity = fi;
                 if (fi.Master) _Master = fi;
             }
+            // 先完成allfields才能专门处理
+            foreach (var item in allfields)
+            {
+                if (!item.IsDynamic)
+                {
+                    // 如果不是数据字段，则检查绑定关系
+                    var dr = item._Property.GetCustomAttribute<BindRelationAttribute>();
+                    if (dr != null && !dr.RelationColumn.IsNullOrEmpty() && (dr.RelationTable.IsNullOrEmpty() || dr.RelationTable.EqualIgnoreCase(TableName)))
+                    {
+                        // 找到被关系映射的字段，拷贝相关属性
+                        var fi = allfields.FirstOrDefault(e => e.Name.EqualIgnoreCase(dr.RelationColumn));
+                        if (fi != null)
+                        {
+                            if (item.OriField == null) item.OriField = fi;
+                            if (item.DisplayName.IsNullOrEmpty()) item.DisplayName = fi.DisplayName;
+                            if (item.Description.IsNullOrEmpty()) item.Description = fi.Description;
+                            item.ColumnName = fi.ColumnName;
+                        }
+                    }
+                }
+            }
             if (_Indexes != null && _Indexes.Length > 0)
             {
                 foreach (var item in _Indexes)

@@ -38,6 +38,13 @@ namespace XCode
             RelationTable = relationtable;
             RelationColumn = relationcolumn;
         }
+
+        /// <summary>指定一个表内关联关系</summary>
+        /// <param name="relationcolumn"></param>
+        public BindRelationAttribute(String relationcolumn)
+        {
+            RelationColumn = relationcolumn;
+        }
         #endregion
 
         #region 方法

@@ -13,7 +13,7 @@ namespace XCode.Configuration
     {
         #region 属性
         /// <summary>属性元数据</summary>
-        private PropertyInfo _Property;
+        internal PropertyInfo _Property;
 
         /// <summary>绑定列特性</summary>
         private BindColumnAttribute _Column;
@@ -147,6 +147,10 @@ namespace XCode.Configuration
 
         /// <summary>已格式化的字段名，可字节用于SQL中。主要用于处理关键字，比如MSSQL里面的[User]</summary>
         public String FormatedName { get { return Factory.FormatName(ColumnName); } }
+
+        private FieldItem _OriField;
+        /// <summary>跟当前字段有关系的原始字段</summary>
+        public FieldItem OriField { get { return _OriField; } internal set { _OriField = value; } }
         #endregion
 
         #region 构造
