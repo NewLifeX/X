@@ -37,6 +37,8 @@ namespace XCode
         /// <returns></returns>
         public static IEntityOperate CreateOperate(String typeName)
         {
+            if (String.IsNullOrEmpty(typeName)) return null;
+            
             Type type = GetEntityType(typeName);
             if (type == null)
             {
@@ -211,6 +213,8 @@ namespace XCode
         static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
         static Type GetEntityType(String typeName)
         {
+            if (String.IsNullOrEmpty(typeName)) return null;
+
             return typeCache.GetItem(typeName, GetTypeInternal);
         }
 

@@ -12,10 +12,6 @@ namespace NewLife.Cube
     public class FieldCollection : List<FieldItem>
     {
         #region 属性
-        //private List<FieldItem> _List;
-        ///// <summary>列表字段</summary>
-        //public List<FieldItem> List { get { return _List; } set { _List = value; } }
-
         private IEntityOperate _Factory;
         /// <summary>工厂</summary>
         public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
@@ -41,7 +37,8 @@ namespace NewLife.Cube
                 {
                     // 处理带有BindRelation特性的扩展属性
                     var dr = pi.GetCustomAttribute<BindRelationAttribute>();
-                    if (dr != null && !dr.RelationTable.IsNullOrEmpty())
+                    //if (dr != null && !dr.RelationTable.IsNullOrEmpty())
+                    if (dr != null)
                     {
                         var rt = EntityFactory.CreateOperate(dr.RelationTable);
                         if (rt != null && rt.Master != null)
@@ -58,6 +55,11 @@ namespace NewLife.Cube
                                 // 去掉本地用于映射的字段（如果不是主键），替换为扩展属性
                                 Replace(dr.Column, master.Name);
                             }
+                        }
+                        // 如果是本实体类关系，可以覆盖
+                        else if (dr.RelationTable.IsNullOrEmpty() || dr.RelationTable.EqualIgnoreCase(type.Name))
+                        {
+                            if (!dr.RelationColumn.IsNullOrEmpty()) Replace(dr.RelationColumn, pi.Name);
                         }
                     }
                 }
