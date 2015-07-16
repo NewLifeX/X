@@ -339,6 +339,12 @@ namespace XCode
                 }
             }
             #endregion
+
+            #region 模块
+            internal static EntityModules _Modules = new EntityModules(typeof(TEntity));
+            /// <summary>实体模块集合</summary>
+            public static ICollection<IEntityModule> Modules { get { return _Modules; } }
+            #endregion
         }
     }
 }

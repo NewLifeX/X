@@ -1,11 +1,190 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using NewLife.Web;
 using XCode;
 using XCode.Membership;
 
 namespace XCode.Membership
 {
+    /// <summary>用户模型</summary>
+    public class UserModule : EntityModule
+    {
+        #region 静态引用
+        /// <summary>字段名</summary>
+        public class __
+        {
+            /// <summary>创建人</summary>
+            public static String CreateUserID = "CreateUserID";
+
+            /// <summary>更新人</summary>
+            public static String UpdateUserID = "UpdateUserID";
+        }
+        #endregion
+
+        /// <summary>初始化。检查是否匹配</summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        public override Boolean Init(Type entityType)
+        {
+            var fact = EntityFactory.CreateOperate(entityType);
+            if (fact == null) return false;
+
+            var fs = fact.FieldNames;
+            if (fs.Contains(__.CreateUserID)) return true;
+            if (fs.Contains(__.UpdateUserID)) return true;
+
+            return false;
+        }
+
+        /// <summary>验证数据，自动加上创建和更新的信息</summary>
+        /// <param name="isNew"></param>
+        public override Boolean Valid(IEntity entity, Boolean isNew)
+        {
+            if (!isNew && entity.Dirtys.Count == 0) return true;
+
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var fs = fact.FieldNames;
+
+            // 当前登录用户
+            var user = ManageProvider.Provider.Current;
+            if (user != null)
+            {
+                var name = __.CreateUserID;
+                if (isNew)
+                {
+                    if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, user.ID);
+                }
+                name = __.UpdateUserID;
+                if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, user.ID);
+            }
+
+            return true;
+        }
+    }
+
+    /// <summary>时间模型</summary>
+    public class TimeModule : EntityModule
+    {
+        #region 静态引用
+        /// <summary>字段名</summary>
+        public class __
+        {
+            /// <summary>创建时间</summary>
+            public static String CreateTime = "CreateTime";
+
+            /// <summary>更新时间</summary>
+            public static String UpdateTime = "UpdateTime";
+        }
+        #endregion
+
+        /// <summary>初始化。检查是否匹配</summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        public override bool Init(Type entityType)
+        {
+            var fact = EntityFactory.CreateOperate(entityType);
+            if (fact == null) return false;
+
+            var fs = fact.FieldNames;
+            if (fs.Contains(__.CreateTime)) return true;
+            if (fs.Contains(__.UpdateTime)) return true;
+
+            return false;
+        }
+
+        /// <summary>验证数据，自动加上创建和更新的信息</summary>
+        /// <param name="isNew"></param>
+        public override Boolean Valid(IEntity entity, Boolean isNew)
+        {
+            if (!isNew && entity.Dirtys.Count == 0) return true;
+
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var fs = fact.FieldNames;
+
+            var name = __.CreateTime;
+            if (isNew)
+            {
+                if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, DateTime.Now);
+            }
+
+            // 不管新建还是更新，都改变更新时间
+            name = __.UpdateTime;
+            if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, DateTime.Now);
+
+            return true;
+        }
+    }
+
+    /// <summary>IP地址模型</summary>
+    public class IPModule : EntityModule
+    {
+        #region 静态引用
+        /// <summary>字段名</summary>
+        public class __
+        {
+            /// <summary>创建人</summary>
+            public static String CreateIP = "CreateIP";
+
+            /// <summary>更新人</summary>
+            public static String UpdateIP = "UpdateIP";
+        }
+        #endregion
+
+        /// <summary>初始化。检查是否匹配</summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        public override bool Init(Type entityType)
+        {
+            var fact = EntityFactory.CreateOperate(entityType);
+            if (fact == null) return false;
+
+            var fs = fact.FieldNames;
+            if (fs.Contains(__.CreateIP)) return true;
+            if (fs.Contains(__.UpdateIP)) return true;
+
+            // 任意以IP结尾的字段都要，仅在创建时生效
+            foreach (var item in fs)
+            {
+                if (item.EndsWith("IP")) return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>验证数据，自动加上创建和更新的信息</summary>
+        /// <param name="isNew"></param>
+        public override Boolean Valid(IEntity entity, Boolean isNew)
+        {
+            if (!isNew && entity.Dirtys.Count == 0) return true;
+
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var fs = fact.FieldNames;
+
+            var name = __.CreateIP;
+            if (isNew)
+            {
+                if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, WebHelper.UserHost);
+
+                // 任意以IP结尾的字段都要，仅在创建时生效
+                foreach (var item in fs)
+                {
+                    if (item.EndsWith("IP"))
+                    {
+                        name = item;
+                        if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, WebHelper.UserHost);
+                    }
+                }
+            }
+
+            // 不管新建还是更新，都改变更新时间
+            name = __.UpdateIP;
+            if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, WebHelper.UserHost);
+
+            return true;
+        }
+    }
+
     /// <summary>用户时间实体基类</summary>
     /// <typeparam name="TEntity"></typeparam>
     public class UserTimeEntity<TEntity> : Entity<TEntity>, IUserInfo2, ITimeInfo where TEntity : UserTimeEntity<TEntity>, new()

@@ -61,7 +61,9 @@ namespace XCode
             // new TEntity会被编译为Activator.CreateInstance<TEntity>()，还不如Activator.CreateInstance()呢
             // Activator.CreateInstance()有缓存功能，而泛型的那个没有
             //return Activator.CreateInstance(Meta.ThisType) as TEntity;
-            return Meta.ThisType.CreateInstance() as TEntity;
+            var entity = Meta.ThisType.CreateInstance() as TEntity;
+            Meta._Modules.Create(entity, forEdit);
+            return entity;
         }
         #endregion
 
@@ -228,7 +230,11 @@ namespace XCode
 
             using (var trans = new EntityTransaction<TEntity>())
             {
-                if (isnew != null && enableValid) Valid(isnew.Value);
+                if (isnew != null && enableValid)
+                {
+                    Valid(isnew.Value);
+                    Meta._Modules.Valid(this, isnew.Value);
+                }
 
                 Int32 rs = func();
 
