@@ -94,7 +94,9 @@ namespace NewLife.Web
         #endregion
 
         #region 用户主机
-        /// <summary>用户主机</summary>
+        [ThreadStatic]
+        private static String _UserHost;
+        /// <summary>用户主机。支持非Web</summary>
         public static String UserHost
         {
             get
@@ -114,7 +116,16 @@ namespace NewLife.Web
                         return str;
                     }
                 }
-                return null;
+
+                return _UserHost;
+            }
+            set
+            {
+                _UserHost = value;
+                if (HttpContext.Current != null)
+                {
+                    HttpContext.Current.Items["UserHostAddress"] = value;
+                }
             }
         }
 
