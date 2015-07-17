@@ -6,19 +6,19 @@
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
-    var width = 4;
-    switch (Type.GetTypeCode(item.Type))
-    {
-        case TypeCode.Boolean:
-            width = 4;
-            break;
-        case TypeCode.String:
-            width = 8;
-            break;
-    }
+    //var width = 4;
+    //switch (Type.GetTypeCode(item.Type))
+    //{
+    //    case TypeCode.Boolean:
+    //        width = 4;
+    //        break;
+    //    case TypeCode.String:
+    //        width = 8;
+    //        break;
+    //}
 }
-<label class="control-label col-xs-2 col-sm-2 col-md-4">@item.DisplayName</label>
-<div class="col-xs-10 col-sm-@(width+2) col-md-@width input-group">
+<label class="control-label col-xs-2">@item.DisplayName</label>
+<div class="col-xs-10 input-group">
     @Html.ForEditor(item, entity)
     @Html.ForDescription(item)
     @if (ViewData.ModelState.ContainsKey(item.Name))

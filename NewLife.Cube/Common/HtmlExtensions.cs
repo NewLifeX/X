@@ -167,7 +167,7 @@ namespace NewLife.Cube
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
             //if (!atts.ContainsKey("class")) atts.Add("class", "col-xs-10 col-sm-5");
-            if (!atts.ContainsKey("class")) atts.Add("class", "col-md-10");
+            if (!atts.ContainsKey("class")) atts.Add("class", "col-xs-12 col-sm-8 col-md-6 col-lg-4");
 
             // 首先输出图标
             var ico = "";
@@ -339,7 +339,7 @@ namespace NewLife.Cube
             if (field.Type == typeof(Boolean))
                 return Html.Label(field.Name, des);
             else
-                return new MvcHtmlString("<span class=\"help-inline\"><span class=\"middle\">{0}</span></span>".F(des));
+                return new MvcHtmlString("<span class=\"middle\">{0}</span>".F(des));
         }
 
         /// <summary>输出描述</summary>
