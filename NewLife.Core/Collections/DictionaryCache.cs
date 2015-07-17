@@ -92,7 +92,10 @@ namespace NewLife.Collections
         /// <summary>销毁字典，关闭</summary>
         public void Dispose()
         {
-            Items.Clear();
+            lock (Items)
+            {
+                Items.Clear();
+            }
             StopTimer();
         }
         #endregion
@@ -145,7 +148,7 @@ namespace NewLife.Collections
                 else
                 {
                     // 加锁，避免意外
-                    lock (this)
+                    lock (Items)
                     {
                         Items[key] = new CacheItem(value, Expriod);
                     }
@@ -171,7 +174,7 @@ namespace NewLife.Collections
             // 如果延迟加锁，则提前计算
             if (DelayLock && func != null) value = func(key);
 
-            lock (this)
+            lock (items)
             {
                 if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
 
@@ -211,7 +214,7 @@ namespace NewLife.Collections
             var items = Items;
             CacheItem item;
             if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
-            lock (this)
+            lock (items)
             {
                 if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
 
@@ -244,7 +247,7 @@ namespace NewLife.Collections
             var items = Items;
             CacheItem item;
             if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
-            lock (this)
+            lock (items)
             {
                 if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
 
@@ -279,7 +282,7 @@ namespace NewLife.Collections
             var items = Items;
             CacheItem item;
             if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
-            lock (this)
+            lock (items)
             {
                 if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
 
@@ -316,7 +319,7 @@ namespace NewLife.Collections
             var items = Items;
             CacheItem item;
             if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
-            lock (this)
+            lock (items)
             {
                 if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
 
