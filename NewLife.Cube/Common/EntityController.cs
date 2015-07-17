@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Reflection;
@@ -311,7 +313,56 @@ namespace NewLife.Cube
         [DisplayName("导出")]
         public virtual ActionResult ExportExcel()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+
+            var ms = new MemoryStream();
+
+            var list = Entity<TEntity>.FindAll();
+
+            // 列头
+            {
+                var sb = new StringBuilder();
+                foreach (var fi in Factory.AllFields)
+                {
+                    if (sb.Length > 0) sb.Append(",");
+                    sb.Append(fi.Name);
+                }
+                sb.AppendLine();
+                ms.Write(sb.ToString().GetBytes());
+            }
+            // 内容
+            foreach (var item in list)
+            {
+                var sb = new StringBuilder();
+                var f = true;
+                foreach (var fi in Factory.AllFields)
+                {
+                    //if (sb.Length > 0) sb.Append(",");
+                    // 注意第一个字段的值可能为空，那样导致逗号不匹配
+                    if (f)
+                        f = false;
+                    else
+                        sb.Append(",");
+
+                    var v = "{0}".F(item[fi.Name]);
+
+                    // 列内容如存在半角引号（即"）则应替换成半角双引号（""）转义，并用半角引号（即""）将该字段值包含起来
+                    if (v.Contains("\"")) v = "\"" + v.Replace("\"", "\"\"") + "\"";
+                    // 列内容如存在半角逗号（即,）则用半角双引号（即""）将该字段值包含起来
+                    v = v.Replace(",", "\",\"");
+
+                    sb.Append(v);
+                }
+                sb.AppendLine();
+                ms.Write(sb.ToString().GetBytes());
+            }
+
+            ms.Position = 0;
+
+            var name = this.GetType().GetDisplayName() ?? this.GetType().Name;
+            //name = HttpUtility.UrlEncode(name, Encoding.UTF8);
+
+            return File(ms, "application/ms-excel", name + ".csv");
         }
 
         /// <summary>清空全表数据</summary>
