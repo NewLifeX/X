@@ -315,14 +315,47 @@ namespace NewLife.Cube
         {
             //throw new NotImplementedException();
 
+            // 准备需要输出的列
+            var list = new List<FieldItem>();
+            foreach (var fi in Factory.AllFields)
+            {
+                if (Type.GetTypeCode(fi.Type) == TypeCode.Object) continue;
+
+                list.Add(fi);
+            }
+
             var ms = new MemoryStream();
 
+            OnExportExcel(ms, list);
+
+            ms.Position = 0;
+
+            var name = this.GetType().GetDisplayName() ?? Factory.EntityType.GetDisplayName() ?? Factory.EntityType.Name;
+            //name = HttpUtility.UrlEncode(name, Encoding.UTF8);
+
+            return File(ms, "application/ms-excel", name + ".csv");
+        }
+
+        /// <summary>导出Excel，可重载修改要输出的结果集</summary>
+        /// <param name="ms"></param>
+        /// <param name="fs"></param>
+        protected virtual void OnExportExcel(Stream ms, List<FieldItem> fs)
+        {
             var list = Entity<TEntity>.FindAll();
 
+            OnExportExcel(ms, fs, list);
+        }
+
+        /// <summary>导出Excel，可重载修改要输出的列</summary>
+        /// <param name="ms"></param>
+        /// <param name="fs"></param>
+        /// <param name="list"></param>
+        protected virtual void OnExportExcel(Stream ms, List<FieldItem> fs, List<TEntity> list)
+        {
             // 列头
             {
                 var sb = new StringBuilder();
-                foreach (var fi in Factory.AllFields)
+                foreach (var fi in fs)
                 {
                     if (sb.Length > 0) sb.Append(",");
                     sb.Append(fi.Name);
@@ -335,7 +368,7 @@ namespace NewLife.Cube
             {
                 var sb = new StringBuilder();
                 var f = true;
-                foreach (var fi in Factory.AllFields)
+                foreach (var fi in fs)
                 {
                     //if (sb.Length > 0) sb.Append(",");
                     // 注意第一个字段的值可能为空，那样导致逗号不匹配
@@ -349,20 +382,13 @@ namespace NewLife.Cube
                     // 列内容如存在半角引号（即"）则应替换成半角双引号（""）转义，并用半角引号（即""）将该字段值包含起来
                     if (v.Contains("\"")) v = "\"" + v.Replace("\"", "\"\"") + "\"";
                     // 列内容如存在半角逗号（即,）则用半角双引号（即""）将该字段值包含起来
-                    v = v.Replace(",", "\",\"");
+                    if (v.Contains(",")) v = "\"" + v + "\"";
 
                     sb.Append(v);
                 }
                 sb.AppendLine();
                 ms.Write(sb.ToString().GetBytes());
             }
-
-            ms.Position = 0;
-
-            var name = this.GetType().GetDisplayName() ?? this.GetType().Name;
-            //name = HttpUtility.UrlEncode(name, Encoding.UTF8);
-
-            return File(ms, "application/ms-excel", name + ".csv");
         }
 
         /// <summary>清空全表数据</summary>
