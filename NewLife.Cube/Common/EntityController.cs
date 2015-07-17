@@ -42,8 +42,10 @@ namespace NewLife.Cube
         /// <returns></returns>
         [EntityAuthorize(PermissionFlags.Detail)]
         [DisplayName("{type}管理")]
-        public virtual ActionResult Index(Pager p)
+        public virtual ActionResult Index(Pager p = null)
         {
+            if (p == null) p = new Pager();
+
             ViewBag.Page = p;
 
             // 用于显示的列
@@ -397,7 +399,18 @@ namespace NewLife.Cube
         [DisplayName("清空")]
         public virtual ActionResult Clear()
         {
-            throw new NotImplementedException();
+            //var list = Entity<TEntity>.FindAll();
+
+            //list.Delete();
+
+            var count = Entity<TEntity>.Meta.Session.Truncate();
+            //return Content("共删除{0}行数据".F(count));
+            //return Index();
+            //var url = Request.UrlReferrer + "";
+            //Js.Alert("共删除{0}行数据".F(count)).Redirect(url);
+            //return new EmptyResult();
+            Js.Alert("共删除{0}行数据".F(count));
+            return Index();
         }
         #endregion
 
