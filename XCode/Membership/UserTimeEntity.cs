@@ -252,7 +252,7 @@ namespace XCode.Membership
         /// <summary>创建人</summary>
         [XmlIgnore]
         [DisplayName("创建人")]
-        [BindRelation("CreateUserID", false, "User", "ID")]
+        //[BindRelation("CreateUserID", false, "User", "ID")]
         public IManageUser CreateUser
         {
             get
@@ -271,13 +271,14 @@ namespace XCode.Membership
         /// <summary>创建人名称</summary>
         [XmlIgnore]
         [DisplayName("创建人")]
+        [BindRelation("CreateUserID")]
         public String CreateUserName { get { return CreateUser + ""; } }
 
         private IManageUser _UpdateUser;
         /// <summary>更新人</summary>
         [XmlIgnore]
         [DisplayName("更新人")]
-        [BindRelation("UpdateUserID", false, "User", "ID")]
+        //[BindRelation("UpdateUserID", false, "User", "ID")]
         public IManageUser UpdateUser
         {
             get
@@ -296,6 +297,7 @@ namespace XCode.Membership
         /// <summary>更新人名称</summary>
         [XmlIgnore]
         [DisplayName("更新人")]
+        [BindRelation("UpdateUserID")]
         public String UpdateUserName { get { return UpdateUser + ""; } }
 
         [XmlIgnore]
@@ -396,6 +398,7 @@ namespace XCode.Membership
         /// <summary>创建人名称</summary>
         [XmlIgnore]
         [DisplayName("创建人")]
+        [BindRelation("CreateUserID")]
         public String CreateUserName { get { return CreateUser + ""; } }
 
         private IManageUser _UpdateUser;
@@ -421,6 +424,7 @@ namespace XCode.Membership
         /// <summary>更新人名称</summary>
         [XmlIgnore]
         [DisplayName("更新人")]
+        [BindRelation("UpdateUserID")]
         public String UpdateUserName { get { return UpdateUser + ""; } }
 
         [XmlIgnore]

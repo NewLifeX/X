@@ -77,15 +77,36 @@ namespace NewLife.Cube
                     }
                 }
                 // IP地址字段
-                //var p = this.FindIndex(e => e.Name.EndsWithIgnoreCase("IP", "Uri"));
-                //if (p >= 0)
-                //{
-                //    var name = this[p].Name.TrimEnd("IP", "Uri");
-                //    name += "Address";
-                //    var addr = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
-                //    // 加到后面
-                //    if (addr != null) Insert(p + 1, addr);
-                //}
+                for (int i = Count - 1; i >= 0; i--)
+                {
+                    if (this[i].Name.EndsWithIgnoreCase("IP", "Uri"))
+                    {
+                        var name = this[i].Name.TrimEnd("IP", "Uri");
+                        name += "Address";
+                        var addr = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+                        // 加到后面
+                        if (addr != null) Insert(i + 1, addr);
+                    }
+                }
+            }
+            else
+            {
+                var type = Factory.EntityType;
+                // 扩展属性
+                foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    // 处理带有BindRelation特性的扩展属性
+                    var dr = pi.GetCustomAttribute<BindRelationAttribute>();
+                    if (dr != null)
+                    {
+                        // 如果是本实体类关系，可以覆盖
+                        if (dr.RelationTable.IsNullOrEmpty() || dr.RelationTable.EqualIgnoreCase(type.Name))
+                        {
+                            if (!dr.RelationColumn.IsNullOrEmpty()) Replace(dr.RelationColumn, pi.Name);
+                        }
+                    }
+                }
+                // IP地址字段
                 for (int i = Count - 1; i >= 0; i--)
                 {
                     if (this[i].Name.EndsWithIgnoreCase("IP", "Uri"))
