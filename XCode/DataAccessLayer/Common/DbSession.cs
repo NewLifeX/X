@@ -600,6 +600,17 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 高级
+        /// <summary>清空数据表，标识归零</summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public virtual Int32 Truncate(String tableName)
+        {
+            var sql = "Truncate Table {0}".F(Database.FormatName(tableName));
+            return Execute(sql);
+        }
+        #endregion
+
         #region 架构
         private DictionaryCache<String, DataTable> _schCache = new DictionaryCache<String, DataTable>(StringComparer.OrdinalIgnoreCase)
         {
@@ -778,7 +789,7 @@ namespace XCode.DataAccessLayer
             if (context != null)
             {
                 var list = context.Items["XCode_SQLList"] as List<String>;
-                if(list!=null)list.Add(sql);
+                if (list != null) list.Add(sql);
             }
 
             if (String.IsNullOrEmpty(DAL.SQLPath))

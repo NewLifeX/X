@@ -397,7 +397,8 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity Add(String name, Boolean issys, String remark = null)
         {
-            var entity = FindByName(name);
+            //var entity = FindByName(name);
+            var entity = Find(__.Name, name);
             if (entity != null) return entity;
 
             entity = new TEntity();

@@ -179,6 +179,7 @@ namespace XCode
             }
             finally
             {
+                initThread = 0;
                 hasCheckInitData = true;
                 Monitor.Exit(_wait_lock);
             }
@@ -466,6 +467,15 @@ namespace XCode
                 WaitForInitData();
 
                 return m;
+            }
+            private set
+            {
+                if (value == 0)
+                {
+                    _LastCount = null;
+                    _Count = 0;
+                    HttpRuntime.Cache.Remove(CacheKey);
+                }
             }
         }
 
@@ -833,6 +843,30 @@ namespace XCode
                 }
             }
             remove { }
+        }
+        #endregion
+
+        #region 数据库高级操作
+        /// <summary>清空数据表，标识归零</summary>
+        /// <returns></returns>
+        public Int32 Truncate()
+        {
+            var rs = Dal.Session.Truncate(TableName);
+
+            // 干掉所有缓存
+            if (Dal.EnableCache)
+            {
+                Dal.EnableCache = false;
+                Dal.EnableCache = true;
+            }
+            Cache.Clear();
+            SingleCache.Clear();
+            LongCount = 0;
+
+            // 重新初始化
+            hasCheckInitData = false;
+
+            return rs;
         }
         #endregion
 

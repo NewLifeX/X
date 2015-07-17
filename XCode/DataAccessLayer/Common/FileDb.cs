@@ -85,6 +85,17 @@ namespace XCode.DataAccessLayer
             if (!File.Exists(FileName)) Database.CreateMetaData().SetSchema(DDLSchema.CreateDatabase, null);
         }
         #endregion
+
+        #region 高级
+        /// <summary>清空数据表，标识归零</summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public override Int32 Truncate(String tableName)
+        {
+            var sql = "Delete From {0}".F(Database.FormatName(tableName));
+            return Execute(sql);
+        }
+        #endregion
     }
 
     /// <summary>文件型数据库元数据</summary>

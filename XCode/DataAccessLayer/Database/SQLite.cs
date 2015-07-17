@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using NewLife;
-using NewLife.Log;
-using NewLife.Reflection;
-using System.IO;
-using System.Diagnostics;
 using NewLife.Compression;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -387,6 +385,31 @@ namespace XCode.DataAccessLayer
         //    cmd.CommandTimeout = 15;
         //    return cmd;
         //}
+        #endregion
+
+        #region 高级
+        /// <summary>清空数据表，标识归零</summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public override Int32 Truncate(String tableName)
+        {
+            BeginTransaction();
+            try
+            {
+                var sql = "Delete From {0}".F(Database.FormatName(tableName));
+                var rs = Execute(sql);
+                rs += Execute("Update sqlite_sequence Set seq=0 where name='{0}'".F(Database.FormatName(tableName)));
+
+                Commit();
+
+                return rs;
+            }
+            catch
+            {
+                Rollback();
+                throw;
+            }
+        }
         #endregion
     }
 

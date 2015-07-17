@@ -177,6 +177,13 @@ namespace XCode.DataAccessLayer
         DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
         #endregion
 
+        #region 高级
+        /// <summary>清空数据表，标识归零</summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        Int32 Truncate(String tableName);
+        #endregion
+
         #region 构架
         /// <summary>返回数据源的架构信息</summary>
         /// <param name="collectionName">指定要返回的架构的名称。</param>
