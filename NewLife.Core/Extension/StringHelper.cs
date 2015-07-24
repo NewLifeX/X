@@ -748,7 +748,9 @@ namespace System
         /// <param name="cmd">文件名</param>
         /// <param name="arguments">命令参数</param>
         /// <param name="msWait">等待毫秒数</param>
-        public static void Run(this String cmd, String arguments = null, Int32 msWait = 0)
+        /// <param name="output">进程输出内容。默认为空时输出到日志</param>
+        /// <returns>进程退出代码</returns>
+        public static Int32 Run(this String cmd, String arguments = null, Int32 msWait = 0, Action<String> output = null)
         {
             if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
@@ -763,16 +765,18 @@ namespace System
             {
                 si.RedirectStandardOutput = true;
                 si.UseShellExecute = false;
-                p.OutputDataReceived += (s, e) =>
-                {
-                    XTrace.WriteLine(e.Data);
-                };
+                if (output != null)
+                    p.OutputDataReceived += (s, e) => output(e.Data);
+                else
+                    p.OutputDataReceived += (s, e) => XTrace.WriteLine(e.Data);
             }
 
             p.Start();
             if (NewLife.Runtime.IsConsole) p.BeginOutputReadLine();
 
             if (msWait > 0) p.WaitForExit(msWait);
+
+            return p.ExitCode;
         }
         #endregion
     }
