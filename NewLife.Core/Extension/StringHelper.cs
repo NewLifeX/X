@@ -764,15 +764,26 @@ namespace System
             if (NewLife.Runtime.IsConsole)
             {
                 si.RedirectStandardOutput = true;
+                si.RedirectStandardError = true;
                 si.UseShellExecute = false;
                 if (output != null)
+                {
                     p.OutputDataReceived += (s, e) => output(e.Data);
+                    p.ErrorDataReceived += (s, e) => output(e.Data);
+                }
                 else
+                {
                     p.OutputDataReceived += (s, e) => XTrace.WriteLine(e.Data);
+                    p.ErrorDataReceived += (s, e) => XTrace.Log.Error(e.Data);
+                }
             }
 
             p.Start();
-            if (NewLife.Runtime.IsConsole) p.BeginOutputReadLine();
+            if (NewLife.Runtime.IsConsole)
+            {
+                p.BeginOutputReadLine();
+                p.BeginErrorReadLine();
+            }
 
             if (msWait > 0) p.WaitForExit(msWait);
 
