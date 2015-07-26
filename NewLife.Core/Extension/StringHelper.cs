@@ -785,7 +785,9 @@ namespace System
                 p.BeginErrorReadLine();
             }
 
-            if (msWait > 0) p.WaitForExit(msWait);
+            if (msWait <= 0) return 0;
+
+            p.WaitForExit(msWait);
 
             return p.ExitCode;
         }
