@@ -446,6 +446,9 @@ namespace NewLife.Net
 
             // 为该连接单独创建一个会话，方便直接通信
             var session = CreateSession(remote);
+            // 数据直接转交给会话，不再经过事件，那样在会话较多时极为浪费资源
+            var us = session as UdpSession;
+            if (us != null) us.OnReceive(e);
 
             RaiseReceive(session, e);
 

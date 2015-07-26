@@ -80,9 +80,9 @@ namespace NewLife.Net
             Remote = new NetUri(ProtocolType.Udp, remote);
             _Filter = remote;
 
-            server.Received += server_Received;
+            //server.Received += server_Received;
             server.ReceiveAsync();
-            server.Error += server_Error;
+            //server.Error += server_Error;
 
             WriteLog("New {0}", remote);
         }
@@ -93,8 +93,8 @@ namespace NewLife.Net
 
             Server.WriteLog("{0}[{1}].Close {2}", Server.Name, ID, this);
 
-            Server.Received -= server_Received;
-            Server.Error -= server_Error;
+            //Server.Received -= server_Received;
+            //Server.Error -= server_Error;
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
             Server = null;
             GC.Collect();
@@ -195,22 +195,24 @@ namespace NewLife.Net
 
         public event EventHandler<ReceivedEventArgs> Received;
 
-        void server_Received(object sender, ReceivedEventArgs e)
+        //void server_Received(object sender, ReceivedEventArgs e)
+        //{
+        //    //if (Received == null) return;
+
+        //    // 判断是否自己的数据
+        //    //var udp = e as UdpReceivedEventArgs;
+        //    //if (CheckFilter(udp.Remote))
+        //    var remote = e.UserState as IPEndPoint;
+        //    if (CheckFilter(remote)) OnReceive(e);
+        //}
+
+        internal void OnReceive(ReceivedEventArgs e)
         {
-            //if (Received == null) return;
+            _LastTime = DateTime.Now;
 
-            // 判断是否自己的数据
-            //var udp = e as UdpReceivedEventArgs;
-            //if (CheckFilter(udp.Remote))
-            var remote = e.UserState as IPEndPoint;
-            if (CheckFilter(remote))
-            {
-                _LastTime = DateTime.Now;
+            WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
-                WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
-
-                if (Received != null) Received(this, e);
-            }
+            if (Received != null) Received(this, e);
         }
         #endregion
 
@@ -218,10 +220,10 @@ namespace NewLife.Net
         /// <summary>错误发生/断开连接时</summary>
         public event EventHandler<ExceptionEventArgs> Error;
 
-        void server_Error(object sender, ExceptionEventArgs e)
-        {
-            OnError(null, e.Exception);
-        }
+        //void server_Error(object sender, ExceptionEventArgs e)
+        //{
+        //    OnError(null, e.Exception);
+        //}
 
         /// <summary>触发异常</summary>
         /// <param name="action">动作</param>
