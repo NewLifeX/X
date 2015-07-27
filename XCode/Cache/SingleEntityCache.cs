@@ -234,7 +234,7 @@ namespace XCode.Cache
                 if (Entity != null && Entity != entity) sc.AutoUpdate(this, "设置新的缓存对象");
 
                 Entity = entity;
-                ExpireTime = DateTime.Now.AddMinutes(sc.Expriod);
+                ExpireTime = DateTime.Now.AddSeconds(sc.Expriod);
             }
         }
         #endregion
