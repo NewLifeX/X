@@ -161,25 +161,29 @@ namespace XCode.Membership
             var fact = EntityFactory.CreateOperate(entity.GetType());
             var fs = fact.FieldNames;
 
-            var name = __.CreateIP;
-            if (isNew)
+            var ip = WebHelper.UserHost;
+            if (!ip.IsNullOrEmpty())
             {
-                if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, WebHelper.UserHost);
-
-                // 任意以IP结尾的字段都要，仅在创建时生效
-                foreach (var item in fs)
+                var name = __.CreateIP;
+                if (isNew)
                 {
-                    if (item.EndsWith("IP"))
+                    if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, ip);
+
+                    // 任意以IP结尾的字段都要，仅在创建时生效
+                    foreach (var item in fs)
                     {
-                        name = item;
-                        if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, WebHelper.UserHost);
+                        if (item.EndsWith("IP"))
+                        {
+                            name = item;
+                            if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, ip);
+                        }
                     }
                 }
-            }
 
-            // 不管新建还是更新，都改变更新时间
-            name = __.UpdateIP;
-            if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, WebHelper.UserHost);
+                // 不管新建还是更新，都改变更新时间
+                name = __.UpdateIP;
+                if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, ip);
+            }
 
             return true;
         }
