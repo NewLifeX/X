@@ -184,7 +184,11 @@ namespace XCode.Cache
                 {
                     foreach (var item in list)
                     {
-                        if (Entities.ContainsKey(item.Key)) Entities.Remove(item.Key);
+                        if (Entities.ContainsKey(item.Key))
+                        {
+                            Entities.Remove(item.Key);
+                            if (Debug) DAL.WriteLog("定时检查，删除超时Key={0}", item.Key);
+                        }
                     }
 
                     //Using = Entities.Count > 0;
