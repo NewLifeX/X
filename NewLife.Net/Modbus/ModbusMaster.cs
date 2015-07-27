@@ -81,7 +81,7 @@ namespace NewLife.Net.Modbus
         /// <returns></returns>
         ModbusEntity Process(ModbusEntity entity, Int32 expect)
         {
-            if (Transport == null) throw new ArgumentNullException("Transport");
+            if (Transport == null) throw new NullReferenceException("Transport");
 
             entity.Host = Host;
 
@@ -363,7 +363,7 @@ namespace NewLife.Net.Modbus
             cmd.Data = buf;
 
             var rs = Process(cmd, 2 + 2);
-            if (rs == null) return false; ;
+            if (rs == null) return false;
 
             return rs.Data.ReadUInt16(0) == addr && rs.Data.ReadUInt16(2) == val;
         }
