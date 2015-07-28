@@ -388,7 +388,9 @@ namespace NewLife.Net
                             if (p >= 0) des = des.Substring(p + 1);
                         }
 
-                        dic.Add(name, des);
+                        //dic.Add(name, des);
+                        // 某台机器上发现，串口有重复
+                        dic[name] = des;
                     }
                 }
             }
