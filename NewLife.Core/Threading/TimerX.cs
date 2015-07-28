@@ -218,10 +218,11 @@ namespace NewLife.Threading
             static void ProcessItem(TimerX timer)
             {
                 // 删除过期的，为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度
-                if (!timer.Callback.IsAlive || timer.Period < 10 && timer.Period > 0)
+                var p = timer.Period;
+                if (!timer.Callback.IsAlive || p < 10 && p > 0)
                 {
                     // 周期0表示只执行一次
-                    if (timer.Period < 10 && timer.Period > 0) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度，关闭任务{0}", timer);
+                    if (p < 10 && p > 0) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度，关闭任务{0}", timer);
                     lock (timers)
                     {
                         timers.Remove(timer);
@@ -259,12 +260,15 @@ namespace NewLife.Threading
                 catch (Exception ex) { XTrace.WriteException(ex); }
                 finally
                 {
+                    // 再次读取周期，因为任何函数可能会修改
+                    p = timer.Period; 
+                    
                     timer.Timers++;
                     timer.Calling = false;
-                    timer.NextTime = DateTime.Now.AddMilliseconds(timer.Period);
+                    timer.NextTime = DateTime.Now.AddMilliseconds(p);
 
                     // 清理一次性定时器
-                    if (timer.Period <= 0)
+                    if (p <= 0)
                     {
                         lock (timers)
                         {
@@ -272,8 +276,8 @@ namespace NewLife.Threading
                             timer.Dispose();
                         }
                     }
-                    if (timer.Period < period)
-                        period = timer.Period;
+                    if (p < period)
+                        period = p;
                 }
             }
         }
