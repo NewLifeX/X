@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -283,7 +284,11 @@ namespace System
         public static Byte[] ReadArray(this Stream des)
         {
             var len = des.ReadEncodedInt();
-            if (len == 0) return new Byte[0];
+            if (len <= 0) return new Byte[0];
+
+            // 避免数据错乱超长
+            //if (des.CanSeek && len > des.Length - des.Position) len = (Int32)(des.Length - des.Position);
+            if (des.CanSeek && len > des.Length - des.Position) throw new XException("ReadArray错误，变长数组长度为{0}，但数据流可用数据只有{1}", len, des.Length - des.Position);
 
             return des.ReadBytes(len);
         }
