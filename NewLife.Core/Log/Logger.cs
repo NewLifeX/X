@@ -45,7 +45,7 @@ namespace NewLife.Log
         /// <param name="args"></param>
         public virtual void Write(LogLevel level, String format, params Object[] args)
         {
-            if (level >= Level) OnWrite(level, format, args);
+            if (Enable && level >= Level) OnWrite(level, format, args);
         }
 
         /// <summary>写日志</summary>
@@ -104,6 +104,10 @@ namespace NewLife.Log
         #endregion
 
         #region 属性
+        private Boolean _Enable = true;
+        /// <summary>是否启用日志。默认true</summary>
+        public virtual Boolean Enable { get { return _Enable; } set { _Enable = value; } }
+
         private LogLevel? _Level;
         /// <summary>日志等级，只输出大于等于该级别的日志，默认Info，打开NewLife.Debug时默认为最低的Debug</summary>
         public LogLevel Level
@@ -133,6 +137,8 @@ namespace NewLife.Log
 
         class NullLogger : Logger
         {
+            public override bool Enable { get { return false; } set { } }
+
             protected override void OnWrite(LogLevel level, string format, params object[] args) { }
         }
         #endregion
