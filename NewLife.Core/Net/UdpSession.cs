@@ -97,7 +97,7 @@ namespace NewLife.Net
             //Server.Error -= server_Error;
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
             Server = null;
-            GC.Collect();
+            //GC.Collect();
         }
         #endregion
 
