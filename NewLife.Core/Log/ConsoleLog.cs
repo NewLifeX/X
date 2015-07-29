@@ -50,7 +50,7 @@ namespace NewLife.Log
         {
             if (LastIsNewLine)
             {
-                var msg = e.ToShortString();
+                var msg = e.ToString();
                 // 如果上一次是换行，则这次需要输出行头信息
                 if (e.IsNewLine)
                     Console.WriteLine(msg);

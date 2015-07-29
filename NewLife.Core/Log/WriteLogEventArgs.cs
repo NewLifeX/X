@@ -134,34 +134,34 @@ namespace NewLife.Log
 #endif
         }
 
-        private static DateTime _Last;
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public string ToShortString()
-        {
-            if (Exception != null) Message += Exception.ToString();
+        //private static DateTime _Last;
+        ///// <summary>已重载。</summary>
+        ///// <returns></returns>
+        //public string ToShortString()
+        //{
+        //    if (Exception != null) Message += Exception.ToString();
 
-            var sb = new StringBuilder();
+        //    var sb = new StringBuilder();
 
-            // 屏蔽小时和分钟部分，仅改变时显示一次
-            var now = DateTime.Now;
-            if (now.Hour == _Last.Hour && now.Minute == _Last.Minute)
-                sb.AppendFormat("{0:ss.fff} {1,2}", Time, ThreadID);
-            else
-            {
-                _Last = now;
-                sb.AppendFormat("{0:HH:mm:ss.fff} {1,2}", Time, ThreadID);
-            }
+        //    // 屏蔽小时和分钟部分，仅改变时显示一次
+        //    var now = DateTime.Now;
+        //    if (now.Hour == _Last.Hour && now.Minute == _Last.Minute)
+        //        sb.AppendFormat("{0:ss.fff} {1,2}", Time, ThreadID);
+        //    else
+        //    {
+        //        _Last = now;
+        //        sb.AppendFormat("{0:HH:mm:ss.fff} {1,2}", Time, ThreadID);
+        //    }
 
-            if (!Runtime.IsConsole)
-                sb.AppendFormat(" {0}", IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N');
+        //    if (!Runtime.IsConsole)
+        //        sb.AppendFormat(" {0}", IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N');
 
-            if (!ThreadName.IsNullOrEmpty())
-                sb.AppendFormat(" {0}", ThreadName);
-            sb.AppendFormat(" {0}", Message);
+        //    if (!ThreadName.IsNullOrEmpty())
+        //        sb.AppendFormat(" {0}", ThreadName);
+        //    sb.AppendFormat(" {0}", Message);
 
-            return sb.ToString();
-        }
+        //    return sb.ToString();
+        //}
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
