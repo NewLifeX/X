@@ -305,7 +305,7 @@ namespace NewLife.Net.Sockets
             ns.Server = session.Server;
             ns.Session = session;
             // 日志输出改变
-            session.Log = new ActionLog((ns as NetSession).WriteLog);
+            //session.Log = new ActionLog((ns as NetSession).WriteLog);
 
             session.OnDisposed += (s, e2) => ns.Dispose();
 

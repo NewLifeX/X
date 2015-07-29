@@ -26,9 +26,11 @@ namespace NewLife.Net
         internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
 
         private Int32 _MaxNotActive = 30;
-        /// <summary>最大不活动时间。
+        /// <summary>最大不活动时间。默认30秒。</summary>
+        /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
-        /// 单位秒，默认30秒。时间不是太准确，建议15秒的倍数。为0表示不检查。</summary>
+        /// 时间不是太准确，建议15秒的倍数。为0表示不检查。
+        /// </remarks>
         public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; } }
 
         private IPEndPoint _LastRemote;
@@ -89,10 +91,10 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose(String reason)
         {
-            WriteLog("Close {0} {1}", reason, this);
-
             if (Client != null)
             {
+                WriteLog("Close {0} {1}", reason, this);
+
                 var udp = Client;
                 Client = null;
                 try
@@ -139,6 +141,8 @@ namespace NewLife.Net
                 {
                     if (Client.Client.Connected)
                     {
+                        if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+
                         if (offset == 0)
                             sp.Send(buffer, count);
                         else
@@ -146,6 +150,8 @@ namespace NewLife.Net
                     }
                     else
                     {
+                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)), Remote.EndPoint);
+
                         if (offset == 0)
                             sp.Send(buffer, count, Remote.EndPoint);
                         else
@@ -381,10 +387,6 @@ namespace NewLife.Net
                 return;
             }
 
-            //Remote.EndPoint = ep;
-            // 异步不要设置地址，事件里面已经包含
-            //LastRemote = ep;
-
             // 在用户线程池里面去处理数据
             ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, ep), ex => OnError("OnReceive", ex));
 
@@ -448,7 +450,13 @@ namespace NewLife.Net
             var session = CreateSession(remote);
             // 数据直接转交给会话，不再经过事件，那样在会话较多时极为浪费资源
             var us = session as UdpSession;
-            if (us != null) us.OnReceive(e);
+            if (us != null)
+                us.OnReceive(e);
+            else
+            {
+                // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
+                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+            }
 
             RaiseReceive(session, e);
 
@@ -492,13 +500,10 @@ namespace NewLife.Net
             {
                 var us = new UdpSession(this, remoteEP);
                 session = us;
-                //Interlocked.Increment(ref _Sessions);
-                //session.OnDisposed += (s, e) => Interlocked.Decrement(ref _Sessions);
                 if (_Sessions.Add(session))
                 {
                     us.ID = g_ID++;
-
-                    //WriteLog("{0}[{1}].NewSession {2}", Name, us.ID, remoteEP);
+                    us.Start();
 
                     // 触发新会话事件
                     if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
@@ -550,14 +555,6 @@ namespace NewLife.Net
         }
         #endregion
     }
-
-    ///// <summary>收到Udp数据包的事件参数</summary>
-    //public class UdpReceivedEventArgs : ReceivedEventArgs
-    //{
-    //    private IPEndPoint _Remote;
-    //    /// <summary>远程地址</summary>
-    //    public IPEndPoint Remote { get { return _Remote; } set { _Remote = value; } }
-    //}
 
     /// <summary>Udp扩展</summary>
     public static class UdpHelper

@@ -66,10 +66,6 @@ namespace NewLife.Net
         private DateTime _LastTime;
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get { return _LastTime; } }
-
-        //private ILog _Log;
-        /// <summary>日志提供者</summary>
-        public ILog Log { get { return Server.Log; } set { Server.Log = value; } }
         #endregion
 
         #region 构造
@@ -79,19 +75,24 @@ namespace NewLife.Net
             Server = server;
             Remote = new NetUri(ProtocolType.Udp, remote);
             _Filter = remote;
+            Log = server.Log;
+        }
 
+        public void Start()
+        {
             //server.Received += server_Received;
-            server.ReceiveAsync();
+            Server.ReceiveAsync();
             //server.Error += server_Error;
 
-            WriteLog("New {0}", remote);
+            WriteLog("New {0}", Remote.EndPoint);
         }
 
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
 
-            Server.WriteLog("{0}[{1}].Close {2}", Server.Name, ID, this);
+            //Server.WriteLog("{0}[{1}].Close {2}", Server.Name, ID, this);
+            WriteLog("Close {0}", Remote.EndPoint);
 
             //Server.Received -= server_Received;
             //Server.Error -= server_Error;
@@ -254,6 +255,10 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
+        private ILog _Log;
+        /// <summary>日志提供者</summary>
+        public ILog Log { get { return _Log; } set { _Log = value; } }
+        
         private String _LogPrefix;
         /// <summary>日志前缀</summary>
         public virtual String LogPrefix

@@ -44,24 +44,22 @@ namespace NewLife.Net.Sockets
         /// <summary>开始会话处理。</summary>
         public virtual void Start()
         {
-            ShowSession();
+            if (Log.Enable) WriteLog("新会话 {0}", Session);
 
-            Session.Received += (s, e2) => OnReceive(e2);
-            Session.OnDisposed += (s, e2) => this.Dispose();
-            Session.Error += OnError;
-        }
-
-        [Conditional("DEBUG")]
-        void ShowSession()
-        {
-            WriteLog("{0}", Session);
+            var ss = Session;
+            if (ss != null)
+            {
+                ss.Received += (s, e2) => OnReceive(e2);
+                ss.OnDisposed += (s, e2) => this.Dispose();
+                ss.Error += OnError;
+            }
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void OnDispose(bool disposing)
         {
-            WriteLog("会话结束");
+            WriteLog("会话结束 {0}", Session);
 
             base.OnDispose(disposing);
 

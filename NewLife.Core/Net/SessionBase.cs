@@ -33,10 +33,6 @@ namespace NewLife.Net
         /// <summary>是否活动</summary>
         public Boolean Active { get { return _Active; } set { _Active = value; } }
 
-        //private Stream _Stream = new MemoryStream();
-        ///// <summary>会话数据流。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
-        //public Stream Stream { get { return _Stream; } set { _Stream = value; } }
-
         /// <summary>底层Socket</summary>
         public Socket Socket { get { return GetSocket(); } }
 
@@ -102,7 +98,6 @@ namespace NewLife.Net
             Active = OnOpen();
             if (!Active) return false;
 
-            //if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
             if (Timeout > 0) Socket.ReceiveTimeout = Timeout;
 
             // 触发打开完成的事件
@@ -183,10 +178,6 @@ namespace NewLife.Net
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get { return _UseReceiveAsync; } set { _UseReceiveAsync = value; } }
 
-        //private Boolean _UseProcessAsync = true;
-        ///// <summary>是否异步处理接收到的数据，默认true利于提升网络吞吐量。异步处理有可能造成数据包乱序，特别是Tcp</summary>
-        //public Boolean UseProcessAsync { get { return _UseProcessAsync; } set { _UseProcessAsync = value; } }
-
         /// <summary>开始异步接收</summary>
         /// <returns>是否成功</returns>
         public abstract Boolean ReceiveAsync();
@@ -200,12 +191,6 @@ namespace NewLife.Net
         protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
         {
             _LastTime = DateTime.Now;
-
-            //#if DEBUG
-            //var hex = "";
-            //if (e.Length > 0) hex = e.Data.ToHex(0, Math.Min(e.Length, 32));
-            //Log.Debug("{0}.Receive {1} [{2}]: {3}", Name, Remote, e.Length, hex);
-            //#endif
 
             if (Received != null) Received(sender, e);
         }
@@ -247,8 +232,16 @@ namespace NewLife.Net
 #else
         private ILog _Log = Logger.Null;
 #endif
-        /// <summary>日志对象</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        /// <summary>日志对象。禁止设为空对象</summary>
+        public ILog Log { get { return _Log; } set { _Log = value ?? Logger.Null; } }
+
+        private Boolean _LogSend;
+        /// <summary>是否输出发送日志。默认false</summary>
+        public Boolean LogSend { get { return _LogSend; } set { _LogSend = value; } }
+
+        private Boolean _LogReceive;
+        /// <summary>是否输出接收日志。默认false</summary>
+        public Boolean LogReceive { get { return _LogReceive; } set { _LogReceive = value; } }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>

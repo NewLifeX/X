@@ -399,45 +399,28 @@ namespace Test
             //}
         }
 
+        static List<UdpServer> Clients = new List<UdpServer>();
         private static void Test16()
         {
-            //var data = "I am BigStone!".GetBytes();
-            //var pass = "123321".GetBytes();
+            for (int i = 0; i < 10; i++)
+            {
+                var client = new UdpServer();
+                Clients.Add(client);
 
-            //XTrace.WriteLine("数据:{0} 密码:{1}", data.ToHex(), pass.ToHex());
+                client.Log = XTrace.Log;
+                client.Remote = "udp://127.0.0.1:89";
+                client.Received += (s, e) => XTrace.WriteLine("{0} {1}", (s as UdpServer).Name, e.ToStr());
+                client.ReceiveAsync();
+            }
 
-            //var m = data.RC4(pass);
-            //XTrace.WriteLine("加密后数据:{0}", m.ToHex());
-
-            //var n = m.RC4(pass);
-            //XTrace.WriteLine("解密后数据:{0}", n.ToHex());
-
-            var client = new DhcpClient();
-            client.Log = XTrace.Log;
-            client.Start();
-
-            //var dhcp = new DhcpServer();
-            //dhcp.Log = XTrace.Log;
-            //dhcp.OnMessage += dhcp_OnMessage;
-            //dhcp.Start();
-        }
-
-        static void dhcp_OnMessage(object sender, DhcpMessageEventArgs e)
-        {
-            Console.WriteLine(e.Request);
-        }
-
-        static void udp_Received(object sender, ReceivedEventArgs e)
-        {
-            XTrace.WriteLine(e.ToHex());
-
-            var dhcp = new DhcpEntity();
-            dhcp.Read(e.Stream);
-            Console.WriteLine(dhcp + "");
-            //foreach (var pi in dhcp.GetType().GetProperties())
-            //{
-            //    Console.WriteLine("{0,-16}:{1}", pi.Name, dhcp.GetValue(pi));
-            //}
+            for (int i = 0; i < 1; i++)
+            {
+                foreach (var client in Clients)
+                {
+                    client.Send("Hello NewLife!");
+                }
+                Thread.Sleep(1000);
+            }
         }
     }
 }

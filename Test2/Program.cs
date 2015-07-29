@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using NewLife.Log;
 using NewLife.Net;
@@ -27,7 +28,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test4();
+                Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -193,6 +194,27 @@ namespace Test2
                 Console.WriteLine("{0}\t{1}", ip, mac.ToHex("-"));
             }
             total++;
+        }
+
+        static void Test6()
+        {
+            var server = new NetServer();
+            server.Name = "美女";
+            server.Local = "udp://:89";
+            server.Log = XTrace.Log;
+            server.SessionLog = XTrace.Log;
+
+            var us = server.Server as UdpServer;
+            us.LogSend = true;
+            us.LogReceive = true;
+
+            server.Start();
+
+            while (true)
+            {
+                Console.Title = "会话数：{0}".F(server.SessionCount);
+                Thread.Sleep(1000);
+            }
         }
     }
 }

@@ -38,6 +38,7 @@ namespace NewLife.Net
         #region 主要方法
         /// <summary>添加新会话，并设置会话编号</summary>
         /// <param name="session"></param>
+        /// <returns>返回添加新会话是否成功</returns>
         public Boolean Add(ISocketSession session)
         {
             var key = session.Remote.EndPoint + "";
