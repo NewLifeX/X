@@ -200,13 +200,10 @@ namespace Test2
         {
             var server = new NetServer();
             server.Name = "美女";
-            server.Local = "udp://:89";
+            server.Port = 89;
+            //server.Local = "udp://:89";
             server.Log = XTrace.Log;
             server.SessionLog = XTrace.Log;
-
-            var us = server.Server as UdpServer;
-            us.LogSend = true;
-            us.LogReceive = true;
 
             server.Start();
 

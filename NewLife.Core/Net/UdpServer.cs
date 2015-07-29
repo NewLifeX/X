@@ -499,6 +499,7 @@ namespace NewLife.Net
             if (session == null)
             {
                 var us = new UdpSession(this, remoteEP);
+                us.Log = Log;
                 session = us;
                 if (_Sessions.Add(session))
                 {

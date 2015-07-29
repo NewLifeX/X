@@ -205,7 +205,7 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            if (Log != null) Log.Error("{0}.{1}Error {2} {3}", Name, action, this, ex == null ? null : ex.Message);
+            if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
@@ -219,7 +219,7 @@ namespace NewLife.Net
             {
                 if (_LogPrefix == null)
                 {
-                    var name = Name == null ? "" : this.GetType().Name.TrimEnd("Server", "Session", "Client");
+                    var name = Name == null ? "" : Name.TrimEnd("Server", "Session", "Client");
                     _LogPrefix = "{0}.".F(name);
                 }
                 return _LogPrefix;

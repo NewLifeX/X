@@ -75,7 +75,6 @@ namespace NewLife.Net
             Server = server;
             Remote = new NetUri(ProtocolType.Udp, remote);
             _Filter = remote;
-            Log = server.Log;
         }
 
         public void Start()

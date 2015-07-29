@@ -325,9 +325,6 @@ namespace NewLife.Net.Sockets
         {
             var session = sender as ISocketSession;
 
-            //// 特殊处理Udp.Accept
-            //if (session.Local.ProtocolType == ProtocolType.Udp) OnAccepted(sender, new SessionEventArgs { Session = session });
-
             OnReceive(session, e.Stream);
 
             if (Received != null) Received(sender, e);
@@ -346,7 +343,7 @@ namespace NewLife.Net.Sockets
         /// <param name="e"></param>
         protected virtual void OnError(Object sender, ExceptionEventArgs e)
         {
-            //if (Log.Level < LogLevel.Info) return;
+            if (Log.Enable) Log.Error("{0} Error {1}", sender, e.Exception);
 
             if (Error != null) Error(sender, e);
         }

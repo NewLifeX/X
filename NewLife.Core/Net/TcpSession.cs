@@ -10,6 +10,10 @@ namespace NewLife.Net
     public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
+        private Int32 _ID;
+        /// <summary>会话编号</summary>
+        public Int32 ID { get { return _ID; } set { _ID = value; } }
+
         private TcpClient _Client;
         /// <summary>客户端</summary>
         public TcpClient Client { get { return _Client; } private set { _Client = value; } }
@@ -39,6 +43,7 @@ namespace NewLife.Net
         /// <summary>实例化增强UDP</summary>
         public TcpSession()
         {
+            Name = this.GetType().Name;
             Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
             Remote = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
         }
@@ -70,6 +75,7 @@ namespace NewLife.Net
         {
             Active = true;
             _Server = server;
+            Name = server.Name;
         }
         #endregion
 
@@ -121,10 +127,10 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose(String reason)
         {
-            WriteLog("Close {0} {1}", reason, this);
-
             if (Client != null)
             {
+                WriteLog("Close {0} {1}", reason, this);
+
                 // 提前关闭这个标识，否则Close时可能触发自动重连机制
                 Active = false;
                 try
@@ -166,7 +172,7 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+            if (Log.Enable) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
             try
             {
@@ -370,7 +376,7 @@ namespace NewLife.Net
             e.Length = count;
             e.UserState = Remote.EndPoint;
 
-            WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+            if (Log.Enable) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
             RaiseReceive(this, e);
 
@@ -484,6 +490,22 @@ namespace NewLife.Net
         #endregion
 
         #region 辅助
+        private String _LogPrefix;
+        /// <summary>日志前缀</summary>
+        public override String LogPrefix
+        {
+            get
+            {
+                if (_LogPrefix == null)
+                {
+                    var name = _Server == null ? "" : _Server.Name;
+                    _LogPrefix = "{0}[{1}].".F(name, ID);
+                }
+                return _LogPrefix;
+            }
+            set { _LogPrefix = value; }
+        }
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()

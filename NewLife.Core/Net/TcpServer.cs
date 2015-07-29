@@ -63,10 +63,6 @@ namespace NewLife.Net
         private IStatistics _Statistics = new Statistics();
         /// <summary>统计信息</summary>
         public IStatistics Statistics { get { return _Statistics; } private set { _Statistics = value; } }
-
-        //private Boolean _MessageDgram;
-        ///// <summary>使用消息报文。此时解决粘包拆包问题，每个报文前面使用7位压缩编码整数表示后面数据包长度</summary>
-        //public Boolean MessageDgram { get { return _MessageDgram; } set { _MessageDgram = value; } }
         #endregion
 
         #region 构造
@@ -102,7 +98,7 @@ namespace NewLife.Net
             // 开始监听
             if (Server == null) Server = new TcpListener(Local.EndPoint);
 
-            WriteLog("{0}.Start {1}", Name, this);
+            WriteLog("Start {0}", this);
 
             // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
@@ -118,7 +114,7 @@ namespace NewLife.Net
         {
             if (!Active) return;
 
-            WriteLog("{0}.Stop {1}", Name, this);
+            WriteLog("Stop {0}", this);
 
             if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
 
@@ -132,10 +128,6 @@ namespace NewLife.Net
         #endregion
 
         #region 连接处理
-        ///// <summary>连接完成事件</summary>
-        ///// <remarks>这里一定不需要再次ReceiveAsync，因为TcpServer在处理完成Accepted事件后，会调用Start->ReceiveAsync</remarks>
-        //public event EventHandler<AcceptedEventArgs> Accepted;
-
         /// <summary>新会话时触发</summary>
         public event EventHandler<SessionEventArgs> NewSession;
 
@@ -199,6 +191,7 @@ namespace NewLife.Net
             AcceptAsync(false);
         }
 
+        Int32 g_ID = 1;
         /// <summary>收到新连接时处理</summary>
         /// <param name="client"></param>
         protected virtual void OnAccept(TcpClient client)
@@ -207,15 +200,15 @@ namespace NewLife.Net
             // 服务端不支持掉线重连
             session.AutoReconnect = 0;
             session.Log = Log;
-            //session.MessageDgram = MessageDgram;
-            //if (Accepted != null) Accepted(this, new AcceptedEventArgs { Session = session });
 
             // 设置心跳时间
             client.Client.SetTcpKeepAlive(true);
 
             if (_Sessions.Add(session))
             {
-                WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
+                session.ID = g_ID++;
+                //WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
+                session.WriteLog("New {0}", session.Remote.EndPoint);
 
                 if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
 
@@ -268,26 +261,42 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            if (Log != null) Log.Error("{0}.{1}Error {2} {3}", Name, action, this, ex == null ? null : ex.Message);
+            if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex == null ? null : ex.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
 
         #region 日志
+        private String _LogPrefix;
+        /// <summary>日志前缀</summary>
+        public virtual String LogPrefix
+        {
+            get
+            {
+                if (_LogPrefix == null)
+                {
+                    var name = Name == null ? "" : Name.TrimEnd("Server", "Session", "Client");
+                    _LogPrefix = "{0}.".F(name);
+                }
+                return _LogPrefix;
+            }
+            set { _LogPrefix = value; }
+        }
+
 #if DEBUG
         private ILog _Log = XTrace.Log;
 #else
         private ILog _Log = Logger.Null;
 #endif
         /// <summary>日志对象</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        public ILog Log { get { return _Log; } set { _Log = value ?? Logger.Null; } }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (Log != null) Log.Info(format, args);
+            if (Log != null) Log.Info(LogPrefix + format, args);
         }
         #endregion
 
