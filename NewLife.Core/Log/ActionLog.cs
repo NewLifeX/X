@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace NewLife.Log
 {
@@ -23,6 +20,13 @@ namespace NewLife.Log
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
             if (Method != null) Method(format, args);
+        }
+
+        /// <summary>已重载</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Method + "";
         }
     }
 }
