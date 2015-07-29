@@ -138,7 +138,7 @@ namespace NewLife.Net
         /// <returns>开启异步是否成功</returns>
         Boolean AcceptAsync(Boolean throwException)
         {
-            if (_Async != null) return true;
+            //if (_Async != null) return true;
             try
             {
                 _Async = Server.BeginAcceptTcpClient(OnAccept, null);

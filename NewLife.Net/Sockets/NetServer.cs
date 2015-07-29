@@ -161,7 +161,7 @@ namespace NewLife.Net.Sockets
 
             server.Name = String.Format("{0}{1}{2}", Name, server.Local.IsTcp ? "Tcp" : "Udp", server.Local.Address.IsIPv4() ? "" : "6");
             // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
-            server.Log = SessionLog;
+            server.Log = SocketLog;
             server.NewSession += Server_NewSession;
 
             server.Error += OnError;
@@ -304,10 +304,11 @@ namespace NewLife.Net.Sockets
             ns.Host = this;
             ns.Server = session.Server;
             ns.Session = session;
+            if (ns is NetSession) (ns as NetSession).Log = SessionLog;
             // 日志输出改变
             //session.Log = new ActionLog((ns as NetSession).WriteLog);
 
-            session.OnDisposed += (s, e2) => ns.Dispose();
+            //session.OnDisposed += (s, e2) => ns.Dispose();
 
             if (UseSession) AddSession(ns);
 
@@ -454,9 +455,13 @@ namespace NewLife.Net.Sockets
         #endregion
 
         #region 辅助
-        private ILog _SessionLog = NetHelper.Debug ? XTrace.Log : Logger.Null;
+        private ILog _SocketLog;
         /// <summary>用于会话的日志提供者</summary>
-        public ILog SessionLog { get { return _SessionLog; } set { _SessionLog = value; } }
+        public ILog SocketLog { get { return _SocketLog ?? Log; } set { _SocketLog = value ?? Logger.Null; } }
+
+        private ILog _SessionLog;
+        /// <summary>用于会话的日志提供者</summary>
+        public ILog SessionLog { get { return _SessionLog ?? Log; } set { _SessionLog = value ?? Logger.Null; } }
 
         /// <summary>已重载。日志加上前缀</summary>
         /// <param name="format"></param>

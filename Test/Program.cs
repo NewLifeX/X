@@ -402,24 +402,26 @@ namespace Test
         static List<UdpServer> Clients = new List<UdpServer>();
         private static void Test16()
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 5000; i++)
             {
                 var client = new UdpServer();
                 Clients.Add(client);
 
-                client.Log = XTrace.Log;
+                //client.Log = XTrace.Log;
+                //client.LogSend = true;
+                //client.LogReceive = true;
                 client.Remote = "udp://127.0.0.1:89";
                 client.Received += (s, e) => XTrace.WriteLine("{0} {1}", (s as UdpServer).Name, e.ToStr());
                 client.ReceiveAsync();
             }
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 2; i++)
             {
                 foreach (var client in Clients)
                 {
                     client.Send("Hello NewLife!");
                 }
-                Thread.Sleep(1000);
+                Thread.Sleep(10000);
             }
         }
     }

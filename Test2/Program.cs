@@ -202,8 +202,11 @@ namespace Test2
             server.Name = "美女";
             server.Port = 89;
             //server.Local = "udp://:89";
-            server.Log = XTrace.Log;
-            server.SessionLog = XTrace.Log;
+            //server.Log = XTrace.Log;
+            //server.SessionLog = XTrace.Log;
+            server.Log = null;
+            server.SocketLog = null;
+            server.SessionLog = null;
 
             server.Start();
 

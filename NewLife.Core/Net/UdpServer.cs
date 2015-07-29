@@ -329,10 +329,13 @@ namespace NewLife.Net
 
             if (!Open()) return false;
 
-            if (_Async != null) return true;
+            //if (_Async != null) return true;
             if (!UseReceiveAsync) UseReceiveAsync = true;
             try
             {
+#if DEBUG
+                if (_checker == null) _checker = new TimerX(AsyncChecker, null, 1000, 1000);
+#endif
                 // 开始新的监听
                 _Async = Client.BeginReceive(OnReceive, Client);
             }
@@ -352,6 +355,17 @@ namespace NewLife.Net
 
             return true;
         }
+
+#if DEBUG
+        TimerX _checker;
+        void AsyncChecker(Object state)
+        {
+            var ac = _Async;
+            if (ac == null) return;
+
+            if (ac.IsCompleted) WriteLog("已完成");
+        }
+#endif
 
         void OnReceive(IAsyncResult ar)
         {
