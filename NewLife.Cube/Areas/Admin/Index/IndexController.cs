@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -6,6 +7,7 @@ using System.Reflection;
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
+using NewLife.Reflection;
 using XCode.Membership;
 
 namespace NewLife.Cube.Admin.Controllers
@@ -54,6 +56,12 @@ namespace NewLife.Cube.Admin.Controllers
             catch { }
 
             ViewBag.WebServerName = name;
+
+            ViewBag.MyAsms = AssemblyX.GetMyAssemblies().OrderBy(e => e.Name).OrderByDescending(e => e.Compile).ToArray();
+
+            var Asms = AssemblyX.GetAssemblies(null).ToArray();
+            Asms = Asms.OrderBy(e => e.Name).OrderByDescending(e => e.Compile).ToArray();
+            ViewBag.Asms = Asms;
 
             return View();
         }

@@ -563,7 +563,7 @@ WriteLiteral(">\r\n        <thead>\r\n            <tr>\r\n                <th>Âê
             #line hidden
             
             #line 139 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-             foreach (var item in AssemblyX.GetMyAssemblies())
+             foreach (AssemblyX item in ViewBag.MyAsms)
             {
 
             
@@ -921,7 +921,7 @@ WriteLiteral(@" )
             #line hidden
             
             #line 256 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-         foreach (AssemblyX item in AssemblyX.GetAssemblies(null))
+         foreach (AssemblyX item in ViewBag.Asms)
         {
 
             
@@ -977,7 +977,7 @@ WriteLiteral("                    ");
 
             
             #line 272 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-               Write(item.Compile);
+               Write(item.Compile.ToFullString());
 
             
             #line default

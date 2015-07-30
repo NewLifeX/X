@@ -136,7 +136,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in AssemblyX.GetMyAssemblies())
+            @foreach (AssemblyX item in ViewBag.MyAsms)
             {
                 <tr>
                     <td>@item.Name</td>
@@ -253,7 +253,7 @@
                 路径
             </th>
         </tr>
-        @foreach (AssemblyX item in AssemblyX.GetAssemblies(null))
+        @foreach (AssemblyX item in ViewBag.Asms)
         {
             <tr>
                 <td>
@@ -269,7 +269,7 @@
                     @item.Version
                 </td>
                 <td>
-                    @item.Compile
+                    @item.Compile.ToFullString()
                 </td>
                 <td>
                     @{
