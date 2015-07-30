@@ -92,8 +92,9 @@ namespace XCode.Cache
         void Remove(IEntity entity);
 
         /// <summary>移除指定项</summary>
-        /// <param name="key"></param>
-        void RemoveKey(Object key);
+        /// <param name="key">键值</param>
+        /// <param name="save">是否自动保存实体对象</param>
+        void RemoveKey(Object key, Boolean save = true);
 
         /// <summary>清除所有数据</summary>
         /// <param name="reason">清除缓存原因</param>

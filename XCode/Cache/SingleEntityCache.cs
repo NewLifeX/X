@@ -612,8 +612,9 @@ namespace XCode.Cache
         }
 
         /// <summary>移除指定项</summary>
-        /// <param name="key"></param>
-        public void RemoveKey(TKey key)
+        /// <param name="key">键值</param>
+        /// <param name="save">是否自动保存实体对象</param>
+        public void RemoveKey(TKey key, Boolean save = true)
         {
             CacheItem item = null;
             if (!Entities.TryGetValue(key, out item)) return;
@@ -621,7 +622,7 @@ namespace XCode.Cache
             {
                 if (!Entities.TryGetValue(key, out item)) return;
 
-                AutoUpdate(item, "移除缓存" + key);
+                if (save) AutoUpdate(item, "移除缓存" + key);
 
                 Entities.Remove(key);
 
@@ -638,12 +639,13 @@ namespace XCode.Cache
 
         /// <summary>根据主键移除指定项</summary>
         /// <param name="entity"></param>
-        public void Remove(TEntity entity)
+        /// <param name="save">是否自动保存实体对象</param>
+        public void Remove(TEntity entity, Boolean save = true)
         {
             if (entity == null) return;
 
             var key = GetKeyMethod(entity);
-            RemoveKey(key);
+            RemoveKey(key, save);
         }
 
         /// <summary>清除所有数据</summary>
@@ -694,8 +696,9 @@ namespace XCode.Cache
         Boolean ISingleEntityCache.ContainsKey(Object key) { return ContainsKey((TKey)key); }
 
         /// <summary>移除指定项</summary>
-        /// <param name="key"></param>
-        void ISingleEntityCache.RemoveKey(Object key) { RemoveKey((TKey)key); }
+        /// <param name="key">键值</param>
+        /// <param name="save">是否自动保存实体对象</param>
+        void ISingleEntityCache.RemoveKey(Object key, Boolean save) { RemoveKey((TKey)key, save); }
 
         /// <summary>移除指定项</summary>
         /// <param name="entity"></param>

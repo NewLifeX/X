@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using XCode.Exceptions;
 
 namespace XCode
 {
@@ -254,7 +253,12 @@ namespace XCode
             if (String.IsNullOrEmpty(sql)) return 0;
 
             //return session.Execute(String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
-            return session.Execute(false, false, String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
+            var rs = session.Execute(false, false, String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
+
+            //清除脏数据，避免重复提交保存
+            if (entity.Dirtys != null) entity.Dirtys.Clear();
+
+            return rs;
         }
 
         /// <summary>把一个实体对象持久化到数据库</summary>

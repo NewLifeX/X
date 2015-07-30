@@ -1063,7 +1063,7 @@ namespace XCode
                     }
                 }
                 // 自动加入单对象缓存
-                if (_singleCache != null) _singleCache.Remove(entity as TEntity);
+                if (_singleCache != null) _singleCache.Remove(entity as TEntity, false);
             }
 
             if (_Count >= 0) { Interlocked.Decrement(ref _Count); }
