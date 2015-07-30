@@ -503,6 +503,8 @@ namespace NewLife.Net
         public virtual ISocketSession CreateSession(IPEndPoint remoteEP)
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            var sessions = _Sessions;
+            if (sessions == null) throw new ObjectDisposedException("Sessions");
 
             if (!Active)
             {
@@ -513,13 +515,13 @@ namespace NewLife.Net
             }
 
             // 需要查找已有会话，已有会话不存在时才创建新会话
-            var session = _Sessions.Get(remoteEP + "");
+            var session = sessions.Get(remoteEP + "");
             if (session == null)
             {
                 var us = new UdpSession(this, remoteEP);
                 us.Log = Log;
                 session = us;
-                if (_Sessions.Add(session))
+                if (sessions.Add(session))
                 {
                     us.ID = g_ID++;
                     us.Start();
