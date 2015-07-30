@@ -37,7 +37,7 @@ namespace NewLife.Net.Sockets
         public ISocketServer Server { get { return _Server; } set { _Server = value; } }
 
         /// <summary>客户端地址</summary>
-        public NetUri Remote { get { return Session.Remote; } }
+        public NetUri Remote { get { return Session == null ? null : Session.Remote; } }
         #endregion
 
         #region 方法
