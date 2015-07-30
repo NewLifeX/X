@@ -476,7 +476,7 @@ namespace NewLife.Net
                 if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
             }
 
-            RaiseReceive(session, e);
+            if (session != null) RaiseReceive(session, e);
 
             // 数据发回去
             if (e.Feedback)
@@ -504,7 +504,7 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
             var sessions = _Sessions;
-            if (sessions == null) throw new ObjectDisposedException("Sessions");
+            if (sessions == null) return null;
 
             if (!Active)
             {
