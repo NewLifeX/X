@@ -117,6 +117,10 @@ namespace NewLife.Log
             //if (init > 0 || Interlocked.CompareExchange(ref init, 1, 0) != 0) return;
             if (!Runtime.IsConsole) return;
 
+            // 适当加大控制台窗口
+            if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
+            if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+
             var clg = _Log as ConsoleLog;
             var ftl = _Log as TextFileLog;
             var cmp = _Log as CompositeLog;
