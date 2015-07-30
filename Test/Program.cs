@@ -32,7 +32,9 @@ namespace Test
     {
         private static void Main(string[] args)
         {
-            XTrace.Log = new NetworkLog();
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+
+            //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
 #if DEBUG
             XTrace.Debug = true;
@@ -45,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                Test16();
+                    Test16();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -402,7 +404,7 @@ namespace Test
         static List<UdpServer> Clients = new List<UdpServer>();
         private static void Test16()
         {
-            for (int i = 0; i < 5000; i++)
+            for (int i = 0; i < 2000; i++)
             {
                 var client = new UdpServer();
                 Clients.Add(client);
@@ -410,12 +412,12 @@ namespace Test
                 //client.Log = XTrace.Log;
                 //client.LogSend = true;
                 //client.LogReceive = true;
-                client.Remote = "udp://127.0.0.1:89";
+                client.Remote = "udp://192.168.0.12:89";
                 client.Received += (s, e) => XTrace.WriteLine("{0} {1}", (s as UdpServer).Name, e.ToStr());
-                client.ReceiveAsync();
+                //client.ReceiveAsync();
             }
 
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 100; i++)
             {
                 foreach (var client in Clients)
                 {

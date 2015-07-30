@@ -21,6 +21,8 @@ namespace Test2
     {
         static void Main(string[] args)
         {
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+
             XTrace.UseConsole();
             while (true)
             {
@@ -28,7 +30,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test6();
+                    Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -202,14 +204,16 @@ namespace Test2
             server.Name = "美女";
             server.Port = 89;
             //server.Local = "udp://:89";
-            server.Log = XTrace.Log;
-            //server.Log = null;
+            //server.Log = XTrace.Log;
+            server.Log = null;
 
             server.Start();
 
             while (true)
             {
-                Console.Title = "会话数：{0}".F(server.SessionCount);
+                var str = "会话数：{0}".F(server.SessionCount);
+                Console.Title = str;
+                Console.WriteLine(str);
                 Thread.Sleep(1000);
             }
         }

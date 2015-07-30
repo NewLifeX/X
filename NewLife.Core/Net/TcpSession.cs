@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Threading;
+using NewLife.Web;
 
 namespace NewLife.Net
 {
@@ -370,6 +371,9 @@ namespace NewLife.Net
         /// <param name="count"></param>
         protected virtual void OnReceive(Byte[] data, Int32 count)
         {
+            // 更新全局远程IP地址
+            WebHelper.UserHost = Remote.EndPoint.ToString();
+            
             // 分析处理
             var e = new ReceivedEventArgs();
             e.Data = data;

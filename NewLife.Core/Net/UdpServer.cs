@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using NewLife.Model;
 using NewLife.Threading;
+using NewLife.Web;
 
 namespace NewLife.Net
 {
@@ -453,6 +454,9 @@ namespace NewLife.Net
                     }
                 }
             }
+
+            // 更新全局远程IP地址
+            WebHelper.UserHost = remote.ToString();
 
             // 分析处理
             var e = new ReceivedEventArgs();
