@@ -164,8 +164,8 @@ namespace NewLife.IO
                 if ((getMethod != null) && (getMethod.GetParameters().Length <= 0))
                 {
                     if (!flag) sb.Append(',');
-
-                    SerializeString(pi.Name, sb);
+                    var des = pi.GetDisplayName(true);
+                    SerializeString((!des.IsNullOrWhiteSpace() ? des : pi.Name), sb);
                     sb.Append(':');
                     SerializeValue(obj.GetValue(pi), sb, depth, objectsInUse, serializationFormat);
                     flag = false;
