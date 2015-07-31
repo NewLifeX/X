@@ -7,7 +7,9 @@ using System.Text;
 using System.Threading;
 using NewLife.Model;
 using NewLife.Threading;
+#if !Android
 using NewLife.Web;
+#endif
 
 namespace NewLife.Net
 {
@@ -454,10 +456,10 @@ namespace NewLife.Net
                     }
                 }
             }
-
+#if !Android
             // 更新全局远程IP地址
             WebHelper.UserHost = remote.ToString();
-
+#endif
             // 分析处理
             var e = new ReceivedEventArgs();
             e.Data = data;

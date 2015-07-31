@@ -55,6 +55,9 @@
     <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs">
       <Link>Collections\DictionaryCache.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Collections\NullableDictionary.cs">
+      <Link>Collections\NullableDictionary.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Common\DisposeBase.cs">
       <Link>Common\DisposeBase.cs</Link>
     </Compile>
@@ -99,6 +102,9 @@
     </Compile>
     <Compile Include="..\NewLife.Core\IO\PathHelper.cs">
       <Link>IO\PathHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\ActionLog.cs">
+      <Link>Log\ActionLog.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Log\CompositeLog.cs">
       <Link>Log\CompositeLog.cs</Link>
@@ -342,7 +348,6 @@
   <ItemGroup>
     <AndroidResource Include="Resources\Values\Strings.xml" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

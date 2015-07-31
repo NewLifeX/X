@@ -3,8 +3,9 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Threading;
+#if !Android
 using NewLife.Web;
-
+#endif
 namespace NewLife.Net
 {
     /// <summary>增强TCP客户端</summary>
@@ -371,9 +372,10 @@ namespace NewLife.Net
         /// <param name="count"></param>
         protected virtual void OnReceive(Byte[] data, Int32 count)
         {
+#if !Android
             // 更新全局远程IP地址
             WebHelper.UserHost = Remote.EndPoint.ToString();
-            
+#endif
             // 分析处理
             var e = new ReceivedEventArgs();
             e.Data = data;
