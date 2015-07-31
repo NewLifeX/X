@@ -332,7 +332,9 @@ namespace NewLife.Net
 
             if (!Open()) return false;
 
-            //if (_Async != null) return true;
+#if Android
+            if (_Async != null) return true;
+#endif
             if (!UseReceiveAsync) UseReceiveAsync = true;
             try
             {
