@@ -118,8 +118,12 @@ namespace NewLife.Log
             if (!Runtime.IsConsole) return;
 
             // 适当加大控制台窗口
-            if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
-            if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+            try
+            {
+                if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
+                if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+            }
+            catch { }
 
             var clg = _Log as ConsoleLog;
             var ftl = _Log as TextFileLog;
