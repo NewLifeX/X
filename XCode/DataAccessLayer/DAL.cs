@@ -34,7 +34,7 @@ namespace XCode.DataAccessLayer
             //if (!ConnStrs.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
             if (!ConnStrs.ContainsKey(connName))
             {
-                var dbpath = "";
+                var dbpath = ".";
                 if (Runtime.IsWeb)
                 {
                     if (!Environment.CurrentDirectory.Contains("iisexpress") ||
