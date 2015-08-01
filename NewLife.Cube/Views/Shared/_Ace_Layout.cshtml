@@ -129,7 +129,7 @@
             $('input[role=number]').each(function () {
                 $(this).removeAttr('class');
                 $(this).addClass('spinbox-input form-control text-center');
-                $(this).ace_spinner({ on_sides: true, icon_up: 'ace-icon fa fa-plus bigger-110', icon_down: 'ace-icon fa fa-minus bigger-110', btn_up_class: 'btn-success', btn_down_class: 'btn-danger' });
+                $(this).ace_spinner({ max: 2147483647, min: -2147483647, on_sides: true, icon_up: 'ace-icon fa fa-plus bigger-110', icon_down: 'ace-icon fa fa-minus bigger-110', btn_up_class: 'btn-success', btn_down_class: 'btn-danger' });
             });
             $('.multiselect').each(function () {
                 $(this).multiselect({
