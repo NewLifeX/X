@@ -116,7 +116,7 @@ namespace XCode.Web
         }
 
         private Control _CopyButton;
-        /// <summary>保存按钮，查找名为btnCopy的按钮</summary>
+        /// <summary>复制按钮，查找名为btnCopy的按钮</summary>
         protected virtual Control CopyButton
         {
             get

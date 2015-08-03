@@ -461,40 +461,39 @@ namespace XCode
             {
                 using (var trans = new EntityTransaction<TEntity>())
                 {
-                    var count = FindCount(whereClause, orderClause, selects, 0, 0);
-                    var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
-                    var index = 0;
-                    while (true)
-                    {
-                        var size = Math.Min(batchSize, total - index);
-                        if (size <= 0) { break; }
-
-                        var list = FindAll(whereClause, orderClause, selects, index, size);
-                        if ((list == null) || (list.Count < 1)) { break; }
-                        index += list.Count;
-
-                        action(list);
-                    }
+                    DoAction(action, whereClause, orderClause, selects, batchSize, maxCount);
 
                     trans.Commit();
                 }
             }
             else
             {
-                var count = FindCount(whereClause, orderClause, selects, 0, 0);
-                var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
-                var index = 0;
-                while (true)
+                DoAction(action, whereClause, orderClause, selects, batchSize, maxCount);
+            }
+        }
+
+        private static void DoAction(Action<EntityList<TEntity>> action, string whereClause, string orderClause, string selects, int batchSize,
+            int maxCount)
+        {
+            var count = FindCount(whereClause, orderClause, selects, 0, 0);
+            var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
+            var index = 0;
+            while (true)
+            {
+                var size = Math.Min(batchSize, total - index);
+                if (size <= 0)
                 {
-                    var size = Math.Min(batchSize, total - index);
-                    if (size <= 0) { break; }
-
-                    var list = FindAll(whereClause, orderClause, selects, index, size);
-                    if ((list == null) || (list.Count < 1)) { break; }
-                    index += list.Count;
-
-                    action(list);
+                    break;
                 }
+
+                var list = FindAll(whereClause, orderClause, selects, index, size);
+                if ((list == null) || (list.Count < 1))
+                {
+                    break;
+                }
+                index += list.Count;
+
+                action(list);
             }
         }
 

@@ -166,7 +166,7 @@ namespace XCode
                     {
                         dic[table.TableName] = item;
                         // 删除原始实体类
-                        tables.RemoveAll((tb) => tb.TableName == table.TableName);
+                        tables.RemoveAll(tb => tb.TableName == table.TableName);
                     }
                     // 两个都不是，报错吧！
                     else

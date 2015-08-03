@@ -15,8 +15,8 @@ namespace XCode.DataAccessLayer
         private String _Name;
         /// <summary>名称</summary>
         [XmlAttribute]
-        [DisplayName("编号")]
-        [Description("编号")]
+        [DisplayName("名称")]
+        [Description("名称")]
         public String Name
         {
             get

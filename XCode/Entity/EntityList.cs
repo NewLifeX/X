@@ -406,22 +406,25 @@ namespace XCode
             {
                 using (var trans = Factory.CreateTrans())
                 {
-                    for (int i = 0; i < Count; i++)
-                    {
-                        count += func(this[i]);
-                    }
+                    count = DoAction(func, count);
 
                     trans.Commit();
                 }
             }
             else
             {
-                for (int i = 0; i < Count; i++)
-                {
-                    count += func(this[i]);
-                }
+                count = DoAction(func, count);
             }
 
+            return count;
+        }
+
+        private int DoAction(Func<T, int> func, int count)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                count += func(this[i]);
+            }
             return count;
         }
 
