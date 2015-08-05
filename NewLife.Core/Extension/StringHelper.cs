@@ -787,7 +787,8 @@ namespace System
 
             if (msWait <= 0) return 0;
 
-            p.WaitForExit(msWait);
+            // 如果未退出，则不能拿到退出代码
+            if (!p.WaitForExit(msWait)) return 0;
 
             return p.ExitCode;
         }
