@@ -55,15 +55,15 @@
             // 
             this.cbBaundrate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbBaundrate.FormattingEnabled = true;
-            this.cbBaundrate.Location = new System.Drawing.Point(335, 3);
+            this.cbBaundrate.Location = new System.Drawing.Point(325, 3);
             this.cbBaundrate.Name = "cbBaundrate";
-            this.cbBaundrate.Size = new System.Drawing.Size(62, 20);
+            this.cbBaundrate.Size = new System.Drawing.Size(72, 20);
             this.cbBaundrate.TabIndex = 7;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(287, 7);
+            this.label2.Location = new System.Drawing.Point(277, 7);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(53, 12);
             this.label2.TabIndex = 6;
@@ -75,7 +75,7 @@
             this.cbName.FormattingEnabled = true;
             this.cbName.Location = new System.Drawing.Point(41, 3);
             this.cbName.Name = "cbName";
-            this.cbName.Size = new System.Drawing.Size(240, 20);
+            this.cbName.Size = new System.Drawing.Size(230, 20);
             this.cbName.TabIndex = 5;
             // 
             // label3

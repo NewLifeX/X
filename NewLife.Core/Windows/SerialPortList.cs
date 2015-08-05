@@ -76,7 +76,7 @@ namespace NewLife.Windows
             BindMenu(mi停止位, On停止位Click, Enum.GetValues(typeof(StopBits)));
             BindMenu(mi校验, On校验Click, Enum.GetValues(typeof(Parity)));
 
-            cbBaundrate.DataSource = new Int32[] { 1200, 2400, 4800, 9600, 14400, 19200, 38400, 56000, 57600, 115200, 194000 };
+            cbBaundrate.DataSource = new Int32[] { 1200, 2400, 4800, 9600, 14400, 19200, 38400, 56000, 57600, 115200, 128000, 194000, 256000, 512000, 1024000, 2048000 };
 
             var cfg = SerialPortConfig.Current;
             cbName.SelectedItem = cfg.PortName;
