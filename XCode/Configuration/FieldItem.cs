@@ -62,7 +62,16 @@ namespace XCode.Configuration
 
         private Type _DeclaringType;
         /// <summary>声明类型</summary>
-        internal Type DeclaringType { get { return _DeclaringType; } set { _DeclaringType = value; } }
+        internal Type DeclaringType
+        {
+            get
+            {
+                if (_DeclaringType != null) { return _DeclaringType; }
+                // 确保动态增加的数据字段得到实体类型
+                return Table.EntityType;
+            }
+            set { _DeclaringType = value; }
+        }
 
         private Boolean _IsIdentity;
         /// <summary>是否标识列</summary>
