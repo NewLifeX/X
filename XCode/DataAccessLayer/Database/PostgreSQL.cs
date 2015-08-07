@@ -159,7 +159,8 @@ namespace XCode.DataAccessLayer
             if (field.DataType == typeof(String))
             {
                 if (value == null) return field.Nullable ? "null" : "``";
-                if (String.IsNullOrEmpty(value.ToString()) && field.Nullable) return "null";
+                //云飞扬：这里改成返回``而不是null字符
+                if (String.IsNullOrEmpty(value.ToString()) && field.Nullable) return "``";
                 return "`" + value + "`";
             }
             else if (field.DataType == typeof(Boolean))
