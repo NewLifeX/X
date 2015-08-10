@@ -1010,13 +1010,16 @@ namespace XCode
         {
             var rs = persistence.Insert(entity);
 
+            var e = entity as TEntity;
+            e.MarkDb(true); // 确保在没有使用实体缓存和单对象缓存的情况下，标记来自数据库
+
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if (HoldCache || UsingTrans)
             {
-                if (_cache != null) _cache.Update(entity as TEntity);
+                if (_cache != null) _cache.Update(e);
 
                 // 自动加入单对象缓存
-                if (_singleCache != null && _singleCache.Using) _singleCache.Add(entity as TEntity);
+                if (_singleCache != null && _singleCache.Using) _singleCache.Add(e);
             }
 
             if (_Count >= 0) Interlocked.Increment(ref _Count);
@@ -1031,13 +1034,16 @@ namespace XCode
         {
             var rs = persistence.Update(entity);
 
+            var e = entity as TEntity;
+            e.MarkDb(true); // 确保在没有使用实体缓存和单对象缓存的情况下，标记来自数据库
+
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
             if (HoldCache || UsingTrans)
             {
-                if (_cache != null) _cache.Update(entity as TEntity);
+                if (_cache != null) _cache.Update(e);
 
                 // 自动加入单对象缓存
-                if (_singleCache != null && _singleCache.Using) _singleCache.Add(entity as TEntity);
+                if (_singleCache != null && _singleCache.Using) _singleCache.Add(e);
             }
 
             return rs;
