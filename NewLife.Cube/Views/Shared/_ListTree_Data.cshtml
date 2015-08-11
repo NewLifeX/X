@@ -12,7 +12,15 @@
         <tr>
             @foreach (var item in fields)
             {
-                <th class="text-center"><a href="@Html.Raw(page.GetSortUrl(item.Name))">@item.DisplayName</a></th>
+                var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
+                if (item.PrimaryKey)
+                {
+                    <th class="text-center hidden-md hidden-sm hidden-xs"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
+                }
+                else
+                {
+                    <th class="text-center"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
+                }
             }
             <th class="text-center">升</th>
             <th class="text-center">降</th>
