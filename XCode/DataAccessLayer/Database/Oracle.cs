@@ -324,8 +324,8 @@ namespace XCode.DataAccessLayer
             if (code == TypeCode.String)
             {
                 if (value == null) return isNullable ? "null" : "''";
-                //云飞扬：这里改成返回''而不是null字符
-                if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "''";
+                //云飞扬：这里注释掉，应该返回''而不是null字符
+                //if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
                 if (field.IsUnicode || IsUnicode(field.RawType))
                     return "N'" + value.ToString().Replace("'", "''") + "'";

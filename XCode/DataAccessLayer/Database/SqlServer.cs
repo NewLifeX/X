@@ -227,8 +227,8 @@ namespace XCode.DataAccessLayer
             {
                 // 热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码，这里加上N前缀
                 if (value == null) return isNullable ? "null" : "''";
-                //云飞扬：这里改成返回''而不是null字符
-                if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "''";
+                //云飞扬：这里注释掉，空串返回''而不是null字符
+                //if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
                 // 这里直接判断原始数据类型有所不妥，如果原始数据库不是当前数据库，那么这里的判断将会失效
                 // 一个可行的办法就是给XField增加一个IsUnicode属性，但如此一来，XField就稍微变大了
