@@ -205,6 +205,8 @@ namespace System.IO
         /// <returns></returns>
         public static IEnumerable<FileInfo> GetAllFiles(this DirectoryInfo di, String exts = null, Boolean allSub = false)
         {
+            if (di == null || !di.Exists) yield break;
+
             if (String.IsNullOrEmpty(exts)) exts = "*";
             var opt = allSub ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
