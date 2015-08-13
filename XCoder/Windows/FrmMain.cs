@@ -20,12 +20,12 @@ namespace XCoder
 {
     public partial class FrmMain : Form
     {
-        #region ÊôĞÔ
-        /// <summary>ÅäÖÃ</summary>
+        #region å±æ€§
+        /// <summary>é…ç½®</summary>
         public static XConfig Config { get { return XConfig.Current; } }
 
         private Engine _Engine;
-        /// <summary>Éú³ÉÆ÷</summary>
+        /// <summary>ç”Ÿæˆå™¨</summary>
         Engine Engine
         {
             get { return _Engine ?? (_Engine = new Engine(Config)); }
@@ -33,12 +33,12 @@ namespace XCoder
         }
         #endregion
 
-        #region ½çÃæ³õÊ¼»¯
+        #region ç•Œé¢åˆå§‹åŒ–
         public FrmMain()
         {
             InitializeComponent();
 
-            this.Icon = IcoHelper.GetIcon("Ä£ĞÍ");
+            this.Icon = IcoHelper.GetIcon("æ¨¡å‹");
 
             AutoLoadTables(Config.ConnName);
         }
@@ -46,7 +46,7 @@ namespace XCoder
         private void FrmMain_Shown(object sender, EventArgs e)
         {
             //var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            //Text = String.Format("ĞÂÉúÃüÊı¾İÄ£ĞÍ¹¤¾ß v{0} {1:HH:mm:ss}±àÒë", asm.CompileVersion, asm.Compile);
+            //Text = String.Format("æ–°ç”Ÿå‘½æ•°æ®æ¨¡å‹å·¥å…· v{0} {1:HH:mm:ss}ç¼–è¯‘", asm.CompileVersion, asm.Compile);
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
@@ -79,23 +79,23 @@ namespace XCoder
         }
         #endregion
 
-        #region Á¬½Ó¡¢×Ô¶¯¼ì²âÊı¾İ¿â¡¢¼ÓÔØ±í
+        #region è¿æ¥ã€è‡ªåŠ¨æ£€æµ‹æ•°æ®åº“ã€åŠ è½½è¡¨
         private void bt_Connection_Click(object sender, EventArgs e)
         {
             SaveConfig();
 
-            if (bt_Connection.Text == "Á¬½Ó")
+            if (bt_Connection.Text == "è¿æ¥")
             {
                 Engine = null;
                 LoadTables();
 
                 gbConnect.Enabled = false;
                 gbTable.Enabled = true;
-                Ä£ĞÍToolStripMenuItem.Visible = true;
-                ¼Ü¹¹¹ÜÀíSToolStripMenuItem.Visible = true;
+                æ¨¡å‹ToolStripMenuItem.Visible = true;
+                æ¶æ„ç®¡ç†SToolStripMenuItem.Visible = true;
                 //btnImport.Enabled = false;
-                btnImport.Text = "µ¼³öÄ£ĞÍ";
-                bt_Connection.Text = "¶Ï¿ª";
+                btnImport.Text = "å¯¼å‡ºæ¨¡å‹";
+                bt_Connection.Text = "æ–­å¼€";
                 btnRefreshTable.Enabled = true;
             }
             else
@@ -104,15 +104,15 @@ namespace XCoder
 
                 gbConnect.Enabled = true;
                 gbTable.Enabled = false;
-                Ä£ĞÍToolStripMenuItem.Visible = false;
-                ¼Ü¹¹¹ÜÀíSToolStripMenuItem.Visible = false;
+                æ¨¡å‹ToolStripMenuItem.Visible = false;
+                æ¶æ„ç®¡ç†SToolStripMenuItem.Visible = false;
                 btnImport.Enabled = true;
-                btnImport.Text = "µ¼ÈëÄ£ĞÍ";
-                bt_Connection.Text = "Á¬½Ó";
+                btnImport.Text = "å¯¼å…¥æ¨¡å‹";
+                bt_Connection.Text = "è¿æ¥";
                 btnRefreshTable.Enabled = false;
                 Engine = null;
 
-                // ¶Ï¿ªµÄÊ±ºòÔÙÈ¡Ò»´Î£¬È·±£ÏÂ´ÎÄÜ¼°Ê±µÃµ½ĞÂµÄ
+                // æ–­å¼€çš„æ—¶å€™å†å–ä¸€æ¬¡ï¼Œç¡®ä¿ä¸‹æ¬¡èƒ½åŠæ—¶å¾—åˆ°æ–°çš„
                 try
                 {
                     var list = DAL.Create(Config.ConnName).Tables;
@@ -136,7 +136,7 @@ namespace XCoder
         {
             var list = new List<String>();
 
-            // ¼ÓÉÏ±¾»úMSSQL
+            // åŠ ä¸Šæœ¬æœºMSSQL
             String localName = "local_MSSQL";
             String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
             if (!ContainConnStr(localstr)) DAL.AddConnStr(localName, localstr, null, "mssql");
@@ -144,7 +144,7 @@ namespace XCoder
             var sw = new Stopwatch();
             sw.Start();
 
-            #region ¼ì²â±¾µØAccessºÍSQLite
+            #region æ£€æµ‹æœ¬åœ°Accesså’ŒSQLite
             var n = 0;
             String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
             foreach (String item in ss)
@@ -167,22 +167,22 @@ namespace XCoder
             #endregion
 
             sw.Stop();
-            XTrace.WriteLine("×Ô¶¯¼ì²âÎÄ¼ş{0}¸ö£¬·¢ÏÖÊı¾İ¿â{1}¸ö£¬ºÄÊ±£º{2}£¡", ss.Length, n, sw.Elapsed);
+            XTrace.WriteLine("è‡ªåŠ¨æ£€æµ‹æ–‡ä»¶{0}ä¸ªï¼Œå‘ç°æ•°æ®åº“{1}ä¸ªï¼Œè€—æ—¶ï¼š{2}ï¼", ss.Length, n, sw.Elapsed);
 
             foreach (var item in DAL.ConnStrs)
             {
                 if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
             }
 
-            // Ô¶³ÌÊı¾İ¿âºÄÊ±Ì«³¤£¬ÕâÀïÏÈÁĞ³öÀ´
+            // è¿œç¨‹æ•°æ®åº“è€—æ—¶å¤ªé•¿ï¼Œè¿™é‡Œå…ˆåˆ—å‡ºæ¥
             this.Invoke(SetDatabaseList, list);
-            //!!! ±ØĞëÁíÍâÊµÀı»¯Ò»¸öÁĞ±í£¬·ñÔò×÷ÎªÊı¾İÔ´°ó¶¨Ê±£¬»áÒòÎªÊÇÍ¬Ò»¸ö¶ÔÏó¶ø±»Ìø¹ı
+            //!!! å¿…é¡»å¦å¤–å®ä¾‹åŒ–ä¸€ä¸ªåˆ—è¡¨ï¼Œå¦åˆ™ä½œä¸ºæ•°æ®æºç»‘å®šæ—¶ï¼Œä¼šå› ä¸ºæ˜¯åŒä¸€ä¸ªå¯¹è±¡è€Œè¢«è·³è¿‡
             list = new List<String>(list);
 
             sw.Reset();
             sw.Start();
 
-            #region Ì½²âÁ¬½ÓÖĞµÄÆäËü¿â
+            #region æ¢æµ‹è¿æ¥ä¸­çš„å…¶å®ƒåº“
             var sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
             n = 0;
             var names = new List<String>();
@@ -196,7 +196,7 @@ namespace XCoder
                     DataTable dt = null;
                     String dbprovider = null;
 
-                    // ÁĞ³öËùÓĞÊı¾İ¿â
+                    // åˆ—å‡ºæ‰€æœ‰æ•°æ®åº“
                     Boolean old = DAL.ShowSQL;
                     DAL.ShowSQL = false;
                     try
@@ -214,7 +214,7 @@ namespace XCoder
                     var builder = new DbConnectionStringBuilder();
                     builder.ConnectionString = dal.ConnStr;
 
-                    // Í³¼Æ¿âÃû
+                    // ç»Ÿè®¡åº“å
                     foreach (DataRow dr in dt.Rows)
                     {
                         String dbname = dr[0].ToString();
@@ -245,7 +245,7 @@ namespace XCoder
             #endregion
 
             sw.Stop();
-            XTrace.WriteLine("·¢ÏÖÔ¶³ÌÊı¾İ¿â{0}¸ö£¬ºÄÊ±£º{1}£¡", n, sw.Elapsed);
+            XTrace.WriteLine("å‘ç°è¿œç¨‹æ•°æ®åº“{0}ä¸ªï¼Œè€—æ—¶ï¼š{1}ï¼", n, sw.Elapsed);
 
             if (DAL.ConnStrs.ContainsKey(localName)) DAL.ConnStrs.Remove(localName);
             if (list.Contains(localName)) list.Remove(localName);
@@ -364,7 +364,7 @@ namespace XCoder
                 return;
             }
             var list = source as List<IDataTable>;
-            if (list[0].DbType == DatabaseType.SqlServer) // Ôö¼Ó¶ÔSqlServer 2000µÄÌØÊâ´¦Àí  ahuang
+            if (list[0].DbType == DatabaseType.SqlServer) // å¢åŠ å¯¹SqlServer 2000çš„ç‰¹æ®Šå¤„ç†  ahuang
             {
                 //list.Remove(list.Find(delegate(IDataTable p) { return p.Name == "dtproperties"; }));
                 //list.Remove(list.Find(delegate(IDataTable p) { return p.Name == "sysconstraints"; }));
@@ -373,12 +373,12 @@ namespace XCoder
                 list.RemoveAll(dt => dt.Name == "dtproperties" || dt.Name == "sysconstraints" || dt.Name == "syssegments" || dt.Description.Contains("[0E232FF0-B466-"));
             }
 
-            // ÉèÖÃÇ°×îºÃÇå¿Õ£¬·ñÔò¶à´ÎÉèÖÃÊı¾İÔ´»áÓÃµÚÒ»´Î°ó¶¨¿Ø¼ş£¬È»ºóÊµ¼ÊÊı¾İÊÇ×îºóÒ»´Î
+            // è®¾ç½®å‰æœ€å¥½æ¸…ç©ºï¼Œå¦åˆ™å¤šæ¬¡è®¾ç½®æ•°æ®æºä¼šç”¨ç¬¬ä¸€æ¬¡ç»‘å®šæ§ä»¶ï¼Œç„¶åå®é™…æ•°æ®æ˜¯æœ€åä¸€æ¬¡
             //cbTableList.DataSource = source;
             cbTableList.Items.Clear();
             if (source != null)
             {
-                // ±íÃûÅÅĞò
+                // è¡¨åæ’åº
                 var tables = source as List<IDataTable>;
                 if (tables == null)
                     cbTableList.DataSource = source;
@@ -400,7 +400,7 @@ namespace XCoder
             ConnectionStringSettings setting;
             if (!DAL.ConnStrs.TryGetValue(name, out setting) || setting.ConnectionString.IsNullOrWhiteSpace()) return;
 
-            // Òì²½¼ÓÔØ
+            // å¼‚æ­¥åŠ è½½
             ThreadPoolX.QueueUserWorkItem(delegate(Object state) { IList<IDataTable> tables = DAL.Create((String)state).Tables; }, name, null);
         }
 
@@ -410,7 +410,7 @@ namespace XCoder
         }
         #endregion
 
-        #region Éú³É
+        #region ç”Ÿæˆ
         Stopwatch sw = new Stopwatch();
         private void bt_GenTable_Click(object sender, EventArgs e)
         {
@@ -428,11 +428,11 @@ namespace XCoder
             {
                 var ss = Engine.Render(table);
 
-                MessageBox.Show("Éú³É" + table + "³É¹¦£¡", "³É¹¦", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("ç”Ÿæˆ" + table + "æˆåŠŸï¼", "æˆåŠŸ", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (TemplateException ex)
             {
-                MessageBox.Show(ex.Message, "Ä£°æ´íÎó", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "æ¨¡ç‰ˆé”™è¯¯", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
@@ -440,7 +440,7 @@ namespace XCoder
             }
 
             sw.Stop();
-            lb_Status.Text = "Éú³É " + cbTableList.Text + " Íê³É£¡ºÄÊ±£º" + sw.Elapsed;
+            lb_Status.Text = "ç”Ÿæˆ " + cbTableList.Text + " å®Œæˆï¼è€—æ—¶ï¼š" + sw.Elapsed;
         }
 
         private void bt_GenAll_Click(object sender, EventArgs e)
@@ -461,13 +461,13 @@ namespace XCoder
             }
 
             sw.Stop();
-            lb_Status.Text = "Éú³É " + tables.Count + " ¸öÀàÍê³É£¡ºÄÊ±£º" + sw.Elapsed.ToString();
+            lb_Status.Text = "ç”Ÿæˆ " + tables.Count + " ä¸ªç±»å®Œæˆï¼è€—æ—¶ï¼š" + sw.Elapsed.ToString();
 
-            MessageBox.Show("Éú³É" + tables.Count + " ¸öÀà³É¹¦£¡", "³É¹¦", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("ç”Ÿæˆ" + tables.Count + " ä¸ªç±»æˆåŠŸï¼", "æˆåŠŸ", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         #endregion
 
-        #region ¼ÓÔØ¡¢±£´æ
+        #region åŠ è½½ã€ä¿å­˜
         public void LoadConfig()
         {
             cbConn.Text = Config.ConnName;
@@ -503,7 +503,7 @@ namespace XCoder
         }
         #endregion
 
-        #region ¸½¼ÓĞÅÏ¢
+        #region é™„åŠ ä¿¡æ¯
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             var control = sender as Control;
@@ -520,11 +520,11 @@ namespace XCoder
         private void label3_Click(object sender, EventArgs e)
         {
             Clipboard.SetData("1600800", null);
-            MessageBox.Show("QQÈººÅÒÑ¸´ÖÆµ½¼ôÇĞ°å£¡", "ÌáÊ¾");
+            MessageBox.Show("QQç¾¤å·å·²å¤åˆ¶åˆ°å‰ªåˆ‡æ¿ï¼", "æç¤º");
         }
         #endregion
 
-        #region ´ò¿ªÊä³öÄ¿Â¼
+        #region æ‰“å¼€è¾“å‡ºç›®å½•
         private void btnOpenOutputDir_Click(object sender, EventArgs e)
         {
             var dir = txt_OutPath.Text.GetFullPath();
@@ -543,20 +543,20 @@ namespace XCoder
         }
         #endregion
 
-        #region Ä£°æÏà¹Ø
+        #region æ¨¡ç‰ˆç›¸å…³
         public void BindTemplate(ComboBox cb)
         {
             var list = new List<String>();
             foreach (var item in Engine.FileTemplates)
             {
-                list.Add("[ÎÄ¼ş]" + item);
+                list.Add("[æ–‡ä»¶]" + item);
             }
             foreach (String item in Engine.Templates.Keys)
             {
                 String[] ks = item.Split('.');
                 if (ks == null || ks.Length < 1) continue;
 
-                String name = "[ÄÚÖÃ]" + ks[0];
+                String name = "[å†…ç½®]" + ks[0];
                 if (!list.Contains(name)) list.Add(name);
             }
             cb.Items.Clear();
@@ -579,38 +579,38 @@ namespace XCoder
 
         private void lbEditHeader_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var frm = FrmText.Create("C#ÎÄ¼şÍ·Ä£°æ", Config.HeadTemplate);
+            var frm = FrmText.Create("C#æ–‡ä»¶å¤´æ¨¡ç‰ˆ", Config.HeadTemplate);
             frm.ShowDialog();
             Config.HeadTemplate = frm.Content.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
             frm.Dispose();
         }
         #endregion
 
-        #region ²Ëµ¥
-        private void ÍË³öXToolStripMenuItem_Click(object sender, EventArgs e)
+        #region èœå•
+        private void é€€å‡ºXToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //Application.Exit();
             this.Close();
         }
 
-        private void ×é¼şÊÖ²áToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ç»„ä»¶æ‰‹å†ŒToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var file = "X×é¼şÊÖ²á.chm";
+            var file = "Xç»„ä»¶æ‰‹å†Œ.chm";
             if (!File.Exists(file)) file = Path.Combine(@"C:\X\DLL", file);
             if (File.Exists(file)) Process.Start(file);
         }
 
-        private void ±íÃû×Ö¶ÎÃûÃüÃû¹æ·¶ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void è¡¨åå­—æ®µåå‘½åè§„èŒƒToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FrmText.Create("±íÃû×Ö¶ÎÃûÃüÃû¹æ·¶", Source.GetText("Êı¾İ¿âÃüÃû¹æ·¶")).Show();
+            FrmText.Create("è¡¨åå­—æ®µåå‘½åè§„èŒƒ", Source.GetText("æ•°æ®åº“å‘½åè§„èŒƒ")).Show();
         }
 
-        private void ÔÚÏß°ïÖúÎÄµµToolStripMenuItem_Click(object sender, EventArgs e)
+        private void åœ¨çº¿å¸®åŠ©æ–‡æ¡£ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Process.Start("http://www.NewLifeX.com/showtopic-260.aspx?r=XCoder_v" + AssemblyX.Create(Assembly.GetExecutingAssembly()).Version);
         }
 
-        private void ¼ì²é¸üĞÂToolStripMenuItem_Click(object sender, EventArgs e)
+        private void æ£€æŸ¥æ›´æ–°ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             XConfig.Current.LastUpdate = DateTime.Now;
 
@@ -628,33 +628,33 @@ namespace XCoder
                     up.Update();
                 }
                 else if (up.Links != null && up.Links.Length > 0)
-                    MessageBox.Show("Ã»ÓĞ¿ÉÓÃ¸üĞÂ£¡×îĞÂ{0}".F(up.Links[0].Time), "×Ô¶¯¸üĞÂ");
+                    MessageBox.Show("æ²¡æœ‰å¯ç”¨æ›´æ–°ï¼æœ€æ–°{0}".F(up.Links[0].Time), "è‡ªåŠ¨æ›´æ–°");
                 else
-                    MessageBox.Show("Ã»ÓĞ¿ÉÓÃ¸üĞÂ£¡", "×Ô¶¯¸üĞÂ");
+                    MessageBox.Show("æ²¡æœ‰å¯ç”¨æ›´æ–°ï¼", "è‡ªåŠ¨æ›´æ–°");
             }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
-                MessageBox.Show("¸üĞÂÊ§°Ü£¡" + ex.Message, "×Ô¶¯¸üĞÂ");
+                MessageBox.Show("æ›´æ–°å¤±è´¥ï¼" + ex.Message, "è‡ªåŠ¨æ›´æ–°");
             }
         }
 
-        private void ¹ØÓÚToolStripMenuItem1_Click(object sender, EventArgs e)
+        private void å…³äºToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            FrmText.Create("Éı¼¶ÀúÊ·", Source.GetText("UpdateInfo")).Show();
+            FrmText.Create("å‡çº§å†å²", Source.GetText("UpdateInfo")).Show();
         }
 
-        private void ²©¿ÍToolStripMenuItem_Click(object sender, EventArgs e)
+        private void åšå®¢ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Process.Start("http://nnhy.cnblogs.com");
         }
 
-        private void qQÈº1600800ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void qQç¾¤1600800ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Process.Start("http://www.NewLifeX.com/?r=XCoder_v" + AssemblyX.Create(Assembly.GetExecutingAssembly()).Version);
         }
 
-        private void oracle¿Í»§¶ËÔËĞĞÊ±¼ì²éToolStripMenuItem1_Click(object sender, EventArgs e)
+        private void oracleå®¢æˆ·ç«¯è¿è¡Œæ—¶æ£€æŸ¥ToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             ThreadPoolX.QueueUserWorkItem(CheckOracle);
         }
@@ -666,22 +666,22 @@ namespace XCoder
             {
                 var list = DAL.Create("Oracle").Tables;
 
-                MessageBox.Show("Oracle¿Í»§¶ËÔËĞĞÊ±¼ì²éÍ¨¹ı£¡");
+                MessageBox.Show("Oracleå®¢æˆ·ç«¯è¿è¡Œæ—¶æ£€æŸ¥é€šè¿‡ï¼");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Oracle¿Í»§¶ËÔËĞĞÊ±¼ì²éÊ§°Ü£¡Ò²¿ÉÄÜÊÇÓÃ»§ÃûÃÜÂë´íÎó£¡" + ex.ToString());
+                MessageBox.Show("Oracleå®¢æˆ·ç«¯è¿è¡Œæ—¶æ£€æŸ¥å¤±è´¥ï¼ä¹Ÿå¯èƒ½æ˜¯ç”¨æˆ·åå¯†ç é”™è¯¯ï¼" + ex.ToString());
             }
         }
 
-        private void ×Ô¶¯¸ñÊ½»¯ÉèÖÃToolStripMenuItem_Click(object sender, EventArgs e)
+        private void è‡ªåŠ¨æ ¼å¼åŒ–è®¾ç½®ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FrmFix.Create(Config).ShowDialog();
         }
         #endregion
 
-        #region Ä£ĞÍ¹ÜÀí
-        private void Ä£ĞÍ¹ÜÀíMToolStripMenuItem_Click(object sender, EventArgs e)
+        #region æ¨¡å‹ç®¡ç†
+        private void æ¨¡å‹ç®¡ç†MToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var tables = Engine.Tables;
             if (tables == null || tables.Count < 1) return;
@@ -689,12 +689,12 @@ namespace XCoder
             FrmModel.Create(tables).Show();
         }
 
-        private void µ¼³öÄ£ĞÍEToolStripMenuItem_Click(object sender, EventArgs e)
+        private void å¯¼å‡ºæ¨¡å‹EToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var tables = Engine.Tables;
             if (tables == null || tables.Count < 1)
             {
-                MessageBox.Show(this.Text, "Êı¾İ¿â¼Ü¹¹Îª¿Õ£¡", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this.Text, "æ•°æ®åº“æ¶æ„ä¸ºç©ºï¼", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -715,7 +715,7 @@ namespace XCoder
                 String xml = DAL.Export(tables);
                 File.WriteAllText(saveFileDialog1.FileName, xml);
 
-                MessageBox.Show("µ¼³ö¼Ü¹¹³É¹¦£¡", "µ¼³ö¼Ü¹¹", MessageBoxButtons.OK);
+                MessageBox.Show("å¯¼å‡ºæ¶æ„æˆåŠŸï¼", "å¯¼å‡ºæ¶æ„", MessageBoxButtons.OK);
             }
             catch (Exception ex)
             {
@@ -724,7 +724,7 @@ namespace XCoder
             }
         }
 
-        private void ¼Ü¹¹¹ÜÀíSToolStripMenuItem_Click(object sender, EventArgs e)
+        private void æ¶æ„ç®¡ç†SToolStripMenuItem_Click(object sender, EventArgs e)
         {
             String connName = "" + cbConn.SelectedValue;
             if (String.IsNullOrEmpty(connName)) return;
@@ -732,7 +732,7 @@ namespace XCoder
             FrmSchema.Create(DAL.Create(connName).Db).Show();
         }
 
-        private void sQL²éÑ¯Æ÷QToolStripMenuItem_Click(object sender, EventArgs e)
+        private void sQLæŸ¥è¯¢å™¨QToolStripMenuItem_Click(object sender, EventArgs e)
         {
             String connName = "" + cbConn.SelectedValue;
             if (String.IsNullOrEmpty(connName)) return;
@@ -743,9 +743,9 @@ namespace XCoder
         private void btnImport_Click(object sender, EventArgs e)
         {
             var btn = sender as Button;
-            if (btn != null && btn.Text == "µ¼³öÄ£ĞÍ")
+            if (btn != null && btn.Text == "å¯¼å‡ºæ¨¡å‹")
             {
-                µ¼³öÄ£ĞÍEToolStripMenuItem_Click(null, EventArgs.Empty);
+                å¯¼å‡ºæ¨¡å‹EToolStripMenuItem_Click(null, EventArgs.Empty);
                 return;
             }
 
@@ -762,10 +762,10 @@ namespace XCoder
                 SetTables(list);
 
                 gbTable.Enabled = true;
-                Ä£ĞÍToolStripMenuItem.Visible = true;
-                ¼Ü¹¹¹ÜÀíSToolStripMenuItem.Visible = false;
+                æ¨¡å‹ToolStripMenuItem.Visible = true;
+                æ¶æ„ç®¡ç†SToolStripMenuItem.Visible = false;
 
-                MessageBox.Show("µ¼Èë¼Ü¹¹³É¹¦£¡¹²" + (list == null ? 0 : list.Count) + "ÕÅ±í£¡", "µ¼Èë¼Ü¹¹", MessageBoxButtons.OK);
+                MessageBox.Show("å¯¼å…¥æ¶æ„æˆåŠŸï¼å…±" + (list == null ? 0 : list.Count) + "å¼ è¡¨ï¼", "å¯¼å…¥æ¶æ„", MessageBoxButtons.OK);
             }
             catch (Exception ex)
             {
@@ -775,10 +775,10 @@ namespace XCoder
         }
         #endregion
 
-        #region ÍøÒ³
+        #region ç½‘é¡µ
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            // ÍøÒ³¼ÓÔØÍê³Éºó£¬×Ô¶¯ÏòÏÂ¹ö¶¯Ò»¶Î¾àÀë£¬Ô½¹ıÍ·²¿
+            // ç½‘é¡µåŠ è½½å®Œæˆåï¼Œè‡ªåŠ¨å‘ä¸‹æ»šåŠ¨ä¸€æ®µè·ç¦»ï¼Œè¶Šè¿‡å¤´éƒ¨
             webBrowser1.Document.Window.ScrollTo(0, 90);
         }
 
@@ -789,7 +789,7 @@ namespace XCoder
                 var url = e.Url.ToString();
                 if (!url.IsNullOrWhiteSpace())
                 {
-                    // ¾«¼ò°æÌæ»»ÎªÍêÕû°æ
+                    // ç²¾ç®€ç‰ˆæ›¿æ¢ä¸ºå®Œæ•´ç‰ˆ
                     var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
                     url = url.Replace("/archiver/", "/");
                     if (url.Contains("?"))
@@ -813,8 +813,8 @@ namespace XCoder
         }
         #endregion
 
-        #region Ìí¼ÓÄ£ĞÍ-@Äş²¨-Ğ¡¶­ 2013
-        private void Ìí¼ÓÄ£ĞÍToolStripMenuItem_Click(object sender, EventArgs e)
+        #region æ·»åŠ æ¨¡å‹-@å®æ³¢-å°è‘£ 2013
+        private void æ·»åŠ æ¨¡å‹ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             NewModel.CreateForm().Show();
         }

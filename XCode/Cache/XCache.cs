@@ -13,37 +13,37 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Cache
 {
-    /// <summary>Êı¾İ»º´æÀà</summary>
+    /// <summary>æ•°æ®ç¼“å­˜ç±»</summary>
     /// <remarks>
-    /// ÒÔSQLÎª¼ü¶Ô²éÑ¯½øĞĞ»º´æ£¬Í¬Ê±¹ØÁª±í¡£Ö´ĞĞSQLÊ±£¬¸ù¾İ¹ØÁª±íÉ¾³ı»º´æ¡£
+    /// ä»¥SQLä¸ºé”®å¯¹æŸ¥è¯¢è¿›è¡Œç¼“å­˜ï¼ŒåŒæ—¶å…³è”è¡¨ã€‚æ‰§è¡ŒSQLæ—¶ï¼Œæ ¹æ®å…³è”è¡¨åˆ é™¤ç¼“å­˜ã€‚
     /// </remarks>
     static class XCache
     {
-        #region ³õÊ¼»¯
+        #region åˆå§‹åŒ–
         private static Dictionary<String, CacheItem<DataSet>> _TableCache = new Dictionary<String, CacheItem<DataSet>>();
         private static Dictionary<String, CacheItem<Int32>> _IntCache = new Dictionary<String, CacheItem<Int32>>();
 
         static readonly String _dst = "XCache_DataSet_";
         static readonly String _int = "XCache_Int32_";
 
-        /// <summary>»º´æÏà¶ÔÓĞĞ§ÆÚ¡£
-        /// -2	¹Ø±Õ»º´æ
-        /// -1	·Ç¶ÀÕ¼Êı¾İ¿â£¬ÓĞÍâ²¿ÏµÍ³²Ù×÷Êı¾İ¿â£¬Ê¹ÓÃÇëÇó¼¶»º´æ£»
-        ///  0	ÓÀ¾Ã¾²Ì¬»º´æ£»
-        /// >0	¾²Ì¬»º´æÊ±¼ä£¬µ¥Î»ÊÇÃë£»
+        /// <summary>ç¼“å­˜ç›¸å¯¹æœ‰æ•ˆæœŸã€‚
+        /// -2	å…³é—­ç¼“å­˜
+        /// -1	éç‹¬å æ•°æ®åº“ï¼Œæœ‰å¤–éƒ¨ç³»ç»Ÿæ“ä½œæ•°æ®åº“ï¼Œä½¿ç”¨è¯·æ±‚çº§ç¼“å­˜ï¼›
+        ///  0	æ°¸ä¹…é™æ€ç¼“å­˜ï¼›
+        /// >0	é™æ€ç¼“å­˜æ—¶é—´ï¼Œå•ä½æ˜¯ç§’ï¼›
         /// </summary>
         //public static Int32 Expiration = -1;
         static Int32 Expiration { get { return CacheSetting.CacheExpiration; } }
 
-        /// <summary>Êı¾İ»º´æÀàĞÍ</summary>
-        internal static CacheKinds Kind { get { return Expiration > 0 ? CacheKinds.ÓĞĞ§ÆÚ»º´æ : (CacheKinds)Expiration; } }
+        /// <summary>æ•°æ®ç¼“å­˜ç±»å‹</summary>
+        internal static CacheKinds Kind { get { return Expiration > 0 ? CacheKinds.æœ‰æ•ˆæœŸç¼“å­˜ : (CacheKinds)Expiration; } }
 
-        /// <summary>³õÊ¼»¯ÉèÖÃ¡£¶ÁÈ¡ÅäÖÃ</summary>
+        /// <summary>åˆå§‹åŒ–è®¾ç½®ã€‚è¯»å–é…ç½®</summary>
         static XCache()
         {
-            //¶ÁÈ¡»º´æÓĞĞ§ÆÚ
+            //è¯»å–ç¼“å­˜æœ‰æ•ˆæœŸ
             //Expiration = Config.GetMutilConfig<Int32>(-2, "XCode.Cache.Expiration", "XCacheExpiration");
-            //¶ÁÈ¡¼ì²éÖÜÆÚ
+            //è¯»å–æ£€æŸ¥å‘¨æœŸ
             //CheckPeriod = Config.GetMutilConfig<Int32>(5, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
             CheckPeriod = CacheSetting.CheckPeriod;
 
@@ -52,46 +52,46 @@ namespace XCode.Cache
 
             if (DAL.Debug)
             {
-                // ĞèÒª´¦ÀíÒ»ÏÂ£¬¶ø²»ÊÇÖ±½ÓÓÃKind×ª»»¶øÀ´µÄ×Ö·û´®£¬·ñÔò¿ÉÄÜÒòÎªÃ¶¾Ù±»»ìÏıºó¶øÎŞ·¨ÏÔÊ¾ÕıÈ·µÄÃû×Ö
+                // éœ€è¦å¤„ç†ä¸€ä¸‹ï¼Œè€Œä¸æ˜¯ç›´æ¥ç”¨Kindè½¬æ¢è€Œæ¥çš„å­—ç¬¦ä¸²ï¼Œå¦åˆ™å¯èƒ½å› ä¸ºæšä¸¾è¢«æ··æ·†åè€Œæ— æ³•æ˜¾ç¤ºæ­£ç¡®çš„åå­—
                 String name = null;
                 switch (Kind)
                 {
-                    case CacheKinds.¹Ø±Õ»º´æ:
-                        name = "¹Ø±Õ»º´æ";
+                    case CacheKinds.å…³é—­ç¼“å­˜:
+                        name = "å…³é—­ç¼“å­˜";
                         break;
-                    case CacheKinds.ÇëÇó¼¶»º´æ:
-                        name = "ÇëÇó¼¶»º´æ";
+                    case CacheKinds.è¯·æ±‚çº§ç¼“å­˜:
+                        name = "è¯·æ±‚çº§ç¼“å­˜";
                         break;
-                    case CacheKinds.ÓÀ¾Ã¾²Ì¬»º´æ:
-                        name = "ÓÀ¾Ã¾²Ì¬»º´æ";
+                    case CacheKinds.æ°¸ä¹…é™æ€ç¼“å­˜:
+                        name = "æ°¸ä¹…é™æ€ç¼“å­˜";
                         break;
-                    case CacheKinds.ÓĞĞ§ÆÚ»º´æ:
-                        name = "ÓĞĞ§ÆÚ»º´æ";
+                    case CacheKinds.æœ‰æ•ˆæœŸç¼“å­˜:
+                        name = "æœ‰æ•ˆæœŸç¼“å­˜";
                         break;
                     default:
                         break;
                 }
-                if (Kind < CacheKinds.ÓĞĞ§ÆÚ»º´æ)
-                    DAL.WriteLog("Ò»¼¶»º´æ£º{0}", name);
+                if (Kind < CacheKinds.æœ‰æ•ˆæœŸç¼“å­˜)
+                    DAL.WriteLog("ä¸€çº§ç¼“å­˜ï¼š{0}", name);
                 else
-                    DAL.WriteLog("Ò»¼¶»º´æ£º{0}Ãë{1}", Expiration, name);
+                    DAL.WriteLog("ä¸€çº§ç¼“å­˜ï¼š{0}ç§’{1}", Expiration, name);
             }
         }
         #endregion
 
-        #region »º´æÎ¬»¤
-        /// <summary>»º´æÎ¬»¤¶¨Ê±Æ÷</summary>
+        #region ç¼“å­˜ç»´æŠ¤
+        /// <summary>ç¼“å­˜ç»´æŠ¤å®šæ—¶å™¨</summary>
         private static TimerX AutoCheckCacheTimer;
 
-        /// <summary>Î¬»¤¶¨Ê±Æ÷µÄ¼ì²éÖÜÆÚ£¬Ä¬ÈÏ5Ãë</summary>
+        /// <summary>ç»´æŠ¤å®šæ—¶å™¨çš„æ£€æŸ¥å‘¨æœŸï¼Œé»˜è®¤5ç§’</summary>
         public static Int32 CheckPeriod = 5;
 
-        /// <summary>Î¬»¤</summary>
+        /// <summary>ç»´æŠ¤</summary>
         /// <param name="obj"></param>
         private static void Check(Object obj)
         {
-            //¹Ø±Õ»º´æ¡¢ÓÀ¾Ã¾²Ì¬»º´æºÍÇëÇó¼¶»º´æÊ±£¬²»ĞèÒª¼ì²é
-            if (Kind != CacheKinds.ÓĞĞ§ÆÚ»º´æ) return;
+            //å…³é—­ç¼“å­˜ã€æ°¸ä¹…é™æ€ç¼“å­˜å’Œè¯·æ±‚çº§ç¼“å­˜æ—¶ï¼Œä¸éœ€è¦æ£€æŸ¥
+            if (Kind != CacheKinds.æœ‰æ•ˆæœŸç¼“å­˜) return;
 
             if (_TableCache.Count > 0)
             {
@@ -140,38 +140,38 @@ namespace XCode.Cache
         }
 
         /// <summary>
-        /// ´´½¨¶¨Ê±Æ÷¡£
-        /// ÒòÎª¶¨Ê±Æ÷µÄÔ­Òò£¬Êµ¼Ê»º´æÊ±¼ä¿ÉÄÜÒª±ÈExpirationÒª´ó
+        /// åˆ›å»ºå®šæ—¶å™¨ã€‚
+        /// å› ä¸ºå®šæ—¶å™¨çš„åŸå› ï¼Œå®é™…ç¼“å­˜æ—¶é—´å¯èƒ½è¦æ¯”Expirationè¦å¤§
         /// </summary>
         private static void CreateTimer()
         {
-            //¹Ø±Õ»º´æ¡¢ÓÀ¾Ã¾²Ì¬»º´æºÍÇëÇó¼¶»º´æÊ±£¬²»ĞèÒª¼ì²é
-            if (Kind != CacheKinds.ÓĞĞ§ÆÚ»º´æ) return;
+            //å…³é—­ç¼“å­˜ã€æ°¸ä¹…é™æ€ç¼“å­˜å’Œè¯·æ±‚çº§ç¼“å­˜æ—¶ï¼Œä¸éœ€è¦æ£€æŸ¥
+            if (Kind != CacheKinds.æœ‰æ•ˆæœŸç¼“å­˜) return;
 
             if (AutoCheckCacheTimer != null) return;
 
             AutoCheckCacheTimer = new TimerX(Check, null, CheckPeriod * 1000, CheckPeriod * 1000);
-            //// ÉùÃ÷¶¨Ê±Æ÷¡£ÎŞÏŞÑÓ³¤Ê±¼ä£¬Êµ¼ÊÉÏ²»¹¤×÷
+            //// å£°æ˜å®šæ—¶å™¨ã€‚æ— é™å»¶é•¿æ—¶é—´ï¼Œå®é™…ä¸Šä¸å·¥ä½œ
             //AutoCheckCacheTimer = new Timer(new TimerCallback(Check), null, Timeout.Infinite, Timeout.Infinite);
-            //// ¸Ä±ä¶¨Ê±Æ÷Îª5Ãëºó´¥·¢Ò»´Î¡£
+            //// æ”¹å˜å®šæ—¶å™¨ä¸º5ç§’åè§¦å‘ä¸€æ¬¡ã€‚
             //AutoCheckCacheTimer.Change(CheckPeriod * 1000, CheckPeriod * 1000);
         }
         #endregion
 
-        #region Ìí¼Ó»º´æ
-        /// <summary>Ìí¼ÓÊı¾İ±í»º´æ¡£</summary>
-        /// <param name="cache">»º´æ¶ÔÏó</param>
-        /// <param name="prefix">Ç°×º</param>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="value">´ı»º´æ¼ÇÂ¼¼¯</param>
-        /// <param name="tableNames">±íÃûÊı×é</param>
+        #region æ·»åŠ ç¼“å­˜
+        /// <summary>æ·»åŠ æ•°æ®è¡¨ç¼“å­˜ã€‚</summary>
+        /// <param name="cache">ç¼“å­˜å¯¹è±¡</param>
+        /// <param name="prefix">å‰ç¼€</param>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="value">å¾…ç¼“å­˜è®°å½•é›†</param>
+        /// <param name="tableNames">è¡¨åæ•°ç»„</param>
         static void Add<T>(Dictionary<String, CacheItem<T>> cache, String prefix, String sql, T value, String[] tableNames)
         {
-            //¹Ø±Õ»º´æ
-            if (Kind == CacheKinds.¹Ø±Õ»º´æ) return;
+            //å…³é—­ç¼“å­˜
+            if (Kind == CacheKinds.å…³é—­ç¼“å­˜) return;
 
-            //ÇëÇó¼¶»º´æ
-            if (Kind == CacheKinds.ÇëÇó¼¶»º´æ)
+            //è¯·æ±‚çº§ç¼“å­˜
+            if (Kind == CacheKinds.è¯·æ±‚çº§ç¼“å­˜)
             {
                 if (Items == null) return;
 
@@ -179,7 +179,7 @@ namespace XCode.Cache
                 return;
             }
 
-            //¾²Ì¬»º´æ
+            //é™æ€ç¼“å­˜
             if (cache.ContainsKey(sql)) return;
             lock (cache)
             {
@@ -188,30 +188,30 @@ namespace XCode.Cache
                 cache.Add(sql, new CacheItem<T>(tableNames, value, Expiration));
             }
 
-            //´øÓĞĞ§ÆÚ
-            if (Kind == CacheKinds.ÓĞĞ§ÆÚ»º´æ) CreateTimer();
+            //å¸¦æœ‰æ•ˆæœŸ
+            if (Kind == CacheKinds.æœ‰æ•ˆæœŸç¼“å­˜) CreateTimer();
         }
 
-        /// <summary>Ìí¼ÓÊı¾İ±í»º´æ¡£</summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="value">´ı»º´æ¼ÇÂ¼¼¯</param>
-        /// <param name="tableNames">±íÃûÊı×é</param>
+        /// <summary>æ·»åŠ æ•°æ®è¡¨ç¼“å­˜ã€‚</summary>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="value">å¾…ç¼“å­˜è®°å½•é›†</param>
+        /// <param name="tableNames">è¡¨åæ•°ç»„</param>
         public static void Add(String sql, DataSet value, String[] tableNames) { Add(_TableCache, _dst, sql, value, tableNames); }
 
-        /// <summary>Ìí¼ÓInt32»º´æ¡£</summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="value">´ı»º´æÕûÊı</param>
-        /// <param name="tableNames">±íÃûÊı×é</param>
+        /// <summary>æ·»åŠ Int32ç¼“å­˜ã€‚</summary>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="value">å¾…ç¼“å­˜æ•´æ•°</param>
+        /// <param name="tableNames">è¡¨åæ•°ç»„</param>
         public static void Add(String sql, Int32 value, String[] tableNames) { Add(_IntCache, _int, sql, value, tableNames); }
         #endregion
 
-        #region É¾³ı»º´æ
-        /// <summary>ÒÆ³ıÒÀÀµÓÚÄ³¸öÊı¾İ±íµÄ»º´æ</summary>
-        /// <param name="tableName">Êı¾İ±í</param>
+        #region åˆ é™¤ç¼“å­˜
+        /// <summary>ç§»é™¤ä¾èµ–äºæŸä¸ªæ•°æ®è¡¨çš„ç¼“å­˜</summary>
+        /// <param name="tableName">æ•°æ®è¡¨</param>
         public static void Remove(String tableName)
         {
-            //ÇëÇó¼¶»º´æ
-            if (Kind == CacheKinds.ÇëÇó¼¶»º´æ)
+            //è¯·æ±‚çº§ç¼“å­˜
+            if (Kind == CacheKinds.è¯·æ±‚çº§ç¼“å­˜)
             {
                 var cs = Items;
                 if (cs == null) return;
@@ -231,11 +231,11 @@ namespace XCode.Cache
                 return;
             }
 
-            //¾²Ì¬»º´æ
+            //é™æ€ç¼“å­˜
             lock (_TableCache)
             {
-                // 2011-03-11 ´óÊ¯Í· ÕâÀïÒÑ¾­³ÉÎªĞÔÄÜÆ¿¾±£¬½«À´ĞèÒªÓÅ»¯£¬Æ¿¾±ÔÚÓÚ_TableCache[sql]
-                // 2011-11-22 ´óÊ¯Í· ¸ÄÎª±éÀú¼¯ºÏ£¬¶ø²»ÊÇ¼üÖµ£¬±ÜÃâÃ¿´ÎÈ¡ÖµµÄÊ±ºò¶¼ÒªÖØĞÂ²éÕÒ
+                // 2011-03-11 å¤§çŸ³å¤´ è¿™é‡Œå·²ç»æˆä¸ºæ€§èƒ½ç“¶é¢ˆï¼Œå°†æ¥éœ€è¦ä¼˜åŒ–ï¼Œç“¶é¢ˆåœ¨äº_TableCache[sql]
+                // 2011-11-22 å¤§çŸ³å¤´ æ”¹ä¸ºéå†é›†åˆï¼Œè€Œä¸æ˜¯é”®å€¼ï¼Œé¿å…æ¯æ¬¡å–å€¼çš„æ—¶å€™éƒ½è¦é‡æ–°æŸ¥æ‰¾
                 var list = new List<String>();
                 foreach (var item in _TableCache)
                     if (item.Value.IsDependOn(tableName)) list.Add(item.Key);
@@ -254,7 +254,7 @@ namespace XCode.Cache
             }
         }
 
-        /// <summary>ÒÆ³ıÒÀÀµÓÚÒ»×éÊı¾İ±íµÄ»º´æ</summary>
+        /// <summary>ç§»é™¤ä¾èµ–äºä¸€ç»„æ•°æ®è¡¨çš„ç¼“å­˜</summary>
         /// <param name="tableNames"></param>
         public static void Remove(String[] tableNames)
         {
@@ -262,11 +262,11 @@ namespace XCode.Cache
                 Remove(tn);
         }
 
-        /// <summary>Çå¿Õ»º´æ</summary>
+        /// <summary>æ¸…ç©ºç¼“å­˜</summary>
         public static void RemoveAll()
         {
-            //ÇëÇó¼¶»º´æ
-            if (Kind == CacheKinds.ÇëÇó¼¶»º´æ)
+            //è¯·æ±‚çº§ç¼“å­˜
+            if (Kind == CacheKinds.è¯·æ±‚çº§ç¼“å­˜)
             {
                 var cs = Items;
                 if (cs == null) return;
@@ -281,7 +281,7 @@ namespace XCode.Cache
                     cs.Remove(obj);
                 return;
             }
-            //¾²Ì¬»º´æ
+            //é™æ€ç¼“å­˜
             lock (_TableCache)
             {
                 _TableCache.Clear();
@@ -293,23 +293,23 @@ namespace XCode.Cache
         }
         #endregion
 
-        #region ²éÕÒ»º´æ
-        /// <summary>»ñÈ¡DataSet»º´æ</summary>
-        /// <param name="cache">»º´æ¶ÔÏó</param>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="value">½á¹û</param>
+        #region æŸ¥æ‰¾ç¼“å­˜
+        /// <summary>è·å–DataSetç¼“å­˜</summary>
+        /// <param name="cache">ç¼“å­˜å¯¹è±¡</param>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="value">ç»“æœ</param>
         /// <returns></returns>
         static Boolean TryGetItem<T>(Dictionary<String, CacheItem<T>> cache, String sql, out T value)
         {
             value = default(T);
 
-            //¹Ø±Õ»º´æ
-            if (Kind == CacheKinds.¹Ø±Õ»º´æ) return false;
+            //å…³é—­ç¼“å­˜
+            if (Kind == CacheKinds.å…³é—­ç¼“å­˜) return false;
 
             CheckShowStatics(ref NextShow, ref Total, ShowStatics);
 
-            //ÇëÇó¼¶»º´æ
-            if (Kind == CacheKinds.ÇëÇó¼¶»º´æ)
+            //è¯·æ±‚çº§ç¼“å­˜
+            if (Kind == CacheKinds.è¯·æ±‚çº§ç¼“å­˜)
             {
                 if (Items == null) return false;
 
@@ -331,29 +331,29 @@ namespace XCode.Cache
             return true;
         }
 
-        /// <summary>»ñÈ¡DataSet»º´æ</summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="ds">½á¹û</param>
+        /// <summary>è·å–DataSetç¼“å­˜</summary>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="ds">ç»“æœ</param>
         /// <returns></returns>
         public static Boolean TryGetItem(String sql, out DataSet ds) { return TryGetItem(_TableCache, sql, out ds); }
 
-        /// <summary>»ñÈ¡Int32»º´æ</summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="count">½á¹û</param>
+        /// <summary>è·å–Int32ç¼“å­˜</summary>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="count">ç»“æœ</param>
         /// <returns></returns>
         public static Boolean TryGetItem(String sql, out Int32 count) { return TryGetItem(_IntCache, sql, out count); }
         #endregion
 
-        #region ÊôĞÔ
-        /// <summary>»º´æ¸öÊı</summary>
+        #region å±æ€§
+        /// <summary>ç¼“å­˜ä¸ªæ•°</summary>
         internal static Int32 Count
         {
             get
             {
-                //¹Ø±Õ»º´æ
-                if (Kind == CacheKinds.¹Ø±Õ»º´æ) return 0;
-                //ÇëÇó¼¶»º´æ
-                if (Kind == CacheKinds.ÇëÇó¼¶»º´æ)
+                //å…³é—­ç¼“å­˜
+                if (Kind == CacheKinds.å…³é—­ç¼“å­˜) return 0;
+                //è¯·æ±‚çº§ç¼“å­˜
+                if (Kind == CacheKinds.è¯·æ±‚çº§ç¼“å­˜)
                 {
                     if (Items == null) return 0;
                     var k = 0;
@@ -368,21 +368,21 @@ namespace XCode.Cache
             }
         }
 
-        /// <summary>ÇëÇó¼¶»º´æÏî</summary>
+        /// <summary>è¯·æ±‚çº§ç¼“å­˜é¡¹</summary>
         static IDictionary Items { get { return HttpContext.Current != null ? HttpContext.Current.Items : null; } }
         #endregion
 
-        #region Í³¼Æ
-        /// <summary>×Ü´ÎÊı</summary>
+        #region ç»Ÿè®¡
+        /// <summary>æ€»æ¬¡æ•°</summary>
         public static Int32 Total;
 
-        /// <summary>ÃüÖĞ</summary>
+        /// <summary>å‘½ä¸­</summary>
         public static Int32 Shoot;
 
-        /// <summary>ÏÂÒ»´ÎÏÔÊ¾Ê±¼ä</summary>
+        /// <summary>ä¸‹ä¸€æ¬¡æ˜¾ç¤ºæ—¶é—´</summary>
         public static DateTime NextShow;
 
-        /// <summary>¼ì²é²¢ÏÔÊ¾Í³¼ÆĞÅÏ¢</summary>
+        /// <summary>æ£€æŸ¥å¹¶æ˜¾ç¤ºç»Ÿè®¡ä¿¡æ¯</summary>
         /// <param name="next"></param>
         /// <param name="total"></param>
         /// <param name="show"></param>
@@ -399,38 +399,38 @@ namespace XCode.Cache
             Interlocked.Increment(ref total);
         }
 
-        /// <summary>ÏÔÊ¾Í³¼ÆĞÅÏ¢</summary>
+        /// <summary>æ˜¾ç¤ºç»Ÿè®¡ä¿¡æ¯</summary>
         public static void ShowStatics()
         {
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                // ÅÅ°æĞèÒª£¬Ò»¸öÖĞÎÄÕ¼Á½¸ö×Ö·ûÎ»ÖÃ
+                // æ’ç‰ˆéœ€è¦ï¼Œä¸€ä¸ªä¸­æ–‡å ä¸¤ä¸ªå­—ç¬¦ä½ç½®
                 var str = Kind.ToString();
-                sb.AppendFormat("Ò»¼¶»º´æ<{0,-" + (20 - str.Length) + "}>", str);
-                sb.AppendFormat("×Ü´ÎÊı{0,7:n0}", Total);
-                if (Shoot > 0) sb.AppendFormat("£¬ÃüÖĞ{0,7:n0}£¨{1,6:P02}£©", Shoot, (Double)Shoot / Total);
+                sb.AppendFormat("ä¸€çº§ç¼“å­˜<{0,-" + (20 - str.Length) + "}>", str);
+                sb.AppendFormat("æ€»æ¬¡æ•°{0,7:n0}", Total);
+                if (Shoot > 0) sb.AppendFormat("ï¼Œå‘½ä¸­{0,7:n0}ï¼ˆ{1,6:P02}ï¼‰", Shoot, (Double)Shoot / Total);
 
                 XTrace.WriteLine(sb.ToString());
             }
         }
         #endregion
 
-        #region »º´æÀàĞÍ
-        /// <summary>Êı¾İ»º´æÀàĞÍ</summary>
+        #region ç¼“å­˜ç±»å‹
+        /// <summary>æ•°æ®ç¼“å­˜ç±»å‹</summary>
         internal enum CacheKinds
         {
-            /// <summary>¹Ø±Õ»º´æ</summary>
-            ¹Ø±Õ»º´æ = -2,
+            /// <summary>å…³é—­ç¼“å­˜</summary>
+            å…³é—­ç¼“å­˜ = -2,
 
-            /// <summary>ÇëÇó¼¶»º´æ</summary>
-            ÇëÇó¼¶»º´æ = -1,
+            /// <summary>è¯·æ±‚çº§ç¼“å­˜</summary>
+            è¯·æ±‚çº§ç¼“å­˜ = -1,
 
-            /// <summary>ÓÀ¾Ã¾²Ì¬»º´æ</summary>
-            ÓÀ¾Ã¾²Ì¬»º´æ = 0,
+            /// <summary>æ°¸ä¹…é™æ€ç¼“å­˜</summary>
+            æ°¸ä¹…é™æ€ç¼“å­˜ = 0,
 
-            /// <summary>´øÓĞĞ§ÆÚ»º´æ</summary>
-            ÓĞĞ§ÆÚ»º´æ = 1
+            /// <summary>å¸¦æœ‰æ•ˆæœŸç¼“å­˜</summary>
+            æœ‰æ•ˆæœŸç¼“å­˜ = 1
         }
         #endregion
     }
