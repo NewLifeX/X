@@ -456,11 +456,11 @@ namespace NewLife.Net.Sockets
 
         #region 辅助
         private ILog _SocketLog;
-        /// <summary>用于会话的日志提供者</summary>
+        /// <summary>用于内部Socket服务器的日志提供者</summary>
         public ILog SocketLog { get { return _SocketLog ?? Log; } set { _SocketLog = value ?? Logger.Null; } }
 
         private ILog _SessionLog;
-        /// <summary>用于会话的日志提供者</summary>
+        /// <summary>用于网络会话的日志提供者</summary>
         public ILog SessionLog { get { return _SessionLog ?? Log; } set { _SessionLog = value ?? Logger.Null; } }
 
         /// <summary>已重载。日志加上前缀</summary>
