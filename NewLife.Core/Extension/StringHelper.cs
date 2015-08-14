@@ -761,7 +761,7 @@ namespace System
             si.WindowStyle = ProcessWindowStyle.Hidden;
 
             // 对于控制台项目，这里需要捕获输出
-            if (msWait > 0 && NewLife.Runtime.IsConsole)
+            if (msWait > 0)
             {
                 si.RedirectStandardOutput = true;
                 si.RedirectStandardError = true;
@@ -771,7 +771,7 @@ namespace System
                     p.OutputDataReceived += (s, e) => output(e.Data);
                     p.ErrorDataReceived += (s, e) => output(e.Data);
                 }
-                else
+                else if (NewLife.Runtime.IsConsole)
                 {
                     p.OutputDataReceived += (s, e) => XTrace.WriteLine(e.Data);
                     p.ErrorDataReceived += (s, e) => XTrace.Log.Error(e.Data);
@@ -779,7 +779,7 @@ namespace System
             }
 
             p.Start();
-            if (msWait > 0 && NewLife.Runtime.IsConsole)
+            if (msWait > 0 && (output != null || NewLife.Runtime.IsConsole))
             {
                 p.BeginOutputReadLine();
                 p.BeginErrorReadLine();
