@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -636,6 +637,35 @@ namespace System
             }
         }
 #endif
+        #endregion
+
+        #region 读写器扩展
+        /// <summary>把网络节点写入数据流</summary>
+        /// <param name="stream"></param>
+        /// <param name="ep"></param>
+        /// <returns></returns>
+        public static Stream Write(this Stream stream, IPEndPoint ep)
+        {
+            if (stream == null) return stream;
+
+            stream.Write(ep.Address.GetAddressBytes());
+            stream.Write(((UInt16)ep.Port).GetBytes());
+
+            return stream;
+        }
+
+        /// <summary>从数据流读取网络节点</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static IPEndPoint Read(this Stream stream)
+        {
+            if (stream == null) return null;
+
+            var addr = new IPAddress(stream.ReadBytes(4));
+            var port = (UInt16)stream.ReadBytes(2).ToInt();
+
+            return new IPEndPoint(addr, port);
+        }
         #endregion
     }
 }

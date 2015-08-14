@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -1142,18 +1141,11 @@ namespace System
 
         private static char GetHexValue(int i)
         {
-            if (i < 10) return (char)(i + 0x30);
-            return (char)(i - 10 + 0x41);
+            if (i < 10)
+                return (char)(i + 0x30);
+            else
+                return (char)(i - 10 + 0x41);
         }
-
-        /// <summary>把十六进制字符串解码字节数组</summary>
-        /// <param name="data">字节数组</param>
-        /// <param name="startIndex">起始位置</param>
-        /// <param name="length">长度</param>
-        /// <returns></returns>
-        [Obsolete("ToHex")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static Byte[] FromHex(this String data, Int32 startIndex = 0, Int32 length = 0) { return ToHex(data, startIndex, length); }
 
         /// <summary>解密</summary>
         /// <param name="data">Hex编码的字符串</param>
@@ -1209,11 +1201,6 @@ namespace System
         public static Byte[] ToBase64(this String data)
         {
             if (String.IsNullOrEmpty(data)) return null;
-
-            //// 过滤特殊字符
-            //data = data.Trim()
-            //    .Replace("\r", null)
-            //    .Replace("\n", null);
 
             return Convert.FromBase64String(data);
         }
