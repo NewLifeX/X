@@ -761,7 +761,7 @@ namespace System
             si.WindowStyle = ProcessWindowStyle.Hidden;
 
             // 对于控制台项目，这里需要捕获输出
-            if (NewLife.Runtime.IsConsole)
+            if (msWait > 0 && NewLife.Runtime.IsConsole)
             {
                 si.RedirectStandardOutput = true;
                 si.RedirectStandardError = true;
@@ -779,7 +779,7 @@ namespace System
             }
 
             p.Start();
-            if (NewLife.Runtime.IsConsole)
+            if (msWait > 0 && NewLife.Runtime.IsConsole)
             {
                 p.BeginOutputReadLine();
                 p.BeginErrorReadLine();
