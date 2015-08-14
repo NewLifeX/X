@@ -657,7 +657,7 @@ namespace System
         /// <summary>从数据流读取网络节点</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public static IPEndPoint Read(this Stream stream)
+        public static IPEndPoint ReadEndPoint(this Stream stream)
         {
             if (stream == null) return null;
 
