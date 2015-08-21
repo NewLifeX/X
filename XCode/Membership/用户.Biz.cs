@@ -79,7 +79,8 @@ namespace XCode.Membership
                 }
             }
         }
-
+        /// <summary>删除用户</summary>
+        /// <returns></returns>
         protected override int OnDelete()
         {
             if (Meta.Count <= 1) throw new Exception("必须保留至少一个可用账号！");

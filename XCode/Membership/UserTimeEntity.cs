@@ -38,6 +38,7 @@ namespace XCode.Membership
         }
 
         /// <summary>验证数据，自动加上创建和更新的信息</summary>
+        /// <param name="entity"></param>
         /// <param name="isNew"></param>
         public override Boolean Valid(IEntity entity, Boolean isNew)
         {
@@ -94,6 +95,7 @@ namespace XCode.Membership
         }
 
         /// <summary>验证数据，自动加上创建和更新的信息</summary>
+        /// <param name="entity"></param>
         /// <param name="isNew"></param>
         public override Boolean Valid(IEntity entity, Boolean isNew)
         {
@@ -153,6 +155,7 @@ namespace XCode.Membership
         }
 
         /// <summary>验证数据，自动加上创建和更新的信息</summary>
+        /// <param name="entity"></param>
         /// <param name="isNew"></param>
         public override Boolean Valid(IEntity entity, Boolean isNew)
         {

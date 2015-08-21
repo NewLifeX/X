@@ -128,6 +128,14 @@ namespace XCode.Membership
             return exp;
         }
 
+        /// <summary>查询</summary>
+        /// <param name="key"></param>
+        /// <param name="adminid"></param>
+        /// <param name="category"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
         public static EntityList<TEntity> Search(String key, Int32 adminid, String category, DateTime start, DateTime end, Pager p)
         {
             return FindAll(SearchWhere(key, adminid, category, start, end), p);
