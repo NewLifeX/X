@@ -132,7 +132,8 @@ namespace XCode.Configuration
 
         private Boolean _ReadOnly;
         /// <summary>是否只读</summary>
-        public Boolean ReadOnly { get { return _ReadOnly; } }
+        /// set { _ReadOnly = value; } 放出只读属性的设置，比如在编辑页面的时候，有的字段不能修改 如修改用户时  不能修改用户名
+        public Boolean ReadOnly { get { return _ReadOnly; }set { _ReadOnly = value; } }
 
         internal TableItem _Table;
         /// <summary>表</summary>
