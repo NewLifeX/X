@@ -132,7 +132,7 @@ namespace XCode.Configuration
 
         private Boolean _ReadOnly;
         /// <summary>是否只读</summary>
-        /// set { _ReadOnly = value; } 放出只读属性的设置，比如在编辑页面的时候，有的字段不能修改 如修改用户时  不能修改用户名
+        /// <remarks>set { _ReadOnly = value; } 放出只读属性的设置，比如在编辑页面的时候，有的字段不能修改 如修改用户时  不能修改用户名</remarks>
         public Boolean ReadOnly { get { return _ReadOnly; }set { _ReadOnly = value; } }
 
         internal TableItem _Table;
@@ -158,9 +158,13 @@ namespace XCode.Configuration
         /// <summary>已格式化的字段名，可字节用于SQL中。主要用于处理关键字，比如MSSQL里面的[User]</summary>
         public String FormatedName { get { return Factory.FormatName(ColumnName); } }
 
-        private FieldItem _OriField;
         /// <summary>跟当前字段有关系的原始字段</summary>
-        public FieldItem OriField { get { return _OriField; } internal set { _OriField = value; } }
+        public FieldItem OriField { get; internal set; }
+
+        /// <summary>宽度</summary>
+        /// <remarks>主要用于界面上的宽度</remarks>
+        public int Width { get; set; }
+
         #endregion
 
         #region 构造
