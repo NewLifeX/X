@@ -162,8 +162,12 @@ namespace XCode.Configuration
         public FieldItem OriField { get; internal set; }
 
         /// <summary>宽度</summary>
-        /// <remarks>主要用于界面上的宽度</remarks>
+        /// <remarks>主要用于界面上的控件宽度</remarks>
         public int Width { get; set; }
+
+        /// <summary>排序</summary>
+        /// <remarks>主要用于界面上的控件显示排序</remarks>
+        public int Sort { get; set; }
 
         #endregion
 
