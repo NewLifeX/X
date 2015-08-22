@@ -16,8 +16,8 @@ namespace NewLife.Cube
     {
         #region 属性
         private Boolean _Debug;
-        /// <summary>是否启用全局调试。默认为不启用</summary>
-        [Description("全局调试")]
+        /// <summary>是否启用调试。默认为不启用</summary>
+        [Description("调试")]
         public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
 
         private Boolean _ShowRunTime;

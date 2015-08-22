@@ -18,8 +18,8 @@ namespace XCode
     {
         #region 属性
         private Boolean _Debug;
-        /// <summary>是否启用全局调试。默认为不启用</summary>
-        [Description("全局调试")]
+        /// <summary>是否启用调试。默认为不启用</summary>
+        [Description("调试")]
         public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
 
         private Boolean _ShowSQL;
@@ -27,7 +27,7 @@ namespace XCode
         [Description("是否输出SQL语句，默认为调试开关Debug")]
         public Boolean ShowSQL { get { return _ShowSQL; } set { _ShowSQL = value; } }
 
-        private String _SQLPath;
+        private String _SQLPath = "";
         /// <summary>设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录</summary>
         [Description("设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录")]
         public String SQLPath { get { return _SQLPath; } set { _SQLPath = value; } }
@@ -143,7 +143,7 @@ namespace XCode
         [Description("是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true")]
         public Boolean IgnoreCase { get { return _IgnoreCase; } set { _IgnoreCase = value; } }
 
-        private String _DLLPath;
+        private String _DLLPath = "";
         /// <summary>属性说明</summary>
         [Description("是否限制只能访问拥有者的信息，默认false")]
         public String DLLPath { get { return _DLLPath; } set { _DLLPath = value; } }

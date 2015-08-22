@@ -23,7 +23,7 @@ namespace XCode.DataAccessLayer
         [Description("是否启用不删除字段，默认不启用。删除字段的操作过于危险，这里可以通过设为true关闭")]
         public Boolean NoDelete { get { return _NoDelete; } set { _NoDelete = value; } }
 
-        private String _Exclude;
+        private String _Exclude = "";
         /// <summary>要排除的链接名和表名，多个用逗号分隔，默认空</summary>
         [Description("要排除的链接名和表名，多个用逗号分隔，默认空")]
         public String Exclude { get { return _Exclude; } set { _Exclude = value; } }

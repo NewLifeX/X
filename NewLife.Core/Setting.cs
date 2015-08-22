@@ -47,7 +47,7 @@ namespace NewLife
 
         private String _WebCompressFiles;
         /// <summary>网页压缩文件</summary>
-        [Description("多线程调试")]
+        [Description("网页压缩文件")]
         public String WebCompressFiles { get { return _WebCompressFiles; } set { _WebCompressFiles = value; } }
         #endregion
 
