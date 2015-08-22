@@ -410,21 +410,25 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ServiceAddress == null) _ServiceAddress = Config.GetConfig<String>("XCode.ServiceAddress", "http://j.NewLifeX.com/?id=3&f={0}");
+                //if (_ServiceAddress == null) _ServiceAddress = Config.GetConfig<String>("XCode.ServiceAddress", "http://j.NewLifeX.com/?id=3&f={0}");
 
-                return _ServiceAddress;
+                //return _ServiceAddress;
+
+                return Setting.Current.ServiceAddress;
             }
         }
 
-        static Boolean? _CacheZip;
+        //static Boolean? _CacheZip;
         /// <summary>是否缓存Zip压缩包</summary>
         static Boolean CacheZip
         {
             get
             {
-                if (_CacheZip == null) _CacheZip = Config.GetConfig<Boolean>("XCode.CacheZip", true);
+                //if (_CacheZip == null) _CacheZip = Config.GetConfig<Boolean>("XCode.CacheZip", true);
 
-                return _CacheZip.Value;
+                //return _CacheZip.Value;
+
+                return Setting.Current.CacheZip;
             }
         }
 

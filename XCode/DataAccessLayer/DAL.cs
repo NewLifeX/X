@@ -344,10 +344,10 @@ namespace XCode.DataAccessLayer
         /// <summary>反向工程。检查所有采用当前连接的实体类的数据表架构</summary>
         private void SetTables()
         {
-            if (!NegativeEnable || NegativeExclude.Contains(ConnName)) return;
+            if (!Setting.Current.Negative.Enable || NegativeExclude.Contains(ConnName)) return;
 
             // NegativeCheckOnly设置为true时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-            if (!NegativeCheckOnly)
+            if (!Setting.Current.Negative.CheckOnly)
                 CheckTables();
             else
                 ThreadPoolX.QueueUserWorkItem(CheckTables);
@@ -432,8 +432,8 @@ namespace XCode.DataAccessLayer
             if (set == null)
             {
                 set = new NegativeSetting();
-                set.CheckOnly = DAL.NegativeCheckOnly;
-                set.NoDelete = DAL.NegativeNoDelete;
+                set.CheckOnly = Setting.Current.Negative.CheckOnly;
+                set.NoDelete = Setting.Current.Negative.NoDelete;
             }
             //if (set.CheckOnly && DAL.Debug) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
             //if (set.NoDelete && DAL.Debug) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");

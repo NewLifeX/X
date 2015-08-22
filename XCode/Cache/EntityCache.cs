@@ -24,7 +24,7 @@ namespace XCode.Cache
         /// <summary>缓存更新次数</summary>
         private Int64 Times;
 
-        private Int32 _Expriod = CacheSetting.EntityCacheExpire;
+        private Int32 _Expriod = Setting.Current.Cache.EntityCacheExpire;
         /// <summary>过期时间。单位是秒，默认60秒</summary>
         public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
 

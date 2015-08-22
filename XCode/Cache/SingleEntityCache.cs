@@ -20,7 +20,7 @@ namespace XCode.Cache
     public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity>, ISingleEntityCache where TEntity : Entity<TEntity>, new()
     {
         #region 属性
-        private Int32 _Expriod = CacheSetting.SingleCacheExpire;
+        private Int32 _Expriod = Setting.Current.Cache.SingleCacheExpire;
         /// <summary>过期时间。单位是秒，默认60秒</summary>
         public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
 
@@ -90,7 +90,7 @@ namespace XCode.Cache
         /// <summary>初始化缓存的方法，默认为空</summary>
         public Func InitializeMethod { get { return _InitializeMethod; } set { _InitializeMethod = value; } }
 
-        private Boolean _HoldCache = CacheSetting.Alone;
+        private Boolean _HoldCache = Setting.Current.Cache.Alone;
         /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
         /// <remarks>独占模式也需要用到定时器，否则无法自动保存</remarks>
         public Boolean HoldCache { get { return _HoldCache; } set { _HoldCache = value; } }

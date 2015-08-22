@@ -37,7 +37,8 @@ namespace XAgent
             var service = Instance as TService;
 
             // 根据配置修改服务名
-            String name = Config.GetConfig<String>("XAgent.ServiceName");
+            //String name = Config.GetConfig<String>("XAgent.ServiceName");
+            var name = Setting.Current.ServiceName;
             if (!String.IsNullOrEmpty(name)) Instance.ServiceName = name;
 
             //Instance.MakeBat();
@@ -869,7 +870,8 @@ namespace XAgent
             {
                 if (_WatchDogs == null)
                 {
-                    _WatchDogs = Config.GetConfigSplit<String>("XAgent.WatchLog", null);
+                    //_WatchDogs = Config.GetConfigSplit<String>("XAgent.WatchLog", null);
+                    _WatchDogs = Setting.Current.WatchDog.Split();
                     if (_WatchDogs == null) _WatchDogs = new String[0];
                 }
                 return _WatchDogs;
@@ -883,7 +885,8 @@ namespace XAgent
         /// </remarks>
         public static void CheckWatchDog()
         {
-            var ss = Config.GetConfigSplit<String>("XAgent.WatchLog", null);
+            //var ss = Config.GetConfigSplit<String>("XAgent.WatchLog", null);
+            var ss = WatchDogs;
             if (ss == null || ss.Length < 1) return;
 
             foreach (var item in ss)

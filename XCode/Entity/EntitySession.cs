@@ -161,7 +161,8 @@ namespace XCode
                 //if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
                 //if (DAL.Debug) DAL.WriteLog("初始化{0}数据", name);
 
-                var init = Config.GetConfig<Boolean>("XCode.InitData", true);
+                //var init = Config.GetConfig<Boolean>("XCode.InitData", true);
+                var init = Setting.Current.InitData;
                 if (init)
                 {
                     try
@@ -212,8 +213,8 @@ namespace XCode
                 }
 
                 var set = new NegativeSetting();
-                set.CheckOnly = DAL.NegativeCheckOnly;
-                set.NoDelete = DAL.NegativeNoDelete;
+                set.CheckOnly = Setting.Current.Negative.CheckOnly;
+                set.NoDelete = Setting.Current.Negative.NoDelete;
 
                 // 对于分库操作，强制检查架构，但不删除数据
                 if (Default != this)
@@ -270,7 +271,7 @@ namespace XCode
 
                 if (def == this)
                 {
-                    if (!DAL.NegativeEnable ||
+                    if (!Setting.Current.Negative.Enable ||
                         DAL.NegativeExclude.Contains(ConnName) ||
                         DAL.NegativeExclude.Contains(TableName) ||
                         IsGenerated)
@@ -318,7 +319,7 @@ namespace XCode
                 {
                     // 打开了开关，并且设置为true时，使用同步方式检查
                     // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-                    if (!DAL.NegativeCheckOnly || def != this)
+                    if (!Setting.Current.Negative.CheckOnly || def != this)
                         CheckTable();
                     else
                         ThreadPoolX.QueueUserWorkItem(CheckTable);
@@ -578,7 +579,7 @@ namespace XCode
 
         String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }
 
-        private Boolean _HoldCache = CacheSetting.Alone;
+        private Boolean _HoldCache = Setting.Current.Cache.Alone;
         /// <summary>在数据修改时保持缓存，直到数据过期，独占数据库时默认打开，否则默认关闭</summary>
         /// <remarks>实体缓存和单对象缓存能够自动维护更新数据，保持缓存数据最新，在普通CURD中足够使用</remarks>
         public Boolean HoldCache

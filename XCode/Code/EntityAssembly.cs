@@ -498,7 +498,8 @@ namespace XCode.Code
             {
                 if (_Debug != null) return _Debug.Value;
 
-                _Debug = Config.GetConfig<Boolean>("XCode.Code.Debug", false);
+                //_Debug = Config.GetConfig<Boolean>("XCode.Code.Debug", false);
+                _Debug = Setting.Current.CodeDebug;
 
                 return _Debug.Value;
             }

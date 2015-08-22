@@ -190,7 +190,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>设置的dll路径</summary>
-        private static String _settingDllPath = Config.GetConfig<String>("XCode.Oracle.DllPath");
+        private static String _settingDllPath = Setting.Current.Oracle.DLLPath;
 
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
@@ -381,7 +381,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号</summary>
-        static Boolean _IgnoreCase = Config.GetConfig<Boolean>("XCode.Oracle.IgnoreCase", true);
+        static Boolean _IgnoreCase = Setting.Current.Oracle.IgnoreCase;
 
         public override string FormatName(string name)
         {
@@ -657,7 +657,7 @@ namespace XCode.DataAccessLayer
         public String Owner { get { return (Database as Oracle).Owner.ToUpper(); } }
 
         /// <summary>是否限制只能访问拥有者的信息</summary>
-        Boolean IsUseOwner { get { return Config.GetConfig<Boolean>("XCode.Oracle.IsUseOwner"); } }
+        Boolean IsUseOwner { get { return Setting.Current.Oracle.UseOwner; } }
 
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>

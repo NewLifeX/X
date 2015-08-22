@@ -753,7 +753,8 @@ namespace NewLife.Threading
             {
                 if (_Debug != null) return _Debug.Value;
 
-                _Debug = Config.GetMutilConfig<Boolean>(false, "NewLife.Thread.Debug", "ThreadPoolDebug");
+                //_Debug = Config.GetMutilConfig<Boolean>(false, "NewLife.Thread.Debug", "ThreadPoolDebug");
+                _Debug = Setting.Current.ThreadDebug;
 
                 return _Debug.Value;
             }

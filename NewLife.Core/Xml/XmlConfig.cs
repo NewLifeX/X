@@ -35,7 +35,7 @@ namespace NewLife.Xml
                 {
                     // 现存有对象，尝试再次加载，可能因为未修改而返回null，这样只需要返回现存对象即可
                     if (!config.IsUpdated) return config;
-                    XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
+                    XTrace.WriteLineAsync("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
                     var cfg = Load(_.ConfigFile);
                     if (cfg == null) return config;
@@ -52,10 +52,11 @@ namespace NewLife.Xml
                         config = new TConfig();
                         config.ConfigFile = _.ConfigFile.GetFullPath();
                         config.SetExpire();  // 设定过期时间
+                        config.OnNew();
                         config.OnLoaded();
 
                         // 创建或覆盖
-                        XTrace.WriteLine("{0}的配置文件{1}不存在或加载出错，准备用默认配置覆盖！", typeof(TConfig).Name, _.ConfigFile);
+                        XTrace.WriteLineAsync("{0}的配置文件{1}不存在或加载出错，准备用默认配置覆盖！", typeof(TConfig).Name, _.ConfigFile);
                         try
                         {
                             // 根据配置，有可能不保存，直接返回默认
@@ -63,7 +64,8 @@ namespace NewLife.Xml
                         }
                         catch (Exception ex)
                         {
-                            XTrace.WriteException(ex);
+                            //XTrace.WriteException(ex);
+                            XTrace.WriteLineAsync(ex.ToString());
                         }
                     }
                     _Current = config;
@@ -217,7 +219,7 @@ namespace NewLife.Xml
 
                 return config;
             }
-            catch (Exception ex) { XTrace.WriteException(ex); return null; }
+            catch (Exception ex) { XTrace.WriteLineAsync(ex.ToString()); return null; }
         }
         #endregion
 
@@ -244,13 +246,14 @@ namespace NewLife.Xml
                 }
                 if (!flag)
                 {
-                    XTrace.WriteLine("配置文件{0}格式不一致，保存为最新格式！", ConfigFile);
+                    // 异步处理，避免加载日志路径配置时死循环
+                    XTrace.WriteLineAsync("配置文件{0}格式不一致，保存为最新格式！", ConfigFile);
                     config.Save();
                 }
             }
             catch (Exception ex)
             {
-                XTrace.WriteException(ex);
+                XTrace.WriteLineAsync(ex.ToString());
             }
         }
 
@@ -272,6 +275,9 @@ namespace NewLife.Xml
 
         /// <summary>保存到配置文件中去</summary>
         public virtual void Save() { Save(null); }
+
+        /// <summary>新创建配置文件时执行</summary>
+        protected virtual void OnNew() { }
         #endregion
     }
 }

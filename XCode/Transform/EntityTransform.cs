@@ -121,8 +121,11 @@ namespace XCode.Transform
         /// <returns></returns>
         public Int32 TransformTable(IEntityOperate eop, Int32 count = 0, Boolean? isDesc = null, Func<Int32, Int32, IEntityList> getData = null)
         {
-            var oldInitData = Config.GetConfig<Boolean>("XCode.InitData", true);
-            Config.SetConfig("XCode.InitData", false);
+            //var oldInitData = Config.GetConfig<Boolean>("XCode.InitData", true);
+            //Config.SetConfig("XCode.InitData", false);
+            var set = Setting.Current;
+            var oldInitData = set.InitData;
+            set.InitData = false;
 
             var name = eop.TableName;
             eop.ConnName = SrcConn;
@@ -205,7 +208,8 @@ namespace XCode.Transform
                 eop.ConnName = DesConn;
                 session.Commit();
 
-                Config.SetConfig("XCode.InitData", oldInitData);
+                //Config.SetConfig("XCode.InitData", oldInitData);
+                set.InitData = oldInitData;
 
                 return total;
             }

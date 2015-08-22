@@ -78,7 +78,8 @@ namespace XAgent
             {
                 if (_Intervals != null) return _Intervals;
 
-                _Intervals = Config.GetConfigSplit<Int32>("XAgent.Interval", null, Config.GetConfigSplit<Int32>("Interval", null, new Int32[] { 60 }));
+                //_Intervals = Config.GetConfigSplit<Int32>("XAgent.Interval", null, Config.GetConfigSplit<Int32>("Interval", null, new Int32[] { 60 }));
+                _Intervals = Setting.Current.Intervals.SplitAsInt();
                 return _Intervals;
             }
             set { _Intervals = value; }
@@ -90,7 +91,8 @@ namespace XAgent
         {
             get
             {
-                if (_MaxActive == null) _MaxActive = Config.GetConfig<Int32>("XAgent.MaxActive", Config.GetConfig<Int32>("MaxActive", 0));
+                //if (_MaxActive == null) _MaxActive = Config.GetConfig<Int32>("XAgent.MaxActive", Config.GetConfig<Int32>("MaxActive", 0));
+                if (_MaxActive == null) _MaxActive = Setting.Current.MaxActive;
                 return _MaxActive.Value;
             }
             set { _MaxActive = value; }
@@ -102,7 +104,8 @@ namespace XAgent
         {
             get
             {
-                if (_MaxMemory == null) _MaxMemory = Config.GetConfig<Int32>("XAgent.MaxMemory", Config.GetConfig<Int32>("MaxMemory", 0));
+                //if (_MaxMemory == null) _MaxMemory = Config.GetConfig<Int32>("XAgent.MaxMemory", Config.GetConfig<Int32>("MaxMemory", 0));
+                if (_MaxMemory == null) _MaxMemory = Setting.Current.MaxMemory;
                 return _MaxMemory.Value;
             }
             set { _MaxMemory = value; }
@@ -114,7 +117,8 @@ namespace XAgent
         {
             get
             {
-                if (_MaxThread == null) _MaxThread = Config.GetConfig<Int32>("XAgent.MaxThread", Config.GetConfig<Int32>("MaxThread", 0));
+                //if (_MaxThread == null) _MaxThread = Config.GetConfig<Int32>("XAgent.MaxThread", Config.GetConfig<Int32>("MaxThread", 0));
+                if (_MaxThread == null) _MaxThread = Setting.Current.MaxThread;
                 return _MaxThread.Value;
             }
             set { _MaxThread = value; }
@@ -126,7 +130,8 @@ namespace XAgent
         {
             get
             {
-                if (_AutoRestart == null) _AutoRestart = Config.GetConfig<Int32>("XAgent.AutoRestart", Config.GetConfig<Int32>("AutoRestart", 0));
+                //if (_AutoRestart == null) _AutoRestart = Config.GetConfig<Int32>("XAgent.AutoRestart", Config.GetConfig<Int32>("AutoRestart", 0));
+                if (_AutoRestart == null) _AutoRestart = Setting.Current.AutoRestart;
                 return _AutoRestart.Value;
             }
             set { _AutoRestart = value; }

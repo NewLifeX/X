@@ -75,7 +75,8 @@ namespace NewLife.Cube
         {
             get
             {
-                if (_Enable == null) _Enable = Config.GetConfig<Boolean>("NewLife.Cube.ShowRunTime", XTrace.Debug);
+                //if (_Enable == null) _Enable = Config.GetConfig<Boolean>("NewLife.Cube.ShowRunTime", XTrace.Debug);
+                if (_Enable == null) _Enable = Setting.Current.ShowRunTime;
                 return _Enable.Value;
             }
         }

@@ -49,6 +49,14 @@ namespace NewLife.Log
             Log.Info(format, args);
         }
 
+        /// <summary>异步写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public static void WriteLineAsync(String format, params Object[] args)
+        {
+            ThreadPool.QueueUserWorkItem(s => WriteLine(format, args));
+        }
+
         /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
         //[Obsolete("不再支持！")]
@@ -293,7 +301,8 @@ namespace NewLife.Log
                 try
                 {
                     //return Config.GetConfig<Boolean>("NewLife.Debug", Config.GetConfig<Boolean>("Debug", false));
-                    return Config.GetMutilConfig<Boolean>(false, "NewLife.Debug", "Debug");
+                    //return Config.GetMutilConfig<Boolean>(false, "NewLife.Debug", "Debug");
+                    return Setting.Current.Debug;
                 }
                 catch { return false; }
             }
@@ -307,7 +316,8 @@ namespace NewLife.Log
             get
             {
                 // Web日志目录默认放到外部
-                if (_LogPath == null) _LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
+                //if (_LogPath == null) _LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
+                if (_LogPath == null) _LogPath = Setting.Current.LogPath;
                 return _LogPath;
             }
             set { _LogPath = value; }
@@ -322,15 +332,13 @@ namespace NewLife.Log
                 if (_TempPath != null) return _TempPath;
 
                 // 这里是TempPath而不是_TempPath，因为需要格式化处理一下
-                TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
+                //TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
+                _TempPath = Setting.Current.TempPath;
                 return _TempPath;
             }
             set
             {
-                _TempPath = value;
-                if (String.IsNullOrEmpty(_TempPath)) _TempPath = "XTemp";
-                if (!Path.IsPathRooted(_TempPath)) _TempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _TempPath);
-                _TempPath = Path.GetFullPath(_TempPath);
+                _TempPath = value.GetFullPath();
             }
         }
         #endregion

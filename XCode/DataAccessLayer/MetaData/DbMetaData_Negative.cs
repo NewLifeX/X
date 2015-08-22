@@ -65,9 +65,10 @@ namespace XCode.DataAccessLayer
         [Obsolete("请改用多参数版本！")]
         public void SetTables(params IDataTable[] tables)
         {
-            var set = new NegativeSetting();
-            set.CheckOnly = DAL.NegativeCheckOnly;
-            set.NoDelete = DAL.NegativeNoDelete;
+            //var set = new NegativeSetting();
+            //set.CheckOnly = DAL.NegativeCheckOnly;
+            //set.NoDelete = DAL.NegativeNoDelete;
+            var set = Setting.Current.Negative;
             OnSetTables(tables, set);
         }
 

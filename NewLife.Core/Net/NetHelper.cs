@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using Microsoft.Win32;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
@@ -30,11 +31,12 @@ namespace System
             {
                 if (_Debug != null) return _Debug.Value;
 
-#if DEBUG
-                _Debug = Config.GetConfig<Boolean>("NewLife.Net.Debug", true);
-#else
-                _Debug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
-#endif
+                //#if DEBUG
+                //                _Debug = Config.GetConfig<Boolean>("NewLife.Net.Debug", true);
+                //#else
+                //                _Debug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
+                //#endif
+                _Debug = Setting.Current.NetDebug;
 
                 return _Debug.Value;
             }

@@ -20,7 +20,8 @@ namespace XCode.DataAccessLayer
             {
                 if (_Debug != null) return _Debug.Value;
 
-                _Debug = Config.GetMutilConfig<Boolean>(false, "XCode.Debug", "OrmDebug");
+                //_Debug = Config.GetMutilConfig<Boolean>(false, "XCode.Debug", "OrmDebug");
+                _Debug = Setting.Current.Debug;
 
                 return _Debug.Value;
             }
@@ -35,7 +36,8 @@ namespace XCode.DataAccessLayer
             {
                 if (_ShowSQL != null) return _ShowSQL.Value;
 
-                _ShowSQL = Config.GetConfig<Boolean>("XCode.ShowSQL", DAL.Debug);
+                //_ShowSQL = Config.GetConfig<Boolean>("XCode.ShowSQL", DAL.Debug);
+                _ShowSQL = Setting.Current.ShowSQL;
 
                 return _ShowSQL.Value;
             }
@@ -50,7 +52,8 @@ namespace XCode.DataAccessLayer
             {
                 if (_SQLPath != null) return _SQLPath;
 
-                _SQLPath = Config.GetConfig<String>("XCode.SQLPath", String.Empty);
+                //_SQLPath = Config.GetConfig<String>("XCode.SQLPath", String.Empty);
+                _SQLPath = Setting.Current.SQLPath;
 
                 return _SQLPath;
             }
@@ -103,10 +106,11 @@ namespace XCode.DataAccessLayer
             //XTrace.WriteLine("NewLife.{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asm.Name, asm.FileVersion, asm.Compile);
             System.Reflection.Assembly.GetExecutingAssembly().WriteVersion();
 
-            if (DAL.Debug && DAL.NegativeEnable)
+            var set = Setting.Current.Negative;
+            if (DAL.Debug && set.Enable)
             {
-                if (DAL.NegativeCheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
-                if (DAL.NegativeNoDelete) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
+                if (set.CheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
+                if (set.NoDelete) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
             }
         }
         #endregion
@@ -122,50 +126,50 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 设置
-        private static Boolean? _NegativeEnable;
-        /// <summary>是否启用数据架构</summary>
-        public static Boolean NegativeEnable
-        {
-            get
-            {
-                if (_NegativeEnable.HasValue) return _NegativeEnable.Value;
+        //private static Boolean? _NegativeEnable;
+        ///// <summary>是否启用数据架构</summary>
+        //public static Boolean NegativeEnable
+        //{
+        //    get
+        //    {
+        //        if (_NegativeEnable.HasValue) return _NegativeEnable.Value;
 
-                _NegativeEnable = Config.GetMutilConfig<Boolean>(false, "XCode.Negative.Enable", "XCode.Schema.Enable", "DatabaseSchema_Enable");
+        //        _NegativeEnable = Config.GetMutilConfig<Boolean>(false, "XCode.Negative.Enable", "XCode.Schema.Enable", "DatabaseSchema_Enable");
 
-                return _NegativeEnable.Value;
-            }
-            set { _NegativeEnable = value; }
-        }
+        //        return _NegativeEnable.Value;
+        //    }
+        //    set { _NegativeEnable = value; }
+        //}
 
-        private static Boolean? _NegativeCheckOnly;
-        /// <summary>是否只检查不操作，默认不启用</summary>
-        public static Boolean NegativeCheckOnly
-        {
-            get
-            {
-                if (_NegativeCheckOnly.HasValue) return _NegativeCheckOnly.Value;
+        //private static Boolean? _NegativeCheckOnly;
+        ///// <summary>是否只检查不操作，默认不启用</summary>
+        //public static Boolean NegativeCheckOnly
+        //{
+        //    get
+        //    {
+        //        if (_NegativeCheckOnly.HasValue) return _NegativeCheckOnly.Value;
 
-                _NegativeCheckOnly = Config.GetConfig<Boolean>("XCode.Negative.CheckOnly");
+        //        _NegativeCheckOnly = Config.GetConfig<Boolean>("XCode.Negative.CheckOnly");
 
-                return _NegativeCheckOnly.Value;
-            }
-            set { _NegativeCheckOnly = value; }
-        }
+        //        return _NegativeCheckOnly.Value;
+        //    }
+        //    set { _NegativeCheckOnly = value; }
+        //}
 
-        private static Boolean? _NegativeNoDelete;
-        /// <summary>是否启用不删除字段</summary>
-        public static Boolean NegativeNoDelete
-        {
-            get
-            {
-                if (_NegativeNoDelete.HasValue) return _NegativeNoDelete.Value;
+        //private static Boolean? _NegativeNoDelete;
+        ///// <summary>是否启用不删除字段</summary>
+        //public static Boolean NegativeNoDelete
+        //{
+        //    get
+        //    {
+        //        if (_NegativeNoDelete.HasValue) return _NegativeNoDelete.Value;
 
-                _NegativeNoDelete = Config.GetMutilConfig<Boolean>(false, "XCode.Negative.NoDelete", "XCode.Schema.NoDelete", "DatabaseSchema_NoDelete");
+        //        _NegativeNoDelete = Config.GetMutilConfig<Boolean>(false, "XCode.Negative.NoDelete", "XCode.Schema.NoDelete", "DatabaseSchema_NoDelete");
 
-                return _NegativeNoDelete.Value;
-            }
-            set { _NegativeNoDelete = value; }
-        }
+        //        return _NegativeNoDelete.Value;
+        //    }
+        //    set { _NegativeNoDelete = value; }
+        //}
 
         private static ICollection<String> _NegativeExclude;
         /// <summary>要排除的链接名</summary>
@@ -175,33 +179,29 @@ namespace XCode.DataAccessLayer
             {
                 if (_NegativeExclude != null) return _NegativeExclude;
 
-                String str = Config.GetMutilConfig<String>(null, "XCode.Negative.Exclude", "XCode.Schema.Exclude", "DatabaseSchema_Exclude");
+                //String str = Config.GetMutilConfig<String>(null, "XCode.Negative.Exclude", "XCode.Schema.Exclude", "DatabaseSchema_Exclude");
+                var str = Setting.Current.Negative.Exclude + "";
 
-                if (String.IsNullOrEmpty(str))
-                    _NegativeExclude = new HashSet<String>();
-                else
-                {
-                    _NegativeExclude = new HashSet<String>(str.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
-                }
+                _NegativeExclude = new HashSet<String>(str.Split(), StringComparer.OrdinalIgnoreCase);
 
                 return _NegativeExclude;
             }
         }
 
-        private static Int32? _TraceSQLTime;
-        /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪。</summary>
-        public static Int32 TraceSQLTime
-        {
-            get
-            {
-                if (_TraceSQLTime != null) return _TraceSQLTime.Value;
+        //private static Int32? _TraceSQLTime;
+        ///// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪。</summary>
+        //public static Int32 TraceSQLTime
+        //{
+        //    get
+        //    {
+        //        if (_TraceSQLTime != null) return _TraceSQLTime.Value;
 
-                _TraceSQLTime = Config.GetConfig<Int32>("XCode.TraceSQLTime", 0);
+        //        _TraceSQLTime = Config.GetConfig<Int32>("XCode.TraceSQLTime", 0);
 
-                return _TraceSQLTime.Value;
-            }
-            set { _TraceSQLTime = value; }
-        }
+        //        return _TraceSQLTime.Value;
+        //    }
+        //    set { _TraceSQLTime = value; }
+        //}
         #endregion
     }
 }

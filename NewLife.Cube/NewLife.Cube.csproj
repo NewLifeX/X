@@ -214,6 +214,7 @@
     <Compile Include="Precompiled\PrecompiledMvcView.cs" />
     <Compile Include="Precompiled\PrecompiledViewAssembly.cs" />
     <Compile Include="Precompiled\PrecompiledViewLocationCache.cs" />
+    <Compile Include="Setting.cs" />
     <Compile Include="Views\Home\About.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -257,6 +257,7 @@
     <Compile Include="Serialization\Xml\IXml.cs" />
     <Compile Include="Serialization\Xml\Xml.cs" />
     <Compile Include="Serialization\XSerializationException.cs" />
+    <Compile Include="Setting.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\快速反射\TypeX.cs" />
     <Compile Include="Common\WeakReference.cs" />

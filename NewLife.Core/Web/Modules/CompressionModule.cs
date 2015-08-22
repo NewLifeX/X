@@ -61,7 +61,8 @@ namespace NewLife.Web
         {
             if (exts == null)
             {
-                String files = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
+                //String files = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
+                var files = Setting.Current.WebCompressFiles;
                 exts = files.ToLower().Split(",", ";", " ");
             }
             return exts.Any(t => url.Contains(t));

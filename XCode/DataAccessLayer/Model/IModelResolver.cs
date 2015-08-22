@@ -682,25 +682,27 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 设置
-        private Boolean? _UseID;
+        static ModelSetting Set { get { return Setting.Current.Model; } }
+
+        private Boolean _UseID = Set.UseID;
         /// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
-        public Boolean UseID { get { return _UseID != null ? _UseID.Value : (_UseID = Config.GetConfig<Boolean>("XCode.Model.UseID", true)).Value; } set { _UseID = value; } }
+        public Boolean UseID { get { return _UseID; } set { _UseID = value; } }
 
-        private Boolean? _AutoCutPrefix;
+        private Boolean _AutoCutPrefix = Set.AutoCutPrefix;
         /// <summary>是否自动去除前缀。默认启用</summary>
-        public Boolean AutoCutPrefix { get { return _AutoCutPrefix != null ? _AutoCutPrefix.Value : (_AutoCutPrefix = Config.GetConfig<Boolean>("XCode.Model.AutoCutPrefix", true)).Value; } set { _AutoCutPrefix = value; } }
+        public Boolean AutoCutPrefix { get { return _AutoCutPrefix; } set { _AutoCutPrefix = value; } }
 
-        private Boolean? _AutoCutTableName;
+        private Boolean _AutoCutTableName = Set.AutoCutTableName;
         /// <summary>是否自动去除字段前面的表名。默认启用</summary>
-        public Boolean AutoCutTableName { get { return _AutoCutTableName != null ? _AutoCutTableName.Value : (_AutoCutTableName = Config.GetConfig<Boolean>("XCode.Model.AutoCutTableName", true)).Value; } set { _AutoCutTableName = value; } }
+        public Boolean AutoCutTableName { get { return _AutoCutTableName; } set { _AutoCutTableName = value; } }
 
-        private Boolean? _AutoFixWord;
+        private Boolean _AutoFixWord = Set.AutoFixWord;
         /// <summary>是否自动纠正大小写。默认启用</summary>
-        public Boolean AutoFixWord { get { return _AutoFixWord != null ? _AutoFixWord.Value : (_AutoFixWord = Config.GetConfig<Boolean>("XCode.Model.AutoFixWord", true)).Value; } set { _AutoFixWord = value; } }
+        public Boolean AutoFixWord { get { return _AutoFixWord; } set { _AutoFixWord = value; } }
 
-        private String[] _FilterPrefixs;
+        private String[] _FilterPrefixs = Set.FilterPrefixs.Split();
         /// <summary>要过滤的前缀</summary>
-        public String[] FilterPrefixs { get { return _FilterPrefixs ?? (_FilterPrefixs = Config.GetConfigSplit<String>("XCode.Model.FilterPrefixs", null, new String[] { "tbl", "table" })); } set { _FilterPrefixs = value; } }
+        public String[] FilterPrefixs { get { return _FilterPrefixs; } set { _FilterPrefixs = value; } }
         #endregion
     }
 }

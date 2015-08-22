@@ -837,7 +837,7 @@ namespace XCode.DataAccessLayer
 
         protected void BeginTrace()
         {
-            if (DAL.TraceSQLTime <= 0) return;
+            if (Setting.Current.TraceSQLTime <= 0) return;
 
             if (_swSql == null) _swSql = new Stopwatch();
 
@@ -853,7 +853,7 @@ namespace XCode.DataAccessLayer
 
             _swSql.Stop();
 
-            if (_swSql.ElapsedMilliseconds < DAL.TraceSQLTime) return;
+            if (_swSql.ElapsedMilliseconds < Setting.Current.TraceSQLTime) return;
 
             if (_trace_sqls.Contains(sql)) return;
             lock (_trace_sqls)

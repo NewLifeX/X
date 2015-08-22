@@ -116,15 +116,16 @@ namespace NewLife.Log
             {
                 if (_Level != null) return _Level.Value;
 
-                try
-                {
-                    var def = LogLevel.Info;
-                    //if (Config.GetConfig<Boolean>("NewLife.Debug")) def = LogLevel.Debug;
-                    if (XTrace.Debug) def = LogLevel.Debug;
+                return Setting.Current.LogLevel;
+                //try
+                //{
+                //    var def = LogLevel.Info;
+                //    //if (Config.GetConfig<Boolean>("NewLife.Debug")) def = LogLevel.Debug;
+                //    if (XTrace.Debug) def = LogLevel.Debug;
 
-                    return Config.GetConfig<LogLevel>("NewLife.LogLevel", def);
-                }
-                catch { return LogLevel.Info; }
+                //    return Config.GetConfig<LogLevel>("NewLife.LogLevel", def);
+                //}
+                //catch { return LogLevel.Info; }
             }
             set { _Level = value; }
         }

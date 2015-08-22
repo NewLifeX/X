@@ -110,6 +110,7 @@
     <Compile Include="Model\Expression.cs" />
     <Compile Include="Model\FormatExpression.cs" />
     <Compile Include="Model\FieldExpression.cs" />
+    <Compile Include="Setting.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Sync\SyncManager.cs" />
