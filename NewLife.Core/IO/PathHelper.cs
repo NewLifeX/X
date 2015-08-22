@@ -14,14 +14,8 @@ namespace System.IO
         #endregion
 
         #region 路径操作辅助
-        /// <summary>获取文件或目录的全路径，过滤相对目录</summary>
-        /// <remarks>不确保目录后面一定有分隔符，是否有分隔符由原始路径末尾决定</remarks>
-        /// <param name="path">文件或目录</param>
-        /// <returns></returns>
-        public static String GetFullPath(this String path)
+        private static String GetPath(String path, Int32 mode)
         {
-            if (String.IsNullOrEmpty(path)) return path;
-
             // 处理路径分隔符，兼容Windows和Linux
             var sep = Path.DirectorySeparatorChar;
             var sep2 = sep == '/' ? '\\' : '/';
@@ -33,10 +27,56 @@ namespace System.IO
                 path = path.TrimStart('~');
                 path = path.TrimStart(sep);
 
-                path = Path.Combine(BaseDirectory, path);
+                switch (mode)
+                {
+                    case 1:
+                        path = Path.Combine(BaseDirectory, path);
+                        break;
+                    case 2:
+                        path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+                        break;
+                    case 3:
+                        path = Path.Combine(Environment.CurrentDirectory, path);
+                        break;
+                    default:
+                        break;
+                }
             }
 
             return Path.GetFullPath(path);
+        }
+
+        /// <summary>获取文件或目录的全路径，过滤相对目录</summary>
+        /// <remarks>不确保目录后面一定有分隔符，是否有分隔符由原始路径末尾决定</remarks>
+        /// <param name="path">文件或目录</param>
+        /// <returns></returns>
+        public static String GetFullPath(this String path)
+        {
+            if (String.IsNullOrEmpty(path)) return path;
+
+            return GetPath(path, 1);
+        }
+
+        /// <summary>获取文件或目录基于应用程序域基目录的全路径，过滤相对目录</summary>
+        /// <remarks>不确保目录后面一定有分隔符，是否有分隔符由原始路径末尾决定</remarks>
+        /// <param name="path">文件或目录</param>
+        /// <returns></returns>
+        public static String GetBasePath(this String path)
+        {
+            if (String.IsNullOrEmpty(path)) return path;
+
+            return GetPath(path, 2);
+        }
+
+        /// <summary>获取文件或目录基于当前目录的全路径，过滤相对目录</summary>
+        /// <remarks>不确保目录后面一定有分隔符，是否有分隔符由原始路径末尾决定</remarks>
+        /// <param name="path">文件或目录</param>
+        /// <returns></returns>
+        public static String GetCurrentPath(this String path)
+        {
+            if (String.IsNullOrEmpty(path)) return path;
+
+            return GetPath(path, 3);
         }
 
         /// <summary>确保目录存在，若不存在则创建</summary>

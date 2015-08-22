@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using NewLife.Compression;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -24,7 +22,10 @@ namespace NewLife.Extension
                 if (_type == null)
                 {
                     var file = "Microsoft.Speech.dll";
-                    if (Runtime.IsWeb) file = "Bin".CombinePath(file);
+                    if (Runtime.IsWeb)
+                        file = "Bin".CombinePath(file);
+                    else
+                        file = "Plugins".CombinePath(file).GetBasePath();
                     file = file.EnsureDirectory();
 
                     if (!File.Exists(file))
