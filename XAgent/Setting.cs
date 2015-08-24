@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using NewLife.Configuration;
-using NewLife.Log;
 using NewLife.Xml;
 
 namespace XAgent
@@ -72,6 +68,8 @@ namespace XAgent
         {
             Debug = Config.GetConfig<Boolean>("XAgent.Debug", false);
             ServiceName = Config.GetConfig<String>("XAgent.ServiceName");
+            DisplayName = Config.GetConfig<String>("XAgent.DisplayName");
+            Description = Config.GetConfig<String>("XAgent.Description");
             Intervals = Config.GetConfig<String>("XAgent.Interval", Config.GetConfig<String>("Interval", "60"));
             MaxActive = Config.GetConfig<Int32>("XAgent.MaxActive");
             MaxMemory = Config.GetConfig<Int32>("XAgent.MaxMemory");

@@ -11,8 +11,8 @@ using XCode.DataAccessLayer;
 
 namespace XCode
 {
-    /// <summary>树神设置</summary>
-    [DisplayName("树神设置")]
+    /// <summary>XCode设置</summary>
+    [DisplayName("XCode设置")]
     [XmlConfigFile(@"Config\\XCode.config", 15000)]
     public class Setting : XmlConfig<Setting>
     {

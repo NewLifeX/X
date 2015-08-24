@@ -871,8 +871,7 @@ namespace XAgent
                 if (_WatchDogs == null)
                 {
                     //_WatchDogs = Config.GetConfigSplit<String>("XAgent.WatchLog", null);
-                    _WatchDogs = Setting.Current.WatchDog.Split();
-                    if (_WatchDogs == null) _WatchDogs = new String[0];
+                    _WatchDogs = Setting.Current.WatchDog != null ? Setting.Current.WatchDog.Split() : new String[0];
                 }
                 return _WatchDogs;
             }
