@@ -333,7 +333,7 @@ namespace NewLife.Log
 
                 // 这里是TempPath而不是_TempPath，因为需要格式化处理一下
                 //TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
-                _TempPath = Setting.Current.TempPath;
+                _TempPath = Setting.Current.TempPath.GetFullPath();
                 return _TempPath;
             }
             set
