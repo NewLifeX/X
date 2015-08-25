@@ -193,7 +193,7 @@ namespace XCode
             //if (Dal.CheckAndAdd(TableName)) return;
 
 #if DEBUG
-            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.DbType, DAL.NegativeCheckOnly ? "异步" : "同步");
+            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.DbType, Setting.Current.Negative.CheckOnly ? "异步" : "同步");
 #endif
 
             var sw = new Stopwatch();
@@ -206,15 +206,17 @@ namespace XCode
                 // 克隆一份，防止修改
                 table = table.Clone() as IDataTable;
 
-                if (table.TableName != TableName)
+                if (table != null && table.TableName != TableName)
                 {
                     FixIndexName(table);
                     table.TableName = TableName;
                 }
 
-                var set = new NegativeSetting();
-                set.CheckOnly = Setting.Current.Negative.CheckOnly;
-                set.NoDelete = Setting.Current.Negative.NoDelete;
+                var set = new NegativeSetting
+                {
+                    CheckOnly = Setting.Current.Negative.CheckOnly,
+                    NoDelete = Setting.Current.Negative.NoDelete
+                };
 
                 // 对于分库操作，强制检查架构，但不删除数据
                 if (Default != this)
@@ -256,15 +258,15 @@ namespace XCode
         }
 
         private Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
-        Boolean hasCheckModel = false;
-        Object _check_lock = new Object();
+        Boolean _hasCheckModel = false;
+        readonly Object _checkLock = new Object();
         /// <summary>检查模型。依据反向工程设置、是否首次使用检查、是否已常规检查等</summary>
         private void CheckModel()
         {
-            if (hasCheckModel) return;
-            lock (_check_lock)
+            if (_hasCheckModel) return;
+            lock (_checkLock)
             {
-                if (hasCheckModel) return;
+                if (_hasCheckModel) return;
 
                 // 是否默认连接和默认表名，非默认则强制检查，并且不允许异步检查（异步检查会导致ConnName和TableName不对）
                 var def = Default;
@@ -276,7 +278,7 @@ namespace XCode
                         DAL.NegativeExclude.Contains(TableName) ||
                         IsGenerated)
                     {
-                        hasCheckModel = true;
+                        _hasCheckModel = true;
                         return;
                     }
                 }
@@ -295,8 +297,7 @@ namespace XCode
                     DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, mode);
 
                 // 第一次使用才检查的，此时检查
-                var ck = false;
-                if (mode == ModelCheckModes.CheckTableWhenFirstUse) ck = true;
+                var ck = mode == ModelCheckModes.CheckTableWhenFirstUse;
                 // 或者前面初始化的时候没有涉及的，也在这个时候检查
                 var dal = DAL.Create(ConnName);
                 if (!dal.HasCheckTables.Contains(TableName))
@@ -325,7 +326,7 @@ namespace XCode
                         ThreadPoolX.QueueUserWorkItem(CheckTable);
                 }
 
-                hasCheckModel = true;
+                _hasCheckModel = true;
             }
         }
         #endregion
