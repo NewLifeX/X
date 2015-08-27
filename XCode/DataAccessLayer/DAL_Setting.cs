@@ -64,6 +64,8 @@ namespace XCode.DataAccessLayer
         /// <param name="msg"></param>
         public static void WriteLog(String msg)
         {
+            if (!Debug) return;
+
             InitLog();
             XTrace.WriteLine(msg);
         }
@@ -73,6 +75,8 @@ namespace XCode.DataAccessLayer
         /// <param name="args"></param>
         public static void WriteLog(String format, params Object[] args)
         {
+            if (!Debug) return;
+
             InitLog();
             XTrace.WriteLine(format, args);
         }
@@ -82,6 +86,8 @@ namespace XCode.DataAccessLayer
         [Conditional("DEBUG")]
         public static void WriteDebugLog(String msg)
         {
+            if (!Debug) return;
+
             InitLog();
             XTrace.WriteLine(msg);
         }
@@ -92,6 +98,8 @@ namespace XCode.DataAccessLayer
         [Conditional("DEBUG")]
         public static void WriteDebugLog(String format, params Object[] args)
         {
+            if (!Debug) return;
+
             InitLog();
             XTrace.WriteLine(format, args);
         }
