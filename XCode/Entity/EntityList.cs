@@ -263,11 +263,11 @@ namespace XCode
             {
                 // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
                 var v6 = Convert.ToInt64(value);
-                return base.Find(e => Convert.ToInt64(e[name]) == v6);
+                return base.Find(e => e != null && Convert.ToInt64(e[name]) == v6);
             }
             else
             {
-                return base.Find(e => Object.Equals(e[name], value));
+                return base.Find(e => e != null && Object.Equals(e[name], value));
             }
         }
 
