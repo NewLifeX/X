@@ -44,7 +44,7 @@ namespace XCode.DataAccessLayer
                         dbpath = "~\\App_Data";
                 }
                 var connstr = "Data Source={0}\\{1}.db".F(dbpath, connName);
-                XTrace.WriteLine("自动为[{0}]设置连接字符串：{1}", connName, connstr);
+                WriteLog("自动为[{0}]设置连接字符串：{1}", connName, connstr);
                 AddConnStr(connName, connstr, null, "SQLite");
             }
 
