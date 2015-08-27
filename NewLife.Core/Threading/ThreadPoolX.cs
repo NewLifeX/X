@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using NewLife.Collections;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using ThreadState = System.Threading.ThreadState;
@@ -26,6 +25,10 @@ namespace NewLife.Threading
         /// <summary>线程池名称</summary>
         public String Name { get { return _Name; } set { _Name = value; } }
 
+        private Int32 _Interval = 10;
+        /// <summary>线程创建间隔。默认10毫秒</summary>
+        public Int32 Interval { get { return _Interval; } set { _Interval = value; } }
+
         private Exception _LastError;
         /// <summary>最后的异常</summary>
         public Exception LastError { get { return _LastError; } set { _LastError = value; } }
@@ -33,7 +36,7 @@ namespace NewLife.Threading
 
         #region 线程
         /// <summary>用于维护管理线程的锁</summary>
-        private Object SynLock_mt = new Object();
+        private readonly Object SynLock_mt = new Object();
         /// <summary>使用volatile关键字，等到对象创建完成</summary>
         private volatile Thread _ManagerThread;
         /// <summary>维护线程</summary>
@@ -65,24 +68,18 @@ namespace NewLife.Threading
         /// <summary>第一个任务到来时初始化线程池</summary>
         private void Init()
         {
-            if (ManagerThread.IsAlive) return;
-            if ((ManagerThread.ThreadState & ThreadState.Unstarted) != ThreadState.Unstarted) return;
+            var mt = ManagerThread;
+            if (mt.IsAlive) return;
+            if (!mt.ThreadState.Has(ThreadState.Unstarted)) return;
 
-            ManagerThread.Start();
+            mt.Start();
 
             WriteLog("初始化线程池：" + Name + " 最大：" + MaxThreads + " 最小：" + MinThreads);
         }
 
-        private List<ThreadX> _Threads;
+        private List<ThreadX> _Threads = new List<ThreadX>();
         /// <summary>线程组。适用该资源时，记得加上线程锁lockObj</summary>
-        private List<ThreadX> Threads
-        {
-            get
-            {
-                if (_Threads == null) _Threads = new List<ThreadX>();
-                return _Threads;
-            }
-        }
+        private List<ThreadX> Threads { get { return _Threads; } }
 
         private Int32 _ThreadCount;
         /// <summary>当前线程数</summary>
@@ -101,16 +98,9 @@ namespace NewLife.Threading
         #endregion
 
         #region 任务队列
-        private SortedList<Int32, ThreadTask> _Tasks;
+        private SortedList<Int32, ThreadTask> _Tasks = new SortedList<Int32, ThreadTask>();
         /// <summary>任务队列</summary>
-        private SortedList<Int32, ThreadTask> Tasks
-        {
-            get
-            {
-                if (_Tasks == null) _Tasks = new SortedList<Int32, ThreadTask>();
-                return _Tasks;
-            }
-        }
+        private SortedList<Int32, ThreadTask> Tasks { get { return _Tasks; } }
 
         /// <summary>任务队列同步锁</summary>
         private Object Sync_Tasks = new object();
@@ -188,7 +178,7 @@ namespace NewLife.Threading
                 Tasks.Add(task.ID, task);
 
                 //初始化线程池
-                if (ManagerThread == null || !ManagerThread.IsAlive) Init();
+                if (!ManagerThread.IsAlive) Init();
             }
 
             //通知管理线程，任务到达
@@ -228,13 +218,14 @@ namespace NewLife.Threading
             #endregion
 
             #region 检查任务是否正在处理
-            if (task == null && Threads.Count > 0)
+            var ths = Threads;
+            if (task == null && ths.Count > 0)
             {
                 lock (SyncLock_Threads)
                 {
-                    if (Threads.Count > 0)
+                    if (ths.Count > 0)
                     {
-                        foreach (var item in Threads)
+                        foreach (var item in ths)
                         {
                             if (item.Task != null && item.Task.ID == id)
                             {
@@ -271,11 +262,11 @@ namespace NewLife.Threading
             // 重点：
             // 这里使用了锁，很危险，所以仅仅在锁里面删除任务，任务的善后处理在锁外面完成
 
-            if (Tasks == null || Tasks.Count < 1) return;
+            if (Tasks.Count < 1) return;
             List<ThreadTask> list = null;
             lock (Sync_Tasks)
             {
-                if (Tasks == null || Tasks.Count < 1) return;
+                if (Tasks.Count < 1) return;
 
                 list = new List<ThreadTask>();
                 foreach (var item in Tasks.Values)
@@ -304,14 +295,15 @@ namespace NewLife.Threading
             // 重点：
             // 这里使用了锁，很危险，所以仅仅在锁里面删除任务，任务的善后处理在锁外面完成
 
-            if (Threads == null || Threads.Count < 1) return;
+            var ths = Threads;
+            if (ths.Count < 1) return;
             List<ThreadTask> list = null;
             lock (SyncLock_Threads)
             {
-                if (Threads == null || Threads.Count < 1) return;
+                if (ths.Count < 1) return;
 
                 list = new List<ThreadTask>();
-                foreach (var item in Threads)
+                foreach (var item in ths)
                 {
                     if (item.Running)
                     {
@@ -346,17 +338,18 @@ namespace NewLife.Threading
         /// <returns>任务状态</returns>
         public TaskState Query(Int32 id)
         {
-            if (Tasks == null || Tasks.Count < 1) return TaskState.Unstarted;
+            if (Tasks.Count < 1) return TaskState.Unstarted;
 
             //检查任务是否还在队列里面
             if (Tasks.ContainsKey(id)) return TaskState.Unstarted;
 
             //检查任务是否正在处理
-            if (Threads == null || Threads.Count < 1) return TaskState.Finished;
+            var ths = Threads;
+            if (ths.Count < 1) return TaskState.Finished;
             lock (SyncLock_Threads)
             {
-                if (Threads == null || Threads.Count < 1) return TaskState.Finished;
-                foreach (var item in Threads)
+                if (ths.Count < 1) return TaskState.Finished;
+                foreach (var item in ths)
                 {
                     if (item.Task != null && item.Task.ID == id)
                     {
@@ -387,7 +380,6 @@ namespace NewLife.Threading
         {
             var sw = Stopwatch.StartNew();
 
-            Int32 Interval = 10;
             while (true)
             {
                 if (RunningCount < 1)
@@ -403,7 +395,7 @@ namespace NewLife.Threading
                 }
                 if (sw.ElapsedMilliseconds >= millisecondsTimeout) return false;
 
-                Thread.Sleep(Interval);
+                if (Interval > 0) Thread.Sleep(Interval);
             }
             return true;
         }
@@ -424,28 +416,29 @@ namespace NewLife.Threading
                     lock (SyncLock_Threads)
                     {
                         #region 线程维护与统计
+                        var ths = Threads;
                         Int32 freecount = 0;
                         //清理死线程
-                        for (int i = Threads.Count - 1; i >= 0; i--)
+                        for (int i = ths.Count - 1; i >= 0; i--)
                         {
-                            if (Threads[i] == null)
+                            if (ths[i] == null)
                             {
-                                Threads.RemoveAt(i);
+                                ths.RemoveAt(i);
                                 XTrace.WriteLine(Name + "线程池的线程对象为空，设计错误！");
                             }
-                            else if (!Threads[i].IsAlive)
+                            else if (!ths[i].IsAlive)
                             {
-                                Threads[i].Dispose();
-                                XTrace.WriteLine(Threads[i].Name + "处于非活动状态，设计错误！");
-                                Threads.RemoveAt(i);
+                                ths[i].Dispose();
+                                XTrace.WriteLine(ths[i].Name + "处于非活动状态，设计错误！");
+                                ths.RemoveAt(i);
                             }
-                            else if (!Threads[i].Running)
+                            else if (!ths[i].Running)
                                 freecount++;
                         }
                         //正在处理任务的线程数
-                        RunningCount = Threads.Count - freecount;
+                        RunningCount = ths.Count - freecount;
 
-                        WriteLog("总数：" + Threads.Count + "  可用：" + freecount + " 任务数：" + Tasks.Count);
+                        WriteLog("总数：" + ths.Count + "  可用：" + freecount + " 任务数：" + Tasks.Count);
 
                         Int32 count = MinThreads - freecount;
                         //保留最小线程数个线程
@@ -453,18 +446,18 @@ namespace NewLife.Threading
                         {
                             for (int i = 0; i < count; i++)
                             {
-                                ThreadX thread = AddThread();
-                                if (thread != null) Threads.Add(thread);
+                                var thread = AddThread();
+                                if (thread != null) ths.Add(thread);
                             }
                         }
                         else if (count < 0)//过多活动线程，清理不活跃的
                         {
-                            for (int i = Threads.Count - 1; i >= 0 && count < 0; i--)
+                            for (int i = ths.Count - 1; i >= 0 && count < 0; i--)
                             {
-                                if (Threads[i].CanRelease)
+                                if (ths[i].CanRelease)
                                 {
-                                    Threads[i].Dispose();
-                                    Threads.RemoveAt(i);
+                                    ths[i].Dispose();
+                                    ths.RemoveAt(i);
                                     count++;
                                 }
                             }
@@ -480,7 +473,7 @@ namespace NewLife.Threading
                             while (Tasks.Count > 0)
                             {
                                 //借一个线程
-                                ThreadX thread = Open();
+                                var thread = Open();
                                 if (thread == null) break;
                                 WriteLog("借得线程" + thread.Name);
 
@@ -488,6 +481,9 @@ namespace NewLife.Threading
                                 Int32 id = Tasks.Keys[0];
                                 thread.Task = Tasks[id];
                                 Tasks.RemoveAt(0);
+
+                                // 创建线程之间暂停一下
+                                if (Interval > 0) Thread.Sleep(Interval);
 
                                 //处理任务
                                 thread.Start();
@@ -557,23 +553,24 @@ namespace NewLife.Threading
         {
             lock (SyncLock_Threads)
             {
-                foreach (var item in Threads)
+                var ths = Threads;
+                foreach (var item in ths)
                 {
                     if (item != null && item.IsAlive && !item.Running) return item;
                 }
 
                 //没有空闲线程，加一个
-                if (Threads.Count < MaxThreads)
+                if (ths.Count < MaxThreads)
                 {
                     var thread = AddThread();
-                    Threads.Add(thread);
+                    ths.Add(thread);
 
                     RunningCount++;
 
                     return thread;
                 }
-                else
-                    WriteLog("已达到最大线程数！");
+                //else
+                //    WriteLog("已达到最大线程数！");
             }
             return null;
         }
@@ -590,13 +587,14 @@ namespace NewLife.Threading
             //看这个线程是活的还是死的，死的需要清除
             if (!thread.IsAlive)
             {
-                if (Threads.Contains(thread))
+                var ths = Threads;
+                if (ths.Contains(thread))
                 {
                     lock (SyncLock_Threads)
                     {
-                        if (Threads.Contains(thread))
+                        if (ths.Contains(thread))
                         {
-                            Threads.Remove(thread);
+                            ths.Remove(thread);
                             XTrace.WriteLine("归还" + thread.Name + "时发现，线程被关闭了，设计错误！");
                         }
                     }
@@ -702,19 +700,20 @@ namespace NewLife.Threading
         private void Dispose(Boolean disposing)
         {
             WriteLog(Name + "线程池释放资源");
-            if (Threads != null && Threads.Count > 0)
+            var ths = Threads;
+            if (ths != null && ths.Count > 0)
             {
                 lock (SyncLock_Threads)
                 {
-                    if (Threads != null && Threads.Count > 0)
+                    if (ths != null && ths.Count > 0)
                     {
-                        for (int i = Threads.Count - 1; i >= 0; i--)
+                        for (int i = ths.Count - 1; i >= 0; i--)
                         {
-                            if (Threads[i] != null)
+                            if (ths[i] != null)
                             {
-                                Threads[i].Dispose();
+                                ths[i].Dispose();
                             }
-                            Threads.RemoveAt(i);
+                            ths.RemoveAt(i);
                         }
                     }
                 }
