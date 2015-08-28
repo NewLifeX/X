@@ -95,7 +95,7 @@ namespace XCode.DataAccessLayer
             //if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "WAL";
             // 绝大多数情况下，都是小型应用，发生数据损坏的几率微乎其微，而多出来的问题让人觉得很烦，所以还是采用内存设置
             // 将来可以增加自动恢复数据的功能
-            if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
+            if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "WAL";
 
             // 自动清理数据
             if (builder.ContainsKey("autoVacuum"))
@@ -105,7 +105,7 @@ namespace XCode.DataAccessLayer
             }
 
             // 默认超时时间
-            if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 2 + "";
+            if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";
 
             //var value = "";
             //if (builder.TryGetAndRemove("UseLock", out value) && !String.IsNullOrEmpty(value))
