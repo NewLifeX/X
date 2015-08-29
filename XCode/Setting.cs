@@ -48,7 +48,7 @@ namespace XCode
         public Boolean CodeDebug { get { return _CodeDebug; } set { _CodeDebug = value; } }
 
         private String _ServiceAddress = "http://j.NewLifeX.com/?id=3&f={0}";
-        /// <summary>下载数据库驱动的地址，文件名用{0}替代。默认http://j.NewLifeX.com/?id=3&f={0}</summary>
+        /// <summary>下载数据库驱动的地址，文件名用{0}替代。</summary>
         [Description("下载数据库驱动的地址，文件名用{0}替代。默认http://j.NewLifeX.com/?id=3&f={0}")]
         public String ServiceAddress { get { return _ServiceAddress; } set { _ServiceAddress = value; } }
 
@@ -87,7 +87,7 @@ namespace XCode
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {
-            Debug = Config.GetConfig<Boolean>("XCode.Debug", false);
+            Debug = Config.GetConfig<Boolean>("XCode.Debug", true);
             ShowSQL = Config.GetConfig<Boolean>("XCode.ShowSQL", Debug);
             SQLPath = Config.GetConfig<String>("XCode.SQLPath");
             TraceSQLTime = Config.GetConfig<Int32>("XCode.TraceSQLTime");

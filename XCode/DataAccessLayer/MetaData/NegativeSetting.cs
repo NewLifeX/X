@@ -32,7 +32,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         public void Init()
         {
-            Enable = Config.GetMutilConfig<Boolean>(false, "XCode.Negative.Enable", "XCode.Schema.Enable", "DatabaseSchema_Enable");
+            Enable = Config.GetMutilConfig<Boolean>(true, "XCode.Negative.Enable", "XCode.Schema.Enable", "DatabaseSchema_Enable");
             CheckOnly = Config.GetConfig<Boolean>("XCode.Negative.CheckOnly");
             NoDelete = Config.GetMutilConfig<Boolean>(false, "XCode.Negative.NoDelete", "XCode.Schema.NoDelete", "DatabaseSchema_NoDelete");
             Exclude = Config.GetMutilConfig<String>(null, "XCode.Negative.Exclude", "XCode.Schema.Exclude", "DatabaseSchema_Exclude");
