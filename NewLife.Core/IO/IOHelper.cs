@@ -363,11 +363,11 @@ namespace System
             #region 规避内存读取错误
             if (length > 0 && stream.CanSeek && stream.Length - stream.Position < length)
                 throw new XException("无法从长度只有{0}的数据流里面读取{1}字节的数据", stream.Length - stream.Position, length);
-            if (XTrace.Debug)
-            {
-                if (length > 2048)
-                    XTrace.WriteLine("设计错误！读取数据{0}字节超大，很有可能是上层代码逻辑出错，如果上层无错而需要屏蔽当前提示，建议关闭NewLife.Debug调试开关", length);
-            }
+            //if (XTrace.Debug)
+            //{
+            //    if (length > 2048)
+            //        XTrace.WriteLine("设计错误！读取数据{0}字节超大，很有可能是上层代码逻辑出错，如果上层无错而需要屏蔽当前提示，建议关闭NewLife.Debug调试开关", length);
+            //}
             #endregion
 
             // 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
