@@ -459,9 +459,12 @@ namespace NewLife.Reflection
                 {
                     var set = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
-                    set.Add(AppDomain.CurrentDomain.BaseDirectory);
+                    var basedir = AppDomain.CurrentDomain.BaseDirectory;
+                    set.Add(basedir);
 #if !Android
                     if (HttpRuntime.AppDomainId != null) set.Add(HttpRuntime.BinDirectory);
+                    var plugin = Setting.Current.GetPluginPath();
+                    if (!set.Contains(plugin)) set.Add(plugin);
 #endif
 
                     // 增加所有程序集所在目录为搜索目录，便于查找程序集

@@ -36,6 +36,11 @@ namespace NewLife
         [Description("临时目录")]
         public String TempPath { get { return _TempPath; } set { _TempPath = value; } }
 
+        private String _PluginPath;
+        /// <summary>扩展插件存放目录</summary>
+        [Description("扩展插件存放目录")]
+        public String PluginPath { get { return _PluginPath; } set { _PluginPath = value; } }
+
         private String _DownloadCache;
         /// <summary>下载扩展插件的缓存目录。默认位于系统盘的X\Cache</summary>
         [Description("网络调试。默认位于系统盘的X\\Cache")]
@@ -65,6 +70,7 @@ namespace NewLife
             LogLevel = Config.GetConfig<LogLevel>("NewLife.LogLevel", Debug ? LogLevel.Debug : LogLevel.Info);
             LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
             TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
+            PluginPath = Runtime.IsWeb ? "Bin" : "Plugins";
             NetDebug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
             ThreadDebug = Config.GetMutilConfig<Boolean>(false, "NewLife.Thread.Debug", "ThreadPoolDebug");
             WebCompressFiles = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
@@ -76,6 +82,16 @@ namespace NewLife
             if (DownloadCache.IsNullOrWhiteSpace()) DownloadCache = Path.GetPathRoot(Environment.SystemDirectory).CombinePath("X\\Cache");
 
             base.OnLoaded();
+        }
+
+        /// <summary>获取插件目录</summary>
+        /// <returns></returns>
+        public String GetPluginPath()
+        {
+            if (Runtime.IsWeb)
+                return "Bin".GetFullPath();
+            else
+                return PluginPath.GetBasePath();
         }
         #endregion
     }

@@ -15,17 +15,13 @@ namespace NewLife.Extension
 
         public SpeakProvider()
         {
-            //AssemblyX.AssemblyPaths.Add("C:\\X\\");
             try
             {
                 _type = typeName.GetTypeEx(true);
                 if (_type == null)
                 {
                     var file = "Microsoft.Speech.dll";
-                    if (Runtime.IsWeb)
-                        file = "Bin".CombinePath(file);
-                    else
-                        file = "Plugins".CombinePath(file).GetBasePath();
+                    file = Setting.Current.GetPluginPath().CombinePath(file);
                     file = file.EnsureDirectory();
 
                     if (!File.Exists(file))
