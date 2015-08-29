@@ -26,26 +26,29 @@ namespace NewLife.Web
             file = file.EnsureDirectory();
 
             // 如果本地没有数据库，则从网络下载
-            if (!File.Exists(file))
+            if (!dll.IsNullOrEmpty() || !File.Exists(file))
             {
-                XTrace.WriteLine("没有找到{0}，准备联网获取 {1}", disname ?? dll, url);
+                XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", disname ?? dll, url);
 
                 var client = new WebClientX(true, true);
                 client.Log = XTrace.Log;
-                var dir = Path.GetDirectoryName(file);
+                var dir = !dll.IsNullOrEmpty() ? Path.GetDirectoryName(file) : ".".GetFullPath();
                 var file2 = client.DownloadLinkAndExtract(url, linkName, dir);
             }
-            if (!File.Exists(file))
+            if (!dll.IsNullOrEmpty() && !File.Exists(file))
             {
                 XTrace.WriteLine("未找到 {0} {1}", disname, dll);
                 return null;
             }
 
-            var assembly = Assembly.LoadFrom(file);
-            if (assembly == null) return null;
+            type = typeName.GetTypeEx(true);
+            if (type != null) return type;
 
-            type = typeName.GetTypeEx(true) ?? assembly.GetType(typeName);
-            if (type == null) type = AssemblyX.Create(assembly).GetType(typeName);
+            //var assembly = Assembly.LoadFrom(file);
+            //if (assembly == null) return null;
+
+            //type = assembly.GetType(typeName);
+            //if (type == null) type = AssemblyX.Create(assembly).GetType(typeName);
             return type;
         }
     }

@@ -11,7 +11,9 @@ using System.Web;
 using Microsoft.Win32;
 using NewLife;
 using NewLife.Configuration;
+using NewLife.Log;
 using NewLife.Threading;
+using NewLife.Web;
 using XCode.Common;
 
 namespace XCode.DataAccessLayer
@@ -478,7 +480,11 @@ namespace XCode.DataAccessLayer
             }
 
             DAL.WriteLog("准备下载Oracle客户端运行时到{0}，可保存压缩包供将来直接解压使用！", target);
-            CheckAndDownload("OracleClient.zip", target);
+            //CheckAndDownload("OracleClient.zip", target);
+            var url = "http://www.newlifex.com/showtopic-51.aspx";
+            var client = new WebClientX(true, true);
+            client.Log = XTrace.Log;
+            client.DownloadLinkAndExtract(url, "OracleClient", target);
 
             file = Path.Combine(target, file);
             if (File.Exists(file))

@@ -2,17 +2,13 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.OleDb;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
 using NewLife;
-using NewLife.Compression;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -261,41 +257,36 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected static DbProviderFactory GetProviderFactory(String assemblyFile, String className)
         {
-            //反射实现获取数据库工厂
+            // 反射实现获取数据库工厂
             var file = assemblyFile;
+            file = NewLife.Setting.Current.GetPluginPath().CombinePath(file);
 
-            if (!Runtime.IsWeb)
-                file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
-            else
-                file = Path.Combine(HttpRuntime.BinDirectory, file);
+            var url = "http://www.newlifex.com/showtopic-51.aspx";
+            var name = Path.GetFileNameWithoutExtension(file);
+            var linkName = name;
+            if (Runtime.Is64BitProcess) linkName += "64";
+            var ver = Environment.Version;
+            if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
 
-            if (!File.Exists(file))
-            {
-                CheckAndDownload(file);
+            var type = PluginHelper.LoadPlugin(className, null, file, linkName, url);
 
-                // 如果还没有，就写异常
-                if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
-            }
+            // 如果还没有，就写异常
+            if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
 
-            var type = className.GetTypeEx(true);
             if (type == null)
             {
                 XTrace.WriteLine("驱动文件{0}非法或不适用于当前环境，准备删除后重新下载！", file);
 
-                File.Delete(file);
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (Exception ex) { XTrace.Log.Error(ex.ToString()); }
 
-                CheckAndDownload(file);
+                type = PluginHelper.LoadPlugin(className, null, file, linkName, url);
 
                 // 如果还没有，就写异常
                 if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
-
-                type = className.GetTypeEx(true);
-                // 上面这货有缓存，可能失败
-                if (type == null)
-                {
-                    var asm = Assembly.LoadFile(file);
-                    type = asm.GetType(className);
-                }
             }
             if (type == null) return null;
 
@@ -305,104 +296,104 @@ namespace XCode.DataAccessLayer
             return Reflect.GetValue(null, field) as DbProviderFactory;
         }
 
-        protected static void CheckAndDownload(String file, String targetPath = null)
-        {
-            if (!Path.IsPathRooted(file))
-            {
-                if (!Runtime.IsWeb)
-                    file = file.GetFullPath();
-                else
-                    file = Path.Combine(HttpRuntime.BinDirectory, file);
-            }
+        //protected static void CheckAndDownload(String file, String targetPath = null)
+        //{
+        //    if (!Path.IsPathRooted(file))
+        //    {
+        //        if (!Runtime.IsWeb)
+        //            file = file.GetFullPath();
+        //        else
+        //            file = Path.Combine(HttpRuntime.BinDirectory, file);
+        //    }
 
-            if (File.Exists(file) && new FileInfo(file).Length > 0) return;
+        //    if (File.Exists(file) && new FileInfo(file).Length > 0) return;
 
-            // 目标目录
-            var dir = targetPath;
-            if (String.IsNullOrEmpty(targetPath)) dir = Path.GetDirectoryName(file);
-            dir = dir.GetFullPath();
+        //    // 目标目录
+        //    var dir = targetPath;
+        //    if (String.IsNullOrEmpty(targetPath)) dir = Path.GetDirectoryName(file);
+        //    dir = dir.GetFullPath();
 
-            // 从网上下载文件
-            var zipfile = Path.GetFileNameWithoutExtension(file);
+        //    // 从网上下载文件
+        //    var zipfile = Path.GetFileNameWithoutExtension(file);
 
-            try
-            {
-                if (Runtime.Is64BitProcess) zipfile += "64";
+        //    try
+        //    {
+        //        if (Runtime.Is64BitProcess) zipfile += "64";
 
-                var ver = Environment.Version;
-                if (ver.Major >= 4) zipfile += "Fx" + ver.Major + ver.Minor;
+        //        var ver = Environment.Version;
+        //        if (ver.Major >= 4) zipfile += "Fx" + ver.Major + ver.Minor;
 
-                zipfile += ".zip";
-                var url = String.Format(ServiceAddress, zipfile);
+        //        zipfile += ".zip";
+        //        var url = String.Format(ServiceAddress, zipfile);
 
-                var sw = new Stopwatch();
-                sw.Start();
+        //        var sw = new Stopwatch();
+        //        sw.Start();
 
-                // 检查缓存文件，一个月内有效
-                var x = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), @"X");
-                var xfile = Path.Combine(x, zipfile);
-                var xf = new FileInfo(xfile);
-                if (CacheZip && xf.Exists && xf.Length > 0 && xf.LastWriteTime.AddMonths(1) > DateTime.Now)
-                    zipfile = xfile;
-                else
-                {
-                    // 目标Zip文件
-                    zipfile = Path.Combine(dir, zipfile);
-                    // Zip文件不存在，准备下载
-                    if (!File.Exists(zipfile) || new FileInfo(zipfile).Length <= 0)
-                    {
-                        DAL.WriteLog("准备从{0}下载文件到{1}！", url, zipfile);
-                        var client = new WebClientX(true, true);
-                        // 同步下载，3秒超时
-                        client.Timeout = 10000;
-                        //if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                        zipfile.EnsureDirectory(true);
-                        try
-                        {
-                            client.DownloadFile(url, zipfile);
-                        }
-                        catch
-                        {
-                            // 如果无法下载数据驱动，过期的缓存文件也要了，总比没有好
-                            if (CacheZip && xf.Exists && xf.Length > 0)
-                                zipfile = xfile;
-                            else
-                                throw;
-                        }
-                        finally { client.Dispose(); }
-                    }
+        //        // 检查缓存文件，一个月内有效
+        //        var x = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), @"X");
+        //        var xfile = Path.Combine(x, zipfile);
+        //        var xf = new FileInfo(xfile);
+        //        if (CacheZip && xf.Exists && xf.Length > 0 && xf.LastWriteTime.AddMonths(1) > DateTime.Now)
+        //            zipfile = xfile;
+        //        else
+        //        {
+        //            // 目标Zip文件
+        //            zipfile = Path.Combine(dir, zipfile);
+        //            // Zip文件不存在，准备下载
+        //            if (!File.Exists(zipfile) || new FileInfo(zipfile).Length <= 0)
+        //            {
+        //                DAL.WriteLog("准备从{0}下载文件到{1}！", url, zipfile);
+        //                var client = new WebClientX(true, true);
+        //                // 同步下载，3秒超时
+        //                client.Timeout = 10000;
+        //                //if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        //                zipfile.EnsureDirectory(true);
+        //                try
+        //                {
+        //                    client.DownloadFile(url, zipfile);
+        //                }
+        //                catch
+        //                {
+        //                    // 如果无法下载数据驱动，过期的缓存文件也要了，总比没有好
+        //                    if (CacheZip && xf.Exists && xf.Length > 0)
+        //                        zipfile = xfile;
+        //                    else
+        //                        throw;
+        //                }
+        //                finally { client.Dispose(); }
+        //            }
 
-                    if (CacheZip && !zipfile.EqualIgnoreCase(xfile))
-                    {
-                        DAL.WriteLog("准备缓存{0}到{1}！", zipfile, xfile);
-                        try
-                        {
-                            // 确保文件目录存在
-                            xfile.EnsureDirectory();
-                            File.Copy(zipfile, xfile, true);
-                        }
-                        catch (Exception ex)
-                        {
-                            DAL.WriteLog("缓存失败！{0}", ex);
-                        }
-                    }
-                }
-                sw.Stop();
-                var size = new FileInfo(zipfile).Length;
-                DAL.WriteLog("下载{0}完成（{3:n0}字节），耗时{2}，准备解压到{1}！", zipfile, dir, sw.Elapsed, size);
-                ZipFile.Extract(zipfile, dir, true);
-                DAL.WriteLog("解压完成！");
-            }
-            catch (ZipException ex)
-            {
-                DAL.WriteLog("解压失败，删除压缩文件！{0}", ex.ToString());
-                if (File.Exists(zipfile)) File.Delete(zipfile);
-            }
-            catch (Exception ex)
-            {
-                DAL.WriteLog(ex.ToString());
-            }
-        }
+        //            if (CacheZip && !zipfile.EqualIgnoreCase(xfile))
+        //            {
+        //                DAL.WriteLog("准备缓存{0}到{1}！", zipfile, xfile);
+        //                try
+        //                {
+        //                    // 确保文件目录存在
+        //                    xfile.EnsureDirectory();
+        //                    File.Copy(zipfile, xfile, true);
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    DAL.WriteLog("缓存失败！{0}", ex);
+        //                }
+        //            }
+        //        }
+        //        sw.Stop();
+        //        var size = new FileInfo(zipfile).Length;
+        //        DAL.WriteLog("下载{0}完成（{3:n0}字节），耗时{2}，准备解压到{1}！", zipfile, dir, sw.Elapsed, size);
+        //        ZipFile.Extract(zipfile, dir, true);
+        //        DAL.WriteLog("解压完成！");
+        //    }
+        //    catch (ZipException ex)
+        //    {
+        //        DAL.WriteLog("解压失败，删除压缩文件！{0}", ex.ToString());
+        //        if (File.Exists(zipfile)) File.Delete(zipfile);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        DAL.WriteLog(ex.ToString());
+        //    }
+        //}
 
         /// <summary>服务端地址</summary>
         static String ServiceAddress { get { return Setting.Current.ServiceAddress; } }
