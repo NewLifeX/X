@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using NewLife.Configuration;
@@ -35,9 +36,10 @@ namespace NewLife
         [Description("临时目录")]
         public String TempPath { get { return _TempPath; } set { _TempPath = value; } }
 
-        private String _CachePath;
-        /// <summary>缓存目录</summary>
-        public String CachePath { get { return _CachePath; } set { _CachePath = value; } }
+        private String _DownloadCache;
+        /// <summary>下载扩展插件的缓存目录。默认位于系统盘的X\Cache</summary>
+        [Description("网络调试。默认位于系统盘的X\\Cache")]
+        public String DownloadCache { get { return _DownloadCache; } set { _DownloadCache = value; } }
 
         private Boolean _NetDebug;
         /// <summary>网络调试</summary>
@@ -66,6 +68,14 @@ namespace NewLife
             NetDebug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
             ThreadDebug = Config.GetMutilConfig<Boolean>(false, "NewLife.Thread.Debug", "ThreadPoolDebug");
             WebCompressFiles = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
+        }
+
+        /// <summary>加载完成后</summary>
+        protected override void OnLoaded()
+        {
+            if (DownloadCache.IsNullOrWhiteSpace()) DownloadCache = Path.GetPathRoot(Environment.SystemDirectory).CombinePath("X\\Cache");
+
+            base.OnLoaded();
         }
         #endregion
     }

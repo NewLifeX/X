@@ -12,12 +12,14 @@ namespace NewLife.Web
     /// <summary>扩展的Web客户端</summary>
     public class WebClientX : WebClient
     {
+        #region 静态
         static WebClientX()
         {
             // 设置默认最大连接为20，关闭默认代理，提高响应速度
             ServicePointManager.DefaultConnectionLimit = 20;
             WebRequest.DefaultWebProxy = null;
         }
+        #endregion
 
         #region 为了Cookie而重写
         private CookieContainer _Cookie;
@@ -168,7 +170,7 @@ namespace NewLife.Web
             var fi = CheckCache(name, destdir);
             if (fi != null && fi.LastWriteTime < cacheTime) return fi.FullName;
             // 检查缓存目录
-            var cachedir = Path.GetPathRoot(Environment.SystemDirectory).CombinePath("X\\Cache");
+            var cachedir = Setting.Current.DownloadCache;
             if (!destdir.EqualIgnoreCase(cachedir))
             {
                 fi = CheckCache(name, cachedir) ?? fi;
@@ -210,7 +212,7 @@ namespace NewLife.Web
 
             if (File.Exists(file))
             {
-                Log.Info("下载完成，共{0:n0}字节，耗时{1}毫秒", file.AsFile().Length, sw.ElapsedMilliseconds);
+                Log.Info("下载完成，共{0:n0}字节，耗时{1:n0}毫秒", file.AsFile().Length, sw.ElapsedMilliseconds);
                 // 缓存文件
                 if (!destdir.EqualIgnoreCase(cachedir))
                 {
