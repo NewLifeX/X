@@ -8,9 +8,9 @@ namespace XCode.DataAccessLayer
     public class NegativeSetting
     {
         #region 属性
-        private Boolean _Enable;
-        /// <summary>是否启用反向工程，默认不启用。反向工程可以实现通过实体类反向更新数据库结构</summary>
-        [Description("是否启用反向工程，默认不启用。反向工程可以实现通过实体类反向更新数据库结构")]
+        private Boolean _Enable = true;
+        /// <summary>是否启用反向工程，默认启用。反向工程可以实现通过实体类反向更新数据库结构</summary>
+        [Description("是否启用反向工程，默认启用。反向工程可以实现通过实体类反向更新数据库结构")]
         public Boolean Enable { get { return _Enable; } set { _Enable = value; } }
 
         private Boolean _CheckOnly;

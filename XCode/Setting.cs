@@ -17,14 +17,14 @@ namespace XCode
     public class Setting : XmlConfig<Setting>
     {
         #region 属性
-        private Boolean _Debug;
-        /// <summary>是否启用调试。默认为不启用</summary>
+        private Boolean _Debug = true;
+        /// <summary>是否启用调试。默认启用</summary>
         [Description("调试")]
         public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
 
-        private Boolean _ShowSQL;
-        /// <summary>是否输出SQL语句，默认为调试开关Debug</summary>
-        [Description("是否输出SQL语句，默认为调试开关Debug")]
+        private Boolean _ShowSQL = true;
+        /// <summary>是否输出SQL语句，默认启用</summary>
+        [Description("是否输出SQL语句，默认启用")]
         public Boolean ShowSQL { get { return _ShowSQL; } set { _ShowSQL = value; } }
 
         private String _SQLPath = "";
@@ -47,9 +47,9 @@ namespace XCode
         [Description("是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
         public Boolean CodeDebug { get { return _CodeDebug; } set { _CodeDebug = value; } }
 
-        private String _ServiceAddress = "http://j.NewLifeX.com/?id=3&amp;f={0}";
-        /// <summary>下载数据库驱动的地址，文件名用{0}替代。默认http://j.NewLifeX.com/?id=3&amp;f={0}</summary>
-        [Description("下载数据库驱动的地址，文件名用{0}替代。默认http://j.NewLifeX.com/?id=3&amp;f={0}")]
+        private String _ServiceAddress = "http://j.NewLifeX.com/?id=3&f={0}";
+        /// <summary>下载数据库驱动的地址，文件名用{0}替代。默认http://j.NewLifeX.com/?id=3&f={0}</summary>
+        [Description("下载数据库驱动的地址，文件名用{0}替代。默认http://j.NewLifeX.com/?id=3&f={0}")]
         public String ServiceAddress { get { return _ServiceAddress; } set { _ServiceAddress = value; } }
 
         private Boolean _CacheZip = true;
@@ -144,8 +144,8 @@ namespace XCode
         public Boolean IgnoreCase { get { return _IgnoreCase; } set { _IgnoreCase = value; } }
 
         private String _DLLPath = "";
-        /// <summary>属性说明</summary>
-        [Description("是否限制只能访问拥有者的信息，默认false")]
+        /// <summary>OCI路径</summary>
+        [Description("OCI路径")]
         public String DLLPath { get { return _DLLPath; } set { _DLLPath = value; } }
         #endregion
     }

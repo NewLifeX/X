@@ -404,33 +404,11 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        static String _ServiceAddress;
         /// <summary>服务端地址</summary>
-        static String ServiceAddress
-        {
-            get
-            {
-                //if (_ServiceAddress == null) _ServiceAddress = Config.GetConfig<String>("XCode.ServiceAddress", "http://j.NewLifeX.com/?id=3&f={0}");
+        static String ServiceAddress { get { return Setting.Current.ServiceAddress; } }
 
-                //return _ServiceAddress;
-
-                return Setting.Current.ServiceAddress;
-            }
-        }
-
-        //static Boolean? _CacheZip;
         /// <summary>是否缓存Zip压缩包</summary>
-        static Boolean CacheZip
-        {
-            get
-            {
-                //if (_CacheZip == null) _CacheZip = Config.GetConfig<Boolean>("XCode.CacheZip", true);
-
-                //return _CacheZip.Value;
-
-                return Setting.Current.CacheZip;
-            }
-        }
+        static Boolean CacheZip { get { return Setting.Current.CacheZip; } }
 
         [DllImport("kernel32.dll")]
         static extern int SetDllDirectory(String pathName);
@@ -830,7 +808,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(file)) return file;
 
             file = file.Replace("|DataDirectory|", @"~\App_Data");
-            
+
             var sep = Path.DirectorySeparatorChar + "";
             var sep2 = sep == "/" ? "\\" : "/";
             var bpath = AppDomain.CurrentDomain.BaseDirectory.EnsureEnd(sep);

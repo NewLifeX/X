@@ -47,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test16();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -65,23 +65,7 @@ namespace Test
 
         static void Test2()
         {
-            HttpClientMessageProvider client = new HttpClientMessageProvider();
-            client.Uri = new Uri("http://localhost:8/Web/MessageHandler.ashx");
-
-            var rm = MethodMessage.Create("Admin.Login", "admin", "admin");
-            //rm.Header.Channel = 88;
-
-            //Message.Debug = true;
-            //var ms = rm.GetStream();
-            //var m2 = Message.Read(ms);
-
-            Message msg = client.SendAndReceive(rm, 0);
-            var rs = msg as EntityMessage;
-            Console.WriteLine("返回：" + rs.Value);
-
-            msg = client.SendAndReceive(rm, 0);
-            rs = msg as EntityMessage;
-            Console.WriteLine("返回：" + rs.Value);
+            var count = UserX.Meta.Count;
         }
 
         static void Test3()
