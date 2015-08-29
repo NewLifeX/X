@@ -17,7 +17,7 @@ namespace XCode.Cache
     /// <remarks>
     /// 以SQL为键对查询进行缓存，同时关联表。执行SQL时，根据关联表删除缓存。
     /// </remarks>
-    static class XCache
+    public static class XCache
     {
         #region 初始化
         private static Dictionary<String, CacheItem<DataSet>> _TableCache = new Dictionary<String, CacheItem<DataSet>>();
