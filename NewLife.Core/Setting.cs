@@ -11,7 +11,7 @@ namespace NewLife
 {
     /// <summary>核心设置</summary>
     [DisplayName("核心设置")]
-    [XmlConfigFile(@"Config\\Core.config", 15000)]
+    [XmlConfigFile(@"Config\Core.config", 15000)]
     public class Setting : XmlConfig<Setting>
     {
         #region 属性
@@ -34,6 +34,10 @@ namespace NewLife
         /// <summary>临时目录</summary>
         [Description("临时目录")]
         public String TempPath { get { return _TempPath; } set { _TempPath = value; } }
+
+        private String _CachePath;
+        /// <summary>缓存目录</summary>
+        public String CachePath { get { return _CachePath; } set { _CachePath = value; } }
 
         private Boolean _NetDebug;
         /// <summary>网络调试</summary>

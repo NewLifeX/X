@@ -7,7 +7,7 @@ namespace XAgent
 {
     /// <summary>服务设置</summary>
     [DisplayName("服务设置")]
-    [XmlConfigFile(@"Config\\XAgent.config", 15000)]
+    [XmlConfigFile(@"Config\XAgent.config", 15000)]
     public class Setting : XmlConfig<Setting>
     {
         #region 属性

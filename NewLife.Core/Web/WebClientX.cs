@@ -163,20 +163,23 @@ namespace NewLife.Web
         /// <returns>返回已下载的文件，无效时返回空</returns>
         public String DownloadLink(String url, String name, String destdir)
         {
+            var cacheTime = DateTime.Now.AddDays(1);
             // 猜测本地可能存在的文件
-            var di = destdir.AsDirectory();
-            if (di != null && di.Exists)
+            var fi = CheckCache(name, destdir);
+            if (fi != null && fi.LastWriteTime < cacheTime) return fi.FullName;
+            // 检查缓存目录
+            var cachedir = Path.GetPathRoot(Environment.SystemDirectory).CombinePath("X\\Cache");
+            if (!destdir.EqualIgnoreCase(cachedir))
             {
-                var fi = di.GetFiles(name + "*.zip").FirstOrDefault();
-                if (fi != null && fi.Exists)
-                {
-                    Log.Info("目标文件{0}已存在，无需下载", fi.FullName);
-                    return fi.FullName;
-                }
+                fi = CheckCache(name, cachedir) ?? fi;
+                if (fi != null && fi.LastWriteTime < cacheTime) return fi.FullName;
             }
 
+            // 确保即使联网下载失败，也返回较旧版本
+            var file = fi != null ? fi.FullName : null;
+
             var ls = GetLinks(url);
-            if (ls.Length == 0) return null;
+            if (ls.Length == 0) return file;
 
             // 过滤名称后降序排序
             ls = ls.Where(e => e.Name.StartsWithIgnoreCase(name) || e.Name.Contains(name))
@@ -184,11 +187,12 @@ namespace NewLife.Web
                 .OrderByDescending(e => e.Version)
                 .OrderByDescending(e => e.Time)
                 .ToArray();
-            if (ls.Length == 0) return null;
+            if (ls.Length == 0) return file;
 
             var link = ls[0];
-            var file = destdir.CombinePath(link.Name).EnsureDirectory();
+            file = destdir.CombinePath(link.Name).EnsureDirectory();
 
+            // 已经提前检查过，这里几乎不可能有文件存在
             if (File.Exists(file))
             {
                 Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", link.Name, link.Url);
@@ -205,9 +209,34 @@ namespace NewLife.Web
             sw.Stop();
 
             if (File.Exists(file))
+            {
                 Log.Info("下载完成，共{0:n0}字节，耗时{1}毫秒", file.AsFile().Length, sw.ElapsedMilliseconds);
+                // 缓存文件
+                if (!destdir.EqualIgnoreCase(cachedir))
+                {
+                    var cachefile = cachedir.CombinePath(link.Name);
+                    Log.Info("缓存到 {0}", cachefile);
+                    File.Copy(file, cachefile.EnsureDirectory(), true);
+                }
+            }
 
             return file;
+        }
+
+        FileInfo CheckCache(String name, String dir)
+        {
+            var di = dir.AsDirectory();
+            if (di != null && di.Exists)
+            {
+                var fi = di.GetFiles(name + "*.*").FirstOrDefault();
+                if (fi != null && fi.Exists)
+                {
+                    Log.Info("目标文件{0}已存在，更新于{1}", fi.FullName, fi.LastWriteTime);
+                    return fi;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>分析指定页面指定名称的链接，并下载到目标目录，解压Zip后返回目标文件</summary>

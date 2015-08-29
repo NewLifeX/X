@@ -13,7 +13,7 @@ namespace XCode
 {
     /// <summary>XCode设置</summary>
     [DisplayName("XCode设置")]
-    [XmlConfigFile(@"Config\\XCode.config", 15000)]
+    [XmlConfigFile(@"Config\XCode.config", 15000)]
     public class Setting : XmlConfig<Setting>
     {
         #region 属性

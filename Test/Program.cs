@@ -66,6 +66,7 @@ namespace Test
         static void Test2()
         {
             var count = UserX.Meta.Count;
+            "共有{0}行数据".F(count).SpeakAsync();
         }
 
         static void Test3()
