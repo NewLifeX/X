@@ -334,7 +334,7 @@ namespace NewLife.Reflection
             return GetType(typeName, false);
         }
 
-        static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
+        static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>() { CacheDefault = false };
         /// <summary>根据名称获取类型</summary>
         /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
@@ -407,10 +407,16 @@ namespace NewLife.Reflection
                         //    file = file.Substring("file:///".Length);
                         // ASP.Net中不会锁定原始DLL文件
                         var file = asm.Asm.Location;
-                        if (XTrace.Debug) XTrace.WriteLine("TypeX.GetType(\"{0}\")导致加载{1}", typeName, file);
-                        var asm2 = Assembly.LoadFile(file);
-                        var type2 = AssemblyX.Create(asm2).GetType(typeName);
-                        if (type2 != null) type = type2;
+                        try
+                        {
+                            type = null;
+                            var asm2 = Assembly.LoadFile(file);
+                            var type2 = AssemblyX.Create(asm2).GetType(typeName);
+                            if (type2 == null) continue;
+                            type = type2;
+                            if (XTrace.Debug) XTrace.WriteLine("TypeX.GetType(\"{0}\")导致加载{1}", typeName, file);
+                        }
+                        catch { }
 
                         return type;
                     }
