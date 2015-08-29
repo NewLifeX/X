@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
-using System.Reflection;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -17,62 +16,15 @@ namespace NewLife.Extension
         {
             try
             {
-                _type = typeName.GetTypeEx(true);
-                if (_type == null)
-                {
-                    var file = "Microsoft.Speech.dll";
-                    file = Setting.Current.GetPluginPath().CombinePath(file);
-                    file = file.EnsureDirectory();
+                var url = "http://www.newlifex.com/showtopic-51.aspx";
+                _type = PluginHelper.LoadPlugin(typeName, "语音驱动库", "Microsoft.Speech.dll", "Microsoft.Speech", url);
 
-                    if (!File.Exists(file))
-                    {
-                        var url = "http://www.newlifex.com/showtopic-51.aspx";
-                        XTrace.WriteLine("没有找到语音驱动库，准备联网获取 {0}", url);
-
-                        var client = new WebClientX(true, true);
-                        client.Log = XTrace.Log;
-                        var dir = Path.GetDirectoryName(file);
-
-                        var file2 = client.DownloadLinkAndExtract(url, "Microsoft.Speech", dir);
-
-                        if (!file2.IsNullOrEmpty())
-                        {
-                            // 尝试加载，如果成功，则说明已经安装运行时，仅仅缺类库
-                            LoadType(file);
-                        }
-                    }
-                    else
-                        LoadType(file);
-                }
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-
-                return;
-            }
-
-            try
-            {
                 CheckVoice();
             }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
             }
-        }
-
-        Boolean LoadType(String file)
-        {
-            if (!File.Exists(file)) return false;
-
-            var assembly = Assembly.LoadFrom(file);
-            if (assembly == null) return false;
-
-            _type = assembly.GetType(typeName);
-            if (_type == null) return false;
-
-            return true;
         }
 
         /// <summary>检查是否安装了语音库</summary>

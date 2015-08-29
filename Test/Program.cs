@@ -65,6 +65,9 @@ namespace Test
 
         static void Test2()
         {
+            var ss = PinYin.GetMulti('石');
+            Console.WriteLine(ss.Join());
+
             var count = UserX.Meta.Count;
             "共有{0}行数据".F(count).SpeakAsync();
         }

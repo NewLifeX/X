@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+using System.Linq;
 using System.Text;
-using NewLife.Compression;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Threading;
 using NewLife.Web;
 
 namespace NewLife.Common
@@ -657,35 +653,8 @@ namespace NewLife.Common
                 if (_inited) return null;
                 _inited = true;
 
-                // 微软拼音驱动文件
-                var file = "ChnCharInfo.dll";
-                if (Runtime.IsWeb) file = "Bin".CombinePath(file);
-                file = file.EnsureDirectory();
-
-                // 如果本地没有数据库，则从网络下载
-                if (!File.Exists(file))
-                {
-                    var url = "http://www.newlifex.com/showtopic-51.aspx";
-                    XTrace.WriteLine("没有找到拼音驱动库，准备联网获取 {0}", url);
-
-                    var client = new WebClientX();
-                    var dir = Path.GetDirectoryName(file);
-                    var sw = new Stopwatch();
-                    sw.Start();
-                    var file2 = client.DownloadLink(url, "PinYin", dir);
-                    sw.Stop();
-
-                    XTrace.WriteLine("下载完成，共{0:n0}字节，耗时{1}毫秒", file2.AsFile().Length, sw.ElapsedMilliseconds);
-
-                    ZipFile.Extract(file2, dir);
-                }
-                if (!File.Exists(file))
-                {
-                    XTrace.WriteLine("未找到微软拼音库ChnCharInfo.dll");
-                    return null;
-                }
-
-                _type = "ChineseChar".GetTypeEx(true);
+                var url = "http://www.newlifex.com/showtopic-51.aspx";
+                _type = PluginHelper.LoadPlugin("ChineseChar", "微软拼音库", "ChnCharInfo.dll", "PinYin", url);
                 if (_type == null) XTrace.WriteLine("未找到微软拼音库ChineseChar类");
             }
             if (_type == null) return null;

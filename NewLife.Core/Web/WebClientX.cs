@@ -249,12 +249,14 @@ namespace NewLife.Web
         public String DownloadLinkAndExtract(String url, String name, String destdir)
         {
             var file = "";
+            var cachedir = Setting.Current.DownloadCache;
             try
             {
-                file = DownloadLink(url, name, destdir);
+                file = DownloadLink(url, name, cachedir);
 
                 if (!file.IsNullOrEmpty())
                 {
+                    Log.Info("解压缩到 {0}", destdir);
                     ZipFile.Extract(file, destdir, true, false);
 
                     return file;
@@ -273,6 +275,11 @@ namespace NewLife.Web
                     }
                     catch { }
                 }
+                try
+                {
+                    var fi = CheckCache(name, cachedir);
+                }
+                catch { }
             }
 
             return null;
