@@ -169,6 +169,10 @@ namespace XCode.Configuration
         /// <remarks>主要用于界面上的控件显示排序</remarks>
         public int Sort { get; set; }
 
+
+        /// <summary>跟当前字段有关系的原始字段</summary>
+        /// <remarks>（原始字段，主要是在列表或者是Form里替换字段后可以读取原来的绑定关系）,不敢用OriField，因为暂时没有去查OriField具体的用途。</remarks>
+        public FieldItem OldField { get;  set; }
         #endregion
 
         #region 构造
