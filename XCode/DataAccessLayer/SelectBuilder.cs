@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -7,15 +7,15 @@ using System.Text.RegularExpressions;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>SQL²éÑ¯Óï¾äÉú³ÉÆ÷</summary>
+    /// <summary>SQLæŸ¥è¯¢è¯­å¥ç”Ÿæˆå™¨</summary>
     /// <remarks>
-    /// ²éÑ¯Óï¾äµÄ¸´ÔÓĞÔ£¬Ê¹µÃ¶à¸öµØ·½Ê¹ÓÃÆğÀ´¼«Îª²»·½Ãæ¡£
-    /// Ó¦¸ÃÒÔ±¾Àà×÷Îª²éÑ¯¶ÔÏó£¬Ö±½Ó´Ó×îÉÏ²ãÉîÈëµ½×îÏÂ²ã
+    /// æŸ¥è¯¢è¯­å¥çš„å¤æ‚æ€§ï¼Œä½¿å¾—å¤šä¸ªåœ°æ–¹ä½¿ç”¨èµ·æ¥æä¸ºä¸æ–¹é¢ã€‚
+    /// åº”è¯¥ä»¥æœ¬ç±»ä½œä¸ºæŸ¥è¯¢å¯¹è±¡ï¼Œç›´æ¥ä»æœ€ä¸Šå±‚æ·±å…¥åˆ°æœ€ä¸‹å±‚
     /// </remarks>
     public class SelectBuilder
     {
-        #region ÊôĞÔ
-        /// <summary>·ÖÒ³Ö÷¼ü</summary>
+        #region å±æ€§
+        /// <summary>åˆ†é¡µä¸»é”®</summary>
         public String Key
         {
             get { return _Keys != null && _Keys.Length > 0 ? _Keys[0] : null; }
@@ -23,14 +23,14 @@ namespace XCode.DataAccessLayer
         }
 
         private String[] _Keys;
-        /// <summary>·ÖÒ³Ö÷¼ü×é</summary>
+        /// <summary>åˆ†é¡µä¸»é”®ç»„</summary>
         public String[] Keys
         {
             get { return _Keys; }
             set { _Keys = value; }
         }
 
-        /// <summary>ÊÇ·ñ½µĞò</summary>
+        /// <summary>æ˜¯å¦é™åº</summary>
         public Boolean IsDesc
         {
             get { return _IsDescs != null && _IsDescs.Length > 0 ? _IsDescs[0] : false; }
@@ -38,7 +38,7 @@ namespace XCode.DataAccessLayer
         }
 
         private Boolean[] _IsDescs;
-        /// <summary>Ö÷¼ü×éÊÇ·ñ½µĞò</summary>
+        /// <summary>ä¸»é”®ç»„æ˜¯å¦é™åº</summary>
         public Boolean[] IsDescs
         {
             get { return _IsDescs; }
@@ -46,14 +46,14 @@ namespace XCode.DataAccessLayer
         }
 
         private Boolean _IsInt;
-        /// <summary>ÊÇ·ñÕûÊı×ÔÔöÖ÷¼ü</summary>
+        /// <summary>æ˜¯å¦æ•´æ•°è‡ªå¢ä¸»é”®</summary>
         public Boolean IsInt
         {
             get { return _IsInt; }
             set { _IsInt = value; }
         }
 
-        /// <summary>·ÖÒ³Ö÷¼üÅÅĞò</summary>
+        /// <summary>åˆ†é¡µä¸»é”®æ’åº</summary>
         public String KeyOrder
         {
             get
@@ -64,14 +64,14 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>·ÖÒ³Ö÷¼ü·´ÅÅĞò</summary>
+        /// <summary>åˆ†é¡µä¸»é”®åæ’åº</summary>
         public String ReverseKeyOrder
         {
             get
             {
                 if (_Keys == null || _Keys.Length < 1) return null;
 
-                // °ÑÅÅĞò·´¹ıÀ´
+                // æŠŠæ’åºåè¿‡æ¥
                 Boolean[] isdescs = new Boolean[_Keys.Length];
                 for (int i = 0; i < isdescs.Length; i++)
                 {
@@ -84,7 +84,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>ÅÅĞò×Ö¶ÎÊÇ·ñÎ¨Ò»ÇÒ¾ÍÊÇÖ÷¼ü</summary>
+        /// <summary>æ’åºå­—æ®µæ˜¯å¦å”¯ä¸€ä¸”å°±æ˜¯ä¸»é”®</summary>
         public Boolean KeyIsOrderBy
         {
             get
@@ -99,18 +99,18 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region SQL²éÑ¯Óï¾ä»ù±¾²¿·Ö
+        #region SQLæŸ¥è¯¢è¯­å¥åŸºæœ¬éƒ¨åˆ†
         private String _Column;
-        /// <summary>Ñ¡ÔñÁĞ</summary>
+        /// <summary>é€‰æ‹©åˆ—</summary>
         public String Column { get { return _Column; } set { _Column = value; } }
 
         private String _Table;
-        /// <summary>Êı¾İ±í</summary>
+        /// <summary>æ•°æ®è¡¨</summary>
         public String Table { get { return _Table; } set { _Table = value; } }
 
         private static Regex reg_gb = new Regex(@"\bgroup\b\s*\bby\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private String _Where;
-        /// <summary>Ìõ¼ş</summary>
+        /// <summary>æ¡ä»¶</summary>
         public String Where
         {
             get { return _Where; }
@@ -118,7 +118,7 @@ namespace XCode.DataAccessLayer
             {
                 _Where = value;
 
-                // ÀïÃæ¿ÉÄÜº¬ÓĞ·Ö×é
+                // é‡Œé¢å¯èƒ½å«æœ‰åˆ†ç»„
                 if (!String.IsNullOrEmpty(_Where))
                 {
                     String where = _Where.ToLower();
@@ -143,16 +143,16 @@ namespace XCode.DataAccessLayer
         }
 
         private String _GroupBy;
-        /// <summary>·Ö×é</summary>
+        /// <summary>åˆ†ç»„</summary>
         public String GroupBy { get { return _GroupBy; } set { _GroupBy = value; } }
 
         private String _Having;
-        /// <summary>·Ö×éÌõ¼ş</summary>
+        /// <summary>åˆ†ç»„æ¡ä»¶</summary>
         public String Having { get { return _Having; } set { _Having = value; } }
 
         private String _OrderBy;
-        /// <summary>ÅÅĞò</summary>
-        /// <remarks>¸øÅÅĞò¸³ÖµÊ±£¬Èç¹ûÃ»ÓĞÖ¸¶¨·ÖÒ³Ö÷¼ü£¬Ôò×Ô¶¯²ÉÓÃÅÅĞòÖĞµÄ×Ö¶Î</remarks>
+        /// <summary>æ’åº</summary>
+        /// <remarks>ç»™æ’åºèµ‹å€¼æ—¶ï¼Œå¦‚æœæ²¡æœ‰æŒ‡å®šåˆ†é¡µä¸»é”®ï¼Œåˆ™è‡ªåŠ¨é‡‡ç”¨æ’åºä¸­çš„å­—æ®µ</remarks>
         public String OrderBy
         {
             get { return _OrderBy; }
@@ -160,7 +160,7 @@ namespace XCode.DataAccessLayer
             {
                 _OrderBy = value;
 
-                // ·ÖÎöÅÅĞò×Ö¾ä£¬´ÓÖĞ·ÖÎö³ö·ÖÒ³ÓÃµÄÖ÷¼ü
+                // åˆ†ææ’åºå­—å¥ï¼Œä»ä¸­åˆ†æå‡ºåˆ†é¡µç”¨çš„ä¸»é”®
                 if (!String.IsNullOrEmpty(_OrderBy))
                 {
                     Boolean[] isdescs = null;
@@ -168,8 +168,8 @@ namespace XCode.DataAccessLayer
 
                     if (keys != null && keys.Length > 0)
                     {
-                        // 2012-02-16 ÅÅĞò×Ö¾äÀïÃæ¿ÉÄÜ°üº¬ÓĞSQLiteµÈµÄ·ÖÒ³×Ö¾ä£¬²»ÄÜËæ±ãµÄÓÅ»¯
-                        //// Èç¹ûÅÅĞò²»°üº¬À¨ºÅ£¬¿ÉÒÔÓÅ»¯ÅÅĞò
+                        // 2012-02-16 æ’åºå­—å¥é‡Œé¢å¯èƒ½åŒ…å«æœ‰SQLiteç­‰çš„åˆ†é¡µå­—å¥ï¼Œä¸èƒ½éšä¾¿çš„ä¼˜åŒ–
+                        //// å¦‚æœæ’åºä¸åŒ…å«æ‹¬å·ï¼Œå¯ä»¥ä¼˜åŒ–æ’åº
                         //if (!_OrderBy.Contains("(")) _OrderBy = Join(keys, isdescs);
 
                         if (Keys == null || Keys.Length < 1)
@@ -183,37 +183,37 @@ namespace XCode.DataAccessLayer
         }
 
         //private String _Limit;
-        ///// <summary>·ÖÒ³ÓÃµÄLimitÓï¾ä</summary>
+        ///// <summary>åˆ†é¡µç”¨çš„Limitè¯­å¥</summary>
         //public String Limit { get { return _Limit; } set { _Limit = value; } }
         #endregion
 
-        #region À©Õ¹ÊôĞÔ
-        /// <summary>Ñ¡ÔñÁĞ£¬Îª¿ÕÊ±Îª*</summary>
+        #region æ‰©å±•å±æ€§
+        /// <summary>é€‰æ‹©åˆ—ï¼Œä¸ºç©ºæ—¶ä¸º*</summary>
         public String ColumnOrDefault { get { return String.IsNullOrEmpty(Column) ? "*" : Column; } }
 
         private List<DbParameter> _Parameters;
-        /// <summary>²ÎÊı¼¯ºÏ</summary>
+        /// <summary>å‚æ•°é›†åˆ</summary>
         internal List<DbParameter> Parameters { get { return _Parameters ?? (_Parameters = new List<DbParameter>()); } set { _Parameters = value; } }
         #endregion
 
-        #region µ¼ÈëSQL
+        #region å¯¼å…¥SQL
         private const String SelectRegex = @"(?isx-m)
 ^
-\s*\bSelect\s+(?<Ñ¡ÔñÁĞ>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!)))
-\s+From\s+(?<Êı¾İ±í>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!)))
-(?:\s+Where\s+(?<Ìõ¼ş>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
-(?:\s+Group\s+By\s+(?<·Ö×é>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
-(?:\s+Having\s+(?<·Ö×éÌõ¼ş>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
-(?:\s+Order\s+By\s+(?<ÅÅĞò>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
+\s*\bSelect\s+(?<é€‰æ‹©åˆ—>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!)))
+\s+From\s+(?<æ•°æ®è¡¨>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!)))
+(?:\s+Where\s+(?<æ¡ä»¶>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
+(?:\s+Group\s+By\s+(?<åˆ†ç»„>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
+(?:\s+Having\s+(?<åˆ†ç»„æ¡ä»¶>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
+(?:\s+Order\s+By\s+(?<æ’åº>(?>[^()]+?|\((?<Open>)|\)(?<-Open>))*?(?(Open)(?!))))?
 $";
-        // ¿ÉÒÔµ¥¶ÀÊ¶±ğSQLiteµÈÊı¾İ¿â·ÖÒ³µÄLimit×Ö¾ä£¬µ«ÄÇÑù¼Ó´óÁË¸´ÔÓĞÔ
+        // å¯ä»¥å•ç‹¬è¯†åˆ«SQLiteç­‰æ•°æ®åº“åˆ†é¡µçš„Limitå­—å¥ï¼Œä½†é‚£æ ·åŠ å¤§äº†å¤æ‚æ€§
         // (?:\s+(?<Limit>(?>Limit|Rows)\s+(\d+\s*(?>,|To|Offset)\s*)?\d+))?
 
-        // Èç¹û×Ö·û´®ÄÚÈİÀïÃæº¬ÓĞÔ²À¨ºÅ£¬Õâ¸öÕıÔò½«ÎŞ·¨Õı³£¹¤×÷£¬×Ö·û´®±ß½çµÄµ¥ÒıºÅÒ²²»ºÃÓÃÆ½ºâ×é£¬¿ÉÒÔ¿¼ÂÇÔÚÆ¥ÅäÇ°ÏÈÓÃÕıÔòÌæ»»µô×Ö·û´®
+        // å¦‚æœå­—ç¬¦ä¸²å†…å®¹é‡Œé¢å«æœ‰åœ†æ‹¬å·ï¼Œè¿™ä¸ªæ­£åˆ™å°†æ— æ³•æ­£å¸¸å·¥ä½œï¼Œå­—ç¬¦ä¸²è¾¹ç•Œçš„å•å¼•å·ä¹Ÿä¸å¥½ç”¨å¹³è¡¡ç»„ï¼Œå¯ä»¥è€ƒè™‘åœ¨åŒ¹é…å‰å…ˆç”¨æ­£åˆ™æ›¿æ¢æ‰å­—ç¬¦ä¸²
 
         static Regex regexSelect = new Regex(SelectRegex, RegexOptions.Compiled);
 
-        /// <summary>·ÖÎöÒ»ÌõSQL</summary>
+        /// <summary>åˆ†æä¸€æ¡SQL</summary>
         /// <param name="sql"></param>
         /// <returns></returns>
         public Boolean Parse(String sql)
@@ -221,12 +221,12 @@ $";
             Match m = regexSelect.Match(sql);
             if (m != null && m.Success)
             {
-                Column = m.Groups["Ñ¡ÔñÁĞ"].Value;
-                Table = m.Groups["Êı¾İ±í"].Value;
-                Where = m.Groups["Ìõ¼ş"].Value;
-                GroupBy = m.Groups["·Ö×é"].Value;
-                Having = m.Groups["·Ö×éÌõ¼ş"].Value;
-                OrderBy = m.Groups["ÅÅĞò"].Value;
+                Column = m.Groups["é€‰æ‹©åˆ—"].Value;
+                Table = m.Groups["æ•°æ®è¡¨"].Value;
+                Where = m.Groups["æ¡ä»¶"].Value;
+                GroupBy = m.Groups["åˆ†ç»„"].Value;
+                Having = m.Groups["åˆ†ç»„æ¡ä»¶"].Value;
+                OrderBy = m.Groups["æ’åº"].Value;
                 //Limit = m.Groups["Limit"].Value;
 
                 return true;
@@ -236,8 +236,8 @@ $";
         }
         #endregion
 
-        #region µ¼³öSQL
-        /// <summary>ÒÑÖØĞ´¡£»ñÈ¡±¾BuilderËù·ÖÎöµÄSQLÓï¾ä</summary>
+        #region å¯¼å‡ºSQL
+        /// <summary>å·²é‡å†™ã€‚è·å–æœ¬Builderæ‰€åˆ†æçš„SQLè¯­å¥</summary>
         /// <returns></returns>
         public override String ToString()
         {
@@ -254,20 +254,20 @@ $";
             return sb.ToString();
         }
 
-        /// <summary>»ñÈ¡¼ÇÂ¼ÊıµÄÓï¾ä</summary>
+        /// <summary>è·å–è®°å½•æ•°çš„è¯­å¥</summary>
         /// <returns></returns>
         public virtual SelectBuilder SelectCount()
         {
             //SelectBuilder sb = this.Clone();
             //sb.OrderBy = null;
-            //// °üº¬GroupByÊ±£¬×÷Îª×Ó²éÑ¯
+            //// åŒ…å«GroupByæ—¶ï¼Œä½œä¸ºå­æŸ¥è¯¢
             //if (!String.IsNullOrEmpty(GroupBy)) sb.Table = String.Format("({0}) as SqlBuilder_T0", sb.ToString());
             //sb.Column = "Count(*)";
             //return sb;
 
-            // ¸ÃBUGÓÉ@ĞĞ×ß½­ºş£¨534163320£©·¢ÏÖ
+            // è¯¥BUGç”±@è¡Œèµ°æ±Ÿæ¹–ï¼ˆ534163320ï¼‰å‘ç°
 
-            // °üº¬GroupByÊ±£¬×÷Îª×Ó²éÑ¯
+            // åŒ…å«GroupByæ—¶ï¼Œä½œä¸ºå­æŸ¥è¯¢
             SelectBuilder sb = this.CloneWithGroupBy("XCode_T0");
             sb.Column = "Count(*)";
             sb.OrderBy = null;
@@ -275,15 +275,15 @@ $";
         }
         #endregion
 
-        #region ·½·¨
-        /// <summary>¿ËÂ¡</summary>
+        #region æ–¹æ³•
+        /// <summary>å…‹éš†</summary>
         /// <returns></returns>
         public SelectBuilder Clone()
         {
             SelectBuilder sb = new SelectBuilder();
             sb.Column = this.Column;
             sb.Table = this.Table;
-            // Ö±½Ó¿½±´×Ö¶Î£¬±ÜÃâÊôĞÔsetÊ±´¥·¢·ÖÎö´úÂë
+            // ç›´æ¥æ‹·è´å­—æ®µï¼Œé¿å…å±æ€§setæ—¶è§¦å‘åˆ†æä»£ç 
             sb._Where = this._Where;
             sb._OrderBy = this._OrderBy;
             sb.GroupBy = this.GroupBy;
@@ -296,7 +296,7 @@ $";
             return sb;
         }
 
-        /// <summary>Ôö¼ÓWhereÌõ¼ş</summary>
+        /// <summary>å¢åŠ Whereæ¡ä»¶</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         /// <returns></returns>
@@ -314,7 +314,7 @@ $";
             return this;
         }
 
-        /// <summary>Ôö¼Ó¶à¸ö×Ö¶Î£¬±ØĞëÊÇµ±Ç°±íÆÕÍ¨×Ö¶Î£¬Èç¹ûÄÚ²¿ÊÇ*Ôò²»¼Ó</summary>
+        /// <summary>å¢åŠ å¤šä¸ªå­—æ®µï¼Œå¿…é¡»æ˜¯å½“å‰è¡¨æ™®é€šå­—æ®µï¼Œå¦‚æœå†…éƒ¨æ˜¯*åˆ™ä¸åŠ </summary>
         /// <param name="columns"></param>
         /// <returns></returns>
         public SelectBuilder AppendColumn(params String[] columns)
@@ -325,7 +325,7 @@ $";
                     Column = String.Join(",", columns.Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
                 else
                 {
-                    // ¼ì²éÊÇ·ñÒÑ´æÔÚ¸Ã×Ö¶Î
+                    // æ£€æŸ¥æ˜¯å¦å·²å­˜åœ¨è¯¥å­—æ®µ
                     String[] selects = Column.Split(',');
                     selects = selects.Concat(columns).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
                     Column = String.Join(",", selects);
@@ -334,13 +334,13 @@ $";
             return this;
         }
 
-        /// <summary>×÷Îª×Ó²éÑ¯</summary>
-        /// <param name="alias">±ğÃû£¬Ä³Ğ©Êı¾İ¿â¿ÉÄÜĞèÒªÊ¹ÓÃas</param>
+        /// <summary>ä½œä¸ºå­æŸ¥è¯¢</summary>
+        /// <param name="alias">åˆ«åï¼ŒæŸäº›æ•°æ®åº“å¯èƒ½éœ€è¦ä½¿ç”¨as</param>
         /// <returns></returns>
         public SelectBuilder AsChild(String alias = null)
         {
             var t = this;
-            // Èç¹û°üº¬ÅÅĞò£¬Ôò±ØĞëÓĞTop£¬·ñÔòÈ¥µô
+            // å¦‚æœåŒ…å«æ’åºï¼Œåˆ™å¿…é¡»æœ‰Topï¼Œå¦åˆ™å»æ‰
             var hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWithIgnoreCase("top ");
             if (hasOrderWithoutTop)
             {
@@ -354,13 +354,13 @@ $";
             else
                 builder.Table = String.Format("({0}) {1}", t.ToString(), alias);
 
-            // °ÑÅÅĞò¼ÓÔØÍâ²ã
+            // æŠŠæ’åºåŠ è½½å¤–å±‚
             if (hasOrderWithoutTop) builder.OrderBy = this.OrderBy;
 
             return builder;
         }
 
-        /// <summary>´¦Àí¿ÉÄÜ´øGroupByµÄ¿ËÂ¡£¬Èç¹û´øÓĞGroupBy£¬Ôò±ØĞë×÷Îª×Ó²éÑ¯£¬·ñÔò¼òµ¥¿ËÂ¡¼´¿É</summary>
+        /// <summary>å¤„ç†å¯èƒ½å¸¦GroupByçš„å…‹éš†ï¼Œå¦‚æœå¸¦æœ‰GroupByï¼Œåˆ™å¿…é¡»ä½œä¸ºå­æŸ¥è¯¢ï¼Œå¦åˆ™ç®€å•å…‹éš†å³å¯</summary>
         /// <param name="alias"></param>
         /// <returns></returns>
         public SelectBuilder CloneWithGroupBy(String alias = null)
@@ -372,8 +372,8 @@ $";
         }
         #endregion
 
-        #region ¸¨Öú·½·¨
-        /// <summary>²ğ·ÖÅÅĞò×Ö¾ä</summary>
+        #region è¾…åŠ©æ–¹æ³•
+        /// <summary>æ‹†åˆ†æ’åºå­—å¥</summary>
         /// <param name="orderby"></param>
         /// <param name="isdescs"></param>
         /// <returns></returns>
@@ -382,10 +382,10 @@ $";
             isdescs = null;
             if (orderby.IsNullOrWhiteSpace()) return null;
             //2014-01-04 Modify by Apex
-            //´¦Àíorder by´øÓĞº¯ÊıµÄÇé¿ö£¬±ÜÃâ·Ö¸ôÊ±½«º¯Êı²ğ·Öµ¼ÖÂ´íÎó
+            //å¤„ç†order byå¸¦æœ‰å‡½æ•°çš„æƒ…å†µï¼Œé¿å…åˆ†éš”æ—¶å°†å‡½æ•°æ‹†åˆ†å¯¼è‡´é”™è¯¯
             foreach (Match match in Regex.Matches(orderby, @"\([^\)]*\)", RegexOptions.Singleline))
             {
-                orderby = orderby.Replace(match.Value, match.Value.Replace(",", "¡ï"));
+                orderby = orderby.Replace(match.Value, match.Value.Replace(",", "â˜…"));
             }
             String[] ss = orderby.Trim().Split(",");
             if (ss == null || ss.Length < 1) return null;
@@ -396,17 +396,17 @@ $";
             for (int i = 0; i < ss.Length; i++)
             {
                 String[] ss2 = ss[i].Trim().Split(' ');
-                // ²ğ·ÖÃû³ÆºÍÅÅĞò£¬²»ÖªµÀÊÇ·ñ´æÔÚ¶àÓàÒ»¸ö¿Õ¸ñµÄÇé¿ö
+                // æ‹†åˆ†åç§°å’Œæ’åºï¼Œä¸çŸ¥é“æ˜¯å¦å­˜åœ¨å¤šä½™ä¸€ä¸ªç©ºæ ¼çš„æƒ…å†µ
                 if (ss2 != null && ss2.Length > 0)
                 {
-                    keys[i] = ss2[0].Replace("¡ï", ",");
+                    keys[i] = ss2[0].Replace("â˜…", ",");
                     if (ss2.Length > 1 && ss2[1].EqualIgnoreCase("desc")) isdescs[i] = true;
                 }
             }
             return keys;
         }
 
-        /// <summary>Á¬½ÓÅÅĞò×Ö¾ä</summary>
+        /// <summary>è¿æ¥æ’åºå­—å¥</summary>
         /// <param name="keys"></param>
         /// <param name="isdescs"></param>
         /// <returns></returns>
@@ -428,8 +428,8 @@ $";
         }
         #endregion
 
-        #region ÀàĞÍ×ª»»
-        /// <summary>ÀàĞÍ×ª»»</summary>
+        #region ç±»å‹è½¬æ¢
+        /// <summary>ç±»å‹è½¬æ¢</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator String(SelectBuilder obj)
