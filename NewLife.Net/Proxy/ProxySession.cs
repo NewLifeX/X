@@ -2,7 +2,6 @@
 using System.IO;
 using System.Text;
 using NewLife.Log;
-using NewLife.Net.Common;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy

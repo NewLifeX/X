@@ -111,30 +111,6 @@ namespace Test
             //}
         }
 
-        static void Test6()
-        {
-            Message.DumpStreamWhenError = true;
-            //var msg = new EntityMessage();
-            //msg.Value = Guid.NewGuid();
-            var msg = new MethodMessage();
-            msg.TypeName = "Admin";
-            msg.Name = "Login";
-            msg.Parameters = new Object[] { "admin", "password" };
-
-            var kind = RWKinds.Json;
-            var ms = msg.GetStream(kind);
-            //ms = new MemoryStream(ms.ReadBytes(ms.Length - 1));
-            //Console.WriteLine(ms.ReadBytes().ToHex());
-            Console.WriteLine(ms.ToStr());
-            //ms = msg.GetStream(RWKinds.Xml);
-            //Console.WriteLine(ms.ToStr());
-
-            Message.Debug = true;
-            ms.Position = 0;
-            var rs = Message.Read(ms, kind);
-            Console.WriteLine(rs);
-        }
-
         static void Test7()
         {
             //Console.Write("请输入表达式：");

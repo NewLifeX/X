@@ -54,9 +54,6 @@
     <Compile Include="Application\EchoServer.cs" />
     <Compile Include="Application\SerialServer.cs" />
     <Compile Include="CoAP\CoAPMessage.cs" />
-    <Compile Include="Common\ClientMessageProvider.cs" />
-    <Compile Include="Common\SessionMessageProvider.cs" />
-    <Compile Include="Common\ServerMessageProvider.cs" />
     <Compile Include="Dhcp\DhcpClient.cs" />
     <Compile Include="Dhcp\DhcpMessageType.cs" />
     <Compile Include="Dhcp\DhcpEntity.cs" />
@@ -121,7 +118,6 @@
     <Compile Include="DNS\DNS_PTR.cs" />
     <Compile Include="Http\HttpHeader.cs" />
     <Compile Include="NTP\NTPClient.cs" />
-    <Compile Include="Application\StreamServer.cs" />
     <Compile Include="Application\TimeServer.cs" />
     <Compile Include="IO\FileClient.cs" />
     <Compile Include="IO\FileFormat.cs" />

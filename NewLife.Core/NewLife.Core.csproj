@@ -89,21 +89,12 @@
     <Compile Include="Log\LogLevel.cs" />
     <Compile Include="Log\NetworkLog.cs" />
     <Compile Include="Log\TextControlLog.cs" />
-    <Compile Include="Messaging\ChannelMessage.cs" />
-    <Compile Include="Messaging\CompressionMessage.cs" />
-    <Compile Include="Messaging\DataMessage.cs" />
-    <Compile Include="Messaging\EntitiesMessage.cs" />
-    <Compile Include="Messaging\HttpClientMessageProvider.cs" />
-    <Compile Include="Messaging\HttpServerMessageProvider.cs" />
-    <Compile Include="Messaging\IMessage.cs" />
-    <Compile Include="Messaging\IMessageProvider.cs" />
-    <None Include="Messaging\MessageHeader.cs" />
-    <Compile Include="Messaging\MessageBase.cs" />
-    <Compile Include="Messaging\MessageKind.cs" />
-    <Compile Include="Messaging\EntityMessage.cs" />
-    <Compile Include="Messaging\MethodMessage.cs" />
-    <Compile Include="Messaging\StringMessage.cs" />
-    <Compile Include="Messaging\GroupMessage.cs" />
+    <Compile Include="Messaging\IMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messaging\MessageBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
@@ -136,8 +127,6 @@
     <Compile Include="Event\WeakEventHandler.cs" />
     <Compile Include="Exceptions\XException.cs" />
     <Compile Include="IO\FileSource.cs" />
-    <Compile Include="IOModel\StreamHttpHandler.cs" />
-    <Compile Include="IOModel\IStreamHandler.cs" />
     <Compile Include="IO\IOHelper.cs" />
     <Compile Include="Log\TraceStream.cs" />
     <Compile Include="Log\TextFileLog.cs" />
@@ -196,8 +185,6 @@
     <Compile Include="Serialization\Base\ReaderBase.cs" />
     <Compile Include="Serialization\Base\ReaderWriterBase.cs" />
     <Compile Include="IO\ReadWriteStream.cs" />
-    <Compile Include="IOModel\StreamClient.cs" />
-    <Compile Include="IOModel\HttpStreamClient.cs" />
     <Compile Include="Serialization\Info\ReflectMemberInfo.cs" />
     <Compile Include="Serialization\Info\SimpleMemberInfo.cs" />
     <Compile Include="Serialization\Info\ObjectInfo.cs" />
@@ -208,9 +195,6 @@
     <Compile Include="Serialization\NameValue\NameValueWriter.cs" />
     <Compile Include="Serialization\Base\WriterBase.cs" />
     <Compile Include="Log\CodeTimer.cs" />
-    <Compile Include="Messaging\ExceptionMessage.cs" />
-    <Compile Include="Messaging\Message.cs" />
-    <Compile Include="Messaging\NullMessage.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />
     <Compile Include="Reflection\AttributeX.cs" />
     <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
@@ -313,8 +297,6 @@
     </EmbeddedResource>
     <None Include="Serialization\序列化架构.edx" />
     <None Include="Serialization\读写器模型.cd" />
-    <None Include="IOModel\数据流总线模型.cd" />
-    <None Include="Messaging\消息总线模型.cd" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
