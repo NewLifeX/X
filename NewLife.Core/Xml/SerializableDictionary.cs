@@ -1,12 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using NewLife.Reflection;
-
-#if NET4
-using System;
-#endif
 
 namespace NewLife.Xml
 {

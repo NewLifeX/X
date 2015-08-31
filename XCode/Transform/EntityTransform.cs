@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using NewLife;
 using NewLife.Log;
-#if !NET4
-using NewLife.Reflection;
-#endif
 using XCode.DataAccessLayer;
 using NewLife.Configuration;
 

@@ -1,5 +1,5 @@
 ﻿
-namespace NewLife.Reflection
+namespace System
 {
     /// <summary>没有参数和返回值的委托</summary>
     public delegate void Func();

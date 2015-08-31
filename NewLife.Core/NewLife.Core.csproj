@@ -47,10 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\CollectionHelper.cs" />
-    <Compile Include="Collections\ConcurrentDictionary.cs" />
-    <Compile Include="Collections\ConcurrentQueue.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
-    <Compile Include="Collections\HashSet.cs" />
     <Compile Include="Collections\IStack.cs" />
     <Compile Include="Collections\ListBase.cs" />
     <Compile Include="Collections\LockStack.cs" />
@@ -59,7 +56,6 @@
     <Compile Include="Collections\ObjectPoolTest.cs" />
     <Compile Include="Collections\SafeStack.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
-    <Compile Include="Collections\ConcurrentStack.cs" />
     <Compile Include="Collections\WeakRefDictionary.cs" />
     <Compile Include="Common\CombGuid.cs" />
     <Compile Include="Common\PinYin.cs" />
@@ -132,7 +128,6 @@
     <Compile Include="Net\SessionBase.cs" />
     <Compile Include="Net\ISocketSession.cs" />
     <Compile Include="Properties\AssemblyInfo_.cs" />
-    <Compile Include="Reflection\Action.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\StringHelper.cs" />
     <Compile Include="Configuration\Config.cs" />
