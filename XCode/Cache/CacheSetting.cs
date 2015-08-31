@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using NewLife.Configuration;
-using NewLife.Log;
-using XCode.DataAccessLayer;
 
 namespace XCode.Cache
 {
@@ -49,6 +45,7 @@ namespace XCode.Cache
         #endregion
 
         #region 方法
+        /// <summary>初始化</summary>
         public void Init()
         {
             Debug = Config.GetConfig<Boolean>("XCode.Cache.Debug", false);

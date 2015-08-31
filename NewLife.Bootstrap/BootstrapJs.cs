@@ -1,4 +1,5 @@
-﻿using NewLife.Web;
+﻿using System;
+using NewLife.Web;
 
 namespace NewLife.Bootstrap
 {
@@ -7,10 +8,10 @@ namespace NewLife.Bootstrap
     {
         /// <summary>重载Alert实现</summary>
         /// <param name="msg"></param>
-        protected override void OnAlert(string msg)
+        protected override void OnAlert(String message, String title, Int32 msDelay, String kind)
         {
-            msg = "Bootstrap " + msg;
-            base.OnAlert(msg);
+            message = "Bootstrap " + message;
+            base.OnAlert(message, title, msDelay, kind);
         }
     }
 }

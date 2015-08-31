@@ -174,7 +174,7 @@ namespace Test2
             //proxy.Port = 89;
             proxy.Local = "tcp://:89";
             proxy.Log = XTrace.Log;
-            proxy.SessionLog = XTrace.Log;
+            //proxy.SessionLog = XTrace.Log;
             proxy.Start();
 
             while (true)

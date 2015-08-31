@@ -30,6 +30,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
+        /// <summary>初始化</summary>
         public void Init()
         {
             Enable = Config.GetMutilConfig<Boolean>(true, "XCode.Negative.Enable", "XCode.Schema.Enable", "DatabaseSchema_Enable");

@@ -123,8 +123,8 @@ public partial class Pages_Admin : MyEntityList
         {
             if (admin.Name == "admin") return false;
 
-            String pass = DataHelper.Hash(admin.Name + rnd.Next(0, 10000)).Substring(0, 8).ToUpper();
-            admin.Password = DataHelper.Hash(pass);
+            String pass = SecurityHelper.MD5(admin.Name + rnd.Next(0, 10000), null).Substring(0, 8).ToUpper();
+            admin.Password = SecurityHelper.MD5(pass, null);
             File.AppendAllText(file, String.Format("{0}\t{1}\t{2}\r\n", admin.DisplayName, admin.Name, pass));
 
             return true;

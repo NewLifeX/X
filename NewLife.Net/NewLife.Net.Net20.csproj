@@ -60,8 +60,12 @@
     <Compile Include="Common\ClientMessageProvider.cs" />
     <Compile Include="Common\SessionMessageProvider.cs" />
     <Compile Include="Common\ServerMessageProvider.cs" />
-    <Compile Include="Dhcp\DchpMessageType.cs" />
+    <Compile Include="Dhcp\DhcpClient.cs" />
     <Compile Include="Dhcp\DhcpEntity.cs" />
+    <Compile Include="Dhcp\DhcpMessageType.cs" />
+    <Compile Include="Dhcp\DhcpOption.cs" />
+    <Compile Include="Dhcp\DhcpServer.cs" />
+    <Compile Include="Dhcp\DhcpSession.cs" />
     <Compile Include="DNS\BinaryDNS.cs" />
     <Compile Include="DNS\DNSOpcodeType.cs" />
     <Compile Include="DNS\DNSRcodeType.cs" />
@@ -143,7 +147,6 @@
     <Compile Include="Proxy\HttpReverseProxy.cs" />
     <Compile Include="Proxy\IProxy.cs" />
     <Compile Include="Proxy\IProxySession.cs" />
-    <Compile Include="Proxy\NATSession.cs" />
     <Compile Include="Proxy\ProxySession.cs" />
     <Compile Include="Proxy\ProxyBase.cs" />
     <Compile Include="Proxy\NATProxy.cs" />

@@ -1,5 +1,5 @@
 ﻿
-namespace NewLife.Reflection
+namespace System
 {
     ///// <summary>
     ///// 一个参数

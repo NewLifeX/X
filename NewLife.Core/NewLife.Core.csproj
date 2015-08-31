@@ -216,13 +216,6 @@
     <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
     <Compile Include="Reflection\DynamicAssembly.cs" />
-    <Compile Include="Remoting\EntityMessage.cs" />
-    <Compile Include="Remoting\MethodMessage.cs" />
-    <Compile Include="Remoting\RemotingClient.cs" />
-    <Compile Include="Remoting\RemotingMessage.cs" />
-    <Compile Include="Remoting\RemotingMessageHandler.cs" />
-    <Compile Include="Remoting\RemotingMessageType.cs" />
-    <Compile Include="Remoting\RemotingStreamHandler.cs" />
     <Compile Include="Serialization\Base\ReaderWriterSettings.cs" />
     <Compile Include="Serialization\Event\ReaderWriterEventArgs.cs" />
     <Compile Include="Serialization\Base\TextWriterBase.cs" />

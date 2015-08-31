@@ -5,12 +5,9 @@ using System.Data.Common;
 using System.Data.OleDb;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.IO;
-using NewLife.Log;
 using NewLife.Reflection;
-using XCode.Exceptions;
 
 #if ACCESS
 using ADODB;
@@ -43,7 +40,7 @@ namespace XCode.DataAccessLayer
 
                     // ºÏ≤ÈADOX
 #if !NET4
-                    CheckAndDownload("Interop.ADOX.dll");
+                    //CheckAndDownload("Interop.ADOX.dll");
 #endif
                 }
                 return _dbProviderFactory;

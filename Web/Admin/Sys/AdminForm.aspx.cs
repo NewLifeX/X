@@ -23,7 +23,7 @@ public partial class Pages_AdminForm : MyEntityForm
 
     void EntityForm_OnGetForm(object sender, EntityFormEventArgs e)
     {
-        if (!String.IsNullOrEmpty(frmPassword_.Text)) EntityForm.Entity.SetItem("Password", DataHelper.Hash(frmPassword_.Text));
+        if (!String.IsNullOrEmpty(frmPassword_.Text)) EntityForm.Entity.SetItem("Password", SecurityHelper.MD5(frmPassword_.Text, null));
     }
 
     protected override void OnInitComplete(EventArgs e)

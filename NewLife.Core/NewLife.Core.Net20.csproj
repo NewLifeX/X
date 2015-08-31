@@ -86,6 +86,7 @@
     <Compile Include="IO\PathHelper.cs" />
     <Compile Include="IO\StreamReaderX.cs" />
     <Compile Include="IO\StreamWriterX.cs" />
+    <Compile Include="Log\ActionLog.cs" />
     <Compile Include="Log\CompositeLog.cs" />
     <Compile Include="Log\ConsoleLog.cs" />
     <Compile Include="Log\ILog.cs" />
@@ -235,13 +236,6 @@
     <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
     <Compile Include="Reflection\DynamicAssembly.cs" />
-    <Compile Include="Remoting\EntityMessage.cs" />
-    <Compile Include="Remoting\MethodMessage.cs" />
-    <Compile Include="Remoting\RemotingClient.cs" />
-    <Compile Include="Remoting\RemotingMessage.cs" />
-    <Compile Include="Remoting\RemotingMessageHandler.cs" />
-    <Compile Include="Remoting\RemotingMessageType.cs" />
-    <Compile Include="Remoting\RemotingStreamHandler.cs" />
     <Compile Include="Serialization\Base\ReaderWriterSettings.cs" />
     <Compile Include="Serialization\Event\ReaderWriterEventArgs.cs" />
     <Compile Include="Serialization\Base\TextWriterBase.cs" />
@@ -256,6 +250,7 @@
     <Compile Include="Serialization\Xml\IXml.cs" />
     <Compile Include="Serialization\Xml\Xml.cs" />
     <Compile Include="Serialization\XSerializationException.cs" />
+    <Compile Include="Setting.cs" />
     <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\快速反射\TypeX.cs" />
     <Compile Include="Common\WeakReference.cs" />
@@ -270,7 +265,6 @@
     <Compile Include="Reflection\快速反射\MethodInfoX.cs" />
     <Compile Include="Reflection\快速反射\PropertyInfoX.cs" />
     <Compile Include="Security\Crc32.cs" />
-    <Compile Include="Security\DataHelper.cs" />
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
     <None Include="Serialization\Event\事件参数.cd" />
@@ -296,6 +290,7 @@
     <Compile Include="Web\Modules\UrlRewrite.cs" />
     <Compile Include="Data\PageParameter.cs" />
     <Compile Include="Web\Pager.cs" />
+    <Compile Include="Web\PluginHelper.cs" />
     <Compile Include="Web\WebClientX.cs">
       <SubType>Component</SubType>
     </Compile>
