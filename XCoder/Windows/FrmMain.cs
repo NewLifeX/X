@@ -20,12 +20,12 @@ namespace XCoder
 {
     public partial class FrmMain : Form
     {
-        #region 灞炴€?
-        /// <summary>閰嶇疆</summary>
+        #region 属性
+        /// <summary>配置</summary>
         public static XConfig Config { get { return XConfig.Current; } }
 
         private Engine _Engine;
-        /// <summary>鐢熸垚鍣?/summary>
+        /// <summary>生成器</summary>
         Engine Engine
         {
             get { return _Engine ?? (_Engine = new Engine(Config)); }
@@ -33,12 +33,12 @@ namespace XCoder
         }
         #endregion
 
-        #region 鐣岄潰鍒濆鍖?
+        #region 界面初始化
         public FrmMain()
         {
             InitializeComponent();
 
-            this.Icon = IcoHelper.GetIcon("妯″瀷");
+            this.Icon = IcoHelper.GetIcon("模型");
 
             AutoLoadTables(Config.ConnName);
         }
@@ -46,7 +46,7 @@ namespace XCoder
         private void FrmMain_Shown(object sender, EventArgs e)
         {
             //var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            //Text = String.Format("鏂扮敓鍛芥暟鎹ā鍨嬪伐鍏?v{0} {1:HH:mm:ss}缂栬瘧", asm.CompileVersion, asm.Compile);
+            //Text = String.Format("新生命数据模型工具 v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
@@ -79,23 +79,23 @@ namespace XCoder
         }
         #endregion
 
-        #region 杩炴帴銆佽嚜鍔ㄦ娴嬫暟鎹簱銆佸姞杞借〃
+        #region 连接、自动检测数据库、加载表
         private void bt_Connection_Click(object sender, EventArgs e)
         {
             SaveConfig();
 
-            if (bt_Connection.Text == "杩炴帴")
+            if (bt_Connection.Text == "连接")
             {
                 Engine = null;
                 LoadTables();
 
                 gbConnect.Enabled = false;
                 gbTable.Enabled = true;
-                妯″瀷ToolStripMenuItem.Visible = true;
-                鏋舵瀯绠＄悊SToolStripMenuItem.Visible = true;
+                模型ToolStripMenuItem.Visible = true;
+                架构管理SToolStripMenuItem.Visible = true;
                 //btnImport.Enabled = false;
-                btnImport.Text = "瀵煎嚭妯″瀷";
-                bt_Connection.Text = "鏂紑";
+                btnImport.Text = "导出模型";
+                bt_Connection.Text = "断开";
                 btnRefreshTable.Enabled = true;
             }
             else
@@ -104,15 +104,15 @@ namespace XCoder
 
                 gbConnect.Enabled = true;
                 gbTable.Enabled = false;
-                妯″瀷ToolStripMenuItem.Visible = false;
-                鏋舵瀯绠＄悊SToolStripMenuItem.Visible = false;
+                模型ToolStripMenuItem.Visible = false;
+                架构管理SToolStripMenuItem.Visible = false;
                 btnImport.Enabled = true;
-                btnImport.Text = "瀵煎叆妯″瀷";
-                bt_Connection.Text = "杩炴帴";
+                btnImport.Text = "导入模型";
+                bt_Connection.Text = "连接";
                 btnRefreshTable.Enabled = false;
                 Engine = null;
 
-                // 鏂紑鐨勬椂鍊欏啀鍙栦竴娆★紝纭繚涓嬫鑳藉強鏃跺緱鍒版柊鐨?
+                // 断开的时候再取一次，确保下次能及时得到新的
                 try
                 {
                     var list = DAL.Create(Config.ConnName).Tables;
@@ -136,7 +136,7 @@ namespace XCoder
         {
             var list = new List<String>();
 
-            // 鍔犱笂鏈満MSSQL
+            // 加上本机MSSQL
             String localName = "local_MSSQL";
             String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
             if (!ContainConnStr(localstr)) DAL.AddConnStr(localName, localstr, null, "mssql");
@@ -144,7 +144,7 @@ namespace XCoder
             var sw = new Stopwatch();
             sw.Start();
 
-            #region 妫€娴嬫湰鍦癆ccess鍜孲QLite
+            #region 检测本地Access和SQLite
             var n = 0;
             String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
             foreach (String item in ss)
@@ -167,22 +167,22 @@ namespace XCoder
             #endregion
 
             sw.Stop();
-            XTrace.WriteLine("鑷姩妫€娴嬫枃浠秢0}涓紝鍙戠幇鏁版嵁搴搟1}涓紝鑰楁椂锛歿2}锛?, ss.Length, n, sw.Elapsed);
+            XTrace.WriteLine("自动检测文件{0}个，发现数据库{1}个，耗时：{2}！", ss.Length, n, sw.Elapsed);
 
             foreach (var item in DAL.ConnStrs)
             {
                 if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
             }
 
-            // 杩滅▼鏁版嵁搴撹€楁椂澶暱锛岃繖閲屽厛鍒楀嚭鏉?
+            // 远程数据库耗时太长，这里先列出来
             this.Invoke(SetDatabaseList, list);
-            //!!! 蹇呴』鍙﹀瀹炰緥鍖栦竴涓垪琛紝鍚﹀垯浣滀负鏁版嵁婧愮粦瀹氭椂锛屼細鍥犱负鏄悓涓€涓璞¤€岃璺宠繃
+            //!!! 必须另外实例化一个列表，否则作为数据源绑定时，会因为是同一个对象而被跳过
             list = new List<String>(list);
 
             sw.Reset();
             sw.Start();
 
-            #region 鎺㈡祴杩炴帴涓殑鍏跺畠搴?
+            #region 探测连接中的其它库
             var sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
             n = 0;
             var names = new List<String>();
@@ -196,7 +196,7 @@ namespace XCoder
                     DataTable dt = null;
                     String dbprovider = null;
 
-                    // 鍒楀嚭鎵€鏈夋暟鎹簱
+                    // 列出所有数据库
                     Boolean old = DAL.ShowSQL;
                     DAL.ShowSQL = false;
                     try
@@ -214,7 +214,7 @@ namespace XCoder
                     var builder = new DbConnectionStringBuilder();
                     builder.ConnectionString = dal.ConnStr;
 
-                    // 缁熻搴撳悕
+                    // 统计库名
                     foreach (DataRow dr in dt.Rows)
                     {
                         String dbname = dr[0].ToString();
@@ -245,7 +245,7 @@ namespace XCoder
             #endregion
 
             sw.Stop();
-            XTrace.WriteLine("鍙戠幇杩滅▼鏁版嵁搴搟0}涓紝鑰楁椂锛歿1}锛?, n, sw.Elapsed);
+            XTrace.WriteLine("发现远程数据库{0}个，耗时：{1}！", n, sw.Elapsed);
 
             if (DAL.ConnStrs.ContainsKey(localName)) DAL.ConnStrs.Remove(localName);
             if (list.Contains(localName)) list.Remove(localName);
@@ -364,7 +364,7 @@ namespace XCoder
                 return;
             }
             var list = source as List<IDataTable>;
-            if (list[0].DbType == DatabaseType.SqlServer) // 澧炲姞瀵筍qlServer 2000鐨勭壒娈婂鐞? ahuang
+            if (list[0].DbType == DatabaseType.SqlServer) // 增加对SqlServer 2000的特殊处理  ahuang
             {
                 //list.Remove(list.Find(delegate(IDataTable p) { return p.Name == "dtproperties"; }));
                 //list.Remove(list.Find(delegate(IDataTable p) { return p.Name == "sysconstraints"; }));
@@ -373,12 +373,12 @@ namespace XCoder
                 list.RemoveAll(dt => dt.Name == "dtproperties" || dt.Name == "sysconstraints" || dt.Name == "syssegments" || dt.Description.Contains("[0E232FF0-B466-"));
             }
 
-            // 璁剧疆鍓嶆渶濂芥竻绌猴紝鍚﹀垯澶氭璁剧疆鏁版嵁婧愪細鐢ㄧ涓€娆＄粦瀹氭帶浠讹紝鐒跺悗瀹為檯鏁版嵁鏄渶鍚庝竴娆?
+            // 设置前最好清空，否则多次设置数据源会用第一次绑定控件，然后实际数据是最后一次
             //cbTableList.DataSource = source;
             cbTableList.Items.Clear();
             if (source != null)
             {
-                // 琛ㄥ悕鎺掑簭
+                // 表名排序
                 var tables = source as List<IDataTable>;
                 if (tables == null)
                     cbTableList.DataSource = source;
@@ -400,8 +400,8 @@ namespace XCoder
             ConnectionStringSettings setting;
             if (!DAL.ConnStrs.TryGetValue(name, out setting) || setting.ConnectionString.IsNullOrWhiteSpace()) return;
 
-            // 寮傛鍔犺浇
-            ThreadPoolX.QueueUserWorkItem(delegate(Object state) { IList<IDataTable> tables = DAL.Create((String)state).Tables; }, name, null);
+            // 异步加载
+            ThreadPoolX.QueueUserWorkItem(delegate (Object state) { IList<IDataTable> tables = DAL.Create((String)state).Tables; }, name, null);
         }
 
         private void btnRefreshTable_Click(object sender, EventArgs e)
@@ -410,7 +410,7 @@ namespace XCoder
         }
         #endregion
 
-        #region 鐢熸垚
+        #region 生成
         Stopwatch sw = new Stopwatch();
         private void bt_GenTable_Click(object sender, EventArgs e)
         {
@@ -428,11 +428,11 @@ namespace XCoder
             {
                 var ss = Engine.Render(table);
 
-                MessageBox.Show("鐢熸垚" + table + "鎴愬姛锛?, "鎴愬姛", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("生成" + table + "成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (TemplateException ex)
             {
-                MessageBox.Show(ex.Message, "妯＄増閿欒", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "模版错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
@@ -440,7 +440,7 @@ namespace XCoder
             }
 
             sw.Stop();
-            lb_Status.Text = "鐢熸垚 " + cbTableList.Text + " 瀹屾垚锛佽€楁椂锛? + sw.Elapsed;
+            lb_Status.Text = "生成 " + cbTableList.Text + " 完成！耗时：" + sw.Elapsed;
         }
 
         private void bt_GenAll_Click(object sender, EventArgs e)
@@ -461,13 +461,13 @@ namespace XCoder
             }
 
             sw.Stop();
-            lb_Status.Text = "鐢熸垚 " + tables.Count + " 涓被瀹屾垚锛佽€楁椂锛? + sw.Elapsed.ToString();
+            lb_Status.Text = "生成 " + tables.Count + " 个类完成！耗时：" + sw.Elapsed.ToString();
 
-            MessageBox.Show("鐢熸垚" + tables.Count + " 涓被鎴愬姛锛?, "鎴愬姛", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("生成" + tables.Count + " 个类成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         #endregion
 
-        #region 鍔犺浇銆佷繚瀛?
+        #region 加载、保存
         public void LoadConfig()
         {
             cbConn.Text = Config.ConnName;
@@ -503,7 +503,7 @@ namespace XCoder
         }
         #endregion
 
-        #region 闄勫姞淇℃伅
+        #region 附加信息
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             var control = sender as Control;
@@ -520,11 +520,11 @@ namespace XCoder
         private void label3_Click(object sender, EventArgs e)
         {
             Clipboard.SetData("1600800", null);
-            MessageBox.Show("QQ缇ゅ彿宸插鍒跺埌鍓垏鏉匡紒", "鎻愮ず");
+            MessageBox.Show("QQ群号已复制到剪切板！", "提示");
         }
         #endregion
 
-        #region 鎵撳紑杈撳嚭鐩綍
+        #region 打开输出目录
         private void btnOpenOutputDir_Click(object sender, EventArgs e)
         {
             var dir = txt_OutPath.Text.GetFullPath();
@@ -543,20 +543,20 @@ namespace XCoder
         }
         #endregion
 
-        #region 妯＄増鐩稿叧
+        #region 模版相关
         public void BindTemplate(ComboBox cb)
         {
             var list = new List<String>();
             foreach (var item in Engine.FileTemplates)
             {
-                list.Add("[鏂囦欢]" + item);
+                list.Add("[文件]" + item);
             }
             foreach (String item in Engine.Templates.Keys)
             {
                 String[] ks = item.Split('.');
                 if (ks == null || ks.Length < 1) continue;
 
-                String name = "[鍐呯疆]" + ks[0];
+                String name = "[内置]" + ks[0];
                 if (!list.Contains(name)) list.Add(name);
             }
             cb.Items.Clear();
@@ -579,38 +579,38 @@ namespace XCoder
 
         private void lbEditHeader_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var frm = FrmText.Create("C#鏂囦欢澶存ā鐗?, Config.HeadTemplate);
+            var frm = FrmText.Create("C#文件头模版", Config.HeadTemplate);
             frm.ShowDialog();
             Config.HeadTemplate = frm.Content.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
             frm.Dispose();
         }
         #endregion
 
-        #region 鑿滃崟
-        private void 閫€鍑篨ToolStripMenuItem_Click(object sender, EventArgs e)
+        #region 菜单
+        private void 退出XToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //Application.Exit();
             this.Close();
         }
 
-        private void 缁勪欢鎵嬪唽ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 组件手册ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var file = "X缁勪欢鎵嬪唽.chm";
+            var file = "X组件手册.chm";
             if (!File.Exists(file)) file = Path.Combine(@"C:\X\DLL", file);
             if (File.Exists(file)) Process.Start(file);
         }
 
-        private void 琛ㄥ悕瀛楁鍚嶅懡鍚嶈鑼僒oolStripMenuItem_Click(object sender, EventArgs e)
+        private void 表名字段名命名规范ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FrmText.Create("琛ㄥ悕瀛楁鍚嶅懡鍚嶈鑼?, Source.GetText("鏁版嵁搴撳懡鍚嶈鑼?)).Show();
+            FrmText.Create("表名字段名命名规范", Source.GetText("数据库命名规范")).Show();
         }
 
-        private void 鍦ㄧ嚎甯姪鏂囨。ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 在线帮助文档ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Process.Start("http://www.NewLifeX.com/showtopic-260.aspx?r=XCoder_v" + AssemblyX.Create(Assembly.GetExecutingAssembly()).Version);
         }
 
-        private void 妫€鏌ユ洿鏂癟oolStripMenuItem_Click(object sender, EventArgs e)
+        private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             XConfig.Current.LastUpdate = DateTime.Now;
 
@@ -628,33 +628,33 @@ namespace XCoder
                     up.Update();
                 }
                 else if (up.Links != null && up.Links.Length > 0)
-                    MessageBox.Show("娌℃湁鍙敤鏇存柊锛佹渶鏂皗0}".F(up.Links[0].Time), "鑷姩鏇存柊");
+                    MessageBox.Show("没有可用更新！最新{0}".F(up.Links[0].Time), "自动更新");
                 else
-                    MessageBox.Show("娌℃湁鍙敤鏇存柊锛?, "鑷姩鏇存柊");
+                    MessageBox.Show("没有可用更新！", "自动更新");
             }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
-                MessageBox.Show("鏇存柊澶辫触锛? + ex.Message, "鑷姩鏇存柊");
+                MessageBox.Show("更新失败！" + ex.Message, "自动更新");
             }
         }
 
-        private void 鍏充簬ToolStripMenuItem1_Click(object sender, EventArgs e)
+        private void 关于ToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            FrmText.Create("鍗囩骇鍘嗗彶", Source.GetText("UpdateInfo")).Show();
+            FrmText.Create("升级历史", Source.GetText("UpdateInfo")).Show();
         }
 
-        private void 鍗氬ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 博客ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Process.Start("http://nnhy.cnblogs.com");
         }
 
-        private void qQ缇?600800ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void qQ群1600800ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Process.Start("http://www.NewLifeX.com/?r=XCoder_v" + AssemblyX.Create(Assembly.GetExecutingAssembly()).Version);
         }
 
-        private void oracle瀹㈡埛绔繍琛屾椂妫€鏌oolStripMenuItem1_Click(object sender, EventArgs e)
+        private void oracle客户端运行时检查ToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             ThreadPoolX.QueueUserWorkItem(CheckOracle);
         }
@@ -666,22 +666,22 @@ namespace XCoder
             {
                 var list = DAL.Create("Oracle").Tables;
 
-                MessageBox.Show("Oracle瀹㈡埛绔繍琛屾椂妫€鏌ラ€氳繃锛?);
+                MessageBox.Show("Oracle客户端运行时检查通过！");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Oracle瀹㈡埛绔繍琛屾椂妫€鏌ュけ璐ワ紒涔熷彲鑳芥槸鐢ㄦ埛鍚嶅瘑鐮侀敊璇紒" + ex.ToString());
+                MessageBox.Show("Oracle客户端运行时检查失败！也可能是用户名密码错误！" + ex.ToString());
             }
         }
 
-        private void 鑷姩鏍煎紡鍖栬缃甌oolStripMenuItem_Click(object sender, EventArgs e)
+        private void 自动格式化设置ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FrmFix.Create(Config).ShowDialog();
         }
         #endregion
 
-        #region 妯″瀷绠＄悊
-        private void 妯″瀷绠＄悊MToolStripMenuItem_Click(object sender, EventArgs e)
+        #region 模型管理
+        private void 模型管理MToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var tables = Engine.Tables;
             if (tables == null || tables.Count < 1) return;
@@ -689,12 +689,12 @@ namespace XCoder
             FrmModel.Create(tables).Show();
         }
 
-        private void 瀵煎嚭妯″瀷EToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 导出模型EToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var tables = Engine.Tables;
             if (tables == null || tables.Count < 1)
             {
-                MessageBox.Show(this.Text, "鏁版嵁搴撴灦鏋勪负绌猴紒", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this.Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -715,7 +715,7 @@ namespace XCoder
                 String xml = DAL.Export(tables);
                 File.WriteAllText(saveFileDialog1.FileName, xml);
 
-                MessageBox.Show("瀵煎嚭鏋舵瀯鎴愬姛锛?, "瀵煎嚭鏋舵瀯", MessageBoxButtons.OK);
+                MessageBox.Show("导出架构成功！", "导出架构", MessageBoxButtons.OK);
             }
             catch (Exception ex)
             {
@@ -724,7 +724,7 @@ namespace XCoder
             }
         }
 
-        private void 鏋舵瀯绠＄悊SToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 架构管理SToolStripMenuItem_Click(object sender, EventArgs e)
         {
             String connName = "" + cbConn.SelectedValue;
             if (String.IsNullOrEmpty(connName)) return;
@@ -732,7 +732,7 @@ namespace XCoder
             FrmSchema.Create(DAL.Create(connName).Db).Show();
         }
 
-        private void sQL鏌ヨ鍣≦ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void sQL查询器QToolStripMenuItem_Click(object sender, EventArgs e)
         {
             String connName = "" + cbConn.SelectedValue;
             if (String.IsNullOrEmpty(connName)) return;
@@ -743,9 +743,9 @@ namespace XCoder
         private void btnImport_Click(object sender, EventArgs e)
         {
             var btn = sender as Button;
-            if (btn != null && btn.Text == "瀵煎嚭妯″瀷")
+            if (btn != null && btn.Text == "导出模型")
             {
-                瀵煎嚭妯″瀷EToolStripMenuItem_Click(null, EventArgs.Empty);
+                导出模型EToolStripMenuItem_Click(null, EventArgs.Empty);
                 return;
             }
 
@@ -762,10 +762,10 @@ namespace XCoder
                 SetTables(list);
 
                 gbTable.Enabled = true;
-                妯″瀷ToolStripMenuItem.Visible = true;
-                鏋舵瀯绠＄悊SToolStripMenuItem.Visible = false;
+                模型ToolStripMenuItem.Visible = true;
+                架构管理SToolStripMenuItem.Visible = false;
 
-                MessageBox.Show("瀵煎叆鏋舵瀯鎴愬姛锛佸叡" + (list == null ? 0 : list.Count) + "寮犺〃锛?, "瀵煎叆鏋舵瀯", MessageBoxButtons.OK);
+                MessageBox.Show("导入架构成功！共" + (list == null ? 0 : list.Count) + "张表！", "导入架构", MessageBoxButtons.OK);
             }
             catch (Exception ex)
             {
@@ -775,10 +775,10 @@ namespace XCoder
         }
         #endregion
 
-        #region 缃戦〉
+        #region 网页
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            // 缃戦〉鍔犺浇瀹屾垚鍚庯紝鑷姩鍚戜笅婊氬姩涓€娈佃窛绂伙紝瓒婅繃澶撮儴
+            // 网页加载完成后，自动向下滚动一段距离，越过头部
             webBrowser1.Document.Window.ScrollTo(0, 90);
         }
 
@@ -789,7 +789,7 @@ namespace XCoder
                 var url = e.Url.ToString();
                 if (!url.IsNullOrWhiteSpace())
                 {
-                    // 绮剧畝鐗堟浛鎹负瀹屾暣鐗?
+                    // 精简版替换为完整版
                     var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
                     url = url.Replace("/archiver/", "/");
                     if (url.Contains("?"))
@@ -813,8 +813,8 @@ namespace XCoder
         }
         #endregion
 
-        #region 娣诲姞妯″瀷-@瀹佹尝-灏忚懀 2013
-        private void 娣诲姞妯″瀷ToolStripMenuItem_Click(object sender, EventArgs e)
+        #region 添加模型-@宁波-小董 2013
+        private void 添加模型ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             NewModel.CreateForm().Show();
         }

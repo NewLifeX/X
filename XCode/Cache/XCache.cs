@@ -13,37 +13,37 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Cache
 {
-    /// <summary>鏁版嵁缂撳瓨绫?/summary>
+    /// <summary>数据缓存类</summary>
     /// <remarks>
-    /// 浠QL涓洪敭瀵规煡璇㈣繘琛岀紦瀛橈紝鍚屾椂鍏宠仈琛ㄣ€傛墽琛孲QL鏃讹紝鏍规嵁鍏宠仈琛ㄥ垹闄ょ紦瀛樸€?
+    /// 以SQL为键对查询进行缓存，同时关联表。执行SQL时，根据关联表删除缓存。
     /// </remarks>
     public static class XCache
     {
-        #region 鍒濆鍖?
+        #region 初始化
         private static Dictionary<String, CacheItem<DataSet>> _TableCache = new Dictionary<String, CacheItem<DataSet>>();
         private static Dictionary<String, CacheItem<Int32>> _IntCache = new Dictionary<String, CacheItem<Int32>>();
 
         static readonly String _dst = "XCache_DataSet_";
         static readonly String _int = "XCache_Int32_";
 
-        /// <summary>缂撳瓨鐩稿鏈夋晥鏈熴€?
-        /// -2	鍏抽棴缂撳瓨
-        /// -1	闈炵嫭鍗犳暟鎹簱锛屾湁澶栭儴绯荤粺鎿嶄綔鏁版嵁搴擄紝浣跨敤璇锋眰绾х紦瀛橈紱
-        ///  0	姘镐箙闈欐€佺紦瀛橈紱
-        /// >0	闈欐€佺紦瀛樻椂闂达紝鍗曚綅鏄锛?
+        /// <summary>缓存相对有效期。
+        /// -2	关闭缓存
+        /// -1	非独占数据库，有外部系统操作数据库，使用请求级缓存；
+        ///  0	永久静态缓存；
+        /// >0	静态缓存时间，单位是秒；
         /// </summary>
         //public static Int32 Expiration = -1;
         static Int32 Expiration { get { return Setting.Current.Cache.Expiration; } }
 
-        /// <summary>鏁版嵁缂撳瓨绫诲瀷</summary>
-        internal static CacheKinds Kind { get { return Expiration > 0 ? CacheKinds.鏈夋晥鏈熺紦瀛?: (CacheKinds)Expiration; } }
+        /// <summary>数据缓存类型</summary>
+        internal static CacheKinds Kind { get { return Expiration > 0 ? CacheKinds.有效期缓存 : (CacheKinds)Expiration; } }
 
-        /// <summary>鍒濆鍖栬缃€傝鍙栭厤缃?/summary>
+        /// <summary>初始化设置。读取配置</summary>
         static XCache()
         {
-            //璇诲彇缂撳瓨鏈夋晥鏈?
+            //读取缓存有效期
             //Expiration = Config.GetMutilConfig<Int32>(-2, "XCode.Cache.Expiration", "XCacheExpiration");
-            //璇诲彇妫€鏌ュ懆鏈?
+            //读取检查周期
             //CheckPeriod = Config.GetMutilConfig<Int32>(5, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
             CheckPeriod = Setting.Current.Cache.CheckPeriod;
 
@@ -52,46 +52,46 @@ namespace XCode.Cache
 
             if (DAL.Debug)
             {
-                // 闇€瑕佸鐞嗕竴涓嬶紝鑰屼笉鏄洿鎺ョ敤Kind杞崲鑰屾潵鐨勫瓧绗︿覆锛屽惁鍒欏彲鑳藉洜涓烘灇涓捐娣锋穯鍚庤€屾棤娉曟樉绀烘纭殑鍚嶅瓧
+                // 需要处理一下，而不是直接用Kind转换而来的字符串，否则可能因为枚举被混淆后而无法显示正确的名字
                 String name = null;
                 switch (Kind)
                 {
-                    case CacheKinds.鍏抽棴缂撳瓨:
-                        name = "鍏抽棴缂撳瓨";
+                    case CacheKinds.关闭缓存:
+                        name = "关闭缓存";
                         break;
-                    case CacheKinds.璇锋眰绾х紦瀛?
-                        name = "璇锋眰绾х紦瀛?;
+                    case CacheKinds.请求级缓存:
+                        name = "请求级缓存";
                         break;
-                    case CacheKinds.姘镐箙闈欐€佺紦瀛?
-                        name = "姘镐箙闈欐€佺紦瀛?;
+                    case CacheKinds.永久静态缓存:
+                        name = "永久静态缓存";
                         break;
-                    case CacheKinds.鏈夋晥鏈熺紦瀛?
-                        name = "鏈夋晥鏈熺紦瀛?;
+                    case CacheKinds.有效期缓存:
+                        name = "有效期缓存";
                         break;
                     default:
                         break;
                 }
-                if (Kind < CacheKinds.鏈夋晥鏈熺紦瀛?
-                    DAL.WriteLog("涓€绾х紦瀛橈細{0}", name);
+                if (Kind < CacheKinds.有效期缓存)
+                    DAL.WriteLog("一级缓存：{0}", name);
                 else
-                    DAL.WriteLog("涓€绾х紦瀛橈細{0}绉抺1}", Expiration, name);
+                    DAL.WriteLog("一级缓存：{0}秒{1}", Expiration, name);
             }
         }
         #endregion
 
-        #region 缂撳瓨缁存姢
-        /// <summary>缂撳瓨缁存姢瀹氭椂鍣?/summary>
+        #region 缓存维护
+        /// <summary>缓存维护定时器</summary>
         private static TimerX AutoCheckCacheTimer;
 
-        /// <summary>缁存姢瀹氭椂鍣ㄧ殑妫€鏌ュ懆鏈燂紝榛樿5绉?/summary>
+        /// <summary>维护定时器的检查周期，默认5秒</summary>
         public static Int32 CheckPeriod = 5;
 
-        /// <summary>缁存姢</summary>
+        /// <summary>维护</summary>
         /// <param name="obj"></param>
         private static void Check(Object obj)
         {
-            //鍏抽棴缂撳瓨銆佹案涔呴潤鎬佺紦瀛樺拰璇锋眰绾х紦瀛樻椂锛屼笉闇€瑕佹鏌?
-            if (Kind != CacheKinds.鏈夋晥鏈熺紦瀛? return;
+            //关闭缓存、永久静态缓存和请求级缓存时，不需要检查
+            if (Kind != CacheKinds.有效期缓存) return;
 
             if (_TableCache.Count > 0)
             {
@@ -140,38 +140,38 @@ namespace XCode.Cache
         }
 
         /// <summary>
-        /// 鍒涘缓瀹氭椂鍣ㄣ€?
-        /// 鍥犱负瀹氭椂鍣ㄧ殑鍘熷洜锛屽疄闄呯紦瀛樻椂闂村彲鑳借姣擡xpiration瑕佸ぇ
+        /// 创建定时器。
+        /// 因为定时器的原因，实际缓存时间可能要比Expiration要大
         /// </summary>
         private static void CreateTimer()
         {
-            //鍏抽棴缂撳瓨銆佹案涔呴潤鎬佺紦瀛樺拰璇锋眰绾х紦瀛樻椂锛屼笉闇€瑕佹鏌?
-            if (Kind != CacheKinds.鏈夋晥鏈熺紦瀛? return;
+            //关闭缓存、永久静态缓存和请求级缓存时，不需要检查
+            if (Kind != CacheKinds.有效期缓存) return;
 
             if (AutoCheckCacheTimer != null) return;
 
             AutoCheckCacheTimer = new TimerX(Check, null, CheckPeriod * 1000, CheckPeriod * 1000);
-            //// 澹版槑瀹氭椂鍣ㄣ€傛棤闄愬欢闀挎椂闂达紝瀹為檯涓婁笉宸ヤ綔
+            //// 声明定时器。无限延长时间，实际上不工作
             //AutoCheckCacheTimer = new Timer(new TimerCallback(Check), null, Timeout.Infinite, Timeout.Infinite);
-            //// 鏀瑰彉瀹氭椂鍣ㄤ负5绉掑悗瑙﹀彂涓€娆°€?
+            //// 改变定时器为5秒后触发一次。
             //AutoCheckCacheTimer.Change(CheckPeriod * 1000, CheckPeriod * 1000);
         }
         #endregion
 
-        #region 娣诲姞缂撳瓨
-        /// <summary>娣诲姞鏁版嵁琛ㄧ紦瀛樸€?/summary>
-        /// <param name="cache">缂撳瓨瀵硅薄</param>
-        /// <param name="prefix">鍓嶇紑</param>
-        /// <param name="sql">SQL璇彞</param>
-        /// <param name="value">寰呯紦瀛樿褰曢泦</param>
-        /// <param name="tableNames">琛ㄥ悕鏁扮粍</param>
+        #region 添加缓存
+        /// <summary>添加数据表缓存。</summary>
+        /// <param name="cache">缓存对象</param>
+        /// <param name="prefix">前缀</param>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="value">待缓存记录集</param>
+        /// <param name="tableNames">表名数组</param>
         static void Add<T>(Dictionary<String, CacheItem<T>> cache, String prefix, String sql, T value, String[] tableNames)
         {
-            //鍏抽棴缂撳瓨
-            if (Kind == CacheKinds.鍏抽棴缂撳瓨) return;
+            //关闭缓存
+            if (Kind == CacheKinds.关闭缓存) return;
 
-            //璇锋眰绾х紦瀛?
-            if (Kind == CacheKinds.璇锋眰绾х紦瀛?
+            //请求级缓存
+            if (Kind == CacheKinds.请求级缓存)
             {
                 if (Items == null) return;
 
@@ -179,7 +179,7 @@ namespace XCode.Cache
                 return;
             }
 
-            //闈欐€佺紦瀛?
+            //静态缓存
             if (cache.ContainsKey(sql)) return;
             lock (cache)
             {
@@ -188,30 +188,30 @@ namespace XCode.Cache
                 cache.Add(sql, new CacheItem<T>(tableNames, value, Expiration));
             }
 
-            //甯︽湁鏁堟湡
-            if (Kind == CacheKinds.鏈夋晥鏈熺紦瀛? CreateTimer();
+            //带有效期
+            if (Kind == CacheKinds.有效期缓存) CreateTimer();
         }
 
-        /// <summary>娣诲姞鏁版嵁琛ㄧ紦瀛樸€?/summary>
-        /// <param name="sql">SQL璇彞</param>
-        /// <param name="value">寰呯紦瀛樿褰曢泦</param>
-        /// <param name="tableNames">琛ㄥ悕鏁扮粍</param>
+        /// <summary>添加数据表缓存。</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="value">待缓存记录集</param>
+        /// <param name="tableNames">表名数组</param>
         public static void Add(String sql, DataSet value, String[] tableNames) { Add(_TableCache, _dst, sql, value, tableNames); }
 
-        /// <summary>娣诲姞Int32缂撳瓨銆?/summary>
-        /// <param name="sql">SQL璇彞</param>
-        /// <param name="value">寰呯紦瀛樻暣鏁?/param>
-        /// <param name="tableNames">琛ㄥ悕鏁扮粍</param>
+        /// <summary>添加Int32缓存。</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="value">待缓存整数</param>
+        /// <param name="tableNames">表名数组</param>
         public static void Add(String sql, Int32 value, String[] tableNames) { Add(_IntCache, _int, sql, value, tableNames); }
         #endregion
 
-        #region 鍒犻櫎缂撳瓨
-        /// <summary>绉婚櫎渚濊禆浜庢煇涓暟鎹〃鐨勭紦瀛?/summary>
-        /// <param name="tableName">鏁版嵁琛?/param>
+        #region 删除缓存
+        /// <summary>移除依赖于某个数据表的缓存</summary>
+        /// <param name="tableName">数据表</param>
         public static void Remove(String tableName)
         {
-            //璇锋眰绾х紦瀛?
-            if (Kind == CacheKinds.璇锋眰绾х紦瀛?
+            //请求级缓存
+            if (Kind == CacheKinds.请求级缓存)
             {
                 var cs = Items;
                 if (cs == null) return;
@@ -231,11 +231,11 @@ namespace XCode.Cache
                 return;
             }
 
-            //闈欐€佺紦瀛?
+            //静态缓存
             lock (_TableCache)
             {
-                // 2011-03-11 澶х煶澶?杩欓噷宸茬粡鎴愪负鎬ц兘鐡堕锛屽皢鏉ラ渶瑕佷紭鍖栵紝鐡堕鍦ㄤ簬_TableCache[sql]
-                // 2011-11-22 澶х煶澶?鏀逛负閬嶅巻闆嗗悎锛岃€屼笉鏄敭鍊硷紝閬垮厤姣忔鍙栧€肩殑鏃跺€欓兘瑕侀噸鏂版煡鎵?
+                // 2011-03-11 大石头 这里已经成为性能瓶颈，将来需要优化，瓶颈在于_TableCache[sql]
+                // 2011-11-22 大石头 改为遍历集合，而不是键值，避免每次取值的时候都要重新查找
                 var list = new List<String>();
                 foreach (var item in _TableCache)
                     if (item.Value.IsDependOn(tableName)) list.Add(item.Key);
@@ -254,7 +254,7 @@ namespace XCode.Cache
             }
         }
 
-        /// <summary>绉婚櫎渚濊禆浜庝竴缁勬暟鎹〃鐨勭紦瀛?/summary>
+        /// <summary>移除依赖于一组数据表的缓存</summary>
         /// <param name="tableNames"></param>
         public static void Remove(String[] tableNames)
         {
@@ -262,11 +262,11 @@ namespace XCode.Cache
                 Remove(tn);
         }
 
-        /// <summary>娓呯┖缂撳瓨</summary>
+        /// <summary>清空缓存</summary>
         public static void RemoveAll()
         {
-            //璇锋眰绾х紦瀛?
-            if (Kind == CacheKinds.璇锋眰绾х紦瀛?
+            //请求级缓存
+            if (Kind == CacheKinds.请求级缓存)
             {
                 var cs = Items;
                 if (cs == null) return;
@@ -281,7 +281,7 @@ namespace XCode.Cache
                     cs.Remove(obj);
                 return;
             }
-            //闈欐€佺紦瀛?
+            //静态缓存
             lock (_TableCache)
             {
                 _TableCache.Clear();
@@ -293,23 +293,23 @@ namespace XCode.Cache
         }
         #endregion
 
-        #region 鏌ユ壘缂撳瓨
-        /// <summary>鑾峰彇DataSet缂撳瓨</summary>
-        /// <param name="cache">缂撳瓨瀵硅薄</param>
-        /// <param name="sql">SQL璇彞</param>
-        /// <param name="value">缁撴灉</param>
+        #region 查找缓存
+        /// <summary>获取DataSet缓存</summary>
+        /// <param name="cache">缓存对象</param>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="value">结果</param>
         /// <returns></returns>
         static Boolean TryGetItem<T>(Dictionary<String, CacheItem<T>> cache, String sql, out T value)
         {
             value = default(T);
 
-            //鍏抽棴缂撳瓨
-            if (Kind == CacheKinds.鍏抽棴缂撳瓨) return false;
+            //关闭缓存
+            if (Kind == CacheKinds.关闭缓存) return false;
 
             CheckShowStatics(ref NextShow, ref Total, ShowStatics);
 
-            //璇锋眰绾х紦瀛?
-            if (Kind == CacheKinds.璇锋眰绾х紦瀛?
+            //请求级缓存
+            if (Kind == CacheKinds.请求级缓存)
             {
                 if (Items == null) return false;
 
@@ -331,29 +331,29 @@ namespace XCode.Cache
             return true;
         }
 
-        /// <summary>鑾峰彇DataSet缂撳瓨</summary>
-        /// <param name="sql">SQL璇彞</param>
-        /// <param name="ds">缁撴灉</param>
+        /// <summary>获取DataSet缓存</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="ds">结果</param>
         /// <returns></returns>
         public static Boolean TryGetItem(String sql, out DataSet ds) { return TryGetItem(_TableCache, sql, out ds); }
 
-        /// <summary>鑾峰彇Int32缂撳瓨</summary>
-        /// <param name="sql">SQL璇彞</param>
-        /// <param name="count">缁撴灉</param>
+        /// <summary>获取Int32缓存</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="count">结果</param>
         /// <returns></returns>
         public static Boolean TryGetItem(String sql, out Int32 count) { return TryGetItem(_IntCache, sql, out count); }
         #endregion
 
-        #region 灞炴€?
-        /// <summary>缂撳瓨涓暟</summary>
+        #region 属性
+        /// <summary>缓存个数</summary>
         internal static Int32 Count
         {
             get
             {
-                //鍏抽棴缂撳瓨
-                if (Kind == CacheKinds.鍏抽棴缂撳瓨) return 0;
-                //璇锋眰绾х紦瀛?
-                if (Kind == CacheKinds.璇锋眰绾х紦瀛?
+                //关闭缓存
+                if (Kind == CacheKinds.关闭缓存) return 0;
+                //请求级缓存
+                if (Kind == CacheKinds.请求级缓存)
                 {
                     if (Items == null) return 0;
                     var k = 0;
@@ -368,21 +368,21 @@ namespace XCode.Cache
             }
         }
 
-        /// <summary>璇锋眰绾х紦瀛橀」</summary>
+        /// <summary>请求级缓存项</summary>
         static IDictionary Items { get { return HttpContext.Current != null ? HttpContext.Current.Items : null; } }
         #endregion
 
-        #region 缁熻
-        /// <summary>鎬绘鏁?/summary>
+        #region 统计
+        /// <summary>总次数</summary>
         public static Int32 Total;
 
-        /// <summary>鍛戒腑</summary>
+        /// <summary>命中</summary>
         public static Int32 Shoot;
 
-        /// <summary>涓嬩竴娆℃樉绀烘椂闂?/summary>
+        /// <summary>下一次显示时间</summary>
         public static DateTime NextShow;
 
-        /// <summary>妫€鏌ュ苟鏄剧ず缁熻淇℃伅</summary>
+        /// <summary>检查并显示统计信息</summary>
         /// <param name="next"></param>
         /// <param name="total"></param>
         /// <param name="show"></param>
@@ -399,38 +399,38 @@ namespace XCode.Cache
             Interlocked.Increment(ref total);
         }
 
-        /// <summary>鏄剧ず缁熻淇℃伅</summary>
+        /// <summary>显示统计信息</summary>
         public static void ShowStatics()
         {
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                // 鎺掔増闇€瑕侊紝涓€涓腑鏂囧崰涓や釜瀛楃浣嶇疆
+                // 排版需要，一个中文占两个字符位置
                 var str = Kind.ToString();
-                sb.AppendFormat("涓€绾х紦瀛?{0,-" + (20 - str.Length) + "}>", str);
-                sb.AppendFormat("鎬绘鏁皗0,7:n0}", Total);
-                if (Shoot > 0) sb.AppendFormat("锛屽懡涓瓄0,7:n0}锛坽1,6:P02}锛?, Shoot, (Double)Shoot / Total);
+                sb.AppendFormat("一级缓存<{0,-" + (20 - str.Length) + "}>", str);
+                sb.AppendFormat("总次数{0,7:n0}", Total);
+                if (Shoot > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Shoot, (Double)Shoot / Total);
 
                 XTrace.WriteLine(sb.ToString());
             }
         }
         #endregion
 
-        #region 缂撳瓨绫诲瀷
-        /// <summary>鏁版嵁缂撳瓨绫诲瀷</summary>
+        #region 缓存类型
+        /// <summary>数据缓存类型</summary>
         internal enum CacheKinds
         {
-            /// <summary>鍏抽棴缂撳瓨</summary>
-            鍏抽棴缂撳瓨 = -2,
+            /// <summary>关闭缓存</summary>
+            关闭缓存 = -2,
 
-            /// <summary>璇锋眰绾х紦瀛?/summary>
-            璇锋眰绾х紦瀛?= -1,
+            /// <summary>请求级缓存</summary>
+            请求级缓存 = -1,
 
-            /// <summary>姘镐箙闈欐€佺紦瀛?/summary>
-            姘镐箙闈欐€佺紦瀛?= 0,
+            /// <summary>永久静态缓存</summary>
+            永久静态缓存 = 0,
 
-            /// <summary>甯︽湁鏁堟湡缂撳瓨</summary>
-            鏈夋晥鏈熺紦瀛?= 1
+            /// <summary>带有效期缓存</summary>
+            有效期缓存 = 1
         }
         #endregion
     }
