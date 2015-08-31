@@ -1,4 +1,4 @@
-﻿namespace FolderInfo
+﻿namespace XCoder.FolderInfo
 {
     partial class FrmMain
     {

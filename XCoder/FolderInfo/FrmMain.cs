@@ -7,10 +7,9 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using XCoder;
 using NewLife.Log;
 
-namespace FolderInfo
+namespace XCoder.FolderInfo
 {
     public partial class FrmMain : Form
     {

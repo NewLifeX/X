@@ -98,7 +98,11 @@ namespace XCoder
         {
             CreateForm<FolderInfo.FrmMain>();
         }
-       #endregion
+        private void 文件编码格式替换工具ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateForm<FolderInfo.FrmEncodeReplace>();
+        }
+        #endregion
 
         #region 菜单控制
         private void ShowNewForm(object sender, EventArgs e) { }
@@ -159,5 +163,7 @@ namespace XCoder
             }
         }
         #endregion
+
+       
     }
 }

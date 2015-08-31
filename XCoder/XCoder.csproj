@@ -45,6 +45,12 @@
       <Link>Properties\AssemblyInfo_.cs</Link>
     </Compile>
     <Compile Include="Engine\IcoHelper.cs" />
+    <Compile Include="FolderInfo\FrmEncodeReplace.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FolderInfo\FrmEncodeReplace.Designer.cs">
+      <DependentUpon>FrmEncodeReplace.cs</DependentUpon>
+    </Compile>
     <Compile Include="FolderInfo\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -110,6 +116,9 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="XNet\UIConfig.cs" />
+    <EmbeddedResource Include="FolderInfo\FrmEncodeReplace.resx">
+      <DependentUpon>FrmEncodeReplace.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FolderInfo\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
