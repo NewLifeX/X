@@ -41,7 +41,7 @@ namespace NewLife.Extension
                     var flag = false;
                     foreach (var item in vs)
                     {
-                        XTrace.WriteLine("语音库：{0}", item.GetValue("VoiceInfo").GetValue("Description"));
+                        if (XTrace.Debug) XTrace.WriteLine("语音库：{0}", item.GetValue("VoiceInfo").GetValue("Description"));
 
                         if ((Boolean)item.GetValue("Enabled")) flag = true;
                     }

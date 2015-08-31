@@ -162,14 +162,12 @@ namespace NewLife.Reflection
         {
             if (parameters == null || parameters.Count < 1) return Execute(code);
 
-            var ps = new Object[parameters.Count];
-            parameters.Values.CopyTo(ps, 0);
+            var ps = parameters.Values.ToArray();
 
             var se = Create(code);
             if (se != null && se.Method != null) return se.Invoke(ps);
 
-            var names = new String[parameters.Count];
-            parameters.Keys.CopyTo(names, 0);
+            var names = parameters.Keys.ToArray();
             var types = ps.GetTypeArray();
 
             var dic = se.Parameters;

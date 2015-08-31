@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using NewLife.Log;
-using NewLife.Reflection;
 
 namespace System
 {
@@ -749,8 +748,9 @@ namespace System
         /// <param name="arguments">命令参数</param>
         /// <param name="msWait">等待毫秒数</param>
         /// <param name="output">进程输出内容。默认为空时输出到日志</param>
+        /// <param name="onExit">进程退出时执行</param>
         /// <returns>进程退出代码</returns>
-        public static Int32 Run(this String cmd, String arguments = null, Int32 msWait = 0, Action<String> output = null)
+        public static Int32 Run(this String cmd, String arguments = null, Int32 msWait = 0, Action<String> output = null, Action<Process> onExit = null)
         {
             if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
@@ -777,6 +777,7 @@ namespace System
                     p.ErrorDataReceived += (s, e) => XTrace.Log.Error(e.Data);
                 }
             }
+            if (onExit != null) p.Exited += (s, e) => onExit(s as Process);
 
             p.Start();
             if (msWait > 0 && (output != null || NewLife.Runtime.IsConsole))
