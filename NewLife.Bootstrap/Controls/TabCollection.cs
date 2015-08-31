@@ -1,4 +1,4 @@
-// TabCollection.cs
+﻿// TabCollection.cs
 
 // Copyright (C) 2013 Pedro Fernandes
 

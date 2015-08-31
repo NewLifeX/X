@@ -1,4 +1,4 @@
-//using System;
+Ôªø//using System;
 //using System.Collections.Generic;
 //using System.Text;
 //using System.Web.UI.WebControls;
@@ -7,7 +7,7 @@
 //namespace XControl.View
 //{
 //    /// <summary>
-//    /// ±Ì∏Ò
+//    /// Ë°®Ê†º
 //    /// </summary>
 //    [ToolboxItem(false)]
 //    internal class XTable : Panel
@@ -15,7 +15,7 @@
 //    }
 
 //    /// <summary>
-//    /// ––
+//    /// Ë°å
 //    /// </summary>
 //    [ToolboxItem(false)]
 //    internal class XRow : Panel
@@ -23,7 +23,7 @@
 //    }
 
 //    /// <summary>
-//    /// µ•‘™∏Ò
+//    /// ÂçïÂÖÉÊ†º
 //    /// </summary>
 //    [ToolboxItem(false)]
 //    internal class XCell : Panel

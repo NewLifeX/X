@@ -1,63 +1,63 @@
-using System;
+ï»¿using System;
 using System.IO;
 using NewLife.Compression.LZMA;
 using System.IO.Compression;
 
 namespace NewLife.Compression
 {
-    /// <summary>½âÂëÊäÈëÁ÷Òı·¢Òì³£</summary>
+    /// <summary>è§£ç è¾“å…¥æµå¼•å‘å¼‚å¸¸</summary>
     class DataErrorException : ApplicationException
     {
         public DataErrorException() : base("Data Error") { }
     }
 
-    /// <summary>ÎŞĞ§²ÎÊı·¶Î§</summary>
+    /// <summary>æ— æ•ˆå‚æ•°èŒƒå›´</summary>
     class InvalidParamException : ApplicationException
     {
         public InvalidParamException() : base("Invalid Parameter") { }
     }
 
-    /// <summary>±àÂë½ø¶È</summary>
+    /// <summary>ç¼–ç è¿›åº¦</summary>
     public interface ICodeProgress
     {
-        /// <summary>ÉèÖÃ½ø¶È</summary>
-        /// <param name="inSize">ÊäÈë´óĞ¡£¬-1±íÊ¾Î´Öª</param>
-        /// <param name="outSize">Êä³ö´óĞ¡£¬-1±íÊ¾Î´Öª</param>
+        /// <summary>è®¾ç½®è¿›åº¦</summary>
+        /// <param name="inSize">è¾“å…¥å¤§å°ï¼Œ-1è¡¨ç¤ºæœªçŸ¥</param>
+        /// <param name="outSize">è¾“å‡ºå¤§å°ï¼Œ-1è¡¨ç¤ºæœªçŸ¥</param>
         void SetProgress(Int64 inSize, Int64 outSize);
     };
 
-    /// <summary>±àÂë½Ó¿Ú</summary>
+    /// <summary>ç¼–ç æ¥å£</summary>
     public interface ICoder
     {
-        /// <summary>±àÂëÊı¾İÁ÷</summary>
-        /// <param name="inStream">ÊäÈëÁ÷</param>
-        /// <param name="outStream">Êä³öÁ÷</param>
-        /// <param name="inSize">ÊäÈë´óĞ¡£¬-1±íÊ¾Î´Öª</param>
-        /// <param name="outSize">Êä³ö´óĞ¡£¬-1±íÊ¾Î´Öª</param>
-        /// <param name="progress">½ø¶ÈÒıÓÃÎ¯ÍĞ</param>
-        /// <exception cref="NewLife.Compression.DataErrorException">ÊäÈëÁ÷ÎŞĞ§</exception>
+        /// <summary>ç¼–ç æ•°æ®æµ</summary>
+        /// <param name="inStream">è¾“å…¥æµ</param>
+        /// <param name="outStream">è¾“å‡ºæµ</param>
+        /// <param name="inSize">è¾“å…¥å¤§å°ï¼Œ-1è¡¨ç¤ºæœªçŸ¥</param>
+        /// <param name="outSize">è¾“å‡ºå¤§å°ï¼Œ-1è¡¨ç¤ºæœªçŸ¥</param>
+        /// <param name="progress">è¿›åº¦å¼•ç”¨å§”æ‰˜</param>
+        /// <exception cref="NewLife.Compression.DataErrorException">è¾“å…¥æµæ— æ•ˆ</exception>
         void Code(Stream inStream, Stream outStream, Int64 inSize, Int64 outSize, ICodeProgress progress);
     };
 
-    /// <summary>±àÂëÊôĞÔ</summary>
+    /// <summary>ç¼–ç å±æ€§</summary>
     public enum CoderPropID
     {
-        /// <summary>Ä¬ÈÏÊôĞÔ</summary>
+        /// <summary>é»˜è®¤å±æ€§</summary>
         DefaultProp = 0,
 
-        /// <summary>×Öµä´óĞ¡</summary>
+        /// <summary>å­—å…¸å¤§å°</summary>
         DictionarySize,
 
-        /// <summary>ÒÑÊ¹ÓÃµÄPPMÄÚ´æ´óĞ¡</summary>
+        /// <summary>å·²ä½¿ç”¨çš„PPMå†…å­˜å¤§å°</summary>
         UsedMemorySize,
 
-        /// <summary>PPM·½·¨Ë³Ğò</summary>
+        /// <summary>PPMæ–¹æ³•é¡ºåº</summary>
         Order,
 
-        /// <summary>¿é´óĞ¡</summary>
+        /// <summary>å—å¤§å°</summary>
         BlockSize,
 
-        /// <summary>LZMAÎ»ÖÃ×´Ì¬Î»ÊıÁ¿(0&lt;=x&lt;=4)</summary>
+        /// <summary>LZMAä½ç½®çŠ¶æ€ä½æ•°é‡(0&lt;=x&lt;=4)</summary>
         PosStateBits,
 
         /// <summary>
@@ -70,66 +70,66 @@ namespace NewLife.Compression
         /// </summary>
         LitPosBits,
 
-        /// <summary>LZ¿ì×Ö½ÚÊı</summary>
+        /// <summary>LZå¿«å­—èŠ‚æ•°</summary>
         NumFastBytes,
 
-        /// <summary>Æ¥Åä²éÕÒ·½Ê½ LZMA: "BT2", "BT4", "BT4B"</summary>
+        /// <summary>åŒ¹é…æŸ¥æ‰¾æ–¹å¼ LZMA: "BT2", "BT4", "BT4B"</summary>
         MatchFinder,
 
-        /// <summary>Æ¥Åä²éÕÒÑ­»·´ÎÊı</summary>
+        /// <summary>åŒ¹é…æŸ¥æ‰¾å¾ªç¯æ¬¡æ•°</summary>
         MatchFinderCycles,
 
-        /// <summary>ÃÜÂëÊıÁ¿</summary>
+        /// <summary>å¯†ç æ•°é‡</summary>
         NumPasses,
 
-        /// <summary>Ëã·¨ÊıÁ¿</summary>
+        /// <summary>ç®—æ³•æ•°é‡</summary>
         Algorithm,
 
-        /// <summary>Ïß³ÌÊı</summary>
+        /// <summary>çº¿ç¨‹æ•°</summary>
         NumThreads,
 
-        /// <summary>½áÊø±ê¼ÇÄ£Ê½</summary>
+        /// <summary>ç»“æŸæ ‡è®°æ¨¡å¼</summary>
         EndMarker
     };
 
-    /// <summary>ÉèÖÃ±àÂëÊôĞÔ½Ó¿Ú</summary>
+    /// <summary>è®¾ç½®ç¼–ç å±æ€§æ¥å£</summary>
     public interface ISetCoderProperties
     {
-        /// <summary>ÉèÖÃ±àÂëÊôĞÔ</summary>
+        /// <summary>è®¾ç½®ç¼–ç å±æ€§</summary>
         /// <param name="propIDs"></param>
         /// <param name="properties"></param>
         void SetCoderProperties(CoderPropID[] propIDs, object[] properties);
     };
 
-    /// <summary>Ğ´Èë±àÂëÊôĞÔ</summary>
+    /// <summary>å†™å…¥ç¼–ç å±æ€§</summary>
     public interface IWriteCoderProperties
     {
-        /// <summary>Ğ´Èë±àÂëÊôĞÔ</summary>
+        /// <summary>å†™å…¥ç¼–ç å±æ€§</summary>
         /// <param name="outStream"></param>
         void WriteCoderProperties(Stream outStream);
     }
 
-    /// <summary>ÉèÖÃ½âÂëÊôĞÔ</summary>
+    /// <summary>è®¾ç½®è§£ç å±æ€§</summary>
     public interface ISetDecoderProperties
     {
-        /// <summary>ÉèÖÃ½âÂëÊôĞÔ</summary>
+        /// <summary>è®¾ç½®è§£ç å±æ€§</summary>
         /// <param name="properties"></param>
         void SetDecoderProperties(byte[] properties);
     }
 
-    /// <summary>LzmaÖúÊÖ</summary>
+    /// <summary>LzmaåŠ©æ‰‹</summary>
     public static class LzmaHelper
     {
-        /// <summary>Ñ¹ËõÊı¾İÁ÷</summary>
-        /// <param name="inStream">ÊäÈëÁ÷</param>
-        /// <param name="outStream">Êä³öÁ÷¡£Èç¹û²»Ö¸¶¨£¬ÔòÄÚ²¿ÊµÀı»¯Ò»¸öÄÚ´æÁ÷</param>
-        /// <param name="level">Ñ¹ËõµÈ¼¶</param>
-        /// <remarks>·µ»ØÊä³öÁ÷£¬×¢Òâ´ËÊ±Ö¸ÕëÎ»ÓÚÄ©¶Ë</remarks>
+        /// <summary>å‹ç¼©æ•°æ®æµ</summary>
+        /// <param name="inStream">è¾“å…¥æµ</param>
+        /// <param name="outStream">è¾“å‡ºæµã€‚å¦‚æœä¸æŒ‡å®šï¼Œåˆ™å†…éƒ¨å®ä¾‹åŒ–ä¸€ä¸ªå†…å­˜æµ</param>
+        /// <param name="level">å‹ç¼©ç­‰çº§</param>
+        /// <remarks>è¿”å›è¾“å‡ºæµï¼Œæ³¨æ„æ­¤æ—¶æŒ‡é’ˆä½äºæœ«ç«¯</remarks>
         public static Stream CompressLzma(this Stream inStream, Stream outStream = null, Int32 level = 4)
         {
             if (outStream == null) outStream = new MemoryStream();
 
-            // µÚÈı¸ö²ÎÊıÎªtrue£¬±£³ÖÊı¾İÁ÷´ò¿ª£¬ÄÚ²¿²»Ó¦¸Ã¸ÉÉæÍâ²¿£¬²»Òª¹Ø±ÕÍâ²¿µÄÊı¾İÁ÷
+            // ç¬¬ä¸‰ä¸ªå‚æ•°ä¸ºtrueï¼Œä¿æŒæ•°æ®æµæ‰“å¼€ï¼Œå†…éƒ¨ä¸åº”è¯¥å¹²æ¶‰å¤–éƒ¨ï¼Œä¸è¦å…³é—­å¤–éƒ¨çš„æ•°æ®æµ
             using (var stream = new LzmaStream(outStream, CompressionMode.Compress, level))
             {
                 inStream.CopyTo(stream);
@@ -140,15 +140,15 @@ namespace NewLife.Compression
             return outStream;
         }
 
-        /// <summary>½âÑ¹ËõÊı¾İÁ÷</summary>
-        /// <param name="inStream">ÊäÈëÁ÷</param>
-        /// <param name="outStream">Êä³öÁ÷¡£Èç¹û²»Ö¸¶¨£¬ÔòÄÚ²¿ÊµÀı»¯Ò»¸öÄÚ´æÁ÷</param>
-        /// <remarks>·µ»ØÊä³öÁ÷£¬×¢Òâ´ËÊ±Ö¸ÕëÎ»ÓÚÄ©¶Ë</remarks>
+        /// <summary>è§£å‹ç¼©æ•°æ®æµ</summary>
+        /// <param name="inStream">è¾“å…¥æµ</param>
+        /// <param name="outStream">è¾“å‡ºæµã€‚å¦‚æœä¸æŒ‡å®šï¼Œåˆ™å†…éƒ¨å®ä¾‹åŒ–ä¸€ä¸ªå†…å­˜æµ</param>
+        /// <remarks>è¿”å›è¾“å‡ºæµï¼Œæ³¨æ„æ­¤æ—¶æŒ‡é’ˆä½äºæœ«ç«¯</remarks>
         public static Stream DecompressLzma(this Stream inStream, Stream outStream = null)
         {
             if (outStream == null) outStream = new MemoryStream();
 
-            // µÚÈı¸ö²ÎÊıÎªtrue£¬±£³ÖÊı¾İÁ÷´ò¿ª£¬ÄÚ²¿²»Ó¦¸Ã¸ÉÉæÍâ²¿£¬²»Òª¹Ø±ÕÍâ²¿µÄÊı¾İÁ÷
+            // ç¬¬ä¸‰ä¸ªå‚æ•°ä¸ºtrueï¼Œä¿æŒæ•°æ®æµæ‰“å¼€ï¼Œå†…éƒ¨ä¸åº”è¯¥å¹²æ¶‰å¤–éƒ¨ï¼Œä¸è¦å…³é—­å¤–éƒ¨çš„æ•°æ®æµ
             using (var stream = new LzmaStream(inStream, CompressionMode.Decompress))
             {
                 stream.CopyTo(outStream);

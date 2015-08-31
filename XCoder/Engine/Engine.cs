@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,18 +13,18 @@ using XTemplate.Templating;
 
 namespace XCoder
 {
-    /// <summary>´úÂëÉú³ÉÒıÇæ</summary>
+    /// <summary>ä»£ç ç”Ÿæˆå¼•æ“</summary>
     public class Engine
     {
-        #region ÊôĞÔ
+        #region å±æ€§
         public const String TemplatePath = "Template";
 
         private static Dictionary<String, String> _Templates;
-        /// <summary>Ä£°æ</summary>
+        /// <summary>æ¨¡ç‰ˆ</summary>
         public static Dictionary<String, String> Templates { get { return _Templates ?? (_Templates = Source.GetTemplates()); } }
 
         private static List<String> _FileTemplates;
-        /// <summary>ÎÄ¼şÄ£°æ</summary>
+        /// <summary>æ–‡ä»¶æ¨¡ç‰ˆ</summary>
         public static List<String> FileTemplates
         {
             get
@@ -58,20 +58,20 @@ namespace XCoder
         }
 
         private XConfig _Config;
-        /// <summary>ÅäÖÃ</summary>
+        /// <summary>é…ç½®</summary>
         public XConfig Config { get { return _Config; } set { _Config = value; } }
 
         //private String _LastTableKey;
         //private List<IDataTable> _LastTables;
         private List<IDataTable> _Tables;
-        /// <summary>ËùÓĞ±í</summary>
+        /// <summary>æ‰€æœ‰è¡¨</summary>
         public List<IDataTable> Tables
         {
             get
             {
                 //if (!Config.NeedFix) return _Tables;
 
-                //// ²»Í¬µÄÇ°×º¡¢´óĞ¡Ğ´Ñ¡Ïî£¬µÃµ½µÄ±í¼¯ºÏÊÇ²»Ò»ÑùµÄ¡£ÕâÀïÓÃ×ÖµäÀ´»º´æ
+                //// ä¸åŒçš„å‰ç¼€ã€å¤§å°å†™é€‰é¡¹ï¼Œå¾—åˆ°çš„è¡¨é›†åˆæ˜¯ä¸ä¸€æ ·çš„ã€‚è¿™é‡Œç”¨å­—å…¸æ¥ç¼“å­˜
                 //var key = String.Format("{0}_{1}_{2}_{3}_{4}", Config.AutoCutPrefix, Config.AutoCutTableName, Config.AutoFixWord, Config.Prefix, Config.UseID);
                 ////return _cache.GetItem(key, k => FixTable(_Tables));
                 //if (_LastTableKey != key)
@@ -86,19 +86,19 @@ namespace XCoder
         }
 
         private static ITranslate _Translate;
-        /// <summary>·­Òë½Ó¿Ú</summary>
+        /// <summary>ç¿»è¯‘æ¥å£</summary>
         static ITranslate Translate { get { return _Translate ?? (_Translate = new NnhyServiceTranslate()); } }
         #endregion
 
-        #region ¹¹Ôì
+        #region æ„é€ 
         static Engine()
         {
             Template.BaseClassName = typeof(XCoderBase).FullName;
         }
         #endregion
 
-        #region Éú³É
-        /// <summary>Éú³É´úÂë£¬²ÎÊıÓÉConfig´«Èë</summary>
+        #region ç”Ÿæˆ
+        /// <summary>ç”Ÿæˆä»£ç ï¼Œå‚æ•°ç”±Configä¼ å…¥</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
         public String[] Render(String tableName)
@@ -120,8 +120,8 @@ namespace XCoder
             data["Tables"] = Tables;
             data["Table"] = table;
 
-            #region ÅäÖÃ
-            // ¸´ÖÆ±íÊôĞÔµ½ÅäÖÃ
+            #region é…ç½®
+            // å¤åˆ¶è¡¨å±æ€§åˆ°é…ç½®
             var cfg = new XConfig();
             foreach (var pi in cfg.GetType().GetProperties())
             {
@@ -130,7 +130,7 @@ namespace XCoder
                 else
                     cfg.SetValue(pi, Config.GetValue(pi));
             }
-            #region ÃüÃû¿Õ¼ä´¦Àí
+            #region å‘½åç©ºé—´å¤„ç†
             var NameSpace = cfg.NameSpace;
             var reg = new Regex(@"\$\((\w+)\)", RegexOptions.Compiled);
             NameSpace = reg.Replace(NameSpace, math =>
@@ -150,12 +150,12 @@ namespace XCoder
             data["Config"] = cfg;
             #endregion
 
-            #region Ä£°æÔ¤´¦Àí
-            // ÉùÃ÷Ä£°æÒıÇæ
+            #region æ¨¡ç‰ˆé¢„å¤„ç†
+            // å£°æ˜æ¨¡ç‰ˆå¼•æ“
             //Template tt = new Template();
             Template.Debug = Config.Debug;
             var templates = new Dictionary<string, string>();
-            // Ã¿Ò»¸öÄ£°æµÄ±àÂë£¬ÓÃÓÚ×÷ÎªÊä³öÎÄ¼şµÄ±àÂë
+            // æ¯ä¸€ä¸ªæ¨¡ç‰ˆçš„ç¼–ç ï¼Œç”¨äºä½œä¸ºè¾“å‡ºæ–‡ä»¶çš„ç¼–ç 
             var encs = new List<Encoding>();
 
             var tempName = Config.TemplateName;
@@ -166,9 +166,9 @@ namespace XCoder
                 tempKind = tempName.Substring(0, p + 1);
                 tempName = tempName.Substring(p + 1);
             }
-            if (tempKind == "[ÄÚÖÃ]")
+            if (tempKind == "[å†…ç½®]")
             {
-                // ÏµÍ³Ä£°æ
+                // ç³»ç»Ÿæ¨¡ç‰ˆ
                 foreach (var item in Templates)
                 {
                     var key = item.Key;
@@ -177,7 +177,7 @@ namespace XCoder
 
                     var content = item.Value;
 
-                    // Ìí¼ÓÎÄ¼şÍ·
+                    // æ·»åŠ æ–‡ä»¶å¤´
                     if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && key.EndsWithIgnoreCase(".cs"))
                         content = Config.HeadTemplate + content;
 
@@ -187,11 +187,11 @@ namespace XCoder
             }
             else
             {
-                // ÎÄ¼şÄ£°æ
+                // æ–‡ä»¶æ¨¡ç‰ˆ
                 //var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TemplatePath);
                 //dir = Path.Combine(dir, tempName);
                 var dir = TemplatePath.GetFullPath().CombinePath(tempName);
-                if (!Directory.Exists(dir)) throw new XException("ÕÒ²»µ½Ä£°æÄ¿Â¼{0}£¬Ã»ÓĞ¿ÉÓÃÄ£°æ£¡", dir);
+                if (!Directory.Exists(dir)) throw new XException("æ‰¾ä¸åˆ°æ¨¡ç‰ˆç›®å½•{0}ï¼Œæ²¡æœ‰å¯ç”¨æ¨¡ç‰ˆï¼", dir);
 
                 var ss = Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly);
                 if (ss != null && ss.Length > 0)
@@ -205,7 +205,7 @@ namespace XCoder
                         var name = item.Substring(dir.Length);
                         if (name.StartsWith(@"\")) name = name.Substring(1);
 
-                        // Ìí¼ÓÎÄ¼şÍ·
+                        // æ·»åŠ æ–‡ä»¶å¤´
                         if (Config.UseHeadTemplate && !String.IsNullOrEmpty(Config.HeadTemplate) && name.EndsWithIgnoreCase(".cs"))
                             content = Config.HeadTemplate + content;
 
@@ -214,16 +214,16 @@ namespace XCoder
                     }
                 }
             }
-            if (templates.Count < 1) throw new Exception("Ã»ÓĞ¿ÉÓÃÄ£°æ£¡");
+            if (templates.Count < 1) throw new Exception("æ²¡æœ‰å¯ç”¨æ¨¡ç‰ˆï¼");
 
             var tt = Template.Create(templates);
             if (tempName.StartsWith("*")) tempName = tempName.Substring(1);
             tt.AssemblyName = tempName;
             #endregion
             
-            #region Êä³öÄ¿Â¼Ô¤´¦Àí
+            #region è¾“å‡ºç›®å½•é¢„å¤„ç†
             var outpath = Config.OutputPath;
-            // Ê¹ÓÃÕıÔòÌæ»»´¦Àí ÃüÃû¿Õ¼ä´¦ÒÑ¾­¶¨Òå
+            // ä½¿ç”¨æ­£åˆ™æ›¿æ¢å¤„ç† å‘½åç©ºé—´å¤„å·²ç»å®šä¹‰
             //var reg = new Regex(@"\$\((\w+)\)", RegexOptions.Compiled);
             outpath = reg.Replace(outpath, math =>
             {
@@ -238,8 +238,8 @@ namespace XCoder
             });
             #endregion
 
-            #region ±àÒëÉú³É
-            // ±àÒëÄ£°æ¡£ÕâÀïÖÁÉÙÒª´¦Àí£¬Ö»ÓĞ¾­¹ıÁË´¦Àí£¬²ÅÖªµÀÄ£°æÏîÊÇ²»ÊÇ±»°üº¬µÄ
+            #region ç¼–è¯‘ç”Ÿæˆ
+            // ç¼–è¯‘æ¨¡ç‰ˆã€‚è¿™é‡Œè‡³å°‘è¦å¤„ç†ï¼Œåªæœ‰ç»è¿‡äº†å¤„ç†ï¼Œæ‰çŸ¥é“æ¨¡ç‰ˆé¡¹æ˜¯ä¸æ˜¯è¢«åŒ…å«çš„
             tt.Compile();
 
             var rs = new List<String>();
@@ -249,17 +249,17 @@ namespace XCoder
                 i++;
                 if (item.Included) continue;
 
-                // ¼ÆËãÊä³öÎÄ¼şÃû
+                // è®¡ç®—è¾“å‡ºæ–‡ä»¶å
                 var fileName = Path.GetFileName(item.Name);
                 var fname = Config.UseCNFileName ? table.DisplayName : table.Name;
                 fname = fname.Replace("/", "_").Replace("\\", "_").Replace("?", null);
-                // Èç¹ûÖĞÎÄÃûÎŞĞ§£¬²ÉÓÃÓ¢ÎÄÃû
+                // å¦‚æœä¸­æ–‡åæ— æ•ˆï¼Œé‡‡ç”¨è‹±æ–‡å
                 if (String.IsNullOrEmpty(Path.GetFileNameWithoutExtension(fname)) || fname[0] == '.') fname = table.Name;
-                fileName = fileName.Replace("ÀàÃû", fname).Replace("ÖĞÎÄÃû", fname).Replace("Á¬½ÓÃû", Config.EntityConnName);
+                fileName = fileName.Replace("ç±»å", fname).Replace("ä¸­æ–‡å", fname).Replace("è¿æ¥å", Config.EntityConnName);
 
                 fileName = Path.Combine(outpath, fileName);
 
-                // Èç¹û²»¸²¸Ç£¬²¢ÇÒÄ¿±êÎÄ¼şÒÑ´æÔÚ£¬ÔòÌø¹ı
+                // å¦‚æœä¸è¦†ç›–ï¼Œå¹¶ä¸”ç›®æ ‡æ–‡ä»¶å·²å­˜åœ¨ï¼Œåˆ™è·³è¿‡
                 if (!Config.Override && File.Exists(fileName)) continue;
 
                 var content = tt.Render(item.Name, data);
@@ -267,11 +267,11 @@ namespace XCoder
                 var dir = Path.GetDirectoryName(fileName);
                 if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 //File.WriteAllText(fileName, content, Encoding.UTF8);
-                // ½«ÎÄ¼ş±£´æÎªutf-8ÎŞbom¸ñÊ½
+                // å°†æ–‡ä»¶ä¿å­˜ä¸ºutf-8æ— bomæ ¼å¼
                 //File.WriteAllText(fileName, content, new UTF8Encoding(false));
 
-                // aspxÒ³ÃæÈç¹û²»ÊÇUTF8±àÂë£¬ºÜÓĞ¿ÉÄÜ³öÏÖÒ³ÃæÖĞÎÄÂÒÂë£¬CMXÉú³ÉµÄÒ³ÃæÎÄ¼ş³öÏÖ¸ÃÇé¿ö
-                // Ê¹ÓÃÄ£°æÎÄ¼ş±¾ÉíµÄÎÄ¼ş±àÂëÀ´×÷ÎªÊä³öÎÄ¼şµÄ±àÂë£¬Ä¬ÈÏUTF8
+                // aspxé¡µé¢å¦‚æœä¸æ˜¯UTF8ç¼–ç ï¼Œå¾ˆæœ‰å¯èƒ½å‡ºç°é¡µé¢ä¸­æ–‡ä¹±ç ï¼ŒCMXç”Ÿæˆçš„é¡µé¢æ–‡ä»¶å‡ºç°è¯¥æƒ…å†µ
+                // ä½¿ç”¨æ¨¡ç‰ˆæ–‡ä»¶æœ¬èº«çš„æ–‡ä»¶ç¼–ç æ¥ä½œä¸ºè¾“å‡ºæ–‡ä»¶çš„ç¼–ç ï¼Œé»˜è®¤UTF8
                 File.WriteAllText(fileName, content, encs[i]);
 
                 rs.Add(content);
@@ -281,8 +281,8 @@ namespace XCoder
         }
         #endregion
 
-        #region ĞŞÕı±í
-        /// <summary>Ô¤ÏÈĞŞÕı±íÃûµÈ¸÷ÖÖ¶«Î÷£¬¼ò»¯Ä£°æ±àĞ´¡£</summary>
+        #region ä¿®æ­£è¡¨
+        /// <summary>é¢„å…ˆä¿®æ­£è¡¨åç­‰å„ç§ä¸œè¥¿ï¼Œç®€åŒ–æ¨¡ç‰ˆç¼–å†™ã€‚</summary>
         public List<IDataTable> FixTable(List<IDataTable> tables)
         {
             if (tables == null || tables.Count < 1) return tables;
@@ -300,7 +300,7 @@ namespace XCoder
             mr.FilterPrefixs = ("" + Config.Prefix).Split(',', ';');
             mr.UseID = Config.UseID;
 
-            #region ĞŞÕıÊı¾İ
+            #region ä¿®æ­£æ•°æ®
             foreach (var table in list)
             {
                 table.Name = mr.GetName(table.TableName);
@@ -310,7 +310,7 @@ namespace XCoder
                 else
                     AddExistTranslate(existTrans, !string.IsNullOrEmpty(table.Name) ? table.Name : table.TableName, table.Description);
 
-                // ×Ö¶Î
+                // å­—æ®µ
                 foreach (var dc in table.Columns)
                 {
                     dc.Name = mr.GetName(dc);
@@ -327,7 +327,7 @@ namespace XCoder
             ModelHelper.Connect(list);
             #endregion
 
-            #region Òì²½µ÷ÓÃ½Ó¿ÚĞŞÕıÖĞÎÄÃû
+            #region å¼‚æ­¥è°ƒç”¨æ¥å£ä¿®æ­£ä¸­æ–‡å
             //if (Config.UseCNFileName && noCNDic.Count > 0)
             if (noCNDic.Count > 0)
             {
@@ -335,7 +335,7 @@ namespace XCoder
             }
             #endregion
 
-            #region Ìá½»ÒÑ·­ÒëµÄÏîÄ¿
+            #region æäº¤å·²ç¿»è¯‘çš„é¡¹ç›®
             if (existTrans.Count > 0)
             {
                 ThreadPoolX.QueueUserWorkItem(SubmitTranslateNew, existTrans.ToArray());
@@ -438,8 +438,8 @@ namespace XCoder
         }
         #endregion
 
-        #region ¸¨Öú
-        /// <summary>»ñÈ¡ÎÄ¼ş±àÂë</summary>
+        #region è¾…åŠ©
+        /// <summary>è·å–æ–‡ä»¶ç¼–ç </summary>
         /// <param name="file"></param>
         /// <returns></returns>
         static Encoding GetEncoding(String file)

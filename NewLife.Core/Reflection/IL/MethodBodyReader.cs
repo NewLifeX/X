@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -6,12 +6,12 @@ using System.Text;
 
 namespace NewLife.Reflection
 {
-    /// <summary>·½·¨Ìå¶ÁÈ¡Æ÷</summary>
+    /// <summary>æ–¹æ³•ä½“è¯»å–å™¨</summary>
     public class MethodBodyReader
     {
-        #region ÊôĞÔ
+        #region å±æ€§
         private MethodInfo _Method;
-        /// <summary>·½·¨</summary>
+        /// <summary>æ–¹æ³•</summary>
         public MethodInfo Method
         {
             get { return _Method; }
@@ -19,7 +19,7 @@ namespace NewLife.Reflection
         }
 
         private List<ILInstruction> _Instructions;
-        /// <summary>Ö¸Áî¼¯ºÏ</summary>
+        /// <summary>æŒ‡ä»¤é›†åˆ</summary>
         public List<ILInstruction> Instructions
         {
             get
@@ -36,8 +36,8 @@ namespace NewLife.Reflection
         //public byte[] il = null;
         #endregion
 
-        #region ¹¹Ôìº¯Êı
-        /// <summary>Îª·½·¨ĞÅÏ¢´´½¨·½·¨Ìå¶ÁÈ¡Æ÷</summary>
+        #region æ„é€ å‡½æ•°
+        /// <summary>ä¸ºæ–¹æ³•ä¿¡æ¯åˆ›å»ºæ–¹æ³•ä½“è¯»å–å™¨</summary>
         /// <param name="method"></param>
         public MethodBodyReader(MethodInfo method)
         {
@@ -53,7 +53,7 @@ namespace NewLife.Reflection
         }
         #endregion
 
-        #region IL¶ÁÈ¡·½·¨
+        #region ILè¯»å–æ–¹æ³•
         private static ushort ReadUInt16(byte[] il, ref int p)
         {
             return (ushort)(il[p++] | (il[p++] << 8));
@@ -84,8 +84,8 @@ namespace NewLife.Reflection
         }
         #endregion
 
-        #region ·½·¨
-        /// <summary>Í¨¹ıIL×Ö½ÚÂë¹¹½¨Ö¸Áî¼¯ºÏ</summary>
+        #region æ–¹æ³•
+        /// <summary>é€šè¿‡ILå­—èŠ‚ç æ„å»ºæŒ‡ä»¤é›†åˆ</summary>
         /// <param name="mi"></param>
         private static List<ILInstruction> ConstructInstructions(MethodInfo mi)
         {
@@ -103,7 +103,7 @@ namespace NewLife.Reflection
             {
                 ILInstruction instruction = new ILInstruction();
 
-                // µ±Ç°Ö¸ÁîµÄ²Ù×÷Âë
+                // å½“å‰æŒ‡ä»¤çš„æ“ä½œç 
                 OpCode code = OpCodes.Nop;
                 ushort value = il[p++];
                 if (value != 0xfe)
@@ -120,7 +120,7 @@ namespace NewLife.Reflection
                 instruction.Offset = p - 1;
                 int metadataToken = 0;
 
-                #region ²Ù×÷Êı
+                #region æ“ä½œæ•°
                 switch (code.OperandType)
                 {
                     case OperandType.InlineBrTarget:
@@ -200,7 +200,7 @@ namespace NewLife.Reflection
                         instruction.Operand = ReadByte(il, ref p);
                         break;
                     default:
-                        throw new InvalidOperationException("Î´ÖªµÄ²Ù×÷ÀàĞÍ" + code.OperandType);
+                        throw new InvalidOperationException("æœªçŸ¥çš„æ“ä½œç±»å‹" + code.OperandType);
                 }
                 #endregion
 
@@ -210,7 +210,7 @@ namespace NewLife.Reflection
             return list;
         }
 
-        /// <summary>»ñÈ¡·½·¨ÌåIL´úÂë</summary>
+        /// <summary>è·å–æ–¹æ³•ä½“ILä»£ç </summary>
         /// <returns></returns>
         public string GetBodyCode()
         {
@@ -225,20 +225,20 @@ namespace NewLife.Reflection
 
         }
 
-        /// <summary>»ñÈ¡·½·¨IL´úÂë£¬°üÀ¨Ç©Ãû</summary>
+        /// <summary>è·å–æ–¹æ³•ILä»£ç ï¼ŒåŒ…æ‹¬ç­¾å</summary>
         /// <returns></returns>
         public String GetCode()
         {
-            //TODO: »ñÈ¡·½·¨IL´úÂë£¬°üÀ¨Ç©Ãû
-            throw new NotImplementedException("Î´ÊµÏÖ£¡");
+            //TODO: è·å–æ–¹æ³•ILä»£ç ï¼ŒåŒ…æ‹¬ç­¾å
+            throw new NotImplementedException("æœªå®ç°ï¼");
         }
         #endregion
 
-        #region ¸¨Öú
+        #region è¾…åŠ©
         static OpCode[] multiByteOpCodes;
         static OpCode[] singleByteOpCodes;
 
-        /// <summary>¼ÓÔØ²Ù×÷Âë</summary>
+        /// <summary>åŠ è½½æ“ä½œç </summary>
         static void LoadOpCodes()
         {
             if (singleByteOpCodes != null) return;
@@ -259,7 +259,7 @@ namespace NewLife.Reflection
                     }
                     else
                     {
-                        if ((index & 0xff00) != 0xfe00) throw new InvalidOperationException("ÎŞĞ§²Ù×÷Âë");
+                        if ((index & 0xff00) != 0xfe00) throw new InvalidOperationException("æ— æ•ˆæ“ä½œç ");
 
                         multiByteOpCodes[index & 0xff] = code;
                     }

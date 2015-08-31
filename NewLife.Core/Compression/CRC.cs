@@ -1,4 +1,4 @@
-// Common/CRC.cs
+﻿// Common/CRC.cs
 
 namespace SevenZip
 {

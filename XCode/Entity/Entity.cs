@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,49 +17,49 @@ using XCode.Model;
 
 namespace XCode
 {
-    /// <summary>Êı¾İÊµÌåÀà»ùÀà¡£ËùÓĞÊı¾İÊµÌåÀà¶¼±ØĞë¼Ì³Ğ¸ÃÀà¡£</summary>
+    /// <summary>æ•°æ®å®ä½“ç±»åŸºç±»ã€‚æ‰€æœ‰æ•°æ®å®ä½“ç±»éƒ½å¿…é¡»ç»§æ‰¿è¯¥ç±»ã€‚</summary>
     [Serializable]
     public partial class Entity<TEntity> : EntityBase where TEntity : Entity<TEntity>, new()
     {
-        #region ¹¹Ôìº¯Êı
-        /// <summary>¾²Ì¬¹¹Ôì</summary>
+        #region æ„é€ å‡½æ•°
+        /// <summary>é™æ€æ„é€ </summary>
         static Entity()
         {
-            DAL.WriteDebugLog("¿ªÊ¼³õÊ¼»¯ÊµÌåÀà{0}", Meta.ThisType.Name);
+            DAL.WriteDebugLog("å¼€å§‹åˆå§‹åŒ–å®ä½“ç±»{0}", Meta.ThisType.Name);
 
             EntityFactory.Register(Meta.ThisType, new EntityOperate());
 
-            // 1£¬¿ÉÒÔ³õÊ¼»¯¸ÃÊµÌåÀàĞÍµÄ²Ù×÷¹¤³§
-            // 2£¬CreateOperate½«»áÊµÀı»¯Ò»¸öTEntity¶ÔÏó£¬´Ó¶øÒı·¢TEntityµÄ¾²Ì¬¹¹Ôìº¯Êı£¬
-            // ±ÜÃâÊµ¼ÊÓ¦ÓÃÖĞ£¬Ö±½Óµ÷ÓÃEntityµÄ¾²Ì¬·½·¨Ê±£¬Ã»ÓĞÒı·¢TEntityµÄ¾²Ì¬¹¹Ôìº¯Êı¡£
+            // 1ï¼Œå¯ä»¥åˆå§‹åŒ–è¯¥å®ä½“ç±»å‹çš„æ“ä½œå·¥å‚
+            // 2ï¼ŒCreateOperateå°†ä¼šå®ä¾‹åŒ–ä¸€ä¸ªTEntityå¯¹è±¡ï¼Œä»è€Œå¼•å‘TEntityçš„é™æ€æ„é€ å‡½æ•°ï¼Œ
+            // é¿å…å®é™…åº”ç”¨ä¸­ï¼Œç›´æ¥è°ƒç”¨Entityçš„é™æ€æ–¹æ³•æ—¶ï¼Œæ²¡æœ‰å¼•å‘TEntityçš„é™æ€æ„é€ å‡½æ•°ã€‚
             TEntity entity = new TEntity();
 
-            ////! ´óÊ¯Í· 2011-03-14 ÒÔÏÂ¹ı³Ì¸ÄÎªÒì²½´¦Àí
-            ////  ÒÑÈ·ÈÏ£¬µ±ÊµÌåÀà¾²Ì¬¹¹Ôìº¯ÊıÖĞÊ¹ÓÃÁËEntityFactory.CreateOperate(Type)·½·¨Ê±£¬¿ÉÄÜ³öÏÖËÀËø¡£
-            ////  ÒòÎªÁ½Õß¶¼»áÕù¶áEntityFactoryÖĞµÄop_cache£¬¶øCreateOperate(Type)ÄÃµ½op_cacheºó£¬»¹ĞèÒªµÈ´ıµ±Ç°¾²Ì¬¹¹Ôìº¯ÊıÖ´ĞĞÍê³É¡£
-            ////  ²»È·¶¨ÕâÑù×ÓÊÇ·ñ´øÀ´ºóÒÅÖ¢
+            ////! å¤§çŸ³å¤´ 2011-03-14 ä»¥ä¸‹è¿‡ç¨‹æ”¹ä¸ºå¼‚æ­¥å¤„ç†
+            ////  å·²ç¡®è®¤ï¼Œå½“å®ä½“ç±»é™æ€æ„é€ å‡½æ•°ä¸­ä½¿ç”¨äº†EntityFactory.CreateOperate(Type)æ–¹æ³•æ—¶ï¼Œå¯èƒ½å‡ºç°æ­»é”ã€‚
+            ////  å› ä¸ºä¸¤è€…éƒ½ä¼šäº‰å¤ºEntityFactoryä¸­çš„op_cacheï¼Œè€ŒCreateOperate(Type)æ‹¿åˆ°op_cacheåï¼Œè¿˜éœ€è¦ç­‰å¾…å½“å‰é™æ€æ„é€ å‡½æ•°æ‰§è¡Œå®Œæˆã€‚
+            ////  ä¸ç¡®å®šè¿™æ ·å­æ˜¯å¦å¸¦æ¥åé—ç—‡
             //ThreadPool.QueueUserWorkItem(delegate
             //{
             //    EntityFactory.CreateOperate(Meta.ThisType, entity);
             //});
 
-            DAL.WriteDebugLog("Íê³É³õÊ¼»¯ÊµÌåÀà{0}", Meta.ThisType.Name);
+            DAL.WriteDebugLog("å®Œæˆåˆå§‹åŒ–å®ä½“ç±»{0}", Meta.ThisType.Name);
         }
 
-        /// <summary>´´½¨ÊµÌå¡£</summary>
+        /// <summary>åˆ›å»ºå®ä½“ã€‚</summary>
         /// <remarks>
-        /// ¿ÉÒÔÖØĞ´¸Ä·½·¨ÒÔÊµÏÖÊµÌå¶ÔÏóµÄÒ»Ğ©³õÊ¼»¯¹¤×÷¡£
-        /// ÇĞ¼Ç£¬Ğ´ÎªÊµÀı·½·¨½ö½öÊÇÎªÁË·½±ãÖØÔØ£¬ËùÒª·µ»ØµÄÊµÀı¾ø¶Ô²»»áÊÇµ±Ç°ÊµÀı¡£
+        /// å¯ä»¥é‡å†™æ”¹æ–¹æ³•ä»¥å®ç°å®ä½“å¯¹è±¡çš„ä¸€äº›åˆå§‹åŒ–å·¥ä½œã€‚
+        /// åˆ‡è®°ï¼Œå†™ä¸ºå®ä¾‹æ–¹æ³•ä»…ä»…æ˜¯ä¸ºäº†æ–¹ä¾¿é‡è½½ï¼Œæ‰€è¦è¿”å›çš„å®ä¾‹ç»å¯¹ä¸ä¼šæ˜¯å½“å‰å®ä¾‹ã€‚
         /// </remarks>
-        /// <param name="forEdit">ÊÇ·ñÎªÁË±à¼­¶ø´´½¨£¬Èç¹ûÊÇ£¬¿ÉÒÔÔÙ´Î×öÒ»Ğ©Ïà¹ØµÄ³õÊ¼»¯¹¤×÷</param>
+        /// <param name="forEdit">æ˜¯å¦ä¸ºäº†ç¼–è¾‘è€Œåˆ›å»ºï¼Œå¦‚æœæ˜¯ï¼Œå¯ä»¥å†æ¬¡åšä¸€äº›ç›¸å…³çš„åˆå§‹åŒ–å·¥ä½œ</param>
         /// <returns></returns>
         //[Obsolete("=>IEntityOperate")]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual TEntity CreateInstance(Boolean forEdit = false)
         {
             //return new TEntity();
-            // new TEntity»á±»±àÒëÎªActivator.CreateInstance<TEntity>()£¬»¹²»ÈçActivator.CreateInstance()ÄØ
-            // Activator.CreateInstance()ÓĞ»º´æ¹¦ÄÜ£¬¶ø·ºĞÍµÄÄÇ¸öÃ»ÓĞ
+            // new TEntityä¼šè¢«ç¼–è¯‘ä¸ºActivator.CreateInstance<TEntity>()ï¼Œè¿˜ä¸å¦‚Activator.CreateInstance()å‘¢
+            // Activator.CreateInstance()æœ‰ç¼“å­˜åŠŸèƒ½ï¼Œè€Œæ³›å‹çš„é‚£ä¸ªæ²¡æœ‰
             //return Activator.CreateInstance(Meta.ThisType) as TEntity;
             var entity = Meta.ThisType.CreateInstance() as TEntity;
             Meta._Modules.Create(entity, forEdit);
@@ -67,10 +67,10 @@ namespace XCode
         }
         #endregion
 
-        #region Ìî³äÊı¾İ
-        /// <summary>¼ÓÔØ¼ÇÂ¼¼¯¡£ÎŞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull¡£</summary>
-        /// <param name="ds">¼ÇÂ¼¼¯</param>
-        /// <returns>ÊµÌåÊı×é</returns>
+        #region å¡«å……æ•°æ®
+        /// <summary>åŠ è½½è®°å½•é›†ã€‚æ— æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯nullã€‚</summary>
+        /// <param name="ds">è®°å½•é›†</param>
+        /// <returns>å®ä½“æ•°ç»„</returns>
         public static EntityList<TEntity> LoadData(DataSet ds)
         {
             if (ds == null || ds.Tables.Count < 1) return new EntityList<TEntity>();
@@ -78,25 +78,25 @@ namespace XCode
             return LoadData(ds.Tables[0]);
         }
 
-        /// <summary>¼ÓÔØÊı¾İ±í¡£ÎŞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull¡£</summary>
-        /// <param name="dt">Êı¾İ±í</param>
-        /// <returns>ÊµÌåÊı×é</returns>
+        /// <summary>åŠ è½½æ•°æ®è¡¨ã€‚æ— æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯nullã€‚</summary>
+        /// <param name="dt">æ•°æ®è¡¨</param>
+        /// <returns>å®ä½“æ•°ç»„</returns>
         public static EntityList<TEntity> LoadData(DataTable dt)
         {
             if (dt == null) return new EntityList<TEntity>();
 
             var list = dreAccessor.LoadData(dt);
-            // ÉèÖÃÄ¬ÈÏÀÛ¼Ó×Ö¶Î
+            // è®¾ç½®é»˜è®¤ç´¯åŠ å­—æ®µ
             EntityAddition.SetField(list);
             foreach (EntityBase entity in list)
             {
                 entity.OnLoad();
             }
-            // ¼õÉÙÒ»²½ÀàĞÍ×ª»»
+            // å‡å°‘ä¸€æ­¥ç±»å‹è½¬æ¢
             var elist = list as EntityList<TEntity>;
             if (elist != null) elist = new EntityList<TEntity>(list);
 
-            // Èç¹ûÕıÔÚÊ¹ÓÃµ¥¶ÔÏó»º´æ£¬ÔòÅúÁ¿½øÈë
+            // å¦‚æœæ­£åœ¨ä½¿ç”¨å•å¯¹è±¡ç¼“å­˜ï¼Œåˆ™æ‰¹é‡è¿›å…¥
             var sc = Meta.SingleCache;
             if (sc.Using)
             {
@@ -109,8 +109,8 @@ namespace XCode
             return elist;
         }
 
-        ///// <summary>´ÓÒ»¸öÊı¾İĞĞ¶ÔÏó¼ÓÔØÊı¾İ¡£²»¼ÓÔØ¹ØÁª¶ÔÏó¡£</summary>
-        ///// <param name="dr">Êı¾İĞĞ</param>
+        ///// <summary>ä»ä¸€ä¸ªæ•°æ®è¡Œå¯¹è±¡åŠ è½½æ•°æ®ã€‚ä¸åŠ è½½å…³è”å¯¹è±¡ã€‚</summary>
+        ///// <param name="dr">æ•°æ®è¡Œ</param>
         //public override void LoadData(DataRow dr)
         //{
         //    if (dr != null)
@@ -120,28 +120,28 @@ namespace XCode
         //    }
         //}
 
-        ///// <summary>¼ÓÔØÊı¾İ¶ÁĞ´Æ÷¡£ÎŞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull¡£</summary>
-        ///// <param name="dr">Êı¾İ¶ÁĞ´Æ÷</param>
-        ///// <returns>ÊµÌåÊı×é</returns>
+        ///// <summary>åŠ è½½æ•°æ®è¯»å†™å™¨ã€‚æ— æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯nullã€‚</summary>
+        ///// <param name="dr">æ•°æ®è¯»å†™å™¨</param>
+        ///// <returns>å®ä½“æ•°ç»„</returns>
         //public static EntityList<TEntity> LoadData(IDataReader dr)
         //{
         //    var list = dreAccessor.LoadData(dr);
 
-        //    // ÉèÖÃÄ¬ÈÏÀÛ¼Ó×Ö¶Î
+        //    // è®¾ç½®é»˜è®¤ç´¯åŠ å­—æ®µ
         //    EntityAddition.SetField(list);
         //    foreach (EntityBase entity in list)
         //    {
         //        entity.OnLoad();
         //    }
-        //    // ¼õÉÙÒ»²½ÀàĞÍ×ª»»
+        //    // å‡å°‘ä¸€æ­¥ç±»å‹è½¬æ¢
         //    var elist = list as EntityList<TEntity>;
         //    if (elist != null) return elist;
 
         //    return new EntityList<TEntity>(list);
         //}
 
-        ///// <summary>´ÓÒ»¸öÊı¾İĞĞ¶ÔÏó¼ÓÔØÊı¾İ¡£²»¼ÓÔØ¹ØÁª¶ÔÏó¡£</summary>
-        ///// <param name="dr">Êı¾İ¶ÁĞ´Æ÷</param>
+        ///// <summary>ä»ä¸€ä¸ªæ•°æ®è¡Œå¯¹è±¡åŠ è½½æ•°æ®ã€‚ä¸åŠ è½½å…³è”å¯¹è±¡ã€‚</summary>
+        ///// <param name="dr">æ•°æ®è¯»å†™å™¨</param>
         //public override void LoadDataReader(IDataReader dr)
         //{
         //    if (dr != null)
@@ -149,61 +149,61 @@ namespace XCode
         //        dreAccessor.LoadData(dr, this);
         //        OnLoad();
 
-        //        // ÉèÖÃÄ¬ÈÏÀÛ¼Ó×Ö¶Î
+        //        // è®¾ç½®é»˜è®¤ç´¯åŠ å­—æ®µ
         //        EntityAddition.SetField(this);
         //    }
         //}
 
-        ///// <summary>°ÑÊı¾İ¸´ÖÆµ½Êı¾İĞĞ¶ÔÏóÖĞ¡£</summary>
-        ///// <param name="dr">Êı¾İĞĞ</param>
+        ///// <summary>æŠŠæ•°æ®å¤åˆ¶åˆ°æ•°æ®è¡Œå¯¹è±¡ä¸­ã€‚</summary>
+        ///// <param name="dr">æ•°æ®è¡Œ</param>
         //public virtual DataRow ToData(ref DataRow dr) { return dr == null ? null : dreAccessor.ToData(this, ref dr); }
 
         private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
         #endregion
 
-        #region ²Ù×÷
+        #region æ“ä½œ
         private static IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
 
-        /// <summary>²åÈëÊı¾İ£¬<see cref="Valid"/>ºó£¬ÔÚÊÂÎñÖĞµ÷ÓÃ<see cref="OnInsert"/>¡£</summary>
+        /// <summary>æ’å…¥æ•°æ®ï¼Œ<see cref="Valid"/>åï¼Œåœ¨äº‹åŠ¡ä¸­è°ƒç”¨<see cref="OnInsert"/>ã€‚</summary>
         /// <returns></returns>
         public override Int32 Insert() { return DoAction(OnInsert, true); }
 
-        /// <summary>°Ñ¸Ã¶ÔÏó³Ö¾Ã»¯µ½Êı¾İ¿â£¬Ìí¼Ó/¸üĞÂÊµÌå»º´æ¡£</summary>
+        /// <summary>æŠŠè¯¥å¯¹è±¡æŒä¹…åŒ–åˆ°æ•°æ®åº“ï¼Œæ·»åŠ /æ›´æ–°å®ä½“ç¼“å­˜ã€‚</summary>
         /// <returns></returns>
         protected virtual Int32 OnInsert() { return Meta.Session.Insert(this); }
 
-        /// <summary>¸üĞÂÊı¾İ£¬<see cref="Valid"/>ºó£¬ÔÚÊÂÎñÖĞµ÷ÓÃ<see cref="OnUpdate"/>¡£</summary>
+        /// <summary>æ›´æ–°æ•°æ®ï¼Œ<see cref="Valid"/>åï¼Œåœ¨äº‹åŠ¡ä¸­è°ƒç”¨<see cref="OnUpdate"/>ã€‚</summary>
         /// <returns></returns>
         public override Int32 Update() { return DoAction(OnUpdate, false); }
 
-        /// <summary>¸üĞÂÊı¾İ¿â£¬Í¬Ê±¸üĞÂÊµÌå»º´æ</summary>
+        /// <summary>æ›´æ–°æ•°æ®åº“ï¼ŒåŒæ—¶æ›´æ–°å®ä½“ç¼“å­˜</summary>
         /// <returns></returns>
         protected virtual Int32 OnUpdate() { return Meta.Session.Update(this); }
 
-        /// <summary>É¾³ıÊı¾İ£¬Í¨¹ıÔÚÊÂÎñÖĞµ÷ÓÃOnDeleteÊµÏÖ¡£</summary>
+        /// <summary>åˆ é™¤æ•°æ®ï¼Œé€šè¿‡åœ¨äº‹åŠ¡ä¸­è°ƒç”¨OnDeleteå®ç°ã€‚</summary>
         /// <remarks>
-        /// É¾³ıÊ±£¬Èç¹ûÓĞÇÒ½öÓĞÖ÷¼üÓĞÔàÊı¾İ£¬Ôò¿ÉÄÜÊÇObjectDataSourceÖ®ÀàµÄÉ¾³ı²Ù×÷¡£
-        /// ¸ÃÇé¿öÏÂ£¬ÊµÌåÀàÃ»ÓĞÍêÕûµÄĞÅÏ¢£¨½öÓĞÖ÷¼üĞÅÏ¢£©£¬½«»áµ¼ÖÂÎŞ·¨Í¨¹ıÀ©Õ¹ÊôĞÔÉ¾³ı¸½ÊôÊı¾İ¡£
-        /// Èç¹ûĞèÒª±Ü¿ª¸Ã»úÖÆ£¬ÇëÇå¿ÕÔàÊı¾İ¡£
+        /// åˆ é™¤æ—¶ï¼Œå¦‚æœæœ‰ä¸”ä»…æœ‰ä¸»é”®æœ‰è„æ•°æ®ï¼Œåˆ™å¯èƒ½æ˜¯ObjectDataSourceä¹‹ç±»çš„åˆ é™¤æ“ä½œã€‚
+        /// è¯¥æƒ…å†µä¸‹ï¼Œå®ä½“ç±»æ²¡æœ‰å®Œæ•´çš„ä¿¡æ¯ï¼ˆä»…æœ‰ä¸»é”®ä¿¡æ¯ï¼‰ï¼Œå°†ä¼šå¯¼è‡´æ— æ³•é€šè¿‡æ‰©å±•å±æ€§åˆ é™¤é™„å±æ•°æ®ã€‚
+        /// å¦‚æœéœ€è¦é¿å¼€è¯¥æœºåˆ¶ï¼Œè¯·æ¸…ç©ºè„æ•°æ®ã€‚
         /// </remarks>
         /// <returns></returns>
         public override Int32 Delete()
         {
             if (HasDirty)
             {
-                // ÊÇ·ñÓĞÇÒ½öÓĞÖ÷¼üÓĞÔàÊı¾İ
+                // æ˜¯å¦æœ‰ä¸”ä»…æœ‰ä¸»é”®æœ‰è„æ•°æ®
                 var names = Meta.Table.PrimaryKeys.Select(f => f.Name).OrderBy(k => k).ToArray();
-                // ÔàÊı¾İÀïÃæÊÇ·ñ´æÔÚ·ÇÖ÷¼üÇÒÎªtrueµÄ
+                // è„æ•°æ®é‡Œé¢æ˜¯å¦å­˜åœ¨éä¸»é”®ä¸”ä¸ºtrueçš„
                 var names2 = Dirtys.Where(d => d.Value).Select(d => d.Key).OrderBy(k => k).ToArray();
-                // ĞòÁĞÏàµÈ£¬·ûºÏÌõ¼ş
+                // åºåˆ—ç›¸ç­‰ï¼Œç¬¦åˆæ¡ä»¶
                 if (names.SequenceEqual(names2))
                 {
-                    // ÔÙ´Î²éÑ¯
+                    // å†æ¬¡æŸ¥è¯¢
                     var entity = Find(persistence.GetPrimaryCondition(this));
-                    // Èç¹ûÄ¿±êÊı¾İ²»´æÔÚ£¬¾ÍÃ»±ØÒªÉ¾³ıÁË
+                    // å¦‚æœç›®æ ‡æ•°æ®ä¸å­˜åœ¨ï¼Œå°±æ²¡å¿…è¦åˆ é™¤äº†
                     if (entity == null) return 0;
 
-                    // ¸´ÖÆÔàÊı¾İºÍÀ©Õ¹Êı¾İ
+                    // å¤åˆ¶è„æ•°æ®å’Œæ‰©å±•æ•°æ®
                     foreach (var item in names)
                     {
                         entity.Dirtys[item] = true;
@@ -220,7 +220,7 @@ namespace XCode
             return DoAction(OnDelete, null);
         }
 
-        /// <summary>´ÓÊı¾İ¿âÖĞÉ¾³ı¸Ã¶ÔÏó£¬Í¬Ê±´ÓÊµÌå»º´æÖĞÉ¾³ı</summary>
+        /// <summary>ä»æ•°æ®åº“ä¸­åˆ é™¤è¯¥å¯¹è±¡ï¼ŒåŒæ—¶ä»å®ä½“ç¼“å­˜ä¸­åˆ é™¤</summary>
         /// <returns></returns>
         protected virtual Int32 OnDelete() { return Meta.Session.Delete(this); }
 
@@ -244,21 +244,21 @@ namespace XCode
             }
         }
 
-        /// <summary>±£´æ¡£¸ù¾İÖ÷¼ü¼ì²éÊı¾İ¿âÖĞÊÇ·ñÒÑ´æÔÚ¸Ã¶ÔÏó£¬ÔÙ¾ö¶¨µ÷ÓÃInsert»òUpdate</summary>
+        /// <summary>ä¿å­˜ã€‚æ ¹æ®ä¸»é”®æ£€æŸ¥æ•°æ®åº“ä¸­æ˜¯å¦å·²å­˜åœ¨è¯¥å¯¹è±¡ï¼Œå†å†³å®šè°ƒç”¨Insertæˆ–Update</summary>
         /// <returns></returns>
         public override Int32 Save()
         {
-            //ÓÅÏÈÊ¹ÓÃ×ÔÔö×Ö¶ÎÅĞ¶Ï
+            //ä¼˜å…ˆä½¿ç”¨è‡ªå¢å­—æ®µåˆ¤æ–­
             var fi = Meta.Table.Identity;
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
-            // Èç¹ûÎ¨Ò»Ö÷¼ü²»Îª¿Õ£¬Ó¦¸ÃÍ¨¹ıºóÃæÅĞ¶Ï£¬¶ø²»ÊÇÖ±½ÓUpdate
+            // å¦‚æœå”¯ä¸€ä¸»é”®ä¸ä¸ºç©ºï¼Œåº”è¯¥é€šè¿‡åé¢åˆ¤æ–­ï¼Œè€Œä¸æ˜¯ç›´æ¥Update
             if (IsNullKey) return Insert();
 
             return FindCount(persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
 
-        /// <summary>²»ĞèÒªÑéÖ¤µÄ±£´æ£¬²»Ö´ĞĞValid£¬Ò»°ãÓÃÓÚ¿ìËÙµ¼ÈëÊı¾İ</summary>
+        /// <summary>ä¸éœ€è¦éªŒè¯çš„ä¿å­˜ï¼Œä¸æ‰§è¡ŒValidï¼Œä¸€èˆ¬ç”¨äºå¿«é€Ÿå¯¼å…¥æ•°æ®</summary>
         /// <returns></returns>
         public override Int32 SaveWithoutValid()
         {
@@ -270,49 +270,49 @@ namespace XCode
         [NonSerialized]
         Boolean enableValid = true;
 
-        /// <summary>ÑéÖ¤Êı¾İ£¬Í¨¹ıÅ×³öÒì³£µÄ·½Ê½ÌáÊ¾ÑéÖ¤Ê§°Ü¡£</summary>
-        /// <remarks>½¨ÒéÖØĞ´Õßµ÷ÓÃ»ùÀàµÄÊµÏÖ£¬ÒòÎª»ùÀà¸ù¾İÊı¾İ×Ö¶ÎµÄÎ¨Ò»Ë÷Òı½øĞĞÊı¾İÑéÖ¤¡£</remarks>
-        /// <param name="isNew">ÊÇ·ñĞÂÊı¾İ</param>
+        /// <summary>éªŒè¯æ•°æ®ï¼Œé€šè¿‡æŠ›å‡ºå¼‚å¸¸çš„æ–¹å¼æç¤ºéªŒè¯å¤±è´¥ã€‚</summary>
+        /// <remarks>å»ºè®®é‡å†™è€…è°ƒç”¨åŸºç±»çš„å®ç°ï¼Œå› ä¸ºåŸºç±»æ ¹æ®æ•°æ®å­—æ®µçš„å”¯ä¸€ç´¢å¼•è¿›è¡Œæ•°æ®éªŒè¯ã€‚</remarks>
+        /// <param name="isNew">æ˜¯å¦æ–°æ•°æ®</param>
         public virtual void Valid(Boolean isNew)
         {
-            // ¸ù¾İË÷Òı£¬ÅĞ¶ÏÎ¨Ò»ĞÔ
+            // æ ¹æ®ç´¢å¼•ï¼Œåˆ¤æ–­å”¯ä¸€æ€§
             var table = Meta.Table.DataTable;
             if (table.Indexes != null && table.Indexes.Count > 0)
             {
-                // ±éÀúËùÓĞË÷Òı
+                // éå†æ‰€æœ‰ç´¢å¼•
                 foreach (var item in table.Indexes)
                 {
-                    // Ö»´¦ÀíÎ¨Ò»Ë÷Òı
+                    // åªå¤„ç†å”¯ä¸€ç´¢å¼•
                     if (!item.Unique) continue;
 
-                    // ĞèÒª×ªÎª±ğÃû£¬Ò²¾ÍÊÇ×Ö¶ÎÃû
+                    // éœ€è¦è½¬ä¸ºåˆ«åï¼Œä¹Ÿå°±æ˜¯å­—æ®µå
                     var columns = table.GetColumns(item.Columns);
                     if (columns == null || columns.Length < 1) continue;
 
-                    // ²»´¦Àí×ÔÔö
+                    // ä¸å¤„ç†è‡ªå¢
                     if (columns.All(c => c.Identity)) continue;
 
-                    // ¼ÇÂ¼×Ö¶ÎÊÇ·ñÓĞ¸üĞÂ
+                    // è®°å½•å­—æ®µæ˜¯å¦æœ‰æ›´æ–°
                     Boolean changed = false;
                     if (!isNew) changed = columns.Any(c => Dirtys[c.Name]);
 
-                    // ´æÔÚ¼ì²é
+                    // å­˜åœ¨æ£€æŸ¥
                     if (isNew || changed) CheckExist(isNew, columns.Select(c => c.Name).Distinct().ToArray());
                 }
             }
         }
 
-        /// <summary>¸ù¾İÖ¸¶¨¼ü¼ì²éÊı¾İ£¬·µ»ØÊı¾İÊÇ·ñÒÑ´æÔÚ</summary>
+        /// <summary>æ ¹æ®æŒ‡å®šé”®æ£€æŸ¥æ•°æ®ï¼Œè¿”å›æ•°æ®æ˜¯å¦å·²å­˜åœ¨</summary>
         /// <param name="names"></param>
         /// <returns></returns>
         public virtual Boolean Exist(params String[] names) { return Exist(true, names); }
 
-        /// <summary>¸ù¾İÖ¸¶¨¼ü¼ì²éÊı¾İÊÇ·ñÒÑ´æÔÚ£¬ÈôÒÑ´æÔÚ£¬Å×³öArgumentOutOfRangeExceptionÒì³£</summary>
+        /// <summary>æ ¹æ®æŒ‡å®šé”®æ£€æŸ¥æ•°æ®æ˜¯å¦å·²å­˜åœ¨ï¼Œè‹¥å·²å­˜åœ¨ï¼ŒæŠ›å‡ºArgumentOutOfRangeExceptionå¼‚å¸¸</summary>
         /// <param name="names"></param>
         public virtual void CheckExist(params String[] names) { CheckExist(true, names); }
 
-        /// <summary>¸ù¾İÖ¸¶¨¼ü¼ì²éÊı¾İÊÇ·ñÒÑ´æÔÚ£¬ÈôÒÑ´æÔÚ£¬Å×³öArgumentOutOfRangeExceptionÒì³£</summary>
-        /// <param name="isNew">ÊÇ·ñĞÂÊı¾İ</param>
+        /// <summary>æ ¹æ®æŒ‡å®šé”®æ£€æŸ¥æ•°æ®æ˜¯å¦å·²å­˜åœ¨ï¼Œè‹¥å·²å­˜åœ¨ï¼ŒæŠ›å‡ºArgumentOutOfRangeExceptionå¼‚å¸¸</summary>
+        /// <param name="isNew">æ˜¯å¦æ–°æ•°æ®</param>
         /// <param name="names"></param>
         public virtual void CheckExist(Boolean isNew, params String[] names)
         {
@@ -322,7 +322,7 @@ namespace XCode
                 String name = null;
                 for (int i = 0; i < names.Length; i++)
                 {
-                    if (sb.Length > 0) sb.Append("£¬");
+                    if (sb.Length > 0) sb.Append("ï¼Œ");
 
                     FieldItem field = Meta.Table.FindByName(names[i]);
                     if (field != null) name = field.Description;
@@ -333,20 +333,20 @@ namespace XCode
 
                 name = Meta.Table.Description;
                 if (String.IsNullOrEmpty(name)) name = Meta.ThisType.Name;
-                sb.AppendFormat(" µÄ{0}ÒÑ´æÔÚ£¡", name);
+                sb.AppendFormat(" çš„{0}å·²å­˜åœ¨ï¼", name);
 
                 throw new ArgumentOutOfRangeException(String.Join(",", names), this[names[0]], sb.ToString());
             }
         }
 
-        /// <summary>¸ù¾İÖ¸¶¨¼ü¼ì²éÊı¾İ£¬·µ»ØÊı¾İÊÇ·ñÒÑ´æÔÚ</summary>
-        /// <param name="isNew">ÊÇ·ñĞÂÊı¾İ</param>
+        /// <summary>æ ¹æ®æŒ‡å®šé”®æ£€æŸ¥æ•°æ®ï¼Œè¿”å›æ•°æ®æ˜¯å¦å·²å­˜åœ¨</summary>
+        /// <param name="isNew">æ˜¯å¦æ–°æ•°æ®</param>
         /// <param name="names"></param>
         /// <returns></returns>
         public virtual Boolean Exist(Boolean isNew, params String[] names)
         {
-            // ¸ù¾İÖ¸¶¨¼ü²éÕÒËùÓĞ·ûºÏµÄÊı¾İ£¬È»ºó±È¶Ô¡£
-            // µ±È»£¬Ò²¿ÉÒÔÍ¨¹ıÖ¸¶¨¼üºÍÖ÷¼üÅäºÏ£¬ÕÒµ½ÓµÓĞÖ¸¶¨¼ü£¬µ«ÊÇ²»ÊÇµ±Ç°Ö÷¼üµÄÊı¾İ£¬Ö»²é¼ÇÂ¼Êı¡£
+            // æ ¹æ®æŒ‡å®šé”®æŸ¥æ‰¾æ‰€æœ‰ç¬¦åˆçš„æ•°æ®ï¼Œç„¶åæ¯”å¯¹ã€‚
+            // å½“ç„¶ï¼Œä¹Ÿå¯ä»¥é€šè¿‡æŒ‡å®šé”®å’Œä¸»é”®é…åˆï¼Œæ‰¾åˆ°æ‹¥æœ‰æŒ‡å®šé”®ï¼Œä½†æ˜¯ä¸æ˜¯å½“å‰ä¸»é”®çš„æ•°æ®ï¼ŒåªæŸ¥è®°å½•æ•°ã€‚
             Object[] values = new Object[names.Length];
             for (int i = 0; i < names.Length; i++)
             {
@@ -358,28 +358,28 @@ namespace XCode
             var cache = Meta.Session.Cache;
             if (!cache.Using)
             {
-                // Èç¹ûÊÇ¿ÕÖ÷¼ü£¬Ôò²ÉÓÃÖ±½ÓÅĞ¶Ï¼ÇÂ¼ÊıµÄ·½Ê½£¬ÒÔ¼Ó¿ìËÙ¶È
+                // å¦‚æœæ˜¯ç©ºä¸»é”®ï¼Œåˆ™é‡‡ç”¨ç›´æ¥åˆ¤æ–­è®°å½•æ•°çš„æ–¹å¼ï¼Œä»¥åŠ å¿«é€Ÿåº¦
                 if (IsNullKey) return FindCount(names, values) > 0;
 
                 var list = FindAll(names, values);
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
 
-                // Èç¹ûÊÇGuidµÈÖ÷¼ü£¬¿ÉÄÜÌáÇ°¸³Öµ£¬²åÈë²Ù×÷²»ÄÜ±È½ÏÖ÷¼ü£¬Ö±½ÓÅĞ¶ÏÅĞ¶Ï´æÔÚµÄÎ¨Ò»Ë÷Òı¼´¿É
+                // å¦‚æœæ˜¯Guidç­‰ä¸»é”®ï¼Œå¯èƒ½æå‰èµ‹å€¼ï¼Œæ’å…¥æ“ä½œä¸èƒ½æ¯”è¾ƒä¸»é”®ï¼Œç›´æ¥åˆ¤æ–­åˆ¤æ–­å­˜åœ¨çš„å”¯ä¸€ç´¢å¼•å³å¯
                 if (isNew && !field.IsIdentity) return true;
 
                 return !Object.Equals(val, list[0][field.Name]);
             }
             else
             {
-                // Èç¹ûÊÇ¿ÕÖ÷¼ü£¬Ôò²ÉÓÃÖ±½ÓÅĞ¶Ï¼ÇÂ¼ÊıµÄ·½Ê½£¬ÒÔ¼Ó¿ìËÙ¶È
+                // å¦‚æœæ˜¯ç©ºä¸»é”®ï¼Œåˆ™é‡‡ç”¨ç›´æ¥åˆ¤æ–­è®°å½•æ•°çš„æ–¹å¼ï¼Œä»¥åŠ å¿«é€Ÿåº¦
                 var list = cache.Entities.FindAll(names, values, true);
                 if (IsNullKey) return list.Count > 0;
 
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
 
-                // Èç¹ûÊÇGuidµÈÖ÷¼ü£¬¿ÉÄÜÌáÇ°¸³Öµ£¬²åÈë²Ù×÷²»ÄÜ±È½ÏÖ÷¼ü£¬Ö±½ÓÅĞ¶ÏÅĞ¶Ï´æÔÚµÄÎ¨Ò»Ë÷Òı¼´¿É
+                // å¦‚æœæ˜¯Guidç­‰ä¸»é”®ï¼Œå¯èƒ½æå‰èµ‹å€¼ï¼Œæ’å…¥æ“ä½œä¸èƒ½æ¯”è¾ƒä¸»é”®ï¼Œç›´æ¥åˆ¤æ–­åˆ¤æ–­å­˜åœ¨çš„å”¯ä¸€ç´¢å¼•å³å¯
                 if (isNew && !field.IsIdentity) return true;
 
                 return !Object.Equals(val, list[0][field.Name]);
@@ -387,13 +387,13 @@ namespace XCode
         }
         #endregion
 
-        #region ÅúÁ¿²Ù×÷
+        #region æ‰¹é‡æ“ä½œ
 
-        /// <summary>¸ù¾İÌõ¼şÉ¾³ıÊµÌå¼ÇÂ¼£¬´Ë²Ù×÷¿çÔ½»º´æ£¬Ê¹ÓÃÊÂÎñ±£»¤
-        /// <para>Èç¹ûÉ¾³ı²Ù×÷²»´øÒµÎñ£¬¿ÉÖ±½ÓÊ¹ÓÃ¾²Ì¬·½·¨ Delete(String whereClause)</para>
+        /// <summary>æ ¹æ®æ¡ä»¶åˆ é™¤å®ä½“è®°å½•ï¼Œæ­¤æ“ä½œè·¨è¶Šç¼“å­˜ï¼Œä½¿ç”¨äº‹åŠ¡ä¿æŠ¤
+        /// <para>å¦‚æœåˆ é™¤æ“ä½œä¸å¸¦ä¸šåŠ¡ï¼Œå¯ç›´æ¥ä½¿ç”¨é™æ€æ–¹æ³• Delete(String whereClause)</para>
         /// </summary>
-        /// <param name="whereClause">Ìõ¼ş£¬²»´øWhere</param>
-        /// <param name="batchSize">Ã¿´ÎÉ¾³ı¼ÇÂ¼Êı</param>
+        /// <param name="whereClause">æ¡ä»¶ï¼Œä¸å¸¦Where</param>
+        /// <param name="batchSize">æ¯æ¬¡åˆ é™¤è®°å½•æ•°</param>
         public static void DeleteAll(String whereClause, Int32 batchSize = 500)
         {
             using (var trans = new EntityTransaction<TEntity>())
@@ -426,35 +426,35 @@ namespace XCode
             }
         }
 
-        /// <summary>ÅúÁ¿´¦ÀíÊµÌå¼ÇÂ¼£¬´Ë²Ù×÷¿çÔ½»º´æ</summary>
-        /// <param name="action">´¦ÀíÊµÌå¼ÇÂ¼¼¯·½·¨</param>
-        /// <param name="useTransition">ÊÇ·ñÊ¹ÓÃÊÂÎñ±£»¤</param>
-        /// <param name="batchSize">Ã¿´Î´¦Àí¼ÇÂ¼Êı</param>
-        /// <param name="maxCount">´¦Àí×î´ó¼ÇÂ¼Êı£¬Ä¬ÈÏ0£¬´¦ÀíËùÓĞĞĞ</param>
+        /// <summary>æ‰¹é‡å¤„ç†å®ä½“è®°å½•ï¼Œæ­¤æ“ä½œè·¨è¶Šç¼“å­˜</summary>
+        /// <param name="action">å¤„ç†å®ä½“è®°å½•é›†æ–¹æ³•</param>
+        /// <param name="useTransition">æ˜¯å¦ä½¿ç”¨äº‹åŠ¡ä¿æŠ¤</param>
+        /// <param name="batchSize">æ¯æ¬¡å¤„ç†è®°å½•æ•°</param>
+        /// <param name="maxCount">å¤„ç†æœ€å¤§è®°å½•æ•°ï¼Œé»˜è®¤0ï¼Œå¤„ç†æ‰€æœ‰è¡Œ</param>
         public static void ProcessAll(Action<EntityList<TEntity>> action, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
         {
             ProcessAll(action, null, null, null, useTransition, batchSize);
         }
 
-        /// <summary>ÅúÁ¿´¦ÀíÊµÌå¼ÇÂ¼£¬´Ë²Ù×÷¿çÔ½»º´æ</summary>
-        /// <param name="action">´¦ÀíÊµÌå¼ÇÂ¼¼¯·½·¨</param>
-        /// <param name="whereClause">Ìõ¼ş£¬²»´øWhere</param>
-        /// <param name="useTransition">ÊÇ·ñÊ¹ÓÃÊÂÎñ±£»¤</param>
-        /// <param name="batchSize">Ã¿´Î´¦Àí¼ÇÂ¼Êı</param>
-        /// <param name="maxCount">´¦Àí×î´ó¼ÇÂ¼Êı£¬Ä¬ÈÏ0£¬´¦ÀíËùÓĞĞĞ</param>
+        /// <summary>æ‰¹é‡å¤„ç†å®ä½“è®°å½•ï¼Œæ­¤æ“ä½œè·¨è¶Šç¼“å­˜</summary>
+        /// <param name="action">å¤„ç†å®ä½“è®°å½•é›†æ–¹æ³•</param>
+        /// <param name="whereClause">æ¡ä»¶ï¼Œä¸å¸¦Where</param>
+        /// <param name="useTransition">æ˜¯å¦ä½¿ç”¨äº‹åŠ¡ä¿æŠ¤</param>
+        /// <param name="batchSize">æ¯æ¬¡å¤„ç†è®°å½•æ•°</param>
+        /// <param name="maxCount">å¤„ç†æœ€å¤§è®°å½•æ•°ï¼Œé»˜è®¤0ï¼Œå¤„ç†æ‰€æœ‰è¡Œ</param>
         public static void ProcessAll(Action<EntityList<TEntity>> action, String whereClause, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
         {
             ProcessAll(action, whereClause, null, null, useTransition, batchSize);
         }
 
-        /// <summary>ÅúÁ¿´¦ÀíÊµÌå¼ÇÂ¼£¬´Ë²Ù×÷¿çÔ½»º´æ</summary>
-        /// <param name="action">´¦ÀíÊµÌå¼ÇÂ¼¼¯·½·¨</param>
-        /// <param name="whereClause">Ìõ¼ş£¬²»´øWhere</param>
-        /// <param name="orderClause">ÅÅĞò£¬²»´øOrder By</param>
-        /// <param name="selects">²éÑ¯ÁĞ</param>
-        /// <param name="useTransition">ÊÇ·ñÊ¹ÓÃÊÂÎñ±£»¤</param>
-        /// <param name="batchSize">Ã¿´Î´¦Àí¼ÇÂ¼Êı</param>
-        /// <param name="maxCount">´¦Àí×î´ó¼ÇÂ¼Êı£¬Ä¬ÈÏ0£¬´¦ÀíËùÓĞĞĞ</param>
+        /// <summary>æ‰¹é‡å¤„ç†å®ä½“è®°å½•ï¼Œæ­¤æ“ä½œè·¨è¶Šç¼“å­˜</summary>
+        /// <param name="action">å¤„ç†å®ä½“è®°å½•é›†æ–¹æ³•</param>
+        /// <param name="whereClause">æ¡ä»¶ï¼Œä¸å¸¦Where</param>
+        /// <param name="orderClause">æ’åºï¼Œä¸å¸¦Order By</param>
+        /// <param name="selects">æŸ¥è¯¢åˆ—</param>
+        /// <param name="useTransition">æ˜¯å¦ä½¿ç”¨äº‹åŠ¡ä¿æŠ¤</param>
+        /// <param name="batchSize">æ¯æ¬¡å¤„ç†è®°å½•æ•°</param>
+        /// <param name="maxCount">å¤„ç†æœ€å¤§è®°å½•æ•°ï¼Œé»˜è®¤0ï¼Œå¤„ç†æ‰€æœ‰è¡Œ</param>
         public static void ProcessAll(Action<EntityList<TEntity>> action, String whereClause, String orderClause, String selects, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
         {
             if (useTransition)
@@ -499,34 +499,34 @@ namespace XCode
 
         #endregion
 
-        #region ²éÕÒµ¥¸öÊµÌå
-        /// <summary>¸ù¾İÊôĞÔÒÔ¼°¶ÔÓ¦µÄÖµ£¬²éÕÒµ¥¸öÊµÌå</summary>
-        /// <param name="name">ÊôĞÔÃû³Æ</param>
-        /// <param name="value">ÊôĞÔÖµ</param>
+        #region æŸ¥æ‰¾å•ä¸ªå®ä½“
+        /// <summary>æ ¹æ®å±æ€§ä»¥åŠå¯¹åº”çš„å€¼ï¼ŒæŸ¥æ‰¾å•ä¸ªå®ä½“</summary>
+        /// <param name="name">å±æ€§åç§°</param>
+        /// <param name="value">å±æ€§å€¼</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity Find(String name, Object value) { return Find(new String[] { name }, new Object[] { value }); }
 
-        /// <summary>¸ù¾İÊôĞÔÁĞ±íÒÔ¼°¶ÔÓ¦µÄÖµÁĞ±í£¬²éÕÒµ¥¸öÊµÌå</summary>
-        /// <param name="names">ÊôĞÔÃû³Æ¼¯ºÏ</param>
-        /// <param name="values">ÊôĞÔÖµ¼¯ºÏ</param>
+        /// <summary>æ ¹æ®å±æ€§åˆ—è¡¨ä»¥åŠå¯¹åº”çš„å€¼åˆ—è¡¨ï¼ŒæŸ¥æ‰¾å•ä¸ªå®ä½“</summary>
+        /// <param name="names">å±æ€§åç§°é›†åˆ</param>
+        /// <param name="values">å±æ€§å€¼é›†åˆ</param>
         /// <returns></returns>
         public static TEntity Find(String[] names, Object[] values)
         {
-            // ÅĞ¶Ï×ÔÔöºÍÖ÷¼ü
+            // åˆ¤æ–­è‡ªå¢å’Œä¸»é”®
             if (names != null && names.Length == 1)
             {
                 FieldItem field = Meta.Table.FindByName(names[0]);
                 if (field != null && (field.IsIdentity || field.PrimaryKey))
                 {
-                    // Î¨Ò»¼üÎª×ÔÔöÇÒ²ÎÊıĞ¡ÓÚµÈÓÚ0Ê±£¬·µ»Ø¿Õ
+                    // å”¯ä¸€é”®ä¸ºè‡ªå¢ä¸”å‚æ•°å°äºç­‰äº0æ—¶ï¼Œè¿”å›ç©º
                     if (Helper.IsNullKey(values[0], field.Type)) return null;
 
                     return FindUnique(MakeCondition(field, values[0], "="));
                 }
             }
 
-            // ÅĞ¶ÏÎ¨Ò»Ë÷Òı£¬Î¨Ò»Ë÷ÒıÒ²²»ĞèÒª·ÖÒ³
+            // åˆ¤æ–­å”¯ä¸€ç´¢å¼•ï¼Œå”¯ä¸€ç´¢å¼•ä¹Ÿä¸éœ€è¦åˆ†é¡µ
             IDataIndex di = Meta.Table.DataTable.GetIndex(names);
             if (di != null && di.Unique) return FindUnique(MakeCondition(names, values, "And"));
 
@@ -534,31 +534,31 @@ namespace XCode
         }
 
         /// <summary>
-        /// ¸ù¾İÌõ¼ş²éÕÒÎ¨Ò»µÄµ¥¸öÊµÌå£¬ÒòÎªÊÇÎ¨Ò»µÄ£¬ËùÒÔ²»ĞèÒª·ÖÒ³ºÍÅÅĞò¡£
-        /// Èç¹û²»È·¶¨ÊÇ·ñÎ¨Ò»£¬Ò»¶¨²»Òªµ÷ÓÃ¸Ã·½·¨£¬·ñÔò»á·µ»Ø´óÁ¿µÄÊı¾İ¡£
+        /// æ ¹æ®æ¡ä»¶æŸ¥æ‰¾å”¯ä¸€çš„å•ä¸ªå®ä½“ï¼Œå› ä¸ºæ˜¯å”¯ä¸€çš„ï¼Œæ‰€ä»¥ä¸éœ€è¦åˆ†é¡µå’Œæ’åºã€‚
+        /// å¦‚æœä¸ç¡®å®šæ˜¯å¦å”¯ä¸€ï¼Œä¸€å®šä¸è¦è°ƒç”¨è¯¥æ–¹æ³•ï¼Œå¦åˆ™ä¼šè¿”å›å¤§é‡çš„æ•°æ®ã€‚
         /// </summary>
-        /// <param name="whereClause">²éÑ¯Ìõ¼ş</param>
+        /// <param name="whereClause">æŸ¥è¯¢æ¡ä»¶</param>
         /// <returns></returns>
         static TEntity FindUnique(String whereClause)
         {
             var session = Meta.Session;
             var builder = new SelectBuilder();
             builder.Table = session.FormatedTableName;
-            // ½÷¼Ç£ºÄ³Ğ©ÏîÄ¿ÖĞ¿ÉÄÜÔÚwhereÖĞÊ¹ÓÃÁËGroupBy£¬ÔÚ·ÖÒ³Ê±¿ÉÄÜ±¨´í
+            // è°¨è®°ï¼šæŸäº›é¡¹ç›®ä¸­å¯èƒ½åœ¨whereä¸­ä½¿ç”¨äº†GroupByï¼Œåœ¨åˆ†é¡µæ—¶å¯èƒ½æŠ¥é”™
             builder.Where = whereClause;
             var list = LoadData(session.Query(builder, 0, 0));
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
             {
-                DAL.WriteDebugLog("µ÷ÓÃFindUnique(\"{0}\")²»ºÏÀí£¬Ö»ÓĞ·µ»ØÎ¨Ò»¼ÇÂ¼µÄ²éÑ¯Ìõ¼ş²ÅÔÊĞíµ÷ÓÃ£¡", whereClause);
+                DAL.WriteDebugLog("è°ƒç”¨FindUnique(\"{0}\")ä¸åˆç†ï¼Œåªæœ‰è¿”å›å”¯ä¸€è®°å½•çš„æŸ¥è¯¢æ¡ä»¶æ‰å…è®¸è°ƒç”¨ï¼", whereClause);
                 NewLife.Log.XTrace.DebugStack(5);
             }
             return list[0];
         }
 
-        /// <summary>¸ù¾İÌõ¼ş²éÕÒµ¥¸öÊµÌå</summary>
-        /// <param name="whereClause">²éÑ¯Ìõ¼ş</param>
+        /// <summary>æ ¹æ®æ¡ä»¶æŸ¥æ‰¾å•ä¸ªå®ä½“</summary>
+        /// <param name="whereClause">æŸ¥è¯¢æ¡ä»¶</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         //[EditorBrowsable(EditorBrowsableState.Never)]
@@ -569,10 +569,10 @@ namespace XCode
             return list.Count < 1 ? null : list[0];
         }
 
-        // ²»ÄÜÕâÃ´×ö£¬ÎÒÃÇÄ¬ÈÏFindµÄÌõ¼şÄÜ¹ıÂË³öÀ´Ò»ĞĞÊı¾İ
-        ///// <summary>¸ù¾İÌõ¼ş²éÕÒµ¥¸öÊµÌå</summary>
-        ///// <param name="whereClause">²éÑ¯Ìõ¼ş</param>
-        ///// <param name="orderClause">ÅÅĞò£¬²»´øOrder By</param>
+        // ä¸èƒ½è¿™ä¹ˆåšï¼Œæˆ‘ä»¬é»˜è®¤Findçš„æ¡ä»¶èƒ½è¿‡æ»¤å‡ºæ¥ä¸€è¡Œæ•°æ®
+        ///// <summary>æ ¹æ®æ¡ä»¶æŸ¥æ‰¾å•ä¸ªå®ä½“</summary>
+        ///// <param name="whereClause">æŸ¥è¯¢æ¡ä»¶</param>
+        ///// <param name="orderClause">æ’åºï¼Œä¸å¸¦Order By</param>
         ///// <returns></returns>
         //[DataObjectMethod(DataObjectMethodType.Select, false)]
         //public static TEntity Find(String whereClause, String orderClause = null)
@@ -581,31 +581,31 @@ namespace XCode
         //    return list.Count < 1 ? null : list[0];
         //}
 
-        /// <summary>¸ù¾İÖ÷¼ü²éÕÒµ¥¸öÊµÌå</summary>
-        /// <param name="key">Î¨Ò»Ö÷¼üµÄÖµ</param>
+        /// <summary>æ ¹æ®ä¸»é”®æŸ¥æ‰¾å•ä¸ªå®ä½“</summary>
+        /// <param name="key">å”¯ä¸€ä¸»é”®çš„å€¼</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKey(Object key)
         {
             FieldItem field = Meta.Unique;
-            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey·½·¨ÒªÇó" + Meta.ThisType.FullName + "ÓĞÎ¨Ò»Ö÷¼ü£¡");
+            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKeyæ–¹æ³•è¦æ±‚" + Meta.ThisType.FullName + "æœ‰å”¯ä¸€ä¸»é”®ï¼");
 
-            // Î¨Ò»¼üÎª×ÔÔöÇÒ²ÎÊıĞ¡ÓÚµÈÓÚ0Ê±£¬·µ»Ø¿Õ
+            // å”¯ä¸€é”®ä¸ºè‡ªå¢ä¸”å‚æ•°å°äºç­‰äº0æ—¶ï¼Œè¿”å›ç©º
             if (Helper.IsNullKey(key, field.Type)) return null;
 
             return Find(field.Name, key);
         }
 
-        /// <summary>¸ù¾İÖ÷¼ü²éÑ¯Ò»¸öÊµÌå¶ÔÏóÓÃÓÚ±íµ¥±à¼­</summary>
-        /// <param name="key">Î¨Ò»Ö÷¼üµÄÖµ</param>
+        /// <summary>æ ¹æ®ä¸»é”®æŸ¥è¯¢ä¸€ä¸ªå®ä½“å¯¹è±¡ç”¨äºè¡¨å•ç¼–è¾‘</summary>
+        /// <param name="key">å”¯ä¸€ä¸»é”®çš„å€¼</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKeyForEdit(Object key)
         {
             FieldItem field = Meta.Unique;
-            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKeyForEdit·½·¨ÒªÇó¸Ã±íÓĞÎ¨Ò»Ö÷¼ü£¡");
+            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKeyForEditæ–¹æ³•è¦æ±‚è¯¥è¡¨æœ‰å”¯ä¸€ä¸»é”®ï¼");
 
-            // ²ÎÊıÎª¿ÕÊ±£¬·µ»ØĞÂÊµÀı
+            // å‚æ•°ä¸ºç©ºæ—¶ï¼Œè¿”å›æ–°å®ä¾‹
             if (key == null)
             {
                 //IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
@@ -614,25 +614,25 @@ namespace XCode
 
             Type type = field.Type;
 
-            // Î¨Ò»¼üÎª×ÔÔöÇÒ²ÎÊıĞ¡ÓÚµÈÓÚ0Ê±£¬·µ»ØĞÂÊµÀı
+            // å”¯ä¸€é”®ä¸ºè‡ªå¢ä¸”å‚æ•°å°äºç­‰äº0æ—¶ï¼Œè¿”å›æ–°å®ä¾‹
             if (Helper.IsNullKey(key, field.Type))
             {
-                if (type.IsIntType() && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}µÄ{1}×Ö¶ÎÊÇÕûĞÍÖ÷¼ü£¬ÄãÊÇ·ñÍü¼ÇÁËÉèÖÃ×ÔÔö£¿", Meta.TableName, field.ColumnName);
+                if (type.IsIntType() && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}çš„{1}å­—æ®µæ˜¯æ•´å‹ä¸»é”®ï¼Œä½ æ˜¯å¦å¿˜è®°äº†è®¾ç½®è‡ªå¢ï¼Ÿ", Meta.TableName, field.ColumnName);
 
                 return Meta.Factory.Create(true) as TEntity;
             }
 
-            // ´ËÍâ£¬Ò»ÂÉ·µ»Ø ²éÕÒÖµ£¬¼´Ê¹¿ÉÄÜÊÇ¿Õ¡£¶ø¾ø²»ÄÜÔÚÕÒ²»µ½Êı¾İµÄÇé¿öÏÂ¸øËü·µ»Ø¿Õ£¬ÒòÎª¿ÉÄÜÊÇÕÒ²»µ½Êı¾İ¶øÒÑ£¬¶ø·µ»ØĞÂÊµÀı»áµ¼ÖÂÇ°¶ËÒÔÎªÕâÀïÊÇĞÂÔöÊı¾İ
+            // æ­¤å¤–ï¼Œä¸€å¾‹è¿”å› æŸ¥æ‰¾å€¼ï¼Œå³ä½¿å¯èƒ½æ˜¯ç©ºã€‚è€Œç»ä¸èƒ½åœ¨æ‰¾ä¸åˆ°æ•°æ®çš„æƒ…å†µä¸‹ç»™å®ƒè¿”å›ç©ºï¼Œå› ä¸ºå¯èƒ½æ˜¯æ‰¾ä¸åˆ°æ•°æ®è€Œå·²ï¼Œè€Œè¿”å›æ–°å®ä¾‹ä¼šå¯¼è‡´å‰ç«¯ä»¥ä¸ºè¿™é‡Œæ˜¯æ–°å¢æ•°æ®
             TEntity entity = Find(field.Name, key);
 
-            // ÅĞ¶ÏÊµÌå
+            // åˆ¤æ–­å®ä½“
             if (entity == null)
             {
                 String msg = null;
                 if (Helper.IsNullKey(key, field.Type))
-                    msg = String.Format("²ÎÊı´íÎó£¡ÎŞ·¨È¡µÃ±àºÅÎª{0}µÄ{1}£¡¿ÉÄÜÎ´ÉèÖÃ×ÔÔöÖ÷¼ü£¡", key, Meta.Table.Description);
+                    msg = String.Format("å‚æ•°é”™è¯¯ï¼æ— æ³•å–å¾—ç¼–å·ä¸º{0}çš„{1}ï¼å¯èƒ½æœªè®¾ç½®è‡ªå¢ä¸»é”®ï¼", key, Meta.Table.Description);
                 else
-                    msg = String.Format("²ÎÊı´íÎó£¡ÎŞ·¨È¡µÃ±àºÅÎª{0}µÄ{1}£¡", key, Meta.Table.Description);
+                    msg = String.Format("å‚æ•°é”™è¯¯ï¼æ— æ³•å–å¾—ç¼–å·ä¸º{0}çš„{1}ï¼", key, Meta.Table.Description);
 
                 throw new XCodeException(msg);
             }
@@ -640,9 +640,9 @@ namespace XCode
             return entity;
         }
 
-        /// <summary>²éÑ¯Ö¸¶¨×Ö¶ÎµÄ×îĞ¡Öµ</summary>
-        /// <param name="field">Ö¸¶¨×Ö¶Î</param>
-        /// <param name="whereClause">Ìõ¼ş×Ö¾ä</param>
+        /// <summary>æŸ¥è¯¢æŒ‡å®šå­—æ®µçš„æœ€å°å€¼</summary>
+        /// <param name="field">æŒ‡å®šå­—æ®µ</param>
+        /// <param name="whereClause">æ¡ä»¶å­—å¥</param>
         /// <returns></returns>
         public static Int32 FindMin(String field, String whereClause = null)
         {
@@ -651,9 +651,9 @@ namespace XCode
             return list.Count < 1 ? 0 : Convert.ToInt32(list[0][fd.Name]);
         }
 
-        /// <summary>²éÑ¯Ö¸¶¨×Ö¶ÎµÄ×î´óÖµ</summary>
-        /// <param name="field">Ö¸¶¨×Ö¶Î</param>
-        /// <param name="whereClause">Ìõ¼ş×Ö¾ä</param>
+        /// <summary>æŸ¥è¯¢æŒ‡å®šå­—æ®µçš„æœ€å¤§å€¼</summary>
+        /// <param name="field">æŒ‡å®šå­—æ®µ</param>
+        /// <param name="whereClause">æ¡ä»¶å­—å¥</param>
         /// <returns></returns>
         public static Int32 FindMax(String field, String whereClause = null)
         {
@@ -663,57 +663,57 @@ namespace XCode
         }
         #endregion
 
-        #region ¾²Ì¬²éÑ¯
-        /// <summary>»ñÈ¡ËùÓĞÊı¾İ¡£»ñÈ¡´óÁ¿Êı¾İÊ±»á·Ç³£Âı£¬É÷ÓÃ¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
-        /// <returns>ÊµÌåÊı×é</returns>
+        #region é™æ€æŸ¥è¯¢
+        /// <summary>è·å–æ‰€æœ‰æ•°æ®ã€‚è·å–å¤§é‡æ•°æ®æ—¶ä¼šéå¸¸æ…¢ï¼Œæ…ç”¨ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
+        /// <returns>å®ä½“æ•°ç»„</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll() { return FindAll(null, null, null, 0, 0); }
 
-        /// <summary>×î±ê×¼µÄ²éÑ¯Êı¾İ¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
+        /// <summary>æœ€æ ‡å‡†çš„æŸ¥è¯¢æ•°æ®ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
         /// <remarks>
-        /// ×î¾­µäµÄÅúÁ¿²éÑ¯£¬¿´Õâ¸öSelect @selects From Table Where @whereClause Order By @orderClause Limit @startRowIndex,@maximumRows£¬Äã¾ÍÃ÷°×¸÷²ÎÊıµÄÒâË¼ÁË¡£
+        /// æœ€ç»å…¸çš„æ‰¹é‡æŸ¥è¯¢ï¼Œçœ‹è¿™ä¸ªSelect @selects From Table Where @whereClause Order By @orderClause Limit @startRowIndex,@maximumRowsï¼Œä½ å°±æ˜ç™½å„å‚æ•°çš„æ„æ€äº†ã€‚
         /// </remarks>
-        /// <param name="whereClause">Ìõ¼ş×Ö¾ä£¬²»´øWhere</param>
-        /// <param name="orderClause">ÅÅĞò×Ö¾ä£¬²»´øOrder By</param>
-        /// <param name="selects">²éÑ¯ÁĞ£¬Ä¬ÈÏnull±íÊ¾ËùÓĞ×Ö¶Î</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ</param>
-        /// <returns>ÊµÌå¼¯</returns>
+        /// <param name="whereClause">æ¡ä»¶å­—å¥ï¼Œä¸å¸¦Where</param>
+        /// <param name="orderClause">æ’åºå­—å¥ï¼Œä¸å¸¦Order By</param>
+        /// <param name="selects">æŸ¥è¯¢åˆ—ï¼Œé»˜è®¤nullè¡¨ç¤ºæ‰€æœ‰å­—æ®µ</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œ</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œ</param>
+        /// <returns>å®ä½“é›†</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
             var session = Meta.Session;
 
-            #region º£Á¿Êı¾İ²éÑ¯ÓÅ»¯
-            // º£Á¿Êı¾İÎ²Ò³²éÑ¯ÓÅ»¯
-            // ÔÚº£Á¿Êı¾İ·ÖÒ³ÖĞ£¬È¡Ô½ÊÇºóÃæÒ³µÄÊı¾İÔ½Âı£¬¿ÉÒÔ¿¼ÂÇµ¹ĞòµÄ·½Ê½
-            // Ö»ÓĞÔÚ°ÙÍòÊı¾İ£¬ÇÒ¿ªÊ¼ĞĞ´óÓÚÎåÊ®ÍòÊ±²ÅÊ¹ÓÃ
+            #region æµ·é‡æ•°æ®æŸ¥è¯¢ä¼˜åŒ–
+            // æµ·é‡æ•°æ®å°¾é¡µæŸ¥è¯¢ä¼˜åŒ–
+            // åœ¨æµ·é‡æ•°æ®åˆ†é¡µä¸­ï¼Œå–è¶Šæ˜¯åé¢é¡µçš„æ•°æ®è¶Šæ…¢ï¼Œå¯ä»¥è€ƒè™‘å€’åºçš„æ–¹å¼
+            // åªæœ‰åœ¨ç™¾ä¸‡æ•°æ®ï¼Œä¸”å¼€å§‹è¡Œå¤§äºäº”åä¸‡æ—¶æ‰ä½¿ç”¨
 
-            // ÈçÏÂÓÅ»¯£¬±ÜÃâÁËÃ¿´Î¶¼µ÷ÓÃMeta.Count¶øµ¼ÖÂĞÎ³ÉÒ»´Î²éÑ¯£¬ËäÈ»Õâ´Î²éÑ¯Ê±¼äËğºÄ²»´ó
-            // µ«ÊÇ¾ø´ó¶àÊı²éÑ¯£¬¶¼²»ĞèÒª½øĞĞÀàËÆµÄº£Á¿Êı¾İÓÅ»¯£¬ÏÔÈ»£¬Õâ¸östartRowIndex½«»áµ²×¡99%ÒÔÉÏµÄÀË·Ñ
+            // å¦‚ä¸‹ä¼˜åŒ–ï¼Œé¿å…äº†æ¯æ¬¡éƒ½è°ƒç”¨Meta.Countè€Œå¯¼è‡´å½¢æˆä¸€æ¬¡æŸ¥è¯¢ï¼Œè™½ç„¶è¿™æ¬¡æŸ¥è¯¢æ—¶é—´æŸè€—ä¸å¤§
+            // ä½†æ˜¯ç»å¤§å¤šæ•°æŸ¥è¯¢ï¼Œéƒ½ä¸éœ€è¦è¿›è¡Œç±»ä¼¼çš„æµ·é‡æ•°æ®ä¼˜åŒ–ï¼Œæ˜¾ç„¶ï¼Œè¿™ä¸ªstartRowIndexå°†ä¼šæŒ¡ä½99%ä»¥ä¸Šçš„æµªè´¹
             Int64 count = 0;
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
-                // ¼ÆËã±¾´Î²éÑ¯µÄ½á¹ûĞĞÊı
+                // è®¡ç®—æœ¬æ¬¡æŸ¥è¯¢çš„ç»“æœè¡Œæ•°
                 if (!String.IsNullOrEmpty(whereClause)) count = FindCount(whereClause, orderClause, selects, startRowIndex, maximumRows);
-                // ÓÎ±êÔÚÖĞ¼äÆ«ºó
+                // æ¸¸æ ‡åœ¨ä¸­é—´åå
                 if (startRowIndex * 2 > count)
                 {
                     String order = orderClause;
-                    Boolean bk = false; // ÊÇ·ñÌø¹ı
+                    Boolean bk = false; // æ˜¯å¦è·³è¿‡
 
-                    #region ÅÅĞòµ¹Ğò
-                    // Ä¬ÈÏÊÇ×ÔÔö×Ö¶ÎµÄ½µĞò
+                    #region æ’åºå€’åº
+                    // é»˜è®¤æ˜¯è‡ªå¢å­—æ®µçš„é™åº
                     FieldItem fi = Meta.Unique;
                     if (String.IsNullOrEmpty(order) && fi != null && fi.IsIdentity) order = fi.Name + " Desc";
 
                     if (!String.IsNullOrEmpty(order))
                     {
                         //2014-01-05 Modify by Apex
-                        //´¦Àíorder by´øÓĞº¯ÊıµÄÇé¿ö£¬±ÜÃâ·Ö¸ôÊ±½«º¯Êı²ğ·Öµ¼ÖÂ´íÎó
+                        //å¤„ç†order byå¸¦æœ‰å‡½æ•°çš„æƒ…å†µï¼Œé¿å…åˆ†éš”æ—¶å°†å‡½æ•°æ‹†åˆ†å¯¼è‡´é”™è¯¯
                         foreach (Match match in Regex.Matches(order, @"\([^\)]*\)", RegexOptions.Singleline))
                         {
-                            order = order.Replace(match.Value, match.Value.Replace(",", "¡ï"));
+                            order = order.Replace(match.Value, match.Value.Replace(",", "â˜…"));
                         }
                         String[] ss = order.Split(',');
                         var sb = new StringBuilder();
@@ -748,14 +748,14 @@ namespace XCode
                             sb.AppendFormat("{0} {1}", fn, od);
                         }
 
-                        order = sb.ToString().Replace("¡ï", ",");
+                        order = sb.ToString().Replace("â˜…", ",");
                     }
                     #endregion
 
-                    // Ã»ÓĞÅÅĞòµÄÊµÔÚ²»ÊÊºÏÕâÖÖ°ì·¨£¬ÒòÎªÃ»°ì·¨µ¹Ğò
+                    // æ²¡æœ‰æ’åºçš„å®åœ¨ä¸é€‚åˆè¿™ç§åŠæ³•ï¼Œå› ä¸ºæ²¡åŠæ³•å€’åº
                     if (!String.IsNullOrEmpty(order))
                     {
-                        // ×î´ó¿ÉÓÃĞĞÊı¸ÄÎªÊµ¼Ê×î´ó¿ÉÓÃĞĞÊı
+                        // æœ€å¤§å¯ç”¨è¡Œæ•°æ”¹ä¸ºå®é™…æœ€å¤§å¯ç”¨è¡Œæ•°
                         var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
                         //if (max <= 0) return null;
                         if (max <= 0) return new EntityList<TEntity>();
@@ -764,7 +764,7 @@ namespace XCode
                         var builder2 = CreateBuilder(whereClause, order, selects, start, max);
                         var list = LoadData(session.Query(builder2, start, max));
                         if (list == null || list.Count < 1) return list;
-                        // ÒòÎªÕâÑùÈ¡µÃµÄÊı¾İÊÇµ¹¹ıÀ´µÄ£¬ËùÒÔÕâÀïĞèÒªÔÙµ¹Ò»´Î
+                        // å› ä¸ºè¿™æ ·å–å¾—çš„æ•°æ®æ˜¯å€’è¿‡æ¥çš„ï¼Œæ‰€ä»¥è¿™é‡Œéœ€è¦å†å€’ä¸€æ¬¡
                         list.Reverse();
                         return list;
                     }
@@ -776,19 +776,19 @@ namespace XCode
             return LoadData(session.Query(builder, startRowIndex, maximumRows));
         }
 
-        /// <summary>¸ù¾İÊôĞÔÁĞ±íÒÔ¼°¶ÔÓ¦µÄÖµÁĞ±í²éÑ¯Êı¾İ¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
-        /// <param name="names">ÊôĞÔÁĞ±í</param>
-        /// <param name="values">ÖµÁĞ±í</param>
-        /// <returns>ÊµÌåÊı×é</returns>
+        /// <summary>æ ¹æ®å±æ€§åˆ—è¡¨ä»¥åŠå¯¹åº”çš„å€¼åˆ—è¡¨æŸ¥è¯¢æ•°æ®ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
+        /// <param name="names">å±æ€§åˆ—è¡¨</param>
+        /// <param name="values">å€¼åˆ—è¡¨</param>
+        /// <returns>å®ä½“æ•°ç»„</returns>
         public static EntityList<TEntity> FindAll(String[] names, Object[] values)
         {
-            // ÅĞ¶Ï×ÔÔöºÍÖ÷¼ü
+            // åˆ¤æ–­è‡ªå¢å’Œä¸»é”®
             if (names != null && names.Length == 1)
             {
                 FieldItem field = Meta.Table.FindByName(names[0]);
                 if (field != null && (field.IsIdentity || field.PrimaryKey))
                 {
-                    // Î¨Ò»¼üÎª×ÔÔöÇÒ²ÎÊıĞ¡ÓÚµÈÓÚ0Ê±£¬·µ»Ø¿Õ
+                    // å”¯ä¸€é”®ä¸ºè‡ªå¢ä¸”å‚æ•°å°äºç­‰äº0æ—¶ï¼Œè¿”å›ç©º
                     if (Helper.IsNullKey(values[0], field.Type)) return null;
                 }
             }
@@ -796,20 +796,20 @@ namespace XCode
             return FindAll(MakeCondition(names, values, "And"), null, null, 0, 0);
         }
 
-        /// <summary>¸ù¾İÊôĞÔÒÔ¼°¶ÔÓ¦µÄÖµ²éÑ¯Êı¾İ¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
-        /// <param name="name">ÊôĞÔ</param>
-        /// <param name="value">Öµ</param>
-        /// <returns>ÊµÌåÊı×é</returns>
+        /// <summary>æ ¹æ®å±æ€§ä»¥åŠå¯¹åº”çš„å€¼æŸ¥è¯¢æ•°æ®ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
+        /// <param name="name">å±æ€§</param>
+        /// <param name="value">å€¼</param>
+        /// <returns>å®ä½“æ•°ç»„</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
 
-        /// <summary>¸ù¾İÊôĞÔÒÔ¼°¶ÔÓ¦µÄÖµ²éÑ¯Êı¾İ£¬´øÅÅĞò¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
-        /// <param name="name">ÊôĞÔ</param>
-        /// <param name="value">Öµ</param>
-        /// <param name="orderClause">ÅÅĞò£¬²»´øOrder By</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ</param>
-        /// <returns>ÊµÌåÊı×é</returns>
+        /// <summary>æ ¹æ®å±æ€§ä»¥åŠå¯¹åº”çš„å€¼æŸ¥è¯¢æ•°æ®ï¼Œå¸¦æ’åºã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
+        /// <param name="name">å±æ€§</param>
+        /// <param name="value">å€¼</param>
+        /// <param name="orderClause">æ’åºï¼Œä¸å¸¦Order By</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œ</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œ</param>
+        /// <returns>å®ä½“æ•°ç»„</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
         public static EntityList<TEntity> FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         {
@@ -818,10 +818,10 @@ namespace XCode
             FieldItem field = Meta.Table.FindByName(name);
             if (field != null && (field.IsIdentity || field.PrimaryKey))
             {
-                // Î¨Ò»¼üÎª×ÔÔöÇÒ²ÎÊıĞ¡ÓÚµÈÓÚ0Ê±£¬·µ»Ø¿Õ
+                // å”¯ä¸€é”®ä¸ºè‡ªå¢ä¸”å‚æ•°å°äºç­‰äº0æ—¶ï¼Œè¿”å›ç©º
                 if (Helper.IsNullKey(value, field.Type)) return new EntityList<TEntity>();
 
-                // ×ÔÔö»òÕßÖ÷¼ü²éÑ¯£¬¼ÇÂ¼¼¯¿Ï¶¨ÊÇÎ¨Ò»µÄ£¬²»ĞèÒªÖ¸¶¨¼ÇÂ¼ÊıºÍÅÅĞò
+                // è‡ªå¢æˆ–è€…ä¸»é”®æŸ¥è¯¢ï¼Œè®°å½•é›†è‚¯å®šæ˜¯å”¯ä¸€çš„ï¼Œä¸éœ€è¦æŒ‡å®šè®°å½•æ•°å’Œæ’åº
                 return FindAll(MakeCondition(field, value, "="), null, null, 0, 0);
                 //var builder = new SelectBuilder();
                 //builder.Table = Meta.FormatName(Meta.TableName);
@@ -832,24 +832,24 @@ namespace XCode
             return FindAll(MakeCondition(new String[] { name }, new Object[] { value }, "And"), orderClause, null, startRowIndex, maximumRows);
         }
 
-        ///// <summary>²éÑ¯SQL²¢·µ»ØÊµÌå¶ÔÏóÊı×é¡£
-        ///// Select·½·¨½«Ö±½ÓÊ¹ÓÃ²ÎÊıÖ¸¶¨µÄ²éÑ¯Óï¾ä½øĞĞ²éÑ¯£¬²»½øĞĞÈÎºÎ×ª»»¡£
+        ///// <summary>æŸ¥è¯¢SQLå¹¶è¿”å›å®ä½“å¯¹è±¡æ•°ç»„ã€‚
+        ///// Selectæ–¹æ³•å°†ç›´æ¥ä½¿ç”¨å‚æ•°æŒ‡å®šçš„æŸ¥è¯¢è¯­å¥è¿›è¡ŒæŸ¥è¯¢ï¼Œä¸è¿›è¡Œä»»ä½•è½¬æ¢ã€‚
         ///// </summary>
-        ///// <param name="sql">²éÑ¯Óï¾ä</param>
-        ///// <returns>ÊµÌåÊı×é</returns>
+        ///// <param name="sql">æŸ¥è¯¢è¯­å¥</param>
+        ///// <returns>å®ä½“æ•°ç»„</returns>
         //[Obsolete("=>Session")]
         //[EditorBrowsable(EditorBrowsableState.Never)]
         //public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Session.Query(sql)); }
 
-        /// <summary>Í¬Ê±²éÑ¯Âú×ãÌõ¼şµÄ¼ÇÂ¼¼¯ºÍ¼ÇÂ¼×ÜÊı¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
-        /// <param name="whereClause">Ìõ¼ş£¬²»´øWhere</param>
-        /// <param name="orderClause">ÅÅĞò£¬²»´øOrder By</param>
-        /// <param name="selects">²éÑ¯ÁĞ</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ</param>
-        /// <param name="count">¼ÇÂ¼×ÜÊı</param>
-        /// <param name="mode">²éÑ¯Ä£Ê½£¬·ÖÎª¼ÇÂ¼¼¯ºÍ¼ÇÂ¼×ÜÊıÁ½ÖÖ£¬Ä¬ÈÏBoth±íÊ¾Í¬Ê±²éÑ¯Á½Õß</param>
-        /// <returns>ÊµÌå¼¯</returns>
+        /// <summary>åŒæ—¶æŸ¥è¯¢æ»¡è¶³æ¡ä»¶çš„è®°å½•é›†å’Œè®°å½•æ€»æ•°ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
+        /// <param name="whereClause">æ¡ä»¶ï¼Œä¸å¸¦Where</param>
+        /// <param name="orderClause">æ’åºï¼Œä¸å¸¦Order By</param>
+        /// <param name="selects">æŸ¥è¯¢åˆ—</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œ</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œ</param>
+        /// <param name="count">è®°å½•æ€»æ•°</param>
+        /// <param name="mode">æŸ¥è¯¢æ¨¡å¼ï¼Œåˆ†ä¸ºè®°å½•é›†å’Œè®°å½•æ€»æ•°ä¸¤ç§ï¼Œé»˜è®¤Bothè¡¨ç¤ºåŒæ—¶æŸ¥è¯¢ä¸¤è€…</param>
+        /// <returns>å®ä½“é›†</returns>
         [Obsolete("=>FindAll(String whereClause, PageParameter param)")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static EntityList<TEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, out Int32 count, SelectModes mode = SelectModes.Both)
@@ -867,17 +867,17 @@ namespace XCode
             return FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows);
         }
 
-        /// <summary>Í¬Ê±²éÑ¯Âú×ãÌõ¼şµÄ¼ÇÂ¼¼¯ºÍ¼ÇÂ¼×ÜÊı¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
-        /// <param name="whereClause">Ìõ¼ş£¬²»´øWhere</param>
-        /// <param name="param">·ÖÒ³ÅÅĞò²ÎÊı£¬Í¬Ê±·µ»ØÂú×ãÌõ¼şµÄ×Ü¼ÇÂ¼Êı</param>
+        /// <summary>åŒæ—¶æŸ¥è¯¢æ»¡è¶³æ¡ä»¶çš„è®°å½•é›†å’Œè®°å½•æ€»æ•°ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
+        /// <param name="whereClause">æ¡ä»¶ï¼Œä¸å¸¦Where</param>
+        /// <param name="param">åˆ†é¡µæ’åºå‚æ•°ï¼ŒåŒæ—¶è¿”å›æ»¡è¶³æ¡ä»¶çš„æ€»è®°å½•æ•°</param>
         /// <returns></returns>
         public static EntityList<TEntity> FindAll(String whereClause, PageParameter param)
         {
-            // ÏÈ²éÑ¯Âú×ãÌõ¼şµÄ¼ÇÂ¼Êı£¬Èç¹ûÃ»ÓĞÊı¾İ£¬ÔòÖ±½Ó·µ»Ø¿Õ¼¯ºÏ£¬²»ÔÙ²éÑ¯Êı¾İ
+            // å…ˆæŸ¥è¯¢æ»¡è¶³æ¡ä»¶çš„è®°å½•æ•°ï¼Œå¦‚æœæ²¡æœ‰æ•°æ®ï¼Œåˆ™ç›´æ¥è¿”å›ç©ºé›†åˆï¼Œä¸å†æŸ¥è¯¢æ•°æ®
             param.TotalCount = FindCount(whereClause, null, null, 0, 0);
             if (param.TotalCount <= 0) return new EntityList<TEntity>();
 
-            // ÑéÖ¤ÅÅĞò×Ö¶Î£¬±ÜÃâ·Ç·¨
+            // éªŒè¯æ’åºå­—æ®µï¼Œé¿å…éæ³•
             if (!param.Sort.IsNullOrEmpty())
             {
                 FieldItem st = Meta.Table.FindByName(param.Sort);
@@ -888,44 +888,44 @@ namespace XCode
         }
         #endregion
 
-        #region »º´æ²éÑ¯
-        /// <summary>¸ù¾İÊôĞÔÒÔ¼°¶ÔÓ¦µÄÖµ£¬ÔÚ»º´æÖĞ²éÕÒµ¥¸öÊµÌå</summary>
-        /// <param name="name">ÊôĞÔÃû³Æ</param>
-        /// <param name="value">ÊôĞÔÖµ</param>
+        #region ç¼“å­˜æŸ¥è¯¢
+        /// <summary>æ ¹æ®å±æ€§ä»¥åŠå¯¹åº”çš„å€¼ï¼Œåœ¨ç¼“å­˜ä¸­æŸ¥æ‰¾å•ä¸ªå®ä½“</summary>
+        /// <param name="name">å±æ€§åç§°</param>
+        /// <param name="value">å±æ€§å€¼</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindWithCache(String name, Object value) { return Meta.Session.Cache.Entities.Find(name, value); }
 
-        /// <summary>²éÕÒËùÓĞ»º´æ¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
+        /// <summary>æŸ¥æ‰¾æ‰€æœ‰ç¼“å­˜ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
 
-        /// <summary>¸ù¾İÊôĞÔÒÔ¼°¶ÔÓ¦µÄÖµ£¬ÔÚ»º´æÖĞ²éÑ¯Êı¾İ¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
-        /// <param name="name">ÊôĞÔ</param>
-        /// <param name="value">Öµ</param>
-        /// <returns>ÊµÌåÊı×é</returns>
+        /// <summary>æ ¹æ®å±æ€§ä»¥åŠå¯¹åº”çš„å€¼ï¼Œåœ¨ç¼“å­˜ä¸­æŸ¥è¯¢æ•°æ®ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
+        /// <param name="name">å±æ€§</param>
+        /// <param name="value">å€¼</param>
+        /// <returns>å®ä½“æ•°ç»„</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAllWithCache(String name, Object value) { return Meta.Session.Cache.Entities.FindAll(name, value); }
         #endregion
 
-        #region È¡×Ü¼ÇÂ¼Êı
-        /// <summary>·µ»Ø×Ü¼ÇÂ¼Êı</summary>
+        #region å–æ€»è®°å½•æ•°
+        /// <summary>è¿”å›æ€»è®°å½•æ•°</summary>
         /// <returns></returns>
         public static Int32 FindCount() { return FindCount(null, null, null, 0, 0); }
 
-        /// <summary>·µ»Ø×Ü¼ÇÂ¼Êı</summary>
-        /// <param name="whereClause">Ìõ¼ş£¬²»´øWhere</param>
-        /// <param name="orderClause">ÅÅĞò£¬²»´øOrder By¡£ÕâÀïÎŞÒâÒå£¬½ö½öÎªÁË±£³ÖÓëFindAllÏàÍ¬µÄ·½·¨Ç©Ãû</param>
-        /// <param name="selects">²éÑ¯ÁĞ¡£ÕâÀïÎŞÒâÒå£¬½ö½öÎªÁË±£³ÖÓëFindAllÏàÍ¬µÄ·½·¨Ç©Ãû</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ¡£ÕâÀïÎŞÒâÒå£¬½ö½öÎªÁË±£³ÖÓëFindAllÏàÍ¬µÄ·½·¨Ç©Ãû</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ¡£ÕâÀïÎŞÒâÒå£¬½ö½öÎªÁË±£³ÖÓëFindAllÏàÍ¬µÄ·½·¨Ç©Ãû</param>
-        /// <returns>×ÜĞĞÊı</returns>
+        /// <summary>è¿”å›æ€»è®°å½•æ•°</summary>
+        /// <param name="whereClause">æ¡ä»¶ï¼Œä¸å¸¦Where</param>
+        /// <param name="orderClause">æ’åºï¼Œä¸å¸¦Order Byã€‚è¿™é‡Œæ— æ„ä¹‰ï¼Œä»…ä»…ä¸ºäº†ä¿æŒä¸FindAllç›¸åŒçš„æ–¹æ³•ç­¾å</param>
+        /// <param name="selects">æŸ¥è¯¢åˆ—ã€‚è¿™é‡Œæ— æ„ä¹‰ï¼Œä»…ä»…ä¸ºäº†ä¿æŒä¸FindAllç›¸åŒçš„æ–¹æ³•ç­¾å</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œã€‚è¿™é‡Œæ— æ„ä¹‰ï¼Œä»…ä»…ä¸ºäº†ä¿æŒä¸FindAllç›¸åŒçš„æ–¹æ³•ç­¾å</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œã€‚è¿™é‡Œæ— æ„ä¹‰ï¼Œä»…ä»…ä¸ºäº†ä¿æŒä¸FindAllç›¸åŒçš„æ–¹æ³•ç­¾å</param>
+        /// <returns>æ€»è¡Œæ•°</returns>
         public static Int32 FindCount(String whereClause, String orderClause = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var session = Meta.Session;
 
-            // Èç¹û×Ü¼ÇÂ¼Êı³¬¹ıÒ»Íò£¬ÎªÁËÌá¸ßĞÔÄÜ£¬·µ»Ø¿ìËÙ²éÕÒÇÒ´øÓĞ»º´æµÄ×Ü¼ÇÂ¼Êı
+            // å¦‚æœæ€»è®°å½•æ•°è¶…è¿‡ä¸€ä¸‡ï¼Œä¸ºäº†æé«˜æ€§èƒ½ï¼Œè¿”å›å¿«é€ŸæŸ¥æ‰¾ä¸”å¸¦æœ‰ç¼“å­˜çš„æ€»è®°å½•æ•°
             if (String.IsNullOrEmpty(whereClause) && session.Count > 10000) return session.Count;
 
             var sb = new SelectBuilder();
@@ -935,19 +935,19 @@ namespace XCode
             return session.QueryCount(sb);
         }
 
-        /// <summary>¸ù¾İÊôĞÔÁĞ±íÒÔ¼°¶ÔÓ¦µÄÖµÁĞ±í£¬·µ»Ø×Ü¼ÇÂ¼Êı</summary>
-        /// <param name="names">ÊôĞÔÁĞ±í</param>
-        /// <param name="values">ÖµÁĞ±í</param>
-        /// <returns>×ÜĞĞÊı</returns>
+        /// <summary>æ ¹æ®å±æ€§åˆ—è¡¨ä»¥åŠå¯¹åº”çš„å€¼åˆ—è¡¨ï¼Œè¿”å›æ€»è®°å½•æ•°</summary>
+        /// <param name="names">å±æ€§åˆ—è¡¨</param>
+        /// <param name="values">å€¼åˆ—è¡¨</param>
+        /// <returns>æ€»è¡Œæ•°</returns>
         public static Int32 FindCount(String[] names, Object[] values)
         {
-            // ÅĞ¶Ï×ÔÔöºÍÖ÷¼ü
+            // åˆ¤æ–­è‡ªå¢å’Œä¸»é”®
             if (names != null && names.Length == 1)
             {
                 FieldItem field = Meta.Table.FindByName(names[0]);
                 if (field != null && (field.IsIdentity || field.PrimaryKey))
                 {
-                    // Î¨Ò»¼üÎª×ÔÔöÇÒ²ÎÊıĞ¡ÓÚµÈÓÚ0Ê±£¬·µ»Ø¿Õ
+                    // å”¯ä¸€é”®ä¸ºè‡ªå¢ä¸”å‚æ•°å°äºç­‰äº0æ—¶ï¼Œè¿”å›ç©º
                     if (Helper.IsNullKey(values[0], field.Type)) return 0;
                 }
             }
@@ -955,19 +955,19 @@ namespace XCode
             return FindCount(MakeCondition(names, values, "And"), null, null, 0, 0);
         }
 
-        /// <summary>¸ù¾İÊôĞÔÒÔ¼°¶ÔÓ¦µÄÖµ£¬·µ»Ø×Ü¼ÇÂ¼Êı</summary>
-        /// <param name="name">ÊôĞÔ</param>
-        /// <param name="value">Öµ</param>
-        /// <returns>×ÜĞĞÊı</returns>
+        /// <summary>æ ¹æ®å±æ€§ä»¥åŠå¯¹åº”çš„å€¼ï¼Œè¿”å›æ€»è®°å½•æ•°</summary>
+        /// <param name="name">å±æ€§</param>
+        /// <param name="value">å€¼</param>
+        /// <returns>æ€»è¡Œæ•°</returns>
         public static Int32 FindCount(String name, Object value) { return FindCountByName(name, value, null, 0, 0); }
 
-        /// <summary>¸ù¾İÊôĞÔÒÔ¼°¶ÔÓ¦µÄÖµ£¬·µ»Ø×Ü¼ÇÂ¼Êı</summary>
-        /// <param name="name">ÊôĞÔ</param>
-        /// <param name="value">Öµ</param>
-        /// <param name="orderClause">ÅÅĞò£¬²»´øOrder By¡£ÕâÀïÎŞÒâÒå£¬½ö½öÎªÁË±£³ÖÓëFindAllÏàÍ¬µÄ·½·¨Ç©Ãû</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ¡£ÕâÀïÎŞÒâÒå£¬½ö½öÎªÁË±£³ÖÓëFindAllÏàÍ¬µÄ·½·¨Ç©Ãû</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ¡£ÕâÀïÎŞÒâÒå£¬½ö½öÎªÁË±£³ÖÓëFindAllÏàÍ¬µÄ·½·¨Ç©Ãû</param>
-        /// <returns>×ÜĞĞÊı</returns>
+        /// <summary>æ ¹æ®å±æ€§ä»¥åŠå¯¹åº”çš„å€¼ï¼Œè¿”å›æ€»è®°å½•æ•°</summary>
+        /// <param name="name">å±æ€§</param>
+        /// <param name="value">å€¼</param>
+        /// <param name="orderClause">æ’åºï¼Œä¸å¸¦Order Byã€‚è¿™é‡Œæ— æ„ä¹‰ï¼Œä»…ä»…ä¸ºäº†ä¿æŒä¸FindAllç›¸åŒçš„æ–¹æ³•ç­¾å</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œã€‚è¿™é‡Œæ— æ„ä¹‰ï¼Œä»…ä»…ä¸ºäº†ä¿æŒä¸FindAllç›¸åŒçš„æ–¹æ³•ç­¾å</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œã€‚è¿™é‡Œæ— æ„ä¹‰ï¼Œä»…ä»…ä¸ºäº†ä¿æŒä¸FindAllç›¸åŒçš„æ–¹æ³•ç­¾å</param>
+        /// <returns>æ€»è¡Œæ•°</returns>
         public static Int32 FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows)
         {
             if (String.IsNullOrEmpty(name))
@@ -977,21 +977,21 @@ namespace XCode
         }
         #endregion
 
-        #region »ñÈ¡²éÑ¯SQL
-        /// <summary>»ñÈ¡²éÑ¯SQL¡£Ö÷ÒªÓÃÓÚ¹¹Ôì×Ó²éÑ¯</summary>
-        /// <param name="whereClause">Ìõ¼ş£¬²»´øWhere</param>
-        /// <param name="orderClause">ÅÅĞò£¬²»´øOrder By</param>
-        /// <param name="selects">²éÑ¯ÁĞ</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ</param>
-        /// <returns>ÊµÌå¼¯</returns>
+        #region è·å–æŸ¥è¯¢SQL
+        /// <summary>è·å–æŸ¥è¯¢SQLã€‚ä¸»è¦ç”¨äºæ„é€ å­æŸ¥è¯¢</summary>
+        /// <param name="whereClause">æ¡ä»¶ï¼Œä¸å¸¦Where</param>
+        /// <param name="orderClause">æ’åºï¼Œä¸å¸¦Order By</param>
+        /// <param name="selects">æŸ¥è¯¢åˆ—</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œ</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œ</param>
+        /// <returns>å®ä½“é›†</returns>
         public static SelectBuilder FindSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows, false);
             return Meta.Session.PageSplit(builder, startRowIndex, maximumRows);
         }
 
-        /// <summary>»ñÈ¡²éÑ¯Î¨Ò»¼üµÄSQL¡£±ÈÈçSelect ID From Table</summary>
+        /// <summary>è·å–æŸ¥è¯¢å”¯ä¸€é”®çš„SQLã€‚æ¯”å¦‚Select ID From Table</summary>
         /// <param name="whereClause"></param>
         /// <returns></returns>
         public static SelectBuilder FindSQLWithKey(String whereClause = null)
@@ -1001,25 +1001,25 @@ namespace XCode
         }
         #endregion
 
-        #region ¸ß¼¶²éÑ¯
-        /// <summary>²éÑ¯Âú×ãÌõ¼şµÄ¼ÇÂ¼¼¯£¬·ÖÒ³¡¢ÅÅĞò¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
-        /// <param name="key">¹Ø¼ü×Ö</param>
-        /// <param name="orderClause">ÅÅĞò£¬²»´øOrder By</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ</param>
-        /// <returns>ÊµÌå¼¯</returns>
+        #region é«˜çº§æŸ¥è¯¢
+        /// <summary>æŸ¥è¯¢æ»¡è¶³æ¡ä»¶çš„è®°å½•é›†ï¼Œåˆ†é¡µã€æ’åºã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
+        /// <param name="key">å…³é”®å­—</param>
+        /// <param name="orderClause">æ’åºï¼Œä¸å¸¦Order By</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œ</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œ</param>
+        /// <returns>å®ä½“é›†</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
         public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows); }
 
-        /// <summary>²éÑ¯Âú×ãÌõ¼şµÄ¼ÇÂ¼×ÜÊı£¬·ÖÒ³ºÍÅÅĞòÎŞĞ§£¬´ø²ÎÊıÊÇÒòÎªObjectDataSourceÒªÇóËü¸úSearchÍ³Ò»</summary>
-        /// <param name="key">¹Ø¼ü×Ö</param>
-        /// <param name="orderClause">ÅÅĞò£¬²»´øOrder By</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ</param>
-        /// <returns>¼ÇÂ¼Êı</returns>
+        /// <summary>æŸ¥è¯¢æ»¡è¶³æ¡ä»¶çš„è®°å½•æ€»æ•°ï¼Œåˆ†é¡µå’Œæ’åºæ— æ•ˆï¼Œå¸¦å‚æ•°æ˜¯å› ä¸ºObjectDataSourceè¦æ±‚å®ƒè·ŸSearchç»Ÿä¸€</summary>
+        /// <param name="key">å…³é”®å­—</param>
+        /// <param name="orderClause">æ’åºï¼Œä¸å¸¦Order By</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œ</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œ</param>
+        /// <returns>è®°å½•æ•°</returns>
         public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0); }
 
-        /// <summary>Í¬Ê±²éÑ¯Âú×ãÌõ¼şµÄ¼ÇÂ¼¼¯ºÍ¼ÇÂ¼×ÜÊı¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
+        /// <summary>åŒæ—¶æŸ¥è¯¢æ»¡è¶³æ¡ä»¶çš„è®°å½•é›†å’Œè®°å½•æ€»æ•°ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
         /// <param name="key"></param>
         /// <param name="orderClause"></param>
         /// <param name="startRowIndex"></param>
@@ -1045,19 +1045,19 @@ namespace XCode
             return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows);
         }
 
-        /// <summary>Í¬Ê±²éÑ¯Âú×ãÌõ¼şµÄ¼ÇÂ¼¼¯ºÍ¼ÇÂ¼×ÜÊı¡£Ã»ÓĞÊı¾İÊ±·µ»Ø¿Õ¼¯ºÏ¶ø²»ÊÇnull</summary>
+        /// <summary>åŒæ—¶æŸ¥è¯¢æ»¡è¶³æ¡ä»¶çš„è®°å½•é›†å’Œè®°å½•æ€»æ•°ã€‚æ²¡æœ‰æ•°æ®æ—¶è¿”å›ç©ºé›†åˆè€Œä¸æ˜¯null</summary>
         /// <param name="key"></param>
-        /// <param name="param">·ÖÒ³ÅÅĞò²ÎÊı£¬Í¬Ê±·µ»ØÂú×ãÌõ¼şµÄ×Ü¼ÇÂ¼Êı</param>
+        /// <param name="param">åˆ†é¡µæ’åºå‚æ•°ï¼ŒåŒæ—¶è¿”å›æ»¡è¶³æ¡ä»¶çš„æ€»è®°å½•æ•°</param>
         /// <returns></returns>
         public static EntityList<TEntity> Search(String key, PageParameter param)
         {
             return FindAll(SearchWhereByKeys(key), param);
         }
 
-        /// <summary>¸ù¾İ¿Õ¸ñ·Ö¸îµÄ¹Ø¼ü×Ö¼¯ºÏ¹¹½¨²éÑ¯Ìõ¼ş</summary>
-        /// <param name="keys">¿Õ¸ñ·Ö¸îµÄ¹Ø¼ü×Ö¼¯ºÏ</param>
-        /// <param name="fields">Òª²éÑ¯µÄ×Ö¶Î£¬Ä¬ÈÏÎª¿Õ±íÊ¾²éÑ¯ËùÓĞ×Ö·û´®×Ö¶Î</param>
-        /// <param name="func">´¦ÀíÃ¿Ò»¸ö²éÑ¯¹Ø¼ü×ÖµÄ»Øµ÷º¯Êı</param>
+        /// <summary>æ ¹æ®ç©ºæ ¼åˆ†å‰²çš„å…³é”®å­—é›†åˆæ„å»ºæŸ¥è¯¢æ¡ä»¶</summary>
+        /// <param name="keys">ç©ºæ ¼åˆ†å‰²çš„å…³é”®å­—é›†åˆ</param>
+        /// <param name="fields">è¦æŸ¥è¯¢çš„å­—æ®µï¼Œé»˜è®¤ä¸ºç©ºè¡¨ç¤ºæŸ¥è¯¢æ‰€æœ‰å­—ç¬¦ä¸²å­—æ®µ</param>
+        /// <param name="func">å¤„ç†æ¯ä¸€ä¸ªæŸ¥è¯¢å…³é”®å­—çš„å›è°ƒå‡½æ•°</param>
         /// <returns></returns>
         public static WhereExpression SearchWhereByKeys(String keys, FieldItem[] fields = null, Func<String, FieldItem[], WhereExpression> func = null)
         {
@@ -1076,9 +1076,9 @@ namespace XCode
             return exp;
         }
 
-        /// <summary>¹¹½¨¹Ø¼ü×Ö²éÑ¯Ìõ¼ş</summary>
-        /// <param name="key">¹Ø¼ü×Ö</param>
-        /// <param name="fields">Òª²éÑ¯µÄ×Ö¶Î£¬Ä¬ÈÏÎª¿Õ±íÊ¾²éÑ¯ËùÓĞ×Ö·û´®×Ö¶Î</param>
+        /// <summary>æ„å»ºå…³é”®å­—æŸ¥è¯¢æ¡ä»¶</summary>
+        /// <param name="key">å…³é”®å­—</param>
+        /// <param name="fields">è¦æŸ¥è¯¢çš„å­—æ®µï¼Œé»˜è®¤ä¸ºç©ºè¡¨ç¤ºæŸ¥è¯¢æ‰€æœ‰å­—ç¬¦ä¸²å­—æ®µ</param>
         /// <returns></returns>
         public static WhereExpression SearchWhereByKey(String key, FieldItem[] fields = null)
         {
@@ -1097,34 +1097,34 @@ namespace XCode
         }
         #endregion
 
-        #region ¾²Ì¬²Ù×÷
-        /// <summary>°ÑÒ»¸öÊµÌå¶ÔÏó³Ö¾Ã»¯µ½Êı¾İ¿â</summary>
-        /// <param name="obj">ÊµÌå¶ÔÏó</param>
-        /// <returns>·µ»ØÊÜÓ°ÏìµÄĞĞÊı</returns>
+        #region é™æ€æ“ä½œ
+        /// <summary>æŠŠä¸€ä¸ªå®ä½“å¯¹è±¡æŒä¹…åŒ–åˆ°æ•°æ®åº“</summary>
+        /// <param name="obj">å®ä½“å¯¹è±¡</param>
+        /// <returns>è¿”å›å—å½±å“çš„è¡Œæ•°</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
         public static Int32 Insert(TEntity obj) { return obj.Insert(); }
 
-        /// <summary>°ÑÒ»¸öÊµÌå¶ÔÏó³Ö¾Ã»¯µ½Êı¾İ¿â</summary>
-        /// <param name="names">¸üĞÂÊôĞÔÁĞ±í</param>
-        /// <param name="values">¸üĞÂÖµÁĞ±í</param>
-        /// <returns>·µ»ØÊÜÓ°ÏìµÄĞĞÊı</returns>
+        /// <summary>æŠŠä¸€ä¸ªå®ä½“å¯¹è±¡æŒä¹…åŒ–åˆ°æ•°æ®åº“</summary>
+        /// <param name="names">æ›´æ–°å±æ€§åˆ—è¡¨</param>
+        /// <param name="values">æ›´æ–°å€¼åˆ—è¡¨</param>
+        /// <returns>è¿”å›å—å½±å“çš„è¡Œæ•°</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Insert(String[] names, Object[] values)
         {
             return persistence.Insert(Meta.ThisType, names, values);
         }
 
-        /// <summary>°ÑÒ»¸öÊµÌå¶ÔÏó¸üĞÂµ½Êı¾İ¿â</summary>
-        /// <param name="obj">ÊµÌå¶ÔÏó</param>
-        /// <returns>·µ»ØÊÜÓ°ÏìµÄĞĞÊı</returns>
+        /// <summary>æŠŠä¸€ä¸ªå®ä½“å¯¹è±¡æ›´æ–°åˆ°æ•°æ®åº“</summary>
+        /// <param name="obj">å®ä½“å¯¹è±¡</param>
+        /// <returns>è¿”å›å—å½±å“çš„è¡Œæ•°</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Update, true)]
         public static Int32 Update(TEntity obj) { return obj.Update(); }
 
-        /// <summary>¸üĞÂÒ»ÅúÊµÌåÊı¾İ</summary>
-        /// <param name="setClause">Òª¸üĞÂµÄÏîºÍÊı¾İ</param>
-        /// <param name="whereClause">Ö¸¶¨Òª¸üĞÂµÄÊµÌå</param>
+        /// <summary>æ›´æ–°ä¸€æ‰¹å®ä½“æ•°æ®</summary>
+        /// <param name="setClause">è¦æ›´æ–°çš„é¡¹å’Œæ•°æ®</param>
+        /// <param name="whereClause">æŒ‡å®šè¦æ›´æ–°çš„å®ä½“</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Update(String setClause, String whereClause)
@@ -1132,12 +1132,12 @@ namespace XCode
             return persistence.Update(Meta.ThisType, setClause, whereClause);
         }
 
-        /// <summary>¸üĞÂÒ»ÅúÊµÌåÊı¾İ</summary>
-        /// <param name="setNames">¸üĞÂÊôĞÔÁĞ±í</param>
-        /// <param name="setValues">¸üĞÂÖµÁĞ±í</param>
-        /// <param name="whereNames">Ìõ¼şÊôĞÔÁĞ±í</param>
-        /// <param name="whereValues">Ìõ¼şÖµÁĞ±í</param>
-        /// <returns>·µ»ØÊÜÓ°ÏìµÄĞĞÊı</returns>
+        /// <summary>æ›´æ–°ä¸€æ‰¹å®ä½“æ•°æ®</summary>
+        /// <param name="setNames">æ›´æ–°å±æ€§åˆ—è¡¨</param>
+        /// <param name="setValues">æ›´æ–°å€¼åˆ—è¡¨</param>
+        /// <param name="whereNames">æ¡ä»¶å±æ€§åˆ—è¡¨</param>
+        /// <param name="whereValues">æ¡ä»¶å€¼åˆ—è¡¨</param>
+        /// <returns>è¿”å›å—å½±å“çš„è¡Œæ•°</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
         {
@@ -1145,17 +1145,17 @@ namespace XCode
         }
 
         /// <summary>
-        /// ´ÓÊı¾İ¿âÖĞÉ¾³ıÖ¸¶¨ÊµÌå¶ÔÏó¡£
-        /// ÊµÌåÀàÓ¦¸ÃÊµÏÖ¸Ã·½·¨µÄÁíÒ»¸ö¸±±¾£¬ÒÔÎ¨Ò»¼ü»òÖ÷¼ü×÷Îª²ÎÊı
+        /// ä»æ•°æ®åº“ä¸­åˆ é™¤æŒ‡å®šå®ä½“å¯¹è±¡ã€‚
+        /// å®ä½“ç±»åº”è¯¥å®ç°è¯¥æ–¹æ³•çš„å¦ä¸€ä¸ªå‰¯æœ¬ï¼Œä»¥å”¯ä¸€é”®æˆ–ä¸»é”®ä½œä¸ºå‚æ•°
         /// </summary>
-        /// <param name="obj">ÊµÌå¶ÔÏó</param>
-        /// <returns>·µ»ØÊÜÓ°ÏìµÄĞĞÊı£¬¿ÉÓÃÓÚÅĞ¶Ï±»É¾³ıÁË¶àÉÙĞĞ£¬´Ó¶øÖªµÀ²Ù×÷ÊÇ·ñ³É¹¦</returns>
+        /// <param name="obj">å®ä½“å¯¹è±¡</param>
+        /// <returns>è¿”å›å—å½±å“çš„è¡Œæ•°ï¼Œå¯ç”¨äºåˆ¤æ–­è¢«åˆ é™¤äº†å¤šå°‘è¡Œï¼Œä»è€ŒçŸ¥é“æ“ä½œæ˜¯å¦æˆåŠŸ</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Delete, true)]
         public static Int32 Delete(TEntity obj) { return obj.Delete(); }
 
-        /// <summary>´ÓÊı¾İ¿âÖĞÉ¾³ıÖ¸¶¨Ìõ¼şµÄÊµÌå¶ÔÏó¡£</summary>
-        /// <param name="whereClause">ÏŞÖÆÌõ¼ş</param>
+        /// <summary>ä»æ•°æ®åº“ä¸­åˆ é™¤æŒ‡å®šæ¡ä»¶çš„å®ä½“å¯¹è±¡ã€‚</summary>
+        /// <param name="whereClause">é™åˆ¶æ¡ä»¶</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Delete(String whereClause)
@@ -1163,9 +1163,9 @@ namespace XCode
             return persistence.Delete(Meta.ThisType, whereClause);
         }
 
-        /// <summary>´ÓÊı¾İ¿âÖĞÉ¾³ıÖ¸¶¨ÊôĞÔÁĞ±íºÍÖµÁĞ±íËùÏŞ¶¨µÄÊµÌå¶ÔÏó¡£</summary>
-        /// <param name="names">ÊôĞÔÁĞ±í</param>
-        /// <param name="values">ÖµÁĞ±í</param>
+        /// <summary>ä»æ•°æ®åº“ä¸­åˆ é™¤æŒ‡å®šå±æ€§åˆ—è¡¨å’Œå€¼åˆ—è¡¨æ‰€é™å®šçš„å®ä½“å¯¹è±¡ã€‚</summary>
+        /// <param name="names">å±æ€§åˆ—è¡¨</param>
+        /// <param name="values">å€¼åˆ—è¡¨</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Delete(String[] names, Object[] values)
@@ -1173,38 +1173,38 @@ namespace XCode
             return persistence.Delete(Meta.ThisType, names, values);
         }
 
-        /// <summary>°ÑÒ»¸öÊµÌå¶ÔÏó¸üĞÂµ½Êı¾İ¿â</summary>
-        /// <param name="obj">ÊµÌå¶ÔÏó</param>
-        /// <returns>·µ»ØÊÜÓ°ÏìµÄĞĞÊı</returns>
+        /// <summary>æŠŠä¸€ä¸ªå®ä½“å¯¹è±¡æ›´æ–°åˆ°æ•°æ®åº“</summary>
+        /// <param name="obj">å®ä½“å¯¹è±¡</param>
+        /// <returns>è¿”å›å—å½±å“çš„è¡Œæ•°</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Save(TEntity obj) { return obj.Save(); }
         #endregion
 
-        #region ¹¹ÔìSQLÓï¾ä
+        #region æ„é€ SQLè¯­å¥
         /// <summary>
-        /// ¸ù¾İÊôĞÔÁĞ±íºÍÖµÁĞ±í£¬¹¹Ôì²éÑ¯Ìõ¼ş¡£
-        /// ÀıÈç¹¹Ôì¶àÖ÷¼üÏŞÖÆ²éÑ¯Ìõ¼ş¡£
+        /// æ ¹æ®å±æ€§åˆ—è¡¨å’Œå€¼åˆ—è¡¨ï¼Œæ„é€ æŸ¥è¯¢æ¡ä»¶ã€‚
+        /// ä¾‹å¦‚æ„é€ å¤šä¸»é”®é™åˆ¶æŸ¥è¯¢æ¡ä»¶ã€‚
         /// </summary>
-        /// <param name="names">ÊôĞÔÁĞ±í</param>
-        /// <param name="values">ÖµÁĞ±í</param>
-        /// <param name="action">ÁªºÏ·½Ê½</param>
-        /// <returns>Ìõ¼ş×Ó´®</returns>
+        /// <param name="names">å±æ€§åˆ—è¡¨</param>
+        /// <param name="values">å€¼åˆ—è¡¨</param>
+        /// <param name="action">è”åˆæ–¹å¼</param>
+        /// <returns>æ¡ä»¶å­ä¸²</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static String MakeCondition(String[] names, Object[] values, String action)
         {
-            //if (names == null || names.Length <= 0) throw new ArgumentNullException("names", "ÊôĞÔÁĞ±íºÍÖµÁĞ±í²»ÄÜÎª¿Õ");
-            //if (values == null || values.Length <= 0) throw new ArgumentNullException("values", "ÊôĞÔÁĞ±íºÍÖµÁĞ±í²»ÄÜÎª¿Õ");
+            //if (names == null || names.Length <= 0) throw new ArgumentNullException("names", "å±æ€§åˆ—è¡¨å’Œå€¼åˆ—è¡¨ä¸èƒ½ä¸ºç©º");
+            //if (values == null || values.Length <= 0) throw new ArgumentNullException("values", "å±æ€§åˆ—è¡¨å’Œå€¼åˆ—è¡¨ä¸èƒ½ä¸ºç©º");
             if (names == null || names.Length <= 0) return null;
             if (values == null || values.Length <= 0) return null;
-            if (names.Length != values.Length) throw new ArgumentException("ÊôĞÔÁĞ±í±ØĞëºÍÖµÁĞ±íÒ»Ò»¶ÔÓ¦");
+            if (names.Length != values.Length) throw new ArgumentException("å±æ€§åˆ—è¡¨å¿…é¡»å’Œå€¼åˆ—è¡¨ä¸€ä¸€å¯¹åº”");
 
             var sb = new StringBuilder();
             for (Int32 i = 0; i < names.Length; i++)
             {
                 FieldItem fi = Meta.Table.FindByName(names[i]);
-                if (fi == null) throw new ArgumentException("Àà[" + Meta.ThisType.FullName + "]ÖĞ²»´æÔÚ[" + names[i] + "]ÊôĞÔ");
+                if (fi == null) throw new ArgumentException("ç±»[" + Meta.ThisType.FullName + "]ä¸­ä¸å­˜åœ¨[" + names[i] + "]å±æ€§");
 
-                // Í¬Ê±¹¹ÔìSQLÓï¾ä¡£namesÊÇÊôĞÔÁĞ±í£¬±ØĞë×ª»»³É¶ÔÓ¦µÄ×Ö¶ÎÁĞ±í
+                // åŒæ—¶æ„é€ SQLè¯­å¥ã€‚namesæ˜¯å±æ€§åˆ—è¡¨ï¼Œå¿…é¡»è½¬æ¢æˆå¯¹åº”çš„å­—æ®µåˆ—è¡¨
                 if (i > 0) sb.AppendFormat(" {0} ", action.Trim());
                 //sb.AppendFormat("{0}={1}", Meta.FormatName(fi.ColumnName), Meta.FormatValue(fi, values[i]));
                 sb.Append(MakeCondition(fi, values[i], "="));
@@ -1212,10 +1212,10 @@ namespace XCode
             return sb.ToString();
         }
 
-        /// <summary>¹¹ÔìÌõ¼ş</summary>
-        /// <param name="name">Ãû³Æ</param>
-        /// <param name="value">Öµ</param>
-        /// <param name="action">´óÓÚĞ¡ÓÚµÈ·ûºÅ</param>
+        /// <summary>æ„é€ æ¡ä»¶</summary>
+        /// <param name="name">åç§°</param>
+        /// <param name="value">å€¼</param>
+        /// <param name="action">å¤§äºå°äºç­‰ç¬¦å·</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static String MakeCondition(String name, Object value, String action)
@@ -1226,10 +1226,10 @@ namespace XCode
             return MakeCondition(field, value, action);
         }
 
-        /// <summary>¹¹ÔìÌõ¼ş</summary>
-        /// <param name="field">Ãû³Æ</param>
-        /// <param name="value">Öµ</param>
-        /// <param name="action">´óÓÚĞ¡ÓÚµÈ·ûºÅ</param>
+        /// <summary>æ„é€ æ¡ä»¶</summary>
+        /// <param name="field">åç§°</param>
+        /// <param name="value">å€¼</param>
+        /// <param name="action">å¤§äºå°äºç­‰ç¬¦å·</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static String MakeCondition(FieldItem field, Object value, String action)
@@ -1249,11 +1249,11 @@ namespace XCode
             builder.Column = selects;
             builder.Table = Meta.Session.FormatedTableName;
             builder.OrderBy = orderClause;
-            // ½÷¼Ç£ºÄ³Ğ©ÏîÄ¿ÖĞ¿ÉÄÜÔÚwhereÖĞÊ¹ÓÃÁËGroupBy£¬ÔÚ·ÖÒ³Ê±¿ÉÄÜ±¨´í
+            // è°¨è®°ï¼šæŸäº›é¡¹ç›®ä¸­å¯èƒ½åœ¨whereä¸­ä½¿ç”¨äº†GroupByï¼Œåœ¨åˆ†é¡µæ—¶å¯èƒ½æŠ¥é”™
             builder.Where = whereClause;
 
-            // XCode¶ÔÓÚÄ¬ÈÏÅÅĞòµÄ¹æÔò£º×ÔÔöÖ÷¼ü½µĞò£¬ÆäËüÇé¿öÄ¬ÈÏ
-            // ·µ»ØËùÓĞ¼ÇÂ¼
+            // XCodeå¯¹äºé»˜è®¤æ’åºçš„è§„åˆ™ï¼šè‡ªå¢ä¸»é”®é™åºï¼Œå…¶å®ƒæƒ…å†µé»˜è®¤
+            // è¿”å›æ‰€æœ‰è®°å½•
             if (!needOrderByID && startRowIndex <= 0 && maximumRows <= 0) return builder;
 
             FieldItem fi = Meta.Unique;
@@ -1261,18 +1261,18 @@ namespace XCode
             {
                 builder.Key = Meta.FormatName(fi.ColumnName);
 
-                // Ä¬ÈÏ»ñÈ¡Êı¾İÊ±£¬»¹ÊÇĞèÒªÖ¸¶¨°´ÕÕ×ÔÔö×Ö¶Î½µĞò£¬·ûºÏÊ¹ÓÃÏ°¹ß
-                // ÓĞGroupByÒ²²»ÄÜ¼ÓÅÅĞò
+                // é»˜è®¤è·å–æ•°æ®æ—¶ï¼Œè¿˜æ˜¯éœ€è¦æŒ‡å®šæŒ‰ç…§è‡ªå¢å­—æ®µé™åºï¼Œç¬¦åˆä½¿ç”¨ä¹ æƒ¯
+                // æœ‰GroupByä¹Ÿä¸èƒ½åŠ æ’åº
                 if (String.IsNullOrEmpty(builder.OrderBy) &&
                     String.IsNullOrEmpty(builder.GroupBy) &&
-                    // Î´Ö¸¶¨²éÑ¯×Ö¶ÎµÄÊ±ºò²ÅÄ¬ÈÏ¼ÓÉÏÅÅĞò£¬ÒòÎªÖ¸¶¨²éÑ¯×Ö¶ÎµÄºÜ¶àÊ±ºòÊÇÍ³¼Æ
+                    // æœªæŒ‡å®šæŸ¥è¯¢å­—æ®µçš„æ—¶å€™æ‰é»˜è®¤åŠ ä¸Šæ’åºï¼Œå› ä¸ºæŒ‡å®šæŸ¥è¯¢å­—æ®µçš„å¾ˆå¤šæ—¶å€™æ˜¯ç»Ÿè®¡
                     (selects.IsNullOrWhiteSpace() || selects == "*")
                     )
                 {
-                    // Êı×Ö½µĞò£¬ÆäËüÉıĞò
+                    // æ•°å­—é™åºï¼Œå…¶å®ƒå‡åº
                     var b = fi.Type.IsIntType() && fi.IsIdentity;
                     builder.IsDesc = b;
-                    // ĞŞÕıÃ»ÓĞÉèÖÃbuilder.IsIntµ¼ÖÂ·ÖÒ³Ã»ÓĞÑ¡Ôñ×î¼ÑµÄMaxMinµÄBUG£¬¸ĞĞ» @RICH(20371423)
+                    // ä¿®æ­£æ²¡æœ‰è®¾ç½®builder.IsIntå¯¼è‡´åˆ†é¡µæ²¡æœ‰é€‰æ‹©æœ€ä½³çš„MaxMinçš„BUGï¼Œæ„Ÿè°¢ @RICH(20371423)
                     builder.IsInt = b;
 
                     builder.OrderBy = builder.KeyOrder;
@@ -1280,38 +1280,38 @@ namespace XCode
             }
             else
             {
-                // Èç¹ûÕÒ²»µ½Î¨Ò»¼ü£¬²¢ÇÒÅÅĞòÓÖÎª¿Õ£¬Ôò²ÉÓÃÈ«²¿×Ö¶ÎÒ»Æğ£¬È·±£ÄÜ¹»·ÖÒ³
+                // å¦‚æœæ‰¾ä¸åˆ°å”¯ä¸€é”®ï¼Œå¹¶ä¸”æ’åºåˆä¸ºç©ºï¼Œåˆ™é‡‡ç”¨å…¨éƒ¨å­—æ®µä¸€èµ·ï¼Œç¡®ä¿èƒ½å¤Ÿåˆ†é¡µ
                 if (String.IsNullOrEmpty(builder.OrderBy)) builder.Keys = Meta.FieldNames.ToArray();
             }
             return builder;
         }
         #endregion
 
-        #region »ñÈ¡/ÉèÖÃ ×Ö¶ÎÖµ
-        /// <summary>»ñÈ¡/ÉèÖÃ ×Ö¶ÎÖµ¡£
-        /// Ò»¸öË÷Òı£¬·´ÉäÊµÏÖ¡£
-        /// ÅÉÉúÊµÌåÀà¿ÉÖØĞ´¸ÃË÷Òı£¬ÒÔ±ÜÃâ·¢Éä´øÀ´µÄĞÔÄÜËğºÄ¡£
-        /// »ùÀàÒÑ¾­ÊµÏÖÁËÍ¨ÓÃµÄ¿ìËÙ·ÃÎÊ£¬µ«ÊÇÕâÀïÈÔÈ»ÖØĞ´£¬ÒÔÔö¼Ó¿ØÖÆ£¬
-        /// ±ÈÈç×Ö¶ÎÃûÊÇÊôĞÔÃûÇ°Ãæ¼ÓÉÏ_£¬²¢ÇÒÒªÇóÊÇÊµÌå×Ö¶Î²ÅÔÊĞíÕâÑù·ÃÎÊ£¬·ñÔòÒ»ÂÉ°´ÊôĞÔ´¦Àí¡£
+        #region è·å–/è®¾ç½® å­—æ®µå€¼
+        /// <summary>è·å–/è®¾ç½® å­—æ®µå€¼ã€‚
+        /// ä¸€ä¸ªç´¢å¼•ï¼Œåå°„å®ç°ã€‚
+        /// æ´¾ç”Ÿå®ä½“ç±»å¯é‡å†™è¯¥ç´¢å¼•ï¼Œä»¥é¿å…å‘å°„å¸¦æ¥çš„æ€§èƒ½æŸè€—ã€‚
+        /// åŸºç±»å·²ç»å®ç°äº†é€šç”¨çš„å¿«é€Ÿè®¿é—®ï¼Œä½†æ˜¯è¿™é‡Œä»ç„¶é‡å†™ï¼Œä»¥å¢åŠ æ§åˆ¶ï¼Œ
+        /// æ¯”å¦‚å­—æ®µåæ˜¯å±æ€§åå‰é¢åŠ ä¸Š_ï¼Œå¹¶ä¸”è¦æ±‚æ˜¯å®ä½“å­—æ®µæ‰å…è®¸è¿™æ ·è®¿é—®ï¼Œå¦åˆ™ä¸€å¾‹æŒ‰å±æ€§å¤„ç†ã€‚
         /// </summary>
-        /// <param name="name">×Ö¶ÎÃû</param>
+        /// <param name="name">å­—æ®µå</param>
         /// <returns></returns>
         public override Object this[String name]
         {
             get
             {
-                // Æ¥Åä×Ö¶Î
+                // åŒ¹é…å­—æ®µ
                 if (Meta.FieldNames.Contains(name))
                 {
                     var field = this.GetType().GetFieldEx("_" + name, true);
                     if (field != null) return this.GetValue(field);
                 }
 
-                // ³¢ÊÔÆ¥ÅäÊôĞÔ
+                // å°è¯•åŒ¹é…å±æ€§
                 var property = this.GetType().GetPropertyEx(name, true);
                 if (property != null && property.CanRead) return this.GetValue(property);
 
-                // ¼ì²é¶¯Ì¬Ôö¼ÓµÄ×Ö¶Î£¬·µ»ØÄ¬ÈÏÖµ
+                // æ£€æŸ¥åŠ¨æ€å¢åŠ çš„å­—æ®µï¼Œè¿”å›é»˜è®¤å€¼
                 var f = Meta.Table.FindByName(name) as FieldItem;
 
                 Object obj = null;
@@ -1331,7 +1331,7 @@ namespace XCode
             }
             set
             {
-                //Æ¥Åä×Ö¶Î
+                //åŒ¹é…å­—æ®µ
                 if (Meta.FieldNames.Contains(name))
                 {
                     var field = this.GetType().GetFieldEx("_" + name, true);
@@ -1342,7 +1342,7 @@ namespace XCode
                     }
                 }
 
-                //³¢ÊÔÆ¥ÅäÊôĞÔ
+                //å°è¯•åŒ¹é…å±æ€§
                 var property = this.GetType().GetPropertyEx(name, true);
                 if (property != null && property.CanWrite)
                 {
@@ -1350,19 +1350,19 @@ namespace XCode
                     return;
                 }
 
-                // ¼ì²é¶¯Ì¬Ôö¼ÓµÄ×Ö¶Î£¬·µ»ØÄ¬ÈÏÖµ
+                // æ£€æŸ¥åŠ¨æ€å¢åŠ çš„å­—æ®µï¼Œè¿”å›é»˜è®¤å€¼
                 var f = Meta.Table.FindByName(name) as FieldItem;
                 if (f != null && f.IsDynamic) value = TypeX.ChangeType(value, f.Type);
 
                 Extends[name] = value;
 
-                //throw new ArgumentException("Àà[" + this.GetType().FullName + "]ÖĞ²»´æÔÚ[" + name + "]ÊôĞÔ");
+                //throw new ArgumentException("ç±»[" + this.GetType().FullName + "]ä¸­ä¸å­˜åœ¨[" + name + "]å±æ€§");
             }
         }
         #endregion
 
-        #region µ¼Èëµ¼³öXML/Json
-        /// <summary>µ¼Èë</summary>
+        #region å¯¼å…¥å¯¼å‡ºXML/Json
+        /// <summary>å¯¼å…¥</summary>
         /// <param name="xml"></param>
         /// <returns></returns>
         public static TEntity FromXml(String xml)
@@ -1372,23 +1372,23 @@ namespace XCode
             return xml.ToXmlEntity<TEntity>();
         }
 
-        /// <summary>µ¼Èë</summary>
+        /// <summary>å¯¼å…¥</summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        //[Obsolete("¸Ã³ÉÔ±ÔÚºóĞø°æ±¾ÖĞ½«²»ÔÙ±»Ö§³Ö£¡")]
+        //[Obsolete("è¯¥æˆå‘˜åœ¨åç»­ç‰ˆæœ¬ä¸­å°†ä¸å†è¢«æ”¯æŒï¼")]
         public static TEntity FromJson(String json)
         {
             return new Json().Deserialize<TEntity>(json);
         }
         #endregion
 
-        #region ¿ËÂ¡
-        /// <summary>´´½¨µ±Ç°¶ÔÏóµÄ¿ËÂ¡¶ÔÏó£¬½ö¿½±´»ù±¾×Ö¶Î</summary>
+        #region å…‹éš†
+        /// <summary>åˆ›å»ºå½“å‰å¯¹è±¡çš„å…‹éš†å¯¹è±¡ï¼Œä»…æ‹·è´åŸºæœ¬å­—æ®µ</summary>
         /// <returns></returns>
         public override Object Clone() { return CloneEntity(); }
 
-        /// <summary>¿ËÂ¡ÊµÌå¡£´´½¨µ±Ç°¶ÔÏóµÄ¿ËÂ¡¶ÔÏó£¬½ö¿½±´»ù±¾×Ö¶Î</summary>
-        /// <param name="setDirty">ÊÇ·ñÉèÖÃÔàÊı¾İ¡£Ä¬ÈÏ²»ÉèÖÃ</param>
+        /// <summary>å…‹éš†å®ä½“ã€‚åˆ›å»ºå½“å‰å¯¹è±¡çš„å…‹éš†å¯¹è±¡ï¼Œä»…æ‹·è´åŸºæœ¬å­—æ®µ</summary>
+        /// <param name="setDirty">æ˜¯å¦è®¾ç½®è„æ•°æ®ã€‚é»˜è®¤ä¸è®¾ç½®</param>
         /// <returns></returns>
         public virtual TEntity CloneEntity(Boolean setDirty = false)
         {
@@ -1414,21 +1414,21 @@ namespace XCode
             return obj;
         }
 
-        /// <summary>¿ËÂ¡ÊµÌå</summary>
+        /// <summary>å…‹éš†å®ä½“</summary>
         /// <param name="setDirty"></param>
         /// <returns></returns>
         internal protected override IEntity CloneEntityInternal(Boolean setDirty = true) { return CloneEntity(setDirty); }
         #endregion
 
-        #region ÆäËü
-        /// <summary>ÒÑÖØÔØ¡£</summary>
+        #region å…¶å®ƒ
+        /// <summary>å·²é‡è½½ã€‚</summary>
         /// <returns></returns>
         public override string ToString()
         {
-            // ÓÅÏÈÖ÷×Ö¶Î×÷ÎªÊµÌå¶ÔÏóµÄ×Ö·û´®ÏÔÊ¾
+            // ä¼˜å…ˆä¸»å­—æ®µä½œä¸ºå®ä½“å¯¹è±¡çš„å­—ç¬¦ä¸²æ˜¾ç¤º
             if (Meta.Master != null && Meta.Master != Meta.Unique) return this[Meta.Master.Name] + "";
 
-            // ÓÅÏÈ²ÉÓÃÒµÎñÖ÷¼ü£¬Ò²¾ÍÊÇÎ¨Ò»Ë÷Òı
+            // ä¼˜å…ˆé‡‡ç”¨ä¸šåŠ¡ä¸»é”®ï¼Œä¹Ÿå°±æ˜¯å”¯ä¸€ç´¢å¼•
             var table = Meta.Table.DataTable;
             if (table.Indexes != null && table.Indexes.Count > 0)
             {
@@ -1443,7 +1443,7 @@ namespace XCode
 
                     di = item;
 
-                    // Èç¹û²»ÊÇÎ¨Ò»×ÔÔö£¬ÔÙÍùÏÂÕÒ±ğµÄ¡£Èç¹ûºóÃæÊµÔÚÕÒ²»µ½£¬ÖÁÉÙ»¹ÓĞÏÖÔÚÕâ¸ö¡£
+                    // å¦‚æœä¸æ˜¯å”¯ä¸€è‡ªå¢ï¼Œå†å¾€ä¸‹æ‰¾åˆ«çš„ã€‚å¦‚æœåé¢å®åœ¨æ‰¾ä¸åˆ°ï¼Œè‡³å°‘è¿˜æœ‰ç°åœ¨è¿™ä¸ªã€‚
                     if (!(columns.Length == 1 && columns[0].Identity)) break;
                 }
 
@@ -1473,18 +1473,18 @@ namespace XCode
             else if (fs.Contains("ID"))
                 return this["ID"] + "";
             else
-                return "ÊµÌå" + Meta.ThisType.Name;
+                return "å®ä½“" + Meta.ThisType.Name;
         }
 
-        /// <summary>Ä¬ÈÏÀÛ¼Ó×Ö¶Î</summary>
+        /// <summary>é»˜è®¤ç´¯åŠ å­—æ®µ</summary>
         [Obsolete("=>IEntityOperate")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static ICollection<String> AdditionalFields { get { return Meta.Factory.AdditionalFields; } }
         #endregion
 
-        #region ÔàÊı¾İ
-        /// <summary>ÉèÖÃËùÓĞÊı¾İµÄÔàÊôĞÔ</summary>
-        /// <param name="isDirty">¸Ä±äÔàÊôĞÔµÄÊôĞÔ¸öÊı</param>
+        #region è„æ•°æ®
+        /// <summary>è®¾ç½®æ‰€æœ‰æ•°æ®çš„è„å±æ€§</summary>
+        /// <param name="isDirty">æ”¹å˜è„å±æ€§çš„å±æ€§ä¸ªæ•°</param>
         /// <returns></returns>
         protected override Int32 SetDirty(Boolean isDirty)
         {
@@ -1516,7 +1516,7 @@ namespace XCode
             return count;
         }
 
-        /// <summary>ÊÇ·ñÓĞÔàÊı¾İ¡£¾ö¶¨ÊÇ·ñ¿ÉÒÔUpdate</summary>
+        /// <summary>æ˜¯å¦æœ‰è„æ•°æ®ã€‚å†³å®šæ˜¯å¦å¯ä»¥Update</summary>
         protected Boolean HasDirty
         {
             get
@@ -1533,16 +1533,16 @@ namespace XCode
             }
         }
 
-        /// <summary>Èç¹û×Ö¶Î´øÓĞÄ¬ÈÏÖµ£¬ÔòĞèÒªÉèÖÃÔàÊı¾İ£¬ÒòÎªÏÔÈ»ÓÃ»§ÏëÉèÖÃ¸Ã×Ö¶Î£¬¶ø²»ÊÇ²ÉÓÃÊı¾İ¿âµÄÄ¬ÈÏÖµ</summary>
+        /// <summary>å¦‚æœå­—æ®µå¸¦æœ‰é»˜è®¤å€¼ï¼Œåˆ™éœ€è¦è®¾ç½®è„æ•°æ®ï¼Œå› ä¸ºæ˜¾ç„¶ç”¨æˆ·æƒ³è®¾ç½®è¯¥å­—æ®µï¼Œè€Œä¸æ˜¯é‡‡ç”¨æ•°æ®åº“çš„é»˜è®¤å€¼</summary>
         /// <param name="fieldName"></param>
         /// <param name="newValue"></param>
         /// <returns></returns>
         protected override bool OnPropertyChanging(string fieldName, object newValue)
         {
-            // Èç¹û·µ»Øtrue£¬±íÊ¾²»ÏàÍ¬£¬»ùÀàÒÑ¾­ÉèÖÃÁËÔàÊı¾İ
+            // å¦‚æœè¿”å›trueï¼Œè¡¨ç¤ºä¸ç›¸åŒï¼ŒåŸºç±»å·²ç»è®¾ç½®äº†è„æ•°æ®
             if (base.OnPropertyChanging(fieldName, newValue)) return true;
 
-            // Èç¹û¸Ã×Ö¶Î´æÔÚ£¬ÇÒ´øÓĞÄ¬ÈÏÖµ£¬ÔòĞèÒªÉèÖÃÔàÊı¾İ£¬ÒòÎªÏÔÈ»ÓÃ»§ÏëÉèÖÃ¸Ã×Ö¶Î£¬¶ø²»ÊÇ²ÉÓÃÊı¾İ¿âµÄÄ¬ÈÏÖµ
+            // å¦‚æœè¯¥å­—æ®µå­˜åœ¨ï¼Œä¸”å¸¦æœ‰é»˜è®¤å€¼ï¼Œåˆ™éœ€è¦è®¾ç½®è„æ•°æ®ï¼Œå› ä¸ºæ˜¾ç„¶ç”¨æˆ·æƒ³è®¾ç½®è¯¥å­—æ®µï¼Œè€Œä¸æ˜¯é‡‡ç”¨æ•°æ®åº“çš„é»˜è®¤å€¼
             FieldItem fi = Meta.Table.FindByName(fieldName);
             if (fi != null && !String.IsNullOrEmpty(fi.DefaultValue))
             {
@@ -1554,29 +1554,29 @@ namespace XCode
         }
         #endregion
 
-        #region À©Õ¹ÊôĞÔ
-        /// <summary>»ñÈ¡ÒÀÀµÓÚµ±Ç°ÊµÌåÀàµÄÀ©Õ¹ÊôĞÔ</summary>
-        /// <typeparam name="TResult">·µ»ØÀàĞÍ</typeparam>
-        /// <param name="key">¼ü</param>
-        /// <param name="func">»Øµ÷</param>
+        #region æ‰©å±•å±æ€§
+        /// <summary>è·å–ä¾èµ–äºå½“å‰å®ä½“ç±»çš„æ‰©å±•å±æ€§</summary>
+        /// <typeparam name="TResult">è¿”å›ç±»å‹</typeparam>
+        /// <param name="key">é”®</param>
+        /// <param name="func">å›è°ƒ</param>
         /// <returns></returns>
         [DebuggerHidden]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected TResult GetExtend<TResult>(String key, Func<String, Object> func) { return Extends.GetExtend<TEntity, TResult>(key, func); }
 
-        /// <summary>»ñÈ¡ÒÀÀµÓÚµ±Ç°ÊµÌåÀàµÄÀ©Õ¹ÊôĞÔ</summary>
-        /// <typeparam name="TResult">·µ»ØÀàĞÍ</typeparam>
-        /// <param name="key">¼ü</param>
-        /// <param name="func">»Øµ÷</param>
-        /// <param name="cacheDefault">ÊÇ·ñ»º´æÄ¬ÈÏÖµ£¬¿ÉÑ¡²ÎÊı£¬Ä¬ÈÏ»º´æ</param>
+        /// <summary>è·å–ä¾èµ–äºå½“å‰å®ä½“ç±»çš„æ‰©å±•å±æ€§</summary>
+        /// <typeparam name="TResult">è¿”å›ç±»å‹</typeparam>
+        /// <param name="key">é”®</param>
+        /// <param name="func">å›è°ƒ</param>
+        /// <param name="cacheDefault">æ˜¯å¦ç¼“å­˜é»˜è®¤å€¼ï¼Œå¯é€‰å‚æ•°ï¼Œé»˜è®¤ç¼“å­˜</param>
         /// <returns></returns>
         [DebuggerHidden]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected TResult GetExtend<TResult>(String key, Func<String, Object> func, Boolean cacheDefault) { return Extends.GetExtend<TEntity, TResult>(key, func, cacheDefault); }
 
-        /// <summary>ÉèÖÃÒÀÀµÓÚµ±Ç°ÊµÌåÀàµÄÀ©Õ¹ÊôĞÔ</summary>
-        /// <param name="key">¼ü</param>
-        /// <param name="value">Öµ</param>
+        /// <summary>è®¾ç½®ä¾èµ–äºå½“å‰å®ä½“ç±»çš„æ‰©å±•å±æ€§</summary>
+        /// <param name="key">é”®</param>
+        /// <param name="value">å€¼</param>
         [DebuggerHidden]
         protected void SetExtend(String key, Object value) { Extends.SetExtend<TEntity>(key, value); }
         #endregion

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -16,18 +16,18 @@ namespace XCode.DataAccessLayer
 {
     class SqlServer : RemoteDb
     {
-        #region ÊôĞÔ
-        /// <summary>·µ»ØÊı¾İ¿âÀàĞÍ¡£Íâ²¿DALÊı¾İ¿âÀàÇëÊ¹ÓÃOther</summary>
+        #region å±æ€§
+        /// <summary>è¿”å›æ•°æ®åº“ç±»å‹ã€‚å¤–éƒ¨DALæ•°æ®åº“ç±»è¯·ä½¿ç”¨Other</summary>
         public override DatabaseType DbType { get { return DatabaseType.SqlServer; } }
 
-        /// <summary>¹¤³§</summary>
+        /// <summary>å·¥å‚</summary>
         public override DbProviderFactory Factory { get { return SqlClientFactory.Instance; } }
 
-        /// <summary>ÊÇ·ñSQL2005¼°ÒÔÉÏ</summary>
+        /// <summary>æ˜¯å¦SQL2005åŠä»¥ä¸Š</summary>
         public Boolean IsSQL2005 { get { return Version.Major > 8; } }
 
         private Version _Version;
-        /// <summary>ÊÇ·ñSQL2005¼°ÒÔÉÏ</summary>
+        /// <summary>æ˜¯å¦SQL2005åŠä»¥ä¸Š</summary>
         public Version Version
         {
             get
@@ -39,7 +39,7 @@ namespace XCode.DataAccessLayer
                     var session = CreateSession();
                     try
                     {
-                        //È¡Êı¾İ¿â°æ±¾
+                        //å–æ•°æ®åº“ç‰ˆæœ¬
                         if (!session.Opened) session.Open();
                         var ver = session.Conn.ServerVersion;
                         session.AutoClose();
@@ -48,7 +48,7 @@ namespace XCode.DataAccessLayer
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteLine("²éÑ¯[{0}]µÄ°æ±¾Ê±³ö´í£¬½«°´MSSQL2000½øĞĞ·ÖÒ³´¦Àí£¡{1}", ConnName, ex);
+                        XTrace.WriteLine("æŸ¥è¯¢[{0}]çš„ç‰ˆæœ¬æ—¶å‡ºé”™ï¼Œå°†æŒ‰MSSQL2000è¿›è¡Œåˆ†é¡µå¤„ç†ï¼{1}", ConnName, ex);
                         _Version = new Version();
                     }
                     finally { session.Dispose(); }
@@ -58,14 +58,14 @@ namespace XCode.DataAccessLayer
         }
 
         private String _DataPath;
-        /// <summary>Êı¾İÄ¿Â¼</summary>
+        /// <summary>æ•°æ®ç›®å½•</summary>
         public String DataPath { get { return _DataPath; } set { _DataPath = value; } }
 
         const String Application_Name = "Application Name";
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             String str = null;
-            // »ñÈ¡Êı¾İÄ¿Â¼£¬ÓÃÓÚ·´Ïò¹¤³Ì´´½¨Êı¾İ¿â
+            // è·å–æ•°æ®ç›®å½•ï¼Œç”¨äºåå‘å·¥ç¨‹åˆ›å»ºæ•°æ®åº“
             if (builder.TryGetAndRemove("DataPath", out str) && !String.IsNullOrEmpty(str)) DataPath = str;
 
             base.OnSetConnectionString(builder);
@@ -78,12 +78,12 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ·½·¨
-        /// <summary>´´½¨Êı¾İ¿â»á»°</summary>
+        #region æ–¹æ³•
+        /// <summary>åˆ›å»ºæ•°æ®åº“ä¼šè¯</summary>
         /// <returns></returns>
         protected override IDbSession OnCreateSession() { return new SqlServerSession(); }
 
-        /// <summary>´´½¨ÔªÊı¾İ¶ÔÏó</summary>
+        /// <summary>åˆ›å»ºå…ƒæ•°æ®å¯¹è±¡</summary>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() { return new SqlServerMetaData(); }
 
@@ -103,19 +103,19 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ·ÖÒ³
-        /// <summary>¹¹Ôì·ÖÒ³SQL</summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ</param>
-        /// <param name="keyColumn">Î¨Ò»¼ü¡£ÓÃÓÚnot in·ÖÒ³</param>
-        /// <returns>·ÖÒ³SQL</returns>
+        #region åˆ†é¡µ
+        /// <summary>æ„é€ åˆ†é¡µSQL</summary>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œ</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œ</param>
+        /// <param name="keyColumn">å”¯ä¸€é”®ã€‚ç”¨äºnot inåˆ†é¡µ</param>
+        /// <returns>åˆ†é¡µSQL</returns>
         public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            // ´ÓµÚÒ»ĞĞ¿ªÊ¼£¬²»ĞèÒª·ÖÒ³
+            // ä»ç¬¬ä¸€è¡Œå¼€å§‹ï¼Œä¸éœ€è¦åˆ†é¡µ
             if (startRowIndex <= 0 && maximumRows < 1) return sql;
 
-            // Ö¸¶¨ÁËÆğÊ¼ĞĞ£¬²¢ÇÒÊÇSQL2005¼°ÒÔÉÏ°æ±¾£¬Ê¹ÓÃRowNumberËã·¨
+            // æŒ‡å®šäº†èµ·å§‹è¡Œï¼Œå¹¶ä¸”æ˜¯SQL2005åŠä»¥ä¸Šç‰ˆæœ¬ï¼Œä½¿ç”¨RowNumberç®—æ³•
             if (startRowIndex > 0 && IsSQL2005)
             {
                 //return PageSplitRowNumber(sql, startRowIndex, maximumRows, keyColumn);
@@ -124,13 +124,13 @@ namespace XCode.DataAccessLayer
                 return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005).ToString();
             }
 
-            // Èç¹ûÃ»ÓĞOrder By£¬Ö±½Óµ÷ÓÃ»ùÀà·½·¨
-            // ÏÈÓÃ×Ö·û´®ÅĞ¶Ï£¬ÃüÖĞÂÊ¸ß£¬ÕâÑù¿ÉÒÔÌá¸ß´¦ÀíĞ§ÂÊ
+            // å¦‚æœæ²¡æœ‰Order Byï¼Œç›´æ¥è°ƒç”¨åŸºç±»æ–¹æ³•
+            // å…ˆç”¨å­—ç¬¦ä¸²åˆ¤æ–­ï¼Œå‘½ä¸­ç‡é«˜ï¼Œè¿™æ ·å¯ä»¥æé«˜å¤„ç†æ•ˆç‡
             if (!sql.Contains(" Order "))
             {
                 if (!sql.ToLower().Contains(" order ")) return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
             }
-            //// Ê¹ÓÃÕıÔò½øĞĞÑÏ¸ñÅĞ¶Ï¡£±ØĞë°üº¬Order By£¬²¢ÇÒËüÓÒ±ßÃ»ÓĞÓÒÀ¨ºÅ)£¬±íÃ÷ÓĞorder by£¬ÇÒ²»ÊÇ×Ó²éÑ¯µÄ£¬²ÅĞèÒªÌØÊâ´¦Àí
+            //// ä½¿ç”¨æ­£åˆ™è¿›è¡Œä¸¥æ ¼åˆ¤æ–­ã€‚å¿…é¡»åŒ…å«Order Byï¼Œå¹¶ä¸”å®ƒå³è¾¹æ²¡æœ‰å³æ‹¬å·)ï¼Œè¡¨æ˜æœ‰order byï¼Œä¸”ä¸æ˜¯å­æŸ¥è¯¢çš„ï¼Œæ‰éœ€è¦ç‰¹æ®Šå¤„ç†
             //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             //if (ms == null || ms.Count < 1 || ms[0].Index < 1)
             String sql2 = sql;
@@ -139,14 +139,14 @@ namespace XCode.DataAccessLayer
             {
                 return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
             }
-            // ÒÑÈ·¶¨¸Ãsql×îÍâ²ãº¬ÓĞorder by£¬ÔÙ¼ì²é×îÍâ²ãÊÇ·ñÓĞtop¡£ÒòÎªÃ»ÓĞtopµÄorder byÊÇ²»ÔÊĞí×÷Îª×Ó²éÑ¯µÄ
+            // å·²ç¡®å®šè¯¥sqlæœ€å¤–å±‚å«æœ‰order byï¼Œå†æ£€æŸ¥æœ€å¤–å±‚æ˜¯å¦æœ‰topã€‚å› ä¸ºæ²¡æœ‰topçš„order byæ˜¯ä¸å…è®¸ä½œä¸ºå­æŸ¥è¯¢çš„
             if (Regex.IsMatch(sql, @"^[^(]+\btop\b", RegexOptions.Compiled | RegexOptions.IgnoreCase))
             {
                 return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
             }
             //String orderBy = sql.Substring(ms[0].Index);
 
-            // ´ÓµÚÒ»ĞĞ¿ªÊ¼£¬²»ĞèÒª·ÖÒ³
+            // ä»ç¬¬ä¸€è¡Œå¼€å§‹ï¼Œä¸éœ€è¦åˆ†é¡µ
             if (startRowIndex <= 0)
             {
                 if (maximumRows < 1)
@@ -156,8 +156,8 @@ namespace XCode.DataAccessLayer
                 //return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql.Substring(0, ms[0].Index)), orderBy);
             }
 
-            #region Max/Min·ÖÒ³
-            // Èç¹ûÒªÊ¹ÓÃmax/min·ÖÒ³·¨£¬Ê×ÏÈkeyColumn±ØĞëÓĞasc»òÕßdesc
+            #region Max/Minåˆ†é¡µ
+            // å¦‚æœè¦ä½¿ç”¨max/minåˆ†é¡µæ³•ï¼Œé¦–å…ˆkeyColumnå¿…é¡»æœ‰ascæˆ–è€…desc
             String kc = keyColumn.ToLower();
             if (kc.EndsWith(" desc") || kc.EndsWith(" asc") || kc.EndsWith(" unknown"))
             {
@@ -169,7 +169,7 @@ namespace XCode.DataAccessLayer
 
             sql = CheckSimpleSQL(sql2);
 
-            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "·ÖÒ³ÒªÇóÖ¸¶¨Ö÷¼üÁĞ»òÕßÅÅĞò×Ö¶Î£¡");
+            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "åˆ†é¡µè¦æ±‚æŒ‡å®šä¸»é”®åˆ—æˆ–è€…æ’åºå­—æ®µï¼");
 
             if (maximumRows < 1)
                 sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1} {3}) {3}", startRowIndex, sql, keyColumn, orderBy);
@@ -184,26 +184,26 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region Êı¾İ¿âÌØĞÔ
-        /// <summary>µ±Ç°Ê±¼äº¯Êı</summary>
+        #region æ•°æ®åº“ç‰¹æ€§
+        /// <summary>å½“å‰æ—¶é—´å‡½æ•°</summary>
         public override String DateTimeNow { get { return "getdate()"; } }
 
-        /// <summary>×îĞ¡Ê±¼ä</summary>
+        /// <summary>æœ€å°æ—¶é—´</summary>
         public override DateTime DateTimeMin { get { return SqlDateTime.MinValue.Value; } }
 
-        /// <summary>³¤ÎÄ±¾³¤¶È</summary>
+        /// <summary>é•¿æ–‡æœ¬é•¿åº¦</summary>
         public override Int32 LongTextLength { get { return 4000; } }
 
-        /// <summary>»ñÈ¡GuidµÄº¯Êı</summary>
+        /// <summary>è·å–Guidçš„å‡½æ•°</summary>
         public override String NewGuid { get { return "newid()"; } }
 
-        /// <summary>¸ñÊ½»¯Ê±¼äÎªSQL×Ö·û´®</summary>
-        /// <param name="dateTime">Ê±¼äÖµ</param>
+        /// <summary>æ ¼å¼åŒ–æ—¶é—´ä¸ºSQLå­—ç¬¦ä¸²</summary>
+        /// <param name="dateTime">æ—¶é—´å€¼</param>
         /// <returns></returns>
         public override String FormatDateTime(DateTime dateTime) { return "{ts" + String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime) + "}"; }
 
-        /// <summary>¸ñÊ½»¯¹Ø¼ü×Ö</summary>
-        /// <param name="keyWord">¹Ø¼ü×Ö</param>
+        /// <summary>æ ¼å¼åŒ–å…³é”®å­—</summary>
+        /// <param name="keyWord">å…³é”®å­—</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
@@ -215,7 +215,7 @@ namespace XCode.DataAccessLayer
             return String.Format("[{0}]", keyWord);
         }
 
-        /// <summary>ÏµÍ³Êı¾İ¿âÃû</summary>
+        /// <summary>ç³»ç»Ÿæ•°æ®åº“å</summary>
         public override String SystemDatabaseName { get { return "master"; } }
 
         public override string FormatValue(IDataColumn field, object value)
@@ -225,18 +225,18 @@ namespace XCode.DataAccessLayer
 
             if (code == TypeCode.String)
             {
-                // ÈÈĞÄÍøÓÑ Hannibal ÔÚ´¦ÀíÈÕÎÄÍøÕ¾Ê±·¢ÏÖ²åÈëµÄÈÕÎÄÎªÂÒÂë£¬ÕâÀï¼ÓÉÏNÇ°×º
+                // çƒ­å¿ƒç½‘å‹ Hannibal åœ¨å¤„ç†æ—¥æ–‡ç½‘ç«™æ—¶å‘ç°æ’å…¥çš„æ—¥æ–‡ä¸ºä¹±ç ï¼Œè¿™é‡ŒåŠ ä¸ŠNå‰ç¼€
                 if (value == null) return isNullable ? "null" : "''";
-                //ÔÆ·ÉÑï£ºÕâÀï×¢ÊÍµô£¬¿Õ´®·µ»Ø''¶ø²»ÊÇnull×Ö·û
+                //äº‘é£æ‰¬ï¼šè¿™é‡Œæ³¨é‡Šæ‰ï¼Œç©ºä¸²è¿”å›''è€Œä¸æ˜¯nullå­—ç¬¦
                 //if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
-                // ÕâÀïÖ±½ÓÅĞ¶ÏÔ­Ê¼Êı¾İÀàĞÍÓĞËù²»Í×£¬Èç¹ûÔ­Ê¼Êı¾İ¿â²»ÊÇµ±Ç°Êı¾İ¿â£¬ÄÇÃ´ÕâÀïµÄÅĞ¶Ï½«»áÊ§Ğ§
-                // Ò»¸ö¿ÉĞĞµÄ°ì·¨¾ÍÊÇ¸øXFieldÔö¼ÓÒ»¸öIsUnicodeÊôĞÔ£¬µ«Èç´ËÒ»À´£¬XField¾ÍÉÔÎ¢±ä´óÁË
-                // Ä¿Ç°ÔİÊ±Ó°Ïì²»´ó£¬ºóÃæ¿´Çé¿ö¾ö¶¨ÊÇ·ñÔö¼Ó°É
+                // è¿™é‡Œç›´æ¥åˆ¤æ–­åŸå§‹æ•°æ®ç±»å‹æœ‰æ‰€ä¸å¦¥ï¼Œå¦‚æœåŸå§‹æ•°æ®åº“ä¸æ˜¯å½“å‰æ•°æ®åº“ï¼Œé‚£ä¹ˆè¿™é‡Œçš„åˆ¤æ–­å°†ä¼šå¤±æ•ˆ
+                // ä¸€ä¸ªå¯è¡Œçš„åŠæ³•å°±æ˜¯ç»™XFieldå¢åŠ ä¸€ä¸ªIsUnicodeå±æ€§ï¼Œä½†å¦‚æ­¤ä¸€æ¥ï¼ŒXFieldå°±ç¨å¾®å˜å¤§äº†
+                // ç›®å‰æš‚æ—¶å½±å“ä¸å¤§ï¼Œåé¢çœ‹æƒ…å†µå†³å®šæ˜¯å¦å¢åŠ å§
                 //if (field.RawType == "ntext" ||
                 //    !String.IsNullOrEmpty(field.RawType) && (field.RawType.StartsWith("nchar") || field.RawType.StartsWith("nvarchar")))
 
-                // ÎªÁË¼æÈİ¾É°æ±¾ÊµÌåÀà
+                // ä¸ºäº†å…¼å®¹æ—§ç‰ˆæœ¬å®ä½“ç±»
                 if (field.IsUnicode || IsUnicode(field.RawType))
                     return "N'" + value.ToString().Replace("'", "''") + "'";
                 else
@@ -254,11 +254,11 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>SqlServerÊı¾İ¿â</summary>
+    /// <summary>SqlServeræ•°æ®åº“</summary>
     internal class SqlServerSession : RemoteDbSession
     {
-        #region ²éÑ¯
-        /// <summary>¿ìËÙ²éÑ¯µ¥±í¼ÇÂ¼Êı£¬ÉÔÓĞÆ«²î</summary>
+        #region æŸ¥è¯¢
+        /// <summary>å¿«é€ŸæŸ¥è¯¢å•è¡¨è®°å½•æ•°ï¼Œç¨æœ‰åå·®</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
         public override Int64 QueryCountFast(string tableName)
@@ -283,18 +283,18 @@ namespace XCode.DataAccessLayer
                 return _index = QueryIndex_();
             }
 
-            // ¼ì²é¸üĞÂ
+            // æ£€æŸ¥æ›´æ–°
             if (_next < DateTime.Now)
             {
-                // ÏÈ¸ÄÊ±¼ä£¬ÈÃ±ğµÄÏß³ÌÏÈÓÃ×Å¾ÉµÄ
+                // å…ˆæ”¹æ—¶é—´ï¼Œè®©åˆ«çš„çº¿ç¨‹å…ˆç”¨ç€æ—§çš„
                 _next = DateTime.Now.AddSeconds(10);
-                //// Í¬Ò»¸ö»á»°ÀïÃæ£¬²»µ£ĞÄ·Ö±í·Ö¿âµÄÎÊÌâ£¬µ¹ÊÇÓĞ¿ÉÄÜÓĞ³åÍ»
+                //// åŒä¸€ä¸ªä¼šè¯é‡Œé¢ï¼Œä¸æ‹…å¿ƒåˆ†è¡¨åˆ†åº“çš„é—®é¢˜ï¼Œå€’æ˜¯æœ‰å¯èƒ½æœ‰å†²çª
                 //ThreadPool.QueueUserWorkItem(s => _index = QueryIndex_());
 
                 _index = QueryIndex_();
             }
 
-            // Ö±½Ó·µ»Ø¾ÉµÄ
+            // ç›´æ¥è¿”å›æ—§çš„
             return _index;
         }
 
@@ -309,11 +309,11 @@ namespace XCode.DataAccessLayer
             return dic;
         }
 
-        /// <summary>Ö´ĞĞ²åÈëÓï¾ä²¢·µ»ØĞÂÔöĞĞµÄ×Ô¶¯±àºÅ</summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="type">ÃüÁîÀàĞÍ£¬Ä¬ÈÏSQLÎÄ±¾</param>
-        /// <param name="ps">ÃüÁî²ÎÊı</param>
-        /// <returns>ĞÂÔöĞĞµÄ×Ô¶¯±àºÅ</returns>
+        /// <summary>æ‰§è¡Œæ’å…¥è¯­å¥å¹¶è¿”å›æ–°å¢è¡Œçš„è‡ªåŠ¨ç¼–å·</summary>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="type">å‘½ä»¤ç±»å‹ï¼Œé»˜è®¤SQLæ–‡æœ¬</param>
+        /// <param name="ps">å‘½ä»¤å‚æ•°</param>
+        /// <returns>æ–°å¢è¡Œçš„è‡ªåŠ¨ç¼–å·</returns>
         public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             return ExecuteScalar<Int64>("SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()", type, ps);
@@ -321,28 +321,28 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>SqlServerÔªÊı¾İ</summary>
+    /// <summary>SqlServerå…ƒæ•°æ®</summary>
     class SqlServerMetaData : RemoteDbMetaData
     {
-        #region ÊôĞÔ
-        /// <summary>ÊÇ·ñSQL2005</summary>
+        #region å±æ€§
+        /// <summary>æ˜¯å¦SQL2005</summary>
         public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
 
         public Version Version { get { return (Database as SqlServer).Version; } }
 
-        /// <summary>0¼¶ÀàĞÍ</summary>
+        /// <summary>0çº§ç±»å‹</summary>
         public String level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
         #endregion
 
-        #region ¹¹¼Ü
-        /// <summary>È¡µÃËùÓĞ±í¹¹¼Ü</summary>
+        #region æ„æ¶
+        /// <summary>å–å¾—æ‰€æœ‰è¡¨æ„æ¶</summary>
         /// <returns></returns>
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
-            #region ²é±íËµÃ÷¡¢×Ö¶ÎĞÅÏ¢¡¢Ë÷ÒıĞÅÏ¢
+            #region æŸ¥è¡¨è¯´æ˜ã€å­—æ®µä¿¡æ¯ã€ç´¢å¼•ä¿¡æ¯
             var session = Database.CreateSession();
 
-            //Ò»´ÎĞÔ°ÑËùÓĞµÄ±íËµÃ÷²é³öÀ´
+            //ä¸€æ¬¡æ€§æŠŠæ‰€æœ‰çš„è¡¨è¯´æ˜æŸ¥å‡ºæ¥
             DataTable DescriptionTable = null;
 
             var old = session.ShowSQL;
@@ -367,7 +367,7 @@ namespace XCode.DataAccessLayer
             session.ShowSQL = old;
             #endregion
 
-            // ÁĞ³öÓÃ»§±í
+            // åˆ—å‡ºç”¨æˆ·è¡¨
             DataRow[] rows = dt.Select(String.Format("({0}='BASE TABLE' Or {0}='VIEW') AND TABLE_NAME<>'Sysdiagrams'", "TABLE_TYPE"));
             rows = OnGetTables(names, rows);
             if (rows == null || rows.Length < 1) return null;
@@ -375,7 +375,7 @@ namespace XCode.DataAccessLayer
             List<IDataTable> list = GetTables(rows);
             if (list == null || list.Count < 1) return list;
 
-            // ĞŞÕı±¸×¢
+            // ä¿®æ­£å¤‡æ³¨
             foreach (IDataTable item in list)
             {
                 DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.TableName + "'");
@@ -392,18 +392,18 @@ namespace XCode.DataAccessLayer
         {
             base.FixField(field, dr);
 
-            var rows = AllFields == null ? null : AllFields.Select("±íÃû='" + field.Table.TableName + "' And ×Ö¶ÎÃû='" + field.ColumnName + "'", null);
+            var rows = AllFields == null ? null : AllFields.Select("è¡¨å='" + field.Table.TableName + "' And å­—æ®µå='" + field.ColumnName + "'", null);
             if (rows != null && rows.Length > 0)
             {
                 var dr2 = rows[0];
 
-                field.Identity = GetDataRowValue<Boolean>(dr2, "±êÊ¶");
-                field.PrimaryKey = GetDataRowValue<Boolean>(dr2, "Ö÷¼ü");
-                field.NumOfByte = GetDataRowValue<Int32>(dr2, "Õ¼ÓÃ×Ö½ÚÊı");
-                field.Description = GetDataRowValue<String>(dr2, "×Ö¶ÎËµÃ÷");
+                field.Identity = GetDataRowValue<Boolean>(dr2, "æ ‡è¯†");
+                field.PrimaryKey = GetDataRowValue<Boolean>(dr2, "ä¸»é”®");
+                field.NumOfByte = GetDataRowValue<Int32>(dr2, "å ç”¨å­—èŠ‚æ•°");
+                field.Description = GetDataRowValue<String>(dr2, "å­—æ®µè¯´æ˜");
             }
 
-            // ÕûÀíÄ¬ÈÏÖµ
+            // æ•´ç†é»˜è®¤å€¼
             if (!String.IsNullOrEmpty(field.Default))
             {
                 field.Default = Trim(field.Default, "(", ")");
@@ -412,7 +412,7 @@ namespace XCode.DataAccessLayer
                 field.Default = Trim(field.Default, "N\'", "\'");
                 field.Default = field.Default.Replace("''", "'");
 
-                // ´¦ÀíÀàËÆCONVERT([datetime],'1753-1-1',(0))µÄÊ±¼äÄ¬ÈÏÖµ
+                // å¤„ç†ç±»ä¼¼CONVERT([datetime],'1753-1-1',(0))çš„æ—¶é—´é»˜è®¤å€¼
                 if (field.DataType == typeof(DateTime))
                 {
                     var def = field.Default;
@@ -461,7 +461,7 @@ namespace XCode.DataAccessLayer
             String sql = base.CreateTableSQL(table);
             if (String.IsNullOrEmpty(sql) || table.PrimaryKeys == null || table.PrimaryKeys.Length < 2) return sql;
 
-            // ´¦Àí¶àÖ÷¼ü
+            // å¤„ç†å¤šä¸»é”®
             var sb = new StringBuilder();
             foreach (var item in table.PrimaryKeys)
             {
@@ -488,12 +488,12 @@ namespace XCode.DataAccessLayer
 
         protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            // ·Ç¶¨ÒåÊ±£¨ĞŞ¸Ä×Ö¶Î£©£¬Ö÷¼ü×Ö¶ÎÃ»ÓĞÔ¼Êø
+            // éå®šä¹‰æ—¶ï¼ˆä¿®æ”¹å­—æ®µï¼‰ï¼Œä¸»é”®å­—æ®µæ²¡æœ‰çº¦æŸ
             if (!onlyDefine && field.PrimaryKey) return null;
 
             String str = base.GetFieldConstraints(field, onlyDefine);
 
-            // ·Ç¶¨ÒåÊ±£¬×ÔÔö×Ö¶ÎÃ»ÓĞÔ¼Êø
+            // éå®šä¹‰æ—¶ï¼Œè‡ªå¢å­—æ®µæ²¡æœ‰çº¦æŸ
             if (onlyDefine && field.Identity) str = " IDENTITY(1,1)" + str;
 
             return str;
@@ -504,7 +504,7 @@ namespace XCode.DataAccessLayer
             String str = base.GetFormatParam(field, dr);
             if (String.IsNullOrEmpty(str)) return str;
 
-            // Õâ¸öÖ÷ÒªÀ´×ÔÓÚfloat£¬ÒòÎªÎŞ·¨È¡µÃÆä¾«¶È
+            // è¿™ä¸ªä¸»è¦æ¥è‡ªäºfloatï¼Œå› ä¸ºæ— æ³•å–å¾—å…¶ç²¾åº¦
             if (str == "(0)") return null;
             return str;
         }
@@ -524,9 +524,9 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region È¡µÃ×Ö¶ÎĞÅÏ¢µÄSQLÄ£°æ
+        #region å–å¾—å­—æ®µä¿¡æ¯çš„SQLæ¨¡ç‰ˆ
         private String _SchemaSql = "";
-        /// <summary>¹¹¼ÜSQL</summary>
+        /// <summary>æ„æ¶SQL</summary>
         public virtual String SchemaSql
         {
             get
@@ -535,21 +535,21 @@ namespace XCode.DataAccessLayer
                 {
                     var sb = new StringBuilder();
                     sb.Append("SELECT ");
-                    sb.Append("±íÃû=d.name,");
-                    sb.Append("×Ö¶ÎĞòºÅ=a.colorder,");
-                    sb.Append("×Ö¶ÎÃû=a.name,");
-                    sb.Append("±êÊ¶=case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then Convert(Bit,1) else Convert(Bit,0) end,");
-                    sb.Append("Ö÷¼ü=case when exists(SELECT 1 FROM sysobjects where xtype='PK' and name in (");
+                    sb.Append("è¡¨å=d.name,");
+                    sb.Append("å­—æ®µåºå·=a.colorder,");
+                    sb.Append("å­—æ®µå=a.name,");
+                    sb.Append("æ ‡è¯†=case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then Convert(Bit,1) else Convert(Bit,0) end,");
+                    sb.Append("ä¸»é”®=case when exists(SELECT 1 FROM sysobjects where xtype='PK' and name in (");
                     sb.Append("SELECT name FROM sysindexes WHERE id = a.id AND indid in(");
                     sb.Append("SELECT indid FROM sysindexkeys WHERE id = a.id AND colid=a.colid");
                     sb.Append("))) then Convert(Bit,1) else Convert(Bit,0) end,");
-                    sb.Append("ÀàĞÍ=b.name,");
-                    sb.Append("Õ¼ÓÃ×Ö½ÚÊı=a.length,");
-                    sb.Append("³¤¶È=COLUMNPROPERTY(a.id,a.name,'PRECISION'),");
-                    sb.Append("Ğ¡ÊıÎ»Êı=isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0),");
-                    sb.Append("ÔÊĞí¿Õ=case when a.isnullable=1 then Convert(Bit,1)else Convert(Bit,0) end,");
-                    sb.Append("Ä¬ÈÏÖµ=isnull(e.text,''),");
-                    sb.Append("×Ö¶ÎËµÃ÷=isnull(g.[value],'')");
+                    sb.Append("ç±»å‹=b.name,");
+                    sb.Append("å ç”¨å­—èŠ‚æ•°=a.length,");
+                    sb.Append("é•¿åº¦=COLUMNPROPERTY(a.id,a.name,'PRECISION'),");
+                    sb.Append("å°æ•°ä½æ•°=isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0),");
+                    sb.Append("å…è®¸ç©º=case when a.isnullable=1 then Convert(Bit,1)else Convert(Bit,0) end,");
+                    sb.Append("é»˜è®¤å€¼=isnull(e.text,''),");
+                    sb.Append("å­—æ®µè¯´æ˜=isnull(g.[value],'')");
                     sb.Append("FROM syscolumns a ");
                     sb.Append("left join systypes b on a.xtype=b.xusertype ");
                     sb.Append("inner join sysobjects d on a.id=d.id  and d.xtype='U' ");
@@ -587,11 +587,11 @@ namespace XCode.DataAccessLayer
 
         private readonly String _DescriptionSql2000 = "select b.name n, a.value v from sysproperties a inner join sysobjects b on a.id=b.id where a.smallid=0";
         private readonly String _DescriptionSql2005 = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
-        /// <summary>È¡±íËµÃ÷SQL</summary>
+        /// <summary>å–è¡¨è¯´æ˜SQL</summary>
         public virtual String DescriptionSql { get { return IsSQL2005 ? _DescriptionSql2005 : _DescriptionSql2000; } }
         #endregion
 
-        #region Êı¾İ¶¨Òå
+        #region æ•°æ®å®šä¹‰
         //public override object SetSchema(DDLSchema schema, params object[] values)
         //{
         //    IDbSession session = Database.CreateSession();
@@ -690,7 +690,7 @@ namespace XCode.DataAccessLayer
             return String.Format("SELECT * FROM sysdatabases WHERE name = N'{0}'", dbname);
         }
 
-        /// <summary>Ê¹ÓÃÊı¾İ¼Ü¹¹È·¶¨Êı¾İ¿âÊÇ·ñ´æÔÚ£¬ÒòÎªÊ¹ÓÃÏµÍ³ÊÓÍ¼¿ÉÄÜÃ»ÓĞÈ¨ÏŞ</summary>
+        /// <summary>ä½¿ç”¨æ•°æ®æ¶æ„ç¡®å®šæ•°æ®åº“æ˜¯å¦å­˜åœ¨ï¼Œå› ä¸ºä½¿ç”¨ç³»ç»Ÿè§†å›¾å¯èƒ½æ²¡æœ‰æƒé™</summary>
         /// <param name="dbname"></param>
         /// <returns></returns>
         protected override Boolean DatabaseExist(string dbname)
@@ -703,7 +703,7 @@ namespace XCode.DataAccessLayer
         {
             //return base.DropDatabase(databaseName);
 
-            // SQLÓï¾äÆ¬¶Î£¬¶Ï¿ª¸ÃÊı¾İ¿âËùÓĞÁ´½Ó
+            // SQLè¯­å¥ç‰‡æ®µï¼Œæ–­å¼€è¯¥æ•°æ®åº“æ‰€æœ‰é“¾æ¥
             var sb = new StringBuilder();
             sb.AppendLine("use master");
             sb.AppendLine(";");
@@ -736,7 +736,7 @@ namespace XCode.DataAccessLayer
                 return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatName(tableName));
         }
 
-        /// <summary>Ê¹ÓÃÊı¾İ¼Ü¹¹È·¶¨Êı¾İ±íÊÇ·ñ´æÔÚ£¬ÒòÎªÊ¹ÓÃÏµÍ³ÊÓÍ¼¿ÉÄÜÃ»ÓĞÈ¨ÏŞ</summary>
+        /// <summary>ä½¿ç”¨æ•°æ®æ¶æ„ç¡®å®šæ•°æ®è¡¨æ˜¯å¦å­˜åœ¨ï¼Œå› ä¸ºä½¿ç”¨ç³»ç»Ÿè§†å›¾å¯èƒ½æ²¡æœ‰æƒé™</summary>
         /// <param name="table"></param>
         /// <returns></returns>
         public Boolean TableExist(IDataTable table)
@@ -759,7 +759,7 @@ namespace XCode.DataAccessLayer
             var sql = base.ReBuildTable(entitytable, dbtable);
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            // ÌØÊâ´¦Àí´ø±êÊ¶ÁĞµÄ±í£¬ĞèÒªÔö¼ÓSET IDENTITY_INSERT
+            // ç‰¹æ®Šå¤„ç†å¸¦æ ‡è¯†åˆ—çš„è¡¨ï¼Œéœ€è¦å¢åŠ SET IDENTITY_INSERT
             if (!entitytable.Columns.Any(e => e.Identity)) return sql;
 
             var tableName = Database.FormatName(entitytable.TableName);
@@ -796,31 +796,31 @@ namespace XCode.DataAccessLayer
 
         public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
-            // ´´½¨Îª×ÔÔö£¬ÖØ½¨±í
+            // åˆ›å»ºä¸ºè‡ªå¢ï¼Œé‡å»ºè¡¨
             if (field.Identity && !oldfield.Identity)
             {
                 //return DropColumnSQL(oldfield) + ";" + Environment.NewLine + AddColumnSQL(field);
                 return ReBuildTable(field.Table, oldfield.Table);
             }
-            // ÀàĞÍ¸Ä±ä£¬±ØĞëÖØ½¨±í
+            // ç±»å‹æ”¹å˜ï¼Œå¿…é¡»é‡å»ºè¡¨
             if (IsColumnTypeChanged(field, oldfield)) return ReBuildTable(field.Table, oldfield.Table);
 
             var sql = String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
             var pk = DeletePrimaryKeySQL(field);
             if (field.PrimaryKey)
             {
-                // Èç¹ûÃ»ÓĞÖ÷¼üÉ¾³ı½Å±¾£¬±íÃ÷Ã»ÓĞÖ÷¼ü
+                // å¦‚æœæ²¡æœ‰ä¸»é”®åˆ é™¤è„šæœ¬ï¼Œè¡¨æ˜æ²¡æœ‰ä¸»é”®
                 //if (String.IsNullOrEmpty(pk))
                 if (!oldfield.PrimaryKey)
                 {
-                    // Ôö¼ÓÖ÷¼üÔ¼Êø
+                    // å¢åŠ ä¸»é”®çº¦æŸ
                     pk = String.Format("Alter Table {0} ADD CONSTRAINT PK_{0} PRIMARY KEY {2}({1}) ON [PRIMARY]", FormatName(field.Table.TableName), FormatName(field.ColumnName), field.Identity ? "CLUSTERED" : "");
                     sql += ";" + Environment.NewLine + pk;
                 }
             }
             else
             {
-                // ×Ö¶ÎÉùÃ÷Ã»ÓĞÖ÷¼ü£¬µ«ÊÇÖ÷¼üÊµ¼Ê´æÔÚ£¬ÔòÉ¾³ıÖ÷¼ü
+                // å­—æ®µå£°æ˜æ²¡æœ‰ä¸»é”®ï¼Œä½†æ˜¯ä¸»é”®å®é™…å­˜åœ¨ï¼Œåˆ™åˆ é™¤ä¸»é”®
                 //if (!String.IsNullOrEmpty(pk))
                 if (oldfield.PrimaryKey)
                 {
@@ -828,7 +828,7 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            // ĞèÒªÌáÇ°É¾³ıÏà¹ØÄ¬ÈÏÖµ
+            // éœ€è¦æå‰åˆ é™¤ç›¸å…³é»˜è®¤å€¼
             if (oldfield.Default != null)
             {
                 var df = DropDefaultSQL(oldfield);
@@ -836,7 +836,7 @@ namespace XCode.DataAccessLayer
                 {
                     sql = df + ";" + Environment.NewLine + sql;
 
-                    // Èç¹û»¹ÓĞÄ¬ÈÏÖµ£¬¼ÓÉÏ
+                    // å¦‚æœè¿˜æœ‰é»˜è®¤å€¼ï¼ŒåŠ ä¸Š
                     if (field.Default != null)
                     {
                         df = AddDefaultSQLWithNoCheck(field);
@@ -844,20 +844,20 @@ namespace XCode.DataAccessLayer
                     }
                 }
             }
-            // ĞèÒªÌáÇ°É¾³ıÏà¹ØË÷Òı
+            // éœ€è¦æå‰åˆ é™¤ç›¸å…³ç´¢å¼•
             foreach (var di in oldfield.Table.Indexes)
             {
-                // Èç¹û°üº¬¸Ã×Ö¶Î
+                // å¦‚æœåŒ…å«è¯¥å­—æ®µ
                 if (di.Columns.Contains(oldfield.ColumnName, StringComparer.OrdinalIgnoreCase))
                 {
                     var dis = DropIndexSQL(di);
                     if (!String.IsNullOrEmpty(dis)) sql = dis + ";" + Environment.NewLine + sql;
                 }
             }
-            // Èç¹û»¹ÓĞË÷Òı£¬Ôò¼ÓÉÏ
+            // å¦‚æœè¿˜æœ‰ç´¢å¼•ï¼Œåˆ™åŠ ä¸Š
             foreach (var di in field.Table.Indexes)
             {
-                // Èç¹û°üº¬¸Ã×Ö¶Î
+                // å¦‚æœåŒ…å«è¯¥å­—æ®µ
                 if (di.Columns.Contains(field.ColumnName, StringComparer.OrdinalIgnoreCase))
                 {
                     var cis = CreateIndexSQL(di);
@@ -875,11 +875,11 @@ namespace XCode.DataAccessLayer
 
         public override string DropColumnSQL(IDataColumn field)
         {
-            //É¾³ıÄ¬ÈÏÖµ
+            //åˆ é™¤é»˜è®¤å€¼
             String sql = DropDefaultSQL(field);
             if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
 
-            //É¾³ıÖ÷¼ü
+            //åˆ é™¤ä¸»é”®
             String sql2 = DeletePrimaryKeySQL(field);
             if (!String.IsNullOrEmpty(sql2)) sql += sql2 + ";" + Environment.NewLine;
 
@@ -936,7 +936,7 @@ namespace XCode.DataAccessLayer
         public override string DropDefaultSQL(IDataColumn field)
         {
             //if (String.IsNullOrEmpty(field.Default)) return String.Empty;
-            // Ä¬ÈÏÖµÓĞ¿ÉÄÜÊÇ¿Õ×Ö·û´®
+            // é»˜è®¤å€¼æœ‰å¯èƒ½æ˜¯ç©ºå­—ç¬¦ä¸²
             if (field.Default == null) return String.Empty;
 
             String sql = null;
@@ -1002,8 +1002,8 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ¸¨Öúº¯Êı
-        /// <summary>³ıÈ¥×Ö·û´®Á½¶Ë³É¶Ô³öÏÖµÄ·ûºÅ</summary>
+        #region è¾…åŠ©å‡½æ•°
+        /// <summary>é™¤å»å­—ç¬¦ä¸²ä¸¤ç«¯æˆå¯¹å‡ºç°çš„ç¬¦å·</summary>
         /// <param name="str"></param>
         /// <param name="prefix"></param>
         /// <param name="suffix"></param>

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Web.UI;
@@ -6,18 +6,18 @@ using System.Web.UI.WebControls;
 
 namespace XControl
 {
-    /// <summary>¸¡µãÊıÊäÈë¿Ø¼ş¡£Ö»ÄÜÊäÈëÊı×Ö£¬²¢¿ÉÒÔ¹æ¶¨·¶Î§¡¢¼ä¸ô¡£</summary>
-    [Description("¸¡µãÊıÊäÈë¿Ø¼ş")]
+    /// <summary>æµ®ç‚¹æ•°è¾“å…¥æ§ä»¶ã€‚åªèƒ½è¾“å…¥æ•°å­—ï¼Œå¹¶å¯ä»¥è§„å®šèŒƒå›´ã€é—´éš”ã€‚</summary>
+    [Description("æµ®ç‚¹æ•°è¾“å…¥æ§ä»¶")]
     [ToolboxData("<{0}:RealBox runat=server></{0}:RealBox>")]
     [ToolboxBitmap(typeof(TextBox))]
     [ControlValueProperty("Value")]
     public class RealBox : TextBox
     {
-        /// <summary>³õÊ¼»¯Êı×ÖÊäÈë¿Ø¼şµÄÑùÊ½¡£</summary>
+        /// <summary>åˆå§‹åŒ–æ•°å­—è¾“å…¥æ§ä»¶çš„æ ·å¼ã€‚</summary>
         public RealBox()
             : base()
         {
-            this.ToolTip = "Ö»ÄÜÊäÈë¸¡µãÊı£¡";
+            this.ToolTip = "åªèƒ½è¾“å…¥æµ®ç‚¹æ•°ï¼";
             BorderWidth = Unit.Pixel(0);
             BorderColor = Color.Black;
             BorderStyle = BorderStyle.Solid;
@@ -26,27 +26,27 @@ namespace XControl
             if (String.IsNullOrEmpty(Attributes["style"])) this.Attributes.Add("style", "border-bottom-width:1px;text-align : right ");
         }
 
-        /// <summary>ÒÑÖØÔØ¡£</summary>
+        /// <summary>å·²é‡è½½ã€‚</summary>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
             base.OnPreRender(e);
 
-            // Ğ£Ñé½Å±¾
+            // æ ¡éªŒè„šæœ¬
             Helper.HTMLPropertyEscape(this, "onkeypress", "return ValidReal({0});", AllowMinus ? 1 : 0);
             Helper.HTMLPropertyEscape(this, "onblur", "return ValidReal2();");
             Helper.HTMLPropertyEscape(this, "onkeyup", "FilterNumber(this,{0});", Helper.JsObjectString(
-                // "allowFloat", 1, // Ä¬ÈÏÊÇtrue
+                // "allowFloat", 1, // é»˜è®¤æ˜¯true
                     "allowMinus", AllowMinus ? 1 : 0
                 ));
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
 
-            //Èç¹ûÃ»ÓĞÖµ£¬ÔòÄ¬ÈÏÏÔÊ¾0
+            //å¦‚æœæ²¡æœ‰å€¼ï¼Œåˆ™é»˜è®¤æ˜¾ç¤º0
             if (String.IsNullOrEmpty(Text)) Text = "0";
         }
 
-        /// <summary>µ±Ç°Öµ</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(0), Description("µ±Ç°Öµ")]
+        /// <summary>å½“å‰å€¼</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(0), Description("å½“å‰å€¼")]
         public Double Value
         {
             get
@@ -62,8 +62,8 @@ namespace XControl
             }
         }
 
-        /// <summary>ÊÇ·ñÔÊĞí¸ºÊı</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(true), Description("ÊÇ·ñÔÊĞí¸ºÊı,Ä¬ÈÏtrue")]
+        /// <summary>æ˜¯å¦å…è®¸è´Ÿæ•°</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(true), Description("æ˜¯å¦å…è®¸è´Ÿæ•°,é»˜è®¤true")]
         public bool AllowMinus
         {
             get

@@ -1,4 +1,4 @@
-//using System;
+ï»¿//using System;
 //using System.Collections.Generic;
 //using System.ComponentModel;
 //using System.ComponentModel.Design;
@@ -12,7 +12,7 @@
 //namespace XControl
 //{
 //    /// <summary>
-//    /// ÖØĞ´GridView
+//    /// é‡å†™GridView
 //    /// </summary>
 //    [ToolboxItem(false)]
 //    [DefaultProperty("Text")]
@@ -23,9 +23,9 @@
 //    {
 //        private Boolean _SetEntry = false;
 //        /// <summary>
-//        /// ÉèÖÃÊµÌå×Ö¶Î
+//        /// è®¾ç½®å®ä½“å­—æ®µ
 //        /// </summary>
-//        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(false), Description("ÉèÖÃÊµÌå×Ö¶Î"), DesignOnly(true)]
+//        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(false), Description("è®¾ç½®å®ä½“å­—æ®µ"), DesignOnly(true)]
 //        public Boolean SetEntry
 //        {
 //            get
@@ -47,8 +47,8 @@
 //        }
 
 //        /// <summary>
-//        /// ½¨Á¢ÊµÌåÁĞ×Ö¶Î¼¯¡£°ÑÒÑ¾­½¨Á¢ºÃµÄÁĞ×ªÎªÊµÌåÁĞ¡£
-//        /// Ö÷ÒªĞŞ¸Ä¸÷ÁĞµÄHeaderTextÎªÖĞÎÄ£¬Í¬Ê±µ÷Õû¸÷ÁĞË³ĞòÎª¶ÔÓ¦µÄÊµÌåÊôĞÔµÄË³Ğò¡£
+//        /// å»ºç«‹å®ä½“åˆ—å­—æ®µé›†ã€‚æŠŠå·²ç»å»ºç«‹å¥½çš„åˆ—è½¬ä¸ºå®ä½“åˆ—ã€‚
+//        /// ä¸»è¦ä¿®æ”¹å„åˆ—çš„HeaderTextä¸ºä¸­æ–‡ï¼ŒåŒæ—¶è°ƒæ•´å„åˆ—é¡ºåºä¸ºå¯¹åº”çš„å®ä½“å±æ€§çš„é¡ºåºã€‚
 //        /// </summary>
 //        private void CreateEntryColumns()
 //        {
@@ -59,9 +59,9 @@
 //            XGridView gv = this;
 //            if (gv == null) return;
 
-//            // Ë¼Â·
-//            // °ÑËùÓĞÊôÓÚÊµÌåÀàµÄÁĞ×Ö¶Î´ÓcsÖĞÉ¾³ı£¬Ìí¼Óµ½Ò»¸öÁÙÊ±ÁĞ±ítcsÖĞ
-//            // ´ÓÍ·¿ªÊ¼±éÀúÊµÌåÀàµÄÊôĞÔ£¬ÅĞ¶ÏÃ¿¸öÊôĞÔÊÇ·ñ´æÔÚÓÚtcsÖĞ£¬´æÔÚÔòĞŞ¸ÄHeaderTextÎªÖĞÎÄ£¬²¢Ìí¼Óµ½ncsÖĞ
+//            // æ€è·¯
+//            // æŠŠæ‰€æœ‰å±äºå®ä½“ç±»çš„åˆ—å­—æ®µä»csä¸­åˆ é™¤ï¼Œæ·»åŠ åˆ°ä¸€ä¸ªä¸´æ—¶åˆ—è¡¨tcsä¸­
+//            // ä»å¤´å¼€å§‹éå†å®ä½“ç±»çš„å±æ€§ï¼Œåˆ¤æ–­æ¯ä¸ªå±æ€§æ˜¯å¦å­˜åœ¨äºtcsä¸­ï¼Œå­˜åœ¨åˆ™ä¿®æ”¹HeaderTextä¸ºä¸­æ–‡ï¼Œå¹¶æ·»åŠ åˆ°ncsä¸­
 
 //            Dictionary<String, DataControlField> tcs = new Dictionary<String, DataControlField>();
 //            foreach (DataControlField dcf in gv.Columns)
@@ -70,25 +70,25 @@
 //                {
 //                    if (fi.Name == dcf.HeaderText)
 //                    {
-//                        // ÒòÔÚ±éÀúcsµÄ¹ı³ÌÖĞ²»ÄÜĞŞ¸Äcs£¬ËùÒÔÕâÀïÔİÊ±²»´ÓcsÖĞÉ¾³ıdcf£¬±éÀúÍê³ÉºóÉ¾³ı
+//                        // å› åœ¨éå†csçš„è¿‡ç¨‹ä¸­ä¸èƒ½ä¿®æ”¹csï¼Œæ‰€ä»¥è¿™é‡Œæš‚æ—¶ä¸ä»csä¸­åˆ é™¤dcfï¼Œéå†å®Œæˆååˆ é™¤
 //                        tcs.Add(fi.Name, dcf);
 //                        break;
 //                    }
 //                }
 //            }
-//            // É¾³ıÊôÓÚÊµÌåÀàµÄÁĞ
+//            // åˆ é™¤å±äºå®ä½“ç±»çš„åˆ—
 //            foreach (DataControlField dcf in tcs.Values)
 //            {
 //                gv.Columns.Remove(dcf);
 //            }
 //            String keyname = (gv.DataKeyNames != null && gv.DataKeyNames.Length > 0) ? gv.DataKeyNames[0] : null;
-//            // °´Ë³ĞòÌí¼ÓÊµÌåÀàµÄµ÷ÕûºóµÄÁĞ
+//            // æŒ‰é¡ºåºæ·»åŠ å®ä½“ç±»çš„è°ƒæ•´åçš„åˆ—
 //            foreach (FieldItem fi in list)
 //            {
 //                if (tcs.ContainsKey(fi.Name) && fi.DataObjectField.Length <= 255)
 //                {
 //                    DataControlField dcf = tcs[fi.Name];
-//                    //Èç¹ûÉèÖÃÁËÖ÷¼ü×Ö¶Î£¬»òÊÇ±êÊ¶×Ö¶Î£¬Ôò×÷ÎªÄ£°æÁĞ°ó¶¨Select¹¦ÄÜ
+//                    //å¦‚æœè®¾ç½®äº†ä¸»é”®å­—æ®µï¼Œæˆ–æ˜¯æ ‡è¯†å­—æ®µï¼Œåˆ™ä½œä¸ºæ¨¡ç‰ˆåˆ—ç»‘å®šSelectåŠŸèƒ½
 //                    if (!String.IsNullOrEmpty(keyname) && fi.Name == keyname || String.IsNullOrEmpty(keyname) && fi.DataObjectField.IsIdentity)
 //                    {
 //                        TemplateField tf = new TemplateField();
@@ -97,10 +97,10 @@
 //                        dcf = tf as DataControlField;
 //                    }
 
-//                    //Ö¸¶¨ÅÅĞò±í´ïÊ½
+//                    //æŒ‡å®šæ’åºè¡¨è¾¾å¼
 //                    dcf.SortExpression = fi.Name;
 
-//                    //Ö¸¶¨Ê±¼ä¸ñÊ½×Ö·û´®
+//                    //æŒ‡å®šæ—¶é—´æ ¼å¼å­—ç¬¦ä¸²
 //                    if (fi.Info.PropertyType == typeof(DateTime))
 //                    {
 //                        BoundField bc = dcf as BoundField;
@@ -133,19 +133,19 @@
 //                }
 //            }
 
-//            //¶îÍâ¹¤×÷£¬ÉèÖÃObjectDataSourceµÄSelectCountMethod
+//            //é¢å¤–å·¥ä½œï¼Œè®¾ç½®ObjectDataSourceçš„SelectCountMethod
 //            String datasourceid = gv.DataSourceID;
 //            if (String.IsNullOrEmpty(datasourceid)) return;
-//            // ÕÒµ½Êı¾İ°ó¶¨¿Ø¼şObjectDataSource
+//            // æ‰¾åˆ°æ•°æ®ç»‘å®šæ§ä»¶ObjectDataSource
 //            ObjectDataSource obj = gv.Page.FindControl(datasourceid) as ObjectDataSource;
 //            if (obj == null) return;
-//            //Ö¸¶¨·ÖÒ³·½·¨
+//            //æŒ‡å®šåˆ†é¡µæ–¹æ³•
 //            Boolean canpaging = true;
 //            if (String.IsNullOrEmpty(obj.SelectCountMethod)) obj.SelectCountMethod = "FindCount";
-//            //Èç¹û²»ÊÇÄ¬ÈÏµÄFindAll£¬ÔòÊ¹ÓÃĞÂ¹¹Ôì·½·¨
+//            //å¦‚æœä¸æ˜¯é»˜è®¤çš„FindAllï¼Œåˆ™ä½¿ç”¨æ–°æ„é€ æ–¹æ³•
 //            if (!obj.SelectMethod.Equals("FindAll", StringComparison.OrdinalIgnoreCase))
 //                obj.SelectCountMethod = obj.SelectMethod + "Count";
-//            //Ö¸¶¨·ÖÒ³²ÎÊı
+//            //æŒ‡å®šåˆ†é¡µå‚æ•°
 //            if (obj.SelectParameters["startRowIndex"] == null) 
 //                canpaging = false;
 //            else if (String.IsNullOrEmpty(obj.SelectParameters["startRowIndex"].DefaultValue))
@@ -156,20 +156,20 @@
 //            else if (String.IsNullOrEmpty(obj.SelectParameters["maximumRows"].DefaultValue))
 //                obj.SelectParameters["maximumRows"].DefaultValue = Int32.MaxValue.ToString();
 
-//            //´ò¿ª·ÖÒ³
+//            //æ‰“å¼€åˆ†é¡µ
 //            if (canpaging)
 //            {
 //                obj.EnablePaging = true;
 //                gv.AllowPaging = true;
 //            }
 //            else
-//                ViewHelper.MsgBox<XGridView>(String.Format("µ±Ç°µÄ²éÑ¯·½·¨{0}²»Ö§³Ö·ÖÒ³£¬ÇëÑ¡Ôñ´øÓĞ·ÖÒ³²ÎÊıµÄ²éÑ¯·½·¨£¡", obj.SelectMethod));
+//                ViewHelper.MsgBox<XGridView>(String.Format("å½“å‰çš„æŸ¥è¯¢æ–¹æ³•{0}ä¸æ”¯æŒåˆ†é¡µï¼Œè¯·é€‰æ‹©å¸¦æœ‰åˆ†é¡µå‚æ•°çš„æŸ¥è¯¢æ–¹æ³•ï¼", obj.SelectMethod));
 
-//            //Ö¸¶¨ÅÅĞò²ÎÊı
-//            Boolean cansort = false;//ÊÇ·ñ¿ÉÒÔÅÅĞò
+//            //æŒ‡å®šæ’åºå‚æ•°
+//            Boolean cansort = false;//æ˜¯å¦å¯ä»¥æ’åº
 //            if (obj.SelectParameters != null)
 //            {
-//                //±éÀúËùÓĞSelect²ÎÊı£¬ÕÒµ½µÚÒ»¸ö´øÓĞorder×ÖÑùµÄ²ÎÊı×öÎªÅÅĞò²ÎÊı
+//                //éå†æ‰€æœ‰Selectå‚æ•°ï¼Œæ‰¾åˆ°ç¬¬ä¸€ä¸ªå¸¦æœ‰orderå­—æ ·çš„å‚æ•°åšä¸ºæ’åºå‚æ•°
 //                foreach (Parameter item in obj.SelectParameters)
 //                {
 //                    if (item.Name.ToLower().IndexOf("order") >= 0)
@@ -183,14 +183,14 @@
 //            if (cansort)
 //                gv.AllowSorting = true;
 //            else
-//                ViewHelper.MsgBox<XGridView>(String.Format("µ±Ç°µÄ²éÑ¯·½·¨{0}²»Ö§³ÖÅÅĞò£¬ÇëÑ¡Ôñ´øÓĞÅÅĞò²ÎÊıµÄ²éÑ¯·½·¨£¡", obj.SelectMethod));
+//                ViewHelper.MsgBox<XGridView>(String.Format("å½“å‰çš„æŸ¥è¯¢æ–¹æ³•{0}ä¸æ”¯æŒæ’åºï¼Œè¯·é€‰æ‹©å¸¦æœ‰æ’åºå‚æ•°çš„æŸ¥è¯¢æ–¹æ³•ï¼", obj.SelectMethod));
 //        }
 
 //        private Boolean _SetDefaultStype = false;
 //        /// <summary>
-//        /// ÉèÖÃÑùÊ½
+//        /// è®¾ç½®æ ·å¼
 //        /// </summary>
-//        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(false), Description("ÉèÖÃÑùÊ½"), DesignOnly(true)]
+//        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(false), Description("è®¾ç½®æ ·å¼"), DesignOnly(true)]
 //        public Boolean SetDefaultStype
 //        {
 //            get { return _SetDefaultStype; }
@@ -238,7 +238,7 @@
 //        }
 
 //        /// <summary>
-//        /// ÒÑÖØĞ´¡£ÇĞ»»Ò³Ê±È¡ÏûÔ­Ñ¡Ôñ
+//        /// å·²é‡å†™ã€‚åˆ‡æ¢é¡µæ—¶å–æ¶ˆåŸé€‰æ‹©
 //        /// </summary>
 //        /// <param name="e"></param>
 //        protected override void OnPageIndexChanging(GridViewPageEventArgs e)
@@ -249,17 +249,17 @@
 //    }
 
 //    /// <summary>
-//    /// ÔÚ¿ÉÊÓ»¯Éè¼ÆÆ÷ÖĞÎª XControl.XGridView ¿Ø¼şÌá¹©Éè¼ÆÊ±Ö§³Ö¡£
+//    /// åœ¨å¯è§†åŒ–è®¾è®¡å™¨ä¸­ä¸º XControl.XGridView æ§ä»¶æä¾›è®¾è®¡æ—¶æ”¯æŒã€‚
 //    /// </summary>
 //    public class XGridViewDesigner : GridViewDesigner
 //    {
 //        /// <summary>
-//        /// µ±¹ØÁª¿Ø¼şµÄÊı¾İÔ´¼Ü¹¹¸ü¸ÄÊ±£¬½«µ÷ÓÃËü¡£
+//        /// å½“å…³è”æ§ä»¶çš„æ•°æ®æºæ¶æ„æ›´æ”¹æ—¶ï¼Œå°†è°ƒç”¨å®ƒã€‚
 //        /// </summary>
 //        protected override void OnSchemaRefreshed()
 //        {
 //            base.OnSchemaRefreshed();
-//            //ÏÈÉú³ÉÔ­À´µÄ£¬ÔÙÉú³ÉĞÂµÄ
+//            //å…ˆç”ŸæˆåŸæ¥çš„ï¼Œå†ç”Ÿæˆæ–°çš„
 //            //if (!InTemplateMode && !IgnoreSchemaRefreshedEvent)
 //            if (!InTemplateMode)
 //            {

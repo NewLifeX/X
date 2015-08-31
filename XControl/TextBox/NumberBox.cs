@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Web.UI;
@@ -8,20 +8,20 @@ using NewLife;
 namespace XControl
 {
     /// <summary>
-    /// Êı×ÖÊäÈë¿Ø¼ş¡£Ö»ÄÜÊäÈëÊı×Ö£¬²¢¿ÉÒÔ¹æ¶¨·¶Î§¡¢¼ä¸ô¡£
-    /// <remarks>×î´ó×îĞ¡ÖµÖ»¶ÔÕıÕûÊıÓĞĞ§</remarks>
+    /// æ•°å­—è¾“å…¥æ§ä»¶ã€‚åªèƒ½è¾“å…¥æ•°å­—ï¼Œå¹¶å¯ä»¥è§„å®šèŒƒå›´ã€é—´éš”ã€‚
+    /// <remarks>æœ€å¤§æœ€å°å€¼åªå¯¹æ­£æ•´æ•°æœ‰æ•ˆ</remarks>
     /// </summary>
-    [Description("Êı×ÖÊäÈë¿Ø¼ş")]
+    [Description("æ•°å­—è¾“å…¥æ§ä»¶")]
     [ToolboxData("<{0}:NumberBox runat=server></{0}:NumberBox>")]
     [ToolboxBitmap(typeof(TextBox))]
     [ControlValueProperty("Value")]
     public class NumberBox : TextBox
     {
-        /// <summary>³õÊ¼»¯Êı×ÖÊäÈë¿Ø¼şµÄÑùÊ½¡£</summary>
+        /// <summary>åˆå§‹åŒ–æ•°å­—è¾“å…¥æ§ä»¶çš„æ ·å¼ã€‚</summary>
         public NumberBox()
             : base()
         {
-            this.ToolTip = "Ö»ÄÜÊäÈëÊı×Ö£¡";
+            this.ToolTip = "åªèƒ½è¾“å…¥æ•°å­—ï¼";
             BorderWidth = Unit.Pixel(0);
             BorderColor = Color.Black;
             BorderStyle = BorderStyle.Solid;
@@ -30,27 +30,27 @@ namespace XControl
             if (String.IsNullOrEmpty(Attributes["style"])) this.Attributes.Add("style", "border-bottom-width:1px;text-align : right ");
         }
 
-        /// <summary>ÒÑÖØÔØ¡£</summary>
+        /// <summary>å·²é‡è½½ã€‚</summary>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
             base.OnPreRender(e);
 
-            if (Min > Max) ShowError("Êı×ÖÊäÈë¿Ø¼şÖĞ£¬ÉèÖÃµÄ×îĞ¡Öµ±È×î´óÖµ´ó£¬ÇëÖØĞÂÉèÖÃ¡£");
+            if (Min > Max) ShowError("æ•°å­—è¾“å…¥æ§ä»¶ä¸­ï¼Œè®¾ç½®çš„æœ€å°å€¼æ¯”æœ€å¤§å€¼å¤§ï¼Œè¯·é‡æ–°è®¾ç½®ã€‚");
             if (Min > -1 && Max > -1)
             {
-                this.ToolTip = "Ö»ÄÜÊäÈë " + Min + " µ½ " + Max + " Ö®¼äÊı×Ö£¡";
+                this.ToolTip = "åªèƒ½è¾“å…¥ " + Min + " åˆ° " + Max + " ä¹‹é—´æ•°å­—ï¼";
             }
             else if (Min > -1 && Max < 0)
             {
-                this.ToolTip = "Ö»ÄÜÊäÈë´óÓÚ»òµÈÓÚ " + Min + " Êı×Ö£¡";
+                this.ToolTip = "åªèƒ½è¾“å…¥å¤§äºæˆ–ç­‰äº " + Min + " æ•°å­—ï¼";
             }
             else if (Min < 0 && Max > -1)
             {
-                this.ToolTip = "Ö»ÄÜÊäÈëĞ¡ÓÚ»òµÈÓÚ " + Max + " Êı×Ö£¡";
+                this.ToolTip = "åªèƒ½è¾“å…¥å°äºæˆ–ç­‰äº " + Max + " æ•°å­—ï¼";
             }
 
-            // Ğ£Ñé½Å±¾
+            // æ ¡éªŒè„šæœ¬
             Helper.HTMLPropertyEscape(this, "onkeypress", "return ValidNumber({0});", AllowMinus ? 1 : 0);
             Helper.HTMLPropertyEscape(this, "onblur", "return ValidNumber2({0},{1});", Min ?? -1, Max ?? -1);
             Helper.HTMLPropertyEscape(this, "onkeyup", "FilterNumber(this,{0});", Helper.JsObjectString(
@@ -59,17 +59,17 @@ namespace XControl
                 ));
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");
 
-            //Èç¹ûÃ»ÓĞÖµ£¬ÔòÄ¬ÈÏÏÔÊ¾0
+            //å¦‚æœæ²¡æœ‰å€¼ï¼Œåˆ™é»˜è®¤æ˜¾ç¤º0
             if (String.IsNullOrEmpty(Text)) Text = "0";
         }
 
-        /// <summary>´¦Àí´íÎó¡£</summary>
-        /// <param name="err">´íÎóĞÅÏ¢</param>
+        /// <summary>å¤„ç†é”™è¯¯ã€‚</summary>
+        /// <param name="err">é”™è¯¯ä¿¡æ¯</param>
         private void ShowError(String err)
         {
             if (this.DesignMode)
             {
-                System.Windows.Forms.MessageBox.Show(err, "XControl¿Ø¼şÉè¼ÆÊ±´íÎó");
+                System.Windows.Forms.MessageBox.Show(err, "XControlæ§ä»¶è®¾è®¡æ—¶é”™è¯¯");
             }
             else
             {
@@ -77,8 +77,8 @@ namespace XControl
             }
         }
 
-        /// <summary>×îĞ¡Öµ</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(null), Description("×îĞ¡Öµ")]
+        /// <summary>æœ€å°å€¼</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(null), Description("æœ€å°å€¼")]
         public Int32? Min
         {
             get
@@ -91,7 +91,7 @@ namespace XControl
             }
             set
             {
-                //if (value < -1) ShowError("·Ç·¨×îĞ¡ÖµMin¡£×îĞ¡Öµ±ØĞë´óÓÚ0»òÎª-1(±íÊ¾²»ÏŞÖÆ)¡£");
+                //if (value < -1) ShowError("éæ³•æœ€å°å€¼Minã€‚æœ€å°å€¼å¿…é¡»å¤§äº0æˆ–ä¸º-1(è¡¨ç¤ºä¸é™åˆ¶)ã€‚");
                 if (value == null)
                 {
                     ViewState.Remove("Min");
@@ -100,14 +100,14 @@ namespace XControl
 
                 if (Max != null && value > Max)
                 {
-                    ShowError("Êı×ÖÊäÈë¿Ø¼şÖĞ£¬ÉèÖÃµÄ×îĞ¡Öµ±È×î´óÖµ´ó£¬ÇëÖØĞÂÉèÖÃ¡£");
+                    ShowError("æ•°å­—è¾“å…¥æ§ä»¶ä¸­ï¼Œè®¾ç½®çš„æœ€å°å€¼æ¯”æœ€å¤§å€¼å¤§ï¼Œè¯·é‡æ–°è®¾ç½®ã€‚");
                     return;
                 }
 
                 if (Max != null)
-                    ToolTip = "Ö»ÄÜÊäÈë " + Min + " µ½ " + Max + " Ö®¼äÊı×Ö£¡";
+                    ToolTip = "åªèƒ½è¾“å…¥ " + Min + " åˆ° " + Max + " ä¹‹é—´æ•°å­—ï¼";
                 else
-                    ToolTip = "Ö»ÄÜÊäÈë´óÓÚ»òµÈÓÚ " + Min + " Êı×Ö£¡";
+                    ToolTip = "åªèƒ½è¾“å…¥å¤§äºæˆ–ç­‰äº " + Min + " æ•°å­—ï¼";
 
                 if (Value < value.Value) Value = value.Value;
 
@@ -115,8 +115,8 @@ namespace XControl
             }
         }
 
-        /// <summary>×î´óÖµ</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(null), Description("×î´óÖµ")]
+        /// <summary>æœ€å¤§å€¼</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(null), Description("æœ€å¤§å€¼")]
         public Int32? Max
         {
             get
@@ -131,14 +131,14 @@ namespace XControl
             {
                 if (value == null)
                 {
-                    //ShowError("·Ç·¨×î´óÖµMax¡£×î´óÖµ±ØĞë´óÓÚ0»òÎª-1(±íÊ¾²»ÏŞÖÆ)¡£");
+                    //ShowError("éæ³•æœ€å¤§å€¼Maxã€‚æœ€å¤§å€¼å¿…é¡»å¤§äº0æˆ–ä¸º-1(è¡¨ç¤ºä¸é™åˆ¶)ã€‚");
                     ViewState.Remove("Max");
                     return;
                 }
 
                 if (Min != null && value < Min)
                 {
-                    ShowError("Êı×ÖÊäÈë¿Ø¼şÖĞ£¬ÉèÖÃµÄ×îĞ¡Öµ±È×î´óÖµ´ó£¬ÇëÖØĞÂÉèÖÃ¡£");
+                    ShowError("æ•°å­—è¾“å…¥æ§ä»¶ä¸­ï¼Œè®¾ç½®çš„æœ€å°å€¼æ¯”æœ€å¤§å€¼å¤§ï¼Œè¯·é‡æ–°è®¾ç½®ã€‚");
                     return;
                 }
 
@@ -147,9 +147,9 @@ namespace XControl
                 if (Columns > 3) Columns -= 3;
 
                 if (Min != null)
-                    ToolTip = "Ö»ÄÜÊäÈë " + Min + " µ½ " + Max + " Ö®¼äÊı×Ö£¡";
+                    ToolTip = "åªèƒ½è¾“å…¥ " + Min + " åˆ° " + Max + " ä¹‹é—´æ•°å­—ï¼";
                 else
-                    ToolTip = "Ö»ÄÜÊäÈëĞ¡ÓÚ»òµÈÓÚ " + Max + " Êı×Ö£¡";
+                    ToolTip = "åªèƒ½è¾“å…¥å°äºæˆ–ç­‰äº " + Max + " æ•°å­—ï¼";
 
                 if (Value > value.Value) Value = value.Value;
 
@@ -157,8 +157,8 @@ namespace XControl
             }
         }
 
-        /// <summary>µ±Ç°Öµ</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(0), Description("µ±Ç°Öµ")]
+        /// <summary>å½“å‰å€¼</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(0), Description("å½“å‰å€¼")]
         public Int32 Value
         {
             get
@@ -176,8 +176,8 @@ namespace XControl
             }
         }
 
-        /// <summary>ÊÇ·ñÔÊĞí¸ºÊı</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(true), Description("ÊÇ·ñÔÊĞí¸ºÊı,Ä¬ÈÏtrue")]
+        /// <summary>æ˜¯å¦å…è®¸è´Ÿæ•°</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(true), Description("æ˜¯å¦å…è®¸è´Ÿæ•°,é»˜è®¤true")]
         public bool AllowMinus
         {
             get
@@ -194,7 +194,7 @@ namespace XControl
             }
         }
 
-        /// <summary>ÒÑÖØÔØ¡£Ğ£ÑéÊäÈëÊı¾İÊÇ·ñÔÚÖ¸¶¨·¶Î§ÄÚ</summary>
+        /// <summary>å·²é‡è½½ã€‚æ ¡éªŒè¾“å…¥æ•°æ®æ˜¯å¦åœ¨æŒ‡å®šèŒƒå›´å†…</summary>
         protected override void RaisePostDataChangedEvent()
         {
             try
@@ -212,8 +212,8 @@ namespace XControl
 
         private void Check()
         {
-            if (Min != null && Value < Min) throw new ArgumentOutOfRangeException("Min", "Ö»ÄÜÊäÈë´óÓÚ»òµÈÓÚ " + Min + " µÄÊı×Ö£¡");
-            if (Max != null && Value > Max) throw new ArgumentOutOfRangeException("Min", "Ö»ÄÜÊäÈëĞ¡ÓÚ»òµÈÓÚ " + Max + " µÄÊı×Ö£¡");
+            if (Min != null && Value < Min) throw new ArgumentOutOfRangeException("Min", "åªèƒ½è¾“å…¥å¤§äºæˆ–ç­‰äº " + Min + " çš„æ•°å­—ï¼");
+            if (Max != null && Value > Max) throw new ArgumentOutOfRangeException("Min", "åªèƒ½è¾“å…¥å°äºæˆ–ç­‰äº " + Max + " çš„æ•°å­—ï¼");
         }
     }
 }

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -24,12 +24,12 @@ namespace XCode.DataAccessLayer
 {
     class Access : FileDbBase
     {
-        #region ÊôĞÔ
-        /// <summary>·µ»ØÊı¾İ¿âÀàĞÍ¡£Íâ²¿DALÊı¾İ¿âÀàÇëÊ¹ÓÃOther</summary>
+        #region å±æ€§
+        /// <summary>è¿”å›æ•°æ®åº“ç±»å‹ã€‚å¤–éƒ¨DALæ•°æ®åº“ç±»è¯·ä½¿ç”¨Other</summary>
         public override DatabaseType DbType { get { return DatabaseType.Access; } }
 
         private static DbProviderFactory _dbProviderFactory;
-        /// <summary>¹¤³§</summary>
+        /// <summary>å·¥å‚</summary>
         public override DbProviderFactory Factory
         {
             get
@@ -38,7 +38,7 @@ namespace XCode.DataAccessLayer
                 {
                     _dbProviderFactory = OleDbFactory.Instance;
 
-                    // ¼ì²éADOX
+                    // æ£€æŸ¥ADOX
 #if !NET4
                     //CheckAndDownload("Interop.ADOX.dll");
 #endif
@@ -67,12 +67,12 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ·½·¨
-        /// <summary>´´½¨Êı¾İ¿â»á»°</summary>
+        #region æ–¹æ³•
+        /// <summary>åˆ›å»ºæ•°æ®åº“ä¼šè¯</summary>
         /// <returns></returns>
         protected override IDbSession OnCreateSession() { return new AccessSession(); }
 
-        /// <summary>´´½¨ÔªÊı¾İ¶ÔÏó</summary>
+        /// <summary>åˆ›å»ºå…ƒæ•°æ®å¯¹è±¡</summary>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() { return new AccessMetaData(); }
 
@@ -90,7 +90,7 @@ namespace XCode.DataAccessLayer
         {
             base.OnSetConnectionString(builder);
 
-            // ÌØ±ğ´¦ÀíÒ»ÏÂExcel
+            // ç‰¹åˆ«å¤„ç†ä¸€ä¸‹Excel
             if (!String.IsNullOrEmpty(FileName))
             {
                 String ext = Path.GetExtension(FileName);
@@ -102,14 +102,14 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region Êı¾İ¿âÌØĞÔ
-        /// <summary>µ±Ç°Ê±¼äº¯Êı</summary>
+        #region æ•°æ®åº“ç‰¹æ€§
+        /// <summary>å½“å‰æ—¶é—´å‡½æ•°</summary>
         public override String DateTimeNow { get { return "now()"; } }
 
-        /// <summary>×îĞ¡Ê±¼ä</summary>
+        /// <summary>æœ€å°æ—¶é—´</summary>
         public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
-        /// <summary>³¤ÎÄ±¾³¤¶È</summary>
+        /// <summary>é•¿æ–‡æœ¬é•¿åº¦</summary>
         public override Int32 LongTextLength { get { return 255; } }
 
         public override string FormatName(string name)
@@ -120,16 +120,16 @@ namespace XCode.DataAccessLayer
                 return base.FormatName(name);
         }
 
-        /// <summary>¸ñÊ½»¯Ê±¼äÎªSQL×Ö·û´®</summary>
-        /// <param name="dateTime">Ê±¼äÖµ</param>
+        /// <summary>æ ¼å¼åŒ–æ—¶é—´ä¸ºSQLå­—ç¬¦ä¸²</summary>
+        /// <param name="dateTime">æ—¶é—´å€¼</param>
         /// <returns></returns>
         public override String FormatDateTime(DateTime dateTime)
         {
             return String.Format("#{0:yyyy-MM-dd HH:mm:ss}#", dateTime);
         }
 
-        /// <summary>¸ñÊ½»¯¹Ø¼ü×Ö</summary>
-        /// <param name="keyWord">¹Ø¼ü×Ö</param>
+        /// <summary>æ ¼å¼åŒ–å…³é”®å­—</summary>
+        /// <param name="keyWord">å…³é”®å­—</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
@@ -142,9 +142,9 @@ namespace XCode.DataAccessLayer
             //return keyWord;
         }
 
-        /// <summary>¸ñÊ½»¯Êı¾İÎªSQLÊı¾İ</summary>
-        /// <param name="field">×Ö¶Î</param>
-        /// <param name="value">ÊıÖµ</param>
+        /// <summary>æ ¼å¼åŒ–æ•°æ®ä¸ºSQLæ•°æ®</summary>
+        /// <param name="field">å­—æ®µ</param>
+        /// <param name="value">æ•°å€¼</param>
         /// <returns></returns>
         public override string FormatValue(IDataColumn field, object value)
         {
@@ -159,15 +159,15 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ·ÖÒ³
+        #region åˆ†é¡µ
         public override SelectBuilder PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows)
         {
             return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, false, b => CreateSession().QueryCount(b));
         }
         #endregion
 
-        #region Æ½Ì¨¼ì²é
-        /// <summary>ÊÇ·ñÖ§³Ö</summary>
+        #region å¹³å°æ£€æŸ¥
+        /// <summary>æ˜¯å¦æ”¯æŒ</summary>
         public static void CheckSupport()
         {
             Module module = typeof(Object).Module;
@@ -176,16 +176,16 @@ namespace XCode.DataAccessLayer
             ImageFileMachine machine;
             module.GetPEKind(out kind, out machine);
 
-            if (machine != ImageFileMachine.I386) throw new NotSupportedException("64Î»Æ½Ì¨²»Ö§³ÖOLEDBÇı¶¯£¡");
+            if (machine != ImageFileMachine.I386) throw new NotSupportedException("64ä½å¹³å°ä¸æ”¯æŒOLEDBé©±åŠ¨ï¼");
         }
         #endregion
     }
 
-    /// <summary>AccessÊı¾İ¿â</summary>
+    /// <summary>Accessæ•°æ®åº“</summary>
     internal class AccessSession : FileDbSession
     {
-        #region ·½·¨
-        /// <summary>´ò¿ª¡£ÒÑÖØĞ´£¬ÎªÁË½¨Á¢Êı¾İ¿â</summary>
+        #region æ–¹æ³•
+        /// <summary>æ‰“å¼€ã€‚å·²é‡å†™ï¼Œä¸ºäº†å»ºç«‹æ•°æ®åº“</summary>
         public override void Open()
         {
             Access.CheckSupport();
@@ -194,16 +194,16 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region »ù±¾·½·¨ ²éÑ¯/Ö´ĞĞ
-        /// <summary>Ö´ĞĞ²åÈëÓï¾ä²¢·µ»ØĞÂÔöĞĞµÄ×Ô¶¯±àºÅ</summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="type">ÃüÁîÀàĞÍ£¬Ä¬ÈÏSQLÎÄ±¾</param>
-        /// <param name="ps">ÃüÁî²ÎÊı</param>
-        /// <returns>ĞÂÔöĞĞµÄ×Ô¶¯±àºÅ</returns>
+        #region åŸºæœ¬æ–¹æ³• æŸ¥è¯¢/æ‰§è¡Œ
+        /// <summary>æ‰§è¡Œæ’å…¥è¯­å¥å¹¶è¿”å›æ–°å¢è¡Œçš„è‡ªåŠ¨ç¼–å·</summary>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="type">å‘½ä»¤ç±»å‹ï¼Œé»˜è®¤SQLæ–‡æœ¬</param>
+        /// <param name="ps">å‘½ä»¤å‚æ•°</param>
+        /// <returns>æ–°å¢è¡Œçš„è‡ªåŠ¨ç¼–å·</returns>
         public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             var b = IsAutoClose;
-            // ½ûÓÃ×Ô¶¯¹Ø±Õ£¬±£Ö¤Á½´ÎÔÚÍ¬Ò»»á»°
+            // ç¦ç”¨è‡ªåŠ¨å…³é—­ï¼Œä¿è¯ä¸¤æ¬¡åœ¨åŒä¸€ä¼šè¯
             IsAutoClose = false;
 
             BeginTransaction();
@@ -224,16 +224,16 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>AccessÔªÊı¾İ</summary>
+    /// <summary>Accesså…ƒæ•°æ®</summary>
     class AccessMetaData : FileDbMetaData
     {
-        #region ¹¹¼Ü
+        #region æ„æ¶
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
             var dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
-            // Ä¬ÈÏÁĞ³öËùÓĞ×Ö¶Î
+            // é»˜è®¤åˆ—å‡ºæ‰€æœ‰å­—æ®µ
             DataRow[] rows = dt.Select(String.Format("{0}='Table' Or {0}='View'", "TABLE_TYPE"));
             rows = OnGetTables(names, rows);
             if (rows == null || rows.Length < 1) return null;
@@ -280,7 +280,7 @@ namespace XCode.DataAccessLayer
         {
             base.FixField(field, drColumn);
 
-            // ×Ö¶Î±êÊ¶
+            // å­—æ®µæ ‡è¯†
             Int64 flag = GetDataRowValue<Int64>(drColumn, "COLUMN_FLAGS");
 
             Boolean? isLong = null;
@@ -296,7 +296,7 @@ namespace XCode.DataAccessLayer
 
                     if (TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) field.DataType = typeName.GetTypeEx();
 
-                    // ĞŞÕı±¸×¢ÀàĞÍ
+                    // ä¿®æ­£å¤‡æ³¨ç±»å‹
                     if (field.DataType == typeof(String) && drs.Length > 1)
                     {
                         isLong = (flag & 0x80) == 0x80;
@@ -310,7 +310,7 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            //// ´¦Àí×ÔÔö
+            //// å¤„ç†è‡ªå¢
             //if (field.DataType == typeof(Int32))
             //{
             //    //field.Identity = (flag & 0x20) != 0x20;
@@ -321,7 +321,7 @@ namespace XCode.DataAccessLayer
         {
             base.FixField(field, drColumn, drDataType);
 
-            // ĞŞÕıÔ­Ê¼ÀàĞÍ
+            // ä¿®æ­£åŸå§‹ç±»å‹
             String typeName = null;
             if (TryGetDataRowValue<String>(drDataType, "TypeName", out typeName)) field.RawType = typeName;
         }
@@ -331,7 +331,7 @@ namespace XCode.DataAccessLayer
             List<IDataIndex> list = base.GetIndexes(table);
             if (list != null && list.Count > 0)
             {
-                // AccessµÄË÷ÒıÖ±½ÓÒÔË÷Òı×Ö¶ÎµÄ·½Ê½ÅÅ²¼£¬ËùÒÔĞèÒªÖØĞÂ×éºÏÆğÀ´
+                // Accessçš„ç´¢å¼•ç›´æ¥ä»¥ç´¢å¼•å­—æ®µçš„æ–¹å¼æ’å¸ƒï¼Œæ‰€ä»¥éœ€è¦é‡æ–°ç»„åˆèµ·æ¥
                 Dictionary<String, IDataIndex> dic = new Dictionary<String, IDataIndex>();
                 foreach (IDataIndex item in list)
                 {
@@ -377,20 +377,20 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        /// <summary>È¡µÃ×Ö¶ÎÄ¬ÈÏÖµ</summary>
-        /// <param name="field">×Ö¶Î</param>
-        /// <param name="onlyDefine">½ö½ö¶¨Òå</param>
+        /// <summary>å–å¾—å­—æ®µé»˜è®¤å€¼</summary>
+        /// <param name="field">å­—æ®µ</param>
+        /// <param name="onlyDefine">ä»…ä»…å®šä¹‰</param>
         /// <returns></returns>
         protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
         {
-            // Access²»ÄÜÍ¨¹ıDDLÀ´²Ù×÷Ä¬ÈÏÖµ
+            // Accessä¸èƒ½é€šè¿‡DDLæ¥æ“ä½œé»˜è®¤å€¼
             return null;
         }
         #endregion
 
-        #region Êı¾İ¶¨Òå
+        #region æ•°æ®å®šä¹‰
 #if ACCESS
-        /// <summary>ÉèÖÃÊı¾İ¶¨ÒåÄ£Ê½</summary>
+        /// <summary>è®¾ç½®æ•°æ®å®šä¹‰æ¨¡å¼</summary>
         /// <param name="schema"></param>
         /// <param name="values"></param>
         /// <returns></returns>
@@ -403,9 +403,9 @@ namespace XCode.DataAccessLayer
                     obj = base.SetSchema(DDLSchema.CreateTable, values);
                     IDataTable table = values[0] as IDataTable;
 
-                    // Access½¨±íÓï¾äµÄ²»ÄÜ²Ù×÷Ä¬ÈÏÖµ£¬ËùÒÔÔÚÕâÀï²Ù×÷
+                    // Accesså»ºè¡¨è¯­å¥çš„ä¸èƒ½æ“ä½œé»˜è®¤å€¼ï¼Œæ‰€ä»¥åœ¨è¿™é‡Œæ“ä½œ
 
-                    // Ä¬ÈÏÖµ
+                    // é»˜è®¤å€¼
                     foreach (IDataColumn item in table.Columns)
                     {
                         if (!String.IsNullOrEmpty(item.Default)) AddDefault(item, item.Default);
@@ -432,16 +432,16 @@ namespace XCode.DataAccessLayer
 #endif
         #endregion
 
-        #region ´´½¨Êı¾İ¿â
+        #region åˆ›å»ºæ•°æ®åº“
 #if ACCESS
         const string dbLangChineseSimplified = ";LANGID=0x0804;CP=936;COUNTRY=0";
 
-        /// <summary>´´½¨Êı¾İ¿â</summary>
+        /// <summary>åˆ›å»ºæ•°æ®åº“</summary>
         protected override void CreateDatabase()
         {
             if (String.IsNullOrEmpty(FileName) || File.Exists(FileName)) return;
 
-            DAL.WriteDebugLog("´´½¨Êı¾İ¿â£º{0}", FileName);
+            DAL.WriteDebugLog("åˆ›å»ºæ•°æ®åº“ï¼š{0}", FileName);
 
             //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", FileName, true);
 
@@ -467,7 +467,7 @@ namespace XCode.DataAccessLayer
 #endif
         #endregion
 
-        #region ·´Ïò¹¤³Ì´´½¨±í
+        #region åå‘å·¥ç¨‹åˆ›å»ºè¡¨
         protected override void CreateTable(StringBuilder sb, IDataTable table, bool onlySql)
         {
             base.CreateTable(sb, table, onlySql);
@@ -477,17 +477,17 @@ namespace XCode.DataAccessLayer
                 IDatabase entityDb = null;
                 foreach (IDataColumn dc in table.Columns)
                 {
-                    // Èç¹ûÊµÌå´æÔÚÄ¬ÈÏÖµ£¬ÔòÔö¼Ó
+                    // å¦‚æœå®ä½“å­˜åœ¨é»˜è®¤å€¼ï¼Œåˆ™å¢åŠ 
                     if (!String.IsNullOrEmpty(dc.Default))
                     {
                         var tc = Type.GetTypeCode(dc.DataType);
                         String dv = dc.Default;
-                        // ÌØÊâ´¦ÀíÊ±¼ä
+                        // ç‰¹æ®Šå¤„ç†æ—¶é—´
                         if (tc == TypeCode.DateTime)
                         {
                             if (entityDb != null && dv == entityDb.DateTimeNow) dc.Default = Database.DateTimeNow;
                         }
-                        // ÌØÊâ´¦ÀíGuid
+                        // ç‰¹æ®Šå¤„ç†Guid
                         else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
                         {
                             if (entityDb != null && dv == entityDb.NewGuid) dc.Default = Database.NewGuid;
@@ -495,7 +495,7 @@ namespace XCode.DataAccessLayer
 
                         PerformSchema(sb, onlySql, DDLSchema.AddDefault, dc);
 
-                        // »¹Ô­
+                        // è¿˜åŸ
                         dc.Default = dv;
                     }
                 }
@@ -507,7 +507,7 @@ namespace XCode.DataAccessLayer
             String sql = base.CreateTableSQL(table);
             if (String.IsNullOrEmpty(sql) || table.PrimaryKeys == null || table.PrimaryKeys.Length < 2) return sql;
 
-            // ´¦Àí¶àÖ÷¼ü
+            // å¤„ç†å¤šä¸»é”®
             String[] names = new String[table.PrimaryKeys.Length];
             for (int i = 0; i < table.PrimaryKeys.Length; i++)
             {
@@ -521,7 +521,7 @@ namespace XCode.DataAccessLayer
                 di.Unique = true;
                 di.Columns = names;
             }
-            // AccessÀïÃæµÄÖ÷¼üË÷ÒıÃû±ØĞë½ĞÕâ¸ö
+            // Accessé‡Œé¢çš„ä¸»é”®ç´¢å¼•åå¿…é¡»å«è¿™ä¸ª
             di.Name = "PrimaryKey";
 
             sql += ";" + Environment.NewLine;
@@ -538,7 +538,7 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ±íºÍ×Ö¶Î±¸×¢
+        #region è¡¨å’Œå­—æ®µå¤‡æ³¨
 #if ACCESS
         public Boolean AddTableDescription(IDataTable table, String value)
         {
@@ -588,7 +588,7 @@ namespace XCode.DataAccessLayer
 #endif
         #endregion
 
-        #region Ä¬ÈÏÖµ
+        #region é»˜è®¤å€¼
 #if ACCESS
         public virtual Boolean AddDefault(IDataColumn field, String value)
         {
@@ -625,13 +625,13 @@ namespace XCode.DataAccessLayer
 #endif
         #endregion
 
-        #region Êı¾İÀàĞÍ
+        #region æ•°æ®ç±»å‹
         protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 0) return drs;
 
-            //// ´¦ÀíSByteÀàĞÍ
+            //// å¤„ç†SByteç±»å‹
             //if (typeName == typeof(SByte).FullName)
             //{
             //    typeName = typeof(Byte).FullName;
@@ -642,7 +642,7 @@ namespace XCode.DataAccessLayer
             DataTable dt = DataTypes;
             if (dt == null) return null;
 
-            // ×ªÎªÕûÊı
+            // è½¬ä¸ºæ•´æ•°
             Int32 n = 0;
             if (!Int32.TryParse(typeName, out n)) return null;
 
@@ -675,7 +675,7 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ¸¨Öúº¯Êı
+        #region è¾…åŠ©å‡½æ•°
 #if ACCESS
         ADOTabe GetTable(String tableName)
         {
@@ -686,12 +686,12 @@ namespace XCode.DataAccessLayer
     }
 
 #if ACCESS
-    #region ADOX·â×°
+    #region ADOXå°è£…
     internal class ADOTabe : /*DisposeBase*/IDisposable
     {
-        #region ADOXÊôĞÔ
+        #region ADOXå±æ€§
         private Table _Table;
-        /// <summary>±í</summary>
+        /// <summary>è¡¨</summary>
         public Table Table
         {
             get
@@ -702,7 +702,7 @@ namespace XCode.DataAccessLayer
         }
 
         private String _ConnectionString;
-        /// <summary>Á¬½Ó×Ö·û´®</summary>
+        /// <summary>è¿æ¥å­—ç¬¦ä¸²</summary>
         public String ConnectionString
         {
             get { return _ConnectionString; }
@@ -710,7 +710,7 @@ namespace XCode.DataAccessLayer
         }
 
         private String _FileName;
-        /// <summary>ÎÄ¼şÃû</summary>
+        /// <summary>æ–‡ä»¶å</summary>
         public String FileName
         {
             get { return _FileName; }
@@ -718,7 +718,7 @@ namespace XCode.DataAccessLayer
         }
 
         private ConnectionClass _Conn;
-        /// <summary>Á´½Ó</summary>
+        /// <summary>é“¾æ¥</summary>
         public ConnectionClass Conn
         {
             get
@@ -748,13 +748,13 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region DAOÊôĞÔ
+        #region DAOå±æ€§
         private String _TableName;
-        /// <summary>±íÃû</summary>
+        /// <summary>è¡¨å</summary>
         public String TableName { get { return _TableName; } set { _TableName = value; } }
 
         private TableDef _TableDef;
-        /// <summary>±í¶¨Òå</summary>
+        /// <summary>è¡¨å®šä¹‰</summary>
         public TableDef TableDef
         {
             get
@@ -765,7 +765,7 @@ namespace XCode.DataAccessLayer
         }
 
         private DBEngineClass _Dbe;
-        /// <summary>Á´½Ó</summary>
+        /// <summary>é“¾æ¥</summary>
         public DBEngineClass Dbe
         {
             get
@@ -787,9 +787,9 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region À©Õ¹ÊôĞÔ
+        #region æ‰©å±•å±æ€§
         private List<ADOColumn> _Columns;
-        /// <summary>×Ö¶Î¼¯ºÏ</summary>
+        /// <summary>å­—æ®µé›†åˆ</summary>
         public List<ADOColumn> Columns
         {
             get
@@ -813,7 +813,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>ÊÇ·ñÖ§³Ö</summary>
+        /// <summary>æ˜¯å¦æ”¯æŒ</summary>
         public Boolean Supported
         {
             get
@@ -829,7 +829,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>ÃèÊö</summary>
+        /// <summary>æè¿°</summary>
         public String Description
         {
             get
@@ -863,9 +863,9 @@ namespace XCode.DataAccessLayer
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteLine("±í" + Table.Name + "Ã»ÓĞDescriptionÊôĞÔ£¡" + ex.ToString());
+                        XTrace.WriteLine("è¡¨" + Table.Name + "æ²¡æœ‰Descriptionå±æ€§ï¼" + ex.ToString());
 #if DEBUG
-                        throw new Exception("±í" + Table.Name + "Ã»ÓĞDescriptionÊôĞÔ£¡", ex);
+                        throw new Exception("è¡¨" + Table.Name + "æ²¡æœ‰Descriptionå±æ€§ï¼", ex);
 #endif
                     }
                 }
@@ -873,7 +873,7 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ¹¹Ôì
+        #region æ„é€ 
         public ADOTabe(String connstr, String filename, String tablename)
         {
             ConnectionString = connstr;
@@ -918,9 +918,9 @@ namespace XCode.DataAccessLayer
 
     internal class ADOColumn : /*DisposeBase*/IDisposable
     {
-        #region ÊôĞÔ
+        #region å±æ€§
         private Column _Column;
-        /// <summary>×Ö¶Î</summary>
+        /// <summary>å­—æ®µ</summary>
         public Column Column
         {
             get { return _Column; }
@@ -928,7 +928,7 @@ namespace XCode.DataAccessLayer
         }
 
         private ADOTabe _Table;
-        /// <summary>±í</summary>
+        /// <summary>è¡¨</summary>
         public ADOTabe Table
         {
             get { return _Table; }
@@ -936,9 +936,9 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region DAOÊôĞÔ
+        #region DAOå±æ€§
         //private DAO.Field _Field;
-        ///// <summary>×Ö¶Î</summary>
+        ///// <summary>å­—æ®µ</summary>
         //public DAO.Field Field
         //{
         //    get { return _Field; }
@@ -946,15 +946,15 @@ namespace XCode.DataAccessLayer
         //}
         #endregion
 
-        #region À©Õ¹ÊôĞÔ
-        /// <summary>Ãû³Æ</summary>
+        #region æ‰©å±•å±æ€§
+        /// <summary>åç§°</summary>
         public String Name
         {
             get { return Column.Name; }
             set { Column.Name = value; }
         }
 
-        /// <summary>ÃèÊö</summary>
+        /// <summary>æè¿°</summary>
         public String Description
         {
             get
@@ -971,11 +971,11 @@ namespace XCode.DataAccessLayer
                 if (p != null)
                     p.Value = value;
                 else
-                    throw new XCodeException("ÁĞ" + Column.Name + "Ã»ÓĞDescriptionÊôĞÔ£¡");
+                    throw new XCodeException("åˆ—" + Column.Name + "æ²¡æœ‰Descriptionå±æ€§ï¼");
             }
         }
 
-        /// <summary>ÃèÊö</summary>
+        /// <summary>æè¿°</summary>
         public String Default
         {
             get
@@ -992,11 +992,11 @@ namespace XCode.DataAccessLayer
                 if (p != null)
                     p.Value = value;
                 else
-                    throw new XCodeException("ÁĞ" + Column.Name + "Ã»ÓĞDefaultÊôĞÔ£¡");
+                    throw new XCodeException("åˆ—" + Column.Name + "æ²¡æœ‰Defaultå±æ€§ï¼");
             }
         }
 
-        /// <summary>ÊÇ·ñ×ÔÔö</summary>
+        /// <summary>æ˜¯å¦è‡ªå¢</summary>
         public Boolean AutoIncrement
         {
             get
@@ -1013,11 +1013,11 @@ namespace XCode.DataAccessLayer
                 if (p != null)
                     p.Value = value;
                 else
-                    throw new XCodeException("ÁĞ" + Column.Name + "Ã»ÓĞAutoincrementÊôĞÔ£¡");
+                    throw new XCodeException("åˆ—" + Column.Name + "æ²¡æœ‰Autoincrementå±æ€§ï¼");
             }
         }
 
-        /// <summary>ÊÇ·ñÔÊĞí¿Õ</summary>
+        /// <summary>æ˜¯å¦å…è®¸ç©º</summary>
         public Boolean Nullable
         {
             get
@@ -1034,12 +1034,12 @@ namespace XCode.DataAccessLayer
                 if (p != null)
                     p.Value = value;
                 else
-                    throw new XCodeException("ÁĞ" + Column.Name + "Ã»ÓĞNullableÊôĞÔ£¡");
+                    throw new XCodeException("åˆ—" + Column.Name + "æ²¡æœ‰Nullableå±æ€§ï¼");
             }
         }
         #endregion
 
-        #region ¹¹Ôì
+        #region æ„é€ 
         public ADOColumn(ADOTabe table, Column column/*, DAO.Field field*/)
         {
             Table = table;

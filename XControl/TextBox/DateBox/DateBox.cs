@@ -1,26 +1,26 @@
-using System;
+ï»¿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
-// ÌØ±ğÒª×¢Òâ£¬ÕâÀïµÃ¼ÓÉÏÄ¬ÈÏÃüÃû¿Õ¼äºÍÄ¿Â¼Ãû£¬ÒòÎªvs2005±àÒëµÄÊ±ºò»á¸øjsÎÄ¼ş¼ÓÉÏÕâĞ©¶«¶«µÄ
+// ç‰¹åˆ«è¦æ³¨æ„ï¼Œè¿™é‡Œå¾—åŠ ä¸Šé»˜è®¤å‘½åç©ºé—´å’Œç›®å½•åï¼Œå› ä¸ºvs2005ç¼–è¯‘çš„æ—¶å€™ä¼šç»™jsæ–‡ä»¶åŠ ä¸Šè¿™äº›ä¸œä¸œçš„
 [assembly: WebResource("XControl.TextBox.DateBox.SelectDate.js", "application/x-javascript")]
 
 namespace XControl
 {
-    /// <summary>ÈÕÆÚÑ¡Ôñ¿Ø¼ş</summary>
-    [Description("ÈÕÆÚÑ¡Ôñ¿Ø¼ş")]
+    /// <summary>æ—¥æœŸé€‰æ‹©æ§ä»¶</summary>
+    [Description("æ—¥æœŸé€‰æ‹©æ§ä»¶")]
     [ToolboxData("<{0}:DateBox runat=server></{0}:DateBox>")]
     [ToolboxBitmap(typeof(TextBox))]
     public class DateBox : TextBox
     {
-        /// <summary>³õÊ¼»¯Ñ¡Ôñ¿òµÄÑùÊ½¡£</summary>
+        /// <summary>åˆå§‹åŒ–é€‰æ‹©æ¡†çš„æ ·å¼ã€‚</summary>
         public DateBox()
             : base()
         {
             //this.BackColor = Color.FromArgb(0xff, 0xe0, 0xc0);
-            this.ToolTip = "µã»÷¼´¿ÉÑ¡ÔñÈÕÆÚ";
+            this.ToolTip = "ç‚¹å‡»å³å¯é€‰æ‹©æ—¥æœŸ";
             BorderWidth = Unit.Pixel(0);
             BorderColor = Color.Olive;
             BorderStyle = BorderStyle.Dotted;
@@ -29,18 +29,18 @@ namespace XControl
             if (String.IsNullOrEmpty(Attributes["style"])) this.Attributes.Add("style", "border-bottom-width:1px;");
         }
 
-        /// <summary>ÒÑÖØÔØ¡£</summary>
+        /// <summary>å·²é‡è½½ã€‚</summary>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
             base.OnPreRender(e);
-            // µ¯³öPopup
+            // å¼¹å‡ºPopup
             this.Attributes.Add("onclick", "SelectDate(this);");
             this.Page.ClientScript.RegisterClientScriptResource(this.GetType(), "XControl.TextBox.DateBox.SelectDate.js");
         }
 
-        /// <summary>µ±Ç°Öµ</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(0), Description("µ±Ç°Öµ")]
+        /// <summary>å½“å‰å€¼</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(0), Description("å½“å‰å€¼")]
         public DateTime Value
         {
             get

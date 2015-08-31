@@ -1,16 +1,16 @@
-using System;
+ï»¿using System;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
 namespace NewLife.Reflection
 {
-    /// <summary>ILÖ¸Áî</summary>
+    /// <summary>ILæŒ‡ä»¤</summary>
     public class ILInstruction
     {
-        #region ÊôĞÔ
+        #region å±æ€§
         private OpCode _Code;
-        /// <summary>Ö¸Áî</summary>
+        /// <summary>æŒ‡ä»¤</summary>
         public OpCode Code
         {
             get { return _Code; }
@@ -18,7 +18,7 @@ namespace NewLife.Reflection
         }
 
         private object _Operand;
-        /// <summary>²Ù×÷</summary>
+        /// <summary>æ“ä½œ</summary>
         public object Operand
         {
             get { return _Operand; }
@@ -26,7 +26,7 @@ namespace NewLife.Reflection
         }
 
         private byte[] _OperandData;
-        /// <summary>²Ù×÷Êı¾İ</summary>
+        /// <summary>æ“ä½œæ•°æ®</summary>
         public byte[] OperandData
         {
             get { return _OperandData; }
@@ -34,7 +34,7 @@ namespace NewLife.Reflection
         }
 
         private int _Offset;
-        /// <summary>Æ«ÒÆ</summary>
+        /// <summary>åç§»</summary>
         public int Offset
         {
             get { return _Offset; }
@@ -42,7 +42,7 @@ namespace NewLife.Reflection
         }
         #endregion
 
-        /// <summary>ÒÑÖØÔØ¡£·µ»ØÖ¸ÁîµÄ×Ö·û´®ĞÎÊ½</summary>
+        /// <summary>å·²é‡è½½ã€‚è¿”å›æŒ‡ä»¤çš„å­—ç¬¦ä¸²å½¢å¼</summary>
         /// <returns></returns>
         public override string ToString()
         {
@@ -90,7 +90,7 @@ namespace NewLife.Reflection
                         sb.Append(" \"" + _Operand.ToString() + "\"");
                     break;
                 default:
-                    sb.Append("²»Ö§³Ö");
+                    sb.Append("ä¸æ”¯æŒ");
                     break;
             }
 
@@ -98,8 +98,8 @@ namespace NewLife.Reflection
 
         }
 
-        /// <summary>È¡µÃÀàĞÍµÄÓÑºÃÃû</summary>
-        /// <param name="type">ÀàĞÍ</param>
+        /// <summary>å–å¾—ç±»å‹çš„å‹å¥½å</summary>
+        /// <param name="type">ç±»å‹</param>
         /// <returns></returns>
         static string FixType(Type type)
         {

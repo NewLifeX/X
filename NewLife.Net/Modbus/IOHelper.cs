@@ -1,14 +1,14 @@
-using System;
+ï»¿using System;
 
 namespace NewLife.Net.Modbus
 {
-    /// <summary>IO²Ù×÷ÖúÊÖ</summary>
+    /// <summary>IOæ“ä½œåŠ©æ‰‹</summary>
     static class IOHelper
     {
-        /// <summary>´Ó×Ö½ÚÊı×éÖĞ¶ÁÈ¡Ò»¶ÎÊı¾İ</summary>
+        /// <summary>ä»å­—èŠ‚æ•°ç»„ä¸­è¯»å–ä¸€æ®µæ•°æ®</summary>
         /// <param name="data"></param>
-        /// <param name="offset">Æ«ÒÆ</param>
-        /// <param name="count">ÊıÁ¿</param>
+        /// <param name="offset">åç§»</param>
+        /// <param name="count">æ•°é‡</param>
         /// <returns></returns>
         public static Byte[] ReadBytes(this Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
@@ -23,38 +23,38 @@ namespace NewLife.Net.Modbus
             return buf;
         }
 
-        /// <summary>´Ó×Ö½ÚÊı¾İÖ¸¶¨Î»ÖÃ¶ÁÈ¡Ò»¸öÎŞ·ûºÅ16Î»ÕûÊı</summary>
+        /// <summary>ä»å­—èŠ‚æ•°æ®æŒ‡å®šä½ç½®è¯»å–ä¸€ä¸ªæ— ç¬¦å·16ä½æ•´æ•°</summary>
         /// <param name="data"></param>
-        /// <param name="offset">Æ«ÒÆ</param>
+        /// <param name="offset">åç§»</param>
         /// <returns></returns>
         public static UInt16 ReadUInt16(this Byte[] data, Int32 offset = 0)
         {
             return (UInt16)((data[offset] << 8) + data[offset + 1]);
         }
 
-        /// <summary>Ïò×Ö½ÚÊı×éµÄÖ¸¶¨Î»ÖÃĞ´ÈëÒ»¸öÎŞ·ûºÅ16Î»ÕûÊı</summary>
+        /// <summary>å‘å­—èŠ‚æ•°ç»„çš„æŒ‡å®šä½ç½®å†™å…¥ä¸€ä¸ªæ— ç¬¦å·16ä½æ•´æ•°</summary>
         /// <param name="data"></param>
-        /// <param name="offset">Æ«ÒÆ</param>
+        /// <param name="offset">åç§»</param>
         /// <param name="n"></param>
         /// <returns></returns>
         public static Byte[] WriteUInt16(this Byte[] data, Int32 offset, Int32 n)
         {
-            // STM32µ¥Æ¬»úÊÇĞ¡¶Ë
+            // STM32å•ç‰‡æœºæ˜¯å°ç«¯
             //data[offset] = (Byte)(n & 0xFF);
             //data[offset + 1] = (Byte)(n >> 8);
-            // ModbusĞ­Òé¹æ¶¨´ó¶Ë
+            // Modbusåè®®è§„å®šå¤§ç«¯
             data[offset] = (Byte)(n >> 8);
             data[offset + 1] = (Byte)(n & 0xFF);
 
             return data;
         }
 
-        /// <summary>Ïò×Ö½ÚÊı×éĞ´ÈëÒ»Æ¬Êı¾İ</summary>
+        /// <summary>å‘å­—èŠ‚æ•°ç»„å†™å…¥ä¸€ç‰‡æ•°æ®</summary>
         /// <param name="data"></param>
         /// <param name="srcOffset"></param>
         /// <param name="buf"></param>
-        /// <param name="offset">Æ«ÒÆ</param>
-        /// <param name="count">ÊıÁ¿</param>
+        /// <param name="offset">åç§»</param>
+        /// <param name="count">æ•°é‡</param>
         /// <returns></returns>
         public static Byte[] Write(this Byte[] data, Int32 srcOffset, Byte[] buf, Int32 offset = 0, Int32 count = -1)
         {
@@ -71,10 +71,10 @@ namespace NewLife.Net.Modbus
         #region CRC
         static readonly UInt16[] crc_ta = new UInt16[16] { 0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401, 0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400, };
 
-        /// <summary>CrcĞ£Ñé</summary>
+        /// <summary>Crcæ ¡éªŒ</summary>
         /// <param name="data"></param>
-        /// <param name="offset">Æ«ÒÆ</param>
-        /// <param name="count">ÊıÁ¿</param>
+        /// <param name="offset">åç§»</param>
+        /// <param name="count">æ•°é‡</param>
         /// <returns></returns>
         public static UInt16 Crc(this Byte[] data, Int32 offset, int count = 0)
         {

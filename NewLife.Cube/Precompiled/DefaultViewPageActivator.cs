@@ -1,9 +1,9 @@
-using System;
+ï»¿using System;
 using System.Web.Mvc;
 
 namespace NewLife.Cube.Precompiled
 {
-    /// <summary>ÊÓÍ¼Ò³×¢²áÆ÷</summary>
+    /// <summary>è§†å›¾é¡µæ³¨å†Œå™¨</summary>
     internal class DefaultViewPageActivator : IViewPageActivator
     {
         private static class Nested
@@ -17,7 +17,7 @@ namespace NewLife.Cube.Precompiled
 
         private readonly Func<IDependencyResolver> _resolverThunk;
 
-        /// <summary>µ±Ç°×¢²áÆ÷</summary>
+        /// <summary>å½“å‰æ³¨å†Œå™¨</summary>
         public static DefaultViewPageActivator Current { get { return Nested.Instance; } }
 
         public DefaultViewPageActivator() : this(null) { }
@@ -34,7 +34,7 @@ namespace NewLife.Cube.Precompiled
             }
         }
 
-        /// <summary>´´½¨ÊÓÍ¼ÊµÀı</summary>
+        /// <summary>åˆ›å»ºè§†å›¾å®ä¾‹</summary>
         /// <param name="controllerContext"></param>
         /// <param name="type"></param>
         /// <returns></returns>

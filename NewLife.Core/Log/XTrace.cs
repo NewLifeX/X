@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -13,23 +13,23 @@ using NewLife.Reflection;
 
 namespace NewLife.Log
 {
-    /// <summary>ÈÕÖ¾Àà£¬°üº¬¸ú×Ùµ÷ÊÔ¹¦ÄÜ</summary>
+    /// <summary>æ—¥å¿—ç±»ï¼ŒåŒ…å«è·Ÿè¸ªè°ƒè¯•åŠŸèƒ½</summary>
     /// <remarks>
-    /// ¸Ã¾²Ì¬Àà°üÀ¨Ğ´ÈÕÖ¾¡¢Ğ´µ÷ÓÃÕ»ºÍDump½ø³ÌÄÚ´æµÈµ÷ÊÔ¹¦ÄÜ¡£
+    /// è¯¥é™æ€ç±»åŒ…æ‹¬å†™æ—¥å¿—ã€å†™è°ƒç”¨æ ˆå’ŒDumpè¿›ç¨‹å†…å­˜ç­‰è°ƒè¯•åŠŸèƒ½ã€‚
     /// 
-    /// Ä¬ÈÏĞ´ÈÕÖ¾µ½ÎÄ±¾ÎÄ¼ş£¬¿ÉÍ¨¹ıĞŞ¸Ä<see cref="Log"/>ÊôĞÔÀ´Ôö¼ÓÈÕÖ¾Êä³ö·½Ê½¡£
-    /// ¶ÔÓÚ¿ØÖÆÌ¨¹¤³Ì£¬¿ÉÒÔÖ±½ÓÍ¨¹ı<see cref="UseConsole"/>·½·¨£¬°ÑÈÕÖ¾Êä³öÖØ¶¨ÏòÎª¿ØÖÆÌ¨Êä³ö£¬²¢ÇÒ¿ÉÒÔÎª²»Í¬Ïß³ÌÊ¹ÓÃ²»Í¬ÑÕÉ«¡£
+    /// é»˜è®¤å†™æ—¥å¿—åˆ°æ–‡æœ¬æ–‡ä»¶ï¼Œå¯é€šè¿‡ä¿®æ”¹<see cref="Log"/>å±æ€§æ¥å¢åŠ æ—¥å¿—è¾“å‡ºæ–¹å¼ã€‚
+    /// å¯¹äºæ§åˆ¶å°å·¥ç¨‹ï¼Œå¯ä»¥ç›´æ¥é€šè¿‡<see cref="UseConsole"/>æ–¹æ³•ï¼ŒæŠŠæ—¥å¿—è¾“å‡ºé‡å®šå‘ä¸ºæ§åˆ¶å°è¾“å‡ºï¼Œå¹¶ä¸”å¯ä»¥ä¸ºä¸åŒçº¿ç¨‹ä½¿ç”¨ä¸åŒé¢œè‰²ã€‚
     /// </remarks>
     public static class XTrace
     {
-        #region Ğ´ÈÕÖ¾
-        /// <summary>ÎÄ±¾ÎÄ¼şÈÕÖ¾</summary>
+        #region å†™æ—¥å¿—
+        /// <summary>æ–‡æœ¬æ–‡ä»¶æ—¥å¿—</summary>
         private static ILog _Log;
-        /// <summary>ÈÕÖ¾Ìá¹©Õß£¬Ä¬ÈÏÊ¹ÓÃÎÄ±¾ÎÄ¼şÈÕÖ¾</summary>
+        /// <summary>æ—¥å¿—æä¾›è€…ï¼Œé»˜è®¤ä½¿ç”¨æ–‡æœ¬æ–‡ä»¶æ—¥å¿—</summary>
         public static ILog Log { get { InitLog(); return _Log; } set { _Log = value; } }
 
-        /// <summary>Êä³öÈÕÖ¾</summary>
-        /// <param name="msg">ĞÅÏ¢</param>
+        /// <summary>è¾“å‡ºæ—¥å¿—</summary>
+        /// <param name="msg">ä¿¡æ¯</param>
         public static void WriteLine(String msg)
         {
             InitLog();
@@ -38,7 +38,7 @@ namespace NewLife.Log
             Log.Info(msg);
         }
 
-        /// <summary>Ğ´ÈÕÖ¾</summary>
+        /// <summary>å†™æ—¥å¿—</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLine(String format, params Object[] args)
@@ -49,7 +49,7 @@ namespace NewLife.Log
             Log.Info(format, args);
         }
 
-        /// <summary>Òì²½Ğ´ÈÕÖ¾</summary>
+        /// <summary>å¼‚æ­¥å†™æ—¥å¿—</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public static void WriteLineAsync(String format, params Object[] args)
@@ -57,9 +57,9 @@ namespace NewLife.Log
             ThreadPool.QueueUserWorkItem(s => WriteLine(format, args));
         }
 
-        /// <summary>Êä³öÒì³£ÈÕÖ¾</summary>
-        /// <param name="ex">Òì³£ĞÅÏ¢</param>
-        //[Obsolete("²»ÔÙÖ§³Ö£¡")]
+        /// <summary>è¾“å‡ºå¼‚å¸¸æ—¥å¿—</summary>
+        /// <param name="ex">å¼‚å¸¸ä¿¡æ¯</param>
+        //[Obsolete("ä¸å†æ”¯æŒï¼")]
         public static void WriteException(Exception ex)
         {
             InitLog();
@@ -68,12 +68,12 @@ namespace NewLife.Log
             Log.Error("{0}", ex);
         }
 
-        /// <summary>Ğ´ÈÕÖ¾ÊÂ¼ş¡£</summary>
-        [Obsolete("ÇëÖ±½ÓÊ¹ÓÃCompositeLogÊµÏÖ¸³Öµ¸øLogÊôĞÔ")]
+        /// <summary>å†™æ—¥å¿—äº‹ä»¶ã€‚</summary>
+        [Obsolete("è¯·ç›´æ¥ä½¿ç”¨CompositeLogå®ç°èµ‹å€¼ç»™Logå±æ€§")]
         public static event EventHandler<WriteLogEventArgs> OnWriteLog;
         #endregion
 
-        #region ¹¹Ôì
+        #region æ„é€ 
         static XTrace()
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
@@ -86,7 +86,7 @@ namespace NewLife.Log
             WriteLine(msg);
             if (e.IsTerminating)
             {
-                Log.Fatal("Òì³£ÍË³ö£¡");
+                Log.Fatal("å¼‚å¸¸é€€å‡ºï¼");
             }
         }
 #endif
@@ -94,7 +94,7 @@ namespace NewLife.Log
         static object _lock = new object();
 
         /// <summary>
-        /// 2012.11.05 ĞŞÕı³õ´Îµ÷ÓÃµÄÊ±ºò£¬ÓÉÓÚÍ¬²½BUG£¬µ¼ÖÂLogÎª¿ÕµÄÎÊÌâ¡£
+        /// 2012.11.05 ä¿®æ­£åˆæ¬¡è°ƒç”¨çš„æ—¶å€™ï¼Œç”±äºåŒæ­¥BUGï¼Œå¯¼è‡´Logä¸ºç©ºçš„é—®é¢˜ã€‚
         /// </summary>
         static void InitLog()
         {
@@ -115,17 +115,17 @@ namespace NewLife.Log
         }
         #endregion
 
-        #region Ê¹ÓÃ¿ØÖÆÌ¨Êä³ö
+        #region ä½¿ç”¨æ§åˆ¶å°è¾“å‡º
 #if !Android
-        /// <summary>Ê¹ÓÃ¿ØÖÆÌ¨Êä³öÈÕÖ¾£¬Ö»ÄÜµ÷ÓÃÒ»´Î</summary>
-        /// <param name="useColor">ÊÇ·ñÊ¹ÓÃÑÕÉ«£¬Ä¬ÈÏÊ¹ÓÃ</param>
-        /// <param name="useFileLog">ÊÇ·ñÍ¬Ê±Ê¹ÓÃÎÄ¼şÈÕÖ¾£¬Ä¬ÈÏÊ¹ÓÃ</param>
+        /// <summary>ä½¿ç”¨æ§åˆ¶å°è¾“å‡ºæ—¥å¿—ï¼Œåªèƒ½è°ƒç”¨ä¸€æ¬¡</summary>
+        /// <param name="useColor">æ˜¯å¦ä½¿ç”¨é¢œè‰²ï¼Œé»˜è®¤ä½¿ç”¨</param>
+        /// <param name="useFileLog">æ˜¯å¦åŒæ—¶ä½¿ç”¨æ–‡ä»¶æ—¥å¿—ï¼Œé»˜è®¤ä½¿ç”¨</param>
         public static void UseConsole(Boolean useColor = true, Boolean useFileLog = true)
         {
             //if (init > 0 || Interlocked.CompareExchange(ref init, 1, 0) != 0) return;
             if (!Runtime.IsConsole) return;
 
-            // ÊÊµ±¼Ó´ó¿ØÖÆÌ¨´°¿Ú
+            // é€‚å½“åŠ å¤§æ§åˆ¶å°çª—å£
             try
             {
                 if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
@@ -142,7 +142,7 @@ namespace NewLife.Log
                 clg = cmp.Get<ConsoleLog>();
             }
 
-            // ¿ØÖÆ¿ØÖÆÌ¨ÈÕÖ¾
+            // æ§åˆ¶æ§åˆ¶å°æ—¥å¿—
             if (clg == null)
                 clg = new ConsoleLog { UseColor = useColor };
             else
@@ -150,13 +150,13 @@ namespace NewLife.Log
 
             if (!useFileLog)
             {
-                // Èç¹ûÔ­ÓĞÌá¹©ÕßÊÇÎÄ±¾ÈÕÖ¾£¬ÔòÖ±½ÓÌæ»»
+                // å¦‚æœåŸæœ‰æä¾›è€…æ˜¯æ–‡æœ¬æ—¥å¿—ï¼Œåˆ™ç›´æ¥æ›¿æ¢
                 if (ftl != null)
                 {
                     Log = clg;
                     ftl.Dispose();
                 }
-                // ·ñÔò×é¼ş¸´ºÏÈÕÖ¾
+                // å¦åˆ™ç»„ä»¶å¤åˆæ—¥å¿—
                 else
                 {
                     if (cmp != null)
@@ -189,14 +189,14 @@ namespace NewLife.Log
 #endif
         #endregion
 
-        #region À¹½ØWinFormÒì³£
+        #region æ‹¦æˆªWinFormå¼‚å¸¸
 #if !Android
         private static Int32 initWF = 0;
         private static Boolean _ShowErrorMessage;
         //private static String _Title;
 
-        /// <summary>À¹½ØWinFormÒì³£²¢¼ÇÂ¼ÈÕÖ¾£¬¿ÉÖ¸¶¨ÊÇ·ñÓÃ<see cref="MessageBox"/>ÏÔÊ¾¡£</summary>
-        /// <param name="showErrorMessage">·¢Îª²¶»ñÒì³£Ê±£¬ÊÇ·ñÏÔÊ¾ÌáÊ¾£¬Ä¬ÈÏÏÔÊ¾</param>
+        /// <summary>æ‹¦æˆªWinFormå¼‚å¸¸å¹¶è®°å½•æ—¥å¿—ï¼Œå¯æŒ‡å®šæ˜¯å¦ç”¨<see cref="MessageBox"/>æ˜¾ç¤ºã€‚</summary>
+        /// <param name="showErrorMessage">å‘ä¸ºæ•è·å¼‚å¸¸æ—¶ï¼Œæ˜¯å¦æ˜¾ç¤ºæç¤ºï¼Œé»˜è®¤æ˜¾ç¤º</param>
         public static void UseWinForm(Boolean showErrorMessage = true)
         {
             _ShowErrorMessage = showErrorMessage;
@@ -216,32 +216,32 @@ namespace NewLife.Log
             WriteLine(msg);
             if (e.IsTerminating)
             {
-                //WriteLine("Òì³£ÍË³ö£¡");
-                Log.Fatal("Òì³£ÍË³ö£¡");
+                //WriteLine("å¼‚å¸¸é€€å‡ºï¼");
+                Log.Fatal("å¼‚å¸¸é€€å‡ºï¼");
                 //XTrace.WriteMiniDump(null);
-                if (show) MessageBox.Show(msg, "Òì³£ÍË³ö", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (show) MessageBox.Show(msg, "å¼‚å¸¸é€€å‡º", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
-                if (show) MessageBox.Show(msg, "³ö´í", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (show) MessageBox.Show(msg, "å‡ºé”™", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
             WriteException(e.Exception);
-            if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.Exception, "³ö´í", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.Exception, "å‡ºé”™", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 #endif
         #endregion
 
-        #region Ê¹ÓÃWinForm¿Ø¼şÊä³öÈÕÖ¾
+        #region ä½¿ç”¨WinFormæ§ä»¶è¾“å‡ºæ—¥å¿—
 #if !Android
-        /// <summary>ÔÚWinForm¿Ø¼şÉÏÊä³öÈÕÖ¾£¬Ö÷Òª¿¼ÂÇ·ÇUIÏß³Ì²Ù×÷</summary>
-        /// <remarks>²»ÊÇ³£ÓÃ¹¦ÄÜ£¬ÎªÁË±ÜÃâ¸ÉÈÅ³£ÓÃ¹¦ÄÜ£¬±£³ÖUseWinForm¿ªÍ·</remarks>
-        /// <param name="control">Òª°ó¶¨ÈÕÖ¾Êä³öµÄWinForm¿Ø¼ş</param>
-        /// <param name="useFileLog">ÊÇ·ñÍ¬Ê±Ê¹ÓÃÎÄ¼şÈÕÖ¾£¬Ä¬ÈÏÊ¹ÓÃ</param>
-        /// <param name="maxLines">×î´óĞĞÊı</param>
+        /// <summary>åœ¨WinFormæ§ä»¶ä¸Šè¾“å‡ºæ—¥å¿—ï¼Œä¸»è¦è€ƒè™‘éUIçº¿ç¨‹æ“ä½œ</summary>
+        /// <remarks>ä¸æ˜¯å¸¸ç”¨åŠŸèƒ½ï¼Œä¸ºäº†é¿å…å¹²æ‰°å¸¸ç”¨åŠŸèƒ½ï¼Œä¿æŒUseWinFormå¼€å¤´</remarks>
+        /// <param name="control">è¦ç»‘å®šæ—¥å¿—è¾“å‡ºçš„WinFormæ§ä»¶</param>
+        /// <param name="useFileLog">æ˜¯å¦åŒæ—¶ä½¿ç”¨æ–‡ä»¶æ—¥å¿—ï¼Œé»˜è®¤ä½¿ç”¨</param>
+        /// <param name="maxLines">æœ€å¤§è¡Œæ•°</param>
         public static void UseWinFormControl(this Control control, Boolean useFileLog = true, Int32 maxLines = 1000)
         {
             //if (handler != null)
@@ -257,7 +257,7 @@ namespace NewLife.Log
                 clg = cmp.Get<TextControlLog>();
             }
 
-            // ¿ØÖÆ¿ØÖÆÌ¨ÈÕÖ¾
+            // æ§åˆ¶æ§åˆ¶å°æ—¥å¿—
             if (clg == null) clg = new TextControlLog();
             clg.Control = control;
             clg.MaxLines = maxLines;
@@ -274,11 +274,11 @@ namespace NewLife.Log
             }
         }
 
-        /// <summary>ÔÚWinForm¿Ø¼şÉÏÊä³öÈÕÖ¾£¬Ö÷Òª¿¼ÂÇ·ÇUIÏß³Ì²Ù×÷</summary>
-        /// <remarks>²»ÊÇ³£ÓÃ¹¦ÄÜ£¬ÎªÁË±ÜÃâ¸ÉÈÅ³£ÓÃ¹¦ÄÜ£¬±£³ÖUseWinForm¿ªÍ·</remarks>
-        /// <param name="control">Òª°ó¶¨ÈÕÖ¾Êä³öµÄWinForm¿Ø¼ş</param>
-        /// <param name="msg">ÈÕÖ¾</param>
-        /// <param name="maxLines">×î´óĞĞÊı</param>
+        /// <summary>åœ¨WinFormæ§ä»¶ä¸Šè¾“å‡ºæ—¥å¿—ï¼Œä¸»è¦è€ƒè™‘éUIçº¿ç¨‹æ“ä½œ</summary>
+        /// <remarks>ä¸æ˜¯å¸¸ç”¨åŠŸèƒ½ï¼Œä¸ºäº†é¿å…å¹²æ‰°å¸¸ç”¨åŠŸèƒ½ï¼Œä¿æŒUseWinFormå¼€å¤´</remarks>
+        /// <param name="control">è¦ç»‘å®šæ—¥å¿—è¾“å‡ºçš„WinFormæ§ä»¶</param>
+        /// <param name="msg">æ—¥å¿—</param>
+        /// <param name="maxLines">æœ€å¤§è¡Œæ•°</param>
         [Obsolete("=>TextControlLog.WriteLog")]
         public static void UseWinFormWriteLog(this Control control, String msg, Int32 maxLines = 1000)
         {
@@ -289,9 +289,9 @@ namespace NewLife.Log
 #endif
         #endregion
 
-        #region ÊôĞÔ
+        #region å±æ€§
         private static Boolean? _Debug;
-        /// <summary>ÊÇ·ñµ÷ÊÔ¡£Èç¹û´úÂëÖ¸¶¨ÁËÖµ£¬ÔòÖ»»áÊ¹ÓÃ´úÂëÖ¸¶¨µÄÖµ£¬·ñÔòÃ¿´Î¶¼¶ÁÈ¡ÅäÖÃ¡£</summary>
+        /// <summary>æ˜¯å¦è°ƒè¯•ã€‚å¦‚æœä»£ç æŒ‡å®šäº†å€¼ï¼Œåˆ™åªä¼šä½¿ç”¨ä»£ç æŒ‡å®šçš„å€¼ï¼Œå¦åˆ™æ¯æ¬¡éƒ½è¯»å–é…ç½®ã€‚</summary>
         public static Boolean Debug
         {
             get
@@ -310,12 +310,12 @@ namespace NewLife.Log
         }
 
         private static String _LogPath;
-        /// <summary>ÎÄ±¾ÈÕÖ¾Ä¿Â¼</summary>
+        /// <summary>æ–‡æœ¬æ—¥å¿—ç›®å½•</summary>
         public static String LogPath
         {
             get
             {
-                // WebÈÕÖ¾Ä¿Â¼Ä¬ÈÏ·Åµ½Íâ²¿
+                // Webæ—¥å¿—ç›®å½•é»˜è®¤æ”¾åˆ°å¤–éƒ¨
                 //if (_LogPath == null) _LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
                 if (_LogPath == null) _LogPath = Setting.Current.LogPath;
                 return _LogPath;
@@ -324,14 +324,14 @@ namespace NewLife.Log
         }
 
         private static String _TempPath;
-        /// <summary>ÁÙÊ±Ä¿Â¼</summary>
+        /// <summary>ä¸´æ—¶ç›®å½•</summary>
         public static String TempPath
         {
             get
             {
                 if (_TempPath != null) return _TempPath;
 
-                // ÕâÀïÊÇTempPath¶ø²»ÊÇ_TempPath£¬ÒòÎªĞèÒª¸ñÊ½»¯´¦ÀíÒ»ÏÂ
+                // è¿™é‡Œæ˜¯TempPathè€Œä¸æ˜¯_TempPathï¼Œå› ä¸ºéœ€è¦æ ¼å¼åŒ–å¤„ç†ä¸€ä¸‹
                 //TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
                 _TempPath = Setting.Current.TempPath.GetFullPath();
                 return _TempPath;
@@ -344,8 +344,8 @@ namespace NewLife.Log
         #endregion
 
         #region Dump
-        /// <summary>Ğ´µ±Ç°Ïß³ÌµÄMiniDump</summary>
-        /// <param name="dumpFile">Èç¹û²»Ö¸¶¨£¬Ôò×Ô¶¯Ğ´ÈëÈÕÖ¾Ä¿Â¼</param>
+        /// <summary>å†™å½“å‰çº¿ç¨‹çš„MiniDump</summary>
+        /// <param name="dumpFile">å¦‚æœä¸æŒ‡å®šï¼Œåˆ™è‡ªåŠ¨å†™å…¥æ—¥å¿—ç›®å½•</param>
         public static void WriteMiniDump(String dumpFile)
         {
             if (String.IsNullOrEmpty(dumpFile))
@@ -358,8 +358,8 @@ namespace NewLife.Log
         }
 
         /// <summary>
-        /// ¸ÃÀàÒªÊ¹ÓÃÔÚwindows 5.1 ÒÔºóµÄ°æ±¾£¬Èç¹ûÄãµÄwindowsºÜ¾É£¬¾Í°ÑWindbgÀïÃæµÄdll¿½±´¹ıÀ´£¬Ò»°ã¶¼Ã»ÓĞÎÊÌâ¡£
-        /// DbgHelp.dll ÊÇwindows×Ô´øµÄ dllÎÄ¼ş ¡£
+        /// è¯¥ç±»è¦ä½¿ç”¨åœ¨windows 5.1 ä»¥åçš„ç‰ˆæœ¬ï¼Œå¦‚æœä½ çš„windowså¾ˆæ—§ï¼Œå°±æŠŠWindbgé‡Œé¢çš„dllæ‹·è´è¿‡æ¥ï¼Œä¸€èˆ¬éƒ½æ²¡æœ‰é—®é¢˜ã€‚
+        /// DbgHelp.dll æ˜¯windowsè‡ªå¸¦çš„ dllæ–‡ä»¶ ã€‚
         /// </summary>
         static class MiniDump
         {
@@ -379,24 +379,24 @@ namespace NewLife.Log
 
             public static Boolean TryDump(String dmpPath, MiniDumpType dmpType)
             {
-                //Ê¹ÓÃÎÄ¼şÁ÷À´´´½¡ .dmpÎÄ¼ş
+                //ä½¿ç”¨æ–‡ä»¶æµæ¥åˆ›å¥ .dmpæ–‡ä»¶
                 using (var stream = new FileStream(dmpPath, FileMode.Create))
                 {
-                    //È¡µÃ½ø³ÌĞÅÏ¢
+                    //å–å¾—è¿›ç¨‹ä¿¡æ¯
                     var process = Process.GetCurrentProcess();
 
-                    // MINIDUMP_EXCEPTION_INFORMATION ĞÅÏ¢µÄ³õÊ¼»¯
+                    // MINIDUMP_EXCEPTION_INFORMATION ä¿¡æ¯çš„åˆå§‹åŒ–
                     var mei = new MinidumpExceptionInfo();
 
                     mei.ThreadId = (UInt32)GetCurrentThreadId();
                     mei.ExceptionPointers = Marshal.GetExceptionPointers();
                     mei.ClientPointers = 1;
 
-                    //ÕâÀïµ÷ÓÃµÄWin32 API
+                    //è¿™é‡Œè°ƒç”¨çš„Win32 API
                     var fileHandle = stream.SafeFileHandle.DangerousGetHandle();
                     var res = MiniDumpWriteDump(process.Handle, process.Id, fileHandle, dmpType, ref mei, IntPtr.Zero, IntPtr.Zero);
 
-                    //Çå¿Õ stream
+                    //æ¸…ç©º stream
                     stream.Flush();
                     stream.Close();
 
@@ -426,44 +426,44 @@ namespace NewLife.Log
         }
         #endregion
 
-        #region µ÷ÓÃÕ»
-        /// <summary>¶ÑÕ»µ÷ÊÔ¡£
-        /// Êä³ö¶ÑÕ»ĞÅÏ¢£¬ÓÃÓÚµ÷ÊÔÊ±´¦Àíµ÷ÓÃÉÏÏÂÎÄ¡£
-        /// ±¾·½·¨»áÔì³É´óÁ¿ÈÕÖ¾£¬ÇëÉ÷ÓÃ¡£
+        #region è°ƒç”¨æ ˆ
+        /// <summary>å †æ ˆè°ƒè¯•ã€‚
+        /// è¾“å‡ºå †æ ˆä¿¡æ¯ï¼Œç”¨äºè°ƒè¯•æ—¶å¤„ç†è°ƒç”¨ä¸Šä¸‹æ–‡ã€‚
+        /// æœ¬æ–¹æ³•ä¼šé€ æˆå¤§é‡æ—¥å¿—ï¼Œè¯·æ…ç”¨ã€‚
         /// </summary>
         public static void DebugStack()
         {
             var msg = GetCaller(2, 0, Environment.NewLine);
-            WriteLine("µ÷ÓÃ¶ÑÕ»£º" + Environment.NewLine + msg);
+            WriteLine("è°ƒç”¨å †æ ˆï¼š" + Environment.NewLine + msg);
         }
 
-        /// <summary>¶ÑÕ»µ÷ÊÔ¡£</summary>
-        /// <param name="maxNum">×î´ó²¶»ñ¶ÑÕ»·½·¨Êı</param>
+        /// <summary>å †æ ˆè°ƒè¯•ã€‚</summary>
+        /// <param name="maxNum">æœ€å¤§æ•è·å †æ ˆæ–¹æ³•æ•°</param>
         public static void DebugStack(int maxNum)
         {
             var msg = GetCaller(2, maxNum, Environment.NewLine);
-            WriteLine("µ÷ÓÃ¶ÑÕ»£º" + Environment.NewLine + msg);
+            WriteLine("è°ƒç”¨å †æ ˆï¼š" + Environment.NewLine + msg);
         }
 
-        /// <summary>¶ÑÕ»µ÷ÊÔ</summary>
-        /// <param name="start">¿ªÊ¼·½·¨Êı£¬0ÊÇDebugStackµÄÖ±½Óµ÷ÓÃÕß</param>
-        /// <param name="maxNum">×î´ó²¶»ñ¶ÑÕ»·½·¨Êı</param>
+        /// <summary>å †æ ˆè°ƒè¯•</summary>
+        /// <param name="start">å¼€å§‹æ–¹æ³•æ•°ï¼Œ0æ˜¯DebugStackçš„ç›´æ¥è°ƒç”¨è€…</param>
+        /// <param name="maxNum">æœ€å¤§æ•è·å †æ ˆæ–¹æ³•æ•°</param>
         public static void DebugStack(int start, int maxNum)
         {
-            // ÖÁÉÙÌø¹ıµ±Ç°Õâ¸ö
+            // è‡³å°‘è·³è¿‡å½“å‰è¿™ä¸ª
             if (start < 1) start = 1;
             var msg = GetCaller(start + 1, maxNum, Environment.NewLine);
-            WriteLine("µ÷ÓÃ¶ÑÕ»£º" + Environment.NewLine + msg);
+            WriteLine("è°ƒç”¨å †æ ˆï¼š" + Environment.NewLine + msg);
         }
 
-        /// <summary>»ñÈ¡µ÷ÓÃÕ»</summary>
-        /// <param name="start">ÒªÌø¹ıµÄ·½·¨Êı£¬Ä¬ÈÏ1£¬Ò²¾ÍÊÇÌø¹ıGetCaller</param>
-        /// <param name="maxNum">×î´ó²ãÊı</param>
-        /// <param name="split">·Ö¸î·ûºÅ£¬Ä¬ÈÏ×ó¼ıÍ·¼ÓÉÏ»»ĞĞ</param>
+        /// <summary>è·å–è°ƒç”¨æ ˆ</summary>
+        /// <param name="start">è¦è·³è¿‡çš„æ–¹æ³•æ•°ï¼Œé»˜è®¤1ï¼Œä¹Ÿå°±æ˜¯è·³è¿‡GetCaller</param>
+        /// <param name="maxNum">æœ€å¤§å±‚æ•°</param>
+        /// <param name="split">åˆ†å‰²ç¬¦å·ï¼Œé»˜è®¤å·¦ç®­å¤´åŠ ä¸Šæ¢è¡Œ</param>
         /// <returns></returns>
         public static String GetCaller(int start = 1, int maxNum = 0, String split = null)
         {
-            // ÖÁÉÙÌø¹ıµ±Ç°Õâ¸ö
+            // è‡³å°‘è·³è¿‡å½“å‰è¿™ä¸ª
             if (start < 1) start = 1;
             var st = new StackTrace(start, true);
 
@@ -481,10 +481,10 @@ namespace NewLife.Log
                 var sf = st.GetFrame(i);
                 var method = sf.GetMethod();
 
-                // Ìø¹ı<>ÀàĞÍµÄÄäÃû·½·¨
+                // è·³è¿‡<>ç±»å‹çš„åŒ¿åæ–¹æ³•
                 if (method == null || String.IsNullOrEmpty(method.Name) || method.Name[0] == '<' && method.Name.Contains(">")) continue;
 
-                // Ìø¹ıÓĞ[DebuggerHidden]ÌØĞÔµÄ·½·¨
+                // è·³è¿‡æœ‰[DebuggerHidden]ç‰¹æ€§çš„æ–¹æ³•
                 if (method.GetCustomAttribute<DebuggerHiddenAttribute>() != null) continue;
 
                 var type = method.DeclaringType ?? method.ReflectedType;
@@ -492,17 +492,17 @@ namespace NewLife.Log
                 sb.Append(".");
 
                 var name = method.ToString();
-                // È¥µôÇ°ÃæµÄ·µ»ØÀàĞÍ
+                // å»æ‰å‰é¢çš„è¿”å›ç±»å‹
                 var p = name.IndexOf(" ");
                 if (p >= 0) name = name.Substring(p + 1);
-                // È¥µôÇ°ÃæµÄSystem
+                // å»æ‰å‰é¢çš„System
                 name = name
                     .Replace("System.Web.", null)
                     .Replace("System.", null);
 
                 sb.Append(name);
 
-                // Èç¹ûµ½´ïÁËÈë¿Úµã£¬¿ÉÒÔ½áÊøÁË
+                // å¦‚æœåˆ°è¾¾äº†å…¥å£ç‚¹ï¼Œå¯ä»¥ç»“æŸäº†
                 if (method == entry) break;
 
                 if (i < count - 1) sb.Append(split);
@@ -515,7 +515,7 @@ namespace NewLife.Log
         }
         #endregion
 
-        #region °æ±¾ĞÅÏ¢
+        #region ç‰ˆæœ¬ä¿¡æ¯
         static void WriteVersion()
         {
             var asm = Assembly.GetExecutingAssembly();
@@ -525,7 +525,7 @@ namespace NewLife.Log
             if (asm2 != asm) WriteVersion(asm2);
         }
 
-        /// <summary>Êä³ö³ÌĞò¼¯°æ±¾</summary>
+        /// <summary>è¾“å‡ºç¨‹åºé›†ç‰ˆæœ¬</summary>
         /// <param name="asm"></param>
         public static void WriteVersion(this Assembly asm)
         {

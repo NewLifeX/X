@@ -1,34 +1,34 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Reflection;
 
 namespace NewLife.Cube.Precompiled
 {
-    /// <summary>Ô¤±àÒëÊÓÍ¼³ÌĞò¼¯</summary>
+    /// <summary>é¢„ç¼–è¯‘è§†å›¾ç¨‹åºé›†</summary>
     public class PrecompiledViewAssembly
     {
         private readonly String _baseVirtualPath;
         private readonly Assembly _assembly;
         private readonly Lazy<DateTime> _assemblyLastWriteTime;
 
-        /// <summary>È¡´úÎïÀíÎÄ¼ş£¬ÓÅÏÈÄÚÇ¶Àà</summary>
+        /// <summary>å–ä»£ç‰©ç†æ–‡ä»¶ï¼Œä¼˜å…ˆå†…åµŒç±»</summary>
         public Boolean PreemptPhysicalFiles { get; set; }
 
-        /// <summary>½öÔÚÎïÀíÎÄ¼ş½ÏĞÂÊ±Ê¹ÓÃÎïÀíÎÄ¼ş</summary>
+        /// <summary>ä»…åœ¨ç‰©ç†æ–‡ä»¶è¾ƒæ–°æ—¶ä½¿ç”¨ç‰©ç†æ–‡ä»¶</summary>
         public Boolean UsePhysicalViewsIfNewer { get; set; }
 
-        /// <summary>ÊµÀı»¯Ô¤±àÒëÊÓÍ¼³ÌĞò¼¯</summary>
+        /// <summary>å®ä¾‹åŒ–é¢„ç¼–è¯‘è§†å›¾ç¨‹åºé›†</summary>
         /// <param name="assembly"></param>
         public PrecompiledViewAssembly(Assembly assembly) : this(assembly, null) { }
 
-        /// <summary>ÊµÀı»¯Ô¤±àÒëÊÓÍ¼³ÌĞò¼¯</summary>
+        /// <summary>å®ä¾‹åŒ–é¢„ç¼–è¯‘è§†å›¾ç¨‹åºé›†</summary>
         /// <param name="assembly"></param>
         /// <param name="baseVirtualPath"></param>
         public PrecompiledViewAssembly(Assembly assembly, String baseVirtualPath)
         {
             if (assembly == null) throw new ArgumentNullException("assembly");
 
-            // ÎªÁËÊµÏÖÎïÀíÎÄ¼ş¡°ÖØÔØ¸²¸Ç¡±µÄĞ§¹û£¬Ç¿ÖÆÊ¹ÓÃÎïÀíÎÄ¼ş
+            // ä¸ºäº†å®ç°ç‰©ç†æ–‡ä»¶â€œé‡è½½è¦†ç›–â€çš„æ•ˆæœï¼Œå¼ºåˆ¶ä½¿ç”¨ç‰©ç†æ–‡ä»¶
             PreemptPhysicalFiles = false;
             UsePhysicalViewsIfNewer = false;
 
@@ -37,7 +37,7 @@ namespace NewLife.Cube.Precompiled
             _assemblyLastWriteTime = new Lazy<DateTime>(() => _assembly.GetLastWriteTimeUtc(DateTime.MaxValue));
         }
 
-        /// <summary>ÎªÖ¸¶¨ÀàĞÍËùÔÚ³ÌĞò¼¯´´½¨ÊµÀı</summary>
+        /// <summary>ä¸ºæŒ‡å®šç±»å‹æ‰€åœ¨ç¨‹åºé›†åˆ›å»ºå®ä¾‹</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="baseVirtualPath"></param>
         /// <param name="usePhysicalViewsIfNewer"></param>
@@ -52,7 +52,7 @@ namespace NewLife.Cube.Precompiled
             };
         }
 
-        /// <summary>ÎªÖ¸¶¨ÀàĞÍËùÔÚ³ÌĞò¼¯´´½¨ÊµÀı</summary>
+        /// <summary>ä¸ºæŒ‡å®šç±»å‹æ‰€åœ¨ç¨‹åºé›†åˆ›å»ºå®ä¾‹</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="usePhysicalViewsIfNewer"></param>
         /// <param name="preemptPhysicalFiles"></param>
@@ -66,14 +66,14 @@ namespace NewLife.Cube.Precompiled
             };
         }
 
-        /// <summary>±éÀú»ñÈ¡ËùÓĞÀàĞÍÓ³Éä</summary>
+        /// <summary>éå†è·å–æ‰€æœ‰ç±»å‹æ˜ å°„</summary>
         /// <returns></returns>
         public IDictionary<String, Type> GetTypeMappings()
         {
             return PrecompiledMvcEngine.GetTypeMappings(_assembly, _baseVirtualPath);
         }
 
-        /// <summary>ÎïÀíÎÄ¼şÊÇ·ñ¸üĞÂ</summary>
+        /// <summary>ç‰©ç†æ–‡ä»¶æ˜¯å¦æ›´æ–°</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
         public Boolean IsPhysicalFileNewer(String virtualPath)

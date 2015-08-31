@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace NewLife.Reflection
             var codeTRInterface = new CodeTypeReference(interfaceType.GetName(true));
             var references = new ReferenceList();
 
-            // ±éÀú´¦ÀíÃ¿Ò»¸öĞèÒª´úÀíµÄÀà
+            // éå†å¤„ç†æ¯ä¸€ä¸ªéœ€è¦ä»£ç†çš„ç±»
             for (int i = 0; i < duckedTypes.Length; i++)
             {
                 Type objectType = duckedTypes[i];
@@ -40,12 +40,12 @@ namespace NewLife.Reflection
                 codeType.TypeAttributes = TypeAttributes.Public;
                 codeType.BaseTypes.Add(codeTRInterface);
 
-                // ÉùÃ÷Ò»¸ö×Ö¶Î
+                // å£°æ˜ä¸€ä¸ªå­—æ®µ
                 CodeMemberField codeFldObj = new CodeMemberField(codeTRObject, "_obj");
                 codeType.Members.Add(codeFldObj);
                 CodeFieldReferenceExpression codeFldRef = new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), codeFldObj.Name);
 
-                // ´´½¨Ò»¸ö¹¹Ôìº¯Êı
+                // åˆ›å»ºä¸€ä¸ªæ„é€ å‡½æ•°
                 CodeConstructor codeCtor = new CodeConstructor();
                 codeType.Members.Add(codeCtor);
                 codeCtor.Attributes = MemberAttributes.Public;
@@ -57,11 +57,11 @@ namespace NewLife.Reflection
                     )
                 );
 
-                // ´´½¨³ÉÔ±
+                // åˆ›å»ºæˆå‘˜
                 CreateMember(interfaceType, objectType, codeType, references, codeFldRef);
             }
 
-            #region ±àÒë
+            #region ç¼–è¯‘
             CSharpCodeProvider codeprov = new CSharpCodeProvider();
 
 #if DEBUG
@@ -86,7 +86,7 @@ namespace NewLife.Reflection
                 foreach (CompilerError err in cres.Errors)
                     sw.WriteLine(err.ErrorText);
 
-                throw new InvalidOperationException("±àÒë´íÎó: \n\n" + sw.ToString());
+                throw new InvalidOperationException("ç¼–è¯‘é”™è¯¯: \n\n" + sw.ToString());
             }
 
             Assembly assembly = cres.CompiledAssembly;
@@ -105,16 +105,16 @@ namespace NewLife.Reflection
         {
             var codeTRInterface = new CodeTypeReference(interfaceType.GetName(true));
 
-            //// ÕÒµ½duckTypeÀïÃæÊÇ·ñÓĞ¹«¹²µÄ_obj;
+            //// æ‰¾åˆ°duckTypeé‡Œé¢æ˜¯å¦æœ‰å…¬å…±çš„_obj;
             //FieldInfo fiObj = duckType.GetField("_obj", BindingFlags.Public | BindingFlags.Instance);
             //Type innerType = fiObj != null ? fiObj.FieldType : null;
 
             CodeFieldReferenceExpression fdRef = null;
 
-            #region ·½·¨
+            #region æ–¹æ³•
             foreach (var mi in interfaceType.GetMethods())
             {
-                // ºöÂÔ×¨ÓÃÃû×ÖµÄ·½·¨£¬ÈçÊôĞÔµÄget/set£¬»¹ÓĞ¹¹Ôìº¯Êı
+                // å¿½ç•¥ä¸“ç”¨åå­—çš„æ–¹æ³•ï¼Œå¦‚å±æ€§çš„get/setï¼Œè¿˜æœ‰æ„é€ å‡½æ•°
                 if ((mi.Attributes & MethodAttributes.SpecialName) != 0) continue;
 
                 CodeMemberMethod codeMethod = new CodeMemberMethod();
@@ -150,7 +150,7 @@ namespace NewLife.Reflection
             }
             #endregion
 
-            #region ÊôĞÔ
+            #region å±æ€§
             foreach (PropertyInfo pi in interfaceType.GetProperties())
             {
                 CodeMemberProperty property = new CodeMemberProperty();
@@ -241,7 +241,7 @@ namespace NewLife.Reflection
             }
             #endregion
 
-            #region ÊÂ¼ş
+            #region äº‹ä»¶
             foreach (EventInfo ei in interfaceType.GetEvents())
             {
                 fdRef = FindMember(duckType, ei, codeFldRef);
@@ -268,7 +268,7 @@ namespace NewLife.Reflection
             }
             #endregion
 
-            #region µİ¹é»ù½Ó¿Ú
+            #region é€’å½’åŸºæ¥å£
             Type[] ts = interfaceType.GetInterfaces();
             if (ts != null && ts.Length > 0)
             {
@@ -287,7 +287,7 @@ namespace NewLife.Reflection
                 return codeFldRef;
             else
             {
-                // ÕÒµ½duckTypeÀïÃæÊÇ·ñÓĞ¹«¹²µÄ_obj;
+                // æ‰¾åˆ°duckTypeé‡Œé¢æ˜¯å¦æœ‰å…¬å…±çš„_obj;
                 FieldInfo fiObj = duckType.GetField("_obj", BindingFlags.Public | BindingFlags.Instance);
                 if (fiObj != null)
                 {

@@ -1,4 +1,4 @@
-//using System;
+ï»¿//using System;
 //using System.Collections;
 //using System.Collections.Generic;
 //using System.ComponentModel;
@@ -17,7 +17,7 @@
 //namespace XControl
 //{
 //    /// <summary>
-//    /// ÖØĞ´FormView
+//    /// é‡å†™FormView
 //    /// </summary>
 //    [ToolboxItem(false)]
 //    [DefaultProperty("Text")]
@@ -26,11 +26,11 @@
 //    [ToolboxBitmap(typeof(FormView))]
 //    public class XFormView : FormView
 //    {
-//        #region Ã¿ĞĞ×Ö¶Î¸öÊı
+//        #region æ¯è¡Œå­—æ®µä¸ªæ•°
 //        /// <summary>
-//        /// Ã¿ĞĞ×Ö¶Î¸öÊı¡£ÉèÖÃ¸ÃÊôĞÔºó£¬×Ô¶¯Éú³ÉÄ£°åÊ±½«¸ù¾İ¸ÃÊôĞÔÀ´µ÷Õû¡£
+//        /// æ¯è¡Œå­—æ®µä¸ªæ•°ã€‚è®¾ç½®è¯¥å±æ€§åï¼Œè‡ªåŠ¨ç”Ÿæˆæ¨¡æ¿æ—¶å°†æ ¹æ®è¯¥å±æ€§æ¥è°ƒæ•´ã€‚
 //        /// </summary>
-//        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(2), Description("Ã¿ĞĞ×Ö¶Î¸öÊı¡£ÉèÖÃ¸ÃÊôĞÔºó£¬×Ô¶¯Éú³ÉÄ£°åÊ±½«¸ù¾İ¸ÃÊôĞÔÀ´µ÷Õû¡£")]
+//        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(2), Description("æ¯è¡Œå­—æ®µä¸ªæ•°ã€‚è®¾ç½®è¯¥å±æ€§åï¼Œè‡ªåŠ¨ç”Ÿæˆæ¨¡æ¿æ—¶å°†æ ¹æ®è¯¥å±æ€§æ¥è°ƒæ•´ã€‚")]
 //        public Int32 ColumnSize
 //        {
 //            get
@@ -44,11 +44,11 @@
 //        }
 //        #endregion
 
-//        #region ×Ô¶¯Ë¢ĞÂ¶ÔÓ¦µÄXGridView
+//        #region è‡ªåŠ¨åˆ·æ–°å¯¹åº”çš„XGridView
 //        /// <summary>
-//        /// ×Ô¶¯Ë¢ĞÂ¶ÔÓ¦µÄXGridView
+//        /// è‡ªåŠ¨åˆ·æ–°å¯¹åº”çš„XGridView
 //        /// </summary>
-//        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(false), Description("×Ô¶¯Ë¢ĞÂ¶ÔÓ¦µÄXGridView")]
+//        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(false), Description("è‡ªåŠ¨åˆ·æ–°å¯¹åº”çš„XGridView")]
 //        public Boolean AutoRefreshXGridView
 //        {
 //            get
@@ -62,7 +62,7 @@
 //        }
 
 //        /// <summary>
-//        /// ÒÑÖØÔØ¡£
+//        /// å·²é‡è½½ã€‚
 //        /// </summary>
 //        /// <param name="e"></param>
 //        protected override void OnItemInserted(FormViewInsertedEventArgs e)
@@ -72,7 +72,7 @@
 //        }
 
 //        /// <summary>
-//        /// ÒÑÖØÔØ¡£
+//        /// å·²é‡è½½ã€‚
 //        /// </summary>
 //        /// <param name="e"></param>
 //        protected override void OnItemUpdated(FormViewUpdatedEventArgs e)
@@ -82,7 +82,7 @@
 //        }
 
 //        /// <summary>
-//        /// ÒÑÖØÔØ¡£
+//        /// å·²é‡è½½ã€‚
 //        /// </summary>
 //        /// <param name="e"></param>
 //        protected override void OnItemDeleted(FormViewDeletedEventArgs e)
@@ -92,7 +92,7 @@
 //        }
 
 //        /// <summary>
-//        /// ÉèÖÃ¹ØÁªµÄXGridViewÖØĞÂ°ó¶¨Êı¾İ
+//        /// è®¾ç½®å…³è”çš„XGridViewé‡æ–°ç»‘å®šæ•°æ®
 //        /// </summary>
 //        private void RefreshXGridView()
 //        {
@@ -103,14 +103,14 @@
 //        }
 //        #endregion
 
-//        #region È¡ÏûÑ¡Ôñ
+//        #region å–æ¶ˆé€‰æ‹©
 //        /// <summary>
-//        /// ÒÑÖØÔØ¡£
+//        /// å·²é‡è½½ã€‚
 //        /// </summary>
 //        /// <param name="e"></param>
 //        protected override void OnItemCommand(FormViewCommandEventArgs e)
 //        {
-//            //È¡ÏûÑ¡Ôñ
+//            //å–æ¶ˆé€‰æ‹©
 //            if (e.CommandName == "CancelSelect")
 //            {
 //                GridView xgv = FindGridView();
@@ -123,12 +123,12 @@
 //        #endregion
 
 //        /// <summary>
-//        /// ÕÒµ½GridView
+//        /// æ‰¾åˆ°GridView
 //        /// </summary>
 //        /// <returns></returns>
 //        private GridView FindGridView()
 //        {
-//            //ÕÒµ½¶ÔÓ¦µÄObjectDataSource
+//            //æ‰¾åˆ°å¯¹åº”çš„ObjectDataSource
 //            if (String.IsNullOrEmpty(DataSourceID)) return null;
 //            ObjectDataSource ods = ViewHelper.Find(Page, DataSourceID) as ObjectDataSource;
 //            if (ods == null) return null;
@@ -140,17 +140,17 @@
 //    }
 
 //    /// <summary>
-//    /// ÔÚ¿ÉÊÓ»¯Éè¼ÆÆ÷ÖĞÎª XControl.XFormView ¿Ø¼şÌá¹©Éè¼ÆÊ±Ö§³Ö¡£
+//    /// åœ¨å¯è§†åŒ–è®¾è®¡å™¨ä¸­ä¸º XControl.XFormView æ§ä»¶æä¾›è®¾è®¡æ—¶æ”¯æŒã€‚
 //    /// </summary>
 //    public class XFormViewDesigner : FormViewDesigner
 //    {
 //        /// <summary>
-//        /// µ±¹ØÁª¿Ø¼şµÄÊı¾İÔ´¼Ü¹¹¸ü¸ÄÊ±£¬½«µ÷ÓÃËü¡£
+//        /// å½“å…³è”æ§ä»¶çš„æ•°æ®æºæ¶æ„æ›´æ”¹æ—¶ï¼Œå°†è°ƒç”¨å®ƒã€‚
 //        /// </summary>
 //        protected override void OnSchemaRefreshed()
 //        {
 //            base.OnSchemaRefreshed();
-//            //ÏÈÉú³ÉÔ­À´µÄ£¬ÔÙÉú³ÉĞÂµÄ
+//            //å…ˆç”ŸæˆåŸæ¥çš„ï¼Œå†ç”Ÿæˆæ–°çš„
 //            if (!InTemplateMode)
 //            {
 //#if !DEBUG
@@ -176,19 +176,19 @@
 //            }
 //        }
 
-//        //Ç°×º
+//        //å‰ç¼€
 //        static String perfix = "XCL";
 
 //        private void AddTemplates()
 //        {
-//            //È¡µÃÊµÌåÀà
+//            //å–å¾—å®ä½“ç±»
 //            Type t = ViewHelper.GetEntryType<XFormView>(Site);
 //            if (t == null) return;
 //            List<FieldItem> list = ViewHelper.AllFields(t);
 //            if (list == null) return;
 
-//            //Ë¼Â·
-//            //±éÀúÊµÌåÀà³ÉÔ±£¬Éú³ÉÈıÖÖÄ£°æ
+//            //æ€è·¯
+//            //éå†å®ä½“ç±»æˆå‘˜ï¼Œç”Ÿæˆä¸‰ç§æ¨¡ç‰ˆ
 
 //            IDesignerHost service = (IDesignerHost)Site.GetService(typeof(IDesignerHost));
 //            if (service == null) return;
@@ -203,12 +203,12 @@
 //            Edit.ID = fv.ClientID + "_Edit";
 //            Inst.ID = fv.ClientID + "_Inst";
 
-//            #region Ñ­»·´¦ÀíÄ£°æ
+//            #region å¾ªç¯å¤„ç†æ¨¡ç‰ˆ
 //            int count = fv.ColumnSize;
 //            if (count < 1) count = 1;
 //            int index = 0;
 
-//            //µ±Ç°ĞĞ
+//            //å½“å‰è¡Œ
 //            Row ItemRow = new Row();
 //            Row EditRow = new Row();
 //            Row InstRow = new Row();
@@ -218,15 +218,15 @@
 
 //            foreach (FieldItem fi in list)
 //            {
-//                #region Ô¤´¦Àí
-//                //ÊÇ·ñ»»ĞĞ
+//                #region é¢„å¤„ç†
+//                //æ˜¯å¦æ¢è¡Œ
 //                Boolean IsWrap = index % count == 0;
-//                //µÚÒ»ĞĞ²»»»ĞĞ
+//                //ç¬¬ä¸€è¡Œä¸æ¢è¡Œ
 //                if (index == 0) IsWrap = false;
 //                index++;
 
 //                String name = fi.Name;
-//                //´¦ÀíµÃµ½Ò»¸öÃû×Ö£¬Ö»º¬ÓĞ×ÖÄ¸Êı×ÖºÍÏÂ»®Ïß£¬ÆäËü×Ö·û×ªÎªÏÂ»®Ïß
+//                //å¤„ç†å¾—åˆ°ä¸€ä¸ªåå­—ï¼Œåªå«æœ‰å­—æ¯æ•°å­—å’Œä¸‹åˆ’çº¿ï¼Œå…¶å®ƒå­—ç¬¦è½¬ä¸ºä¸‹åˆ’çº¿
 //                char[] chArray = new char[name.Length];
 //                for (int i = 0; i < name.Length; i++)
 //                {
@@ -249,7 +249,7 @@
 //                    strBind = "Bind(\"" + name + "\", \"{0:yyyy-MM-dd HH:mm:ss}\")";
 //                }
 
-//                //ÖØĞÂÖ¸¶¨ÎªÖĞÎÄÃû
+//                //é‡æ–°æŒ‡å®šä¸ºä¸­æ–‡å
 //                name = (String.IsNullOrEmpty(fi.Description)) ? fi.Name : fi.Description;
 
 //                String strEdit = "";
@@ -257,7 +257,7 @@
 //                String strInst = "";
 //                #endregion
 
-//                #region Ê¶±ğ³É²»Í¬µÄ¿Ø¼ş
+//                #region è¯†åˆ«æˆä¸åŒçš„æ§ä»¶
 //                if (fi.DataObjectField.IsIdentity)
 //                {
 //                    strEdit = MakeLabel(controlID, strEval);
@@ -266,7 +266,7 @@
 //                    IsWrap = true;
 //                    index = 0;
 //                }
-//                //²¼¶ûĞÍ£¬»òÕßÊÇIs¿ªÍ·ÇÒµÚÈı×ÖÄ¸ÊÇ´óĞ´×ÖÄ¸µÄÕûĞÍ£¬±ÈÈçIsTop
+//                //å¸ƒå°”å‹ï¼Œæˆ–è€…æ˜¯Iså¼€å¤´ä¸”ç¬¬ä¸‰å­—æ¯æ˜¯å¤§å†™å­—æ¯çš„æ•´å‹ï¼Œæ¯”å¦‚IsTop
 //                else if (fi.Info.PropertyType == typeof(Boolean))
 //                {
 //                    strItem = MakeCheckBox(controlID, strBind, false);
@@ -336,10 +336,10 @@
 //                }
 //                #endregion
 
-//                #region ¿ªÊ¼¼ÓÄ£°å
+//                #region å¼€å§‹åŠ æ¨¡æ¿
 //                if (IsWrap)
 //                {
-//                    //´óÎÄ±¾ÁĞ¶ÀÁ¢Ò»ĞĞ£¬µ±Ç°ĞĞĞÂÆğÒ»ĞĞ
+//                    //å¤§æ–‡æœ¬åˆ—ç‹¬ç«‹ä¸€è¡Œï¼Œå½“å‰è¡Œæ–°èµ·ä¸€è¡Œ
 //                    ItemRow = new Row();
 //                    EditRow = new Row();
 //                    InstRow = new Row();
@@ -348,11 +348,11 @@
 //                    Inst.Rows.Add(InstRow);
 //                }
 
-//                //¼ÓÈëµ½µ±Ç°ĞĞ
-//                name = name + "£º";
+//                //åŠ å…¥åˆ°å½“å‰è¡Œ
+//                name = name + "ï¼š";
 //                if (fi.DataObjectField.Length > 255)
 //                {
-//                    //´óÎÄ±¾µÄ±êÇ©ºÍÖµ·Ö±ğĞèÒª¶ÀÁ¢Ò»ĞĞ
+//                    //å¤§æ–‡æœ¬çš„æ ‡ç­¾å’Œå€¼åˆ†åˆ«éœ€è¦ç‹¬ç«‹ä¸€è¡Œ
 //                    ItemRow.Cells.Add(new Cell(name, null));
 //                    EditRow.Cells.Add(new Cell(name, null));
 //                    if (!fi.DataObjectField.IsIdentity) InstRow.Cells.Add(new Cell(name, null));
@@ -377,7 +377,7 @@
 
 //                if (IsWrap)
 //                {
-//                    //±êÊ¶ÁĞ¶ÀÁ¢Ò»ĞĞ£¬µ±Ç°ĞĞĞÂÆğÒ»ĞĞ
+//                    //æ ‡è¯†åˆ—ç‹¬ç«‹ä¸€è¡Œï¼Œå½“å‰è¡Œæ–°èµ·ä¸€è¡Œ
 //                    ItemRow = new Row();
 //                    EditRow = new Row();
 //                    InstRow = new Row();
@@ -387,7 +387,7 @@
 //                }
 //                #endregion
 //            }
-//            //ÒÆ³ı¿ÕĞĞ
+//            //ç§»é™¤ç©ºè¡Œ
 //            Item.RemoveEmptyRow();
 //            Edit.RemoveEmptyRow();
 //            Inst.RemoveEmptyRow();
@@ -404,7 +404,7 @@
 //            Inst.Foot = Foot.Inst;
 //            #endregion
 
-//            #region Éú³ÉÄ£°å
+//            #region ç”Ÿæˆæ¨¡æ¿
 //#if !DEBUG
 //            try
 //#endif
@@ -420,11 +420,11 @@
 
 //                    DescriptionAttribute[] btas = t.GetCustomAttributes(typeof(DescriptionAttribute), false) as DescriptionAttribute[];
 //                    if (btas == null || btas.Length < 1 || String.IsNullOrEmpty(btas[0].Description))
-//                        fv.EmptyDataTemplate = ControlParser.ParseTemplate(service, "<asp:LinkButton ID=\"LinkButton1\" runat=\"server\" CommandName=\"New\">ĞÂÔö</asp:LinkButton>");
+//                        fv.EmptyDataTemplate = ControlParser.ParseTemplate(service, "<asp:LinkButton ID=\"LinkButton1\" runat=\"server\" CommandName=\"New\">æ–°å¢</asp:LinkButton>");
 //                    else
-//                        fv.EmptyDataTemplate = ControlParser.ParseTemplate(service, "<asp:LinkButton ID=\"LinkButton1\" runat=\"server\" CommandName=\"New\">ĞÂÔö" + btas[0].Description + "</asp:LinkButton>");
+//                        fv.EmptyDataTemplate = ControlParser.ParseTemplate(service, "<asp:LinkButton ID=\"LinkButton1\" runat=\"server\" CommandName=\"New\">æ–°å¢" + btas[0].Description + "</asp:LinkButton>");
 
-//                    //¶îÍâ¹¤×÷£¬ÉèÖÃAutoRefreshXGridView
+//                    //é¢å¤–å·¥ä½œï¼Œè®¾ç½®AutoRefreshXGridView
 //                    fv.AutoRefreshXGridView = true;
 //                }
 //            }
@@ -437,7 +437,7 @@
 //            #endregion
 //        }
 
-//        #region ½¨Á¢ÔªËØ
+//        #region å»ºç«‹å…ƒç´ 
 //        private static String ValueDiv
 //        {
 //            get
@@ -455,10 +455,10 @@
 //        }
 
 //        /// <summary>
-//        /// ½¨Á¢Label
+//        /// å»ºç«‹Label
 //        /// </summary>
-//        /// <param name="controlid">¿Ø¼şID</param>
-//        /// <param name="bindstr">°ó¶¨×Ö·û´®</param>
+//        /// <param name="controlid">æ§ä»¶ID</param>
+//        /// <param name="bindstr">ç»‘å®šå­—ç¬¦ä¸²</param>
 //        /// <returns></returns>
 //        private static String MakeLabel(String controlid, String bindstr)
 //        {
@@ -466,10 +466,10 @@
 //        }
 
 //        /// <summary>
-//        /// ½¨Á¢TextBox
+//        /// å»ºç«‹TextBox
 //        /// </summary>
-//        /// <param name="controlid">¿Ø¼şID</param>
-//        /// <param name="bindstr">°ó¶¨×Ö·û´®</param>
+//        /// <param name="controlid">æ§ä»¶ID</param>
+//        /// <param name="bindstr">ç»‘å®šå­—ç¬¦ä¸²</param>
 //        /// <returns></returns>
 //        private static String MakeTextBox(String controlid, String bindstr)
 //        {
@@ -477,11 +477,11 @@
 //        }
 
 //        /// <summary>
-//        /// ½¨Á¢CheckBox
+//        /// å»ºç«‹CheckBox
 //        /// </summary>
-//        /// <param name="controlid">¿Ø¼şID</param>
-//        /// <param name="bindstr">°ó¶¨×Ö·û´®</param>
-//        /// <param name="enabled">ÊÇ·ñEnabled</param>
+//        /// <param name="controlid">æ§ä»¶ID</param>
+//        /// <param name="bindstr">ç»‘å®šå­—ç¬¦ä¸²</param>
+//        /// <param name="enabled">æ˜¯å¦Enabled</param>
 //        /// <returns></returns>
 //        private String MakeCheckBox(String controlid, String bindstr, Boolean enabled)
 //        {
@@ -490,11 +490,11 @@
 //        }
 
 //        /// <summary>
-//        /// ½¨Á¢IntCheckBox
+//        /// å»ºç«‹IntCheckBox
 //        /// </summary>
-//        /// <param name="controlid">¿Ø¼şID</param>
-//        /// <param name="bindstr">°ó¶¨×Ö·û´®</param>
-//        /// <param name="enabled">ÊÇ·ñEnabled</param>
+//        /// <param name="controlid">æ§ä»¶ID</param>
+//        /// <param name="bindstr">ç»‘å®šå­—ç¬¦ä¸²</param>
+//        /// <param name="enabled">æ˜¯å¦Enabled</param>
 //        /// <returns></returns>
 //        private String MakeIntCheckBox(String controlid, String bindstr, Boolean enabled)
 //        {
@@ -503,29 +503,29 @@
 //        }
 //        #endregion
 
-//        #region Ä£°åÀà
+//        #region æ¨¡æ¿ç±»
 //        private class Base
 //        {
 //            private String _CssClass;
 //            /// <summary>
-//            /// ÑùÊ½
+//            /// æ ·å¼
 //            /// </summary>
 //            public String CssClass { get { return _CssClass; } set { _CssClass = value; } }
 
 //            private String _ID;
 //            /// <summary>
-//            /// ²ãID
+//            /// å±‚ID
 //            /// </summary>
 //            public String ID { get { return _ID; } set { _ID = value; } }
 
 //            private String _Content;
 //            /// <summary>
-//            /// ÄÚÈİ
+//            /// å†…å®¹
 //            /// </summary>
 //            public virtual String Content { get { return _Content; } set { _Content = value; } }
 
 //            /// <summary>
-//            /// ±êÇ©Í·
+//            /// æ ‡ç­¾å¤´
 //            /// </summary>
 //            public String Begin
 //            {
@@ -548,7 +548,7 @@
 //            }
 
 //            /// <summary>
-//            /// ±êÇ©Î²
+//            /// æ ‡ç­¾å°¾
 //            /// </summary>
 //            public String End
 //            {
@@ -556,7 +556,7 @@
 //            }
 
 //            /// <summary>
-//            /// ÒÑÖØÔØ¡£Éú³ÉÄÚÈİ¡£
+//            /// å·²é‡è½½ã€‚ç”Ÿæˆå†…å®¹ã€‚
 //            /// </summary>
 //            /// <returns></returns>
 //            public override string ToString()
@@ -596,7 +596,7 @@
 //            }
 
 //            /// <summary>
-//            /// ÒÆ³ı¿ÕĞĞ
+//            /// ç§»é™¤ç©ºè¡Œ
 //            /// </summary>
 //            public void RemoveEmptyRow()
 //            {
@@ -699,18 +699,18 @@
 //            static Foot()
 //            {
 //                Item = new Foot();
-//                Item.Left = "<asp:LinkButton runat=\"server\" Text=\"±à¼­\" CommandName=\"Edit\" id=\"EditButton\" CausesValidation=\"false\" />";
-//                Item.Middle = "<asp:LinkButton runat=\"server\" Text=\"É¾³ı\" CommandName=\"Delete\" id=\"DeleteButton\" CausesValidation=\"false\" />";
-//                Item.Right = "<asp:LinkButton runat=\"server\" Text=\"ĞÂ½¨\" CommandName=\"New\" id=\"NewButton\" CausesValidation=\"false\" />";
-//                Item.Ext = "<asp:LinkButton runat=\"server\" Text=\"È¡Ïû\" CommandName=\"CancelSelect\" id=\"CancelSelectButton\" CausesValidation=\"false\" />";
+//                Item.Left = "<asp:LinkButton runat=\"server\" Text=\"ç¼–è¾‘\" CommandName=\"Edit\" id=\"EditButton\" CausesValidation=\"false\" />";
+//                Item.Middle = "<asp:LinkButton runat=\"server\" Text=\"åˆ é™¤\" CommandName=\"Delete\" id=\"DeleteButton\" CausesValidation=\"false\" />";
+//                Item.Right = "<asp:LinkButton runat=\"server\" Text=\"æ–°å»º\" CommandName=\"New\" id=\"NewButton\" CausesValidation=\"false\" />";
+//                Item.Ext = "<asp:LinkButton runat=\"server\" Text=\"å–æ¶ˆ\" CommandName=\"CancelSelect\" id=\"CancelSelectButton\" CausesValidation=\"false\" />";
 
 //                Edit = new Foot();
-//                Edit.Left = "<asp:LinkButton runat=\"server\" Text=\"¸üĞÂ\" CommandName=\"Update\" id=\"UpdateButton\" CausesValidation=\"true\" />";
-//                Edit.Middle = "<asp:LinkButton runat=\"server\" Text=\"È¡Ïû\" CommandName=\"Cancel\" id=\"UpdateCancelButton\" CausesValidation=\"false\" />";
+//                Edit.Left = "<asp:LinkButton runat=\"server\" Text=\"æ›´æ–°\" CommandName=\"Update\" id=\"UpdateButton\" CausesValidation=\"true\" />";
+//                Edit.Middle = "<asp:LinkButton runat=\"server\" Text=\"å–æ¶ˆ\" CommandName=\"Cancel\" id=\"UpdateCancelButton\" CausesValidation=\"false\" />";
 
 //                Inst = new Foot();
-//                Inst.Left = "<asp:LinkButton runat=\"server\" Text=\"²åÈë\" CommandName=\"Insert\" id=\"InsertButton\" CausesValidation=\"true\" />";
-//                Inst.Middle = "<asp:LinkButton runat=\"server\" Text=\"È¡Ïû\" CommandName=\"Cancel\" id=\"InsertCancelButton\" CausesValidation=\"false\" />";
+//                Inst.Left = "<asp:LinkButton runat=\"server\" Text=\"æ’å…¥\" CommandName=\"Insert\" id=\"InsertButton\" CausesValidation=\"true\" />";
+//                Inst.Middle = "<asp:LinkButton runat=\"server\" Text=\"å–æ¶ˆ\" CommandName=\"Cancel\" id=\"InsertCancelButton\" CausesValidation=\"false\" />";
 //            }
 //        }
 

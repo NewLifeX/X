@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Web.UI;
@@ -6,17 +6,17 @@ using System.Web.UI.WebControls;
 
 namespace XControl
 {
-    /// <summary>IPµØÖ·ÊäÈë¿Ø¼ş¡£Ö»ÄÜÊäÈëÊı×Ö£¬²¢¿ÉÒÔ¹æ¶¨·¶Î§¡¢¼ä¸ô¡£</summary>
-    [Description("ÈÕÆÚÑ¡Ôñ¿Ø¼ş")]
+    /// <summary>IPåœ°å€è¾“å…¥æ§ä»¶ã€‚åªèƒ½è¾“å…¥æ•°å­—ï¼Œå¹¶å¯ä»¥è§„å®šèŒƒå›´ã€é—´éš”ã€‚</summary>
+    [Description("æ—¥æœŸé€‰æ‹©æ§ä»¶")]
     [ToolboxData("<{0}:IPBox runat=server></{0}:IPBox>")]
     [ToolboxBitmap(typeof(TextBox))]
     public class IPBox : TextBox
     {
-         /// <summary>³õÊ¼»¯IPµØÖ·ÊäÈë¿Ø¼şµÄÑùÊ½¡£</summary>
+         /// <summary>åˆå§‹åŒ–IPåœ°å€è¾“å…¥æ§ä»¶çš„æ ·å¼ã€‚</summary>
         public IPBox()
             : base()
         {
-            this.ToolTip = "Ö»ÄÜÊäÈëIPµØÖ·£¡";
+            this.ToolTip = "åªèƒ½è¾“å…¥IPåœ°å€ï¼";
             BorderWidth = Unit.Pixel(0);
             BorderColor = Color.Black;
             BorderStyle = BorderStyle.Solid;
@@ -25,13 +25,13 @@ namespace XControl
             if (String.IsNullOrEmpty(Attributes["style"])) this.Attributes.Add("style", "border-bottom-width:1px;");
         }
 
-        /// <summary>ÒÑÖØÔØ¡£</summary>
+        /// <summary>å·²é‡è½½ã€‚</summary>
         /// <param name="e"></param>
         protected override void OnPreRender(EventArgs e)
         {
             base.OnPreRender(e);
 
-            // Ğ£Ñé½Å±¾
+            // æ ¡éªŒè„šæœ¬
             this.Attributes.Add("onkeypress", "return ValidIP();");
             this.Attributes.Add("onblur", "return ValidIP2();");
             this.Page.ClientScript.RegisterClientScriptResource(typeof(NumberBox), "XControl.TextBox.Validator.js");

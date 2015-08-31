@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -7,7 +7,7 @@ using System.Web.WebPages;
 
 namespace NewLife.Cube.Precompiled
 {
-    /// <summary>Ô¤±àÒëÊÓÍ¼</summary>
+    /// <summary>é¢„ç¼–è¯‘è§†å›¾</summary>
     public class PrecompiledMvcView : IView
     {
         private static Lazy<Action<WebViewPage, String>> _overriddenLayoutSetter = new Lazy<Action<WebViewPage, String>>(() => CreateOverriddenLayoutSetterDelegate());
@@ -16,23 +16,23 @@ namespace NewLife.Cube.Precompiled
         private readonly String _masterPath;
         private readonly IViewPageActivator _viewPageActivator;
 
-        /// <summary>ÊÇ·ñÔËĞĞÊÓÍ¼¿ªÊ¼Ò³ViewStart</summary>
+        /// <summary>æ˜¯å¦è¿è¡Œè§†å›¾å¼€å§‹é¡µViewStart</summary>
         public Boolean RunViewStartPages { get; private set; }
 
-        /// <summary>ÊÓÍ¼¿ªÊ¼Ò³À©Õ¹</summary>
+        /// <summary>è§†å›¾å¼€å§‹é¡µæ‰©å±•</summary>
         public IEnumerable<String> ViewStartFileExtensions { get; private set; }
 
-        /// <summary>ĞéÄâÂ·¾¶</summary>
+        /// <summary>è™šæ‹Ÿè·¯å¾„</summary>
         public String VirtualPath { get { return _virtualPath; } }
 
-        ///// <summary>ÊµÀı»¯Ô¤±àÒëÊÓÍ¼</summary>
+        ///// <summary>å®ä¾‹åŒ–é¢„ç¼–è¯‘è§†å›¾</summary>
         ///// <param name="virtualPath"></param>
         ///// <param name="type"></param>
         ///// <param name="runViewStartPages"></param>
         ///// <param name="fileExtension"></param>
         //public PrecompiledMvcView(String virtualPath, Type type, Boolean runViewStartPages, IEnumerable<String> fileExtension) : this(virtualPath, null, type, runViewStartPages, fileExtension) { }
 
-        ///// <summary>ÊµÀı»¯Ô¤±àÒëÊÓÍ¼</summary>
+        ///// <summary>å®ä¾‹åŒ–é¢„ç¼–è¯‘è§†å›¾</summary>
         ///// <param name="virtualPath"></param>
         ///// <param name="masterPath"></param>
         ///// <param name="type"></param>
@@ -40,7 +40,7 @@ namespace NewLife.Cube.Precompiled
         ///// <param name="fileExtension"></param>
         //public PrecompiledMvcView(String virtualPath, String masterPath, Type type, Boolean runViewStartPages, IEnumerable<String> fileExtension) : this(virtualPath, masterPath, type, runViewStartPages, fileExtension, null) { }
 
-        /// <summary>ÊµÀı»¯Ô¤±àÒëÊÓÍ¼</summary>
+        /// <summary>å®ä¾‹åŒ–é¢„ç¼–è¯‘è§†å›¾</summary>
         /// <param name="virtualPath"></param>
         /// <param name="masterPath"></param>
         /// <param name="type"></param>
@@ -58,13 +58,13 @@ namespace NewLife.Cube.Precompiled
             _viewPageActivator = viewPageActivator;
         }
 
-        /// <summary>Éú³ÉÊÓÍ¼ÄÚÈİ</summary>
+        /// <summary>ç”Ÿæˆè§†å›¾å†…å®¹</summary>
         /// <param name="viewContext"></param>
         /// <param name="writer"></param>
         public void Render(ViewContext viewContext, TextWriter writer)
         {
             var webViewPage = _viewPageActivator.Create(viewContext.Controller.ControllerContext, _type) as WebViewPage;
-            if (webViewPage == null) throw new InvalidOperationException("ÎŞĞ§ÊÓÍ¼ÀàĞÍ");
+            if (webViewPage == null) throw new InvalidOperationException("æ— æ•ˆè§†å›¾ç±»å‹");
 
             if (!String.IsNullOrEmpty(_masterPath))
             {

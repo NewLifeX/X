@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Web.UI;
@@ -6,16 +6,16 @@ using System.Web.UI.WebControls;
 
 namespace XControl
 {
-    /// <summary>ÕûĞÍÑ¡Ôñ¿Ø¼ş¡£</summary>
-    [Description("ÕûĞÍÑ¡Ôñ¿Ø¼ş")]
+    /// <summary>æ•´å‹é€‰æ‹©æ§ä»¶ã€‚</summary>
+    [Description("æ•´å‹é€‰æ‹©æ§ä»¶")]
     [ToolboxData("<{0}:IntCheckBox runat=server></{0}:IntCheckBox>")]
     [ToolboxBitmap(typeof(CheckBox))]
     [ControlValueProperty("Value")]
     public class IntCheckBox : CheckBox
     {
 
-        /// <summary>Ñ¡ÖĞÖµ</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(1), Description("Ñ¡ÖĞÖµ")]
+        /// <summary>é€‰ä¸­å€¼</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(1), Description("é€‰ä¸­å€¼")]
         public Int32 SelectedValue
         {
             get
@@ -32,8 +32,8 @@ namespace XControl
             }
         }
 
-        /// <summary>·ÇÑ¡ÖĞÖµ</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(0), Description("·ÇÑ¡ÖĞÖµ")]
+        /// <summary>éé€‰ä¸­å€¼</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(0), Description("éé€‰ä¸­å€¼")]
         public Int32 UnSelectedValue
         {
             get
@@ -50,8 +50,8 @@ namespace XControl
             }
         }
 
-        /// <summary>ÊÇ·ñ½ö½öÑ¡ÖĞ</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(false), Description("µ±Ç°ÖµValueÊÇ·ñ½ö½öµÈÓÚÑ¡ÖĞÖµÊ±²ÅÑ¡ÖĞ")]
+        /// <summary>æ˜¯å¦ä»…ä»…é€‰ä¸­</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(false), Description("å½“å‰å€¼Valueæ˜¯å¦ä»…ä»…ç­‰äºé€‰ä¸­å€¼æ—¶æ‰é€‰ä¸­")]
         public Boolean OnlySelect
         {
             get
@@ -68,8 +68,8 @@ namespace XControl
             }
         }
 
-        /// <summary>µ±Ç°Öµ</summary>
-        [Category(" ×¨ÓÃÊôĞÔ"), DefaultValue(0), Description("µ±Ç°Öµ")]
+        /// <summary>å½“å‰å€¼</summary>
+        [Category(" ä¸“ç”¨å±æ€§"), DefaultValue(0), Description("å½“å‰å€¼")]
         public Int32 Value
         {
             get
@@ -80,7 +80,7 @@ namespace XControl
             {
                 if (OnlySelect)
                 {
-                    //Ö»ÓĞµÈÓÚÑ¡ÖĞÖµÊ±²ÅÑ¡ÖĞ
+                    //åªæœ‰ç­‰äºé€‰ä¸­å€¼æ—¶æ‰é€‰ä¸­
                     Checked = (value == SelectedValue);
                 }
                 else

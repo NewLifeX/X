@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -20,24 +20,24 @@ namespace XCode.DataAccessLayer
 {
     class Oracle : RemoteDb
     {
-        #region ÊôĞÔ
-        /// <summary>·µ»ØÊı¾İ¿âÀàĞÍ¡£Íâ²¿DALÊı¾İ¿âÀàÇëÊ¹ÓÃOther</summary>
+        #region å±æ€§
+        /// <summary>è¿”å›æ•°æ®åº“ç±»å‹ã€‚å¤–éƒ¨DALæ•°æ®åº“ç±»è¯·ä½¿ç”¨Other</summary>
         public override DatabaseType DbType { get { return DatabaseType.Oracle; } }
 
         private static DbProviderFactory _dbProviderFactory;
-        /// <summary>Ìá¹©Õß¹¤³§</summary>
+        /// <summary>æä¾›è€…å·¥å‚</summary>
         static DbProviderFactory dbProviderFactory
         {
             get
             {
-                // Ê×ÏÈ³¢ÊÔÊ¹ÓÃOracle.DataAccess
+                // é¦–å…ˆå°è¯•ä½¿ç”¨Oracle.DataAccess
                 if (_dbProviderFactory == null)
                 {
                     lock (typeof(Oracle))
                     {
                         if (_dbProviderFactory == null)
                         {
-                            // Òì²½¼ì²éOracle¿Í»§¶ËÔËĞĞÊ±£¬´ËÊ±¿ÉÄÜ»áÏÈÓÃÏµÍ³Çı¶¯
+                            // å¼‚æ­¥æ£€æŸ¥Oracleå®¢æˆ·ç«¯è¿è¡Œæ—¶ï¼Œæ­¤æ—¶å¯èƒ½ä¼šå…ˆç”¨ç³»ç»Ÿé©±åŠ¨
                             ThreadPoolX.QueueUserWorkItem(CheckRuntime);
                             //CheckRuntime();
 
@@ -48,7 +48,7 @@ namespace XCode.DataAccessLayer
                                 if (_dbProviderFactory != null && DAL.Debug)
                                 {
                                     var asm = _dbProviderFactory.GetType().Assembly;
-                                    if (DAL.Debug) DAL.WriteLog("OracleÊ¹ÓÃÎÄ¼şÇı¶¯{0} °æ±¾v{1}", asm.Location, asm.GetName().Version);
+                                    if (DAL.Debug) DAL.WriteLog("Oracleä½¿ç”¨æ–‡ä»¶é©±åŠ¨{0} ç‰ˆæœ¬v{1}", asm.Location, asm.GetName().Version);
                                 }
                             }
                             catch (FileNotFoundException) { }
@@ -58,17 +58,17 @@ namespace XCode.DataAccessLayer
                             }
                         }
 
-                        // ÒÔÏÂÈıÖÖ·½Ê½¶¼¿ÉÒÔ¼ÓÔØ£¬Ç°Á½ÖÖÖ»ÊÇÎªÁË¼õÉÙ¶Ô³ÌĞò¼¯µÄÒıÓÃ£¬µÚ¶şÖÖÊÇÎªÁË±ÜÃâµÚÒ»ÖÖÖĞÃ»ÓĞ×¢²á
+                        // ä»¥ä¸‹ä¸‰ç§æ–¹å¼éƒ½å¯ä»¥åŠ è½½ï¼Œå‰ä¸¤ç§åªæ˜¯ä¸ºäº†å‡å°‘å¯¹ç¨‹åºé›†çš„å¼•ç”¨ï¼Œç¬¬äºŒç§æ˜¯ä¸ºäº†é¿å…ç¬¬ä¸€ç§ä¸­æ²¡æœ‰æ³¨å†Œ
                         if (_dbProviderFactory == null)
                         {
                             _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
-                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteLog("OracleÊ¹ÓÃÅäÖÃÇı¶¯{0}", _dbProviderFactory.GetType().Assembly.Location);
+                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteLog("Oracleä½¿ç”¨é…ç½®é©±åŠ¨{0}", _dbProviderFactory.GetType().Assembly.Location);
                         }
                         if (_dbProviderFactory == null)
                         {
                             String fileName = "System.Data.OracleClient.dll";
                             _dbProviderFactory = GetProviderFactory(fileName, "System.Data.OracleClient.OracleClientFactory");
-                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteLog("OracleÊ¹ÓÃÏµÍ³Çı¶¯{0}", _dbProviderFactory.GetType().Assembly.Location);
+                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteLog("Oracleä½¿ç”¨ç³»ç»Ÿé©±åŠ¨{0}", _dbProviderFactory.GetType().Assembly.Location);
                         }
                         //if (_dbProviderFactory == null) _dbProviderFactory = OracleClientFactory.Instance;
                     }
@@ -78,11 +78,11 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>¹¤³§</summary>
+        /// <summary>å·¥å‚</summary>
         public override DbProviderFactory Factory { get { return dbProviderFactory; } }
 
         private String _UserID;
-        /// <summary>ÓÃ»§ÃûUserID</summary>
+        /// <summary>ç”¨æˆ·åUserID</summary>
         public String UserID
         {
             get
@@ -103,12 +103,12 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>ÓµÓĞÕß</summary>
+        /// <summary>æ‹¥æœ‰è€…</summary>
         public override String Owner
         {
             get
             {
-                // ÀûÓÃnullºÍEmptyµÄÇø±ğÀ´ÅĞ¶ÏÊÇ·ñÒÑ¼ÆËã
+                // åˆ©ç”¨nullå’ŒEmptyçš„åŒºåˆ«æ¥åˆ¤æ–­æ˜¯å¦å·²è®¡ç®—
                 if (base.Owner == null)
                 {
                     base.Owner = UserID;
@@ -121,7 +121,7 @@ namespace XCode.DataAccessLayer
         }
 
         private static String _DllPath;
-        /// <summary>OCIÄ¿Â¼ </summary>
+        /// <summary>OCIç›®å½• </summary>
         public static String DllPath
         {
             get
@@ -160,7 +160,7 @@ namespace XCode.DataAccessLayer
         }
 
         private static String _OracleHome;
-        /// <summary>OracleÔËĞĞÊ±Ö÷Ä¿Â¼</summary>
+        /// <summary>Oracleè¿è¡Œæ—¶ä¸»ç›®å½•</summary>
         public static String OracleHome
         {
             get
@@ -169,16 +169,16 @@ namespace XCode.DataAccessLayer
                 {
                     _OracleHome = String.Empty;
 
-                    // Èç¹ûDllPathÄ¿Â¼´æÔÚ£¬Ôò»ùÓÚËüÕÒÖ÷Ä¿Â¼
+                    // å¦‚æœDllPathç›®å½•å­˜åœ¨ï¼Œåˆ™åŸºäºå®ƒæ‰¾ä¸»ç›®å½•
                     var dir = DllPath;
                     if (!String.IsNullOrEmpty(dir) && Directory.Exists(dir))
                     {
                         _OracleHome = dir;
 
-                        // Èç¹û¸ÃÄ¿Â¼¾ÍÓĞnetworkÄ¿Â¼£¬ÔòÊ¹ÓÃËü×÷ÎªÖ÷Ä¿Â¼
+                        // å¦‚æœè¯¥ç›®å½•å°±æœ‰networkç›®å½•ï¼Œåˆ™ä½¿ç”¨å®ƒä½œä¸ºä¸»ç›®å½•
                         if (!Directory.Exists(Path.Combine(dir, "network")))
                         {
-                            // ·ñÔòÕÒÉÏÒ»¼¶
+                            // å¦åˆ™æ‰¾ä¸Šä¸€çº§
                             var di = new DirectoryInfo(dir);
                             di = di.Parent;
 
@@ -191,16 +191,16 @@ namespace XCode.DataAccessLayer
             //set { _OracleHome = value; }
         }
 
-        /// <summary>ÉèÖÃµÄdllÂ·¾¶</summary>
+        /// <summary>è®¾ç½®çš„dllè·¯å¾„</summary>
         private static String _settingDllPath = Setting.Current.Oracle.DLLPath;
 
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             String str = null;
-            // »ñÈ¡OCIÄ¿Â¼
+            // è·å–OCIç›®å½•
             if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
             {
-                // Á¬½Ó×Ö·û´®ÀïÃæÖ¸¶¨µÄOCIÓÅÏÈÓÚÅäÖÃ
+                // è¿æ¥å­—ç¬¦ä¸²é‡Œé¢æŒ‡å®šçš„OCIä¼˜å…ˆäºé…ç½®
                 if (_settingDllPath.IsNullOrWhiteSpace() || Directory.Exists(str)) _settingDllPath = str;
                 SetDllPath(str);
                 //else if (!String.IsNullOrEmpty(str = DllPath))
@@ -209,14 +209,14 @@ namespace XCode.DataAccessLayer
             else
             {
                 if (!String.IsNullOrEmpty(str = DllPath)) SetDllPath(str);
-                // Òì²½ÉèÖÃDLLÄ¿Â¼
+                // å¼‚æ­¥è®¾ç½®DLLç›®å½•
                 //ThreadPool.QueueUserWorkItem(ss => SetDllPath(DllPath));
                 //Thread.Sleep(500);
             }
         }
 
         /*
-         * ¶Ô PInvoke º¯Êı¡°SetDllDirectory¡±µÄµ÷ÓÃµ¼ÖÂ¶ÑÕ»²»¶Ô³Æ
+         * å¯¹ PInvoke å‡½æ•°â€œSetDllDirectoryâ€çš„è°ƒç”¨å¯¼è‡´å †æ ˆä¸å¯¹ç§°
          * http://www.newlifex.com/showtopic-985.aspx
          */
         [DllImport("kernel32.dll")]
@@ -226,15 +226,15 @@ namespace XCode.DataAccessLayer
         static extern int SetDllDirectory(string pathName);
         #endregion
 
-        #region ·½·¨
-        /// <summary>´´½¨Êı¾İ¿â»á»°</summary>
+        #region æ–¹æ³•
+        /// <summary>åˆ›å»ºæ•°æ®åº“ä¼šè¯</summary>
         /// <returns></returns>
         protected override IDbSession OnCreateSession()
         {
             return new OracleSession();
         }
 
-        /// <summary>´´½¨ÔªÊı¾İ¶ÔÏó</summary>
+        /// <summary>åˆ›å»ºå…ƒæ•°æ®å¯¹è±¡</summary>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData()
         {
@@ -251,16 +251,16 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ·ÖÒ³
-        /// <summary>ÒÑÖØĞ´¡£»ñÈ¡·ÖÒ³ 2012.9.26 HUIYUEĞŞÕı·ÖÒ³BUG</summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ</param>
-        /// <param name="keyColumn">Ö÷¼üÁĞ¡£ÓÃÓÚnot in·ÖÒ³</param>
+        #region åˆ†é¡µ
+        /// <summary>å·²é‡å†™ã€‚è·å–åˆ†é¡µ 2012.9.26 HUIYUEä¿®æ­£åˆ†é¡µBUG</summary>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œ</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œ</param>
+        /// <param name="keyColumn">ä¸»é”®åˆ—ã€‚ç”¨äºnot inåˆ†é¡µ</param>
         /// <returns></returns>
         public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
-            // ´ÓµÚÒ»ĞĞ¿ªÊ¼
+            // ä»ç¬¬ä¸€è¡Œå¼€å§‹
             if (startRowIndex <= 0)
             {
                 if (maximumRows > 0) sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows, sql);
@@ -275,19 +275,19 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        /// <summary>¹¹Ôì·ÖÒ³SQL</summary>
+        /// <summary>æ„é€ åˆ†é¡µSQL</summary>
         /// <remarks>
-        /// Á½¸ö¹¹Ôì·ÖÒ³SQLµÄ·½·¨£¬Çø±ğ¾ÍÔÚÓÚ²éÑ¯Éú³ÉÆ÷ÄÜ¹»¹¹Ôì³öÀ´¸üºÃµÄ·ÖÒ³Óï¾ä£¬¾¡¿ÉÄÜµÄ±ÜÃâ×Ó²éÑ¯¡£
-        /// MSÌåÏµµÄ·ÖÒ³¾«Ëè¾ÍÔÚÓÚÎ¨Ò»¼ü£¬µ±Î¨Ò»¼ü´øÓĞAsc/Desc/UnkownµÈÅÅĞò½áÎ²Ê±£¬¾Í²ÉÓÃ×î´ó×îĞ¡Öµ·ÖÒ³£¬·ñÔòÊ¹ÓÃ½Ï´ÎµÄTopNotIn·ÖÒ³¡£
-        /// TopNotIn·ÖÒ³ºÍMaxMin·ÖÒ³µÄ±×¶Ë¾ÍÔÚÓÚÎŞ·¨ÍêÃÀµÄÖ§³ÖGroupBy²éÑ¯·ÖÒ³£¬Ö»ÄÜ²éµ½µÚÒ»Ò³£¬Íùºó·ÖÒ³¾Í²»ĞĞÁË£¬ÒòÎªÃ»ÓĞÖ÷¼ü¡£
+        /// ä¸¤ä¸ªæ„é€ åˆ†é¡µSQLçš„æ–¹æ³•ï¼ŒåŒºåˆ«å°±åœ¨äºæŸ¥è¯¢ç”Ÿæˆå™¨èƒ½å¤Ÿæ„é€ å‡ºæ¥æ›´å¥½çš„åˆ†é¡µè¯­å¥ï¼Œå°½å¯èƒ½çš„é¿å…å­æŸ¥è¯¢ã€‚
+        /// MSä½“ç³»çš„åˆ†é¡µç²¾é«“å°±åœ¨äºå”¯ä¸€é”®ï¼Œå½“å”¯ä¸€é”®å¸¦æœ‰Asc/Desc/Unkownç­‰æ’åºç»“å°¾æ—¶ï¼Œå°±é‡‡ç”¨æœ€å¤§æœ€å°å€¼åˆ†é¡µï¼Œå¦åˆ™ä½¿ç”¨è¾ƒæ¬¡çš„TopNotInåˆ†é¡µã€‚
+        /// TopNotInåˆ†é¡µå’ŒMaxMinåˆ†é¡µçš„å¼Šç«¯å°±åœ¨äºæ— æ³•å®Œç¾çš„æ”¯æŒGroupByæŸ¥è¯¢åˆ†é¡µï¼Œåªèƒ½æŸ¥åˆ°ç¬¬ä¸€é¡µï¼Œå¾€ååˆ†é¡µå°±ä¸è¡Œäº†ï¼Œå› ä¸ºæ²¡æœ‰ä¸»é”®ã€‚
         /// </remarks>
-        /// <param name="builder">²éÑ¯Éú³ÉÆ÷</param>
-        /// <param name="startRowIndex">¿ªÊ¼ĞĞ£¬0±íÊ¾µÚÒ»ĞĞ</param>
-        /// <param name="maximumRows">×î´ó·µ»ØĞĞÊı£¬0±íÊ¾ËùÓĞĞĞ</param>
-        /// <returns>·ÖÒ³SQL</returns>
+        /// <param name="builder">æŸ¥è¯¢ç”Ÿæˆå™¨</param>
+        /// <param name="startRowIndex">å¼€å§‹è¡Œï¼Œ0è¡¨ç¤ºç¬¬ä¸€è¡Œ</param>
+        /// <param name="maximumRows">æœ€å¤§è¿”å›è¡Œæ•°ï¼Œ0è¡¨ç¤ºæ‰€æœ‰è¡Œ</param>
+        /// <returns>åˆ†é¡µSQL</returns>
         public override SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            // ´ÓµÚÒ»ĞĞ¿ªÊ¼£¬²»ĞèÒª·ÖÒ³
+            // ä»ç¬¬ä¸€è¡Œå¼€å§‹ï¼Œä¸éœ€è¦åˆ†é¡µ
             if (startRowIndex <= 0)
             {
                 if (maximumRows > 0) builder = builder.AsChild("XCode_Temp_a").AppendWhereAnd("rownum<={0}", maximumRows);
@@ -303,14 +303,14 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region Êı¾İ¿âÌØĞÔ
-        /// <summary>µ±Ç°Ê±¼äº¯Êı</summary>
+        #region æ•°æ®åº“ç‰¹æ€§
+        /// <summary>å½“å‰æ—¶é—´å‡½æ•°</summary>
         public override string DateTimeNow { get { return "sysdate"; } }
 
-        /// <summary>»ñÈ¡GuidµÄº¯Êı</summary>
+        /// <summary>è·å–Guidçš„å‡½æ•°</summary>
         public override String NewGuid { get { return "sys_guid()"; } }
 
-        /// <summary>ÒÑÖØÔØ¡£¸ñÊ½»¯Ê±¼ä</summary>
+        /// <summary>å·²é‡è½½ã€‚æ ¼å¼åŒ–æ—¶é—´</summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
         public override string FormatDateTime(DateTime dateTime)
@@ -326,7 +326,7 @@ namespace XCode.DataAccessLayer
             if (code == TypeCode.String)
             {
                 if (value == null) return isNullable ? "null" : "''";
-                //ÔÆ·ÉÑï£ºÕâÀï×¢ÊÍµô£¬Ó¦¸Ã·µ»Ø''¶ø²»ÊÇnull×Ö·û
+                //äº‘é£æ‰¬ï¼šè¿™é‡Œæ³¨é‡Šæ‰ï¼Œåº”è¯¥è¿”å›''è€Œä¸æ˜¯nullå­—ç¬¦
                 //if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
                 if (field.IsUnicode || IsUnicode(field.RawType))
@@ -338,9 +338,9 @@ namespace XCode.DataAccessLayer
             return base.FormatValue(field, value);
         }
 
-        /// <summary>¸ñÊ½»¯±êÊ¶ÁĞ£¬·µ»Ø²åÈëÊı¾İÊ±ËùÓÃµÄ±í´ïÊ½£¬Èç¹û×Ö¶Î±¾ÉíÖ§³Ö×ÔÔö£¬Ôò·µ»Ø¿Õ</summary>
-        /// <param name="field">×Ö¶Î</param>
-        /// <param name="value">ÊıÖµ</param>
+        /// <summary>æ ¼å¼åŒ–æ ‡è¯†åˆ—ï¼Œè¿”å›æ’å…¥æ•°æ®æ—¶æ‰€ç”¨çš„è¡¨è¾¾å¼ï¼Œå¦‚æœå­—æ®µæœ¬èº«æ”¯æŒè‡ªå¢ï¼Œåˆ™è¿”å›ç©º</summary>
+        /// <param name="field">å­—æ®µ</param>
+        /// <param name="value">æ•°å€¼</param>
         /// <returns></returns>
         public override string FormatIdentity(IDataColumn field, Object value)
         {
@@ -349,21 +349,21 @@ namespace XCode.DataAccessLayer
 
         internal protected override String ParamPrefix { get { return ":"; } }
 
-        /// <summary>×Ö·û´®Ïà¼Ó</summary>
+        /// <summary>å­—ç¬¦ä¸²ç›¸åŠ </summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
         public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
         #endregion
 
-        #region ¹Ø¼ü×Ö
+        #region å…³é”®å­—
         protected override string ReservedWordsStr
         {
             get { return "Sort,Level,ALL,ALTER,AND,ANY,AS,ASC,BETWEEN,BY,CHAR,CHECK,CLUSTER,COMPRESS,CONNECT,CREATE,DATE,DECIMAL,DEFAULT,DELETE,DESC,DISTINCT,DROP,ELSE,EXCLUSIVE,EXISTS,FLOAT,FOR,FROM,GRANT,GROUP,HAVING,IDENTIFIED,IN,INDEX,INSERT,INTEGER,INTERSECT,INTO,IS,LIKE,LOCK,LONG,MINUS,MODE,NOCOMPRESS,NOT,NOWAIT,NULL,NUMBER,OF,ON,OPTION,OR,ORDER,PCTFREE,PRIOR,PUBLIC,RAW,RENAME,RESOURCE,REVOKE,SELECT,SET,SHARE,SIZE,SMALLINT,START,SYNONYM,TABLE,THEN,TO,TRIGGER,UNION,UNIQUE,UPDATE,VALUES,VARCHAR,VARCHAR2,VIEW,WHERE,WITH"; }
         }
 
-        /// <summary>¸ñÊ½»¯¹Ø¼ü×Ö</summary>
-        /// <param name="keyWord">±íÃû</param>
+        /// <summary>æ ¼å¼åŒ–å…³é”®å­—</summary>
+        /// <param name="keyWord">è¡¨å</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
@@ -382,7 +382,7 @@ namespace XCode.DataAccessLayer
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
         }
 
-        /// <summary>ÊÇ·ñºöÂÔ´óĞ¡Ğ´£¬Èç¹û²»ºöÂÔÔòÔÚ±íÃû×Ö¶ÎÃûÍâÃæ¼ÓÉÏË«ÒıºÅ</summary>
+        /// <summary>æ˜¯å¦å¿½ç•¥å¤§å°å†™ï¼Œå¦‚æœä¸å¿½ç•¥åˆ™åœ¨è¡¨åå­—æ®µåå¤–é¢åŠ ä¸ŠåŒå¼•å·</summary>
         static Boolean _IgnoreCase = Setting.Current.Oracle.IgnoreCase;
 
         public override string FormatName(string name)
@@ -394,7 +394,7 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region ¸¨Öú
+        #region è¾…åŠ©
         Dictionary<String, DateTime> cache = new Dictionary<String, DateTime>();
         public Boolean NeedAnalyzeStatistics(String tableName)
         {
@@ -408,7 +408,7 @@ namespace XCode.DataAccessLayer
 
             if (dt > DateTime.Now) return false;
 
-            // Ò»·ÖÖÓºó²Å¿ÉÒÔÔÙ´Î·ÖÎö
+            // ä¸€åˆ†é’Ÿåæ‰å¯ä»¥å†æ¬¡åˆ†æ
             dt = DateTime.Now.AddSeconds(10);
             cache[key] = dt;
 
@@ -421,11 +421,11 @@ namespace XCode.DataAccessLayer
 
             var dir = DllPath = str;
 
-            // ÉèÖÃÂ·¾¶
+            // è®¾ç½®è·¯å¾„
             var ocifile = Path.Combine(dir, "oci.dll");
             if (File.Exists(ocifile))
             {
-                if (DAL.Debug) DAL.WriteLog("ÉèÖÃOCIÄ¿Â¼£º{0}", dir);
+                if (DAL.Debug) DAL.WriteLog("è®¾ç½®OCIç›®å½•ï¼š{0}", dir);
 
                 try
                 {
@@ -437,7 +437,7 @@ namespace XCode.DataAccessLayer
 
             if (Environment.GetEnvironmentVariable("ORACLE_HOME").IsNullOrWhiteSpace() && !OracleHome.IsNullOrWhiteSpace())
             {
-                if (DAL.Debug) DAL.WriteLog("ÉèÖÃ»·¾³±äÁ¿£º{0}={1}", "ORACLE_HOME", OracleHome);
+                if (DAL.Debug) DAL.WriteLog("è®¾ç½®ç¯å¢ƒå˜é‡ï¼š{0}={1}", "ORACLE_HOME", OracleHome);
 
                 Environment.SetEnvironmentVariable("ORACLE_HOME", OracleHome);
             }
@@ -448,16 +448,16 @@ namespace XCode.DataAccessLayer
             var dp = DllPath;
             if (!String.IsNullOrEmpty(dp))
             {
-                if (DAL.Debug) DAL.WriteLog("OracleµÄOCIÄ¿Â¼£º{0}", dp);
+                if (DAL.Debug) DAL.WriteLog("Oracleçš„OCIç›®å½•ï¼š{0}", dp);
                 return;
             }
 
             var file = "oci.dll";
             if (File.Exists(file)) return;
 
-            DAL.WriteLog(@"ÒÑËÑË÷µ±Ç°Ä¿Â¼¡¢ÉÏ¼¶Ä¿Â¼¡¢¸÷¸öÅÌ¸ùÄ¿Â¼£¬Ã»ÓĞÕÒµ½OracleClient\OCI.dll£¬¿ÉÄÜÊÇÅäÖÃ²»µ±£¬×¼±¸´ÓÍøÂçÏÂÔØ£¡");
+            DAL.WriteLog(@"å·²æœç´¢å½“å‰ç›®å½•ã€ä¸Šçº§ç›®å½•ã€å„ä¸ªç›˜æ ¹ç›®å½•ï¼Œæ²¡æœ‰æ‰¾åˆ°OracleClient\OCI.dllï¼Œå¯èƒ½æ˜¯é…ç½®ä¸å½“ï¼Œå‡†å¤‡ä»ç½‘ç»œä¸‹è½½ï¼");
 
-            // ³¢ÊÔÊ¹ÓÃÉèÖÃ£¬È»ºó²ÅÊ¹ÓÃÉÏ¼¶Ä¿Â¼
+            // å°è¯•ä½¿ç”¨è®¾ç½®ï¼Œç„¶åæ‰ä½¿ç”¨ä¸Šçº§ç›®å½•
             var target = "";
             try
             {
@@ -479,7 +479,7 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            DAL.WriteLog("×¼±¸ÏÂÔØOracle¿Í»§¶ËÔËĞĞÊ±µ½{0}£¬¿É±£´æÑ¹Ëõ°ü¹©½«À´Ö±½Ó½âÑ¹Ê¹ÓÃ£¡", target);
+            DAL.WriteLog("å‡†å¤‡ä¸‹è½½Oracleå®¢æˆ·ç«¯è¿è¡Œæ—¶åˆ°{0}ï¼Œå¯ä¿å­˜å‹ç¼©åŒ…ä¾›å°†æ¥ç›´æ¥è§£å‹ä½¿ç”¨ï¼", target);
             //CheckAndDownload("OracleClient.zip", target);
             var url = "http://www.newlifex.com/showtopic-51.aspx";
             var client = new WebClientX(true, true);
@@ -520,12 +520,12 @@ namespace XCode.DataAccessLayer
             ocifile = @"..\OracleClient\oci.dll".GetFullPath();
             if (File.Exists(ocifile)) return ocifile;
 
-            // È«ÅÌËÑË÷
+            // å…¨ç›˜æœç´¢
             try
             {
                 foreach (var item in DriveInfo.GetDrives())
                 {
-                    // ½öËÑË÷Ó²ÅÌºÍÒÆ¶¯´æ´¢
+                    // ä»…æœç´¢ç¡¬ç›˜å’Œç§»åŠ¨å­˜å‚¨
                     if (item.DriveType != DriveType.Fixed && item.DriveType != DriveType.Removable || !item.IsReady) continue;
 
                     ocifile = Path.Combine(item.RootDirectory.FullName, @"Oracle\oci.dll");
@@ -537,7 +537,7 @@ namespace XCode.DataAccessLayer
             }
             catch { }
 
-            // »·¾³±äÁ¿ËÑË÷
+            // ç¯å¢ƒå˜é‡æœç´¢
             try
             {
                 var vpath = Environment.GetEnvironmentVariable("Path");
@@ -552,7 +552,7 @@ namespace XCode.DataAccessLayer
             }
             catch { }
 
-            // ×¢²á±íËÑË÷
+            // æ³¨å†Œè¡¨æœç´¢
             try
             {
                 var reg = Registry.LocalMachine.OpenSubKey(@"Software\Oracle");
@@ -591,18 +591,18 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>OracleÊı¾İ¿â</summary>
+    /// <summary>Oracleæ•°æ®åº“</summary>
     internal class OracleSession : RemoteDbSession
     {
         static OracleSession()
         {
-            // ¾É°æOracleÔËĞĞÊ±»áÒòÎªÃ»ÓĞÕâ¸ö¶ø±¨´í
+            // æ—§ç‰ˆOracleè¿è¡Œæ—¶ä¼šå› ä¸ºæ²¡æœ‰è¿™ä¸ªè€ŒæŠ¥é”™
             String name = "NLS_LANG";
             if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable(name))) Environment.SetEnvironmentVariable(name, "SIMPLIFIED CHINESE_CHINA.ZHS16GBK");
         }
 
-        #region »ù±¾·½·¨ ²éÑ¯/Ö´ĞĞ
-        /// <summary>¿ìËÙ²éÑ¯µ¥±í¼ÇÂ¼Êı£¬ÉÔÓĞÆ«²î</summary>
+        #region åŸºæœ¬æ–¹æ³• æŸ¥è¯¢/æ‰§è¡Œ
+        /// <summary>å¿«é€ŸæŸ¥è¯¢å•è¡¨è®°å½•æ•°ï¼Œç¨æœ‰åå·®</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
         public override Int64 QueryCountFast(string tableName)
@@ -622,15 +622,15 @@ namespace XCode.DataAccessLayer
         }
 
         static Regex reg_SEQ = new Regex(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        /// <summary>Ö´ĞĞ²åÈëÓï¾ä²¢·µ»ØĞÂÔöĞĞµÄ×Ô¶¯±àºÅ</summary>
-        /// <param name="sql">SQLÓï¾ä</param>
-        /// <param name="type">ÃüÁîÀàĞÍ£¬Ä¬ÈÏSQLÎÄ±¾</param>
-        /// <param name="ps">ÃüÁî²ÎÊı</param>
-        /// <returns>ĞÂÔöĞĞµÄ×Ô¶¯±àºÅ</returns>
+        /// <summary>æ‰§è¡Œæ’å…¥è¯­å¥å¹¶è¿”å›æ–°å¢è¡Œçš„è‡ªåŠ¨ç¼–å·</summary>
+        /// <param name="sql">SQLè¯­å¥</param>
+        /// <param name="type">å‘½ä»¤ç±»å‹ï¼Œé»˜è®¤SQLæ–‡æœ¬</param>
+        /// <param name="ps">å‘½ä»¤å‚æ•°</param>
+        /// <returns>æ–°å¢è¡Œçš„è‡ªåŠ¨ç¼–å·</returns>
         public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             var b = IsAutoClose;
-            // ½ûÓÃ×Ô¶¯¹Ø±Õ£¬±£Ö¤Á½´ÎÔÚÍ¬Ò»»á»°
+            // ç¦ç”¨è‡ªåŠ¨å…³é—­ï¼Œä¿è¯ä¸¤æ¬¡åœ¨åŒä¸€ä¼šè¯
             IsAutoClose = false;
 
             BeginTransaction();
@@ -656,22 +656,22 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 
-    /// <summary>OracleÔªÊı¾İ</summary>
+    /// <summary>Oracleå…ƒæ•°æ®</summary>
     class OracleMeta : RemoteDbMetaData
     {
-        /// <summary>ÓµÓĞÕß</summary>
+        /// <summary>æ‹¥æœ‰è€…</summary>
         public String Owner { get { return (Database as Oracle).Owner.ToUpper(); } }
 
-        /// <summary>ÊÇ·ñÏŞÖÆÖ»ÄÜ·ÃÎÊÓµÓĞÕßµÄĞÅÏ¢</summary>
+        /// <summary>æ˜¯å¦é™åˆ¶åªèƒ½è®¿é—®æ‹¥æœ‰è€…çš„ä¿¡æ¯</summary>
         Boolean IsUseOwner { get { return Setting.Current.Oracle.UseOwner; } }
 
-        /// <summary>È¡µÃËùÓĞ±í¹¹¼Ü</summary>
+        /// <summary>å–å¾—æ‰€æœ‰è¡¨æ„æ¶</summary>
         /// <returns></returns>
         protected override List<IDataTable> OnGetTables(ICollection<String> names)
         {
             DataTable dt = null;
 
-            // ²ÉÓÃ¼¯ºÏ¹ıÂË£¬Ìá¸ßĞ§ÂÊ
+            // é‡‡ç”¨é›†åˆè¿‡æ»¤ï¼Œæé«˜æ•ˆç‡
             String tableName = null;
             if (names != null && names.Count > 0) tableName = names.FirstOrDefault();
             if (String.IsNullOrEmpty(tableName))
@@ -712,7 +712,7 @@ namespace XCode.DataAccessLayer
                     dt = GetSchema(_.Tables, new String[] { null, tableName });
             }
 
-            // Ä¬ÈÏÁĞ³öËùÓĞ×Ö¶Î
+            // é»˜è®¤åˆ—å‡ºæ‰€æœ‰å­—æ®µ
             DataRow[] rows = OnGetTables(names, dt.Rows);
             if (rows == null || rows.Length < 1) return null;
 
@@ -722,7 +722,7 @@ namespace XCode.DataAccessLayer
         {
             base.FixTable(table, dr);
 
-            // Ö÷¼ü
+            // ä¸»é”®
             if (MetaDataCollections.Contains(_.PrimaryKeys))
             {
                 DataTable dt = null;
@@ -733,7 +733,7 @@ namespace XCode.DataAccessLayer
 
                 if (dt != null && dt.Rows.Count > 0)
                 {
-                    // ÕÒµ½Ö÷¼üËùÔÚË÷Òı£¬Õâ¸öË÷ÒıµÄÁĞ²ÅÊÇÖ÷¼ü
+                    // æ‰¾åˆ°ä¸»é”®æ‰€åœ¨ç´¢å¼•ï¼Œè¿™ä¸ªç´¢å¼•çš„åˆ—æ‰æ˜¯ä¸»é”®
                     String name = null;
                     if (TryGetDataRowValue<String>(dt.Rows[0], _.IndexName, out name) && !String.IsNullOrEmpty(name))
                     {
@@ -750,7 +750,7 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            // ±í×¢ÊÍ USER_TAB_COMMENTS
+            // è¡¨æ³¨é‡Š USER_TAB_COMMENTS
             //String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
             //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
             String comment = GetTableComment(table.TableName);
@@ -758,11 +758,11 @@ namespace XCode.DataAccessLayer
 
             if (table == null || table.Columns == null || table.Columns.Count < 1) return;
 
-            // ×ÔÔö
+            // è‡ªå¢
             Boolean exists = false;
             foreach (IDataColumn field in table.Columns)
             {
-                // ²»¹ÜÊÇ·ñÖ÷¼ü
+                // ä¸ç®¡æ˜¯å¦ä¸»é”®
                 if (!field.DataType.IsIntType()) continue;
 
                 String name = String.Format("SEQ_{0}_{1}", table.TableName, field.ColumnName);
@@ -775,7 +775,7 @@ namespace XCode.DataAccessLayer
             }
             if (!exists)
             {
-                // ¼ì²é¸Ã±íÊÇ·ñÓĞĞòÁĞ£¬ÈçÓĞ£¬ÈÃÖ÷¼ü³ÉÎª×ÔÔö
+                // æ£€æŸ¥è¯¥è¡¨æ˜¯å¦æœ‰åºåˆ—ï¼Œå¦‚æœ‰ï¼Œè®©ä¸»é”®æˆä¸ºè‡ªå¢
                 String name = String.Format("SEQ_{0}", table.TableName);
                 if (CheckSeqExists(name))
                 {
@@ -791,7 +791,7 @@ namespace XCode.DataAccessLayer
             }
             if (!exists)
             {
-                // ´¦Àí×ÔÔö£¬ÕûĞÍ¡¢Ö÷¼ü¡¢ÃûÎªIDÈÏÎªÊÇ×ÔÔö
+                // å¤„ç†è‡ªå¢ï¼Œæ•´å‹ã€ä¸»é”®ã€åä¸ºIDè®¤ä¸ºæ˜¯è‡ªå¢
                 foreach (IDataColumn field in table.Columns)
                 {
                     if (field.DataType.IsIntType())
@@ -802,10 +802,10 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>ĞòÁĞ</summary>
+        /// <summary>åºåˆ—</summary>
         DataTable dtSequences;
-        /// <summary>¼ì²éĞòÁĞÊÇ·ñ´æÔÚ</summary>
-        /// <param name="name">Ãû³Æ</param>
+        /// <summary>æ£€æŸ¥åºåˆ—æ˜¯å¦å­˜åœ¨</summary>
+        /// <param name="name">åç§°</param>
         /// <returns></returns>
         Boolean CheckSeqExists(String name)
         {
@@ -859,7 +859,7 @@ namespace XCode.DataAccessLayer
             //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
         }
 
-        /// <summary>È¡µÃÖ¸¶¨±íµÄËùÓĞÁĞ¹¹¼Ü</summary>
+        /// <summary>å–å¾—æŒ‡å®šè¡¨çš„æ‰€æœ‰åˆ—æ„æ¶</summary>
         /// <param name="table"></param>
         /// <returns></returns>
         protected override List<IDataColumn> GetFields(IDataTable table)
@@ -867,7 +867,7 @@ namespace XCode.DataAccessLayer
             List<IDataColumn> list = base.GetFields(table);
             if (list == null || list.Count < 1) return null;
 
-            // ×Ö¶Î×¢ÊÍ
+            // å­—æ®µæ³¨é‡Š
             if (list != null && list.Count > 0)
             {
                 foreach (IDataColumn field in list)
@@ -875,7 +875,7 @@ namespace XCode.DataAccessLayer
                     field.Description = GetColumnComment(table.TableName, field.ColumnName);
                 }
 
-                #region  2013.6.27 ÉÏº£Ê¯Í· Ìí¼Ó£¬·¢ÏÖÔÚ Oracle11 ÖĞ£¬·´Ïò¹¤³ÌÎŞ·¨É¨Ãèµ½Ä¬ÈÏÖµ
+                #region  2013.6.27 ä¸Šæµ·çŸ³å¤´ æ·»åŠ ï¼Œå‘ç°åœ¨ Oracle11 ä¸­ï¼Œåå‘å·¥ç¨‹æ— æ³•æ‰«æåˆ°é»˜è®¤å€¼
                 foreach (IDataColumn field in list)
                 {
                     field.Default = GetColumnDefault(table.TableName, field.ColumnName);
@@ -924,7 +924,7 @@ namespace XCode.DataAccessLayer
         }
         DataTable dtColumnDefault;
         /// <summary>
-        /// »ñÈ¡Ä¬ÈÏÖµĞÅÏ¢
+        /// è·å–é»˜è®¤å€¼ä¿¡æ¯
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="columnName"></param>
@@ -946,7 +946,7 @@ namespace XCode.DataAccessLayer
             string result = null;
             if (drs == null || drs.Length == 0) return null;
 
-            result = Convert.ToString(drs[0]["DATA_DEFAULT"]);  //Èç¹ûÄ¬ÈÏÖµÖĞ×îºóÒ»¸ö×Ö·ûÊÇ  \n ,ÔòÅÅ³ıµô
+            result = Convert.ToString(drs[0]["DATA_DEFAULT"]);  //å¦‚æœé»˜è®¤å€¼ä¸­æœ€åä¸€ä¸ªå­—ç¬¦æ˜¯  \n ,åˆ™æ’é™¤æ‰
             if (result.EndsWith("\n") == true && result.Length > "\n".Length)
                 result = result.Substring(0, result.Length - "\n".Length);
             else
@@ -957,12 +957,12 @@ namespace XCode.DataAccessLayer
         {
             base.FixField(field, drColumn, drDataType);
 
-            // ´¦ÀíÊı×ÖÀàĞÍ
+            // å¤„ç†æ•°å­—ç±»å‹
             if (field.RawType.StartsWith("NUMBER"))
             {
                 if (field.Scale == 0)
                 {
-                    // 0±íÊ¾³¤¶È²»ÏŞÖÆ£¬ÎªÁË·½±ãÊ¹ÓÃ£¬×ªÎª×î³£¼ûµÄInt32
+                    // 0è¡¨ç¤ºé•¿åº¦ä¸é™åˆ¶ï¼Œä¸ºäº†æ–¹ä¾¿ä½¿ç”¨ï¼Œè½¬ä¸ºæœ€å¸¸è§çš„Int32
                     if (field.Precision == 0)
                         field.DataType = typeof(Int32);
                     else if (field.Precision == 1)
@@ -985,11 +985,11 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            // ³¤¶È
+            // é•¿åº¦
             Int32 len = 0;
             if (TryGetDataRowValue<Int32>(drColumn, "LENGTHINCHARS", out len) && len > 0) field.Length = len;
 
-            // ×Ö½ÚÊı
+            // å­—èŠ‚æ•°
             len = 0;
             if (TryGetDataRowValue<Int32>(drColumn, "LENGTH", out len) && len > 0) field.NumOfByte = len;
         }
@@ -1040,7 +1040,7 @@ namespace XCode.DataAccessLayer
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 1)
             {
-                // ×Ö·û´®
+                // å­—ç¬¦ä¸²
                 if (typeName == typeof(String).FullName)
                 {
                     foreach (DataRow dr in drs)
@@ -1053,11 +1053,11 @@ namespace XCode.DataAccessLayer
                     }
                 }
 
-                //// Ê±¼äÈÕÆÚ
+                //// æ—¶é—´æ—¥æœŸ
                 //if (typeName == typeof(DateTime).FullName)
                 //{
-                //    // DateTimeµÄ·¶Î§ÊÇ0001µ½9999
-                //    // TimestampµÄ·¶Î§ÊÇ1970µ½2038
+                //    // DateTimeçš„èŒƒå›´æ˜¯0001åˆ°9999
+                //    // Timestampçš„èŒƒå›´æ˜¯1970åˆ°2038
                 //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
                 //    foreach (DataRow dr in drs)
                 //    {
@@ -1081,7 +1081,7 @@ namespace XCode.DataAccessLayer
             base.FixIndex(index, dr);
         }
 
-        #region ¼Ü¹¹¶¨Òå
+        #region æ¶æ„å®šä¹‰
         public override object SetSchema(DDLSchema schema, params object[] values)
         {
             IDbSession session = Database.CreateSession();
@@ -1091,7 +1091,7 @@ namespace XCode.DataAccessLayer
             switch (schema)
             {
                 case DDLSchema.DatabaseExist:
-                    // Oracle²»Ö§³ÖÅĞ¶ÏÊı¾İ¿âÊÇ·ñ´æÔÚ
+                    // Oracleä¸æ”¯æŒåˆ¤æ–­æ•°æ®åº“æ˜¯å¦å­˜åœ¨
                     return true;
 
                 default:
@@ -1107,8 +1107,8 @@ namespace XCode.DataAccessLayer
 
         protected override string GetFieldConstraints(IDataColumn field, bool onlyDefine)
         {
-            // ÓĞÄ¬ÈÏÖµÊ±Ö±½Ó·µ»Ø£¬´ı»áÔÚÄ¬ÈÏÖµÀïÃæ¼ÓÔ¼Êø
-            // ÒòÎªOracleµÄÉùÃ÷ÊÇÏÈÓĞÄ¬ÈÏÖµÔÙÓĞÔ¼ÊøµÄ
+            // æœ‰é»˜è®¤å€¼æ—¶ç›´æ¥è¿”å›ï¼Œå¾…ä¼šåœ¨é»˜è®¤å€¼é‡Œé¢åŠ çº¦æŸ
+            // å› ä¸ºOracleçš„å£°æ˜æ˜¯å…ˆæœ‰é»˜è®¤å€¼å†æœ‰çº¦æŸçš„
             if (!String.IsNullOrEmpty(field.Default)) return null;
 
             //return base.GetFieldConstraints(field, onlyDefine);
@@ -1142,7 +1142,7 @@ namespace XCode.DataAccessLayer
                 if (i < Fields.Count - 1) sb.Append(",");
             }
 
-            // Ö÷¼ü
+            // ä¸»é”®
             if (table.PrimaryKeys != null && table.PrimaryKeys.Length > 0)
             {
                 sb.AppendLine(",");
@@ -1162,10 +1162,10 @@ namespace XCode.DataAccessLayer
             String sql = sb.ToString();
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            // ¸ĞĞ»@ÇçÌì£¨412684802£©ºÍ@ÀÏĞì£¨gregorius 279504479£©£¬ÕâÀïµÄ×îĞ¡ºÍ¿ªÊ¼±ØĞëÊÇ0£¬²åÈëµÄÊ±ºòÓĞ++iµÄĞ§¹û£¬²Å»áµÃµ½´Ó1¿ªÊ¼µÄ±àºÅ
+            // æ„Ÿè°¢@æ™´å¤©ï¼ˆ412684802ï¼‰å’Œ@è€å¾ï¼ˆgregorius 279504479ï¼‰ï¼Œè¿™é‡Œçš„æœ€å°å’Œå¼€å§‹å¿…é¡»æ˜¯0ï¼Œæ’å…¥çš„æ—¶å€™æœ‰++içš„æ•ˆæœï¼Œæ‰ä¼šå¾—åˆ°ä»1å¼€å§‹çš„ç¼–å·
             String sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
             //return sql + "; " + Environment.NewLine + sqlSeq;
-            // È¥µô·ÖºÅºóµÄ¿Õ¸ñ£¬Oracle²»Ö§³ÖÍ¬Ê±Ö´ĞĞ¶à¸öÓï¾ä
+            // å»æ‰åˆ†å·åçš„ç©ºæ ¼ï¼ŒOracleä¸æ”¯æŒåŒæ—¶æ‰§è¡Œå¤šä¸ªè¯­å¥
             return sql + ";" + Environment.NewLine + sqlSeq;
         }
 

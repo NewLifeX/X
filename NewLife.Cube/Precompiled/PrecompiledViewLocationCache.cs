@@ -1,16 +1,16 @@
-using System;
+ï»¿using System;
 using System.Web;
 using System.Web.Mvc;
 
 namespace NewLife.Cube.Precompiled
 {
-    /// <summary>Ô¤±àÒëÊÓÍ¼³ÌĞò¼¯»º´æ</summary>
+    /// <summary>é¢„ç¼–è¯‘è§†å›¾ç¨‹åºé›†ç¼“å­˜</summary>
 	public class PrecompiledViewLocationCache : IViewLocationCache
 	{
 		private readonly String _assemblyName;
 		private readonly IViewLocationCache _innerCache;
 
-        /// <summary>ÊµÀı»¯</summary>
+        /// <summary>å®ä¾‹åŒ–</summary>
         /// <param name="assemblyName"></param>
         /// <param name="innerCache"></param>
 		public PrecompiledViewLocationCache(String assemblyName, IViewLocationCache innerCache)
@@ -19,7 +19,7 @@ namespace NewLife.Cube.Precompiled
 			_innerCache = innerCache;
 		}
 
-        /// <summary>»ñÈ¡ÊÓÍ¼Î»ÖÃ</summary>
+        /// <summary>è·å–è§†å›¾ä½ç½®</summary>
         /// <param name="httpContext"></param>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -29,7 +29,7 @@ namespace NewLife.Cube.Precompiled
 			return _innerCache.GetViewLocation(httpContext, key);
 		}
 
-        /// <summary>²åÈëÊÓÍ¼Î»ÖÃ</summary>
+        /// <summary>æ’å…¥è§†å›¾ä½ç½®</summary>
         /// <param name="httpContext"></param>
         /// <param name="key"></param>
         /// <param name="virtualPath"></param>

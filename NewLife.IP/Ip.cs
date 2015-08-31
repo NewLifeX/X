@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Linq;
 using System.IO;
 using System.IO.Compression;
@@ -10,14 +10,14 @@ using System.Net;
 
 namespace NewLife.IP
 {
-    /// <summary>IPËÑË÷</summary>
+    /// <summary>IPæœç´¢</summary>
     public static class Ip
     {
         private static object lockHelper = new object();
         private static Zip zip;
 
         private static String _DbFile;
-        /// <summary>Êı¾İÎÄ¼ş</summary>
+        /// <summary>æ•°æ®æ–‡ä»¶</summary>
         public static String DbFile { get { return _DbFile; } set { _DbFile = value; zip = null; } }
 
         static Ip()
@@ -33,13 +33,13 @@ namespace NewLife.IP
                 }
             }
 
-            // Èç¹û±¾µØÃ»ÓĞIPÊı¾İ¿â£¬Ôò´ÓÍøÂçÏÂÔØ
+            // å¦‚æœæœ¬åœ°æ²¡æœ‰IPæ•°æ®åº“ï¼Œåˆ™ä»ç½‘ç»œä¸‹è½½
             if (_DbFile.IsNullOrWhiteSpace())
             {
                 ThreadPoolX.QueueUserWorkItem(() =>
                 {
                     var url = "http://www.newlifex.com/showtopic-51.aspx";
-                    XTrace.WriteLine("Ã»ÓĞÕÒµ½IPÊı¾İ¿â£¬×¼±¸ÁªÍø»ñÈ¡ {0}", url);
+                    XTrace.WriteLine("æ²¡æœ‰æ‰¾åˆ°IPæ•°æ®åº“ï¼Œå‡†å¤‡è”ç½‘è·å– {0}", url);
 
                     var client = new WebClientX();
                     client.Log = XTrace.Log;
@@ -49,7 +49,7 @@ namespace NewLife.IP
                     if (File.Exists(file))
                     {
                         _DbFile = file.GetFullPath();
-                        // ÈÃËüÖØĞÂ³õÊ¼»¯
+                        // è®©å®ƒé‡æ–°åˆå§‹åŒ–
                         _inited = null;
                     }
                 });
@@ -69,11 +69,11 @@ namespace NewLife.IP
 
                 if (!File.Exists(_DbFile))
                 {
-                    //throw new InvalidOperationException("ÎŞ·¨ÕÒµ½IPÊı¾İ¿â" + _DbFile + "£¡");
-                    XTrace.WriteLine("ÎŞ·¨ÕÒµ½IPÊı¾İ¿â{0}", _DbFile);
+                    //throw new InvalidOperationException("æ— æ³•æ‰¾åˆ°IPæ•°æ®åº“" + _DbFile + "ï¼");
+                    XTrace.WriteLine("æ— æ³•æ‰¾åˆ°IPæ•°æ®åº“{0}", _DbFile);
                     return false;
                 }
-                XTrace.WriteLine("Ê¹ÓÃIPÊı¾İ¿â{0}", _DbFile);
+                XTrace.WriteLine("ä½¿ç”¨IPæ•°æ®åº“{0}", _DbFile);
                 using (var fs = File.OpenRead(_DbFile))
                 {
                     try
@@ -90,13 +90,13 @@ namespace NewLife.IP
                 zip = z;
             }
 
-            if (zip.Stream == null) throw new InvalidOperationException("ÎŞ·¨´ò¿ªIPÊı¾İ¿â" + _DbFile + "£¡");
+            if (zip.Stream == null) throw new InvalidOperationException("æ— æ³•æ‰“å¼€IPæ•°æ®åº“" + _DbFile + "ï¼");
 
             _inited = true;
             return true;
         }
 
-        /// <summary>»ñÈ¡IPµØÖ·</summary>
+        /// <summary>è·å–IPåœ°å€</summary>
         /// <param name="ip"></param>
         /// <returns></returns>
         public static String GetAddress(String ip)
@@ -112,7 +112,7 @@ namespace NewLife.IP
             }
         }
 
-        /// <summary>»ñÈ¡IPµØÖ·</summary>
+        /// <summary>è·å–IPåœ°å€</summary>
         /// <param name="addr"></param>
         /// <returns></returns>
         public static String GetAddress(IPAddress addr)

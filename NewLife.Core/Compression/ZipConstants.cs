@@ -1,8 +1,8 @@
-using System;
+Ôªøusing System;
 
 namespace NewLife.Compression
 {
-    /// <summary>—πÀı∑Ω∑®</summary>
+    /// <summary>ÂéãÁº©ÊñπÊ≥ï</summary>
     public enum CompressionMethod : ushort
     {
         /// <summary>A direct copy of the file contents is held in the archive</summary>
@@ -20,14 +20,14 @@ namespace NewLife.Compression
         /// <summary>BZip2 compression. Not supported by #Zip.</summary>
         BZip2 = 11,
 
-        /// <summary>7Zip∏Ò Ω</summary>
+        /// <summary>7ZipÊ†ºÂºè</summary>
         LZMA = 14,
 
         /// <summary>WinZip special for AES encryption, Now supported by #Zip.</summary>
         WinZipAES = 99,
     }
 
-    /// <summary>œµÕ≥¿‡–Õ</summary>
+    /// <summary>Á≥ªÁªüÁ±ªÂûã</summary>
     enum HostSystem : ushort
     {
         /// <summary>Host system = MSDOS</summary>
@@ -76,7 +76,7 @@ namespace NewLife.Compression
         WinZipAES = 99,
     }
 
-    /// <summary>Õ®”√±Í ∂Œª</summary>
+    /// <summary>ÈÄöÁî®Ê†áËØÜ‰Ωç</summary>
     [Flags]
     enum GeneralBitFlags : ushort
     {

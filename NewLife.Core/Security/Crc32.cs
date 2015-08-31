@@ -1,11 +1,11 @@
-using System;
+ï»¿using System;
 using System.IO;
 //using System.Security.Cryptography;
 
 namespace NewLife.Security
 {
 
-    /// <summary>CRC32Ğ£Ñé</summary>
+    /// <summary>CRC32æ ¡éªŒ</summary>
     /// <remarks>
     /// Generate a table for a byte-wise 32-bit CRC calculation on the polynomial:
     /// x^32+x^26+x^23+x^22+x^16+x^12+x^11+x^10+x^8+x^7+x^5+x^4+x^2+x+1.
@@ -34,8 +34,8 @@ namespace NewLife.Security
     {
         const uint CrcSeed = 0xFFFFFFFF;
 
-        #region Êı¾İ±í
-        /// <summary>Ğ£Ñé±í</summary>
+        #region æ•°æ®è¡¨
+        /// <summary>æ ¡éªŒè¡¨</summary>
         public readonly static uint[] Table;
 
         static Crc32()
@@ -60,15 +60,15 @@ namespace NewLife.Security
         //    return (uint)(Table[(oldCrc ^ value) & 0xFF] ^ (oldCrc >> 8));
         //}
 
-        /// <summary>Ğ£ÑéÖµ</summary>
+        /// <summary>æ ¡éªŒå€¼</summary>
         uint crc = CrcSeed;
-        /// <summary>Ğ£ÑéÖµ</summary>
+        /// <summary>æ ¡éªŒå€¼</summary>
         public UInt32 Value { get { return crc ^ CrcSeed; } set { crc = value ^ CrcSeed; } }
 
-        /// <summary>ÖØÖÃÇåÁã</summary>
+        /// <summary>é‡ç½®æ¸…é›¶</summary>
         public Crc32 Reset() { crc = CrcSeed; return this; }
 
-        /// <summary>Ìí¼ÓÕûÊı½øĞĞĞ£Ñé</summary>
+        /// <summary>æ·»åŠ æ•´æ•°è¿›è¡Œæ ¡éªŒ</summary>
         /// <param name = "value">
         /// the byte is taken as the lower 8 bits of value
         /// </param>
@@ -79,7 +79,7 @@ namespace NewLife.Security
             return this;
         }
 
-        /// <summary>Ìí¼Ó×Ö½ÚÊı×é½øĞĞĞ£Ñé</summary>
+        /// <summary>æ·»åŠ å­—èŠ‚æ•°ç»„è¿›è¡Œæ ¡éªŒ</summary>
         /// <param name = "buffer">
         /// The buffer which contains the data
         /// </param>
@@ -92,7 +92,7 @@ namespace NewLife.Security
         public Crc32 Update(byte[] buffer, int offset = 0, int count = 0)
         {
             if (buffer == null) throw new ArgumentNullException("buffer");
-            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count²»ÄÜĞ¡ÓÚ0£¡");
+            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Countä¸èƒ½å°äº0ï¼");
             if (count <= 0) count = buffer.Length;
             if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException("offset");
 
@@ -104,13 +104,13 @@ namespace NewLife.Security
             return this;
         }
 
-        /// <summary>Ìí¼ÓÊı¾İÁ÷½øĞĞĞ£Ñé</summary>
+        /// <summary>æ·»åŠ æ•°æ®æµè¿›è¡Œæ ¡éªŒ</summary>
         /// <param name="stream"></param>
-        /// <param name="count">ÊıÁ¿</param>
+        /// <param name="count">æ•°é‡</param>
         public Crc32 Update(Stream stream, Int64 count = 0)
         {
             if (stream == null) throw new ArgumentNullException("stream");
-            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count²»ÄÜĞ¡ÓÚ0£¡");
+            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Countä¸èƒ½å°äº0ï¼");
             if (count <= 0) count = Int64.MaxValue;
 
             while (--count >= 0)
@@ -124,7 +124,7 @@ namespace NewLife.Security
             return this;
         }
 
-        /// <summary>¼ÆËãĞ£ÑéÂë</summary>
+        /// <summary>è®¡ç®—æ ¡éªŒç </summary>
         /// <param name="buf"></param>
         /// <param name="offset"></param>
         /// <param name="count"></param>
@@ -136,7 +136,7 @@ namespace NewLife.Security
             return crc.Value;
         }
 
-        /// <summary>¼ÆËãÊı¾İÁ÷Ğ£ÑéÂë</summary>
+        /// <summary>è®¡ç®—æ•°æ®æµæ ¡éªŒç </summary>
         /// <param name="stream"></param>
         /// <param name="count"></param>
         /// <returns></returns>
@@ -147,15 +147,15 @@ namespace NewLife.Security
             return crc.Value;
         }
 
-        /// <summary>¼ÆËãÊı¾İÁ÷Ğ£ÑéÂë£¬Ö¸¶¨ÆğÊ¼Î»ÖÃºÍ×Ö½ÚÊıÆ«ÒÆÁ¿</summary>
+        /// <summary>è®¡ç®—æ•°æ®æµæ ¡éªŒç ï¼ŒæŒ‡å®šèµ·å§‹ä½ç½®å’Œå­—èŠ‚æ•°åç§»é‡</summary>
         /// <remarks>
-        /// Ò»°ãÓÃÓÚ¼ÆËãÊı¾İ°üĞ£ÑéÂë£¬ĞèÒª»Ø¹ıÍ·È¥¿ªÊ¼Ğ£Ñé£¬²¢ÇÒ¿ÉÄÜĞèÒªÌø¹ı×îºóµÄĞ£ÑéÂë³¤¶È¡£
-        /// positionĞ¡ÓÚ0Ê±£¬Êı¾İÁ÷´Óµ±Ç°Î»ÖÃ¿ªÊ¼¼ÆËãĞ£Ñé£»
-        /// position´óÓÚµÈÓÚ0Ê±£¬Êı¾İÁ÷ÒÆµ½¸ÃÎ»ÖÃ¿ªÊ¼¼ÆËãĞ£Ñé£¬×îºóÓÉcount¾ö¶¨¿ÉÄÜ²î¼¸¸ö×Ö½Ú²»²ÎÓë¼ÆËã£»
+        /// ä¸€èˆ¬ç”¨äºè®¡ç®—æ•°æ®åŒ…æ ¡éªŒç ï¼Œéœ€è¦å›è¿‡å¤´å»å¼€å§‹æ ¡éªŒï¼Œå¹¶ä¸”å¯èƒ½éœ€è¦è·³è¿‡æœ€åçš„æ ¡éªŒç é•¿åº¦ã€‚
+        /// positionå°äº0æ—¶ï¼Œæ•°æ®æµä»å½“å‰ä½ç½®å¼€å§‹è®¡ç®—æ ¡éªŒï¼›
+        /// positionå¤§äºç­‰äº0æ—¶ï¼Œæ•°æ®æµç§»åˆ°è¯¥ä½ç½®å¼€å§‹è®¡ç®—æ ¡éªŒï¼Œæœ€åç”±countå†³å®šå¯èƒ½å·®å‡ ä¸ªå­—èŠ‚ä¸å‚ä¸è®¡ç®—ï¼›
         /// </remarks>
         /// <param name="stream"></param>
-        /// <param name="position">Èç¹û´óÓÚµÈÓÚ0£¬Ôò±íÊ¾´Ó¸ÃÎ»ÖÃ¿ªÊ¼¼ÆËã</param>
-        /// <param name="count">×Ö½ÚÊıÆ«ÒÆÁ¿£¬Ò»°ãÓÃ¸ºÊı±íÊ¾</param>
+        /// <param name="position">å¦‚æœå¤§äºç­‰äº0ï¼Œåˆ™è¡¨ç¤ºä»è¯¥ä½ç½®å¼€å§‹è®¡ç®—</param>
+        /// <param name="count">å­—èŠ‚æ•°åç§»é‡ï¼Œä¸€èˆ¬ç”¨è´Ÿæ•°è¡¨ç¤º</param>
         /// <returns></returns>
         public static UInt32 Compute(Stream stream, Int64 position = -1, Int32 count = 0)
         {
@@ -171,8 +171,8 @@ namespace NewLife.Security
             return crc.Value;
         }
 
-        //#region ³éÏóÊµÏÖ
-        ///// <summary>¹şÏ£ºËĞÄ</summary>
+        //#region æŠ½è±¡å®ç°
+        ///// <summary>å“ˆå¸Œæ ¸å¿ƒ</summary>
         ///// <param name="array"></param>
         ///// <param name="ibStart"></param>
         ///// <param name="cbSize"></param>
@@ -184,11 +184,11 @@ namespace NewLife.Security
         //    }
         //}
 
-        ///// <summary>×îºó¹şÏ£</summary>
+        ///// <summary>æœ€åå“ˆå¸Œ</summary>
         ///// <returns></returns>
         //protected override byte[] HashFinal() { return BitConverter.GetBytes(Value); }
 
-        ///// <summary>³õÊ¼»¯</summary>
+        ///// <summary>åˆå§‹åŒ–</summary>
         //public override void Initialize() { }
         //#endregion
     }

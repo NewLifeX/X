@@ -1,11 +1,11 @@
-using System;
+锘縰sing System;
 using System.IO;
 using System.Reflection;
 using System.Security;
 
 namespace NewLife.Cube.Precompiled
 {
-    /// <summary>程序集的扩展方法</summary>
+    /// <summary>绋嬪簭闆嗙殑鎵╁睍鏂规硶</summary>
 	internal static class AssemblyExtensions
 	{
 		public static DateTime GetLastWriteTimeUtc(this Assembly assembly, DateTime fallback)

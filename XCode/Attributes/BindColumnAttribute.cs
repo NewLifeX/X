@@ -1,15 +1,15 @@
-using System;
+ï»¿using System;
 using System.Reflection;
 
 namespace XCode
 {
-    /// <summary>Ö¸¶¨ÊµÌåÀàÊôĞÔËù°ó¶¨Êı¾İ×Ö¶ÎĞÅÏ¢¡£</summary>
+    /// <summary>æŒ‡å®šå®ä½“ç±»å±æ€§æ‰€ç»‘å®šæ•°æ®å­—æ®µä¿¡æ¯ã€‚</summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public sealed class BindColumnAttribute : Attribute
     {
-        #region ÊôĞÔ
+        #region å±æ€§
         private Int32 _Order;
-        /// <summary>Ë³Ğò</summary>
+        /// <summary>é¡ºåº</summary>
         public Int32 Order
         {
             get { return _Order; }
@@ -17,7 +17,7 @@ namespace XCode
         }
 
         private String _Name;
-        /// <summary>×Ö¶ÎÃû</summary>
+        /// <summary>å­—æ®µå</summary>
         public String Name
         {
             get { return _Name; }
@@ -25,7 +25,7 @@ namespace XCode
         }
 
         private String _Description;
-        /// <summary>ÃèÊö</summary>
+        /// <summary>æè¿°</summary>
         public String Description
         {
             get { return _Description; }
@@ -33,7 +33,7 @@ namespace XCode
         }
 
         private String _DefaultValue;
-        /// <summary>Ä¬ÈÏÖµ</summary>
+        /// <summary>é»˜è®¤å€¼</summary>
         public String DefaultValue
         {
             get { return _DefaultValue; }
@@ -42,8 +42,8 @@ namespace XCode
 
         private String _RawType;
         /// <summary>
-        /// Ô­Ê¼Êı¾İÀàĞÍ¡£
-        /// µ±ÇÒ½öµ±Ä¿±êÊı¾İ¿âÍ¬Îª¸ÃÊı¾İ¿âÀàĞÍÊ±£¬²ÉÓÃÊµÌåÊôĞÔĞÅÏ¢ÉÏµÄRawType×÷Îª·´Ïò¹¤³ÌµÄÄ¿±ê×Ö¶ÎÀàĞÍ£¬ÒÔÆÚ»ñµÃ¿ª·¢ºÍÉú²úµÄ×î¼Ñ¼æÈİ¡£
+        /// åŸå§‹æ•°æ®ç±»å‹ã€‚
+        /// å½“ä¸”ä»…å½“ç›®æ ‡æ•°æ®åº“åŒä¸ºè¯¥æ•°æ®åº“ç±»å‹æ—¶ï¼Œé‡‡ç”¨å®ä½“å±æ€§ä¿¡æ¯ä¸Šçš„RawTypeä½œä¸ºåå‘å·¥ç¨‹çš„ç›®æ ‡å­—æ®µç±»å‹ï¼Œä»¥æœŸè·å¾—å¼€å‘å’Œç”Ÿäº§çš„æœ€ä½³å…¼å®¹ã€‚
         /// </summary>
         public String RawType
         {
@@ -52,7 +52,7 @@ namespace XCode
         }
 
         private Int32 _Precision;
-        /// <summary>¾«¶È</summary>
+        /// <summary>ç²¾åº¦</summary>
         public Int32 Precision
         {
             get { return _Precision; }
@@ -60,7 +60,7 @@ namespace XCode
         }
 
         private Int32 _Scale;
-        /// <summary>Î»Êı</summary>
+        /// <summary>ä½æ•°</summary>
         public Int32 Scale
         {
             get { return _Scale; }
@@ -68,28 +68,28 @@ namespace XCode
         }
 
         private Boolean _IsUnicode;
-        /// <summary>ÊÇ·ñUnicode</summary>
+        /// <summary>æ˜¯å¦Unicode</summary>
         public Boolean IsUnicode        {            get { return _IsUnicode; }            set { _IsUnicode = value; }        }
 
         private Boolean _Master;
-        /// <summary>ÊÇ·ñÖ÷×Ö¶Î¡£Ö÷×Ö¶Î×÷ÎªÒµÎñÖ÷Òª×Ö¶Î£¬´ú±íµ±Ç°Êı¾İĞĞÒâÒå</summary>
+        /// <summary>æ˜¯å¦ä¸»å­—æ®µã€‚ä¸»å­—æ®µä½œä¸ºä¸šåŠ¡ä¸»è¦å­—æ®µï¼Œä»£è¡¨å½“å‰æ•°æ®è¡Œæ„ä¹‰</summary>
         public Boolean Master { get { return _Master; } set { _Master = value; } }
         #endregion
 
-        #region ¹¹Ôì
-        /// <summary>¹¹Ôìº¯Êı</summary>
+        #region æ„é€ 
+        /// <summary>æ„é€ å‡½æ•°</summary>
         public BindColumnAttribute() { }
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
-        /// <param name="name">×Ö¶ÎÃû</param>
+        /// <summary>æ„é€ å‡½æ•°</summary>
+        /// <param name="name">å­—æ®µå</param>
         public BindColumnAttribute(String name)
         {
             Name = name;
         }
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
+        /// <summary>æ„é€ å‡½æ•°</summary>
         /// <param name="order"></param>
-        /// <param name="name">Ãû³Æ</param>
+        /// <param name="name">åç§°</param>
         /// <param name="description"></param>
         /// <param name="defaultValue"></param>
         public BindColumnAttribute(Int32 order, String name, String description, String defaultValue)
@@ -100,9 +100,9 @@ namespace XCode
             DefaultValue = defaultValue;
         }
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
+        /// <summary>æ„é€ å‡½æ•°</summary>
         /// <param name="order"></param>
-        /// <param name="name">Ãû³Æ</param>
+        /// <param name="name">åç§°</param>
         /// <param name="description"></param>
         /// <param name="defaultValue"></param>
         /// <param name="rawType"></param>
@@ -119,8 +119,8 @@ namespace XCode
         }
         #endregion
 
-        #region ·½·¨
-        /// <summary>¼ìË÷Ó¦ÓÃÓÚÀàĞÍ³ÉÔ±µÄ×Ô¶¨ÒåÊôĞÔ¡£</summary>
+        #region æ–¹æ³•
+        /// <summary>æ£€ç´¢åº”ç”¨äºç±»å‹æˆå‘˜çš„è‡ªå®šä¹‰å±æ€§ã€‚</summary>
         /// <param name="element"></param>
         /// <returns></returns>
         public static BindColumnAttribute GetCustomAttribute(MemberInfo element)

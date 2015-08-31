@@ -1,10 +1,10 @@
-using System;
+ï»¿using System;
 using System.IO;
 using NewLife.Compression.RangeCoder;
 
 namespace NewLife.Compression.LZMA
 {
-    /// <summary>LZMA±àÂë</summary>
+    /// <summary>LZMAç¼–ç </summary>
     public class LzmaEncoder : ICoder, ISetCoderProperties, IWriteCoderProperties
     {
         enum EMatchFinderType
@@ -378,7 +378,7 @@ namespace NewLife.Compression.LZMA
             _numFastBytesPrev = _numFastBytes;
         }
 
-        /// <summary>ÊµÀı»¯±àÂëÆ÷</summary>
+        /// <summary>å®ä¾‹åŒ–ç¼–ç å™¨</summary>
         public LzmaEncoder()
         {
             for (int i = 0; i < kNumOpts; i++)
@@ -1060,7 +1060,7 @@ namespace NewLife.Compression.LZMA
             _rangeEncoder.FlushStream();
         }
 
-        /// <summary>±àÂëÒ»¿é</summary>
+        /// <summary>ç¼–ç ä¸€å—</summary>
         /// <param name="inSize"></param>
         /// <param name="outSize"></param>
         /// <param name="finished"></param>
@@ -1273,7 +1273,7 @@ namespace NewLife.Compression.LZMA
             nowPos64 = 0;
         }
 
-        /// <summary>±àÂëÊı¾İÁ÷</summary>
+        /// <summary>ç¼–ç æ•°æ®æµ</summary>
         /// <param name="inStream"></param>
         /// <param name="outStream"></param>
         /// <param name="inSize"></param>
@@ -1308,7 +1308,7 @@ namespace NewLife.Compression.LZMA
         const int kPropSize = 5;
         Byte[] properties = new Byte[kPropSize];
 
-        /// <summary>Ğ´±àÂëÊôĞÔ</summary>
+        /// <summary>å†™ç¼–ç å±æ€§</summary>
         /// <param name="outStream"></param>
         public void WriteCoderProperties(Stream outStream)
         {
@@ -1375,7 +1375,7 @@ namespace NewLife.Compression.LZMA
             return -1;
         }
 
-        /// <summary>ÉèÖÃ±àÂëÊôĞÔ</summary>
+        /// <summary>è®¾ç½®ç¼–ç å±æ€§</summary>
         /// <param name="propIDs"></param>
         /// <param name="properties"></param>
         public void SetCoderProperties(CoderPropID[] propIDs, object[] properties)
@@ -1481,7 +1481,7 @@ namespace NewLife.Compression.LZMA
         }
 
         uint _trainSize = 0;
-        /// <summary>ÉèÖÃ±àÂë´óĞ¡</summary>
+        /// <summary>è®¾ç½®ç¼–ç å¤§å°</summary>
         /// <param name="trainSize"></param>
         public void SetTrainSize(uint trainSize) { _trainSize = trainSize; }
     }

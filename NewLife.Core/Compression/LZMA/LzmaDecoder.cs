@@ -1,10 +1,10 @@
-using System;
+ï»¿using System;
 using System.IO;
 using NewLife.Compression.RangeCoder;
 
 namespace NewLife.Compression.LZMA
 {
-    /// <summary>LZMA½âÂë</summary>
+    /// <summary>LZMAè§£ç </summary>
     public class LzmaDecoder : ICoder, ISetDecoderProperties // ,Stream
     {
         class LenDecoder
@@ -156,7 +156,7 @@ namespace NewLife.Compression.LZMA
 
         uint m_PosStateMask;
 
-        /// <summary>ÊµÀı»¯½âÂëÆ÷</summary>
+        /// <summary>å®ä¾‹åŒ–è§£ç å™¨</summary>
         public LzmaDecoder()
         {
             m_DictionarySize = 0xFFFFFFFF;
@@ -227,7 +227,7 @@ namespace NewLife.Compression.LZMA
             m_PosAlignDecoder.Init();
         }
 
-        /// <summary>±àÂëÊı¾İÁ÷</summary>
+        /// <summary>ç¼–ç æ•°æ®æµ</summary>
         /// <param name="inStream"></param>
         /// <param name="outStream"></param>
         /// <param name="inSize"></param>
@@ -351,7 +351,7 @@ namespace NewLife.Compression.LZMA
             m_RangeDecoder.ReleaseStream();
         }
 
-        /// <summary>ÉèÖÃ½âÂëÊôĞÔ</summary>
+        /// <summary>è®¾ç½®è§£ç å±æ€§</summary>
         /// <param name="properties"></param>
         public void SetDecoderProperties(byte[] properties)
         {
@@ -371,7 +371,7 @@ namespace NewLife.Compression.LZMA
             SetPosBitsProperties(pb);
         }
 
-        /// <summary>ÑµÁ·Êı¾İÁ÷</summary>
+        /// <summary>è®­ç»ƒæ•°æ®æµ</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
         public bool Train(Stream stream)

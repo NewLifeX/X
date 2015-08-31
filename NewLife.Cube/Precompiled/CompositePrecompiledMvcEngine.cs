@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Web.Compilation;
 using System.Web.Mvc;
@@ -6,7 +6,7 @@ using System.Web.WebPages;
 
 namespace NewLife.Cube.Precompiled
 {
-    /// <summary>¸´ºÏÔ¤±àÒëMvcÒıÇæ</summary>
+    /// <summary>å¤åˆé¢„ç¼–è¯‘Mvcå¼•æ“</summary>
     public class CompositePrecompiledMvcEngine : BuildManagerViewEngine, IVirtualPathFactory
     {
         private struct ViewMapping
@@ -18,11 +18,11 @@ namespace NewLife.Cube.Precompiled
         private readonly IDictionary<String, ViewMapping> _mappings = new Dictionary<String, ViewMapping>(StringComparer.OrdinalIgnoreCase);
         //private readonly IViewPageActivator _viewPageActivator;
 
-        /// <summary>¸´ºÏÔ¤±àÒëMvcÒıÇæ</summary>
+        /// <summary>å¤åˆé¢„ç¼–è¯‘Mvcå¼•æ“</summary>
         /// <param name="viewAssemblies"></param>
         public CompositePrecompiledMvcEngine(params PrecompiledViewAssembly[] viewAssemblies) : this(viewAssemblies, null) { }
 
-        /// <summary>¸´ºÏÔ¤±àÒëMvcÒıÇæ</summary>
+        /// <summary>å¤åˆé¢„ç¼–è¯‘Mvcå¼•æ“</summary>
         /// <param name="viewAssemblies"></param>
         /// <param name="viewPageActivator"></param>
         public CompositePrecompiledMvcEngine(IEnumerable<PrecompiledViewAssembly> viewAssemblies, IViewPageActivator viewPageActivator)
@@ -76,30 +76,30 @@ namespace NewLife.Cube.Precompiled
             //_viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
         }
 
-        /// <summary>ÎÄ¼şÊÇ·ñ´æÔÚ¡£Èç¹û´æÔÚ£¬ÔòÓÉµ±Ç°ÒıÇæ´´½¨ÊÓÍ¼</summary>
+        /// <summary>æ–‡ä»¶æ˜¯å¦å­˜åœ¨ã€‚å¦‚æœå­˜åœ¨ï¼Œåˆ™ç”±å½“å‰å¼•æ“åˆ›å»ºè§†å›¾</summary>
         /// <param name="controllerContext"></param>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
         protected override Boolean FileExists(ControllerContext controllerContext, String virtualPath)
         {
             ViewMapping viewMapping;
-            // Èç¹ûÓ³Éä±í²»´æÔÚ£¬¾Í²»Òª²ôºÏÀ²
+            // å¦‚æœæ˜ å°„è¡¨ä¸å­˜åœ¨ï¼Œå°±ä¸è¦æºåˆå•¦
             if (!_mappings.TryGetValue(virtualPath, out viewMapping)) return false;
 
             //if (!Exists(virtualPath)) return false;
 
             var asm = viewMapping.ViewAssembly;
-            // Á½¸öÌõ¼şÈÎÒâÒ»¸öÂú×ã¼´¿ÉÊ¹ÓÃÎïÀíÎÄ¼ş
-            // Èç¹û²»ÒªÇóÈ¡´úÎïÀíÎÄ¼ş£¬²¢ÇÒĞéÄâÎÄ¼ş´æÔÚ£¬ÔòÊ¹ÓÃÎïÀíÎÄ¼ş´´½¨
+            // ä¸¤ä¸ªæ¡ä»¶ä»»æ„ä¸€ä¸ªæ»¡è¶³å³å¯ä½¿ç”¨ç‰©ç†æ–‡ä»¶
+            // å¦‚æœä¸è¦æ±‚å–ä»£ç‰©ç†æ–‡ä»¶ï¼Œå¹¶ä¸”è™šæ‹Ÿæ–‡ä»¶å­˜åœ¨ï¼Œåˆ™ä½¿ç”¨ç‰©ç†æ–‡ä»¶åˆ›å»º
             if (!asm.PreemptPhysicalFiles && VirtualPathProvider.FileExists(virtualPath)) return false;
 
-            // Èç¹ûÊ¹ÓÃ½ÏĞÂµÄÎïÀíÎÄ¼ş£¬ÇÒÎïÀíÎÄ¼şµÄÈ·½ÏĞÂ£¬ÔòÊ¹ÓÃÎïÀíÎÄ¼ş´´½¨
+            // å¦‚æœä½¿ç”¨è¾ƒæ–°çš„ç‰©ç†æ–‡ä»¶ï¼Œä¸”ç‰©ç†æ–‡ä»¶çš„ç¡®è¾ƒæ–°ï¼Œåˆ™ä½¿ç”¨ç‰©ç†æ–‡ä»¶åˆ›å»º
             if (asm.UsePhysicalViewsIfNewer && asm.IsPhysicalFileNewer(virtualPath)) return false;
 
             return true;
         }
 
-        /// <summary>´´½¨·Ö²¿ÊÓÍ¼</summary>
+        /// <summary>åˆ›å»ºåˆ†éƒ¨è§†å›¾</summary>
         /// <param name="controllerContext"></param>
         /// <param name="partialPath"></param>
         /// <returns></returns>
@@ -108,7 +108,7 @@ namespace NewLife.Cube.Precompiled
             return CreateViewInternal(partialPath, null, false);
         }
 
-        /// <summary>´´½¨ÊÓÍ¼</summary>
+        /// <summary>åˆ›å»ºè§†å›¾</summary>
         /// <param name="controllerContext"></param>
         /// <param name="viewPath"></param>
         /// <param name="masterPath"></param>
@@ -126,31 +126,31 @@ namespace NewLife.Cube.Precompiled
             return new PrecompiledMvcView(viewPath, masterPath, viewMapping.Type, runViewStartPages, FileExtensions, ViewPageActivator);
         }
 
-        /// <summary>´´½¨ÊµÀı¡£StartºÍLayout»áµ÷ÓÃÕâÀï</summary>
+        /// <summary>åˆ›å»ºå®ä¾‹ã€‚Startå’ŒLayoutä¼šè°ƒç”¨è¿™é‡Œ</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
         public Object CreateInstance(String virtualPath)
         {
             ViewMapping viewMapping;
 
-            // Èç¹ûÃ»ÓĞ¸ÃÓ³Éä£¬ÔòÖ±½Ó·µ»Ø¿Õ
+            // å¦‚æœæ²¡æœ‰è¯¥æ˜ å°„ï¼Œåˆ™ç›´æ¥è¿”å›ç©º
             if (!_mappings.TryGetValue(virtualPath, out viewMapping)) return null;
 
             var asm = viewMapping.ViewAssembly;
-            // Á½¸öÌõ¼şÈÎÒâÒ»¸öÂú×ã¼´¿ÉÊ¹ÓÃÎïÀíÎÄ¼ş
-            // Èç¹û²»ÒªÇóÈ¡´úÎïÀíÎÄ¼ş£¬²¢ÇÒĞéÄâÎÄ¼ş´æÔÚ£¬ÔòÊ¹ÓÃÎïÀíÎÄ¼ş´´½¨
+            // ä¸¤ä¸ªæ¡ä»¶ä»»æ„ä¸€ä¸ªæ»¡è¶³å³å¯ä½¿ç”¨ç‰©ç†æ–‡ä»¶
+            // å¦‚æœä¸è¦æ±‚å–ä»£ç‰©ç†æ–‡ä»¶ï¼Œå¹¶ä¸”è™šæ‹Ÿæ–‡ä»¶å­˜åœ¨ï¼Œåˆ™ä½¿ç”¨ç‰©ç†æ–‡ä»¶åˆ›å»º
             if (!asm.PreemptPhysicalFiles && VirtualPathProvider.FileExists(virtualPath))
                 return BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebPageRenderingBase));
 
-            // Èç¹ûÊ¹ÓÃ½ÏĞÂµÄÎïÀíÎÄ¼ş£¬ÇÒÎïÀíÎÄ¼şµÄÈ·½ÏĞÂ£¬ÔòÊ¹ÓÃÎïÀíÎÄ¼ş´´½¨
+            // å¦‚æœä½¿ç”¨è¾ƒæ–°çš„ç‰©ç†æ–‡ä»¶ï¼Œä¸”ç‰©ç†æ–‡ä»¶çš„ç¡®è¾ƒæ–°ï¼Œåˆ™ä½¿ç”¨ç‰©ç†æ–‡ä»¶åˆ›å»º
             if (asm.UsePhysicalViewsIfNewer && asm.IsPhysicalFileNewer(virtualPath))
                 return BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(WebViewPage));
 
-            // ×îºóÊ¹ÓÃÄÚÇ¶Àà´´½¨
+            // æœ€åä½¿ç”¨å†…åµŒç±»åˆ›å»º
             return ViewPageActivator.Create(null, viewMapping.Type);
         }
 
-        /// <summary>ÊÇ·ñ´æÔÚ</summary>
+        /// <summary>æ˜¯å¦å­˜åœ¨</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
         public Boolean Exists(String virtualPath)

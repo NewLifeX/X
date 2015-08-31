@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using NewLife.Collections;
 
@@ -6,19 +6,19 @@ namespace XCode.Cache
 {
     class CacheItem
     {
-        /// <summary>ËùÒÀÀµµÄ±íµÄ±íÃû</summary>
+        /// <summary>æ‰€ä¾èµ–çš„è¡¨çš„è¡¨å</summary>
         private ICollection<String> _TableNames;
 
-        /// <summary>µ½ÆÚÊ±¼ä</summary>
+        /// <summary>åˆ°æœŸæ—¶é—´</summary>
         public DateTime ExpireTime;
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
+        /// <summary>æ„é€ å‡½æ•°</summary>
         /// <param name="tableNames"></param>
         public CacheItem(String[] tableNames) : this(tableNames, 0) { }
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
+        /// <summary>æ„é€ å‡½æ•°</summary>
         /// <param name="tableNames"></param>
-        /// <param name="time">»º´æÊ±¼ä£¬µ¥Î»Ãë</param>
+        /// <param name="time">ç¼“å­˜æ—¶é—´ï¼Œå•ä½ç§’</param>
         public CacheItem(String[] tableNames, Int32 time)
         {
             if (tableNames != null && tableNames.Length > 0) _TableNames = new HashSet<String>(tableNames);
@@ -26,25 +26,25 @@ namespace XCode.Cache
             if (time > 0) ExpireTime = DateTime.Now.AddSeconds(time);
         }
 
-        /// <summary>ÊÇ·ñÒÀÀµÓÚÄ³¸ö±í</summary>
-        /// <param name="tableName">±íÃû</param>
+        /// <summary>æ˜¯å¦ä¾èµ–äºæŸä¸ªè¡¨</summary>
+        /// <param name="tableName">è¡¨å</param>
         /// <returns></returns>
         public Boolean IsDependOn(String tableName)
         {
-            // ¿Õ±íÃû£¬²»Æ¥Åä
+            // ç©ºè¡¨åï¼Œä¸åŒ¹é…
             if (String.IsNullOrEmpty(tableName)) return false;
 
-            // *±íÊ¾È«¾ÖÆ¥Åä
+            // *è¡¨ç¤ºå…¨å±€åŒ¹é…
             if (tableName == "*") return true;
 
-            //hxw add 2015-04-23 ĞŞ¸Ä
+            //hxw add 2015-04-23 ä¿®æ”¹
             if (_TableNames == null)
             {
-                //»º´æÊ±Ã»ÓĞ´«Èë±íÃû£¬µÈÍ¬ÓÚ¹ØÁªËùÓĞ±í£¬ÈÎºÎ±íµÄ¸üĞÂ¶¼»áµ¼ÖÂËüÊ§Ğ§
+                //ç¼“å­˜æ—¶æ²¡æœ‰ä¼ å…¥è¡¨åï¼Œç­‰åŒäºå…³è”æ‰€æœ‰è¡¨ï¼Œä»»ä½•è¡¨çš„æ›´æ–°éƒ½ä¼šå¯¼è‡´å®ƒå¤±æ•ˆ
                 return true;
             }
 
-            // °üº¬ÍêÕû±íÃû£¬Æ¥Åä
+            // åŒ…å«å®Œæ•´è¡¨åï¼ŒåŒ¹é…
             return _TableNames.Contains(tableName);
         }
     }
@@ -52,18 +52,18 @@ namespace XCode.Cache
     class CacheItem<T> : CacheItem
     {
         private T _Value;
-        /// <summary>»º´æµÄÊı¾İ</summary>
+        /// <summary>ç¼“å­˜çš„æ•°æ®</summary>
         public T Value { get { return _Value; } }
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
+        /// <summary>æ„é€ å‡½æ•°</summary>
         /// <param name="tableNames"></param>
-        /// <param name="value">ÊıÖµ</param>
+        /// <param name="value">æ•°å€¼</param>
         public CacheItem(String[] tableNames, T value) : this(tableNames, value, 0) { }
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
+        /// <summary>æ„é€ å‡½æ•°</summary>
         /// <param name="tableNames"></param>
-        /// <param name="value">ÊıÖµ</param>
-        /// <param name="time">»º´æÊ±¼ä£¬µ¥Î»Ãë</param>
+        /// <param name="value">æ•°å€¼</param>
+        /// <param name="time">ç¼“å­˜æ—¶é—´ï¼Œå•ä½ç§’</param>
         public CacheItem(String[] tableNames, T value, Int32 time) : base(tableNames, time) { _Value = value; }
     }
 }

@@ -1,4 +1,4 @@
-//using System;
+ï»¿//using System;
 //using System.Collections.Generic;
 //using System.Text;
 //using System.Reflection;
@@ -9,12 +9,12 @@
 //namespace XControl
 //{
 //    /// <summary>
-//    /// ÀàĞÍÖúÊÖÀà
+//    /// ç±»å‹åŠ©æ‰‹ç±»
 //    /// </summary>
 //    internal class ViewHelper
 //    {
 //        /// <summary>
-//        /// È¡µÃËùÓĞÊôĞÔÁĞ
+//        /// å–å¾—æ‰€æœ‰å±æ€§åˆ—
 //        /// </summary>
 //        /// <param name="t"></param>
 //        /// <returns></returns>
@@ -26,7 +26,7 @@
 //            {
 //                DescriptionAttribute[] Des = pi.GetCustomAttributes(typeof(DescriptionAttribute), false) as DescriptionAttribute[];
 //                DataObjectFieldAttribute[] Dof = pi.GetCustomAttributes(typeof(DataObjectFieldAttribute), false) as DataObjectFieldAttribute[];
-//                // ±ØĞë°üº¬DataObjectFieldAttribute£¬DescriptionAttribute¿ÉÒÔÎª¿Õ
+//                // å¿…é¡»åŒ…å«DataObjectFieldAttributeï¼ŒDescriptionAttributeå¯ä»¥ä¸ºç©º
 //                if (Dof != null && Dof.Length > 0)
 //                    if (Des != null && Des.Length > 0)
 //                        Fields.Add(new FieldItem(pi, Dof[0], Des[0]));
@@ -37,7 +37,7 @@
 //        }
 
 //        /// <summary>
-//        /// È¡µÃÊµÌåÀàĞÍ
+//        /// å–å¾—å®ä½“ç±»å‹
 //        /// </summary>
 //        /// <returns></returns>
 //        public static Type GetEntryType<T>(ISite Site) where T : DataBoundControl
@@ -47,20 +47,20 @@
 //            if (dbc == null || dbc.Page == null) return null;
 //            String datasourceid = dbc.DataSourceID;
 //            if (String.IsNullOrEmpty(datasourceid)) return null;
-//            // ÕÒµ½Êı¾İ°ó¶¨¿Ø¼şObjectDataSource
+//            // æ‰¾åˆ°æ•°æ®ç»‘å®šæ§ä»¶ObjectDataSource
 //            //ObjectDataSource obj = dbc.Page.FindControl(datasourceid) as ObjectDataSource;
 //            ObjectDataSource obj = Find(dbc.Page, datasourceid) as ObjectDataSource;
 //            if (obj == null)
 //            {
-//                MsgBox<T>("ÎŞ·¨ÕÒµ½ÃûÎª " + datasourceid + " µÄObjectDataSource£¡");
+//                MsgBox<T>("æ— æ³•æ‰¾åˆ°åä¸º " + datasourceid + " çš„ObjectDataSourceï¼");
 //                return null;
 //            }
-//            // ÕÒµ½ÊµÌåÀàĞÍ
+//            // æ‰¾åˆ°å®ä½“ç±»å‹
 //            String typeName = obj.DataObjectTypeName;
 //            if (String.IsNullOrEmpty(typeName)) typeName = obj.TypeName;
 //            if (String.IsNullOrEmpty(typeName))
 //            {
-//                MsgBox<T>("ÇëÏÈÅäÖÃºÃ" + datasourceid + "ÔÙ°ó¶¨Êı¾İÔ´£¡");
+//                MsgBox<T>("è¯·å…ˆé…ç½®å¥½" + datasourceid + "å†ç»‘å®šæ•°æ®æºï¼");
 //                return null;
 //            }
 //            Type t = Type.GetType(typeName);
@@ -77,7 +77,7 @@
 //                    }
 //                    if (t == null)
 //                    {
-//                        MsgBox<T>("ÎŞ·¨¶¨Î»Êı¾İ×é¼şÀà£º" + typeName + "£¬¿ÉÄÜÄãĞèÒª±àÒëÒ»´ÎÊı¾İ×é¼şÀàËùÔÚÏîÄ¿¡£");
+//                        MsgBox<T>("æ— æ³•å®šä½æ•°æ®ç»„ä»¶ç±»ï¼š" + typeName + "ï¼Œå¯èƒ½ä½ éœ€è¦ç¼–è¯‘ä¸€æ¬¡æ•°æ®ç»„ä»¶ç±»æ‰€åœ¨é¡¹ç›®ã€‚");
 //                        return null;
 //                    }
 //                }
@@ -87,7 +87,7 @@
 
 //        public static void MsgBox<T>(String msg)
 //        {
-//            System.Windows.Forms.MessageBox.Show(msg, typeof(T).ToString() + "¿Ø¼şÉè¼ÆÊ±³ö´í£¡");
+//            System.Windows.Forms.MessageBox.Show(msg, typeof(T).ToString() + "æ§ä»¶è®¾è®¡æ—¶å‡ºé”™ï¼");
 //        }
 
 //        public static Control Find(Control control, String id)
@@ -108,24 +108,24 @@
 //    }
 
 //    /// <summary>
-//    /// Êı¾İÊôĞÔÔªÊı¾İÒÔ¼°ÌØĞÔ
+//    /// æ•°æ®å±æ€§å…ƒæ•°æ®ä»¥åŠç‰¹æ€§
 //    /// </summary>
 //    internal class FieldItem
 //    {
 //        /// <summary>
-//        /// ÊôĞÔÔªÊı¾İ
+//        /// å±æ€§å…ƒæ•°æ®
 //        /// </summary>
 //        public PropertyInfo Info;
 //        /// <summary>
-//        /// ÊôĞÔËµÃ÷
+//        /// å±æ€§è¯´æ˜
 //        /// </summary>
 //        public String Description;
 //        /// <summary>
-//        /// Êı¾İ×Ö¶ÎÌØĞÔ
+//        /// æ•°æ®å­—æ®µç‰¹æ€§
 //        /// </summary>
 //        public DataObjectFieldAttribute DataObjectField;
 //        /// <summary>
-//        /// ÊôĞÔÃû
+//        /// å±æ€§å
 //        /// </summary>
 //        public String Name
 //        {
@@ -136,7 +136,7 @@
 //        }
 
 //        /// <summary>
-//        /// ¹¹Ôìº¯Êı
+//        /// æ„é€ å‡½æ•°
 //        /// </summary>
 //        /// <param name="pi"></param>
 //        /// <param name="dof"></param>
@@ -146,7 +146,7 @@
 //            DataObjectField = dof;
 //        }
 //        /// <summary>
-//        /// ¹¹Ôìº¯Êı
+//        /// æ„é€ å‡½æ•°
 //        /// </summary>
 //        /// <param name="pi"></param>
 //        /// <param name="dof"></param>

@@ -1,62 +1,62 @@
-using System;
+ï»¿using System;
 using XCode.DataAccessLayer;
 
 namespace XCode
 {
-    /// <summary>Ö¸¶¨ÊµÌåÀàËù°ó¶¨µÄÊı¾İ±íĞÅÏ¢¡£</summary>
+    /// <summary>æŒ‡å®šå®ä½“ç±»æ‰€ç»‘å®šçš„æ•°æ®è¡¨ä¿¡æ¯ã€‚</summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class BindTableAttribute : Attribute
     {
         private String _Name;
         /// <summary>
-        /// ±íÃû¡£
-        /// ¿ÉÒÔÔÚÅäÖÃÎÄ¼şÖĞÍ¨¹ıXCode.ConnMaps°ÑÊµÌåÓ³Éäµ½±ğµÄÊı¾İ±íÉÏ
+        /// è¡¨åã€‚
+        /// å¯ä»¥åœ¨é…ç½®æ–‡ä»¶ä¸­é€šè¿‡XCode.ConnMapsæŠŠå®ä½“æ˜ å°„åˆ°åˆ«çš„æ•°æ®è¡¨ä¸Š
         /// </summary>
         public String Name { get { return _Name; } set { _Name = value; } }
 
         private String _Description;
-        /// <summary>ÃèÊö</summary>
+        /// <summary>æè¿°</summary>
         public String Description { get { return _Description; } set { _Description = value; } }
 
         private String _ConnName;
         /// <summary>
-        /// Á¬½ÓÃû¡£
-        /// ÊµÌåÀàµÄËùÓĞÊı¾İ¿â²Ù×÷£¬½«·¢ÉúÔÚ¸ÃÁ¬½ÓÃûÖ¸¶¨µÄÊı¾İ¿âÁ¬½ÓÉÏ¡£
-        /// ´ËÍâ£¬¿É¶¯Ì¬ĞŞ¸ÄÊµÌåÀàÔÚµ±Ç°Ïß³ÌÉÏµÄÁ¬½ÓÃû£¨¸ÄMeta.ConnName£©£»
-        /// Ò²¿ÉÒÔÔÚÅäÖÃÎÄ¼şÖĞÍ¨¹ıXCode.ConnMaps°ÑÁ¬½ÓÃûÓ³Éäµ½±ğµÄÁ¬½ÓÉÏ¡£
+        /// è¿æ¥åã€‚
+        /// å®ä½“ç±»çš„æ‰€æœ‰æ•°æ®åº“æ“ä½œï¼Œå°†å‘ç”Ÿåœ¨è¯¥è¿æ¥åæŒ‡å®šçš„æ•°æ®åº“è¿æ¥ä¸Šã€‚
+        /// æ­¤å¤–ï¼Œå¯åŠ¨æ€ä¿®æ”¹å®ä½“ç±»åœ¨å½“å‰çº¿ç¨‹ä¸Šçš„è¿æ¥åï¼ˆæ”¹Meta.ConnNameï¼‰ï¼›
+        /// ä¹Ÿå¯ä»¥åœ¨é…ç½®æ–‡ä»¶ä¸­é€šè¿‡XCode.ConnMapsæŠŠè¿æ¥åæ˜ å°„åˆ°åˆ«çš„è¿æ¥ä¸Šã€‚
         /// </summary>
         public String ConnName { get { return _ConnName; } set { _ConnName = value; } }
 
         private DatabaseType _DbType;
         /// <summary>
-        /// Êı¾İ¿âÀàĞÍ¡£
-        /// ½öÓÃÓÚ¼ÇÂ¼ÊµÌåÀàÓÉºÎÖÖÀàĞÍÊı¾İ¿âÉú³É£¬µ±ÇÒ½öµ±Ä¿±êÊı¾İ¿âÍ¬Îª¸ÃÊı¾İ¿âÀàĞÍÊ±£¬²ÉÓÃÊµÌåÊôĞÔĞÅÏ¢ÉÏµÄRawType×÷Îª·´Ïò¹¤³ÌµÄÄ¿±ê×Ö¶ÎÀàĞÍ£¬ÒÔÆÚ»ñµÃ¿ª·¢ºÍÉú²úµÄ×î¼Ñ¼æÈİ¡£
+        /// æ•°æ®åº“ç±»å‹ã€‚
+        /// ä»…ç”¨äºè®°å½•å®ä½“ç±»ç”±ä½•ç§ç±»å‹æ•°æ®åº“ç”Ÿæˆï¼Œå½“ä¸”ä»…å½“ç›®æ ‡æ•°æ®åº“åŒä¸ºè¯¥æ•°æ®åº“ç±»å‹æ—¶ï¼Œé‡‡ç”¨å®ä½“å±æ€§ä¿¡æ¯ä¸Šçš„RawTypeä½œä¸ºåå‘å·¥ç¨‹çš„ç›®æ ‡å­—æ®µç±»å‹ï¼Œä»¥æœŸè·å¾—å¼€å‘å’Œç”Ÿäº§çš„æœ€ä½³å…¼å®¹ã€‚
         /// </summary>
         public DatabaseType DbType { get { return _DbType; } set { _DbType = value; } }
 
         private Boolean _IsView;
-        /// <summary>ÊÇ·ñÊÓÍ¼</summary>
+        /// <summary>æ˜¯å¦è§†å›¾</summary>
         public Boolean IsView { get { return _IsView; } set { _IsView = value; } }
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
-        /// <param name="name">±íÃû</param>
+        /// <summary>æ„é€ å‡½æ•°</summary>
+        /// <param name="name">è¡¨å</param>
         public BindTableAttribute(String name)
         {
             Name = name;
         }
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
-        /// <param name="name">±íÃû</param>
-        /// <param name="description">ÃèÊö</param>
+        /// <summary>æ„é€ å‡½æ•°</summary>
+        /// <param name="name">è¡¨å</param>
+        /// <param name="description">æè¿°</param>
         public BindTableAttribute(String name, String description)
         {
             Name = name;
             Description = description;
         }
 
-        /// <summary>¹¹Ôìº¯Êı</summary>
-        /// <param name="name">±íÃû</param>
-        /// <param name="description">ÃèÊö</param>
+        /// <summary>æ„é€ å‡½æ•°</summary>
+        /// <param name="name">è¡¨å</param>
+        /// <param name="description">æè¿°</param>
         /// <param name="connName"></param>
         /// <param name="dbType"></param>
         /// <param name="isView"></param>
