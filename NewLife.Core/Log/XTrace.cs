@@ -33,7 +33,6 @@ namespace NewLife.Log
         public static void WriteLine(String msg)
         {
             InitLog();
-            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(msg, null, true));
 
             Log.Info(msg);
         }
@@ -44,7 +43,6 @@ namespace NewLife.Log
         public static void WriteLine(String format, params Object[] args)
         {
             InitLog();
-            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(String.Format(format, args), null, true));
 
             Log.Info(format, args);
         }
@@ -63,20 +61,15 @@ namespace NewLife.Log
         public static void WriteException(Exception ex)
         {
             InitLog();
-            if (OnWriteLog != null) OnWriteLog(null, WriteLogEventArgs.Current.Set(null, ex, true));
 
             Log.Error("{0}", ex);
         }
-
-        /// <summary>写日志事件。</summary>
-        [Obsolete("请直接使用CompositeLog实现赋值给Log属性")]
-        public static event EventHandler<WriteLogEventArgs> OnWriteLog;
         #endregion
 
         #region 构造
         static XTrace()
         {
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         }
 
 #if Android
@@ -122,7 +115,6 @@ namespace NewLife.Log
         /// <param name="useFileLog">是否同时使用文件日志，默认使用</param>
         public static void UseConsole(Boolean useColor = true, Boolean useFileLog = true)
         {
-            //if (init > 0 || Interlocked.CompareExchange(ref init, 1, 0) != 0) return;
             if (!Runtime.IsConsole) return;
 
             // 适当加大控制台窗口
@@ -217,7 +209,7 @@ namespace NewLife.Log
             if (e.IsTerminating)
             {
                 //WriteLine("异常退出！");
-                Log.Fatal("异常退出！");
+                Log.Fatal("异常退出！" + msg);
                 //XTrace.WriteMiniDump(null);
                 if (show) MessageBox.Show(msg, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -230,13 +222,11 @@ namespace NewLife.Log
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
             WriteException(e.Exception);
-            if (_ShowErrorMessage && Application.MessageLoop) MessageBox.Show("" + e.Exception, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-#endif
-        #endregion
 
-        #region 使用WinForm控件输出日志
-#if !Android
+            var show = _ShowErrorMessage && Application.MessageLoop;
+            if (show) MessageBox.Show("" + e.Exception, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
         /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>
         /// <param name="control">要绑定日志输出的WinForm控件</param>
@@ -244,10 +234,6 @@ namespace NewLife.Log
         /// <param name="maxLines">最大行数</param>
         public static void UseWinFormControl(this Control control, Boolean useFileLog = true, Int32 maxLines = 1000)
         {
-            //if (handler != null)
-            //    OnWriteLog += (s, e) => handler(control, e);
-            //else
-            //    OnWriteLog += (s, e) => UseWinFormWriteLog(control, e.ToString() + Environment.NewLine, maxLines);
             var clg = _Log as TextControlLog;
             var ftl = _Log as TextFileLog;
             var cmp = _Log as CompositeLog;
@@ -272,19 +258,6 @@ namespace NewLife.Log
                 if (ftl == null) ftl = TextFileLog.Create(null);
                 Log = new CompositeLog(clg, ftl);
             }
-        }
-
-        /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
-        /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>
-        /// <param name="control">要绑定日志输出的WinForm控件</param>
-        /// <param name="msg">日志</param>
-        /// <param name="maxLines">最大行数</param>
-        [Obsolete("=>TextControlLog.WriteLog")]
-        public static void UseWinFormWriteLog(this Control control, String msg, Int32 maxLines = 1000)
-        {
-            if (control == null) return;
-
-            TextControlLog.WriteLog(control, msg, maxLines);
         }
 #endif
         #endregion
