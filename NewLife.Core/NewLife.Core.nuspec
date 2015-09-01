@@ -17,9 +17,11 @@
     <tags>新生命团队 X组件 NewLife</tags>
   </metadata>
   <files>
-    <file src="..\..\Bin\NewLife.Core.dll" target="lib\net20\NewLife.Core.dll" />
-    <file src="..\..\Bin\NewLife.Core.xml" target="lib\net20\NewLife.Core.xml" />
-    <file src="..\..\Bin\NewLife.Core.pdb" target="lib\net20\NewLife.Core.pdb" />
-    <file src="..\..\Bin4\NewLife.Core.pdb" target="lib\net40\NewLife.Core.pdb" />
+    <file src="..\..\BIN\NewLife.Core.dll" target="lib\net20\NewLife.Core.dll" />
+    <file src="..\..\BIN\NewLife.Core.xml" target="lib\net20\NewLife.Core.xml" />
+    <file src="..\..\BIN\NewLife.Core.pdb" target="lib\net20\NewLife.Core.pdb" />
+    <file src="..\..\BIN4\NewLife.Core.dll" target="lib\net40\NewLife.Core.dll" />
+    <file src="..\..\BIN4\NewLife.Core.xml" target="lib\net40\NewLife.Core.xml" />
+    <file src="..\..\BIN4\NewLife.Core.pdb" target="lib\net40\NewLife.Core.pdb" />
   </files>
 </package>
