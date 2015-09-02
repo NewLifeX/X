@@ -30,7 +30,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test6();
+                Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -216,6 +216,13 @@ namespace Test2
                 Console.WriteLine(str);
                 Thread.Sleep(1000);
             }
+        }
+
+        static void Test7()
+        {
+            TestNewLife_Net test = new TestNewLife_Net();
+            test.StartTest();
+            test.StopTest();
         }
     }
 }
