@@ -71,7 +71,7 @@ namespace Test2
         private ISocketSession CreateSession(string host, int port = 65530, ProtocolType protocolType = ProtocolType.Tcp)
         {
             var ip = NetHelper.ParseAddress(host);
-            var session = NetService.CreateSession(new NetUri(protocolType, ip, port));
+            var session = NetService.CreateSession(new NetUri(protocolType, ip, port), 5000);
             //session.Received += ClientSession_Received;
             return session;
         }

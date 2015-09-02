@@ -52,7 +52,7 @@ namespace NewLife.Net
         /// <summary>根据网络标识创建客户端会话并连接（对Tcp）</summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public static ISocketSession CreateSession(NetUri uri)
+        public static ISocketSession CreateSession(NetUri uri, int timeout = 3000)
         {
             if (uri == null) throw new ArgumentNullException("uri");
 
@@ -70,11 +70,15 @@ namespace NewLife.Net
             }
 
             var client = Container.Resolve<ISocketSession>(uri.ProtocolType);
-            //if (uri.EndPoint != null)
-            //{
-            //    //if (uri.ProtocolType == ProtocolType.Tcp) (client as ISocketClient).Connect(uri.EndPoint);
-            //    if (client is ISocketClient && !uri.EndPoint.IsAny()) (client as ISocketClient).Connect(uri.EndPoint);
-            //}
+            if (uri.EndPoint != null)
+            {
+                //if (uri.ProtocolType == ProtocolType.Tcp) (client as ISocketClient).Connect(uri.EndPoint);
+                if (client is ISocketClient && !uri.EndPoint.IsAny()) //(client as ISocketClient).Connect(uri.EndPoint);
+                {
+                    var socketClient = client as ISocketClient;
+                    socketClient.Timeout = timeout;
+                }
+            }
             client.Remote = uri;
 
             return client;

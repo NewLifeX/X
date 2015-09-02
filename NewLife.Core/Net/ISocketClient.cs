@@ -16,6 +16,11 @@ namespace NewLife.Net
         ///// <summary>会话数据流，供用户程序使用，内部不做处理。可用于解决Tcp粘包的问题，把多余的分片放入该数据流中。</summary>
         //Stream Stream { get; set; }
 
+        /// <summary>
+        /// 超时时间
+        /// </summary>
+        Int32 Timeout { get; set; }
+
         /// <summary>是否活动</summary>
         Boolean Active { get; set; }
         #endregion
