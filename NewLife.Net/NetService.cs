@@ -51,6 +51,7 @@ namespace NewLife.Net
 
         /// <summary>根据网络标识创建客户端会话并连接（对Tcp）</summary>
         /// <param name="uri"></param>
+        /// <param name="timeout">数据接收超时时间</param>
         /// <returns></returns>
         public static ISocketSession CreateSession(NetUri uri, int timeout = 3000)
         {
@@ -63,6 +64,7 @@ namespace NewLife.Net
                 if (server is UdpServer)
                 {
                     var udp = server as UdpServer;
+                    udp.Timeout = timeout;
                     //udp.Open();
                     //udp.ReceiveAsync();
                     return udp.CreateSession(uri.EndPoint);
