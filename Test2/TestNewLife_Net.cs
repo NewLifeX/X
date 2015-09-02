@@ -29,6 +29,7 @@ namespace Test2
             TestSendAndReceive();
             TestSendButNoResponse();
             TestSendButNoResponse10Times();
+            TestAsyncReceive();
         }
 
         public void StopTest()
@@ -157,6 +158,18 @@ namespace Test2
             }
 
             session.Dispose();
+        }
+
+        public void TestAsyncReceive()
+        {
+            XTrace.WriteLine("TestSendAndReceive");
+            string str =
+                "echo:中国11个连片特困区大多数处于气候、水文、土地使用、森林等多种系统边缘，对气候变化的影响异常敏感脆弱。这些地区的扶贫减贫工作需要与气候变化适应、粮食安全保障、贫困人群生计安全以及贫困地区生态保护等有机结合起来。”";
+
+            var session = CreateSession("127.0.0.1", testPort);
+            session.Received += ClientSession_Received;
+            session.ReceiveAsync();
+            session.Send(str);
         }
         #endregion
     }
