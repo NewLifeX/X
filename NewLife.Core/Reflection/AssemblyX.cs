@@ -546,7 +546,12 @@ namespace NewLife.Reflection
                 var pe = PEImage.Read(item);
                 if (pe == null || !pe.IsNet) continue;
                 // 只判断主次版本，只要这两个相同，后面可以兼容
-                if (pe.Version.Major > ver.Major || pe.Version.Minor > pe.Version.Minor) continue;
+                var pv = pe.Version;
+                if (pv.Major > ver.Major || pv.Major == ver.Major && pv.Minor > ver.Minor)
+                {
+                    if (XTrace.Debug) XTrace.WriteLine("程序集 {0} 的版本 {1} 大于当前运行时 {2}", item, pv, ver);
+                    continue;
+                }
                 // 必须加强过滤，下面一旦只读加载，就再也不能删除文件
                 if (!pe.ExecutableKind.Has(PortableExecutableKinds.ILOnly))
                 {
@@ -555,7 +560,11 @@ namespace NewLife.Reflection
                     //var x64 = pe.ExecutableKind.Has(PortableExecutableKinds.Required32Bit);
                     //var x64 = pe.Machine == ImageFileMachine.AMD64;
                     var x64 = pe.Machine == ImageFileMachine.AMD64;
-                    if (Runtime.Is64BitProcess ^ x64) continue;
+                    if (Runtime.Is64BitProcess ^ x64)
+                    {
+                        if (XTrace.Debug) XTrace.WriteLine("程序集 {0} 的代码特性是 {1}，而当前进程是 {2} 进程", item, pe.Machine, Runtime.Is64BitProcess ? "64位" : "32位");
+                        continue;
+                    }
                 }
 #endif
 

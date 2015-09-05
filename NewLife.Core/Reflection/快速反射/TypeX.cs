@@ -416,7 +416,10 @@ namespace NewLife.Reflection
                             type = type2;
                             if (XTrace.Debug) XTrace.WriteLine("TypeX.GetType(\"{0}\")导致加载{1}", typeName, file);
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            if (XTrace.Debug) XTrace.WriteException(ex);
+                        }
 
                         return type;
                     }

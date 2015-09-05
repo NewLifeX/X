@@ -32,6 +32,10 @@ namespace XCode.DataAccessLayer
             //if (Directory.Exists(dir)) SetDllDirectory(dir);
             // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
             if (!Runtime.Mono) SetDllDirectory(dir);
+
+            root = NewLife.Setting.Current.GetPluginPath();
+            dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
+            if (!Runtime.Mono) SetDllDirectory(dir);
         }
 
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
@@ -262,25 +266,26 @@ namespace XCode.DataAccessLayer
             file = NewLife.Setting.Current.GetPluginPath().CombinePath(file);
 
             var url = "http://www.newlifex.com/showtopic-51.aspx";
-            var name = Path.GetFileNameWithoutExtension(file);
+            var name = Path.GetFileNameWithoutExtension(assemblyFile);
             var linkName = name;
             if (Runtime.Is64BitProcess) linkName += "64";
             var ver = Environment.Version;
             if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
 
-            var type = PluginHelper.LoadPlugin(className, null, file, linkName, url);
+            var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName, url);
 
             // 如果还没有，就写异常
             if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
 
             if (type == null)
             {
-                XTrace.WriteLine("驱动文件{0}非法或不适用于当前环境，准备删除后重新下载！", file);
+                XTrace.WriteLine("驱动文件{0}无效或不适用于当前环境，准备删除后重新下载！", assemblyFile);
 
                 try
                 {
                     File.Delete(file);
                 }
+                catch (UnauthorizedAccessException) { }
                 catch (Exception ex) { XTrace.Log.Error(ex.ToString()); }
 
                 type = PluginHelper.LoadPlugin(className, null, file, linkName, url);
