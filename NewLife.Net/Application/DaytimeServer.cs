@@ -18,7 +18,7 @@ namespace NewLife.Net.Application
 
         /// <summary>已重载。</summary>
         /// <param name="session"></param>
-        protected override void OnNewSession(ISocketSession session)
+        protected override INetSession OnNewSession(ISocketSession session)
         {
             WriteLog("Daytime {0}", session.Remote);
 
@@ -26,6 +26,8 @@ namespace NewLife.Net.Application
             //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
             //session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
             session.Send(buffer);
+
+            return null;
         }
     }
 }

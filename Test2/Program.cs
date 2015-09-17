@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using NewLife.Log;
 using NewLife.Net;
@@ -30,7 +31,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test7();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -57,34 +58,45 @@ namespace Test2
 
         static void Test2()
         {
-            var client = new TcpSession();
-            //client.Debug = true;
-            client.Received += client_Received;
-            client.Remote = "tcp://114.80.156.91:8848";
-            client.Open();
-            //client.Connect("114.80.156.91", 8848);
+            var server = new NetServer();
+            server.Port = 88;
+            server.NewSession += server_NewSession;
+            //server.Received += server_Received;
+            server.SocketLog = null;
+            server.SessionLog = null;
+            server.Start();
 
-            var ms = new MemoryStream();
-            ms.Write(new Byte[4]);
-            ms.WriteByte(1);
-            ms.WriteByte(0x10);
-            ms.Write(new Byte[0x10]);
-            //ms.Write(0x12);
-            //ms.Write(0x34);
+            var html = "新生命开发团队";
 
-            var crc = new Crc32().Update(ms).Value;
-            ms.Write(BitConverter.GetBytes(crc));
+            var sb = new StringBuilder();
+            sb.AppendLine("HTTP/1.1 200 OK");
+            sb.AppendLine("Server: NewLife.WebServer");
+            sb.AppendLine("Connection: close");
+            sb.AppendLine("Content-Type: text/html; charset=UTF-8");
+            sb.AppendFormat("Content-Length: {0}", Encoding.UTF8.GetByteCount(html));
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.Append(html);
 
-            client.Send(ms.ToArray());
-
-            Thread.Sleep(50000);
-            client.Dispose();
+            response = sb.ToString().GetBytes();
         }
 
-        static void client_Received(object sender, ReceivedEventArgs e)
+        static void server_NewSession(object sender, NetSessionEventArgs e)
         {
-            var session = sender as ISocketSession;
-            XTrace.WriteLine("客户端 {0} 收到：{1}", session, e.Stream.ToStr());
+            var session = e.Session;
+            session.Received += session_Received;
+        }
+
+        static Byte[] response;
+        static void session_Received(object sender, ReceivedEventArgs e)
+        {
+            var session = sender as INetSession;
+            //XTrace.WriteLine("客户端 {0} 收到：{1}", session, e.Stream.ToStr());
+
+            session.Send(response);
+
+            session.Dispose();
         }
 
         static UdpServer _udpServer;
@@ -115,56 +127,6 @@ namespace Test2
         {
             var session = sender as ISocketSession;
             XTrace.WriteLine("{0} [{1}]：{2}", session.Remote, e.Stream.Length, e.Stream.ReadBytes().ToHex());
-        }
-
-        static TimerX _timer;
-        static void Test3()
-        {
-            var server = new TcpServer();
-            //server.Log = XTrace.Log;
-            server.Port = 8;
-            server.MaxNotActive = 0;
-            server.NewSession += server_NewSession;
-            server.Start();
-
-            //ThreadPoolX.QueueUserWorkItem(ShowSessions);
-            _timer = new TimerX(ShowSessions, server, 1000, 1000);
-
-            NetHelper.ShowTcpParameters();
-            Console.WriteLine("k键设置最优Tcp参数，其它键开始测试：");
-            var key = Console.ReadKey();
-            if (key.KeyChar == 'k') NetHelper.SetTcpMax();
-        }
-
-        static HashSet<String> _ips = new HashSet<string>();
-        static void server_NewSession(object sender, SessionEventArgs e)
-        {
-            var ip = e.Session.Remote.Address;
-            if (!_ips.Contains(ip.ToString()))
-            {
-                _ips.Add(ip.ToString());
-
-                XTrace.WriteLine("{0,15} {1}", ip, ip.GetAddress());
-            }
-        }
-
-        static Int32 _max = 0;
-        static void ShowSessions(Object state)
-        {
-            var server = state as TcpServer;
-            if (server == null) return;
-
-            var count = server.Sessions.Count;
-            if (count > _max) _max = count;
-            Console.Title = "会话数：{0} 最大：{1}".F(count, _max);
-        }
-
-        static void session_Received(object sender, ReceivedEventArgs e)
-        {
-            var session = sender as ISocketSession;
-
-            Console.WriteLine(e.ToStr());
-            session.Send("收到：" + e.ToStr());
         }
 
         static void Test4()

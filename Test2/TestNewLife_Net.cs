@@ -49,7 +49,7 @@ namespace Test2
             _Server.Start();
         }
 
-        void _Server_NewSession(object sender, SessionEventArgs e)
+        void _Server_NewSession(object sender, NetSessionEventArgs e)
         {
 
             e.Session.Received += ServerSession_Received;

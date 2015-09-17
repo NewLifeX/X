@@ -55,4 +55,12 @@ namespace NewLife.Net.Sockets
         event EventHandler<ReceivedEventArgs> Received;
         #endregion
     }
+
+    /// <summary>会话事件参数</summary>
+    public class NetSessionEventArgs : EventArgs
+    {
+        private INetSession _Session;
+        /// <summary>会话</summary>
+        public INetSession Session { get { return _Session; } set { _Session = value; } }
+    }
 }

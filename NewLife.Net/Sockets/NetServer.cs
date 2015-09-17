@@ -274,7 +274,7 @@ namespace NewLife.Net.Sockets
 
         #region 业务
         /// <summary>新会话，对于TCP是新连接，对于UDP是新客户端</summary>
-        public event EventHandler<SessionEventArgs> NewSession;
+        public event EventHandler<NetSessionEventArgs> NewSession;
 
         /// <summary>某个会话的数据到达。sender是ISocketSession</summary>
         public event EventHandler<ReceivedEventArgs> Received;
@@ -286,14 +286,14 @@ namespace NewLife.Net.Sockets
         {
             var session = e.Session;
 
-            OnNewSession(session);
+            var ns = OnNewSession(session);
 
-            if (NewSession != null) NewSession(sender, e);
+            if (NewSession != null) NewSession(sender, new NetSessionEventArgs { Session = ns });
         }
 
         /// <summary>收到连接时，建立会话，并挂接数据接收和错误处理事件</summary>
         /// <param name="session"></param>
-        protected virtual void OnNewSession(ISocketSession session)
+        protected virtual INetSession OnNewSession(ISocketSession session)
         {
             Interlocked.Increment(ref _SessionCount);
             session.OnDisposed += (s, e2) => Interlocked.Decrement(ref _SessionCount);
@@ -317,6 +317,8 @@ namespace NewLife.Net.Sockets
 
             // 开始会话处理
             ns.Start();
+
+            return ns;
         }
 
         /// <summary>收到数据时</summary>

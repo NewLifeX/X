@@ -22,14 +22,14 @@ namespace NewLife.Net.Application
 
         /// <summary>已重载。</summary>
         /// <param name="session"></param>
-        protected override void OnNewSession(ISocketSession session)
+        protected override INetSession OnNewSession(ISocketSession session)
         {
             WriteLog("Chargen {0} OnAccept", session.Remote);
 
             // 如果没有远程地址，或者远程地址是广播地址，则跳过。否则会攻击广播者。
             // Tcp的该属性可能没值，可以忽略
             var remote = session.Remote.EndPoint;
-            if (remote != null && remote.Address.IsAny()) return;
+            if (remote != null && remote.Address.IsAny()) return null;
 
             // 使用多线程
             var thread = new Thread(LoopSend);
@@ -38,8 +38,8 @@ namespace NewLife.Net.Application
             //thread.Priority = ThreadPriority.Lowest;
             thread.Start(session);
 
-            // 调用基类，为接收数据准备，避免占用过大内存
-            //base.OnAccepted(sender, e);
+            //return base.OnNewSession(session);
+            return null;
         }
 
         /// <summary>已重载。</summary>
