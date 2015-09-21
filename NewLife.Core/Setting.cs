@@ -12,7 +12,9 @@ namespace NewLife
 {
     /// <summary>核心设置</summary>
     [DisplayName("核心设置")]
+#if !Android
     [XmlConfigFile(@"Config\Core.config", 15000)]
+#endif
     public class Setting : XmlConfig<Setting>
     {
         #region 属性
@@ -67,20 +69,25 @@ namespace NewLife
         protected override void OnNew()
         {
             Debug = Config.GetConfig<Boolean>("NewLife.Debug", false);
+            NetDebug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
             LogLevel = Config.GetConfig<LogLevel>("NewLife.LogLevel", Debug ? LogLevel.Debug : LogLevel.Info);
+
+
             LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
             TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
             PluginPath = Runtime.IsWeb ? "Bin" : "Plugins";
-            NetDebug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
             ThreadDebug = Config.GetMutilConfig<Boolean>(false, "NewLife.Thread.Debug", "ThreadPoolDebug");
             WebCompressFiles = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
+#if !Android
+#endif
         }
 
         /// <summary>加载完成后</summary>
         protected override void OnLoaded()
         {
+#if !Android
             if (DownloadCache.IsNullOrWhiteSpace()) DownloadCache = Path.GetPathRoot(Environment.SystemDirectory).CombinePath("X\\Cache");
-
+#endif
             base.OnLoaded();
         }
 

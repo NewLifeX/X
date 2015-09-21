@@ -54,7 +54,7 @@ namespace NewLife.Xml
                         config.SetExpire();  // 设定过期时间
                         config.OnNew();
                         config.OnLoaded();
-
+#if !Android
                         // 创建或覆盖
                         XTrace.WriteLineAsync("{0}的配置文件{1}不存在或加载出错，准备用默认配置覆盖！", typeof(TConfig).Name, _.ConfigFile);
                         try
@@ -67,6 +67,7 @@ namespace NewLife.Xml
                             //XTrace.WriteException(ex);
                             XTrace.WriteLineAsync(ex.ToString());
                         }
+#endif
                     }
                     _Current = config;
                     return config;
@@ -246,9 +247,11 @@ namespace NewLife.Xml
                 }
                 if (!flag)
                 {
+#if !Android
                     // 异步处理，避免加载日志路径配置时死循环
                     XTrace.WriteLineAsync("配置文件{0}格式不一致，保存为最新格式！", ConfigFile);
                     config.Save();
+#endif
                 }
             }
             catch (Exception ex)
@@ -261,6 +264,7 @@ namespace NewLife.Xml
         /// <param name="filename"></param>
         public virtual void Save(String filename)
         {
+#if !Android
             //var filename = _.ConfigFile;
             if (filename.IsNullOrWhiteSpace()) filename = ConfigFile;
             if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
@@ -271,6 +275,7 @@ namespace NewLife.Xml
             {
                 this.ToXmlFile(filename, null, "", "", true, true);
             }
+#endif
         }
 
         /// <summary>保存到配置文件中去</summary>
@@ -278,6 +283,6 @@ namespace NewLife.Xml
 
         /// <summary>新创建配置文件时执行</summary>
         protected virtual void OnNew() { }
-        #endregion
+#endregion
     }
 }

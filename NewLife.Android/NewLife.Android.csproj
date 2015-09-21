@@ -229,15 +229,6 @@
     <Compile Include="..\NewLife.Core\Reflection\Reflect.cs">
       <Link>Reflection\Reflect.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Reflection\ReflectHelper.cs">
-      <Link>Reflection\ReflectHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Reflection\TypeResolver.cs">
-      <Link>Reflection\TypeResolver.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Reflection\TypeResolverProvider.cs">
-      <Link>Reflection\TypeResolverProvider.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Reflection\快速反射\ConstructorInfoX.cs">
       <Link>Reflection\快速反射\ConstructorInfoX.cs</Link>
     </Compile>
@@ -312,6 +303,9 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Serialization\Interface\IFormatterX.cs">
       <Link>Serialization\Interface\IFormatterX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Setting.cs">
+      <Link>Setting.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Threading\TaskState.cs">
       <Link>Threading\TaskState.cs</Link>
