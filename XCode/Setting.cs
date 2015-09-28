@@ -62,6 +62,11 @@ namespace XCode
         [Description("实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭")]
         public Boolean InitData { get { return _InitData; } set { _InitData = value; } }
 
+        private Boolean _TransactionDebug;
+        /// <summary>事务调试。打开时输出事务回滚日志，默认关闭</summary>
+        [Description("事务调试。打开时输出事务回滚日志，默认关闭")]
+        public Boolean TransactionDebug { get { return _TransactionDebug; } set { _TransactionDebug = value; } }
+
         private CacheSetting _Cache = new CacheSetting();
         /// <summary>缓存</summary>
         [Description("缓存")]

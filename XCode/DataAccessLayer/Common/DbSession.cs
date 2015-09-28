@@ -315,6 +315,9 @@ namespace XCode.DataAccessLayer
             var tr = Trans;
             if (tr == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
             Trans = null;
+
+            // 输出事务日志
+            if (Setting.Current.TransactionDebug) XTrace.DebugStack();
             try
             {
                 if (tr.Connection != null)
