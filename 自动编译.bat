@@ -31,8 +31,9 @@ popd
 
 :: 3，编译所有组件
 ::"D:\MS\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe" X组件.sln /Build Release
-set vs="B:\MS\Microsoft Visual Studio 12.0\Common7\IDE\devenv.com"
-for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Mvc NewLife.Net XAgent XControl XTemplate) do (
+::set vs="B:\MS\Microsoft Visual Studio 12.0\Common7\IDE\devenv.com"
+set vs="B:\MS\Microsoft Visual Studio 14.0\Common7\IDE\devenv.com"
+for %%i in (NewLife.Core XCode NewLife.CommonEntity NewLife.Net XAgent XControl XTemplate) do (
 	%vs% X组件.sln /Build Release /Project %%i
 )
 for %%i in (XCoder NewLife.Cube) do (
@@ -91,7 +92,7 @@ popd
 pushd ..\DLL4
 set zipfile=DLL4.zip
 del DLL*.zip /f/q
-set zip4=%zipexe% a -m5 -s -z..\Src\Readme4.txt -ibck
+set zip4=%zipexe% a -m5 -s -z..\Src\Readme.txt -ibck
 %zip4% %zipfile% *.dll *.exe *.pdb *.xml
 move /y DLL*.zip %dest%\%zipfile%
 :: 恢复目录

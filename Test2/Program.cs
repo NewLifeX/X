@@ -94,6 +94,7 @@ namespace Test2
             var session = sender as INetSession;
             //XTrace.WriteLine("客户端 {0} 收到：{1}", session, e.Stream.ToStr());
 
+            //XTrace.WriteLine(response.ToStr());
             session.Send(response);
 
             session.Dispose();
