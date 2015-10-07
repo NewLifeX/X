@@ -459,7 +459,10 @@ namespace NewLife.Windows
             var line = "";
             if (cfg.HexShow)
             {
-                line = data.ToHex();
+                if (data.Length > 32)
+                    line = "[{0}]=\r\n{1}".F(data.Length, data.ToHex("-", 32));
+                else
+                    line = "[{0}]={1}".F(data.Length, data.ToHex("-", 32));
                 if (cfg.HexNewLine) line += Environment.NewLine;
             }
             else
@@ -474,7 +477,8 @@ namespace NewLife.Windows
 
                 if (_reader == null ||
                     _reader.BaseStream != _stream ||
-                    _reader.CurrentEncoding != cfg.Encoding) _reader = new StreamReader(_stream, cfg.Encoding);
+                    _reader.CurrentEncoding != cfg.Encoding)
+                    _reader = new StreamReader(_stream, cfg.Encoding);
                 line = _reader.ReadToEnd();
             }
 
