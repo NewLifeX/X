@@ -396,7 +396,7 @@ namespace XCode.Configuration
             // 如果In操作且只有一项，修改为等于
             if (list.Count == 1) return CreateFieldExpression(this, flag ? "=" : "<>", vs[0]);
 
-            return CreateFormatExpression(flag ? "{0} In({1})" : "{0} Not In({1}", list.Join(","));
+            return CreateFormatExpression(flag ? "{0} In({1})" : "{0} Not In({1})", list.Join(","));
         }
 
         /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
