@@ -720,7 +720,7 @@ namespace XCode
         {
             using (var stream = new MemoryStream())
             {
-                var writer = new StreamWriter(stream, Encoding.UTF8);
+                var writer = new StreamWriter(stream, new UTF8Encoding(false));
                 Export(writer);
                 var bts = stream.ToArray();
                 var xml = Encoding.UTF8.GetString(bts);
