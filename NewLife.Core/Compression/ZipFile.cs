@@ -325,6 +325,15 @@ namespace NewLife.Compression
         #endregion
 
         #region 解压缩
+
+        /// <summary>解压缩[兼容旧版本]</summary>
+        /// <param name="outputPath">目标路径</param>
+        /// <param name="overrideExisting">是否覆盖已有文件</param>
+        public void Extract(String outputPath, Boolean overrideExisting = true)
+        {
+            Extract(outputPath, overrideExisting, true);
+        }
+
         /// <summary>解压缩</summary>
         /// <param name="outputPath">目标路径</param>
         /// <param name="overrideExisting">是否覆盖已有文件</param>
