@@ -71,7 +71,7 @@ namespace Test2
             var sb = new StringBuilder();
             sb.AppendLine("HTTP/1.1 200 OK");
             sb.AppendLine("Server: NewLife.WebServer");
-            sb.AppendLine("Connection: close");
+            sb.AppendLine("Connection: keep-alive");
             sb.AppendLine("Content-Type: text/html; charset=UTF-8");
             sb.AppendFormat("Content-Length: {0}", Encoding.UTF8.GetByteCount(html));
             sb.AppendLine();
@@ -80,24 +80,36 @@ namespace Test2
             sb.Append(html);
 
             response = sb.ToString().GetBytes();
+
+            while (true)
+            {
+                Console.Title = "会话：{0:n0} 请求：{1:n0} 错误：{2:n0}".F(server.SessionCount, Request, Error);
+                Thread.Sleep(500);
+            }
         }
 
         static void server_NewSession(object sender, NetSessionEventArgs e)
         {
             var session = e.Session;
             session.Received += session_Received;
+            session.Session.Error += (s, e2) => Error++;
         }
+
+        static Int32 Request;
+        static Int32 Error;
 
         static Byte[] response;
         static void session_Received(object sender, ReceivedEventArgs e)
         {
+            Request++;
+
             var session = sender as INetSession;
             //XTrace.WriteLine("客户端 {0} 收到：{1}", session, e.Stream.ToStr());
 
             //XTrace.WriteLine(response.ToStr());
             session.Send(response);
 
-            session.Dispose();
+            //session.Dispose();
         }
 
         static UdpServer _udpServer;

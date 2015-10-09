@@ -87,7 +87,7 @@ namespace NewLife.Net.Sockets
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        public virtual INetSession Send(byte[] buffer, int offset = 0, int size = 0)
+        public virtual INetSession Send(byte[] buffer, int offset = 0, int size = -1)
         {
             Session.Send(buffer, offset, size);
 

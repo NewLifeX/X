@@ -89,7 +89,7 @@ namespace NewLife.Security
         /// <param name = "count">
         /// The number of data bytes to update the CRC with.
         /// </param>
-        public Crc32 Update(byte[] buffer, int offset = 0, int count = 0)
+        public Crc32 Update(byte[] buffer, int offset = 0, int count = -1)
         {
             if (buffer == null) throw new ArgumentNullException("buffer");
             //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
@@ -107,7 +107,7 @@ namespace NewLife.Security
         /// <summary>添加数据流进行校验</summary>
         /// <param name="stream"></param>
         /// <param name="count">数量</param>
-        public Crc32 Update(Stream stream, Int64 count = 0)
+        public Crc32 Update(Stream stream, Int64 count = -1)
         {
             if (stream == null) throw new ArgumentNullException("stream");
             //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
@@ -140,7 +140,7 @@ namespace NewLife.Security
         /// <param name="stream"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public static UInt32 Compute(Stream stream, Int32 count = 0)
+        public static UInt32 Compute(Stream stream, Int32 count = -1)
         {
             var crc = new Crc32();
             crc.Update(stream, count);
@@ -157,7 +157,7 @@ namespace NewLife.Security
         /// <param name="position">如果大于等于0，则表示从该位置开始计算</param>
         /// <param name="count">字节数偏移量，一般用负数表示</param>
         /// <returns></returns>
-        public static UInt32 Compute(Stream stream, Int64 position = -1, Int32 count = 0)
+        public static UInt32 Compute(Stream stream, Int64 position = -1, Int32 count = -1)
         {
             if (position >= 0)
             {

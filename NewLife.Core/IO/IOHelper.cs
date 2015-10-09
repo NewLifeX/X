@@ -819,7 +819,7 @@ namespace System
         /// <param name="offset">字节数组中的偏移</param>
         /// <param name="length">字节数组中的查找长度</param>
         /// <returns></returns>
-        public static Int64 IndexOf(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
+        public static Int64 IndexOf(this Stream stream, Byte[] buffer, Int64 offset = 0, Int64 length = -1)
         {
             if (length <= 0) length = buffer.Length - offset;
 
@@ -868,7 +868,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="length">查找长度</param>
         /// <returns></returns>
-        public static Int64 IndexOf(this Byte[] source, Byte[] buffer, Int64 offset = 0, Int64 length = 0) { return IndexOf(source, 0, 0, buffer, offset, length); }
+        public static Int64 IndexOf(this Byte[] source, Byte[] buffer, Int64 offset = 0, Int64 length = -1) { return IndexOf(source, 0, 0, buffer, offset, length); }
 
         /// <summary>在字节数组中查找另一个字节数组的位置，不存在则返回-1</summary>
         /// <param name="source">字节数组</param>
@@ -878,7 +878,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="length">查找长度</param>
         /// <returns></returns>
-        public static Int64 IndexOf(this Byte[] source, Int64 start, Int64 count, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
+        public static Int64 IndexOf(this Byte[] source, Int64 start, Int64 count, Byte[] buffer, Int64 offset = 0, Int64 length = -1)
         {
             if (start < 0) start = 0;
             if (count <= 0 || count > source.Length - start) count = source.Length;
@@ -921,7 +921,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static Int32 CompareTo(this Byte[] source, Int64 start, Int64 count, Byte[] buffer, Int64 offset = 0, Int64 length = 0)
+        public static Int32 CompareTo(this Byte[] source, Int64 start, Int64 count, Byte[] buffer, Int64 offset = 0, Int64 length = -1)
         {
             if (source == buffer) return 0;
 
@@ -1069,7 +1069,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="count">数量。超过实际数量时，使用实际数量</param>
         /// <returns></returns>
-        public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = 0)
+        public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
             if (data == null || data.Length < 1) return null;
             if (count <= 0)
@@ -1152,7 +1152,7 @@ namespace System
         /// <param name="startIndex">起始位置</param>
         /// <param name="length">长度</param>
         /// <returns></returns>
-        public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = 0)
+        public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = -1)
         {
             if (String.IsNullOrEmpty(data)) return null;
 
@@ -1184,7 +1184,7 @@ namespace System
         /// <param name="count"></param>
         /// <param name="lineBreak">是否换行显示</param>
         /// <returns></returns>
-        public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = 0, Boolean lineBreak = false)
+        public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = -1, Boolean lineBreak = false)
         {
             if (data == null || data.Length < 1) return null;
             if (count <= 0)

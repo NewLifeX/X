@@ -184,7 +184,7 @@ namespace NewLife.Net.Application
         /// <param name="sp"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static Byte[] Read(SerialPort sp, Int32 length = 0)
+        public static Byte[] Read(SerialPort sp, Int32 length = -1)
         {
             // 读取数据
             var ms = new MemoryStream();

@@ -146,7 +146,7 @@ namespace System.IO
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public static Byte[] ReadBytes(this FileInfo file, Int32 offset = 0, Int32 count = 0)
+        public static Byte[] ReadBytes(this FileInfo file, Int32 offset = 0, Int32 count = -1)
         {
             using (var fs = file.OpenRead())
             {

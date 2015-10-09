@@ -76,7 +76,7 @@ namespace NewLife.Net.Modbus
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        public static UInt16 Crc(this Byte[] data, Int32 offset, int count = 0)
+        public static UInt16 Crc(this Byte[] data, Int32 offset, int count = -1)
         {
             if (data == null || data.Length < 1) return 0;
 

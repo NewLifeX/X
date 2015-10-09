@@ -39,7 +39,7 @@ namespace NewLife.Net.Sockets
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        INetSession Send(byte[] buffer, int offset = 0, int size = 0);
+        INetSession Send(byte[] buffer, int offset = 0, int size = -1);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
