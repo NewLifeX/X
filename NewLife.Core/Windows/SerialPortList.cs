@@ -258,25 +258,29 @@ namespace NewLife.Windows
             SaveInfo();
             var cfg = SerialPortConfig.Current;
 
-            if (Port == null)
-                Port = new SerialTransport();
+            var pt = Port;
+            if (pt == null)
+                pt = new SerialTransport();
             else
                 // 如果上次没有关闭，则关闭
-                Port.Close();
-            Port.PortName = name;
-            Port.BaudRate = cfg.BaudRate;
-            Port.Parity = cfg.Parity;
-            Port.DataBits = cfg.DataBits;
-            Port.StopBits = cfg.StopBits;
+                pt.Close();
+            pt.PortName = name;
+            pt.BaudRate = cfg.BaudRate;
+            pt.Parity = cfg.Parity;
+            pt.DataBits = cfg.DataBits;
+            pt.StopBits = cfg.StopBits;
 
-            //Port.Open();
+            //pt.Open();
 
-            Port.Disconnected += Port_Disconnected;
-            Port.Received += OnReceived;
-            Port.ReceiveAsync();
+            pt.Disconnected += Port_Disconnected;
+            pt.Received += OnReceived;
+            pt.ReceiveAsync();
 
-            Port.EnsureCreate();
-            var sp = Port.Serial;
+            //pt.EnsureCreate();
+
+            Port = pt;
+
+            var sp = pt.Serial;
             // 这几个需要打开端口以后才能设置
             try
             {
@@ -297,12 +301,15 @@ namespace NewLife.Windows
         /// <summary>断开串口连接</summary>
         public void Disconnect()
         {
-            Port.Disconnected -= Port_Disconnected;
-            Port.Received -= OnReceived;
-            if (Port != null)
+            var pt = Port;
+            if (pt != null)
             {
+                Port = null;
+                pt.Disconnected -= Port_Disconnected;
+                pt.Received -= OnReceived;
+                pt.Close();
                 // 异步调用释放，避免死锁卡死界面UI
-                ThreadPoolX.QueueUserWorkItem(() => Port.Close());
+                //ThreadPoolX.QueueUserWorkItem(() => pt.Close());
             }
 
             ShowPorts();
@@ -495,7 +502,11 @@ namespace NewLife.Windows
             var sp = Port;
             if (sp != null)
             {
-                if (sp.Serial != null) sp.Serial.DiscardOutBuffer();
+                try
+                {
+                    if (sp.Serial != null) sp.Serial.DiscardOutBuffer();
+                }
+                catch { }
             }
         }
 
@@ -508,7 +519,11 @@ namespace NewLife.Windows
             var sp = Port;
             if (sp != null)
             {
-                if (sp.Serial != null) sp.Serial.DiscardInBuffer();
+                try
+                {
+                    if (sp.Serial != null) sp.Serial.DiscardInBuffer();
+                }
+                catch { }
             }
         }
         #endregion

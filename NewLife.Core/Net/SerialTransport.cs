@@ -116,8 +116,12 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
-            if (Serial != null) Close();
-            if (timer != null) timer.Dispose();
+            try
+            {
+                if (Serial != null) Close();
+                if (timer != null) timer.Dispose();
+            }
+            catch { }
         }
         #endregion
 
@@ -236,7 +240,7 @@ namespace NewLife.Net
         /// <summary>开始监听</summary>
         public virtual Boolean ReceiveAsync()
         {
-            Open();
+            if (!Open()) return false;
 
             Serial.DataReceived += DataReceived;
             //Serial.ErrorReceived += Serial_ErrorReceived;
