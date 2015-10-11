@@ -250,7 +250,7 @@ namespace System.IO
             if (String.IsNullOrEmpty(exts)) exts = "*";
             var opt = allSub ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-            foreach (var pattern in exts.Split(";", "|"))
+            foreach (var pattern in exts.Split(";", "|", ","))
             {
                 foreach (var item in di.GetFiles(pattern, opt))
                 {
