@@ -31,7 +31,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test2();
+                Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -198,6 +198,15 @@ namespace Test2
             TestNewLife_Net test = new TestNewLife_Net();
             test.StartTest();
             test.StopTest();
+        }
+
+        private static NatProxyTest natProxyTest;
+        private static void Test8()
+        {
+            //natProxyTest = new NatProxyTest("192.168.30.100", 6800);
+            natProxyTest = new NatProxyTest("192.168.1.242", 3389);
+            natProxyTest.Init();
+            natProxyTest.Start();
         }
     }
 }
