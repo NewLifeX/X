@@ -53,7 +53,6 @@
             // 
             // cbBaundrate
             // 
-            this.cbBaundrate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbBaundrate.FormattingEnabled = true;
             this.cbBaundrate.Location = new System.Drawing.Point(325, 3);
             this.cbBaundrate.Name = "cbBaundrate";

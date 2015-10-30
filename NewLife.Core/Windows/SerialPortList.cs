@@ -76,9 +76,13 @@ namespace NewLife.Windows
             BindMenu(mi停止位, On停止位Click, Enum.GetValues(typeof(StopBits)));
             BindMenu(mi校验, On校验Click, Enum.GetValues(typeof(Parity)));
 
-            cbBaundrate.DataSource = new Int32[] { 1200, 2400, 4800, 9600, 14400, 19200, 38400, 56000, 57600, 115200, 128000, 194000, 256000, 512000, 1024000, 2048000 };
+            //var arr = new Int32[] { 1200, 2400, 4800, 9600, 14400, 19200, 38400, 56000, 57600, 115200, 128000, 194000, 256000, 512000, 1024000, 2048000 };
+            var bs = new List<Int32>(new Int32[] { 1200, 2400, 4800, 9600, 14400, 19200, 38400, 56000, 57600, 115200, 128000, 194000, 256000, 512000, 1024000, 2048000 });
 
             var cfg = SerialPortConfig.Current;
+            if (cfg.BaudRate > 0 && !bs.Contains(cfg.BaudRate)) bs.Add(cfg.BaudRate);
+            cbBaundrate.DataSource = bs;
+
             cbName.SelectedItem = cfg.PortName;
             cbBaundrate.SelectedItem = cfg.BaudRate;
             SetMenuItem(mi数据位, cfg.DataBits);
@@ -120,7 +124,10 @@ namespace NewLife.Windows
             {
                 var cfg = SerialPortConfig.Current;
                 cfg.PortName = cbName.SelectedItem + "";
-                cfg.BaudRate = (Int32)cbBaundrate.SelectedItem;
+                if (cbBaundrate.SelectedItem != null)
+                    cfg.BaudRate = (Int32)cbBaundrate.SelectedItem;
+                else
+                    cfg.BaudRate = cbBaundrate.Text.ToInt();
                 //cfg.DataBits = (Int32)cbDataBit.SelectedItem;
                 //cfg.StopBits = (StopBits)cbStopBit.SelectedItem;
                 //cfg.Parity = (Parity)cbParity.SelectedItem;
@@ -259,11 +266,19 @@ namespace NewLife.Windows
             var cfg = SerialPortConfig.Current;
 
             var pt = Port;
-            if (pt == null)
-                pt = new SerialTransport();
-            else
+            if (pt != null)
+            {
                 // 如果上次没有关闭，则关闭
-                pt.Close();
+                try
+                {
+                    pt.Close();
+                }
+                catch
+                {
+                    pt = null;
+                }
+            }
+            if (pt == null) pt = new SerialTransport();
             pt.PortName = name;
             pt.BaudRate = cfg.BaudRate;
             pt.Parity = cfg.Parity;
