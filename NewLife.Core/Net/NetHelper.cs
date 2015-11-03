@@ -16,6 +16,7 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
+using System.Text;
 
 namespace System
 {
@@ -216,6 +217,34 @@ namespace System
         public static Boolean CheckPort(this NetUri uri)
         {
             return CheckPort(uri.Address, uri.ProtocolType, uri.Port);
+        }
+        /// <summary>
+        /// longIP地址转为字符
+        /// </summary>
+        /// <param name="ipInt"></param>
+        /// <returns></returns>
+        public static string IntToIp(long ipInt)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append((ipInt >> 24) & 0xFF).Append(".");
+            sb.Append((ipInt >> 16) & 0xFF).Append(".");
+            sb.Append((ipInt >> 8) & 0xFF).Append(".");
+            sb.Append(ipInt & 0xFF);
+            return sb.ToString();
+        }
+        /// <summary>
+        /// 字符IP地址转为long
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        public static long IpToInt(string ip)
+        {
+            char[] separator = new char[] { '.' };
+            string[] items = ip.Split(separator);
+            return long.Parse(items[0]) << 24
+                    | long.Parse(items[1]) << 16
+                    | long.Parse(items[2]) << 8
+                    | long.Parse(items[3]);
         }
         #endregion
 
