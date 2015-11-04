@@ -208,7 +208,8 @@ namespace XCode.DataAccessLayer
             }
             else
             {
-                if (!String.IsNullOrEmpty(str = DllPath)) SetDllPath(str);
+                str = DllPath;
+                if (!String.IsNullOrEmpty(str)) SetDllPath(str);
                 // 异步设置DLL目录
                 //ThreadPool.QueueUserWorkItem(ss => SetDllPath(DllPath));
                 //Thread.Sleep(500);
@@ -446,7 +447,7 @@ namespace XCode.DataAccessLayer
         static void CheckRuntime()
         {
             var dp = DllPath;
-            if (!String.IsNullOrEmpty(dp))
+            if (!String.IsNullOrEmpty(dp) && File.Exists(dp.CombinePath("oci.dll")))
             {
                 if (DAL.Debug) DAL.WriteLog("Oracle的OCI目录：{0}", dp);
                 return;
@@ -479,12 +480,15 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            DAL.WriteLog("准备下载Oracle客户端运行时到{0}，可保存压缩包供将来直接解压使用！", target);
-            //CheckAndDownload("OracleClient.zip", target);
+            var linkName = "OracleClient";
+            if (Runtime.Is64BitProcess) linkName += "64";
             var url = "http://www.newlifex.com/showtopic-51.aspx";
+
+            DAL.WriteLog("准备下载Oracle客户端运行时{0}到{1}，可保存压缩包供将来直接解压使用！来源{2}", linkName, target, url);
+            //CheckAndDownload("OracleClient.zip", target);
             var client = new WebClientX(true, true);
             client.Log = XTrace.Log;
-            client.DownloadLinkAndExtract(url, "OracleClient", target);
+            client.DownloadLinkAndExtract(url, linkName, target);
 
             file = Path.Combine(target, file);
             if (File.Exists(file))
