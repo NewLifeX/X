@@ -53,11 +53,11 @@ namespace NewLife.Collections
         }
 
         private Boolean _Asynchronous;
-        /// <summary>异步更新</summary>
+        /// <summary>异步更新。默认false</summary>
         public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
 
         private Boolean _AutoDispose;
-        /// <summary>移除过期缓存项时，自动调用其Dispose</summary>
+        /// <summary>移除过期缓存项时，自动调用其Dispose。默认false</summary>
         public Boolean AutoDispose { get { return _AutoDispose; } set { _AutoDispose = value; } }
 
         private Boolean _CacheDefault = true;
