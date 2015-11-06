@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
-using NewLife.Configuration;
 
 namespace NewLife.Log
 {
@@ -53,15 +52,6 @@ namespace NewLife.Log
         /// <param name="format"></param>
         /// <param name="args"></param>
         protected abstract void OnWrite(LogLevel level, String format, params Object[] args);
-
-        ///// <summary>输出异常日志</summary>
-        ///// <param name="ex">异常信息</param>
-        //public abstract void WriteException(Exception ex);
-
-        ///// <summary>写日志</summary>
-        ///// <param name="format">格式化字符串</param>
-        ///// <param name="args">格式化参数</param>
-        //public abstract void WriteLine(LogLevel level, String format, params Object[] args);
         #endregion
 
         #region 辅助方法
@@ -117,15 +107,6 @@ namespace NewLife.Log
                 if (_Level != null) return _Level.Value;
 
                 return Setting.Current.LogLevel;
-                //try
-                //{
-                //    var def = LogLevel.Info;
-                //    //if (Config.GetConfig<Boolean>("NewLife.Debug")) def = LogLevel.Debug;
-                //    if (XTrace.Debug) def = LogLevel.Debug;
-
-                //    return Config.GetConfig<LogLevel>("NewLife.LogLevel", def);
-                //}
-                //catch { return LogLevel.Info; }
             }
             set { _Level = value; }
         }
@@ -229,10 +210,13 @@ namespace NewLife.Log
 
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Runtime.OSName, Environment.UserName, Environment.MachineName);
 #if !Android
-            var hi = NewLife.Common.HardInfo.Current;
-            sb.AppendFormat("#CPU: {0}\r\n", hi.Processors);
-            sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", Runtime.AvailableMemory,
-                Runtime.PhysicalMemory);
+            try
+            {
+                var hi = NewLife.Common.HardInfo.Current;
+                sb.AppendFormat("#CPU: {0}\r\n", hi.Processors);
+            }
+            catch { }
+            sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", Runtime.AvailableMemory, Runtime.PhysicalMemory);
 #endif
 
             sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);

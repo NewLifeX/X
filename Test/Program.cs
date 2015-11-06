@@ -3,18 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Management;
-using System.Net;
 using System.Reflection;
 using System.Threading;
-using Microsoft.VisualBasic.Devices;
 using NewLife.Common;
 using NewLife.Compression;
 using NewLife.Log;
-using NewLife.Messaging;
-using NewLife.Model;
 using NewLife.Net;
-using NewLife.Net.Dhcp;
 using NewLife.Net.IO;
 using NewLife.Net.Stress;
 using NewLife.Reflection;
@@ -23,7 +17,6 @@ using NewLife.Threading;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
-using XCode.Sync;
 using XCode.Transform;
 
 namespace Test

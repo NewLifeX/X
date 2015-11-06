@@ -8,7 +8,6 @@ using System.Threading;
 #if !Android
 using System.Windows.Forms;
 #endif
-using NewLife.Configuration;
 using NewLife.Reflection;
 
 namespace NewLife.Log
@@ -57,7 +56,6 @@ namespace NewLife.Log
 
         /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
-        //[Obsolete("不再支持！")]
         public static void WriteException(Exception ex)
         {
             InitLog();
@@ -176,7 +174,7 @@ namespace NewLife.Log
                 Log = cmp;
             }
 
-            WriteVersion();
+            //WriteVersion();
         }
 #endif
         #endregion
@@ -197,8 +195,7 @@ namespace NewLife.Log
             //if (!Application.MessageLoop) return;
 
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-            Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
-            //AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            Application.ThreadException += Application_ThreadException;
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -208,9 +205,7 @@ namespace NewLife.Log
             WriteLine(msg);
             if (e.IsTerminating)
             {
-                //WriteLine("异常退出！");
                 Log.Fatal("异常退出！" + msg);
-                //XTrace.WriteMiniDump(null);
                 if (show) MessageBox.Show(msg, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
@@ -273,8 +268,6 @@ namespace NewLife.Log
 
                 try
                 {
-                    //return Config.GetConfig<Boolean>("NewLife.Debug", Config.GetConfig<Boolean>("Debug", false));
-                    //return Config.GetMutilConfig<Boolean>(false, "NewLife.Debug", "Debug");
                     return Setting.Current.Debug;
                 }
                 catch { return false; }
@@ -288,8 +281,6 @@ namespace NewLife.Log
         {
             get
             {
-                // Web日志目录默认放到外部
-                //if (_LogPath == null) _LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
                 if (_LogPath == null) _LogPath = Setting.Current.LogPath;
                 return _LogPath;
             }
@@ -302,11 +293,7 @@ namespace NewLife.Log
         {
             get
             {
-                if (_TempPath != null) return _TempPath;
-
-                // 这里是TempPath而不是_TempPath，因为需要格式化处理一下
-                //TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
-                _TempPath = Setting.Current.TempPath.GetFullPath();
+                if (_TempPath == null) _TempPath = Setting.Current.TempPath.GetFullPath();
                 return _TempPath;
             }
             set
@@ -489,7 +476,8 @@ namespace NewLife.Log
         #endregion
 
         #region 版本信息
-        static void WriteVersion()
+        /// <summary>输出核心库和启动程序的版本号</summary>
+        public static void WriteVersion()
         {
             var asm = Assembly.GetExecutingAssembly();
             WriteVersion(asm);
