@@ -1,8 +1,5 @@
 ﻿using System.Web.Mvc;
-using System.Web.Optimization;
 using System.Web.Routing;
-using NewLife.Threading;
-using XCode.Membership;
 
 namespace NewLife.Cube
 {
@@ -19,7 +16,7 @@ namespace NewLife.Cube
             AreaRegistration.RegisterAllAreas();
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
-            BundleConfig.RegisterBundles(BundleTable.Bundles);
+            //BundleConfig.RegisterBundles(BundleTable.Bundles);
         }
     }
 }

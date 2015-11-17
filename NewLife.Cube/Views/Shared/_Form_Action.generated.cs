@@ -22,7 +22,6 @@ namespace ASP
     using System.Web.Mvc;
     using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Optimization;
     using System.Web.Routing;
     using System.Web.Security;
     using System.Web.UI;
@@ -68,7 +67,7 @@ WriteLiteral("\r\n");
             #line hidden
 WriteLiteral("    <div");
 
-WriteLiteral(" class=\"form-actions\"");
+WriteLiteral(" class=\"clearfix form-actions\"");
 
 WriteLiteral(">\r\n        <label");
 
@@ -78,27 +77,27 @@ WriteLiteral("></label>\r\n        <button");
 
 WriteLiteral(" type=\"submit\"");
 
-WriteLiteral(" class=\"btn btn-success\"");
+WriteLiteral(" class=\"btn btn-success btn-sm\"");
 
 WriteLiteral("><i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 292), Tuple.Create("\"", 346)
-, Tuple.Create(Tuple.Create("", 300), Tuple.Create("glyphicon", 300), true)
-, Tuple.Create(Tuple.Create(" ", 309), Tuple.Create("glyphicon-", 310), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 308), Tuple.Create("\"", 362)
+, Tuple.Create(Tuple.Create("", 316), Tuple.Create("glyphicon", 316), true)
+, Tuple.Create(Tuple.Create(" ", 325), Tuple.Create("glyphicon-", 326), true)
             
             #line 9 "..\..\Views\Shared\_Form_Action.cshtml"
-      , Tuple.Create(Tuple.Create("", 320), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
+             , Tuple.Create(Tuple.Create("", 336), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
             
             #line default
             #line hidden
-, 320), false)
+, 336), false)
 );
 
 WriteLiteral("></i><strong>");
 
             
             #line 9 "..\..\Views\Shared\_Form_Action.cshtml"
-                                                                                                                        Write(isNew ? "新增" : "保存");
+                                                                                                                               Write(isNew ? "新增" : "保存");
 
             
             #line default
@@ -107,7 +106,7 @@ WriteLiteral("</strong></button>\r\n        <button");
 
 WriteLiteral(" type=\"button\"");
 
-WriteLiteral(" class=\"btn btn-danger\"");
+WriteLiteral(" class=\"btn btn-danger btn-sm\"");
 
 WriteLiteral(" onclick=\"history.go(-1);\"");
 
