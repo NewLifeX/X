@@ -31,7 +31,7 @@ namespace NewLife.Log
         /// <param name="msg">信息</param>
         public static void WriteLine(String msg)
         {
-            InitLog();
+            if (!InitLog()) return;
 
             Log.Info(msg);
         }
@@ -41,24 +41,24 @@ namespace NewLife.Log
         /// <param name="args"></param>
         public static void WriteLine(String format, params Object[] args)
         {
-            InitLog();
+            if (!InitLog()) return;
 
             Log.Info(format, args);
         }
 
-        /// <summary>异步写日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public static void WriteLineAsync(String format, params Object[] args)
-        {
-            ThreadPool.QueueUserWorkItem(s => WriteLine(format, args));
-        }
+        ///// <summary>异步写日志</summary>
+        ///// <param name="format"></param>
+        ///// <param name="args"></param>
+        //public static void WriteLineAsync(String format, params Object[] args)
+        //{
+        //    ThreadPool.QueueUserWorkItem(s => WriteLine(format, args));
+        //}
 
         /// <summary>输出异常日志</summary>
         /// <param name="ex">异常信息</param>
         public static void WriteException(Exception ex)
         {
-            InitLog();
+            if (!InitLog()) return;
 
             Log.Error("{0}", ex);
         }
@@ -82,27 +82,43 @@ namespace NewLife.Log
         }
 #endif
 
-        static object _lock = new object();
+        static Object _lock = new object();
+        static Int32 _initing = 0;
 
         /// <summary>
         /// 2012.11.05 修正初次调用的时候，由于同步BUG，导致Log为空的问题。
         /// </summary>
-        static void InitLog()
+        static Boolean InitLog()
         {
-            if (_Log != null) return;
+            /*
+             * 日志初始化可能会除法配置模块，其内部又写日志导致死循环。
+             * 1，外部写日志引发初始化
+             * 2，标识日志初始化正在进行中
+             * 3，初始化日志提供者
+             * 4，此时如果再次引发写入日志，发现正在进行中，放弃写入的日志
+             * 5，标识日志初始化已完成
+             * 6，正常写入日志
+             */
+
+            if (_Log != null) return true;
+            if (_initing > 0 && _initing == Thread.CurrentThread.ManagedThreadId) return false;
 
             lock (_lock)
             {
-                if (_Log != null) return;
+                if (_Log != null) return true;
 
+                _initing = Thread.CurrentThread.ManagedThreadId;
 #if !Android
                 _Log = TextFileLog.Create(LogPath);
 #else
                 _Log = new NetworkLog();
 #endif
+                _initing = 0;
             }
 
             WriteVersion();
+
+            return true;
         }
         #endregion
 
