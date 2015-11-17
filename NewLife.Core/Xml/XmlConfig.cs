@@ -113,20 +113,6 @@ namespace NewLife.Xml
                 var config = new TConfig();
             }
         }
-
-        //static XmlConfig()
-        //{
-        //    // 实例化一次，用于触发派生类中可能的静态构造函数
-        //    //var config = new TConfig();
-        //    var config = Current;
-
-        //    var filename = _.ConfigFile.GetFullPath();
-        //    if (!filename.IsNullOrWhiteSpace() && File.Exists(filename))
-        //    {
-        //        // 如果默认加载后的配置与保存的配置不一致，说明可能配置实体类已变更，需要强制覆盖
-        //        if (_.CheckFormat) config.CheckFormat(filename);
-        //    }
-        //}
         #endregion
 
         #region 属性
@@ -271,7 +257,7 @@ namespace NewLife.Xml
             filename = filename.GetFullPath();
 
             // 加锁避免多线程保存同一个文件冲突
-            lock (this)
+            lock (filename)
             {
                 this.ToXmlFile(filename, null, "", "", true, true);
             }

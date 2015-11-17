@@ -114,8 +114,6 @@ namespace NewLife.Xml
         public static void ToXmlFile(this Object obj, String file, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = true)
         {
             if (File.Exists(file)) File.Delete(file);
-            //var dir = Path.GetDirectoryName(file);
-            //if (!String.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
             file.EnsureDirectory(true);
 
             // 如果是字符串字典，直接写入文件，其它设置无效
