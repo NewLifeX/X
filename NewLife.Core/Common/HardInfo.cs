@@ -350,9 +350,9 @@ namespace NewLife.Common
                         _Current = new HardInfo();
                         _Current.GetLocal();
                     }
-                    catch (Exception ex)
+                    catch //(Exception ex)
                     {
-                        XTrace.WriteException(ex);
+                        //XTrace.WriteException(ex);
                     }
 
                     return _Current;
@@ -407,7 +407,7 @@ namespace NewLife.Common
         /// <returns></returns>
         public ExtendData ToExtend()
         {
-            ExtendData data = new ExtendData();
+            var data = new ExtendData();
             data["MachineName"] = MachineName;
             data["BaseBoard"] = BaseBoard;
             data["Processors"] = Processors;
@@ -430,7 +430,7 @@ namespace NewLife.Common
         /// <returns></returns>
         public static HardInfo FromExtend(ExtendData data)
         {
-            HardInfo entity = new HardInfo();
+            var entity = new HardInfo();
             entity.MachineName = data["MachineName"];
             entity.BaseBoard = data["BaseBoard"];
             entity.Processors = data["Processors"];
