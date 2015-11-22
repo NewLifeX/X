@@ -1,6 +1,6 @@
 ﻿// Common/CRC.cs
 
-namespace SevenZip
+namespace NewLife.Compression
 {
     class CRC
     {

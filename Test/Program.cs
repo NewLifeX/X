@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using NewLife.Common;
@@ -40,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -53,6 +52,22 @@ namespace Test
                 Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
                 ConsoleKeyInfo key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
+            }
+        }
+
+        static void Test1()
+        {
+            using (var fs = File.OpenRead("Config.7z"))
+            {
+                var sz = new SevenZip();
+                if (!sz.Read(fs))
+                {
+                    Console.WriteLine("不是7z格式");
+                    return;
+                }
+
+                Console.WriteLine("版本：\t{0}", sz.Version);
+                Console.WriteLine("CRC：\t{0:X8}", sz.Crc);
             }
         }
 
