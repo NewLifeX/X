@@ -74,7 +74,7 @@ namespace System
         /// <summary>分析地址，根据IP或者域名得到IP地址，缓存60秒，异步更新</summary>
         /// <param name="hostname"></param>
         /// <returns></returns>
-        public static IPAddress ParseAddress(String hostname)
+        public static IPAddress ParseAddress(this String hostname)
         {
             if (String.IsNullOrEmpty(hostname)) return null;
 
