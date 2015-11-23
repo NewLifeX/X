@@ -5,6 +5,7 @@ using System.Text;
 using NewLife.Compression.LZMA;
 using System.Collections.Generic;
 using NewLife.Security;
+using System.Linq;
 
 namespace NewLife.Compression
 {
@@ -309,7 +310,7 @@ namespace NewLife.Compression
                 {
                     case HeaderProperty.kUnpackInfo:
                         {
-                            var folders = ReadUnPackInfo(stream);
+                            ReadUnPackInfo(info, stream);
                         }
                         break;
                     case HeaderProperty.kPackInfo:
@@ -443,10 +444,10 @@ namespace NewLife.Compression
         //    }
         //}
 
-        private List<Folder> ReadUnPackInfo(Stream stream)
+        private void ReadUnPackInfo(StreamsInfo info, Stream stream)
         {
             var prop = (HeaderProperty)stream.ReadByte();
-            if (prop != HeaderProperty.kFolder) return null;
+            if (prop != HeaderProperty.kFolder) return;
 
             // 目录个数
             var count = stream.ReadEncodedInt64();
@@ -464,37 +465,32 @@ namespace NewLife.Compression
             prop = (HeaderProperty)stream.ReadByte();
             if (prop != HeaderProperty.kCodersUnpackSize) throw new Exception("Expected Size Property");
 
-            foreach (var folder in list)
+            var numOutStreams = list.Sum(e => e.Coders == null ? 0 : e.Coders.Length);
+            info.CoderUnpackSizes = new Int64[numOutStreams];
+            for (uint j = 0; j < numOutStreams; j++)
             {
-                //int numOutStreams = folder.Coders.Aggregate(0, (sum, coder) => sum + (int)coder.NumberOfOutStreams);
-
-                //folder.UnpackedStreamSizes = new UInt64[numOutStreams];
-
-                //for (uint j = 0; j < numOutStreams; j++)
-                //{
-                //    folder.UnpackedStreamSizes[j] = (UInt64)stream.ReadEncodedInt64();
-                //}
+                info.CoderUnpackSizes[j] = stream.ReadEncodedInt64();
             }
 
             prop = (HeaderProperty)stream.ReadByte();
-            if (prop != HeaderProperty.kCRC) return list;
+            if (prop != HeaderProperty.kCRC) return;
 
-            UInt32[] crcs = new UInt32[0];
+            var crcs = new UInt32[list.Count];
             //UnPackDigests(stream, list.Count, out crcs);
             for (int i = 0; i < list.Count; i++)
             {
-                Folder folder = list[i];
-                folder.UnpackCRC = crcs[i];
+                list[i].UnpackCRC = crcs[i];
             }
 
             prop = (HeaderProperty)stream.ReadByte();
             if (prop != HeaderProperty.kEnd) throw new Exception("Expected End property");
 
-            return list;
+            //return list;
         }
 
-        //private static void UnPackDigests(HeaderBuffer headerBytes, int numItems, out uint?[] digests)
+        //private static void UnPackDigests(Stream stream, int numItems, out uint[] digests)
         //{
+        //    // 读取一个字节，分割多个位
         //    var digestsDefined = headerBytes.ReadBoolFlagsDefaultTrue(numItems);
         //    digests = new uint?[numItems];
         //    for (int i = 0; i < numItems; i++)
@@ -668,6 +664,10 @@ namespace NewLife.Compression
             private List<PackedStreamInfo> _PackedStreams = new List<PackedStreamInfo>();
             /// <summary>属性说明</summary>
             public List<PackedStreamInfo> PackedStreams { get { return _PackedStreams; } set { _PackedStreams = value; } }
+
+            private Int64[] _CoderUnpackSizes;
+            /// <summary>属性说明</summary>
+            public Int64[] CoderUnpackSizes { get { return _CoderUnpackSizes; } set { _CoderUnpackSizes = value; } }
         }
 
         class PackedStreamInfo
