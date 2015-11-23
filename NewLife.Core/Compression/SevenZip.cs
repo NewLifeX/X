@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using NewLife.Compression.LZMA;
 using System.Collections.Generic;
+using NewLife.Security;
 
 namespace NewLife.Compression
 {
@@ -115,11 +116,17 @@ namespace NewLife.Compression
             var reader = new BinaryReader(stream);
 
             Version = new Version(reader.ReadByte(), reader.ReadByte());
-            Crc = reader.ReadUInt32();
 
+            // 连续24字节，前4字节是CRC，后面8+8+4字节是数据
+            var crc = reader.ReadUInt32();
+            var p = stream.Position;
             Int64 nextHeaderOffset = reader.ReadInt64();
             Int64 nextHeaderSize = reader.ReadInt64();
             Int32 nextHeaderCRC = reader.ReadInt32();
+
+            // 检查校验
+            var crc2 = Crc32.ComputeRange(stream, p, 0);
+            if (crc2 != crc) return false;
 
             stream.Seek(nextHeaderOffset, SeekOrigin.Current);
             ReadArchive(stream, nextHeaderOffset, nextHeaderSize);
@@ -143,6 +150,7 @@ namespace NewLife.Compression
                     case HeaderProperty.kEncodedHeader:
                         {
                             var size = stream.ReadByte();
+                            //var p = stream.Position + size;
                             stream.Seek(size, SeekOrigin.Current);
 
                             ReadPackedStreams(stream);
@@ -163,6 +171,8 @@ namespace NewLife.Compression
                             //}
 
                             //headerBytes = new HeaderBuffer { Bytes = unpackedBytes };
+
+                            //stream.Position = p;
                         }
                         break;
                     case HeaderProperty.kHeader:
@@ -289,9 +299,9 @@ namespace NewLife.Compression
         //    return entries;
         //}
 
-        private void ReadPackedStreams(Stream stream)
+        private StreamsInfo ReadPackedStreams(Stream stream)
         {
-            //StreamsInfo info = new StreamsInfo();
+            var info = new StreamsInfo();
             while (true)
             {
                 var prop = (HeaderProperty)stream.ReadByte();
@@ -304,7 +314,9 @@ namespace NewLife.Compression
                         break;
                     case HeaderProperty.kPackInfo:
                         {
-                            //ReadPackInfo(info, headerBytes);
+                            var reader = new BinaryReader(stream);
+                            info.Offset = reader.ReadInt64();
+                            ReadPackInfo(info, stream);
                         }
                         break;
                     case HeaderProperty.kSubStreamsInfo:
@@ -313,12 +325,13 @@ namespace NewLife.Compression
                         }
                         break;
                     case HeaderProperty.kEnd:
-                        //return info;
-                        return;
+                        return info;
                     default:
                         throw new Exception(prop.ToString());
                 }
             }
+
+            return info;
         }
 
         //private static void ReadSubStreamsInfo(StreamsInfo info, HeaderBuffer headerBytes)
@@ -433,7 +446,10 @@ namespace NewLife.Compression
         private List<Folder> ReadUnPackInfo(Stream stream)
         {
             var prop = (HeaderProperty)stream.ReadByte();
-            int count = stream.ReadEncodedInt();
+            if (prop != HeaderProperty.kFolder) return null;
+
+            // 目录个数
+            var count = stream.ReadEncodedInt64();
 
             var list = new List<Folder>();
             if (stream.ReadByte() != 0) throw new NotSupportedException("External flag");
@@ -456,7 +472,7 @@ namespace NewLife.Compression
 
                 //for (uint j = 0; j < numOutStreams; j++)
                 //{
-                //    folder.UnpackedStreamSizes[j] = (UInt64)stream.ReadEncodedInt();
+                //    folder.UnpackedStreamSizes[j] = (UInt64)stream.ReadEncodedInt64();
                 //}
             }
 
@@ -575,36 +591,33 @@ namespace NewLife.Compression
         //    return folder;
         //}
 
-        //private static void ReadPackInfo(StreamsInfo info, HeaderBuffer headerBytes)
-        //{
-        //    info.PackPosition = headerBytes.ReadEncodedInt64();
-        //    int count = (int)headerBytes.ReadEncodedInt64();
+        private static void ReadPackInfo(StreamsInfo info, Stream stream)
+        {
+            var reader = new BinaryReader(stream);
 
-        //    info.PackedStreams = new PackedStreamInfo[count];
-        //    for (int i = 0; i < count; i++)
-        //    {
-        //        info.PackedStreams[i] = new PackedStreamInfo();
-        //    }
-        //    var prop = headerBytes.ReadProperty();
-        //    if (prop != HeaderProperty.kSize)
-        //    {
-        //        throw new InvalidFormatException("Expected Size Property");
-        //    }
-        //    for (int i = 0; i < count; i++)
-        //    {
-        //        info.PackedStreams[i].PackedSize = headerBytes.ReadEncodedInt64();
+            info.PackPosition = stream.ReadEncodedInt64();
+            int count = (int)stream.ReadEncodedInt64();
 
-        //    }
-        //    for (int i = 0; i < count; i++)
-        //    {
-        //        prop = headerBytes.ReadProperty();
-        //        if (prop != HeaderProperty.kCRC)
-        //        {
-        //            break;
-        //        }
-        //        info.PackedStreams[i].Crc = headerBytes.ReadEncodedInt64();
-        //    }
-        //}
+            for (int i = 0; i < count; i++)
+            {
+                info.PackedStreams.Add(new PackedStreamInfo());
+            }
+            var prop = (HeaderProperty)stream.ReadByte();
+            if (prop != HeaderProperty.kSize) throw new Exception("Expected Size Property");
+
+            for (int i = 0; i < count; i++)
+            {
+                info.PackedStreams[i].PackedSize = stream.ReadEncodedInt64();
+
+            }
+            for (int i = 0; i < count; i++)
+            {
+                prop = (HeaderProperty)stream.ReadByte();
+                if (prop != HeaderProperty.kCRC) break;
+
+                info.PackedStreams[i].Crc = stream.ReadEncodedInt64();
+            }
+        }
         #endregion
 
         #region 写入
@@ -647,6 +660,22 @@ namespace NewLife.Compression
         #endregion
 
         #region 内部
+        class StreamsInfo
+        {
+            public Int64 Offset { get; set; }
+            public Int64 PackPosition { get; set; }
+
+            private List<PackedStreamInfo> _PackedStreams = new List<PackedStreamInfo>();
+            /// <summary>属性说明</summary>
+            public List<PackedStreamInfo> PackedStreams { get { return _PackedStreams; } set { _PackedStreams = value; } }
+        }
+
+        class PackedStreamInfo
+        {
+            public Int64 PackedSize { get; set; }
+            public Int64 Crc { get; set; }
+        }
+
         class Folder
         {
             private Int32[] _Coders;
@@ -663,7 +692,118 @@ namespace NewLife.Compression
 
             public Boolean Read(Stream stream)
             {
+                var count = stream.ReadEncodedInt64();
+                Coders = new Int32[count];
 
+                var numInStreams = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    Byte mainByte = (Byte)stream.ReadByte();
+                    if ((mainByte & 0xC0) != 0) throw new Exception("Unsupported");
+
+                    Int32 idSize = (mainByte & 0xF);
+                    if (idSize > 8) throw new Exception("Unsupported");
+                    if (idSize > stream.Length - stream.Position) throw new Exception("EndOfData");
+
+                    //const Byte* longID = inByte->GetPtr();
+                    //UInt64 id = 0;
+                    //for (Int32 j = 0; j < idSize; j++)
+                    //    id = ((id << 8) | longID[j]);
+                    //var id = stream.ReadEncodedInt64();
+                    var id = stream.ReadBytes(idSize).ToUInt32(0, false);
+                    //inByte->SkipDataNoCheck(idSize);
+                    //stream.Seek(idSize, SeekOrigin.Current);
+                    //if (folders.ParsedMethods.IDs.Size() < 128)
+                    //    folders.ParsedMethods.IDs.AddToUniqueSorted(id);
+
+                    var coderInStreams = 1;
+                    if ((mainByte & 0x10) != 0)
+                    {
+                        coderInStreams = stream.ReadByte();
+                        if (coderInStreams > 64) throw new Exception("Unsupported");
+                        if (stream.ReadByte() != 1) throw new Exception("Unsupported");
+                    }
+                    Coders[i] = coderInStreams;
+
+                    numInStreams += coderInStreams;
+                    if (numInStreams > 64) throw new Exception("Unsupported");
+
+                    if ((mainByte & 0x20) != 0)
+                    {
+                        var propsSize = stream.ReadByte();
+                        if (propsSize > stream.Length - stream.Position) throw new Exception("EndOfData");
+                        const Int32 k_LZMA2 = 0x21000000;
+                        const Int32 k_LZMA = 0x3010100;
+                        if (id == k_LZMA2 && propsSize == 1)
+                        {
+                            //Byte v = *_inByteBack->GetPtr();
+                            //if (folders.ParsedMethods.Lzma2Prop < v)
+                            //    folders.ParsedMethods.Lzma2Prop = v;
+                        }
+                        else if (id == k_LZMA && propsSize == 5)
+                        {
+                            //UInt32 dicSize = GetUi32(_inByteBack->GetPtr() + 1);
+                            //if (folders.ParsedMethods.LzmaDic < dicSize)
+                            //    folders.ParsedMethods.LzmaDic = dicSize;
+                        }
+                        //inByte->SkipDataNoCheck((size_t)propsSize);
+                        stream.Seek(propsSize, SeekOrigin.Current);
+                    }
+                }
+
+                if (count == 1 && numInStreams == 1)
+                {
+                    //indexOfMainStream = 0;
+                    //numPackStreams = 1;
+                }
+                else
+                {
+                    UInt32 i;
+                    var numBonds = count - 1;
+                    if (numInStreams < numBonds) throw new Exception("Unsupported");
+
+                    //BoolVector_Fill_False(StreamUsed, numInStreams);
+                    //BoolVector_Fill_False(CoderUsed, count);
+                    var StreamUsed = new Boolean[numInStreams];
+                    var CoderUsed = new Boolean[count];
+
+                    for (i = 0; i < numBonds; i++)
+                    {
+                        var index = stream.ReadByte();
+                        if (index >= numInStreams || StreamUsed[index]) throw new Exception("Unsupported");
+
+                        StreamUsed[index] = true;
+
+                        index = stream.ReadByte();
+                        if (index >= count || CoderUsed[index]) throw new Exception("Unsupported");
+                        CoderUsed[index] = true;
+                    }
+
+                    var numPackStreams = numInStreams - numBonds;
+
+                    if (numPackStreams != 1)
+                        for (i = 0; i < numPackStreams; i++)
+                        {
+                            var index = stream.ReadByte();
+                            if (index >= numInStreams || StreamUsed[index]) throw new Exception("Unsupported");
+                            StreamUsed[index] = true;
+                        }
+
+                    for (i = 0; i < count; i++)
+                        if (!CoderUsed[i])
+                        {
+                            //indexOfMainStream = i;
+                            break;
+                        }
+
+                    if (i == count) throw new Exception("Unsupported");
+                }
+
+                //folders.FoToCoderUnpackSizes[fo] = numCodersOutStreams;
+                //numCodersOutStreams += count;
+                //folders.FoStartPackStreamIndex[fo] = packStreamIndex;
+                //packStreamIndex += numPackStreams;
+                //folders.FoToMainUnpackSizeIndex[fo] = (Byte)indexOfMainStream;
 
                 return true;
             }

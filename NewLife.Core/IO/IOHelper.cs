@@ -759,6 +759,30 @@ namespace System
             return rs;
         }
 
+        /// <summary>以压缩格式读取32位整数</summary>
+        /// <param name="stream">数据流</param>
+        /// <returns></returns>
+        public static Int64 ReadEncodedInt64(this Stream stream)
+        {
+            Byte b;
+            Int64 rs = 0;
+            Byte n = 0;
+            while (true)
+            {
+                var bt = stream.ReadByte();
+                if (bt < 0) throw new Exception("数据流超出范围！");
+                b = (Byte)bt;
+
+                // 必须转为Int32，否则可能溢出
+                rs += (Int64)((b & 0x7f) << n);
+                if ((b & 0x80) == 0) break;
+
+                n += 7;
+                if (n >= 64) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            }
+            return rs;
+        }
+
         /// <summary>尝试读取压缩编码整数</summary>
         /// <param name="stream"></param>
         /// <param name="value"></param>
@@ -791,12 +815,12 @@ namespace System
         /// <param name="stream">数据流</param>
         /// <param name="value">数值</param>
         /// <returns>实际写入字节数</returns>
-        public static Stream WriteEncodedInt(this Stream stream, Int32 value)
+        public static Stream WriteEncodedInt(this Stream stream, Int64 value)
         {
             var list = new List<Byte>();
 
             Int32 count = 1;
-            UInt32 num = (UInt32)value;
+            UInt64 num = (UInt64)value;
             while (num >= 0x80)
             {
                 list.Add((byte)(num | 0x80));

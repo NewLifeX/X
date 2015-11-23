@@ -67,7 +67,7 @@ namespace NewLife.Net.IO
             var reader = new BinaryReader(stream);
             Name = reader.ReadString();
             Length = reader.ReadInt64();
-            Crc = (Int32)Crc32.Compute(stream, 0, 0);
+            Crc = (Int32)Crc32.ComputeRange(stream, 0, 0);
             Checksum = reader.ReadInt32();
         }
 
@@ -81,7 +81,7 @@ namespace NewLife.Net.IO
             if (stream.Position - p >= 0x7F) throw new Exception("文件名必须小于127字节");
 
             writer.Write(Length);
-            Checksum = Crc = (Int32)Crc32.Compute(stream, 0, 0);
+            Checksum = Crc = (Int32)Crc32.ComputeRange(stream, 0, 0);
             writer.Write(Checksum);
         }
 

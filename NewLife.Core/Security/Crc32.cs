@@ -157,12 +157,14 @@ namespace NewLife.Security
         /// <param name="position">如果大于等于0，则表示从该位置开始计算</param>
         /// <param name="count">字节数偏移量，一般用负数表示</param>
         /// <returns></returns>
-        public static UInt32 Compute(Stream stream, Int64 position = -1, Int32 count = -1)
+        public static UInt32 ComputeRange(Stream stream, Int64 position = -1, Int32 count = -1)
         {
             if (position >= 0)
             {
                 if (count > 0) count = -count;
                 count += (Int32)(stream.Position - position);
+                if (count == 0) return 0;
+
                 stream.Position = position;
             }
 
