@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using NewLife.Log;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
     /// <summary>日志服务</summary>
-    public class LogServer : NetServer<NewLife.Net.Application.LogServer.LogSession>
+    public class LogServer : NetServer<LogServer.LogSession>
     {
         /// <summary>实例化一个日志服务</summary>
         public LogServer()
@@ -33,7 +34,17 @@ namespace NewLife.Net.Application
             public LogSession()
             {
                 // 不需要日志前缀
-                LogPrefix = "";
+                //LogPrefix = "";
+            }
+
+            /// <summary>开始会话</summary>
+            public override void Start()
+            {
+                Log = XTrace.Log;
+
+                LogPrefix = "[{0}]".F(ID);
+
+                base.Start();
             }
 
             /// <summary>已重载。</summary>
