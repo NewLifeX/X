@@ -1118,11 +1118,15 @@ namespace System
         /// <param name="data">字节数组</param>
         /// <param name="separate">分隔符</param>
         /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
+        /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
         /// <returns></returns>
-        public static String ToHex(this Byte[] data, String separate, Int32 groupSize = 0)
+        public static String ToHex(this Byte[] data, String separate, Int32 groupSize = 0, Int32 maxLength = -1)
         {
             if (data == null || data.Length < 1) return null;
             if (groupSize < 0) groupSize = 0;
+
+            var count = data.Length;
+            if (maxLength > 0 && maxLength < count) count = maxLength;
 
             if (groupSize == 0)
             {
@@ -1130,10 +1134,9 @@ namespace System
                 if (String.IsNullOrEmpty(separate)) return data.ToHex();
 
                 // 特殊处理
-                if (separate == "-") return BitConverter.ToString(data);
+                if (separate == "-") return BitConverter.ToString(data, 0, count);
             }
 
-            var count = data.Length;
             var len = count * 2;
             if (!String.IsNullOrEmpty(separate)) len += (count - 1) * separate.Length;
             if (groupSize > 0)

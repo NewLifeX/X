@@ -71,13 +71,15 @@ namespace NewLife.Net
         }
 
         /// <summary>以十六进制编码表示</summary>
-        /// <param name="maxLength">最大显示多少个字节</param>
+        /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
+        /// <param name="separate">分隔符</param>
+        /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
         /// <returns></returns>
-        public String ToHex(Int32 maxLength = 32)
+        public String ToHex(Int32 maxLength = 32, String separate = "-", Int32 groupSize = 0)
         {
             if (Length <= 0 || Data == null || Data.Length <= 0) return String.Empty;
 
-            return Data.ToHex(0, Math.Min(Length, maxLength));
+            return Data.ToHex(separate, groupSize, Math.Min(Length, maxLength));
         }
         #endregion
     }
