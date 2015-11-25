@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Xml.Serialization;
-//using NewLife.Serialization;
 
 namespace NewLife.Net
 {
@@ -235,6 +234,14 @@ namespace NewLife.Net
         public static implicit operator NetUri(String value)
         {
             return new NetUri(value);
+        }
+
+        /// <summary>是否相等的地址</summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public Boolean Equals(NetUri uri)
+        {
+            return ProtocolType == uri.ProtocolType && Port == uri.Port && Address == uri.Address;
         }
         #endregion
 
