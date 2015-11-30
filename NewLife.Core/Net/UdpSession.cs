@@ -109,7 +109,7 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
-            WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+            WriteLog("Send [{0}]: {1}", count, buffer.ToHex("-", 0, Math.Min(count, 32)));
 
             _LastTime = DateTime.Now;
 
@@ -210,7 +210,7 @@ namespace NewLife.Net
         {
             _LastTime = DateTime.Now;
 
-            WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+            WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex("-", 0, Math.Min(e.Length, 32)));
 
             if (Received != null) Received(this, e);
         }
@@ -257,7 +257,7 @@ namespace NewLife.Net
         private ILog _Log;
         /// <summary>日志提供者</summary>
         public ILog Log { get { return _Log; } set { _Log = value; } }
-        
+
         private String _LogPrefix;
         /// <summary>日志前缀</summary>
         public virtual String LogPrefix
