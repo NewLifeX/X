@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -57,17 +57,29 @@ namespace Test
 
         static void Test1()
         {
-            using (var fs = File.OpenRead("Config.7z"))
-            {
-                var sz = new SevenZip();
-                if (!sz.Read(fs))
-                {
-                    Console.WriteLine("不是7z格式");
-                    return;
-                }
+            //using (var fs = File.OpenRead("Config.7z"))
+            //{
+            //    var sz = new SevenZip();
+            //    if (!sz.Read(fs))
+            //    {
+            //        Console.WriteLine("不是7z格式");
+            //        return;
+            //    }
 
-                Console.WriteLine("版本：\t{0}", sz.Version);
-                Console.WriteLine("CRC：\t{0:X8}", sz.Crc);
+            //    Console.WriteLine("版本：\t{0}", sz.Version);
+            //    Console.WriteLine("CRC：\t{0:X8}", sz.Crc);
+            //}
+            var lib = @"E:\Auto\扫描枪\SmartOS\SmartOS_F1x0D.lib";
+            var lzma = @"E:\Auto\扫描枪\SmartOS\SmartOS_F1x0D.lzma";
+            File.OpenRead(lib).CompressLzma(File.OpenWrite(lzma), 9);
+            using (var fs = File.OpenRead(@"E:\Auto\扫描枪\SmartOS\SmartOS_F1x0D_2.zip"))
+            {
+                var zip = new ZipFile(fs);
+                //foreach (var item in zip.Entries)
+                //{
+
+                //}
+                zip.Extract(".\\");
             }
         }
 

@@ -85,13 +85,9 @@ namespace NewLife.Compression
         public ZipFile() { }
 
         /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
-        /// <param name="fileName"></param>
-        public ZipFile(String fileName) : this(fileName, null) { }
-
-        /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
         /// <param name="fileName">文件名</param>
         /// <param name="encoding">字符串编码</param>
-        public ZipFile(String fileName, Encoding encoding)
+        public ZipFile(String fileName, Encoding encoding = null)
         {
             Name = fileName;
             Encoding = encoding;
@@ -101,7 +97,7 @@ namespace NewLife.Compression
         /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
         /// <param name="stream"></param>
         /// <param name="encoding"></param>
-        public ZipFile(Stream stream, Encoding encoding)
+        public ZipFile(Stream stream, Encoding encoding = null)
         {
             Encoding = encoding;
             _stream = stream;
@@ -325,15 +321,6 @@ namespace NewLife.Compression
         #endregion
 
         #region 解压缩
-
-        /// <summary>解压缩[兼容旧版本]</summary>
-        /// <param name="outputPath">目标路径</param>
-        /// <param name="overrideExisting">是否覆盖已有文件</param>
-        public void Extract(String outputPath, Boolean overrideExisting = true)
-        {
-            Extract(outputPath, overrideExisting, true);
-        }
-
         /// <summary>解压缩</summary>
         /// <param name="outputPath">目标路径</param>
         /// <param name="overrideExisting">是否覆盖已有文件</param>

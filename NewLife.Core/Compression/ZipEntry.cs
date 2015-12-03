@@ -236,11 +236,6 @@ namespace NewLife.Compression
             if (dsLen <= 0) return;
 
             #region 写入文件数据
-            //#if DEBUG
-            //            var ts = writer.Stream as NewLife.Log.TraceStream;
-            //            if (ts != null) ts.UseConsole = false;
-            //#endif
-
             // 数据源。只能用一次，因为GetData的时候把数据流移到了合适位置
             var source = DataSource.GetData();
             if (DataSource.IsCompressed)
@@ -266,9 +261,6 @@ namespace NewLife.Compression
                             stream.Close();
                         }
                         CompressedSize = (UInt32)(writer.Stream.Position - p);
-                        //#if DEBUG
-                        //                        if (ts != null) ts.UseConsole = true;
-                        //#endif
 
                         // 回头重新修正压缩后大小CompressedSize
                         p = writer.Stream.Position;
@@ -280,26 +272,23 @@ namespace NewLife.Compression
                     }
 
                     break;
-                //case CompressionMethod.LZMA:
-                //    {
-                //        // 记录数据流位置，待会用来计算已压缩大小
-                //        Int64 p = writer.Stream.Position;
-                //        source.CompressLzma(writer.Stream, 10);
-                //        CompressedSize = (UInt32)(writer.Stream.Position - p);
-                //        //#if DEBUG
-                //        //                        if (ts != null) ts.UseConsole = true;
-                //        //#endif
+                case CompressionMethod.LZMA:
+                    {
+                        // 记录数据流位置，待会用来计算已压缩大小
+                        Int64 p = writer.Stream.Position;
+                        source.CompressLzma(writer.Stream, 10);
+                        CompressedSize = (UInt32)(writer.Stream.Position - p);
 
-                //        // 回头重新修正压缩后大小CompressedSize
-                //        p = writer.Stream.Position;
-                //        // 计算好压缩大小字段所在位置
-                //        writer.Stream.Seek(RelativeOffsetOfLocalHeader + 18, SeekOrigin.Begin);
-                //        var wr = writer as IWriter2;
-                //        wr.Write(CompressedSize);
-                //        writer.Stream.Seek(p, SeekOrigin.Begin);
-                //    }
+                        // 回头重新修正压缩后大小CompressedSize
+                        p = writer.Stream.Position;
+                        // 计算好压缩大小字段所在位置
+                        writer.Stream.Seek(RelativeOffsetOfLocalHeader + 18, SeekOrigin.Begin);
+                        var wr = writer as IWriter2;
+                        wr.Write(CompressedSize);
+                        writer.Stream.Seek(p, SeekOrigin.Begin);
+                    }
 
-                //    break;
+                    break;
                 default:
                     throw new XException("无法处理的压缩算法{0}！", CompressionMethod);
             }
@@ -383,9 +372,9 @@ namespace NewLife.Compression
                             stream.Close();
                         }
                         break;
-                    //case CompressionMethod.LZMA:
-                    //    DataSource.GetData().DecompressLzma(outStream);
-                    //    break;
+                    case CompressionMethod.LZMA:
+                        DataSource.GetData().DecompressLzma(outStream);
+                        break;
                     default:
                         throw new XException("无法处理的压缩算法{0}！", CompressionMethod);
                 }
