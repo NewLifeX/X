@@ -85,7 +85,7 @@ namespace XCom
         {
             spList.Connect();
             var st = spList.Port;
-            st.FrameSize = 8;
+            //st.FrameSize = 8;
 
             // 需要考虑UI线程
             st.Disconnected += (s, e) => this.Invoke(Disconnect);

@@ -80,10 +80,14 @@ namespace NewLife.Net
         /// <summary>停止位。默认One</summary>
         public StopBits StopBits { get { return _StopBits; } set { _StopBits = value; } }
 
-        private Int32 _FrameSize = 1;
-        /// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
-        /// <remarks>如果读取超时，也有可能返回</remarks>
-        public Int32 FrameSize { get { return _FrameSize; } set { _FrameSize = value; } }
+        //private Int32 _FrameSize = 1;
+        ///// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
+        ///// <remarks>如果读取超时，也有可能返回</remarks>
+        //public Int32 FrameSize { get { return _FrameSize; } set { _FrameSize = value; } }
+
+        private Int32 _Timeout = 10;
+        /// <summary>超时时间。超过该大小未收到数据，说明是另一帧。默认10ms</summary>
+        public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
 
         private String _Description;
         /// <summary>描述信息</summary>
@@ -219,7 +223,7 @@ namespace NewLife.Net
                 catch { }
             }
 
-            WriteLog("Read:{0} Expected/True={1}/{2}", buffer.ToHex(bufstart, offset - bufstart), FrameSize, offset - bufstart);
+            //WriteLog("Read:{0} Expected/True={1}/{2}", buffer.ToHex(bufstart, offset - bufstart), FrameSize, offset - bufstart);
 
             return offset - bufstart;
         }
@@ -228,11 +232,24 @@ namespace NewLife.Net
         {
             var sp = Serial;
 
-            // 等待1秒，直到有数据为止
-            var timeout = sp.ReadTimeout;
-            if (timeout <= 0) timeout = 200;
-            var end = DateTime.Now.AddMilliseconds(timeout);
-            while (sp.BytesToRead < FrameSize && sp.IsOpen && end > DateTime.Now) Thread.SpinWait(1);
+            //// 等待1秒，直到有数据为止
+            //var timeout = sp.ReadTimeout;
+            //if (timeout <= 0) timeout = 200;
+            //var end = DateTime.Now.AddMilliseconds(timeout);
+            //while (sp.BytesToRead < FrameSize && sp.IsOpen && end > DateTime.Now) Thread.SpinWait(1);
+
+            if (Timeout <= 0) return;
+            var end = DateTime.Now.AddMilliseconds(Timeout);
+            var count = sp.BytesToRead;
+            while (sp.IsOpen && end > DateTime.Now)
+            {
+                Thread.SpinWait(1);
+                if (count != sp.BytesToRead)
+                {
+                    end = DateTime.Now.AddMilliseconds(Timeout);
+                    count = sp.BytesToRead;
+                }
+            }
         }
         #endregion
 
