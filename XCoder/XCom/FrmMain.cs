@@ -177,6 +177,9 @@ namespace XCom
             if (count <= 0) count = 1;
             if (sleep <= 0) sleep = 100;
 
+            // 处理换行
+            str = str.Replace("\n", "\r\n");
+
             if (count == 1)
             {
                 spList.Send(str);
