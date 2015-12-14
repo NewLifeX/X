@@ -13,8 +13,8 @@
         @Html.Raw(page.GetPage("上一页"))&nbsp;
         @Html.Raw(page.GetPage("下一页"))&nbsp;
         @Html.Raw(page.GetPage("尾页")) &nbsp;
-        转到第<input name="PageIndex" type="text" value="@page.PageIndex" style="width:40px;text-align:right;" />页
-        <input type="submit" name="PageJump" value="GO" />
+        转到第<input name="PageIndex" type="text" value="@page.PageIndex" class="input-sm" style="width:40px;text-align:right;" />页
+        <input type="submit" name="PageJump" value="GO" class="btn btn-deafult btn-sm" />
         页大小
         <select id="PageSize" name="PageSize" onchange="$(':submit').click();">
             <option value="5">5</option>

@@ -37,7 +37,10 @@
     <!-- 文本字体 -->
     <link rel="stylesheet" href="~/Content/ace/css/ace-fonts.min.css" />
     <!-- ace 样式 -->
-    <link rel="stylesheet" href="~/Content/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
+    <link rel="stylesheet" href="~/Content/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style"/>
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="~/Content/Site.css" type="text/css" />
     <!-- JQuery作为一等公民，页面内部随时可能使用 -->
     <script src="~/Content/js/jquery-2.1.3.min.js"></script>
 
@@ -122,16 +125,16 @@
                     language: "zh-CN",
                     forceParse: false,
                     startView: 2,
-                    minView: 2,
-                })
+                    minView: 2
+                });
                 //console.trace($(this));
-            })
+            });
             $('input[role=number]').each(function () {
                 $(this).removeAttr('class');
                 $(this).addClass('spinbox-input form-control text-center');
                 $(this).ace_spinner({ max: 2147483647, min: -2147483647, on_sides: true, icon_up: 'ace-icon fa fa-plus bigger-110', icon_down: 'ace-icon fa fa-minus bigger-110', btn_up_class: 'btn-success', btn_down_class: 'btn-danger' });
             });
-            $('.multiselect').each(function () {
+            $('.multiselect').each(function() {
                 $(this).multiselect({
                     // 下拉列表仅在列表项比较多时显示过滤框
                     enableFiltering: $(this).children().length > 10,
@@ -149,7 +152,7 @@
                     nonSelectedText: '无',
                     allSelectedText: '全选'
                 });
-            })
+            });
             @*双击跳转到form
             _List_Data_Action.cshtml变更
     @Html.ActionLink("编辑", "Edit", new { id = @Model },new{@class="editcell"})*@
@@ -159,7 +162,6 @@
                 var findcell = row.find('.editcell');
                 if (findcell.length > 0) window.location.href = findcell.attr("href");
             });
-
         });
     </script>
 

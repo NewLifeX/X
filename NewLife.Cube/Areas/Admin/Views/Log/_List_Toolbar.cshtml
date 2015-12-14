@@ -5,9 +5,9 @@
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
 }
-<div class="tableTools-container">
-    <div class="form-inline">
-        <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true)) " method="post" role="form">
+<div class="tableTools-container list-toolbar">
+    <div class="form-inline clear-fix">
+        <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true))" method="post" role="form">
             @if (ManageProvider.User.Has(PermissionFlags.Insert))
             {
                 @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
@@ -35,7 +35,7 @@
                         <input name="dtEnd" id="dtEnd" value="@Request["dtEnd"]" dateformat="yyyy-MM-dd" class="form-control form_datetime" />
                     </div>
                 </div>
-                <div class="input-group">
+                <div class="input-group btn-toolbar">
                     @Html.Partial("_List_Toolbar_Search")
                     @Html.Partial("_List_Toolbar_Adv")
                 </div>

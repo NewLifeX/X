@@ -7,7 +7,7 @@
 }
 <div class="tableTools-container">
     <div class="form-inline">
-        <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true)) " method="post" role="form">
+        <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true))" method="post" role="form">
             @if (ManageProvider.User.Has(PermissionFlags.Insert))
             {
                 @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
@@ -17,7 +17,7 @@
                     <label for="RoleID" class="control-label">角色：</label>
                     @Html.ForDropDownList("RoleID", Role.FindAllWithCache(), "全部", true)
                 </div>
-                <div class="input-group">
+                <div class="input-group btn-toolbar">
                     @Html.Partial("_List_Toolbar_Search")
                     @Html.Partial("_List_Toolbar_Adv")
                 </div>

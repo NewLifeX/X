@@ -35,6 +35,9 @@
         <link rel="stylesheet" href="~/Content/ace/css/ace-ie.min.css" />
     <![endif]-->
     <!-- inline styles related to this page -->
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="~/Content/Site.css" type="text/css" />
     <!-- ace settings handler -->
     <script src="~/Content/ace/js/ace-extra.min.js"></script>
 
@@ -56,7 +59,7 @@
         </script>
 
         <!-- #section:basics/sidebar -->
-        <div id="sidebar" class="sidebar                  responsive">
+        <div id="sidebar" class="sidebar responsive">
             <script type="text/javascript">
                 $(function () {
                     try { ace.settings.check('sidebar', 'fixed') } catch (e) { }
@@ -271,6 +274,13 @@
             if (window != top) {
                 top.location.href = location.href;
             }
+
+            //菜单active样式
+            $(".nav-list li").click(function () {
+                var $this = $(this);
+                $this.siblings("li").removeClass("active");
+                $this.addClass('active');
+            });
         });
 
     </script>

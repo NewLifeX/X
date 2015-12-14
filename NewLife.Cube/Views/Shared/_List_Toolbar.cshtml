@@ -7,7 +7,7 @@
 }
 <div class="tableTools-container">
     <div class="form-inline">
-        <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true)) " method="post" role="form">
+        <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true))" method="post" role="form">
             <div class="validation-summary-valid" data-valmsg-summary="true">
                 <ul>
                     <li style="display:none"></li>
@@ -19,7 +19,7 @@
                     @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
                 }
             </div>
-            <div class="pull-right form-group">
+            <div class="pull-right form-group btn-toolbar">
                 @Html.Partial("_List_Toolbar_Search")
                 @Html.Partial("_List_Toolbar_Adv")
             </div>
