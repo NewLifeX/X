@@ -61,18 +61,23 @@ namespace XCoder.FolderInfo
             if (MessageBox.Show("是否确定要批量修改列表中的编码", "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                 return;
 
+
+            var targetCharset = cmb_file_encode_name.Text.Trim();
+            var targetEncoding = GetEncode();
             foreach (DataGridViewRow item in gv_data.Rows)
             {
-                if (item.Cells["序号"].Value == null)
-                    continue;
-                try
-                {
-                    ReplaceEncoding(txt_file_path.Text + item.Cells["名称"].Value.ToString());
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("文件[" + txt_file_path.Text + item.Cells["名称"].Value.ToString() + "]" + "转换时出错,请手动转换" + ex.Message);
-                }
+              if (item.Cells["序号"].Value == null) { continue; }
+              var fileCharset = item.Cells["编码"].Value.ToString();
+              if (string.Equals(fileCharset, targetCharset, StringComparison.OrdinalIgnoreCase)) { continue; }
+
+              try
+              {
+                ReplaceEncoding(txt_file_path.Text + item.Cells["名称"].Value.ToString(), fileCharset, targetEncoding);
+              }
+              catch (Exception ex)
+              {
+                MessageBox.Show("文件[" + txt_file_path.Text + item.Cells["名称"].Value.ToString() + "]" + "转换时出错,请手动转换" + ex.Message);
+              }
             }
 
             MessageBox.Show("转换完成");
@@ -82,19 +87,19 @@ namespace XCoder.FolderInfo
         /// <summary>
         /// 替换文件编码
         /// </summary>
-        /// <param name="v"></param>
-        private void ReplaceEncoding(string v)
+        /// <param name="file"></param>
+        private void ReplaceEncoding(string file, string charset, Encoding targetEncoding)
         {
-            string fileInfo = "";
-            using (StreamReader sr = new StreamReader(v, Encoding.Default, false))
-            {
-                fileInfo = sr.ReadToEnd();
-            }
+          string fileInfo = "";
+          using (StreamReader sr = new StreamReader(file, Encoding.GetEncoding(charset), false))
+          {
+            fileInfo = sr.ReadToEnd();
+          }
 
-            using (StreamWriter sw = new StreamWriter(v, false, GetEncode()))
-            {
-                sw.Write(fileInfo);
-            }
+          using (StreamWriter sw = new StreamWriter(file, false, targetEncoding))
+          {
+            sw.Write(fileInfo);
+          }
         }
 
         Encoding GetEncode()
@@ -138,7 +143,7 @@ namespace XCoder.FolderInfo
                     var b = IsContainsType(file.Name);
                     if (b)
                     {
-                        string fileEncoding = EncodePelaceHelper.GetEncoding(file.FullName).EncodingName;
+                        string fileEncoding = EncodePelaceHelper.GetEncoding(file.FullName);
                         if (fileEncoding.ToUpper().IndexOf("UTF".ToUpper()) < 0)
                         {
                             gv_data.Rows.Add(Count, fileEncoding, file.FullName.ToString().Substring(ChiocePath.Length));
@@ -186,36 +191,63 @@ namespace XCoder.FolderInfo
         /// </summary>
         /// <param name="fileName">文件名</param>
         /// 
-        public static Encoding GetEncoding(string fileName)
+        public static string GetEncoding(string fileName)
         {
             return GetEncoding(fileName, Encoding.Default);
         }
 
-        /// <summary>
-        /// 取得一个文本文件流的编码方式。
-        /// </summary>
-        /// <param name="stream">文本文件流</param>
-        /// <returns></returns>
-        /// 
-        public static Encoding GetEncoding(FileStream stream)
-        {
-            return GetEncoding(stream, Encoding.Default);
-        }
-
-        /// <summary>
-        /// 取得一个文本文件的编码方式。
-        /// </summary>
+        /// <summary>取得一个文本文件的编码方式。</summary>
         /// <param name="fileName">文件名。</param>
         /// <param name="defaultEncoding">默认编码方式。当该方法无法从文件的头部取得有效的前导符时，将返回该编码方式。</param>
         /// <returns></returns>
         /// 
-        public static Encoding GetEncoding(string fileName, Encoding defaultEncoding)
+        public static string GetEncoding(string fileName, Encoding defaultEncoding)
         {
-            FileStream fs = new FileStream(fileName, FileMode.Open);
-            Encoding targetEncoding = GetEncoding(fs, defaultEncoding);
-            fs.Close();
-            return targetEncoding;
+          using (var fs = File.OpenRead(fileName))
+          {
+            var cdet = new Ude.CharsetDetector();
+            cdet.Feed(fs);
+            cdet.DataEnd();
+            if (cdet.Charset != null)
+            {
+              return cdet.Charset;
+            }
+            else
+            {
+              return defaultEncoding.WebName;
+            }
+          }
+          //FileStream fs = new FileStream(fileName, FileMode.Open);
+          //Encoding targetEncoding = GetEncoding(fs, defaultEncoding);
+          //fs.Close();
+          //return targetEncoding;
         }
+
+        ///// <summary>
+        ///// 取得一个文本文件流的编码方式。
+        ///// </summary>
+        ///// <param name="stream">文本文件流</param>
+        ///// <returns></returns>
+        ///// 
+        //public static Encoding GetEncoding(FileStream stream)
+        //{
+        //    return GetEncoding(stream, Encoding.Default);
+        //}
+
+        ///// <summary>
+        ///// 取得一个文本文件的编码方式。
+        ///// </summary>
+        ///// <param name="fileName">文件名。</param>
+        ///// <param name="defaultEncoding">默认编码方式。当该方法无法从文件的头部取得有效的前导符时，将返回该编码方式。</param>
+        ///// <returns></returns>
+        ///// 
+        //public static Encoding GetEncoding(string fileName, Encoding defaultEncoding)
+        //{
+        //    FileStream fs = new FileStream(fileName, FileMode.Open);
+        //    Encoding targetEncoding = GetEncoding(fs, defaultEncoding);
+        //    fs.Close();
+        //    return targetEncoding;
+        //}
 
         /// <summary>
         /// 取得一个文本文件流的编码方式。
