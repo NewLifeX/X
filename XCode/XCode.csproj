@@ -79,6 +79,7 @@
     <Compile Include="Attributes\BindRelationAttribute.cs" />
     <Compile Include="Cache\CacheSetting.cs" />
     <Compile Include="Code\CodeDomHelper.cs" />
+    <Compile Include="Common\StringBuilderCache.cs" />
     <Compile Include="Configuration\FieldExtension.cs" />
     <Compile Include="DataAccessLayer\Model\NullableDictionary.cs" />
     <Compile Include="Entity\IEntityAddition.cs" />
