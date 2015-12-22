@@ -109,7 +109,7 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
-            WriteLog("Send [{0}]: {1}", count, buffer.ToHex("-", 0, Math.Min(count, 32)));
+            WriteDebugLog("Send [{0}]: {1}", count, buffer.ToHex("-", 0, Math.Min(count, 32)));
 
             _LastTime = DateTime.Now;
 
@@ -210,7 +210,7 @@ namespace NewLife.Net
         {
             _LastTime = DateTime.Now;
 
-            WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex("-", 0, Math.Min(e.Length, 32)));
+            WriteDebugLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex("-", 0, Math.Min(e.Length, 32)));
 
             if (Received != null) Received(this, e);
         }
@@ -280,6 +280,14 @@ namespace NewLife.Net
         public void WriteLog(String format, params Object[] args)
         {
             if (Log != null) Log.Info(LogPrefix + format, args);
+        }
+
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteDebugLog(String format, params Object[] args)
+        {
+            if (Log != null) Log.Debug(LogPrefix + format, args);
         }
         #endregion
     }
