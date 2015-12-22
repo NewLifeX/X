@@ -101,7 +101,8 @@ namespace NewLife.Net.Proxy
                 WriteLog("连接远程服务器 {0} 解析 {1}", RemoteServerUri, RemoteServerUri.Address);
 
                 session = CreateRemote(e);
-                session.Log = new ActionLog(WriteLog);
+                //session.Log = new ActionLog(WriteLog);
+                session.Log = Log;
                 session.OnDisposed += (s, e2) =>
                 {
                     // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定

@@ -31,7 +31,7 @@ namespace Test2
                 try
                 {
 #endif
-                Test8();
+                    Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -175,22 +175,15 @@ namespace Test2
 
         static void Test6()
         {
-            var server = new NetServer();
-            server.Name = "美女";
-            server.Port = 89;
-            //server.Local = "udp://:89";
-            //server.Log = XTrace.Log;
-            server.Log = null;
+            XTrace.Log.Level = LogLevel.Info;
 
-            server.Start();
-
-            while (true)
-            {
-                var str = "会话数：{0}".F(server.SessionCount);
-                Console.Title = str;
-                Console.WriteLine(str);
-                Thread.Sleep(1000);
-            }
+            var svr = new NATProxy();
+            svr.RemoteServer = new NetUri("udp://s3.peacemoon.cn:3366");
+            svr.Port = 3366;
+            //svr.Log = XTrace.Log;
+            svr.SessionLog = XTrace.Log;
+            //svr.SocketLog = XTrace.Log;
+            svr.Start();
         }
 
         static void Test7()

@@ -10,7 +10,7 @@ namespace NewLife.Net.Proxy
     public abstract class ProxyBase<TProxySession> : NetServer<TProxySession>, IProxy
         where TProxySession : ProxySession, new()
     {
-        #region 构造函数--老树添加
+        #region 构造函数
         /// <summary></summary>
         public ProxyBase()
         {
@@ -36,7 +36,6 @@ namespace NewLife.Net.Proxy
         /// <param name="session"></param>
         protected override void AddSession(INetSession session)
         {
-            //(session as IProxySession).Proxy = this;
             var ps = session as IProxySession;
             if (ps != null && ps.Proxy == null) ps.Proxy = this;
 
