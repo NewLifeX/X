@@ -146,7 +146,11 @@ namespace NewLife.Net
         {
             EnsureCreate();
 
-            if (!Serial.IsOpen) Serial.Open();
+            if (!Serial.IsOpen)
+            {
+                Serial.Open();
+                if (Received != null) Serial.DataReceived += DataReceived;
+            }
 
             return true;
         }
@@ -159,7 +163,11 @@ namespace NewLife.Net
             if (sp != null)
             {
                 Serial = null;
-                if (sp.IsOpen) sp.Close();
+                if (sp.IsOpen)
+                {
+                    if (Received != null) sp.DataReceived -= DataReceived;
+                    sp.Close();
+                }
 
                 OnDisconnect();
             }
@@ -259,7 +267,7 @@ namespace NewLife.Net
         {
             if (!Open()) return false;
 
-            Serial.DataReceived += DataReceived;
+            //Serial.DataReceived += DataReceived;
             //Serial.ErrorReceived += Serial_ErrorReceived;
 
             return true;
