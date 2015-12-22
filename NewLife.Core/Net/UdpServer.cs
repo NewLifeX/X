@@ -379,7 +379,7 @@ namespace NewLife.Net
             if (!Active) return;
             // 接收数据
             var client = ar.AsyncState as UdpClient;
-            if (client == null) return;
+            if (client == null || client.Client == null) return;
 
             IPEndPoint ep = null;
             Byte[] data = null;
