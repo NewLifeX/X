@@ -480,7 +480,7 @@ namespace NewLife.Net
 
             Console.WriteLine();
             Console.Write("正在打开串口 ");
-            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("{0}({1})", name, des);
 
             Console.ResetColor();
