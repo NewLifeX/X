@@ -69,18 +69,18 @@ namespace Test
             //    Console.WriteLine("版本：\t{0}", sz.Version);
             //    Console.WriteLine("CRC：\t{0:X8}", sz.Crc);
             //}
-            var lib = @"E:\Auto\扫描枪\SmartOS\SmartOS_F1x0D.lib";
-            var lzma = @"E:\Auto\扫描枪\SmartOS\SmartOS_F1x0D.lzma";
-            File.OpenRead(lib).CompressLzma(File.OpenWrite(lzma), 9);
-            using (var fs = File.OpenRead(@"E:\Auto\扫描枪\SmartOS\SmartOS_F1x0D_2.zip"))
-            {
-                var zip = new ZipFile(fs);
-                //foreach (var item in zip.Entries)
-                //{
+            //var lib = @"E:\Auto\扫描枪\SmartOS\SmartOS_F1x0D.lib";
+            //var lzma = @"E:\Auto\扫描枪\SmartOS\SmartOS_F1x0D.lzma";
+            //File.OpenRead(lib).CompressLzma(File.OpenWrite(lzma), 9);
+            //using (var fs = File.OpenRead(@"E:\Auto\扫描枪\SmartOS\SmartOS_F1x0D_2.zip"))
+            //{
+            //    var zip = new ZipFile(fs);
+            //    //foreach (var item in zip.Entries)
+            //    //{
 
-                //}
-                zip.Extract(".\\");
-            }
+            //    //}
+            //    zip.Extract(".\\");
+            //}
         }
 
         static void Test2()
