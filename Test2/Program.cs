@@ -203,10 +203,22 @@ namespace Test2
         private static NatProxyTest natProxyTest;
         private static void Test8()
         {
-            //natProxyTest = new NatProxyTest("192.168.30.100", 6800);
-            natProxyTest = new NatProxyTest("192.168.1.242", 3389);
-            natProxyTest.Init();
-            natProxyTest.Start();
+            //natProxyTest = new NatProxyTest("192.168.1.242", 3389);
+            //natProxyTest.Init();
+            //natProxyTest.Start();
+
+            //var svr = new UdpServer(3388);
+            //svr.Log = XTrace.Log;
+            //svr.Received += svr_Received;
+            //svr.Open();
+
+            var sp = SerialTransport.Choose("340");
+            Console.WriteLine(sp.PortName);
+        }
+
+        static void svr_Received(object sender, ReceivedEventArgs e)
+        {
+            XTrace.WriteLine(e.ToStr());
         }
     }
 }

@@ -368,9 +368,11 @@ namespace NewLife.Net
             return list.ToArray();
         }
 
-        static Dictionary<String, String> GetNames()
+        /// <summary>获取串口列表，名称和描述</summary>
+        /// <returns></returns>
+        public static Dictionary<String, String> GetNames()
         {
-            var dic = new Dictionary<String, String>();
+            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             using (var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DEVICEMAP\SERIALCOMM", false))
             using (var usb = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\USB", false))
             {
@@ -416,6 +418,77 @@ namespace NewLife.Net
                 }
             }
             return dic;
+        }
+
+        /// <summary>从串口列表选择串口，支持自动选择关键字</summary>
+        /// <param name="keyWord">串口名称或者描述符的关键字</param>
+        /// <returns></returns>
+        public static SerialTransport Choose(String keyWord = null)
+        {
+            var ns = GetNames();
+            if (ns.Count == 0)
+            {
+                Console.WriteLine("没有可用串口！");
+                return null;
+            }
+
+            var name = "";
+            var des = "";
+
+            Console.WriteLine("可用串口：");
+            Console.ForegroundColor = ConsoleColor.Green;
+            foreach (var item in ns)
+            {
+                if (item.Value == "Serial0") continue;
+
+                if (keyWord != null && (item.Key.EqualIgnoreCase(keyWord) || item.Value.Contains(keyWord)))
+                {
+                    name = item.Key;
+                    des = item.Value;
+                }
+
+                //Console.WriteLine(item);
+                Console.WriteLine("{0,5}({1})", item.Key, item.Value);
+            }
+            // 没有自动选择，则默认最后一个
+            if (name.IsNullOrEmpty())
+            {
+                var item = ns.Last();
+                name = item.Key;
+                des = item.Value;
+            }
+            while (true)
+            {
+                Console.ResetColor();
+                Console.Write("请输入串口名称（默认 ");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("{0}", name);
+                Console.ResetColor();
+                Console.Write("）：");
+
+                var str = Console.ReadLine();
+                if (str.IsNullOrEmpty()) break;
+
+                // 只有输入有效串口名称才行
+                if (ns.ContainsKey(str))
+                {
+                    name = str;
+                    des = ns[str];
+                    break;
+                }
+            }
+
+            Console.WriteLine();
+            Console.Write("正在打开串口 ");
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine("{0}({1})", name, des);
+
+            Console.ResetColor();
+
+            var sp = new SerialTransport();
+            sp.PortName = name;
+
+            return sp;
         }
         #endregion
 
