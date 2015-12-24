@@ -146,7 +146,7 @@ WriteLiteral("                        ");
             #line hidden
 WriteLiteral("\r\n                        <div");
 
-WriteLiteral(" class=\"input-group col-md-4\"");
+WriteLiteral(" class=\"input-group col-md-10\"");
 
 WriteLiteral(">\r\n");
 

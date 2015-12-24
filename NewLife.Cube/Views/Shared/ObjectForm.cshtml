@@ -19,7 +19,7 @@
                     var name = pi.Name;
                     <div class="form-group">
                         @Html.Label(pi.Name, pi.GetDisplayName(), new { @class = "control-label col-md-2" })
-                        <div class="input-group col-md-4">
+                        <div class="input-group col-md-10">
                             @Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType)
                             @Html.ValidationMessage(pi.Name)
                             <span>&nbsp; @pi.GetDescription()</span>

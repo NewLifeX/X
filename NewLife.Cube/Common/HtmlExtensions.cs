@@ -2,9 +2,11 @@
 using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
+using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
@@ -56,7 +58,7 @@ namespace NewLife.Cube
 #if DEBUG
                     throw new Exception("不支持的类型" + type);
 #else
-                    return Html.Editor(name);
+                    return Html.ForObject(name, value);
 #endif
             }
         }
@@ -153,6 +155,44 @@ namespace NewLife.Cube
             var field = fact.Table.FindByName(name);
 
             return Html.ForEditor(field, entity);
+        }
+
+        /// <summary>输出复杂对象</summary>
+        /// <param name="Html"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static MvcHtmlString ForObject(this HtmlHelper Html, String name, Object value)
+        {
+            if (value == null || Type.GetTypeCode(value.GetType()) != TypeCode.Object) return Html.ForEditor(name, value);
+
+            var pis = value.GetType().GetProperties();
+            pis = pis.Where(pi => pi.CanWrite && pi.GetIndexParameters().Length == 0 && pi.GetCustomAttribute<XmlIgnoreAttribute>() == null).ToArray();
+
+            var sb = new StringBuilder();
+            var txt = Html.Label(name);
+            foreach (var pi in pis)
+            {
+                var pname = "{0}_{1}".F(name, pi.Name);
+
+                sb.AppendLine("<div class=\"form-group\">");
+                sb.AppendLine(Html.Label(pi.Name, pi.GetDisplayName(), new { @class = "control-label col-md-2" }).ToString());
+                sb.AppendLine("<div class=\"input-group col-md-8\">");
+                sb.AppendLine(Html.ForEditor(pi.Name, value.GetValue(pi)).ToString());
+
+                var des = pi.GetDescription();
+                if (!des.IsNullOrEmpty())
+                {
+                    sb.AppendFormat("<span>&nbsp;{0}</span>", des);
+                    sb.AppendLine();
+                }
+
+                sb.AppendLine("</div>");
+                sb.AppendLine("</div>");
+            }
+
+            return new MvcHtmlString(sb.ToString());
+            //return Html.Editor(name);
         }
 
         #region 基础属性
