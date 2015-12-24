@@ -1,9 +1,11 @@
 ﻿@using System.ComponentModel;
+@using System.Reflection;
+@using NewLife.Reflection;
 @{
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
 
     var Obj = Model as Object;
-    var pds = ViewBag.Properties as IList<PropertyDescriptor>;
+    var pis = ViewBag.Properties as IEnumerable<PropertyInfo>;
 }
 <div class="row">
     <div class="col-md-12">
@@ -12,14 +14,15 @@
             {
                 @Html.AntiForgeryToken()
                 @Html.ValidationSummary(true)
-                foreach (var pd in pds)
+                foreach (var pi in pis)
                 {
-                    var name = pd.Name;
+                    var name = pi.Name;
                     <div class="form-group">
-                        @Html.Label(pd.Name, pd.DisplayName, new { @class = "control-label col-md-2" })
+                        @Html.Label(pi.Name, pi.GetDisplayName(), new { @class = "control-label col-md-2" })
                         <div class="input-group col-md-4">
-                            @Html.ForEditor(pd.Name, pd.GetValue(Obj), pd.PropertyType)
-                            @Html.ValidationMessage(pd.Name)
+                            @Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType)
+                            @Html.ValidationMessage(pi.Name)
+                            <span> @pi.GetDescription()</span>
                         </div>
                     </div>
                 }

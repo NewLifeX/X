@@ -29,14 +29,14 @@ namespace NewLife.Cube
             }
         }
 
-        /// <summary>重载。过滤掉标识为XmlIgnore的属性</summary>
-        /// <param name="filterContext"></param>
-        protected override void OnActionExecuting(ActionExecutingContext filterContext)
-        {
-            base.OnActionExecuting(filterContext);
+        ///// <summary>重载。过滤掉标识为XmlIgnore的属性</summary>
+        ///// <param name="filterContext"></param>
+        //protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        //{
+        //    base.OnActionExecuting(filterContext);
 
-            var pds = ViewBag.Properties as List<PropertyDescriptor>;
-            pds.RemoveAll(e => e.Attributes.Contains(new XmlIgnoreAttribute()));
-        }
+        //    var pds = ViewBag.Properties as List<PropertyDescriptor>;
+        //    pds.RemoveAll(e => e.Attributes.Contains(new XmlIgnoreAttribute()));
+        //}
     }
 }

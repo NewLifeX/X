@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Web.Mvc;
 using System.Xml.Serialization;
@@ -12,6 +13,9 @@ namespace NewLife.Cube
     /// <summary>对象控制器</summary>
     public abstract class ObjectController<TObject> : ControllerBaseX
     {
+        /// <summary>要展现和修改的对象</summary>
+        protected abstract TObject Value { get; set; }
+
         /// <summary>动作执行前</summary>
         /// <param name="filterContext"></param>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
@@ -25,8 +29,9 @@ namespace NewLife.Cube
             ViewBag.HeaderTitle = name;
             ViewBag.HeaderContent = des;
 
-            var pds = TypeDescriptor.GetProperties(Value);
-            ViewBag.Properties = pds.Cast<PropertyDescriptor>().ToList();
+            //var pds = TypeDescriptor.GetProperties(Value);
+            //ViewBag.Properties = pds.Cast<PropertyDescriptor>().ToList();
+            if (Value != null) ViewBag.Properties = GetMembers(Value);
         }
 
         /// <summary>显示对象</summary>
@@ -54,9 +59,6 @@ namespace NewLife.Cube
                 return View("ObjectForm", obj);
         }
 
-        /// <summary>要展现和修改的对象</summary>
-        protected abstract TObject Value { get; set; }
-
         /// <summary>写日志</summary>
         /// <param name="obj"></param>
         protected virtual void WriteLog(TObject obj)
@@ -81,6 +83,19 @@ namespace NewLife.Cube
                 }
             }
             LogProvider.Provider.WriteLog(obj.GetType(), "修改", sb.ToString());
+        }
+
+        /// <summary>获取要显示编辑的成员</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        protected virtual PropertyInfo[] GetMembers(Object obj)
+        {
+            var type = Value as Type;
+            if (type == null) type = obj.GetType();
+
+            var pis = type.GetProperties();
+            pis = pis.Where(pi => pi.CanWrite && pi.GetIndexParameters().Length == 0 && pi.GetCustomAttribute<XmlIgnoreAttribute>() == null).ToArray();
+            return pis;
         }
     }
 }
