@@ -86,6 +86,8 @@
     <Compile Include="Areas\Admin\Controllers\RoleController.cs" />
     <Compile Include="Areas\Admin\Controllers\LogController.cs" />
     <Compile Include="Areas\Admin\Controllers\MenuController.cs" />
+    <Compile Include="Areas\Admin\Controllers\CoreController.cs" />
+    <Compile Include="Areas\Admin\Controllers\XCodeController.cs" />
     <Compile Include="Areas\Admin\Controllers\SysController.cs" />
     <Compile Include="Areas\Admin\Controllers\UserController.cs" />
     <Compile Include="Areas\Admin\Index\IndexController.cs" />

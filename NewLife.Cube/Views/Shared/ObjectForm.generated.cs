@@ -170,11 +170,11 @@ WriteLiteral("                            ");
             
             #line default
             #line hidden
-WriteLiteral("\r\n                            <span> ");
+WriteLiteral("\r\n                            <span>&nbsp; ");
 
             
             #line 25 "..\..\Views\Shared\ObjectForm.cshtml"
-                              Write(pi.GetDescription());
+                                    Write(pi.GetDescription());
 
             
             #line default

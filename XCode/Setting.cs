@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using NewLife.Configuration;
-using NewLife.Log;
 using NewLife.Xml;
 using XCode.Cache;
 using XCode.DataAccessLayer;
@@ -47,15 +43,15 @@ namespace XCode
         [Description("是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
         public Boolean CodeDebug { get { return _CodeDebug; } set { _CodeDebug = value; } }
 
-        private String _ServiceAddress = "http://j.NewLifeX.com/?id=3&f={0}";
-        /// <summary>下载数据库驱动的地址，文件名用{0}替代。</summary>
-        [Description("下载数据库驱动的地址，文件名用{0}替代。默认http://j.NewLifeX.com/?id=3&f={0}")]
-        public String ServiceAddress { get { return _ServiceAddress; } set { _ServiceAddress = value; } }
+        //private String _ServiceAddress = "http://j.NewLifeX.com/?id=3&f={0}";
+        ///// <summary>下载数据库驱动的地址，文件名用{0}替代。</summary>
+        //[Description("下载数据库驱动的地址，文件名用{0}替代。默认http://j.NewLifeX.com/?id=3&f={0}")]
+        //public String ServiceAddress { get { return _ServiceAddress; } set { _ServiceAddress = value; } }
 
-        private Boolean _CacheZip = true;
-        /// <summary>是否缓存数据库驱动Zip包到系统盘。默认缓存</summary>
-        [Description("是否缓存数据库驱动Zip包到系统盘。默认缓存")]
-        public Boolean CacheZip { get { return _CacheZip; } set { _CacheZip = value; } }
+        //private Boolean _CacheZip = true;
+        ///// <summary>是否缓存数据库驱动Zip包到系统盘。默认缓存</summary>
+        //[Description("是否缓存数据库驱动Zip包到系统盘。默认缓存")]
+        //public Boolean CacheZip { get { return _CacheZip; } set { _CacheZip = value; } }
 
         private Boolean _InitData = true;
         /// <summary>实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭</summary>

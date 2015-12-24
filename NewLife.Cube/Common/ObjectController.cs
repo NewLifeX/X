@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -29,8 +28,6 @@ namespace NewLife.Cube
             ViewBag.HeaderTitle = name;
             ViewBag.HeaderContent = des;
 
-            //var pds = TypeDescriptor.GetProperties(Value);
-            //ViewBag.Properties = pds.Cast<PropertyDescriptor>().ToList();
             if (Value != null) ViewBag.Properties = GetMembers(Value);
         }
 

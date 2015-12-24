@@ -400,11 +400,11 @@ namespace XCode.DataAccessLayer
         //    }
         //}
 
-        /// <summary>服务端地址</summary>
-        static String ServiceAddress { get { return Setting.Current.ServiceAddress; } }
+        ///// <summary>服务端地址</summary>
+        //static String ServiceAddress { get { return Setting.Current.ServiceAddress; } }
 
-        /// <summary>是否缓存Zip压缩包</summary>
-        static Boolean CacheZip { get { return Setting.Current.CacheZip; } }
+        ///// <summary>是否缓存Zip压缩包</summary>
+        //static Boolean CacheZip { get { return Setting.Current.CacheZip; } }
 
         [DllImport("kernel32.dll")]
         static extern int SetDllDirectory(String pathName);

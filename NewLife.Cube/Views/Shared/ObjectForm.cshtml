@@ -22,7 +22,7 @@
                         <div class="input-group col-md-4">
                             @Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType)
                             @Html.ValidationMessage(pi.Name)
-                            <span> @pi.GetDescription()</span>
+                            <span>&nbsp; @pi.GetDescription()</span>
                         </div>
                     </div>
                 }
