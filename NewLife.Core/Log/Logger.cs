@@ -208,8 +208,10 @@ namespace NewLife.Log
 #endif
             sb.AppendFormat("#CLR: {0}\r\n", Environment.Version);
 
+#if Android
+            sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Build.Fingerprint, Build.Host, Build.Model);
+#else
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Runtime.OSName, Environment.UserName, Environment.MachineName);
-#if !Android
             try
             {
                 var hi = NewLife.Common.HardInfo.Current;
