@@ -100,6 +100,8 @@ namespace XCom
             }
 
             btnConnect.Text = "关闭";
+
+            BizLog = TextFileLog.Create("SerialLog");
         }
 
         void Disconnect()
@@ -120,11 +122,16 @@ namespace XCom
                 Disconnect();
         }
 
+        /// <summary>业务日志输出</summary>
+        ILog BizLog;
+
         void OnReceived(Object sender, StringEventArgs e)
         {
             var line = e.Value;
             //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
             TextControlLog.WriteLog(txtReceive, line);
+
+            if (BizLog != null) BizLog.Info(line);
         }
 
         Int32 _pColor = 0;

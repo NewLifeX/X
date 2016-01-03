@@ -152,6 +152,8 @@ namespace XNet
             btnConnect.Text = "关闭";
 
             config.Save();
+
+            BizLog = TextFileLog.Create("NetLog");
         }
 
         void Disconnect()
@@ -187,6 +189,9 @@ namespace XNet
                 Disconnect();
         }
 
+        /// <summary>业务日志输出</summary>
+        ILog BizLog;
+
         void OnReceived(Object sender, ReceivedEventArgs e)
         {
             var session = sender as ISocketSession;
@@ -200,8 +205,11 @@ namespace XNet
             //var line = String.Format("{0} [{1}]: {2}", session.Remote, e.Length, e.ToHex());
             //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
             //TextControlLog.WriteLog(txtReceive, line);
-            //XTrace.WriteLine(line);
-            XTrace.WriteLine(e.ToStr());
+            var line = e.ToStr();
+            XTrace.WriteLine(line);
+            //XTrace.WriteLine(e.ToStr());
+
+            if (BizLog != null) BizLog.Info(line);
         }
 
         Int32 _pColor = 0;
