@@ -26,7 +26,7 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("6.5.*")]
-[assembly: AssemblyFileVersion("6.5.2015.0701")]
+[assembly: AssemblyFileVersion("6.5.2016.0104")]
 
 /*
  * v6.5.2015.0701   升级自动更新机制，从网站自动更新
