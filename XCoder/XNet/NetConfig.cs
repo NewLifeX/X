@@ -7,8 +7,8 @@ using NewLife.Xml;
 
 namespace XNet
 {
-    /// <summary>串口配置</summary>
-    [XmlConfigFile("NetConfig.config")]
+    /// <summary>网络口配置</summary>
+    [XmlConfigFile("Config\\Net.config")]
     public class NetConfig : XmlConfig<NetConfig>
     {
         private String _Address;

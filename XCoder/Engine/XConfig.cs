@@ -5,7 +5,7 @@ using NewLife.Xml;
 
 namespace XCoder
 {
-    [XmlConfigFile("Setting.config")]
+    [XmlConfigFile("Config\\XCoder.config")]
     public class XConfig : XmlConfig<XConfig>
     {
         #region 属性

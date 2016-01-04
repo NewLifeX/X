@@ -17,7 +17,7 @@ namespace NewLife
         #region 属性
         private Boolean _Debug;
         /// <summary>是否启用全局调试。默认为不启用</summary>
-        [Description("全局调试")]
+        [Description("全局调试。XTrace.Debug")]
         public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
 
         private LogLevel _LogLevel;
@@ -42,7 +42,7 @@ namespace NewLife
 
         private String _DownloadCache;
         /// <summary>下载扩展插件的缓存目录。默认位于系统盘的X\Cache</summary>
-        [Description("网络调试。默认位于系统盘的X\\Cache")]
+        [Description("下载扩展插件的缓存目录。默认位于系统盘的X\\Cache")]
         public String DownloadCache { get { return _DownloadCache; } set { _DownloadCache = value; } }
 
         private Boolean _NetDebug;
@@ -68,7 +68,6 @@ namespace NewLife
             Debug = Config.GetConfig<Boolean>("NewLife.Debug", false);
             NetDebug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
             LogLevel = Config.GetConfig<LogLevel>("NewLife.LogLevel", Debug ? LogLevel.Debug : LogLevel.Info);
-
 
             LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
             TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");

@@ -8,7 +8,7 @@ using NewLife.Xml;
 namespace NewLife.Net
 {
     /// <summary>串口配置</summary>
-    [XmlConfigFile("SerialPort.config")]
+    [XmlConfigFile("Config\\Serial.config")]
     public class SerialPortConfig : XmlConfig<SerialPortConfig>
     {
         private String _PortName = "COM1";
