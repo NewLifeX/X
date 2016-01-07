@@ -91,6 +91,7 @@ namespace XCode
             Debug = Config.GetConfig<Boolean>("XCode.Debug", true);
             ShowSQL = Config.GetConfig<Boolean>("XCode.ShowSQL", Debug);
             SQLPath = Config.GetConfig<String>("XCode.SQLPath");
+            ConnMaps = Config.GetConfig<String>("XCode.ConnMaps");
             TraceSQLTime = Config.GetConfig<Int32>("XCode.TraceSQLTime");
 
             Cache.Init();
