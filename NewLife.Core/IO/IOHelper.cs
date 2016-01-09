@@ -1193,9 +1193,6 @@ namespace System
                 .Replace("\n", null)
                 .Replace(",", null);
 
-            if (data.Length % 2 != 0)
-                data.Insert(data.Length-1, "0");
-
             if (length <= 0) length = data.Length - startIndex;
 
             var bts = new Byte[length / 2];
