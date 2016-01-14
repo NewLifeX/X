@@ -115,6 +115,8 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        static object lockObj = new object();
+
         /// <summary>添加连接字符串</summary>
         /// <param name="connName">连接名</param>
         /// <param name="connStr">连接字符串</param>
@@ -123,14 +125,17 @@ namespace XCode.DataAccessLayer
         public static void AddConnStr(String connName, String connStr, Type type, String provider)
         {
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
+            //2016.01.04 @宁波-小董，加锁解决大量分表分库多线程带来的提供者无法识别错误
+            lock (lockObj)
+            {
+                if (type == null) type = DbFactory.GetProviderType(connStr, provider);
+                if (type == null) throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
 
-            if (type == null) type = DbFactory.GetProviderType(connStr, provider);
-            if (type == null) throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
-
-            // 允许后来者覆盖前面设置过了的
-            var set = new ConnectionStringSettings(connName, connStr, provider);
-            ConnStrs[connName] = set;
-            _connTypes[connName] = type;
+                // 允许后来者覆盖前面设置过了的
+                var set = new ConnectionStringSettings(connName, connStr, provider);
+                ConnStrs[connName] = set;
+                _connTypes[connName] = type;
+            }
         }
 
         /// <summary>获取所有已注册的连接名</summary>
@@ -177,11 +182,15 @@ namespace XCode.DataAccessLayer
             {
                 if (_ConnStr != value)
                 {
-                    _ConnStr = value;
-                    _ProviderType = null;
-                    _Db = null;
+                    //2016.01.04 @宁波-小董，加锁解决大量分表分库多线程带来的提供者无法识别错误
+                    lock (this)
+                    {
+                        _ConnStr = value;
+                        _ProviderType = null;
+                        _Db = null;
 
-                    AddConnStr(ConnName, _ConnStr, null, null);
+                        AddConnStr(ConnName, _ConnStr, null, null);
+                    }
                 }
             }
         }
