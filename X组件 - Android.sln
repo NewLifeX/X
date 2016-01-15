@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{6740B4CD-B2F6-49DF-BDA0-7DC17144C666}"
 EndProject
@@ -12,8 +12,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core", "NewLife.Core\NewLife.Core.csproj", "{5813C22E-EEB3-4DEE-A45C-BB218041193A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net", "NewLife.Net\NewLife.Net.csproj", "{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test2", "Test2\Test2.csproj", "{181FE587-CA12-49DF-9A7C-96697C41F32D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Android", "NewLife.Android\NewLife.Android.csproj", "{19B3CD60-CE6C-4EB8-8FCE-67ABC1D7727A}"
 EndProject
@@ -65,12 +63,6 @@ Global
 		{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}.Net4Release|Any CPU.Build.0 = Release|Any CPU
 		{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Net4Debug|Any CPU.Build.0 = Debug|Any CPU
-		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Net4Release|Any CPU.ActiveCfg = Release|Any CPU
-		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Net4Release|Any CPU.Build.0 = Release|Any CPU
-		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19B3CD60-CE6C-4EB8-8FCE-67ABC1D7727A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{19B3CD60-CE6C-4EB8-8FCE-67ABC1D7727A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19B3CD60-CE6C-4EB8-8FCE-67ABC1D7727A}.Net4Debug|Any CPU.ActiveCfg = Debug|Any CPU
