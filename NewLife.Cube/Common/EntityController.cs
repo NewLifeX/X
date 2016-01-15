@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Reflection;
@@ -481,8 +480,9 @@ namespace NewLife.Cube
             ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
+            if (ViewBag.HeaderContent == null) ViewBag.HeaderContent = this.GetType().GetDescription();
             if (ViewBag.HeaderContent == null && SysConfig.Current.Develop)
-                ViewBag.HeaderContent = "这里是页头内容，你可以通过重载OnActionExecuting然后设置ViewBag.HeaderTitle/HeaderContent来修改";
+                ViewBag.HeaderContent = "这里是页头内容，你可以通过重载OnActionExecuting然后设置ViewBag.HeaderTitle/HeaderContent来修改，或者给控制器增加Description特性";
 
             base.OnActionExecuting(filterContext);
         }
