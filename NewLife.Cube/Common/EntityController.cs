@@ -436,13 +436,13 @@ namespace NewLife.Cube
         #endregion
 
         #region 列表字段和表单字段
-        private static FieldCollection _ListFields = new FieldCollection(Factory).SetRelation(false);
+        private static FieldCollection _ListFields;
         /// <summary>列表字段过滤</summary>
-        protected static FieldCollection ListFields { get { return _ListFields; } set { _ListFields = value; } }
+        protected static FieldCollection ListFields { get { return _ListFields ?? (_ListFields = new FieldCollection(Factory).SetRelation(false)); } set { _ListFields = value; } }
 
-        private static FieldCollection _FormFields = new FieldCollection(Factory).SetRelation(true);
+        private static FieldCollection _FormFields;
         /// <summary>表单字段过滤</summary>
-        protected static FieldCollection FormFields { get { return _FormFields; } set { _FormFields = value; } }
+        protected static FieldCollection FormFields { get { return _FormFields ?? (_FormFields = new FieldCollection(Factory).SetRelation(true)); } set { _FormFields = value; } }
 
         /// <summary>获取要显示的字段列表</summary>
         /// <param name="isForm">是否是表单</param>

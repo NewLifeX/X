@@ -29,98 +29,92 @@ namespace NewLife.Cube
         /// <returns></returns>
         public FieldCollection SetRelation(Boolean isForm)
         {
-            if (!isForm)
+            var type = Factory.EntityType;
+            // 扩展属性
+            foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
-                var type = Factory.EntityType;
-                // 扩展属性
-                foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                {
-                    // 处理带有BindRelation特性的扩展属性
-                    var dr = pi.GetCustomAttribute<BindRelationAttribute>();
-                    //if (dr != null && !dr.RelationTable.IsNullOrEmpty())
-                    if (dr != null)
-                    {
-                        var rt = EntityFactory.CreateOperate(dr.RelationTable);
-                        if (rt != null && rt.Master != null)
-                        {
-                            // 找到扩展表主字段是否属于当前实体类扩展属性
-                            // 首先用对象扩展属性名加上外部主字段名
-                            var master = type.GetProperty(pi.Name + rt.Master.Name);
-                            // 再用外部类名加上外部主字段名
-                            if (master == null) master = type.GetProperty(dr.RelationTable + rt.Master.Name);
-                            // 再试试加上Name
-                            if (master == null) master = type.GetProperty(pi.Name + "Name");
-                            if (master != null)
-                            {
-                                // 去掉本地用于映射的字段（如果不是主键），替换为扩展属性
-                                Replace(dr.Column, master.Name);
-                            }
-                        }
-                        // 如果是本实体类关系，可以覆盖
-                        else if (dr.RelationTable.IsNullOrEmpty() || dr.RelationTable.EqualIgnoreCase(type.Name))
-                        {
-                            if (!dr.RelationColumn.IsNullOrEmpty()) Replace(dr.RelationColumn, pi.Name);
-                        }
-                    }
-                }
-                // 长字段和密码字段不显示
-                for (int i = Count - 1; i >= 0; i--)
-                {
-                    var fi = this[i];
-                    if (fi.IsDataObjectField && fi.Type == typeof(String))
-                    {
-                        if (fi.Length <= 0 || fi.Length > 200 ||
-                            fi.Name.EqualIgnoreCase("password", "pass"))
-                        {
-                            RemoveAt(i);
-                        }
-                    }
-                }
-                // IP地址字段
-                for (int i = Count - 1; i >= 0; i--)
-                {
-                    if (this[i].Name.EndsWithIgnoreCase("IP", "Uri"))
-                    {
-                        var name = this[i].Name.TrimEnd("IP", "Uri");
-                        name += "Address";
-                        var addr = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
-                        // 加到后面
-                        if (addr != null) Insert(i + 1, addr);
-                    }
-                }
-            }
-            else
-            {
-                var type = Factory.EntityType;
-                // 扩展属性
-                foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                {
-                    // 处理带有BindRelation特性的扩展属性
-                    var dr = pi.GetCustomAttribute<BindRelationAttribute>();
-                    if (dr != null)
-                    {
-                        // 如果是本实体类关系，可以覆盖
-                        if (dr.RelationTable.IsNullOrEmpty() || dr.RelationTable.EqualIgnoreCase(type.Name))
-                        {
-                            if (!dr.RelationColumn.IsNullOrEmpty()) Replace(dr.RelationColumn, pi.Name);
-                        }
-                    }
-                }
-                // IP地址字段
-                for (int i = Count - 1; i >= 0; i--)
-                {
-                    if (this[i].Name.EndsWithIgnoreCase("IP", "Uri"))
-                    {
-                        var name = this[i].Name.TrimEnd("IP", "Uri");
-                        name += "Address";
-                        var addr = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
-                        // 加到后面
-                        if (addr != null) Insert(i + 1, addr);
-                    }
-                }
+                ProcessRelation(pi, isForm);
             }
 
+            if (!isForm)
+            {
+                // 长字段和密码字段不显示
+                NoPass();
+            }
+            // IP地址字段
+            ProcessIP();
+
             return this;
+        }
+
+        void ProcessRelation(PropertyInfo pi, Boolean isForm)
+        {
+            // 处理带有BindRelation特性的扩展属性
+            var dr = pi.GetCustomAttribute<BindRelationAttribute>();
+            //if (dr != null && !dr.RelationTable.IsNullOrEmpty())
+            if (dr == null) return;
+
+            var type = Factory.EntityType;
+            var rt = EntityFactory.CreateOperate(dr.RelationTable);
+            if (rt != null && rt.Master != null)
+            {
+                // 找到扩展表主字段是否属于当前实体类扩展属性
+                // 首先用对象扩展属性名加上外部主字段名
+                var master = type.GetProperty(pi.Name + rt.Master.Name);
+                // 再用外部类名加上外部主字段名
+                if (master == null) master = type.GetProperty(dr.RelationTable + rt.Master.Name);
+                // 再试试加上Name
+                if (master == null) master = type.GetProperty(pi.Name + "Name");
+                if (master != null)
+                {
+                    if (!isForm)
+                    {
+                        // 去掉本地用于映射的字段（如果不是主键），替换为扩展属性
+                        Replace(dr.Column, master.Name);
+                    }
+                    else
+                    {
+                        // 加到后面
+                        AddField(dr.Column, master.Name);
+                    }
+                }
+            }
+            // 如果是本实体类关系，可以覆盖
+            if (dr.RelationTable.IsNullOrEmpty() || dr.RelationTable.EqualIgnoreCase(type.Name))
+            {
+                if (!dr.RelationColumn.IsNullOrEmpty()) Replace(dr.RelationColumn, pi.Name);
+            }
+        }
+
+        void NoPass()
+        {
+            for (int i = Count - 1; i >= 0; i--)
+            {
+                var fi = this[i];
+                if (fi.IsDataObjectField && fi.Type == typeof(String))
+                {
+                    if (fi.Length <= 0 || fi.Length > 200 ||
+                        fi.Name.EqualIgnoreCase("password", "pass"))
+                    {
+                        RemoveAt(i);
+                    }
+                }
+            }
+        }
+
+        void ProcessIP()
+        {
+            for (int i = Count - 1; i >= 0; i--)
+            {
+                if (this[i].Name.EndsWithIgnoreCase("IP", "Uri"))
+                {
+                    var name = this[i].Name.TrimEnd("IP", "Uri");
+                    name += "Address";
+                    var addr = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+                    // 加到后面
+                    if (addr != null) Insert(i + 1, addr);
+                }
+            }
         }
 
         /// <summary>从AllFields中添加字段，可以是扩展属性</summary>
@@ -130,6 +124,25 @@ namespace NewLife.Cube
         {
             var fi = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
             if (fi != null) Add(fi);
+
+            return this;
+        }
+
+        /// <summary>在指定字段之后添加扩展属性</summary>
+        /// <param name="oriName"></param>
+        /// <param name="newName"></param>
+        /// <returns></returns>
+        public FieldCollection AddField(String oriName, String newName)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (this[i].Name.EqualIgnoreCase(oriName))
+                {
+                    var fi = Factory.AllFields.FirstOrDefault(e => e.Name.EqualIgnoreCase(newName));
+                    if (fi != null) Insert(i + 1, fi);
+                    break;
+                }
+            }
 
             return this;
         }
