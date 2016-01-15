@@ -3,6 +3,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+#if Android
+using Android.OS;     
+#endif
 
 namespace NewLife.Log
 {
@@ -129,7 +132,7 @@ namespace NewLife.Log
         /// <summary>输出日志头，包含所有环境信息</summary>
         protected static String GetHead()
         {
-            var process = Process.GetCurrentProcess();
+            var process = System.Diagnostics.Process.GetCurrentProcess();
             var name = String.Empty;
             var asm = Assembly.GetEntryAssembly();
             if (asm != null)
@@ -182,14 +185,14 @@ namespace NewLife.Log
             sb.AppendFormat("#BaseDirectory: {0}\r\n", baseDir);
 
             // 当前目录。如果由别的进程启动，默认的当前目录就是父级进程的当前目录
-            var curDir = Environment.CurrentDirectory;
+            var curDir = System.Environment.CurrentDirectory;
             //if (!curDir.EqualIC(baseDir) && !(curDir + "\\").EqualIC(baseDir))
             if (!baseDir.EqualIgnoreCase(curDir, curDir + "\\"))
                 sb.AppendFormat("#CurrentDirectory: {0}\r\n", curDir);
 
             // 命令行不为空，也不是文件名时，才输出
             // 当使用cmd启动程序时，这里就是用户输入的整个命令行，所以可能包含空格和各种符号
-            var line = Environment.CommandLine;
+            var line = System.Environment.CommandLine;
             if (!String.IsNullOrEmpty(line))
             {
                 line = line.Trim().TrimStart('\"');
@@ -206,7 +209,7 @@ namespace NewLife.Log
 #else
             sb.AppendFormat("#ApplicationType: {0}\r\n", Runtime.IsWeb ? "Web" : (Runtime.IsConsole ? "Console" : "WinForm"));
 #endif
-            sb.AppendFormat("#CLR: {0}\r\n", Environment.Version);
+            sb.AppendFormat("#CLR: {0}\r\n", System.Environment.Version);
 
 #if Android
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Build.Fingerprint, Build.Host, Build.Model);

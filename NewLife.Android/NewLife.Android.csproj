@@ -305,7 +305,7 @@
       <Link>Serialization\Interface\IFormatterX.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Setting.cs">
-      <Link>Setting.cs</Link>
+      <Link>Core\Setting.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Threading\TaskState.cs">
       <Link>Threading\TaskState.cs</Link>
@@ -334,6 +334,33 @@
     <Compile Include="..\NewLife.Core\Xml\XmlHelper.cs">
       <Link>Xml\XmlHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Net\NetService.cs">
+      <Link>Net\NetService.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Net\Proxy\IProxy.cs">
+      <Link>Net\Proxy\IProxy.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Net\Proxy\IProxySession.cs">
+      <Link>Net\Proxy\IProxySession.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Net\Proxy\ProxyBase.cs">
+      <Link>Net\Proxy\ProxyBase.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Net\Proxy\ProxySession.cs">
+      <Link>Net\Proxy\ProxySession.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Net\Sockets\INetSession.cs">
+      <Link>Net\Sockets\INetSession.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Net\Sockets\Netbase.cs">
+      <Link>Net\Sockets\Netbase.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Net\Sockets\NetServer.cs">
+      <Link>Net\Sockets\NetServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Net\Sockets\NetSession.cs">
+      <Link>Net\Sockets\NetSession.cs</Link>
+    </Compile>
     <Compile Include="Resources\Resource.Designer.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -342,6 +369,7 @@
   <ItemGroup>
     <AndroidResource Include="Resources\Values\Strings.xml" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
