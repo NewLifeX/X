@@ -146,6 +146,10 @@
     <Compile Include="Reflection\快速反射\EventInfoX.cs" />
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\ScriptEngine.cs" />
+    <Compile Include="Security\AsnKeyBuilder.cs" />
+    <Compile Include="Security\AsnKeyParser.cs" />
+    <Compile Include="Security\BerDecodeError.cs" />
+    <Compile Include="Security\BigInteger.cs" />
     <Compile Include="Security\Certificate.cs" />
     <Compile Include="Security\Crc16.cs" />
     <Compile Include="Security\DSAHelper.cs" />
