@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 using NewLife.IO;
 using XCoder;
@@ -122,7 +123,7 @@ namespace XICO
         #region 图标
         private void btnMakeICO_Click(object sender, EventArgs e)
         {
-            var list = new List<Int16>();
+            var list = new List<Int32>();
             foreach (var item in groupBox2.Controls)
             {
                 var chk = item as CheckBox;
@@ -138,7 +139,7 @@ namespace XICO
             var bmp = MakeWater(true);
 
             var ms = new MemoryStream();
-            IconFile.Convert(bmp, ms, list.ToArray());
+            IconFile.Convert(bmp, ms, list.ToArray(), new Int32[] { 8, 32 });
 
             //sfd.DefaultExt = "ico";
             sfd.Filter = "ICO图标(*.ico)|*.ico";
@@ -157,8 +158,23 @@ namespace XICO
             {
                 try
                 {
-                    sfd.FileName = fs[0];
-                    picSrc.Load(fs[0]);
+                    var fi = fs[0];
+                    sfd.FileName = fi;
+                    picSrc.Load(fi);
+
+                    // 如果是图标，读取信息
+                    if (fi.EndsWithIgnoreCase(".ico"))
+                    {
+                        var ico = new IconFile(fi);
+                        ico.Sort();
+                        var sb = new StringBuilder();
+                        foreach (var item in ico.Items)
+                        {
+                            if (sb.Length > 0) sb.Append(",");
+                            sb.AppendFormat("{0}*{1}", item.Width, item.BitCount);
+                        }
+                        MessageBox.Show(sb.ToString());
+                    }
                 }
                 catch { }
             }

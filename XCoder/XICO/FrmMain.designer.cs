@@ -47,13 +47,14 @@
             this.btnSave = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.chk16 = new System.Windows.Forms.CheckBox();
-            this.chk32 = new System.Windows.Forms.CheckBox();
-            this.chk64 = new System.Windows.Forms.CheckBox();
-            this.chk128 = new System.Windows.Forms.CheckBox();
-            this.chk256 = new System.Windows.Forms.CheckBox();
-            this.sfd = new System.Windows.Forms.SaveFileDialog();
             this.chk48 = new System.Windows.Forms.CheckBox();
+            this.chk256 = new System.Windows.Forms.CheckBox();
+            this.chk128 = new System.Windows.Forms.CheckBox();
+            this.chk64 = new System.Windows.Forms.CheckBox();
+            this.chk32 = new System.Windows.Forms.CheckBox();
+            this.chk16 = new System.Windows.Forms.CheckBox();
+            this.sfd = new System.Windows.Forms.SaveFileDialog();
+            this.chk24 = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picSrc)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picDes)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numX)).BeginInit();
@@ -110,7 +111,7 @@
             this.txt.Location = new System.Drawing.Point(55, 22);
             this.txt.Name = "txt";
             this.txt.Size = new System.Drawing.Size(106, 21);
-            this.txt.TabIndex = 5;
+            this.txt.TabIndex = 1;
             this.txt.Text = "码神";
             this.txt.TextChanged += new System.EventHandler(this.txt_TextChanged);
             // 
@@ -183,7 +184,7 @@
             -2147483648});
             this.numX.Name = "numX";
             this.numX.Size = new System.Drawing.Size(44, 21);
-            this.numX.TabIndex = 12;
+            this.numX.TabIndex = 2;
             this.numX.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.numX.Value = new decimal(new int[] {
             25,
@@ -207,7 +208,7 @@
             -2147483648});
             this.numY.Name = "numY";
             this.numY.Size = new System.Drawing.Size(44, 21);
-            this.numY.TabIndex = 13;
+            this.numY.TabIndex = 3;
             this.numY.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.numY.Value = new decimal(new int[] {
             100,
@@ -269,12 +270,13 @@
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.chk48);
-            this.groupBox2.Controls.Add(this.chk256);
-            this.groupBox2.Controls.Add(this.chk128);
-            this.groupBox2.Controls.Add(this.chk64);
-            this.groupBox2.Controls.Add(this.chk32);
             this.groupBox2.Controls.Add(this.chk16);
+            this.groupBox2.Controls.Add(this.chk24);
+            this.groupBox2.Controls.Add(this.chk32);
+            this.groupBox2.Controls.Add(this.chk48);
+            this.groupBox2.Controls.Add(this.chk64);
+            this.groupBox2.Controls.Add(this.chk128);
+            this.groupBox2.Controls.Add(this.chk256);
             this.groupBox2.Controls.Add(this.btnMakeICO);
             this.groupBox2.Location = new System.Drawing.Point(295, 12);
             this.groupBox2.Name = "groupBox2";
@@ -283,55 +285,19 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "图标";
             // 
-            // chk16
+            // chk48
             // 
-            this.chk16.AutoSize = true;
-            this.chk16.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.chk16.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk16.Location = new System.Drawing.Point(6, 12);
-            this.chk16.Name = "chk16";
-            this.chk16.Size = new System.Drawing.Size(77, 26);
-            this.chk16.TabIndex = 9;
-            this.chk16.Text = "16*16";
-            this.chk16.UseVisualStyleBackColor = true;
-            // 
-            // chk32
-            // 
-            this.chk32.AutoSize = true;
-            this.chk32.Checked = true;
-            this.chk32.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chk32.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.chk32.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk32.Location = new System.Drawing.Point(79, 12);
-            this.chk32.Name = "chk32";
-            this.chk32.Size = new System.Drawing.Size(77, 26);
-            this.chk32.TabIndex = 10;
-            this.chk32.Text = "32*32";
-            this.chk32.UseVisualStyleBackColor = true;
-            // 
-            // chk64
-            // 
-            this.chk64.AutoSize = true;
-            this.chk64.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.chk64.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk64.Location = new System.Drawing.Point(6, 46);
-            this.chk64.Name = "chk64";
-            this.chk64.Size = new System.Drawing.Size(77, 26);
-            this.chk64.TabIndex = 11;
-            this.chk64.Text = "64*64";
-            this.chk64.UseVisualStyleBackColor = true;
-            // 
-            // chk128
-            // 
-            this.chk128.AutoSize = true;
-            this.chk128.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.chk128.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk128.Location = new System.Drawing.Point(89, 46);
-            this.chk128.Name = "chk128";
-            this.chk128.Size = new System.Drawing.Size(97, 26);
-            this.chk128.TabIndex = 12;
-            this.chk128.Text = "128*128";
-            this.chk128.UseVisualStyleBackColor = true;
+            this.chk48.AutoSize = true;
+            this.chk48.Checked = true;
+            this.chk48.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chk48.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.chk48.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            this.chk48.Location = new System.Drawing.Point(6, 44);
+            this.chk48.Name = "chk48";
+            this.chk48.Size = new System.Drawing.Size(77, 26);
+            this.chk48.TabIndex = 14;
+            this.chk48.Text = "48*48";
+            this.chk48.UseVisualStyleBackColor = true;
             // 
             // chk256
             // 
@@ -343,25 +309,81 @@
             this.chk256.Location = new System.Drawing.Point(6, 80);
             this.chk256.Name = "chk256";
             this.chk256.Size = new System.Drawing.Size(97, 26);
-            this.chk256.TabIndex = 13;
+            this.chk256.TabIndex = 17;
             this.chk256.Text = "256*256";
             this.chk256.UseVisualStyleBackColor = true;
+            // 
+            // chk128
+            // 
+            this.chk128.AutoSize = true;
+            this.chk128.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.chk128.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            this.chk128.Location = new System.Drawing.Point(150, 44);
+            this.chk128.Name = "chk128";
+            this.chk128.Size = new System.Drawing.Size(97, 26);
+            this.chk128.TabIndex = 16;
+            this.chk128.Text = "128*128";
+            this.chk128.UseVisualStyleBackColor = true;
+            // 
+            // chk64
+            // 
+            this.chk64.AutoSize = true;
+            this.chk64.Checked = true;
+            this.chk64.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chk64.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.chk64.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            this.chk64.Location = new System.Drawing.Point(79, 44);
+            this.chk64.Name = "chk64";
+            this.chk64.Size = new System.Drawing.Size(77, 26);
+            this.chk64.TabIndex = 15;
+            this.chk64.Text = "64*64";
+            this.chk64.UseVisualStyleBackColor = true;
+            // 
+            // chk32
+            // 
+            this.chk32.AutoSize = true;
+            this.chk32.Checked = true;
+            this.chk32.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chk32.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.chk32.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            this.chk32.Location = new System.Drawing.Point(79, 12);
+            this.chk32.Name = "chk32";
+            this.chk32.Size = new System.Drawing.Size(77, 26);
+            this.chk32.TabIndex = 12;
+            this.chk32.Text = "32*32";
+            this.chk32.UseVisualStyleBackColor = true;
+            // 
+            // chk16
+            // 
+            this.chk16.AutoSize = true;
+            this.chk16.Checked = true;
+            this.chk16.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chk16.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.chk16.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            this.chk16.Location = new System.Drawing.Point(6, 12);
+            this.chk16.Name = "chk16";
+            this.chk16.Size = new System.Drawing.Size(77, 26);
+            this.chk16.TabIndex = 11;
+            this.chk16.Text = "16*16";
+            this.chk16.UseVisualStyleBackColor = true;
             // 
             // sfd
             // 
             this.sfd.Filter = "PNG图片(*.png)|*.png|ICO图标(*.ico)|*.ico|所有文件(*.*)|*.*";
             // 
-            // chk48
+            // chk24
             // 
-            this.chk48.AutoSize = true;
-            this.chk48.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.chk48.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.chk48.Location = new System.Drawing.Point(153, 12);
-            this.chk48.Name = "chk48";
-            this.chk48.Size = new System.Drawing.Size(77, 26);
-            this.chk48.TabIndex = 14;
-            this.chk48.Text = "48*48";
-            this.chk48.UseVisualStyleBackColor = true;
+            this.chk24.AutoSize = true;
+            this.chk24.Checked = true;
+            this.chk24.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chk24.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.chk24.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            this.chk24.Location = new System.Drawing.Point(150, 14);
+            this.chk24.Name = "chk24";
+            this.chk24.Size = new System.Drawing.Size(77, 26);
+            this.chk24.TabIndex = 13;
+            this.chk24.Text = "24*24";
+            this.chk24.UseVisualStyleBackColor = true;
             // 
             // FrmMain
             // 
@@ -410,13 +432,14 @@
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.CheckBox chk256;
-        private System.Windows.Forms.CheckBox chk128;
-        private System.Windows.Forms.CheckBox chk64;
-        private System.Windows.Forms.CheckBox chk32;
         private System.Windows.Forms.CheckBox chk16;
-        private System.Windows.Forms.SaveFileDialog sfd;
+        private System.Windows.Forms.CheckBox chk24;
+        private System.Windows.Forms.CheckBox chk32;
         private System.Windows.Forms.CheckBox chk48;
+        private System.Windows.Forms.CheckBox chk64;
+        private System.Windows.Forms.CheckBox chk128;
+        private System.Windows.Forms.CheckBox chk256;
+        private System.Windows.Forms.SaveFileDialog sfd;
     }
 }
 

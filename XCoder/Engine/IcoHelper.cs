@@ -20,7 +20,7 @@ namespace XCoder
                     using (var water = MakeWater(bmp, name, true))
                     {
                         var ms = new MemoryStream();
-                        IconFile.Convert(water, ms, 32);
+                        IconFile.Convert(water, ms, new Int32[] { 32 }, new Int32[] { 32 });
                         ms.Position = 0;
 
                         return new Icon(ms);
