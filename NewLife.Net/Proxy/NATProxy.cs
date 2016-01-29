@@ -29,8 +29,8 @@ namespace NewLife.Net.Proxy
         public NATProxy(String hostname, Int32 port, ProtocolType protocol)
             : this()
         {
-            RemoteServer = new NetUri(protocol, null, port);
-            RemoteServer.Host = hostname;
+            RemoteServer = new NetUri(protocol, hostname, port);
+            //RemoteServer.Host = hostname;
         }
         #endregion
 

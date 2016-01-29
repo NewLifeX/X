@@ -10,9 +10,8 @@ namespace NewLife.Net
     public abstract class SessionBase : DisposeBase, ISocketClient, ITransport
     {
         #region 属性
-        private String _Name;
         /// <summary>名称</summary>
-        public String Name { get { return _Name; } set { _Name = value; } }
+        public String Name { get; set; }
 
         private NetUri _Local = new NetUri();
         /// <summary>本地绑定信息</summary>
@@ -29,9 +28,8 @@ namespace NewLife.Net
         /// <summary>超时。默认3000ms</summary>
         public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
 
-        private Boolean _Active;
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return _Active; } set { _Active = value; } }
+        public Boolean Active { get; set; }
 
         /// <summary>底层Socket</summary>
         public Socket Socket { get { return GetSocket(); } }
@@ -40,9 +38,8 @@ namespace NewLife.Net
         /// <returns></returns>
         internal abstract Socket GetSocket();
 
-        private Boolean _ThrowException;
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
-        public Boolean ThrowException { get { return _ThrowException; } set { _ThrowException = value; } }
+        public Boolean ThrowException { get; set; }
 
         private IStatistics _Statistics = new Statistics();
         /// <summary>统计信息</summary>
@@ -52,9 +49,8 @@ namespace NewLife.Net
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get { return _StartTime; } }
 
-        private DateTime _LastTime;
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
-        public DateTime LastTime { get { return _LastTime; } internal protected set { _LastTime = value; } }
+        public DateTime LastTime { get; protected set; }
 
         private Boolean _DynamicPort;
         /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
@@ -174,9 +170,8 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
-        private Boolean _UseReceiveAsync;
         /// <summary>是否异步接收数据</summary>
-        public Boolean UseReceiveAsync { get { return _UseReceiveAsync; } set { _UseReceiveAsync = value; } }
+        public Boolean UseReceiveAsync { get; set; }
 
         /// <summary>开始异步接收</summary>
         /// <returns>是否成功</returns>
@@ -190,7 +185,7 @@ namespace NewLife.Net
         /// <param name="e"></param>
         protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
         {
-            _LastTime = DateTime.Now;
+            LastTime = DateTime.Now;
 
             if (Received != null) Received(sender, e);
         }
@@ -235,13 +230,11 @@ namespace NewLife.Net
         /// <summary>日志对象。禁止设为空对象</summary>
         public ILog Log { get { return _Log; } set { _Log = value ?? Logger.Null; } }
 
-        private Boolean _LogSend;
         /// <summary>是否输出发送日志。默认false</summary>
-        public Boolean LogSend { get { return _LogSend; } set { _LogSend = value; } }
+        public Boolean LogSend { get; set; }
 
-        private Boolean _LogReceive;
         /// <summary>是否输出接收日志。默认false</summary>
-        public Boolean LogReceive { get { return _LogReceive; } set { _LogReceive = value; } }
+        public Boolean LogReceive { get; set; }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>

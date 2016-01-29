@@ -68,12 +68,14 @@ namespace Test2
         #endregion
 
         #region 客户端
-        private ISocketSession CreateSession(string host, int port = 65530, ProtocolType protocolType = ProtocolType.Tcp)
+        private ISocketClient CreateSession(string host, int port = 65530, ProtocolType protocolType = ProtocolType.Tcp)
         {
-            var ip = NetHelper.ParseAddress(host);
-            var session = NetService.CreateSession(new NetUri(protocolType, ip, port), 5000);
-            //session.Received += ClientSession_Received;
-            return session;
+            //var ip = NetHelper.ParseAddress(host);
+            //var session = NetService.CreateSession(new NetUri(protocolType, ip, port), 5000);
+            ////session.Received += ClientSession_Received;
+            //return session;
+
+            return new NetUri(protocolType, host, port).CreateRemote();
         }
 
         void ClientSession_Received(object sender, ReceivedEventArgs e)

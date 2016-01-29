@@ -226,14 +226,14 @@ namespace NewLife.Net.DNS
             // 请求父级代理
             NetUri parent = null;
             Byte[] data = null;
-            ISocketSession session = null;
+            ISocketClient client = null;
 
             NetUri[] us = null;
             lock (Parents) { us = Parents.ToArray(); }
 
             foreach (var item in us)
             {
-                session = NetService.CreateSession(item);
+                client = item.CreateRemote();
                 parent = item;
                 // 如果是PTR请求
                 if (request.IsPTR)
@@ -247,8 +247,8 @@ namespace NewLife.Net.DNS
 
                 try
                 {
-                    session.Send(request.GetStream(item.ProtocolType == ProtocolType.Tcp));
-                    data = session.Receive();
+                    client.Send(request.GetStream(item.ProtocolType == ProtocolType.Tcp));
+                    data = client.Receive();
 
                     if (data != null && data.Length > 0) break;
                 }
@@ -287,7 +287,7 @@ namespace NewLife.Net.DNS
 
             if (OnNew != null)
             {
-                var e = new DNSEventArgs { Request = request, Response = response, Session = session };
+                var e = new DNSEventArgs { Request = request, Response = response, Session = client };
                 OnNew(this, e);
             }
 
@@ -319,16 +319,13 @@ namespace NewLife.Net.DNS
     /// <summary>DNS事件参数</summary>
     public class DNSEventArgs : EventArgs
     {
-        private DNSEntity _Request;
         /// <summary>请求</summary>
-        public DNSEntity Request { get { return _Request; } set { _Request = value; } }
+        public DNSEntity Request { get; set; }
 
-        private DNSEntity _Response;
         /// <summary>响应</summary>
-        public DNSEntity Response { get { return _Response; } set { _Response = value; } }
+        public DNSEntity Response { get; set; }
 
-        private ISocketSession _Session;
         /// <summary>网络会话</summary>
-        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
+        public ISocketRemote Session { get; set; }
     }
 }

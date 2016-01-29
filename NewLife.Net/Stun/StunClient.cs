@@ -188,8 +188,9 @@ namespace NewLife.Net.Stun
         {
             if (_Socket == null)
             {
-                var client = NetService.Container.Resolve<ISocketClient>(ProtocolType);
-                client.Port = Port;
+                //var client = NetService.Container.Resolve<ISocketClient>(ProtocolType);
+                //client.Port = Port;
+                var client = new NetUri(ProtocolType, "", Port).CreateClient();
                 client.Open();
                 client.Socket.SendTimeout = Timeout;
                 client.Socket.ReceiveTimeout = Timeout;
@@ -210,10 +211,11 @@ namespace NewLife.Net.Stun
                 Object value = socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
                 if (!Convert.ToBoolean(value)) socket.Close();
 
-                var sk = NetService.Container.Resolve<ISocketClient>(socket.ProtocolType);
-                //sk.Address = ep.Address;
-                //sk.Port = ep.Port;
-                sk.Local.EndPoint = ep;
+                //var sk = NetService.Container.Resolve<ISocketClient>(socket.ProtocolType);
+                ////sk.Address = ep.Address;
+                ////sk.Port = ep.Port;
+                //sk.Local.EndPoint = ep;
+                var sk = new NetUri(socket.ProtocolType, ep).CreateClient();
                 sk.Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 //sk.Bind();
                 sk.Socket.SendTimeout = sto;

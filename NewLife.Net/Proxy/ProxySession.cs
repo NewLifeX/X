@@ -129,7 +129,8 @@ namespace NewLife.Net.Proxy
         /// <returns></returns>
         protected virtual ISocketClient CreateRemote(ReceivedEventArgs e)
         {
-            return NetService.CreateClient(RemoteServerUri);
+            //return NetService.CreateClient(RemoteServerUri);
+            return RemoteServerUri.CreateRemote();
         }
 
         /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>

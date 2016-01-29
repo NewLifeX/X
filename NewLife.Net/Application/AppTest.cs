@@ -65,15 +65,15 @@ namespace NewLife.Net.Application
             Console.WriteLine();
 
             String msg = String.Format("{0}Test_{1}_{2}!", name, uri.ProtocolType, isAsync ? "异步" : "同步");
-            var session = NetService.CreateSession(uri);
-            session.Error += OnError;
+            var client = uri.CreateRemote();
+            client.Error += OnError;
             if (isAsync && isReceiveData)
             {
                 _are.Reset();
-                session.Received += OnReceived;
-                session.ReceiveAsync();
+                client.Received += OnReceived;
+                client.ReceiveAsync();
             }
-            if (isSendData) session.Send(msg);
+            if (isSendData) client.Send(msg);
 
             var rs = false;
             if (isReceiveData)
@@ -83,8 +83,8 @@ namespace NewLife.Net.Application
                     try
                     {
                         //Console.WriteLine("客户端" + session + " " + session.ReceiveString());
-                        var buf = session.Receive();
-                        Console.WriteLine("客户端{0} 收到 [{1}]: {2}", session, buf.Length, buf.ToStr());
+                        var buf = client.Receive();
+                        Console.WriteLine("客户端{0} 收到 [{1}]: {2}", client, buf.Length, buf.ToStr());
 
                         rs = true;
                     }
@@ -101,8 +101,8 @@ namespace NewLife.Net.Application
                         rs = true;
                 }
             }
-            session.Dispose();
-            session = null;
+            client.Dispose();
+            client = null;
             GC.Collect();
 
             XTrace.WriteLine(rs ? "成功！" : "失败！");
@@ -303,7 +303,7 @@ namespace NewLife.Net.Application
 
             Console.WriteLine("开始测试连接{0}……", uri);
 
-            var session = NetService.CreateSession(uri);
+            var session = uri.CreateRemote();
             session.Send("Hi");
             var rs = session.ReceiveString();
             session.Dispose();
@@ -340,7 +340,7 @@ namespace NewLife.Net.Application
 
             var msg = String.Format("Hi I am {0}!", p.ID);
 
-            var sessions = new ISocketSession[p.Count];
+            var clients = new ISocketClient[p.Count];
             for (int k = 0; k < 100; k++)
             {
                 Console.WriteLine("第{1}轮处理：{0}", p.ID, k + 1);
@@ -349,18 +349,15 @@ namespace NewLife.Net.Application
                 {
                     try
                     {
-                        var session = sessions[i];
-                        if (session == null || session.Disposed)
+                        var client = clients[i];
+                        if (client == null || client.Disposed)
                         {
-                            session = NetService.CreateSession(p.Uri);
-                            // 异步接收，什么也不做
-                            //session.Received += (s, e) => { };
-                            //session.ReceiveAsync();
+                            client = p.Uri.CreateRemote();
 
-                            sessions[i] = session;
+                            clients[i] = client;
                         }
 
-                        session.Send(msg);
+                        client.Send(msg);
                     }
                     catch { }
 

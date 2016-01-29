@@ -380,8 +380,8 @@ namespace NewLife.Net.Sockets
         /// <returns></returns>
         protected virtual INetSession CreateSession(ISocketSession session)
         {
-            var ns = NetService.Container.Resolve<INetSession>();
-            ns.Host = this;
+            var ns = new NetSession();
+            (ns as INetSession).Host = this;
             ns.Server = session.Server;
             ns.Session = session;
 

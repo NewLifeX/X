@@ -34,20 +34,11 @@ namespace NewLife.Net
         /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
         IStatistics Statistics { get; }
 
-        ///// <summary>异步操作计数</summary>
-        //Int32 AsyncCount { get; }
-
         /// <summary>日志提供者</summary>
         ILog Log { get; set; }
         #endregion
 
         #region 方法
-        ///// <summary>绑定本地终结点</summary>
-        //void Bind();
-
-        ///// <summary>关闭网络操作</summary>
-        //void Close();
-
         /// <summary>已重载。日志加上前缀</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
@@ -139,7 +130,6 @@ namespace NewLife.Net
                 var count = stream.Read(buffer, 0, buffer.Length);
                 if (count <= 0) break;
 
-                //XTrace.WriteLine("发送{0:p}", (Double)stream.Position / stream.Length);
                 if (!session.Send(buffer, 0, count)) return false;
 
                 if (count < buffer.Length) break;

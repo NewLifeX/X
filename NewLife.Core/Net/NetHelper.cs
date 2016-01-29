@@ -8,7 +8,6 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
-using System.Text;
 using Microsoft.Win32;
 using NewLife;
 using NewLife.Collections;
@@ -669,6 +668,68 @@ namespace System
 
             return new IPEndPoint(addr, port);
         }
+        #endregion
+
+        #region 创建客户端和会话
+        /// <summary>根据本地网络标识创建客户端</summary>
+        /// <param name="local"></param>
+        /// <returns></returns>
+        public static ISocketClient CreateClient(this NetUri local)
+        {
+            if (local == null) throw new ArgumentNullException("local");
+
+            switch (local.ProtocolType)
+            {
+                case ProtocolType.Tcp:
+                    var tcp = new TcpSession { Local = local };
+                    return tcp;
+                case ProtocolType.Udp:
+                    var udp = new UdpServer { Local = local, UseReceiveAsync = true };
+                    return udp;
+                default:
+                    throw new NotSupportedException("不支持{0}协议".F(local.ProtocolType));
+            }
+        }
+
+        /// <summary>根据远程网络标识创建客户端</summary>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        public static ISocketClient CreateRemote(this NetUri remote)
+        {
+            if (remote == null) throw new ArgumentNullException("remote");
+
+            switch (remote.ProtocolType)
+            {
+                case ProtocolType.Tcp:
+                    var tcp = new TcpSession { Remote = remote };
+                    return tcp;
+                case ProtocolType.Udp:
+                    var udp = new UdpServer { Remote = remote, UseReceiveAsync = true };
+                    return udp;
+                default:
+                    throw new NotSupportedException("不支持{0}协议".F(remote.ProtocolType));
+            }
+        }
+
+        ///// <summary>根据网络标识创建客户端会话</summary>
+        ///// <param name="remote"></param>
+        ///// <returns></returns>
+        //public static ISocketSession CreateSession(this NetUri remote)
+        //{
+        //    if (remote == null) throw new ArgumentNullException("remote");
+
+        //    switch (remote.ProtocolType)
+        //    {
+        //        case ProtocolType.Tcp:
+        //            var tcp = new TcpSession { Remote = remote };
+        //            return tcp;
+        //        case ProtocolType.Udp:
+        //            var udp = new UdpServer { UseReceiveAsync = true };
+        //            return udp.CreateSession(remote.EndPoint);
+        //        default:
+        //            throw new NotSupportedException("不支持{0}协议".F(remote.ProtocolType));
+        //    }
+        //}
         #endregion
     }
 }

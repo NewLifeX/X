@@ -12,42 +12,40 @@ namespace NewLife.Net
     public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
-        private Int32 _ID;
         /// <summary>会话编号</summary>
-        public Int32 ID { get { return _ID; } set { _ID = value; } }
+        public Int32 ID { get; set; }
 
-        private TcpClient _Client;
         /// <summary>客户端</summary>
-        public TcpClient Client { get { return _Client; } private set { _Client = value; } }
+        public TcpClient Client { get; private set; }
 
         /// <summary>获取Socket</summary>
         /// <returns></returns>
         internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
 
-        private Boolean _DisconnectWhenEmptyData = true;
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
-        public Boolean DisconnectWhenEmptyData { get { return _DisconnectWhenEmptyData; } set { _DisconnectWhenEmptyData = value; } }
+        public Boolean DisconnectWhenEmptyData { get; set; }
 
-        private Stream _Stream;
         /// <summary>会话数据流，供用户程序使用。可用于解决Tcp粘包的问题。</summary>
-        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
+        public Stream Stream { get; set; }
 
         ISocketServer _Server;
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
         ISocketServer ISocketSession.Server { get { return _Server; } }
 
-        private Int32 _AutoReconnect = 3;
         /// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
-        public Int32 AutoReconnect { get { return _AutoReconnect; } set { _AutoReconnect = value; } }
+        public Int32 AutoReconnect { get; set; }
         #endregion
 
         #region 构造
-        /// <summary>实例化增强UDP</summary>
+        /// <summary>实例化增强TCP</summary>
         public TcpSession()
         {
             Name = this.GetType().Name;
             Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
             Remote = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
+
+            DisconnectWhenEmptyData = true;
+            AutoReconnect = 3;
         }
 
         /// <summary>使用监听口初始化</summary>

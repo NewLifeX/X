@@ -120,6 +120,17 @@ namespace NewLife.Net
             Address = address;
             Port = port;
         }
+
+        /// <summary>实例化</summary>
+        /// <param name="protocol"></param>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        public NetUri(ProtocolType protocol, String host, Int32 port)
+        {
+            ProtocolType = protocol;
+            Host = host;
+            Port = port;
+        }
         #endregion
 
         #region 方法
