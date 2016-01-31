@@ -166,32 +166,45 @@ namespace NewLife.Web
         public String DownloadLink(String url, String name, String destdir)
         {
             var cacheTime = DateTime.Now.AddDays(1);
-            // 猜测本地可能存在的文件
-            var fi = CheckCache(name, destdir);
-            if (fi != null && fi.LastWriteTime < cacheTime) return fi.FullName;
-            // 检查缓存目录
             var cachedir = Setting.Current.DownloadCache;
-            if (!destdir.EqualIgnoreCase(cachedir))
+            var names = name.Split(",", ";");
+
+            var file = "";
+            foreach (var item in names)
             {
-                fi = CheckCache(name, cachedir) ?? fi;
+                // 猜测本地可能存在的文件
+                var fi = CheckCache(item, destdir);
                 if (fi != null && fi.LastWriteTime < cacheTime) return fi.FullName;
+                // 检查缓存目录
+                if (!destdir.EqualIgnoreCase(cachedir))
+                {
+                    fi = CheckCache(item, cachedir) ?? fi;
+                    if (fi != null && fi.LastWriteTime < cacheTime) return fi.FullName;
+                }
+
+                // 确保即使联网下载失败，也返回较旧版本
+                if (fi != null) file = fi.FullName;
             }
 
             // 确保即使联网下载失败，也返回较旧版本
-            var file = fi != null ? fi.FullName : null;
-
             var ls = GetLinks(url);
             if (ls.Length == 0) return file;
 
             // 过滤名称后降序排序
-            ls = ls.Where(e => e.Name.StartsWithIgnoreCase(name) || e.Name.Contains(name))
-                .Where(e => !e.Url.IsNullOrWhiteSpace())
+            var link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
+                .Where(e =>
+                {
+                    foreach (var item in names)
+                    {
+                        if (e.Name.StartsWithIgnoreCase(item) || e.Name.Contains(item)) return true;
+                    }
+                    return false;
+                })
                 .OrderByDescending(e => e.Version)
                 .OrderByDescending(e => e.Time)
-                .ToArray();
-            if (ls.Length == 0) return file;
+                .FirstOrDefault();
+            if (link == null) return file;
 
-            var link = ls[0];
             file = destdir.CombinePath(link.Name).EnsureDirectory();
 
             // 已经提前检查过，这里几乎不可能有文件存在

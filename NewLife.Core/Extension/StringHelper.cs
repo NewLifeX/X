@@ -81,7 +81,7 @@ namespace System
         public static String[] Split(this String value, params String[] separators)
         {
             if (String.IsNullOrEmpty(value)) return new String[0];
-            if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
+            if (separators == null || separators.Length < 1 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
 
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
