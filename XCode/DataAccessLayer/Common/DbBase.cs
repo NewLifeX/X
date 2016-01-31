@@ -271,6 +271,8 @@ namespace XCode.DataAccessLayer
             if (Runtime.Is64BitProcess) linkName += "64";
             var ver = Environment.Version;
             if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
+            // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
+            linkName += ";" + name;
 
             var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName, url);
 

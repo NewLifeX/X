@@ -100,6 +100,15 @@ namespace XCode.DataAccessLayer
             }
             set { base.Owner = value; }
         }
+
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        {
+            String str = null;
+            // 获取OCI目录
+            if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
+            {
+            }
+        }
         #endregion
 
         #region 方法
