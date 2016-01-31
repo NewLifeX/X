@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.20.*")]
-[assembly: AssemblyFileVersion("8.20.2015.0717")]
+[assembly: AssemblyVersion("8.21.*")]
+[assembly: AssemblyFileVersion("8.21.2016.0131")]
 
 /*
  * XCode的重大改进
@@ -49,6 +49,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v8.21.2016.0131  Oracle数据驱动更换为托管驱动
+ * 
  * v8.20.2015.0717  数据会话增加Truncate用于清空数据表，标识归零，方便测试
  * 
  * v8.19.2015.0716  增加实体处理模块IEntityModule，支持拦截Create/Valid操作

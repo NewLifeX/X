@@ -633,10 +633,9 @@ namespace XCode.DataAccessLayer
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
             return null;
         }
+
         DataTable dtColumnDefault;
-        /// <summary>
-        /// 获取默认值信息
-        /// </summary>
+        /// <summary>获取默认值信息</summary>
         /// <param name="tableName"></param>
         /// <param name="columnName"></param>
         /// <returns></returns>
@@ -664,6 +663,7 @@ namespace XCode.DataAccessLayer
                 result = null;
             return result;
         }
+
         protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
             base.FixField(field, drColumn, drDataType);

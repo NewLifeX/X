@@ -43,16 +43,6 @@ namespace XCode
         [Description("是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
         public Boolean CodeDebug { get { return _CodeDebug; } set { _CodeDebug = value; } }
 
-        //private String _ServiceAddress = "http://j.NewLifeX.com/?id=3&f={0}";
-        ///// <summary>下载数据库驱动的地址，文件名用{0}替代。</summary>
-        //[Description("下载数据库驱动的地址，文件名用{0}替代。默认http://j.NewLifeX.com/?id=3&f={0}")]
-        //public String ServiceAddress { get { return _ServiceAddress; } set { _ServiceAddress = value; } }
-
-        //private Boolean _CacheZip = true;
-        ///// <summary>是否缓存数据库驱动Zip包到系统盘。默认缓存</summary>
-        //[Description("是否缓存数据库驱动Zip包到系统盘。默认缓存")]
-        //public Boolean CacheZip { get { return _CacheZip; } set { _CacheZip = value; } }
-
         private Boolean _InitData = true;
         /// <summary>实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭</summary>
         [Description("实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭")]
@@ -135,20 +125,20 @@ namespace XCode
     public class OracleSetting
     {
         #region 属性
-        private Boolean _UseOwner;
-        /// <summary>是否限制只能访问拥有者的信息，默认false</summary>
-        [Description("是否限制只能访问拥有者的信息，默认false")]
-        public Boolean UseOwner { get { return _UseOwner; } set { _UseOwner = value; } }
+        /// <summary>是否限制只能访问拥有者的信息，默认true</summary>
+        [Description("是否限制只能访问拥有者的信息，默认true")]
+        public Boolean UseOwner { get; set; }
 
-        private Boolean _IgnoreCase = true;
         /// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true</summary>
         [Description("是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true")]
-        public Boolean IgnoreCase { get { return _IgnoreCase; } set { _IgnoreCase = value; } }
-
-        private String _DLLPath = "";
-        /// <summary>OCI路径</summary>
-        [Description("OCI路径")]
-        public String DLLPath { get { return _DLLPath; } set { _DLLPath = value; } }
+        public Boolean IgnoreCase { get; set; }
         #endregion
+
+        /// <summary>初始化</summary>
+        public OracleSetting()
+        {
+            UseOwner = true;
+            IgnoreCase = true;
+        }
     }
 }
