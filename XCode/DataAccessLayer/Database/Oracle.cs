@@ -4,16 +4,8 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Web;
-using Microsoft.Win32;
-using NewLife;
-using NewLife.Configuration;
-using NewLife.Log;
-using NewLife.Threading;
-using NewLife.Web;
 using XCode.Common;
 
 namespace XCode.DataAccessLayer
@@ -37,14 +29,10 @@ namespace XCode.DataAccessLayer
                     {
                         if (_dbProviderFactory == null)
                         {
-                            // 异步检查Oracle客户端运行时，此时可能会先用系统驱动
-                            ThreadPoolX.QueueUserWorkItem(CheckRuntime);
-                            //CheckRuntime();
-
                             try
                             {
-                                String fileName = "Oracle.DataAccess.dll";
-                                _dbProviderFactory = GetProviderFactory(fileName, "Oracle.DataAccess.Client.OracleClientFactory");
+                                var fileName = "Oracle.ManagedDataAccess.dll";
+                                _dbProviderFactory = GetProviderFactory(fileName, "Oracle.ManagedDataAccess.Client.OracleClientFactory");
                                 if (_dbProviderFactory != null && DAL.Debug)
                                 {
                                     var asm = _dbProviderFactory.GetType().Assembly;
@@ -64,13 +52,6 @@ namespace XCode.DataAccessLayer
                             _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
                             if (_dbProviderFactory != null && DAL.Debug) DAL.WriteLog("Oracle使用配置驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
                         }
-                        if (_dbProviderFactory == null)
-                        {
-                            String fileName = "System.Data.OracleClient.dll";
-                            _dbProviderFactory = GetProviderFactory(fileName, "System.Data.OracleClient.OracleClientFactory");
-                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteLog("Oracle使用系统驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
-                        }
-                        //if (_dbProviderFactory == null) _dbProviderFactory = OracleClientFactory.Instance;
                     }
                 }
 
@@ -119,112 +100,6 @@ namespace XCode.DataAccessLayer
             }
             set { base.Owner = value; }
         }
-
-        private static String _DllPath;
-        /// <summary>OCI目录 </summary>
-        public static String DllPath
-        {
-            get
-            {
-                if (_DllPath != null) return _DllPath;
-
-                var ocifile = SearchOCI();
-
-                if (File.Exists(ocifile))
-                    _DllPath = Path.GetDirectoryName(ocifile);
-                else
-                    _DllPath = "";
-
-                return _DllPath;
-            }
-            set
-            {
-                _DllPath = value;
-
-                if (!String.IsNullOrEmpty(value))
-                {
-                    var ocifile = Path.Combine(value, "oci.dll");
-                    if (!File.Exists(ocifile))
-                    {
-                        var dir = Path.Combine(value, "bin");
-                        ocifile = Path.Combine(dir, "oci.dll");
-                        if (File.Exists(ocifile))
-                        {
-                            _DllPath = dir;
-                        }
-                    }
-
-                    _DllPath = _DllPath.GetFullPath();
-                }
-            }
-        }
-
-        private static String _OracleHome;
-        /// <summary>Oracle运行时主目录</summary>
-        public static String OracleHome
-        {
-            get
-            {
-                if (_OracleHome == null)
-                {
-                    _OracleHome = String.Empty;
-
-                    // 如果DllPath目录存在，则基于它找主目录
-                    var dir = DllPath;
-                    if (!String.IsNullOrEmpty(dir) && Directory.Exists(dir))
-                    {
-                        _OracleHome = dir;
-
-                        // 如果该目录就有network目录，则使用它作为主目录
-                        if (!Directory.Exists(Path.Combine(dir, "network")))
-                        {
-                            // 否则找上一级
-                            var di = new DirectoryInfo(dir);
-                            di = di.Parent;
-
-                            if (Directory.Exists(Path.Combine(di.FullName, "network"))) _OracleHome = di.FullName;
-                        }
-                    }
-                }
-                return _OracleHome;
-            }
-            //set { _OracleHome = value; }
-        }
-
-        /// <summary>设置的dll路径</summary>
-        private static String _settingDllPath = Setting.Current.Oracle.DLLPath;
-
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
-        {
-            String str = null;
-            // 获取OCI目录
-            if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
-            {
-                // 连接字符串里面指定的OCI优先于配置
-                if (_settingDllPath.IsNullOrWhiteSpace() || Directory.Exists(str)) _settingDllPath = str;
-                SetDllPath(str);
-                //else if (!String.IsNullOrEmpty(str = DllPath))
-                //    SetDllPath(str);
-            }
-            else
-            {
-                str = DllPath;
-                if (!String.IsNullOrEmpty(str)) SetDllPath(str);
-                // 异步设置DLL目录
-                //ThreadPool.QueueUserWorkItem(ss => SetDllPath(DllPath));
-                //Thread.Sleep(500);
-            }
-        }
-
-        /*
-         * 对 PInvoke 函数“SetDllDirectory”的调用导致堆栈不对称
-         * http://www.newlifex.com/showtopic-985.aspx
-         */
-        [DllImport("kernel32.dll")]
-        static extern IntPtr LoadLibrary(string fileName);
-
-        [DllImport("kernel32.dll")]
-        static extern int SetDllDirectory(string pathName);
         #endregion
 
         #region 方法
@@ -414,183 +289,6 @@ namespace XCode.DataAccessLayer
             cache[key] = dt;
 
             return true;
-        }
-
-        static void SetDllPath(String str)
-        {
-            if (String.IsNullOrEmpty(str)) return;
-
-            var dir = DllPath = str;
-
-            // 设置路径
-            var ocifile = Path.Combine(dir, "oci.dll");
-            if (File.Exists(ocifile))
-            {
-                if (DAL.Debug) DAL.WriteLog("设置OCI目录：{0}", dir);
-
-                try
-                {
-                    LoadLibrary(ocifile);
-                    SetDllDirectory(dir);
-                }
-                catch { }
-            }
-
-            if (Environment.GetEnvironmentVariable("ORACLE_HOME").IsNullOrWhiteSpace() && !OracleHome.IsNullOrWhiteSpace())
-            {
-                if (DAL.Debug) DAL.WriteLog("设置环境变量：{0}={1}", "ORACLE_HOME", OracleHome);
-
-                Environment.SetEnvironmentVariable("ORACLE_HOME", OracleHome);
-            }
-        }
-
-        static void CheckRuntime()
-        {
-            var dp = DllPath;
-            if (!String.IsNullOrEmpty(dp) && File.Exists(dp.CombinePath("oci.dll")))
-            {
-                if (DAL.Debug) DAL.WriteLog("Oracle的OCI目录：{0}", dp);
-                return;
-            }
-
-            var file = "oci.dll";
-            if (File.Exists(file)) return;
-
-            DAL.WriteLog(@"已搜索当前目录、上级目录、各个盘根目录，没有找到OracleClient\OCI.dll，可能是配置不当，准备从网络下载！");
-
-            // 尝试使用设置，然后才使用上级目录
-            var target = "";
-            try
-            {
-                if (!_settingDllPath.IsNullOrWhiteSpace())
-                    target = _settingDllPath.EnsureDirectory(false);
-                else
-                    target = @"..\OracleClient".EnsureDirectory(false);
-            }
-            catch
-            {
-                try
-                {
-                    target = @"..\OracleClient".EnsureDirectory(false);
-                    //target = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), @"OracleClient").EnsureDirectory();
-                }
-                catch
-                {
-                    target = "OracleClient".GetFullPath();
-                }
-            }
-
-            var linkName = "OracleClient";
-            if (Runtime.Is64BitProcess) linkName += "64";
-            var url = "http://www.newlifex.com/showtopic-51.aspx";
-
-            DAL.WriteLog("准备下载Oracle客户端运行时{0}到{1}，可保存压缩包供将来直接解压使用！来源{2}", linkName, target, url);
-            //CheckAndDownload("OracleClient.zip", target);
-            var client = new WebClientX(true, true);
-            client.Log = XTrace.Log;
-            client.DownloadLinkAndExtract(url, linkName, target);
-
-            file = Path.Combine(target, file);
-            if (File.Exists(file))
-            {
-                //LoadLibrary(file);
-                //SetDllDirectory(target);
-                SetDllPath(target);
-            }
-
-        }
-
-        //[DllImport("OraOps11w.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        //static extern int CheckVersionCompatibility(string version);
-
-        static String SearchOCI()
-        {
-            var ocifile = "oci.dll";
-            if (!_settingDllPath.IsNullOrWhiteSpace()) ocifile = _settingDllPath.CombinePath("oci.dll");
-            if (File.Exists(ocifile)) return ocifile;
-
-            ocifile = "oci.dll".GetFullPath();
-            if (File.Exists(ocifile)) return ocifile;
-
-            if (Runtime.IsWeb && !HttpRuntime.BinDirectory.IsNullOrWhiteSpace())
-            {
-                ocifile = Path.Combine(HttpRuntime.BinDirectory, "oci.dll");
-                if (File.Exists(ocifile)) return ocifile;
-            }
-
-            ocifile = @"OracleClient\oci.dll".GetFullPath();
-            if (File.Exists(ocifile)) return ocifile;
-
-            ocifile = @"..\OracleClient\oci.dll".GetFullPath();
-            if (File.Exists(ocifile)) return ocifile;
-
-            // 全盘搜索
-            try
-            {
-                foreach (var item in DriveInfo.GetDrives())
-                {
-                    // 仅搜索硬盘和移动存储
-                    if (item.DriveType != DriveType.Fixed && item.DriveType != DriveType.Removable || !item.IsReady) continue;
-
-                    ocifile = Path.Combine(item.RootDirectory.FullName, @"Oracle\oci.dll");
-                    if (File.Exists(ocifile)) return ocifile;
-
-                    ocifile = Path.Combine(item.RootDirectory.FullName, @"OracleClient\oci.dll");
-                    if (File.Exists(ocifile)) return ocifile;
-                }
-            }
-            catch { }
-
-            // 环境变量搜索
-            try
-            {
-                var vpath = Environment.GetEnvironmentVariable("Path");
-                if (!vpath.IsNullOrWhiteSpace())
-                {
-                    foreach (var item in vpath.Split(";"))
-                    {
-                        ocifile = item.CombinePath("oci.dll");
-                        if (File.Exists(ocifile)) return ocifile;
-                    }
-                }
-            }
-            catch { }
-
-            // 注册表搜索
-            try
-            {
-                var reg = Registry.LocalMachine.OpenSubKey(@"Software\Oracle");
-                if (reg != null)
-                {
-                    var vpath = SearchRegistry(reg);
-                    ocifile = vpath.CombinePath("oci.dll");
-                    if (File.Exists(ocifile)) return ocifile;
-                }
-            }
-            catch { }
-
-            return ocifile;
-        }
-
-        static String SearchRegistry(RegistryKey reg)
-        {
-            if (reg == null) return null;
-
-            var obj = reg.GetValue("ORACLE_HOME");
-            if (obj != null) _OracleHome = obj + "";
-
-            obj = reg.GetValue("DllPath");
-            if (obj != null) return obj + "";
-
-            if (reg.SubKeyCount <= 0) return null;
-
-            foreach (var item in reg.GetSubKeyNames())
-            {
-                var v = SearchRegistry(reg.OpenSubKey(item));
-                if (v != null) return v;
-            }
-
-            return null;
         }
         #endregion
     }
