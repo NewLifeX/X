@@ -31,7 +31,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test6();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -175,15 +175,34 @@ namespace Test2
 
         static void Test6()
         {
-            XTrace.Log.Level = LogLevel.Info;
+            // UDP没有客户端服务器之分。推荐使用NetUri指定服务器地址
+            var udp = new UdpServer();
+            udp.Remote = new NetUri("udp://smart.peacemoon.cn:7");
+            udp.Received += (s, e) =>
+            {
+                XTrace.WriteLine("收到：{0}", e.ToStr());
+            };
+            udp.Open();
+            udp.Send("新生命团队");
+            udp.Send("学无先后达者为师！");
 
-            var svr = new NATProxy();
-            svr.RemoteServer = new NetUri("udp://s3.peacemoon.cn:3366");
-            svr.Port = 3366;
-            //svr.Log = XTrace.Log;
-            svr.SessionLog = XTrace.Log;
-            //svr.SocketLog = XTrace.Log;
-            svr.Start();
+            // Tcp客户端会话。改用传统方式指定服务器地址
+            var tcp = new TcpSession();
+            tcp.Remote.Host = "smart.peacemoon.cn";
+            tcp.Remote.Port = 13;
+            tcp.Open();
+            var str = tcp.ReceiveString();
+            XTrace.WriteLine(str);
+
+            // 产品级客户端用法。直接根据NetUri创建相应客户端
+            var client = new NetUri("tcp://smart.peacemoon.cn:17").CreateRemote();
+            client.Received += (s, e) =>
+            {
+                XTrace.WriteLine("收到：{0}", e.ToStr());
+            };
+            client.Open();
+
+            Thread.Sleep(1000);
         }
 
         static void Test7()
@@ -193,20 +212,67 @@ namespace Test2
             test.StopTest();
         }
 
-        private static NatProxyTest natProxyTest;
         private static void Test8()
         {
-            //natProxyTest = new NatProxyTest("192.168.1.242", 3389);
-            //natProxyTest.Init();
-            //natProxyTest.Start();
+            XTrace.WriteLine("启动两个服务端");
 
-            //var svr = new UdpServer(3388);
-            //svr.Log = XTrace.Log;
-            //svr.Received += svr_Received;
-            //svr.Open();
+            // 不管是哪一种服务器用法，都具有相同的数据接收处理事件
+            var onReceive = new EventHandler<ReceivedEventArgs>((s, e) =>
+            {
+                XTrace.WriteLine("收到 {0}：{1}", e.UserState, e.ToStr());
 
-            var sp = SerialTransport.Choose("340");
-            Console.WriteLine(sp.PortName);
+                // 原样发回去
+                var session = s as ISocketSession;
+                session.Send(e.Stream);
+            });
+
+            // 入门级UDP服务器，直接收数据，UserState表示来源地址
+            var udp = new UdpServer(3388);
+            udp.Received += onReceive;
+            udp.Open();
+
+            // 入门级TCP服务器，先接收会话连接，然后每个连接再分开接收数据
+            var tcp = new TcpServer(3388);
+            tcp.NewSession += (s, e) =>
+            {
+                XTrace.WriteLine("新连接 {0}", e.Session);
+                e.Session.Received += onReceive;
+            };
+            tcp.Start();
+
+            // 轻量级应用服务器（不建议作为产品级使用），同时在TCP/TCPv6/UDP/UDPv6监听指定端口，统一事件接收数据
+            var svr = new NetServer();
+            svr.Port = 3377;
+            svr.Received += onReceive;
+            svr.Start();
+
+            Console.WriteLine();
+
+            // 构造多个客户端连接上面的服务端
+            var uri1 = new NetUri(ProtocolType.Udp, IPAddress.Loopback, 3388);
+            var uri2 = new NetUri(ProtocolType.Tcp, IPAddress.Loopback, 3388);
+            var uri3 = new NetUri(ProtocolType.Tcp, IPAddress.IPv6Loopback, 3377);
+            var clients = new ISocketClient[] { uri1.CreateRemote(), uri2.CreateRemote(), uri3.CreateRemote() };
+
+            // 打开每个客户端，如果是TCP，此时连接服务器。
+            // 这一步也可以省略，首次收发数据时也会自动打开连接
+            foreach (var item in clients)
+            {
+                item.Open();
+            }
+
+            Thread.Sleep(1000);
+            Console.WriteLine();
+            XTrace.WriteLine("以下灰色日志为客户端日志，其它颜色为服务端日志，可通过线程ID区分");
+
+            for (int i = 0; i < 3; i++)
+            {
+                foreach (var item in clients)
+                {
+                    item.Send("第{0}次{1}发送".F(i + 1, item.Remote.ProtocolType));
+                }
+                Thread.Sleep(500);
+            }
         }
 
         static void svr_Received(object sender, ReceivedEventArgs e)
