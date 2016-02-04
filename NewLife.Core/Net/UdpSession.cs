@@ -112,7 +112,7 @@ namespace NewLife.Net
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
             if (StatSend != null) StatSend.Increment(count);
-            WriteDebugLog("Send [{0}]: {1}", count, buffer.ToHex("-", 0, Math.Min(count, 32)));
+            //WriteDebugLog("Send [{0}]: {1}", count, buffer.ToHex("-", 0, Math.Min(count, 32)));
 
             LastTime = DateTime.Now;
 
@@ -205,7 +205,7 @@ namespace NewLife.Net
             LastTime = DateTime.Now;
             if (StatReceive != null) StatReceive.Increment(e.Length);
 
-            WriteDebugLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex("-", 0, Math.Min(e.Length, 32)));
+            //WriteDebugLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex("-", 0, Math.Min(e.Length, 32)));
 
             if (Received != null) Received(this, e);
         }
