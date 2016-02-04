@@ -60,6 +60,8 @@
             this.label7 = new System.Windows.Forms.Label();
             this.numThreads = new System.Windows.Forms.NumericUpDown();
             this.mi显示接收字符串 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi显示应用日志 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi显示网络日志 = new System.Windows.Forms.ToolStripMenuItem();
             this.gbReceive.SuspendLayout();
             this.menuReceive.SuspendLayout();
             this.menuSend.SuspendLayout();
@@ -100,12 +102,14 @@
             this.menuReceive.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
             this.toolStripMenuItem3,
+            this.mi显示应用日志,
+            this.mi显示网络日志,
+            this.mi显示接收字符串,
             this.mi显示发送数据,
             this.mi显示接收数据,
-            this.mi显示统计信息,
-            this.mi显示接收字符串});
+            this.mi显示统计信息});
             this.menuReceive.Name = "menuSend";
-            this.menuReceive.Size = new System.Drawing.Size(161, 142);
+            this.menuReceive.Size = new System.Drawing.Size(161, 186);
             // 
             // toolStripMenuItem1
             // 
@@ -397,6 +401,20 @@
             this.mi显示接收字符串.Text = "显示接收字符串";
             this.mi显示接收字符串.Click += new System.EventHandler(this.mi显示接收字符串_Click);
             // 
+            // mi显示应用日志
+            // 
+            this.mi显示应用日志.Name = "mi显示应用日志";
+            this.mi显示应用日志.Size = new System.Drawing.Size(160, 22);
+            this.mi显示应用日志.Text = "显示应用日志";
+            this.mi显示应用日志.Click += new System.EventHandler(this.mi显示应用日志_Click);
+            // 
+            // mi显示网络日志
+            // 
+            this.mi显示网络日志.Name = "mi显示网络日志";
+            this.mi显示网络日志.Size = new System.Drawing.Size(160, 22);
+            this.mi显示网络日志.Text = "显示网络日志";
+            this.mi显示网络日志.Click += new System.EventHandler(this.mi显示网络日志_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -460,6 +478,8 @@
         private System.Windows.Forms.ToolStripMenuItem mi显示统计信息;
         private System.Windows.Forms.NumericUpDown numThreads;
         private System.Windows.Forms.ToolStripMenuItem mi显示接收字符串;
+        private System.Windows.Forms.ToolStripMenuItem mi显示应用日志;
+        private System.Windows.Forms.ToolStripMenuItem mi显示网络日志;
     }
 }
 

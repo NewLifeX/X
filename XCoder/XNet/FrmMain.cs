@@ -66,19 +66,23 @@ namespace XNet
         void LoadConfig()
         {
             var cfg = NetConfig.Current;
+            mi显示应用日志.Checked = cfg.ShowLog;
+            mi显示网络日志.Checked = cfg.ShowSocketLog;
+            mi显示接收字符串.Checked = cfg.ShowReceiveString;
             mi显示发送数据.Checked = cfg.ShowSend;
             mi显示接收数据.Checked = cfg.ShowReceive;
             mi显示统计信息.Checked = cfg.ShowStat;
-            mi显示接收字符串.Checked = cfg.ShowReceiveString;
         }
 
         void SaveConfig()
         {
             var cfg = NetConfig.Current;
+            cfg.ShowLog = mi显示应用日志.Checked;
+            cfg.ShowSocketLog = mi显示网络日志.Checked;
+            cfg.ShowReceiveString = mi显示接收字符串.Checked;
             cfg.ShowSend = mi显示发送数据.Checked;
             cfg.ShowReceive = mi显示接收数据.Checked;
             cfg.ShowStat = mi显示统计信息.Checked;
-            cfg.ShowReceiveString = mi显示接收字符串.Checked;
             cfg.Save();
         }
         #endregion
@@ -92,8 +96,8 @@ namespace XNet
 
             var port = (Int32)numPort.Value;
 
-            var config = NetConfig.Current;
-            config.Port = port;
+            var cfg = NetConfig.Current;
+            cfg.Port = port;
 
             var mode = GetMode();
             switch (mode)
@@ -113,13 +117,13 @@ namespace XNet
                     var tcp = new TcpSession();
                     _Client = tcp;
 
-                    config.Address = cbAddr.Text;
+                    cfg.Address = cbAddr.Text;
                     break;
                 case WorkModes.UDP_Client:
                     var udp = new UdpServer();
                     _Client = udp;
 
-                    config.Address = cbAddr.Text;
+                    cfg.Address = cbAddr.Text;
                     break;
                 default:
                     if ((Int32)mode > 0)
@@ -134,26 +138,27 @@ namespace XNet
 
             if (_Client != null)
             {
-                _Client.Log = XTrace.Log;
+                _Client.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
                 _Client.Received += OnReceived;
                 _Client.Remote.Port = port;
                 _Client.Remote.Host = cbAddr.Text;
 
-                _Client.LogSend = config.ShowSend;
-                _Client.LogReceive = config.ShowReceive;
+                _Client.LogSend = cfg.ShowSend;
+                _Client.LogReceive = cfg.ShowReceive;
 
                 _Client.Open();
             }
             else if (_Server != null)
             {
                 if (_Server == null) _Server = new NetServer();
-                _Server.Log = XTrace.Log;
+                _Server.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
+                _Server.SocketLog = cfg.ShowSocketLog ? XTrace.Log : Logger.Null;
                 _Server.Port = port;
                 if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Host = cbAddr.Text;
                 _Server.Received += OnReceived;
 
-                _Server.LogSend = config.ShowSend;
-                _Server.LogReceive = config.ShowReceive;
+                _Server.LogSend = cfg.ShowSend;
+                _Server.LogReceive = cfg.ShowReceive;
 
                 _Server.Start();
             }
@@ -161,7 +166,7 @@ namespace XNet
             pnlSetting.Enabled = false;
             btnConnect.Text = "关闭";
 
-            config.Save();
+            cfg.Save();
 
             _timer = new TimerX(ShowStat, null, 5000, 5000);
 
@@ -325,6 +330,18 @@ namespace XNet
         {
             txtSend.Clear();
             //spList.ClearSend();
+        }
+
+        private void mi显示应用日志_Click(object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            mi.Checked = !mi.Checked;
+        }
+
+        private void mi显示网络日志_Click(object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            mi.Checked = !mi.Checked;
         }
 
         private void mi显示发送数据_Click(object sender, EventArgs e)
