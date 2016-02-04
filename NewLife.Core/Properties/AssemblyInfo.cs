@@ -30,10 +30,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("5.4.*")]
-[assembly: AssemblyFileVersion("5.4.2015.0511")]
+[assembly: AssemblyVersion("5.5.*")]
+[assembly: AssemblyFileVersion("5.5.2016.0205")]
 
 /*
+ * v5.5.2016.0205   网络库增加异步发送、收发统计
+ * 
  * v5.4.2015.0511   增加网络日志提供者并作为Android版默认日志提供者，通过UDP广播把日志从网络发送出去
  * 
  * v5.3.2015.0327   网络库增加PacketStream，用于Tcp粘包拆包，测试通过

@@ -174,7 +174,19 @@ namespace NewLife.Net
         public abstract Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
         #endregion
 
-        #region 异步接收
+        #region 异步收发
+        /// <summary>异步发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public virtual Boolean SendAsync(Byte[] buffer) { return SendAsync(buffer, 1, 0); }
+
+        /// <summary>异步多次发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <param name="times"></param>
+        /// <param name="msInterval"></param>
+        /// <returns></returns>
+        public abstract Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
+
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get; set; }
 

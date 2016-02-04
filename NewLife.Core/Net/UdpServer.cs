@@ -140,7 +140,7 @@ namespace NewLife.Net
             if (count < 0) count = buffer.Length - offset;
 
             if (StatSend != null) StatSend.Increment(count);
-            
+
             try
             {
                 var sp = Client;
@@ -265,7 +265,7 @@ namespace NewLife.Net
             }
 
             if (StatReceive != null) StatReceive.Increment(size);
-            
+
             return size;
         }
 
@@ -329,7 +329,89 @@ namespace NewLife.Net
         }
         #endregion
 
-        #region 异步接收
+        #region 异步收发
+        /// <summary>异步多次发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <param name="times"></param>
+        /// <param name="msInterval"></param>
+        /// <returns></returns>
+        public override Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
+        {
+            return SendAsync(buffer, times, msInterval, Remote.EndPoint);
+        }
+
+        internal Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval, IPEndPoint remote)
+        {
+            if (!Open()) return false;
+
+            var count = buffer.Length;
+
+            if (StatSend != null) StatSend.Increment(count);
+            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+
+            try
+            {
+                var ts = new SendStat();
+                ts.Buffer = buffer;
+                ts.Times = times - 1;
+                ts.Interval = msInterval;
+                ts.Remote = remote;
+
+                Client.BeginSend(buffer, count, remote, OnSend, ts);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("SendAsync", ex);
+
+                    if (ThrowException) throw;
+                }
+                return false;
+            }
+
+            LastTime = DateTime.Now;
+
+            return true;
+        }
+
+        class SendStat
+        {
+            public Byte[] Buffer;
+            public Int32 Times;
+            public Int32 Interval;
+            public IPEndPoint Remote;
+        }
+
+        void OnSend(IAsyncResult ar)
+        {
+            if (!Active) return;
+
+            var client = Client;
+            if (client == null) return;
+
+            // 多次发送
+            var ts = (SendStat)ar.AsyncState;
+            try
+            {
+                Client.EndSend(ar);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("EndSend", ex);
+                }
+            }
+
+            // 如果发送次数未归零，则继续发送
+            if (ts.Times > 0)
+            {
+                if (ts.Interval > 0) Thread.Sleep(ts.Interval);
+                SendAsync(ts.Buffer, ts.Times, ts.Interval, ts.Remote);
+            }
+        }
+
         private IAsyncResult _Async;
 
         /// <summary>开始监听</summary>

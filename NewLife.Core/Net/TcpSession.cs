@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -271,7 +272,97 @@ namespace NewLife.Net
         }
         #endregion
 
-        #region 异步接收
+        #region 异步收发
+        /// <summary>异步多次发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <param name="times"></param>
+        /// <param name="msInterval"></param>
+        /// <returns></returns>
+        public override Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
+        {
+            if (!Open()) return false;
+
+            var count = buffer.Length;
+
+            if (StatSend != null) StatSend.Increment(count);
+            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+
+            try
+            {
+                // 修改发送缓冲区
+                if (Client.SendBufferSize < count) Client.SendBufferSize = count;
+
+                var ts = new SendStat();
+                ts.Buffer = buffer;
+                ts.Times = times - 1;
+                ts.Interval = msInterval;
+
+                if (count == 0)
+                    Client.Client.Send(new Byte[0]);
+                else
+                    Stream.BeginWrite(buffer, 0, count, OnSend, ts);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("SendAsync", ex);
+
+                    // 发送异常可能是连接出了问题，需要关闭
+                    Close("发送出错");
+                    Reconnect();
+
+                    if (ThrowException) throw;
+                }
+
+                return false;
+            }
+
+            LastTime = DateTime.Now;
+
+            return true;
+        }
+
+        class SendStat
+        {
+            public Byte[] Buffer;
+            public Int32 Times;
+            public Int32 Interval;
+        }
+
+        void OnSend(IAsyncResult ar)
+        {
+            if (!Active) return;
+
+            var client = Client;
+            if (client == null || !client.Connected) return;
+
+            // 多次发送
+            var ts = (SendStat)ar.AsyncState;
+            try
+            {
+                Stream.EndWrite(ar);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("EndSend", ex);
+
+                    // 异常一般是网络错误
+                    Close("完成异步发送出错");
+                    Reconnect();
+                }
+            }
+
+            // 如果发送次数未归零，则继续发送
+            if (ts.Times > 0)
+            {
+                if (ts.Interval > 0) Thread.Sleep(ts.Interval);
+                SendAsync(ts.Buffer, ts.Times, ts.Interval);
+            }
+        }
+
         //private IAsyncResult _Async;
         private Boolean _Async;
 

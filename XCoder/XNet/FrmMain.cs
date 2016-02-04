@@ -291,35 +291,40 @@ namespace XNet
             str = str.Replace("\n", "\r\n");
 
             if (ths <= 1)
-                SendAsync(_Client, str, count, sleep);
+                //SendAsync(_Client, str, count, sleep);
+                _Client.SendAsync(str.GetBytes(), count, sleep);
             else
             {
                 // 多线程测试
-                for (int i = 0; i < ths; i++)
+                ThreadPoolX.QueueUserWorkItem(() =>
                 {
-                    var client = _Client.Remote.CreateRemote();
-                    client.StatSend = _Client.StatSend;
-                    client.StatReceive = _Client.StatReceive;
-                    SendAsync(client, str, count, sleep);
-                }
+                    for (int i = 0; i < ths; i++)
+                    {
+                        var client = _Client.Remote.CreateRemote();
+                        client.StatSend = _Client.StatSend;
+                        client.StatReceive = _Client.StatReceive;
+                        //SendAsync(client, str, count, sleep);
+                        client.SendAsync(str.GetBytes(), count, sleep);
+                    }
+                });
             }
         }
 
-        void SendAsync(ISocketClient client, String str, Int32 count, Int32 sleep)
-        {
-            ThreadStart func = () =>
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    if (client != null) client.Send(str);
+        //void SendAsync(ISocketClient client, String str, Int32 count, Int32 sleep)
+        //{
+        //    ThreadStart func = () =>
+        //    {
+        //        for (int i = 0; i < count; i++)
+        //        {
+        //            if (client != null) client.Send(str);
 
-                    if (count > 1) Thread.Sleep(sleep);
-                }
-            };
-            //ThreadPoolX.QueueUserWorkItem(func);
-            var th = new Thread(func);
-            th.Start();
-        }
+        //            if (count > 1) Thread.Sleep(sleep);
+        //        }
+        //    };
+        //    //ThreadPoolX.QueueUserWorkItem(func);
+        //    var th = new Thread(func);
+        //    th.Start();
+        //}
         #endregion
 
         #region 右键菜单

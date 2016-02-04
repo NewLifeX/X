@@ -34,6 +34,9 @@
             this.menuReceive = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
+            this.mi显示应用日志 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi显示网络日志 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi显示接收字符串 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi显示发送数据 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi显示接收数据 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi显示统计信息 = new System.Windows.Forms.ToolStripMenuItem();
@@ -52,25 +55,23 @@
             this.pnlSetting = new System.Windows.Forms.Panel();
             this.cbColor = new System.Windows.Forms.CheckBox();
             this.gbSend = new System.Windows.Forms.GroupBox();
+            this.numThreads = new System.Windows.Forms.NumericUpDown();
             this.numSleep = new System.Windows.Forms.NumericUpDown();
             this.txtSend = new System.Windows.Forms.RichTextBox();
             this.btnSend = new System.Windows.Forms.Button();
             this.numMutilSend = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
-            this.numThreads = new System.Windows.Forms.NumericUpDown();
-            this.mi显示接收字符串 = new System.Windows.Forms.ToolStripMenuItem();
-            this.mi显示应用日志 = new System.Windows.Forms.ToolStripMenuItem();
-            this.mi显示网络日志 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.gbReceive.SuspendLayout();
             this.menuReceive.SuspendLayout();
             this.menuSend.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numPort)).BeginInit();
             this.pnlSetting.SuspendLayout();
             this.gbSend.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numThreads)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numThreads)).BeginInit();
             this.SuspendLayout();
             // 
             // gbReceive
@@ -109,7 +110,7 @@
             this.mi显示接收数据,
             this.mi显示统计信息});
             this.menuReceive.Name = "menuSend";
-            this.menuReceive.Size = new System.Drawing.Size(161, 186);
+            this.menuReceive.Size = new System.Drawing.Size(161, 164);
             // 
             // toolStripMenuItem1
             // 
@@ -122,6 +123,27 @@
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
             this.toolStripMenuItem3.Size = new System.Drawing.Size(157, 6);
+            // 
+            // mi显示应用日志
+            // 
+            this.mi显示应用日志.Name = "mi显示应用日志";
+            this.mi显示应用日志.Size = new System.Drawing.Size(160, 22);
+            this.mi显示应用日志.Text = "显示应用日志";
+            this.mi显示应用日志.Click += new System.EventHandler(this.mi显示应用日志_Click);
+            // 
+            // mi显示网络日志
+            // 
+            this.mi显示网络日志.Name = "mi显示网络日志";
+            this.mi显示网络日志.Size = new System.Drawing.Size(160, 22);
+            this.mi显示网络日志.Text = "显示网络日志";
+            this.mi显示网络日志.Click += new System.EventHandler(this.mi显示网络日志_Click);
+            // 
+            // mi显示接收字符串
+            // 
+            this.mi显示接收字符串.Name = "mi显示接收字符串";
+            this.mi显示接收字符串.Size = new System.Drawing.Size(160, 22);
+            this.mi显示接收字符串.Text = "显示接收字符串";
+            this.mi显示接收字符串.Click += new System.EventHandler(this.mi显示接收字符串_Click);
             // 
             // mi显示发送数据
             // 
@@ -283,6 +305,31 @@
             this.gbSend.TabStop = false;
             this.gbSend.Text = "发送区：已发送0字节";
             // 
+            // numThreads
+            // 
+            this.numThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.numThreads.Location = new System.Drawing.Point(593, 22);
+            this.numThreads.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.numThreads.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numThreads.Name = "numThreads";
+            this.numThreads.Size = new System.Drawing.Size(52, 21);
+            this.numThreads.TabIndex = 18;
+            this.numThreads.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.toolTip1.SetToolTip(this.numThreads, "模拟多客户端发送，用于压力测试！");
+            this.numThreads.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
             // numSleep
             // 
             this.numSleep.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -370,51 +417,6 @@
             this.label7.TabIndex = 15;
             this.label7.Text = "次数：";
             // 
-            // numThreads
-            // 
-            this.numThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.numThreads.Location = new System.Drawing.Point(593, 22);
-            this.numThreads.Maximum = new decimal(new int[] {
-            100000,
-            0,
-            0,
-            0});
-            this.numThreads.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numThreads.Name = "numThreads";
-            this.numThreads.Size = new System.Drawing.Size(52, 21);
-            this.numThreads.TabIndex = 18;
-            this.numThreads.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.numThreads.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
-            // mi显示接收字符串
-            // 
-            this.mi显示接收字符串.Name = "mi显示接收字符串";
-            this.mi显示接收字符串.Size = new System.Drawing.Size(160, 22);
-            this.mi显示接收字符串.Text = "显示接收字符串";
-            this.mi显示接收字符串.Click += new System.EventHandler(this.mi显示接收字符串_Click);
-            // 
-            // mi显示应用日志
-            // 
-            this.mi显示应用日志.Name = "mi显示应用日志";
-            this.mi显示应用日志.Size = new System.Drawing.Size(160, 22);
-            this.mi显示应用日志.Text = "显示应用日志";
-            this.mi显示应用日志.Click += new System.EventHandler(this.mi显示应用日志_Click);
-            // 
-            // mi显示网络日志
-            // 
-            this.mi显示网络日志.Name = "mi显示网络日志";
-            this.mi显示网络日志.Size = new System.Drawing.Size(160, 22);
-            this.mi显示网络日志.Text = "显示网络日志";
-            this.mi显示网络日志.Click += new System.EventHandler(this.mi显示网络日志_Click);
-            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -437,9 +439,9 @@
             this.pnlSetting.PerformLayout();
             this.gbSend.ResumeLayout(false);
             this.gbSend.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numThreads)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numThreads)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -480,6 +482,7 @@
         private System.Windows.Forms.ToolStripMenuItem mi显示接收字符串;
         private System.Windows.Forms.ToolStripMenuItem mi显示应用日志;
         private System.Windows.Forms.ToolStripMenuItem mi显示网络日志;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 

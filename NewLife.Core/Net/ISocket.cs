@@ -85,6 +85,18 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
+        /// <summary>异步发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        Boolean SendAsync(Byte[] buffer);
+
+        /// <summary>异步多次发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <param name="times"></param>
+        /// <param name="msInterval"></param>
+        /// <returns></returns>
+        Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
+
         /// <summary>接收数据</summary>
         /// <returns></returns>
         Byte[] Receive();
