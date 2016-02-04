@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Log;
@@ -19,50 +18,41 @@ namespace NewLife.Net
     public class TcpServer : DisposeBase, ISocketServer
     {
         #region 属性
-        private String _Name;
         /// <summary>名称</summary>
-        public String Name { get { return _Name; } set { _Name = value; } }
+        public String Name { get; set; }
 
-        private NetUri _Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
         /// <summary>本地绑定信息</summary>
-        public NetUri Local { get { return _Local; } set { _Local = value; } }
+        public NetUri Local { get; set; }
 
         /// <summary>端口</summary>
-        public Int32 Port { get { return _Local.Port; } set { _Local.Port = value; } }
+        public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
-        private Int32 _MaxNotActive = 30;
         /// <summary>最大不活动时间。
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// 单位秒，默认30秒。时间不是太准确，建议15秒的倍数。为0表示不检查。</summary>
-        public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; } }
+        public Int32 MaxNotActive { get; set; }
 
-        private Boolean _AutoReceiveAsync = true;
         /// <summary>自动开始会话的异步接收，默认true。
         /// 接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</summary>
-        public Boolean AutoReceiveAsync { get { return _AutoReceiveAsync; } set { _AutoReceiveAsync = value; } }
+        public Boolean AutoReceiveAsync { get; set; }
 
-        private Boolean _UseProcessAsync = true;
         /// <summary>是否异步处理接收到的数据，默认true利于提升网络吞吐量。异步处理有可能造成数据包乱序，特别是Tcp</summary>
-        public Boolean UseProcessAsync { get { return _UseProcessAsync; } set { _UseProcessAsync = value; } }
+        public Boolean UseProcessAsync { get; set; }
 
-        private TcpListener _Server;
         /// <summary>服务器</summary>
-        public TcpListener Server { get { return _Server; } set { _Server = value; } }
+        public TcpListener Server { get; set; }
 
         /// <summary>底层Socket</summary>
-        Socket ISocket.Socket { get { return _Server == null ? null : _Server.Server; } }
+        Socket ISocket.Socket { get { return Server == null ? null : Server.Server; } }
 
-        private Boolean _Active;
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return _Active; } set { _Active = value; } }
+        public Boolean Active { get; set; }
 
-        private Boolean _ThrowException;
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
-        public Boolean ThrowException { get { return _ThrowException; } set { _ThrowException = value; } }
+        public Boolean ThrowException { get; set; }
 
-        private IStatistics _Statistics = new Statistics();
         /// <summary>统计信息</summary>
-        public IStatistics Statistics { get { return _Statistics; } private set { _Statistics = value; } }
+        public IStatistics Statistics { get; set; }
         #endregion
 
         #region 构造
@@ -70,7 +60,14 @@ namespace NewLife.Net
         public TcpServer()
         {
             Name = this.GetType().Name;
+
+            Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
+            MaxNotActive = 30;
+            AutoReceiveAsync = true;
+            UseProcessAsync = true;
+
             _Sessions = new SessionCollection(this);
+            Statistics = new Statistics();
         }
 
         /// <summary>构造TCP服务器对象</summary>

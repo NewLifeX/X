@@ -6,21 +6,18 @@ namespace NewLife.Net
     /// <summary>统计</summary>
     class Statistics : IStatistics
     {
-        private Boolean _Enable;
         /// <summary>是否启用统计</summary>
-        public Boolean Enable { get { return _Enable; } set { _Enable = value; } }
+        public Boolean Enable { get; set; }
 
-        private DateTime _First;
         /// <summary>首次统计时间</summary>
-        public DateTime First { get { return _First; } set { _First = value; } }
+        public DateTime First { get; private set; }
 
-        private DateTime _Last;
         /// <summary>最后统计时间</summary>
-        public DateTime Last { get { return _Last; } }
+        public DateTime Last { get; private set; }
 
         private Int32 _Total;
         /// <summary>每分钟最大值</summary>
-        public Int32 Total { get { return _Total; } set { _Total = value; } }
+        public Int32 Total { get { return _Total; } }
 
         private Int32 _TotalPerMinute;
         /// <summary>每分钟总操作</summary>
@@ -30,9 +27,8 @@ namespace NewLife.Net
         /// <summary>每小时总操作</summary>
         public Int32 TotalPerHour { get { return _TotalPerHour; } }
 
-        private Int32 _MaxPerMinute;
         /// <summary>每分钟最大值</summary>
-        public Int32 MaxPerMinute { get { return _MaxPerMinute; } set { _MaxPerMinute = value; } }
+        public Int32 MaxPerMinute { get; private set; }
 
         /// <summary>每秒平均</summary>
         public Int32 AveragePerSecond
@@ -63,34 +59,16 @@ namespace NewLife.Net
         /// <param name="n"></param>
         public void Increment(Int32 n = 1)
         {
-            //_Total++;
-
-            //老树注释，删除多余代码
-            //if (n == 1)
-            //    Interlocked.Increment(ref _Total);
-            //else
-                Interlocked.Add(ref _Total, n);
-
-            DateTime now = DateTime.Now;
-            _Last = now;
-            if (_Total <= 100 && _First <= DateTime.MinValue) _First = now;
-
             if (!Enable) return;
 
-            //_TotalPerMinute++;
-            //_TotalPerHour++;
+            Interlocked.Add(ref _Total, n);
 
-            //老树注释，删除多余代码
-            //if (n == 1)
-            //{
-            //    Interlocked.Increment(ref _TotalPerMinute);
-            //    Interlocked.Increment(ref _TotalPerHour);
-            //}
-            //else
-            //{
-                Interlocked.Add(ref _TotalPerMinute, n);
-                Interlocked.Add(ref _TotalPerHour, n);
-            //}
+            var now = DateTime.Now;
+            Last = now;
+            if (_Total <= 100 && First <= DateTime.MinValue) First = now;
+
+            Interlocked.Add(ref _TotalPerMinute, n);
+            Interlocked.Add(ref _TotalPerHour, n);
 
             if (_NextPerMinute < now)
             {
@@ -104,7 +82,7 @@ namespace NewLife.Net
                 _NextPerHour = now.AddHours(1);
             }
 
-            if (_TotalPerMinute > _MaxPerMinute) _MaxPerMinute = _TotalPerMinute;
+            if (_TotalPerMinute > MaxPerMinute) MaxPerMinute = _TotalPerMinute;
         }
     }
 }

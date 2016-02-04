@@ -21,13 +21,13 @@ namespace NewLife.Net
         //Int32 Period { get; set; }
 
         /// <summary>首次统计时间</summary>
-        DateTime First { get; set; }
+        DateTime First { get; }
 
         /// <summary>最后统计时间</summary>
         DateTime Last { get; }
 
         /// <summary>每分钟最大值</summary>
-        Int32 Total { get; set; }
+        Int32 Total { get; }
 
         /// <summary>每分钟总操作</summary>
         Int32 TotalPerMinute { get; }

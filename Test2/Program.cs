@@ -31,7 +31,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test8();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -110,6 +110,22 @@ namespace Test2
             session.Send(response);
 
             //session.Dispose();
+        }
+
+        static NetServer _server;
+        static void Test3()
+        {
+            if (_server != null) _server.Dispose();
+
+            _server = new NetServer();
+            _server.Port = 8888;
+            _server.Start();
+
+            while (true)
+            {
+                Console.Title = "会话数：{0}".F(_server.SessionCount);
+                Thread.Sleep(1000);
+            }
         }
 
         static UdpServer _udpServer;

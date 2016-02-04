@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Log;
@@ -13,20 +12,17 @@ namespace NewLife.Net
         /// <summary>名称</summary>
         public String Name { get; set; }
 
-        private NetUri _Local = new NetUri();
         /// <summary>本地绑定信息</summary>
-        public NetUri Local { get { return _Local; } set { _Local = value; } }
+        public NetUri Local { get; set; }
 
         /// <summary>端口</summary>
-        public Int32 Port { get { return _Local.Port; } set { _Local.Port = value; } }
+        public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
-        private NetUri _Remote = new NetUri();
         /// <summary>远程结点地址</summary>
-        public NetUri Remote { get { return _Remote; } set { _Remote = value; } }
+        public NetUri Remote { get; set; }
 
-        private Int32 _Timeout = 3000;
         /// <summary>超时。默认3000ms</summary>
-        public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
+        public Int32 Timeout { get; set; }
 
         /// <summary>是否活动</summary>
         public Boolean Active { get; set; }
@@ -41,20 +37,17 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
-        private IStatistics _Statistics = new Statistics();
         /// <summary>统计信息</summary>
-        public IStatistics Statistics { get { return _Statistics; } private set { _Statistics = value; } }
+        public IStatistics Statistics { get; set; }
 
-        private DateTime _StartTime = DateTime.Now;
         /// <summary>通信开始时间</summary>
-        public DateTime StartTime { get { return _StartTime; } }
+        public DateTime StartTime { get; private set; }
 
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get; protected set; }
 
-        private Boolean _DynamicPort;
         /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
-        public Boolean DynamicPort { get { return _DynamicPort; } }
+        public Boolean DynamicPort { get; private set; }
         #endregion
 
         #region 构造
@@ -62,6 +55,12 @@ namespace NewLife.Net
         public SessionBase()
         {
             Name = this.GetType().Name;
+            Local = new NetUri();
+            Remote = new NetUri();
+            Timeout = 3000;
+            StartTime = DateTime.Now;
+
+            Statistics = new Statistics();
         }
 
         /// <summary>销毁</summary>
@@ -113,7 +112,7 @@ namespace NewLife.Net
         {
             if (Port == 0)
             {
-                _DynamicPort = true;
+                DynamicPort = true;
                 if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
             }
         }

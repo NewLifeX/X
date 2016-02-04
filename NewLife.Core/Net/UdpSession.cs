@@ -10,24 +10,20 @@ namespace NewLife.Net
     class UdpSession : DisposeBase, ISocketSession, ITransport
     {
         #region 属性
-        private Int32 _ID;
         /// <summary>会话编号</summary>
-        public Int32 ID { get { return _ID; } set { _ID = value; } }
+        public Int32 ID { get; set; }
 
-        private String _Name;
         /// <summary>名称</summary>
-        public String Name { get { return _Name; } set { _Name = value; } }
+        public String Name { get; set; }
 
-        private UdpServer _Server;
         /// <summary>服务器</summary>
-        public UdpServer Server { get { return _Server; } set { _Server = value; } }
+        public UdpServer Server { get; set; }
 
         /// <summary>底层Socket</summary>
-        Socket ISocket.Socket { get { return _Server == null ? null : _Server.Client.Client; } }
+        Socket ISocket.Socket { get { return Server == null ? null : Server.Client.Client; } }
 
-        private Stream _Stream = new MemoryStream();
         /// <summary>数据流</summary>
-        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
+        public Stream Stream { get; set; }
 
         private NetUri _Local;
         /// <summary>本地地址</summary>
@@ -48,33 +44,35 @@ namespace NewLife.Net
         public NetUri Remote { get { return _Remote; } set { _Remote = value; } }
 
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
-        ISocketServer ISocketSession.Server { get { return _Server; } }
+        ISocketServer ISocketSession.Server { get { return Server; } }
 
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get { return Server.ThrowException; } set { Server.ThrowException = value; } }
 
-        private IStatistics _Statistics = new Statistics();
         /// <summary>统计信息</summary>
-        public IStatistics Statistics { get { return _Statistics; } private set { _Statistics = value; } }
+        public IStatistics Statistics { get; set; }
 
         private IPEndPoint _Filter;
 
-        private DateTime _StartTime = DateTime.Now;
         /// <summary>通信开始时间</summary>
-        public DateTime StartTime { get { return _StartTime; } }
+        public DateTime StartTime { get; private set; }
 
-        private DateTime _LastTime;
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
-        public DateTime LastTime { get { return _LastTime; } }
+        public DateTime LastTime { get; private set; }
         #endregion
 
         #region 构造
         public UdpSession(UdpServer server, IPEndPoint remote)
         {
             Name = server.Name;
+            Stream = new MemoryStream();
+            StartTime = DateTime.Now;
+
             Server = server;
             Remote = new NetUri(ProtocolType.Udp, remote);
             _Filter = remote;
+
+            Statistics = new Statistics();
         }
 
         public void Start()
@@ -111,7 +109,7 @@ namespace NewLife.Net
 
             WriteDebugLog("Send [{0}]: {1}", count, buffer.ToHex("-", 0, Math.Min(count, 32)));
 
-            _LastTime = DateTime.Now;
+            LastTime = DateTime.Now;
 
             try
             {
@@ -156,7 +154,7 @@ namespace NewLife.Net
 
             Remote.EndPoint = ep;
 
-            _LastTime = DateTime.Now;
+            LastTime = DateTime.Now;
 
             return buf;
         }
@@ -178,7 +176,7 @@ namespace NewLife.Net
 
             Remote.EndPoint = ep;
 
-            _LastTime = DateTime.Now;
+            LastTime = DateTime.Now;
 
             return size;
         }
@@ -208,7 +206,7 @@ namespace NewLife.Net
 
         internal void OnReceive(ReceivedEventArgs e)
         {
-            _LastTime = DateTime.Now;
+            LastTime = DateTime.Now;
 
             WriteDebugLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex("-", 0, Math.Min(e.Length, 32)));
 
