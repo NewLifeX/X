@@ -25,10 +25,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("6.5.*")]
-[assembly: AssemblyFileVersion("6.5.2016.0104")]
+[assembly: AssemblyVersion("6.6.*")]
+[assembly: AssemblyFileVersion("6.6.2016.0205")]
 
 /*
+ * v6.6.2016.0205   升级网络调试工具，增加收发数据的日志控制，增加统计信息
+ * 
  * v6.5.2015.0701   升级自动更新机制，从网站自动更新
  * 
  * v6.4.2015.0519   改进串口调试工具，显示设备友好名

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NewLife.Log;
 
 namespace NewLife.Net
 {
@@ -45,6 +46,11 @@ namespace NewLife.Net
 
         /// <summary>父级统计</summary>
         public IStatistics Parent { get; set; }
+
+        static Statistics()
+        {
+            XTrace.WriteLine("统计信息格式：每秒速度×周期逝去时间/周期最大值/总次数/总数值");
+        }
 
         /// <summary>实例化一个统计对象</summary>
         public Statistics()

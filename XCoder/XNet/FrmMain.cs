@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using NewLife;
@@ -18,8 +19,7 @@ namespace XNet
     public partial class FrmMain : Form
     {
         NetServer _Server;
-        TcpSession _Tcp;
-        UdpServer _Udp;
+        ISocketClient _Client;
 
         #region 窗体
         public FrmMain()
@@ -82,11 +82,11 @@ namespace XNet
         #endregion
 
         #region 收发数据
+        TimerX _timer;
         void Connect()
         {
             _Server = null;
-            _Tcp = null;
-            _Udp = null;
+            _Client = null;
 
             var port = (Int32)numPort.Value;
 
@@ -97,38 +97,25 @@ namespace XNet
             switch (mode)
             {
                 case WorkModes.UDP_TCP:
-                    CreateServer(port);
-                    _Server.Start();
+                    _Server = new NetServer();
                     break;
                 case WorkModes.UDP_Server:
-                    CreateServer(port);
+                    _Server = new NetServer();
                     _Server.ProtocolType = ProtocolType.Udp;
-                    _Server.Start();
                     break;
                 case WorkModes.TCP_Server:
-                    CreateServer(port);
+                    _Server = new NetServer();
                     _Server.ProtocolType = ProtocolType.Tcp;
-                    _Server.Start();
                     break;
                 case WorkModes.TCP_Client:
                     var tcp = new TcpSession();
-                    tcp.Log = XTrace.Log;
-                    tcp.Received += OnReceived;
-                    tcp.Remote.Port = port;
-                    tcp.Remote.Host = cbAddr.Text;
-                    tcp.Open();
-                    _Tcp = tcp;
+                    _Client = tcp;
 
                     config.Address = cbAddr.Text;
                     break;
                 case WorkModes.UDP_Client:
                     var udp = new UdpServer();
-                    udp.Log = XTrace.Log;
-                    udp.Received += OnReceived;
-                    udp.Remote.Port = port;
-                    udp.Remote.Host = cbAddr.Text;
-                    udp.Open();
-                    _Udp = udp;
+                    _Client = udp;
 
                     config.Address = cbAddr.Text;
                     break;
@@ -139,10 +126,34 @@ namespace XNet
                         if (ns == null) throw new XException("未识别服务[{0}]", mode);
 
                         _Server = ns.GetType().CreateInstance() as NetServer;
-                        CreateServer(port);
-                        _Server.Start();
                     }
                     break;
+            }
+
+            if (_Client != null)
+            {
+                _Client.Log = XTrace.Log;
+                _Client.Received += OnReceived;
+                _Client.Remote.Port = port;
+                _Client.Remote.Host = cbAddr.Text;
+
+                _Client.LogSend = config.ShowSend;
+                _Client.LogReceive = config.ShowReceive;
+
+                _Client.Open();
+            }
+            else if (_Server != null)
+            {
+                if (_Server == null) _Server = new NetServer();
+                _Server.Log = XTrace.Log;
+                _Server.Port = port;
+                if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Host = cbAddr.Text;
+                _Server.Received += OnReceived;
+
+                _Server.LogSend = config.ShowSend;
+                _Server.LogReceive = config.ShowReceive;
+
+                _Server.Start();
             }
 
             pnlSetting.Enabled = false;
@@ -150,44 +161,46 @@ namespace XNet
 
             config.Save();
 
+            _timer = new TimerX(ShowStat, null, 5000, 5000);
+
             BizLog = TextFileLog.Create("NetLog");
-        }
-
-        void CreateServer(Int32 port)
-        {
-            if (_Server == null) _Server = new NetServer();
-            _Server.Log = XTrace.Log;
-            _Server.Port = port;
-            if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Host = cbAddr.Text;
-            _Server.Received += OnReceived;
-
-            var cfg = NetConfig.Current;
-            _Server.LogSend = cfg.ShowSend;
-            _Server.LogReceive = cfg.ShowReceive;
         }
 
         void Disconnect()
         {
-            var tcp = _Tcp;
-            if (tcp != null)
+            if (_Client != null)
             {
-                _Tcp = null;
-                tcp.Dispose();
-            }
-            var udp = _Udp;
-            if (udp != null)
-            {
-                _Udp = null;
-                udp.Dispose();
+                _Client.Dispose();
+                _Client = null;
             }
             if (_Server != null)
             {
                 _Server.Dispose();
                 _Server = null;
             }
+            if (_timer != null)
+            {
+                _timer.Dispose();
+                _timer = null;
+            }
 
             pnlSetting.Enabled = true;
             btnConnect.Text = "打开";
+        }
+
+        void ShowStat(Object state)
+        {
+            if (!NetConfig.Current.ShowStat) return;
+
+            var sb = new StringBuilder();
+            if (_Client != null)
+            {
+                XTrace.WriteLine("发送：{0} 接收：{1}", _Client.StatSend, _Client.StatReceive);
+            }
+            else if (_Server != null)
+            {
+                XTrace.WriteLine("在线：{3} 会话：{2} 发送：{0} 接收：{1}", _Server.StatSend, _Server.StatReceive, _Server.StatSession, _Server.SessionCount);
+            }
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
@@ -233,13 +246,6 @@ namespace XNet
         {
             if (!pnlSetting.Enabled)
             {
-                //    // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
-                //    if (!spList.Enabled && btnConnect.Text == "打开")
-                //    {
-                //        Disconnect();
-                //        return;
-                //    }
-
                 var rcount = BytesOfReceived;
                 var tcount = BytesOfSent;
                 if (rcount != lastReceive)
@@ -281,10 +287,7 @@ namespace XNet
             {
                 for (int i = 0; i < count; i++)
                 {
-                    if (_Tcp != null)
-                        _Tcp.Send(str);
-                    else if (_Udp != null)
-                        _Udp.Send(str);
+                    if (_Client != null) _Client.Send(str);
 
                     if (count > 1) Thread.Sleep(sleep);
                 }
@@ -320,7 +323,7 @@ namespace XNet
         private void mi显示统计信息_Click(object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
-            mi.Checked = !mi.Checked;
+            NetConfig.Current.ShowStat = mi.Checked = !mi.Checked;
         }
         #endregion
 
