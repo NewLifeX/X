@@ -22,7 +22,7 @@ namespace NewLife.Net
         /// <returns></returns>
         internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
 
-        /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
+        /// <summary>收到空数据时抛出异常并断开连接。默认false</summary>
         public Boolean DisconnectWhenEmptyData { get; set; }
 
         /// <summary>会话数据流，供用户程序使用。可用于解决Tcp粘包的问题。</summary>
@@ -44,7 +44,7 @@ namespace NewLife.Net
             Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
             Remote = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
 
-            DisconnectWhenEmptyData = true;
+            //DisconnectWhenEmptyData = true;
             AutoReconnect = 3;
         }
 
