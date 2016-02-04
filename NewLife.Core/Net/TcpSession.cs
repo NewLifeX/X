@@ -170,6 +170,7 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
+            if (StatSend != null) StatSend.Increment(count);
             if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
             try
@@ -222,6 +223,7 @@ namespace NewLife.Net
             if (count == 0) return new Byte[0];
 
             LastTime = DateTime.Now;
+            if (StatReceive != null) StatReceive.Increment(count);
 
             if (count == buf.Length) return buf;
 
@@ -261,6 +263,7 @@ namespace NewLife.Net
             }
 
             LastTime = DateTime.Now;
+            if (StatReceive != null) StatReceive.Increment(rs);
 
             return rs;
         }

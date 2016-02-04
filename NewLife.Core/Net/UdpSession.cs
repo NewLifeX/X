@@ -49,8 +49,11 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get { return Server.ThrowException; } set { Server.ThrowException = value; } }
 
-        /// <summary>统计信息</summary>
-        public IStatistics Statistics { get; set; }
+        /// <summary>发送数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        public IStatistics StatSend { get; set; }
+
+        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        public IStatistics StatReceive { get; set; }
 
         private IPEndPoint _Filter;
 
@@ -72,7 +75,8 @@ namespace NewLife.Net
             Remote = new NetUri(ProtocolType.Udp, remote);
             _Filter = remote;
 
-            Statistics = new Statistics();
+            StatSend = new Statistics();
+            StatReceive = new Statistics();
         }
 
         public void Start()
@@ -107,6 +111,7 @@ namespace NewLife.Net
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
+            if (StatSend != null) StatSend.Increment(count);
             WriteDebugLog("Send [{0}]: {1}", count, buffer.ToHex("-", 0, Math.Min(count, 32)));
 
             LastTime = DateTime.Now;
@@ -155,6 +160,7 @@ namespace NewLife.Net
             Remote.EndPoint = ep;
 
             LastTime = DateTime.Now;
+            if (StatReceive != null) StatReceive.Increment(buf.Length);
 
             return buf;
         }
@@ -177,6 +183,7 @@ namespace NewLife.Net
             Remote.EndPoint = ep;
 
             LastTime = DateTime.Now;
+            if (StatReceive != null) StatReceive.Increment(size);
 
             return size;
         }
@@ -193,20 +200,10 @@ namespace NewLife.Net
 
         public event EventHandler<ReceivedEventArgs> Received;
 
-        //void server_Received(object sender, ReceivedEventArgs e)
-        //{
-        //    //if (Received == null) return;
-
-        //    // 判断是否自己的数据
-        //    //var udp = e as UdpReceivedEventArgs;
-        //    //if (CheckFilter(udp.Remote))
-        //    var remote = e.UserState as IPEndPoint;
-        //    if (CheckFilter(remote)) OnReceive(e);
-        //}
-
         internal void OnReceive(ReceivedEventArgs e)
         {
             LastTime = DateTime.Now;
+            if (StatReceive != null) StatReceive.Increment(e.Length);
 
             WriteDebugLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex("-", 0, Math.Min(e.Length, 32)));
 

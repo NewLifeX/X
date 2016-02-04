@@ -51,8 +51,14 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
-        /// <summary>统计信息</summary>
-        public IStatistics Statistics { get; set; }
+        /// <summary>连接数统计信息</summary>
+        public IStatistics StatSession { get; set; }
+
+        /// <summary>发送数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        public IStatistics StatSend { get; set; }
+
+        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        public IStatistics StatReceive { get; set; }
         #endregion
 
         #region 构造
@@ -67,7 +73,9 @@ namespace NewLife.Net
             UseProcessAsync = true;
 
             _Sessions = new SessionCollection(this);
-            Statistics = new Statistics();
+            StatSession = new Statistics();
+            StatSend = new Statistics();
+            StatReceive = new Statistics();
         }
 
         /// <summary>构造TCP服务器对象</summary>
@@ -198,6 +206,8 @@ namespace NewLife.Net
             session.AutoReconnect = 0;
             session.Log = Log;
 
+            if (StatSession != null) StatSession.Increment(1);
+
             // 设置心跳时间
             client.Client.SetTcpKeepAlive(true);
 
@@ -228,6 +238,8 @@ namespace NewLife.Net
         protected virtual TcpSession CreateSession(TcpClient client)
         {
             var session = new TcpSession(this, client);
+            session.StatSend.Parent = StatSend;
+            session.StatReceive.Parent = StatReceive;
 
             return session;
         }

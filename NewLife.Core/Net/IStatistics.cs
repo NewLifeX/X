@@ -44,6 +44,9 @@ namespace NewLife.Net
         /// <summary>每分钟平均</summary>
         Int32 AveragePerMinute { get; }
 
+        /// <summary>父级统计</summary>
+        IStatistics Parent { get; set; }
+
         /// <summary>增加计数</summary>
         /// <param name="n"></param>
         void Increment(Int32 n = 1);

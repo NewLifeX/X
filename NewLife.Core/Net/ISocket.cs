@@ -31,9 +31,6 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         Boolean ThrowException { get; set; }
 
-        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
-        IStatistics Statistics { get; }
-
         /// <summary>日志提供者</summary>
         ILog Log { get; set; }
         #endregion
@@ -63,6 +60,12 @@ namespace NewLife.Net
 
         /// <summary>最后一次通信时间，主要表示会话活跃时间，包括收发</summary>
         DateTime LastTime { get; }
+
+        /// <summary>发送数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        IStatistics StatSend { get; }
+
+        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        IStatistics StatReceive { get; }
         #endregion
 
         #region 方法

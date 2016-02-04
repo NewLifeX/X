@@ -7,9 +7,6 @@ using System.Text;
 using System.Threading;
 using NewLife.Model;
 using NewLife.Threading;
-#if !Android
-using NewLife.Web;
-#endif
 
 namespace NewLife.Net
 {
@@ -137,6 +134,8 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
+            if (StatSend != null) StatSend.Increment(count);
+            
             try
             {
                 var sp = Client;
@@ -192,6 +191,8 @@ namespace NewLife.Net
             if (count < 0) return null;
             if (count == 0) return new Byte[0];
 
+            if (StatReceive != null) StatReceive.Increment(count);
+
             return buf.ReadBytes(0, count);
         }
 
@@ -240,7 +241,7 @@ namespace NewLife.Net
                 }
                 else
                 {
-                    return ReceiveWait(buffer, offset, count);
+                    size = ReceiveWait(buffer, offset, count);
                 }
             }
             catch (Exception ex)
@@ -258,6 +259,8 @@ namespace NewLife.Net
                 return -1;
             }
 
+            if (StatReceive != null) StatReceive.Increment(size);
+            
             return size;
         }
 
@@ -460,7 +463,7 @@ namespace NewLife.Net
             }
 #if !Android
             // 更新全局远程IP地址
-            WebHelper.UserHost = remote.ToString();
+            NewLife.Web.WebHelper.UserHost = remote.ToString();
 #endif
             // 分析处理
             var e = new ReceivedEventArgs();

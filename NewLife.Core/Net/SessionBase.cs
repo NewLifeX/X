@@ -37,8 +37,11 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
-        /// <summary>统计信息</summary>
-        public IStatistics Statistics { get; set; }
+        /// <summary>发送数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        public IStatistics StatSend { get; set; }
+
+        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        public IStatistics StatReceive { get; set; }
 
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; }
@@ -60,7 +63,8 @@ namespace NewLife.Net
             Timeout = 3000;
             StartTime = DateTime.Now;
 
-            Statistics = new Statistics();
+            StatSend = new Statistics();
+            StatReceive = new Statistics();
         }
 
         /// <summary>销毁</summary>
@@ -77,7 +81,7 @@ namespace NewLife.Net
         }
         #endregion
 
-        #region 方法
+        #region 打开关闭
         /// <summary>打开</summary>
         /// <returns>是否成功</returns>
         public virtual Boolean Open()
@@ -145,7 +149,9 @@ namespace NewLife.Net
 
         /// <summary>关闭后触发。可实现掉线重连</summary>
         public event EventHandler Closed;
+        #endregion
 
+        #region 同步收发
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
@@ -185,6 +191,7 @@ namespace NewLife.Net
         protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
         {
             LastTime = DateTime.Now;
+            if (StatReceive != null) StatReceive.Increment(e.Length);
 
             if (Received != null) Received(sender, e);
         }

@@ -30,6 +30,9 @@ namespace NewLife.Net
         /// <summary>每分钟最大值</summary>
         public Int32 MaxPerMinute { get; private set; }
 
+        /// <summary>父级统计</summary>
+        public IStatistics Parent { get; set; }
+
         /// <summary>每秒平均</summary>
         public Int32 AveragePerSecond
         {
@@ -59,7 +62,8 @@ namespace NewLife.Net
         /// <param name="n"></param>
         public void Increment(Int32 n = 1)
         {
-            if (!Enable) return;
+            if (Parent != null && Parent != this) Parent.Increment(n);
+            //if (!Enable) return;
 
             Interlocked.Add(ref _Total, n);
 
@@ -83,6 +87,13 @@ namespace NewLife.Net
             }
 
             if (_TotalPerMinute > MaxPerMinute) MaxPerMinute = _TotalPerMinute;
+        }
+
+        /// <summary>已重载。输出统计信息</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return "{0:n0}/{1:n0}/{2:n0}".F(AveragePerMinute, MaxPerMinute, TotalPerMinute);
         }
     }
 }
