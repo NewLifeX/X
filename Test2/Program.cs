@@ -234,14 +234,17 @@ namespace Test2
             // 不管是哪一种服务器用法，都具有相同的数据接收处理事件
             var onReceive = new EventHandler<ReceivedEventArgs>((s, e) =>
             {
+                // ReceivedEventArgs中标准使用Data+Length或Stream表示收到的数据，测试时使用ToStr/ToHex直接输出
+                // UserState表示来源地址IPEndPoint
                 XTrace.WriteLine("收到 {0}：{1}", e.UserState, e.ToStr());
 
-                // 原样发回去
+                // 拿到会话，原样发回去。
+                // 不管是TCP/UDP，都会有一个唯一的ISocketSession对象表示一个客户端会话
                 var session = s as ISocketSession;
                 session.Send(e.Stream);
             });
 
-            // 入门级UDP服务器，直接收数据，UserState表示来源地址
+            // 入门级UDP服务器，直接收数据
             var udp = new UdpServer(3388);
             udp.Received += onReceive;
             udp.Open();
@@ -271,6 +274,7 @@ namespace Test2
 
             // 打开每个客户端，如果是TCP，此时连接服务器。
             // 这一步也可以省略，首次收发数据时也会自动打开连接
+            // TCP客户端设置AutoReconnect指定断线自动重连次数，默认3次。
             foreach (var item in clients)
             {
                 item.Open();
@@ -280,14 +284,24 @@ namespace Test2
             Console.WriteLine();
             XTrace.WriteLine("以下灰色日志为客户端日志，其它颜色为服务端日志，可通过线程ID区分");
 
+            // 循环发送几次数据
             for (int i = 0; i < 3; i++)
             {
                 foreach (var item in clients)
                 {
                     item.Send("第{0}次{1}发送".F(i + 1, item.Remote.ProtocolType));
+                    var str = item.ReceiveString();
+                    Trace.Assert(!str.IsNullOrEmpty());
                 }
                 Thread.Sleep(500);
             }
+
+            XTrace.WriteLine("不用担心断开连接等日志，因为离开当前函数后，客户端连接将会被销毁");
+
+            // 为了统一TCP/UDP架构，网络库底层（UdpServer/TcpServer）是重量级封装为ISocketServer
+            // 实际产品级项目不关心底层，而是继承中间层（位于NewLife.Net）的NetServer/NetSession，直接操作ISocketSession
+            // 平台级项目一般在中间层之上封装消息序列化，转化为消息收发或者RPC调用，无视网络层的存在
+            // 以太网接口之上还有一层传输接口ITransport，它定义包括以太网和其它工业网络接口的基本数据收发能力
         }
 
         static void svr_Received(object sender, ReceivedEventArgs e)
