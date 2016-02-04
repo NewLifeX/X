@@ -33,9 +33,8 @@ namespace NewLife.Net.Sockets
     public class NetServer : Netbase, IServer
     {
         #region 属性
-        private String _Name;
         /// <summary>服务名</summary>
-        public String Name { get { return _Name ?? (_Name = GetType().Name); } set { _Name = value; } }
+        public String Name { get; set; }
 
         private NetUri _Local = new NetUri();
         /// <summary>本地结点</summary>
@@ -83,14 +82,29 @@ namespace NewLife.Net.Sockets
         ///// <summary>显示取消操作作为错误。默认false</summary>
         //public Boolean ShowAbortAsError { get { return _ShowAbortAsError; } set { _ShowAbortAsError = value; } }
 
-        private Boolean _UseSession;
         /// <summary>使用会话集合，允许遍历会话。默认false</summary>
-        public Boolean UseSession { get { return _UseSession; } set { _UseSession = value; } }
+        public Boolean UseSession { get; set; }
+
+        /// <summary>会话统计</summary>
+        public IStatistics StatSession { get; set; }
+
+        /// <summary>发送统计</summary>
+        public IStatistics StatSend { get; set; }
+
+        /// <summary>接收统计</summary>
+        public IStatistics StatReceive { get; set; }
         #endregion
 
         #region 构造
         /// <summary>实例化一个网络服务器</summary>
-        public NetServer() { }
+        public NetServer()
+        {
+            Name = GetType().Name;
+
+            StatSession = new Statistics();
+            StatSend = new Statistics();
+            StatReceive = new Statistics();
+        }
 
         /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
         /// <param name="address"></param>
@@ -164,9 +178,14 @@ namespace NewLife.Net.Sockets
             server.Log = SocketLog;
             server.NewSession += Server_NewSession;
 
+            server.StatSession.Parent = StatSession;
+            server.StatSend.Parent = StatSend;
+            server.StatReceive.Parent = StatReceive;
+
             server.Error += OnError;
 
             Servers.Add(server);
+
             return true;
         }
 

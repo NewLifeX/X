@@ -4,10 +4,13 @@ using System.Threading;
 namespace NewLife.Net
 {
     /// <summary>统计</summary>
-    class Statistics : IStatistics
+    public class Statistics : IStatistics
     {
         /// <summary>是否启用统计</summary>
         public Boolean Enable { get; set; }
+
+        /// <summary>统计周期，单位秒</summary>
+        public Int32 Period { get; set; }
 
         /// <summary>首次统计时间</summary>
         public DateTime First { get; private set; }
@@ -16,47 +19,42 @@ namespace NewLife.Net
         public DateTime Last { get; private set; }
 
         private Int32 _Total;
-        /// <summary>每分钟最大值</summary>
+        /// <summary>总数</summary>
         public Int32 Total { get { return _Total; } }
 
-        private Int32 _TotalPerMinute;
-        /// <summary>每分钟总操作</summary>
-        public Int32 TotalPerMinute { get { return _TotalPerMinute; } }
+        private Int32 _Times;
+        /// <summary>次数</summary>
+        public Int32 Times { get { return _Times; } }
 
-        private Int32 _TotalPerHour;
-        /// <summary>每小时总操作</summary>
-        public Int32 TotalPerHour { get { return _TotalPerHour; } }
+        /// <summary>周期最大值</summary>
+        public Int32 Max { get; private set; }
 
-        /// <summary>每分钟最大值</summary>
-        public Int32 MaxPerMinute { get; private set; }
+        /// <summary>周期速度</summary>
+        public Int32 Speed
+        {
+            get
+            {
+                if (_PeriodTotal <= 0 || _Cur <= DateTime.MinValue) return 0;
+
+                var ts = DateTime.Now - _Cur;
+                if (ts.TotalSeconds < 1) return 0;
+
+                return (Int32)(0.5 + _PeriodTotal / ts.TotalSeconds);
+            }
+        }
 
         /// <summary>父级统计</summary>
         public IStatistics Parent { get; set; }
 
-        /// <summary>每秒平均</summary>
-        public Int32 AveragePerSecond
+        /// <summary>实例化一个统计对象</summary>
+        public Statistics()
         {
-            get
-            {
-                if (Total <= 0) return 0;
-                TimeSpan ts = Last - First;
-                return ts.TotalSeconds > 0 ? (Int32)(0.5 + Total / ts.TotalSeconds) : 0;
-            }
+            Period = 10;
         }
 
-        /// <summary>每分钟平均</summary>
-        public Int32 AveragePerMinute
-        {
-            get
-            {
-                if (Total <= 0) return 0;
-                TimeSpan ts = Last - First;
-                return ts.TotalMinutes > 0 ? (Int32)(0.5 + Total / ts.TotalMinutes) : 0;
-            }
-        }
-
-        private DateTime _NextPerMinute;
-        private DateTime _NextPerHour;
+        private DateTime _Cur;
+        private DateTime _Next;
+        private Int32 _PeriodTotal;
 
         /// <summary>增加计数</summary>
         /// <param name="n"></param>
@@ -66,34 +64,35 @@ namespace NewLife.Net
             //if (!Enable) return;
 
             Interlocked.Add(ref _Total, n);
+            Interlocked.Increment(ref _Times);
 
             var now = DateTime.Now;
             Last = now;
-            if (_Total <= 100 && First <= DateTime.MinValue) First = now;
+            if (First <= DateTime.MinValue) First = now;
 
-            Interlocked.Add(ref _TotalPerMinute, n);
-            Interlocked.Add(ref _TotalPerHour, n);
+            Interlocked.Add(ref _PeriodTotal, n);
 
-            if (_NextPerMinute < now)
+            if (_Next < now)
             {
-                if (_NextPerMinute != DateTime.MinValue) _TotalPerMinute = 0;
-                _NextPerMinute = now.AddMinutes(1);
+                if (_Next != DateTime.MinValue) _PeriodTotal = 0;
+                _Cur = now;
+                _Next = now.AddSeconds(Period);
             }
 
-            if (_NextPerHour < now)
-            {
-                if (_NextPerHour != DateTime.MinValue) _TotalPerHour = 0;
-                _NextPerHour = now.AddHours(1);
-            }
-
-            if (_TotalPerMinute > MaxPerMinute) MaxPerMinute = _TotalPerMinute;
+            if (_PeriodTotal > Max) Max = _PeriodTotal;
         }
 
         /// <summary>已重载。输出统计信息</summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return "{0:n0}/{1:n0}/{2:n0}".F(AveragePerMinute, MaxPerMinute, TotalPerMinute);
+            var s = 0;
+            if (_Cur > DateTime.MinValue)
+            {
+                var ts = DateTime.Now - _Cur;
+                if (ts.TotalSeconds >= 1) s = (Int32)ts.TotalSeconds;
+            }
+            return "{0:n0}×{4}/{1:n0}/{2:n0}/{3:n0}".F(Speed, Max, Times, Total, s);
         }
     }
 }

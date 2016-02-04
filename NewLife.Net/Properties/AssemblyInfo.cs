@@ -28,10 +28,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.1.*")]
-[assembly: AssemblyFileVersion("3.1.2015.0511")]
+[assembly: AssemblyVersion("3.2.*")]
+[assembly: AssemblyFileVersion("3.2.2016.0204")]
 
 /*
+ * v3.2.2016.0204   增加网络统计，包括会话、发送、接收
+ * 
  * v3.1.2015.0511   增加日志服务器LogServer，用于接收网络日志
  * 
  * v3.0.2014.1202   第三代网络库完成，回归APM模型，以简单为核心理念。网络基础测试通过，Tcp压力测试2w通过

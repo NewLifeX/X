@@ -51,13 +51,13 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
-        /// <summary>连接数统计信息</summary>
+        /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
 
-        /// <summary>发送数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        /// <summary>发送统计</summary>
         public IStatistics StatSend { get; set; }
 
-        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        /// <summary>接收统计</summary>
         public IStatistics StatReceive { get; set; }
         #endregion
 

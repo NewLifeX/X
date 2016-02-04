@@ -120,7 +120,8 @@ namespace Test2
 
             while (true)
             {
-                var svr = _server.Servers[0] as TcpServer;
+                //var svr = _server.Servers[0] as TcpServer;
+                var svr = _server;
                 Console.Title = "会话数：{0} 连接：{1} 发送：{2} 接收：{3}".F(_server.SessionCount, svr.StatSession, svr.StatSend, svr.StatReceive);
                 Thread.Sleep(1000);
             }

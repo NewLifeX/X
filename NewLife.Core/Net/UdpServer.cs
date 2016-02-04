@@ -44,6 +44,9 @@ namespace NewLife.Net
         private Boolean _Loopback;
         /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
         public Boolean Loopback { get { return _Loopback; } set { _Loopback = value; } }
+
+        /// <summary>会话统计</summary>
+        public IStatistics StatSession { get; set; }
         #endregion
 
         #region 构造
@@ -53,6 +56,8 @@ namespace NewLife.Net
             Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0);
             Remote.ProtocolType = ProtocolType.Udp;
             _Sessions = new SessionCollection(this);
+
+            StatSession = new Statistics();
         }
 
         /// <summary>使用监听口初始化</summary>
@@ -532,6 +537,8 @@ namespace NewLife.Net
                 {
                     us.ID = g_ID++;
                     us.Start();
+
+                    if (StatSession != null) StatSession.Increment(1);
 
                     // 触发新会话事件
                     if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
