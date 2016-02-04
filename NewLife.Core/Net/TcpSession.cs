@@ -172,7 +172,7 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            if (Log.Enable) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+            if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
             try
             {
@@ -380,7 +380,7 @@ namespace NewLife.Net
             e.Length = count;
             e.UserState = Remote.EndPoint;
 
-            if (Log.Enable) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
             RaiseReceive(this, e);
 
