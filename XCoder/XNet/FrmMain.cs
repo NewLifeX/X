@@ -291,7 +291,7 @@ namespace XNet
             str = str.Replace("\n", "\r\n");
 
             if (ths <= 1)
-                MutilSendAsync(_Client, str, count, sleep);
+                SendAsync(_Client, str, count, sleep);
             else
             {
                 // 多线程测试
@@ -300,14 +300,14 @@ namespace XNet
                     var client = _Client.Remote.CreateRemote();
                     client.StatSend = _Client.StatSend;
                     client.StatReceive = _Client.StatReceive;
-                    MutilSendAsync(client, str, count, sleep);
+                    SendAsync(client, str, count, sleep);
                 }
             }
         }
 
-        void MutilSendAsync(ISocketClient client, String str, Int32 count, Int32 sleep)
+        void SendAsync(ISocketClient client, String str, Int32 count, Int32 sleep)
         {
-            ThreadPoolX.QueueUserWorkItem(() =>
+            ThreadStart func = () =>
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -315,7 +315,10 @@ namespace XNet
 
                     if (count > 1) Thread.Sleep(sleep);
                 }
-            });
+            };
+            //ThreadPoolX.QueueUserWorkItem(func);
+            var th = new Thread(func);
+            th.Start();
         }
         #endregion
 
