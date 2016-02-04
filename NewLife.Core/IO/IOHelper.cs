@@ -1096,10 +1096,11 @@ namespace System
         public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
             if (data == null || data.Length < 1) return null;
-            if (count <= 0)
+            if (count < 0)
                 count = data.Length - offset;
             else if (offset + count > data.Length)
                 count = data.Length - offset;
+            if (count == 0) return "";
 
             //return BitConverter.ToString(data).Replace("-", null);
             // 上面的方法要替换-，效率太低
