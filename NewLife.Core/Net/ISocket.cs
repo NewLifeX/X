@@ -39,6 +39,12 @@ namespace NewLife.Net
 
         /// <summary>日志提供者</summary>
         ILog Log { get; set; }
+
+        /// <summary>是否输出发送日志。默认false</summary>
+        Boolean LogSend { get; set; }
+
+        /// <summary>是否输出接收日志。默认false</summary>
+        Boolean LogReceive { get; set; }
         #endregion
 
         #region 方法

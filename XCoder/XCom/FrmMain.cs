@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Drawing;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Windows;

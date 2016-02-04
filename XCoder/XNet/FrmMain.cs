@@ -57,6 +57,27 @@ namespace XNet
 
             // 加载保存的颜色
             UIConfig.Apply(txtReceive);
+
+            LoadConfig();
+        }
+        #endregion
+
+        #region 加载/保存 配置
+        void LoadConfig()
+        {
+            var cfg = NetConfig.Current;
+            mi显示发送数据.Checked = cfg.ShowSend;
+            mi显示接收数据.Checked = cfg.ShowReceive;
+            mi显示统计信息.Checked = cfg.ShowStat;
+        }
+
+        void SaveConfig()
+        {
+            var cfg = NetConfig.Current;
+            cfg.ShowSend = mi显示发送数据.Checked;
+            cfg.ShowReceive = mi显示接收数据.Checked;
+            cfg.ShowStat = mi显示统计信息.Checked;
+            cfg.Save();
         }
         #endregion
 
@@ -72,23 +93,20 @@ namespace XNet
             var config = NetConfig.Current;
             config.Port = port;
 
-            _Server = new NetServer();
-            _Server.Log = XTrace.Log;
-            _Server.Port = port;
-            if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Host = cbAddr.Text;
-            _Server.Received += OnReceived;
-
             var mode = GetMode();
             switch (mode)
             {
                 case WorkModes.UDP_TCP:
+                    CreateServer(port);
                     _Server.Start();
                     break;
                 case WorkModes.UDP_Server:
+                    CreateServer(port);
                     _Server.ProtocolType = ProtocolType.Udp;
                     _Server.Start();
                     break;
                 case WorkModes.TCP_Server:
+                    CreateServer(port);
                     _Server.ProtocolType = ProtocolType.Tcp;
                     _Server.Start();
                     break;
@@ -120,12 +138,8 @@ namespace XNet
                         var ns = GetNetServers().Where(n => n.Name == cbMode.Text).FirstOrDefault();
                         if (ns == null) throw new XException("未识别服务[{0}]", mode);
 
-                        ns = ns.GetType().CreateInstance() as NetServer;
-                        ns.Local.Port = port;
-                        ns.Local.Host = _Server.Local.Host;
-                        //config.Port = ns.Port;
-                        //numPort.Value = ns.Port;
-                        _Server = ns;
+                        _Server = ns.GetType().CreateInstance() as NetServer;
+                        CreateServer(port);
                         _Server.Start();
                     }
                     break;
@@ -137,6 +151,19 @@ namespace XNet
             config.Save();
 
             BizLog = TextFileLog.Create("NetLog");
+        }
+
+        void CreateServer(Int32 port)
+        {
+            if (_Server == null) _Server = new NetServer();
+            _Server.Log = XTrace.Log;
+            _Server.Port = port;
+            if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Host = cbAddr.Text;
+            _Server.Received += OnReceived;
+
+            var cfg = NetConfig.Current;
+            _Server.LogSend = cfg.ShowSend;
+            _Server.LogReceive = cfg.ShowReceive;
         }
 
         void Disconnect()
@@ -165,6 +192,8 @@ namespace XNet
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
+            SaveConfig();
+
             var btn = sender as Button;
             if (btn.Text == "打开")
                 Connect();
@@ -274,6 +303,24 @@ namespace XNet
         {
             txtSend.Clear();
             //spList.ClearSend();
+        }
+
+        private void mi显示发送数据_Click(object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            mi.Checked = !mi.Checked;
+        }
+
+        private void mi显示接收数据_Click(object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            mi.Checked = !mi.Checked;
+        }
+
+        private void mi显示统计信息_Click(object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            mi.Checked = !mi.Checked;
         }
         #endregion
 

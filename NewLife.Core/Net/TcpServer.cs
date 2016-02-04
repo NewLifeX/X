@@ -240,6 +240,8 @@ namespace NewLife.Net
             var session = new TcpSession(this, client);
             session.StatSend.Parent = StatSend;
             session.StatReceive.Parent = StatReceive;
+            session.LogSend = LogSend;
+            session.LogReceive = LogReceive;
 
             return session;
         }
@@ -299,6 +301,12 @@ namespace NewLife.Net
 #endif
         /// <summary>日志对象</summary>
         public ILog Log { get { return _Log; } set { _Log = value ?? Logger.Null; } }
+
+        /// <summary>是否输出发送日志。默认false</summary>
+        public Boolean LogSend { get; set; }
+
+        /// <summary>是否输出接收日志。默认false</summary>
+        public Boolean LogReceive { get; set; }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>

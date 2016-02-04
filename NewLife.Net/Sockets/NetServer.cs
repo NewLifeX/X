@@ -93,6 +93,12 @@ namespace NewLife.Net.Sockets
 
         /// <summary>接收统计</summary>
         public IStatistics StatReceive { get; set; }
+
+        /// <summary>是否输出发送日志。默认false</summary>
+        public Boolean LogSend { get; set; }
+
+        /// <summary>是否输出接收日志。默认false</summary>
+        public Boolean LogReceive { get; set; }
         #endregion
 
         #region 构造
@@ -181,6 +187,9 @@ namespace NewLife.Net.Sockets
             server.StatSession.Parent = StatSession;
             server.StatSend.Parent = StatSend;
             server.StatReceive.Parent = StatReceive;
+
+            server.LogSend = LogSend;
+            server.LogReceive = LogReceive;
 
             server.Error += OnError;
 

@@ -34,6 +34,9 @@
             this.menuReceive = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
+            this.mi显示发送数据 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi显示接收数据 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi显示统计信息 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
             this.btnConnect = new System.Windows.Forms.Button();
@@ -93,9 +96,12 @@
             // 
             this.menuReceive.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
-            this.toolStripMenuItem3});
+            this.toolStripMenuItem3,
+            this.mi显示发送数据,
+            this.mi显示接收数据,
+            this.mi显示统计信息});
             this.menuReceive.Name = "menuSend";
-            this.menuReceive.Size = new System.Drawing.Size(153, 54);
+            this.menuReceive.Size = new System.Drawing.Size(153, 120);
             // 
             // toolStripMenuItem1
             // 
@@ -108,6 +114,27 @@
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
             this.toolStripMenuItem3.Size = new System.Drawing.Size(149, 6);
+            // 
+            // mi显示发送数据
+            // 
+            this.mi显示发送数据.Name = "mi显示发送数据";
+            this.mi显示发送数据.Size = new System.Drawing.Size(152, 22);
+            this.mi显示发送数据.Text = "显示发送数据";
+            this.mi显示发送数据.Click += new System.EventHandler(this.mi显示发送数据_Click);
+            // 
+            // mi显示接收数据
+            // 
+            this.mi显示接收数据.Name = "mi显示接收数据";
+            this.mi显示接收数据.Size = new System.Drawing.Size(152, 22);
+            this.mi显示接收数据.Text = "显示接收数据";
+            this.mi显示接收数据.Click += new System.EventHandler(this.mi显示接收数据_Click);
+            // 
+            // mi显示统计信息
+            // 
+            this.mi显示统计信息.Name = "mi显示统计信息";
+            this.mi显示统计信息.Size = new System.Drawing.Size(152, 22);
+            this.mi显示统计信息.Text = "显示统计信息";
+            this.mi显示统计信息.Click += new System.EventHandler(this.mi显示统计信息_Click);
             // 
             // menuSend
             // 
@@ -386,6 +413,9 @@
         private System.Windows.Forms.NumericUpDown numMutilSend;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.ToolStripMenuItem mi显示发送数据;
+        private System.Windows.Forms.ToolStripMenuItem mi显示接收数据;
+        private System.Windows.Forms.ToolStripMenuItem mi显示统计信息;
     }
 }
 

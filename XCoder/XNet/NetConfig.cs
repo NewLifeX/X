@@ -35,14 +35,16 @@ namespace XNet
         [Description("十六进制显示")]
         public Boolean HexShow { get { return _HexShow; } set { _HexShow = value; } }
 
-        //private Boolean _HexNewLine;
-        ///// <summary>十六进制自动换行</summary>
-        //[Description("十六进制自动换行")]
-        //public Boolean HexNewLine { get { return _HexNewLine; } set { _HexNewLine = value; } }
+        /// <summary>显示发送数据</summary>
+        [Description("显示发送数据")]
+        public Boolean ShowSend { get; set; }
 
-        //private Boolean _HexSend;
-        ///// <summary>十六进制发送</summary>
-        //[Description("十六进制发送")]
-        //public Boolean HexSend { get { return _HexSend; } set { _HexSend = value; } }
+        /// <summary>显示接收数据</summary>
+        [Description("显示接收数据")]
+        public Boolean ShowReceive { get; set; }
+
+        /// <summary>显示统计信息</summary>
+        [Description("显示统计信息")]
+        public Boolean ShowStat { get; set; }
     }
 }

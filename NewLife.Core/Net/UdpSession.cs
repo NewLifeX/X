@@ -112,7 +112,7 @@ namespace NewLife.Net
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
 
             if (StatSend != null) StatSend.Increment(count);
-            //WriteDebugLog("Send [{0}]: {1}", count, buffer.ToHex("-", 0, Math.Min(count, 32)));
+            if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
             LastTime = DateTime.Now;
 
@@ -205,7 +205,7 @@ namespace NewLife.Net
             LastTime = DateTime.Now;
             if (StatReceive != null) StatReceive.Increment(e.Length);
 
-            //WriteDebugLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex("-", 0, Math.Min(e.Length, 32)));
+            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
             if (Received != null) Received(this, e);
         }
@@ -252,6 +252,12 @@ namespace NewLife.Net
         private ILog _Log;
         /// <summary>日志提供者</summary>
         public ILog Log { get { return _Log; } set { _Log = value; } }
+
+        /// <summary>是否输出发送日志。默认false</summary>
+        public Boolean LogSend { get; set; }
+
+        /// <summary>是否输出接收日志。默认false</summary>
+        public Boolean LogReceive { get; set; }
 
         private String _LogPrefix;
         /// <summary>日志前缀</summary>
