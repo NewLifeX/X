@@ -20,7 +20,7 @@ namespace NewLife.Net
         /// <returns></returns>
         internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
 
-        /// <summary>收到空数据时抛出异常并断开连接。默认false</summary>
+        /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; }
 
         /// <summary>会话数据流，供用户程序使用。可用于解决Tcp粘包的问题。</summary>
@@ -42,7 +42,7 @@ namespace NewLife.Net
             Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
             Remote = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
 
-            //DisconnectWhenEmptyData = true;
+            DisconnectWhenEmptyData = true;
             AutoReconnect = 3;
         }
 
@@ -133,7 +133,9 @@ namespace NewLife.Net
                 Active = false;
                 try
                 {
-                    if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
+                    //var ac = _Async;
+                    //_Async = null;
+                    //if (ac != null && ac.AsyncWaitHandle != null) ac.AsyncWaitHandle.Close();
 
                     // 温和一点关闭连接
                     //Client.Client.Shutdown();
@@ -270,7 +272,8 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
-        private IAsyncResult _Async;
+        //private IAsyncResult _Async;
+        private Boolean _Async;
 
         /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
@@ -278,12 +281,15 @@ namespace NewLife.Net
         {
             if (Disposed || !Open()) return false;
 
-            if (_Async != null) return true;
+            //if (_Async != null) return true;
+            if (_Async) return true;
+            _Async = true;
             try
             {
                 // 开始新的监听
                 var buf = new Byte[Client.ReceiveBufferSize];
-                _Async = Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
+                //_Async = Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
+                Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
             }
             catch (Exception ex)
             {
@@ -305,7 +311,8 @@ namespace NewLife.Net
 
         void OnReceive(IAsyncResult ar)
         {
-            _Async = null;
+            //_Async = null;
+            _Async = false;
 
             if (!Active) return;
 

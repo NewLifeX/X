@@ -58,6 +58,8 @@
             this.numMutilSend = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
+            this.numThreads = new System.Windows.Forms.NumericUpDown();
+            this.mi显示接收字符串 = new System.Windows.Forms.ToolStripMenuItem();
             this.gbReceive.SuspendLayout();
             this.menuReceive.SuspendLayout();
             this.menuSend.SuspendLayout();
@@ -66,6 +68,7 @@
             this.gbSend.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numThreads)).BeginInit();
             this.SuspendLayout();
             // 
             // gbReceive
@@ -99,40 +102,41 @@
             this.toolStripMenuItem3,
             this.mi显示发送数据,
             this.mi显示接收数据,
-            this.mi显示统计信息});
+            this.mi显示统计信息,
+            this.mi显示接收字符串});
             this.menuReceive.Name = "menuSend";
-            this.menuReceive.Size = new System.Drawing.Size(153, 120);
+            this.menuReceive.Size = new System.Drawing.Size(161, 142);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(160, 22);
             this.toolStripMenuItem1.Text = "清空";
             this.toolStripMenuItem1.Click += new System.EventHandler(this.mi清空_Click);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(149, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(157, 6);
             // 
             // mi显示发送数据
             // 
             this.mi显示发送数据.Name = "mi显示发送数据";
-            this.mi显示发送数据.Size = new System.Drawing.Size(152, 22);
+            this.mi显示发送数据.Size = new System.Drawing.Size(160, 22);
             this.mi显示发送数据.Text = "显示发送数据";
             this.mi显示发送数据.Click += new System.EventHandler(this.mi显示发送数据_Click);
             // 
             // mi显示接收数据
             // 
             this.mi显示接收数据.Name = "mi显示接收数据";
-            this.mi显示接收数据.Size = new System.Drawing.Size(152, 22);
+            this.mi显示接收数据.Size = new System.Drawing.Size(160, 22);
             this.mi显示接收数据.Text = "显示接收数据";
             this.mi显示接收数据.Click += new System.EventHandler(this.mi显示接收数据_Click);
             // 
             // mi显示统计信息
             // 
             this.mi显示统计信息.Name = "mi显示统计信息";
-            this.mi显示统计信息.Size = new System.Drawing.Size(152, 22);
+            this.mi显示统计信息.Size = new System.Drawing.Size(160, 22);
             this.mi显示统计信息.Text = "显示统计信息";
             this.mi显示统计信息.Click += new System.EventHandler(this.mi显示统计信息_Click);
             // 
@@ -261,6 +265,7 @@
             // 
             this.gbSend.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbSend.Controls.Add(this.numThreads);
             this.gbSend.Controls.Add(this.numSleep);
             this.gbSend.Controls.Add(this.txtSend);
             this.gbSend.Controls.Add(this.btnSend);
@@ -277,7 +282,7 @@
             // numSleep
             // 
             this.numSleep.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.numSleep.Location = new System.Drawing.Point(538, 49);
+            this.numSleep.Location = new System.Drawing.Point(538, 54);
             this.numSleep.Maximum = new decimal(new int[] {
             1000000,
             0,
@@ -309,9 +314,9 @@
             // btnSend
             // 
             this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSend.Location = new System.Drawing.Point(596, 18);
+            this.btnSend.Location = new System.Drawing.Point(596, 49);
             this.btnSend.Name = "btnSend";
-            this.btnSend.Size = new System.Drawing.Size(50, 61);
+            this.btnSend.Size = new System.Drawing.Size(50, 30);
             this.btnSend.TabIndex = 1;
             this.btnSend.Text = "发送";
             this.btnSend.UseVisualStyleBackColor = true;
@@ -323,6 +328,11 @@
             this.numMutilSend.Location = new System.Drawing.Point(538, 22);
             this.numMutilSend.Maximum = new decimal(new int[] {
             10000,
+            0,
+            0,
+            0});
+            this.numMutilSend.Minimum = new decimal(new int[] {
+            1,
             0,
             0,
             0});
@@ -340,7 +350,7 @@
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(503, 53);
+            this.label2.Location = new System.Drawing.Point(503, 58);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(41, 12);
             this.label2.TabIndex = 17;
@@ -355,6 +365,37 @@
             this.label7.Size = new System.Drawing.Size(41, 12);
             this.label7.TabIndex = 15;
             this.label7.Text = "次数：";
+            // 
+            // numThreads
+            // 
+            this.numThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.numThreads.Location = new System.Drawing.Point(593, 22);
+            this.numThreads.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.numThreads.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numThreads.Name = "numThreads";
+            this.numThreads.Size = new System.Drawing.Size(52, 21);
+            this.numThreads.TabIndex = 18;
+            this.numThreads.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.numThreads.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // mi显示接收字符串
+            // 
+            this.mi显示接收字符串.Name = "mi显示接收字符串";
+            this.mi显示接收字符串.Size = new System.Drawing.Size(160, 22);
+            this.mi显示接收字符串.Text = "显示接收字符串";
+            this.mi显示接收字符串.Click += new System.EventHandler(this.mi显示接收字符串_Click);
             // 
             // FrmMain
             // 
@@ -380,6 +421,7 @@
             this.gbSend.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numThreads)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -416,6 +458,8 @@
         private System.Windows.Forms.ToolStripMenuItem mi显示发送数据;
         private System.Windows.Forms.ToolStripMenuItem mi显示接收数据;
         private System.Windows.Forms.ToolStripMenuItem mi显示统计信息;
+        private System.Windows.Forms.NumericUpDown numThreads;
+        private System.Windows.Forms.ToolStripMenuItem mi显示接收字符串;
     }
 }
 

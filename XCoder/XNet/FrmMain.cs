@@ -69,6 +69,7 @@ namespace XNet
             mi显示发送数据.Checked = cfg.ShowSend;
             mi显示接收数据.Checked = cfg.ShowReceive;
             mi显示统计信息.Checked = cfg.ShowStat;
+            mi显示接收字符串.Checked = cfg.ShowReceiveString;
         }
 
         void SaveConfig()
@@ -77,6 +78,7 @@ namespace XNet
             cfg.ShowSend = mi显示发送数据.Checked;
             cfg.ShowReceive = mi显示接收数据.Checked;
             cfg.ShowStat = mi显示统计信息.Checked;
+            cfg.ShowReceiveString = mi显示接收字符串.Checked;
             cfg.Save();
         }
         #endregion
@@ -227,14 +229,13 @@ namespace XNet
                 session = ns.Session;
             }
 
-            //var line = String.Format("{0} [{1}]: {2}", session.Remote, e.Length, e.ToHex());
-            //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
-            //TextControlLog.WriteLog(txtReceive, line);
-            var line = e.ToStr();
-            XTrace.WriteLine(line);
-            //XTrace.WriteLine(e.ToStr());
+            if (NetConfig.Current.ShowReceiveString)
+            {
+                var line = e.ToStr();
+                XTrace.WriteLine(line);
 
-            if (BizLog != null) BizLog.Info(line);
+                if (BizLog != null) BizLog.Info(line);
+            }
         }
 
         Int32 _pColor = 0;
@@ -277,17 +278,35 @@ namespace XNet
             // 多次发送
             var count = (Int32)numMutilSend.Value;
             var sleep = (Int32)numSleep.Value;
+            var ths = (Int32)numThreads.Value;
             if (count <= 0) count = 1;
             if (sleep <= 0) sleep = 100;
 
             // 处理换行
             str = str.Replace("\n", "\r\n");
 
+            if (ths <= 1)
+                MutilSendAsync(_Client, str, count, sleep);
+            else
+            {
+                // 多线程测试
+                for (int i = 0; i < ths; i++)
+                {
+                    var client = _Client.Remote.CreateRemote();
+                    client.StatSend = _Client.StatSend;
+                    client.StatReceive = _Client.StatReceive;
+                    MutilSendAsync(client, str, count, sleep);
+                }
+            }
+        }
+
+        void MutilSendAsync(ISocketClient client, String str, Int32 count, Int32 sleep)
+        {
             ThreadPoolX.QueueUserWorkItem(() =>
             {
                 for (int i = 0; i < count; i++)
                 {
-                    if (_Client != null) _Client.Send(str);
+                    if (client != null) client.Send(str);
 
                     if (count > 1) Thread.Sleep(sleep);
                 }
@@ -324,6 +343,12 @@ namespace XNet
         {
             var mi = sender as ToolStripMenuItem;
             NetConfig.Current.ShowStat = mi.Checked = !mi.Checked;
+        }
+
+        private void mi显示接收字符串_Click(object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            NetConfig.Current.ShowReceiveString = mi.Checked = !mi.Checked;
         }
         #endregion
 

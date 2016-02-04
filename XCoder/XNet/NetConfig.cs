@@ -35,6 +35,10 @@ namespace XNet
         [Description("十六进制显示")]
         public Boolean HexShow { get { return _HexShow; } set { _HexShow = value; } }
 
+        /// <summary>显示接收字符串</summary>
+        [Description("显示接收字符串")]
+        public Boolean ShowReceiveString { get; set; }
+
         /// <summary>显示发送数据</summary>
         [Description("显示发送数据")]
         public Boolean ShowSend { get; set; }
