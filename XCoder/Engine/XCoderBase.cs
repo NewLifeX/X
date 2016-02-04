@@ -15,9 +15,9 @@ namespace XCoder
         /// <summary>表架构</summary>
         public virtual IDataTable Table { get { return _Table; } set { _Table = value; } }
 
-        private XConfig _Config;
+        private ModelConfig _Config;
         /// <summary>配置</summary>
-        public XConfig Config { get { return _Config; } set { _Config = value; } }
+        public ModelConfig Config { get { return _Config; } set { _Config = value; } }
 
         private List<IDataTable> _Tables;
         /// <summary>表集合</summary>
@@ -36,7 +36,7 @@ namespace XCoder
             base.Initialize();
 
             if (Data.ContainsKey("Table")) Table = (IDataTable)Data["Table"];
-            if (Data.ContainsKey("Config")) Config = (XConfig)Data["Config"];
+            if (Data.ContainsKey("Config")) Config = (ModelConfig)Data["Config"];
             if (Data.ContainsKey("Tables")) Tables = (List<IDataTable>)Data["Tables"];
         }
         #endregion

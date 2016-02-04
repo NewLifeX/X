@@ -22,7 +22,7 @@ namespace XCoder
     {
         #region 属性
         /// <summary>配置</summary>
-        public static XConfig Config { get { return XConfig.Current; } }
+        public static ModelConfig Config { get { return ModelConfig.Current; } }
 
         private Engine _Engine;
         /// <summary>生成器</summary>
@@ -401,7 +401,7 @@ namespace XCoder
             if (!DAL.ConnStrs.TryGetValue(name, out setting) || setting.ConnectionString.IsNullOrWhiteSpace()) return;
 
             // 异步加载
-            ThreadPoolX.QueueUserWorkItem(delegate (Object state) { IList<IDataTable> tables = DAL.Create((String)state).Tables; }, name, null);
+            ThreadPoolX.QueueUserWorkItem(delegate(Object state) { IList<IDataTable> tables = DAL.Create((String)state).Tables; }, name, null);
         }
 
         private void btnRefreshTable_Click(object sender, EventArgs e)
@@ -539,7 +539,7 @@ namespace XCoder
         {
             //FrmItems.Create(XConfig.Current.Items).Show();
 
-            FrmItems.Create(XConfig.Current).Show();
+            FrmItems.Create(ModelConfig.Current).Show();
         }
         #endregion
 
@@ -618,7 +618,7 @@ namespace XCoder
             {
                 var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 var up = new Upgrade();
-                if (XConfig.Current.Debug) up.Log = XTrace.Log;
+                up.Log = XTrace.Log;
                 up.Name = "XCoder";
                 up.Server = "http://www.newlifex.com/showtopic-260.aspx";
                 up.UpdatePath = root.CombinePath(up.UpdatePath);

@@ -15,9 +15,9 @@ namespace XCoder
             set { _Dic = value; }
         }
 
-        private XConfig _XConfig;
+        private ModelConfig _XConfig;
         /// <summary>配置信息</summary>
-        public XConfig XConfig
+        public ModelConfig XConfig
         {
             get { return _XConfig; }
             set { _XConfig = value; }
@@ -51,7 +51,7 @@ namespace XCoder
         /// <summary>初始化界面</summary>
         /// <param name="xconfig"></param>
         /// <returns></returns>
-        public static FrmItems Create(XConfig xconfig)
+        public static FrmItems Create(ModelConfig xconfig)
         {
             FrmItems item = new FrmItems();
 

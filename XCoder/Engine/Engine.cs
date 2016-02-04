@@ -52,14 +52,14 @@ namespace XCoder
             }
         }
 
-        public Engine(XConfig config)
+        public Engine(ModelConfig config)
         {
             Config = config;
         }
 
-        private XConfig _Config;
+        private ModelConfig _Config;
         /// <summary>配置</summary>
-        public XConfig Config { get { return _Config; } set { _Config = value; } }
+        public ModelConfig Config { get { return _Config; } set { _Config = value; } }
 
         //private String _LastTableKey;
         //private List<IDataTable> _LastTables;
@@ -122,7 +122,7 @@ namespace XCoder
 
             #region 配置
             // 复制表属性到配置
-            var cfg = new XConfig();
+            var cfg = new ModelConfig();
             foreach (var pi in cfg.GetType().GetProperties())
             {
                 if (table.Properties.ContainsKey(pi.Name))

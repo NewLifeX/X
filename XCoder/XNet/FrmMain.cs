@@ -10,6 +10,7 @@ using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Sockets;
 using NewLife.Reflection;
+using NewLife.Threading;
 using XCoder;
 
 namespace XNet
@@ -55,25 +56,7 @@ namespace XNet
             if (config.Port > 0) numPort.Value = config.Port;
 
             // 加载保存的颜色
-            var ui = UIConfig.Load();
-            if (ui != null)
-            {
-                try
-                {
-                    txtReceive.Font = ui.Font;
-                    txtReceive.BackColor = ui.BackColor;
-                    txtReceive.ForeColor = ui.ForeColor;
-                }
-                catch { ui = null; }
-            }
-            if (ui == null)
-            {
-                ui = UIConfig.Current;
-                ui.Font = txtReceive.Font;
-                ui.BackColor = txtReceive.BackColor;
-                ui.ForeColor = txtReceive.ForeColor;
-                ui.Save();
-            }
+            UIConfig.Apply(txtReceive);
         }
         #endregion
 
@@ -258,15 +241,25 @@ namespace XNet
 
             // 多次发送
             var count = (Int32)numMutilSend.Value;
-            for (int i = 0; i < count; i++)
-            {
-                if (_Tcp != null)
-                    _Tcp.Send(str);
-                else if (_Udp != null)
-                    _Udp.Send(str);
+            var sleep = (Int32)numSleep.Value;
+            if (count <= 0) count = 1;
+            if (sleep <= 0) sleep = 100;
 
-                Thread.Sleep(100);
-            }
+            // 处理换行
+            str = str.Replace("\n", "\r\n");
+
+            ThreadPoolX.QueueUserWorkItem(() =>
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    if (_Tcp != null)
+                        _Tcp.Send(str);
+                    else if (_Udp != null)
+                        _Udp.Send(str);
+
+                    if (count > 1) Thread.Sleep(sleep);
+                }
+            });
         }
         #endregion
 
@@ -281,42 +274,6 @@ namespace XNet
         {
             txtSend.Clear();
             //spList.ClearSend();
-        }
-
-        void mi字体_Click(object sender, EventArgs e)
-        {
-            fontDialog1.Font = txtReceive.Font;
-            if (fontDialog1.ShowDialog() != DialogResult.OK) return;
-
-            txtReceive.Font = fontDialog1.Font;
-
-            var ui = UIConfig.Current;
-            ui.Font = txtReceive.Font;
-            ui.Save();
-        }
-
-        void mi前景色_Click(object sender, EventArgs e)
-        {
-            colorDialog1.Color = txtReceive.ForeColor;
-            if (colorDialog1.ShowDialog() != DialogResult.OK) return;
-
-            txtReceive.ForeColor = colorDialog1.Color;
-
-            var ui = UIConfig.Current;
-            ui.ForeColor = txtReceive.ForeColor;
-            ui.Save();
-        }
-
-        void mi背景色_Click(object sender, EventArgs e)
-        {
-            colorDialog1.Color = txtReceive.BackColor;
-            if (colorDialog1.ShowDialog() != DialogResult.OK) return;
-
-            txtReceive.BackColor = colorDialog1.Color;
-
-            var ui = UIConfig.Current;
-            ui.BackColor = txtReceive.BackColor;
-            ui.Save();
         }
         #endregion
 

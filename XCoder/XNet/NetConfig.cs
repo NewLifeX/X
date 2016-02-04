@@ -40,14 +40,9 @@ namespace XNet
         //[Description("十六进制自动换行")]
         //public Boolean HexNewLine { get { return _HexNewLine; } set { _HexNewLine = value; } }
 
-        private Boolean _HexSend;
-        /// <summary>十六进制发送</summary>
-        [Description("十六进制发送")]
-        public Boolean HexSend { get { return _HexSend; } set { _HexSend = value; } }
-
-        private String _Extend;
-        /// <summary>扩展数据</summary>
-        [Description("扩展数据")]
-        public String Extend { get { return _Extend; } set { _Extend = value; } }
+        //private Boolean _HexSend;
+        ///// <summary>十六进制发送</summary>
+        //[Description("十六进制发送")]
+        //public Boolean HexSend { get { return _HexSend; } set { _HexSend = value; } }
     }
 }

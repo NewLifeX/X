@@ -11,7 +11,7 @@ namespace XCoder
             this.Icon = Source.GetIcon();
         }
 
-        public static FrmFix Create(XConfig config)
+        public static FrmFix Create(ModelConfig config)
         {
             var frm = new FrmFix();
             frm.Config = config;
@@ -20,9 +20,9 @@ namespace XCoder
             return frm;
         }
 
-        private XConfig _Config;
+        private ModelConfig _Config;
         /// <summary>配置</summary>
-        public XConfig Config { get { return _Config; } set { _Config = value; } }
+        public ModelConfig Config { get { return _Config; } set { _Config = value; } }
 
         void LoadConfig()
         {

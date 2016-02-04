@@ -116,13 +116,15 @@ namespace XCoder
         static void Update(Boolean isAsync)
         {
             if (!isAsync) XTrace.WriteLine("自动更新！");
-            if (XConfig.Current.LastUpdate.Date < DateTime.Now.Date)
+
+            var cfg = XConfig.Current;
+            if (cfg.LastUpdate.Date < DateTime.Now.Date)
             {
-                XConfig.Current.LastUpdate = DateTime.Now;
+                cfg.LastUpdate = DateTime.Now;
 
                 var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 var up = new Upgrade();
-                if (XConfig.Current.Debug) up.Log = XTrace.Log;
+                up.Log = XTrace.Log;
                 up.Name = "XCoder";
                 up.Server = "http://www.newlifex.com/showtopic-260.aspx";
                 up.UpdatePath = root.CombinePath(up.UpdatePath);
@@ -135,6 +137,7 @@ namespace XCoder
                         // 留到执行完成以后自动更新
                         _upgrade = up;
                 }
+                cfg.Save();
             }
 
             if (isAsync)
@@ -153,7 +156,7 @@ namespace XCoder
         {
             XTrace.WriteLine("生成代码：模型{0} 配置{1}", mdl, cfg);
 
-            var config = cfg.ToXmlFileEntity<XConfig>();
+            var config = cfg.ToXmlFileEntity<ModelConfig>();
             XTrace.WriteLine("模版：{0}", config.TemplateName);
             XTrace.WriteLine("输出：{0}", config.OutputPath);
 

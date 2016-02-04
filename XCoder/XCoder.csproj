@@ -49,6 +49,7 @@
       <Link>Properties\AssemblyInfo_.cs</Link>
     </Compile>
     <Compile Include="Engine\IcoHelper.cs" />
+    <Compile Include="Engine\ModelConfig.cs" />
     <Compile Include="FolderInfo\FrmEncodeReplace.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -96,7 +97,7 @@
     <Compile Include="XCom\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
-    <Compile Include="XCom\UIConfig.cs" />
+    <Compile Include="Engine\UIConfig.cs" />
     <Compile Include="XICO\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -119,7 +120,6 @@
     <Compile Include="XNet\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
-    <Compile Include="XNet\UIConfig.cs" />
     <EmbeddedResource Include="FolderInfo\FrmEncodeReplace.resx">
       <DependentUpon>FrmEncodeReplace.cs</DependentUpon>
     </EmbeddedResource>
