@@ -87,8 +87,11 @@
 		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"..\代码生成\");
 		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"..\..\XCoder\");
 		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"..\..\代码生成\");
-		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"C:\X\XCoder\");
-		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"C:\X\代码生成\");
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"C:\X\XCoder\";
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"C:\X\代码生成\";
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"D:\X\XCoder\";
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"E:\X\XCoder\";
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"F:\X\XCoder\";
 		if(!File.Exists(xpath + "XCoder.exe")) throw new Exception("无法定位数据模型工具XCoder的位置！");
 		xpath = Path.GetFullPath(xpath);
 		
@@ -99,7 +102,7 @@
 	void Save(String file, Dictionary<String, Object> data)
 	{
 		var doc = new XmlDocument();
-		var root = doc.CreateElement("XConfig");
+		var root = doc.CreateElement("ModelConfig");
 		doc.AppendChild(root);
 
 		if (data != null && data.Count > 0)
