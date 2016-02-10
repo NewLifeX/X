@@ -52,7 +52,6 @@ namespace NewLife.Data
         #endregion
 
         #region 扩展属性
-
         private Int32 _TotalCount;
         /// <summary>总记录数</summary>
         public virtual Int32 TotalCount { get { return _TotalCount; } set { _TotalCount = value; } }
@@ -68,7 +67,7 @@ namespace NewLife.Data
             }
         }
 
-        /// <summary>排序字句</summary>
+        /// <summary>组合起来的排序字句</summary>
         public virtual String OrderBy
         {
             get
@@ -82,14 +81,16 @@ namespace NewLife.Data
         }
         #endregion
 
-        #region 构造克隆
+        #region 构造函数
         /// <summary>实例化分页参数</summary>
         public PageParameter() { }
 
         /// <summary>通过另一个分页参数来实例化当前分页参数</summary>
         /// <param name="pm"></param>
         public PageParameter(PageParameter pm) { CopyFrom(pm); }
+        #endregion
 
+        #region 方法
         /// <summary>从另一个分页参数拷贝到当前分页参数</summary>
         /// <param name="pm"></param>
         /// <returns></returns>
@@ -103,6 +104,13 @@ namespace NewLife.Data
             TotalCount = pm.TotalCount;
 
             return this;
+        }
+
+        /// <summary>获取表示分页参数唯一性的键值，可用作缓存键</summary>
+        /// <returns></returns>
+        public virtual String GetKey()
+        {
+            return "{0}-{1}-{2}".F(PageIndex, PageCount, OrderBy);
         }
         #endregion
     }
