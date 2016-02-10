@@ -481,4 +481,14 @@ namespace XCode.Membership
         /// <summary>更新时间</summary>
         DateTime UpdateTime { get; set; }
     }
+
+    ///// <summary>IP地址信息接口。包含创建地址和更新地址</summary>
+    //public interface IIPInfo
+    //{
+    //    /// <summary>创建IP地址</summary>
+    //    DateTime CreateIP { get; set; }
+
+    //    /// <summary>更新IP地址</summary>
+    //    DateTime UpdateIP { get; set; }
+    //}
 }
