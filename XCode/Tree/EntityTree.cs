@@ -88,6 +88,14 @@ namespace XCode
             set { SetExtend("AllChilds", value); }
         }
 
+        /// <summary>子孙节点，包含自己</summary>
+        [XmlIgnore]
+        public virtual EntityList<TEntity> MyAllChilds
+        {
+            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("MyAllChilds", e => FindAllChilds(this, true), !IsNullKey) : FindAllChilds(this, true); }
+            set { SetExtend("MyAllChilds", value); }
+        }
+
         /// <summary>父节点集合</summary>
         [XmlIgnore]
         public virtual EntityList<TEntity> AllParents
@@ -456,6 +464,10 @@ namespace XCode
         /// <summary>子孙键值集合</summary>
         [XmlIgnore]
         public List<TKey> AllChildKeys { get { return AllChilds.GetItem<TKey>(Setting.Key); } }
+
+        /// <summary>我的子孙键值集合，包含自己</summary>
+        [XmlIgnore]
+        public List<TKey> MyAllChildKeys { get { return MyAllChilds.GetItem<TKey>(Setting.Key); } }
 
         /// <summary>逗号分隔的子孙键值字符串，一般可用于SQL语句中</summary>
         [XmlIgnore]
