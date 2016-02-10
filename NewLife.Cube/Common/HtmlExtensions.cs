@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
 using System.Xml.Serialization;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
@@ -28,6 +29,7 @@ namespace NewLife.Cube
         public static MvcHtmlString ForEditor(this HtmlHelper Html, String name, Object value, Type type = null, String format = null, Object htmlAttributes = null)
         {
             if (type == null && value != null) type = value.GetType();
+            if (type == null) new XException("设计错误！ForEditor({0}, null, null)不能值和类型同时为空，否则会导致死循环", name);
 
             switch (Type.GetTypeCode(type))
             {
@@ -178,7 +180,7 @@ namespace NewLife.Cube
                 sb.AppendLine("<div class=\"form-group\">");
                 sb.AppendLine(Html.Label(pi.Name, pi.GetDisplayName(), new { @class = "control-label col-md-2" }).ToString());
                 sb.AppendLine("<div class=\"input-group col-md-8\">");
-                sb.AppendLine(Html.ForEditor(pi.Name, value.GetValue(pi)).ToString());
+                sb.AppendLine(Html.ForEditor(pi.Name, value.GetValue(pi), pi.PropertyType).ToString());
 
                 var des = pi.GetDescription();
                 if (!des.IsNullOrEmpty())
