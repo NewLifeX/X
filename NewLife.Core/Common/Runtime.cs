@@ -16,7 +16,7 @@ namespace NewLife
     {
         #region 控制台
 #if !Android
-       static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+        static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 #endif
 
         private static Boolean? _IsConsole;
@@ -112,7 +112,7 @@ namespace NewLife
                 var is64 = Is64BitOperatingSystem;
                 var sys = "";
 
-        #region Win32
+                #region Win32
                 if (os.Platform == PlatformID.Win32Windows)
                 {
                     // 非NT系统
@@ -135,7 +135,7 @@ namespace NewLife
                             break;
                     }
                 }
-        #endregion
+                #endregion
                 else if (os.Platform == PlatformID.Win32NT)
                     sys = GetNTName(vs);
                 else
@@ -242,9 +242,20 @@ namespace NewLife
                     else if (vs.Minor == 1)
                         sys = isStation ? "7" : "Server 2008 R2";
                     else if (vs.Minor == 2)
-                        sys = isStation ? "8" : "Server 2012";
+                    {
+                        if (vs.Build == 9200)
+                            sys = "10.0";
+                        else
+                            sys = isStation ? "8" : "Server 2012";
+                    }
+                    else if (vs.Minor == 3)
+                        sys = isStation ? "8.1" : "Server 2012 R2";
                     else
                         sys = String.Format("{0}.{1}", vs.Major, vs.Minor);
+                    break;
+                case 10:
+                    //sys = "10.0";
+                    sys = vs.ToString();
                     break;
                 default:
                     sys = "NT " + vs.ToString();
