@@ -324,6 +324,8 @@ namespace NewLife.Common
                 {
                     foreach (var item in drives)
                     {
+                        // 不统计未准备好的磁盘，否则会异常
+                        if (!item.IsReady) continue;
                         if (item.DriveType == DriveType.CDRom ||
                             item.DriveType == DriveType.Network ||
                             item.DriveType == DriveType.NoRootDirectory) continue;
