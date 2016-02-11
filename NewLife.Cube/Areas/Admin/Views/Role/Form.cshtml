@@ -3,7 +3,8 @@
 @using XCode.Configuration
 @{
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
-    var isNew = (Model as IEntity).IsNullKey;
+    var entity = Model as IEntity;
+    var isNew = entity.IsNullKey;
 }
 <div class="row">
     <div class="col-md-12">
@@ -39,7 +40,7 @@
                         }
                     }
                 }
-                @Html.Partial("_Form_Action", isNew)
+                @Html.Partial("_Form_Action", entity)
             }
         </div>
     </div>

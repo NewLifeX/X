@@ -1,6 +1,7 @@
 ﻿@using XCode.Membership;
 @{
-    var isNew = (Boolean)Model;
+    var entity = Model as IEntity;
+    var isNew = entity.IsNullKey;
 }
 @if (ManageProvider.User.Has(PermissionFlags.Insert, PermissionFlags.Update))
 {
