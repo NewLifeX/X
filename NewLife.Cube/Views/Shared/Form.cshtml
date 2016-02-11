@@ -5,28 +5,20 @@
     Layout = "~/Views/Shared/_Ace_Layout.cshtml";
     var fact = ViewBag.Factory as IEntityOperate;
     var fields = ViewBag.Fields as List<FieldItem>;
-    var isNew = (Model as IEntity).IsNullKey;
+    var entity = Model as IEntity;
+    var isNew = entity.IsNullKey;
+
+    // 创建更新等信息统一放在尾部
+    var names = new String[] {
+        "CreateUserID", "CreateUserName", "CreateTime", "CreateIP",
+        "UpdateUserID", "UpdateUserName", "UpdateTime", "UpdateIP",
+        "Remark" };
+    fields = fields.Where(e => !e.Name.EqualIgnoreCase(names)).ToList();
 }
 
 <div class="form-horizontal">
 
-    @if (ViewBag.StatusMessage != null)
-    {
-        if (ViewData.ModelState.Count > 0)
-        {
-            <div class="alert alert-danger alert-dismissible text-center" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <strong>@ViewBag.StatusMessage</strong>
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-success alert-dismissible text-center" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <strong>@ViewBag.StatusMessage</strong>
-            </div>
-        }
-    }
+    @Html.Partial("_Form_Header", entity)
     @using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
     {
         @Html.AntiForgeryToken()
@@ -40,6 +32,7 @@
                 </div>
             }
         }
-        @Html.Partial("_Form_Action", isNew)
+        @Html.Partial("_Form_Footer", entity)
+        @Html.Partial("_Form_Action", entity)
     }
 </div>

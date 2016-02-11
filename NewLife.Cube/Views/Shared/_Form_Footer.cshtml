@@ -1,0 +1,69 @@
+﻿@using NewLife.Cube;
+@{
+    var entity = Model as IEntity;
+    var fact = EntityFactory.CreateOperate(entity.GetType());
+
+    var user = Model as IUserInfo;
+    var time = Model as ITimeInfo;
+    var cip = fact.Table.FindByName("CreateIP");
+    var uip = fact.Table.FindByName("UpdateIP");
+    var remark = fact.Table.FindByName("Remark");
+    if (Object.Equals(remark, null)) { remark = fact.Table.FindByName("Description"); }
+}
+@if (user != null || time != null)
+{
+    <div class="form-group">
+        <label class="control-label col-md-2">创建</label>
+        <div class="col-md-3">
+            @if (user != null)
+            {
+                <span class="text-primary">@user.CreateUserName</span>
+            }
+            @if (time != null)
+            {
+                <span class="text-success">@time.CreateTime.ToFullString()</span>
+            }
+            @if (!Object.Equals(cip, null))
+            {
+                var ip = entity[cip.Name] + "";
+                <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
+            }
+            @if (!Object.Equals(remark, null))
+            {
+                <div class="form-group">
+                    <label class="control-label col-md-2">@remark.DisplayName</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
+                        @Html.ForDescription(remark)
+                    </div>
+                </div>
+            }
+        </div>
+        <label class="control-label col-md-1">更新</label>
+        <div class="col-md-3">
+            @if (user != null)
+            {
+                <span class="text-primary">@user.UpdateUserName</span>
+            }
+            @if (time != null)
+            {
+                <span class="text-success">@time.UpdateTime.ToFullString()</span>
+            }
+            @if (!Object.Equals(uip, null))
+            {
+                var ip = entity[uip.Name] + "";
+                <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
+            }
+            @if (!Object.Equals(remark, null))
+            {
+                <div class="form-group">
+                    <label class="control-label col-md-2">@remark.DisplayName</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
+                        @Html.ForDescription(remark)
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
