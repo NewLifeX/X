@@ -25,7 +25,8 @@ namespace NewLife.Web
 
             // 先检查当前目录，再检查插件目录
             var file = dll.GetFullPath();
-            if (!File.Exists(file)) file = Setting.Current.GetPluginPath().CombinePath(file);
+            if (!File.Exists(file) && Runtime.IsWeb) file = "Bin".GetFullPath().CombinePath(dll);
+            if (!File.Exists(file)) file = Setting.Current.GetPluginPath().CombinePath(dll);
 
             // 如果本地没有数据库，则从网络下载
             if (!File.Exists(file))
