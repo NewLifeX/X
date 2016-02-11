@@ -1,0 +1,45 @@
+﻿@using NewLife;
+@using NewLife.Web;
+@using XCode;
+@using XCode.Configuration;
+@{
+    var fact = ViewBag.Factory as IEntityOperate;
+    var page = ViewBag.Page as Pager;
+    var fields = ViewBag.Fields as List<FieldItem>;
+}
+<table class="table table-bordered table-hover table-striped table-condensed">
+    <thead>
+        <tr>
+            @foreach (var item in fields)
+            {
+                var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
+                if (item.PrimaryKey)
+                {
+                    <th class="text-center hidden-md hidden-sm hidden-xs"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
+                }
+                else
+                {
+                    <th class="text-center"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
+                }
+            }
+            <th class="text-center">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entity in Model)
+        {
+            <tr>
+                @foreach (var item in fields)
+                {
+                    @Html.Partial("_Data_Item", new Pair(entity, item))
+                }
+                @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                {
+                    <td class="text-center">
+                        @Html.Partial("_Data_Action", (Object)entity)
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
