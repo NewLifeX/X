@@ -259,6 +259,16 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="Views\Shared\_Form_Footer.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_Form_Footer.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Shared\_Form_Header.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_Form_Header.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Shared\_Form_Item.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -562,6 +572,14 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_Form_Footer.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Form_Footer.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Shared\_Form_Header.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Form_Header.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\_Layout_Header.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Layout_Header.generated.cs</LastGenOutput>
