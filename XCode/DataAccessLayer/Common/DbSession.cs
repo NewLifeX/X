@@ -644,25 +644,10 @@ namespace XCode.DataAccessLayer
             DbConnection conn = null;
             if (isTrans)
             {
-#if DEBUG
-                try
-                {
-                    conn = Factory.CreateConnection();
-                    checkConnStr();
-                    conn.ConnectionString = ConnectionString;
-                    conn.Open();
-                }
-                catch (DbException ex)
-                {
-                    DAL.WriteLog("导致GetSchema错误的连接字符串：{0}", conn.ConnectionString);
-                    throw new XDbSessionException(this, "取得所有表构架出错！连接字符串有问题，请查看日志！", ex);
-                }
-#else
                 conn = Factory.CreateConnection();
                 checkConnStr();
                 conn.ConnectionString = ConnectionString;
                 conn.Open();
-#endif
             }
             else
             {
@@ -673,6 +658,9 @@ namespace XCode.DataAccessLayer
             try
             {
                 DataTable dt;
+
+                var sw = new Stopwatch();
+                sw.Start();
 
                 if (restrictionValues == null || restrictionValues.Length < 1)
                 {
@@ -710,6 +698,10 @@ namespace XCode.DataAccessLayer
                     else
                         dt = null;
                 }
+
+                sw.Stop();
+                // 耗时超过多少秒输出错误日志
+                if (sw.ElapsedMilliseconds > 1000) DAL.WriteLog("耗时 {0:n0}ms", sw.ElapsedMilliseconds);
 
                 return dt;
             }
