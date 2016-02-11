@@ -21,21 +21,23 @@ namespace NewLife.Web
             var type = typeName.GetTypeEx(true);
             if (type != null) return type;
 
-            var file = dll;
-            file = Setting.Current.GetPluginPath().CombinePath(file);
-            file = file.EnsureDirectory();
+            if (dll.IsNullOrEmpty()) return null;
+
+            // 先检查当前目录，再检查插件目录
+            var file = dll.GetFullPath();
+            if (!File.Exists(file)) file = Setting.Current.GetPluginPath().CombinePath(file);
 
             // 如果本地没有数据库，则从网络下载
-            if (!dll.IsNullOrEmpty() || !File.Exists(file))
+            if (!File.Exists(file))
             {
                 XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", disname ?? dll, url);
 
                 var client = new WebClientX(true, true);
                 client.Log = XTrace.Log;
-                var dir = !dll.IsNullOrEmpty() ? Path.GetDirectoryName(file) : ".".GetFullPath();
+                var dir = Path.GetDirectoryName(file);
                 var file2 = client.DownloadLinkAndExtract(url, linkName, dir);
             }
-            if (!dll.IsNullOrEmpty() && !File.Exists(file))
+            if (!File.Exists(file))
             {
                 XTrace.WriteLine("未找到 {0} {1}", disname, dll);
                 return null;
