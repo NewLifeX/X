@@ -346,14 +346,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\ace\avatars\avatar.png" />
-    <Content Include="Content\ace\avatars\avatar1.png" />
-    <Content Include="Content\ace\avatars\avatar2.png" />
-    <Content Include="Content\ace\avatars\avatar3.png" />
-    <Content Include="Content\ace\avatars\avatar4.png" />
-    <Content Include="Content\ace\avatars\avatar5.png" />
-    <Content Include="Content\ace\avatars\profile-pic.jpg" />
-    <Content Include="Content\ace\avatars\user.jpg" />
     <Content Include="Content\ace\css\ace-fonts.min.css" />
     <Content Include="Content\ace\css\ace-ie.min.css" />
     <Content Include="Content\ace\css\ace-part2.min.css" />
