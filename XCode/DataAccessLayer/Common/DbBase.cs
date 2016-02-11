@@ -261,10 +261,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected static DbProviderFactory GetProviderFactory(String assemblyFile, String className)
         {
-            // 反射实现获取数据库工厂
-            var file = assemblyFile;
-            file = NewLife.Setting.Current.GetPluginPath().CombinePath(file);
-
             var url = "http://www.newlifex.com/showtopic-51.aspx";
             var name = Path.GetFileNameWithoutExtension(assemblyFile);
             var linkName = name;
@@ -276,8 +272,12 @@ namespace XCode.DataAccessLayer
 
             var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName, url);
 
+            // 反射实现获取数据库工厂
+            var file = assemblyFile;
+            file = NewLife.Setting.Current.GetPluginPath().CombinePath(file);
+
             // 如果还没有，就写异常
-            if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+            if (type == null && !File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
 
             if (type == null)
             {
