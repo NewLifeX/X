@@ -42,11 +42,11 @@ namespace NewLife.Cube.Precompiled
             virtualPath = "Falafel.Resources" + virtualPath.Replace('/', '.');
             virtualPath = assembly.GetManifestResourceNames().FirstOrDefault(i => i.ToLower() == virtualPath.ToLower());
 
-            using (Stream stream = assembly.GetManifestResourceStream(virtualPath))
+            using (var stream = assembly.GetManifestResourceStream(virtualPath))
             {
-                using (StreamReader reader = new StreamReader(stream))
+                using (var reader = new StreamReader(stream))
                 {
-                    string result = reader.ReadToEnd();
+                    var result = reader.ReadToEnd();
                     return result;
                 }
             }

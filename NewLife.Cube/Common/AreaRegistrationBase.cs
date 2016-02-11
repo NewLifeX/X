@@ -72,7 +72,7 @@ namespace NewLife.Cube
             filters.Add(new MvcHandleErrorAttribute());
             filters.Add(new EntityAuthorizeAttribute() { IsGlobal = true });
 
-            // 从数据库或者资源问价加载模版页面的例子
+            // 从数据库或者资源文件加载模版页面的例子
             //HostingEnvironment.RegisterVirtualPathProvider(new ViewPathProvider());
 
             //var routes = RouteTable.Routes;
@@ -122,6 +122,7 @@ namespace NewLife.Cube
         {
             XTrace.WriteLine("开始注册权限管理区域[{0}]", AreaName);
 
+            // 注册本区域默认路由
             context.MapRoute(
                 AreaName,
                 AreaName + "/{controller}/{action}/{id}",
