@@ -345,26 +345,26 @@ namespace XCode.DataAccessLayer
             //一次性把所有的表说明查出来
             DataTable DescriptionTable = null;
 
-            var old = session.ShowSQL;
-            session.ShowSQL = false;
+            //var old = session.ShowSQL;
+            //session.ShowSQL = false;
             try
             {
                 DescriptionTable = session.Query(DescriptionSql).Tables[0];
             }
             catch { }
-            session.ShowSQL = old;
+            //session.ShowSQL = old;
 
             var dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
-            session.ShowSQL = false;
+            //session.ShowSQL = false;
             try
             {
                 AllFields = session.Query(SchemaSql).Tables[0];
                 AllIndexes = session.Query(IndexSql).Tables[0];
             }
             catch { }
-            session.ShowSQL = old;
+            //session.ShowSQL = old;
             #endregion
 
             // 列出用户表

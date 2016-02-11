@@ -134,22 +134,31 @@ namespace XCoder
 
         void AutoDetectDatabase()
         {
-            var list = new List<String>();
-
             // 加上本机MSSQL
             String localName = "local_MSSQL";
             String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
             if (!ContainConnStr(localstr)) DAL.AddConnStr(localName, localstr, null, "mssql");
 
+            // 检测本地Access和SQLite
+            ThreadPoolX.QueueUserWorkItem(DetectFile);
+
+            //!!! 必须另外实例化一个列表，否则作为数据源绑定时，会因为是同一个对象而被跳过
+            //var list = new List<String>();
+
+            // 探测连接中的其它库
+            ThreadPoolX.QueueUserWorkItem(DetectRemote);
+        }
+
+        void DetectFile(Object state)
+        {
             var sw = new Stopwatch();
             sw.Start();
 
-            #region 检测本地Access和SQLite
             var n = 0;
-            String[] ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
+            var ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
             foreach (String item in ss)
             {
-                String ext = Path.GetExtension(item);
+                var ext = Path.GetExtension(item);
                 //if (ext.EqualIC(".exe")) continue;
                 //if (ext.EqualIC(".dll")) continue;
                 //if (ext.EqualIC(".zip")) continue;
@@ -164,11 +173,11 @@ namespace XCoder
                 }
                 catch (Exception ex) { XTrace.WriteException(ex); }
             }
-            #endregion
 
             sw.Stop();
             XTrace.WriteLine("自动检测文件{0}个，发现数据库{1}个，耗时：{2}！", ss.Length, n, sw.Elapsed);
 
+            var list = new List<String>();
             foreach (var item in DAL.ConnStrs)
             {
                 if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
@@ -176,86 +185,6 @@ namespace XCoder
 
             // 远程数据库耗时太长，这里先列出来
             this.Invoke(SetDatabaseList, list);
-            //!!! 必须另外实例化一个列表，否则作为数据源绑定时，会因为是同一个对象而被跳过
-            list = new List<String>(list);
-
-            sw.Reset();
-            sw.Start();
-
-            #region 探测连接中的其它库
-            var sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
-            n = 0;
-            var names = new List<String>();
-            foreach (var item in list)
-            {
-                try
-                {
-                    var dal = DAL.Create(item);
-                    if (dal.DbType != DatabaseType.SqlServer) continue;
-
-                    DataTable dt = null;
-                    String dbprovider = null;
-
-                    // 列出所有数据库
-                    Boolean old = DAL.ShowSQL;
-                    DAL.ShowSQL = false;
-                    try
-                    {
-                        if (dal.Db.CreateMetaData().MetaDataCollections.Contains("Databases"))
-                        {
-                            dt = dal.Db.CreateSession().GetSchema("Databases", null);
-                            dbprovider = dal.DbType.ToString();
-                        }
-                    }
-                    finally { DAL.ShowSQL = old; }
-
-                    if (dt == null) continue;
-
-                    var builder = new DbConnectionStringBuilder();
-                    builder.ConnectionString = dal.ConnStr;
-
-                    // 统计库名
-                    foreach (DataRow dr in dt.Rows)
-                    {
-                        String dbname = dr[0].ToString();
-                        if (Array.IndexOf(sysdbnames, dbname) >= 0) continue;
-
-                        String connName = String.Format("{0}_{1}", item, dbname);
-
-                        builder["Database"] = dbname;
-                        DAL.AddConnStr(connName, builder.ToString(), null, dbprovider);
-                        n++;
-
-                        try
-                        {
-                            String ver = dal.Db.ServerVersion;
-                            names.Add(connName);
-                        }
-                        catch
-                        {
-                            if (DAL.ConnStrs.ContainsKey(connName)) DAL.ConnStrs.Remove(connName);
-                        }
-                    }
-                }
-                catch
-                {
-                    if (item == localName) DAL.ConnStrs.Remove(localName);
-                }
-            }
-            #endregion
-
-            sw.Stop();
-            XTrace.WriteLine("发现远程数据库{0}个，耗时：{1}！", n, sw.Elapsed);
-
-            if (DAL.ConnStrs.ContainsKey(localName)) DAL.ConnStrs.Remove(localName);
-            if (list.Contains(localName)) list.Remove(localName);
-
-            if (names != null && names.Count > 0)
-            {
-                list.AddRange(names);
-
-                this.Invoke(SetDatabaseList, list);
-            }
         }
 
         Boolean DetectFileDb(String item)
@@ -308,6 +237,103 @@ namespace XCoder
             }
 
             return false;
+        }
+
+        void DetectSqlServer(Object state)
+        {
+            var item = (String)state;
+            try
+            {
+                var dal = DAL.Create(item);
+                if (dal.DbType != DatabaseType.SqlServer) return;
+
+                var sw = new Stopwatch();
+                sw.Start();
+
+                DataTable dt = null;
+
+                // 列出所有数据库
+                //Boolean old = DAL.ShowSQL;
+                //DAL.ShowSQL = false;
+                //try
+                //{
+                if (dal.Db.CreateMetaData().MetaDataCollections.Contains("Databases"))
+                {
+                    dt = dal.Db.CreateSession().GetSchema("Databases", null);
+                }
+                //}
+                //finally { DAL.ShowSQL = old; }
+
+                if (dt == null) return;
+
+                var dbprovider = dal.DbType.ToString();
+                var builder = new DbConnectionStringBuilder();
+                builder.ConnectionString = dal.ConnStr;
+
+                // 统计库名
+                var n = 0;
+                var names = new List<String>();
+                var sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
+                foreach (DataRow dr in dt.Rows)
+                {
+                    String dbname = dr[0].ToString();
+                    if (Array.IndexOf(sysdbnames, dbname) >= 0) continue;
+
+                    String connName = String.Format("{0}_{1}", item, dbname);
+
+                    builder["Database"] = dbname;
+                    DAL.AddConnStr(connName, builder.ToString(), null, dbprovider);
+                    n++;
+
+                    try
+                    {
+                        String ver = dal.Db.ServerVersion;
+                        names.Add(connName);
+                    }
+                    catch
+                    {
+                        if (DAL.ConnStrs.ContainsKey(connName)) DAL.ConnStrs.Remove(connName);
+                    }
+                }
+
+
+                sw.Stop();
+                XTrace.WriteLine("发现远程数据库{0}个，耗时：{1}！", n, sw.Elapsed);
+
+                if (names != null && names.Count > 0)
+                {
+                    var list = new List<String>();
+                    foreach (var elm in DAL.ConnStrs)
+                    {
+                        if (!String.IsNullOrEmpty(elm.Value.ConnectionString)) list.Add(elm.Key);
+                    }
+                    list.AddRange(names);
+
+                    this.Invoke(SetDatabaseList, list);
+                }
+            }
+            catch
+            {
+                //if (item == localName) DAL.ConnStrs.Remove(localName);
+            }
+        }
+
+        void DetectRemote(Object state)
+        {
+            var list = new List<String>();
+            foreach (var item in DAL.ConnStrs)
+            {
+                if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
+            }
+
+            var localName = "local_MSSQL";
+            foreach (var item in list)
+            {
+                ThreadPoolX.QueueUserWorkItem(DetectSqlServer, item);
+            }
+
+            if (DAL.ConnStrs.ContainsKey(localName)) DAL.ConnStrs.Remove(localName);
+            //if (list.Contains(localName)) list.Remove(localName);
         }
 
         Boolean ContainConnStr(String connstr)
