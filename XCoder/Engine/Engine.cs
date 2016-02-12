@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using NewLife;
 using NewLife.Model;
 using NewLife.Reflection;
-using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
 
@@ -85,9 +84,9 @@ namespace XCoder
             set { _Tables = value; }
         }
 
-        private static ITranslate _Translate;
-        /// <summary>翻译接口</summary>
-        static ITranslate Translate { get { return _Translate ?? (_Translate = new NnhyServiceTranslate()); } }
+        //private static ITranslate _Translate;
+        ///// <summary>翻译接口</summary>
+        //static ITranslate Translate { get { return _Translate ?? (_Translate = new NnhyServiceTranslate()); } }
         #endregion
 
         #region 构造
@@ -307,8 +306,8 @@ namespace XCoder
 
                 if (String.IsNullOrEmpty(table.Description))
                     noCNDic.Add(table, table.Name);
-                else
-                    AddExistTranslate(existTrans, !string.IsNullOrEmpty(table.Name) ? table.Name : table.TableName, table.Description);
+                //else
+                //    AddExistTranslate(existTrans, !string.IsNullOrEmpty(table.Name) ? table.Name : table.TableName, table.Description);
 
                 // 字段
                 foreach (var dc in table.Columns)
@@ -317,8 +316,8 @@ namespace XCoder
 
                     if (String.IsNullOrEmpty(dc.Description))
                         noCNDic.Add(dc, dc.Name);
-                    else
-                        AddExistTranslate(existTrans, !string.IsNullOrEmpty(dc.Name) ? dc.Name : dc.ColumnName, dc.Description);
+                    //else
+                    //    AddExistTranslate(existTrans, !string.IsNullOrEmpty(dc.Name) ? dc.Name : dc.ColumnName, dc.Description);
                 }
 
                 //table.Fix();
@@ -327,115 +326,115 @@ namespace XCoder
             ModelHelper.Connect(list);
             #endregion
 
-            #region 异步调用接口修正中文名
-            //if (Config.UseCNFileName && noCNDic.Count > 0)
-            if (noCNDic.Count > 0)
-            {
-                ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic);
-            }
-            #endregion
+            //#region 异步调用接口修正中文名
+            ////if (Config.UseCNFileName && noCNDic.Count > 0)
+            //if (noCNDic.Count > 0)
+            //{
+            //    ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic);
+            //}
+            //#endregion
 
-            #region 提交已翻译的项目
-            if (existTrans.Count > 0)
-            {
-                ThreadPoolX.QueueUserWorkItem(SubmitTranslateNew, existTrans.ToArray());
-            }
-            #endregion
+            //#region 提交已翻译的项目
+            //if (existTrans.Count > 0)
+            //{
+            //    ThreadPoolX.QueueUserWorkItem(SubmitTranslateNew, existTrans.ToArray());
+            //}
+            //#endregion
 
             return list;
         }
 
-        void TranslateWords(Object state)
-        {
-            var dic = state as Dictionary<Object, String>;
+        //void TranslateWords(Object state)
+        //{
+        //    var dic = state as Dictionary<Object, String>;
 
-            var words = new string[dic.Values.Count];
-            dic.Values.CopyTo(words, 0);
-            var rs = Translate.Translate(words);
-            if (rs == null || rs.Length < 1) return;
+        //    var words = new string[dic.Values.Count];
+        //    dic.Values.CopyTo(words, 0);
+        //    var rs = Translate.Translate(words);
+        //    if (rs == null || rs.Length < 1) return;
 
-            var ts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            for (int i = 0; i < words.Length && i < rs.Length; i++)
-            {
-                var key = words[i].Replace(" ", null);
-                if (!ts.ContainsKey(key) && !String.IsNullOrEmpty(rs[i]) && words[i] != rs[i] && key != rs[i].Replace(" ", null)) ts.Add(key, rs[i].Replace(" ", null));
-            }
+        //    var ts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        //    for (int i = 0; i < words.Length && i < rs.Length; i++)
+        //    {
+        //        var key = words[i].Replace(" ", null);
+        //        if (!ts.ContainsKey(key) && !String.IsNullOrEmpty(rs[i]) && words[i] != rs[i] && key != rs[i].Replace(" ", null)) ts.Add(key, rs[i].Replace(" ", null));
+        //    }
 
-            foreach (var item in dic)
-            {
-                if (!ts.ContainsKey(item.Value) || String.IsNullOrEmpty(ts[item.Value])) continue;
+        //    foreach (var item in dic)
+        //    {
+        //        if (!ts.ContainsKey(item.Value) || String.IsNullOrEmpty(ts[item.Value])) continue;
 
-                if (item.Key is IDataTable)
-                    (item.Key as IDataTable).Description = ts[item.Value];
-                else if (item.Key is IDataColumn)
-                    (item.Key as IDataColumn).Description = ts[item.Value];
-            }
-        }
+        //        if (item.Key is IDataTable)
+        //            (item.Key as IDataTable).Description = ts[item.Value];
+        //        else if (item.Key is IDataColumn)
+        //            (item.Key as IDataColumn).Description = ts[item.Value];
+        //    }
+        //}
 
-        void SubmitTranslateNew(object state)
-        {
-            var existTrans = state as string[];
-            if (existTrans != null && existTrans.Length > 0)
-            {
-                //var serv = new NnhyServiceTranslate();
-                Translate.TranslateNew("1", existTrans);
-                var trans = new List<string>(ExistSubmitTrans);
-                trans.AddRange(existTrans);
-                ExistSubmitTrans = trans.ToArray();
-            }
-        }
+        //void SubmitTranslateNew(object state)
+        //{
+        //    var existTrans = state as string[];
+        //    if (existTrans != null && existTrans.Length > 0)
+        //    {
+        //        //var serv = new NnhyServiceTranslate();
+        //        Translate.TranslateNew("1", existTrans);
+        //        var trans = new List<string>(ExistSubmitTrans);
+        //        trans.AddRange(existTrans);
+        //        ExistSubmitTrans = trans.ToArray();
+        //    }
+        //}
 
-        private static string[] _ExistSubmitTrans;
-        private static string[] ExistSubmitTrans
-        {
-            get
-            {
-                if (_ExistSubmitTrans == null)
-                {
-                    var f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
-                    f = Path.Combine(f, "SubmitedTranslations.dat");
-                    if (File.Exists(f))
-                        _ExistSubmitTrans = File.ReadAllLines(f);
-                    else
-                        _ExistSubmitTrans = new string[] { };
-                }
-                return _ExistSubmitTrans;
-            }
-            set
-            {
-                if (value != null && value.Length > 0)
-                {
-                    var f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
-                    if (!String.IsNullOrEmpty(f) && !Directory.Exists(f)) Directory.CreateDirectory(f);
-                    f = Path.Combine(f, "SubmitedTranslations.dat");
-                    File.WriteAllLines(f, value);
-                    _ExistSubmitTrans = value;
-                }
-            }
-        }
+        //private static string[] _ExistSubmitTrans;
+        //private static string[] ExistSubmitTrans
+        //{
+        //    get
+        //    {
+        //        if (_ExistSubmitTrans == null)
+        //        {
+        //            var f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
+        //            f = Path.Combine(f, "SubmitedTranslations.dat");
+        //            if (File.Exists(f))
+        //                _ExistSubmitTrans = File.ReadAllLines(f);
+        //            else
+        //                _ExistSubmitTrans = new string[] { };
+        //        }
+        //        return _ExistSubmitTrans;
+        //    }
+        //    set
+        //    {
+        //        if (value != null && value.Length > 0)
+        //        {
+        //            var f = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "XCoder");
+        //            if (!String.IsNullOrEmpty(f) && !Directory.Exists(f)) Directory.CreateDirectory(f);
+        //            f = Path.Combine(f, "SubmitedTranslations.dat");
+        //            File.WriteAllLines(f, value);
+        //            _ExistSubmitTrans = value;
+        //        }
+        //    }
+        //}
 
-        void AddExistTranslate(List<string> trans, string text, string tranText)
-        {
-            if (text != null) text = text.Trim();
-            if (tranText != null) tranText = tranText.Trim();
-            if (string.IsNullOrEmpty(text)) return;
-            if (string.IsNullOrEmpty(tranText)) return;
-            if (text.EqualIgnoreCase(tranText)) return;
+        //void AddExistTranslate(List<string> trans, string text, string tranText)
+        //{
+        //    if (text != null) text = text.Trim();
+        //    if (tranText != null) tranText = tranText.Trim();
+        //    if (string.IsNullOrEmpty(text)) return;
+        //    if (string.IsNullOrEmpty(tranText)) return;
+        //    if (text.EqualIgnoreCase(tranText)) return;
 
-            for (int i = 0; i < trans.Count - 1; i += 2)
-            {
-                if (trans[i].EqualIgnoreCase(text) && trans[i + 1].EqualIgnoreCase(tranText)) return;
-            }
+        //    for (int i = 0; i < trans.Count - 1; i += 2)
+        //    {
+        //        if (trans[i].EqualIgnoreCase(text) && trans[i + 1].EqualIgnoreCase(tranText)) return;
+        //    }
 
-            var ests = ExistSubmitTrans;
-            for (int i = 0; i < ests.Length - 1; i += 2)
-            {
-                if (ests[i].EqualIgnoreCase(text) && ests[i + 1].EqualIgnoreCase(tranText)) return;
-            }
+        //    var ests = ExistSubmitTrans;
+        //    for (int i = 0; i < ests.Length - 1; i += 2)
+        //    {
+        //        if (ests[i].EqualIgnoreCase(text) && ests[i + 1].EqualIgnoreCase(tranText)) return;
+        //    }
 
-            trans.Add(text);
-            trans.Add(tranText);
-        }
+        //    trans.Add(text);
+        //    trans.Add(tranText);
+        //}
         #endregion
 
         #region 辅助

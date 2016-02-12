@@ -27,7 +27,7 @@ namespace Test2
         {
             proxy = new NATProxy(RemoteHost, RemotePort);
             proxy.Port = this.LocalPort;
-            proxy.Servers.ForEach(ser => ser.MaxNotActive = 0);
+            //proxy.Servers.ForEach(ser => ser.MaxNotActive = 0);
         }
 
         public void Start()
