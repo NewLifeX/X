@@ -166,7 +166,7 @@ namespace NewLife.Web
         public String DownloadLink(String url, String name, String destdir)
         {
             var cacheTime = DateTime.Now.AddDays(1);
-            var cachedir = Setting.Current.DownloadCache;
+            var cachedir = Setting.Current.PluginCache;
             var names = name.Split(",", ";");
 
             var file = "";
@@ -262,7 +262,7 @@ namespace NewLife.Web
         public String DownloadLinkAndExtract(String url, String name, String destdir)
         {
             var file = "";
-            var cachedir = Setting.Current.DownloadCache;
+            var cachedir = Setting.Current.PluginCache;
             try
             {
                 file = DownloadLink(url, name, cachedir);

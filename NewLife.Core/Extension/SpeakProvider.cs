@@ -16,7 +16,7 @@ namespace NewLife.Extension
         {
             try
             {
-                var url = "http://www.newlifex.com/showtopic-51.aspx";
+                var url = Setting.Current.PluginServer;
                 _type = PluginHelper.LoadPlugin(typeName, "语音驱动库", "Microsoft.Speech.dll", "Microsoft.Speech", url);
 
                 CheckVoice();
@@ -50,7 +50,7 @@ namespace NewLife.Extension
             }
             catch { }
 
-            var url = "http://www.newlifex.com/showtopic-51.aspx";
+            var url = Setting.Current.PluginServer;
             XTrace.WriteLine("没有找到语音运行时，准备联网获取 {0}", url);
 
             var dir = ".".GetFullPath();

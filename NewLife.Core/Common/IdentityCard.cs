@@ -7,13 +7,8 @@ namespace NewLife.Common
     public class IdentityCard
     {
         #region 属性
-        private DateTime _Birthday;
         /// <summary>生日</summary>
-        public DateTime Birthday
-        {
-            get { return _Birthday; }
-            set { _Birthday = value; }
-        }
+        public DateTime Birthday { get; set; }
 
         /// <summary>性别</summary>
         public enum SexType
@@ -25,34 +20,19 @@ namespace NewLife.Common
             Woman
         }
 
-        private SexType _Sex;
         /// <summary>性别</summary>
-        public SexType Sex
-        {
-            get { return _Sex; }
-            set { _Sex = value; }
-        }
+        public SexType Sex { get; set; }
 
-        private Boolean _IsOld;
         /// <summary>是否15位旧卡</summary>
-        public Boolean IsOld
-        {
-            get { return _IsOld; }
-            set { _IsOld = value; }
-        }
+        public Boolean IsOld { get; set; }
 
-        private String _AreaNum;
         /// <summary>地区编码</summary>
-        public String AreaNum
-        {
-            get { return _AreaNum; }
-            set { _AreaNum = value; }
-        }
+        public String AreaNum { get; set; }
         #endregion
 
         #region 构造函数
-        /// <summary>初始化</summary>
-        public IdentityCard() { }
+        ///// <summary>初始化</summary>
+        //public IdentityCard() { }
         #endregion
 
         #region 验证
@@ -91,7 +71,7 @@ namespace NewLife.Common
             {
                 if (cache.TryGetValue(card, out ic)) return ic;
 
-                IdentityCard idc = Parse2(card);
+                var idc = Parse2(card);
                 cache.Add(card, idc);
                 return idc;
             }
@@ -99,9 +79,9 @@ namespace NewLife.Common
 
         private static IdentityCard Parse2(String card)
         {
-            String area = card.Substring(0, 6);
+            var area = card.Substring(0, 6);
 
-            IdentityCard idc = new IdentityCard();
+            var idc = new IdentityCard();
             idc.AreaNum = ParseArea(area);
 
             if (card.Length == 15)
@@ -123,7 +103,7 @@ namespace NewLife.Common
                 int y = -1;
                 Math.DivRem(sum, 11, out y);
                 if (arrVarifyCode[y] != card.Substring(17, 1).ToLower())
-                    throw new XException("验证码校验失败！"); 
+                    throw new XException("验证码校验失败！");
             }
 
             return idc;

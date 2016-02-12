@@ -501,6 +501,7 @@ namespace NewLife.Common
         //    ,"yi","qu","du","li","qing","can","an","fen","you","wu","yan","xi","qiu","han","zha"
         //};
         #endregion 二级汉字
+
         #region 变量定义
         // GB2312-80 标准规范中第一个汉字的机内码.即"啊"的机内码
         private const int firstChCode = -20319;
@@ -510,7 +511,6 @@ namespace NewLife.Common
         private const int lastOfOneLevelChCode = -10247;
         // 配置中文字符
         //static Regex regex = new Regex("[\u4e00-\u9fa5]$");
-
         #endregion
         #endregion
 
@@ -653,7 +653,7 @@ namespace NewLife.Common
                 if (_inited) return null;
                 _inited = true;
 
-                var url = "http://www.newlifex.com/showtopic-51.aspx";
+                var url = Setting.Current.PluginServer;
                 _type = PluginHelper.LoadPlugin("ChineseChar", "微软拼音库", "ChnCharInfo.dll", "PinYin", url);
                 if (_type == null) XTrace.WriteLine("未找到微软拼音库ChineseChar类");
             }

@@ -38,7 +38,7 @@ namespace NewLife.IP
             {
                 ThreadPoolX.QueueUserWorkItem(() =>
                 {
-                    var url = "http://www.newlifex.com/showtopic-51.aspx";
+                    var url = Setting.Current.PluginServer;
                     XTrace.WriteLine("没有找到IP数据库，准备联网获取 {0}", url);
 
                     var client = new WebClientX();

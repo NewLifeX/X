@@ -261,7 +261,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected static DbProviderFactory GetProviderFactory(String assemblyFile, String className)
         {
-            var url = "http://www.newlifex.com/showtopic-51.aspx";
+            var url = NewLife.Setting.Current.PluginServer;
             var name = Path.GetFileNameWithoutExtension(assemblyFile);
             var linkName = name;
             if (Runtime.Is64BitProcess) linkName += "64";
