@@ -178,8 +178,10 @@ namespace XCode.DataAccessLayer
             if (AutoFixWord) name = FixWord(name);
             if (name[0] == '_') name = name.Substring(1);
 
-            // 关键字加后缀
-            while (IsKeyWord(name)) name += "_";
+            //关键字加后缀
+            //2016.02.12 @宁波-小董，测试发现下面代码在Oracle环境中产生死循环，修改为if
+            //while (IsKeyWord(name)) name += "_";
+            if (IsKeyWord(name)) name += "_";
 
             return name;
         }
