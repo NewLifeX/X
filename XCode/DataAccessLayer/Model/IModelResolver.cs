@@ -343,6 +343,7 @@ namespace XCode.DataAccessLayer
             // 只要有大写字母，就不是关键字
             if (name.Any(c => c >= 'A' && c <= 'Z')) return false;
 
+            // 只是判断是否合法变量，而不是判断是否真的关键字
             return !_CG.IsValidIdentifier(name);
         }
 
