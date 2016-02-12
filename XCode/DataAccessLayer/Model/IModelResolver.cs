@@ -171,12 +171,23 @@ namespace XCode.DataAccessLayer
             name = name.Replace("　", null);
             name = name.Replace("/", "_");
             name = name.Replace("\\", "_");
-            if (name[0] == '_') name = name.Substring(1);
+
+            //if (name[0] == '_' && (name.Length == 1 || Char.IsLetter(name[1]))) name = name.Substring(1);
+            // 去除前缀不够严谨，导致出现数字开头的名称，那是非法的
+            if (name[0] == '_')
+            {
+                var str = name.Substring(1);
+                if (!IsKeyWord(str)) name = str;
+            }
 
             // 很多时候，这个别名就是表名
             name = CutPrefix(name);
             if (AutoFixWord) name = FixWord(name);
-            if (name[0] == '_') name = name.Substring(1);
+            if (name[0] == '_')
+            {
+                var str = name.Substring(1);
+                if (!IsKeyWord(str)) name = str;
+            }
 
             //关键字加后缀
             //2016.02.12 @宁波-小董，测试发现下面代码在Oracle环境中产生死循环，修改为if
@@ -222,16 +233,16 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(name)) return null;
 
             var old = name;
-            foreach (var s in FilterPrefixs)
+            foreach (var pfx in FilterPrefixs)
             {
-                if (name.StartsWithIgnoreCase(s) && name.Length != s.Length)
+                if (name.StartsWithIgnoreCase(pfx) && name.Length != pfx.Length)
                 {
-                    var str = name.Substring(s.Length);
+                    var str = name.Substring(pfx.Length);
                     if (!IsKeyWord(str)) name = str;
                 }
-                else if (name.EndsWithIgnoreCase(s) && name.Length != s.Length)
+                else if (name.EndsWithIgnoreCase(pfx) && name.Length != pfx.Length)
                 {
-                    var str = name.Substring(0, name.Length - s.Length);
+                    var str = name.Substring(0, name.Length - pfx.Length);
                     if (!IsKeyWord(str)) name = str;
                 }
             }
@@ -243,7 +254,7 @@ namespace XCode.DataAccessLayer
                 // _后至少要有2个字母，并且后一个不能是_
                 if (n >= 0 && n < name.Length - 2 && name[n + 1] != '_')
                 {
-                    String str = name.Substring(n + 1);
+                    var str = name.Substring(n + 1);
                     if (!IsKeyWord(str)) name = str;
                 }
             }
