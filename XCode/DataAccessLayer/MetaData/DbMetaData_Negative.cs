@@ -878,19 +878,14 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            if (field.PrimaryKey && field.Table.PrimaryKeys.Length < 2)
-            {
-                return " Primary Key";
-            }
+            if (field.PrimaryKey && field.Table.PrimaryKeys.Length < 2) return " Primary Key";
+
+            //是否为空
+            //if (!field.Nullable) sb.Append(" NOT NULL");
+            if (field.Nullable)
+                return " NULL";
             else
-            {
-                //是否为空
-                //if (!field.Nullable) sb.Append(" NOT NULL");
-                if (field.Nullable)
-                    return " NULL";
-                else
-                    return " NOT NULL";
-            }
+                return " NOT NULL";
         }
 
         /// <summary>取得字段默认值</summary>

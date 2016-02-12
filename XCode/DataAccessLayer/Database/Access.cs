@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.OleDb;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using NewLife.IO;
@@ -328,12 +329,12 @@ namespace XCode.DataAccessLayer
 
         protected override List<IDataIndex> GetIndexes(IDataTable table)
         {
-            List<IDataIndex> list = base.GetIndexes(table);
+            var list = base.GetIndexes(table);
             if (list != null && list.Count > 0)
             {
                 // Access的索引直接以索引字段的方式排布，所以需要重新组合起来
-                Dictionary<String, IDataIndex> dic = new Dictionary<String, IDataIndex>();
-                foreach (IDataIndex item in list)
+                var dic = new Dictionary<String, IDataIndex>();
+                foreach (var item in list)
                 {
                     IDataIndex di = null;
                     if (!dic.TryGetValue(item.Name, out di))
@@ -342,7 +343,7 @@ namespace XCode.DataAccessLayer
                     }
                     else
                     {
-                        List<String> ss = new List<string>(di.Columns);
+                        var ss = new List<String>(di.Columns);
                         if (item.Columns != null && item.Columns.Length > 0 && !ss.Contains(item.Columns[0]))
                         {
                             ss.Add(item.Columns[0]);
@@ -351,7 +352,7 @@ namespace XCode.DataAccessLayer
                     }
                 }
                 list.Clear();
-                foreach (IDataIndex item in dic.Values)
+                foreach (var item in dic.Values)
                 {
                     list.Add(item);
                 }
@@ -504,15 +505,13 @@ namespace XCode.DataAccessLayer
 
         public override string CreateTableSQL(IDataTable table)
         {
-            String sql = base.CreateTableSQL(table);
-            if (String.IsNullOrEmpty(sql) || table.PrimaryKeys == null || table.PrimaryKeys.Length < 2) return sql;
+            var sql = base.CreateTableSQL(table);
+
+            var pks = table.PrimaryKeys;
+            if (String.IsNullOrEmpty(sql) || pks.Length < 2) return sql;
 
             // 处理多主键
-            String[] names = new String[table.PrimaryKeys.Length];
-            for (int i = 0; i < table.PrimaryKeys.Length; i++)
-            {
-                names[i] = table.PrimaryKeys[i].ColumnName;
-            }
+            var names = pks.Select(e => e.ColumnName).ToArray();
             var di = ModelHelper.GetIndex(table, names);
             if (di == null)
             {
@@ -689,7 +688,7 @@ namespace XCode.DataAccessLayer
     #region ADOX封装
     internal class ADOTabe : /*DisposeBase*/IDisposable
     {
-        #region ADOX属性
+    #region ADOX属性
         private Table _Table;
         /// <summary>表</summary>
         public Table Table
@@ -746,9 +745,9 @@ namespace XCode.DataAccessLayer
                 return _Cat;
             }
         }
-        #endregion
+    #endregion
 
-        #region DAO属性
+    #region DAO属性
         private String _TableName;
         /// <summary>表名</summary>
         public String TableName { get { return _TableName; } set { _TableName = value; } }
@@ -785,9 +784,9 @@ namespace XCode.DataAccessLayer
                 return _Db;
             }
         }
-        #endregion
+    #endregion
 
-        #region 扩展属性
+    #region 扩展属性
         private List<ADOColumn> _Columns;
         /// <summary>字段集合</summary>
         public List<ADOColumn> Columns
@@ -871,9 +870,9 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
-        #endregion
+    #endregion
 
-        #region 构造
+    #region 构造
         public ADOTabe(String connstr, String filename, String tablename)
         {
             ConnectionString = connstr;
@@ -913,12 +912,12 @@ namespace XCode.DataAccessLayer
                 if (DAL.Debug) DAL.WriteLog(ex.ToString());
             }
         }
-        #endregion
+    #endregion
     }
 
     internal class ADOColumn : /*DisposeBase*/IDisposable
     {
-        #region 属性
+    #region 属性
         private Column _Column;
         /// <summary>字段</summary>
         public Column Column
@@ -934,9 +933,9 @@ namespace XCode.DataAccessLayer
             get { return _Table; }
             set { _Table = value; }
         }
-        #endregion
+    #endregion
 
-        #region DAO属性
+    #region DAO属性
         //private DAO.Field _Field;
         ///// <summary>字段</summary>
         //public DAO.Field Field
@@ -944,9 +943,9 @@ namespace XCode.DataAccessLayer
         //    get { return _Field; }
         //    set { _Field = value; }
         //}
-        #endregion
+    #endregion
 
-        #region 扩展属性
+    #region 扩展属性
         /// <summary>名称</summary>
         public String Name
         {
@@ -1037,9 +1036,9 @@ namespace XCode.DataAccessLayer
                     throw new XCodeException("列" + Column.Name + "没有Nullable属性！");
             }
         }
-        #endregion
+    #endregion
 
-        #region 构造
+    #region 构造
         public ADOColumn(ADOTabe table, Column column/*, DAO.Field field*/)
         {
             Table = table;
@@ -1058,7 +1057,7 @@ namespace XCode.DataAccessLayer
                 if (DAL.Debug) DAL.WriteLog(ex.ToString());
             }
         }
-        #endregion
+    #endregion
     }
     #endregion
 #endif

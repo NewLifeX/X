@@ -49,6 +49,14 @@ namespace XCode.DataAccessLayer
         public IDataTable Table { get; set; }
         #endregion
 
+        #region 构造
+        /// <summary>实例化</summary>
+        public XIndex()
+        {
+            Columns = new String[0];
+        }
+        #endregion
+
         #region 方法
         /// <summary>修正数据</summary>
         /// <returns></returns>

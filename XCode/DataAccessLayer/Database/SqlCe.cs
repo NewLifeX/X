@@ -282,15 +282,17 @@ namespace XCode.DataAccessLayer
         public override string CreateTableSQL(IDataTable table)
         {
             var sql = base.CreateTableSQL(table);
-            if (String.IsNullOrEmpty(sql) || table.PrimaryKeys == null || table.PrimaryKeys.Length < 2) return sql;
+
+            var pks = table.PrimaryKeys;
+            if (String.IsNullOrEmpty(sql) || pks == null || pks.Length < 2) return sql;
 
             // 处理多主键
-            var sb = new StringBuilder(sql.Length + 32 + table.PrimaryKeys.Length * 16);
+            var sb = new StringBuilder(sql.Length + 32 + pks.Length * 16);
             sb.Append(sql);
             sb.Append(";\r\n");
             sb.AppendFormat("Alter Table {0} Add Constraint PK_{1} Primary Key (", FormatName(table.TableName), table.TableName);
 
-            //foreach (var item in table.PrimaryKeys)
+            //foreach (var item in pks)
             //{
             //    sb.Append(FormatName(item.ColumnName));
             //    sb.Append(",");
@@ -298,10 +300,10 @@ namespace XCode.DataAccessLayer
             //sb.Remove(sb.Length - 1, 1);
 
             // sb.Remove涉及内存复制
-            for (int i = 0; i < table.PrimaryKeys.Length; i++)
+            for (int i = 0; i < pks.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
-                sb.Append(FormatName(table.PrimaryKeys[i].ColumnName));
+                sb.Append(FormatName(pks[i].ColumnName));
             }
 
             sb.Append(")");

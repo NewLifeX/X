@@ -298,7 +298,7 @@ namespace XCode.Configuration
                     var di = table.CreateIndex();
                     item.Fill(di);
 
-                    if (ModelHelper.GetIndex(table, di.Columns) != null) continue;
+                    if (table.GetIndex(di.Columns) != null) continue;
 
                     // 如果索引全部就是主键，无需创建索引
                     if (table.GetColumns(di.Columns).All(e => e.PrimaryKey)) continue;

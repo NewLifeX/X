@@ -59,23 +59,13 @@ namespace XCode.Code
             Class.IsClass = true;
             Class.IsPartial = true;
             Class.TypeAttributes = TypeAttributes.Public;
-            //Class.Comments.Add(new CodeCommentStatement(Table.Description, true));
-            //Class.Comments.Add(AddSummary(Table.Description));
             Class.AddSummary(Table.Description);
 
             // 特性
-            //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(SerializableAttribute))));
-            //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DataObjectAttribute))));
             Class.AddAttribute<SerializableAttribute>();
             Class.AddAttribute<DataObjectAttribute>();
-            //if (!Table.Description.IsNullOrWhiteSpace())
-            //{
-            //    Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DescriptionAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
-            //    Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(DisplayNameAttribute)), new CodeAttributeArgument(new CodePrimitiveExpression(Table.Description))));
-            //}
             if (!Table.Description.IsNullOrWhiteSpace()) Class.AddAttribute<DescriptionAttribute>(Table.Description);
             if (!Table.DisplayName.IsNullOrWhiteSpace() && Table.DisplayName != Table.Name) Class.AddAttribute<DisplayNameAttribute>(Table.DisplayName);
-            //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(CompilerGeneratedAttribute))));
             Class.AddAttribute<CompilerGeneratedAttribute>();
 
             // 索引和关系
@@ -83,13 +73,8 @@ namespace XCode.Code
             {
                 foreach (var item in Table.Indexes)
                 {
-                    if (item.Columns == null || item.Columns.Length < 1) continue;
+                    if (item.Columns.Length < 1) continue;
 
-                    //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindIndexAttribute)),
-                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.Name)),
-                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.Unique)),
-                    //    new CodeAttributeArgument(new CodePrimitiveExpression(String.Join(",", item.Columns)))
-                    //    ));
                     Class.AddAttribute<BindIndexAttribute>(item.Name, item.Unique, String.Join(",", item.Columns));
                 }
             }
@@ -97,33 +82,15 @@ namespace XCode.Code
             {
                 foreach (var item in Table.Relations)
                 {
-                    //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindRelationAttribute)),
-                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.Column)),
-                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.Unique)),
-                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.RelationTable)),
-                    //    new CodeAttributeArgument(new CodePrimitiveExpression(item.RelationColumn))
-                    //  ));
                     Class.AddAttribute<BindRelationAttribute>(item.Column, item.Unique, item.RelationTable, item.RelationColumn);
                 }
             }
 
             // 绑定表
-            //Class.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(BindTableAttribute)),
-            //    new CodeAttributeArgument(new CodePrimitiveExpression(Table.TableName)),
-            //    new CodeAttributeArgument("Description", new CodePrimitiveExpression(Table.Description)),
-            //    new CodeAttributeArgument("ConnName", new CodePrimitiveExpression(Assembly.ConnName)),
-            //    new CodeAttributeArgument("DbType", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(DatabaseType)), Table.DbType.ToString())),
-            //    new CodeAttributeArgument("IsView", new CodePrimitiveExpression(Table.IsView))
-            //    ));
             Class.AddAttribute<BindTableAttribute>(Table.TableName, Table.Description, ConnName, Table.DbType, Table.IsView);
 
             // 基类
-            //Type type = typeof(Entity<>);
-            //type=type.MakeGenericType(typeof())
-            //Class.BaseTypes.Add(type);
             Class.BaseTypes.Add(BaseType);
-
-            //Assembly.NameSpace.Types.Add(Class);
         }
 
         /// <summary>添加属性集合</summary>

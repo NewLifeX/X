@@ -459,11 +459,13 @@ namespace XCode.DataAccessLayer
         public override string CreateTableSQL(IDataTable table)
         {
             String sql = base.CreateTableSQL(table);
-            if (String.IsNullOrEmpty(sql) || table.PrimaryKeys == null || table.PrimaryKeys.Length < 2) return sql;
+
+            var pks = table.PrimaryKeys;
+            if (String.IsNullOrEmpty(sql) || pks == null || pks.Length < 2) return sql;
 
             // 处理多主键
             var sb = new StringBuilder();
-            foreach (var item in table.PrimaryKeys)
+            foreach (var item in pks)
             {
                 if (sb.Length > 0) sb.Append(",");
                 sb.Append(FormatName(item.ColumnName));

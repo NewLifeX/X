@@ -47,7 +47,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(_Name, _Description);
+                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(Name, _Description);
                 return _DisplayName;
             }
             set

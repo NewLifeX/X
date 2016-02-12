@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CSharp;
-using NewLife.Configuration;
 using XCode.Model;
 
 namespace XCode.DataAccessLayer
@@ -36,11 +35,6 @@ namespace XCode.DataAccessLayer
         /// <param name="name">名称</param>
         /// <returns></returns>
         String FixWord(String name);
-
-        ///// <summary>是否关键字</summary>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //Boolean IsKeyWord(String name);
 
         /// <summary>获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）、换行分隔</summary>
         /// <param name="name">名称</param>
@@ -109,39 +103,29 @@ namespace XCode.DataAccessLayer
             var dt = dc.Table;
             if (dt != null && AutoCutTableName)
             {
-                //if (name.StartsWith(dt.Name, StringComparison.OrdinalIgnoreCase))
-                //    name = name.Substring(dt.Name.Length);
-                //else if (name.StartsWith(dt.Alias, StringComparison.OrdinalIgnoreCase))
-                //    name = name.Substring(dt.Alias.Length);
+                // 要去掉的前缀集合
                 var pfs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-                if (!dt.TableName.IsNullOrWhiteSpace()) pfs.Add(dt.TableName);
-                // 如果包括下划线，再分割
-                if (dt.TableName.Contains("_"))
+                // 表名、类名，已经包含的下划线前缀，一律过滤
+                foreach (var item in new String[] { dt.TableName, dt.Name })
                 {
-                    foreach (var item in dt.TableName.Split("_"))
+                    if (!item.IsNullOrWhiteSpace())
                     {
-                        if (item != null && item.Length >= 2 && !pfs.Contains(item)) pfs.Add(item);
-                    }
-                }
-                if (!dt.Name.IsNullOrWhiteSpace() && !pfs.Contains(dt.Name))
-                {
-                    pfs.Add(dt.Name);
-                    // 如果包括下划线，再分割
-                    if (dt.Name.Contains("_"))
-                    {
-                        foreach (var item in dt.Name.Split("_"))
+                        pfs.Add(item);
+                        // 如果包括下划线，再分割
+                        if (item.Contains("_"))
                         {
-                            if (item != null && item.Length >= 2 && !pfs.Contains(item)) pfs.Add(item);
+                            foreach (var elm in item.Split("_"))
+                            {
+                                if (elm != null && elm.Length >= 2 && !pfs.Contains(elm)) pfs.Add(elm);
+                            }
                         }
                     }
                 }
 
                 foreach (var item in pfs)
                 {
-                    //if (name.StartsWithIgnoreCase(item) && name.Length != item.Length) name = name.Substring(item.Length);
                     if (name.Length != item.Length) name = name.TrimStart(item);
                 }
-                //if (name[0] == '_') name = name.Substring(1);
                 name = name.TrimStart('_');
             }
             #endregion
@@ -190,8 +174,6 @@ namespace XCode.DataAccessLayer
             if (name[0] == '_') name = name.Substring(1);
 
             // 很多时候，这个别名就是表名
-            //return FixWord(CutPrefix(name));
-            //if (AutoCutPrefix) name = CutPrefix(name);
             name = CutPrefix(name);
             if (AutoFixWord) name = FixWord(name);
             if (name[0] == '_') name = name.Substring(1);
@@ -396,7 +378,6 @@ namespace XCode.DataAccessLayer
                     if (GuessRelation(table, rtable, rtable.TableName, dc, dc.Name)) continue;
                 }
 
-                //if (String.Equals(rtable.Alias, rtable.Name, StringComparison.OrdinalIgnoreCase)) continue;
                 if (rtable.TableName.EqualIgnoreCase(rtable.Name)) continue;
 
                 // 如果表2的别名和名称不同，还要继续
@@ -446,10 +427,6 @@ namespace XCode.DataAccessLayer
             if (table.GetRelation(dr) == null) table.Relations.Add(dr);
 
             // 给另一方建立关系
-            //foreach (IDataRelation item in rtable.Relations)
-            //{
-            //    if (item.Column == dc.Name && item.RelationTable == table.Name && item.RelationColumn == column.Name) return dr;
-            //}
             if (rtable.GetRelation(dc.ColumnName, table.TableName, column.ColumnName) != null) return true;
 
             dr = rtable.CreateRelation();
@@ -487,24 +464,13 @@ namespace XCode.DataAccessLayer
             // 从索引中修正主键
             FixPrimaryByIndex(table);
 
-            #region 最后修复主键
+            // 最后修复主键
             if (table.PrimaryKeys.Length < 1)
             {
-                // 自增作为主键，然后是ID/Guid/UID，最后默认使用第一个
-                // 没办法，如果没有主键，整个实体层都会面临大问题！
-                IDataColumn dc = null;
-                if ((dc = table.Columns.FirstOrDefault(c => c.Identity)) != null)
-                    dc.PrimaryKey = true;
-                //else if ((dc = table.Columns.FirstOrDefault(c => c.Is("ID"))) != null)
-                //    dc.PrimaryKey = true;
-                //else if ((dc = table.Columns.FirstOrDefault(c => c.Is("Guid"))) != null)
-                //    dc.PrimaryKey = true;
-                //else if ((dc = table.Columns.FirstOrDefault(c => c.Is("UID"))) != null)
-                //    dc.PrimaryKey = true;
-                //else if ((dc = table.Columns.FirstOrDefault()) != null)
-                //    dc.PrimaryKey = true;
+                // 自增作为主键，没办法，如果没有主键，整个实体层都会面临大问题！
+                var dc = table.Columns.FirstOrDefault(c => c.Identity);
+                if (dc != null) dc.PrimaryKey = true;
             }
-            #endregion
 
             // 给非主键的自增字段建立唯一索引
             CreateUniqueIndexForIdentity(table);
@@ -512,7 +478,7 @@ namespace XCode.DataAccessLayer
             // 索引应该具有跟字段一样的唯一和主键约束
             FixIndex(table);
 
-            #region 修正可能错误的别名
+            // 修正可能错误的别名
             foreach (var dc in table.Columns)
             {
                 dc.Fix();
@@ -521,7 +487,6 @@ namespace XCode.DataAccessLayer
             {
                 di.Fix();
             }
-            #endregion
 
             // 修正可能的主字段
             if (!table.Columns.Any(e => e.Master))
@@ -581,36 +546,16 @@ namespace XCode.DataAccessLayer
             if (pks == null || pks.Length < 1)
             {
                 // 在索引中找唯一索引作为主键
-                foreach (var item in table.Indexes)
-                {
-                    if (!item.PrimaryKey || item.Columns == null || item.Columns.Length < 1) continue;
-
-                    pks = table.GetColumns(item.Columns);
-                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
-                }
-            }
-            pks = table.PrimaryKeys;
-            if (pks == null || pks.Length < 1)
-            {
+                var di = table.Indexes.FirstOrDefault(e => e.PrimaryKey && e.Columns.Length == 1);
                 // 在索引中找唯一索引作为主键
-                foreach (var item in table.Indexes)
-                {
-                    if (!item.Unique || item.Columns == null || item.Columns.Length < 1) continue;
-
-                    pks = table.GetColumns(item.Columns);
-                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
-                }
-            }
-            pks = table.PrimaryKeys;
-            if (pks == null || pks.Length < 1)
-            {
+                if (di == null) di = table.Indexes.FirstOrDefault(e => e.Unique && e.Columns.Length == 1);
                 // 如果还没有主键，把第一个索引作为主键
-                foreach (var item in table.Indexes)
-                {
-                    if (item.Columns == null || item.Columns.Length < 1) continue;
+                if (di == null) di = table.Indexes.FirstOrDefault(e => e.Columns.Length == 1);
 
-                    pks = table.GetColumns(item.Columns);
-                    if (pks != null && pks.Length > 0) Array.ForEach<IDataColumn>(pks, dc => dc.PrimaryKey = true);
+                if (di != null)
+                {
+                    var pks2 = table.GetColumns(di.Columns);
+                    if (pks2.Length > 0) Array.ForEach<IDataColumn>(pks2, dc => dc.PrimaryKey = true);
                 }
             }
         }
@@ -669,27 +614,33 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 设置
-        static ModelSetting Set { get { return Setting.Current.Model; } }
-
-        private Boolean _UseID = Set.UseID;
         /// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
-        public Boolean UseID { get { return _UseID; } set { _UseID = value; } }
+        public Boolean UseID { get; set; }
 
-        private Boolean _AutoCutPrefix = Set.AutoCutPrefix;
         /// <summary>是否自动去除前缀。默认启用</summary>
-        public Boolean AutoCutPrefix { get { return _AutoCutPrefix; } set { _AutoCutPrefix = value; } }
+        public Boolean AutoCutPrefix { get; set; }
 
-        private Boolean _AutoCutTableName = Set.AutoCutTableName;
         /// <summary>是否自动去除字段前面的表名。默认启用</summary>
-        public Boolean AutoCutTableName { get { return _AutoCutTableName; } set { _AutoCutTableName = value; } }
+        public Boolean AutoCutTableName { get; set; }
 
-        private Boolean _AutoFixWord = Set.AutoFixWord;
         /// <summary>是否自动纠正大小写。默认启用</summary>
-        public Boolean AutoFixWord { get { return _AutoFixWord; } set { _AutoFixWord = value; } }
+        public Boolean AutoFixWord { get; set; }
 
-        private String[] _FilterPrefixs = Set.FilterPrefixs.Split();
         /// <summary>要过滤的前缀</summary>
-        public String[] FilterPrefixs { get { return _FilterPrefixs; } set { _FilterPrefixs = value; } }
+        public String[] FilterPrefixs { get; set; }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化一个默认解析器</summary>
+        public ModelResolver()
+        {
+            var set = Setting.Current.Model;
+            UseID = set.UseID;
+            AutoCutPrefix = set.AutoCutPrefix;
+            AutoCutTableName = set.AutoCutTableName;
+            AutoFixWord = set.AutoFixWord;
+            FilterPrefixs = set.FilterPrefixs.Split();
+        }
         #endregion
     }
 }

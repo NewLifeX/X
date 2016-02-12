@@ -854,15 +854,16 @@ namespace XCode.DataAccessLayer
             }
 
             // 主键
-            if (table.PrimaryKeys != null && table.PrimaryKeys.Length > 0)
+            var pks = table.PrimaryKeys;
+            if (pks != null && pks.Length > 0)
             {
                 sb.AppendLine(",");
                 sb.Append("\t");
                 sb.AppendFormat("constraint pk_{0} primary key (", table.TableName);
-                for (int i = 0; i < table.PrimaryKeys.Length; i++)
+                for (int i = 0; i < pks.Length; i++)
                 {
                     if (i > 0) sb.Append(",");
-                    sb.Append(FormatName(table.PrimaryKeys[i].ColumnName));
+                    sb.Append(FormatName(pks[i].ColumnName));
                 }
                 sb.Append(")");
             }

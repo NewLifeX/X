@@ -9,29 +9,14 @@ namespace XCode
     public class BindIndexAttribute : Attribute
     {
         #region 属性
-        private String _Name;
         /// <summary>名称</summary>
-        public String Name
-        {
-            get { return _Name; }
-            set { _Name = value; }
-        }
+        public String Name { get; set; }
 
-        private Boolean _Unique;
         /// <summary>是否唯一</summary>
-        public Boolean Unique
-        {
-            get { return _Unique; }
-            set { _Unique = value; }
-        }
+        public Boolean Unique { get; set; }
 
-        private String _Columns;
         /// <summary>数据列集合</summary>
-        public String Columns
-        {
-            get { return _Columns; }
-            set { _Columns = value; }
-        }
+        public String Columns { get; set; }
         #endregion
 
         #region 构造
@@ -48,24 +33,6 @@ namespace XCode
         #endregion
 
         #region 方法
-        ///// <summary>
-        ///// 检索应用于类型成员的自定义属性。
-        ///// </summary>
-        ///// <param name="element"></param>
-        ///// <returns></returns>
-        //public new static BindIndexAttribute[] GetCustomAttributes(MemberInfo element)
-        //{
-        //    Attribute[] atts = GetCustomAttributes(element, typeof(BindIndexAttribute), true);
-        //    if (atts == null || atts.Length < 1) return null;
-
-        //    List<BindIndexAttribute> list = new List<BindIndexAttribute>();
-        //    foreach (Attribute item in atts)
-        //    {
-        //        list.Add(item as BindIndexAttribute);
-        //    }
-        //    return list.ToArray();
-        //}
-
         /// <summary>填充索引</summary>
         /// <param name="index"></param>
         internal void Fill(IDataIndex index)
@@ -74,11 +41,11 @@ namespace XCode
             index.Unique = Unique;
             if (!String.IsNullOrEmpty(Columns))
             {
-                String[] ss = Columns.Split(new Char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                List<String> list = new List<string>();
-                foreach (String item in ss)
+                var ss = Columns.Split(",", ";");
+                var list = new List<String>();
+                foreach (var item in ss)
                 {
-                    String column = item.Trim();
+                    var column = item.Trim();
                     if (!String.IsNullOrEmpty(column)) list.Add(column);
                 }
                 index.Columns = list.ToArray();
