@@ -532,37 +532,39 @@ namespace NewLife.Compression
         internal IFormatterX CreateReader(Stream stream)
         {
 #if DEBUG
-            stream = new NewLife.Log.TraceStream(stream);
+            //stream = new NewLife.Log.TraceStream(stream);
 #endif
-            var reader = new Binary() { Stream = stream };
-            reader.EncodeInt = false;
-            reader.UseFieldSize = true;
-            reader.SizeWidth = 2;
-            reader.IsLittleEndian = true;
-            reader.Encoding = Encoding;
+            var bn = new Binary() { Stream = stream };
+            bn.EncodeInt = false;
+            bn.UseFieldSize = true;
+            bn.UseProperty = true;
+            bn.SizeWidth = 2;
+            bn.IsLittleEndian = true;
+            bn.Encoding = Encoding;
 #if DEBUG
-            reader.Log = NewLife.Log.XTrace.Log;
+            bn.Log = NewLife.Log.XTrace.Log;
 #endif
 
-            return reader;
+            return bn;
         }
 
         internal IFormatterX CreateWriter(Stream stream)
         {
 #if DEBUG
-            stream = new NewLife.Log.TraceStream(stream);
+            //stream = new NewLife.Log.TraceStream(stream);
 #endif
-            var writer = new Binary() { Stream = stream };
-            writer.EncodeInt = false;
-            writer.UseFieldSize = true;
-            writer.SizeWidth = 2;
-            writer.IsLittleEndian = true;
-            writer.Encoding = Encoding;
+            var bn = new Binary() { Stream = stream };
+            bn.EncodeInt = false;
+            bn.UseFieldSize = true;
+            bn.UseProperty = true;
+            bn.SizeWidth = 2;
+            bn.IsLittleEndian = true;
+            bn.Encoding = Encoding;
 #if DEBUG
-            writer.Log = NewLife.Log.XTrace.Log;
+            bn.Log = NewLife.Log.XTrace.Log;
 #endif
 
-            return writer;
+            return bn;
         }
 
         internal static readonly DateTime MinDateTime = new DateTime(1980, 1, 1);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -12,114 +13,92 @@ namespace NewLife.Compression
     public class ZipEntry : IDisposable
     {
         #region 数据属性
-        private UInt32 _Signature = ZipConstants.ZipEntrySignature;
         /// <summary>签名</summary>
-        public UInt32 Signature { get { return _Signature; } private set { _Signature = value; } }
+        public UInt32 Signature { get; set; }
 
         // ZipDirEntry成员
-        private HostSystem _VersionMadeBy;
         /// <summary>系统类型</summary>
-        HostSystem VersionMadeBy { get { return _VersionMadeBy; } set { _VersionMadeBy = value; } }
+        HostSystem VersionMadeBy { get; set; }
 
-        private UInt16 _VersionNeeded = 20;
         /// <summary>解压缩所需要的版本</summary>
-        public UInt16 VersionNeeded { get { return _VersionNeeded; } set { _VersionNeeded = value; } }
+        public UInt16 VersionNeeded { get; set; }
 
-        private GeneralBitFlags _BitField;
         /// <summary>标识位</summary>
-        GeneralBitFlags BitField { get { return _BitField; } set { _BitField = value; } }
+        GeneralBitFlags BitField { get; set; }
 
-        private CompressionMethod _CompressionMethod;
         /// <summary>压缩方法</summary>
-        public CompressionMethod CompressionMethod { get { return _CompressionMethod; } set { _CompressionMethod = value; } }
+        public CompressionMethod CompressionMethod { get; set; }
 
-        private Int32 _LastModified;
+        private Int32 _LastModified { get; set; }
         /// <summary>最后修改时间</summary>
+        [XmlIgnore]
         public DateTime LastModified { get { return ZipFile.DosDateTimeToFileTime(_LastModified); } set { _LastModified = ZipFile.FileTimeToDosDateTime(value); } }
 
-        private UInt32 _Crc;
         /// <summary>CRC校验</summary>
-        public UInt32 Crc { get { return _Crc; } set { _Crc = value; } }
+        public UInt32 Crc { get; set; }
 
-        private UInt32 _CompressedSize;
         /// <summary>压缩后大小</summary>
-        public UInt32 CompressedSize { get { return _CompressedSize; } set { _CompressedSize = value; } }
+        public UInt32 CompressedSize { get; set; }
 
-        private UInt32 _UncompressedSize;
         /// <summary>原始大小</summary>
-        public UInt32 UncompressedSize { get { return _UncompressedSize; } set { _UncompressedSize = value; } }
+        public UInt32 UncompressedSize { get; set; }
 
-        private UInt16 _FileNameLength;
         /// <summary>文件名长度</summary>
-        private UInt16 FileNameLength { get { return _FileNameLength; } set { _FileNameLength = value; } }
+        private UInt16 FileNameLength { get; set; }
 
-        private UInt16 _ExtraFieldLength;
         /// <summary>扩展数据长度</summary>
-        private UInt16 ExtraFieldLength { get { return _ExtraFieldLength; } set { _ExtraFieldLength = value; } }
+        private UInt16 ExtraFieldLength { get; set; }
 
         // ZipDirEntry成员
-        private UInt16 _CommentLength;
         /// <summary>注释长度</summary>
-        private UInt16 CommentLength { get { return _CommentLength; } set { _CommentLength = value; } }
+        private UInt16 CommentLength { get; set; }
 
         // ZipDirEntry成员
-        private UInt16 _DiskNumber;
         /// <summary>分卷号。</summary>
-        public UInt16 DiskNumber { get { return _DiskNumber; } set { _DiskNumber = value; } }
+        public UInt16 DiskNumber { get; set; }
 
         // ZipDirEntry成员
-        private UInt16 _InternalFileAttrs;
         /// <summary>内部文件属性</summary>
-        public UInt16 InternalFileAttrs { get { return _InternalFileAttrs; } set { _InternalFileAttrs = value; } }
+        public UInt16 InternalFileAttrs { get; set; }
 
         // ZipDirEntry成员
-        private UInt32 _ExternalFileAttrs;
         /// <summary>扩展文件属性</summary>
-        public UInt32 ExternalFileAttrs { get { return _ExternalFileAttrs; } set { _ExternalFileAttrs = value; } }
+        public UInt32 ExternalFileAttrs { get; set; }
 
         // ZipDirEntry成员
-        private UInt32 _RelativeOffsetOfLocalHeader;
         /// <summary>文件头相对位移</summary>
-        public UInt32 RelativeOffsetOfLocalHeader { get { return _RelativeOffsetOfLocalHeader; } set { _RelativeOffsetOfLocalHeader = value; } }
+        public UInt32 RelativeOffsetOfLocalHeader { get; set; }
 
-        [FieldSize("FileNameLength")]
-        private String _FileName;
         /// <summary>文件名，如果是目录，则以/结束</summary>
-        public String FileName { get { return _FileName; } set { _FileName = value; } }
+        [FieldSize("FileNameLength")]
+        public String FileName { get; set; }
 
-        [FieldSize("ExtraFieldLength")]
-        private Byte[] _ExtraField;
         /// <summary>扩展字段</summary>
-        public Byte[] ExtraField { get { return _ExtraField; } set { _ExtraField = value; } }
+        [FieldSize("ExtraFieldLength")]
+        public Byte[] ExtraField { get; set; }
 
         // ZipDirEntry成员
-        [FieldSize("CommentLength")]
-        private String _Comment;
         /// <summary>注释</summary>
-        public String Comment { get { return _Comment; } set { _Comment = value; } }
+        [FieldSize("CommentLength")]
+        public String Comment { get; set; }
         #endregion
 
         #region 属性
-        //[NonSerialized]
-        //private Int64 _FileDataPosition;
-        ///// <summary>文件数据位置</summary>
-        //private Int64 FileDataPosition { get { return _FileDataPosition; } set { _FileDataPosition = value; } }
-
         /// <summary>是否目录</summary>
+        [XmlIgnore]
         public Boolean IsDirectory { get { return ("" + FileName).EndsWith(ZipFile.DirSeparator); } }
 
-        [NonSerialized]
-        private IDataSource _DataSource;
         /// <summary>数据源</summary>
-        private IDataSource DataSource
-        {
-            get { return _DataSource; }
-            set { _DataSource = value; }
-        }
+        [XmlIgnore]
+        private IDataSource DataSource { get; set; }
         #endregion
 
         #region 构造
-        internal ZipEntry() { }
+        internal ZipEntry()
+        {
+            Signature = ZipConstants.ZipEntrySignature;
+            VersionNeeded = 20;
+        }
 
         /// <summary>释放资源</summary>
         public void Dispose()
@@ -474,11 +453,9 @@ namespace NewLife.Compression
         #endregion
 
         #region 辅助
-#if NET4
-        internal static readonly ICollection<String> dirMembers = new HashSet<String>(new String[] { "_VersionMadeBy", "_CommentLength", "_DiskNumber", "_InternalFileAttrs", "_ExternalFileAttrs", "_RelativeOffsetOfLocalHeader", "_Comment" }, StringComparer.OrdinalIgnoreCase);
-#else
-        internal static readonly ICollection<String> dirMembers = new HashSet<String>(new String[] { "_VersionMadeBy", "_CommentLength", "_DiskNumber", "_InternalFileAttrs", "_ExternalFileAttrs", "_RelativeOffsetOfLocalHeader", "_Comment" }, StringComparer.OrdinalIgnoreCase) { IsReadOnly = true };
-#endif
+        internal static readonly ICollection<String> dirMembers = new HashSet<String>(new String[] { 
+            "VersionMadeBy", "CommentLength", "DiskNumber", "InternalFileAttrs", "ExternalFileAttrs", "RelativeOffsetOfLocalHeader", "Comment" }, StringComparer.OrdinalIgnoreCase);
+
         /// <summary>复制DirEntry专属的字段</summary>
         /// <param name="entry"></param>
         internal void CopyFromDirEntry(ZipEntry entry)

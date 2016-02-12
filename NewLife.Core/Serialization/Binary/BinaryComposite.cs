@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Reflection;
 
@@ -199,7 +200,13 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
         /// <returns></returns>
-        protected virtual List<MemberInfo> GetMembers(Type type, Boolean baseFirst = true) { return GetFields(type, baseFirst).Cast<MemberInfo>().ToList(); }
+        protected virtual List<MemberInfo> GetMembers(Type type, Boolean baseFirst = true)
+        {
+            if (Host.UseProperty)
+                return GetProperties(type, baseFirst).Cast<MemberInfo>().ToList();
+            else
+                return GetFields(type, baseFirst).Cast<MemberInfo>().ToList();
+        }
 
         private static DictionaryCache<Type, List<FieldInfo>> _cache1 = new DictionaryCache<Type, List<FieldInfo>>();
         private static DictionaryCache<Type, List<FieldInfo>> _cache2 = new DictionaryCache<Type, List<FieldInfo>>();
@@ -233,6 +240,42 @@ namespace NewLife.Serialization
             }
 
             if (!baseFirst) list.AddRange(GetFields(type.BaseType));
+
+            return list;
+        }
+
+        private static DictionaryCache<Type, List<PropertyInfo>> _cache3 = new DictionaryCache<Type, List<PropertyInfo>>();
+        private static DictionaryCache<Type, List<PropertyInfo>> _cache4 = new DictionaryCache<Type, List<PropertyInfo>>();
+        /// <summary>获取属性</summary>
+        /// <param name="type"></param>
+        /// <param name="baseFirst"></param>
+        /// <returns></returns>
+        protected static List<PropertyInfo> GetProperties(Type type, Boolean baseFirst = true)
+        {
+            if (baseFirst)
+                return _cache3.GetItem(type, key => GetProperties2(key, true));
+            else
+                return _cache4.GetItem(type, key => GetProperties2(key, false));
+        }
+
+        static List<PropertyInfo> GetProperties2(Type type, Boolean baseFirst = true)
+        {
+            var list = new List<PropertyInfo>();
+
+            // Void*的基类就是null
+            if (type == typeof(Object) || type.BaseType == null) return list;
+
+            if (baseFirst) list.AddRange(GetProperties(type.BaseType));
+
+            var pis = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            foreach (var pi in pis)
+            {
+                if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
+
+                list.Add(pi);
+            }
+
+            if (!baseFirst) list.AddRange(GetProperties(type.BaseType));
 
             return list;
         }

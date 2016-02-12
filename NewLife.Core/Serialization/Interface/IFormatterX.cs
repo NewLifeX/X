@@ -19,6 +19,12 @@ namespace NewLife.Serialization
 
         /// <summary>成员</summary>
         MemberInfo Member { get; set; }
+
+        /// <summary>文本编码</summary>
+        Encoding Encoding { get; set; }
+
+        /// <summary>序列化属性而不是字段。默认true</summary>
+        Boolean UseProperty { get; set; }
         #endregion
 
         #region 方法
@@ -84,17 +90,27 @@ namespace NewLife.Serialization
         /// <summary>数据流。默认实例化一个内存数据流</summary>
         public virtual Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream()); } set { _Stream = value; _StartPosition = value == null ? 0 : value.Position; } }
 
-        private Stack<Object> _Hosts = new Stack<Object>();
         /// <summary>主对象</summary>
-        public Stack<Object> Hosts { get { return _Hosts; } }
+        public Stack<Object> Hosts { get; private set; }
 
-        private MemberInfo _Member;
         /// <summary>成员</summary>
-        public MemberInfo Member { get { return _Member; } set { _Member = value; } }
+        public MemberInfo Member { get; set; }
 
-        private Encoding _Encoding = Encoding.Default;
         /// <summary>字符串编码，默认Default</summary>
-        public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
+        public Encoding Encoding { get; set; }
+
+        /// <summary>序列化属性而不是字段。默认true</summary>
+        public Boolean UseProperty { get; set; }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化</summary>
+        public FormatterBase()
+        {
+            Hosts = new Stack<Object>();
+            Encoding = Encoding.Default;
+            UseProperty = true;
+        }
         #endregion
 
         #region 方法
@@ -104,13 +120,14 @@ namespace NewLife.Serialization
         {
             var ms = Stream;
             var pos = ms.Position;
-            if (pos == 0 || pos == _StartPosition) return new Byte[0];
+            var start = _StartPosition;
+            if (pos == 0 || pos == start) return new Byte[0];
 
-            if (ms is MemoryStream && pos == ms.Length && _StartPosition == 0)
+            if (ms is MemoryStream && pos == ms.Length && start == 0)
                 return (ms as MemoryStream).ToArray();
 
-            ms.Position = _StartPosition;
-            return ms.ReadBytes(pos - _StartPosition);
+            ms.Position = start;
+            return ms.ReadBytes(pos - start);
         }
         #endregion
 

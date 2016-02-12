@@ -9,16 +9,13 @@ namespace NewLife.Serialization
     {
         #region 属性
         /// <summary>编码整数</summary>
-        Boolean EncodeInt { get; }
+        Boolean EncodeInt { get; set; }
 
         /// <summary>小端字节序</summary>
-        Boolean IsLittleEndian { get; }
-
-        /// <summary>文本编码</summary>
-        Encoding Encoding { get; }
+        Boolean IsLittleEndian { get; set; }
 
         /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
-        Boolean UseFieldSize { get; }
+        Boolean UseFieldSize { get; set; }
 
         /// <summary>处理器列表</summary>
         IList<IBinaryHandler> Handlers { get; }
