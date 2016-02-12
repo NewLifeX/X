@@ -124,10 +124,6 @@
     <Compile Include="Model\IObjectContainer.cs" />
     <Compile Include="Model\ObjectContainer.cs" />
     <Compile Include="Model\IServer.cs" />
-    <Compile Include="Reflection\ApiHook.cs" />
-    <None Include="Reflection\AsmX86.cs" />
-    <Compile Include="Reflection\CodeDomDuckTypeGenerator.cs" />
-    <Compile Include="Reflection\DuckTyping.cs" />
     <Compile Include="Reflection\EmitReflect.cs" />
     <Compile Include="Reflection\IL\ILInstruction.cs" />
     <Compile Include="Reflection\IL\MethodBodyReader.cs" />
@@ -160,7 +156,6 @@
     <Compile Include="Reflection\AttributeX.cs" />
     <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
-    <Compile Include="Reflection\DynamicAssembly.cs" />
     <Compile Include="Serialization\Protocol.cs" />
     <Compile Include="Serialization\Xml\XmlComposite.cs" />
     <Compile Include="Serialization\Xml\XmlGeneral.cs" />
@@ -171,7 +166,6 @@
     <Compile Include="Common\WeakReference.cs" />
     <Compile Include="Event\EventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Reflection\FastIndexAccessor.cs" />
     <Compile Include="Reflection\快速反射\FieldInfoX.cs" />
     <Compile Include="Reflection\Func.cs" />
     <Compile Include="Reflection\IIndexAccessor.cs" />
