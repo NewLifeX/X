@@ -13,9 +13,9 @@ namespace NewLife.Security
         /// <summary>建立自签名证书</summary>
         /// <param name="x500"></param>
         /// <returns></returns>
-        public static byte[] CreateSelfSignCertificatePfx(string x500)
+        public static Byte[] CreateSelfSignCertificatePfx(String x500)
         {
-            DateTime dt = DateTime.UtcNow;
+            var dt = DateTime.UtcNow;
             return CreateSelfSignCertificatePfx(x500, dt, dt.AddYears(2), (SecureString)null);
         }
 
@@ -24,7 +24,7 @@ namespace NewLife.Security
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <returns></returns>
-        public static byte[] CreateSelfSignCertificatePfx(string x500, DateTime startTime, DateTime endTime)
+        public static Byte[] CreateSelfSignCertificatePfx(String x500, DateTime startTime, DateTime endTime)
         {
             return CreateSelfSignCertificatePfx(x500, startTime, endTime, (SecureString)null);
         }
@@ -35,13 +35,13 @@ namespace NewLife.Security
         /// <param name="endTime"></param>
         /// <param name="insecurePassword"></param>
         /// <returns></returns>
-        public static byte[] CreateSelfSignCertificatePfx(string x500, DateTime startTime, DateTime endTime, string insecurePassword)
+        public static Byte[] CreateSelfSignCertificatePfx(String x500, DateTime startTime, DateTime endTime, String insecurePassword)
         {
             SecureString password = null;
 
             try
             {
-                if (!string.IsNullOrEmpty(insecurePassword))
+                if (!String.IsNullOrEmpty(insecurePassword))
                 {
                     password = new SecureString();
                     foreach (char ch in insecurePassword)
@@ -66,7 +66,7 @@ namespace NewLife.Security
         /// <param name="endTime"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public static byte[] CreateSelfSignCertificatePfx(string x500, DateTime startTime, DateTime endTime, SecureString password)
+        public static Byte[] CreateSelfSignCertificatePfx(String x500, DateTime startTime, DateTime endTime, SecureString password)
         {
             if (String.IsNullOrEmpty(x500)) x500 = "CN=" + Environment.MachineName;
 
@@ -80,21 +80,17 @@ namespace NewLife.Security
         /// <param name="endTime"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public static byte[] CreateSelfSignCertificatePfx(X500DistinguishedName distName, DateTime startTime, DateTime endTime, SecureString password)
+        public static Byte[] CreateSelfSignCertificatePfx(X500DistinguishedName distName, DateTime startTime, DateTime endTime, SecureString password)
         {
-            byte[] pfxData;
+            var containerName = Guid.NewGuid().ToString();
 
-            SystemTime startSystemTime = ToSystemTime(startTime);
-            SystemTime endSystemTime = ToSystemTime(endTime);
-            string containerName = Guid.NewGuid().ToString();
-
-            GCHandle dataHandle = new GCHandle();
-            IntPtr providerContext = IntPtr.Zero;
-            IntPtr cryptKey = IntPtr.Zero;
-            IntPtr certContext = IntPtr.Zero;
-            IntPtr certStore = IntPtr.Zero;
-            IntPtr storeCertContext = IntPtr.Zero;
-            IntPtr passwordPtr = IntPtr.Zero;
+            var dataHandle = new GCHandle();
+            var providerContext = IntPtr.Zero;
+            var cryptKey = IntPtr.Zero;
+            var certContext = IntPtr.Zero;
+            var certStore = IntPtr.Zero;
+            var storeCertContext = IntPtr.Zero;
+            var passwordPtr = IntPtr.Zero;
             RuntimeHelpers.PrepareConstrainedRegions();
             try
             {
@@ -111,18 +107,18 @@ namespace NewLife.Security
                     1, // CRYPT_EXPORTABLE
                     out cryptKey));
 
-                byte[] nameData = distName.RawData;
+                var nameData = distName.RawData;
 
                 dataHandle = GCHandle.Alloc(nameData, GCHandleType.Pinned);
-                CryptoApiBlob nameBlob = new CryptoApiBlob(
-                    nameData.Length,
-                    dataHandle.AddrOfPinnedObject());
+                var nameBlob = new CryptoApiBlob(nameData.Length, dataHandle.AddrOfPinnedObject());
 
-                CryptKeyProviderInformation kpi = new CryptKeyProviderInformation();
+                var kpi = new CryptKeyProviderInformation();
                 kpi.ContainerName = containerName;
                 kpi.ProviderType = 1; // PROV_RSA_FULL
                 kpi.KeySpec = 1; // AT_KEYEXCHANGE
 
+                var startSystemTime = ToSystemTime(startTime);
+                var endSystemTime = ToSystemTime(endTime);
                 certContext = NativeMethods.CertCreateSelfSignCertificate(
                     providerContext,
                     ref nameBlob,
@@ -160,7 +156,7 @@ namespace NewLife.Security
                     passwordPtr = Marshal.SecureStringToCoTaskMemUnicode(password);
                 }
 
-                CryptoApiBlob pfxBlob = new CryptoApiBlob();
+                var pfxBlob = new CryptoApiBlob();
                 Check(NativeMethods.PFXExportCertStoreEx(
                     certStore,
                     ref pfxBlob,
@@ -168,7 +164,7 @@ namespace NewLife.Security
                     IntPtr.Zero,
                     7)); // EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY
 
-                pfxData = new byte[pfxBlob.DataLength];
+                var pfxData = new Byte[pfxBlob.DataLength];
                 dataHandle = GCHandle.Alloc(pfxData, GCHandleType.Pinned);
                 pfxBlob.Data = dataHandle.AddrOfPinnedObject();
                 Check(NativeMethods.PFXExportCertStoreEx(
@@ -178,6 +174,8 @@ namespace NewLife.Security
                     IntPtr.Zero,
                     7)); // EXPORT_PRIVATE_KEYS | REPORT_NO_PRIVATE_KEY | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY
                 dataHandle.Free();
+
+                return pfxData;
             }
             finally
             {
@@ -204,8 +202,6 @@ namespace NewLife.Security
                         0x10); // CRYPT_DELETEKEYSET
                 }
             }
-
-            return pfxData;
         }
 
         private static SystemTime ToSystemTime(DateTime dateTime)
@@ -255,9 +251,9 @@ namespace NewLife.Security
         private struct CryptKeyProviderInformation
         {
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string ContainerName;
+            public String ContainerName;
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string ProviderName;
+            public String ProviderName;
             public int ProviderType;
             public int Flags;
             public int ProviderParameterCount;
@@ -277,8 +273,8 @@ namespace NewLife.Security
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool CryptAcquireContextW(
                 out IntPtr providerContext,
-                [MarshalAs(UnmanagedType.LPWStr)] string container,
-                [MarshalAs(UnmanagedType.LPWStr)] string provider,
+                [MarshalAs(UnmanagedType.LPWStr)] String container,
+                [MarshalAs(UnmanagedType.LPWStr)] String provider,
                 int providerType,
                 int flags);
 
@@ -308,7 +304,7 @@ namespace NewLife.Security
                 IntPtr x500,
                 int strType,
                 IntPtr reserved,
-                [MarshalAs(UnmanagedType.LPArray)] [Out] byte[] encoded,
+                [MarshalAs(UnmanagedType.LPArray)] [Out] Byte[] encoded,
                 ref int encodedLength,
                 out IntPtr errorString);
 
@@ -330,7 +326,7 @@ namespace NewLife.Security
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             public static extern IntPtr CertOpenStore(
-                [MarshalAs(UnmanagedType.LPStr)] string storeProvider,
+                [MarshalAs(UnmanagedType.LPStr)] String storeProvider,
                 int messageAndCertificateEncodingType,
                 IntPtr cryptProvHandle,
                 int flags,

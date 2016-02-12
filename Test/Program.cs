@@ -11,6 +11,7 @@ using NewLife.Net;
 using NewLife.Net.IO;
 using NewLife.Net.Stress;
 using NewLife.Reflection;
+using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Xml;
@@ -39,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -57,16 +58,19 @@ namespace Test
 
         static void Test1()
         {
-            using (var zip = new ZipFile(@"..\System.Data.SQLite.zip".GetFullPath()))
-            {
-                foreach (var item in zip.Entries)
-                {
-                    Console.WriteLine("{0}\t{1}\t{2}", item.Key, item.Value.FileName, item.Value.UncompressedSize);
-                }
-                zip.Extract("SQLite".GetFullPath());
-            }
+            //using (var zip = new ZipFile(@"..\System.Data.SQLite.zip".GetFullPath()))
+            //{
+            //    foreach (var item in zip.Entries)
+            //    {
+            //        Console.WriteLine("{0}\t{1}\t{2}", item.Key, item.Value.FileName, item.Value.UncompressedSize);
+            //    }
+            //    zip.Extract("SQLite".GetFullPath());
+            //}
 
-            ZipFile.CompressDirectory("SQLite".GetFullPath());
+            //ZipFile.CompressDirectory("SQLite".GetFullPath());
+
+            var buf = Certificate.CreateSelfSignCertificatePfx("CN=新生命团队;C=China;OU=NewLife;O=开发团队;E=nnhy@vip.qq.com");
+            File.WriteAllBytes("stone.pfx", buf);
         }
 
         static void Test2()

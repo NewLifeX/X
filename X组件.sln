@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XControl", "XControl\XControl.csproj", "{A82E3AA8-6181-460D-A6EE-CC453B83D340}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCoder", "XCoder\XCoder.csproj", "{3EB3A5F1-F785-4672-A21D-A3117FC12129}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{6740B4CD-B2F6-49DF-BDA0-7DC17144C666}"
@@ -31,10 +29,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A82E3AA8-6181-460D-A6EE-CC453B83D340}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A82E3AA8-6181-460D-A6EE-CC453B83D340}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A82E3AA8-6181-460D-A6EE-CC453B83D340}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A82E3AA8-6181-460D-A6EE-CC453B83D340}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3EB3A5F1-F785-4672-A21D-A3117FC12129}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3EB3A5F1-F785-4672-A21D-A3117FC12129}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3EB3A5F1-F785-4672-A21D-A3117FC12129}.Release|Any CPU.ActiveCfg = Release|Any CPU
