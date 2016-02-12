@@ -38,9 +38,8 @@ namespace NewLife.Data
             }
         }
 
-        private Boolean _Desc;
         /// <summary>是否降序</summary>
-        public virtual Boolean Desc { get { return _Desc; } set { _Desc = value; } }
+        public virtual Boolean Desc { get; set; }
 
         private Int32 _PageIndex = 1;
         /// <summary>页面索引</summary>
@@ -52,9 +51,8 @@ namespace NewLife.Data
         #endregion
 
         #region 扩展属性
-        private Int32 _TotalCount;
         /// <summary>总记录数</summary>
-        public virtual Int32 TotalCount { get { return _TotalCount; } set { _TotalCount = value; } }
+        public virtual Int32 TotalCount { get; set; }
 
         /// <summary>页数</summary>
         public virtual Int32 PageCount

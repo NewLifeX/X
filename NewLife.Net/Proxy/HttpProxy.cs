@@ -192,7 +192,7 @@ namespace NewLife.Net.Proxy
                 else if (!entity.IsFinish)
                 {
                     // 如果请求未完成，说明现在的数据内容还是头部
-                    entity.ReadHeaders(new BinaryReaderX(stream));
+                    entity.ReadHeaders(stream);
                     if (entity.IsFinish)
                     {
                         Request = entity;
@@ -445,7 +445,7 @@ namespace NewLife.Net.Proxy
                     {
                         #region 未完成响应，继续读取头部
                         // 如果请求未完成，说明现在的数据内容还是头部
-                        entity.ReadHeaders(new BinaryReaderX(stream));
+                        entity.ReadHeaders(stream);
                         if (entity.IsFinish)
                         {
                             Response = entity;

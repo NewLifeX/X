@@ -141,21 +141,29 @@ namespace NewLife.Compression
         {
             var reader = zipfile.CreateReader(stream);
             // 读取文件头时忽略掉这些字段，这些都是DirEntry的字段
-            reader.Settings.IgnoreMembers = dirMembers;
+            //reader.Settings.IgnoreMembers = dirMembers;
+
+            var handler = (reader as Binary).GetHandler<BinaryComposite>();
+            if (handler != null) handler.IgnoreMembers = dirMembers;
 
             // 有时候Zip文件以PK00开头
-            if (first && reader.Expect(ZipConstants.PackedToRemovableMedia)) reader.ReadBytes(4);
+            if (first)
+            {
+                if (reader.Read<UInt32>() != ZipConstants.PackedToRemovableMedia) reader.Stream.Position -= 4;
+            }
 
             // 验证头部
-            if (!reader.Expect(ZipConstants.ZipEntrySignature))
+            var v = reader.Read<UInt32>();
+            if (v != ZipConstants.ZipEntrySignature)
             {
-                if (!reader.Expect(ZipConstants.ZipDirEntrySignature, ZipConstants.EndOfCentralDirectorySignature))
+                if (v != ZipConstants.ZipDirEntrySignature && v != ZipConstants.EndOfCentralDirectorySignature)
                     throw new ZipException("0x{0:X8}处签名错误！", stream.Position);
 
                 return null;
             }
+            reader.Stream.Position -= 4;
 
-            var entry = reader.ReadObject<ZipEntry>();
+            var entry = reader.Read<ZipEntry>();
             if (entry.IsDirectory) return entry;
 
             // 0长度的实体不要设置数据源
@@ -175,9 +183,9 @@ namespace NewLife.Compression
                 //stream.Seek(20, SeekOrigin.Current);
 
                 // 在某些只读流中，可能无法回头设置校验和大小，此时可通过描述符在文件内容之后设置
-                entry.Crc = reader.ReadUInt32();
-                entry.CompressedSize = reader.ReadUInt32();
-                entry.UncompressedSize = reader.ReadUInt32();
+                entry.Crc = reader.Read<UInt32>();
+                entry.CompressedSize = reader.Read<UInt32>();
+                entry.UncompressedSize = reader.Read<UInt32>();
             }
 
             return entry;
@@ -187,25 +195,24 @@ namespace NewLife.Compression
         {
             var reader = zipfile.CreateReader(stream);
 
-            if (!reader.Expect(ZipConstants.ZipDirEntrySignature))
+            var v = reader.Read<UInt32>();
+            if (v != ZipConstants.ZipDirEntrySignature)
             {
-                if (!reader.Expect(
-                    ZipConstants.EndOfCentralDirectorySignature,
-                    //ZipConstants.Zip64EndOfCentralDirectoryRecordSignature,
-                    ZipConstants.ZipEntrySignature))
+                if (v != ZipConstants.EndOfCentralDirectorySignature && v != ZipConstants.ZipEntrySignature)
                 {
                     throw new ZipException("0x{0:X8}处签名错误！", stream.Position);
                 }
                 return null;
             }
+            reader.Stream.Position -= 4;
 
-            var entry = reader.ReadObject<ZipEntry>();
+            var entry = reader.Read<ZipEntry>();
             return entry;
         }
         #endregion
 
         #region 写入核心
-        internal void Write(IWriter writer)
+        internal void Write(IFormatterX writer)
         {
             Signature = ZipConstants.ZipEntrySignature;
 
@@ -215,7 +222,7 @@ namespace NewLife.Compression
             if (IsDirectory)
             {
                 // 写入头部
-                writer.WriteObject(this);
+                writer.Write(this);
 
                 return;
             }
@@ -230,7 +237,7 @@ namespace NewLife.Compression
             if (DataSource.IsCompressed) CompressedSize = (UInt32)dsLen;
 
             // 写入头部
-            writer.WriteObject(this);
+            writer.Write(this);
 
             // 没有数据，直接跳过
             if (dsLen <= 0) return;
@@ -266,8 +273,9 @@ namespace NewLife.Compression
                         p = writer.Stream.Position;
                         // 计算好压缩大小字段所在位置
                         writer.Stream.Seek(RelativeOffsetOfLocalHeader + 18, SeekOrigin.Begin);
-                        var wr = writer as IWriter2;
-                        wr.Write(CompressedSize);
+                        //var wr = writer as IWriter2;
+                        //wr.Write(CompressedSize);
+                        writer.Write(CompressedSize);
                         writer.Stream.Seek(p, SeekOrigin.Begin);
                     }
 
@@ -298,12 +306,12 @@ namespace NewLife.Compression
             #endregion
         }
 
-        internal void WriteDir(IWriter writer)
+        internal void WriteDir(IFormatterX writer)
         {
             Signature = ZipConstants.ZipDirEntrySignature;
 
             // 写入头部
-            writer.WriteObject(this);
+            writer.Write(this);
         }
         #endregion
 
@@ -475,7 +483,7 @@ namespace NewLife.Compression
         /// <param name="entry"></param>
         internal void CopyFromDirEntry(ZipEntry entry)
         {
-            Type type = this.GetType();
+            var type = this.GetType();
             foreach (var item in dirMembers)
             {
                 this.SetValue(item, entry.GetValue(item));

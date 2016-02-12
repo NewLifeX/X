@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web;
-using NewLife.Reflection;
 
 namespace NewLife.IO
 {

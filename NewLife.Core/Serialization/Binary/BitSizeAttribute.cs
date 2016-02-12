@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Reflection;
-using System.Text;
-using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {

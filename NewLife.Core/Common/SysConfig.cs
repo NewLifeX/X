@@ -16,68 +16,61 @@ namespace NewLife.Common
     public class SysConfig<TSetting> : XmlConfig<TSetting> where TSetting : SysConfig<TSetting>, new()
     {
         #region 属性
-        private String _Name;
         /// <summary>系统名称</summary>
         [DisplayName("系统名称")]
         [Description("用于标识系统的英文名")]
-        public String Name { get { return _Name; } set { _Name = value; } }
+        public String Name { get; set; }
 
-        private String _Version;
         /// <summary>系统版本</summary>
         [DisplayName("系统版本")]
-        public String Version { get { return _Version; } set { _Version = value; } }
+        public String Version { get; set; }
 
-        private String _DisplayName;
         /// <summary>显示名称</summary>
         [DisplayName("显示名称")]
         [Description("用户可见的名称")]
-        public String DisplayName { get { return _DisplayName; } set { _DisplayName = value; } }
+        public String DisplayName { get; set; }
 
-        private String _Company;
         /// <summary>公司</summary>
         [DisplayName("公司")]
-        public String Company { get { return _Company; } set { _Company = value; } }
+        public String Company { get; set; }
 
-        private String _Address;
         /// <summary>地址</summary>
         [DisplayName("地址")]
-        public String Address { get { return _Address; } set { _Address = value; } }
+        public String Address { get; set; }
 
-        private String _Tel;
         /// <summary>电话</summary>
         [DisplayName("电话")]
-        public String Tel { get { return _Tel; } set { _Tel = value; } }
+        public String Tel { get; set; }
 
-        private String _Fax;
         /// <summary>传真</summary>
         [DisplayName("传真")]
-        public String Fax { get { return _Fax; } set { _Fax = value; } }
+        public String Fax { get; set; }
 
-        private String _EMail;
         /// <summary>电子邮件</summary>
         [DisplayName("电子邮件")]
-        public String EMail { get { return _EMail; } set { _EMail = value; } }
+        public String EMail { get; set; }
 
-        private Boolean _Develop = true;
         /// <summary>开发者模式</summary>
         [DisplayName("开发者模式")]
-        public Boolean Develop { get { return _Develop; } set { _Develop = value; } }
+        public Boolean Develop { get; set; }
 
-        private Boolean _Enable = true;
         /// <summary>启用</summary>
         [DisplayName("启用")]
-        public Boolean Enable { get { return _Enable; } set { _Enable = value; } }
+        public Boolean Enable { get; set; }
 
-        private DateTime _InstallTime = DateTime.Now;
         /// <summary>安装时间</summary>
         [DisplayName("安装时间")]
-        public DateTime InstallTime { get { return _InstallTime; } set { _InstallTime = value; } }
+        public DateTime InstallTime { get; set; }
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
         public SysConfig()
         {
+            Develop = true;
+            Enable = true;
+            InstallTime = DateTime.Now;
+
             var asmx = SysAssembly;
 
             Name = asmx != null ? asmx.Name : "NewLife.Cube";

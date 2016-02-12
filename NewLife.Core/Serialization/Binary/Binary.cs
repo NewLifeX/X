@@ -11,21 +11,20 @@ namespace NewLife.Serialization
     public class Binary : FormatterBase, IBinary
     {
         #region 属性
-        private Boolean _EncodeInt;
         /// <summary>使用7位编码整数。默认false不使用</summary>
-        public Boolean EncodeInt { get { return _EncodeInt; } set { _EncodeInt = value; } }
+        public Boolean EncodeInt { get; set; }
 
-        private Boolean _IsLittleEndian;
         /// <summary>小端字节序。默认false，是大端而不是小端</summary>
-        public Boolean IsLittleEndian { get { return _IsLittleEndian; } set { _IsLittleEndian = value; } }
+        public Boolean IsLittleEndian { get; set; }
 
-        private Boolean _UseFieldSize;
         /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
-        public Boolean UseFieldSize { get { return _UseFieldSize; } set { _UseFieldSize = value; } }
+        public Boolean UseFieldSize { get; set; }
 
-        private List<IBinaryHandler> _Handlers = new List<IBinaryHandler>();
+        /// <summary>大小宽度。可选0/1/2/4，默认0表示压缩编码整数</summary>
+        public Int32 SizeWidth { get; set; }
+
         /// <summary>处理器列表</summary>
-        public List<IBinaryHandler> Handlers { get { return _Handlers; } }
+        public IList<IBinaryHandler> Handlers { get; private set; }
         #endregion
 
         #region 构造
@@ -47,7 +46,7 @@ namespace NewLife.Serialization
             // 根据优先级排序
             list.Sort();
 
-            _Handlers = list;
+            Handlers = list;
         }
         #endregion
 
@@ -60,9 +59,9 @@ namespace NewLife.Serialization
             if (handler != null)
             {
                 handler.Host = this;
-                _Handlers.Add(handler);
+                Handlers.Add(handler);
                 // 根据优先级排序
-                _Handlers.Sort();
+                (Handlers as List<IBinaryHandler>).Sort();
             }
 
             return this;
@@ -79,6 +78,19 @@ namespace NewLife.Serialization
             if (priority != 0) handler.Priority = priority;
 
             return AddHandler(handler);
+        }
+
+        /// <summary>获取处理器</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetHandler<T>() where T : class,IBinaryHandler
+        {
+            foreach (var item in Handlers)
+            {
+                if (item is T) return item as T;
+            }
+
+            return default(T);
         }
         #endregion
 
@@ -131,10 +143,25 @@ namespace NewLife.Serialization
                 if (fieldsize >= 0) return fieldsize;
             }
 
-            if (EncodeInt)
-                WriteEncoded(size);
-            else
-                Write(size);
+            switch (SizeWidth)
+            {
+                case 1:
+                    Write((Byte)size);
+                    break;
+                case 2:
+                    Write((Int16)size);
+                    break;
+                case 4:
+                    Write(size);
+                    break;
+                case 0:
+                default:
+                    if (EncodeInt)
+                        WriteEncoded(size);
+                    else
+                        Write(size);
+                    break;
+            }
 
             return -1;
         }
@@ -231,26 +258,21 @@ namespace NewLife.Serialization
                 if (size >= 0) return size;
             }
 
-            if (EncodeInt)
-                return ReadEncodedInt32();
-            else
-                //return ReadInt32();
-                return (Int32)Read(typeof(Int32));
-            //var sizeFormat = TypeCode.Int32;
-            //switch (sizeFormat)
-            //{
-            //    case TypeCode.Int16:
-            //        return ReadInt16();
-            //    case TypeCode.UInt16:
-            //        return ReadEncodedInt16();
-            //    case TypeCode.Int32:
-            //    case TypeCode.Int64:
-            //    default:
-            //        return ReadInt32();
-            //    case TypeCode.UInt32:
-            //    case TypeCode.UInt64:
-            //        return ReadEncodedInt32();
-            //}
+            switch (SizeWidth)
+            {
+                case 1:
+                    return ReadByte();
+                case 2:
+                    return (Int16)Read(typeof(Int16));
+                case 4:
+                    return (Int32)Read(typeof(Int32));
+                case 0:
+                default:
+                    if (EncodeInt)
+                        return ReadEncodedInt32();
+                    else
+                        return (Int32)Read(typeof(Int32));
+            }
         }
 
         Int32 GetFieldSize()
@@ -283,7 +305,7 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
         /// <returns></returns>
-        short ReadInt16() { return BitConverter.ToInt16(ReadIntBytes(2), 0); }
+        Int16 ReadInt16() { return BitConverter.ToInt16(ReadIntBytes(2), 0); }
 
         /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Text;
 using System.Collections.Generic;
-using NewLife.Log;
+using System.Text;
 
 namespace NewLife.Serialization
 {
@@ -22,7 +21,7 @@ namespace NewLife.Serialization
         Boolean UseFieldSize { get; }
 
         /// <summary>处理器列表</summary>
-        List<IBinaryHandler> Handlers { get; }
+        IList<IBinaryHandler> Handlers { get; }
         #endregion
 
         #region 写入
@@ -61,38 +60,10 @@ namespace NewLife.Serialization
     /// <summary>二进制读写处理器接口</summary>
     public interface IBinaryHandler : IHandler<IBinary>
     {
-        ///// <summary>宿主读写器</summary>
-        //IBinary Host { get; set; }
-
-        ///// <summary>优先级</summary>
-        //Int32 Priority { get; set; }
-
-        ///// <summary>写入一个对象</summary>
-        ///// <param name="value">目标对象</param>
-        ///// <param name="type">类型</param>
-        ///// <returns></returns>
-        //Boolean Write(Object value, Type type);
-
-        ///// <summary>尝试读取指定类型对象</summary>
-        ///// <param name="type"></param>
-        ///// <param name="value"></param>
-        ///// <returns></returns>
-        //Boolean TryRead(Type type, ref Object value);
     }
 
     /// <summary>二进制读写处理器基类</summary>
     public abstract class BinaryHandlerBase : HandlerBase<IBinary, IBinaryHandler>, IBinaryHandler
     {
-        ///// <summary>写入一个对象</summary>
-        ///// <param name="value">目标对象</param>
-        ///// <param name="type">类型</param>
-        ///// <returns></returns>
-        //public abstract Boolean Write(Object value, Type type);
-
-        ///// <summary>尝试读取指定类型对象</summary>
-        ///// <param name="type"></param>
-        ///// <param name="value"></param>
-        ///// <returns></returns>
-        //public abstract Boolean TryRead(Type type, ref Object value);
     }
 }

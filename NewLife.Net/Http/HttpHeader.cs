@@ -93,9 +93,9 @@ namespace NewLife.Net.Http
 
             HttpHeader entity = null;
             var p = stream.Position;
-            var reader = new BinaryReaderX(stream);
+            //var reader = new BinaryReaderX(stream);
 
-            entity = ReadFirst(reader);
+            entity = ReadFirst(stream);
             if (entity == null) return null;
 
             switch (mode)
@@ -110,7 +110,7 @@ namespace NewLife.Net.Http
                     break;
             }
 
-            entity.ReadHeaders(reader);
+            entity.ReadHeaders(stream);
 
             //// 因为涉及字符编码，所以跟流位置可能不同。对于ASCII编码没有问题。
             //stream.Position = p + reader.CharPosition;
@@ -119,15 +119,16 @@ namespace NewLife.Net.Http
         }
 
         /// <summary>仅读取第一行。如果不是Http头部，指针要回到原来位置</summary>
-        /// <param name="reader"></param>
+        /// <param name="stream"></param>
         /// <returns></returns>
-        public static HttpHeader ReadFirst(BinaryReaderX reader)
+        public static HttpHeader ReadFirst(Stream stream)
         {
             // 如果不是Http头部，指针要回到原来位置
-            var stream = reader.Stream;
+            //var stream = reader.Stream;
+            var reader = new StreamReaderX(stream, null, false);
             var p = stream.Position;
 
-            String line = reader.ReadLine();
+            var line = reader.ReadLine();
             if (line.IsNullOrWhiteSpace()) { stream.Position = p; return null; }
 
             var ss = line.Split(new Char[] { ' ' }, 3);
@@ -157,9 +158,11 @@ namespace NewLife.Net.Http
         }
 
         /// <summary>读取头部键值</summary>
-        /// <param name="reader"></param>
-        public void ReadHeaders(BinaryReaderX reader)
+        /// <param name="stream"></param>
+        public void ReadHeaders(Stream stream)
         {
+            var reader = new StreamReaderX(stream, null, false);
+            
             IsFinish = true;
             while (true)
             {

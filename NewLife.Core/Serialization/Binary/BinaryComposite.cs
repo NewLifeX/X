@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NewLife.Collections;
-using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -11,10 +10,16 @@ namespace NewLife.Serialization
     /// <summary>复合对象处理器</summary>
     public class BinaryComposite : BinaryHandlerBase
     {
+        /// <summary>要忽略的成员</summary>
+        public ICollection<String> IgnoreMembers { get; set; }
+
         /// <summary>实例化</summary>
         public BinaryComposite()
         {
             Priority = 100;
+
+            //IgnoreMembers = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+            IgnoreMembers = new HashSet<String>();
         }
 
         /// <summary>写入对象</summary>
@@ -51,6 +56,8 @@ namespace NewLife.Serialization
             // 获取成员
             foreach (var member in ms)
             {
+                if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;
+
                 var mtype = GetMemberType(member);
                 Host.Member = member;
 
@@ -126,6 +133,8 @@ namespace NewLife.Serialization
             // 获取成员
             foreach (var member in ms)
             {
+                if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;
+
                 var mtype = GetMemberType(member);
                 Host.Member = member;
                 WriteLog("    {0}.{1}", type.Name, member.Name);

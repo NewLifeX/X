@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BinaryReaderX = NewLife.Serialization.BinaryReaderX;
-using BinaryWriterX = NewLife.Serialization.BinaryWriterX;
+using NewLife.Serialization;
+//using BinaryReaderX = NewLife.Serialization.BinaryReaderX;
+//using BinaryWriterX = NewLife.Serialization.BinaryWriterX;
 
 namespace NewLife.Compression
 {
@@ -227,17 +228,22 @@ namespace NewLife.Compression
                     }
 
                     // 这里应该是数字签名
-                    if (reader.Expect(ZipConstants.DigitalSignature))
+                    if (reader.Read<UInt32>() == ZipConstants.DigitalSignature)
                     {
-                        UInt16 n = reader.ReadUInt16();
-                        if (n > 0) reader.ReadBytes(n);
+                        // 抛弃数据
+                        var n = reader.Read<UInt16>();
+                        if (n > 0) reader.Stream.Position += n;
                     }
+                    else
+                        reader.Stream.Position -= 4;
                 }
 
                 // 读取目录结构尾记录
-                if (reader.Expect(ZipConstants.EndOfCentralDirectorySignature))
+                var v = reader.Read<UInt32>();
+                if (v == ZipConstants.EndOfCentralDirectorySignature)
                 {
-                    var ecd = reader.ReadObject<EndOfCentralDirectory>();
+                    reader.Stream.Position -= 4;
+                    var ecd = reader.Read<EndOfCentralDirectory>();
                     if (!String.IsNullOrEmpty(ecd.Comment)) Comment = ecd.Comment.TrimEnd('\0');
                 }
             }
@@ -255,9 +261,12 @@ namespace NewLife.Compression
             if (Entries.Count < 1) throw new ZipException("没有添加任何文件！");
 
             var writer = CreateWriter(stream);
-            writer.Settings.IgnoreMembers = null;
-            // 写入文件头时忽略掉这些字段，这些都是DirEntry的字段
-            writer.Settings.IgnoreMembers = ZipEntry.dirMembers;
+            //writer.Settings.IgnoreMembers = null;
+            //// 写入文件头时忽略掉这些字段，这些都是DirEntry的字段
+            //writer.Settings.IgnoreMembers = ZipEntry.dirMembers;
+
+            var handler = (writer as Binary).GetHandler<BinaryComposite>();
+            if (handler != null) handler.IgnoreMembers = ZipEntry.dirMembers;
 
             foreach (var item in Entries.Values)
             {
@@ -267,7 +276,7 @@ namespace NewLife.Compression
             var ecd = new EndOfCentralDirectory();
             ecd.Offset = (UInt32)writer.Stream.Position;
 
-            writer.Settings.IgnoreMembers = null;
+            //writer.Settings.IgnoreMembers = null;
             Int32 num = 0;
             foreach (var item in Entries.Values)
             {
@@ -286,9 +295,9 @@ namespace NewLife.Compression
             ecd.NumberOfEntriesOnThisDisk = (UInt16)num;
             ecd.Size = (UInt32)writer.Stream.Position - ecd.Offset;
 
-            writer.WriteObject(ecd);
+            writer.Write(ecd);
 
-            writer.Flush();
+            writer.Stream.Flush();
         }
 
         /// <summary>把Zip格式数据写入到文件中</summary>
@@ -520,31 +529,39 @@ namespace NewLife.Compression
         #endregion
 
         #region 辅助
-        internal BinaryReaderX CreateReader(Stream stream)
+        internal IFormatterX CreateReader(Stream stream)
         {
-            var reader = new BinaryReaderX() { Stream = stream };
-            reader.Settings.EncodeInt = false;
-            reader.Settings.UseObjRef = false;
-            reader.Settings.SizeFormat = TypeCode.Int16;
-            reader.Settings.Encoding = Encoding;
-            //#if DEBUG
-            //            reader.Debug = true;
-            //            reader.EnableTraceStream();
-            //#endif
+#if DEBUG
+            stream = new NewLife.Log.TraceStream(stream);
+#endif
+            var reader = new Binary() { Stream = stream };
+            reader.EncodeInt = false;
+            reader.UseFieldSize = true;
+            reader.SizeWidth = 2;
+            reader.IsLittleEndian = true;
+            reader.Encoding = Encoding;
+#if DEBUG
+            reader.Log = NewLife.Log.XTrace.Log;
+#endif
+
             return reader;
         }
 
-        internal BinaryWriterX CreateWriter(Stream stream)
+        internal IFormatterX CreateWriter(Stream stream)
         {
-            var writer = new BinaryWriterX() { Stream = stream };
-            writer.Settings.EncodeInt = false;
-            writer.Settings.UseObjRef = false;
-            writer.Settings.SizeFormat = TypeCode.Int16;
-            writer.Settings.Encoding = Encoding;
 #if DEBUG
-            writer.Debug = true;
-            //writer.EnableTraceStream();
+            stream = new NewLife.Log.TraceStream(stream);
 #endif
+            var writer = new Binary() { Stream = stream };
+            writer.EncodeInt = false;
+            writer.UseFieldSize = true;
+            writer.SizeWidth = 2;
+            writer.IsLittleEndian = true;
+            writer.Encoding = Encoding;
+#if DEBUG
+            writer.Log = NewLife.Log.XTrace.Log;
+#endif
+
             return writer;
         }
 

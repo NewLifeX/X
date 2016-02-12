@@ -69,15 +69,17 @@ namespace NewLife.Net.SGIP
         /// <returns></returns>
         public static SGIPEntity Read(Stream stream)
         {
-            var reader = new BinaryReaderX(stream);
-            reader.Settings.EncodeInt = false;
+            //var reader = new BinaryReaderX(stream);
+            //reader.Settings.EncodeInt = false;
+            var reader = new Binary();
+            reader.Stream = stream;
 
             // 先读取包长度和命令类型
-            var len = reader.ReadInt32();
-            var cmd = (SGIPCommands)reader.ReadUInt32();
+            var len = reader.Read<Int32>();
+            var cmd = (SGIPCommands)reader.Read<UInt32>();
 
             var type = ObjectContainer.Current.ResolveType<SGIPEntity>(cmd);
-            var entity = reader.ReadObject(type) as SGIPEntity;
+            var entity = reader.Read(type) as SGIPEntity;
             entity.Command = cmd;
             return entity;
         }
@@ -87,10 +89,13 @@ namespace NewLife.Net.SGIP
         /// <returns></returns>
         public void Write(Stream stream)
         {
-            var writer = new BinaryWriterX();
-            writer.Settings.EncodeInt = false;
+            //var writer = new BinaryWriterX();
+            //writer.Settings.EncodeInt = false;
+            var writer = new Binary();
+            writer.Stream = stream;
+            
             writer.Write((UInt32)Command);
-            writer.WriteObject(this);
+            writer.Write(this);
 
             // 拿出内部流，换一个流，为了用这个读写器
             var ms = writer.Stream;

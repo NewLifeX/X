@@ -1,6 +1,5 @@
 ﻿using System;
 using NewLife.Model;
-using XCode.Accessors;
 using XCode.DataAccessLayer;
 
 namespace XCode.Model
@@ -24,7 +23,7 @@ namespace XCode.Model
 
             DbFactory.Reg(container);
 
-            EntityAccessorFactory.Reg(container);
+            //EntityAccessorFactory.Reg(container);
         }
 
         #region 方法

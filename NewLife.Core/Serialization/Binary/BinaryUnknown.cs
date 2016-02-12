@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
-using NewLife.Collections;
-using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -36,40 +31,12 @@ namespace NewLife.Serialization
 
             // 调用.Net的二进制序列化来解决剩下的事情
             var bf = new BinaryFormatter();
-            //var ms = new MemoryStream();
-            //bf.Serialize(ms, value);
-            //ms.Position = 0;
-            //var buf = ms.ToArray();
-
-            //Host.WriteSize(buf.Length);
-            //Host.Write(buf);
-
-            //Int32 size = 0;
-            //// 为了预估大小，调试进行两次序列化
-            //if (Host.Debug)
-            //{
-            //    var ms = new MemoryStream();
-            //    bf.Serialize(ms, value);
-            //    size = (Int32)ms.Length;
-            //}
-
-            //// 先写入一个长度，待会回来覆盖
-            //var p = Host.Stream.Position;
-            //Host.WriteSize(size);
-            //var start = Host.Stream.Position;
 
             var ms = new MemoryStream();
             bf.Serialize(ms, value);
 
             Host.WriteSize((Int32)ms.Length);
             ms.CopyTo(Host.Stream);
-
-            //// 写入长度
-            //var end = Host.Stream.Position;
-            //size = (Int32)(end - start);
-            //Host.Stream.Position = p;
-            //Host.WriteSize(size);
-            //Host.Stream.Position = end;
 
             return true;
         }
@@ -88,8 +55,6 @@ namespace NewLife.Serialization
             if (len == 0) return true;
 
             var bf = new BinaryFormatter();
-            //var ms = new MemoryStream(Host.ReadBytes(len));
-            //value = bf.Deserialize(ms);
 
             var p = Host.Stream.Position;
             value = bf.Deserialize(Host.Stream);

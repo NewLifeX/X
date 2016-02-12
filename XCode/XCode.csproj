@@ -53,26 +53,6 @@
     <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
       <Link>Properties\AssemblyInfo_.cs</Link>
     </Compile>
-    <Compile Include="Accessors\BinaryEntityAccessor.cs">
-    </Compile>
-    <Compile Include="Accessors\EntityAccessorBase.cs">
-    </Compile>
-    <Compile Include="Accessors\EntityAccessorEventArgs.cs" />
-    <Compile Include="Accessors\EntityAccessorFactory.cs" />
-    <Compile Include="Accessors\EntityAccessorOptions.cs" />
-    <Compile Include="Accessors\EntityAccessorTypes.cs" />
-    <Compile Include="Accessors\HttpEntityAccessor.cs">
-    </Compile>
-    <Compile Include="Accessors\JsonEntityAccessor.cs">
-    </Compile>
-    <Compile Include="Accessors\SerializationEntityAccessorBase.cs">
-    </Compile>
-    <Compile Include="Accessors\WebFormEntityAccessor.cs">
-    </Compile>
-    <Compile Include="Accessors\WinFormEntityAccessor.cs">
-    </Compile>
-    <Compile Include="Accessors\XmlEntityAccessor.cs">
-    </Compile>
     <Compile Include="Attributes\BindColumnAttribute.cs" />
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
@@ -201,12 +181,10 @@
     <Compile Include="Entity\IEntity.cs" />
     <Compile Include="Entity\IEntityOperate.cs" />
     <Compile Include="Cache\SingleEntityCache.cs" />
-    <Compile Include="Accessors\IEntityAccessor.cs" />
     <Compile Include="Model\OrderExpression.cs" />
     <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Model\XCodeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Web\EntityForm.cs" />
     <Compile Include="Web\EntityGrid.cs" />
     <None Include="Membership\XCoder.log">
       <AutoGen>True</AutoGen>

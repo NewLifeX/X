@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XControl", "XControl\XControl.csproj", "{A82E3AA8-6181-460D-A6EE-CC453B83D340}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{6740B4CD-B2F6-49DF-BDA0-7DC17144C666}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCode", "XCode\XCode.csproj", "{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.CommonEntity", "NewLife.CommonEntity\NewLife.CommonEntity.csproj", "{50D7FAE5-2304-4395-A6FA-7D35279D9D84}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAgent", "XAgent\XAgent.csproj", "{A18FB4FB-5AA8-4781-A898-82DBEE6A6631}"
 EndProject
@@ -49,10 +47,6 @@ Global
 		{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}.Release|Any CPU.Build.0 = Release|Any CPU
-		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{50D7FAE5-2304-4395-A6FA-7D35279D9D84}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A18FB4FB-5AA8-4781-A898-82DBEE6A6631}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A18FB4FB-5AA8-4781-A898-82DBEE6A6631}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A18FB4FB-5AA8-4781-A898-82DBEE6A6631}.Release|Any CPU.ActiveCfg = Release|Any CPU

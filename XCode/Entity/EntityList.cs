@@ -748,7 +748,8 @@ namespace XCode
         /// <returns></returns>
         public virtual String ToJson()
         {
-            return new Json().Serialize(this);
+            //return new Json().Serialize(this);
+            return null;
         }
 
         /// <summary>导入Json</summary>
@@ -756,7 +757,8 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> FromJson(String json)
         {
-            return new Json().Deserialize<EntityList<T>>(json);
+            //return new Json().Deserialize<EntityList<T>>(json);
+            return null;
         }
         #endregion
 

@@ -105,8 +105,9 @@ namespace XCode
         /// <returns></returns>
         public virtual String ToJson()
         {
-            Json json = new Json();
-            return json.Serialize(this);
+            //Json json = new Json();
+            //return json.Serialize(this);
+            return null;
         }
         #endregion
 

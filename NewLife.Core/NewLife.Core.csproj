@@ -150,13 +150,9 @@
     <Compile Include="Security\RC4.cs" />
     <Compile Include="Security\RSAHelper.cs" />
     <Compile Include="Security\SecurityHelper.cs" />
-    <Compile Include="Serialization\Base\TextReaderBase.cs" />
     <Compile Include="Serialization\Binary\BinaryDictionary.cs" />
     <Compile Include="Serialization\Binary\BinaryList.cs" />
-    <Compile Include="Serialization\Binary\BinaryReaderX.cs" />
     <Compile Include="Serialization\Binary\Binary.cs" />
-    <Compile Include="Serialization\Binary\BinarySettings.cs" />
-    <Compile Include="Serialization\Binary\BinaryWriterX.cs" />
     <Compile Include="Serialization\Binary\BinaryComposite.cs" />
     <Compile Include="Serialization\Binary\BitSizeAttribute.cs" />
     <Compile Include="Serialization\Binary\FieldSizeAttribute.cs" />
@@ -166,59 +162,25 @@
     <Compile Include="Serialization\Binary\BinaryFont.cs" />
     <Compile Include="Serialization\Binary\BinaryColor.cs" />
     <Compile Include="Serialization\Interface\IFormatterX.cs" />
-    <Compile Include="Serialization\Interface\IReader2.cs" />
-    <Compile Include="Serialization\Interface\IWriter2.cs" />
-    <Compile Include="Serialization\Json\JsonAtomStringReader.cs" />
-    <Compile Include="Serialization\Json\SimpleJsonUtil.cs" />
-    <Compile Include="Serialization\NameValue\NameValueReader.cs" />
-    <Compile Include="Serialization\Interface\IAccessor.cs" />
     <Compile Include="Serialization\Info\IObjectMemberInfo.cs" />
-    <Compile Include="Serialization\Interface\IReader.cs" />
-    <Compile Include="Serialization\Interface\IReaderWriter.cs" />
-    <Compile Include="Serialization\Interface\IWriter.cs" />
-    <Compile Include="IO\Json.cs" />
-    <Compile Include="Serialization\Json\JsonReader.cs" />
-    <Compile Include="Serialization\Json\JsonSettings.cs" />
-    <Compile Include="Serialization\Json\JsonWriter.cs" />
-    <Compile Include="Serialization\Base\ReaderBase.cs" />
-    <Compile Include="Serialization\Base\ReaderWriterBase.cs" />
-    <Compile Include="IO\ReadWriteStream.cs" />
     <Compile Include="Serialization\Info\ReflectMemberInfo.cs" />
     <Compile Include="Serialization\Info\SimpleMemberInfo.cs" />
     <Compile Include="Serialization\Info\ObjectInfo.cs" />
-    <Compile Include="Serialization\Event\ReaderEventArgs.cs" />
-    <Compile Include="Serialization\Event\ReadMemberEventArgs.cs" />
-    <Compile Include="Serialization\Event\ReadObjectEventArgs.cs" />
-    <Compile Include="Serialization\NameValue\NameValueSetting.cs" />
-    <Compile Include="Serialization\NameValue\NameValueWriter.cs" />
-    <Compile Include="Serialization\Base\WriterBase.cs" />
     <Compile Include="Log\CodeTimer.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />
     <Compile Include="Reflection\AttributeX.cs" />
     <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
     <Compile Include="Reflection\DynamicAssembly.cs" />
-    <Compile Include="Serialization\Base\ReaderWriterSettings.cs" />
-    <Compile Include="Serialization\Event\ReaderWriterEventArgs.cs" />
-    <Compile Include="Serialization\Base\TextWriterBase.cs" />
-    <Compile Include="Serialization\Base\TextReaderWriterSetting.cs" />
-    <Compile Include="Serialization\Event\WriterEventArgs.cs" />
-    <Compile Include="Serialization\Event\WriteMemberEventArgs.cs" />
-    <Compile Include="Serialization\Event\WriteObjectEventArgs.cs" />
     <Compile Include="Serialization\Protocol.cs" />
-    <Compile Include="Serialization\RWKinds.cs" />
-    <Compile Include="Serialization\RWService.cs" />
     <Compile Include="Serialization\Xml\XmlComposite.cs" />
     <Compile Include="Serialization\Xml\XmlGeneral.cs" />
     <Compile Include="Serialization\Xml\IXml.cs" />
     <Compile Include="Serialization\Xml\Xml.cs" />
-    <Compile Include="Serialization\XSerializationException.cs" />
     <Compile Include="Setting.cs" />
-    <Compile Include="Threading\ReadWriteLock.cs" />
     <Compile Include="Reflection\快速反射\TypeX.cs" />
     <Compile Include="Common\WeakReference.cs" />
     <Compile Include="Event\EventArgs.cs" />
-    <Compile Include="IO\ReadWriteMemoryStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\FastIndexAccessor.cs" />
     <Compile Include="Reflection\快速反射\FieldInfoX.cs" />
@@ -230,8 +192,6 @@
     <Compile Include="Security\Crc32.cs" />
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
-    <None Include="Serialization\Event\事件参数.cd" />
-    <Compile Include="Threading\SpinWait.cs" />
     <Compile Include="Threading\TaskState.cs" />
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\ThreadTask.cs" />
@@ -241,16 +201,11 @@
     <Compile Include="Web\Js.cs" />
     <Compile Include="Web\Link.cs" />
     <Compile Include="Web\Modules\ErrorModule.cs" />
-    <Compile Include="Web\Modules\HttpModuleLoader.cs" />
     <Compile Include="Web\Modules\CompressionModule.cs" />
     <Compile Include="Web\ControlHelper.cs" />
-    <Compile Include="Web\HttpStream.cs" />
     <Compile Include="Log\WriteLogEventArgs.cs" />
     <Compile Include="Log\XTrace.cs" />
     <Compile Include="Web\Modules\RunTimeModule.cs" />
-    <Compile Include="Web\Modules\ViewStateCompressionModule.cs" />
-    <Compile Include="Web\Modules\SystemStartModule.cs" />
-    <Compile Include="Web\Modules\UrlRewrite.cs" />
     <Compile Include="Data\PageParameter.cs" />
     <Compile Include="Web\Pager.cs" />
     <Compile Include="Web\PluginHelper.cs" />
@@ -273,30 +228,24 @@
     <Compile Include="Xml\XmlConfigFileAttribute.cs" />
     <Compile Include="Xml\XmlEntity.cs" />
     <Compile Include="Xml\XmlHelper.cs" />
-    <Compile Include="Xml\XmlReaderX.cs" />
-    <Compile Include="Xml\XmlReaderWriterSettings.cs" />
-    <Compile Include="Xml\XmlWriterX.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Windows\SerialPortList.resx">
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="X组件.txt" />
-    <EmbeddedResource Include="Web\Modules\SystemStart.htm" />
     <Content Include="说明.txt" />
     <EmbeddedResource Include="UpdateInfo.txt" />
-    <None Include="Serialization\序列化_写入器.png" />
-    <None Include="Serialization\序列化_读取器.png" />
-    <None Include="Serialization\说明.txt" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.config">
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="Serialization\序列化架构.edx" />
-    <None Include="Serialization\读写器模型.cd" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Serialization\Json\" />
+    <Folder Include="Serialization\NameValue\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
