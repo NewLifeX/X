@@ -12,56 +12,52 @@ namespace XCode.DataAccessLayer
     class XIndex : SerializableDataMember, IDataIndex, ICloneable
     {
         #region 属性
-        private String _Name;
         /// <summary>名称</summary>
         [XmlAttribute]
         [DisplayName("名称")]
         [Description("名称")]
-        public String Name
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_Name)) _Name = ModelResolver.Current.GetName(this);
-                return _Name;
-            }
-            set { _Name = value; }
-        }
+        public String Name { get; set; }
 
-        private String[] _Columns;
         /// <summary>数据列集合</summary>
         [XmlAttribute]
         [DisplayName("数据列集合")]
         [Description("数据列集合")]
-        public String[] Columns { get { return _Columns; } set { _Columns = value; } }
+        public String[] Columns { get; set; }
 
-        private Boolean _Unique;
         /// <summary>是否唯一</summary>
         [XmlAttribute]
         [DisplayName("唯一")]
         [Description("唯一")]
-        public Boolean Unique { get { return _Unique; } set { _Unique = value; } }
+        public Boolean Unique { get; set; }
 
-        private Boolean _PrimaryKey;
         /// <summary>是否主键</summary>
         [XmlAttribute]
         [DisplayName("主键")]
         [Description("主键")]
-        public Boolean PrimaryKey { get { return _PrimaryKey; } set { _PrimaryKey = value; } }
+        public Boolean PrimaryKey { get; set; }
 
-        private Boolean _Computed;
         /// <summary>是否计算出来的，而不是数据库内置的</summary>
         [XmlAttribute]
         [DisplayName("计算")]
         [Description("是否计算出来的，而不是数据库内置的")]
-        public Boolean Computed { get { return _Computed; } set { _Computed = value; } }
+        public Boolean Computed { get; set; }
         #endregion
 
         #region 扩展属性
-        [NonSerialized]
-        private IDataTable _Table;
         /// <summary>表</summary>
         [XmlIgnore]
-        public IDataTable Table { get { return _Table; } set { _Table = value; } }
+        public IDataTable Table { get; set; }
+        #endregion
+
+        #region 方法
+        /// <summary>修正数据</summary>
+        /// <returns></returns>
+        public IDataIndex Fix()
+        {
+            if (Name.IsNullOrEmpty()) Name = ModelResolver.Current.GetName(this);
+
+            return this;
+        }
         #endregion
 
         #region ICloneable 成员
@@ -76,6 +72,7 @@ namespace XCode.DataAccessLayer
         {
             var field = base.MemberwiseClone() as XIndex;
             field.Table = table;
+
             return field;
         }
         #endregion

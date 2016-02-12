@@ -476,6 +476,8 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         public virtual IDataTable Fix(IDataTable table)
         {
+            if (table.Name.IsNullOrEmpty()) table.Name = GetName(table.TableName);
+
             // 根据单字段索引修正对应的关系
             FixRelationBySingleIndex(table);
 
@@ -511,30 +513,13 @@ namespace XCode.DataAccessLayer
             FixIndex(table);
 
             #region 修正可能错误的别名
-            //var ns = new List<String>();
-            //ns.Add(table.Alias);
-            //foreach (var item in table.Columns)
-            //{
-            //    if (ns.Contains(item.Alias) || IsKeyWord(item.Alias))
-            //    {
-            //        // 通过加数字的方式，解决关键字问题
-            //        for (int i = 2; i < table.Columns.Count; i++)
-            //        {
-            //            var name = item.Alias + i;
-            //            // 加了数字后，不可能是关键字
-            //            if (!ns.Contains(name))
-            //            {
-            //                item.Alias = name;
-            //                break;
-            //            }
-            //        }
-            //    }
-
-            //    ns.Add(item.Alias);
-            //}
             foreach (var dc in table.Columns)
             {
                 dc.Fix();
+            }
+            foreach (var di in table.Indexes)
+            {
+                di.Fix();
             }
             #endregion
 
@@ -672,6 +657,8 @@ namespace XCode.DataAccessLayer
         /// <param name="column"></param>
         public virtual IDataColumn Fix(IDataColumn column)
         {
+            if (column.Name.IsNullOrEmpty()) column.Name = GetName(column);
+
             return column;
         }
         #endregion

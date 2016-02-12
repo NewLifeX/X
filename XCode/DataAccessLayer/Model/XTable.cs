@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -20,26 +20,23 @@ namespace XCode.DataAccessLayer
     class XTable : IDataTable, ICloneable, IXmlSerializable
     {
         #region 基本属性
-        private Int32 _ID;
         /// <summary>编号</summary>
         [XmlAttribute]
         [DisplayName("编号")]
         [Description("编号")]
-        public Int32 ID { get { return _ID; } set { _ID = value; } }
+        public Int32 ID { get; set; }
 
-        private String _Name;
         /// <summary>名称</summary>
         [XmlAttribute]
         [DisplayName("名称")]
         [Description("名称")]
-        public String Name { get { return !String.IsNullOrEmpty(_Name) ? _Name : (_Name = ModelResolver.Current.GetName(TableName)); } set { _Name = value; } }
+        public String Name { get; set; }
 
-        private String _TableName;
         /// <summary>表名</summary>
         [XmlAttribute]
         [DisplayName("表名")]
         [Description("表名")]
-        public String TableName { get { return _TableName; } set { _TableName = value; } }
+        public String TableName { get; set; }
 
         private String _DisplayName;
         /// <summary>显示名</summary>
@@ -80,59 +77,52 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private Boolean _IsView = false;
         /// <summary>是否视图</summary>
         [XmlAttribute]
         [DisplayName("是否视图")]
         [Description("是否视图")]
-        public Boolean IsView { get { return _IsView; } set { _IsView = value; } }
+        public Boolean IsView { get; set; }
 
-        private String _Owner;
         /// <summary>所有者</summary>
         [XmlAttribute]
         [DisplayName("所有者")]
         [Description("所有者")]
-        public String Owner { get { return _Owner; } set { _Owner = value; } }
+        public String Owner { get; set; }
 
-        private DatabaseType _DbType;
         /// <summary>数据库类型</summary>
         [XmlAttribute]
         [DisplayName("数据库类型")]
         [Description("数据库类型")]
-        public DatabaseType DbType { get { return _DbType; } set { _DbType = value; } }
+        public DatabaseType DbType { get; set; }
 
-        private String _BaseType;
         /// <summary>基类</summary>
         [XmlAttribute]
         [DisplayName("基类")]
         [Description("基类")]
-        public String BaseType { get { return _BaseType; } set { _BaseType = value; } }
+        public String BaseType { get; set; }
         #endregion
 
         #region 扩展属性
-        private List<IDataColumn> _Columns;
         /// <summary>字段集合。可以是空集合，但不能为null。</summary>
         [XmlArray("Columns")]
         [Category("集合")]
         [DisplayName("字段集合")]
         [Description("字段集合")]
-        public List<IDataColumn> Columns { get { return _Columns ?? (_Columns = new List<IDataColumn>()); } }
+        public List<IDataColumn> Columns { get; private set; }
 
-        private List<IDataRelation> _Relations;
         /// <summary>关系集合。可以是空集合，但不能为null。</summary>
         [XmlArray]
         [Category("集合")]
         [DisplayName("关系集合")]
         [Description("关系集合")]
-        public List<IDataRelation> Relations { get { return _Relations ?? (_Relations = new List<IDataRelation>()); } }
+        public List<IDataRelation> Relations { get; private set; }
 
-        private List<IDataIndex> _Indexes;
         /// <summary>索引集合。可以是空集合，但不能为null。</summary>
         [XmlArray]
         [Category("集合")]
         [DisplayName("索引集合")]
         [Description("索引集合")]
-        public List<IDataIndex> Indexes { get { return _Indexes ?? (_Indexes = new List<IDataIndex>()); } }
+        public List<IDataIndex> Indexes { get; private set; }
 
         /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
         [XmlIgnore]
@@ -142,21 +132,33 @@ namespace XCode.DataAccessLayer
         [XmlIgnore]
         public IDataColumn[] PrimaryKeys { get { return Columns.FindAll(item => item.PrimaryKey).ToArray(); } }
 
-        private IDictionary<String, String> _Properties;
         /// <summary>扩展属性</summary>
         [Category("扩展")]
         [DisplayName("扩展属性")]
         [Description("扩展属性")]
-        public IDictionary<String, String> Properties { get { return _Properties ?? (_Properties = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)); } }
+        public IDictionary<String, String> Properties { get; private set; }
         #endregion
 
         #region 构造
         /// <summary>初始化</summary>
-        public XTable() { }
+        public XTable()
+        {
+            IsView = false;
+
+            Columns = new List<IDataColumn>();
+            Relations = new List<IDataRelation>();
+            Indexes = new List<IDataIndex>();
+
+            Properties = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        }
 
         /// <summary>初始化</summary>
         /// <param name="name">名称</param>
-        public XTable(String name) { TableName = name; }
+        public XTable(String name)
+            : this()
+        {
+            TableName = name;
+        }
         #endregion
 
         #region 方法
@@ -184,6 +186,7 @@ namespace XCode.DataAccessLayer
         {
             var idx = new XIndex();
             idx.Table = this;
+
             return idx;
         }
 
@@ -248,17 +251,17 @@ namespace XCode.DataAccessLayer
         {
             var table = base.MemberwiseClone() as XTable;
             // 浅表克隆后，集合还是指向旧的
-            table._Columns = null;
+            table.Columns.Clear();
             foreach (var item in Columns)
             {
                 table.Columns.Add(item.Clone(table));
             }
-            table._Relations = null;
+            table.Relations.Clear();
             foreach (var item in Relations)
             {
                 table.Relations.Add(item.Clone(table));
             }
-            table._Indexes = null;
+            table.Indexes.Clear();
             foreach (var item in Indexes)
             {
                 table.Indexes.Add(item.Clone(table));

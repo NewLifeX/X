@@ -32,6 +32,10 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
+        /// <summary>修正数据</summary>
+        /// <returns></returns>
+        IDataIndex Fix();
+
         /// <summary>克隆到指定的数据表</summary>
         /// <param name="table"></param>
         IDataIndex Clone(IDataTable table);

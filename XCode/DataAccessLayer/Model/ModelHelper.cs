@@ -161,6 +161,9 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 索引扩展
+        #endregion
+
         #region 序列化扩展
         /// <summary>导出模型</summary>
         /// <param name="tables"></param>
@@ -590,6 +593,54 @@ namespace XCode.DataAccessLayer
             return cache.GetItem(type, item => item.CreateInstance());
         }
 
+        static DictionaryCache<Type, PropertyInfo[]> cache2 = new DictionaryCache<Type, PropertyInfo[]>();
+        static PropertyInfo[] GetProperties(Type type)
+        {
+            return cache2.GetItem(type, item => item.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => !p.Name.EqualIgnoreCase("Item")).ToArray());
+        }
+        #endregion
+
+        #region 复制扩展方法
+        /// <summary>复制数据表到另一个数据表，不复制数据列、索引和关系</summary>
+        /// <param name="src"></param>
+        /// <param name="des"></param>
+        /// <returns></returns>
+        public static T CopyFrom<T>(this T src, T des)
+        {
+            foreach (var pi in typeof(T).GetProperties())
+            {
+                if (pi.CanWrite) src.SetValue(pi, des.GetValue(pi));
+            }
+
+            return src;
+        }
+
+        /// <summary>复制数据表到另一个数据表，复制所有数据列、索引和关系</summary>
+        /// <param name="src"></param>
+        /// <param name="des"></param>
+        /// <param name="resetColumnID">是否重置列ID</param>
+        /// <returns></returns>
+        public static IDataTable CopyAllFrom(this IDataTable src, IDataTable des, Boolean resetColumnID = false)
+        {
+            src.CopyFrom(des);
+            src.Columns.AddRange(des.Columns.Select(i => src.CreateColumn().CopyFrom(i)));
+            src.Indexes.AddRange(des.Indexes.Select(i => src.CreateIndex().CopyFrom(i)));
+            src.Relations.AddRange(des.Relations.Select(i => src.CreateRelation().CopyFrom(i)));
+            // 重载ID
+            //if (resetColumnID) src.Columns.ForEach((it, i) => it.ID = i + 1);
+            if (resetColumnID)
+            {
+                for (int i = 0; i < src.Columns.Count; i++)
+                {
+                    src.Columns[i].ID = i + 1;
+                }
+            }
+
+            return src;
+        }
+        #endregion
+
+        #region 修正连接
         /// <summary>根据类型修正字段的一些默认值。仅考虑MSSQL</summary>
         /// <param name="dc"></param>
         /// <param name="oridc"></param>
@@ -723,54 +774,6 @@ namespace XCode.DataAccessLayer
             return dc;
         }
 
-        static DictionaryCache<Type, PropertyInfo[]> cache2 = new DictionaryCache<Type, PropertyInfo[]>();
-        static PropertyInfo[] GetProperties(Type type)
-        {
-            return cache2.GetItem(type, item => item.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => !p.Name.EqualIgnoreCase("Item")).ToArray());
-        }
-        #endregion
-
-        #region 复制扩展方法
-        /// <summary>复制数据表到另一个数据表，不复制数据列、索引和关系</summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <returns></returns>
-        public static T CopyFrom<T>(this T src, T des)
-        {
-            foreach (var pi in typeof(T).GetProperties())
-            {
-                if (pi.CanWrite) src.SetValue(pi, des.GetValue(pi));
-            }
-
-            return src;
-        }
-
-        /// <summary>复制数据表到另一个数据表，复制所有数据列、索引和关系</summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <param name="resetColumnID">是否重置列ID</param>
-        /// <returns></returns>
-        public static IDataTable CopyAllFrom(this IDataTable src, IDataTable des, Boolean resetColumnID = false)
-        {
-            src.CopyFrom(des);
-            src.Columns.AddRange(des.Columns.Select(i => src.CreateColumn().CopyFrom(i)));
-            src.Indexes.AddRange(des.Indexes.Select(i => src.CreateIndex().CopyFrom(i)));
-            src.Relations.AddRange(des.Relations.Select(i => src.CreateRelation().CopyFrom(i)));
-            // 重载ID
-            //if (resetColumnID) src.Columns.ForEach((it, i) => it.ID = i + 1);
-            if (resetColumnID)
-            {
-                for (int i = 0; i < src.Columns.Count; i++)
-                {
-                    src.Columns[i].ID = i + 1;
-                }
-            }
-
-            return src;
-        }
-        #endregion
-
-        #region 辅助
         /// <summary>表间连接，猜测关系</summary>
         /// <param name="tables"></param>
         public static void Connect(IEnumerable<IDataTable> tables)

@@ -12,70 +12,39 @@ namespace XCode.DataAccessLayer
     class XRelation : SerializableDataMember, IDataRelation, ICloneable
     {
         #region 属性
-        private String _Column;
         /// <summary>数据列</summary>
         [XmlAttribute]
         [DisplayName("数据列")]
         [Description("数据列")]
-        public String Column
-        {
-            get { return _Column; }
-            set { _Column = value; }
-        }
+        public String Column { get; set; }
 
-        private String _RelationTable;
         /// <summary>引用表</summary>
         [XmlAttribute]
         [DisplayName("引用表")]
         [Description("引用表")]
-        public String RelationTable
-        {
-            get { return _RelationTable; }
-            set { _RelationTable = value; }
-        }
+        public String RelationTable { get; set; }
 
-        private String _RelationColumn;
         /// <summary>引用列</summary>
         [XmlAttribute]
         [DisplayName("引用列")]
         [Description("引用列")]
-        public String RelationColumn
-        {
-            get { return _RelationColumn; }
-            set { _RelationColumn = value; }
-        }
+        public String RelationColumn { get; set; }
 
-        private Boolean _Unique;
         /// <summary>是否唯一</summary>
         [XmlAttribute]
         [DisplayName("唯一")]
         [Description("唯一")]
-        public Boolean Unique
-        {
-            get { return _Unique; }
-            set { _Unique = value; }
-        }
+        public Boolean Unique { get; set; }
 
-        private Boolean _Computed;
         /// <summary>是否计算出来的，而不是数据库内置的</summary>
         [XmlAttribute]
         [DisplayName("计算")]
         [Description("是否计算出来的，而不是数据库内置的")]
-        public Boolean Computed
-        {
-            get { return _Computed; }
-            set { _Computed = value; }
-        }
+        public Boolean Computed { get; set; }
 
-        [NonSerialized]
-        private IDataTable _Table;
         /// <summary>表</summary>
         [XmlIgnore]
-        public IDataTable Table
-        {
-            get { return _Table; }
-            set { _Table = value; }
-        }
+        public IDataTable Table { get; set; }
         #endregion
 
         #region ICloneable 成员
@@ -91,8 +60,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDataRelation Clone(IDataTable table)
         {
-            XRelation field = base.MemberwiseClone() as XRelation;
+            var field = base.MemberwiseClone() as XRelation;
             field.Table = table;
+
             return field;
         }
         #endregion
