@@ -126,7 +126,7 @@ namespace XCoder
                 var up = new Upgrade();
                 up.Log = XTrace.Log;
                 up.Name = "XCoder";
-                up.Server = "http://www.newlifex.com/showtopic-260.aspx";
+                up.Server = cfg.UpdateServer;
                 up.UpdatePath = root.CombinePath(up.UpdatePath);
                 if (up.Check())
                 {

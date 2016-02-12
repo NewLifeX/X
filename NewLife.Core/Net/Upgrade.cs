@@ -18,45 +18,29 @@ namespace NewLife.Net
     public class Upgrade
     {
         #region 属性
-        private String _Server;
         /// <summary>服务器地址</summary>
-        public String Server
-        {
-            get
-            {
-                if (_Server == null) _Server = Config.GetConfig<String>("NewLife.UpgradeServer", "http://up.newlifex.com");
-                return _Server;
-            }
-            set { _Server = value; }
-        }
+        public String Server { get; set; }
 
-        private String _Name;
         /// <summary>名称</summary>
-        public String Name { get { return _Name; } set { _Name = value; } }
+        public String Name { get; set; }
 
-        private Version _Version;
         /// <summary>版本</summary>
-        public Version Version { get { return _Version; } set { _Version = value; } }
+        public Version Version { get; set; }
 
-        private DateTime _Compile;
         /// <summary>本地编译时间</summary>
-        public DateTime Compile { get { return _Compile; } set { _Compile = value; } }
+        public DateTime Compile { get; set; }
 
-        private Boolean _AutoStart = true;
         /// <summary>更新完成以后自动启动主程序</summary>
-        public Boolean AutoStart { get { return _AutoStart; } set { _AutoStart = value; } }
+        public Boolean AutoStart { get; set; }
 
-        private String _UpdatePath = "Update";
         /// <summary>更新目录</summary>
-        public String UpdatePath { get { return _UpdatePath; } set { _UpdatePath = value; } }
+        public String UpdatePath { get; set; }
 
-        private String _TempPath = XTrace.TempPath;
         /// <summary>临时目录</summary>
-        public String TempPath { get { return _TempPath; } set { _TempPath = value; } }
+        public String TempPath { get; set; }
 
-        private Link[] _Links = new Link[0];
         /// <summary>超链接信息，其中第一个为最佳匹配项</summary>
-        public Link[] Links { get { return _Links; } set { _Links = value; } }
+        public Link[] Links { get; set; }
         #endregion
 
         #region 构造
@@ -69,6 +53,13 @@ namespace NewLife.Net
             Version = asm.GetName().Version;
             Name = asm.GetName().Name;
             Compile = asmx.Compile;
+
+            AutoStart = true;
+            UpdatePath = "Update";
+            Server = Setting.Current.PluginServer;
+
+            TempPath = XTrace.TempPath;
+            Links = new Link[0];
         }
         #endregion
 

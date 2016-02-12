@@ -638,7 +638,9 @@ namespace XCoder
 
         private void 检查更新ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            XConfig.Current.LastUpdate = DateTime.Now;
+            var cfg = XConfig.Current;
+            cfg.LastUpdate = DateTime.Now;
+            cfg.Save();
 
             try
             {
@@ -646,7 +648,7 @@ namespace XCoder
                 var up = new Upgrade();
                 up.Log = XTrace.Log;
                 up.Name = "XCoder";
-                up.Server = "http://www.newlifex.com/showtopic-260.aspx";
+                up.Server = cfg.UpdateServer;
                 up.UpdatePath = root.CombinePath(up.UpdatePath);
                 if (up.Check())
                 {

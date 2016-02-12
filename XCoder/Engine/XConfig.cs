@@ -9,25 +9,33 @@ namespace XCoder
     public class XConfig : XmlConfig<XConfig>
     {
         #region 属性
-        private String _Extend;
         /// <summary>扩展数据</summary>
         [Description("扩展数据")]
-        public String Extend { get { return _Extend; } set { _Extend = value; } }
+        public String Extend { get; set; }
 
-        private DateTime _LastUpdate;
+        /// <summary>更新服务器</summary>
+        [Description("更新服务器")]
+        public String UpdateServer { get; set; }
+
         /// <summary>最后更新时间</summary>
         [DisplayName("最后更新时间")]
-        public DateTime LastUpdate { get { return _LastUpdate; } set { _LastUpdate = value; } }
+        public DateTime LastUpdate { get; set; }
 
-        private String _LastTool;
         /// <summary>最后一个使用的工具</summary>
         [DisplayName("最后一个使用的工具")]
-        public String LastTool { get { return _LastTool; } set { _LastTool = value; } }
+        public String LastTool { get; set; }
         #endregion
 
         #region 加载/保存
         public XConfig()
         {
+        }
+
+        protected override void OnLoaded()
+        {
+            if (UpdateServer.IsNullOrEmpty()) UpdateServer = "http://www.newlifex.com/showtopic-260.aspx";
+            
+            base.OnLoaded();
         }
         #endregion
     }
