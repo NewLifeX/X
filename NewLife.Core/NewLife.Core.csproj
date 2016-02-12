@@ -49,15 +49,12 @@
   <ItemGroup>
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
-    <Compile Include="Collections\IStack.cs" />
-    <Compile Include="Collections\ListBase.cs" />
-    <Compile Include="Collections\LockStack.cs" />
+    <Compile Include="Collections\ListBase.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Collections\NullableDictionary.cs" />
     <Compile Include="Collections\ObjectPool.cs" />
-    <Compile Include="Collections\ObjectPoolTest.cs" />
-    <Compile Include="Collections\SafeStack.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
-    <Compile Include="Collections\WeakRefDictionary.cs" />
     <Compile Include="Common\CombGuid.cs" />
     <Compile Include="Common\PinYin.cs" />
     <Compile Include="Common\Runtime.cs" />
