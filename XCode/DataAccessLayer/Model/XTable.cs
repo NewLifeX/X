@@ -250,18 +250,18 @@ namespace XCode.DataAccessLayer
         public XTable Clone()
         {
             var table = base.MemberwiseClone() as XTable;
-            // 浅表克隆后，集合还是指向旧的
-            table.Columns.Clear();
+            // 浅表克隆后，集合还是指向旧的，需要重新创建
+            table.Columns = new List<IDataColumn>();
             foreach (var item in Columns)
             {
                 table.Columns.Add(item.Clone(table));
             }
-            table.Relations.Clear();
+            table.Relations = new List<IDataRelation>();
             foreach (var item in Relations)
             {
                 table.Relations.Add(item.Clone(table));
             }
-            table.Indexes.Clear();
+            table.Indexes = new List<IDataIndex>();
             foreach (var item in Indexes)
             {
                 table.Indexes.Add(item.Clone(table));
