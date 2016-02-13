@@ -209,6 +209,7 @@ namespace NewLife.Net.DNS
         protected virtual DNSEntity RequestPTR(DNSEntity request)
         {
             var ptr = request.Questions[0] as DNS_PTR;
+            if (ptr == null) ptr = new DNS_PTR { Name = request.Questions[0].Name };
             // 对本地的请求马上返回
             var addr = ptr.Address;
             if (addr != null && addr.IsLocal())
