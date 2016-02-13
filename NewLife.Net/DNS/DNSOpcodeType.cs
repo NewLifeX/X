@@ -18,11 +18,11 @@ namespace NewLife.Net.DNS
         Status = 2,
 
         /// <summary>Reserved for future use</summary>
-        [Obsolete("Reserved for future use.")]
+        //[Obsolete("Reserved for future use.")]
         Reserverd3 = 3,
 
         /// <summary>Reserved for future use</summary>
-        [Obsolete("Reserved for future use.")]
+        //[Obsolete("Reserved for future use.")]
         Reserverd4 = 4,
 
         /// <summary>NetBIOS registration</summary>
@@ -38,31 +38,31 @@ namespace NewLife.Net.DNS
         Refresh = 8,
 
         /// <summary>Reserved for future use</summary>
-        [Obsolete("Reserved for future use.")]
+        //[Obsolete("Reserved for future use.")]
         Reserverd9 = 9,
 
         /// <summary>Reserved for future use</summary>
-        [Obsolete("Reserved for future use.")]
+        //[Obsolete("Reserved for future use.")]
         Reserverd10 = 10,
 
         /// <summary>Reserved for future use</summary>
-        [Obsolete("Reserved for future use.")]
+        //[Obsolete("Reserved for future use.")]
         Reserverd11 = 11,
 
         /// <summary>Reserved for future use</summary>
-        [Obsolete("Reserved for future use.")]
+        //[Obsolete("Reserved for future use.")]
         Reserverd12 = 12,
 
         /// <summary>Reserved for future use</summary>
-        [Obsolete("Reserved for future use.")]
+        //[Obsolete("Reserved for future use.")]
         Reserverd13 = 13,
 
         /// <summary>Reserved for future use</summary>
-        [Obsolete("Reserved for future use.")]
+        //[Obsolete("Reserved for future use.")]
         Reserverd14 = 14,
 
         /// <summary>Reserved for future use</summary>
-        [Obsolete("Reserved for future use.")]
+        //[Obsolete("Reserved for future use.")]
         Reserverd15 = 15
     }
 }

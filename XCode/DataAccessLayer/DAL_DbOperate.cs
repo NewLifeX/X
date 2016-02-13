@@ -39,28 +39,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 使用缓存后的数据操作方法
-        private DictionaryCache<String, String> _PageSplitCache;
-        /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
-        /// <remarks>
-        /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
-        /// 所以在这里做缓存。
-        /// </remarks>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="keyColumn">唯一键。用于not in分页</param>
-        /// <returns>分页SQL</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("请优先考虑使用SelectBuilder参数做分页！")]
-        public String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
-        {
-            var cacheKey = String.Format("{0}_{1}_{2}_{3}_{4}", sql, startRowIndex, maximumRows, keyColumn, ConnName);
-
-            // 一个项目可能同时采用多种数据库，分页缓存不能采用静态
-            if (_PageSplitCache == null) _PageSplitCache = new DictionaryCache<String, String>(StringComparer.OrdinalIgnoreCase);
-            return _PageSplitCache.GetItem(cacheKey, sql, startRowIndex, maximumRows, keyColumn, (k, b, s, m, kc) => Db.PageSplit(b, s, m, kc));
-        }
-
         private DictionaryCache<String, SelectBuilder> _PageSplitCache2;
         /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
         /// <remarks>
@@ -122,33 +100,6 @@ namespace XCode.DataAccessLayer
             if (builder == null) return null;
 
             return Select(builder.ToString(), tableNames);
-        }
-
-        /// <summary>执行SQL查询，返回总记录数</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="tableNames">所依赖的表的表名</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
-        public Int32 SelectCount(String sql, params String[] tableNames)
-        {
-            CheckBeforeUseDatabase();
-
-            var cacheKey = "";
-            var rs = 0;
-            if (EnableCache)
-            {
-                cacheKey = sql + "_SelectCount" + "_" + ConnName;
-                if (XCache.TryGetItem(cacheKey, out rs)) return rs;
-            }
-
-            Interlocked.Increment(ref _QueryTimes);
-            // 为了向前兼容，这里转为Int32，如果需要获取Int64，可直接调用Session
-            rs = (Int32)Session.QueryCount(sql);
-
-            if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
-
-            return rs;
         }
 
         /// <summary>执行SQL查询，返回总记录数</summary>

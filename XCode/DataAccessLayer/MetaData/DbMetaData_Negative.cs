@@ -59,18 +59,18 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程
-        /// <summary>设置表模型，检查数据表是否匹配表模型，反向工程</summary>
-        /// <param name="tables"></param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("请改用多参数版本！")]
-        public void SetTables(params IDataTable[] tables)
-        {
-            //var set = new NegativeSetting();
-            //set.CheckOnly = DAL.NegativeCheckOnly;
-            //set.NoDelete = DAL.NegativeNoDelete;
-            var set = Setting.Current.Negative;
-            OnSetTables(tables, set);
-        }
+        ///// <summary>设置表模型，检查数据表是否匹配表模型，反向工程</summary>
+        ///// <param name="tables"></param>
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //[Obsolete("请改用多参数版本！")]
+        //public void SetTables(params IDataTable[] tables)
+        //{
+        //    //var set = new NegativeSetting();
+        //    //set.CheckOnly = DAL.NegativeCheckOnly;
+        //    //set.NoDelete = DAL.NegativeNoDelete;
+        //    var set = Setting.Current.Negative;
+        //    OnSetTables(tables, set);
+        //}
 
         /// <summary>设置表模型，检查数据表是否匹配表模型，反向工程</summary>
         /// <param name="setting">设置</param>

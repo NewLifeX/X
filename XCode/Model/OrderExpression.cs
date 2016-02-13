@@ -36,22 +36,22 @@ namespace XCode
             return this;
         }
 
-        /// <summary>升序</summary>
-        /// <returns></returns>
-        [Obsolete("=>.And(_.ID.Asc())")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public OrderExpression Asc(String exp) { return And(exp); }
+        ///// <summary>升序</summary>
+        ///// <returns></returns>
+        //[Obsolete("=>.And(_.ID.Asc())")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public OrderExpression Asc(String exp) { return And(exp); }
 
-        /// <summary>降序</summary>
-        /// <returns></returns>
-        [Obsolete("=>.And(_.ID.Desc())")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public OrderExpression Desc(String exp)
-        {
-            if (String.IsNullOrEmpty(exp)) return this;
+        ///// <summary>降序</summary>
+        ///// <returns></returns>
+        //[Obsolete("=>.And(_.ID.Desc())")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public OrderExpression Desc(String exp)
+        //{
+        //    if (String.IsNullOrEmpty(exp)) return this;
 
-            return And(exp + " Desc");
-        }
+        //    return And(exp + " Desc");
+        //}
 
         /// <summary>已重载。</summary>
         /// <returns></returns>

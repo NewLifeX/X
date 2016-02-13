@@ -344,17 +344,17 @@ namespace XCode.Configuration
             return CreateLike("%{0}%".F(value));
         }
 
-        /// <summary>In操作。直接使用字符串可能有注入风险</summary>
-        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
-        /// <param name="value">逗号分割的数据。可能有注入风险</param>
-        /// <returns></returns>
-        [Obsolete("=>In(IEnumerable value)，直接使用字符串参数可能有注入风险")]
-        public Expression In(String value)
-        {
-            if (String.IsNullOrEmpty(value)) return new Expression();
+        ///// <summary>In操作。直接使用字符串可能有注入风险</summary>
+        ///// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        ///// <param name="value">逗号分割的数据。可能有注入风险</param>
+        ///// <returns></returns>
+        //[Obsolete("=>In(IEnumerable value)，直接使用字符串参数可能有注入风险")]
+        //public Expression In(String value)
+        //{
+        //    if (String.IsNullOrEmpty(value)) return new Expression();
 
-            return CreateFormatExpression("{0} In({1})", Factory.FormatValue(this, value));
-        }
+        //    return CreateFormatExpression("{0} In({1})", Factory.FormatValue(this, value));
+        //}
 
         /// <summary>In操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接。只有一项时转为等于</remarks>
@@ -399,17 +399,17 @@ namespace XCode.Configuration
             return CreateFormatExpression(flag ? "{0} In({1})" : "{0} Not In({1})", list.Join(","));
         }
 
-        /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
-        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        [Obsolete("=>NotIn(IEnumerable value)，直接使用字符串参数可能有注入风险")]
-        public Expression NotIn(String value)
-        {
-            if (String.IsNullOrEmpty(value)) return new Expression();
+        ///// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
+        ///// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        ///// <param name="value">数值</param>
+        ///// <returns></returns>
+        //[Obsolete("=>NotIn(IEnumerable value)，直接使用字符串参数可能有注入风险")]
+        //public Expression NotIn(String value)
+        //{
+        //    if (String.IsNullOrEmpty(value)) return new Expression();
 
-            return CreateFormatExpression("{0} Not In({1})", Factory.FormatValue(this, value));
-        }
+        //    return CreateFormatExpression("{0} Not In({1})", Factory.FormatValue(this, value));
+        //}
 
         /// <summary>NotIn操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接。只有一项时修改为不等于</remarks>

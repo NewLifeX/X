@@ -427,11 +427,11 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>在当前连接上检查指定数据表的架构</summary>
-        /// <param name="tables"></param>
-        [Obsolete("=>SetTables(set, tables)")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetTables(params IDataTable[] tables) { SetTables(null, tables); }
+        ///// <summary>在当前连接上检查指定数据表的架构</summary>
+        ///// <param name="tables"></param>
+        //[Obsolete("=>SetTables(set, tables)")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public void SetTables(params IDataTable[] tables) { SetTables(null, tables); }
 
         /// <summary>在当前连接上检查指定数据表的架构</summary>
         /// <param name="set"></param>

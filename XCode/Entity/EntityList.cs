@@ -948,10 +948,10 @@ namespace XCode
         #endregion
 
         #region 辅助函数
-        private static EntityList<T> _Empty;
-        /// <summary>空集合</summary>
-        [Obsolete("该属性容易让人误操作，比如给空列表加入元素！")]
-        public static EntityList<T> Empty { get { return _Empty ?? (_Empty = new EntityList<T>()); } }
+        //private static EntityList<T> _Empty;
+        ///// <summary>空集合</summary>
+        //[Obsolete("该属性容易让人误操作，比如给空列表加入元素！")]
+        //public static EntityList<T> Empty { get { return _Empty ?? (_Empty = new EntityList<T>()); } }
 
         /// <summary>真正的实体类型。有些场合为了需要会使用IEntity。</summary>
         Type EntityType

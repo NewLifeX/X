@@ -314,56 +314,56 @@ namespace XCode
             #endregion
 
             #region 数据库操作
-            /// <summary>查询</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <returns>结果记录集</returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public virtual DataSet Query(String sql) { return Session.Query(sql); }
+            ///// <summary>查询</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <returns>结果记录集</returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public virtual DataSet Query(String sql) { return Session.Query(sql); }
 
-            /// <summary>查询记录数</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <returns>记录数</returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public virtual Int32 QueryCount(String sql)
-            {
-                var sb = new SelectBuilder();
-                sb.Parse(sql);
-                return Session.QueryCount(sb);
-            }
+            ///// <summary>查询记录数</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <returns>记录数</returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public virtual Int32 QueryCount(String sql)
+            //{
+            //    var sb = new SelectBuilder();
+            //    sb.Parse(sql);
+            //    return Session.QueryCount(sb);
+            //}
 
-            /// <summary>执行</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <returns>影响的结果</returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public virtual Int32 Execute(String sql) { return Session.Execute(sql); }
+            ///// <summary>执行</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <returns>影响的结果</returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public virtual Int32 Execute(String sql) { return Session.Execute(sql); }
 
-            /// <summary>执行插入语句并返回新增行的自动编号</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <returns>新增行的自动编号</returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public virtual Int64 InsertAndGetIdentity(String sql) { return Session.InsertAndGetIdentity(sql); }
+            ///// <summary>执行插入语句并返回新增行的自动编号</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <returns>新增行的自动编号</returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public virtual Int64 InsertAndGetIdentity(String sql) { return Session.InsertAndGetIdentity(sql); }
 
-            /// <summary>执行</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <param name="type">命令类型，默认SQL文本</param>
-            /// <param name="ps">命令参数</param>
-            /// <returns>影响的结果</returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public virtual Int32 Execute(String sql, CommandType type, DbParameter[] ps) { return Session.Execute(sql, type, ps); }
+            ///// <summary>执行</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <param name="type">命令类型，默认SQL文本</param>
+            ///// <param name="ps">命令参数</param>
+            ///// <returns>影响的结果</returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public virtual Int32 Execute(String sql, CommandType type, DbParameter[] ps) { return Session.Execute(sql, type, ps); }
 
-            /// <summary>执行插入语句并返回新增行的自动编号</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <param name="type">命令类型，默认SQL文本</param>
-            /// <param name="ps">命令参数</param>
-            /// <returns>新增行的自动编号</returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public virtual Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps) { return Session.InsertAndGetIdentity(sql, type, ps); }
+            ///// <summary>执行插入语句并返回新增行的自动编号</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <param name="type">命令类型，默认SQL文本</param>
+            ///// <param name="ps">命令参数</param>
+            ///// <returns>新增行的自动编号</returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public virtual Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps) { return Session.InsertAndGetIdentity(sql, type, ps); }
             #endregion
 
             #region 事务
@@ -390,18 +390,18 @@ namespace XCode
             #endregion
 
             #region 参数化
-            /// <summary>创建参数</summary>
-            /// <returns></returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public virtual DbParameter CreateParameter() { return Session.CreateParameter(); }
+            ///// <summary>创建参数</summary>
+            ///// <returns></returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public virtual DbParameter CreateParameter() { return Session.CreateParameter(); }
 
-            /// <summary>格式化参数名</summary>
-            /// <param name="name"></param>
-            /// <returns></returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public virtual String FormatParameterName(String name) { return Session.FormatParameterName(name); }
+            ///// <summary>格式化参数名</summary>
+            ///// <param name="name"></param>
+            ///// <returns></returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public virtual String FormatParameterName(String name) { return Session.FormatParameterName(name); }
             #endregion
 
             #region 辅助方法

@@ -138,69 +138,69 @@ namespace XCode
             #endregion
 
             #region 数据库操作
-            /// <summary>数据操作对象。</summary>
-            [Obsolete("=>Session")]
-            public static DAL DBO { get { return DAL.Create(ConnName); } }
+            ///// <summary>数据操作对象。</summary>
+            //[Obsolete("=>Session")]
+            //public static DAL DBO { get { return DAL.Create(ConnName); } }
 
-            /// <summary>执行SQL查询，返回记录集</summary>
-            /// <param name="builder">SQL语句</param>
-            /// <param name="startRowIndex">开始行，0表示第一行</param>
-            /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-            /// <returns></returns>
-            [Obsolete("=>Session")]
-            public static DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows) { return Session.Query(builder, startRowIndex, maximumRows); }
+            ///// <summary>执行SQL查询，返回记录集</summary>
+            ///// <param name="builder">SQL语句</param>
+            ///// <param name="startRowIndex">开始行，0表示第一行</param>
+            ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+            ///// <returns></returns>
+            //[Obsolete("=>Session")]
+            //public static DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows) { return Session.Query(builder, startRowIndex, maximumRows); }
 
-            /// <summary>执行SQL查询，返回记录集</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <returns></returns>
-            [Obsolete("=>Session")]
-            public static DataSet Query(String sql) { return Session.Query(sql); }
+            ///// <summary>执行SQL查询，返回记录集</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <returns></returns>
+            //[Obsolete("=>Session")]
+            //public static DataSet Query(String sql) { return Session.Query(sql); }
 
-            /// <summary>查询记录数</summary>
-            /// <param name="sb">查询生成器</param>
-            /// <returns>记录数</returns>
-            [Obsolete("=>Session")]
-            public static Int32 QueryCount(SelectBuilder sb) { return Session.QueryCount(sb); }
+            ///// <summary>查询记录数</summary>
+            ///// <param name="sb">查询生成器</param>
+            ///// <returns>记录数</returns>
+            //[Obsolete("=>Session")]
+            //public static Int32 QueryCount(SelectBuilder sb) { return Session.QueryCount(sb); }
 
-            /// <summary>执行</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <returns>影响的结果</returns>
-            [Obsolete("=>Session")]
-            public static Int32 Execute(String sql) { return Session.Execute(sql); }
+            ///// <summary>执行</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <returns>影响的结果</returns>
+            //[Obsolete("=>Session")]
+            //public static Int32 Execute(String sql) { return Session.Execute(sql); }
 
-            /// <summary>执行插入语句并返回新增行的自动编号</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <returns>新增行的自动编号</returns>
-            [Obsolete("=>Session")]
-            public static Int64 InsertAndGetIdentity(String sql) { return Session.InsertAndGetIdentity(sql); }
+            ///// <summary>执行插入语句并返回新增行的自动编号</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <returns>新增行的自动编号</returns>
+            //[Obsolete("=>Session")]
+            //public static Int64 InsertAndGetIdentity(String sql) { return Session.InsertAndGetIdentity(sql); }
 
-            /// <summary>执行</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <param name="type">命令类型，默认SQL文本</param>
-            /// <param name="ps">命令参数</param>
-            /// <returns>影响的结果</returns>
-            [Obsolete("=>Session")]
-            public static Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps) { return Session.Execute(sql, type, ps); }
+            ///// <summary>执行</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <param name="type">命令类型，默认SQL文本</param>
+            ///// <param name="ps">命令参数</param>
+            ///// <returns>影响的结果</returns>
+            //[Obsolete("=>Session")]
+            //public static Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps) { return Session.Execute(sql, type, ps); }
 
-            /// <summary>执行插入语句并返回新增行的自动编号</summary>
-            /// <param name="sql">SQL语句</param>
-            /// <param name="type">命令类型，默认SQL文本</param>
-            /// <param name="ps">命令参数</param>
-            /// <returns>新增行的自动编号</returns>
-            [Obsolete("=>Session")]
-            public static Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps) { return Session.InsertAndGetIdentity(sql, type, ps); }
+            ///// <summary>执行插入语句并返回新增行的自动编号</summary>
+            ///// <param name="sql">SQL语句</param>
+            ///// <param name="type">命令类型，默认SQL文本</param>
+            ///// <param name="ps">命令参数</param>
+            ///// <returns>新增行的自动编号</returns>
+            //[Obsolete("=>Session")]
+            //public static Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps) { return Session.InsertAndGetIdentity(sql, type, ps); }
 
-            /// <summary>数据改变后触发。参数指定触发该事件的实体类</summary>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public static event Action<Type> OnDataChange { add { Session.OnDataChange += value; } remove { } }
+            ///// <summary>数据改变后触发。参数指定触发该事件的实体类</summary>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public static event Action<Type> OnDataChange { add { Session.OnDataChange += value; } remove { } }
 
-            /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
-            /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
-            /// <returns>如果等待，返回是否收到信号</returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public static Boolean WaitForInitData(Int32 ms = 1000) { return Session.WaitForInitData(ms); }
+            ///// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
+            ///// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
+            ///// <returns>如果等待，返回是否收到信号</returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public static Boolean WaitForInitData(Int32 ms = 1000) { return Session.WaitForInitData(ms); }
             #endregion
 
             #region 事务保护
@@ -227,18 +227,18 @@ namespace XCode
             #endregion
 
             #region 参数化
-            /// <summary>创建参数</summary>
-            /// <returns></returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public static DbParameter CreateParameter() { return Session.Dal.Db.Factory.CreateParameter(); }
+            ///// <summary>创建参数</summary>
+            ///// <returns></returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public static DbParameter CreateParameter() { return Session.Dal.Db.Factory.CreateParameter(); }
 
-            /// <summary>格式化参数名</summary>
-            /// <param name="name">名称</param>
-            /// <returns></returns>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public static String FormatParameterName(String name) { return Session.Dal.Db.FormatParameterName(name); }
+            ///// <summary>格式化参数名</summary>
+            ///// <param name="name">名称</param>
+            ///// <returns></returns>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public static String FormatParameterName(String name) { return Session.Dal.Db.FormatParameterName(name); }
             #endregion
 
             #region 辅助方法
@@ -284,10 +284,10 @@ namespace XCode
             //[EditorBrowsable(EditorBrowsableState.Never)]
             public static Int32 Count { get { return (Int32)Session.LongCount; } }
 
-            /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
-            [Obsolete("=>Session")]
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            public static Int64 LongCount { get { return Session.LongCount; } }
+            ///// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
+            //[Obsolete("=>Session")]
+            //[EditorBrowsable(EditorBrowsableState.Never)]
+            //public static Int64 LongCount { get { return Session.LongCount; } }
             #endregion
 
             #region 分表分库
