@@ -258,7 +258,6 @@ namespace NewLife.Net.DNS
             foreach (var item in us)
             {
                 client = item.CreateRemote();
-                parent = item;
                 // 如果是PTR请求
                 if (request.IsPTR)
                 {
@@ -266,7 +265,7 @@ namespace NewLife.Net.DNS
                     request = new DNSEntity().CloneFrom(request);
 
                     var ptr = request.GetAnswer(true) as DNS_PTR;
-                    if (ptr != null) ptr.Address = parent.Address;
+                    if (ptr != null) ptr.Address = item.Address;
                 }
 
                 try
@@ -274,7 +273,11 @@ namespace NewLife.Net.DNS
                     client.Send(request.GetStream(item.ProtocolType == ProtocolType.Tcp));
                     data = client.Receive();
 
-                    if (data != null && data.Length > 0) break;
+                    if (data != null && data.Length > 0)
+                    {
+                        parent = item;
+                        break;
+                    }
                 }
                 catch { }
             }

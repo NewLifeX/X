@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using NewLife.Serialization;
+using System.Linq;
 
 namespace NewLife.Net.DNS
 {
@@ -221,7 +222,8 @@ namespace NewLife.Net.DNS
                 Type = fm.Read<DNSQueryType>();
 
                 // 如果是响应，创建具体消息
-                var de = fm.Hosts.Peek() as DNSEntity;
+                //var de = fm.Hosts.Peek() as DNSEntity;
+                var de = fm.Hosts.FirstOrDefault(e => e is DNSEntity) as DNSEntity;
                 if (de != null && de.Header.Response)
                 {
                     var dr = DNSEntity.CreateRecord(Type);
