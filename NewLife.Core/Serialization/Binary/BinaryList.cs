@@ -25,7 +25,7 @@ namespace NewLife.Serialization
 
             var list = value as IList;
             // 先写入长度
-            if (list.Count == 0)
+            if (list == null || list.Count == 0)
             {
                 Host.WriteSize(0);
                 return true;
