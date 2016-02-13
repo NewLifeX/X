@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Collections;
@@ -65,9 +63,13 @@ namespace NewLife.Net.DNS
         /// <summary>实例化一个DNS服务器</summary>
         public DNSServer()
         {
+            Name = "DNS";
             Port = 53;
 
             DomainName = "dns.NewLifeX.com";
+
+            SocketLog = null;
+            SessionLog = null;
         }
         #endregion
 
@@ -153,7 +155,7 @@ namespace NewLife.Net.DNS
             var isTcp = session.Local.IsTcp;
 
             // 处理，修改
-            WriteLog("{0} 请求 {1}", session.Local, request);
+            WriteLog("{0} 请求 {1}", session, request);
 
             // 请求事件，如果第二参数有值，则直接返回
             // 结合数据库缓存，可以在这里进行返回

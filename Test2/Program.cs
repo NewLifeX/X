@@ -118,6 +118,10 @@ namespace Test2
             //var _server = new NetServer();
             var _server = new DNSServer();
             //_server.Port = 8888;
+            _server.Log = XTrace.Log;
+            //_server.SocketLog = null;
+            //_server.SessionLog = null;
+            //_server.SessionLog = XTrace.Log;
             _server.Start();
 
             while (true)

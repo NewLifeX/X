@@ -20,6 +20,12 @@ namespace NewLife.Net.DNS
         /// <summary>协议组</summary>
         public DNSQueryClass Class { get { return _Class; } set { _Class = value; } }
         #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString() { return String.Format("{0} {1}", Type, Name); }
+        #endregion
     }
 
     /// <summary>DNS记录</summary>
@@ -188,12 +194,6 @@ namespace NewLife.Net.DNS
         //        }
         //    }
         //}
-        #endregion
-
-        #region 辅助
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override string ToString() { return String.Format("{0} {1}", Type, Name); }
         #endregion
 
         #region 克隆

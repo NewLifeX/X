@@ -333,10 +333,6 @@ namespace NewLife.Net.Sockets
             ns.Server = session.Server;
             ns.Session = session;
             if (ns is NetSession) (ns as NetSession).Log = SessionLog;
-            // 日志输出改变
-            //session.Log = new ActionLog((ns as NetSession).WriteLog);
-
-            //session.OnDisposed += (s, e2) => ns.Dispose();
 
             if (UseSession) AddSession(ns);
 

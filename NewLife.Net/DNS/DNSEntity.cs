@@ -98,6 +98,7 @@ namespace NewLife.Net.DNS
         {
             if (forTcp)
             {
+                // 必须独立写然后再补长度，否则内部字符串长度偏移不正确
                 var ms = new MemoryStream();
                 Write(ms, null);
 
@@ -108,22 +109,10 @@ namespace NewLife.Net.DNS
                 Write(stream, null);
         }
 
-        ///// <summary>把当前对象写入到数据流中去</summary>
-        ///// <param name="stream"></param>
-        //public void Write(Stream stream)
-        //{
-        //    var binary = new Binary();
-        //    binary.Stream = stream;
-        //    binary.UseFieldSize = true;
-        //    binary.UseProperty = false;
-        //    binary.AddHandler<BinaryDNS>();
-        //    binary.Write(this);
-        //}
-
         /// <summary>获取当前对象的数据流</summary>
         /// <param name="forTcp">是否是Tcp，Tcp需要增加整个流长度</param>
         /// <returns></returns>
-        public Stream GetStream(Boolean forTcp = false)
+        public Stream GetStream(Boolean forTcp)
         {
             var ms = new MemoryStream();
             Write(ms, forTcp);
@@ -136,7 +125,7 @@ namespace NewLife.Net.DNS
         /// <param name="data"></param>
         /// <param name="forTcp">是否是Tcp，Tcp需要增加整个流长度</param>
         /// <returns></returns>
-        public static DNSEntity Read(Byte[] data, Boolean forTcp = false)
+        public static DNSEntity Read(Byte[] data, Boolean forTcp)
         {
             if (data == null || data.Length < 1) return null;
 
@@ -153,19 +142,19 @@ namespace NewLife.Net.DNS
             if (forTcp)
             {
                 // 必须全部先读出来，否则内部的字符串映射位移不正确
-                var data = new Byte[2];
-                stream.Read(data, 0, data.Length);
-                // 网络序变为主机序
-                Array.Reverse(data);
-                var len = BitConverter.ToInt16(data, 0);
-                data = new Byte[len];
-                stream.Read(data, 0, data.Length);
+                //var data = new Byte[2];
+                //stream.Read(data, 0, data.Length);
+                //// 网络序变为主机序
+                //Array.Reverse(data);
+                //var len = BitConverter.ToInt16(data, 0);
+                //data = new Byte[len];
+                //stream.Read(data, 0, data.Length);
+                var len = stream.ReadBytes(2).ToUInt16(0, false);
+                var data = stream.ReadBytes(len);
 
                 stream = new MemoryStream(data);
             }
 
-            // 先读取
-            //return ReadRaw(stream);
             return Read(stream);
         }
 
@@ -183,30 +172,11 @@ namespace NewLife.Net.DNS
             {
                 bn.EncodeInt = false;
                 bn.UseFieldSize = true;
-                //bn.AddHandler<BinaryDNSString>();
                 bn.AddHandler<BinaryDNS>();
-
-                //var ds1 = new BinaryDNSString();
-                //var ds2 = new BinaryDNS();
-                //bn.AddHandler(ds1).AddHandler(ds2);
-
-                //ds1.Accessor = ds2.Accessor = new DNSNameAccessor();
             }
 
             return fm;
         }
-
-        ///// <summary>从数据流中读取对象，返回DNSEntity对象</summary>
-        ///// <param name="stream"></param>
-        ///// <returns></returns>
-        //public static DNSEntity ReadRaw(Stream stream)
-        //{
-        //    var binary = new Binary();
-        //    binary.Stream = stream;
-        //    binary.UseFieldSize = true;
-        //    binary.AddHandler<BinaryDNS>();
-        //    return binary.Read<DNSEntity>();
-        //}
         #endregion
 
         #region 注册子类型
@@ -232,117 +202,6 @@ namespace NewLife.Net.DNS
 
             return type.CreateInstance() as DNSRecord;
         }
-        #endregion
-
-        #region IAccessor 成员
-        ///// <summary>从读取器中读取数据到对象。接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）</summary>
-        ///// <param name="reader">读取器</param>
-        ///// <returns>是否读取成功，若返回成功读取器将不再读取该对象</returns>
-        //public virtual bool Read(IReader reader)
-        //{
-        //    reader.OnMemberReading += reader_OnMemberReading;
-        //    reader.OnObjectReading += reader_OnObjectReading;
-        //    return false;
-        //}
-
-        //void reader_OnObjectReading(object sender, ReadObjectEventArgs e)
-        //{
-        //    // 如果是DNSRecord，这里需要处理一下，变为真正的记录类型
-        //    if (e.Type == typeof(DNSRecord))
-        //    {
-        //        var reader = sender as IReader2;
-        //        var p = reader.Stream.Position;
-        //        var name = GetNameAccessor(reader).Read(reader.Stream, 0);
-        //        var qt = (DNSQueryType)reader.ReadValue(typeof(DNSQueryType));
-        //        // 退回去，让序列化自己读
-        //        reader.Stream.Position = p;
-        //        //Type type = null;
-        //        //if (entitytypes.TryGetValue(qt, out type) && type != null) e.Type = type;
-        //        //var value = TypeX.CreateInstance(e.Type) as DNSRecord;
-        //        var value = CreateRecord(qt);
-        //        if (value != null)
-        //            e.Type = value.GetType();
-        //        else
-        //            value = new DNSRecord();
-        //        value.Name = name;
-        //        //value.Type = qt;
-        //        e.Value = value;
-        //    }
-        //}
-
-        ///// <summary>从读取器中读取数据到对象后执行。接口实现者可以在这里取消Read阶段设置的事件</summary>
-        ///// <param name="reader">读取器</param>
-        ///// <param name="success">是否读取成功</param>
-        ///// <returns>是否读取成功</returns>
-        //public virtual bool ReadComplete(IReader reader, bool success) { return success; }
-
-        ///// <summary>把对象数据写入到写入器。</summary>
-        ///// <remarks>接口实现者可以在这里完全自定义行为（返回true），也可以通过设置事件来影响行为（返回false）</remarks>
-        ///// <param name="writer">写入器</param>
-        ///// <returns>是否写入成功，若返回成功写入器将不再读写入对象</returns>
-        //public virtual bool Write(IWriter writer)
-        //{
-        //    writer.OnMemberWriting += writer_OnMemberWriting;
-        //    return false;
-        //}
-
-        ///// <summary>把对象数据写入到写入器后执行。接口实现者可以在这里取消Write阶段设置的事件</summary>
-        ///// <param name="writer">写入器</param>
-        ///// <param name="success">是否写入成功</param>
-        ///// <returns>是否写入成功</returns>
-        //public virtual bool WriteComplete(IWriter writer, bool success) { return success; }
-        #endregion
-
-        #region 特殊处理字符串
-        //void reader_OnMemberReading(object sender, ReadMemberEventArgs e)
-        //{
-        //    var reader = sender as IReader2;
-        //    // TXT记录的Text字段不采用DNS字符串
-        //    if (e.Type == typeof(String) && e.Member.Name != "_Text")
-        //    {
-        //        var ps = reader.Items["Position"];
-        //        Int64 p = ps is Int64 ? (Int64)ps : 0;
-        //        e.Member[e.Value] = GetNameAccessor(reader).Read(reader.Stream, p);
-        //        //reader.WriteLog("ReadMember", "_Name", "String", e.Member[e.Value]);
-        //        e.Success = true;
-        //    }
-        //    else if (e.Type == typeof(TimeSpan))
-        //    {
-        //        e.Member[e.Value] = new TimeSpan(0, 0, reader.ReadInt32());
-        //        e.Success = true;
-        //    }
-        //}
-
-        //void writer_OnMemberWriting(object sender, WriteMemberEventArgs e)
-        //{
-        //    var writer = sender as IWriter;
-        //    // TXT记录的Text字段不采用DNS字符串
-        //    if (e.Type == typeof(String) && e.Name != "_Text")
-        //    {
-        //        //writer.WriteLog("WriteMember", "_Name", "String", e.Member[e.Value]);
-        //        var ps = writer.Items["Position"];
-        //        Int64 p = ps is Int64 ? (Int64)ps : 0;
-        //        p += writer.Stream.Position;
-        //        GetNameAccessor(writer).Write(writer.Stream, (String)e.Value, p);
-        //        e.Success = true;
-        //    }
-        //    else if (e.Type == typeof(TimeSpan))
-        //    {
-        //        var ts = (TimeSpan)e.Value;
-        //        var wr = writer as IWriter2;
-        //        wr.Write((Int32)ts.TotalSeconds);
-        //        e.Success = true;
-        //    }
-        //}
-
-        //[DebuggerHidden]
-        //internal static DNSNameAccessor GetNameAccessor(IReaderWriter rw)
-        //{
-        //    var accessor = rw.Items["Names"] as DNSNameAccessor;
-        //    if (accessor == null) rw.Items.Add("Names", accessor = new DNSNameAccessor());
-
-        //    return accessor;
-        //}
         #endregion
 
         #region 辅助

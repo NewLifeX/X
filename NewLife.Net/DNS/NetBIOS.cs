@@ -85,7 +85,7 @@ namespace NewLife.Net.DNS
 
             while (attempts <= _maxRetryAttemps)
             {
-                byte[] bytes = request.GetStream().ReadBytes();
+                byte[] bytes = request.GetStream(false).ReadBytes();
 
                 if (bytes.Length > 512)
                     throw new ArgumentException("RFC 1035 2.3.4 states that the maximum size of a UDP datagram is 512 octets (bytes).");
