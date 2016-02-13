@@ -404,7 +404,7 @@ namespace XNet
 
                     // 端口
                     var ns = GetNetServers().Where(n => n.Name == cbMode.Text).FirstOrDefault();
-                    if (ns != null) numPort.Value = ns.Port;
+                    if (ns != null && ns.Port > 0) numPort.Value = ns.Port;
 
                     break;
             }
