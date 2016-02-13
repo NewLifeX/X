@@ -155,7 +155,7 @@ namespace NewLife.Net.DNS
             var isTcp = session.Local.IsTcp;
 
             // 处理，修改
-            WriteLog("{0} 请求 {1}", session, request);
+            WriteLog("{0} 请求 {1}", session.Local.ProtocolType, request);
 
             // 请求事件，如果第二参数有值，则直接返回
             // 结合数据库缓存，可以在这里进行返回

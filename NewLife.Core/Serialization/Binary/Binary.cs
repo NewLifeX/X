@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using NewLife.Log;
@@ -99,6 +100,7 @@ namespace NewLife.Serialization
         /// <param name="value">目标对象</param>
         /// <param name="type">类型</param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual Boolean Write(Object value, Type type = null)
         {
             if (type == null)
@@ -197,6 +199,7 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual Object Read(Type type)
         {
             var value = type.CreateInstance();
@@ -208,6 +211,7 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
+        [DebuggerHidden]
         public T Read<T>()
         {
             return (T)(Object)Read(typeof(T));
@@ -217,6 +221,7 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
+        [DebuggerHidden]
         public virtual Boolean TryRead(Type type, ref Object value)
         {
             if (Hosts.Count == 0) WriteLog("BinaryRead {0} {1}", type.Name, value);
