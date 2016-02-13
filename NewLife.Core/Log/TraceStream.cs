@@ -9,19 +9,12 @@ namespace NewLife.Log
     public class TraceStream : Stream
     {
         #region 属性
-        private Stream _BaseStream;
         /// <summary>基础流</summary>
-        public Stream BaseStream { get { return _BaseStream; } set { _BaseStream = value; } }
+        public Stream BaseStream { get; set; }
 
-        private ICollection<String> _TraceMembers;
         /// <summary>跟踪的成员</summary>
-        public ICollection<String> TraceMembers
-        {
-            get { return _TraceMembers ?? (_TraceMembers = new HashSet<String>(DefaultTraceMembers, StringComparer.OrdinalIgnoreCase)); }
-            set { _TraceMembers = value; }
-        }
+        public ICollection<String> TraceMembers { get; set; }
 
-        private Boolean _IsLittleEndian = true;
         /// <summary>是否小端字节序。x86系列则采用Little-Endian方式存储数据；网络协议都是Big-Endian；</summary>
         /// <remarks>
         /// 网络协议都是Big-Endian；
@@ -30,13 +23,12 @@ namespace NewLife.Log
         /// x86系列则采用Little-Endian方式存储数据；
         /// ARM同时支持 big和little，实际应用中通常使用Little-Endian。
         /// </remarks>
-        public Boolean IsLittleEndian { get { return _IsLittleEndian; } set { _IsLittleEndian = value; } }
+        public Boolean IsLittleEndian { get; set; }
 
         static readonly String[] DefaultTraceMembers = new String[] { "Write", "WriteByte", "Read", "ReadByte", "BeginRead", "BeginWrite", "EndRead", "EndWrite", "Seek", "Close", "Flush", "SetLength", "SetPosition" };
 
-        private Int32 _ShowPositionStep = 16;
         /// <summary>显示位置的步长，位移超过此长度后输出位置。默认16，设为0不输出位置</summary>
-        public Int32 ShowPositionStep { get { return _ShowPositionStep; } set { _ShowPositionStep = value; } }
+        public Int32 ShowPositionStep { get; set; }
         #endregion
 
         #region 基本读写方法
@@ -44,7 +36,7 @@ namespace NewLife.Log
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
-        public override void Write(byte[] buffer, int offset, int count)
+        public override void Write(Byte[] buffer, Int32 offset, Int32 count)
         {
             RaiseAction("Write", buffer, offset, count);
 
@@ -53,7 +45,7 @@ namespace NewLife.Log
 
         /// <summary>写入一个字节</summary>
         /// <param name="value">数值</param>
-        public override void WriteByte(byte value)
+        public override void WriteByte(Byte value)
         {
             RaiseAction("WriteByte", value);
 
@@ -65,7 +57,7 @@ namespace NewLife.Log
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        public override int Read(byte[] buffer, int offset, int count)
+        public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count)
         {
             Int32 n = BaseStream.Read(buffer, offset, count);
 
@@ -76,7 +68,7 @@ namespace NewLife.Log
 
         /// <summary>读取一个字节</summary>
         /// <returns></returns>
-        public override int ReadByte()
+        public override Int32 ReadByte()
         {
             Int32 n = BaseStream.ReadByte();
 
@@ -94,7 +86,7 @@ namespace NewLife.Log
         /// <param name="callback"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
+        public override IAsyncResult BeginRead(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback callback, Object state)
         {
             RaiseAction("BeginRead", offset, count);
 
@@ -108,7 +100,7 @@ namespace NewLife.Log
         /// <param name="callback"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
+        public override IAsyncResult BeginWrite(Byte[] buffer, Int32 offset, Int32 count, AsyncCallback callback, Object state)
         {
             RaiseAction("BeginWrite", offset, count);
 
@@ -118,7 +110,7 @@ namespace NewLife.Log
         /// <summary>异步读结束</summary>
         /// <param name="asyncResult"></param>
         /// <returns></returns>
-        public override int EndRead(IAsyncResult asyncResult)
+        public override Int32 EndRead(IAsyncResult asyncResult)
         {
             RaiseAction("EndRead");
 
@@ -140,7 +132,7 @@ namespace NewLife.Log
         /// <param name="offset">偏移</param>
         /// <param name="origin"></param>
         /// <returns></returns>
-        public override long Seek(long offset, SeekOrigin origin)
+        public override Int64 Seek(Int64 offset, SeekOrigin origin)
         {
             RaiseAction("Seek", offset, origin);
 
@@ -165,7 +157,7 @@ namespace NewLife.Log
 
         /// <summary>设置长度</summary>
         /// <param name="value">数值</param>
-        public override void SetLength(long value)
+        public override void SetLength(Int64 value)
         {
             RaiseAction("SetLength", value);
 
@@ -175,28 +167,28 @@ namespace NewLife.Log
 
         #region 属性
         /// <summary>可读</summary>
-        public override bool CanRead { get { return BaseStream.CanRead; } }
+        public override Boolean CanRead { get { return BaseStream.CanRead; } }
 
         /// <summary>可搜索</summary>
-        public override bool CanSeek { get { return BaseStream.CanSeek; } }
+        public override Boolean CanSeek { get { return BaseStream.CanSeek; } }
 
         /// <summary>可超时</summary>
-        public override bool CanTimeout { get { return BaseStream.CanTimeout; } }
+        public override Boolean CanTimeout { get { return BaseStream.CanTimeout; } }
 
         /// <summary>可写</summary>
-        public override bool CanWrite { get { return BaseStream.CanWrite; } }
+        public override Boolean CanWrite { get { return BaseStream.CanWrite; } }
 
         /// <summary>可读</summary>
-        public override int ReadTimeout { get { return BaseStream.ReadTimeout; } set { BaseStream.ReadTimeout = value; } }
+        public override Int32 ReadTimeout { get { return BaseStream.ReadTimeout; } set { BaseStream.ReadTimeout = value; } }
 
         /// <summary>读写超时</summary>
-        public override int WriteTimeout { get { return base.WriteTimeout; } set { base.WriteTimeout = value; } }
+        public override Int32 WriteTimeout { get { return base.WriteTimeout; } set { base.WriteTimeout = value; } }
 
         /// <summary>长度</summary>
-        public override long Length { get { return BaseStream.Length; } }
+        public override Int64 Length { get { return BaseStream.Length; } }
 
         /// <summary>位置</summary>
-        public override long Position
+        public override Int64 Position
         {
             get { return BaseStream.Position; }
             set
@@ -216,6 +208,11 @@ namespace NewLife.Log
         /// <param name="stream"></param>
         public TraceStream(Stream stream)
         {
+            TraceMembers = new HashSet<String>(DefaultTraceMembers, StringComparer.OrdinalIgnoreCase);
+            IsLittleEndian = true;
+            ShowPositionStep = 16;
+            Encoding = Encoding.UTF8;
+
             if (stream == null) stream = new MemoryStream();
             BaseStream = stream;
             UseConsole = true;
@@ -233,7 +230,7 @@ namespace NewLife.Log
         {
             if (OnAction != null)
             {
-                if (_TraceMembers != null && !_TraceMembers.Contains(action)) return;
+                if (!TraceMembers.Contains(action)) return;
 
                 if (ShowPositionStep > 0)
                 {
@@ -241,17 +238,17 @@ namespace NewLife.Log
                     if (lastPosition < 0)
                     {
                         lastPosition = cp;
-                        OnAction(this, new EventArgs<string, object[]>("BeginPosition", new Object[] { lastPosition }));
+                        OnAction(this, new EventArgs<String, Object[]>("BeginPosition", new Object[] { lastPosition }));
                     }
 
                     if (cp > lastPosition + ShowPositionStep)
                     {
                         lastPosition = cp;
-                        OnAction(this, new EventArgs<string, object[]>("Position", new Object[] { lastPosition }));
+                        OnAction(this, new EventArgs<String, Object[]>("Position", new Object[] { lastPosition }));
                     }
                 }
 
-                OnAction(this, new EventArgs<string, object[]>(action, args));
+                OnAction(this, new EventArgs<String, Object[]>(action, args));
             }
         }
         #endregion
@@ -276,17 +273,18 @@ namespace NewLife.Log
             }
         }
 
-        private Encoding _Encoding = Encoding.UTF8;
         /// <summary>编码</summary>
-        public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
+        public Encoding Encoding { get; set; }
 
-        void TraceStream_OnAction(object sender, EventArgs<string, object[]> e)
+        void TraceStream_OnAction(Object sender, EventArgs<String, Object[]> e)
         {
             var color = Console.ForegroundColor;
 
             // 红色动作
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(e.Arg1);
+            var act = e.Arg1;
+            if (act.Length < 8) act += "\t";
+            Console.Write(act);
 
             // 白色十六进制
             Console.ForegroundColor = ConsoleColor.White;
@@ -372,12 +370,14 @@ namespace NewLife.Log
         #endregion
 
         #region 日志
-        void XTrace_OnAction(object sender, EventArgs<string, object[]> e)
+        void XTrace_OnAction(Object sender, EventArgs<String, Object[]> e)
         {
             var sb = new StringBuilder();
 
             // 红色动作
-            sb.AppendFormat(e.Arg1);
+            var act = e.Arg1;
+            if (act.Length < 8) act += "\t";
+            sb.AppendFormat(act);
 
             // 白色十六进制
             sb.AppendFormat("\t");

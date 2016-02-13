@@ -19,11 +19,14 @@ namespace NewLife.Messaging
         public virtual Boolean Read(Stream stream, Object context)
         {
             var fm = CreateFormatter(true);
+            fm.Stream = stream;
 #if DEBUG
-            stream = new NewLife.Log.TraceStream(stream);
+            if (fm is Binary)
+                (fm as Binary).EnableTrace();
+            else
+                stream = new NewLife.Log.TraceStream(stream);
             fm.Log = NewLife.Log.XTrace.Log;
 #endif
-            fm.Stream = stream;
             Object obj = this;
             return fm.TryRead(this.GetType(), ref obj);
         }
@@ -34,11 +37,14 @@ namespace NewLife.Messaging
         public virtual void Write(Stream stream, Object context)
         {
             var fm = CreateFormatter(false);
+            fm.Stream = stream;
 #if DEBUG
-            stream = new NewLife.Log.TraceStream(stream);
+            if (fm is Binary)
+                (fm as Binary).EnableTrace();
+            else
+                stream = new NewLife.Log.TraceStream(stream);
             fm.Log = NewLife.Log.XTrace.Log;
 #endif
-            fm.Stream = stream;
             fm.Write(this);
         }
 
