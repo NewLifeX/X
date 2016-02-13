@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -98,6 +98,37 @@ namespace Test
 
             uri = xml.ToXmlEntity<NetUri>();
             Console.WriteLine(uri);
+        }
+
+        static void Test4()
+        {
+            var obj = new TT();
+            obj.ID = 123;
+            obj.Name = "Test";
+
+            var bn = new Binary();
+            bn.EncodeInt = true;
+            bn.Write(obj);
+            var buf = bn.GetBytes();
+            Console.WriteLine(buf.ToHex("-"));
+
+            bn.Stream = new MemoryStream(buf);
+            var obj2 = bn.Read<TT>();
+            Console.WriteLine(obj2.ID);
+            Console.WriteLine(obj2.Name);
+
+            var js = obj.ToJson();
+            Console.WriteLine(js);
+            Console.WriteLine(obj.ToJson(true));
+            var obj3 = js.ToJsonEntity<TT>();
+            Console.WriteLine(obj3.ID);
+            Console.WriteLine(obj3.Name);
+        }
+
+        class TT
+        {
+            public Int32 ID { get; set; }
+            public String Name { get; set; }
         }
 
         static void Test5()

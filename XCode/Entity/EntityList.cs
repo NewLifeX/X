@@ -10,6 +10,7 @@ using System.Xml.Serialization;
 using NewLife;
 using NewLife.IO;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using XCode.Common;
 using XCode.Configuration;
 
@@ -748,8 +749,7 @@ namespace XCode
         /// <returns></returns>
         public virtual String ToJson()
         {
-            //return new Json().Serialize(this);
-            return null;
+            return JsonHelper.ToJson(this);
         }
 
         /// <summary>导入Json</summary>
@@ -757,8 +757,7 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> FromJson(String json)
         {
-            //return new Json().Deserialize<EntityList<T>>(json);
-            return null;
+            return json.ToJsonEntity<EntityList<T>>();
         }
         #endregion
 

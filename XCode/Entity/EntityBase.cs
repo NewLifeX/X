@@ -6,6 +6,7 @@ using System.Text;
 using System.Xml.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
@@ -105,9 +106,7 @@ namespace XCode
         /// <returns></returns>
         public virtual String ToJson()
         {
-            //Json json = new Json();
-            //return json.Serialize(this);
-            return null;
+            return JsonHelper.ToJson(this);
         }
         #endregion
 

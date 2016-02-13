@@ -43,6 +43,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -160,6 +161,7 @@
     <Compile Include="Reflection\AttributeX.cs" />
     <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
+    <Compile Include="Serialization\Json\IJson.cs" />
     <Compile Include="Serialization\Protocol.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -232,7 +234,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Serialization\Json\" />
     <Folder Include="Serialization\NameValue\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

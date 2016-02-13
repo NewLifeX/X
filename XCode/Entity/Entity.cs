@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using NewLife.Data;
 using NewLife.IO;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
@@ -1379,7 +1380,8 @@ namespace XCode
         public static TEntity FromJson(String json)
         {
 #if NET4
-            return null;
+            //return JsonHelper.ToJsonEntity<TEntity>(json);
+            return json.ToJsonEntity<TEntity>();
 #else
             return new Json().Deserialize<TEntity>(json);
 #endif
