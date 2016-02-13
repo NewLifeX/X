@@ -1,9 +1,7 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Windows.Forms;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -70,72 +68,72 @@ namespace XAgent
         #endregion
 
         #region 辅助函数及属性
-        private static Int32[] _Intervals;
-        /// <summary>间隔数组。默认60秒</summary>
-        public static Int32[] Intervals
-        {
-            get
-            {
-                if (_Intervals != null) return _Intervals;
+        //private static Int32[] _Intervals;
+        ///// <summary>间隔数组。默认60秒</summary>
+        //public static Int32[] Intervals
+        //{
+        //    get
+        //    {
+        //        if (_Intervals != null) return _Intervals;
 
-                //_Intervals = Config.GetConfigSplit<Int32>("XAgent.Interval", null, Config.GetConfigSplit<Int32>("Interval", null, new Int32[] { 60 }));
-                _Intervals = Setting.Current.Intervals.SplitAsInt();
-                return _Intervals;
-            }
-            set { _Intervals = value; }
-        }
+        //        //_Intervals = Config.GetConfigSplit<Int32>("XAgent.Interval", null, Config.GetConfigSplit<Int32>("Interval", null, new Int32[] { 60 }));
+        //        _Intervals = Setting.Current.Intervals.SplitAsInt();
+        //        return _Intervals;
+        //    }
+        //    set { _Intervals = value; }
+        //}
 
-        private static Int32? _MaxActive;
-        /// <summary>最大活动时间。超过最大活动时间都还没有响应的线程将会被重启，防止线程执行时间过长。默认0，表示无限</summary>
-        public static Int32 MaxActive
-        {
-            get
-            {
-                //if (_MaxActive == null) _MaxActive = Config.GetConfig<Int32>("XAgent.MaxActive", Config.GetConfig<Int32>("MaxActive", 0));
-                if (_MaxActive == null) _MaxActive = Setting.Current.MaxActive;
-                return _MaxActive.Value;
-            }
-            set { _MaxActive = value; }
-        }
+        //private static Int32? _MaxActive;
+        ///// <summary>最大活动时间。超过最大活动时间都还没有响应的线程将会被重启，防止线程执行时间过长。默认0，表示无限</summary>
+        //public static Int32 MaxActive
+        //{
+        //    get
+        //    {
+        //        //if (_MaxActive == null) _MaxActive = Config.GetConfig<Int32>("XAgent.MaxActive", Config.GetConfig<Int32>("MaxActive", 0));
+        //        if (_MaxActive == null) _MaxActive = Setting.Current.MaxActive;
+        //        return _MaxActive.Value;
+        //    }
+        //    set { _MaxActive = value; }
+        //}
 
-        private static Int32? _MaxMemory;
-        /// <summary>最大占用内存。超过最大占用时，整个服务进程将会重启，以释放资源。默认0，表示无限</summary>
-        public static Int32 MaxMemory
-        {
-            get
-            {
-                //if (_MaxMemory == null) _MaxMemory = Config.GetConfig<Int32>("XAgent.MaxMemory", Config.GetConfig<Int32>("MaxMemory", 0));
-                if (_MaxMemory == null) _MaxMemory = Setting.Current.MaxMemory;
-                return _MaxMemory.Value;
-            }
-            set { _MaxMemory = value; }
-        }
+        //private static Int32? _MaxMemory;
+        ///// <summary>最大占用内存。超过最大占用时，整个服务进程将会重启，以释放资源。默认0，表示无限</summary>
+        //public static Int32 MaxMemory
+        //{
+        //    get
+        //    {
+        //        //if (_MaxMemory == null) _MaxMemory = Config.GetConfig<Int32>("XAgent.MaxMemory", Config.GetConfig<Int32>("MaxMemory", 0));
+        //        if (_MaxMemory == null) _MaxMemory = Setting.Current.MaxMemory;
+        //        return _MaxMemory.Value;
+        //    }
+        //    set { _MaxMemory = value; }
+        //}
 
-        private static Int32? _MaxThread;
-        /// <summary>最大总线程数。超过最大占用时，整个服务进程将会重启，以释放资源。默认0，表示无限</summary>
-        public static Int32 MaxThread
-        {
-            get
-            {
-                //if (_MaxThread == null) _MaxThread = Config.GetConfig<Int32>("XAgent.MaxThread", Config.GetConfig<Int32>("MaxThread", 0));
-                if (_MaxThread == null) _MaxThread = Setting.Current.MaxThread;
-                return _MaxThread.Value;
-            }
-            set { _MaxThread = value; }
-        }
+        //private static Int32? _MaxThread;
+        ///// <summary>最大总线程数。超过最大占用时，整个服务进程将会重启，以释放资源。默认0，表示无限</summary>
+        //public static Int32 MaxThread
+        //{
+        //    get
+        //    {
+        //        //if (_MaxThread == null) _MaxThread = Config.GetConfig<Int32>("XAgent.MaxThread", Config.GetConfig<Int32>("MaxThread", 0));
+        //        if (_MaxThread == null) _MaxThread = Setting.Current.MaxThread;
+        //        return _MaxThread.Value;
+        //    }
+        //    set { _MaxThread = value; }
+        //}
 
-        private static Int32? _AutoRestart;
-        /// <summary>自动重启时间，单位：分钟。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0，表示无限</summary>
-        public static Int32 AutoRestart
-        {
-            get
-            {
-                //if (_AutoRestart == null) _AutoRestart = Config.GetConfig<Int32>("XAgent.AutoRestart", Config.GetConfig<Int32>("AutoRestart", 0));
-                if (_AutoRestart == null) _AutoRestart = Setting.Current.AutoRestart;
-                return _AutoRestart.Value;
-            }
-            set { _AutoRestart = value; }
-        }
+        //private static Int32? _AutoRestart;
+        ///// <summary>自动重启时间，单位：分钟。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0，表示无限</summary>
+        //public static Int32 AutoRestart
+        //{
+        //    get
+        //    {
+        //        //if (_AutoRestart == null) _AutoRestart = Config.GetConfig<Int32>("XAgent.AutoRestart", Config.GetConfig<Int32>("AutoRestart", 0));
+        //        if (_AutoRestart == null) _AutoRestart = Setting.Current.AutoRestart;
+        //        return _AutoRestart.Value;
+        //    }
+        //    set { _AutoRestart = value; }
+        //}
         #endregion
 
         #region 日志
@@ -154,14 +152,14 @@ namespace XAgent
             if (XTrace.Debug) XTrace.WriteLine(msg);
         }
 
-        /// <summary>写日志</summary>
-        /// <param name="msg"></param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("请改用WriteLine")]
-        public static void WriteLog(String msg)
-        {
-            if (XTrace.Debug) XTrace.WriteLine(msg);
-        }
+        ///// <summary>写日志</summary>
+        ///// <param name="msg"></param>
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //[Obsolete("请改用WriteLine")]
+        //public static void WriteLog(String msg)
+        //{
+        //    if (XTrace.Debug) XTrace.WriteLine(msg);
+        //}
         #endregion
 
         #region 运行UI

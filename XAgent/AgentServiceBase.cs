@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Threading;
@@ -37,13 +36,10 @@ namespace XAgent
             var service = Instance as TService;
 
             // 根据配置修改服务名
-            //String name = Config.GetConfig<String>("XAgent.ServiceName");
             var name = Setting.Current.ServiceName;
             if (!String.IsNullOrEmpty(name)) Instance.ServiceName = name;
 
-            //Instance.MakeBat();
-
-            String[] Args = Environment.GetCommandLineArgs();
+            var Args = Environment.GetCommandLineArgs();
 
             if (Args.Length > 1)
             {
@@ -106,10 +102,7 @@ namespace XAgent
                 Console.Title = service.DisplayName;
 
                 #region 命令行
-                //XTrace.OnWriteLog += new EventHandler<WriteLogEventArgs>(XTrace_OnWriteLog);
                 XTrace.UseConsole();
-
-                //TService service = Instance as TService;
 
                 //输出状态
                 service.ShowStatus();
@@ -219,17 +212,6 @@ namespace XAgent
                 }
                 #endregion
             }
-        }
-
-        /// <summary>生成批处理</summary>
-        protected virtual void MakeBat()
-        {
-            var name = ServiceHelper.ExeName;
-
-            File.WriteAllText("安装.bat", name + " -i");
-            File.WriteAllText("卸载.bat", name + " -u");
-            File.WriteAllText("启动.bat", name + " -start");
-            File.WriteAllText("停止.bat", name + " -stop");
         }
 
         /// <summary>显示状态</summary>
@@ -501,9 +483,10 @@ namespace XAgent
             if (index < 0 || index >= ThreadCount) throw new ArgumentOutOfRangeException("index");
 
             // 可以通过设置任务的时间间隔小于0来关闭指定任务
-            Int32 time = Intervals[0];
+            var ts = Setting.Current.Intervals.SplitAsInt();
+            Int32 time = ts[0];
             // 使用专用的时间间隔
-            if (index < Intervals.Length) time = Intervals[index];
+            if (index < ts.Length) time = ts[index];
             if (time < 0) return;
 
             Threads[index] = new Thread(workWaper);
@@ -566,9 +549,10 @@ namespace XAgent
                     break;
                 }
 
-                Int32 time = Intervals[0];
+                var ts = Setting.Current.Intervals.SplitAsInt();
+                Int32 time = ts[0];
                 //使用专用的时间间隔
-                if (index < Intervals.Length) time = Intervals[index];
+                if (index < ts.Length) time = ts[index];
 
                 //如果有数据库连接错误，则将等待间隔放大十倍
                 //if (hasdberr) time *= 10;
@@ -732,12 +716,13 @@ namespace XAgent
             }
 
             //是否检查最大活动时间
-            if (MaxActive <= 0) return;
+            var max = Setting.Current.MaxActive;
+            if (max <= 0) return;
 
             for (int i = 0; i < ThreadCount; i++)
             {
-                TimeSpan ts = DateTime.Now - Active[i];
-                if (ts.TotalSeconds > MaxActive)
+                var ts = DateTime.Now - Active[i];
+                if (ts.TotalSeconds > max)
                 {
                     WriteLine(Threads[i].Name + "已经" + ts.TotalSeconds + "秒没有活动了，准备重新启动！");
 
@@ -753,14 +738,15 @@ namespace XAgent
         /// <returns>是否超标重启</returns>
         protected virtual Boolean CheckMemory()
         {
-            if (MaxMemory <= 0) return false;
+            var max = Setting.Current.MaxMemory;
+            if (max <= 0) return false;
 
-            Process p = Process.GetCurrentProcess();
+            var p = Process.GetCurrentProcess();
             long cur = p.WorkingSet64 + p.PrivateMemorySize64;
             cur = cur / 1024 / 1024;
-            if (cur > MaxMemory)
+            if (cur > max)
             {
-                WriteLine("当前进程占用内存" + cur + "M，超过阀值" + MaxMemory + "M，准备重新启动！");
+                WriteLine("当前进程占用内存" + cur + "M，超过阀值" + max + "M，准备重新启动！");
 
                 RestartService();
 
@@ -774,12 +760,13 @@ namespace XAgent
         /// <returns></returns>
         protected virtual Boolean CheckThread()
         {
-            if (MaxThread <= 0) return false;
+            var max = Setting.Current.MaxThread;
+            if (max <= 0) return false;
 
-            Process p = Process.GetCurrentProcess();
-            if (p.Threads.Count > MaxThread)
+            var p = Process.GetCurrentProcess();
+            if (p.Threads.Count > max)
             {
-                WriteLine("当前进程总线程" + p.Threads.Count + "个，超过阀值" + MaxThread + "个，准备重新启动！");
+                WriteLine("当前进程总线程" + p.Threads.Count + "个，超过阀值" + max + "个，准备重新启动！");
 
                 RestartService();
 
@@ -796,12 +783,13 @@ namespace XAgent
         /// <returns></returns>
         protected virtual Boolean CheckAutoRestart()
         {
-            if (AutoRestart <= 0) return false;
+            var f = Setting.Current.AutoRestart;
+            if (f <= 0) return false;
 
-            TimeSpan ts = DateTime.Now - Start;
-            if (ts.TotalMinutes > AutoRestart)
+            var ts = DateTime.Now - Start;
+            if (ts.TotalMinutes > f)
             {
-                WriteLine("服务已运行" + ts.TotalMinutes + "分钟，达到预设重启时间（" + AutoRestart + "分钟），准备重启！");
+                WriteLine("服务已运行" + ts.TotalMinutes + "分钟，达到预设重启时间（" + f + "分钟），准备重启！");
 
                 RestartService();
 
