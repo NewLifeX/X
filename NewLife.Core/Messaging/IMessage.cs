@@ -2,20 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {
     /// <summary>消息接口</summary>
-    public interface IMessage
+    public interface IMessage : IAccessor
     {
-        /// <summary>从数据流中读取消息</summary>
-        /// <param name="stream"></param>
-        /// <returns>是否成功</returns>
-        Boolean Read(Stream stream);
+        ///// <summary>从数据流中读取消息</summary>
+        ///// <param name="stream"></param>
+        ///// <returns>是否成功</returns>
+        //Boolean Read(Stream stream);
 
-        /// <summary>把消息写入到数据流中</summary>
-        /// <param name="stream"></param>
-        void Write(Stream stream);
+        ///// <summary>把消息写入到数据流中</summary>
+        ///// <param name="stream"></param>
+        //void Write(Stream stream);
     }
 
     /// <summary>消息助手</summary>
@@ -27,7 +28,7 @@ namespace NewLife.Messaging
         public static Stream GetStream(this IMessage msg)
         {
             var ms = new MemoryStream();
-            msg.Write(ms);
+            msg.Write(ms, null);
             ms.Position = 0;
             return ms;
         }

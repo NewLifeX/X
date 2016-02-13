@@ -9,8 +9,8 @@ namespace NewLife.Serialization
     public interface IXml : IFormatterX
     {
         #region 属性
-        /// <summary>编码</summary>
-        Encoding Encoding { get; set; }
+        ///// <summary>编码</summary>
+        //Encoding Encoding { get; set; }
 
         /// <summary>处理器列表</summary>
         List<IXmlHandler> Handlers { get; }

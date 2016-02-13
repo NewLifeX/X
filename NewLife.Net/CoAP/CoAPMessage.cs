@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using NewLife.Messaging;
 using NewLife.Serialization;
 
 namespace NewLife.Net.CoAP
 {
     /// <summary>受限制的应用协议(Constrained Application Protocol)</summary>
     /// <remarks>用于物联网M2M</remarks>
-    public class CoAPMessage
+    public class CoAPMessage : Message<CoAPMessage>
     {
         #region 协议字段
         [BitSize(2)]
@@ -36,43 +37,6 @@ namespace NewLife.Net.CoAP
         #endregion
 
         #region 读写
-        /// <summary>从流中读取消息</summary>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        public static CoAPMessage Read(Stream stream)
-        {
-            var binary = new Binary();
-            //binary.IsLittleEndian = true;
-            binary.Stream = stream;
-
-            return binary.Read<CoAPMessage>();
-        }
-
-        /// <summary>从字节数组中读取消息</summary>
-        /// <param name="buf"></param>
-        /// <returns></returns>
-        public static CoAPMessage Read(Byte[] buf) { return Read(new MemoryStream(buf)); }
-
-        /// <summary>把消息写入流中</summary>
-        /// <param name="stream"></param>
-        public void Write(Stream stream)
-        {
-            var binary = new Binary();
-            //binary.IsLittleEndian = true;
-            binary.Stream = stream;
-
-            binary.Write(this);
-        }
-
-        /// <summary>转为字节数组</summary>
-        /// <returns></returns>
-        public Byte[] ToArray()
-        {
-            var ms = new MemoryStream();
-            Write(ms);
-
-            return ms.ToArray();
-        }
         #endregion
     }
 }

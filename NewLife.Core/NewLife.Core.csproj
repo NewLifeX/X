@@ -150,13 +150,18 @@
     <Compile Include="Serialization\Binary\BinaryUnknown.cs" />
     <Compile Include="Serialization\Binary\BinaryFont.cs" />
     <Compile Include="Serialization\Binary\BinaryColor.cs" />
+    <Compile Include="Serialization\Interface\IAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Serialization\Interface\IFormatterX.cs" />
     <Compile Include="Log\CodeTimer.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />
     <Compile Include="Reflection\AttributeX.cs" />
     <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
-    <Compile Include="Serialization\Protocol.cs" />
+    <Compile Include="Serialization\Protocol.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Serialization\Xml\XmlComposite.cs" />
     <Compile Include="Serialization\Xml\XmlGeneral.cs" />
     <Compile Include="Serialization\Xml\IXml.cs" />

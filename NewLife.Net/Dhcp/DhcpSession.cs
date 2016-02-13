@@ -14,7 +14,7 @@ namespace NewLife.Net.Dhcp
         protected override void OnReceive(ReceivedEventArgs e)
         {
             var dhcp = new DhcpEntity();
-            dhcp.Read(e.Stream);
+            dhcp.Read(e.Stream, null);
 
             var kind = dhcp.Kind;
             WriteLog("收到：{0} {1}", kind, e.UserState);

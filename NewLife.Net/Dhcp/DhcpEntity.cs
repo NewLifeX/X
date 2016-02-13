@@ -13,7 +13,7 @@ using NewLife.Serialization;
 namespace NewLife.Net.Dhcp
 {
     /// <summary>DHCP实体</summary>
-    public class DhcpEntity : MessageBase
+    public class DhcpEntity : Message<DhcpEntity>
     {
         #region 属性
         private Byte _MessageType = 1;
@@ -127,22 +127,22 @@ namespace NewLife.Net.Dhcp
         /// <summary>读取扩展属性</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public override bool Read(Stream stream)
+        public override bool Read(Stream stream, Object context)
         {
-            if (!base.Read(stream)) return false;
+            if (!base.Read(stream, context)) return false;
 
             // 读取扩展可选项
             if (stream.Position < stream.Length)
             {
-                var binary = GetFormatter(true) as Binary;
-                binary.Stream = stream;
+                var fm = CreateFormatter(true);
+                fm.Stream = stream;
 
                 while (stream.Position < stream.Length)
                 {
                     if (stream.ReadByte() == 0xFF) break;
                     stream.Position--;
 
-                    var opt = binary.Read<DhcpOption>();
+                    var opt = fm.Read<DhcpOption>();
                     Options.Add(opt);
 
                     if (opt.Option == DhcpOptions.End) break;
@@ -154,11 +154,11 @@ namespace NewLife.Net.Dhcp
 
         /// <summary>写入可选项</summary>
         /// <param name="stream"></param>
-        public override void Write(Stream stream)
+        public override void Write(Stream stream, Object context)
         {
-            base.Write(stream);
+            base.Write(stream, context);
 
-            var binary = GetFormatter(true) as Binary;
+            var binary = CreateFormatter(true) as Binary;
             binary.Stream = stream;
             foreach (var opt in Options)
             {
@@ -174,9 +174,9 @@ namespace NewLife.Net.Dhcp
         /// <summary>使用字段大小</summary>
         /// <param name="isRead"></param>
         /// <returns></returns>
-        protected override IFormatterX GetFormatter(bool isRead)
+        protected override IFormatterX CreateFormatter(bool isRead)
         {
-            var fm = base.GetFormatter(isRead) as Binary;
+            var fm = base.CreateFormatter(isRead) as Binary;
             fm.UseFieldSize = true;
             //fm.Log = XTrace.Log;
 

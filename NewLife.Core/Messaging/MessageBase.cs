@@ -13,21 +13,31 @@ namespace NewLife.Messaging
     {
         #region 核心读写方法
         /// <summary>从数据流中读取消息</summary>
-        /// <param name="stream"></param>
+        /// <param name="stream">数据流</param>
+        /// <param name="context">上下文</param>
         /// <returns>是否成功</returns>
-        public virtual Boolean Read(Stream stream)
+        public virtual Boolean Read(Stream stream, Object context)
         {
-            var fm = GetFormatter(true);
+            var fm = CreateFormatter(true);
+#if DEBUG
+            stream = new NewLife.Log.TraceStream(stream);
+            fm.Log = NewLife.Log.XTrace.Log;
+#endif
             fm.Stream = stream;
             Object obj = this;
             return fm.TryRead(this.GetType(), ref obj);
         }
 
         /// <summary>把消息写入到数据流中</summary>
-        /// <param name="stream"></param>
-        public virtual void Write(Stream stream)
+        /// <param name="stream">数据流</param>
+        /// <param name="context">上下文</param>
+        public virtual void Write(Stream stream, Object context)
         {
-            var fm = GetFormatter(false);
+            var fm = CreateFormatter(false);
+#if DEBUG
+            stream = new NewLife.Log.TraceStream(stream);
+            fm.Log = NewLife.Log.XTrace.Log;
+#endif
             fm.Stream = stream;
             fm.Write(this);
         }
@@ -37,18 +47,21 @@ namespace NewLife.Messaging
         public virtual Byte[] ToArray()
         {
             var ms = new MemoryStream();
-            Write(ms);
+            Write(ms, null);
             return ms.ToArray();
         }
 
-        /// <summary>获取序列化器</summary>
+        /// <summary>创建序列化器</summary>
         /// <param name="isRead"></param>
         /// <returns></returns>
-        protected virtual IFormatterX GetFormatter(Boolean isRead)
+        protected virtual IFormatterX CreateFormatter(Boolean isRead)
         {
-            var binary = new Binary();
+            var fn = new Binary();
+            fn.EncodeInt = true;
+            fn.UseFieldSize = true;
+            fn.UseProperty = false;
 
-            return binary;
+            return fn;
         }
         #endregion
 
@@ -93,7 +106,7 @@ namespace NewLife.Messaging
 
                 var att = pi.GetCustomAttribute<FieldSizeAttribute>();
                 if (att != null && att.Size > 0) len = att.Size;
-                v = buf.ToHex();
+                v = buf.ToHex("-", 0, len);
             }
 
             return v;
@@ -101,16 +114,26 @@ namespace NewLife.Messaging
         #endregion
     }
 
-    ///// <summary>消息泛型基类</summary>
-    ///// <typeparam name="TMessage"></typeparam>
-    //public abstract class Message<TMessage> : MessageBase where TMessage : Message<TMessage>, new()
-    //{
-    //    public static TMessage Read(Stream stream)
-    //    {
-    //        var msg = new TMessage();
-    //        if (msg.Read(stream)) return msg;
+    /// <summary>消息泛型基类</summary>
+    /// <typeparam name="TMessage"></typeparam>
+    public abstract class Message<TMessage> : MessageBase where TMessage : Message<TMessage>, new()
+    {
+        #region 读写
+        /// <summary>从流中读取消息</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static TMessage Read(Stream stream)
+        {
+            var obj = new TMessage();
+            if (!obj.Read(stream, null)) return default(TMessage);
 
-    //        return default(TMessage);
-    //    }
-    //}
+            return (TMessage)obj;
+        }
+
+        /// <summary>从字节数组中读取消息</summary>
+        /// <param name="buf"></param>
+        /// <returns></returns>
+        public static TMessage Read(Byte[] buf) { return Read(new MemoryStream(buf)); }
+        #endregion
+    }
 }

@@ -9,6 +9,7 @@ using System.Threading;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Application;
+using NewLife.Net.DNS;
 using NewLife.Net.Modbus;
 using NewLife.Net.Proxy;
 using NewLife.Net.Sockets;
@@ -114,8 +115,9 @@ namespace Test2
 
         static void Test3()
         {
-            var _server = new NetServer();
-            _server.Port = 8888;
+            //var _server = new NetServer();
+            var _server = new DNSServer();
+            //_server.Port = 8888;
             _server.Start();
 
             while (true)

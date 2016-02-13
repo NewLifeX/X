@@ -16,9 +16,8 @@ namespace NewLife.Net.DNS
     public class DNSServer : NetServer
     {
         #region 属性
-        private String _DomainName;
         /// <summary>域名</summary>
-        public String DomainName { get { return _DomainName ?? "dns.NewLifeX.com"; } set { _DomainName = value; } }
+        public String DomainName { get; set; }
 
         private List<NetUri> _Parents;
         /// <summary>上级DNS地址</summary>
@@ -28,23 +27,11 @@ namespace NewLife.Net.DNS
             {
                 if (_Parents == null)
                 {
-                    var list = new List<NetUri>();
-                    foreach (var item in NetHelper.GetDns())
-                    {
-                        if (item.IsAny())
-                        {
-                            WriteLog("取得的本地DNS[{0}]有误，任意地址不能作为父级DNS地址。", item);
-                            continue;
-                        }
-                        var uri = new NetUri(ProtocolType.Udp, item, 53);
-                        WriteLog("使用本地地址作为父级DNS：{0}", uri);
-                        list.Add(uri);
-                    }
-                    list.Add(new NetUri("tcp://8.8.8.8:53"));
-                    list.Add(new NetUri("udp://4.4.4.4:53"));
-
-                    _Parents = list;
+                    _Parents = GetParents();
+                    _Parents.Add(new NetUri("tcp://8.8.8.8:53"));
+                    _Parents.Add(new NetUri("udp://4.4.4.4:53"));
                 }
+
                 return _Parents;
             }
             set { _Parents = value; }
@@ -70,35 +57,68 @@ namespace NewLife.Net.DNS
             {
                 if (value.IsNullOrWhiteSpace()) return;
 
-                var ss = value.Split(",");
-                if (ss == null || ss.Length < 1) return;
-
-                var ps = Parents;
-                var list = new HashSet<String>(ps.Select(p => p.ToString()), StringComparer.OrdinalIgnoreCase);
-                //ps.Clear();
-
-                for (int i = ss.Length - 1; i >= 0; i--)
-                {
-                    var uri = new NetUri(ss[i]);
-                    if (uri.Port <= 0) uri.Port = 53;
-                    if (!list.Contains(uri.ToString()))
-                    {
-                        if (uri.Address.IsAny())
-                        {
-                            WriteLog("配置的父级DNS[{0}]有误，任意地址不能作为父级DNS地址。", uri);
-                            continue;
-                        }
-                        ps.Insert(0, uri);
-                        list.Add(uri.ToString());
-                    }
-                }
             }
         }
         #endregion
 
         #region 构造
         /// <summary>实例化一个DNS服务器</summary>
-        public DNSServer() { Port = 53; }
+        public DNSServer()
+        {
+            Port = 53;
+
+            DomainName = "dns.NewLifeX.com";
+        }
+        #endregion
+
+        #region 父级DNS
+        /// <summary>获取本机DNS列表</summary>
+        /// <returns></returns>
+        public virtual List<NetUri> GetParents()
+        {
+            var list = new List<NetUri>();
+            foreach (var item in NetHelper.GetDns())
+            {
+                if (item.IsAny())
+                {
+                    WriteLog("取得的本地DNS[{0}]有误，任意地址不能作为父级DNS地址。", item);
+                    continue;
+                }
+                var uri = new NetUri(ProtocolType.Udp, item, 53);
+                WriteLog("使用本地地址作为父级DNS：{0}", uri);
+                list.Add(uri);
+            }
+
+            return list;
+        }
+
+        /// <summary>设置父级DNS</summary>
+        /// <param name="parents"></param>
+        public virtual void SetParents(String parents)
+        {
+            var ss = parents.Split(",");
+            if (ss == null || ss.Length < 1) return;
+
+            var ps = Parents;
+            var list = new HashSet<String>(ps.Select(p => p.ToString()), StringComparer.OrdinalIgnoreCase);
+            //ps.Clear();
+
+            for (int i = ss.Length - 1; i >= 0; i--)
+            {
+                var uri = new NetUri(ss[i]);
+                if (uri.Port <= 0) uri.Port = 53;
+                if (!list.Contains(uri.ToString()))
+                {
+                    if (uri.Address.IsAny())
+                    {
+                        WriteLog("配置的父级DNS[{0}]有误，任意地址不能作为父级DNS地址。", uri);
+                        continue;
+                    }
+                    ps.Insert(0, uri);
+                    list.Add(uri.ToString());
+                }
+            }
+        }
         #endregion
 
         #region 方法
@@ -133,9 +153,10 @@ namespace NewLife.Net.DNS
             var isTcp = session.Local.IsTcp;
 
             // 处理，修改
-            WriteDNSLog("{0} 请求 {1}", session.Local, request);
+            WriteLog("{0} 请求 {1}", session.Local, request);
 
             // 请求事件，如果第二参数有值，则直接返回
+            // 结合数据库缓存，可以在这里进行返回
             if (OnRequest != null)
             {
                 var e = new DNSEventArgs();
@@ -276,7 +297,7 @@ namespace NewLife.Net.DNS
                 response = DNSEntity.Read(data, parent.ProtocolType == ProtocolType.Tcp);
 
                 // 处理，修改
-                WriteDNSLog("{0} 返回 {1}", parent, response);
+                WriteLog("{0} 返回 {1}", parent, response);
             }
             catch (Exception ex)
             {
@@ -307,12 +328,12 @@ namespace NewLife.Net.DNS
         #endregion
 
         #region 写日志
-        static TextFileLog log = TextFileLog.Create("DNSLog");
-        [Conditional("DEBUG")]
-        void WriteDNSLog(String format, params Object[] args)
-        {
-            log.WriteLine(LogLevel.Debug, format, args);
-        }
+        //static TextFileLog log = TextFileLog.Create("DNSLog");
+        //[Conditional("DEBUG")]
+        //void WriteDNSLog(String format, params Object[] args)
+        //{
+        //    log.WriteLine(LogLevel.Debug, format, args);
+        //}
         #endregion
     }
 

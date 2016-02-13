@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife.Serialization;
 
-namespace NewLife.Net.Protocols.DNS
+namespace NewLife.Net.DNS
 {
     class DNSQuestion : IAccessor
     {
@@ -17,9 +17,9 @@ namespace NewLife.Net.Protocols.DNS
         /// <summary>属性说明</summary>
         public DNSQueryType Type { get { return _Type; } set { _Type = value; } }
 
-        private QueryClass _Class;
+        private DNSQueryClass _Class;
         /// <summary>属性说明</summary>
-        public QueryClass Class { get { return _Class; } set { _Class = value; } }
+        public DNSQueryClass Class { get { return _Class; } set { _Class = value; } }
         #endregion
 
         #region IAccessor 成员
