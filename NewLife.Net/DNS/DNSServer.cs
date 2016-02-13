@@ -81,6 +81,8 @@ namespace NewLife.Net.DNS
             var list = new List<NetUri>();
             foreach (var item in NetHelper.GetDns())
             {
+                if (!item.IsIPv4()) continue;
+
                 if (item.IsAny())
                 {
                     WriteLog("取得的本地DNS[{0}]有误，任意地址不能作为父级DNS地址。", item);
@@ -242,7 +244,7 @@ namespace NewLife.Net.DNS
                 OnResponse(this, e);
             }
 
-            session.Send(response.GetStream(isTcp));
+            if (session != null && !session.Disposed) session.Send(response.GetStream(isTcp));
         }
 
         DNSEntity GetDNS(String key, DNSEntity request)
@@ -257,6 +259,7 @@ namespace NewLife.Net.DNS
 
             foreach (var item in us)
             {
+                WriteLog("GetDNS key={0} {1}", key, item);
                 client = item.CreateRemote();
                 // 如果是PTR请求
                 if (request.IsPTR)
@@ -270,6 +273,7 @@ namespace NewLife.Net.DNS
 
                 try
                 {
+                    client.Timeout = 1000;
                     client.Send(request.GetStream(item.ProtocolType == ProtocolType.Tcp));
                     data = client.Receive();
 

@@ -255,7 +255,8 @@ namespace NewLife.Net.DNS
                 else if (Header.ResponseCode == DNSRcodeType.NameError)
                     sb.Append("No such name");
 
-                return String.Format("Response {0}", sb);
+                return sb.ToString();
+                //return String.Format("Response {0}", sb);
             }
 
             return base.ToString();

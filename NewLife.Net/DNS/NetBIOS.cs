@@ -59,9 +59,11 @@ namespace NewLife.Net.DNS
 
         static string EncodeName(string domain)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            foreach (char c in domain + "                ".Substring(0, 16 - domain.Length))
+            domain = domain.PadRight(16, ' ');
+            //foreach (char c in domain + "                ".Substring(0, 16 - domain.Length))
+            foreach (char c in domain)
             {
                 byte b = (byte)c;
                 char x = (char)((byte)'A' + (((byte)c & 0xF0) >> 4));

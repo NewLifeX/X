@@ -22,11 +22,11 @@ namespace NewLife.Net.DNS
         }
         #endregion
 
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return String.Format("{0} {1}", Type, Text);
-        }
+        ///// <summary>已重载。</summary>
+        ///// <returns></returns>
+        //public override string ToString()
+        //{
+        //    return String.Format("{0} {1}", Type, Text);
+        //}
     }
 }

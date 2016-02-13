@@ -29,15 +29,15 @@ namespace NewLife.Net.DNS
         }
         #endregion
 
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            // Address为空，可能是请求
-            if (Address == null)
-                return String.Format("{0} {1}", Type, Name);
-            else
-                return String.Format("{0} {1}", Type, Address);
-        }
+        ///// <summary>已重载。</summary>
+        ///// <returns></returns>
+        //public override string ToString()
+        //{
+        //    // Address为空，可能是请求
+        //    if (Address == null)
+        //        return String.Format("{0} {1}", Type, Name);
+        //    else
+        //        return String.Format("{0} {1}", Type, Address);
+        //}
     }
 }
