@@ -13,7 +13,6 @@ namespace NewLife.Reflection
     {
         static void Main()
         {
-
             //PathHelper.BaseDirectory = @"E:\X\Src\NewLife.Cube";
             XTrace.Debug = true;
             XTrace.UseConsole();
@@ -29,37 +28,31 @@ namespace NewLife.Reflection
             proj = name+".csproj";
             var spec = name + ".nuspec";
             
-
             if (!File.Exists(spec.GetFullPath()))
             {
-                if (File.Exists("..\\..\\bin4\\" + name + ".dll"))
+				var tar = "..\\..\\Bin4\\" + name + ".dll";
+				tar = tar.GetFullPath();
+                if (!File.Exists(tar))
                 {
-                    Console.WriteLine("在bin4目录找到{0}.DLL", name);
-                    "NuGet".Run("spec -f -a ..\\..\\bin4\\" + name + ".dll", 5000);
+					tar = "..\\..\\Bin4\\" + name + ".exe";
+					tar = tar.GetFullPath();
                 }
-                else
+                if (!File.Exists(tar))
                 {
-                    if (File.Exists("..\\..\\bin\\" + name + ".dll"))
-                    {
-                        Console.WriteLine("在bin目录找到{0}.DLL", name);
-                        "NuGet".Run("spec -f -a ..\\..\\bin\\" + name + ".dll", 5000);
-                    }
-                    else
-                    {
-                        if (File.Exists("obj\\release\\" + name + ".exe"))
-                        {
-                            Console.WriteLine("XCoder项目");
-                            "NuGet".Run("spec -f -a obj\\release\\" + name + ".exe", 5000);
-                        }
-                        else
-                        {
-                            Console.WriteLine("只能找项目文件了，总得做点啥不是");
-                            "NuGet".Run("spec -f -a " + name, 5000);
-                            //编译当前工程
-                            "msbuild".Run(proj + " /t:Rebuild /p:Configuration=Release /p:VisualStudioVersion=12.0 /noconlog /nologo", 8000);
-                        }
-                    }
+					tar = "..\\..\\XCoder\\" + name + ".exe";
+					tar = tar.GetFullPath();
                 }
+                if (!File.Exists(tar))
+                {
+					Console.WriteLine("只能找项目文件了，总得做点啥不是");
+					//编译当前工程
+					"msbuild".Run(proj + " /t:Rebuild /p:Configuration=Release /p:VisualStudioVersion=12.0 /noconlog /nologo", 8000);
+					//"NuGet".Run("spec -f -a " + name, 5000);
+					return;
+                }
+				Console.WriteLine("目标 {0}", tar);
+				"NuGet".Run("spec -f -a " + tar, 5000);
+				
                 var spec2 = ".".AsDirectory().GetAllFiles(spec).First().Name;
                 if (!spec.EqualIgnoreCase(spec2)) File.Move(spec2, spec);
             }
