@@ -84,6 +84,7 @@ namespace NewLife.Serialization
     {
         private static Type _Convert;
         private static Type _Formatting;
+        private static Object _Set;
         static JsonNet()
         {
             var type = "Newtonsoft.Json.JsonConvert".GetTypeEx();
@@ -91,8 +92,13 @@ namespace NewLife.Serialization
             {
                 _Convert = type;
                 _Formatting = "Newtonsoft.Json.Formatting".GetTypeEx();
+                type = "Newtonsoft.Json.JsonSerializerSettings".GetTypeEx();
+                
+                // 忽略循环引用
+                _Set = type.CreateInstance();
+                if (_Set != null) _Set.SetValue("ReferenceLoopHandling", 1);
 
-                if (XTrace.Debug) XTrace.WriteLine("使用Json.Net，位于 {0}", type.Assembly.Location);
+                if (XTrace.Debug) XTrace.WriteLine("使用Json.Net，位于 {0}", _Convert.Assembly.Location);
             }
         }
 
@@ -103,10 +109,14 @@ namespace NewLife.Serialization
         #region IJson 成员
         public String Write(Object value, Boolean indented)
         {
+            // 忽略循环引用
+            //var set = _Set.CreateInstance();
+            //if (set != null) set.SetValue("ReferenceLoopHandling", 1);
+
             if (!indented)
-                return (String)_Convert.Invoke("SerializeObject", value);
+                return (String)_Convert.Invoke("SerializeObject", value, _Set);
             else
-                return (String)_Convert.Invoke("SerializeObject", value, TypeX.ChangeType(1, _Formatting));
+                return (String)_Convert.Invoke("SerializeObject", value, Enum.ToObject(_Formatting, 1), _Set);
         }
 
         public Object Read(String json, Type type)
