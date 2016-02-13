@@ -63,7 +63,7 @@ namespace NewLife.Net.DNS
         /// <summary>实例化一个DNS服务器</summary>
         public DNSServer()
         {
-            Name = "DNS";
+            //Name = "DNS";
             Port = 53;
 
             DomainName = "dns.NewLifeX.com";
