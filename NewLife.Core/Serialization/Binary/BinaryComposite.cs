@@ -135,8 +135,9 @@ namespace NewLife.Serialization
             var ac = value as IMemberAccessor;
 
             // 获取成员
-            foreach (var member in ms)
+            for (int i = 0; i < ms.Count; i++)
             {
+                var member = ms[i];
                 if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;
 
                 var mtype = GetMemberType(member);
@@ -189,8 +190,13 @@ namespace NewLife.Serialization
                     if (ac.Read(Host, member))
                     {
                         // 访问器内部可能直接操作Hosts修改了父级对象，典型应用在于某些类需要根据某个字段值决定采用哪个派生类
-                        value = Host.Hosts.Peek();
-                        ac = value as IMemberAccessor;
+                        var obj = Host.Hosts.Peek();
+                        if (obj != value)
+                        {
+                            value = obj;
+                            ms = GetMembers(value.GetType());
+                            ac = value as IMemberAccessor;
+                        }
 
                         continue;
                     }
