@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using NewLife.Collections;
+using System.Reflection;
 using NewLife.Serialization;
 
 namespace NewLife.Net.DNS
 {
-    /// <summary>DNS记录</summary>
-    public class DNSRecord
+    /// <summary>DNS查询记录</summary>
+    public class DNSQuery
     {
         #region 属性
         private String _Name;
@@ -21,7 +19,13 @@ namespace NewLife.Net.DNS
         private DNSQueryClass _Class = DNSQueryClass.IN;
         /// <summary>协议组</summary>
         public DNSQueryClass Class { get { return _Class; } set { _Class = value; } }
+        #endregion
+    }
 
+    /// <summary>DNS记录</summary>
+    public class DNSRecord : DNSQuery, IMemberAccessor
+    {
+        #region 属性
         private TimeSpan _TTL;
         /// <summary>生存时间。4字节，指示RDATA中的资源记录在缓存的生存时间。</summary>
         public TimeSpan TTL { get { return _TTL; } set { _TTL = value; } }
@@ -206,6 +210,39 @@ namespace NewLife.Net.DNS
 
             return this;
         }
+        #endregion
+
+        #region IMemberAccessor 成员
+
+        bool IMemberAccessor.Read(IFormatterX fm, MemberInfo member)
+        {
+            if (member.Name == "_Type")
+            {
+                Type = fm.Read<DNSQueryType>();
+
+                // 如果是响应，创建具体消息
+                var de = fm.Hosts.Peek() as DNSEntity;
+                if (de != null && de.Header.Response)
+                {
+                    var dr = DNSEntity.CreateRecord(Type);
+                    dr.Name = Name;
+                    dr.Type = Type;
+
+                    // 设置给上级，让它用新的对象继续读取后面的成员
+                    fm.Hosts.Pop();
+                    fm.Hosts.Push(dr);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        void IMemberAccessor.Write(IFormatterX fm, MemberInfo member)
+        {
+        }
+
         #endregion
     }
 }

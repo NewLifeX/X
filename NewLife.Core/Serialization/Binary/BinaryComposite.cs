@@ -131,6 +131,9 @@ namespace NewLife.Serialization
             var offset = 0;
             var bit = 0;
 
+            // 成员序列化访问器
+            var ac = value as IMemberAccessor;
+
             // 获取成员
             foreach (var member in ms)
             {
@@ -178,6 +181,20 @@ namespace NewLife.Serialization
                     }
                 }
                 #endregion
+
+                // 成员访问器优先
+                if (ac != null)
+                {
+                    // 访问器直接写入成员
+                    if (ac.Read(Host, member))
+                    {
+                        // 访问器内部可能直接操作Hosts修改了父级对象，典型应用在于某些类需要根据某个字段值决定采用哪个派生类
+                        value = Host.Hosts.Peek();
+                        ac = value as IMemberAccessor;
+
+                        continue;
+                    }
+                }
 
                 Object v = null;
                 if (!Host.TryRead(mtype, ref v))

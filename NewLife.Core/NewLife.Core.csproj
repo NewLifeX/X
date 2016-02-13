@@ -150,6 +150,7 @@
     <Compile Include="Serialization\Binary\BinaryUnknown.cs" />
     <Compile Include="Serialization\Binary\BinaryFont.cs" />
     <Compile Include="Serialization\Binary\BinaryColor.cs" />
+    <Compile Include="Serialization\Interface\IMemberAccessor.cs" />
     <Compile Include="Serialization\Interface\IAccessor.cs">
       <SubType>Code</SubType>
     </Compile>

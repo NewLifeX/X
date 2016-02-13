@@ -9,13 +9,20 @@ namespace NewLife.Net.DNS
     class DNSNameAccessor
     {
         #region 属性
-        private List<Int32> _Keys;
         /// <summary>键</summary>
-        public List<Int32> Keys { get { return _Keys ?? (_Keys = new List<int>()); } set { _Keys = value; } }
+        public List<Int32> Keys { get; set; }
 
-        private List<String> _Values;
         /// <summary>值</summary>
-        public List<String> Values { get { return _Values ?? (_Values = new List<string>()); } set { _Values = value; } }
+        public List<String> Values { get; set; }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化DNS名称访问器</summary>
+        public DNSNameAccessor()
+        {
+            Keys = new List<Int32>();
+            Values = new List<String>();
+        }
         #endregion
 
         #region 方法
@@ -56,7 +63,7 @@ namespace NewLife.Net.DNS
             Int64 start = stream.Position;
             Int64 p = start;
             Int32 n = 0;
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             while (true)
             {
                 n = stream.ReadByte();

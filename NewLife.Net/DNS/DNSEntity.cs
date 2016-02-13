@@ -22,9 +22,9 @@ namespace NewLife.Net.DNS
         public DNSHeader Header { get { return _Header; } set { _Header = value; } }
 
         [FieldSize("_Header._Questions")]
-        private DNSRecord[] _Questions;
+        private DNSQuery[] _Questions;
         /// <summary>请求段</summary>
-        public DNSRecord[] Questions { get { return _Questions; } set { _Questions = value; } }
+        public DNSQuery[] Questions { get { return _Questions; } set { _Questions = value; } }
 
         [FieldSize("_Header._Answers")]
         private DNSRecord[] _Answers;
@@ -46,11 +46,11 @@ namespace NewLife.Net.DNS
         /// <summary>是否响应</summary>
         public Boolean Response { get { return Header.Response; } set { Header.Response = value; } }
 
-        DNSRecord Question
+        DNSQuery Question
         {
             get
             {
-                if (Questions == null || Questions.Length < 1) Questions = new DNSRecord[] { new DNSRecord() };
+                if (Questions == null || Questions.Length < 1) Questions = new DNSQuery[] { new DNSQuery() };
 
                 return Questions[0];
             }
@@ -181,8 +181,16 @@ namespace NewLife.Net.DNS
             var bn = fm as Binary;
             if (bn != null)
             {
+                bn.EncodeInt = false;
                 bn.UseFieldSize = true;
+                //bn.AddHandler<BinaryDNSString>();
                 bn.AddHandler<BinaryDNS>();
+
+                //var ds1 = new BinaryDNSString();
+                //var ds2 = new BinaryDNS();
+                //bn.AddHandler(ds1).AddHandler(ds2);
+
+                //ds1.Accessor = ds2.Accessor = new DNSNameAccessor();
             }
 
             return fm;

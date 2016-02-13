@@ -126,6 +126,7 @@ namespace NewLife.Net.Dhcp
         #region 读写核心
         /// <summary>读取扩展属性</summary>
         /// <param name="stream"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
         public override bool Read(Stream stream, Object context)
         {
@@ -154,6 +155,7 @@ namespace NewLife.Net.Dhcp
 
         /// <summary>写入可选项</summary>
         /// <param name="stream"></param>
+        /// <param name="context"></param>
         public override void Write(Stream stream, Object context)
         {
             base.Write(stream, context);
