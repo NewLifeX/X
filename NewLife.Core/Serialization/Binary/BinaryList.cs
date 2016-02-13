@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -49,21 +50,34 @@ namespace NewLife.Serialization
         {
             if (!typeof(IList).IsAssignableFrom(type)) return false;
 
-            if (value == null && type != null) value = type.CreateInstance();
-
             // 先读取长度
             var count = Host.ReadSize();
             if (count == 0) return true;
+
+            if (value == null && type != null)
+            {
+                // 数组的创建比较特别
+                if (typeof(Array).IsAssignableFrom(type))
+                    value = Array.CreateInstance(type.GetElementTypeEx(), count);
+                else
+                    value = type.CreateInstance();
+            }
 
             // 子元素类型
             var elmType = type.GetElementTypeEx();
 
             var list = value as IList;
+            // 如果是数组，则需要先加起来，再
+            //if (value is Array) list = typeof(IList<>).MakeGenericType(value.GetType().GetElementTypeEx()).CreateInstance() as IList;
             for (int i = 0; i < count; i++)
             {
                 Object obj = null;
                 if (!Host.TryRead(elmType, ref obj)) return false;
-                list.Add(obj);
+
+                if (value is Array)
+                    list[i] = obj;
+                else
+                    list.Add(obj);
             }
 
             return true;
