@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using NewLife.Serialization;
 
 namespace NewLife.Net.DNS
 {
@@ -18,6 +19,7 @@ namespace NewLife.Net.DNS
         /// <summary></summary>
         public ushort ONT { get { return BitHelper.GetBits(_flags, 13, 2); } }
 
+        [FieldSize("_Length", -2)]
         private IPAddress _Address;
         /// <summary>地址</summary>
         public IPAddress Address { get { return _Address; } set { _Address = value; } }

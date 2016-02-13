@@ -142,7 +142,7 @@ namespace NewLife.Serialization
 
                 var mtype = GetMemberType(member);
                 Host.Member = member;
-                WriteLog("    {0}.{1}", type.Name, member.Name);
+                WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
 
                 #region 处理位域支持
                 // 仅支持Byte
