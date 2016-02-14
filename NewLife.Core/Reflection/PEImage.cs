@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
-
+using NewLife.Log;
 using RVA = System.UInt32;
 
 namespace NewLife.Reflection
@@ -61,7 +61,12 @@ namespace NewLife.Reflection
                     return PEImage.Read(fs);
                 }
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                if (XTrace.Debug) XTrace.WriteLine("PEImage.Read({0})出错 {1}", file, ex);
+
+                return null;
+            }
         }
 
         /// <summary>从数据流中读取PE文件头部</summary>
