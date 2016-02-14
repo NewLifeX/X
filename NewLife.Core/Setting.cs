@@ -60,7 +60,7 @@ namespace NewLife
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {
-            Debug = Config.GetConfig<Boolean>("NewLife.Debug", false);
+            Debug = Config.GetConfig<Boolean>("NewLife.Debug", true);
             NetDebug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
             LogLevel = Config.GetConfig<LogLevel>("NewLife.LogLevel", Debug ? LogLevel.Debug : LogLevel.Info);
 
