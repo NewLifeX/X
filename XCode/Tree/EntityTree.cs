@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Web.Script.Serialization;
 using System.Web.UI.WebControls;
 using System.Xml.Serialization;
 using NewLife;
@@ -61,7 +62,7 @@ namespace XCode
         protected virtual EntityList<TEntity> FindChilds() { return FindAllByParent((TKey)this[Setting.Key]); }
 
         /// <summary>父节点</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual TEntity Parent
         {
             get { return Setting.EnableCaching ? GetExtend<TEntity>("Parent", e => FindParent()) : FindParent(); }
@@ -81,7 +82,7 @@ namespace XCode
         }
 
         /// <summary>子孙节点</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual EntityList<TEntity> AllChilds
         {
             get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this), !IsNullKey) : FindAllChilds(this); }
@@ -89,7 +90,7 @@ namespace XCode
         }
 
         /// <summary>子孙节点，包含自己</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual EntityList<TEntity> MyAllChilds
         {
             get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("MyAllChilds", e => FindAllChilds(this, true), !IsNullKey) : FindAllChilds(this, true); }
@@ -97,7 +98,7 @@ namespace XCode
         }
 
         /// <summary>父节点集合</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual EntityList<TEntity> AllParents
         {
             get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("AllParents", e => FindAllParents(this)) : FindAllParents(this); }
@@ -105,7 +106,7 @@ namespace XCode
         }
 
         /// <summary>深度</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual Int32 Deepth
         {
             get
@@ -136,7 +137,7 @@ namespace XCode
         }
 
         /// <summary>节点名</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual String NodeName
         {
             get
@@ -149,7 +150,7 @@ namespace XCode
         }
 
         /// <summary>父级节点名</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual String ParentNodeName
         {
             get
@@ -166,7 +167,7 @@ namespace XCode
 
         /// <summary>树形节点名，根据深度带全角空格前缀</summary>
         [DisplayName("节点名")]
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual String TreeNodeName
         {
             get
@@ -183,7 +184,7 @@ namespace XCode
         }
 
         /// <summary>树形节点名，根据深度带全角空格前缀</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual String TreeNodeName2
         {
             get
@@ -200,7 +201,7 @@ namespace XCode
         }
 
         /// <summary>树形节点名，根据深度带全角空格前缀</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public virtual String TreeNodeText
         {
             get
@@ -222,11 +223,11 @@ namespace XCode
         }
 
         /// <summary>斜杠分隔的全路径</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public String FullPath { get { return @"\" + GetFullPath(true); } }
 
         /// <summary>斜杠分隔的全父路径</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public String FullParentPath { get { return @"\" + GetFullPath(false); } }
         #endregion
 
@@ -454,23 +455,23 @@ namespace XCode
         }
 
         /// <summary>子级键值集合</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public List<TKey> ChildKeys { get { return Childs.GetItem<TKey>(Setting.Key); } }
 
         /// <summary>逗号分隔的子级键值字符串，一般可用于SQL语句中</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public String ChildKeyString { get { return ChildKeys.Join(","); } }
 
         /// <summary>子孙键值集合</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public List<TKey> AllChildKeys { get { return AllChilds.GetItem<TKey>(Setting.Key); } }
 
         /// <summary>我的子孙键值集合，包含自己</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public List<TKey> MyAllChildKeys { get { return MyAllChilds.GetItem<TKey>(Setting.Key); } }
 
         /// <summary>逗号分隔的子孙键值字符串，一般可用于SQL语句中</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public String AllChildKeyString { get { return AllChildKeys.Join(","); } }
         #endregion
 

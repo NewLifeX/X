@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Text;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
@@ -175,7 +176,8 @@ namespace XCode
         [NonSerialized]
         private DirtyCollection _Dirtys;
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        [XmlIgnore]
+        [field: NonSerialized]
+        [XmlIgnore, ScriptIgnore]
         internal protected IDictionary<String, Boolean> Dirtys
         {
             get
@@ -213,7 +215,8 @@ namespace XCode
         [NonSerialized]
         private EntityExtend _Extends;
         /// <summary>扩展属性</summary>
-        [XmlIgnore]
+        //[NonSerialized]
+        [XmlIgnore, ScriptIgnore]
         public EntityExtend Extends { get { return _Extends ?? (_Extends = new EntityExtend()); } set { _Extends = value; } }
 
         /// <summary>扩展属性</summary>
@@ -224,7 +227,7 @@ namespace XCode
         [NonSerialized]
         private IEntityAddition _Addition;
         /// <summary>累加</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         internal IEntityAddition Addition
         {
             get
@@ -241,8 +244,14 @@ namespace XCode
 
         #region 主键为空
         /// <summary>主键是否为空</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         public Boolean IsNullKey { get { return Helper.IsEntityNullKey(this); } }
+        
+        // JsonNet支持下面这种特殊用法
+        //public Boolean ShouldSerializeIsNullKey()
+        //{
+        //    return false;
+        //}
 
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void IEntity.SetNullKey()

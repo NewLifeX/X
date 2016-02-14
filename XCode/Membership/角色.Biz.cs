@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Web.Script.Serialization;
 using System.Web.UI.WebControls;
+using System.Xml.Serialization;
 using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -255,6 +257,8 @@ namespace XCode.Membership
         #region 扩展权限
         private Dictionary<Int32, PermissionFlags> _Permissions = new Dictionary<Int32, PermissionFlags>();
         /// <summary>本角色权限集合</summary>
+        [field: NonSerialized]
+        [XmlIgnore, ScriptIgnore]
         public Dictionary<Int32, PermissionFlags> Permissions { get { return _Permissions; } set { _Permissions = value; } }
 
         /// <summary>是否拥有指定资源的指定权限</summary>
@@ -376,6 +380,7 @@ namespace XCode.Membership
         }
 
         /// <summary>当前角色拥有的资源</summary>
+        [XmlIgnore, ScriptIgnore]
         public Int32[] Resources { get { return Permissions.Keys.ToArray(); } }
         #endregion
 

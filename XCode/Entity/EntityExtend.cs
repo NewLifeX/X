@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
 
@@ -15,7 +16,7 @@ namespace XCode
         [NonSerialized]
         private Dictionary<Type, List<String>> _depends;
         /// <summary>类型依赖</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         private Dictionary<Type, List<String>> Depends { get { return _depends ?? (_depends = new Dictionary<Type, List<String>>()); } }
 
         /// <summary>获取扩展属性，获取数据时向指定的依赖实体类注册数据更改事件</summary>

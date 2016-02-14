@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Web;
 using XCode;
@@ -257,7 +258,7 @@ namespace XCode.Membership
         #region 扩展属性
         private IManageUser _CreateUser;
         /// <summary>创建人</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         [DisplayName("创建人")]
         //[BindRelation("CreateUserID", false, "User", "ID")]
         public IManageUser CreateUser
@@ -276,14 +277,14 @@ namespace XCode.Membership
         }
 
         /// <summary>创建人名称</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         [DisplayName("创建人")]
         [BindRelation("CreateUserID")]
         public String CreateUserName { get { return CreateUser + ""; } }
 
         private IManageUser _UpdateUser;
         /// <summary>更新人</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         [DisplayName("更新人")]
         //[BindRelation("UpdateUserID", false, "User", "ID")]
         public IManageUser UpdateUser
@@ -302,19 +303,19 @@ namespace XCode.Membership
         }
 
         /// <summary>更新人名称</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         [DisplayName("更新人")]
         [BindRelation("UpdateUserID")]
         public String UpdateUserName { get { return UpdateUser + ""; } }
 
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         Int32 IUserInfo2.CreateUserID { get { return (Int32)this[__Name.CreateUserID]; } set { SetItem(__Name.CreateUserID, value); } }
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         Int32 IUserInfo2.UpdateUserID { get { return (Int32)this[__Name.UpdateUserID]; } set { SetItem(__Name.UpdateUserID, value); } }
 
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         DateTime ITimeInfo.CreateTime { get { return (DateTime)this[__Name.CreateTime]; } set { SetItem(__Name.CreateTime, value); } }
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         DateTime ITimeInfo.UpdateTime { get { return (DateTime)this[__Name.UpdateTime]; } set { SetItem(__Name.UpdateTime, value); } }
         #endregion
     }
@@ -384,7 +385,7 @@ namespace XCode.Membership
         #region 扩展属性
         private IManageUser _CreateUser;
         /// <summary>创建人</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         [DisplayName("创建人")]
         [BindRelation("CreateUserID", false, "User", "ID")]
         public IManageUser CreateUser
@@ -403,14 +404,14 @@ namespace XCode.Membership
         }
 
         /// <summary>创建人名称</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         [DisplayName("创建人")]
         [BindRelation("CreateUserID")]
         public String CreateUserName { get { return CreateUser + ""; } }
 
         private IManageUser _UpdateUser;
         /// <summary>更新人</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         [DisplayName("更新人")]
         [BindRelation("UpdateUserID", false, "User", "ID")]
         public IManageUser UpdateUser
@@ -429,19 +430,19 @@ namespace XCode.Membership
         }
 
         /// <summary>更新人名称</summary>
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         [DisplayName("更新人")]
         [BindRelation("UpdateUserID")]
         public String UpdateUserName { get { return UpdateUser + ""; } }
 
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         Int32 IUserInfo2.CreateUserID { get { return (Int32)this[__Name.CreateUserID]; } set { SetItem(__Name.CreateUserID, value); } }
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         Int32 IUserInfo2.UpdateUserID { get { return (Int32)this[__Name.UpdateUserID]; } set { SetItem(__Name.UpdateUserID, value); } }
 
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         DateTime ITimeInfo.CreateTime { get { return (DateTime)this[__Name.CreateTime]; } set { SetItem(__Name.CreateTime, value); } }
-        [XmlIgnore]
+        [XmlIgnore, ScriptIgnore]
         DateTime ITimeInfo.UpdateTime { get { return (DateTime)this[__Name.UpdateTime]; } set { SetItem(__Name.UpdateTime, value); } }
         #endregion
     }
