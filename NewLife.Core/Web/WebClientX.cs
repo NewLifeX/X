@@ -190,19 +190,17 @@ namespace NewLife.Web
             var ls = GetLinks(url);
             if (ls.Length == 0) return file;
 
-            // 过滤名称后降序排序
-            var link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                .Where(e =>
-                {
-                    foreach (var item in names)
-                    {
-                        if (e.Name.StartsWithIgnoreCase(item) || e.Name.Contains(item)) return true;
-                    }
-                    return false;
-                })
-                .OrderByDescending(e => e.Version)
-                .OrderByDescending(e => e.Time)
-                .FirstOrDefault();
+            // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
+            Link link = null;
+            foreach (var item in names)
+            {
+                link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
+                   .Where(e => e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
+                   .OrderByDescending(e => e.Version)
+                   .OrderByDescending(e => e.Time)
+                   .FirstOrDefault();
+                if (link != null) break;
+            }
             if (link == null) return file;
 
             file = destdir.CombinePath(link.Name).EnsureDirectory();
@@ -243,7 +241,8 @@ namespace NewLife.Web
             var di = dir.AsDirectory();
             if (di != null && di.Exists)
             {
-                var fi = di.GetFiles(name + "*.*").FirstOrDefault();
+                var fi = di.GetFiles(name + ".*").FirstOrDefault();
+                if (fi == null || !fi.Exists) fi = di.GetFiles(name + "_*.*").FirstOrDefault();
                 if (fi != null && fi.Exists)
                 {
                     Log.Info("目标文件{0}已存在，更新于{1}", fi.FullName, fi.LastWriteTime);
