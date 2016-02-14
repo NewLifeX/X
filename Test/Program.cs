@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Xml.Serialization;
 using NewLife.Common;
 using NewLife.Compression;
 using NewLife.Log;
@@ -102,27 +103,35 @@ namespace Test
 
         static void Test4()
         {
-            var obj = new TT();
-            obj.ID = 123;
-            obj.Name = "Test";
+            var user = UserX.FindByName("admin");
+            Console.WriteLine(user.ToJson(true));
 
-            var bn = new Binary();
-            bn.EncodeInt = true;
-            bn.Write(obj);
-            var buf = bn.GetBytes();
-            Console.WriteLine(buf.ToHex("-"));
+            //var type = typeof(UserX);
+            //var pi = type.GetPropertyEx("Extends");
+            //var ng = pi.GetCustomAttribute<NonSerializedAttribute>();
+            //Console.WriteLine(ng);
 
-            bn.Stream = new MemoryStream(buf);
-            var obj2 = bn.Read<TT>();
-            Console.WriteLine(obj2.ID);
-            Console.WriteLine(obj2.Name);
+            //var obj = new TT();
+            //obj.ID = 123;
+            //obj.Name = "Test";
 
-            var js = obj.ToJson();
-            Console.WriteLine(js);
-            Console.WriteLine(obj.ToJson(true));
-            var obj3 = js.ToJsonEntity<TT>();
-            Console.WriteLine(obj3.ID);
-            Console.WriteLine(obj3.Name);
+            //var bn = new Binary();
+            //bn.EncodeInt = true;
+            //bn.Write(obj);
+            //var buf = bn.GetBytes();
+            //Console.WriteLine(buf.ToHex("-"));
+
+            //bn.Stream = new MemoryStream(buf);
+            //var obj2 = bn.Read<TT>();
+            //Console.WriteLine(obj2.ID);
+            //Console.WriteLine(obj2.Name);
+
+            //var js = obj.ToJson();
+            //Console.WriteLine(js);
+            //Console.WriteLine(obj.ToJson(true));
+            //var obj3 = js.ToJsonEntity<TT>();
+            //Console.WriteLine(obj3.ID);
+            //Console.WriteLine(obj3.Name);
         }
 
         class TT

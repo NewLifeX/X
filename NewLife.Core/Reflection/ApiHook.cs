@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using NewLife.Log;
 
 namespace NewLife.Reflection
@@ -17,13 +18,11 @@ namespace NewLife.Reflection
     public class ApiHook : DisposeBase
     {
         #region 属性
-        private MethodBase _OriMethod;
         /// <summary>原始方法</summary>
-        public MethodBase OriMethod { get { return _OriMethod; } set { _OriMethod = value; } }
+        public MethodBase OriMethod { get; set; }
 
-        private MethodBase _NewMethod;
         /// <summary>新方法</summary>
-        public MethodBase NewMethod { get { return _NewMethod; } set { _NewMethod = value; } }
+        public MethodBase NewMethod { get; set; }
         #endregion
 
         #region 构造
@@ -40,9 +39,6 @@ namespace NewLife.Reflection
 
         #region 方法
         private Boolean ishooked;
-        //private IntPtr[] addresses;
-        //private uint ori;
-        //private ulong ori64;
 
         /// <summary>挂钩</summary>
         public void Hook()
@@ -110,61 +106,26 @@ namespace NewLife.Reflection
         /// <returns></returns>
         unsafe public static IntPtr GetMethodAddress(MethodBase method)
         {
-            var isAboveNet2Sp2 = Environment.Version.Major >= 2 && Environment.Version.MinorRevision >= 3053;
-
             // 处理动态方法
             if (method is DynamicMethod)
             {
-                //byte* ptr = (byte*)GetDynamicMethodRuntimeHandle(method).ToPointer();
-
-                //FieldInfo fieldInfo = typeof(DynamicMethod).GetField("m_method", BindingFlags.NonPublic | BindingFlags.Instance);
-                //byte* ptr = (byte*)((RuntimeMethodHandle)FieldInfoX.Create(fieldInfo).GetValue(method)).Value.ToPointer();
                 var ptr = (byte*)((RuntimeMethodHandle)method.GetValue("m_method")).Value.ToPointer();
 
-                if (isAboveNet2Sp2)
-                {
-                    // 确保方法已经被编译
-                    RuntimeHelpers.PrepareMethod(method.MethodHandle);
+                // 确保方法已经被编译
+                RuntimeHelpers.PrepareMethod(method.MethodHandle);
 
-                    if (IntPtr.Size == 8)
-                        return new IntPtr((ulong*)*(ptr + 5) + 12);
-                    else
-                        return new IntPtr((uint*)*(ptr + 5) + 12);
-                }
+                if (IntPtr.Size == 8)
+                    return new IntPtr((ulong*)*(ptr + 5) + 12);
                 else
-                {
-                    if (IntPtr.Size == 8)
-                        return new IntPtr((ulong*)ptr + 6);
-                    else
-                        return new IntPtr((uint*)ptr + 6);
-                }
+                    return new IntPtr((uint*)*(ptr + 5) + 12);
             }
 
+            ShowMethod(new IntPtr((int*)method.MethodHandle.Value.ToPointer() + 2));
             // 确保方法已经被编译
             RuntimeHelpers.PrepareMethod(method.MethodHandle);
+            ShowMethod(new IntPtr((int*)method.MethodHandle.Value.ToPointer() + 2));
 
-            if (isAboveNet2Sp2) return new IntPtr((int*)method.MethodHandle.Value.ToPointer() + 2);
-
-            // 要跳过的
-            var skip = 10;
-
-            // 读取方法索引
-            var location = (UInt64*)(method.MethodHandle.Value.ToPointer());
-            var index = (int)(((*location) >> 32) & 0xFF);
-
-            // 区分处理x86和x64
-            if (IntPtr.Size == 8)
-            {
-                // 获取方法表
-                var methodTable = (ulong*)method.DeclaringType.TypeHandle.Value.ToPointer();
-                return new IntPtr(methodTable + index + skip);
-            }
-            else
-            {
-                // 获取方法表
-                var methodTable = (uint*)method.DeclaringType.TypeHandle.Value.ToPointer();
-                return new IntPtr(methodTable + index + skip);
-            }
+            return new IntPtr((int*)method.MethodHandle.Value.ToPointer() + 2);
         }
 
         static readonly Type mbroType = typeof(MarshalByRefObject);
@@ -200,6 +161,10 @@ namespace NewLife.Reflection
 
         unsafe private static void ReplaceMethod(IntPtr src, IntPtr dest)
         {
+            XTrace.WriteLine("0x{0}=>0x{1}", src.ToString("x"), dest.ToString("x"));
+            //ShowMethod(src);
+            //ShowMethod(dest);
+
             // 区分处理x86和x64
             if (IntPtr.Size == 8)
             {
@@ -211,6 +176,23 @@ namespace NewLife.Reflection
                 var d = (uint*)src.ToPointer();
                 *d = *((uint*)dest.ToPointer());
             }
+        }
+
+        private static void ShowMethod(IntPtr mt)
+        {
+            XTrace.WriteLine("ShowMethod: {0}", mt.ToString("x"));
+            var buf = new Byte[8];
+            Marshal.Copy(mt, buf, 0, buf.Length);
+            //XTrace.WriteLine(buf.ToHex("-"));
+
+            var ip = new IntPtr((Int64)buf.ToUInt64());
+            XTrace.WriteLine("{0}", ip.ToString("x"));
+
+            if (ip.ToInt64() <= 0x1000000 || ip.ToInt64() > 0x800000000000L) return;
+
+            buf = new Byte[32];
+            Marshal.Copy(ip, buf, 0, buf.Length);
+            XTrace.WriteLine(buf.ToHex("-"));
         }
         #endregion
     }

@@ -5,6 +5,8 @@ using NewLife.Web;
 using NewLife.Log;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
+using System.Xml.Serialization;
 
 namespace NewLife.Serialization
 {
@@ -68,6 +70,27 @@ namespace NewLife.Serialization
 
     class JsonDefault : IJson
     {
+        //static JsonDefault()
+        //{
+        //    // 用XmlIgnore特性作为忽略属性的方法
+        //    var src = typeof(JavaScriptSerializer).GetMethodEx("CheckScriptIgnoreAttribute");
+        //    var dst = typeof(JsonDefault).GetMethodEx("CheckScriptIgnoreAttribute");
+        //    if (src != null && dst != null)
+        //    {
+        //        //new JavaScriptSerializer().Invoke(src, src);
+        //        //new JsonDefault().CheckScriptIgnoreAttribute(dst);
+        //        ApiHook.ReplaceMethod(src, dst);
+        //    }
+        //}
+
+        private bool CheckScriptIgnoreAttribute(MemberInfo memberInfo)
+        {
+            if (memberInfo.IsDefined(typeof(ScriptIgnoreAttribute), true)) return true;
+            if (memberInfo.IsDefined(typeof(XmlIgnoreAttribute), true)) return true;
+
+            return false;
+        }
+
         #region IJson 成员
         public String Write(Object value, Boolean indented)
         {

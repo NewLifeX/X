@@ -125,6 +125,7 @@
     <Compile Include="Model\IObjectContainer.cs" />
     <Compile Include="Model\ObjectContainer.cs" />
     <Compile Include="Model\IServer.cs" />
+    <Compile Include="Reflection\ApiHook.cs" />
     <Compile Include="Reflection\EmitReflect.cs" />
     <Compile Include="Reflection\IL\ILInstruction.cs" />
     <Compile Include="Reflection\IL\MethodBodyReader.cs" />
