@@ -1,10 +1,12 @@
 ﻿using System;
+using NewLife.Serialization;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Reflection;
@@ -292,10 +294,20 @@ namespace NewLife.Cube
         public virtual ActionResult ExportJson()
         {
             var list = Entity<TEntity>.FindAll();
-            var json = list.ToJson();
+            //var json = list.ToJson(true);
             //var json = new Json().Serialize(list);
 
-            return Json(json, JsonRequestBehavior.AllowGet);
+            var name = this.GetType().GetDisplayName();
+            if (name.IsNullOrEmpty()) name = Factory.EntityType.GetDisplayName();
+            if (name.IsNullOrEmpty()) name = this.GetType().Name.TrimEnd("Controller");
+            name += ".json";
+            name = HttpUtility.UrlEncode(name, Encoding.UTF8);
+            Response.AddHeader("Content-Disposition", "Attachment;filename=" + name);
+
+            //return Json(list, JsonRequestBehavior.AllowGet);
+
+            var json = list.ToJson(true);
+            return Content(json);
         }
 
         /// <summary>导入Json</summary>
