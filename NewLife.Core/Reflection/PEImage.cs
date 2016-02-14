@@ -54,10 +54,14 @@ namespace NewLife.Reflection
             if (String.IsNullOrEmpty(file)) return null;
             if (!File.Exists(file)) return null;
 
-            using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read))
+            try
             {
-                return PEImage.Read(fs);
+                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read))
+                {
+                    return PEImage.Read(fs);
+                }
             }
+            catch { return null; }
         }
 
         /// <summary>从数据流中读取PE文件头部</summary>
