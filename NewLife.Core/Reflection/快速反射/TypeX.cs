@@ -351,8 +351,6 @@ namespace NewLife.Reflection
 
         private static Type GetTypeInternal(String typeName, Boolean isLoadAssembly)
         {
-            //if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
-
             // 基本获取
             var type = Type.GetType(typeName);
             if (type != null) return type;

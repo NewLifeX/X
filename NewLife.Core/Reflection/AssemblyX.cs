@@ -445,10 +445,6 @@ namespace NewLife.Reflection
             //}
         }
 
-        ///// <summary>获取当前程序域所有程序集</summary>
-        ///// <returns></returns>
-        //public static IEnumerable<AssemblyX> GetAssemblies() { return GetAssemblies(AppDomain.CurrentDomain); }
-
         private static ICollection<String> _AssemblyPaths;
         /// <summary>程序集目录集合</summary>
         public static ICollection<String> AssemblyPaths
@@ -490,9 +486,6 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies()
         {
-            //var path = AppDomain.CurrentDomain.BaseDirectory;
-            //if (HttpRuntime.AppDomainId != null) path = HttpRuntime.BinDirectory;
-
             var loadeds = GetAssemblies().ToList();
 
             // 先返回已加载的只加载程序集
@@ -506,8 +499,6 @@ namespace NewLife.Reflection
 
                 yield return item;
             }
-
-            //foreach (var asm in ReflectionOnlyLoad(path)) yield return asm;
 
             foreach (var item in AssemblyPaths)
             {
@@ -541,48 +532,60 @@ namespace NewLife.Reflection
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                     loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
-#if !Android
-                // 仅加载.Net文件，并且小于等于当前版本
-                var pe = PEImage.Read(item);
-                if (pe == null || !pe.IsNet) continue;
-                // 只判断主次版本，只要这两个相同，后面可以兼容
-                var pv = pe.Version;
-                if (pv.Major > ver.Major || pv.Major == ver.Major && pv.Minor > ver.Minor)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("程序集 {0} 的版本 {1} 大于当前运行时 {2}", item, pv, ver);
-                    continue;
-                }
-                // 必须加强过滤，下面一旦只读加载，就再也不能删除文件
-                if (!pe.ExecutableKind.Has(PortableExecutableKinds.ILOnly))
-                {
-                    // 判断x86/x64兼容。无法区分x86/x64的SQLite驱动
-                    //XTrace.WriteLine("{0,12} {1} {2}", item, pe.Machine, pe.ExecutableKind);
-                    //var x64 = pe.ExecutableKind.Has(PortableExecutableKinds.Required32Bit);
-                    //var x64 = pe.Machine == ImageFileMachine.AMD64;
-                    var x64 = pe.Machine == ImageFileMachine.AMD64;
-                    if (Runtime.Is64BitProcess ^ x64)
-                    {
-                        if (XTrace.Debug) XTrace.WriteLine("程序集 {0} 的代码特性是 {1}，而当前进程是 {2} 进程", item, pe.Machine, Runtime.Is64BitProcess ? "64位" : "32位");
-                        continue;
-                    }
-                }
-#endif
+                var asm = ReflectionOnlyLoadFrom(item, ver);
+                if (asm == null) continue;
 
-                AssemblyX asmx = null;
-                try
-                {
-                    //Assembly asm = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(item));
-                    var asm = Assembly.ReflectionOnlyLoadFrom(item);
-                    // 尽管目录不一样，但这两个可能是相同的程序集
-                    // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
-                    if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName)) || loadeds2.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName))) continue;
+                // 尽管目录不一样，但这两个可能是相同的程序集
+                // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
+                if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName)) ||
+                    loadeds2.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName))) continue;
 
-                    asmx = Create(asm);
-                }
-                catch { }
-
+                var asmx = Create(asm);
                 if (asmx != null) yield return asmx;
             }
+        }
+
+        /// <summary>只反射加载指定路径的所有程序集</summary>
+        /// <param name="file"></param>
+        /// <param name="ver"></param>
+        /// <returns></returns>
+        public static Assembly ReflectionOnlyLoadFrom(String file, Version ver = null)
+        {
+#if !Android
+            // 仅加载.Net文件，并且小于等于当前版本
+            var pe = PEImage.Read(file);
+            if (pe == null || !pe.IsNet) return null;
+
+            if (ver == null) ver = new Version(Assembly.GetExecutingAssembly().ImageRuntimeVersion.TrimStart('v'));
+
+            // 只判断主次版本，只要这两个相同，后面可以兼容
+            var pv = pe.Version;
+            if (pv.Major > ver.Major || pv.Major == ver.Major && pv.Minor > ver.Minor)
+            {
+                if (XTrace.Debug) XTrace.WriteLine("程序集 {0} 的版本 {1} 大于当前运行时 {2}", file, pv, ver);
+                return null;
+            }
+            // 必须加强过滤，下面一旦只读加载，就再也不能删除文件
+            if (!pe.ExecutableKind.Has(PortableExecutableKinds.ILOnly))
+            {
+                // 判断x86/x64兼容。无法区分x86/x64的SQLite驱动
+                //XTrace.WriteLine("{0,12} {1} {2}", item, pe.Machine, pe.ExecutableKind);
+                //var x64 = pe.ExecutableKind.Has(PortableExecutableKinds.Required32Bit);
+                //var x64 = pe.Machine == ImageFileMachine.AMD64;
+                var x64 = pe.Machine == ImageFileMachine.AMD64;
+                if (Runtime.Is64BitProcess ^ x64)
+                {
+                    if (XTrace.Debug) XTrace.WriteLine("程序集 {0} 的代码特性是 {1}，而当前进程是 {2} 进程", file, pe.Machine, Runtime.Is64BitProcess ? "64位" : "32位");
+                    return null;
+                }
+            }
+#endif
+
+            try
+            {
+                return Assembly.ReflectionOnlyLoadFrom(file);
+            }
+            catch { return null; }
         }
 
         /// <summary>获取当前应用程序的所有程序集，不包括系统程序集，仅限本目录</summary>
