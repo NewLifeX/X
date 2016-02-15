@@ -271,10 +271,42 @@ namespace NewLife.Cube
         [DisplayName("导出")]
         public virtual ActionResult ExportXml()
         {
-            var list = Entity<TEntity>.FindAll();
-            var xml = list.ToXml();
+            //var list = Entity<TEntity>.FindAll();
+            //var xml = list.ToXml();
+            var obj = OnExportXml();
+            var xml = "";
+            if (obj is IEntity)
+                xml = (obj as IEntity).ToXml();
+            else if (obj is EntityList<TEntity>)
+                xml = (obj as EntityList<TEntity>).ToXml();
+
+            SetAttachment(null, ".xml");
 
             return Content(xml, "text/xml", Encoding.UTF8);
+        }
+
+        /// <summary>要导出Xml的对象</summary>
+        /// <returns></returns>
+        protected virtual Object OnExportXml()
+        {
+            var count = Entity<TEntity>.Meta.Count;
+            if (count > 10000) count = 10000;
+
+            return Entity<TEntity>.FindAll(null, null, null, 0, count);
+        }
+
+        /// <summary>设置附件响应方式</summary>
+        /// <param name="name"></param>
+        /// <param name="ext"></param>
+        protected void SetAttachment(String name, String ext)
+        {
+            if (name.IsNullOrEmpty()) name = this.GetType().GetDisplayName();
+            if (name.IsNullOrEmpty()) name = Factory.EntityType.GetDisplayName();
+            if (name.IsNullOrEmpty()) name = this.GetType().Name.TrimEnd("Controller");
+            if (!ext.IsNullOrEmpty()) ext = ext.EnsureStart(".");
+            name += ext;
+            name = HttpUtility.UrlEncode(name, Encoding.UTF8);
+            Response.AddHeader("Content-Disposition", "Attachment;filename=" + name);
         }
 
         /// <summary>导入Xml</summary>
@@ -298,24 +330,21 @@ namespace NewLife.Cube
             //var json = new Json().Serialize(list);
             var json = OnExportJson().ToJson(true);
 
-            var name = this.GetType().GetDisplayName();
-            if (name.IsNullOrEmpty()) name = Factory.EntityType.GetDisplayName();
-            if (name.IsNullOrEmpty()) name = this.GetType().Name.TrimEnd("Controller");
-            name += ".json";
-            name = HttpUtility.UrlEncode(name, Encoding.UTF8);
-            Response.AddHeader("Content-Disposition", "Attachment;filename=" + name);
+            SetAttachment(null, ".json");
 
             //return Json(list, JsonRequestBehavior.AllowGet);
 
-            return Content(json);
+            return Content(json, "application/json", Encoding.UTF8);
         }
 
         /// <summary>要导出Json的对象</summary>
         /// <returns></returns>
         protected virtual Object OnExportJson()
         {
-            var list = Entity<TEntity>.FindAll();
-            return list;
+            var count = Entity<TEntity>.Meta.Count;
+            if (count > 10000) count = 10000;
+
+            return Entity<TEntity>.FindAll(null, null, null, 0, count);
         }
 
         /// <summary>导入Json</summary>
@@ -553,6 +582,13 @@ namespace NewLife.Cube
             var list = EntityTree<TEntity>.Root.AllChilds;
 
             return View("ListTree", list);
+        }
+
+        /// <summary>要导出Xml的对象</summary>
+        /// <returns></returns>
+        protected virtual Object OnExportXml()
+        {
+            return EntityTree<TEntity>.Root.Childs;
         }
 
         /// <summary>要导出Json的对象</summary>
