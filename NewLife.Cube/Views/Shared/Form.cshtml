@@ -20,7 +20,9 @@
         {
             if (!item.PrimaryKey)
             {
-                <div class="form-group col-sm-12 col-md-6 col-lg-4">
+                var w = 4;
+                if (item.Type == typeof(String) && item.Length >= 100) { w = 6; }
+                <div class="form-group col-sm-12 col-md-6 col-lg-@w">
                     @Html.Partial("_Form_Item", new Pair(Model, item))
                 </div>
             }

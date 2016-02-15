@@ -6,19 +6,11 @@
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
-    //var width = 4;
-    //switch (Type.GetTypeCode(item.Type))
-    //{
-    //    case TypeCode.Boolean:
-    //        width = 4;
-    //        break;
-    //    case TypeCode.String:
-    //        width = 8;
-    //        break;
-    //}
+    var isInt = item.Type == typeof(Int32);
+    var w = isInt ? 9 - 5 : 9;
 }
-<label class="control-label col-xs-2">@item.DisplayName</label>
-<div class="input-group col-xs-12 col-sm-8 col-md-6 col-lg-4">
+<label class="control-label col-md-3">@item.DisplayName</label>
+<div class="input-group col-md-@w">
     @Html.ForEditor(item, entity)
     @Html.ForDescription(item)
     @if (ViewData.ModelState.ContainsKey(item.Name))

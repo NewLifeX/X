@@ -130,20 +130,34 @@ WriteLiteral("\r\n");
         {
             if (!item.PrimaryKey)
             {
+                var w = 4;
+                if (item.Type == typeof(String) && item.Length >= 100) { w = 6; }
 
             
             #line default
             #line hidden
 WriteLiteral("                <div");
 
-WriteLiteral(" class=\"form-group col-sm-12 col-md-6 col-lg-4\"");
+WriteAttribute("class", Tuple.Create(" class=\"", 784), Tuple.Create("\"", 831)
+, Tuple.Create(Tuple.Create("", 792), Tuple.Create("form-group", 792), true)
+, Tuple.Create(Tuple.Create(" ", 802), Tuple.Create("col-sm-12", 803), true)
+, Tuple.Create(Tuple.Create(" ", 812), Tuple.Create("col-md-6", 813), true)
+, Tuple.Create(Tuple.Create(" ", 821), Tuple.Create("col-lg-", 822), true)
+            
+            #line 25 "..\..\Views\Shared\Form.cshtml"
+, Tuple.Create(Tuple.Create("", 829), Tuple.Create<System.Object, System.Int32>(w
+            
+            #line default
+            #line hidden
+, 829), false)
+);
 
 WriteLiteral(">\r\n");
 
 WriteLiteral("                    ");
 
             
-            #line 24 "..\..\Views\Shared\Form.cshtml"
+            #line 26 "..\..\Views\Shared\Form.cshtml"
                Write(Html.Partial("_Form_Item", new Pair(Model, item)));
 
             
@@ -152,7 +166,7 @@ WriteLiteral("                    ");
 WriteLiteral("\r\n                </div>\r\n");
 
             
-            #line 26 "..\..\Views\Shared\Form.cshtml"
+            #line 28 "..\..\Views\Shared\Form.cshtml"
             }
         }
         
@@ -160,28 +174,28 @@ WriteLiteral("\r\n                </div>\r\n");
             #line default
             #line hidden
             
-            #line 28 "..\..\Views\Shared\Form.cshtml"
+            #line 30 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Footer", entity));
 
             
             #line default
             #line hidden
             
-            #line 28 "..\..\Views\Shared\Form.cshtml"
+            #line 30 "..\..\Views\Shared\Form.cshtml"
                                              
         
             
             #line default
             #line hidden
             
-            #line 29 "..\..\Views\Shared\Form.cshtml"
+            #line 31 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Action", entity));
 
             
             #line default
             #line hidden
             
-            #line 29 "..\..\Views\Shared\Form.cshtml"
+            #line 31 "..\..\Views\Shared\Form.cshtml"
                                              
     }
 
