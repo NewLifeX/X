@@ -68,7 +68,7 @@ WriteLiteral("\r\n");
             #line hidden
 WriteLiteral("    <div");
 
-WriteLiteral(" class=\"clearfix form-actions\"");
+WriteLiteral(" class=\"clearfix form-actions col-md-12\"");
 
 WriteLiteral(">\r\n        <label");
 
@@ -82,16 +82,16 @@ WriteLiteral(" class=\"btn btn-success btn-sm\"");
 
 WriteLiteral("><i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 346), Tuple.Create("\"", 400)
-, Tuple.Create(Tuple.Create("", 354), Tuple.Create("glyphicon", 354), true)
-, Tuple.Create(Tuple.Create(" ", 363), Tuple.Create("glyphicon-", 364), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 356), Tuple.Create("\"", 410)
+, Tuple.Create(Tuple.Create("", 364), Tuple.Create("glyphicon", 364), true)
+, Tuple.Create(Tuple.Create(" ", 373), Tuple.Create("glyphicon-", 374), true)
             
             #line 10 "..\..\Views\Shared\_Form_Action.cshtml"
-             , Tuple.Create(Tuple.Create("", 374), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
+             , Tuple.Create(Tuple.Create("", 384), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
             
             #line default
             #line hidden
-, 374), false)
+, 384), false)
 );
 
 WriteLiteral("></i><strong>");
