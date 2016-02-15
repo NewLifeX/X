@@ -124,10 +124,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Role\Form.generated.cs">
+    <Compile Include="Areas\Admin\Views\Role\_Form_Group.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Form.cshtml</DependentUpon>
+      <DependentUpon>_Form_Group.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Views\Role\SetPermission.generated.cs">
       <AutoGen>True</AutoGen>
@@ -263,6 +263,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>_Form_Footer.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Shared\_Form_Group.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_Form_Group.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Shared\_Form_Header.generated.cs">
       <AutoGen>True</AutoGen>
@@ -451,9 +456,9 @@
     <Content Include="Content\bootstrap\fonts\FontAwesome.otf" />
     <Content Include="Content\ace\fonts\OpenSans-300.woff" />
     <Content Include="Content\ace\fonts\OpenSans-400.woff" />
-    <None Include="Areas\Admin\Views\Role\Form.cshtml">
+    <None Include="Areas\Admin\Views\Role\_Form_Group.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Form.generated.cs</LastGenOutput>
+      <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
     </None>
     <None Include="Areas\Admin\Views\Role\SetPermission.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -547,6 +552,10 @@
     <Content Include="Views\Shared\_Form_Header.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Header.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Shared\_Form_Group.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
     </Content>
     <None Include="Views\Shared\_Layout_Header.cshtml">
       <Generator>RazorGenerator</Generator>
