@@ -10,7 +10,6 @@
 }
 
 <div class="form-horizontal">
-
     @Html.Partial("_Form_Header", entity)
     @using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
     {
@@ -20,11 +19,7 @@
         {
             if (!item.PrimaryKey)
             {
-                var w = 4;
-                if (item.Type == typeof(String) && item.Length >= 100) { w = 6; }
-                <div class="form-group col-sm-12 col-md-6 col-lg-@w">
-                    @Html.Partial("_Form_Item", new Pair(Model, item))
-                </div>
+                @Html.Partial("_Form_Group", new Pair(Model, item))
             }
         }
         @Html.Partial("_Form_Footer", entity)
