@@ -110,18 +110,20 @@ Write(Html.ForEditor(item, entity));
             
             #line default
             #line hidden
-WriteLiteral("\r\n");
+WriteLiteral("\r\n    <span");
 
-WriteLiteral("    ");
+WriteLiteral(" class=\"hidden-xs\"");
+
+WriteLiteral(">");
 
             
             #line 15 "..\..\Views\Shared\_Form_Item.cshtml"
-Write(Html.ForDescription(item));
+                       Write(Html.ForDescription(item));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n");
+WriteLiteral("</span>\r\n");
 
             
             #line 16 "..\..\Views\Shared\_Form_Item.cshtml"
