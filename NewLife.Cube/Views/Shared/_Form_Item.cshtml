@@ -7,10 +7,10 @@
     var item = pair.Second as FieldItem;
 
     var isInt = item.Type == typeof(Int32);
-    var w = isInt ? 9 - 5 : 9;
+    var w = isInt ? 4 : 8;
 }
-<label class="control-label col-md-3">@item.DisplayName</label>
-<div class="input-group col-md-@w">
+<label class="control-label col-xs-2 col-sm-3">@item.DisplayName</label>
+<div class="input-group col-xs-10 col-sm-@w">
     @Html.ForEditor(item, entity)
     @Html.ForDescription(item)
     @if (ViewData.ModelState.ContainsKey(item.Name))

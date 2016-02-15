@@ -65,19 +65,33 @@ namespace ASP
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
+    var w = 6;
+    if (item.Type == typeof(String) && item.Length >= 100) { w = 12; }
+
             
             #line default
             #line hidden
 WriteLiteral("\r\n<div");
 
-WriteLiteral(" class=\"form-group col-xs-12 col-sm-8\"");
+WriteAttribute("class", Tuple.Create(" class=\"", 276), Tuple.Create("\"", 314)
+, Tuple.Create(Tuple.Create("", 284), Tuple.Create("form-group", 284), true)
+, Tuple.Create(Tuple.Create(" ", 294), Tuple.Create("col-sm-12", 295), true)
+, Tuple.Create(Tuple.Create(" ", 304), Tuple.Create("col-md-", 305), true)
+            
+            #line 12 "..\..\Views\Shared\_Form_Group.cshtml"
+, Tuple.Create(Tuple.Create("", 312), Tuple.Create<System.Object, System.Int32>(w
+            
+            #line default
+            #line hidden
+, 312), false)
+);
 
 WriteLiteral(">\r\n");
 
 WriteLiteral("    ");
 
             
-            #line 10 "..\..\Views\Shared\_Form_Group.cshtml"
+            #line 13 "..\..\Views\Shared\_Form_Group.cshtml"
 Write(Html.Partial("_Form_Item", new Pair(entity, item)));
 
             

@@ -66,36 +66,37 @@ namespace ASP
     var item = pair.Second as FieldItem;
 
     var isInt = item.Type == typeof(Int32);
-    var w = isInt ? 9 - 5 : 9;
+    var w = isInt ? 4 : 8;
 
             
             #line default
             #line hidden
 WriteLiteral("\r\n<label");
 
-WriteLiteral(" class=\"control-label col-md-3\"");
+WriteLiteral(" class=\"control-label col-xs-2 col-sm-3\"");
 
 WriteLiteral(">");
 
             
             #line 12 "..\..\Views\Shared\_Form_Item.cshtml"
-                                 Write(item.DisplayName);
+                                          Write(item.DisplayName);
 
             
             #line default
             #line hidden
 WriteLiteral("</label>\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 330), Tuple.Create("\"", 359)
-, Tuple.Create(Tuple.Create("", 338), Tuple.Create("input-group", 338), true)
-, Tuple.Create(Tuple.Create(" ", 349), Tuple.Create("col-md-", 350), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 335), Tuple.Create("\"", 374)
+, Tuple.Create(Tuple.Create("", 343), Tuple.Create("input-group", 343), true)
+, Tuple.Create(Tuple.Create(" ", 354), Tuple.Create("col-xs-10", 355), true)
+, Tuple.Create(Tuple.Create(" ", 364), Tuple.Create("col-sm-", 365), true)
             
             #line 13 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 357), Tuple.Create<System.Object, System.Int32>(w
+, Tuple.Create(Tuple.Create("", 372), Tuple.Create<System.Object, System.Int32>(w
             
             #line default
             #line hidden
-, 357), false)
+, 372), false)
 );
 
 WriteLiteral(">\r\n");
