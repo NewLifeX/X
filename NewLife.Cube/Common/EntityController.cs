@@ -293,9 +293,10 @@ namespace NewLife.Cube
         [DisplayName("导出")]
         public virtual ActionResult ExportJson()
         {
-            var list = Entity<TEntity>.FindAll();
-            var json = list.ToJson(true);
+            //var list = Entity<TEntity>.FindAll();
+            //var json = list.ToJson(true);
             //var json = new Json().Serialize(list);
+            var json = OnExportJson().ToJson(true);
 
             var name = this.GetType().GetDisplayName();
             if (name.IsNullOrEmpty()) name = Factory.EntityType.GetDisplayName();
@@ -307,6 +308,14 @@ namespace NewLife.Cube
             //return Json(list, JsonRequestBehavior.AllowGet);
 
             return Content(json);
+        }
+
+        /// <summary>要导出Json的对象</summary>
+        /// <returns></returns>
+        protected virtual Object OnExportJson()
+        {
+            var list = Entity<TEntity>.FindAll();
+            return list;
         }
 
         /// <summary>导入Json</summary>
@@ -544,6 +553,13 @@ namespace NewLife.Cube
             var list = EntityTree<TEntity>.Root.AllChilds;
 
             return View("ListTree", list);
+        }
+
+        /// <summary>要导出Json的对象</summary>
+        /// <returns></returns>
+        protected override object OnExportJson()
+        {
+            return EntityTree<TEntity>.Root.Childs;
         }
 
         /// <summary>上升</summary>

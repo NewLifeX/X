@@ -1,12 +1,10 @@
 ﻿using System;
-using NewLife.Reflection;
-using System.Web.Script.Serialization;
-using NewLife.Web;
-using NewLife.Log;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
+using System.Text;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Log;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {

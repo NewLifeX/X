@@ -141,6 +141,7 @@ namespace XCode.Membership
         }
 
         /// <summary>友好名称。优先显示名</summary>
+        [XmlIgnore, ScriptIgnore]
         public String FriendName { get { return DisplayName.IsNullOrWhiteSpace() ? Name : DisplayName; } }
         #endregion
 
@@ -225,6 +226,7 @@ namespace XCode.Membership
         #region 扩展权限
         private Dictionary<Int32, String> _Permissions = new Dictionary<Int32, String>();
         /// <summary>可选权限子项</summary>
+        [XmlIgnore, ScriptIgnore]
         public Dictionary<Int32, String> Permissions { get { return _Permissions; } set { _Permissions = value; } }
 
         void LoadPermission()
