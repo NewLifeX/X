@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.Serialization;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -10,6 +9,7 @@ using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;
@@ -294,7 +294,7 @@ namespace NewLife.Cube
         public virtual ActionResult ExportJson()
         {
             var list = Entity<TEntity>.FindAll();
-            //var json = list.ToJson(true);
+            var json = list.ToJson(true);
             //var json = new Json().Serialize(list);
 
             var name = this.GetType().GetDisplayName();
@@ -306,7 +306,6 @@ namespace NewLife.Cube
 
             //return Json(list, JsonRequestBehavior.AllowGet);
 
-            var json = list.ToJson(true);
             return Content(json);
         }
 
