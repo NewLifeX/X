@@ -7,7 +7,7 @@
     var item = pair.Second as FieldItem;
 
     var w = 6;
-    if (item.Type == typeof(String) && item.Length >= 100) { w = 12; }
+    if (item.Type == typeof(String) && item.Length > 100) { w = 12; }
 }
 <div class="form-group col-sm-12 col-md-@w">
     @Html.Partial("_Form_Item", new Pair(entity, item))
