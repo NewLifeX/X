@@ -68,13 +68,6 @@ namespace ASP
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
 
-    // 创建更新等信息统一放在尾部
-    var names = new String[] {
-        "CreateUserID", "CreateUserName", "CreateTime", "CreateIP",
-        "UpdateUserID", "UpdateUserName", "UpdateTime", "UpdateIP",
-        "Remark" };
-    fields = fields.Where(e => !e.Name.EqualIgnoreCase(names)).ToList();
-
             
             #line default
             #line hidden
@@ -87,7 +80,7 @@ WriteLiteral(">\r\n\r\n");
 WriteLiteral("    ");
 
             
-            #line 21 "..\..\Views\Shared\Form.cshtml"
+            #line 14 "..\..\Views\Shared\Form.cshtml"
 Write(Html.Partial("_Form_Header", entity));
 
             
@@ -96,13 +89,13 @@ Write(Html.Partial("_Form_Header", entity));
 WriteLiteral("\r\n");
 
             
-            #line 22 "..\..\Views\Shared\Form.cshtml"
+            #line 15 "..\..\Views\Shared\Form.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 22 "..\..\Views\Shared\Form.cshtml"
+            #line 15 "..\..\Views\Shared\Form.cshtml"
      using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
     {
         
@@ -110,28 +103,28 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 24 "..\..\Views\Shared\Form.cshtml"
+            #line 17 "..\..\Views\Shared\Form.cshtml"
    Write(Html.AntiForgeryToken());
 
             
             #line default
             #line hidden
             
-            #line 24 "..\..\Views\Shared\Form.cshtml"
+            #line 17 "..\..\Views\Shared\Form.cshtml"
                                 
         
             
             #line default
             #line hidden
             
-            #line 25 "..\..\Views\Shared\Form.cshtml"
+            #line 18 "..\..\Views\Shared\Form.cshtml"
    Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
             
-            #line 25 "..\..\Views\Shared\Form.cshtml"
+            #line 18 "..\..\Views\Shared\Form.cshtml"
                                  
         foreach (var item in fields)
         {
@@ -150,7 +143,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 31 "..\..\Views\Shared\Form.cshtml"
+            #line 24 "..\..\Views\Shared\Form.cshtml"
                Write(Html.Partial("_Form_Item", new Pair(Model, item)));
 
             
@@ -159,7 +152,7 @@ WriteLiteral("                    ");
 WriteLiteral("\r\n                </div>\r\n");
 
             
-            #line 33 "..\..\Views\Shared\Form.cshtml"
+            #line 26 "..\..\Views\Shared\Form.cshtml"
             }
         }
         
@@ -167,28 +160,28 @@ WriteLiteral("\r\n                </div>\r\n");
             #line default
             #line hidden
             
-            #line 35 "..\..\Views\Shared\Form.cshtml"
+            #line 28 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Footer", entity));
 
             
             #line default
             #line hidden
             
-            #line 35 "..\..\Views\Shared\Form.cshtml"
+            #line 28 "..\..\Views\Shared\Form.cshtml"
                                              
         
             
             #line default
             #line hidden
             
-            #line 36 "..\..\Views\Shared\Form.cshtml"
+            #line 29 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Action", entity));
 
             
             #line default
             #line hidden
             
-            #line 36 "..\..\Views\Shared\Form.cshtml"
+            #line 29 "..\..\Views\Shared\Form.cshtml"
                                              
     }
 

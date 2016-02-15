@@ -7,13 +7,6 @@
     var fields = ViewBag.Fields as List<FieldItem>;
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
-
-    // 创建更新等信息统一放在尾部
-    var names = new String[] {
-        "CreateUserID", "CreateUserName", "CreateTime", "CreateIP",
-        "UpdateUserID", "UpdateUserName", "UpdateTime", "UpdateIP",
-        "Remark" };
-    fields = fields.Where(e => !e.Name.EqualIgnoreCase(names)).ToList();
 }
 
 <div class="form-horizontal">

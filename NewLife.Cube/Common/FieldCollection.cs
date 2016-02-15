@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Web;
 using XCode;
 using XCode.Configuration;
+using XCode.Membership;
 
 namespace NewLife.Cube
 {
@@ -41,6 +41,17 @@ namespace NewLife.Cube
                 // 长字段和密码字段不显示
                 NoPass();
             }
+            else
+            {
+                // 表单页，实现了IUserInfo则隐藏创建信息和更新信息
+                if (Factory.Default is IUserInfo)
+                {
+                    RemoveCreateField();
+                    RemoveUpdateField();
+                    RemoveRemarkField();
+                }
+            }
+
             // IP地址字段
             ProcessIP();
 
@@ -116,7 +127,9 @@ namespace NewLife.Cube
                 }
             }
         }
+        #endregion
 
+        #region 添加删除替换
         /// <summary>从AllFields中添加字段，可以是扩展属性</summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -181,6 +194,35 @@ namespace NewLife.Cube
             }
 
             this[idx] = fi;
+
+            return this;
+        }
+        #endregion
+
+        #region 创建信息/更新信息
+        /// <summary>设置是否显示创建信息</summary>
+        /// <returns></returns>
+        public FieldCollection RemoveCreateField()
+        {
+            this.RemoveAll(e => e.Name.EqualIgnoreCase("CreateUserID", "CreateUserName", "CreateTime", "CreateIP", "CreateAddress"));
+
+            return this;
+        }
+
+        /// <summary>设置是否显示更新信息</summary>
+        /// <returns></returns>
+        public FieldCollection RemoveUpdateField()
+        {
+            this.RemoveAll(e => e.Name.EqualIgnoreCase("UpdateUserID", "UpdateUserName", "UpdateTime", "UpdateIP", "CreateAddress"));
+
+            return this;
+        }
+
+        /// <summary>设置是否显示备注信息</summary>
+        /// <returns></returns>
+        public FieldCollection RemoveRemarkField()
+        {
+            this.RemoveAll(e => e.Name.EqualIgnoreCase("Remark", "Description"));
 
             return this;
         }
