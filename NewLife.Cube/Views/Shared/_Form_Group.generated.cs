@@ -66,24 +66,24 @@ namespace ASP
     var item = pair.Second as FieldItem;
 
     var w = 6;
-    if (item.Type == typeof(String) && item.Length >= 100) { w = 12; }
+    if (item.Type == typeof(String) && item.Length > 100) { w = 12; }
 
             
             #line default
             #line hidden
 WriteLiteral("\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 276), Tuple.Create("\"", 314)
-, Tuple.Create(Tuple.Create("", 284), Tuple.Create("form-group", 284), true)
-, Tuple.Create(Tuple.Create(" ", 294), Tuple.Create("col-sm-12", 295), true)
-, Tuple.Create(Tuple.Create(" ", 304), Tuple.Create("col-md-", 305), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 275), Tuple.Create("\"", 313)
+, Tuple.Create(Tuple.Create("", 283), Tuple.Create("form-group", 283), true)
+, Tuple.Create(Tuple.Create(" ", 293), Tuple.Create("col-sm-12", 294), true)
+, Tuple.Create(Tuple.Create(" ", 303), Tuple.Create("col-md-", 304), true)
             
             #line 12 "..\..\Views\Shared\_Form_Group.cshtml"
-, Tuple.Create(Tuple.Create("", 312), Tuple.Create<System.Object, System.Int32>(w
+, Tuple.Create(Tuple.Create("", 311), Tuple.Create<System.Object, System.Int32>(w
             
             #line default
             #line hidden
-, 312), false)
+, 311), false)
 );
 
 WriteLiteral(">\r\n");
