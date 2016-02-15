@@ -136,7 +136,7 @@ WriteLiteral("\r\n");
             #line hidden
 WriteLiteral("                <div");
 
-WriteLiteral(" class=\"form-group\"");
+WriteLiteral(" class=\"form-group col-sm-12 col-md-6 col-lg-4\"");
 
 WriteLiteral(">\r\n");
 
