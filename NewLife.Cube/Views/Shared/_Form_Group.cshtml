@@ -1,0 +1,11 @@
+﻿@using NewLife;
+@using XCode;
+@using XCode.Configuration;
+@{
+    var pair = Model as Pair;
+    var entity = pair.First as IEntity;
+    var item = pair.Second as FieldItem;
+}
+<div class="form-group col-xs-12 col-sm-8">
+    @Html.Partial("_Form_Item", new Pair(entity, item))
+</div>
