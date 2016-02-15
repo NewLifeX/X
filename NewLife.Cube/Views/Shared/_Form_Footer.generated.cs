@@ -198,68 +198,6 @@ WriteLiteral("</span>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("            ");
-
-            
-            #line 31 "..\..\Views\Shared\_Form_Footer.cshtml"
-             if (!Object.Equals(remark, null))
-            {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                <div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n                    <label");
-
-WriteLiteral(" class=\"control-label col-md-2\"");
-
-WriteLiteral(">");
-
-            
-            #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
-                                                     Write(remark.DisplayName);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</label>\r\n                    <div");
-
-WriteLiteral(" class=\"input-group col-md-6\"");
-
-WriteLiteral(">\r\n");
-
-WriteLiteral("                        ");
-
-            
-            #line 36 "..\..\Views\Shared\_Form_Footer.cshtml"
-                   Write(Html.ForString(remark.Name, (String)entity[remark.Name], -1));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
-
-WriteLiteral("                        ");
-
-            
-            #line 37 "..\..\Views\Shared\_Form_Footer.cshtml"
-                   Write(Html.ForDescription(remark));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                    </div>\r\n                </div>\r\n");
-
-            
-            #line 40 "..\..\Views\Shared\_Form_Footer.cshtml"
-            }
-
-            
-            #line default
-            #line hidden
 WriteLiteral("        </div>\r\n        <label");
 
 WriteLiteral(" class=\"control-label col-md-1\"");
@@ -271,13 +209,13 @@ WriteLiteral(" class=\"col-md-3\"");
 WriteLiteral(">\r\n");
 
             
-            #line 44 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 44 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
              if (user != null)
             {
 
@@ -291,7 +229,7 @@ WriteLiteral(" class=\"text-primary\"");
 WriteLiteral(">");
 
             
-            #line 46 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 36 "..\..\Views\Shared\_Form_Footer.cshtml"
                                       Write(user.UpdateUserName);
 
             
@@ -300,7 +238,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 47 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 37 "..\..\Views\Shared\_Form_Footer.cshtml"
             }
 
             
@@ -309,7 +247,7 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("            ");
 
             
-            #line 48 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 38 "..\..\Views\Shared\_Form_Footer.cshtml"
              if (time != null)
             {
 
@@ -323,7 +261,7 @@ WriteLiteral(" class=\"text-success\"");
 WriteLiteral(">");
 
             
-            #line 50 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 40 "..\..\Views\Shared\_Form_Footer.cshtml"
                                       Write(time.UpdateTime.ToFullString());
 
             
@@ -332,7 +270,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 51 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 41 "..\..\Views\Shared\_Form_Footer.cshtml"
             }
 
             
@@ -341,7 +279,7 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("            ");
 
             
-            #line 52 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 42 "..\..\Views\Shared\_Form_Footer.cshtml"
              if (!Object.Equals(uip, null))
             {
                 var ip = entity[uip.Name] + "";
@@ -353,20 +291,20 @@ WriteLiteral("                <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 2077), Tuple.Create("\"", 2088)
+WriteAttribute("title", Tuple.Create(" title=\"", 1621), Tuple.Create("\"", 1632)
             
-            #line 55 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2085), Tuple.Create<System.Object, System.Int32>(ip
+            #line 45 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 1629), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 2085), false)
+, 1629), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 55 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 45 "..\..\Views\Shared\_Form_Footer.cshtml"
                                                   Write(ip.IPToAddress());
 
             
@@ -375,69 +313,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 56 "..\..\Views\Shared\_Form_Footer.cshtml"
-            }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("            ");
-
-            
-            #line 57 "..\..\Views\Shared\_Form_Footer.cshtml"
-             if (!Object.Equals(remark, null))
-            {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                <div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n                    <label");
-
-WriteLiteral(" class=\"control-label col-md-2\"");
-
-WriteLiteral(">");
-
-            
-            #line 60 "..\..\Views\Shared\_Form_Footer.cshtml"
-                                                     Write(remark.DisplayName);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</label>\r\n                    <div");
-
-WriteLiteral(" class=\"input-group col-md-6\"");
-
-WriteLiteral(">\r\n");
-
-WriteLiteral("                        ");
-
-            
-            #line 62 "..\..\Views\Shared\_Form_Footer.cshtml"
-                   Write(Html.ForString(remark.Name, (String)entity[remark.Name], -1));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
-
-WriteLiteral("                        ");
-
-            
-            #line 63 "..\..\Views\Shared\_Form_Footer.cshtml"
-                   Write(Html.ForDescription(remark));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                    </div>\r\n                </div>\r\n");
-
-            
-            #line 66 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 46 "..\..\Views\Shared\_Form_Footer.cshtml"
             }
 
             
@@ -446,8 +322,69 @@ WriteLiteral("\r\n                    </div>\r\n                </div>\r\n");
 WriteLiteral("        </div>\r\n    </div>\r\n");
 
             
-            #line 69 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 49 "..\..\Views\Shared\_Form_Footer.cshtml"
 }
+
+            
+            #line default
+            #line hidden
+            
+            #line 50 "..\..\Views\Shared\_Form_Footer.cshtml"
+ if (!Object.Equals(remark, null))
+{
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n        <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">");
+
+            
+            #line 53 "..\..\Views\Shared\_Form_Footer.cshtml"
+                                         Write(remark.DisplayName);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</label>\r\n        <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("            ");
+
+            
+            #line 55 "..\..\Views\Shared\_Form_Footer.cshtml"
+       Write(Html.ForString(remark.Name, (String)entity[remark.Name], -1));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+WriteLiteral("            ");
+
+            
+            #line 56 "..\..\Views\Shared\_Form_Footer.cshtml"
+       Write(Html.ForDescription(remark));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n        </div>\r\n    </div>\r\n");
+
+            
+            #line 59 "..\..\Views\Shared\_Form_Footer.cshtml"
+}
+
             
             #line default
             #line hidden

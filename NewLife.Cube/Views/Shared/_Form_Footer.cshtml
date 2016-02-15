@@ -28,16 +28,6 @@
                 var ip = entity[cip.Name] + "";
                 <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
             }
-            @if (!Object.Equals(remark, null))
-            {
-                <div class="form-group">
-                    <label class="control-label col-md-2">@remark.DisplayName</label>
-                    <div class="input-group col-md-6">
-                        @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
-                        @Html.ForDescription(remark)
-                    </div>
-                </div>
-            }
         </div>
         <label class="control-label col-md-1">更新</label>
         <div class="col-md-3">
@@ -54,16 +44,16 @@
                 var ip = entity[uip.Name] + "";
                 <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
             }
-            @if (!Object.Equals(remark, null))
-            {
-                <div class="form-group">
-                    <label class="control-label col-md-2">@remark.DisplayName</label>
-                    <div class="input-group col-md-6">
-                        @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
-                        @Html.ForDescription(remark)
-                    </div>
-                </div>
-            }
+        </div>
+    </div>
+}
+@if (!Object.Equals(remark, null))
+{
+    <div class="form-group">
+        <label class="control-label col-md-2">@remark.DisplayName</label>
+        <div class="input-group col-md-6">
+            @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
+            @Html.ForDescription(remark)
         </div>
     </div>
 }

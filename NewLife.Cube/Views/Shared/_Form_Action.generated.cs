@@ -72,7 +72,7 @@ WriteLiteral(" class=\"clearfix form-actions col-md-12\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteLiteral(" class=\"control-label col-md-4\"");
+WriteLiteral(" class=\"control-label col-md-5\"");
 
 WriteLiteral("></label>\r\n        <button");
 
