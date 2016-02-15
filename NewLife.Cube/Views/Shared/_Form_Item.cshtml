@@ -18,7 +18,7 @@
     //}
 }
 <label class="control-label col-xs-2">@item.DisplayName</label>
-<div class="col-xs-10 input-group">
+<div class="input-group col-xs-12 col-sm-8 col-md-6 col-lg-4">
     @Html.ForEditor(item, entity)
     @Html.ForDescription(item)
     @if (ViewData.ModelState.ContainsKey(item.Name))

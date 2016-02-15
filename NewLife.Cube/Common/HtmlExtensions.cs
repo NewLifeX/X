@@ -7,7 +7,6 @@ using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
 using System.Xml.Serialization;
-using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
@@ -209,7 +208,8 @@ namespace NewLife.Cube
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
             //if (!atts.ContainsKey("class")) atts.Add("class", "col-xs-10 col-sm-5");
-            if (!atts.ContainsKey("class")) atts.Add("class", "col-xs-12 col-sm-8 col-md-6 col-lg-4");
+            //if (!atts.ContainsKey("class")) atts.Add("class", "col-xs-12 col-sm-8 col-md-6 col-lg-4");
+            if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
 
             // 首先输出图标
             var ico = "";
