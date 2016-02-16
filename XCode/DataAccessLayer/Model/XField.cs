@@ -158,6 +158,7 @@ namespace XCode.DataAccessLayer
         public IDataTable Table { get; set; }
 
         /// <summary>扩展属性</summary>
+        [XmlIgnore]
         [Category("扩展")]
         [DisplayName("扩展属性")]
         [Description("扩展属性")]

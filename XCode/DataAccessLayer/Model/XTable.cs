@@ -104,21 +104,21 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         /// <summary>字段集合。可以是空集合，但不能为null。</summary>
-        [XmlArray("Columns")]
+        [XmlIgnore]
         [Category("集合")]
         [DisplayName("字段集合")]
         [Description("字段集合")]
         public List<IDataColumn> Columns { get; private set; }
 
         /// <summary>关系集合。可以是空集合，但不能为null。</summary>
-        [XmlArray]
+        [XmlIgnore]
         [Category("集合")]
         [DisplayName("关系集合")]
         [Description("关系集合")]
         public List<IDataRelation> Relations { get; private set; }
 
         /// <summary>索引集合。可以是空集合，但不能为null。</summary>
-        [XmlArray]
+        [XmlIgnore]
         [Category("集合")]
         [DisplayName("索引集合")]
         [Description("索引集合")]
@@ -133,6 +133,7 @@ namespace XCode.DataAccessLayer
         public IDataColumn[] PrimaryKeys { get { return Columns.FindAll(item => item.PrimaryKey).ToArray(); } }
 
         /// <summary>扩展属性</summary>
+        [XmlIgnore]
         [Category("扩展")]
         [DisplayName("扩展属性")]
         [Description("扩展属性")]
