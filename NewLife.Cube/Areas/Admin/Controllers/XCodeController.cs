@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel;
-using NewLife.Common;
 
 namespace NewLife.Cube.Admin.Controllers
 {
     /// <summary>设置控制器</summary>
     [DisplayName("数据库设置")]
-    public class XCodeController : ConfigController<XCode.Setting> { }
+    public class XCodeController : ConfigController<XCode.Setting>
+    {
+    }
 }

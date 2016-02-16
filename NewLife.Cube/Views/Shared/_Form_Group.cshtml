@@ -6,10 +6,9 @@
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
-    // 以md 992px为边界，分为两列
-    var w = 6;
-    if (item.Type == typeof(String) && item.Length > 100) { w = 12; }
+    var bs = this.Bootstrap();
+    bs.Set(item);
 }
-<div class="form-group col-sm-12 col-md-@w">
+<div class="form-group col-sm-12 col-md-@bs.GetGroupWidth()">
     @Html.Partial("_Form_Item", new Pair(entity, item))
 </div>

@@ -6,6 +6,8 @@
 
     var Obj = Model as Object;
     var pis = ViewBag.Properties as IEnumerable<PropertyInfo>;
+
+    var bs = this.Bootstrap();
 }
 <div class="row">
     <div class="col-md-12">
@@ -17,8 +19,8 @@
                 foreach (var pi in pis)
                 {
                     var name = pi.Name;
-                    <div class="form-group col-sm-12 col-md-6">
-                        <label class="control-label col-xs-2 col-md-4 no-padding-left" for="@pi.Name">@(pi.GetDisplayName() ?? pi.Name)</label>
+                    <div class="form-group col-sm-12 col-md-@bs.GetGroupWidth()">
+                        <label class="control-label col-xs-2 col-md-@bs.LabelWidth no-padding-left" for="@pi.Name">@(pi.GetDisplayName() ?? pi.Name)</label>
                         <div class="input-group col-xs-10 col-md-8">
                             @Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType)
                             @Html.ValidationMessage(pi.Name)

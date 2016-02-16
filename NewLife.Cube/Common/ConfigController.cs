@@ -1,4 +1,5 @@
-﻿using NewLife.Xml;
+﻿using System.Web.Mvc;
+using NewLife.Xml;
 
 namespace NewLife.Cube
 {
@@ -22,6 +23,17 @@ namespace NewLife.Cube
                 }
                 XmlConfig<TConfig>.Current = value;
             }
+        }
+
+        /// <summary>已重载</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            var bs = this.Bootstrap();
+            bs.MaxColumn = 1;
+            bs.LabelWidth = 3;
+
+            base.OnActionExecuting(filterContext);
         }
     }
 }

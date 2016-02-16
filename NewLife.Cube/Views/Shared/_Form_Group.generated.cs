@@ -65,26 +65,25 @@ namespace ASP
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
-    // 以md 992px为边界，分为两列
-    var w = 6;
-    if (item.Type == typeof(String) && item.Length > 100) { w = 12; }
+    var bs = this.Bootstrap();
+    bs.Set(item);
 
             
             #line default
             #line hidden
 WriteLiteral("\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 301), Tuple.Create("\"", 339)
-, Tuple.Create(Tuple.Create("", 309), Tuple.Create("form-group", 309), true)
-, Tuple.Create(Tuple.Create(" ", 319), Tuple.Create("col-sm-12", 320), true)
-, Tuple.Create(Tuple.Create(" ", 329), Tuple.Create("col-md-", 330), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 239), Tuple.Create("\"", 294)
+, Tuple.Create(Tuple.Create("", 247), Tuple.Create("form-group", 247), true)
+, Tuple.Create(Tuple.Create(" ", 257), Tuple.Create("col-sm-12", 258), true)
+, Tuple.Create(Tuple.Create(" ", 267), Tuple.Create("col-md-", 268), true)
             
-            #line 13 "..\..\Views\Shared\_Form_Group.cshtml"
-, Tuple.Create(Tuple.Create("", 337), Tuple.Create<System.Object, System.Int32>(w
+            #line 12 "..\..\Views\Shared\_Form_Group.cshtml"
+, Tuple.Create(Tuple.Create("", 275), Tuple.Create<System.Object, System.Int32>(bs.GetGroupWidth()
             
             #line default
             #line hidden
-, 337), false)
+, 275), false)
 );
 
 WriteLiteral(">\r\n");
@@ -92,7 +91,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 14 "..\..\Views\Shared\_Form_Group.cshtml"
+            #line 13 "..\..\Views\Shared\_Form_Group.cshtml"
 Write(Html.Partial("_Form_Item", new Pair(entity, item)));
 
             
