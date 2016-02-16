@@ -18,11 +18,14 @@
                 {
                     var name = pi.Name;
                     <div class="form-group col-sm-12 col-lg-6">
+                        
                         @Html.Label(pi.Name, pi.GetDisplayName(), new { @class = "control-label col-md-2 no-padding-right" })
                         <div class="col-md-10">
-                            @Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType)
-                            @Html.ValidationMessage(pi.Name)
-                            <span>&nbsp; @pi.GetDescription()</span>
+                            <div class="input-group">
+                                @Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType)
+                                @Html.ValidationMessage(pi.Name)
+                                <span>&nbsp; @pi.GetDescription()</span>
+                            </div>
                         </div>
                     </div>
                 }
