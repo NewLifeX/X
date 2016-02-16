@@ -17,7 +17,7 @@ namespace NewLife.Cube.Admin.Controllers
         static LogController()
         {
             // 日志列表需要显示详细信息，不需要显示用户编号
-            ListFields.AddField("Remark").RemoveField("UserID");
+            ListFields.AddField("Remark").RemoveField("CreateUserID");
             FormFields.RemoveField("Remark");
         }
 

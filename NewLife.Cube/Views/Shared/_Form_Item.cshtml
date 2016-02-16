@@ -19,7 +19,10 @@
 <div class="input-group col-xs-10 col-sm-@w">
     @Html.ForEditor(item, entity)
     <span class="hidden-xs">@Html.ForDescription(item)</span>
-    @if (ViewData.ModelState.ContainsKey(item.Name))
+    @{
+        ModelState st = null;
+    }
+    @if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null && st.Errors.Count > 0)
     {
         <span class="alert alert-danger">
             @Html.ValidationMessage(item.Name)

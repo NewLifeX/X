@@ -151,7 +151,23 @@ WriteLiteral("</span>\r\n");
             #line hidden
             
             #line 22 "..\..\Views\Shared\_Form_Item.cshtml"
-     if (ViewData.ModelState.ContainsKey(item.Name))
+      
+        ModelState st = null;
+    
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+            
+            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
+    
+            
+            #line default
+            #line hidden
+            
+            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
+     if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null && st.Errors.Count > 0)
     {
 
             
@@ -166,7 +182,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("            ");
 
             
-            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 28 "..\..\Views\Shared\_Form_Item.cshtml"
        Write(Html.ValidationMessage(item.Name));
 
             
@@ -175,7 +191,7 @@ WriteLiteral("            ");
 WriteLiteral("\r\n        </span>\r\n");
 
             
-            #line 27 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 30 "..\..\Views\Shared\_Form_Item.cshtml"
     }
 
             

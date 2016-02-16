@@ -225,11 +225,11 @@ namespace NewLife.Cube
                 return FormView(entity);
             }
 
-            var rs = false;
+            var rs = 0;
             try
             {
-                OnUpdate(entity);
-                rs = true;
+                rs = OnUpdate(entity);
+                if (rs <= 0) rs = 1;
             }
             catch (ArgumentException aex)
             {
@@ -237,19 +237,21 @@ namespace NewLife.Cube
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                //ModelState.AddModelError("", ex.Message);
+                ModelState.AddModelError("", ex);
             }
 
-            if (!rs)
+            ViewBag.RowsAffected = rs;
+            if (rs <= 0)
             {
                 ViewBag.StatusMessage = "保存失败！";
                 return FormView(entity);
             }
-
-            ViewBag.StatusMessage = "保存成功！";
-
-            // 更新完成保持本页
-            return FormView(entity);
+            else {
+                ViewBag.StatusMessage = "保存成功！";
+                // 更新完成保持本页
+                return FormView(entity);
+            }
         }
 
         /// <summary>表单页视图。子控制器可以重载，以传递更多信息给视图，比如修改要显示的列</summary>
