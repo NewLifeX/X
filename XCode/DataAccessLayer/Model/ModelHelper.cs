@@ -316,6 +316,7 @@ namespace XCode.DataAccessLayer
                         {
                             var di = table.CreateIndex();
                             (di as IXmlSerializable).ReadXml(reader);
+                            di.Fix();
                             table.Indexes.Add(di);
                         }
                         reader.ReadEndElement();

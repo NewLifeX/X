@@ -12,7 +12,7 @@ namespace XCode.Membership
     [Serializable]
     [DataObject]
     [Description("日志")]
-    [BindIndex("", false, "Category")]
+    [BindIndex("IX_Log_Category", false, "Category")]
     [BindTable("Log", Description = "日志", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public abstract partial class Log<TEntity> : ILog
     {

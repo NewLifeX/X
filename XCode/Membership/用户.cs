@@ -211,16 +211,16 @@ namespace XCode.Membership
             set { if (OnPropertyChanging(__.LastLoginIP, value)) { _LastLoginIP = value; OnPropertyChanged(__.LastLoginIP); } }
         }
 
-        private String _Quertion;
+        private String _Question;
         /// <summary>问题</summary>
         [DisplayName("问题")]
         [Description("问题")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(17, "Quertion", "问题", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String Quertion
+        [BindColumn(17, "Question", "问题", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String Question
         {
-            get { return _Quertion; }
-            set { if (OnPropertyChanging(__.Quertion, value)) { _Quertion = value; OnPropertyChanged(__.Quertion); } }
+            get { return _Question; }
+            set { if (OnPropertyChanging(__.Question, value)) { _Question = value; OnPropertyChanged(__.Question); } }
         }
 
         private String _Answer;
@@ -278,7 +278,7 @@ namespace XCode.Membership
                     case __.Logins : return _Logins;
                     case __.LastLogin : return _LastLogin;
                     case __.LastLoginIP : return _LastLoginIP;
-                    case __.Quertion : return _Quertion;
+                    case __.Question : return _Question;
                     case __.Answer : return _Answer;
                     case __.Profile : return _Profile;
                     default: return base[name];
@@ -304,7 +304,7 @@ namespace XCode.Membership
                     case __.Logins : _Logins = Convert.ToInt32(value); break;
                     case __.LastLogin : _LastLogin = Convert.ToDateTime(value); break;
                     case __.LastLoginIP : _LastLoginIP = Convert.ToString(value); break;
-                    case __.Quertion : _Quertion = Convert.ToString(value); break;
+                    case __.Question : _Question = Convert.ToString(value); break;
                     case __.Answer : _Answer = Convert.ToString(value); break;
                     case __.Profile : _Profile = Convert.ToString(value); break;
                     default: base[name] = value; break;
@@ -366,7 +366,7 @@ namespace XCode.Membership
             public static readonly Field LastLoginIP = FindByName(__.LastLoginIP);
 
             ///<summary>问题</summary>
-            public static readonly Field Quertion = FindByName(__.Quertion);
+            public static readonly Field Question = FindByName(__.Question);
 
             ///<summary>答案</summary>
             public static readonly Field Answer = FindByName(__.Answer);
@@ -429,7 +429,7 @@ namespace XCode.Membership
             public const String LastLoginIP = "LastLoginIP";
 
             ///<summary>问题</summary>
-            public const String Quertion = "Quertion";
+            public const String Question = "Question";
 
             ///<summary>答案</summary>
             public const String Answer = "Answer";
@@ -494,7 +494,7 @@ namespace XCode.Membership
         String LastLoginIP { get; set; }
 
         /// <summary>问题</summary>
-        String Quertion { get; set; }
+        String Question { get; set; }
 
         /// <summary>答案</summary>
         String Answer { get; set; }

@@ -67,11 +67,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual List<IDataTable> OnGetTables(ICollection<String> names)
         {
-            DataTable dt = GetSchema(_.Tables, null);
+            var dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有表
-            DataRow[] rows = OnGetTables(names, dt.Rows);
+            var rows = OnGetTables(names, dt.Rows);
             if (rows == null || rows.Length < 1) return null;
 
             return GetTables(rows);
@@ -101,9 +101,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected List<IDataTable> GetTables(DataRow[] rows)
         {
-            //if (_columns == null) _columns = GetSchema(_.Columns, null);
-            //if (_indexes == null) _indexes = GetSchema(_.Indexes, null);
-            //if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, null);
             if (_columns == null)
                 try { _columns = GetSchema(_.Columns, null); }
                 catch (Exception ex) { DAL.WriteDebugLog(ex.ToString()); }
@@ -116,7 +113,7 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                List<IDataTable> list = new List<IDataTable>();
+                var list = new List<IDataTable>();
                 foreach (DataRow dr in rows)
                 {
                     #region 基本属性
@@ -256,10 +253,10 @@ namespace XCode.DataAccessLayer
 
                 // 标识、主键
                 Boolean b;
-                if (TryGetDataRowValue<Boolean>(dr, "AUTOINCREMENT", out  b))
+                if (TryGetDataRowValue<Boolean>(dr, "AUTOINCREMENT", out b))
                     field.Identity = b;
 
-                if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out  b))
+                if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out b))
                     field.PrimaryKey = b;
 
                 // 原始数据类型
@@ -305,13 +302,13 @@ namespace XCode.DataAccessLayer
                     field.NumOfByte = field.Length;
 
                 // 允许空
-                if (TryGetDataRowValue<Boolean>(dr, "IS_NULLABLE", out  b))
+                if (TryGetDataRowValue<Boolean>(dr, "IS_NULLABLE", out b))
                     field.Nullable = b;
-                else if (TryGetDataRowValue<String>(dr, "IS_NULLABLE", out  str))
+                else if (TryGetDataRowValue<String>(dr, "IS_NULLABLE", out str))
                 {
                     if (!String.IsNullOrEmpty(str)) field.Nullable = "YES".EqualIgnoreCase(str);
                 }
-                else if (TryGetDataRowValue<String>(dr, "NULLABLE", out  str))
+                else if (TryGetDataRowValue<String>(dr, "NULLABLE", out str))
                 {
                     if (!String.IsNullOrEmpty(str)) field.Nullable = "Y".EqualIgnoreCase(str);
                 }
