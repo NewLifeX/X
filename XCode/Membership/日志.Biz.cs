@@ -14,7 +14,7 @@ namespace XCode.Membership
     public class Log : Log<Log> { }
 
     /// <summary>日志</summary>
-    public partial class Log<TEntity> : Entity<TEntity> where TEntity : Log<TEntity>, new()
+    public partial class Log<TEntity> : UserTimeEntity<TEntity> where TEntity : Log<TEntity>, new()
     {
         #region 对象操作
         /// <summary>已重载。记录当前管理员</summary>
@@ -23,29 +23,29 @@ namespace XCode.Membership
         {
             base.Valid(isNew);
 
-            if (isNew)
-            {
-                // 自动设置当前登录用户
-                if (!Dirtys[__.UserID] && !Dirtys[__.UserName])
-                {
-                    var user = ManageProvider.User;
-                    if (user != null)
-                    {
-                        if (!Dirtys[__.UserID]) UserID = (Int32)user.ID;
-                        if (!Dirtys[__.UserName]) UserName = user.ToString();
-                    }
-                }
+            //if (isNew)
+            //{
+            //    // 自动设置当前登录用户
+            //    if (!Dirtys[__.UserID] && !Dirtys[__.UserName])
+            //    {
+            //        var user = ManageProvider.User;
+            //        if (user != null)
+            //        {
+            //            if (!Dirtys[__.UserID]) UserID = (Int32)user.ID;
+            //            if (!Dirtys[__.UserName]) UserName = user.ToString();
+            //        }
+            //    }
 
-                // 自动设置IP地址
-                if (!Dirtys[__.IP])
-                {
-                    //IP = WebHelper.UserHost;
-                    var ip = WebHelper.UserHost;
-                    if (!String.IsNullOrEmpty(ip)) IP = ip;
-                }
-                // 自动设置当前时间
-                if (!Dirtys[__.OccurTime] && HasDirty) OccurTime = DateTime.Now;
-            }
+            //    // 自动设置IP地址
+            //    if (!Dirtys[__.IP])
+            //    {
+            //        //IP = WebHelper.UserHost;
+            //        var ip = WebHelper.UserHost;
+            //        if (!String.IsNullOrEmpty(ip)) IP = ip;
+            //    }
+            //    // 自动设置当前时间
+            //    if (!Dirtys[__.OccurTime] && HasDirty) OccurTime = DateTime.Now;
+            //}
 
             // 处理过长的备注
             if (!String.IsNullOrEmpty(Remark) && Remark.Length > 500)
@@ -71,8 +71,9 @@ namespace XCode.Membership
 
         #region 扩展属性
         /// <summary>物理地址</summary>
+        //[BindRelation("CreateIP")]
         [DisplayName("物理地址")]
-        public String Address { get { return IP.IPToAddress(); } }
+        public String CreateAddress { get { return CreateIP.IPToAddress(); } }
         #endregion
 
         #region 扩展查询
@@ -121,9 +122,9 @@ namespace XCode.Membership
             var exp = new WhereExpression();
             if (!String.IsNullOrEmpty(key)) exp &= (_.Action == key | _.Remark.Contains(key));
             if (!String.IsNullOrEmpty(category) && category != "全部") exp &= _.Category == category;
-            if (adminid > 0) exp &= _.UserID == adminid;
-            if (start > DateTime.MinValue) exp &= _.OccurTime >= start;
-            if (end > DateTime.MinValue) exp &= _.OccurTime < end.Date.AddDays(1);
+            if (adminid > 0) exp &= _.CreateUserID == adminid;
+            if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
+            if (end > DateTime.MinValue) exp &= _.CreateTime < end.Date.AddDays(1);
 
             return exp;
         }
@@ -227,7 +228,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName, OccurTime, Remark);
+            return String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName ?? CreateUserName, CreateTime, Remark);
         }
         #endregion
     }

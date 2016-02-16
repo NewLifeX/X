@@ -1,4 +1,4 @@
-<#@ template language="C#" hostSpecific="true" debug="true" #>
+﻿<#@ template language="C#" hostSpecific="true" debug="true" #>
 <#@ assembly name="System.Core" #>
 <#@ assembly name="System.Xml" #>
 <#@ import namespace="System" #>
@@ -20,34 +20,35 @@
 	var xpath = GetXPath(mypath);
 	
 	var exe = xpath + "XCoder.exe";
-	
+
+	WriteLine("开始生成 " + DateTime.Now);
+
 	// 如果数据模型文件不存在，则先导出一份
 	if(!File.Exists(mdl))
 	{
-		var connstr = String.Format("Data Source=.;Initial Catalog={0};Integrated Security=SSPI", name);
+		var connstr = String.Format("Data Source=.;Initial Catalog={0};user id=sa;password=Pass@word", "bbx");
 		var provider = "MSSQL";
-		var ps = String.Format("-MakeModel -model \"{0}\" -ConnStr \"{1}\" -Provider {2}", mdl, connstr, provider);
+		var ps = String.Format("-MakeModel -model \"{0}\" -ConnStr \"{1}\" -Provider {2} -Log \"{3}\"", mdl, connstr, provider, mypath + "XCoder.log");
 		Process.Start(exe, ps).WaitForExit(10000);
-
-		if(!File.Exists(mdl)) throw new Exception("无法导出数据模型，请检查连接字符串！");
 	}
 	
 	var cfg = mypath + "set.config";
-	var arg = String.Format("-Render -model \"{0}\" -config \"{1}\"", mdl, cfg);
+	var arg = String.Format("-Render -model \"{0}\" -config \"{1}\" -Log \"{2}\"", mdl, cfg, mypath + "XCoder2.log");
 	WriteLine("路径：" + exe);
 	WriteLine("参数：" + arg);
 
 	var dic = new Dictionary<String, Object>();
 	dic["NameSpace"] = "XCode.Membership";// 命名空间
 	dic["EntityConnName"] = name;	// 连接名
-	
+	dic["Debug"] = true;			// 是否调试
+
 	dic["BaseClass"] = "EntityBase";	// 实体基类
 	dic["RenderGenEntity"] = true;	// 生成泛型实体类
 	dic["Override"] = true;			// 是否覆盖目标文件
 	dic["UseCNFileName"] = true;	// 中文文件名
 	dic["UseHeadTemplate"] = true;	// 使用.cs文件头模版
 	// 文件头模版
-	dic["HeadTemplate"] = "/*\r\n * XCoder v&lt;#=Version#&gt;\r\n * 作者：&lt;#=Environment.UserName + \"/\" + Environment.MachineName#&gt;\r\n * 时间：&lt;#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")#&gt;\r\n * 版权：版权所有 (C) 新生命开发团队 &lt;#=DateTime.Now.ToString(\"yyyy\")#&gt;\r\n*/";
+	dic["HeadTemplate"] = "/*\r\n * XCoder v\<#=Version\#>\r\n * 作者：\<#=Environment.UserName + \"/\" + Environment.MachineName\#>\r\n * 时间：\<#=DateTime.Now.ToString(\"yyyy-MM-dd HH:mm:ss\")\#>\r\n * 版权：版权所有 (C) 新生命开发团队 2002~\<#=DateTime.Now.ToString(\"yyyy\")\#>\r\n*/\r\n";
 
 	dic["OutputPath"] = mypath;					// 输出目录
 	dic["TemplateName"] = "[内置]数据字典";		// 模版名
@@ -82,13 +83,16 @@
 <#+
 	String GetXPath(String mypath)
 	{
-		var xpath = @"C:\X\XCoder\";
+		var xpath = Path.Combine(mypath, @"XCoder\");
 		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"..\XCoder\");
 		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"..\代码生成\");
 		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"..\..\XCoder\");
 		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"..\..\代码生成\");
-		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"C:\X\XCoder\");
-		if(!File.Exists(xpath + "XCoder.exe")) xpath = Path.Combine(mypath, @"C:\X\代码生成\");
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"C:\X\XCoder\";
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"C:\X\代码生成\";
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"D:\X\XCoder\";
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"E:\X\XCoder\";
+		if(!File.Exists(xpath + "XCoder.exe")) xpath = @"F:\X\XCoder\";
 		if(!File.Exists(xpath + "XCoder.exe")) throw new Exception("无法定位数据模型工具XCoder的位置！");
 		xpath = Path.GetFullPath(xpath);
 		
@@ -99,7 +103,7 @@
 	void Save(String file, Dictionary<String, Object> data)
 	{
 		var doc = new XmlDocument();
-		var root = doc.CreateElement("XConfig");
+		var root = doc.CreateElement("ModelConfig");
 		doc.AppendChild(root);
 
 		if (data != null && data.Count > 0)
