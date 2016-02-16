@@ -10,11 +10,9 @@
     var w = isInt ? 4 : 8;
 
     var w_md = 4;
-    var w_xs = 2;
     if (item.Type == typeof(String) && item.Length > 100)
     {
         w_md = 2;
-        w_xs = 1;
     }
 }
 <label class="control-label col-xs-2 col-md-@w_md no-padding-left">@item.DisplayName</label>

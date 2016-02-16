@@ -131,22 +131,34 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                    <div");
 
-WriteLiteral(" class=\"form-group\"");
+WriteLiteral(" class=\"form-group col-sm-12 col-md-6\"");
 
-WriteLiteral(">\r\n");
+WriteLiteral(">\r\n                        <label");
 
-WriteLiteral("                        ");
+WriteLiteral(" class=\"control-label col-xs-2 col-md-4 no-padding-left\"");
+
+WriteAttribute("for", Tuple.Create(" for=\"", 724), Tuple.Create("\"", 738)
+            
+            #line 21 "..\..\Views\Shared\ObjectForm.cshtml"
+             , Tuple.Create(Tuple.Create("", 730), Tuple.Create<System.Object, System.Int32>(pi.Name
+            
+            #line default
+            #line hidden
+, 730), false)
+);
+
+WriteLiteral(">");
 
             
             #line 21 "..\..\Views\Shared\ObjectForm.cshtml"
-                   Write(Html.Label(pi.Name, pi.GetDisplayName(), new { @class = "control-label col-md-2" }));
+                                                                                                  Write(pi.GetDisplayName() ?? pi.Name);
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                        <div");
+WriteLiteral("</label>\r\n                        <div");
 
-WriteLiteral(" class=\"input-group col-md-10\"");
+WriteLiteral(" class=\"input-group col-xs-10 col-md-8\"");
 
 WriteLiteral(">\r\n");
 
@@ -190,11 +202,11 @@ WriteLiteral("</span>\r\n                        </div>\r\n                    <
             #line hidden
 WriteLiteral("                <div");
 
-WriteLiteral(" class=\"form-actions\"");
+WriteLiteral(" class=\"clearfix form-actions col-sm-12 col-md-12\"");
 
 WriteLiteral(">\r\n                    <label");
 
-WriteLiteral(" class=\"control-label col-md-4\"");
+WriteLiteral(" class=\"control-label col-xs-4 col-sm-5 col-md-5\"");
 
 WriteLiteral("></label>\r\n                    <button");
 
@@ -206,7 +218,7 @@ WriteLiteral("><i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-save\"");
 
-WriteLiteral(" )\"></i><strong>保存</strong></button>\r\n                    <button");
+WriteLiteral("></i><strong>保存</strong></button>\r\n                    <button");
 
 WriteLiteral(" type=\"button\"");
 
