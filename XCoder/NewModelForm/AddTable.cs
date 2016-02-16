@@ -25,8 +25,8 @@ namespace XCoder
         {
             InitializeComponent();
             combDbType.DataSource = BindComboxEnumType<DatabaseType>.BindTyps;
-            combDbType.DisplayMember = "Name";
-            combDbType.ValueMember = "Type";
+            //combDbType.DisplayMember = "Name";
+            //combDbType.ValueMember = "Type";
             
             CurrentTable = table;
             //绑定Table信息到文本框

@@ -167,11 +167,13 @@
             // 
             // combDbType
             // 
+            this.combDbType.DisplayMember = "Name";
             this.combDbType.FormattingEnabled = true;
             this.combDbType.Location = new System.Drawing.Point(111, 53);
             this.combDbType.Name = "combDbType";
             this.combDbType.Size = new System.Drawing.Size(219, 24);
             this.combDbType.TabIndex = 5;
+            this.combDbType.ValueMember = "Type";
             // 
             // txtTableRemark
             // 

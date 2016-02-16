@@ -350,7 +350,7 @@ namespace XCoder
             String str = cbConn.Text;
 
             cbConn.DataSource = list;
-            cbConn.DisplayMember = "value";
+            //cbConn.DisplayMember = "value";
 
             if (!String.IsNullOrEmpty(str)) cbConn.Text = str;
 
@@ -587,7 +587,7 @@ namespace XCoder
             }
             cb.Items.Clear();
             cb.DataSource = list;
-            cb.DisplayMember = "value";
+            //cb.DisplayMember = "value";
             cb.Update();
         }
 

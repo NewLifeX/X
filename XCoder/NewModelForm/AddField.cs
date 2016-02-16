@@ -27,8 +27,8 @@ namespace XCoder
 
 
             combRawType.DataSource = PrimitiveType.TypeList;
-            combRawType.DisplayMember = "Name";
-            combRawType.ValueMember = "DataType";
+            //combRawType.DisplayMember = "Name";
+            //combRawType.ValueMember = "DataType";
 
             this.DataColumn = dc;
 

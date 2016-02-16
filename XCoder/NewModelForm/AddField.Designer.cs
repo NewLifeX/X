@@ -196,12 +196,14 @@
             // 
             // combRawType
             // 
+            this.combRawType.DisplayMember = "Name";
             this.combRawType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.combRawType.FormattingEnabled = true;
             this.combRawType.Location = new System.Drawing.Point(101, 78);
             this.combRawType.Name = "combRawType";
             this.combRawType.Size = new System.Drawing.Size(155, 29);
             this.combRawType.TabIndex = 15;
+            this.combRawType.ValueMember = "DataType";
             this.combRawType.SelectedIndexChanged += new System.EventHandler(this.combRawType_SelectedIndexChanged);
             // 
             // txtName
