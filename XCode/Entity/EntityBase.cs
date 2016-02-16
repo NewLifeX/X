@@ -176,7 +176,6 @@ namespace XCode
         [NonSerialized]
         private DirtyCollection _Dirtys;
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        [field: NonSerialized]
         [XmlIgnore, ScriptIgnore]
         internal protected IDictionary<String, Boolean> Dirtys
         {

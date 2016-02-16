@@ -257,7 +257,6 @@ namespace XCode.Membership
         #region 扩展权限
         private Dictionary<Int32, PermissionFlags> _Permissions = new Dictionary<Int32, PermissionFlags>();
         /// <summary>本角色权限集合</summary>
-        [field: NonSerialized]
         [XmlIgnore, ScriptIgnore]
         public Dictionary<Int32, PermissionFlags> Permissions { get { return _Permissions; } set { _Permissions = value; } }
 

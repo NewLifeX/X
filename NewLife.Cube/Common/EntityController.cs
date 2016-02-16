@@ -586,7 +586,7 @@ namespace NewLife.Cube
 
         /// <summary>要导出Xml的对象</summary>
         /// <returns></returns>
-        protected virtual Object OnExportXml()
+        protected override Object OnExportXml()
         {
             return EntityTree<TEntity>.Root.Childs;
         }
