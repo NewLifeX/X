@@ -13,38 +13,44 @@
 @if (user != null || time != null)
 {
     <div class="form-group">
-        <label class="control-label col-md-2">创建</label>
-        <div class="col-md-3">
-            @if (user != null)
-            {
-                <span class="text-primary">@user.CreateUserName</span>
-            }
-            @if (time != null)
-            {
-                <span class="text-success">@time.CreateTime.ToFullString()</span>
-            }
-            @if (!Object.Equals(cip, null))
-            {
-                var ip = entity[cip.Name] + "";
-                <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
-            }
-        </div>
-        <label class="control-label col-md-1">更新</label>
-        <div class="col-md-3">
-            @if (user != null)
-            {
-                <span class="text-primary">@user.UpdateUserName</span>
-            }
-            @if (time != null)
-            {
-                <span class="text-success">@time.UpdateTime.ToFullString()</span>
-            }
-            @if (!Object.Equals(uip, null))
-            {
-                var ip = entity[uip.Name] + "";
-                <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
-            }
-        </div>
+        @if (!Object.Equals(fact.Table.FindByName("CreateUserID"), null))
+        {
+            <label class="control-label col-md-2">创建</label>
+            <div class="col-md-3">
+                @if (user != null)
+                {
+                    <span class="text-primary">@user.CreateUserName</span>
+                }
+                @if (time != null)
+                {
+                    <span class="text-success">@time.CreateTime.ToFullString()</span>
+                }
+                @if (!Object.Equals(cip, null))
+                {
+                    var ip = entity[cip.Name] + "";
+                    <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
+                }
+            </div>
+        }
+        @if (!Object.Equals(fact.Table.FindByName("UpdateUserID"), null))
+        {
+            <label class="control-label col-md-1">更新</label>
+            <div class="col-md-3">
+                @if (user != null)
+                {
+                    <span class="text-primary">@user.UpdateUserName</span>
+                }
+                @if (time != null)
+                {
+                    <span class="text-success">@time.UpdateTime.ToFullString()</span>
+                }
+                @if (!Object.Equals(uip, null))
+                {
+                    var ip = entity[uip.Name] + "";
+                    <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
+                }
+            </div>
+        }
     </div>
 }
 @if (!Object.Equals(remark, null))
