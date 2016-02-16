@@ -9,14 +9,16 @@
     var isInt = item.Type == typeof(Int32);
     var w = isInt ? 4 : 8;
 }
-<label class="control-label col-xs-2 col-sm-3">@item.DisplayName</label>
-<div class="input-group col-xs-10 col-sm-@w">
-    @Html.ForEditor(item, entity)
-    <span class="hidden-xs">@Html.ForDescription(item)</span>
-    @if (ViewData.ModelState.ContainsKey(item.Name))
-    {
-        <span class="alert-danger">
-            @Html.ValidationMessage(item.Name)
-        </span>
-    }
+<label class="control-label col-xs-2 col-sm-3  no-padding-right">@item.DisplayName</label>
+<div class="col-xs-10 col-sm-@w">
+    <div class="input-group">
+        @Html.ForEditor(item, entity)
+        <span class="hidden-xs">@Html.ForDescription(item)</span>
+        @if (ViewData.ModelState.ContainsKey(item.Name))
+        {
+            <span class="alert-danger">
+                @Html.ValidationMessage(item.Name)
+            </span>
+        }
+    </div>
 </div>
