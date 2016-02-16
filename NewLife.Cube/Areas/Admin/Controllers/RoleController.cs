@@ -12,6 +12,11 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("角色")]
     public class RoleController : EntityController<Role>
     {
+        static RoleController()
+        {
+            FormFields.RemoveField("Remark");
+        }
+
         /// <summary>动作执行前</summary>
         /// <param name="filterContext"></param>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)

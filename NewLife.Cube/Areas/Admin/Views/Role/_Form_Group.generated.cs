@@ -65,8 +65,9 @@ namespace ASP
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
-    var w = 4;
-    if (item.Type == typeof(String) && item.Length >= 100) { w = 6; }
+    // 以md 992px为边界，分为两列
+    var w = 6;
+    if (item.Type == typeof(String) && item.Length > 100) { w = 12; }
 
             
             #line default
@@ -74,7 +75,7 @@ namespace ASP
 WriteLiteral("\r\n");
 
             
-            #line 12 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
+            #line 13 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
  if (item.Name == "Permission")
 {
     if (!entity.IsNullKey)
@@ -84,14 +85,14 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 16 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
+            #line 17 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
    Write(Html.Partial("SetPermission", new { Role = entity }));
 
             
             #line default
             #line hidden
             
-            #line 16 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
+            #line 17 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
                                                              
     }
 }
@@ -103,18 +104,17 @@ else
             #line hidden
 WriteLiteral("    <div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 432), Tuple.Create("\"", 479)
-, Tuple.Create(Tuple.Create("", 440), Tuple.Create("form-group", 440), true)
-, Tuple.Create(Tuple.Create(" ", 450), Tuple.Create("col-sm-12", 451), true)
-, Tuple.Create(Tuple.Create(" ", 460), Tuple.Create("col-md-6", 461), true)
-, Tuple.Create(Tuple.Create(" ", 469), Tuple.Create("col-lg-", 470), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 458), Tuple.Create("\"", 496)
+, Tuple.Create(Tuple.Create("", 466), Tuple.Create("form-group", 466), true)
+, Tuple.Create(Tuple.Create(" ", 476), Tuple.Create("col-sm-12", 477), true)
+, Tuple.Create(Tuple.Create(" ", 486), Tuple.Create("col-md-", 487), true)
             
-            #line 21 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
-, Tuple.Create(Tuple.Create("", 477), Tuple.Create<System.Object, System.Int32>(w
+            #line 22 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
+, Tuple.Create(Tuple.Create("", 494), Tuple.Create<System.Object, System.Int32>(w
             
             #line default
             #line hidden
-, 477), false)
+, 494), false)
 );
 
 WriteLiteral(">\r\n");
@@ -122,7 +122,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("        ");
 
             
-            #line 22 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
+            #line 23 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
    Write(Html.Partial("_Form_Item", new Pair(entity, item)));
 
             
@@ -131,7 +131,7 @@ WriteLiteral("        ");
 WriteLiteral("\r\n    </div>\r\n");
 
             
-            #line 24 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
+            #line 25 "..\..\Areas\Admin\Views\Role\_Form_Group.cshtml"
 }
             
             #line default
