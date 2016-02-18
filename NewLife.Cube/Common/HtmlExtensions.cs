@@ -407,19 +407,22 @@ namespace NewLife.Cube
         public static MvcHtmlString ForEnum(this HtmlHelper Html, String name, Object value, String label = null)
         {
             var dic = EnumHelper.GetDescriptions(value.GetType());
-            var data = new SelectList(dic, "Key", "Value", (Int32)value);
-            //由于 Html.DropDownList 获取默认值，会从 ViewData，ViewData.Model，中获取name的值
-            //如果获取到了，则不会再看传入的selectlist的默认值，由于此处是枚举，所以通过 Html.ViewData.Eval(name) 会得到字符串值，所以导致绑定默认值失败
-            //通过 Html.ViewData[name]=(Int32)value，可以让  Html.DropDownList 优先拿到手动设置的值，就不会再从 ViewData.Model 里面找
+            var data = new SelectList(dic, "Key", "Value", value.ToInt());
+            // 由于 Html.DropDownList 获取默认值，会从 ViewData，ViewData.Model，中获取name的值
+            // 如果获取到了，则不会再看传入的selectlist的默认值，由于此处是枚举，所以通过 Html.ViewData.Eval(name) 会得到字符串值，所以导致绑定默认值失败
+            // 通过 Html.ViewData[name]=(Int32)value，可以让  Html.DropDownList 优先拿到手动设置的值，就不会再从 ViewData.Model 里面找
+            // 当然这里会有一个问题，如果外部同样设置ViewData[name]，则就会出现潜在的bug,所以把之前值保存到oldvalue
             var oldvalue = Html.ViewData[name];
-            Html.ViewData[name] = (Int32)value;//当然这里会有一个问题，如果外部同样设置ViewData[name]，则就会出现潜在的bug,所以把之前值保存到oldvalue
-            var hmstr=Html.DropDownList(name, data, label, new { @class = "multiselect" });
+            Html.ViewData[name] = value.ToInt();
+            var hmstr = Html.DropDownList(name, data, label, new { @class = "multiselect" });
 
             //还原ViewData现场
             if (oldvalue != null)
-                Html.ViewData[name] = oldvalue;//如果外部刚好设置这个值，则还原
+                // 如果外部刚好设置这个值，则还原
+                Html.ViewData[name] = oldvalue;
             else
-                Html.ViewData.Remove(name); //输出html后，删除垃圾
+                // 输出html后，删除垃圾
+                Html.ViewData.Remove(name);
             return hmstr;
         }
 
