@@ -23,29 +23,18 @@ namespace XCode.Membership
         {
             base.Valid(isNew);
 
-            //if (isNew)
-            //{
-            //    // 自动设置当前登录用户
-            //    if (!Dirtys[__.UserID] && !Dirtys[__.UserName])
-            //    {
-            //        var user = ManageProvider.User;
-            //        if (user != null)
-            //        {
-            //            if (!Dirtys[__.UserID]) UserID = (Int32)user.ID;
-            //            if (!Dirtys[__.UserName]) UserName = user.ToString();
-            //        }
-            //    }
-
-            //    // 自动设置IP地址
-            //    if (!Dirtys[__.IP])
-            //    {
-            //        //IP = WebHelper.UserHost;
-            //        var ip = WebHelper.UserHost;
-            //        if (!String.IsNullOrEmpty(ip)) IP = ip;
-            //    }
-            //    // 自动设置当前时间
-            //    if (!Dirtys[__.OccurTime] && HasDirty) OccurTime = DateTime.Now;
-            //}
+            if (isNew)
+            {
+                // 自动设置当前登录用户
+                if (!Dirtys[__.UserName])
+                {
+                    var user = ManageProvider.User;
+                    if (user != null)
+                    {
+                        UserName = user.ToString();
+                    }
+                }
+            }
 
             // 处理过长的备注
             if (!String.IsNullOrEmpty(Remark) && Remark.Length > 500)

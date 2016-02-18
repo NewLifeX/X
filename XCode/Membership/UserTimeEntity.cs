@@ -52,13 +52,8 @@ namespace XCode.Membership
             var user = ManageProvider.Provider.Current;
             if (user != null)
             {
-                var name = __.CreateUserID;
-                if (isNew)
-                {
-                    if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, user.ID);
-                }
-                name = __.UpdateUserID;
-                if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, user.ID);
+                if (isNew) entity.SetNoDirtyItem(__.CreateUserID, user.ID);
+                entity.SetNoDirtyItem(__.UpdateUserID, user.ID);
             }
 
             return true;
@@ -102,18 +97,10 @@ namespace XCode.Membership
         {
             if (!isNew && entity.Dirtys.Count == 0) return true;
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var fs = fact.FieldNames;
-
-            var name = __.CreateTime;
-            if (isNew)
-            {
-                if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, DateTime.Now);
-            }
+            if (isNew) entity.SetNoDirtyItem(__.CreateTime, DateTime.Now);
 
             // 不管新建还是更新，都改变更新时间
-            name = __.UpdateTime;
-            if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, DateTime.Now);
+            entity.SetNoDirtyItem(__.UpdateTime, DateTime.Now);
 
             return true;
         }
@@ -168,25 +155,19 @@ namespace XCode.Membership
             var ip = WebHelper.UserHost;
             if (!ip.IsNullOrEmpty())
             {
-                var name = __.CreateIP;
                 if (isNew)
                 {
-                    if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, ip);
+                    entity.SetNoDirtyItem(__.CreateIP, ip);
 
                     // 任意以IP结尾的字段都要，仅在创建时生效
                     foreach (var item in fs)
                     {
-                        if (item.EndsWith("IP"))
-                        {
-                            name = item;
-                            if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, ip);
-                        }
+                        if (item.EndsWith("IP")) entity.SetNoDirtyItem(item, ip);
                     }
                 }
 
                 // 不管新建还是更新，都改变更新时间
-                name = __.UpdateIP;
-                if (fs.Contains(name) && !entity.Dirtys[name]) entity.SetItem(name, ip);
+                entity.SetNoDirtyItem(__.UpdateIP, ip);
             }
 
             return true;
@@ -217,42 +198,34 @@ namespace XCode.Membership
         #endregion
 
         #region 验证数据
-        /// <summary>验证数据，自动加上创建和更新的信息</summary>
-        /// <param name="isNew"></param>
-        public override void Valid(bool isNew)
-        {
-            if (!isNew && !HasDirty) return;
+        ///// <summary>验证数据，自动加上创建和更新的信息</summary>
+        ///// <param name="isNew"></param>
+        //public override void Valid(bool isNew)
+        //{
+        //    if (!isNew && !HasDirty) return;
 
-            base.Valid(isNew);
+        //    base.Valid(isNew);
 
-            var fs = Meta.FieldNames;
+        //    var fs = Meta.FieldNames;
 
-            // 当前登录用户
-            var user = ManageProvider.Provider.Current;
-            if (user != null)
-            {
-                if (isNew)
-                {
-                    SetDirtyItem(__Name.CreateUserID, user.ID);
-                    SetDirtyItem(__Name.CreateUserName, user + "");
-                }
-                SetDirtyItem(__Name.UpdateUserID, user.ID);
-                SetDirtyItem(__Name.UpdateUserName, user + "");
-            }
-            if (isNew)
-                SetDirtyItem(__Name.CreateTime, DateTime.Now);
+        //    // 当前登录用户
+        //    var user = ManageProvider.Provider.Current;
+        //    if (user != null)
+        //    {
+        //        if (isNew)
+        //        {
+        //            SetNoDirtyItem(__Name.CreateUserID, user.ID);
+        //            SetNoDirtyItem(__Name.CreateUserName, user + "");
+        //        }
+        //        SetNoDirtyItem(__Name.UpdateUserID, user.ID);
+        //        SetNoDirtyItem(__Name.UpdateUserName, user + "");
+        //    }
+        //    if (isNew)
+        //        SetNoDirtyItem(__Name.CreateTime, DateTime.Now);
 
-            // 不管新建还是更新，都改变更新时间
-            SetDirtyItem(__Name.UpdateTime, DateTime.Now);
-        }
-
-        /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        private void SetDirtyItem(String name, Object value)
-        {
-            if (Meta.FieldNames.Contains(name) && !Dirtys[name]) SetItem(name, value);
-        }
+        //    // 不管新建还是更新，都改变更新时间
+        //    SetNoDirtyItem(__Name.UpdateTime, DateTime.Now);
+        //}
         #endregion
 
         #region 扩展属性
@@ -344,42 +317,34 @@ namespace XCode.Membership
         #endregion
 
         #region 验证数据
-        /// <summary>验证数据，自动加上创建和更新的信息</summary>
-        /// <param name="isNew"></param>
-        public override void Valid(bool isNew)
-        {
-            if (!isNew && !HasDirty) return;
+        ///// <summary>验证数据，自动加上创建和更新的信息</summary>
+        ///// <param name="isNew"></param>
+        //public override void Valid(bool isNew)
+        //{
+        //    if (!isNew && !HasDirty) return;
 
-            base.Valid(isNew);
+        //    base.Valid(isNew);
 
-            var fs = Meta.FieldNames;
+        //    var fs = Meta.FieldNames;
 
-            // 当前登录用户
-            var user = ManageProvider.Provider.Current;
-            if (user != null)
-            {
-                if (isNew)
-                {
-                    SetDirtyItem(__Name.CreateUserID, user.ID);
-                    SetDirtyItem(__Name.CreateUserName, user + "");
-                }
-                SetDirtyItem(__Name.UpdateUserID, user.ID);
-                SetDirtyItem(__Name.UpdateUserName, user + "");
-            }
-            if (isNew)
-                SetDirtyItem(__Name.CreateTime, DateTime.Now);
+        //    // 当前登录用户
+        //    var user = ManageProvider.Provider.Current;
+        //    if (user != null)
+        //    {
+        //        if (isNew)
+        //        {
+        //            SetDirtyItem(__Name.CreateUserID, user.ID);
+        //            SetDirtyItem(__Name.CreateUserName, user + "");
+        //        }
+        //        SetDirtyItem(__Name.UpdateUserID, user.ID);
+        //        SetDirtyItem(__Name.UpdateUserName, user + "");
+        //    }
+        //    if (isNew)
+        //        SetDirtyItem(__Name.CreateTime, DateTime.Now);
 
-            // 不管新建还是更新，都改变更新时间
-            SetDirtyItem(__Name.UpdateTime, DateTime.Now);
-        }
-
-        /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        private void SetDirtyItem(String name, Object value)
-        {
-            if (Meta.FieldNames.Contains(name) && !Dirtys[name]) SetItem(name, value);
-        }
+        //    // 不管新建还是更新，都改变更新时间
+        //    SetDirtyItem(__Name.UpdateTime, DateTime.Now);
+        //}
         #endregion
 
         #region 扩展属性
@@ -387,7 +352,7 @@ namespace XCode.Membership
         /// <summary>创建人</summary>
         [XmlIgnore, ScriptIgnore]
         [DisplayName("创建人")]
-        [BindRelation("CreateUserID", false, "User", "ID")]
+        //[BindRelation("CreateUserID", false, "User", "ID")]
         public IManageUser CreateUser
         {
             get
@@ -413,7 +378,7 @@ namespace XCode.Membership
         /// <summary>更新人</summary>
         [XmlIgnore, ScriptIgnore]
         [DisplayName("更新人")]
-        [BindRelation("UpdateUserID", false, "User", "ID")]
+        //[BindRelation("UpdateUserID", false, "User", "ID")]
         public IManageUser UpdateUser
         {
             get

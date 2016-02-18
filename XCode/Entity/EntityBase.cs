@@ -86,7 +86,7 @@ namespace XCode
             // 确保数据类型一致
             if (fi != null) value = TypeX.ChangeType(value, fi.Type);
 
-            Boolean b = OnPropertyChanging(name, value);
+            var b = OnPropertyChanging(name, value);
             if (b)
             {
                 // OnPropertyChanging中根据新旧值是否相同来影响脏数据
@@ -95,6 +95,18 @@ namespace XCode
                 Dirtys[name] = true;
             }
             return b;
+        }
+
+        /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns>返回是否成功设置了数据</returns>
+        public Boolean SetNoDirtyItem(String name, Object value)
+        {
+            var fact = EntityFactory.CreateOperate(GetType());
+            if (fact.FieldNames.Contains(name) && !Dirtys[name]) return SetItem(name, value);
+
+            return false;
         }
         #endregion
 
@@ -245,7 +257,7 @@ namespace XCode
         /// <summary>主键是否为空</summary>
         [XmlIgnore, ScriptIgnore]
         public Boolean IsNullKey { get { return Helper.IsEntityNullKey(this); } }
-        
+
         // JsonNet支持下面这种特殊用法
         //public Boolean ShouldSerializeIsNullKey()
         //{
