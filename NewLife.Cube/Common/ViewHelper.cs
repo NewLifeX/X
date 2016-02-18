@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Web.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using XCode.Configuration;
 using System.Web;
+using System.Web.Mvc;
+using XCode.Configuration;
 
 namespace NewLife.Cube
 {
@@ -76,6 +73,15 @@ namespace NewLife.Cube
             Name = item.Name;
             Type = item.Type;
             Length = item.Length;
+        }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化一个页面助手</summary>
+        public Bootstrap()
+        {
+            MaxColumn = 2;
+            LabelWidth = 4;
         }
         #endregion
 
