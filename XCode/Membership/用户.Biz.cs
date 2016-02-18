@@ -11,6 +11,22 @@ using NewLife.Web;
 
 namespace XCode.Membership
 {
+    /// <summary>性别</summary>
+    public enum SexKinds
+    {
+        /// <summary>未知</summary>
+        //[Description("未知")]
+        未知 = 0,
+
+        /// <summary>男</summary>
+        //[Description("男")]
+        男 = 1,
+
+        /// <summary>女</summary>
+        //[Description("女")]
+        女 = 2
+    }
+
     /// <summary>管理员</summary>
     [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
@@ -148,6 +164,11 @@ namespace XCode.Membership
 
         /// <summary>友好名字</summary>
         public virtual String FriendName { get { return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName; } }
+
+        /// <summary>性别</summary>
+        [DisplayName("性别")]
+        [BindRelation(__.Sex)]
+        public SexKinds SexKind { get { return (SexKinds)Sex; } set { Sex = (Int32)value; } }
         #endregion
 
         #region 扩展查询
