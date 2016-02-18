@@ -411,7 +411,7 @@ namespace NewLife.Cube
         /// 而如果这个值获取不到，才会使用SelectList给定的值。
         /// 如果是一个非子视图，那么ViewData中就会有相应的值，通过SelectList给定的值就会被覆盖。
         /// 在ViewData中得到的值可以通过Html.GetValue(name)查到。
-        /// 可知，改值是一个字符串，是Enum的Key进行ToString后生成的。
+        /// 可知，该值是一个字符串，是Enum的Key进行ToString后生成的。
         /// 所以，在这里不再用Int32类型做值类型，直接改用String。这样就能解决非子视图的问题。
         /// 子视图由于Root视图的ViewData不向下传递，所以在ViewData中获取不到相应的值。这样SelectList的第三个参数就派上用场了。
         /// </remarks>
