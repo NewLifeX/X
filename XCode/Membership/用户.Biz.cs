@@ -559,6 +559,9 @@ namespace XCode.Membership
         /// <summary>角色名</summary>
         String RoleName { get; set; }
 
+        /// <summary>性别</summary>
+         SexKinds SexKind { get; set; }
+
         /// <summary>注销</summary>
         void Logout();
 

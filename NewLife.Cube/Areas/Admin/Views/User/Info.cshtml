@@ -1,4 +1,5 @@
-﻿@using System.Reflection
+﻿@model XCode.Membership.IUser
+@using System.Reflection
 @using XCode
 @using XCode.Configuration
 @{
@@ -39,6 +40,13 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="control-label col-md-2">性别</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("SexKind", user.SexKind)
+                        @Html.ForDescription("Sex")
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="control-label col-md-2">邮件</label>
                     <div class="input-group col-md-6">
                         @Html.ForEditor("Mail")
@@ -58,28 +66,44 @@
                     </div>
                 </div>
                 <div class="form-group">
-
+                    <label class="control-label col-md-2">问题</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("Question")
+                        @Html.ForDescription("Question")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">答案</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("Answer")
+                        @Html.ForDescription("Answer")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">角色</label>
+                    <div class="input-group col-md-2">
+                        @user.RoleName
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="control-label col-md-2">登录次数</label>
                     <div class="input-group col-md-2">
                         @user.Logins
                     </div>
                 </div>
                 <div class="form-group">
-
                     <label class="control-label col-md-2">最后登录</label>
                     <div class="input-group col-md-2">
                         @user.LastLogin.ToFullString("")
                     </div>
                 </div>
                 <div class="form-group">
-
                     <label class="control-label col-md-2">最后登录IP</label>
                     <div class="input-group col-md-6">
                         @user.LastLoginIP
                     </div>
                 </div>
                 <div class="form-group">
-
                     <label class="control-label col-md-2">配置信息</label>
                     <div class="input-group col-md-6">
                         @user.Profile

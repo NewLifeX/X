@@ -407,7 +407,7 @@ namespace NewLife.Cube
         public static MvcHtmlString ForEnum(this HtmlHelper Html, String name, Object value, String label = null)
         {
             var dic = EnumHelper.GetDescriptions(value.GetType());
-            var data = new SelectList(dic, "Key", "Value", value);
+            var data = new SelectList(dic, "Key", "Value", (Int32)value);
             return Html.DropDownList(name, data, label, new { @class = "multiselect" });
         }
 
