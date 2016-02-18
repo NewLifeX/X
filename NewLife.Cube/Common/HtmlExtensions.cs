@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -406,8 +407,17 @@ namespace NewLife.Cube
         /// <returns></returns>
         public static MvcHtmlString ForEnum(this HtmlHelper Html, String name, Object value, String label = null)
         {
-            var dic = EnumHelper.GetDescriptions(value.GetType());
-            var data = new SelectList(dic, "Key", "Value", (Int32)value);
+            var valueType = value.GetType();
+            var dic = EnumHelper.GetDescriptions(valueType);
+            var stringDic = new Dictionary<String, String>();
+            foreach (var item in dic)
+            {
+
+                var itemKey = Enum.GetName(valueType, item.Key);
+                var itemValue = item.Value;
+                stringDic.Add(itemKey, itemValue);
+            }
+            var data = new SelectList(stringDic, "Key", "Value", value.ToString());
             return Html.DropDownList(name, data, label, new { @class = "multiselect" });
         }
 
