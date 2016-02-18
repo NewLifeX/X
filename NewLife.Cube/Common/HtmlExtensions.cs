@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -405,31 +404,23 @@ namespace NewLife.Cube
         /// <param name="value"></param>
         /// <param name="label"></param>
         /// <returns></returns>
-        /// <remarks>
-        /// 通过阅读MVC源代码，可知，MVC在获取当前字段的值时，会优先取当前视图的ViewData中保存的值。
-        /// 方法参见System.Web.Mvc.HtmlHelper.GetModelStateValue
-        /// 而如果这个值获取不到，才会使用SelectList给定的值。
-        /// 如果是一个非子视图，那么ViewData中就会有相应的值，通过SelectList给定的值就会被覆盖。
-        /// 在ViewData中得到的值可以通过Html.GetValue(name)查到。
-        /// 可知，该值是一个字符串，是Enum的Key进行ToString后生成的。
-        /// 所以，在这里不再用Int32类型做值类型，直接改用String。这样就能解决非子视图的问题。
-        /// 子视图由于Root视图的ViewData不向下传递，所以在ViewData中获取不到相应的值。这样SelectList的第三个参数就派上用场了。
-        /// </remarks>
         public static MvcHtmlString ForEnum(this HtmlHelper Html, String name, Object value, String label = null)
         {
-            
-            var valueType = value.GetType();
-            var dic = EnumHelper.GetDescriptions(valueType);
-            var stringDic = new Dictionary<String, String>();
-            foreach (var item in dic)
-            {
+            var dic = EnumHelper.GetDescriptions(value.GetType());
+            var data = new SelectList(dic, "Key", "Value", (Int32)value);
+            //由于 Html.DropDownList 获取默认值，会从 ViewData，ViewData.Model，中获取name的值
+            //如果获取到了，则不会再看传入的selectlist的默认值，由于此处是枚举，所以通过 Html.ViewData.Eval(name) 会得到字符串值，所以导致绑定默认值失败
+            //通过 Html.ViewData[name]=(Int32)value，可以让  Html.DropDownList 优先拿到手动设置的值，就不会再从 ViewData.Model 里面找
+            var oldvalue = Html.ViewData[name];
+            Html.ViewData[name] = (Int32)value;//当然这里会有一个问题，如果外部同样设置ViewData[name]，则就会出现潜在的bug,所以把之前值保存到oldvalue
+            var hmstr=Html.DropDownList(name, data, label, new { @class = "multiselect" });
 
-                var itemKey = Enum.GetName(valueType, item.Key);
-                var itemValue = item.Value;
-                stringDic.Add(itemKey, itemValue);
-            }
-            var data = new SelectList(stringDic, "Key", "Value", value.ToString());
-            return Html.DropDownList(name, data, label, new { @class = "multiselect" });
+            //还原ViewData现场
+            if (oldvalue != null)
+                Html.ViewData[name] = oldvalue;//如果外部刚好设置这个值，则还原
+            else
+                Html.ViewData.Remove(name); //输出html后，删除垃圾
+            return hmstr;
         }
 
         /// <summary>枚举多选，支持默认全选或不选。需要部分选中可使用ForListBox</summary>
