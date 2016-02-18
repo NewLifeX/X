@@ -51,10 +51,10 @@ namespace NewLife.Cube
     {
         #region 属性
         /// <summary>最大列数</summary>
-        public Int32 MaxColumn { get; set; } = 2;
+        public Int32 MaxColumn { get; set; } //= 2;
 
         /// <summary>默认标签宽度</summary>
-        public Int32 LabelWidth { get; set; } = 4;
+        public Int32 LabelWidth { get; set; }// = 4;
         #endregion
 
         #region 当前项
