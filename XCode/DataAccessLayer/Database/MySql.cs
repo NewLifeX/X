@@ -200,7 +200,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>长文本长度</summary>
-        public override int LongTextLength { get { return 4000; } }
+        public override int LongTextLength { get { return 255; } }
 
         internal protected override String ParamPrefix { get { return "?"; } }
 
@@ -348,32 +348,40 @@ namespace XCode.DataAccessLayer
             }
 
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
-            if (drs != null && drs.Length > 1)
+            if (drs != null && drs.Length > 0)
             {
                 // 无符号/有符号
                 if (!String.IsNullOrEmpty(field.RawType))
                 {
-                    Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
-
-                    foreach (DataRow dr in drs)
+                    if (!typeName.Contains("char")&&!typeName.Contains("String"))
                     {
-                        String format = GetDataRowValue<String>(dr, "CreateFormat");
+                        Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
 
-                        if (IsUnsigned && format.ToLower().Contains("unsigned"))
-                            return new DataRow[] { dr };
-                        else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
-                            return new DataRow[] { dr };
+                        foreach (DataRow dr in drs)
+                        {
+                            String format = GetDataRowValue<String>(dr, "CreateFormat");
+
+                            if (IsUnsigned && format.ToLower().Contains("unsigned"))
+                                return new DataRow[] { dr };
+                            else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
+                                return new DataRow[] { dr };
+                        }
                     }
                 }
 
                 // 字符串
-                if (typeName == typeof(String).FullName || typeName.EqualIgnoreCase("varchar"))
+                //2016-02-23 @宁波-小董 同步数据库架构到Oracle，报错，CHAR长度1000，要改用text
+                if (typeName == typeof(String).FullName || typeName.EqualIgnoreCase("varchar") || typeName.Contains("char"))
                 {
                     foreach (DataRow dr in drs)
                     {
                         String name = GetDataRowValue<String>(dr, "TypeName");
-                        if ((name == "NVARCHAR" && field.IsUnicode || name == "VARCHAR" && !field.IsUnicode) && field.Length <= Database.LongTextLength)
+                        if ((name == "CHAR" && field.IsUnicode|| name == "NVARCHAR" && 
+                            field.IsUnicode || name == "VARCHAR" && !field.IsUnicode) && field.Length >= Database.LongTextLength)
+                        {
+                            dr["TypeName"] = "text";
                             return new DataRow[] { dr };
+                        }
                         else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
                             return new DataRow[] { dr };
                     }

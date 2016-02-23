@@ -481,7 +481,7 @@ namespace XCode.DataAccessLayer
                 {
                     field.Identity = true;
                     exists = true;
-                    break;
+                    break;  
                 }
             }
             if (!exists)
@@ -500,17 +500,17 @@ namespace XCode.DataAccessLayer
                     }
                 }
             }
-            if (!exists)
-            {
-                // 处理自增，整型、主键、名为ID认为是自增
-                foreach (IDataColumn field in table.Columns)
-                {
-                    if (field.DataType.IsIntType())
-                    {
-                        if (field.PrimaryKey && field.ColumnName.ToLower().Contains("id")) field.Identity = true;
-                    }
-                }
-            }
+            //if (!exists)
+            //{
+            //    // 处理自增，整型、主键、名为ID认为是自增
+            //    foreach (IDataColumn field in table.Columns)
+            //    {
+            //        if (field.DataType.IsIntType())
+            //        {
+            //            if (field.PrimaryKey && field.ColumnName.ToLower().Contains("id")) field.Identity = true;
+            //        }
+            //    }
+            //}
         }
 
         /// <summary>序列</summary>
