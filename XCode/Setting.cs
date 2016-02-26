@@ -13,68 +13,70 @@ namespace XCode
     public class Setting : XmlConfig<Setting>
     {
         #region 属性
-        private Boolean _Debug = true;
         /// <summary>是否启用调试。默认启用</summary>
         [Description("调试")]
-        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+        public Boolean Debug { get; set; }
 
-        private Boolean _ShowSQL = true;
         /// <summary>是否输出SQL语句，默认启用</summary>
         [Description("是否输出SQL语句，默认启用")]
-        public Boolean ShowSQL { get { return _ShowSQL; } set { _ShowSQL = value; } }
+        public Boolean ShowSQL { get; set; }
 
-        private String _SQLPath = "";
         /// <summary>设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录</summary>
         [Description("设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录")]
-        public String SQLPath { get { return _SQLPath; } set { _SQLPath = value; } }
+        public String SQLPath { get; set; }
 
-        private Int32 _TraceSQLTime;
         /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪</summary>
         [Description("跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪")]
-        public Int32 TraceSQLTime { get { return _TraceSQLTime; } set { _TraceSQLTime = value; } }
+        public Int32 TraceSQLTime { get; set; }
 
-        private String _ConnMaps = "Test2#Test,Test3#Test";
         /// <summary>连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去</summary>
         [Description("连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
-        public String ConnMaps { get { return _ConnMaps; } set { _ConnMaps = value; } }
+        public String ConnMaps { get; set; }
 
-        private Boolean _CodeDebug;
         /// <summary>是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用</summary>
         [Description("是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
-        public Boolean CodeDebug { get { return _CodeDebug; } set { _CodeDebug = value; } }
+        public Boolean CodeDebug { get; set; }
 
-        private Boolean _InitData = true;
         /// <summary>实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭</summary>
         [Description("实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭")]
-        public Boolean InitData { get { return _InitData; } set { _InitData = value; } }
+        public Boolean InitData { get; set; }
 
-        private Boolean _TransactionDebug;
         /// <summary>事务调试。打开时输出事务回滚日志，默认关闭</summary>
         [Description("事务调试。打开时输出事务回滚日志，默认关闭")]
-        public Boolean TransactionDebug { get { return _TransactionDebug; } set { _TransactionDebug = value; } }
+        public Boolean TransactionDebug { get; set; }
 
-        private CacheSetting _Cache = new CacheSetting();
         /// <summary>缓存</summary>
         [Description("缓存")]
-        public CacheSetting Cache { get { return _Cache; } set { _Cache = value; } }
+        public CacheSetting Cache { get; set; }
 
-        private NegativeSetting _Negative = new NegativeSetting();
         /// <summary>反向工程</summary>
         [Description("反向工程")]
-        public NegativeSetting Negative { get { return _Negative; } set { _Negative = value; } }
+        public NegativeSetting Negative { get; set; }
 
-        private ModelSetting _Model = new ModelSetting();
         /// <summary>模型</summary>
         [Description("模型")]
-        public ModelSetting Model { get { return _Model; } set { _Model = value; } }
+        public ModelSetting Model { get; set; }
 
-        private OracleSetting _Oracle = new OracleSetting();
         /// <summary>Oracle设置</summary>
         [Description("Oracle设置")]
-        public OracleSetting Oracle { get { return _Oracle; } set { _Oracle = value; } }
+        public OracleSetting Oracle { get; set; }
         #endregion
 
         #region 方法
+        /// <summary>实例化设置</summary>
+        public Setting()
+        {
+            Debug = true; 
+            ShowSQL = true;
+            ConnMaps = "Conn2#Conn,Table3@Table";
+            InitData = true;
+
+            Cache = new CacheSetting();
+            Negative = new NegativeSetting();
+            Model = new ModelSetting();
+            Oracle = new OracleSetting();
+        }
+
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {

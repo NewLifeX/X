@@ -5,9 +5,7 @@ using System.Data;
 using System.Text;
 using System.Threading;
 using System.Web;
-using NewLife.Configuration;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 
@@ -41,14 +39,10 @@ namespace XCode.Cache
         /// <summary>初始化设置。读取配置</summary>
         static XCache()
         {
-            //读取缓存有效期
-            //Expiration = Config.GetMutilConfig<Int32>(-2, "XCode.Cache.Expiration", "XCacheExpiration");
-            //读取检查周期
-            //CheckPeriod = Config.GetMutilConfig<Int32>(5, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
-            CheckPeriod = Setting.Current.Cache.CheckPeriod;
+            ////读取检查周期
+            //CheckPeriod = Setting.Current.Cache.CheckPeriod;
 
-            //if (Expiration < -2) Expiration = -2;
-            if (CheckPeriod <= 0) CheckPeriod = 5;
+            //if (CheckPeriod <= 0) CheckPeriod = 5;
 
             if (DAL.Debug)
             {
@@ -83,8 +77,8 @@ namespace XCode.Cache
         /// <summary>缓存维护定时器</summary>
         private static TimerX AutoCheckCacheTimer;
 
-        /// <summary>维护定时器的检查周期，默认5秒</summary>
-        public static Int32 CheckPeriod = 5;
+        ///// <summary>维护定时器的检查周期，默认5秒</summary>
+        //public static Int32 CheckPeriod = 5;
 
         /// <summary>维护</summary>
         /// <param name="obj"></param>
@@ -150,11 +144,9 @@ namespace XCode.Cache
 
             if (AutoCheckCacheTimer != null) return;
 
-            AutoCheckCacheTimer = new TimerX(Check, null, CheckPeriod * 1000, CheckPeriod * 1000);
-            //// 声明定时器。无限延长时间，实际上不工作
-            //AutoCheckCacheTimer = new Timer(new TimerCallback(Check), null, Timeout.Infinite, Timeout.Infinite);
-            //// 改变定时器为5秒后触发一次。
-            //AutoCheckCacheTimer.Change(CheckPeriod * 1000, CheckPeriod * 1000);
+            //var period = CheckPeriod;
+            var period = 5;
+            AutoCheckCacheTimer = new TimerX(Check, null, period * 1000, period * 1000);
         }
         #endregion
 
