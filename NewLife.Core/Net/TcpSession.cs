@@ -226,7 +226,7 @@ namespace NewLife.Net
             if (count == 0) return new Byte[0];
 
             LastTime = DateTime.Now;
-            if (StatReceive != null) StatReceive.Increment(count);
+            //if (StatReceive != null) StatReceive.Increment(count);
 
             if (count == buf.Length) return buf;
 

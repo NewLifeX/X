@@ -75,8 +75,10 @@ namespace NewLife.Net
             Remote = new NetUri(ProtocolType.Udp, remote);
             _Filter = remote;
 
-            StatSend = new Statistics();
-            StatReceive = new Statistics();
+            //StatSend = new Statistics();
+            //StatReceive = new Statistics();
+            StatSend = server.StatSend;
+            StatReceive = server.StatReceive;
         }
 
         public void Start()
@@ -175,7 +177,7 @@ namespace NewLife.Net
             Remote.EndPoint = ep;
 
             LastTime = DateTime.Now;
-            if (StatReceive != null) StatReceive.Increment(buf.Length);
+            //if (StatReceive != null) StatReceive.Increment(buf.Length);
 
             return buf;
         }
@@ -198,7 +200,7 @@ namespace NewLife.Net
             Remote.EndPoint = ep;
 
             LastTime = DateTime.Now;
-            if (StatReceive != null) StatReceive.Increment(size);
+            //if (StatReceive != null) StatReceive.Increment(size);
 
             return size;
         }
@@ -218,7 +220,7 @@ namespace NewLife.Net
         internal void OnReceive(ReceivedEventArgs e)
         {
             LastTime = DateTime.Now;
-            if (StatReceive != null) StatReceive.Increment(e.Length);
+            //if (StatReceive != null) StatReceive.Increment(e.Length);
 
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 

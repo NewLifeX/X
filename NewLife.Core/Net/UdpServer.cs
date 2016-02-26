@@ -196,7 +196,7 @@ namespace NewLife.Net
             if (count < 0) return null;
             if (count == 0) return new Byte[0];
 
-            if (StatReceive != null) StatReceive.Increment(count);
+            //if (StatReceive != null) StatReceive.Increment(count);
 
             return buf.ReadBytes(0, count);
         }
