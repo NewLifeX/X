@@ -20,84 +20,46 @@ namespace XCode.Cache
     public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity>, ISingleEntityCache where TEntity : Entity<TEntity>, new()
     {
         #region 属性
-        private Int32 _Expriod = Setting.Current.Cache.SingleCacheExpire;
         /// <summary>过期时间。单位是秒，默认60秒</summary>
-        public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
+        public Int32 Expire { get; set; }
 
-        private Int32 _MaxEntity = 10000;
         /// <summary>最大实体数。默认10000</summary>
-        public Int32 MaxEntity { get { return _MaxEntity; } set { _MaxEntity = value; } }
+        public Int32 MaxEntity { get; set; }
 
-        private Boolean _AutoSave = true;
         /// <summary>缓存到期时自动保存，默认true</summary>
-        public Boolean AutoSave { get { return _AutoSave; } set { _AutoSave = value; } }
+        public Boolean AutoSave { get; set; }
 
-        private Boolean _AllowNull;
         /// <summary>允许缓存空对象，默认false</summary>
-        public Boolean AllowNull { get { return _AllowNull; } set { _AllowNull = value; } }
+        public Boolean AllowNull { get; set; }
 
         #region 主键
-        private Func<TEntity, TKey> _GetKeyMethod;
         /// <summary>获取缓存主键的方法，默认方法为获取实体主键值</summary>
-        public Func<TEntity, TKey> GetKeyMethod
-        {
-            get
-            {
-                if (_GetKeyMethod == null)
-                {
-                    var fi = Entity<TEntity>.Meta.Unique;
-                    if (fi != null)
-                        _GetKeyMethod = entity => (TKey)entity[Entity<TEntity>.Meta.Unique.Name];
-                }
-                return _GetKeyMethod;
-            }
-            set { _GetKeyMethod = value; }
-        }
+        public Func<TEntity, TKey> GetKeyMethod { get; set; }
 
-        private Func<TKey, TEntity> _FindKeyMethod;
         /// <summary>查找数据的方法</summary>
-        public Func<TKey, TEntity> FindKeyMethod
-        {
-            get
-            {
-                if (_FindKeyMethod == null)
-                {
-                    _FindKeyMethod = key => Entity<TEntity>.FindByKey(key);
-
-                    //if (_FindKeyMethod == null) throw new ArgumentNullException("FindKeyMethod", "没有找到FindByKey方法，请先设置查找数据的方法！");
-                }
-                return _FindKeyMethod;
-            }
-            set { _FindKeyMethod = value; }
-        }
+        public Func<TKey, TEntity> FindKeyMethod { get; set; }
         #endregion
 
         #region 从键
-        private Boolean _SlaveKeyIgnoreCase = false;
         /// <summary>从键是否区分大小写</summary>
-        public Boolean SlaveKeyIgnoreCase { get { return _SlaveKeyIgnoreCase; } set { _SlaveKeyIgnoreCase = value; } }
+        public Boolean SlaveKeyIgnoreCase { get; set; }
 
-        private Func<String, TEntity> _FindSlaveKeyMethod;
         /// <summary>根据从键查找数据的方法</summary>
-        public Func<String, TEntity> FindSlaveKeyMethod { get { return _FindSlaveKeyMethod; } set { _FindSlaveKeyMethod = value; } }
+        public Func<String, TEntity> FindSlaveKeyMethod { get; set; }
 
-        private Func<TEntity, String> _GetSlaveKeyMethod;
         /// <summary>获取缓存从键的方法，默认为空</summary>
-        public Func<TEntity, String> GetSlaveKeyMethod { get { return _GetSlaveKeyMethod; } set { _GetSlaveKeyMethod = value; } }
+        public Func<TEntity, String> GetSlaveKeyMethod { get; set; }
         #endregion
 
-        private Func _InitializeMethod;
         /// <summary>初始化缓存的方法，默认为空</summary>
-        public Func InitializeMethod { get { return _InitializeMethod; } set { _InitializeMethod = value; } }
+        public Func InitializeMethod { get; set; }
 
-        private Boolean _HoldCache = Setting.Current.Cache.Alone;
         /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
         /// <remarks>独占模式也需要用到定时器，否则无法自动保存</remarks>
-        public Boolean HoldCache { get { return _HoldCache; } set { _HoldCache = value; } }
+        public Boolean HoldCache { get; set; }
 
-        private Boolean _Using;
         /// <summary>是否在使用缓存</summary>
-        internal Boolean Using { get { return _Using; } private set { _Using = value; } }
+        internal Boolean Using { get; set; }
         #endregion
 
         #region 构造、检查过期缓存
@@ -106,8 +68,19 @@ namespace XCode.Cache
         /// <summary>实例化一个实体缓存</summary>
         public SingleEntityCache()
         {
+            Expire = Setting.Current.Cache.SingleCacheExpire;
+            MaxEntity = 10000;
+            AutoSave = true;
+
+            var fi = Entity<TEntity>.Meta.Unique;
+            if (fi != null) GetKeyMethod = entity => (TKey)entity[Entity<TEntity>.Meta.Unique.Name];
+            FindKeyMethod = key => Entity<TEntity>.FindByKey(key);
+
+            SlaveKeyIgnoreCase = false;
+            HoldCache = Setting.Current.Cache.Alone;
+
             // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
-            _Timer = new TimerX(d => Check(), null, Expriod * 1000, Expriod * 1000, true);
+            _Timer = new TimerX(d => Check(), null, Expire * 1000, Expire * 1000, true);
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -238,7 +211,7 @@ namespace XCode.Cache
                 if (Entity != null && Entity != entity) sc.AutoUpdate(this, "设置新的缓存对象");
 
                 Entity = entity;
-                ExpireTime = DateTime.Now.AddSeconds(sc.Expriod);
+                ExpireTime = DateTime.Now.AddSeconds(sc.Expire);
             }
         }
         #endregion
@@ -498,7 +471,7 @@ namespace XCode.Cache
         {
             if (AutoSave && item != null && item.Entity != null)
             {
-                item.NextSave = DateTime.Now.AddSeconds(Expriod);
+                item.NextSave = DateTime.Now.AddSeconds(Expire);
                 Invoke<CacheItem, Object>(e =>
                 {
                     var rs = e.Entity.Update();
@@ -730,7 +703,7 @@ namespace XCode.Cache
         #region 辅助
         internal SingleEntityCache<TKey, TEntity> CopySettingFrom(SingleEntityCache<TKey, TEntity> ec)
         {
-            this.Expriod = ec.Expriod;
+            this.Expire = ec.Expire;
             this.MaxEntity = ec.MaxEntity;
             this.AutoSave = ec.AutoSave;
             this.AllowNull = ec.AllowNull;
