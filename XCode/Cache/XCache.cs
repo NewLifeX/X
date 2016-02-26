@@ -145,7 +145,7 @@ namespace XCode.Cache
             if (AutoCheckCacheTimer != null) return;
 
             //var period = CheckPeriod;
-            var period = 5;
+            var period = 30;
             AutoCheckCacheTimer = new TimerX(Check, null, period * 1000, period * 1000);
         }
         #endregion
