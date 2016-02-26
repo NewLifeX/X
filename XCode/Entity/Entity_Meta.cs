@@ -277,7 +277,7 @@ namespace XCode
             /// </summary>
             //[Obsolete("=>Session")]
             //[EditorBrowsable(EditorBrowsableState.Never)]
-            public static SingleEntityCache<Object, TEntity> SingleCache { get { return Session.SingleCache; } }
+            public static ISingleEntityCache<Object, TEntity> SingleCache { get { return Session.SingleCache; } }
 
             /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
             //[Obsolete("=>Session")]

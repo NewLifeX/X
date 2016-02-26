@@ -42,11 +42,23 @@ namespace XCode.Cache
     /// <summary>单对象缓存接口</summary>
     public interface ISingleEntityCache : IEntityCacheBase
     {
-        ///// <summary>单对象缓存主键是否使用实体模型唯一键（第一个标识列或者唯一的主键）</summary>
-        //Boolean MasterKeyUsingUniqueField { get; set; }
+        /// <summary>过期时间。单位是秒，默认60秒</summary>
+        Int32 Expire { get; set; }
+
+        /// <summary>最大实体数。默认10000</summary>
+        Int32 MaxEntity { get; set; }
+
+        /// <summary>缓存到期时自动保存，默认true</summary>
+        Boolean AutoSave { get; set; }
+
+        /// <summary>允许缓存空对象，默认false</summary>
+        Boolean AllowNull { get; set; }
 
         /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
         Boolean HoldCache { get; set; }
+
+        /// <summary>是否在使用缓存</summary>
+        Boolean Using { get; }
 
         /// <summary>获取数据</summary>
         /// <param name="key"></param>
@@ -89,7 +101,8 @@ namespace XCode.Cache
 
         /// <summary>移除指定项</summary>
         /// <param name="entity"></param>
-        void Remove(IEntity entity);
+        /// <param name="save">是否自动保存实体对象</param>
+        void Remove(IEntity entity, Boolean save);
 
         /// <summary>移除指定项</summary>
         /// <param name="key">键值</param>
@@ -99,5 +112,19 @@ namespace XCode.Cache
         /// <summary>清除所有数据</summary>
         /// <param name="reason">清除缓存原因</param>
         void Clear(String reason);
+    }
+
+    public interface ISingleEntityCache<TKey, TEntity> : ISingleEntityCache where TEntity : Entity<TEntity>, new()
+    {
+        /// <summary>获取数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        TEntity this[TKey key] { get; }
+
+        /// <summary>获取缓存主键的方法，默认方法为获取实体主键值</summary>
+        Func<TEntity, TKey> GetKeyMethod { get; set; }
+
+        /// <summary>查找数据的方法</summary>
+        Func<TKey, TEntity> FindKeyMethod { get; set; }
     }
 }

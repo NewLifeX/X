@@ -352,11 +352,11 @@ namespace XCode
             }
         }
 
-        private SingleEntityCache<Object, TEntity> _singleCache;
+        private ISingleEntityCache<Object, TEntity> _singleCache;
         /// <summary>单对象实体缓存。
         /// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
         /// </summary>
-        public SingleEntityCache<Object, TEntity> SingleCache
+        public ISingleEntityCache<Object, TEntity> SingleCache
         {
             get
             {
@@ -370,7 +370,7 @@ namespace XCode
                     // 从默认会话复制参数
                     if (Default != this) sc.CopySettingFrom(Default.SingleCache);
 
-                    Interlocked.CompareExchange<SingleEntityCache<Object, TEntity>>(ref _singleCache, sc, null);
+                    Interlocked.CompareExchange<ISingleEntityCache<Object, TEntity>>(ref _singleCache, sc, null);
                 }
                 return _singleCache;
             }
@@ -862,7 +862,7 @@ namespace XCode
                 Dal.EnableCache = true;
             }
             Cache.Clear();
-            SingleCache.Clear();
+            SingleCache.Clear(null);
             LongCount = 0;
 
             // 重新初始化

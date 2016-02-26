@@ -17,7 +17,7 @@ namespace XCode.Cache
     /// </remarks>
     /// <typeparam name="TKey">键值类型</typeparam>
     /// <typeparam name="TEntity">实体类型</typeparam>
-    public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity>, ISingleEntityCache where TEntity : Entity<TEntity>, new()
+    public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity>, ISingleEntityCache<TKey, TEntity> where TEntity : Entity<TEntity>, new()
     {
         #region 属性
         /// <summary>过期时间。单位是秒，默认60秒</summary>
@@ -59,7 +59,7 @@ namespace XCode.Cache
         public Boolean HoldCache { get; set; }
 
         /// <summary>是否在使用缓存</summary>
-        internal Boolean Using { get; set; }
+        public Boolean Using { get; set; }
         #endregion
 
         #region 构造、检查过期缓存
@@ -675,7 +675,7 @@ namespace XCode.Cache
 
         /// <summary>移除指定项</summary>
         /// <param name="entity"></param>
-        void ISingleEntityCache.Remove(IEntity entity) { Remove(entity as TEntity); }
+        void ISingleEntityCache.Remove(IEntity entity, Boolean save) { Remove(entity as TEntity, save); }
 
         /// <summary>向单对象缓存添加项</summary>
         /// <param name="key"></param>
@@ -701,7 +701,7 @@ namespace XCode.Cache
         #endregion
 
         #region 辅助
-        internal SingleEntityCache<TKey, TEntity> CopySettingFrom(SingleEntityCache<TKey, TEntity> ec)
+        internal SingleEntityCache<TKey, TEntity> CopySettingFrom(ISingleEntityCache ec)
         {
             this.Expire = ec.Expire;
             this.MaxEntity = ec.MaxEntity;
@@ -709,14 +709,14 @@ namespace XCode.Cache
             this.AllowNull = ec.AllowNull;
             this.HoldCache = ec.HoldCache;
 
-            this.GetKeyMethod = ec.GetKeyMethod;
-            this.FindKeyMethod = ec.FindKeyMethod;
+            //this.GetKeyMethod = ec.GetKeyMethod;
+            //this.FindKeyMethod = ec.FindKeyMethod;
 
-            this.SlaveKeyIgnoreCase = ec.SlaveKeyIgnoreCase;
-            this.GetSlaveKeyMethod = ec.GetSlaveKeyMethod;
-            this.FindSlaveKeyMethod = ec.FindSlaveKeyMethod;
+            //this.SlaveKeyIgnoreCase = ec.SlaveKeyIgnoreCase;
+            //this.GetSlaveKeyMethod = ec.GetSlaveKeyMethod;
+            //this.FindSlaveKeyMethod = ec.FindSlaveKeyMethod;
 
-            this.InitializeMethod = ec.InitializeMethod;
+            //this.InitializeMethod = ec.InitializeMethod;
 
             return this;
         }
