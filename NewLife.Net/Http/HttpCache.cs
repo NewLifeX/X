@@ -18,7 +18,7 @@ namespace NewLife.Net.Http
         {
             get
             {
-                if (_Items == null) _Items = new DictionaryCache<string, HttpCacheItem>(StringComparer.OrdinalIgnoreCase) { Expriod = Expriod };
+                if (_Items == null) _Items = new DictionaryCache<string, HttpCacheItem>(StringComparer.OrdinalIgnoreCase) { Expire = Expriod };
                 return _Items;
             }
             set { _Items = value; }

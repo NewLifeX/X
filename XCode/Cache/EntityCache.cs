@@ -17,29 +17,33 @@ namespace XCode.Cache
     public class EntityCache<TEntity> : CacheBase<TEntity>, IEntityCache where TEntity : Entity<TEntity>, new()
     {
         #region 基础属性
-        private DateTime _ExpiredTime;
         /// <summary>缓存过期时间</summary>
-        DateTime ExpiredTime { get { return _ExpiredTime; } set { _ExpiredTime = value; } }
+        DateTime ExpiredTime { get; set; }
 
         /// <summary>缓存更新次数</summary>
-        private Int64 Times;
+        private Int64 Times { get; set; }
 
-        private Int32 _Expriod = Setting.Current.Cache.EntityCacheExpire;
         /// <summary>过期时间。单位是秒，默认60秒</summary>
-        public Int32 Expriod { get { return _Expriod; } set { _Expriod = value; } }
+        public Int32 Expire { get; set; }
 
-        private Boolean _Asynchronous = true;
         /// <summary>异步更新，默认打开</summary>
-        public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
+        public Boolean Asynchronous { get; set; }
 
         private Boolean _Using;
         /// <summary>是否在使用缓存，在不触发缓存动作的情况下检查是否有使用缓存</summary>
-        internal Boolean Using { get { return _Using; } private set { _Using = value; } }
+        internal Boolean Using { get; private set; }
 
         /// <summary>当前获得锁的线程</summary>
         private Int32 _thread = 0;
-        ///// <summary>是否正在繁忙</summary>
-        //internal Boolean Busy { get { return _thread > 0; } }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化实体缓存</summary>
+        public EntityCache()
+        {
+            Expire = Setting.Current.Cache.EntityCacheExpire;
+            Asynchronous = true;
+        }
         #endregion
 
         #region 缓存核心
@@ -110,12 +114,12 @@ namespace XCode.Cache
             {
                 // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
                 // 设置时间放在获取缓存之前，让其它线程不要空等
-                ExpiredTime = DateTime.Now.AddSeconds(Expriod);
+                ExpiredTime = DateTime.Now.AddSeconds(Expire);
                 Times++;
 
                 if (Debug)
                 {
-                    var reason = Times == 1 ? "第一次" : (nodata ? "无缓存数据" : Expriod + "秒过期");
+                    var reason = Times == 1 ? "第一次" : (nodata ? "无缓存数据" : Expire + "秒过期");
                     DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(3, 16));
                 }
 
@@ -126,7 +130,7 @@ namespace XCode.Cache
                 Times++;
                 if (Debug)
                 {
-                    var reason = Times == 1 ? "第一次" : (nodata ? "无缓存数据" : Expriod + "秒过期");
+                    var reason = Times == 1 ? "第一次" : (nodata ? "无缓存数据" : Expire + "秒过期");
                     DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(3, 16));
                 }
 
@@ -134,7 +138,7 @@ namespace XCode.Cache
 
                 // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
                 // 设置时间放在获取缓存之后，避免缓存尚未拿到，其它线程拿到空数据
-                ExpiredTime = DateTime.Now.AddSeconds(Expriod);
+                ExpiredTime = DateTime.Now.AddSeconds(Expire);
             }
         }
 
@@ -248,7 +252,7 @@ namespace XCode.Cache
         #region 辅助
         internal EntityCache<TEntity> CopySettingFrom(EntityCache<TEntity> ec)
         {
-            this.Expriod = ec.Expriod;
+            this.Expire = ec.Expire;
             this.Asynchronous = ec.Asynchronous;
             this.FillListMethod = ec.FillListMethod;
 

@@ -126,7 +126,7 @@ namespace NewLife.Net.DNS
         #endregion
 
         #region 方法
-        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>() { Expriod = 600, Asynchronous = true, CacheDefault = false };
+        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>() { Expire = 600, Asynchronous = true, CacheDefault = false };
 
         /// <summary>接收处理</summary>
         /// <param name="session"></param>

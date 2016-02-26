@@ -55,7 +55,7 @@ namespace XCode.Cache
             Debug = Config.GetConfig<Boolean>("XCode.Cache.Debug", false);
             Alone = Config.GetConfig<Boolean>("XCode.Cache.Alone", !Debug);
 
-            Expiration = Config.GetMutilConfig<Int32>(Alone ? 60 : -2, "XCode.Cache.Expiration", "XCacheExpiration");
+            Expiration = Config.GetMutilConfig<Int32>(Alone ? 60 : -1, "XCode.Cache.Expiration", "XCacheExpiration");
             //CheckPeriod = Config.GetMutilConfig<Int32>(5, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
 
             EntityCacheExpire = Config.GetConfig<Int32>("XCode.Cache.EntityCacheExpire", 60);

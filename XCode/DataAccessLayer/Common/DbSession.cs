@@ -617,10 +617,10 @@ namespace XCode.DataAccessLayer
         #region 架构
         private DictionaryCache<String, DataTable> _schCache = new DictionaryCache<String, DataTable>(StringComparer.OrdinalIgnoreCase)
         {
-            Expriod = 10,
-            ClearExpriod = 10 * 60//,
+            Expire = 10,
+            ClearPeriod = 10 * 60,
             // 不能异步。否则，修改表结构后，第一次获取会是旧的
-            //Asynchronous = true
+            Asynchronous = false
         };
 
         /// <summary>返回数据源的架构信息。缓存10分钟</summary>

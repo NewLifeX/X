@@ -144,7 +144,7 @@ namespace XCode.Membership
                     // 缓存查询所有类别名，并缓存10分钟，缓存过期时将使用异步查询，不影响返回速度
                     _categoryCache = new EntityCache<TEntity>();
                     _categoryCache.Asynchronous = true;
-                    _categoryCache.Expriod = 10 * 60;
+                    _categoryCache.Expire = 10 * 60;
                     _categoryCache.FillListMethod = delegate { return FindAll("1=1 Group By " + _.Category, null, _.Category, 0, 0); };
                 }
                 return _categoryCache;

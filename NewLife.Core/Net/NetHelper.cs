@@ -68,7 +68,7 @@ namespace System
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
         }
 
-        private static DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<String, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expriod = 60, Asynchronous = true };
+        private static DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<String, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expire = 60, Asynchronous = true };
         /// <summary>分析地址，根据IP或者域名得到IP地址，缓存60秒，异步更新</summary>
         /// <param name="hostname"></param>
         /// <returns></returns>
@@ -319,7 +319,7 @@ namespace System
 #endif
         }
 
-        private static DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expriod = 60, Asynchronous = true };
+        private static DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expire = 60, Asynchronous = true };
         /// <summary>获取本机可用IP地址，缓存60秒，异步更新</summary>
         /// <returns></returns>
         public static IPAddress[] GetIPsWithCache()

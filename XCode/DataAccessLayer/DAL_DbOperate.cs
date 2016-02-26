@@ -63,7 +63,7 @@ namespace XCode.DataAccessLayer
                 var dt = DbType;
                 if (dt == DatabaseType.Access || dt == DatabaseType.SqlCe || dt == DatabaseType.SqlServer && Db.ServerVersion.StartsWith("08"))
                 {
-                    _PageSplitCache2.Expriod = 60;
+                    _PageSplitCache2.Expire = 60;
                 }
             }
             return _PageSplitCache2.GetItem(cacheKey, builder, startRowIndex, maximumRows, (k, b, s, m) => Db.PageSplit(b, s, m));

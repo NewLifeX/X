@@ -14,69 +14,42 @@ namespace NewLife.Collections
     public class DictionaryCache<TKey, TValue> : /*DisposeBase, */IDictionary<TKey, TValue>, IDisposable
     {
         #region 属性
-        private Int32 _Expriod = 0;
         /// <summary>过期时间。单位是秒，默认0秒，表示永不过期</summary>
-        public Int32 Expriod
-        {
-            get { return _Expriod; }
-            set
-            {
-                _Expriod = value;
+        public Int32 Expire { get; set; }
 
-                var ce = ClearExpriod;
-                if (value > 0)
-                {
-                    // 2倍清理过期时间
-                    if (ce <= 0) ClearExpriod = value * 2;
-                }
-                else
-                {
-                    ClearExpriod = 0;
-                }
-            }
-        }
-
-        private Int32 _ClearExpriod;
         /// <summary>过期清理时间，缓存项过期后达到这个时间时，将被移除缓存。单位是秒，默认0秒，表示不清理过期项</summary>
-        public Int32 ClearExpriod
-        {
-            get { return _ClearExpriod; }
-            set
-            {
-                _ClearExpriod = value;
-                if (value > 0)
-                    StartTimer();
-                else
-                    StopTimer();
-            }
-        }
+        public Int32 ClearPeriod { get; set; }
 
-        private Boolean _Asynchronous;
         /// <summary>异步更新。默认false</summary>
-        public Boolean Asynchronous { get { return _Asynchronous; } set { _Asynchronous = value; } }
+        public Boolean Asynchronous { get; set; }
 
-        private Boolean _AutoDispose;
         /// <summary>移除过期缓存项时，自动调用其Dispose。默认false</summary>
-        public Boolean AutoDispose { get { return _AutoDispose; } set { _AutoDispose = value; } }
+        public Boolean AutoDispose { get; set; }
 
-        private Boolean _CacheDefault = true;
         /// <summary>是否缓存默认值，有时候委托返回默认值不希望被缓存，而是下一次尽快进行再次计算。默认true</summary>
-        public Boolean CacheDefault { get { return _CacheDefault; } set { _CacheDefault = value; } }
+        public Boolean CacheDefault { get; set; }
 
-        private Boolean _DelayLock;
         /// <summary>延迟加锁，字典没有数据时，先计算结果再加锁加入字典，避免大量不同键的插入操作形成排队影响性能。默认false</summary>
-        public Boolean DelayLock { get { return _DelayLock; } set { _DelayLock = value; } }
+        public Boolean DelayLock { get; set; }
 
         private Dictionary<TKey, CacheItem> Items;
         #endregion
 
         #region 构造
         /// <summary>实例化一个字典缓存</summary>
-        public DictionaryCache() { Items = new Dictionary<TKey, CacheItem>(); }
+        public DictionaryCache()
+        {
+            Items = new Dictionary<TKey, CacheItem>();
+            CacheDefault = true;
+        }
 
         /// <summary>实例化一个字典缓存</summary>
         /// <param name="comparer"></param>
-        public DictionaryCache(IEqualityComparer<TKey> comparer) { Items = new Dictionary<TKey, CacheItem>(comparer); }
+        public DictionaryCache(IEqualityComparer<TKey> comparer)
+        {
+            Items = new Dictionary<TKey, CacheItem>(comparer);
+            CacheDefault = true;
+        }
 
         ///// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         ///// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
@@ -130,7 +103,7 @@ namespace NewLife.Collections
             get
             {
                 CacheItem item;
-                if (Items.TryGetValue(key, out item) && (Expriod <= 0 || !item.Expired)) return item.Value;
+                if (Items.TryGetValue(key, out item) && (Expire <= 0 || !item.Expired)) return item.Value;
 
                 return default(TValue);
             }
@@ -141,15 +114,14 @@ namespace NewLife.Collections
                 {
                     item.Value = value;
                     //更新当前缓存项的过期时间
-                    //item.ExpiredTime = DateTime.Now;
-                    item.ExpiredTime = DateTime.Now.AddSeconds(Expriod);
+                    item.ExpiredTime = DateTime.Now.AddSeconds(Expire);
                 }
                 else
                 {
                     // 加锁，避免意外
                     lock (Items)
                     {
-                        Items[key] = new CacheItem(value, Expriod);
+                        Items[key] = new CacheItem(value, Expire);
                     }
                     StartTimer();
                 }
@@ -163,10 +135,10 @@ namespace NewLife.Collections
         [DebuggerHidden]
         public virtual TValue GetItem(TKey key, Func<TKey, TValue> func)
         {
-            var expriod = Expriod;
+            var exp = Expire;
             var items = Items;
             CacheItem item;
-            if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
 
             // 提前计算，避免因为不同的Key错误锁定了主键
             var value = default(TValue);
@@ -175,24 +147,24 @@ namespace NewLife.Collections
 
             lock (items)
             {
-                if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
 
                 // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                if (expriod > 0 && Asynchronous)
+                if (exp > 0 && Asynchronous)
                 {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(expriod);
+                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
                 }
 
                 if (func == null)
                 {
-                    if (CacheDefault) items[key] = new CacheItem(value, expriod);
+                    if (CacheDefault) items[key] = new CacheItem(value, exp);
                 }
                 else
                 {
                     // 如果不是延迟加锁，则现在计算
                     if (!DelayLock) value = func(key);
 
-                    if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                    if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
                 }
                 StartTimer();
 
@@ -209,22 +181,22 @@ namespace NewLife.Collections
         [DebuggerHidden]
         public virtual TValue GetItem<TArg>(TKey key, TArg arg, Func<TKey, TArg, TValue> func)
         {
-            var expriod = Expriod;
+            var exp = Expire;
             var items = Items;
             CacheItem item;
-            if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
             lock (items)
             {
-                if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
 
                 // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                if (expriod > 0 && Asynchronous)
+                if (exp > 0 && Asynchronous)
                 {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(expriod);
+                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
                 }
 
                 var value = func(key, arg);
-                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
                 StartTimer();
 
                 return value;
@@ -242,22 +214,22 @@ namespace NewLife.Collections
         [DebuggerHidden]
         public virtual TValue GetItem<TArg, TArg2>(TKey key, TArg arg, TArg2 arg2, Func<TKey, TArg, TArg2, TValue> func)
         {
-            var expriod = Expriod;
+            var exp = Expire;
             var items = Items;
             CacheItem item;
-            if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
             lock (items)
             {
-                if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
 
                 // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                if (expriod > 0 && Asynchronous)
+                if (exp > 0 && Asynchronous)
                 {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(expriod);
+                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
                 }
 
                 var value = func(key, arg, arg2);
-                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
                 StartTimer();
 
                 return value;
@@ -277,22 +249,22 @@ namespace NewLife.Collections
         [DebuggerHidden]
         public virtual TValue GetItem<TArg, TArg2, TArg3>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, Func<TKey, TArg, TArg2, TArg3, TValue> func)
         {
-            var expriod = Expriod;
+            var exp = Expire;
             var items = Items;
             CacheItem item;
-            if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
             lock (items)
             {
-                if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
 
                 // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                if (expriod > 0 && Asynchronous)
+                if (exp > 0 && Asynchronous)
                 {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(expriod);
+                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
                 }
 
                 var value = func(key, arg, arg2, arg3);
-                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
                 StartTimer();
 
                 return value;
@@ -314,22 +286,22 @@ namespace NewLife.Collections
         [DebuggerHidden]
         public virtual TValue GetItem<TArg, TArg2, TArg3, TArg4>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, TArg4 arg4, Func<TKey, TArg, TArg2, TArg3, TArg4, TValue> func)
         {
-            var expriod = Expriod;
+            var exp = Expire;
             var items = Items;
             CacheItem item;
-            if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
             lock (items)
             {
-                if (items.TryGetValue(key, out item) && (expriod <= 0 || !item.Expired)) return item.Value;
+                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
 
                 // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                if (expriod > 0 && Asynchronous)
+                if (exp > 0 && Asynchronous)
                 {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(expriod);
+                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
                 }
 
                 var value = func(key, arg, arg2, arg3, arg4);
-                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, expriod);
+                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
                 StartTimer();
 
                 return value;
@@ -343,24 +315,23 @@ namespace NewLife.Collections
 
         void StartTimer()
         {
+            var period = ClearPeriod;
             // 缓存数大于0才启动定时器
-            if (ClearExpriod <= 0 || Items.Count < 1) return;
+            if (period <= 0 || Items.Count < 1) return;
 
-            if (clearTimer == null)
-                clearTimer = new TimerX(RemoveNotAlive, null, ClearExpriod * 1000, ClearExpriod * 1000);
+            if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
         }
 
         void StopTimer()
         {
-            var tx = clearTimer;
+            clearTimer.TryDispose();
             clearTimer = null;
-            if (tx != null) tx.Dispose();
         }
 
         /// <summary>移除过期的缓存项</summary>
         void RemoveNotAlive(Object state)
         {
-            var expriod = ClearExpriod;
+            var expriod = ClearPeriod;
             if (expriod <= 0) return;
 
             var dic = Items;
@@ -400,7 +371,7 @@ namespace NewLife.Collections
         /// <summary></summary>
         /// <param name="key"></param>
         /// <param name="value">数值</param>
-        public void Add(TKey key, TValue value) { Items.Add(key, new CacheItem(value, Expriod)); }
+        public void Add(TKey key, TValue value) { Items.Add(key, new CacheItem(value, Expire)); }
 
         /// <summary></summary>
         /// <param name="key"></param>
@@ -423,7 +394,7 @@ namespace NewLife.Collections
         {
             CacheItem item = null;
             var rs = Items.TryGetValue(key, out item);
-            value = rs && item != null && (Expriod <= 0 || !item.Expired) ? item.Value : default(TValue);
+            value = rs && item != null && (Expire <= 0 || !item.Expired) ? item.Value : default(TValue);
             return rs;
         }
 
