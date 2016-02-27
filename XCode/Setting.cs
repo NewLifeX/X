@@ -68,6 +68,7 @@ namespace XCode
         {
             Debug = true; 
             ShowSQL = true;
+            SQLPath = "";
             ConnMaps = "Conn2#Conn,Table3@Table";
             InitData = true;
 
