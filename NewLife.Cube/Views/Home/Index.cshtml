@@ -1,40 +1,20 @@
-﻿@{
-    ViewBag.Title = "首页";
+﻿@using NewLife.Common;
+@{
+    Layout = null;
 }
-@section featured {
-    <section class="featured">
-        <div class="content-wrapper">
-            <hgroup class="title">
-                <h1>@ViewBag.Title.</h1>
-                <h2>@ViewBag.Message</h2>
-            </hgroup>
-            <p>
-                魔方平台NewLife.Cube由新生命团队开发，基于数据映射框架NewLife.XCode，集成权限管理体系，插件机制，作为Mvc项目的默认管理后台。
-            </p>
-        </div>
-    </section>
-}
-<h3>使用方法：</h3>
-<ol class="round">
-    <li class="one">
-        <h5>下载</h5>
-        从新生命网站下载最新魔方压缩包NewLife.Cube.zip和X组件Fx4版本，<a href="http://www.newlifex.com/showtopic-51.aspx">http://www.NewLifeX.com/showtopic-51.aspx</a><br />
-        <a href="http://www.newlifex.com/showtopic-51.aspx">更多…</a>
-    </li>
 
-    <li class="two">
-        <h5>安装</h5>
-        新建Mvc4项目（使用.Net 4.0），把压缩包NewLife.Cube.zip解压到Mvc项目中，注意Web.config等配置文件的覆盖，根据需要调整<br />
-        下载X组件Fx4版本，<a href="ftp://ftp.newlifex.com/x/DLL4.zip">ftp://ftp.newlifex.com/x/DLL4.zip</a><br />
-        解压到Mvc项目并排的DLL目录<br />
-        Mvc项目引用NewLife.Core.dll、XCode.dll、NewLife.Cube.dll，编译Mvc项目<br />
-        编译通过后即可预览效果<br />
-        <a href="http://www.newlifex.com/showtopic-51.aspx">更多…</a>
-    </li>
+<!DOCTYPE html>
 
-    <li class="three">
-        <h5>NuGet</h5>
-        也可以通过NuGet安装NewLife.Cube
-        <a href="http://www.newlifex.com/showtopic-51.aspx">更多…</a>
-    </li>
-</ol>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@SysConfig.Current.DisplayName</title>
+    <meta http-equiv="refresh" content="0;url=/Admin">
+</head>
+<body>
+    <div>
+        <h1>@SysConfig.Current.DisplayName</h1>
+        @SysConfig.Current.Company
+    </div>
+</body>
+</html>

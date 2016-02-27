@@ -205,16 +205,6 @@
     <Compile Include="Precompiled\PrecompiledViewAssembly.cs" />
     <Compile Include="Precompiled\PrecompiledViewLocationCache.cs" />
     <Compile Include="Setting.cs" />
-    <Compile Include="Views\Home\About.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>About.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Home\Contact.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Contact.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Home\Index.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -578,14 +568,6 @@
     <None Include="Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Home\About.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>About.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Home\Contact.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Contact.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Home\Index.cshtml">
       <Generator>RazorGenerator</Generator>
