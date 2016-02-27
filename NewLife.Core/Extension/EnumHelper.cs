@@ -99,7 +99,9 @@ namespace System
                 //var att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
                 var att = item.GetCustomAttribute<DescriptionAttribute>(false);
                 if (att != null && !String.IsNullOrEmpty(att.Description)) des = att.Description;
-                dic.Add(value, des);
+                //dic.Add(value, des);
+                // 有些枚举可能不同名称有相同的值
+                dic[value] = des;
             }
 
             return dic;
