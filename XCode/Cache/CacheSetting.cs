@@ -22,7 +22,7 @@ namespace XCode.Cache
         ///  0	永久静态缓存；
         /// >0	静态缓存时间，单位是秒；
         /// </summary>
-        [Description("一级缓存有效期。-2 关闭缓存；-1 非独占数据库，请求级缓存；0 永久静态缓存；>0 静态缓存时间，单位秒；默认-2")]
+        [Description("一级缓存有效期。-2 关闭缓存；-1 非独占数据库，请求级缓存；0 永久静态缓存；>0 静态缓存时间，单位秒；默认-1")]
         public Int32 Expiration { get; set; }
 
         ///// <summary>一级缓存维护定时器的检查周期，默认5秒</summary>
@@ -55,7 +55,8 @@ namespace XCode.Cache
             Debug = Config.GetConfig<Boolean>("XCode.Cache.Debug", false);
             Alone = Config.GetConfig<Boolean>("XCode.Cache.Alone", !Debug);
 
-            Expiration = Config.GetMutilConfig<Int32>(Alone ? 60 : -1, "XCode.Cache.Expiration", "XCacheExpiration");
+            //Expiration = Config.GetMutilConfig<Int32>(Alone ? 60 : -1, "XCode.Cache.Expiration", "XCacheExpiration");
+            Expiration = Config.GetMutilConfig<Int32>(-1, "XCode.Cache.Expiration", "XCacheExpiration");
             //CheckPeriod = Config.GetMutilConfig<Int32>(5, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
 
             EntityCacheExpire = Config.GetConfig<Int32>("XCode.Cache.EntityCacheExpire", 60);

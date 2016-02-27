@@ -15,18 +15,23 @@ namespace NewLife.Cube
     public class Setting : XmlConfig<Setting>
     {
         #region 属性
-        private Boolean _Debug;
         /// <summary>是否启用调试。默认为不启用</summary>
         [Description("调试")]
-        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+        public Boolean Debug { get; set; }
 
-        private Boolean _ShowRunTime;
         /// <summary>显示运行时间</summary>
         [Description("显示运行时间")]
-        public Boolean ShowRunTime { get { return _ShowRunTime; } set { _ShowRunTime = value; } }
+        public Boolean ShowRunTime { get; set; }
         #endregion
 
         #region 方法
+        /// <summary>实例化</summary>
+        public Setting()
+        {
+            Debug = false;
+            ShowRunTime = true;
+        }
+
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {
