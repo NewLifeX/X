@@ -189,7 +189,9 @@ namespace XCode.DataAccessLayer
                 if (value == null)
                     return field.Nullable ? "null" : "''";
 
-                return "'" + value.ToString().Replace("'", @"\'") + "'";
+                return "'" + value.ToString()
+                    .Replace("\\", "\\\\")//反斜杠需要这样才能插入到数据库
+                    .Replace("'", @"\'") + "'";
             }
             else if (code == TypeCode.Boolean)
             {
