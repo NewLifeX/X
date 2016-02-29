@@ -103,41 +103,9 @@ namespace Test
 
         static void Test4()
         {
-            var user = UserX.FindByName("admin");
-            Console.WriteLine(user.ToJson(true));
-
-            //var type = typeof(UserX);
-            //var pi = type.GetPropertyEx("Extends");
-            //var ng = pi.GetCustomAttribute<NonSerializedAttribute>();
-            //Console.WriteLine(ng);
-
-            //var obj = new TT();
-            //obj.ID = 123;
-            //obj.Name = "Test";
-
-            //var bn = new Binary();
-            //bn.EncodeInt = true;
-            //bn.Write(obj);
-            //var buf = bn.GetBytes();
-            //Console.WriteLine(buf.ToHex("-"));
-
-            //bn.Stream = new MemoryStream(buf);
-            //var obj2 = bn.Read<TT>();
-            //Console.WriteLine(obj2.ID);
-            //Console.WriteLine(obj2.Name);
-
-            //var js = obj.ToJson();
-            //Console.WriteLine(js);
-            //Console.WriteLine(obj.ToJson(true));
-            //var obj3 = js.ToJsonEntity<TT>();
-            //Console.WriteLine(obj3.ID);
-            //Console.WriteLine(obj3.Name);
-        }
-
-        class TT
-        {
-            public Int32 ID { get; set; }
-            public String Name { get; set; }
+            var buf = "41-54-0d-0d-0a-0d-0a-4F-4B-0d-0a".ToHex();
+            Console.WriteLine(buf.ToHex());
+            Console.WriteLine(buf.ToStr());
         }
 
         static void Test5()
