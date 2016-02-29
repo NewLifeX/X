@@ -121,23 +121,36 @@ namespace XCode.Membership
             var list = rs.ToList();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var eop = ManageProvider.GetFactory<IMenu>();
-            var ids = eop.FindAllWithCache().GetItem<Int32>("ID").ToArray();
+            var eopMenu = ManageProvider.GetFactory<IMenu>();
+            var ids = eopMenu.FindAllWithCache().GetItem<Int32>("ID").ToArray();
             foreach (var role in rs)
             {
                 if (!role.CheckValid(ids))
                 {
                     XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
-                    role.Save();
+                    //role.Save();
                 }
             }
+
+            //// 所有角色都有权进入管理平台，否则无法使用后台
+            //var menu = eopMenu.EntityType.GetValue("Root", false) as IMenu;
+            //menu = menu.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase("Admin"));
+            //if (menu != null)
+            //{
+            //    foreach (var role in rs)
+            //    {
+            //        role.Set(menu.ID, PermissionFlags.Detail);
+            //        //role.Save();
+            //    }
+            //}
+            rs.Save();
 
             var sys = list.LastOrDefault(e => e.IsSystem);
             if (sys == null) return;
 
             // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
             var count = 0;
-            var nes = eop.EntityType.GetValue("Necessaries", false) as Int32[];
+            var nes = eopMenu.EntityType.GetValue("Necessaries", false) as Int32[];
             foreach (var item in nes)
             {
                 if (!list.Any(e => e.Has(item, PermissionFlags.Detail)))

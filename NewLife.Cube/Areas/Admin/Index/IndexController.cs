@@ -18,7 +18,8 @@ namespace NewLife.Cube.Admin.Controllers
     {
         /// <summary>首页</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Detail)]
+        //[EntityAuthorize(PermissionFlags.Detail)]
+        [AllowAnonymous]
         public ActionResult Index()
         {
             ViewBag.User = ManageProvider.User;
