@@ -122,8 +122,8 @@ namespace System.Windows.Forms
                     {
                         //txt.AppendText(m);
                         // 需要考虑处理特殊符号
-                        ProcessBell(ref m);
-                        ProcessBackspace(txt, ref m);
+                        //ProcessBell(ref m);
+                        //ProcessBackspace(txt, ref m);
                         //ProcessReturn(txt, ref m);
 
                         if (String.IsNullOrEmpty(m)) return;
