@@ -132,17 +132,17 @@ namespace XCode.Membership
                 }
             }
 
-            //// 所有角色都有权进入管理平台，否则无法使用后台
-            //var menu = eopMenu.EntityType.GetValue("Root", false) as IMenu;
-            //menu = menu.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase("Admin"));
-            //if (menu != null)
-            //{
-            //    foreach (var role in rs)
-            //    {
-            //        role.Set(menu.ID, PermissionFlags.Detail);
-            //        //role.Save();
-            //    }
-            //}
+            // 所有角色都有权进入管理平台，否则无法使用后台
+            var menu = eopMenu.EntityType.GetValue("Root", false) as IMenu;
+            menu = menu.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase("Admin"));
+            if (menu != null)
+            {
+                foreach (var role in rs)
+                {
+                    role.Set(menu.ID, PermissionFlags.Detail);
+                    //role.Save();
+                }
+            }
             rs.Save();
 
             var sys = list.LastOrDefault(e => e.IsSystem);

@@ -16,7 +16,12 @@ namespace NewLife.Reflection
             //PathHelper.BaseDirectory = @"E:\X\Src\NewLife.Cube";
             XTrace.Debug = true;
             XTrace.UseConsole();
-            "cmd".Run("/c del *.nuspec /f/q");
+            //"cmd".Run("/c del *.nuspec /f/q");
+			foreach(var item in ".".AsDirectory().GetAllFiles("*.nuspec"))
+			{
+				Console.WriteLine("删除 {0}", item);
+				item.Delete();
+			}
             // 找到名称
             var proj = ".".AsDirectory().FullName.EnsureEnd("\\");
 
@@ -96,8 +101,13 @@ namespace NewLife.Reflection
             //var pack = "pack {0} -IncludeReferencedProjects -Build -Prop Configuration={1} -Exclude **\\*.txt;**\\*.png;content\\*.xml";
             // *\\*.*干掉下级的所有文件
             var pack = "pack {0} -IncludeReferencedProjects -Exclude **\\*.txt;**\\*.png;*.jpg;*.xml;*\\*.*";
-             Console.WriteLine("打包：{0}", proj);
-            "cmd".Run("/c del *.nupkg /f/q");
+            Console.WriteLine("打包：{0}", proj);
+            //"cmd".Run("/c del *.nupkg /f/q");
+			foreach(var item in ".".AsDirectory().GetAllFiles("*.nupkg"))
+			{
+				Console.WriteLine("删除 {0}", item);
+				item.Delete();
+			}
             "NuGet".Run(pack.F(proj), 30000);
             var fi = ".".AsDirectory().GetAllFiles("*.nupkg").FirstOrDefault();
             if (fi != null)

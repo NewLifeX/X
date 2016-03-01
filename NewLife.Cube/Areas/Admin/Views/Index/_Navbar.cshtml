@@ -1,6 +1,7 @@
-﻿@{
-    var User = ViewBag.User;
-    var Config = ViewBag.Config;
+﻿@using NewLife.Common;
+@{
+    var User = ViewBag.User as IUser;
+    var Config = ViewBag.Config as SysConfig;
 }
 <!-- #section:basics/navbar.layout -->
 <div id="navbar" class="navbar navbar-default">
