@@ -320,9 +320,11 @@ namespace XCode.DataAccessLayer
                 field.Description = GetDataRowValue<String>(dr, "DESCRIPTION");
 
                 FixField(field, dr);
-
                 // 检查是否已正确识别类型
-                if (field.DataType == null) WriteLog("无法识别{0}.{1}的类型{2}！", table.TableName, field.ColumnName, field.RawType);
+                if (field.DataType == null)
+                {
+                    WriteLog("无法识别{0}.{1}的类型{2}！", table.TableName, field.ColumnName, field.RawType);
+                }
 
                 field.Fix();
                 list.Add(field);

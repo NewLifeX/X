@@ -298,6 +298,11 @@ namespace XCode.DataAccessLayer
             base.FixTable(table, dr);
         }
 
+        protected override bool IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
+        {
+            return base.IsColumnChanged(entityColumn, dbColumn, entityDb);
+        }
+
         protected override void FixField(IDataColumn field, DataRow dr)
         {
             // 修正原始类型
@@ -317,31 +322,46 @@ namespace XCode.DataAccessLayer
             if (TryGetDataRowValue<String>(dr, "COLUMN_COMMENT", out comment)) field.Description = comment;
 
             // 布尔类型
-            if (field.RawType == "enum")
+            // MySql中没有布尔型，这里处理YN枚举作为布尔型
+            if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
             {
-                // MySql中没有布尔型，这里处理YN枚举作为布尔型
-                if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
+                field.DataType = typeof(Boolean);
+                // 处理默认值
+                if (!String.IsNullOrEmpty(field.Default))
                 {
-                    field.DataType = typeof(Boolean);
-                    // 处理默认值
-                    if (!String.IsNullOrEmpty(field.Default))
-                    {
-                        if (field.Default == "Y")
-                            field.Default = "true";
-                        else if (field.Default == "N")
-                            field.Default = "false";
-                    }
-                    return;
+                    if (field.Default == "Y")
+                        field.Default = "true";
+                    else if (field.Default == "N")
+                        field.Default = "false";
                 }
+                return;
             }
-
             base.FixField(field, dr);
         }
+
+
 
         protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             // MySql没有ntext，映射到text
             if (typeName.EqualIgnoreCase("ntext")) typeName = "text";
+            //field.Table.DbType == DatabaseType.MySql
+            if (field.DataType == typeof(String) && field.Length == -1)
+            {
+                //这里修正为longtext
+                return this.DataTypes.Select("TypeName='LONGTEXT'");
+            }
+            var dbType = field.Table.DbType;
+            if (typeName == "text" && (dbType == DatabaseType.SqlServer || dbType == DatabaseType.SQLite))
+            {
+                //SQL Server 中的text容量要远远大于MySQL中的Text，所以要改为LongText。
+                return this.DataTypes.Select("TypeName='LONGTEXT'");
+            }
+            //if (dbType == DatabaseType.SqlServer || dbType == DatabaseType.SQLite)
+            //{
+
+            //}
+
             // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
             if (typeName.EqualIgnoreCase("datetime"))
             {
@@ -355,7 +375,7 @@ namespace XCode.DataAccessLayer
                 // 无符号/有符号
                 if (!String.IsNullOrEmpty(field.RawType))
                 {
-                    if (!typeName.Contains("char")&&!typeName.Contains("String"))
+                    if (!typeName.Contains("char") && !typeName.Contains("String"))
                     {
                         Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
 
@@ -373,21 +393,21 @@ namespace XCode.DataAccessLayer
 
                 // 字符串
                 //2016-02-23 @宁波-小董 同步数据库架构到Oracle，报错，CHAR长度1000，要改用text
-                if (typeName == typeof(String).FullName || typeName.EqualIgnoreCase("varchar") || typeName.Contains("char"))
-                {
-                    foreach (DataRow dr in drs)
-                    {
-                        String name = GetDataRowValue<String>(dr, "TypeName");
-                        if ((name == "CHAR" && field.IsUnicode|| name == "NVARCHAR" && 
-                            field.IsUnicode || name == "VARCHAR" && !field.IsUnicode) && field.Length >= Database.LongTextLength)
-                        {
-                            dr["TypeName"] = "text";
-                            return new DataRow[] { dr };
-                        }
-                        else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
-                            return new DataRow[] { dr };
-                    }
-                }
+                //if (typeName == typeof(String).FullName || typeName.EqualIgnoreCase("varchar") || typeName.Contains("char"))
+                //{
+                //    foreach (DataRow dr in drs)
+                //    {
+                //        String name = GetDataRowValue<String>(dr, "TypeName");
+                //        if ((name == "CHAR" && field.IsUnicode || name == "NVARCHAR" &&
+                //            field.IsUnicode || name == "VARCHAR" && !field.IsUnicode) && field.Length >= Database.LongTextLength)
+                //        {
+                //            dr["TypeName"] = "text";
+                //            return new DataRow[] { dr };
+                //        }
+                //        else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
+                //            return new DataRow[] { dr };
+                //    }
+                //}
 
                 // 时间日期
                 if (typeName == typeof(DateTime).FullName || typeName.EqualIgnoreCase("DateTime"))
@@ -490,7 +510,7 @@ namespace XCode.DataAccessLayer
         {
             //return base.DatabaseExist(databaseName);
 
-            var session = Database.CreateSession();
+            // var session = Database.CreateSession(); //这里的Session被创建了可是没有使用，先注释掉，看看是否会有问题。
             var dt = GetSchema(_.Databases, new String[] { databaseName });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
@@ -574,7 +594,10 @@ namespace XCode.DataAccessLayer
             String str = base.GetFormatParam(field, dr);
             if (String.IsNullOrEmpty(str)) return str;
 
-            if (str == "(-1)" && field.DataType == typeof(String)) return String.Format("({0})", Database.LongTextLength);
+            if (str == "(-1)" && field.DataType == typeof(String))
+            {
+                return String.Format("({0})", Database.LongTextLength);
+            }
             if (field.DataType == typeof(Guid)) return "(36)";
 
             return str;
