@@ -363,11 +363,15 @@ namespace XCode.DataAccessLayer
             //}
 
             // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
-            if (typeName.EqualIgnoreCase("datetime"))
-            {
-                String d = field.Default; ;
-                if (CheckAndGetDefault(field, ref d) && String.IsNullOrEmpty(d)) typeName = "timestamp";
-            }
+            //2016年3月1日 去掉这个特性，因为： 
+            // timestamp 类型的列还有个特性：默认情况下，在 insert, update 数据时，timestamp 列会自动以当前时间（CURRENT_TIMESTAMP）填充/更新。“自动”的意思就是，你不去管它，MySQL 会替你去处理。 
+            //意思就是说，如果执行Update操作的话，就算不涉及这个字段，这个字段的值还是会改变的。
+            //如果此字段用作创建时间，就悲剧了。
+            //if (typeName.EqualIgnoreCase("datetime"))
+            //{
+            //    String d = field.Default; ;
+            //    if (CheckAndGetDefault(field, ref d) && String.IsNullOrEmpty(d)) typeName = "timestamp";
+            //}
 
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 0)
@@ -410,23 +414,27 @@ namespace XCode.DataAccessLayer
                 //}
 
                 // 时间日期
-                if (typeName == typeof(DateTime).FullName || typeName.EqualIgnoreCase("DateTime"))
-                {
-                    // DateTime的范围是0001到9999
-                    // Timestamp的范围是1970到2038
-                    // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
-                    String d = field.Default; ;
-                    CheckAndGetDefault(field, ref d);
-                    //String d = CheckAndGetDefault(field, field.Default);
-                    foreach (DataRow dr in drs)
-                    {
-                        String name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
-                            return new DataRow[] { dr };
-                        else if (name == "TIMESTAMP" && String.IsNullOrEmpty(d))
-                            return new DataRow[] { dr };
-                    }
-                }
+                //2016年3月1日 去掉这个特性，因为： 
+                // timestamp 类型的列还有个特性：默认情况下，在 insert, update 数据时，timestamp 列会自动以当前时间（CURRENT_TIMESTAMP）填充/更新。“自动”的意思就是，你不去管它，MySQL 会替你去处理。 
+                //意思就是说，如果执行Update操作的话，就算不涉及这个字段，这个字段的值还是会改变的。
+                //如果此字段用作创建时间，就悲剧了。
+                //if (typeName == typeof(DateTime).FullName || typeName.EqualIgnoreCase("DateTime"))
+                //{
+                //    // DateTime的范围是0001到9999
+                //    // Timestamp的范围是1970到2038
+                //    // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
+                //    String d = field.Default; ;
+                //    CheckAndGetDefault(field, ref d);
+                //    //String d = CheckAndGetDefault(field, field.Default);
+                //    foreach (DataRow dr in drs)
+                //    {
+                //        String name = GetDataRowValue<String>(dr, "TypeName");
+                //        if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
+                //            return new DataRow[] { dr };
+                //        else if (name == "TIMESTAMP" && String.IsNullOrEmpty(d))
+                //            return new DataRow[] { dr };
+                //    }
+                //}
             }
             return drs;
         }
