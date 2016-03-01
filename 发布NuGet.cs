@@ -61,16 +61,13 @@ namespace NewLife.Reflection
             var name2 = name.EnsureStart("NewLife.");
 
             var cfg = Manifest.Load(spec.GetFullPath());
-
-
-
             // 修改配置文件
             cfg.Metadata.Id = name2;
             cfg.Metadata.LicenseUrl = "http://www.NewLifeX.com";
             cfg.Metadata.ProjectUrl = "http://www.NewLifeX.com/showtopic-51.aspx";
             cfg.Metadata.IconUrl = "http://www.NewLifeX.com/favicon.ico";
             cfg.Metadata.Copyright = "Copyright 2002-{0} 新生命开发团队 http://www.NewLifeX.com".F(DateTime.Now.Year);
-            cfg.Metadata.Tags = "新生命团队 X组件 NewLife";
+            cfg.Metadata.Tags = "新生命团队 X组件 NewLife " + name;
             cfg.Metadata.ReleaseNotes = "http://www.newlifex.com/showtopic-51.aspx";
             //cfg.Metadata.Authors="新生命开发团队";
             //cfg.Metadata.Owners="新生命开发团队";
