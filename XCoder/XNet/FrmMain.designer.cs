@@ -429,7 +429,7 @@
             this.Controls.Add(this.gbReceive);
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "网络调试工具";
+            this.Text = "网络调试";
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.gbReceive.ResumeLayout(false);
             this.menuReceive.ResumeLayout(false);

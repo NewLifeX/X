@@ -9,6 +9,10 @@ namespace XCoder
     public class XConfig : XmlConfig<XConfig>
     {
         #region 属性
+        /// <summary>标题</summary>
+        [Description("标题")]
+        public String Title { get; set; }
+
         /// <summary>宽度</summary>
         [Description("宽度")]
         public Int32 Width { get; set; }

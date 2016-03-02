@@ -27,7 +27,8 @@ namespace XCoder
             }
 
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            Text = String.Format("{2} v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile, asm.Title);
+            if (set.Title.IsNullOrEmpty()) set.Title = asm.Title;
+            Text = String.Format("{2} v{0} {1:HH:mm:ss}", asm.CompileVersion, asm.Compile, set.Title);
 
             //var name = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
             var name = XConfig.Current.LastTool + "";

@@ -239,7 +239,7 @@
             this.Controls.Add(this.gbReceive);
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "串口调试工具";
+            this.Text = "串口调试";
             this.Load += new System.EventHandler(this.FrmMain_Load);
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).EndInit();
             this.gbReceive.ResumeLayout(false);
