@@ -105,15 +105,7 @@ namespace System.Windows.Forms
                 {
                     if (txt.Lines.Length >= maxLines) txt.Clear();
 
-                    //// 如果不是第一行，加上空行
-                    //if (txt.TextLength > 0) txt.AppendText(Environment.NewLine);
-
-                    //// 提前取得光标所在行索引，决定后面要不要滚动
-                    //var cur = txt.GetFirstCharIndexOfCurrentLine();
-                    //var line = txt.GetLineFromCharIndex(cur);
-                    // AppendText本身就会让文本滚动到最后，不需要额外的滚动代码
-
-                    // 记录原原则
+                    // 记录原选择
                     var selstart = txt.SelectionStart;
                     var sellen = txt.SelectionLength;
 
@@ -126,6 +118,7 @@ namespace System.Windows.Forms
                         //ProcessBackspace(txt, ref m);
                         //ProcessReturn(txt, ref m);
 
+                        m = m.Trim('\0');
                         if (String.IsNullOrEmpty(m)) return;
                         txt.AppendText(m);
                     }
@@ -143,16 +136,6 @@ namespace System.Windows.Forms
 
                         return;
                     }
-
-                    //// 取得最后一行首字符索引
-                    //var lines = txt.Lines.Length;
-                    //var last = lines <= 1 ? 0 : txt.GetFirstCharIndexFromLine(lines - 1);
-                    //if (last >= 0)
-                    //{
-                    //    // 滚动到最后一行第一个字符
-                    //    txt.Select(last, 0);
-                    //    txt.ScrollToCaret();
-                    //}
 
                     txt.Scroll();
                 }
