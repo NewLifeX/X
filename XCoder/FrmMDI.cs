@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using NewLife.Reflection;
@@ -18,8 +17,17 @@ namespace XCoder
 
         private void FrmMDI_Shown(object sender, EventArgs e)
         {
+            var set = XConfig.Current;
+            if (set.Width > 0 || set.Height > 0)
+            {
+                this.Width = set.Width;
+                this.Height = set.Height;
+                this.Top = set.Top;
+                this.Left = set.Left;
+            }
+
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
-            Text = String.Format("新生命超级码神工具 v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile);
+            Text = String.Format("{2} v{0} {1:HH:mm:ss}编译", asm.CompileVersion, asm.Compile, asm.Title);
 
             //var name = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
             var name = XConfig.Current.LastTool + "";
@@ -93,7 +101,7 @@ namespace XCoder
         {
             CreateForm<XNet.FrmMain>();
         }
- 
+
         private void 文件夹大小统计ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CreateForm<FolderInfo.FrmMain>();
@@ -164,6 +172,17 @@ namespace XCoder
         }
         #endregion
 
-       
+        private void FrmMDI_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            var set = XConfig.Current;
+            //if (set.Width == 0 || set.Height == 0)
+            {
+                set.Width = this.Width;
+                set.Height = this.Height;
+                set.Top = this.Top;
+                set.Left = this.Left;
+                set.Save();
+            }
+        }
     }
 }

@@ -9,6 +9,22 @@ namespace XCoder
     public class XConfig : XmlConfig<XConfig>
     {
         #region 属性
+        /// <summary>宽度</summary>
+        [Description("宽度")]
+        public Int32 Width { get; set; }
+
+        /// <summary>高度</summary>
+        [Description("高度")]
+        public Int32 Height { get; set; }
+
+        /// <summary>顶部</summary>
+        [Description("顶部")]
+        public Int32 Top { get; set; }
+
+        /// <summary>左边</summary>
+        [Description("左边")]
+        public Int32 Left { get; set; }
+
         /// <summary>扩展数据</summary>
         [Description("扩展数据")]
         public String Extend { get; set; }
