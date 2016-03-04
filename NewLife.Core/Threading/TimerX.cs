@@ -10,7 +10,7 @@ namespace NewLife.Threading
     /// 为了避免系统的Timer可重入的问题，差别在于本地调用完成后才开始计算时间间隔。这实际上也是经常用到的。
     /// 
     /// 因为挂载在静态列表上，必须从外部主动调用<see cref="IDisposable.Dispose"/>才能销毁定时器。
-    /// 上一行不对，因为<see cref="Callback"/>采用弱引用，当回调函数所在对象被销毁时，对应的定时器可以自动销毁。
+    /// 因为<see cref="Callback"/>采用弱引用，当回调函数所在对象被销毁时，对应的定时器可以自动销毁。
     /// 
     /// 该定时器不能放入太多任务，否则适得其反！
     /// 
@@ -19,33 +19,26 @@ namespace NewLife.Threading
     public class TimerX : /*DisposeBase*/IDisposable
     {
         #region 属性
-        private WeakAction<Object> _Callback;
         /// <summary>回调</summary>
-        public WeakAction<Object> Callback { get { return _Callback; } set { _Callback = value; } }
+        public WeakAction<Object> Callback { get; set; }
 
-        private Object _State;
         /// <summary>用户数据</summary>
-        public Object State { get { return _State; } set { _State = value; } }
+        public Object State { get; set; }
 
-        private DateTime _NextTime;
         /// <summary>下一次调用时间</summary>
-        public DateTime NextTime { get { return _NextTime; } set { _NextTime = value; } }
+        public DateTime NextTime { get; set; }
 
-        private Int32 _Timers;
         /// <summary>调用次数</summary>
-        public Int32 Timers { get { return _Timers; } set { _Timers = value; } }
+        public Int32 Timers { get; set; }
 
-        private Int32 _Period;
         /// <summary>间隔周期。毫秒，设为0则只调用一次</summary>
-        public Int32 Period { get { return _Period; } set { _Period = value; } }
+        public Int32 Period { get; set; }
 
-        private Boolean _UseThreadPool;
         /// <summary>是否使用线程池。对于耗时短小且比较频繁的操作，不好使用线程池，减少线程切换。</summary>
-        public Boolean UseThreadPool { get { return _UseThreadPool; } set { _UseThreadPool = value; } }
+        public Boolean UseThreadPool { get; set; }
 
-        private Boolean _Calling;
         /// <summary>调用中</summary>
-        public Boolean Calling { get { return _Calling; } set { _Calling = value; } }
+        public Boolean Calling { get; set; }
         #endregion
 
         #region 构造
@@ -107,9 +100,8 @@ namespace NewLife.Threading
         #endregion
 
         #region 设置
-        private static Boolean _Debug;
         /// <summary>是否开启调试，输出更多信息</summary>
-        public static Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+        public static Boolean Debug { get; set; }
 
         static void WriteLog(String format, params Object[] args)
         {
@@ -128,11 +120,11 @@ namespace NewLife.Threading
             /// <param name="timer"></param>
             public static void Add(TimerX timer)
             {
+                WriteLog("TimerX.Add {0}ms {1}", timer.Period, timer);
+
                 lock (timers)
                 {
                     timers.Add(timer);
-
-                    WriteLog("TimerX.Add {0}ms {1}", timer.Period, timer);
 
                     if (thread == null)
                     {
@@ -143,7 +135,12 @@ namespace NewLife.Threading
                         thread.Start();
                     }
 
-                    if (waitForTimer != null && waitForTimer.SafeWaitHandle != null && !waitForTimer.SafeWaitHandle.IsClosed) waitForTimer.Set();
+                    var e = waitForTimer;
+                    if (e != null)
+                    {
+                        var swh = e.SafeWaitHandle;
+                        if (swh != null && !swh.IsClosed) e.Set();
+                    }
                 }
             }
 
@@ -151,10 +148,10 @@ namespace NewLife.Threading
             {
                 if (timer == null) return;
 
+                WriteLog("TimerX.Remove {0}", timer);
+
                 lock (timers)
                 {
-                    WriteLog("TimerX.Remove {0}", timer);
-
                     if (timers.Contains(timer)) timers.Remove(timer);
                 }
             }
@@ -172,8 +169,6 @@ namespace NewLife.Threading
                     {
                         var arr = Prepare();
 
-                        // 记录本次循环有几个任务被处理
-                        //Int32 count = 0;
                         // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
                         period = 60000;
                         foreach (var timer in arr)
@@ -185,7 +180,6 @@ namespace NewLife.Threading
                     catch (ThreadInterruptedException) { break; }
                     catch { }
 
-                    //Thread.Sleep(period);
                     if (waitForTimer == null) waitForTimer = new AutoResetEvent(false);
                     waitForTimer.WaitOne(period, false);
                 }
@@ -197,12 +191,10 @@ namespace NewLife.Threading
             {
                 if (timers == null || timers.Count < 1)
                 {
-                    // 没有计时器，设置一个较大的休眠时间
-                    //period = 60000;
-
                     // 使用事件量来控制线程
                     if (waitForTimer != null) waitForTimer.Close();
 
+                    // 没有任务，无线等待
                     waitForTimer = new AutoResetEvent(false);
                     waitForTimer.WaitOne(Timeout.Infinite, false);
                 }
@@ -222,7 +214,7 @@ namespace NewLife.Threading
                 if (!timer.Callback.IsAlive || p < 10 && p > 0)
                 {
                     // 周期0表示只执行一次
-                    if (p < 10 && p > 0) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度，关闭任务{0}", timer);
+                    if (p < 10 && p > 0) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于{1}ms<10ms的任务调度，关闭任务{0}", timer, p);
                     lock (timers)
                     {
                         timers.Remove(timer);
@@ -261,8 +253,8 @@ namespace NewLife.Threading
                 finally
                 {
                     // 再次读取周期，因为任何函数可能会修改
-                    p = timer.Period; 
-                    
+                    p = timer.Period;
+
                     timer.Timers++;
                     timer.Calling = false;
                     timer.NextTime = DateTime.Now.AddMilliseconds(p);
@@ -276,8 +268,7 @@ namespace NewLife.Threading
                             timer.Dispose();
                         }
                     }
-                    if (p < period)
-                        period = p;
+                    if (p < period) period = p;
                 }
             }
         }
