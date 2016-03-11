@@ -442,7 +442,7 @@ namespace XCode
                             //max = Entity<TEntity>.FindMax(Table.Identity.ColumnName);
                             // 依赖关系FindMax=>FindAll=>Query=>InitData=>Meta.Count，所以不能使用
 
-                            if (DAL.Debug) DAL.WriteLog("第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数");
+                            if (DAL.Debug) DAL.WriteLog("第一次访问{0}，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数", ThisType.Name);
 
                             var builder = new SelectBuilder();
                             builder.Table = FormatedTableName;
@@ -457,7 +457,15 @@ namespace XCode
                     if (max < 500000)
                         m = Dal.Session.QueryCountFast(TableName);
                     else
+                    {
                         m = max;
+
+                        // 异步查询弥补不足
+                        ThreadPoolX.QueueUserWorkItem(() =>
+                        {
+                            _LastCount = _Count = Dal.Session.QueryCountFast(TableName);
+                        });
+                    }
                 }
 
                 _Count = m;
