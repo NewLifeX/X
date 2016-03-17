@@ -20,7 +20,8 @@ namespace NewLife.MessageQueue
         #region 构造函数
         public MQClient()
         {
-            Remote = new NetUri(ProtocolType.Tcp, NetHelper.MyIP(), 2234);
+            //Remote = new NetUri(ProtocolType.Tcp, NetHelper.MyIP(), 2234);
+            Remote = new NetUri(ProtocolType.Udp, NetHelper.MyIP(), 2234);
         }
         #endregion
 
