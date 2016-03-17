@@ -24,7 +24,7 @@ namespace NewLife.MessageQueue
         {
             base.OnReceive(e);
 
-            WriteLog(e.ToStr());
+            WriteLog("MQ会话收到：{0}", e.ToStr());
         }
     }
 }

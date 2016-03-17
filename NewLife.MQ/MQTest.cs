@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NewLife.Log;
 
 namespace NewLife.MessageQueue
 {
@@ -15,14 +16,16 @@ namespace NewLife.MessageQueue
             svr.Start();
 
             var client = new MQClient();
+            //client.Open();
             client.Public("test");
 
             var user = new MQClient();
-            user.Subscribe("test");
             user.Received += (s, e) =>
             {
-
+                XTrace.WriteLine("user.Received {0}", ((Byte[])e.Arg).ToHex("-"));
             };
+            //user.Open();
+            user.Subscribe("test");
 
             for (int i = 0; i < 10; i++)
             {

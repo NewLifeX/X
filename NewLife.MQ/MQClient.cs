@@ -30,6 +30,7 @@ namespace NewLife.MessageQueue
             if (Client == null || Client.Disposed)
             {
                 Client = Remote.CreateRemote();
+                Client.Received += Client_Received;
                 Client.Open();
             }
         }
@@ -41,6 +42,10 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         public Boolean Public(String topic)
         {
+            Open();
+
+            Client.Send("Public " + topic);
+
             return true;
         }
 
@@ -49,6 +54,10 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         public Boolean Subscribe(String topic)
         {
+            Open();
+
+            Client.Send("Subscribe " + topic);
+
             return true;
         }
         #endregion
@@ -60,10 +69,19 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         public Boolean Send(String topic, Object msg)
         {
+            Open();
+
+            Client.Send("Message " + topic);
+
             return true;
         }
 
         public EventHandler<EventArgs<Object>> Received;
+
+        void Client_Received(object sender, ReceivedEventArgs e)
+        {
+            if (Received != null) Received(this, new EventArgs<object>(e.Data.ReadBytes(e.Length)));
+        }
         #endregion
     }
 }
