@@ -10,10 +10,14 @@ namespace NewLife.MessageQueue
     /// <summary>MQ服务器</summary>
     public class MQServer : NetServer<MQSession>
     {
+        public IDictionary<String, Topic> Topics { get; private set; }
+
         /// <summary>实例化</summary>
         public MQServer()
         {
             Port = 2234;
+
+            Topics = new Dictionary<string, Topic>(StringComparer.OrdinalIgnoreCase);
         }
     }
 
@@ -23,9 +27,21 @@ namespace NewLife.MessageQueue
         #region 属性
         /// <summary>名称</summary>
         public String Name { get; set; }
+
+        public MQServer Host { get; private set; }
+
+        /// <summary>发布或订阅的主题。暂时没想好怎么做发布多主题或者订阅多主题</summary>
+        public Topic Topic { get; set; }
         #endregion
 
-        #region 接收分流
+        #region 主要方法
+        public override void Start()
+        {
+            base.Start();
+
+            Host = (this as INetSession).Host as MQServer;
+        }
+
         protected override void OnReceive(ReceivedEventArgs e)
         {
             base.OnReceive(e);
@@ -70,6 +86,16 @@ namespace NewLife.MessageQueue
         protected virtual void OnPublic(String str)
         {
             WriteLog("发布：{0}", str);
+
+            Topic tp = null;
+            if (!Host.Topics.TryGetValue(str, out tp))
+            {
+                tp = new Topic();
+                tp.Name = str;
+                Host.Topics.Add(str, tp);
+            }
+
+            Topic = tp;
         }
         #endregion
 
@@ -77,6 +103,14 @@ namespace NewLife.MessageQueue
         protected virtual void OnSubscribe(String str)
         {
             WriteLog("订阅：{0}", str);
+
+            Topic tp = null;
+            if (Host.Topics.TryGetValue(str, out tp))
+            {
+                Topic = tp;
+
+                tp.Subscribers.Add(this);
+            }
         }
         #endregion
 
@@ -84,6 +118,17 @@ namespace NewLife.MessageQueue
         protected virtual void OnMessage(String str)
         {
             WriteLog("消息：{0}", str);
+
+            if (Topic != null) Topic.Enqueue(str);
+        }
+        #endregion
+
+        #region 推送消息
+        public virtual Boolean SendMessage(String str)
+        {
+            Send(str);
+
+            return true;
         }
         #endregion
 

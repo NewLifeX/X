@@ -28,10 +28,16 @@ namespace NewLife.MessageQueue
             //user.Open();
             user.Subscribe("test");
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 3; i++)
             {
-                client.Send("test", "测试 {0}".F(i + 1));
+                client.Send("test", "测试{0}".F(i + 1));
             }
+
+            Console.ReadKey(true);
+
+            client.Dispose();
+            user.Dispose();
+            svr.Dispose();
         }
     }
 }
