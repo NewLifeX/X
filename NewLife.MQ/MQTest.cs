@@ -23,7 +23,7 @@ namespace NewLife.MessageQueue
             user.Name = "user2";
             user.Received += (s, e) =>
             {
-                XTrace.WriteLine("user.Received {0}", ((Byte[])e.Arg).ToHex("-"));
+                XTrace.WriteLine("user.收到推送 {0}", e.Arg);
             };
             //user.Open();
             user.Subscribe("test");

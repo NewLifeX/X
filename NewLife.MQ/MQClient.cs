@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using NewLife.Net;
 
 namespace NewLife.MessageQueue
@@ -41,7 +42,7 @@ namespace NewLife.MessageQueue
                 Client.Received += Client_Received;
                 Client.Open();
 
-                Client.Send("Name " + Name);
+                SendPack("Name", Name);
             }
         }
         #endregion
@@ -54,7 +55,7 @@ namespace NewLife.MessageQueue
         {
             Open();
 
-            Client.Send("Public " + topic);
+            SendPack("Public", topic);
 
             return true;
         }
@@ -66,7 +67,7 @@ namespace NewLife.MessageQueue
         {
             Open();
 
-            Client.Send("Subscribe " + topic);
+            SendPack("Subscribe", topic);
 
             return true;
         }
@@ -81,16 +82,24 @@ namespace NewLife.MessageQueue
         {
             Open();
 
-            Client.Send("Message " + topic);
+            SendPack("Message", msg + "");
 
             return true;
         }
 
-        public EventHandler<EventArgs<Object>> Received;
+        public EventHandler<EventArgs<String>> Received;
 
         void Client_Received(object sender, ReceivedEventArgs e)
         {
-            if (Received != null) Received(this, new EventArgs<object>(e.Data.ReadBytes(e.Length)));
+            if (Received != null) Received(this, new EventArgs<String>(e.ToStr()));
+        }
+        #endregion
+
+        #region 辅助
+        protected virtual void SendPack(String act, String msg)
+        {
+            Client.Send("{0}+{1}".F(act, msg));
+            Thread.Sleep(200);
         }
         #endregion
     }

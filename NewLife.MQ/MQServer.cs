@@ -48,8 +48,8 @@ namespace NewLife.MessageQueue
 
             var str = e.ToStr();
 
-            var act = str.Substring(null, " ");
-            str = str.TrimStart(act).Trim();
+            var act = str.Substring(null, "+");
+            str = str.Substring("+");
 
             switch (act)
             {
