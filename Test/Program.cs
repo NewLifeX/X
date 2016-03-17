@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using NewLife.Common;
 using NewLife.Compression;
 using NewLife.Log;
+using NewLife.MessageQueue;
 using NewLife.Net;
 using NewLife.Net.IO;
 using NewLife.Net.Stress;
@@ -103,9 +104,10 @@ namespace Test
 
         static void Test4()
         {
-            var buf = "41-54-0d-0d-0a-0d-0a-4F-4B-0d-0a".ToHex();
-            Console.WriteLine(buf.ToHex());
-            Console.WriteLine(buf.ToStr());
+            //var buf = "41-54-0d-0d-0a-0d-0a-4F-4B-0d-0a".ToHex();
+            //Console.WriteLine(buf.ToHex());
+            //Console.WriteLine(buf.ToStr());
+            MQTest.TestBase();
         }
 
         static void Test5()

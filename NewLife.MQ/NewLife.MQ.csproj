@@ -44,7 +44,9 @@
     <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
       <Link>Properties\AssemblyInfo_.cs</Link>
     </Compile>
-    <Compile Include="Class1.cs" />
+    <Compile Include="MQTest.cs" />
+    <Compile Include="MQClient.cs" />
+    <Compile Include="MQServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
