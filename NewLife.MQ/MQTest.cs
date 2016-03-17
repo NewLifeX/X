@@ -16,10 +16,11 @@ namespace NewLife.MessageQueue
             svr.Start();
 
             var client = new MQClient();
-            //client.Open();
+            client.Name = "user1";
             client.Public("test");
 
             var user = new MQClient();
+            user.Name = "user2";
             user.Received += (s, e) =>
             {
                 XTrace.WriteLine("user.Received {0}", ((Byte[])e.Arg).ToHex("-"));

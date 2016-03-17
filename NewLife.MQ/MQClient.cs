@@ -12,15 +12,22 @@ namespace NewLife.MessageQueue
     public class MQClient : DisposeBase
     {
         #region 属性
+        /// <summary>名称</summary>
+        public String Name { get; set; }
+
+        /// <summary>远程地址</summary>
         public NetUri Remote { get; set; }
 
+        /// <summary>网络客户端</summary>
         public ISocketClient Client { get; set; }
         #endregion
 
         #region 构造函数
+        /// <summary>实例化</summary>
         public MQClient()
         {
             //Remote = new NetUri(ProtocolType.Tcp, NetHelper.MyIP(), 2234);
+            // 还未上消息格式，暂时用Udp替代Tcp，避免粘包问题
             Remote = new NetUri(ProtocolType.Udp, NetHelper.MyIP(), 2234);
         }
         #endregion
@@ -33,6 +40,8 @@ namespace NewLife.MessageQueue
                 Client = Remote.CreateRemote();
                 Client.Received += Client_Received;
                 Client.Open();
+
+                Client.Send("Name " + Name);
             }
         }
         #endregion

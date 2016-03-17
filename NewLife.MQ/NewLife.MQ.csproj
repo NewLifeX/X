@@ -48,6 +48,7 @@
     <Compile Include="MQClient.cs" />
     <Compile Include="MQServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Topic.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
