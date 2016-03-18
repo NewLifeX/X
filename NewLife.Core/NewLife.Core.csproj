@@ -199,6 +199,7 @@
     <Compile Include="Log\XTrace.cs" />
     <Compile Include="Web\Modules\RunTimeModule.cs" />
     <Compile Include="Data\PageParameter.cs" />
+    <Compile Include="Web\OAuthClient.cs" />
     <Compile Include="Web\Pager.cs" />
     <Compile Include="Web\PluginHelper.cs" />
     <Compile Include="Web\WebClientX.cs">
