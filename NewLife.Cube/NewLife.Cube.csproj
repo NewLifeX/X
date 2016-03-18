@@ -414,6 +414,7 @@
     <Content Include="Content\js\jquery1x.min.js" />
     <Content Include="Content\js\respond.min.js" />
     <Content Include="favicon.ico" />
+    <Content Include="说明.txt" />
     <None Include="Areas\Admin\Views\Log\_List_Toolbar.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
