@@ -195,7 +195,7 @@ namespace NewLife.Web
             foreach (var item in names)
             {
                 link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                   .Where(e => e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
+                   .Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
                    .OrderByDescending(e => e.Version)
                    .OrderByDescending(e => e.Time)
                    .FirstOrDefault();
