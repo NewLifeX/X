@@ -487,20 +487,15 @@ WriteAttribute("src", Tuple.Create(" src=\"", 7684), Tuple.Create("\"", 7740)
 
 WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            //$(\"input[type=ch" +
 "eckbox]\").parent().addClass(\"switch\");\r\n            $(\"input[type=checkbox]\").bo" +
-"otstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    <script");
+"otstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    ");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7960), Tuple.Create("\"", 8004)
-, Tuple.Create(Tuple.Create("", 7966), Tuple.Create<System.Object, System.Int32>(Href("~/Content/fuelux/fuelux.spinner.min.js")
-, 7966), false)
-);
-
-WriteLiteral("></script>\r\n    ");
+WriteLiteral("\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 8049), Tuple.Create("\"", 8077)
-, Tuple.Create(Tuple.Create("", 8055), Tuple.Create<System.Object, System.Int32>(Href("~/Content/cube-list.js")
-, 8055), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 8053), Tuple.Create("\"", 8081)
+, Tuple.Create(Tuple.Create("", 8059), Tuple.Create<System.Object, System.Int32>(Href("~/Content/cube-list.js")
+, 8059), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");
