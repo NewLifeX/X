@@ -12,28 +12,22 @@
 
 	var company = "NewLife";
 	var name = "Common";
+	var dir = "$(实体分类)";
+
+	// 自动寻找模型文件，并从中获取公司名和链接名
+	var mdl = GetModelFile(ref company, ref name);
+	if(!File.Exists(mdl)) throw new Exception("未找到模型文件！");
+
+	dir = "Entity";
 	
 	// 取得模版所在目录
 	var mypath = Path.GetDirectoryName(Host.TemplateFile) + "\\";
-	var mdl = mypath + name + ".xml";	// 数据模型文件
+	//if(mdl == null) mdl = mypath + company + "." + name + ".xml";	// 数据模型文件
 
 	// 计算数据模型工具XCoder位置
 	var xpath = GetXPath(mypath);
 	
 	var exe = xpath + "XCoder.exe";
-
-	WriteLine("开始生成 " + DateTime.Now);
-
-	// 如果数据模型文件不存在，则先导出一份
-	if(!File.Exists(mdl))
-	{
-		var connstr = String.Format("Data Source=.;Initial Catalog={0};user id=sa;password=Pass@word", name);
-		var provider = "MSSQL";
-		var ps = String.Format("-MakeModel -model \"{0}\" -ConnStr \"{1}\" -Provider {2} -Log \"{3}\"", mdl, connstr, provider, mypath + "XCoder.log");
-		Process.Start(exe, ps).WaitForExit(10000);
-
-		if(!File.Exists(mdl)) throw new Exception("无法导出数据模型，请检查连接字符串！");
-	}
 	
 	var cfg = mypath + "set.config";
 	var arg = String.Format("-Render -model \"{0}\" -config \"{1}\" -Log \"{2}\"", mdl, cfg, mypath + "XCoder2.log");
@@ -41,7 +35,7 @@
 	WriteLine("参数：" + arg);
 
 	var dic = new Dictionary<String, Object>();
-	dic["NameSpace"] = company + "." + name;// 命名空间
+	dic["NameSpace"] = company + "." + name + ".Entity";// 命名空间
 	dic["EntityConnName"] = name;	// 连接名
 	
 	dic["BaseClass"] = "Entity";	// 实体基类
@@ -59,7 +53,7 @@
 	Process.Start(exe, arg).WaitForExit(3000);
 
 	dic["Override"] = false;					// 是否覆盖目标文件
-	dic["OutputPath"] = mypath + "\\$(实体分类)";	// 输出目录
+	dic["OutputPath"] = mypath + "\\" + dir;	// 输出目录
 	dic["TemplateName"] = "[内置]实体业务";		// 模版名
 	Save(cfg, dic);
 	WriteLine("生成：" + dic["TemplateName"]);
@@ -120,5 +114,26 @@
 		}
 		
 		File.WriteAllText(file, doc.OuterXml);
+	}
+	
+	// 获取模型文件
+	String GetModelFile(ref String company, ref String name)
+	{
+		// 取得模版所在目录
+		var mypath = Path.GetDirectoryName(Host.TemplateFile) + "\\";
+
+		foreach(var item in Directory.GetFiles(mypath, "*.xml"))
+		{
+			name = Path.GetFileNameWithoutExtension(item);
+			var p = name.LastIndexOf(".");
+			if(p<0) continue;
+
+			company = name.Substring(0, p);
+			name = name.Substring(p+1);
+
+			return Path.GetFullPath(item);
+		}
+
+		return null;
 	}
 #>
