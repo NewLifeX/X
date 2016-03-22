@@ -10,6 +10,7 @@
 <#
 	// 尽管T4模版可以直接调用XCoder内部类库进行代码生成，但是那会导致XCoder文件被锁定，所以采用启动进程来生成的方式！
 
+	var company = "NewLife";
 	var name = "Common";
 	
 	// 取得模版所在目录
@@ -40,7 +41,7 @@
 	WriteLine("参数：" + arg);
 
 	var dic = new Dictionary<String, Object>();
-	dic["NameSpace"] = "NewLife." + name;// 命名空间
+	dic["NameSpace"] = company + "." + name;// 命名空间
 	dic["EntityConnName"] = name;	// 连接名
 	
 	dic["BaseClass"] = "Entity";	// 实体基类
@@ -75,9 +76,9 @@
 	dic["OutputPath"] = mypath + "..\\Web\\" + name + "\\$(页面分类)";	// 输出目录
 	dic["UseCNFileName"] = false;				// 中文文件名
 	dic["TemplateName"] = "[内置]页面";			// 模版名
-	Save(cfg, dic);
-	WriteLine("生成：" + dic["TemplateName"]);
-	Process.Start(exe, arg).WaitForExit(3000);
+	//Save(cfg, dic);
+	//WriteLine("生成：" + dic["TemplateName"]);
+	//Process.Start(exe, arg).WaitForExit(3000);
 #>
 <#+
 	String GetXPath(String mypath)
