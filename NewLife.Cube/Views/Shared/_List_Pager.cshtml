@@ -16,7 +16,7 @@
     转到第<input name="PageIndex" type="text" value="@page.PageIndex" class="input-sm" style="width:40px;text-align:right;" />页
     <input type="submit" value="GO" class="btn btn-deafult btn-sm" />
     页大小
-    <select id="PageSize" name="PageSize" onchange="$(':submit').click();">
+    <select id="PageSize" name="PageSize" onchange="$(this).parents('form').submit();">
         <option value="5">5</option>
         <option value="10">10</option>
         <option value="20">20</option>

@@ -180,7 +180,7 @@ WriteLiteral(" id=\"PageSize\"");
 
 WriteLiteral(" name=\"PageSize\"");
 
-WriteLiteral(" onchange=\"$(\':submit\').click();\"");
+WriteLiteral(" onchange=\"$(this).parents(\'form\').submit();\"");
 
 WriteLiteral(">\r\n        <option");
 

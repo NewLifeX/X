@@ -347,7 +347,6 @@
     <Content Include="Content\ace\css\ace-part2.min.css" />
     <Content Include="Content\ace\css\ace-skins.min.css" />
     <Content Include="Content\ace\css\ace.min.css" />
-    <Content Include="Content\ace\css\bootstrap-multiselect.css" />
     <Content Include="Content\ace\css\images\meteorshower2.jpg" />
     <Content Include="Content\ace\css\images\pattern.jpg" />
     <Content Include="Content\ace\js\ace-elements.min.js" />
@@ -355,7 +354,6 @@
     <Content Include="Content\ace\js\ace.min.js" />
     <Content Include="Content\ace\js\additional-methods.min.js" />
     <Content Include="Content\ace\js\bootbox.min.js" />
-    <Content Include="Content\ace\js\bootstrap-multiselect.js" />
     <Content Include="Content\ace\js\chosen.jquery.min.js" />
     <Content Include="Content\ace\js\dropzone.min.js" />
     <Content Include="Content\ace\js\excanvas.min.js" />
@@ -370,6 +368,7 @@
     <Content Include="Content\artDialog\dist\dialog-plus-min.js" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.min.css" />
     <Content Include="Content\bootstrap-switch\bootstrap-switch.min.js" />
+    <Content Include="Content\bootstrap\css\bootstrap-multiselect.css" />
     <Content Include="Content\bootstrap\css\bootstrap-responsive.min.css" />
     <Content Include="Content\bootstrap\css\font-awesome.min.css" />
     <Content Include="Content\bootstrap\fonts\fontawesome-webfont.svg" />

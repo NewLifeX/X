@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -473,10 +474,13 @@ namespace NewLife.Cube
             else
                 data = new SelectList(items, selectedValue);
 
-            var atts = new RouteValueDictionary();
+            var atts = new Dictionary<String, Object>();
             atts.Add("class", "multiselect");
             // 处理自动回发
-            if (autoPostback) atts.Add("onchange", "$(':submit').click();");
+            //if (autoPostback) atts.Add("onchange", "$(':submit').click();");
+            // 一个页面可能存在多个表单，比如搜索区和分页区
+            // Support By Dark Li(858587868) / 老牛(65485989)
+            if (autoPostback) atts.Add("onchange", "$(this).parents('form').submit();");
 
             return Html.DropDownList(name, data, optionLabel, atts);
         }
@@ -493,10 +497,11 @@ namespace NewLife.Cube
             var entity = Html.ViewData.Model as IEntity;
             var selectedValue = entity == null ? WebHelper.Params[name] : entity[name];
 
-            var atts = new RouteValueDictionary();
+            var atts = new Dictionary<String, Object>();
             atts.Add("class", "multiselect");
             // 处理自动回发
-            if (autoPostback) atts.Add("onchange", "$(':submit').click();");
+            //if (autoPostback) atts.Add("onchange", "$(':submit').click();");
+            if (autoPostback) atts.Add("onchange", "$(this).parents('form').submit();");
 
             var data = new SelectList(list.ToDictionary(), "Key", "Value", selectedValue);
             return Html.DropDownList(name, data, optionLabel, atts);
