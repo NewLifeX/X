@@ -429,31 +429,25 @@ WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n         
 "ormat: $(this).attr(\"dateformat\"),\r\n                    autoclose: true,\r\n      " +
 "              language: \"zh-CN\",\r\n                    forceParse: false,\r\n      " +
 "              startView: 2,\r\n                    minView: 2\r\n                });" +
-"\r\n            });\r\n            //$(\'input[role=number]\').each(function () {\r\n   " +
-"         //    $(this).removeAttr(\'class\');\r\n            //    $(this).addClass(" +
-"\'spinbox-input form-control text-center\');\r\n            //    $(this).ace_spinne" +
-"r({ max: 2147483647, min: -2147483647, on_sides: true, icon_up: \'ace-icon fa fa-" +
-"plus bigger-110\', icon_down: \'ace-icon fa fa-minus bigger-110\', btn_up_class: \'b" +
-"tn-success\', btn_down_class: \'btn-danger\' });\r\n            //});\r\n            $(" +
-"\'.multiselect\').each(function () {\r\n                $(this).multiselect({\r\n     " +
-"               // 下拉列表仅在列表项比较多时显示过滤框\r\n                    enableFiltering: $(thi" +
-"s).children().length > 10,\r\n                    buttonClass: \'btn btn-white btn-" +
-"primary\',\r\n                    templates: {\r\n                        button: \'<b" +
-"utton type=\"button\" class=\"multiselect dropdown-toggle\" data-toggle=\"dropdown\"><" +
-"/button>\',\r\n                        ul: \'<ul class=\"multiselect-container dropdo" +
-"wn-menu\"></ul>\',\r\n                        filter: \'<li class=\"multiselect-item f" +
-"ilter\"><div class=\"input-group\"><span class=\"input-group-addon\"><i class=\"fa fa-" +
-"search\"></i></span><input class=\"form-control multiselect-search\" type=\"text\"></" +
-"div></li>\',\r\n                        filterClearBtn: \'<span class=\"input-group-b" +
-"tn\"><button class=\"btn btn-default btn-white btn-grey multiselect-clear-filter\" " +
-"type=\"button\"><i class=\"fa fa-times-circle red2\"></i></button></span>\',\r\n       " +
-"                 li: \'<li><a href=\"javascript:void(0);\"><label></label></a></li>" +
-"\',\r\n                        divider: \'<li class=\"multiselect-item divider\"></li>" +
-"\',\r\n                        liGroup: \'<li class=\"multiselect-item group\"><label " +
-"class=\"multiselect-group\"></label></li>\'\r\n                    },\r\n              " +
-"      filterPlaceholder: \'搜索\',\r\n                    nonSelectedText: \'无\',\r\n     " +
-"               allSelectedText: \'全选\'\r\n                });\r\n            });\r\n    " +
-"        ");
+"\r\n            });\r\n            $(\'.multiselect\').each(function () {\r\n           " +
+"     $(this).multiselect({\r\n                    // 下拉列表仅在列表项比较多时显示过滤框\r\n         " +
+"           enableFiltering: $(this).children().length > 10,\r\n                   " +
+" buttonClass: \'btn btn-white btn-primary\',\r\n                    templates: {\r\n  " +
+"                      button: \'<button type=\"button\" class=\"multiselect dropdown" +
+"-toggle\" data-toggle=\"dropdown\"></button>\',\r\n                        ul: \'<ul cl" +
+"ass=\"multiselect-container dropdown-menu\"></ul>\',\r\n                        filte" +
+"r: \'<li class=\"multiselect-item filter\"><div class=\"input-group\"><span class=\"in" +
+"put-group-addon\"><i class=\"fa fa-search\"></i></span><input class=\"form-control m" +
+"ultiselect-search\" type=\"text\"></div></li>\',\r\n                        filterClea" +
+"rBtn: \'<span class=\"input-group-btn\"><button class=\"btn btn-default btn-white bt" +
+"n-grey multiselect-clear-filter\" type=\"button\"><i class=\"fa fa-times-circle red2" +
+"\"></i></button></span>\',\r\n                        li: \'<li><a href=\"javascript:v" +
+"oid(0);\"><label></label></a></li>\',\r\n                        divider: \'<li class" +
+"=\"multiselect-item divider\"></li>\',\r\n                        liGroup: \'<li class" +
+"=\"multiselect-item group\"><label class=\"multiselect-group\"></label></li>\'\r\n     " +
+"               },\r\n                    filterPlaceholder: \'搜索\',\r\n               " +
+"     nonSelectedText: \'无\',\r\n                    allSelectedText: \'全选\'\r\n         " +
+"       });\r\n            });\r\n            ");
 
 WriteLiteral(@"
             $('tr').dblclick(function () {
@@ -468,22 +462,19 @@ WriteLiteral(@"
     <!--开关插件-->
     <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 6935), Tuple.Create("\"", 6991)
-, Tuple.Create(Tuple.Create("", 6941), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.js")
-, 6941), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 6488), Tuple.Create("\"", 6544)
+, Tuple.Create(Tuple.Create("", 6494), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.js")
+, 6494), false)
 );
 
-WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            //$(\"input[type=ch" +
-"eckbox]\").parent().addClass(\"switch\");\r\n            $(\"input[type=checkbox]\").bo" +
-"otstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    ");
-
-WriteLiteral("\r\n    ");
+WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\"input[type=chec" +
+"kbox]\").bootstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7304), Tuple.Create("\"", 7332)
-, Tuple.Create(Tuple.Create("", 7310), Tuple.Create<System.Object, System.Int32>(Href("~/Content/cube-list.js")
-, 7310), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 6715), Tuple.Create("\"", 6738)
+, Tuple.Create(Tuple.Create("", 6721), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
+, 6721), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");

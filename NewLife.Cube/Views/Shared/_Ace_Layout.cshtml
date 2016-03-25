@@ -114,11 +114,6 @@
                     minView: 2
                 });
             });
-            //$('input[role=number]').each(function () {
-            //    $(this).removeAttr('class');
-            //    $(this).addClass('spinbox-input form-control text-center');
-            //    $(this).ace_spinner({ max: 2147483647, min: -2147483647, on_sides: true, icon_up: 'ace-icon fa fa-plus bigger-110', icon_down: 'ace-icon fa fa-minus bigger-110', btn_up_class: 'btn-success', btn_down_class: 'btn-danger' });
-            //});
             $('.multiselect').each(function () {
                 $(this).multiselect({
                     // 下拉列表仅在列表项比较多时显示过滤框
@@ -154,13 +149,11 @@
     <script src="~/Content/bootstrap-switch/bootstrap-switch.min.js"></script>
     <script>
         $(function () {
-            //$("input[type=checkbox]").parent().addClass("switch");
             $("input[type=checkbox]").bootstrapSwitch();
         })
     </script>
 
-    @*<script src="~/Content/fuelux/fuelux.spinner.min.js"></script>*@
     @*模态窗Ajax删除提示*@
-    <script src="~/Content/cube-list.js"></script>
+    <script src="~/Content/Cube.js"></script>
 </body>
 </html>

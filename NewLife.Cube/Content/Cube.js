@@ -27,11 +27,9 @@
                 case 'edit':
                     break;
                 case 'delete':
-                    //console.log('delete');
                     confirmDialog('确认删除？', function () {
                         $.get(that.attr('href'),
                           function (data) {
-                              //console.log(data);
                               var url  = 'iframe|' + data.url;
                               if (data.code != 0) {
                                   url = null;

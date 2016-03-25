@@ -388,7 +388,7 @@
     <Content Include="Content\bootstrap\css\bootstrap.min.css" />
     <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Content\bootstrap\js\bootstrap.min.js" />
-    <Content Include="Content\cube-list.js" />
+    <Content Include="Content\Cube.js" />
     <Content Include="Content\js\html5shiv.min.js" />
     <Content Include="Content\js\jquery-2.1.3.min.js" />
     <Content Include="Content\js\jquery-ui.custom.min.js" />
