@@ -67,8 +67,6 @@
     </div>
     <!-- 最早引入基本脚本 -->
     <script src="~/Content/bootstrap/js/bootstrap.min.js"></script>
-    @*<script src="~/Content/js/jquery-ui.custom.min.js"></script>
-        <script src="~/Content/js/jquery.ui.touch-punch.min.js"></script>*@
     <script src="~/Content/ace/js/bootstrap-multiselect.js"></script>
 
     <!-- ace 设置 -->
@@ -81,24 +79,12 @@
     <script src="~/Content/js/html5shiv.min.js"></script>
     <script src="~/Content/js/respond.min.js"></script>
     <![endif]-->
-    @*@Scripts.Render("~/bootstrap_js")*@
     @RenderSection("scripts", required: false)
 
     <!--日历控件支持-->
-    @*<script src="~/Content/My97DatePicker/WdatePicker.js"></script>*@
     <script src="~/Content/DateTimePicker/bootstrap-datetimepicker.min.js"></script>
     <script src="~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
     <script>
-        //$(function () {
-        //    // 给所有type=date的input加上事件
-        //    var dt = $('input[type=date]');
-        //    if (!dt.data('datd-date-format')) {
-        //        dt.data('datd-date-format', 'yyyy-MM-dd HH:mm:ss');
-        //    }
-        //    if (!dt.data('click')) {
-        //        dt.click(function () { WdatePicker({ skin: 'whyGreen', dateFmt: dt.data('datd-date-format') }); });
-        //    }
-        //});
         $(function () {
             $('.form_datetime').each(function () {
                 var df = $(this).attr('dateformat');
@@ -127,7 +113,6 @@
                     startView: 2,
                     minView: 2
                 });
-                //console.trace($(this));
             });
             //$('input[role=number]').each(function () {
             //    $(this).removeAttr('class');

@@ -347,125 +347,113 @@ WriteAttribute("src", Tuple.Create(" src=\"", 2575), Tuple.Create("\"", 2620)
 , 2581), false)
 );
 
-WriteLiteral("></script>\r\n    ");
+WriteLiteral("></script>\r\n    <script");
 
-WriteLiteral("\r\n    <script");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 2789), Tuple.Create("\"", 2836)
-, Tuple.Create(Tuple.Create("", 2795), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/bootstrap-multiselect.js")
-, 2795), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2644), Tuple.Create("\"", 2691)
+, Tuple.Create(Tuple.Create("", 2650), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/bootstrap-multiselect.js")
+, 2650), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- ace 设置 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2883), Tuple.Create("\"", 2916)
-, Tuple.Create(Tuple.Create("", 2889), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
-, 2889), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2738), Tuple.Create("\"", 2771)
+, Tuple.Create(Tuple.Create("", 2744), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
+, 2744), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2940), Tuple.Create("\"", 2982)
-, Tuple.Create(Tuple.Create("", 2946), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
-, 2946), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2795), Tuple.Create("\"", 2837)
+, Tuple.Create(Tuple.Create("", 2801), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
+, 2801), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3006), Tuple.Create("\"", 3045)
-, Tuple.Create(Tuple.Create("", 3012), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-extra.min.js")
-, 3012), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2861), Tuple.Create("\"", 2900)
+, Tuple.Create(Tuple.Create("", 2867), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-extra.min.js")
+, 2867), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements" +
 " and media queries -->\r\n    <!--[if lte IE 8]>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3186), Tuple.Create("\"", 3221)
-, Tuple.Create(Tuple.Create("", 3192), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
-, 3192), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3041), Tuple.Create("\"", 3076)
+, Tuple.Create(Tuple.Create("", 3047), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
+, 3047), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3245), Tuple.Create("\"", 3278)
-, Tuple.Create(Tuple.Create("", 3251), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
-, 3251), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3100), Tuple.Create("\"", 3133)
+, Tuple.Create(Tuple.Create("", 3106), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
+, 3106), false)
 );
 
-WriteLiteral("></script>\r\n    <![endif]-->\r\n    ");
-
-WriteLiteral("\r\n");
+WriteLiteral("></script>\r\n    <![endif]-->\r\n");
 
 WriteLiteral("    ");
 
             
-            #line 85 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 82 "..\..\Views\Shared\_Ace_Layout.cshtml"
 Write(RenderSection("scripts", required: false));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n\r\n    <!--日历控件支持-->\r\n    ");
+WriteLiteral("\r\n\r\n    <!--日历控件支持-->\r\n    <script");
 
-WriteLiteral("\r\n    <script");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 3505), Tuple.Create("\"", 3567)
-, Tuple.Create(Tuple.Create("", 3511), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.js")
-, 3511), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3244), Tuple.Create("\"", 3306)
+, Tuple.Create(Tuple.Create("", 3250), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.js")
+, 3250), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3591), Tuple.Create("\"", 3663)
-, Tuple.Create(Tuple.Create("", 3597), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js")
-, 3597), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3330), Tuple.Create("\"", 3402)
+, Tuple.Create(Tuple.Create("", 3336), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js")
+, 3336), false)
 );
 
-WriteLiteral("></script>\r\n    <script>\r\n        //$(function () {\r\n        //    // 给所有type=dat" +
-"e的input加上事件\r\n        //    var dt = $(\'input[type=date]\');\r\n        //    if (!d" +
-"t.data(\'datd-date-format\')) {\r\n        //        dt.data(\'datd-date-format\', \'yy" +
-"yy-MM-dd HH:mm:ss\');\r\n        //    }\r\n        //    if (!dt.data(\'click\')) {\r\n " +
-"       //        dt.click(function () { WdatePicker({ skin: \'whyGreen\', dateFmt:" +
-" dt.data(\'datd-date-format\') }); });\r\n        //    }\r\n        //});\r\n        $(" +
-"function () {\r\n            $(\'.form_datetime\').each(function () {\r\n             " +
-"   var df = $(this).attr(\'dateformat\');\r\n                if (!df) {\r\n           " +
-"         $(this).attr(\'dateformat\', \'yyyy-mm-dd hh:ii:ss\');\r\n                   " +
-" $(this).width(140);\r\n                }\r\n                else {\r\n               " +
-"     // 把C#标准格式化替换为控件格式\r\n                    df = df.replace(\'mm\', \'ii\').replace" +
-"(\'MM\', \'mm\').replace(\'HH\', \'hh\');\r\n                    $(this).attr(\'dateformat\'" +
-", df);\r\n\r\n                    // 根据时间日期格式，锁定日期输入框宽度\r\n                    if (df." +
-"indexOf(\'hh\') >= 0)\r\n                        $(this).width(140);\r\n              " +
-"      else\r\n                        $(this).width(80);\r\n                }\r\n     " +
-"       });\r\n            $(\"[dateformat]\").each(function () {\r\n                $(" +
-"this).datetimepicker({\r\n                    format: $(this).attr(\"dateformat\"),\r" +
-"\n                    autoclose: true,\r\n                    language: \"zh-CN\",\r\n " +
-"                   forceParse: false,\r\n                    startView: 2,\r\n      " +
-"              minView: 2\r\n                });\r\n                //console.trace($" +
-"(this));\r\n            });\r\n            //$(\'input[role=number]\').each(function (" +
-") {\r\n            //    $(this).removeAttr(\'class\');\r\n            //    $(this).a" +
-"ddClass(\'spinbox-input form-control text-center\');\r\n            //    $(this).ac" +
-"e_spinner({ max: 2147483647, min: -2147483647, on_sides: true, icon_up: \'ace-ico" +
-"n fa fa-plus bigger-110\', icon_down: \'ace-icon fa fa-minus bigger-110\', btn_up_c" +
-"lass: \'btn-success\', btn_down_class: \'btn-danger\' });\r\n            //});\r\n      " +
-"      $(\'.multiselect\').each(function () {\r\n                $(this).multiselect(" +
-"{\r\n                    // 下拉列表仅在列表项比较多时显示过滤框\r\n                    enableFilterin" +
-"g: $(this).children().length > 10,\r\n                    buttonClass: \'btn btn-wh" +
-"ite btn-primary\',\r\n                    templates: {\r\n                        but" +
-"ton: \'<button type=\"button\" class=\"multiselect dropdown-toggle\" data-toggle=\"dro" +
-"pdown\"></button>\',\r\n                        ul: \'<ul class=\"multiselect-containe" +
-"r dropdown-menu\"></ul>\',\r\n                        filter: \'<li class=\"multiselec" +
-"t-item filter\"><div class=\"input-group\"><span class=\"input-group-addon\"><i class" +
-"=\"fa fa-search\"></i></span><input class=\"form-control multiselect-search\" type=\"" +
-"text\"></div></li>\',\r\n                        filterClearBtn: \'<span class=\"input" +
-"-group-btn\"><button class=\"btn btn-default btn-white btn-grey multiselect-clear-" +
-"filter\" type=\"button\"><i class=\"fa fa-times-circle red2\"></i></button></span>\',\r" +
-"\n                        li: \'<li><a href=\"javascript:void(0);\"><label></label><" +
-"/a></li>\',\r\n                        divider: \'<li class=\"multiselect-item divide" +
-"r\"></li>\',\r\n                        liGroup: \'<li class=\"multiselect-item group\"" +
-"><label class=\"multiselect-group\"></label></li>\'\r\n                    },\r\n      " +
-"              filterPlaceholder: \'搜索\',\r\n                    nonSelectedText: \'无\'" +
-",\r\n                    allSelectedText: \'全选\'\r\n                });\r\n            }" +
-");\r\n            ");
+WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\'.form_datetime\'" +
+").each(function () {\r\n                var df = $(this).attr(\'dateformat\');\r\n    " +
+"            if (!df) {\r\n                    $(this).attr(\'dateformat\', \'yyyy-mm-" +
+"dd hh:ii:ss\');\r\n                    $(this).width(140);\r\n                }\r\n    " +
+"            else {\r\n                    // 把C#标准格式化替换为控件格式\r\n                    " +
+"df = df.replace(\'mm\', \'ii\').replace(\'MM\', \'mm\').replace(\'HH\', \'hh\');\r\n          " +
+"          $(this).attr(\'dateformat\', df);\r\n\r\n                    // 根据时间日期格式，锁定日" +
+"期输入框宽度\r\n                    if (df.indexOf(\'hh\') >= 0)\r\n                        " +
+"$(this).width(140);\r\n                    else\r\n                        $(this).w" +
+"idth(80);\r\n                }\r\n            });\r\n            $(\"[dateformat]\").eac" +
+"h(function () {\r\n                $(this).datetimepicker({\r\n                    f" +
+"ormat: $(this).attr(\"dateformat\"),\r\n                    autoclose: true,\r\n      " +
+"              language: \"zh-CN\",\r\n                    forceParse: false,\r\n      " +
+"              startView: 2,\r\n                    minView: 2\r\n                });" +
+"\r\n            });\r\n            //$(\'input[role=number]\').each(function () {\r\n   " +
+"         //    $(this).removeAttr(\'class\');\r\n            //    $(this).addClass(" +
+"\'spinbox-input form-control text-center\');\r\n            //    $(this).ace_spinne" +
+"r({ max: 2147483647, min: -2147483647, on_sides: true, icon_up: \'ace-icon fa fa-" +
+"plus bigger-110\', icon_down: \'ace-icon fa fa-minus bigger-110\', btn_up_class: \'b" +
+"tn-success\', btn_down_class: \'btn-danger\' });\r\n            //});\r\n            $(" +
+"\'.multiselect\').each(function () {\r\n                $(this).multiselect({\r\n     " +
+"               // 下拉列表仅在列表项比较多时显示过滤框\r\n                    enableFiltering: $(thi" +
+"s).children().length > 10,\r\n                    buttonClass: \'btn btn-white btn-" +
+"primary\',\r\n                    templates: {\r\n                        button: \'<b" +
+"utton type=\"button\" class=\"multiselect dropdown-toggle\" data-toggle=\"dropdown\"><" +
+"/button>\',\r\n                        ul: \'<ul class=\"multiselect-container dropdo" +
+"wn-menu\"></ul>\',\r\n                        filter: \'<li class=\"multiselect-item f" +
+"ilter\"><div class=\"input-group\"><span class=\"input-group-addon\"><i class=\"fa fa-" +
+"search\"></i></span><input class=\"form-control multiselect-search\" type=\"text\"></" +
+"div></li>\',\r\n                        filterClearBtn: \'<span class=\"input-group-b" +
+"tn\"><button class=\"btn btn-default btn-white btn-grey multiselect-clear-filter\" " +
+"type=\"button\"><i class=\"fa fa-times-circle red2\"></i></button></span>\',\r\n       " +
+"                 li: \'<li><a href=\"javascript:void(0);\"><label></label></a></li>" +
+"\',\r\n                        divider: \'<li class=\"multiselect-item divider\"></li>" +
+"\',\r\n                        liGroup: \'<li class=\"multiselect-item group\"><label " +
+"class=\"multiselect-group\"></label></li>\'\r\n                    },\r\n              " +
+"      filterPlaceholder: \'搜索\',\r\n                    nonSelectedText: \'无\',\r\n     " +
+"               allSelectedText: \'全选\'\r\n                });\r\n            });\r\n    " +
+"        ");
 
 WriteLiteral(@"
             $('tr').dblclick(function () {
@@ -480,9 +468,9 @@ WriteLiteral(@"
     <!--开关插件-->
     <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7684), Tuple.Create("\"", 7740)
-, Tuple.Create(Tuple.Create("", 7690), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.js")
-, 7690), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 6935), Tuple.Create("\"", 6991)
+, Tuple.Create(Tuple.Create("", 6941), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.js")
+, 6941), false)
 );
 
 WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            //$(\"input[type=ch" +
@@ -493,9 +481,9 @@ WriteLiteral("\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 8053), Tuple.Create("\"", 8081)
-, Tuple.Create(Tuple.Create("", 8059), Tuple.Create<System.Object, System.Int32>(Href("~/Content/cube-list.js")
-, 8059), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7304), Tuple.Create("\"", 7332)
+, Tuple.Create(Tuple.Create("", 7310), Tuple.Create<System.Object, System.Int32>(Href("~/Content/cube-list.js")
+, 7310), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");
