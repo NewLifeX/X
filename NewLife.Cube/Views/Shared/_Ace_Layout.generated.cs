@@ -467,14 +467,14 @@ WriteAttribute("src", Tuple.Create(" src=\"", 6504), Tuple.Create("\"", 6560)
 , 6510), false)
 );
 
-WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            //$(\"input[type=ch" +
-"eckbox]\").bootstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    ");
+WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\"input[type=chec" +
+"kbox]\").bootstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 6733), Tuple.Create("\"", 6756)
-, Tuple.Create(Tuple.Create("", 6739), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
-, 6739), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 6731), Tuple.Create("\"", 6754)
+, Tuple.Create(Tuple.Create("", 6737), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
+, 6737), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");
