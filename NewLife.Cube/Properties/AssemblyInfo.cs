@@ -31,10 +31,12 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("1.1.*")]
-[assembly: AssemblyFileVersion("1.1.2016.0301")]
+[assembly: AssemblyVersion("1.2.*")]
+[assembly: AssemblyFileVersion("1.2.2016.0325")]
 
 /*
+ * v1.2.2016.0325   自动检查并下载魔方资源
+ * 
  * v1.1.2016.0301   魔方与XCode相互配合，趋于完善，完成了CMX和其它多个项目
  * 
  * v1.0.2015.0511   完善权限体系，支持控制器自定义菜单和权限子项

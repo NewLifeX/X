@@ -22,6 +22,10 @@ namespace NewLife.Cube
         /// <summary>显示运行时间</summary>
         [Description("显示运行时间")]
         public Boolean ShowRunTime { get; set; }
+
+        /// <summary>扩展插件服务器。将从该网页上根据关键字分析链接并下载插件</summary>
+        [Description("扩展插件服务器。将从该网页上根据关键字分析链接并下载插件")]
+        public String PluginServer { get; set; }
         #endregion
 
         #region 方法
@@ -30,6 +34,7 @@ namespace NewLife.Cube
         {
             Debug = false;
             ShowRunTime = true;
+            PluginServer = "http://www.newlifex.com/showtopic-1488.aspx";
         }
 
         /// <summary>新建时调用</summary>
