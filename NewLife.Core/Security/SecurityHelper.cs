@@ -28,7 +28,7 @@ namespace System
         {
             if (encoding == null) encoding = Encoding.Default;
 
-            var buf = MD5(encoding.GetBytes(data));
+            var buf = MD5(encoding.GetBytes(data + ""));
             return buf.ToHex();
         }
 
@@ -40,7 +40,7 @@ namespace System
         {
             if (encoding == null) encoding = Encoding.Default;
 
-            var buf = MD5(encoding.GetBytes(data));
+            var buf = MD5(encoding.GetBytes(data + ""));
             return buf.ToHex(0, 16);
         }
 
