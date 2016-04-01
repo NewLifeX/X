@@ -25,21 +25,30 @@ namespace System.IO
             if (path[0] == sep || path[0] == sep2 || !Path.IsPathRooted(path))
             {
                 path = path.TrimStart('~');
-                path = path.TrimStart(sep);
 
+                var dir = "";
                 switch (mode)
                 {
                     case 1:
-                        path = Path.Combine(BaseDirectory, path);
+                        dir = BaseDirectory;
                         break;
                     case 2:
-                        path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+                        dir = AppDomain.CurrentDomain.BaseDirectory;
                         break;
                     case 3:
-                        path = Path.Combine(Environment.CurrentDirectory, path);
+                        dir = Environment.CurrentDirectory;
                         break;
                     default:
                         break;
+                }
+                if (!dir.IsNullOrEmpty())
+                {
+                    // 为了兼容Linux，再次判断，可能已经是跟路径
+                    if (!NewLife.Runtime.Mono || !path.StartsWith(dir))
+                    {
+                        path = path.TrimStart(sep);
+                        path = Path.Combine(dir, path);
+                    }
                 }
             }
 
