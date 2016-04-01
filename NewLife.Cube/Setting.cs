@@ -11,7 +11,7 @@ namespace NewLife.Cube
 {
     /// <summary>魔方设置</summary>
     [DisplayName("魔方设置")]
-    [XmlConfigFile(@"Config\\Cube.config", 15000)]
+    [XmlConfigFile(@"Config\Cube.config", 15000)]
     public class Setting : XmlConfig<Setting>
     {
         #region 属性

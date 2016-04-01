@@ -71,7 +71,7 @@ namespace NewLife.Log
             get
             {
                 if (String.IsNullOrEmpty(_LogPath) && !String.IsNullOrEmpty(LogFile))
-                    _LogPath = Path.GetDirectoryName(LogFile).GetFullPath().EnsureEnd(@"\");
+                    _LogPath = Path.GetDirectoryName(LogFile).GetFullPath().EnsureEnd(Path.DirectorySeparatorChar.ToString());
                 return _LogPath;
             }
             set
@@ -79,7 +79,7 @@ namespace NewLife.Log
                 if (String.IsNullOrEmpty(value))
                     _LogPath = value;
                 else
-                    _LogPath = value.GetFullPath().EnsureEnd(@"\");
+                    _LogPath = value.GetFullPath().EnsureEnd(Path.DirectorySeparatorChar.ToString());
             }
         }
 

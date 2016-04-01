@@ -46,8 +46,12 @@ namespace System.IO
                     // 为了兼容Linux，再次判断，可能已经是跟路径
                     if (!NewLife.Runtime.Mono || !path.StartsWith(dir))
                     {
-                        path = path.TrimStart(sep);
-                        path = Path.Combine(dir, path);
+                        // path目录存在，不用再次拼接
+                        if (!Directory.Exists(path))
+                        {
+                            path = path.TrimStart(sep);
+                            path = Path.Combine(dir, path);
+                        }
                     }
                 }
             }
