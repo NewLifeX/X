@@ -82,7 +82,7 @@ namespace NewLife
                 // 兼容Linux Mono
                 var sys = Environment.SystemDirectory;
                 if (sys.IsNullOrEmpty()) sys = "/";
-                PluginCache = Path.GetPathRoot(sys).CombinePath("X\\Cache");
+                PluginCache = Path.GetPathRoot(sys).CombinePath("X", "Cache");
             }
 #endif
             if (PluginServer.IsNullOrWhiteSpace()) PluginServer = "http://www.newlifex.com/showtopic-51.aspx";
