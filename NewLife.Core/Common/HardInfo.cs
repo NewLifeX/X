@@ -370,6 +370,9 @@ namespace NewLife.Common
         /// <returns></returns>
         public static String GetInfo(String path, String property)
         {
+            // Linux Mono不支持WMI
+            if (Runtime.Mono) return null;
+
             var bbs = new List<String>();
             try
             {
