@@ -270,13 +270,22 @@ namespace NewLife.Reflection
             // 如果没有包含圆点，说明其不是FullName
             if (!typeName.Contains("."))
             {
-                var types = Asm.GetTypes();
-                if (types != null && types.Length > 0)
+                try
                 {
-                    foreach (var item in types)
+                    var types = Asm.GetTypes();
+                    if (types != null && types.Length > 0)
                     {
-                        if (item.Name == typeName) return item;
+                        foreach (var item in types)
+                        {
+                            if (item.Name == typeName) return item;
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    if (XTrace.Debug) XTrace.WriteException(ex);
+
+                    return null;
                 }
 
                 // 遍历所有类型，包括内嵌类型
