@@ -782,7 +782,7 @@ namespace XCode.Membership
                 }
 
                 // 所有都是新增菜单才排序
-                if (ms.All(m => m.IsNullKey)) ms = ms.OrderByDescending(m => m.Name).ToList();
+                if (ms.All(m => m.Sort == 0)) ms = ms.OrderByDescending(m => m.Name).ToList();
 
                 for (int i = 0; i < ms.Count; i++)
                 {
