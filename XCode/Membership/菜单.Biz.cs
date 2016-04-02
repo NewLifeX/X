@@ -703,6 +703,8 @@ namespace XCode.Membership
                     list.Add(root);
                 }
 
+                var ms = new List<IMenu>();
+
                 // 遍历该程序集所有类型
                 foreach (var type in asm.GetTypes())
                 {
@@ -770,7 +772,18 @@ namespace XCode.Membership
                         mask |= idx;
                         controller.Permissions[idx] = item.Key;
                     }
-                    controller.Save();
+
+                    // 排序
+                    ms.Add(controller);
+
+                    //controller.Save();
+                }
+
+                var ms2 = ms.OrderByDescending(m => m.Name).ToArray();
+                for (int i = 0; i < ms2.Length; i++)
+                {
+                    ms2[i].Sort = i;
+                    ms2[i].Save();
                 }
 
                 // 如果新增了菜单，需要检查权限
