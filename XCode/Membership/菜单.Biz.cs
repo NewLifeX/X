@@ -779,11 +779,13 @@ namespace XCode.Membership
                     //controller.Save();
                 }
 
-                var ms2 = ms.OrderByDescending(m => m.Name).ToArray();
-                for (int i = 0; i < ms2.Length; i++)
+                // 所有都是新增菜单才排序
+                if (ms.All(m => m.IsNullKey)) ms = ms.OrderByDescending(m => m.Name).ToList();
+
+                for (int i = 0; i < ms.Count; i++)
                 {
-                    ms2[i].Sort = i;
-                    ms2[i].Save();
+                    ms[i].Sort = i;
+                    ms[i].Save();
                 }
 
                 // 如果新增了菜单，需要检查权限
