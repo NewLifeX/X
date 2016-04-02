@@ -36,6 +36,12 @@ namespace ASP
     using NewLife.Reflection;
     using NewLife.Web;
     using XCode;
+    
+    #line 2 "..\..\Views\Shared\_Form_Footer.cshtml"
+    using XCode.Configuration;
+    
+    #line default
+    #line hidden
     using XCode.Membership;
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "2.0.0.0")]
@@ -48,10 +54,11 @@ namespace ASP
         public override void Execute()
         {
             
-            #line 2 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 3 "..\..\Views\Shared\_Form_Footer.cshtml"
   
     var entity = Model as IEntity;
     var fact = EntityFactory.CreateOperate(entity.GetType());
+    var fields = ViewBag.Fields as List<FieldItem>;
 
     var user = Model as IUserInfo;
     var time = Model as ITimeInfo;
@@ -66,7 +73,7 @@ namespace ASP
 WriteLiteral("\r\n");
 
             
-            #line 13 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 15 "..\..\Views\Shared\_Form_Footer.cshtml"
  if (user != null || time != null)
 {
 
@@ -80,13 +87,13 @@ WriteLiteral(" class=\"form-group col-sm-12 col-md-12\"");
 WriteLiteral(">\r\n");
 
             
-            #line 16 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 18 "..\..\Views\Shared\_Form_Footer.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 16 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 18 "..\..\Views\Shared\_Form_Footer.cshtml"
          if (!Object.Equals(fact.Table.FindByName("CreateUserID"), null))
         {
 
@@ -106,13 +113,13 @@ WriteLiteral(" class=\"col-md-3\"");
 WriteLiteral(">\r\n");
 
             
-            #line 20 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 22 "..\..\Views\Shared\_Form_Footer.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 20 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 22 "..\..\Views\Shared\_Form_Footer.cshtml"
                  if (user != null)
                 {
 
@@ -126,7 +133,7 @@ WriteLiteral(" class=\"text-primary\"");
 WriteLiteral(">");
 
             
-            #line 22 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 24 "..\..\Views\Shared\_Form_Footer.cshtml"
                                           Write(user.CreateUserName);
 
             
@@ -135,7 +142,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 23 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 25 "..\..\Views\Shared\_Form_Footer.cshtml"
                 }
 
             
@@ -144,7 +151,7 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("                ");
 
             
-            #line 24 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 26 "..\..\Views\Shared\_Form_Footer.cshtml"
                  if (time != null)
                 {
 
@@ -158,7 +165,7 @@ WriteLiteral(" class=\"text-success\"");
 WriteLiteral(">");
 
             
-            #line 26 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 28 "..\..\Views\Shared\_Form_Footer.cshtml"
                                           Write(time.CreateTime.ToFullString());
 
             
@@ -167,7 +174,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 27 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 29 "..\..\Views\Shared\_Form_Footer.cshtml"
                 }
 
             
@@ -176,7 +183,7 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("                ");
 
             
-            #line 28 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 30 "..\..\Views\Shared\_Form_Footer.cshtml"
                  if (!Object.Equals(cip, null))
                 {
                     var ip = entity[cip.Name] + "";
@@ -188,20 +195,20 @@ WriteLiteral("                    <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1193), Tuple.Create("\"", 1204)
+WriteAttribute("title", Tuple.Create(" title=\"", 1275), Tuple.Create("\"", 1286)
             
-            #line 31 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1201), Tuple.Create<System.Object, System.Int32>(ip
+            #line 33 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 1283), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 1201), false)
+, 1283), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 31 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 33 "..\..\Views\Shared\_Form_Footer.cshtml"
                                                       Write(ip.IPToAddress());
 
             
@@ -210,7 +217,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 32 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
                 }
 
             
@@ -219,7 +226,7 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("            </div>\r\n");
 
             
-            #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 36 "..\..\Views\Shared\_Form_Footer.cshtml"
         }
 
             
@@ -228,7 +235,7 @@ WriteLiteral("            </div>\r\n");
 WriteLiteral("        ");
 
             
-            #line 35 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 37 "..\..\Views\Shared\_Form_Footer.cshtml"
          if (!Object.Equals(fact.Table.FindByName("UpdateUserID"), null))
         {
 
@@ -248,13 +255,13 @@ WriteLiteral(" class=\"col-md-3\"");
 WriteLiteral(">\r\n");
 
             
-            #line 39 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 41 "..\..\Views\Shared\_Form_Footer.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 39 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 41 "..\..\Views\Shared\_Form_Footer.cshtml"
                  if (user != null)
                 {
 
@@ -268,7 +275,7 @@ WriteLiteral(" class=\"text-primary\"");
 WriteLiteral(">");
 
             
-            #line 41 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 43 "..\..\Views\Shared\_Form_Footer.cshtml"
                                           Write(user.UpdateUserName);
 
             
@@ -277,7 +284,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 42 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 44 "..\..\Views\Shared\_Form_Footer.cshtml"
                 }
 
             
@@ -286,7 +293,7 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("                ");
 
             
-            #line 43 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 45 "..\..\Views\Shared\_Form_Footer.cshtml"
                  if (time != null)
                 {
 
@@ -300,7 +307,7 @@ WriteLiteral(" class=\"text-success\"");
 WriteLiteral(">");
 
             
-            #line 45 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 47 "..\..\Views\Shared\_Form_Footer.cshtml"
                                           Write(time.UpdateTime.ToFullString());
 
             
@@ -309,7 +316,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 46 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 48 "..\..\Views\Shared\_Form_Footer.cshtml"
                 }
 
             
@@ -318,7 +325,7 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("                ");
 
             
-            #line 47 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 49 "..\..\Views\Shared\_Form_Footer.cshtml"
                  if (!Object.Equals(uip, null))
                 {
                     var ip = entity[uip.Name] + "";
@@ -330,20 +337,20 @@ WriteLiteral("                    <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1944), Tuple.Create("\"", 1955)
+WriteAttribute("title", Tuple.Create(" title=\"", 2026), Tuple.Create("\"", 2037)
             
-            #line 50 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1952), Tuple.Create<System.Object, System.Int32>(ip
+            #line 52 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 2034), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 1952), false)
+, 2034), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 50 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 52 "..\..\Views\Shared\_Form_Footer.cshtml"
                                                       Write(ip.IPToAddress());
 
             
@@ -352,7 +359,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 51 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 53 "..\..\Views\Shared\_Form_Footer.cshtml"
                 }
 
             
@@ -361,7 +368,7 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("            </div>\r\n");
 
             
-            #line 53 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 55 "..\..\Views\Shared\_Form_Footer.cshtml"
         }
 
             
@@ -370,15 +377,15 @@ WriteLiteral("            </div>\r\n");
 WriteLiteral("    </div>\r\n");
 
             
-            #line 55 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 57 "..\..\Views\Shared\_Form_Footer.cshtml"
 }
 
             
             #line default
             #line hidden
             
-            #line 56 "..\..\Views\Shared\_Form_Footer.cshtml"
- if (!Object.Equals(remark, null))
+            #line 58 "..\..\Views\Shared\_Form_Footer.cshtml"
+ if (!Object.Equals(remark, null) && !fields.Contains(remark))
 {
 
             
@@ -395,7 +402,7 @@ WriteLiteral(" class=\"control-label col-md-2\"");
 WriteLiteral(">");
 
             
-            #line 59 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 61 "..\..\Views\Shared\_Form_Footer.cshtml"
                                          Write(remark.DisplayName);
 
             
@@ -410,7 +417,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("            ");
 
             
-            #line 61 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 63 "..\..\Views\Shared\_Form_Footer.cshtml"
        Write(Html.ForString(remark.Name, (String)entity[remark.Name], -1));
 
             
@@ -421,7 +428,7 @@ WriteLiteral("\r\n");
 WriteLiteral("            ");
 
             
-            #line 62 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 64 "..\..\Views\Shared\_Form_Footer.cshtml"
        Write(Html.ForDescription(remark));
 
             
@@ -430,7 +437,7 @@ WriteLiteral("            ");
 WriteLiteral("\r\n        </div>\r\n    </div>\r\n");
 
             
-            #line 65 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 67 "..\..\Views\Shared\_Form_Footer.cshtml"
 }
 
             

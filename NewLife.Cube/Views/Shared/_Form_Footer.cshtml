@@ -1,7 +1,9 @@
 ﻿@using NewLife.Cube;
+@using XCode.Configuration;
 @{
     var entity = Model as IEntity;
     var fact = EntityFactory.CreateOperate(entity.GetType());
+    var fields = ViewBag.Fields as List<FieldItem>;
 
     var user = Model as IUserInfo;
     var time = Model as ITimeInfo;
@@ -53,7 +55,7 @@
         }
     </div>
 }
-@if (!Object.Equals(remark, null))
+@if (!Object.Equals(remark, null) && !fields.Contains(remark))
 {
     <div class="form-group col-sm-12 col-md-12">
         <label class="control-label col-md-2">@remark.DisplayName</label>
