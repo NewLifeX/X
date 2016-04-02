@@ -32,12 +32,19 @@
             {
                 <b class="arrow"></b>
 
-                <ul class="submenu">
+                <ul @Html.Raw(menu == Menus[0] ? "class=\"submenu nav-show\" style=\"display:block;\"" : "class=\"submenu nav-hide\" style=\"display:none;\"")>
                     @foreach (IMenu menu2 in childs)
                     {
                         @Html.Partial("_Left_Item", menu2);
                     }
                 </ul>
+
+                @*<ul class="submenu">
+                        @foreach (IMenu menu2 in childs)
+                        {
+                            @Html.Partial("_Left_Item", menu2);
+                        }
+                    </ul>*@
             }
         </li>
     }

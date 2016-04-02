@@ -35,7 +35,6 @@
         <link rel="stylesheet" href="~/Content/ace/css/ace-ie.min.css" />
     <![endif]-->
     <!-- inline styles related to this page -->
-
     <!-- 自定义样式 -->
     <link rel="stylesheet" href="~/Content/Site.css" type="text/css" />
     <!-- ace settings handler -->
@@ -222,19 +221,19 @@
                     </span>
 
                     @*&nbsp; &nbsp;
-                    <span class="action-buttons">
-                        <a href="#">
-                            <i class="ace-icon fa fa-twitter-square light-blue bigger-150"></i>
-                        </a>
+                        <span class="action-buttons">
+                            <a href="#">
+                                <i class="ace-icon fa fa-twitter-square light-blue bigger-150"></i>
+                            </a>
 
-                        <a href="#">
-                            <i class="ace-icon fa fa-facebook-square text-primary bigger-150"></i>
-                        </a>
+                            <a href="#">
+                                <i class="ace-icon fa fa-facebook-square text-primary bigger-150"></i>
+                            </a>
 
-                        <a href="#">
-                            <i class="ace-icon fa fa-rss-square orange bigger-150"></i>
-                        </a>
-                    </span>*@
+                            <a href="#">
+                                <i class="ace-icon fa fa-rss-square orange bigger-150"></i>
+                            </a>
+                        </span>*@
                 </div>
 
                 <!-- /section:basics/footer -->
@@ -257,7 +256,7 @@
     @*artDialog*@
     <script src="~/Content/artDialog/dist/dialog-plus-min.js"></script>
     <script src="~/Content/artDialog/dist/dialog.new.life.js"></script>
-     
+
     <script type="text/javascript">
         $(function () {
             var $frmContent = $('#main');
@@ -276,10 +275,34 @@
             }
 
             //菜单active样式
-            $(".nav-list li").click(function () {
+            $(".nav-list").children("li").click(function () {
                 var $this = $(this);
+                $this.siblings("li").each(function () {
+                    var $item = $(this);
+                    if ($item.attr("class") == "open") {
+                        $item.removeClass("open");
+                        $item.children(".submenu").hide();
+                    }
+                });
+                $this.addClass('open');
+            });
+
+            $(".submenu li").click(function () {
+                var $this = $(this);
+                //兄弟节点去焦
                 $this.siblings("li").removeClass("active");
                 $this.addClass('active');
+                //父节点获取焦点
+                var $parent = $this.parent().parent();
+                $parent.addClass("active");
+                $parent.siblings("li").each(function () {
+                    var $item = $(this);
+                    $item.removeClass("open").removeClass("active");
+                    $item.children(".submenu").hide();
+                    if ($item.children(".submenu").length != 0) {
+                        $item.children(".submenu").children("li").removeClass("active");
+                    }
+                });
             });
         });
 
