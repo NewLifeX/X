@@ -75,7 +75,7 @@ WriteLiteral("\r\n");
             #line hidden
 WriteLiteral("    <div");
 
-WriteLiteral(" class=\"form-group\"");
+WriteLiteral(" class=\"form-group col-sm-12 col-md-12\"");
 
 WriteLiteral(">\r\n");
 
@@ -188,14 +188,14 @@ WriteLiteral("                    <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1173), Tuple.Create("\"", 1184)
+WriteAttribute("title", Tuple.Create(" title=\"", 1193), Tuple.Create("\"", 1204)
             
             #line 31 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1181), Tuple.Create<System.Object, System.Int32>(ip
+, Tuple.Create(Tuple.Create("", 1201), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 1181), false)
+, 1201), false)
 );
 
 WriteLiteral(">");
@@ -330,14 +330,14 @@ WriteLiteral("                    <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1924), Tuple.Create("\"", 1935)
+WriteAttribute("title", Tuple.Create(" title=\"", 1944), Tuple.Create("\"", 1955)
             
             #line 50 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1932), Tuple.Create<System.Object, System.Int32>(ip
+, Tuple.Create(Tuple.Create("", 1952), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 1932), false)
+, 1952), false)
 );
 
 WriteLiteral(">");
@@ -386,7 +386,7 @@ WriteLiteral("    </div>\r\n");
             #line hidden
 WriteLiteral("    <div");
 
-WriteLiteral(" class=\"form-group\"");
+WriteLiteral(" class=\"form-group col-sm-12 col-md-12\"");
 
 WriteLiteral(">\r\n        <label");
 

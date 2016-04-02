@@ -22,6 +22,7 @@ namespace NewLife.Cube.Admin.Controllers
             //ListFields.AddRange(list);
 
             ListFields.RemoveField("Remark");
+            FormFields.RemoveField("Remark");
         }
 
         ///// <summary>动作执行前</summary>

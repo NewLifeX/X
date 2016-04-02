@@ -12,7 +12,7 @@
 }
 @if (user != null || time != null)
 {
-    <div class="form-group">
+    <div class="form-group col-sm-12 col-md-12">
         @if (!Object.Equals(fact.Table.FindByName("CreateUserID"), null))
         {
             <label class="control-label col-md-2">创建</label>
@@ -55,7 +55,7 @@
 }
 @if (!Object.Equals(remark, null))
 {
-    <div class="form-group">
+    <div class="form-group col-sm-12 col-md-12">
         <label class="control-label col-md-2">@remark.DisplayName</label>
         <div class="input-group col-md-6">
             @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
