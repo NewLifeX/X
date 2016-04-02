@@ -33,7 +33,7 @@ namespace NewLife.Net.UPnP
                 if (node == null) continue;
 
                 //item.SetValue(entity, Convert.ChangeType(node.InnerText, item.PropertyType));
-                entity.SetValue(item, Convert.ChangeType(node.InnerText, item.PropertyType));
+                entity.SetValue(item, Reflect.ChangeType(node.InnerText, item.PropertyType));
             }
             return entity;
 

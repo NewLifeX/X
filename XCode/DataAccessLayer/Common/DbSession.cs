@@ -11,6 +11,7 @@ using System.Web;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
+using NewLife.Reflection;
 using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
@@ -549,7 +550,7 @@ namespace XCode.DataAccessLayer
                 Object rs = cmd.ExecuteScalar();
                 if (rs == null || rs == DBNull.Value) return default(T);
                 if (rs is T) return (T)rs;
-                return (T)Convert.ChangeType(rs, typeof(T));
+                return (T)Reflect.ChangeType(rs, typeof(T));
             }
             catch (DbException ex)
             {

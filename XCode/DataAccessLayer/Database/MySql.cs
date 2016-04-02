@@ -339,8 +339,6 @@ namespace XCode.DataAccessLayer
             base.FixField(field, dr);
         }
 
-
-
         protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
         {
             // MySql没有ntext，映射到text
@@ -385,12 +383,14 @@ namespace XCode.DataAccessLayer
 
                         foreach (DataRow dr in drs)
                         {
-                            String format = GetDataRowValue<String>(dr, "CreateFormat");
-
-                            if (IsUnsigned && format.ToLower().Contains("unsigned"))
-                                return new DataRow[] { dr };
-                            else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
-                                return new DataRow[] { dr };
+                            var format = GetDataRowValue<String>(dr, "CreateFormat");
+                            if (!format.IsNullOrEmpty())
+                            {
+                                if (IsUnsigned && format.ToLower().Contains("unsigned"))
+                                    return new DataRow[] { dr };
+                                else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
+                                    return new DataRow[] { dr };
+                            }
                         }
                     }
                 }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace NewLife.Xml
 {
@@ -52,7 +53,7 @@ namespace NewLife.Xml
 
             if (t.IsValueType || Type.GetTypeCode(t) == TypeCode.String || t == typeof(Object))
             {
-                return (T)Convert.ChangeType(value, t);
+                return (T)Reflect.ChangeType(value, t);
             }
             else if (t.IsArray || value is IEnumerable)
             {
@@ -67,7 +68,7 @@ namespace NewLife.Xml
                     list.Add(data["Item" + i.ToString()]);
                 }
 
-                return (T)Convert.ChangeType(list.ToArray(), t);
+                return (T)Reflect.ChangeType(list.ToArray(), t);
             }
 
             throw new XException("不支持的类型{0}，键{1}", typeof(T), key);

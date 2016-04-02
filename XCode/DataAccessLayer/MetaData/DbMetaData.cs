@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -146,7 +147,21 @@ namespace XCode.DataAccessLayer
                 if (obj is T)
                     value = (T)obj;
                 else
-                    value = (T)Convert.ChangeType(obj, typeof(T));
+                {
+                    if (obj != null)
+                    {
+                        var tx = TypeX.Create(obj.GetType());
+                        if (tx.IsInt)
+                        {
+                            var n = Convert.ToUInt64(obj);
+                            if (n == UInt32.MaxValue && Type.GetTypeCode(typeof(T)) == TypeCode.Int32)
+                            {
+                                obj = -1;
+                            }
+                        }
+                    }
+                    value = (T)Reflect.ChangeType(obj, typeof(T));
+                }
             }
             catch { return false; }
 

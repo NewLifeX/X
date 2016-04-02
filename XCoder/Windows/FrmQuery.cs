@@ -68,7 +68,7 @@ namespace XCoder
                 {
                     sw.Stop();
 
-                    msg += String.Format(" 耗时{0:HH:mm:ss.zzz}", sw.Elapsed);
+                    msg += String.Format(" 耗时{0}", sw.Elapsed);
                 }
 
                 this.Invoke(s => lbStatus.Text = s, msg);
