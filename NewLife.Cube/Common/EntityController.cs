@@ -554,28 +554,41 @@ namespace NewLife.Cube
         {
             var type = typeof(TEntity);
             var all = Entity<TEntity>.Meta.AllFields;
-            var list = new List<FieldItem>();
+            //var list = new List<FieldItem>();
+            var list = ListFields;
             var set = type.GetValue("Setting") as IEntityTreeSetting;
-            //var names = "ID,TreeNodeName".Split(",");
+            var k = 0;
             var names = new String[] { set.Key, "TreeNodeName" };
             foreach (var item in names)
             {
                 var fi = all.FirstOrDefault(e => e.Name.EqualIgnoreCase(item));
-                if (fi != null) list.Add(fi);
+                if (fi != null)
+                {
+                    if (list.Contains(fi)) list.Remove(fi);
+                    list.Insert(k++, fi);
+                }
             }
 
             foreach (var item in all)
             {
-                if (set != null && item.Name.EqualIgnoreCase(set.Name, set.Parent)) continue;
+                if (set != null && item.Name.EqualIgnoreCase(set.Name, set.Parent))
+                {
+                    list.Remove(item);
+                    continue;
+                }
 
                 var pi = type.GetProperty(item.Name);
-                if (pi == null || pi.GetCustomAttribute<DisplayNameAttribute>() == null) continue;
+                if (pi == null || pi.GetCustomAttribute<DisplayNameAttribute>() == null)
+                {
+                    list.Remove(item);
+                    continue;
+                }
 
-                if (!list.Contains(item)) list.Add(item);
+                //if (!list.Contains(item)) list.Insert(k++, item);
             }
 
-            ListFields.Clear();
-            ListFields.AddRange(list);
+            //ListFields.Clear();
+            //ListFields.AddRange(list);
         }
 
         /// <summary>列表页视图。子控制器可重载，以传递更多信息给视图，比如修改要显示的列</summary>
