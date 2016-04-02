@@ -22,11 +22,14 @@ namespace NewLife.Cube
             base.OnActionExecuting(filterContext);
 
             var name = this.GetType().GetDisplayName() ?? typeof(TObject).GetDisplayName() ?? typeof(TObject).Name;
-
             var des = this.GetType().GetDescription() ?? typeof(TObject).GetDescription();
 
             ViewBag.HeaderTitle = name;
-            ViewBag.HeaderContent = des;
+
+            var txt = "";
+            if (txt.IsNullOrEmpty() && ManageProvider.Menu.Current != null) txt = ManageProvider.Menu.Current.Remark;
+            if (txt.IsNullOrEmpty()) txt = des;
+            ViewBag.HeaderContent = txt;
 
             if (Value != null) ViewBag.Properties = GetMembers(Value);
         }

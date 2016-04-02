@@ -13,16 +13,17 @@ namespace NewLife.Cube.Admin.Controllers
 {
     /// <summary>用户控制器</summary>
     [DisplayName("用户")]
+    [Description("系统基于角色授权，每个角色对不同的功能模块具备添删改查以及自定义权限等多种权限设定。")]
     public class UserController : EntityController<UserX>
     {
-        /// <summary>动作执行前</summary>
-        /// <param name="filterContext"></param>
-        protected override void OnActionExecuting(ActionExecutingContext filterContext)
-        {
-            ViewBag.HeaderContent = "系统基于角色授权，每个角色对不同的功能模块具备添删改查以及自定义权限等多种权限设定。";
+        ///// <summary>动作执行前</summary>
+        ///// <param name="filterContext"></param>
+        //protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        //{
+        //    ViewBag.HeaderContent = "系统基于角色授权，每个角色对不同的功能模块具备添删改查以及自定义权限等多种权限设定。";
 
-            base.OnActionExecuting(filterContext);
-        }
+        //    base.OnActionExecuting(filterContext);
+        //}
 
         /// <summary>列表页视图。子控制器可重载，以传递更多信息给视图，比如修改要显示的列</summary>
         /// <param name="p"></param>

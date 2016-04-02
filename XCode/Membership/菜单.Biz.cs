@@ -725,6 +725,8 @@ namespace XCode.Membership
                         url += "/" + name;
                         // DisplayName特性作为中文名
                         controller = node.Add(name, type.GetDisplayName(), url);
+                        controller.Remark = type.GetDescription();
+
                         list.Add(node);
                     }
 

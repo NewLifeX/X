@@ -150,12 +150,13 @@ namespace NewLife.Cube
             var menu = ManageProvider.Menu.Root.FindByPath(AreaName);
             if (menu != null && menu.DisplayName.IsNullOrEmpty())
             {
-                var att = this.GetType().GetCustomAttribute<DisplayNameAttribute>(true);
-                if (att != null && !att.DisplayName.IsNullOrWhiteSpace())
-                {
-                    menu.DisplayName = att.DisplayName;
-                    menu.Save();
-                }
+                var dis = this.GetType().GetDisplayName();
+                var des = this.GetType().GetDescription();
+
+                if (!dis.IsNullOrEmpty()) menu.DisplayName = dis;
+                if (!des.IsNullOrEmpty()) menu.Remark = des;
+
+                menu.Save();
             }
         }
     }

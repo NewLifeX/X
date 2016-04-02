@@ -125,6 +125,18 @@ namespace XCode.Membership
             get { return _Permission; }
             set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } }
         }
+
+        private String _Remark;
+        /// <summary>备注</summary>
+        [DisplayName("备注")]
+        [Description("备注")]
+        [DataObjectField(false, false, true, 200)]
+        [BindColumn(10, "Remark", "备注", null, "nvarchar(200)", 0, 0, true)]
+        public virtual String Remark
+        {
+            get { return _Remark; }
+            set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } }
+        }
         #endregion
 
         #region 获取/设置 字段值
@@ -150,6 +162,7 @@ namespace XCode.Membership
                     case __.Visible : return _Visible;
                     case __.Necessary : return _Necessary;
                     case __.Permission : return _Permission;
+                    case __.Remark : return _Remark;
                     default: return base[name];
                 }
             }
@@ -166,6 +179,7 @@ namespace XCode.Membership
                     case __.Visible : _Visible = Convert.ToBoolean(value); break;
                     case __.Necessary : _Necessary = Convert.ToBoolean(value); break;
                     case __.Permission : _Permission = Convert.ToString(value); break;
+                    case __.Remark : _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -203,6 +217,9 @@ namespace XCode.Membership
             ///<summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
             public static readonly Field Permission = FindByName(__.Permission);
 
+            ///<summary>备注</summary>
+            public static readonly Field Remark = FindByName(__.Remark);
+
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
@@ -235,6 +252,9 @@ namespace XCode.Membership
 
             ///<summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
             public const String Permission = "Permission";
+
+            ///<summary>备注</summary>
+            public const String Remark = "Remark";
 
         }
         #endregion
@@ -270,6 +290,9 @@ namespace XCode.Membership
 
         /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
         String Permission { get; set; }
+
+        /// <summary>备注</summary>
+        String Remark { get; set; }
         #endregion
     }
 }

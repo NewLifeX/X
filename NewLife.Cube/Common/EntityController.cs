@@ -247,7 +247,8 @@ namespace NewLife.Cube
                 ViewBag.StatusMessage = "保存失败！";
                 return FormView(entity);
             }
-            else {
+            else
+            {
                 ViewBag.StatusMessage = "保存成功！";
                 // 更新完成保持本页
                 return FormView(entity);
@@ -531,9 +532,14 @@ namespace NewLife.Cube
             ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
             if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
-            if (ViewBag.HeaderContent == null) ViewBag.HeaderContent = this.GetType().GetDescription();
-            if (ViewBag.HeaderContent == null && SysConfig.Current.Develop)
-                ViewBag.HeaderContent = "这里是页头内容，你可以通过重载OnActionExecuting然后设置ViewBag.HeaderTitle/HeaderContent来修改，或者给控制器增加Description特性";
+
+            var txt = (String)ViewBag.HeaderContent;
+            if (txt.IsNullOrEmpty() && ManageProvider.Menu.Current != null) txt = ManageProvider.Menu.Current.Remark;
+            if (txt.IsNullOrEmpty()) txt = this.GetType().GetDescription();
+            if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
+                txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
+            //txt = "这里是页头内容，你可以通过重载OnActionExecuting然后设置ViewBag.HeaderTitle/HeaderContent来修改，或者给控制器增加Description特性";
+            ViewBag.HeaderContent = txt;
 
             base.OnActionExecuting(filterContext);
         }
