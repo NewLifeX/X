@@ -167,13 +167,34 @@ namespace NewLife.Threading
                 {
                     try
                     {
-                        var arr = Prepare();
+                        var arr = GetTimers();
 
                         // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
                         period = 60000;
                         foreach (var timer in arr)
                         {
-                            ProcessItem(timer);
+                            if (CheckTime(timer))
+                            {
+                                // 线程池调用
+                                if (!timer.UseThreadPool)
+                                    ProcessItem(timer);
+                                else
+                                {
+                                    // 线程池调用，可能上一次还没完成，跳到下一次调度
+                                    if (timer.Calling)
+                                    {
+                                        timer.NextTime = DateTime.Now.AddMilliseconds(timer.Period);
+                                    }
+                                    else
+                                    {
+                                        timer.Calling = true;
+                                        ThreadPoolX.QueueUserWorkItem(() =>
+                                        {
+                                            ProcessItem(timer);
+                                        });
+                                    }
+                                }
+                            }
                         }
                     }
                     catch (ThreadAbortException) { break; }
@@ -187,7 +208,7 @@ namespace NewLife.Threading
 
             /// <summary>准备好定时器列表</summary>
             /// <returns></returns>
-            static TimerX[] Prepare()
+            static TimerX[] GetTimers()
             {
                 if (timers == null || timers.Count < 1)
                 {
@@ -205,9 +226,10 @@ namespace NewLife.Threading
                 }
             }
 
-            /// <summary>处理每一个定时器</summary>
+            /// <summary>检查定时器是否到期</summary>
             /// <param name="timer"></param>
-            static void ProcessItem(TimerX timer)
+            /// <returns></returns>
+            static Boolean CheckTime(TimerX timer)
             {
                 // 删除过期的，为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度
                 var p = timer.Period;
@@ -220,7 +242,7 @@ namespace NewLife.Threading
                         timers.Remove(timer);
                         timer.Dispose();
                     }
-                    return;
+                    return false;
                 }
 
                 var ts = timer.NextTime - DateTime.Now;
@@ -230,24 +252,22 @@ namespace NewLife.Threading
                     // 缩小间隔，便于快速调用
                     if (d < period) period = d;
 
-                    return;
+                    return false;
                 }
 
-                //WriteLog("TimerX.Process {0}", timer);
+                return true;
+            }
 
+            /// <summary>处理每一个定时器</summary>
+            /// <param name="timer"></param>
+            static void ProcessItem(TimerX timer)
+            {
                 try
                 {
                     timer.Calling = true;
 
                     Action<Object> callback = timer.Callback;
-                    // 线程池调用
-                    if (timer.UseThreadPool)
-                        ThreadPoolX.QueueUserWorkItem(() =>
-                        {
-                            callback(timer.State ?? timer);
-                        });
-                    else
-                        callback(timer.State ?? timer);
+                    callback(timer.State ?? timer);
                 }
                 catch (ThreadAbortException) { throw; }
                 catch (ThreadInterruptedException) { throw; }
@@ -256,11 +276,11 @@ namespace NewLife.Threading
                 finally
                 {
                     // 再次读取周期，因为任何函数可能会修改
-                    p = timer.Period;
+                    var p = timer.Period;
 
                     timer.Timers++;
-                    timer.Calling = false;
                     timer.NextTime = DateTime.Now.AddMilliseconds(p);
+                    timer.Calling = false;
 
                     // 清理一次性定时器
                     if (p <= 0)
