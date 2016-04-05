@@ -24,12 +24,6 @@ namespace XCode
         void SetNullKey();
         #endregion
 
-        #region 填充数据
-        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        ///// <param name="dr">数据行</param>
-        //void LoadData(DataRow dr);
-        #endregion
-
         #region 操作
         /// <summary>把该对象持久化到数据库</summary>
         /// <returns></returns>
@@ -50,6 +44,10 @@ namespace XCode
         /// <summary>不需要验证的保存，不执行Valid，一般用于快速导入数据</summary>
         /// <returns></returns>
         Int32 SaveWithoutValid();
+
+        /// <summary>异步保存。实现延迟保存，大事务保存。主要面向日志表和频繁更新的在线记录表</summary>
+        /// <returns>是否成功加入异步队列</returns>
+        Boolean SaveAsync();
         #endregion
 
         #region 获取/设置 字段值

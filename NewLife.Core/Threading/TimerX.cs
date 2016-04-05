@@ -45,15 +45,15 @@ namespace NewLife.Threading
         /// <summary>实例化一个不可重入的定时器</summary>
         /// <param name="callback">委托</param>
         /// <param name="state">用户数据</param>
-        /// <param name="dueTime">多久之后开始</param>
-        /// <param name="period">间隔周期</param>
+        /// <param name="dueTime">多久之后开始。毫秒</param>
+        /// <param name="period">间隔周期。毫秒</param>
         public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period) : this(callback, state, dueTime, period, period > 10000) { }
 
         /// <summary>实例化一个不可重入的定时器</summary>
         /// <param name="callback">委托</param>
         /// <param name="state">用户数据</param>
-        /// <param name="dueTime">多久之后开始</param>
-        /// <param name="period">间隔周期</param>
+        /// <param name="dueTime">多久之后开始。毫秒</param>
+        /// <param name="period">间隔周期。毫秒</param>
         /// <param name="usethreadpool">是否使用线程池。对于耗时短小且比较频繁的操作，不好使用线程池，减少线程切换。</param>
         public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period, Boolean usethreadpool)
         {

@@ -27,14 +27,6 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        ///// <param name="dr">数据行</param>
-        //public abstract void LoadData(DataRow dr);
-
-        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        ///// <param name="dr">数据读写器</param>
-        //public abstract void LoadDataReader(IDataReader dr);
-
         /// <summary>填充数据完成时调用。默认设定标记<see cref="_IsFromDatabase"/></summary>
         internal protected virtual void OnLoad() { MarkDb(true); }
 
@@ -61,6 +53,10 @@ namespace XCode
         /// <summary>不需要验证的保存</summary>
         /// <returns></returns>
         public abstract Int32 SaveWithoutValid();
+
+        /// <summary>异步保存。实现延迟保存，大事务保存。主要面向日志表和频繁更新的在线记录表</summary>
+        /// <returns>是否成功加入异步队列</returns>
+        public abstract Boolean SaveAsync();
         #endregion
 
         #region 获取/设置 字段值

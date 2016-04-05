@@ -63,6 +63,7 @@
     <Compile Include="Common\StringBuilderCache.cs" />
     <Compile Include="Configuration\FieldExtension.cs" />
     <Compile Include="DataAccessLayer\Model\NullableDictionary.cs" />
+    <Compile Include="Entity\EntityQueue.cs" />
     <Compile Include="Entity\IEntityAddition.cs" />
     <Compile Include="Entity\EntityExtend.cs" />
     <Compile Include="Entity\EntitySession.cs" />

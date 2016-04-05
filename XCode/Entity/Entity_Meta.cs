@@ -345,6 +345,11 @@ namespace XCode
             /// <summary>实体模块集合</summary>
             public static ICollection<IEntityModule> Modules { get { return _Modules; } }
             #endregion
+
+            #region 队列
+            /// <summary>实体队列</summary>
+            public static EntityQueue Queue { get; private set; }
+            #endregion
         }
     }
 }

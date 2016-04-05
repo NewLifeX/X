@@ -268,6 +268,13 @@ namespace XCode
             finally { enableValid = true; }
         }
 
+        /// <summary>异步保存。实现延迟保存，大事务保存。主要面向日志表和频繁更新的在线记录表</summary>
+        /// <returns>是否成功加入异步队列</returns>
+        public override Boolean SaveAsync()
+        {
+            return Meta.Session.Queue.Add(this);
+        }
+
         [NonSerialized]
         Boolean enableValid = true;
 
@@ -389,7 +396,6 @@ namespace XCode
         #endregion
 
         #region 批量操作
-
         /// <summary>根据条件删除实体记录，此操作跨越缓存，使用事务保护
         /// <para>如果删除操作不带业务，可直接使用静态方法 Delete(String whereClause)</para>
         /// </summary>
@@ -534,10 +540,11 @@ namespace XCode
             return Find(MakeCondition(names, values, "And"));
         }
 
-        /// <summary>
+        /// <summary>根据条件查找唯一的单个实体</summary>
         /// 根据条件查找唯一的单个实体，因为是唯一的，所以不需要分页和排序。
         /// 如果不确定是否唯一，一定不要调用该方法，否则会返回大量的数据。
-        /// </summary>
+        /// <remarks>
+        /// </remarks>
         /// <param name="whereClause">查询条件</param>
         /// <returns></returns>
         static TEntity FindUnique(String whereClause)
