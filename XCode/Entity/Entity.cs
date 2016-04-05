@@ -272,7 +272,24 @@ namespace XCode
         /// <returns>是否成功加入异步队列</returns>
         public override Boolean SaveAsync()
         {
-            return Meta.Session.Queue.Add(this);
+            var isnew = false;
+
+            //优先使用自增字段判断
+            var fi = Meta.Table.Identity;
+            if (fi != null)
+                isnew = Convert.ToInt64(this[fi.Name]) == 0;
+            // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
+            else if (IsNullKey)
+                isnew = true;
+
+            // 提前执行Valid，让它提前准备好验证数据
+            if (enableValid)
+            {
+                Valid(isnew);
+                Meta._Modules.Valid(this, isnew);
+            }
+
+            return Meta.Session.Dal.Queue.Add(this);
         }
 
         [NonSerialized]

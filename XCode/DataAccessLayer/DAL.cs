@@ -50,6 +50,8 @@ namespace XCode.DataAccessLayer
 
             _ConnStr = ConnStrs[connName].ConnectionString;
             if (String.IsNullOrEmpty(_ConnStr)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+
+            Queue = new EntityQueue { Dal = this };
         }
 
         private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);

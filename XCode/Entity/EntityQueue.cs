@@ -14,8 +14,11 @@ namespace XCode
         #region 属性
         private IList<IEntity> Entities { get; set; }
 
-        /// <summary>用于保存数据的实体会话</summary>
-        public IEntitySession Session { get; set; }
+        ///// <summary>用于保存数据的实体会话</summary>
+        //public IEntitySession Session { get; set; }
+
+        /// <summary>数据访问</summary>
+        public DAL Dal { get; set; }
 
         /// <summary>周期。默认1000毫秒，根据繁忙程度动态调节，尽量靠近每次持久化1000个对象</summary>
         public Int32 Period { get; set; }
@@ -64,17 +67,17 @@ namespace XCode
             }
             if (es.Length == 0) return;
 
-            var ss = Session;
+            var dal = Dal;
 
             //var cfg = Setting.Current;
-            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}@{1}]准备持久化{2}个对象", ss.TableName, ss.ConnName, es.Length);
+            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]准备持久化{1}个对象", dal.ConnName, es.Length);
 
             var rs = new List<Int32>();
             var sw = new Stopwatch();
             sw.Start();
 
             // 开启事务保存
-            ss.BeginTrans();
+            dal.BeginTransaction();
             try
             {
                 foreach (var item in es)
@@ -82,17 +85,17 @@ namespace XCode
                     rs.Add(item.Save());
                 }
 
-                ss.Commit();
+                dal.Commit();
 
                 sw.Stop();
             }
             catch
             {
-                ss.Rollback();
+                dal.Rollback();
                 throw;
             }
 
-            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}@{1}]持久化{2}个对象共耗时 {3}", ss.TableName, ss.ConnName, es.Length, sw.Elapsed);
+            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]持久化{1}个对象共耗时 {2}", dal.ConnName, es.Length, sw.Elapsed);
 
             // 根据繁忙程度动态调节
             // 大于1000个对象时，说明需要加快持久化间隔，缩小周期
@@ -110,6 +113,8 @@ namespace XCode
             {
                 Period = p;
                 _Timer.Period = p;
+
+                if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}] 动态调整周期到 {1} 毫秒", dal.ConnName, p);
             }
 
             if (Completed != null)

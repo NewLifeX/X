@@ -347,8 +347,25 @@ namespace XCode
             #endregion
 
             #region 队列
-            /// <summary>实体队列</summary>
-            public static EntityQueue Queue { get; private set; }
+            //private static Dictionary<String, EntityQueue> _Queue = new Dictionary<String, EntityQueue>(StringComparer.OrdinalIgnoreCase);
+            ///// <summary>实体队列</summary>
+            //public static EntityQueue GetQueue()
+            //{
+            //    EntityQueue eq;
+            //    if (!_Queue.TryGetValue(ConnName, out eq))
+            //    {
+            //        lock (_Queue)
+            //        {
+            //            if (!_Queue.TryGetValue(ConnName, out eq))
+            //            {
+            //                eq = new EntityQueue { Factory = Factory };
+            //                _Queue.Add(ConnName, eq);
+            //            }
+            //        }
+            //    }
+
+            //    return eq;
+            //}
             #endregion
         }
     }

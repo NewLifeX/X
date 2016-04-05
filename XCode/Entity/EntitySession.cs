@@ -66,7 +66,7 @@ namespace XCode
         #region 构造
         private EntitySession()
         {
-            Queue = new EntityQueue { Session = this };
+            //Queue = new EntityQueue { Session = this };
         }
 
         private static DictionaryCache<String, EntitySession<TEntity>> _es = new DictionaryCache<string, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
@@ -1091,10 +1091,10 @@ namespace XCode
         }
         #endregion
 
-        #region 队列
-        /// <summary>实体队列</summary>
-        public EntityQueue Queue { get; private set; }
-        #endregion
+        //#region 队列
+        ///// <summary>实体队列</summary>
+        //public EntityQueue Queue { get; private set; }
+        //#endregion
     }
 
     #region 脏实体会话

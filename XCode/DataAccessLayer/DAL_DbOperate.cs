@@ -301,5 +301,10 @@ namespace XCode.DataAccessLayer
             return Session.TryGetDirtiedEntitySession(key, out session);
         }
         #endregion
+
+        #region 队列
+        /// <summary>实体队列</summary>
+        public EntityQueue Queue { get; private set; }
+        #endregion
     }
 }
