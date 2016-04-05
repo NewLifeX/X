@@ -45,7 +45,7 @@ namespace XCode
         /// <returns></returns>
         public Boolean Add(IEntity entity)
         {
-            if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period, true);
+            if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period);
 
             lock (this)
             {
@@ -57,6 +57,7 @@ namespace XCode
 
         private void Work(Object state)
         {
+            if (_Running) return;
             if (Entities.Count == 0) return;
 
             IEntity[] es = null;
@@ -67,10 +68,18 @@ namespace XCode
             }
             if (es.Length == 0) return;
 
+            _Running = true;
+            ThreadPoolX.QueueUserWorkItem(Process, es);
+        }
+
+        private Boolean _Running;
+        private void Process(Object state)
+        {
+            var es = state as IEntity[];
             var dal = Dal;
 
             //var cfg = Setting.Current;
-            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]准备持久化{1}个对象", dal.ConnName, es.Length);
+            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]\t准备持久化{1}个对象", dal.ConnName, es.Length);
 
             var rs = new List<Int32>();
             var sw = new Stopwatch();
@@ -94,8 +103,10 @@ namespace XCode
                 dal.Rollback();
                 throw;
             }
-
-            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]持久化{1}个对象共耗时 {2}", dal.ConnName, es.Length, sw.Elapsed);
+            finally
+            {
+                _Running = false;
+            }
 
             // 根据繁忙程度动态调节
             // 大于1000个对象时，说明需要加快持久化间隔，缩小周期
@@ -113,9 +124,9 @@ namespace XCode
             {
                 Period = p;
                 _Timer.Period = p;
-
-                if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}] 动态调整周期到 {1} 毫秒", dal.ConnName, p);
             }
+
+            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]\t周期{3:n0}毫秒\t持久化{1}个对象共耗时 {2}", dal.ConnName, es.Length, sw.Elapsed, p);
 
             if (Completed != null)
             {

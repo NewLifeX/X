@@ -29,16 +29,13 @@ namespace NewLife.Threading
         public DateTime NextTime { get; set; }
 
         /// <summary>调用次数</summary>
-        public Int32 Timers { get; set; }
+        public Int32 Timers { get; private set; }
 
         /// <summary>间隔周期。毫秒，设为0则只调用一次</summary>
         public Int32 Period { get; set; }
 
-        /// <summary>是否使用线程池。对于耗时短小且比较频繁的操作，不好使用线程池，减少线程切换。</summary>
-        public Boolean UseThreadPool { get; set; }
-
         /// <summary>调用中</summary>
-        public Boolean Calling { get; set; }
+        public Boolean Calling { get; private set; }
         #endregion
 
         #region 构造
@@ -47,15 +44,7 @@ namespace NewLife.Threading
         /// <param name="state">用户数据</param>
         /// <param name="dueTime">多久之后开始。毫秒</param>
         /// <param name="period">间隔周期。毫秒</param>
-        public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period) : this(callback, state, dueTime, period, period > 10000) { }
-
-        /// <summary>实例化一个不可重入的定时器</summary>
-        /// <param name="callback">委托</param>
-        /// <param name="state">用户数据</param>
-        /// <param name="dueTime">多久之后开始。毫秒</param>
-        /// <param name="period">间隔周期。毫秒</param>
-        /// <param name="usethreadpool">是否使用线程池。对于耗时短小且比较频繁的操作，不好使用线程池，减少线程切换。</param>
-        public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period, Boolean usethreadpool)
+        public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period)
         {
             if (callback == null) throw new ArgumentNullException("callback");
             if (dueTime < 0) throw new ArgumentOutOfRangeException("dueTime");
@@ -64,7 +53,6 @@ namespace NewLife.Threading
             Callback = new WeakAction<Object>(callback);
             State = state;
             Period = period;
-            UseThreadPool = usethreadpool;
 
             NextTime = DateTime.Now.AddMilliseconds(dueTime);
 
@@ -173,28 +161,7 @@ namespace NewLife.Threading
                         period = 60000;
                         foreach (var timer in arr)
                         {
-                            if (CheckTime(timer))
-                            {
-                                // 线程池调用
-                                if (!timer.UseThreadPool)
-                                    ProcessItem(timer);
-                                else
-                                {
-                                    // 线程池调用，可能上一次还没完成，跳到下一次调度
-                                    if (timer.Calling)
-                                    {
-                                        timer.NextTime = DateTime.Now.AddMilliseconds(timer.Period);
-                                    }
-                                    else
-                                    {
-                                        timer.Calling = true;
-                                        ThreadPoolX.QueueUserWorkItem(() =>
-                                        {
-                                            ProcessItem(timer);
-                                        });
-                                    }
-                                }
-                            }
+                            if (CheckTime(timer)) ProcessItem(timer);
                         }
                     }
                     catch (ThreadAbortException) { break; }

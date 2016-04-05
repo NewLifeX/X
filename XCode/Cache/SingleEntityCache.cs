@@ -80,7 +80,7 @@ namespace XCode.Cache
             HoldCache = Setting.Current.Cache.Alone;
 
             // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
-            _Timer = new TimerX(d => Check(), null, Expire * 1000, Expire * 1000, true);
+            _Timer = new TimerX(d => Check(), null, Expire * 1000, Expire * 1000);
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
