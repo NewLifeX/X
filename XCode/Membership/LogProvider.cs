@@ -89,7 +89,7 @@ namespace XCode.Membership
             var log = (factory.Default as ILog).Create(type, action);
 
             log.Remark = remark;
-            log.Save();
+            log.SaveAsync();
         }
     }
 

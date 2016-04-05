@@ -239,5 +239,9 @@ namespace XCode.Membership
         /// <summary>保存</summary>
         /// <returns></returns>
         Int32 Save();
+
+        /// <summary>异步保存</summary>
+        /// <returns></returns>
+        Boolean SaveAsync();
     }
 }

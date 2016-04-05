@@ -31,12 +31,13 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.21.*")]
-[assembly: AssemblyFileVersion("8.21.2016.0131")]
+[assembly: AssemblyVersion("9.0.*")]
+[assembly: AssemblyFileVersion("9.0.2016.0405")]
 
 /*
  * XCode的重大改进
  * 
+ * v9.0 高性能，分布式
  * v8.0 标准化开放的接口，增强定制能力
  * v7.0 增强数据库架构的支持，支持更多数据库
  * v6.0 增强的缓存和扩展属性支持
@@ -49,6 +50,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v9.0.2016.0405   增加实体队列和SaveAsync，支持延迟持久化，提升历史表和在线表的性能
+ * 
  * v8.21.2016.0131  Oracle数据驱动更换为托管驱动
  * 
  * v8.20.2015.0717  数据会话增加Truncate用于清空数据表，标识归零，方便测试
