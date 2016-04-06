@@ -409,7 +409,7 @@ namespace XCode
                 Int64 n = _Count;
 
                 // 如果有缓存，则考虑返回吧
-                if (n > -1L)
+                if (n >= 0)
                 {
                     // 等于0的时候也应该缓存，否则会一直查询这个表
                     if (n < 1000L) { return n; }
@@ -467,6 +467,8 @@ namespace XCode
                         ThreadPoolX.QueueUserWorkItem(() =>
                         {
                             _LastCount = _Count = Dal.Session.QueryCountFast(TableName);
+
+                            if (_Count >= 1000) HttpRuntime.Cache.Insert(key, _Count, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
                         });
                     }
                 }
