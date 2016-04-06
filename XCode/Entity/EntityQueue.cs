@@ -128,7 +128,7 @@ namespace XCode
                 _Timer.Period = p;
             }
 
-            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]\t周期{3:n0}毫秒\t持久化{1}个对象共耗时 {2}", dal.ConnName, es.Length, sw.Elapsed, p);
+            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]\t共耗时 {1:n0}毫秒\t周期 {2:n0}毫秒", dal.ConnName, sw.ElapsedMilliseconds, p);
 
             if (Completed != null)
             {
