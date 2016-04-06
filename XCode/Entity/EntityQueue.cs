@@ -49,6 +49,9 @@ namespace XCode
 
             lock (this)
             {
+                // 避免重复加入队列
+                if (Entities.Contains(entity)) return false;
+
                 Entities.Add(entity);
             }
 
