@@ -12,7 +12,7 @@ namespace XCode
     public class EntityQueue
     {
         #region 属性
-        private IList<IEntity> Entities { get; set; }
+        private ICollection<IEntity> Entities { get; set; }
 
         /// <summary>调试开关，默认false</summary>
         public Boolean Debug { get; set; }
@@ -33,7 +33,7 @@ namespace XCode
         /// <summary>实例化实体队列</summary>
         public EntityQueue()
         {
-            Entities = new List<IEntity>();
+            Entities = new HashSet<IEntity>();
 
             Period = 10000;
         }
