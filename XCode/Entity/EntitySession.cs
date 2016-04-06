@@ -382,7 +382,7 @@ namespace XCode
         IEntityCache IEntitySession.Cache { get { return Cache; } }
         ISingleEntityCache IEntitySession.SingleCache { get { return SingleCache; } }
 
-        /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
+        /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10秒</summary>
         public Int32 Count { get { return (Int32)LongCount; } }
 
         /// <summary>上一次记录数，用于衡量缓存策略，不受缓存清空</summary>
@@ -439,13 +439,13 @@ namespace XCode
                     if (Dal.DbType == DatabaseType.SQLite && Table.Identity != null)
                     {
                         // 除第一次外，将依据上一次记录数决定是否使用最大ID
-                        if (_LastCount == null || _LastCount.Value > 500000)
+                        if (_LastCount == null)
                         {
                             // 先查一下最大值
                             //max = Entity<TEntity>.FindMax(Table.Identity.ColumnName);
                             // 依赖关系FindMax=>FindAll=>Query=>InitData=>Meta.Count，所以不能使用
 
-                            if (DAL.Debug) DAL.WriteLog("第一次访问{0}，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数", ThisType.Name);
+                            //if (DAL.Debug) DAL.WriteLog("第一次访问{0}，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数", ThisType.Name);
 
                             var builder = new SelectBuilder();
                             builder.Table = FormatedTableName;
@@ -454,6 +454,8 @@ namespace XCode
                             if (ds.Tables[0].Rows.Count > 0)
                                 max = Convert.ToInt64(ds.Tables[0].Rows[0][Table.Identity.ColumnName]);
                         }
+                        else
+                            max = _LastCount.Value;
                     }
 
                     // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
@@ -468,7 +470,7 @@ namespace XCode
                         {
                             _LastCount = _Count = Dal.Session.QueryCountFast(TableName);
 
-                            if (_Count >= 1000) HttpRuntime.Cache.Insert(key, _Count, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
+                            if (_Count >= 1000) HttpRuntime.Cache.Insert(key, _Count, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
                         });
                     }
                 }
@@ -476,7 +478,7 @@ namespace XCode
                 _Count = m;
                 _LastCount = m;
 
-                if (m >= 1000) HttpRuntime.Cache.Insert(key, m, null, DateTime.Now.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
+                if (m >= 1000) HttpRuntime.Cache.Insert(key, m, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
 
                 // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
                 WaitForInitData();
