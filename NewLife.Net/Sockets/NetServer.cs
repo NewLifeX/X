@@ -396,7 +396,14 @@ namespace NewLife.Net.Sockets
             lock (dic)
             {
                 if (session.Host == null) session.Host = this;
-                session.OnDisposed += (s, e) => { lock (dic) { dic.Remove((s as INetSession).ID); } };
+                session.OnDisposed += (s, e) =>
+                {
+                    var dic2 = Sessions;
+                    lock (dic2)
+                    {
+                        dic2.Remove((s as INetSession).ID);
+                    }
+                };
                 dic[session.ID] = session;
             }
         }
@@ -421,10 +428,11 @@ namespace NewLife.Net.Sockets
         {
             if (sessionid == 0) return null;
 
-            lock (Sessions)
+            var dic = Sessions;
+            lock (dic)
             {
                 INetSession ns = null;
-                if (!Sessions.TryGetValue(sessionid, out ns)) return null;
+                if (!dic.TryGetValue(sessionid, out ns)) return null;
                 return ns;
             }
         }

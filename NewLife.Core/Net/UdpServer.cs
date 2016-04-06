@@ -616,11 +616,16 @@ namespace NewLife.Net
                 us.Log = Log;
                 us.LogSend = LogSend;
                 us.LogReceive = LogReceive;
+                // UDP不好分会话统计
+                //us.StatSend.Parent = StatSend;
+                //us.StatReceive.Parent = StatReceive;
 
                 session = us;
                 if (sessions.Add(session))
                 {
-                    us.ID = g_ID++;
+                    //us.ID = g_ID++;
+                    // 会话改为原子操作，避免多线程冲突
+                    us.ID = Interlocked.Increment(ref g_ID);
                     us.Start();
 
                     if (StatSession != null) StatSession.Increment(1);

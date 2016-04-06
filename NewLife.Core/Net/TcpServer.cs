@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -202,20 +203,19 @@ namespace NewLife.Net
         protected virtual void OnAccept(TcpClient client)
         {
             var session = CreateSession(client);
-            // 服务端不支持掉线重连
-            session.AutoReconnect = 0;
-            session.Log = Log;
-
-            if (StatSession != null) StatSession.Increment(1);
 
             // 设置心跳时间
             client.Client.SetTcpKeepAlive(true);
 
             if (_Sessions.Add(session))
             {
-                session.ID = g_ID++;
+                //session.ID = g_ID++;
+                // 会话改为原子操作，避免多线程冲突
+                session.ID = Interlocked.Increment(ref g_ID);
                 //WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
                 session.WriteLog("New {0}", session.Remote.EndPoint);
+
+                if (StatSession != null) StatSession.Increment(1);
 
                 if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
 
@@ -238,10 +238,13 @@ namespace NewLife.Net
         protected virtual TcpSession CreateSession(TcpClient client)
         {
             var session = new TcpSession(this, client);
-            session.StatSend.Parent = StatSend;
-            session.StatReceive.Parent = StatReceive;
+            // 服务端不支持掉线重连
+            session.AutoReconnect = 0;
+            session.Log = Log;
             session.LogSend = LogSend;
             session.LogReceive = LogReceive;
+            session.StatSend.Parent = StatSend;
+            session.StatReceive.Parent = StatReceive;
 
             return session;
         }
