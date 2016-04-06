@@ -14,8 +14,8 @@ namespace XCode
         #region 属性
         private IList<IEntity> Entities { get; set; }
 
-        ///// <summary>用于保存数据的实体会话</summary>
-        //public IEntitySession Session { get; set; }
+        /// <summary>调试开关，默认false</summary>
+        public Boolean Debug { get; set; }
 
         /// <summary>数据访问</summary>
         public DAL Dal { get; set; }
@@ -82,11 +82,11 @@ namespace XCode
             var dal = Dal;
 
             //var cfg = Setting.Current;
-            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]\t准备持久化{1}个对象", dal.ConnName, es.Length);
+            if (Debug) XTrace.WriteLine("实体队列[{0}]\t准备持久化{1}个对象", dal.ConnName, es.Length);
 
             var rs = new List<Int32>();
             var sw = new Stopwatch();
-            sw.Start();
+            if (Debug) sw.Start();
 
             // 开启事务保存
             dal.BeginTransaction();
@@ -99,7 +99,7 @@ namespace XCode
 
                 dal.Commit();
 
-                sw.Stop();
+                if (Debug) sw.Stop();
             }
             catch
             {
@@ -131,7 +131,7 @@ namespace XCode
                 _Timer.Period = p;
             }
 
-            if (XTrace.Debug) XTrace.WriteLine("实体队列[{0}]\t共耗时 {1:n0}毫秒\t周期 {2:n0}毫秒", dal.ConnName, sw.ElapsedMilliseconds, p);
+            if (Debug) XTrace.WriteLine("实体队列[{0}]\t共耗时 {1:n0}毫秒\t周期 {2:n0}毫秒", dal.ConnName, sw.ElapsedMilliseconds, p);
 
             if (Completed != null)
             {
