@@ -675,6 +675,7 @@ namespace XCode.Cache
 
         /// <summary>移除指定项</summary>
         /// <param name="entity"></param>
+        /// <param name="save">是否自动保存实体对象</param>
         void ISingleEntityCache.Remove(IEntity entity, Boolean save) { Remove(entity as TEntity, save); }
 
         /// <summary>向单对象缓存添加项</summary>

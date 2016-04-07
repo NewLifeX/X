@@ -29,7 +29,6 @@ namespace XCode.Cache
         /// <summary>异步更新，默认打开</summary>
         public Boolean Asynchronous { get; set; }
 
-        private Boolean _Using;
         /// <summary>是否在使用缓存，在不触发缓存动作的情况下检查是否有使用缓存</summary>
         internal Boolean Using { get; private set; }
 

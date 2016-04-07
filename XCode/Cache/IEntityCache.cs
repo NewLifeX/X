@@ -114,6 +114,9 @@ namespace XCode.Cache
         void Clear(String reason);
     }
 
+    /// <summary></summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TEntity"></typeparam>
     public interface ISingleEntityCache<TKey, TEntity> : ISingleEntityCache where TEntity : Entity<TEntity>, new()
     {
         /// <summary>获取数据</summary>
