@@ -343,78 +343,78 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\ace\css\ace-fonts.min.css" />
-    <Content Include="Content\ace\css\ace-ie.min.css" />
-    <Content Include="Content\ace\css\ace-part2.min.css" />
-    <Content Include="Content\ace\css\ace-skins.min.css" />
-    <Content Include="Content\ace\css\ace.min.css" />
-    <Content Include="Content\ace\css\images\meteorshower2.jpg" />
-    <Content Include="Content\ace\css\images\pattern.jpg" />
-    <Content Include="Content\ace\js\ace-elements.min.js" />
-    <Content Include="Content\ace\js\ace-extra.min.js" />
-    <Content Include="Content\ace\js\ace.min.js" />
-    <Content Include="Content\ace\js\additional-methods.min.js" />
-    <Content Include="Content\ace\js\bootbox.min.js" />
-    <Content Include="Content\ace\js\chosen.jquery.min.js" />
-    <Content Include="Content\ace\js\dropzone.min.js" />
-    <Content Include="Content\ace\js\excanvas.min.js" />
-    <Content Include="Content\ace\js\fullcalendar.min.js" />
-    <Content Include="Content\ace\js\pace.min.js" />
-    <Content Include="Content\ace\js\prettify.min.js" />
-    <Content Include="Content\ace\js\select2.min.js" />
-    <Content Include="Content\ace\js\spin.min.js" />
-    <Content Include="Content\ace\js\typeahead.jquery.min.js" />
-    <Content Include="Content\artDialog\css\ui-dialog.css" />
-    <Content Include="Content\artDialog\dist\dialog-min.js" />
-    <Content Include="Content\artDialog\dist\dialog-plus-min.js" />
-    <Content Include="Content\bootstrap-switch\bootstrap-switch.min.css" />
-    <Content Include="Content\bootstrap-switch\bootstrap-switch.min.js" />
-    <Content Include="Content\bootstrap\css\bootstrap-multiselect.css" />
-    <Content Include="Content\bootstrap\css\bootstrap-responsive.min.css" />
-    <Content Include="Content\bootstrap\css\font-awesome.min.css" />
-    <Content Include="Content\bootstrap\fonts\fontawesome-webfont.svg" />
-    <Content Include="Content\bootstrap\js\bootstrap-colorpicker.min.js" />
-    <Content Include="Content\bootstrap\js\bootstrap-multiselect.min.js" />
-    <Content Include="Content\bootstrap\js\bootstrap-tag.min.js" />
-    <Content Include="Content\bootstrap\js\bootstrap-wysiwyg.min.js" />
-    <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.css" />
-    <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.js" />
-    <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.min.css" />
-    <Content Include="Content\DateTimePicker\bootstrap-datetimepicker.min.js" />
-    <Content Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.es.js" />
-    <Content Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.zh-CN.js" />
-    <Content Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.zh-TW.js" />
-    <Content Include="Content\bootstrap\css\bootstrap-theme.min.css" />
-    <Content Include="Content\bootstrap\css\bootstrap.min.css" />
-    <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.svg" />
-    <Content Include="Content\bootstrap\js\bootstrap.min.js" />
-    <Content Include="Content\Cube.js" />
-    <Content Include="Content\js\html5shiv.min.js" />
-    <Content Include="Content\js\jquery-2.1.3.min.js" />
-    <Content Include="Content\js\jquery-ui.custom.min.js" />
-    <Content Include="Content\js\jquery-ui.min.js" />
-    <Content Include="Content\js\jquery.autosize.min.js" />
-    <Content Include="Content\js\jquery.bootstrap-duallistbox.min.js" />
-    <Content Include="Content\js\jquery.colorbox.min.js" />
-    <Content Include="Content\js\jquery.easypiechart.min.js" />
-    <Content Include="Content\js\jquery.gritter.min.js" />
-    <Content Include="Content\js\jquery.hotkeys.min.js" />
-    <Content Include="Content\js\jquery.inputlimiter.1.3.1.min.js" />
-    <Content Include="Content\js\jquery.knob.min.js" />
-    <Content Include="Content\js\jquery.maskedinput.min.js" />
-    <Content Include="Content\js\jquery.min.js" />
-    <Content Include="Content\js\jquery.mobile.custom.min.js" />
-    <Content Include="Content\js\jquery.mousewheel.min.js" />
-    <Content Include="Content\js\jquery.nestable.min.js" />
-    <Content Include="Content\js\jquery.raty.min.js" />
-    <Content Include="Content\js\jquery.slimscroll.min.js" />
-    <Content Include="Content\js\jquery.sparkline.min.js" />
-    <Content Include="Content\js\jquery.ui.touch-punch.min.js" />
-    <Content Include="Content\js\jquery.validate.min.js" />
-    <Content Include="Content\js\jquery1x.min.js" />
-    <Content Include="Content\js\respond.min.js" />
+    <None Include="Content\ace\css\ace-fonts.min.css" />
+    <None Include="Content\ace\css\ace-ie.min.css" />
+    <None Include="Content\ace\css\ace-part2.min.css" />
+    <None Include="Content\ace\css\ace-skins.min.css" />
+    <None Include="Content\ace\css\ace.min.css" />
+    <None Include="Content\ace\css\images\meteorshower2.jpg" />
+    <None Include="Content\ace\css\images\pattern.jpg" />
+    <None Include="Content\ace\js\ace-elements.min.js" />
+    <None Include="Content\ace\js\ace-extra.min.js" />
+    <None Include="Content\ace\js\ace.min.js" />
+    <None Include="Content\ace\js\additional-methods.min.js" />
+    <None Include="Content\ace\js\bootbox.min.js" />
+    <None Include="Content\ace\js\chosen.jquery.min.js" />
+    <None Include="Content\ace\js\dropzone.min.js" />
+    <None Include="Content\ace\js\excanvas.min.js" />
+    <None Include="Content\ace\js\fullcalendar.min.js" />
+    <None Include="Content\ace\js\pace.min.js" />
+    <None Include="Content\ace\js\prettify.min.js" />
+    <None Include="Content\ace\js\select2.min.js" />
+    <None Include="Content\ace\js\spin.min.js" />
+    <None Include="Content\ace\js\typeahead.jquery.min.js" />
+    <None Include="Content\artDialog\css\ui-dialog.css" />
+    <None Include="Content\artDialog\dist\dialog-min.js" />
+    <None Include="Content\artDialog\dist\dialog-plus-min.js" />
+    <None Include="Content\bootstrap-switch\bootstrap-switch.min.css" />
+    <None Include="Content\bootstrap-switch\bootstrap-switch.min.js" />
+    <None Include="Content\bootstrap\css\bootstrap-multiselect.css" />
+    <None Include="Content\bootstrap\css\bootstrap-responsive.min.css" />
+    <None Include="Content\bootstrap\css\font-awesome.min.css" />
+    <None Include="Content\bootstrap\fonts\fontawesome-webfont.svg" />
+    <None Include="Content\bootstrap\js\bootstrap-colorpicker.min.js" />
+    <None Include="Content\bootstrap\js\bootstrap-multiselect.min.js" />
+    <None Include="Content\bootstrap\js\bootstrap-tag.min.js" />
+    <None Include="Content\bootstrap\js\bootstrap-wysiwyg.min.js" />
+    <None Include="Content\DateTimePicker\bootstrap-datetimepicker.css" />
+    <None Include="Content\DateTimePicker\bootstrap-datetimepicker.js" />
+    <None Include="Content\DateTimePicker\bootstrap-datetimepicker.min.css" />
+    <None Include="Content\DateTimePicker\bootstrap-datetimepicker.min.js" />
+    <None Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.es.js" />
+    <None Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.zh-CN.js" />
+    <None Include="Content\DateTimePicker\locales\bootstrap-datetimepicker.zh-TW.js" />
+    <None Include="Content\bootstrap\css\bootstrap-theme.min.css" />
+    <None Include="Content\bootstrap\css\bootstrap.min.css" />
+    <None Include="Content\bootstrap\fonts\glyphicons-halflings-regular.svg" />
+    <None Include="Content\bootstrap\js\bootstrap.min.js" />
+    <None Include="Content\Cube.js" />
+    <None Include="Content\js\html5shiv.min.js" />
+    <None Include="Content\js\jquery-2.1.3.min.js" />
+    <None Include="Content\js\jquery-ui.custom.min.js" />
+    <None Include="Content\js\jquery-ui.min.js" />
+    <None Include="Content\js\jquery.autosize.min.js" />
+    <None Include="Content\js\jquery.bootstrap-duallistbox.min.js" />
+    <None Include="Content\js\jquery.colorbox.min.js" />
+    <None Include="Content\js\jquery.easypiechart.min.js" />
+    <None Include="Content\js\jquery.gritter.min.js" />
+    <None Include="Content\js\jquery.hotkeys.min.js" />
+    <None Include="Content\js\jquery.inputlimiter.1.3.1.min.js" />
+    <None Include="Content\js\jquery.knob.min.js" />
+    <None Include="Content\js\jquery.maskedinput.min.js" />
+    <None Include="Content\js\jquery.min.js" />
+    <None Include="Content\js\jquery.mobile.custom.min.js" />
+    <None Include="Content\js\jquery.mousewheel.min.js" />
+    <None Include="Content\js\jquery.nestable.min.js" />
+    <None Include="Content\js\jquery.raty.min.js" />
+    <None Include="Content\js\jquery.slimscroll.min.js" />
+    <None Include="Content\js\jquery.sparkline.min.js" />
+    <None Include="Content\js\jquery.ui.touch-punch.min.js" />
+    <None Include="Content\js\jquery.validate.min.js" />
+    <None Include="Content\js\jquery1x.min.js" />
+    <None Include="Content\js\respond.min.js" />
     <Content Include="favicon.ico" />
-    <Content Include="说明.txt" />
+    <None Include="说明.txt" />
     <None Include="Areas\Admin\Views\Log\_List_Toolbar.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
@@ -435,16 +435,16 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.eot" />
-    <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.ttf" />
-    <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.woff" />
-    <Content Include="Content\bootstrap\fonts\glyphicons-halflings-regular.woff2" />
-    <Content Include="Content\bootstrap\fonts\fontawesome-webfont.eot" />
-    <Content Include="Content\bootstrap\fonts\fontawesome-webfont.ttf" />
-    <Content Include="Content\bootstrap\fonts\fontawesome-webfont.woff" />
-    <Content Include="Content\bootstrap\fonts\FontAwesome.otf" />
-    <Content Include="Content\ace\fonts\OpenSans-300.woff" />
-    <Content Include="Content\ace\fonts\OpenSans-400.woff" />
+    <None Include="Content\bootstrap\fonts\glyphicons-halflings-regular.eot" />
+    <None Include="Content\bootstrap\fonts\glyphicons-halflings-regular.ttf" />
+    <None Include="Content\bootstrap\fonts\glyphicons-halflings-regular.woff" />
+    <None Include="Content\bootstrap\fonts\glyphicons-halflings-regular.woff2" />
+    <None Include="Content\bootstrap\fonts\fontawesome-webfont.eot" />
+    <None Include="Content\bootstrap\fonts\fontawesome-webfont.ttf" />
+    <None Include="Content\bootstrap\fonts\fontawesome-webfont.woff" />
+    <None Include="Content\bootstrap\fonts\FontAwesome.otf" />
+    <None Include="Content\ace\fonts\OpenSans-300.woff" />
+    <None Include="Content\ace\fonts\OpenSans-400.woff" />
     <None Include="Areas\Admin\Views\Role\_Form_Group.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
@@ -465,8 +465,8 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Login_Register.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Content\artDialog\dist\dialog.new.life.js" />
-    <None Include="Global.asax" />
+    <None Include="Content\artDialog\dist\dialog.new.life.js" />
+    <Content Include="Global.asax" />
     <None Include="Areas\Admin\Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
@@ -513,12 +513,12 @@
       <LastGenOutput>List.generated.cs</LastGenOutput>
     </None>
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
-    <Content Include="Scripts\jquery-1.8.2.intellisense.js" />
-    <Content Include="Scripts\jquery.unobtrusive-ajax.js" />
-    <Content Include="Scripts\jquery.unobtrusive-ajax.min.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="Scripts\modernizr-2.6.2.js" />
+    <None Include="Scripts\jquery-1.8.2.intellisense.js" />
+    <None Include="Scripts\jquery.unobtrusive-ajax.js" />
+    <None Include="Scripts\jquery.unobtrusive-ajax.min.js" />
+    <None Include="Scripts\jquery.validate.unobtrusive.js" />
+    <None Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <None Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -528,8 +528,8 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
-    <Content Include="Content\Site.css" />
-    <Content Include="Scripts\_references.js" />
+    <None Include="Content\Site.css" />
+    <None Include="Scripts\_references.js" />
     <None Include="Views\Shared\_Form_Action.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
