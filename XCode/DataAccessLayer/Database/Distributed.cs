@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using NewLife.Security;
 using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
@@ -171,14 +172,14 @@ namespace XCode.DataAccessLayer
             LoadConfig(ConnectionString);
         }
 
-        Random _Rnd;
-        /// <summary>随机数产生器</summary>
-        /// <returns></returns>
-        Random GetRnd()
-        {
-            if (_Rnd == null) _Rnd = new Random((Int32)DateTime.Now.Ticks);
-            return _Rnd;
-        }
+        //Random _Rnd;
+        ///// <summary>随机数产生器</summary>
+        ///// <returns></returns>
+        //Random GetRnd()
+        //{
+        //    if (_Rnd == null) _Rnd = new Random((Int32)DateTime.Now.Ticks);
+        //    return _Rnd;
+        //}
 
         /// <summary>获取一个用于读取的数据库对象</summary>
         /// <returns></returns>
@@ -194,7 +195,7 @@ namespace XCode.DataAccessLayer
             }
 
             // 随机抽取
-            Int32 index = GetRnd().Next(0, weight);
+            var index = Rand.Next(0, weight);
             foreach (Server item in ReadServers)
             {
                 if (index < item.Weight) return item.Db;

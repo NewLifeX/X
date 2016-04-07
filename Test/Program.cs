@@ -107,7 +107,13 @@ namespace Test
             //var buf = "41-54-0d-0d-0a-0d-0a-4F-4B-0d-0a".ToHex();
             //Console.WriteLine(buf.ToHex());
             //Console.WriteLine(buf.ToStr());
-            MQTest.TestBase();
+            //MQTest.TestBase();
+
+            var ns = new Int32[] { 123, 0, -456, Int32.MinValue, Int32.MaxValue };
+            foreach (var item in ns)
+            {
+                Console.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}", item, (UInt32)item, (Int64)(UInt32)item, (Int64)item, (UInt64)item);
+            }
         }
 
         static void Test5()

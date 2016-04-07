@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using NewLife.Common;
 using NewLife.Log;
+using NewLife.Security;
 using NewLife.Threading;
 
 namespace NewLife.Net.Dhcp
@@ -64,17 +65,12 @@ namespace NewLife.Net.Dhcp
                 }, null, 0, 1000);
             }
 
-            var rnd = new Random();
-            TransID = rnd.Next();
+            //var rnd = new Random();
+            TransID = Rand.Next();
             if (_Mac == null || _Mac.Length == 0)
-            {
                 _Mac = HardInfo.Current.Macs.Replace(":", null).ToHex();
-            }
             if (_Mac == null || _Mac.Length == 0)
-            {
-                _Mac = new Byte[6];
-                rnd.NextBytes(_Mac);
-            }
+                _Mac = Rand.NextBytes(6);
         }
 
         /// <summary>停止</summary>

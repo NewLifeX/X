@@ -9,6 +9,7 @@ using System.Text;
 using NewLife;
 using NewLife.Compression;
 using NewLife.Reflection;
+using NewLife.Security;
 
 namespace XCode.DataAccessLayer
 {
@@ -572,8 +573,8 @@ namespace XCode.DataAccessLayer
             WriteLog("备份文件大小：{0:n0}字节", bakfile.AsFile().Length);
             if (bakfile.EndsWithIgnoreCase(".zip"))
             {
-                var rnd = new Random();
-                var tmp = Path.GetDirectoryName(bakfile).CombinePath(rnd.Next() + ".tmp");
+                //var rnd = new Random();
+                var tmp = Path.GetDirectoryName(bakfile).CombinePath(Rand.Next() + ".tmp");
                 File.Move(bakfile, tmp);
                 ZipFile.CompressFile(tmp, bakfile);
                 File.Delete(tmp);

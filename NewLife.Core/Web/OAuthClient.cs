@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
+using NewLife.Security;
 
 namespace NewLife.Web
 {
@@ -56,7 +57,7 @@ namespace NewLife.Web
         /// <param name="state"></param>
         public void Authorize(String redirect, String state = null)
         {
-            if (state.IsNullOrEmpty()) state = new Random().Next().ToString();
+            if (state.IsNullOrEmpty()) state = Rand.Next().ToString();
 
             _redirect = redirect;
             _state = state;

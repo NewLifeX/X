@@ -138,6 +138,7 @@
     <Compile Include="Security\Certificate.cs" />
     <Compile Include="Security\Crc16.cs" />
     <Compile Include="Security\DSAHelper.cs" />
+    <Compile Include="Security\Rand.cs" />
     <Compile Include="Security\RC4.cs" />
     <Compile Include="Security\RSAHelper.cs" />
     <Compile Include="Security\SecurityHelper.cs" />

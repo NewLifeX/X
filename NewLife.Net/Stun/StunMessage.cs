@@ -6,6 +6,7 @@ using System.Text;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using System.Linq;
+using NewLife.Security;
 
 namespace NewLife.Net.Stun
 {
@@ -219,9 +220,10 @@ namespace NewLife.Net.Stun
         /// <summary>重置会话ID</summary>
         public void ResetTransactionID()
         {
-            if (TransactionID == null || TransactionID.Length != 16) TransactionID = new Byte[16];
-            var rnd = new Random();
-            rnd.NextBytes(TransactionID);
+            //if (TransactionID == null || TransactionID.Length != 16) TransactionID = new Byte[16];
+            //var rnd = new Random();
+            //rnd.NextBytes(TransactionID);
+            TransactionID = Rand.NextBytes(16);
             TransactionID[0] = 0;
         }
         #endregion

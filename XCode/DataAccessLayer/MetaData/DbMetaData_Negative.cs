@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using NewLife.Security;
 
 namespace XCode.DataAccessLayer
 {
@@ -501,8 +502,8 @@ namespace XCode.DataAccessLayer
         protected virtual String ReBuildTable(IDataTable entitytable, IDataTable dbtable)
         {
             // 通过重建表的方式修改字段
-            String tableName = dbtable.TableName;
-            String tempTableName = "Temp_" + tableName + "_" + new Random((Int32)DateTime.Now.Ticks).Next(1000, 10000);
+            var tableName = dbtable.TableName;
+            var tempTableName = "Temp_" + tableName + "_" + Rand.Next(1000, 10000);
             tableName = FormatName(tableName);
             tempTableName = FormatName(tempTableName);
 
