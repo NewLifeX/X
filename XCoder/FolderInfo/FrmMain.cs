@@ -297,8 +297,15 @@ namespace XCoder.FolderInfo
             {
                 DeleteRecursive(item);
             }
-            // 删除本目录
-            di.Delete(true);
+            try
+            {
+                // 删除本目录
+                di.Delete(true);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
         }
         #endregion
     }
