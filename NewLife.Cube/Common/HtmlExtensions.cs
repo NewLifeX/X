@@ -57,11 +57,7 @@ namespace NewLife.Cube
                 case TypeCode.String:
                     return Html.ForString(name, value + "");
                 default:
-#if DEBUG
-                    throw new Exception("不支持的类型" + type);
-#else
                     return Html.ForObject(name, value);
-#endif
             }
         }
 
