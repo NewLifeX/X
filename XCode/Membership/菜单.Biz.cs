@@ -300,18 +300,26 @@ namespace XCode.Membership
 
                 XTrace.WriteLine("扫描目录生成菜单 {0}", p);
 
-                // 根据目录找菜单，它将作为顶级菜单
-                var top = FindForName(item);
-                //if (top == null) top = Meta.Cache.Entities.Find(__.DisplayName, item);
-                if (top == null)
+                // 屏蔽目录异常，避免部分目录无权访问导致整体失败
+                try
                 {
-                    if (!IsBizDir(p)) continue;
+                    // 根据目录找菜单，它将作为顶级菜单
+                    var top = FindForName(item);
+                    //if (top == null) top = Meta.Cache.Entities.Find(__.DisplayName, item);
+                    if (top == null)
+                    {
+                        if (!IsBizDir(p)) continue;
 
-                    top = Root.Add(item, null, null);
-                    // 内层用到了再保存
-                    //top.Save();
+                        top = Root.Add(item, null, null);
+                        // 内层用到了再保存
+                        //top.Save();
+                    }
+                    total += ScanAndAdd(p, top, filters, appDirsIsAllFilter);
                 }
-                total += ScanAndAdd(p, top, filters, appDirsIsAllFilter);
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
             }
             XTrace.WriteLine("扫描目录共生成菜单 {0} 个", total);
 

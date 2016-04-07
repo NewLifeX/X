@@ -20,38 +20,46 @@ namespace System.IO
             var sep = Path.DirectorySeparatorChar;
             var sep2 = sep == '/' ? '\\' : '/';
             path = path.Replace(sep2, sep);
-            //if (!Path.IsPathRooted(path))
-            //!!! 注意：不能直接依赖于Path.IsPathRooted判断，/和\开头的路径虽然是绝对路径，但是它们不是驱动器级别的绝对路径
-            if (path[0] == sep || path[0] == sep2 || !Path.IsPathRooted(path))
-            {
-                path = path.TrimStart('~');
 
-                var dir = "";
-                switch (mode)
+            var dir = "";
+            switch (mode)
+            {
+                case 1:
+                    dir = BaseDirectory;
+                    break;
+                case 2:
+                    dir = AppDomain.CurrentDomain.BaseDirectory;
+                    break;
+                case 3:
+                    dir = Environment.CurrentDirectory;
+                    break;
+                default:
+                    break;
+            }
+            if (dir.IsNullOrEmpty()) return Path.GetFullPath(path);
+
+            // 考虑兼容Linux
+            if (!NewLife.Runtime.Mono)
+            {
+                //if (!Path.IsPathRooted(path))
+                //!!! 注意：不能直接依赖于Path.IsPathRooted判断，/和\开头的路径虽然是绝对路径，但是它们不是驱动器级别的绝对路径
+                if (path[0] == sep || path[0] == sep2 || !Path.IsPathRooted(path))
                 {
-                    case 1:
-                        dir = BaseDirectory;
-                        break;
-                    case 2:
-                        dir = AppDomain.CurrentDomain.BaseDirectory;
-                        break;
-                    case 3:
-                        dir = Environment.CurrentDirectory;
-                        break;
-                    default:
-                        break;
+                    path = path.TrimStart('~');
+
+                    path = path.TrimStart(sep);
+                    path = Path.Combine(dir, path);
                 }
-                if (!dir.IsNullOrEmpty())
+            }
+            else
+            {
+                if (!path.StartsWith(dir))
                 {
-                    // 为了兼容Linux，再次判断，可能已经是跟路径
-                    if (!NewLife.Runtime.Mono || !path.StartsWith(dir))
+                    // path目录存在，不用再次拼接
+                    if (!Directory.Exists(path))
                     {
-                        // path目录存在，不用再次拼接
-                        if (!Directory.Exists(path))
-                        {
-                            path = path.TrimStart(sep);
-                            path = Path.Combine(dir, path);
-                        }
+                        path = path.TrimStart(sep);
+                        path = Path.Combine(dir, path);
                     }
                 }
             }
