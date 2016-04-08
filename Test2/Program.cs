@@ -141,7 +141,7 @@ namespace Test2
             _udpServer = new UdpServer();
             _udpServer.Port = 888;
             //_udpServer.Received += _udpServer_Received;
-            _udpServer.Timeout = 5000;
+            _udpServer.SessionTimeout = 5000;
             _udpServer.Open();
 
             var session = _udpServer.CreateSession(new IPEndPoint(IPAddress.Any, 0));

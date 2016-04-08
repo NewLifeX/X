@@ -44,7 +44,7 @@ namespace NewLife.Net.Sockets
             set
             {
                 _Local = value;
-                if (AddressFamily == AddressFamily.Unknown) AddressFamily = value.Address.AddressFamily;
+                if (AddressFamily <= AddressFamily.Unspecified) AddressFamily = value.Address.AddressFamily;
             }
         }
 
@@ -54,13 +54,11 @@ namespace NewLife.Net.Sockets
         /// <summary>协议类型</summary>
         public ProtocolType ProtocolType { get { return _Local.ProtocolType; } set { _Local.ProtocolType = value; } }
 
-        private AddressFamily _AddressFamily = AddressFamily.Unknown;
         /// <summary>寻址方案</summary>
-        public AddressFamily AddressFamily { get { return _AddressFamily; } set { _AddressFamily = value; } }
+        public AddressFamily AddressFamily { get; set; }
 
-        private List<ISocketServer> _Servers;
         /// <summary>服务器集合</summary>
-        public IList<ISocketServer> Servers { get { return _Servers ?? (_Servers = new List<ISocketServer>()); } }
+        public IList<ISocketServer> Servers { get; private set; }
 
         /// <summary>服务器。返回服务器集合中的第一个服务器</summary>
         public ISocketServer Server
@@ -72,15 +70,17 @@ namespace NewLife.Net.Sockets
 
                 return ss.Count > 0 ? ss[0] : null;
             }
-            set { if (!Servers.Contains(value)) _Servers.Insert(0, value); }
+            set { if (!Servers.Contains(value)) Servers.Insert(0, value); }
         }
 
         /// <summary>是否活动</summary>
         public Boolean Active { get { return Servers.Count > 0 && Server != null && Server.Active; } }
 
-        //private Boolean _ShowAbortAsError;
-        ///// <summary>显示取消操作作为错误。默认false</summary>
-        //public Boolean ShowAbortAsError { get { return _ShowAbortAsError; } set { _ShowAbortAsError = value; } }
+        /// <summary>会话超时时间。默认0秒，使用SocketServer默认值</summary>
+        /// <remarks>
+        /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
+        /// </remarks>
+        public Int32 SessionTimeout { get; set; }
 
         /// <summary>使用会话集合，允许遍历会话。默认false</summary>
         public Boolean UseSession { get; set; }
@@ -106,6 +106,11 @@ namespace NewLife.Net.Sockets
         public NetServer()
         {
             Name = GetType().Name;
+
+            //SessionTimeout = 30;
+            //AddressFamily = AddressFamily.Unknown;
+
+            Servers = new List<ISocketServer>();
 
             StatSession = new Statistics();
             StatSend = new Statistics();
@@ -155,11 +160,9 @@ namespace NewLife.Net.Sockets
                     sessions.Clear();
                 }
 
-                var severs = _Servers;
+                var severs = Servers;
                 if (severs != null)
                 {
-                    _Servers = null;
-
                     WriteLog("准备释放服务{0}个！", severs.Count);
                     foreach (var item in severs)
                     {
@@ -184,6 +187,8 @@ namespace NewLife.Net.Sockets
             server.Log = SocketLog;
             server.NewSession += Server_NewSession;
 
+            if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
+
             server.StatSession.Parent = StatSession;
             server.StatSend.Parent = StatSend;
             server.StatReceive.Parent = StatReceive;
@@ -204,7 +209,7 @@ namespace NewLife.Net.Sockets
         /// <param name="protocol"></param>
         /// <param name="family"></param>
         /// <returns></returns>
-        public virtual Int32 AddServer(IPAddress address, Int32 port, ProtocolType protocol = ProtocolType.Unknown, AddressFamily family = AddressFamily.Unknown)
+        public virtual Int32 AddServer(IPAddress address, Int32 port, ProtocolType protocol = ProtocolType.Unknown, AddressFamily family = AddressFamily.Unspecified)
         {
             var list = CreateServer(address, port, protocol, family);
             Int32 count = 0;

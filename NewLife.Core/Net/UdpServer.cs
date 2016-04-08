@@ -25,13 +25,11 @@ namespace NewLife.Net
         /// <returns></returns>
         internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
 
-        private Int32 _MaxNotActive = 30;
-        /// <summary>最大不活动时间。默认30秒。</summary>
+        /// <summary>会话超时时间。默认30秒</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
-        /// 时间不是太准确，建议15秒的倍数。为0表示不检查。
         /// </remarks>
-        public Int32 MaxNotActive { get { return _MaxNotActive; } set { _MaxNotActive = value; } }
+        public Int32 SessionTimeout { get; set; }
 
         private IPEndPoint _LastRemote;
         /// <summary>最后一次同步接收数据得到的远程地址</summary>
@@ -53,6 +51,8 @@ namespace NewLife.Net
         /// <summary>实例化增强UDP</summary>
         public UdpServer()
         {
+            SessionTimeout = 30;
+
             Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0);
             Remote.ProtocolType = ProtocolType.Udp;
             _Sessions = new SessionCollection(this);

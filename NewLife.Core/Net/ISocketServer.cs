@@ -13,10 +13,11 @@ namespace NewLife.Net
         ///// <summary>基础Socket对象</summary>
         //Socket Server { get; set; }
 
-        /// <summary>最大不活动时间。
+        /// <summary>会话超时时间。默认30秒</summary>
+        /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
-        /// 单位秒，默认30秒。时间不是太准确，建议15秒的倍数。为0表示不检查。</summary>
-        Int32 MaxNotActive { get; set; }
+        /// </remarks>
+        Int32 SessionTimeout { get; set; }
 
         /// <summary>会话统计</summary>
         IStatistics StatSession { get; set; }

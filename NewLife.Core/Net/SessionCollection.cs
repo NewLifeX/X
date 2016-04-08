@@ -12,24 +12,28 @@ namespace NewLife.Net
         #region 属性
         Dictionary<String, ISocketSession> _dic = new Dictionary<String, ISocketSession>();
 
-        private ISocketServer _Server;
         /// <summary>服务端</summary>
-        public ISocketServer Server { get { return _Server; } }
+        public ISocketServer Server { get; private set; }
 
-        private Int32 _ClearPeriod = 5000;
-        /// <summary>清理周期。单位毫秒，默认5000毫秒。</summary>
-        public Int32 ClearPeriod { get { return _ClearPeriod; } set { _ClearPeriod = value; } }
+        /// <summary>清理周期。单位毫秒，默认1000毫秒。</summary>
+        public Int32 ClearPeriod { get; set; }
 
         /// <summary>清理会话计时器</summary>
         private TimerX clearTimer;
         #endregion
 
         #region 构造
-        public SessionCollection(ISocketServer server) { _Server = server; }
+        public SessionCollection(ISocketServer server)
+        {
+            Server = server;
+            ClearPeriod = 1000;
+        }
 
         protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
+
+            if (clearTimer != null) clearTimer.Dispose();
 
             CloseAll();
         }
@@ -47,7 +51,6 @@ namespace NewLife.Net
             {
                 if (_dic.ContainsKey(key)) return false;
 
-                //session.ID = ++sessionID;
                 session.OnDisposed += (s, e) => { lock (_dic) { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); } };
                 _dic.Add(key, session);
 
@@ -74,23 +77,21 @@ namespace NewLife.Net
         /// <summary>关闭所有</summary>
         public void CloseAll()
         {
-            if (clearTimer != null) clearTimer.Dispose();
-
             if (_dic.Count < 1) return;
+
+            // 必须先复制到数组，因为会话销毁的时候，会自动从集合中删除，从而引起集合枚举失败
+            ISocketSession[] ns = null;
             lock (_dic)
             {
                 if (_dic.Count < 1) return;
 
-                // 必须先复制到数组，因为会话销毁的时候，会自动从集合中删除，从而引起集合枚举失败
-                var ns = new ISocketSession[_dic.Count];
-                _dic.Values.CopyTo(ns, 0);
+                //_dic.Values.CopyTo(ns, 0);
+                ns = _dic.Values.ToArray();
                 _dic.Clear();
-                foreach (var item in ns)
-                {
-                    if (item == null || item.Disposed) continue;
-
-                    item.Dispose();
-                }
+            }
+            foreach (var item in ns)
+            {
+                if (item != null && !item.Disposed) item.TryDispose();
             }
         }
 
@@ -99,20 +100,21 @@ namespace NewLife.Net
         {
             if (_dic.Count < 1) return;
 
+            var timeout = 30;
+            if (Server != null) timeout = Server.SessionTimeout;
             var keys = new List<String>();
             var values = new List<ISocketSession>();
             lock (_dic)
             {
                 if (_dic.Count < 1) return;
 
-                Int32 notactive = Server != null ? Server.MaxNotActive : 30;
                 // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
                 // 操作这个字典的时候，必须加锁，否则就会数据错乱，成了这个样子，无法枚举
                 foreach (var elm in _dic)
                 {
                     var item = elm.Value;
                     // 判断是否已超过最大不活跃时间
-                    if (item == null || item.Disposed || notactive > 0 && IsNotAlive(item, notactive))
+                    if (item == null || item.Disposed || timeout > 0 && IsNotAlive(item, timeout))
                     {
                         keys.Add(elm.Key);
                         values.Add(elm.Value);
@@ -127,17 +129,18 @@ namespace NewLife.Net
             // 已经离开了锁，慢慢释放各个会话
             foreach (var item in values)
             {
-                item.WriteLog("超过{0}秒不活跃销毁 {1}", Server.MaxNotActive, item);
+                item.WriteLog("超过{0}秒不活跃销毁 {1}", timeout, item);
 
-                item.Dispose();
+                //item.Dispose();
+                item.TryDispose();
             }
         }
 
-        Boolean IsNotAlive(ISocketSession session, Int32 noactive)
+        Boolean IsNotAlive(ISocketSession session, Int32 timeout)
         {
             // 如果有最后时间则判断最后时间，否则判断开始时间
             var time = session.LastTime > DateTime.MinValue ? session.LastTime : session.StartTime;
-            return time.AddSeconds(noactive) < DateTime.Now;
+            return time.AddSeconds(timeout) < DateTime.Now;
         }
         #endregion
 

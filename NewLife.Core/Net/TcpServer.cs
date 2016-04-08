@@ -28,10 +28,11 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
-        /// <summary>最大不活动时间。
+        /// <summary>会话超时时间。默认30秒</summary>
+        /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
-        /// 单位秒，默认30秒。时间不是太准确，建议15秒的倍数。为0表示不检查。</summary>
-        public Int32 MaxNotActive { get; set; }
+        /// </remarks>
+        public Int32 SessionTimeout { get; set; }
 
         /// <summary>自动开始会话的异步接收，默认true。
         /// 接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</summary>
@@ -69,7 +70,7 @@ namespace NewLife.Net
             Name = this.GetType().Name;
 
             Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
-            MaxNotActive = 30;
+            SessionTimeout = 30;
             AutoReceiveAsync = true;
             UseProcessAsync = true;
 

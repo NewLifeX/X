@@ -35,7 +35,7 @@ namespace NewLife.Net.IO
                 var tcp = server as TcpServer;
                 tcp.UseProcessAsync = false;
                 // 连续传输文件，间隔不得超过5秒
-                tcp.MaxNotActive = 5;
+                tcp.SessionTimeout = 5;
             }
             return base.AttachServer(server);
         }
