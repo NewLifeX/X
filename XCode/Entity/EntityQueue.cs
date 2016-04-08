@@ -35,7 +35,7 @@ namespace XCode
         {
             Entities = new HashSet<IEntity>();
 
-            Period = 10000;
+            Period = 1000;
         }
         #endregion
 
