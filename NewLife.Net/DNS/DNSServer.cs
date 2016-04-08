@@ -68,8 +68,8 @@ namespace NewLife.Net.DNS
 
             DomainName = "dns.NewLifeX.com";
 
-            SocketLog = null;
-            SessionLog = null;
+            SocketLog = Logger.Null;
+            SessionLog = Logger.Null;
         }
         #endregion
 
