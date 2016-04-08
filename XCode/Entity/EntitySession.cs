@@ -79,6 +79,7 @@ namespace XCode
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
             if (String.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName");
 
+            // 字符串连接有较大性能损耗
             var key = connName + "$$$" + tableName;
             return _es.GetItem<String, String>(key, connName, tableName, (k, c, t) => new EntitySession<TEntity> { ConnName = c, TableName = t });
         }
