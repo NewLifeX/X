@@ -81,43 +81,20 @@ namespace ASP
             #line hidden
 WriteLiteral("\r\n<label");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 443), Tuple.Create("\"", 502)
-, Tuple.Create(Tuple.Create("", 451), Tuple.Create("control-label", 451), true)
-, Tuple.Create(Tuple.Create(" ", 464), Tuple.Create("col-xs-2", 465), true)
-, Tuple.Create(Tuple.Create(" ", 473), Tuple.Create("col-md-", 474), true)
-            
-            #line 20 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 481), Tuple.Create<System.Object, System.Int32>(w_md
-            
-            #line default
-            #line hidden
-, 481), false)
-, Tuple.Create(Tuple.Create(" ", 486), Tuple.Create("no-padding-left", 487), true)
-);
+WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-2 col-lg-2\"");
 
 WriteLiteral(">");
 
             
             #line 20 "..\..\Views\Shared\_Form_Item.cshtml"
-                                                              Write(item.DisplayName);
+                                                            Write(item.DisplayName);
 
             
             #line default
             #line hidden
 WriteLiteral("</label>\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 535), Tuple.Create("\"", 574)
-, Tuple.Create(Tuple.Create("", 543), Tuple.Create("input-group", 543), true)
-, Tuple.Create(Tuple.Create(" ", 554), Tuple.Create("col-xs-10", 555), true)
-, Tuple.Create(Tuple.Create(" ", 564), Tuple.Create("col-sm-", 565), true)
-            
-            #line 21 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 572), Tuple.Create<System.Object, System.Int32>(w
-            
-            #line default
-            #line hidden
-, 572), false)
-);
+WriteLiteral(" class=\"input-group col-xs-5 col-sm-5 col-md-5 col-lg-5\"");
 
 WriteLiteral(">\r\n");
 

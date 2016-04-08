@@ -108,7 +108,7 @@ WriteLiteral(">创建</label>\r\n");
 
 WriteLiteral("            <div");
 
-WriteLiteral(" class=\"col-md-3\"");
+WriteLiteral(" class=\"control-label col-md-3\"");
 
 WriteLiteral(">\r\n");
 
@@ -195,14 +195,14 @@ WriteLiteral("                    <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1275), Tuple.Create("\"", 1286)
+WriteAttribute("title", Tuple.Create(" title=\"", 1289), Tuple.Create("\"", 1300)
             
             #line 33 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1283), Tuple.Create<System.Object, System.Int32>(ip
+, Tuple.Create(Tuple.Create("", 1297), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 1283), false)
+, 1297), false)
 );
 
 WriteLiteral(">");
@@ -250,7 +250,7 @@ WriteLiteral(">更新</label>\r\n");
 
 WriteLiteral("            <div");
 
-WriteLiteral(" class=\"col-md-3\"");
+WriteLiteral(" class=\"control-label col-md-3\"");
 
 WriteLiteral(">\r\n");
 
@@ -337,14 +337,14 @@ WriteLiteral("                    <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 2026), Tuple.Create("\"", 2037)
+WriteAttribute("title", Tuple.Create(" title=\"", 2054), Tuple.Create("\"", 2065)
             
             #line 52 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2034), Tuple.Create<System.Object, System.Int32>(ip
+, Tuple.Create(Tuple.Create("", 2062), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 2034), false)
+, 2062), false)
 );
 
 WriteLiteral(">");

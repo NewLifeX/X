@@ -17,8 +17,8 @@
         w_md /= 2;
     }
 }
-<label class="control-label col-xs-2 col-md-@w_md no-padding-left">@item.DisplayName</label>
-<div class="input-group col-xs-10 col-sm-@w">
+<label class="control-label col-xs-2 col-sm-2 col-md-2 col-lg-2">@item.DisplayName</label>
+<div class="input-group col-xs-5 col-sm-5 col-md-5 col-lg-5">
     @Html.ForEditor(item, entity)
     <span class="hidden-xs">@Html.ForDescription(item)</span>
     @{
