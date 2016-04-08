@@ -6,7 +6,6 @@ using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using XCode.Exceptions;
 
 namespace XCode
 {
@@ -276,7 +275,7 @@ namespace XCode
         #endregion
 
         #region 确保实体类已初始化
-        static List<Type> _hasInited = new List<Type>();
+        static ICollection<Type> _hasInited = new HashSet<Type>();
         /// <summary>确保实体类已经执行完静态构造函数，因为那里实在是太容易导致死锁了</summary>
         /// <param name="type">类型</param>
         internal static void EnsureInit(Type type)
