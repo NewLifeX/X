@@ -35,6 +35,9 @@ namespace NewLife.Security
         }
 
         /// <summary>返回一个指定范围内的随机数</summary>
+        /// <remarks>
+        /// 调用平均耗时37.76ns，其中GC耗时77.56%
+        /// </remarks>
         /// <param name="min">返回的随机数的下界（随机数可取该下界值）</param>
         /// <param name="max">返回的随机数的上界（随机数不能取该上界值）</param>
         /// <returns></returns>
@@ -62,6 +65,9 @@ namespace NewLife.Security
         }
 
         /// <summary>返回指定长度随机字节数组</summary>
+        /// <remarks>
+        /// 调用平均耗时5.46ns，其中GC耗时15%
+        /// </remarks>
         /// <param name="count"></param>
         /// <returns></returns>
         public static Byte[] NextBytes(Int32 count)
