@@ -50,7 +50,10 @@ namespace XCode
 
         private static DictionaryCache<Type, IEntityOperate> op_cache = new DictionaryCache<Type, IEntityOperate>();
         /// <summary>创建实体操作接口</summary>
-        /// <remarks>因为只用来做实体操作，所以只需要一个实例即可</remarks>
+        /// <remarks>
+        /// 因为只用来做实体操作，所以只需要一个实例即可。
+        /// 调用平均耗时3.95ns，57.39%在EnsureInit
+        /// </remarks>
         /// <param name="type">类型</param>
         /// <returns></returns>
         public static IEntityOperate CreateOperate(Type type)
@@ -277,6 +280,9 @@ namespace XCode
         #region 确保实体类已初始化
         static ICollection<Type> _hasInited = new HashSet<Type>();
         /// <summary>确保实体类已经执行完静态构造函数，因为那里实在是太容易导致死锁了</summary>
+        /// <remarks>
+        /// 调用平均耗时2.27ns
+        /// </remarks>
         /// <param name="type">类型</param>
         internal static void EnsureInit(Type type)
         {
