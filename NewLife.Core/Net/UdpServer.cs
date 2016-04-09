@@ -432,29 +432,36 @@ namespace NewLife.Net
             if (_Async != null) return true;
 #endif
             if (!UseReceiveAsync) UseReceiveAsync = true;
-            try
+
+            // 如果开启异步失败，重试10次
+            for (int i = 0; i < 10; i++)
             {
+                try
+                {
 #if DEBUG
                 if (_checker == null) _checker = new TimerX(AsyncChecker, null, 1000, 1000);
 #endif
-                // 开始新的监听
-                _Async = Client.BeginReceive(OnReceive, Client);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("ReceiveAsync", ex);
+                    // 开始新的监听
+                    _Async = Client.BeginReceive(OnReceive, Client);
 
-                    // 异常一般是网络错误，UDP不需要关闭
-                    //Close();
-
-                    if (ThrowException) throw;
+                    return true;
                 }
-                return false;
+                catch (Exception ex)
+                {
+                    if (!ex.IsDisposed())
+                    {
+                        OnError("ReceiveAsync", ex);
+
+                        // 异常一般是网络错误，UDP不需要关闭
+                        //Close();
+
+                        if (ThrowException) throw;
+                    }
+                    //return false;
+                }
             }
 
-            return true;
+            return false;
         }
 
 #if DEBUG
