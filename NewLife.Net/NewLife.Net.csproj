@@ -237,10 +237,7 @@
     <Compile Include="Smtp\SmtpSession.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Sockets\INetSession.cs" />
     <Compile Include="Sockets\Netbase.cs" />
-    <Compile Include="Sockets\NetServer.cs" />
-    <Compile Include="Sockets\NetSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stress\TcpStressClient.cs" />
     <Compile Include="Stress\TcpStressConfig.cs" />
