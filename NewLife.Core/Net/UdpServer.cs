@@ -413,6 +413,7 @@ namespace NewLife.Net
         }
 
         private IAsyncResult _Async;
+        private Int32 _AsyncCount;
 
         /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
@@ -422,6 +423,11 @@ namespace NewLife.Net
 
             if (!Open()) return false;
 
+            if (Interlocked.CompareExchange(ref _AsyncCount, 1, 0) != 0)
+            {
+                //XTrace.WriteLine("多次启动异步 {0}", _AsyncCount);
+                return true;
+            }
 #if Android
             if (_Async != null) return true;
 #endif
@@ -477,6 +483,7 @@ namespace NewLife.Net
             try
             {
                 data = client.EndReceive(ar, ref ep);
+                Interlocked.Decrement(ref _AsyncCount);
             }
             catch (Exception ex)
             {
