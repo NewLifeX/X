@@ -659,9 +659,13 @@ namespace XCode.DataAccessLayer
         private Boolean IsReservedWord(String word) { return String.IsNullOrEmpty(word) ? false : ReservedWords.ContainsKey(word); }
 
         /// <summary>格式化时间为SQL字符串</summary>
+        /// <remarks>
+        /// 优化DateTime转为全字符串，平均耗时从25.76ns降为15.07。
+        /// 调用非常频繁，每分钟都有数百万次调用。
+        /// </remarks>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
-        public virtual String FormatDateTime(DateTime dateTime) { return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime); }
+        public virtual String FormatDateTime(DateTime dateTime) { return "'" + dateTime.ToFullString() + "'"; }
 
         /// <summary>格式化关键字</summary>
         /// <param name="keyWord">表名</param>
@@ -712,7 +716,7 @@ namespace XCode.DataAccessLayer
             else if (code == TypeCode.DateTime)
             {
                 if (value == null) return isNullable ? "null" : "''";
-                DateTime dt = Convert.ToDateTime(value);
+                var dt = Convert.ToDateTime(value);
 
                 if (dt < DateTimeMin || dt > DateTime.MaxValue) return isNullable ? "null" : "''";
 

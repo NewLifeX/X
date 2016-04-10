@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Globalization;
+using System.Text;
 
 namespace System
 {
@@ -271,7 +272,24 @@ namespace System
         {
             if (emptyValue != null && value <= DateTime.MinValue) return emptyValue;
 
-            return value.ToString("yyyy-MM-dd HH:mm:ss");
+            //return value.ToString("yyyy-MM-dd HH:mm:ss");
+
+            var dt = value;
+            var sb = new StringBuilder();
+            sb.Append(dt.Year.ToString().PadLeft(4, '0'));
+            sb.Append("-");
+            sb.Append(dt.Month.ToString().PadLeft(2, '0'));
+            sb.Append("-");
+            sb.Append(dt.Day.ToString().PadLeft(2, '0'));
+            sb.Append(" ");
+
+            sb.Append(dt.Hour.ToString().PadLeft(2, '0'));
+            sb.Append(":");
+            sb.Append(dt.Minute.ToString().PadLeft(2, '0'));
+            sb.Append(":");
+            sb.Append(dt.Second.ToString().PadLeft(2, '0'));
+
+            return sb.ToString();
         }
 
         /// <summary>时间日期转为指定格式字符串</summary>
@@ -283,7 +301,11 @@ namespace System
         {
             if (emptyValue != null && value <= DateTime.MinValue) return emptyValue;
 
-            return value.ToString(format ?? "yyyy-MM-dd HH:mm:ss");
+            //return value.ToString(format ?? "yyyy-MM-dd HH:mm:ss");
+
+            if (format == null || format == "yyyy-MM-dd HH:mm:ss") return ToFullString(value, emptyValue);
+
+            return value.ToString(format);
         }
     }
 }

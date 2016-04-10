@@ -198,10 +198,11 @@ namespace XCode.DataAccessLayer
         /// <summary>已重载。格式化时间</summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
-        public override string FormatDateTime(DateTime dateTime)
-        {
-            return String.Format("To_Date('{0}', 'YYYY-MM-DD HH24:MI:SS')", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
-        }
+        public override String FormatDateTime(DateTime dateTime) { return "To_Date('" + dateTime.ToFullString() + "', 'YYYY-MM-DD HH24:MI:SS')"; }
+        //public override string FormatDateTime(DateTime dateTime)
+        //{
+        //    return String.Format("To_Date('{0}', 'YYYY-MM-DD HH24:MI:SS')", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+        //}
 
         public override string FormatValue(IDataColumn field, object value)
         {
