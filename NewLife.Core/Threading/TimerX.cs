@@ -102,7 +102,7 @@ namespace NewLife.Threading
         {
             static Thread thread;
 
-            static List<TimerX> timers = new List<TimerX>();
+            static HashSet<TimerX> timers = new HashSet<TimerX>();
 
             /// <summary>把定时器加入队列</summary>
             /// <param name="timer"></param>
