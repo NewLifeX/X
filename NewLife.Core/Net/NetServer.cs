@@ -331,6 +331,7 @@ namespace NewLife.Net
         {
             Interlocked.Increment(ref _SessionCount);
             session.OnDisposed += (s, e2) => Interlocked.Decrement(ref _SessionCount);
+            if (_SessionCount > MaxSessionCount) MaxSessionCount = _SessionCount;
 
             var ns = CreateSession(session);
             // sessionID变大后，可能达到最大值，然后变为-1，再变为0，所以不用担心
@@ -392,6 +393,9 @@ namespace NewLife.Net
         private Int32 _SessionCount;
         /// <summary>会话数</summary>
         public Int32 SessionCount { get { return _SessionCount; } set { _SessionCount = value; } }
+
+        /// <summary>最高会话数</summary>
+        public Int32 MaxSessionCount { get; private set; }
 
         /// <summary>添加会话。子类可以在添加会话前对会话进行一些处理</summary>
         /// <param name="session"></param>

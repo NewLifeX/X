@@ -206,7 +206,7 @@ namespace XNet
             }
             else if (_Server != null)
             {
-                XTrace.WriteLine("在线：{3} 会话：{2} 发送：{0} 接收：{1}", _Server.StatSend, _Server.StatReceive, _Server.StatSession, _Server.SessionCount);
+                XTrace.WriteLine("在线：{3:n0}/{4:n0} 会话：{2} 发送：{0} 接收：{1}", _Server.StatSend, _Server.StatReceive, _Server.StatSession, _Server.SessionCount, _Server.MaxSessionCount);
             }
         }
 
