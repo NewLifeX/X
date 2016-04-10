@@ -68,6 +68,7 @@ namespace NewLife.Net
             ISocketSession session = null;
             if (!_dic.TryGetValue(key, out session)) return null;
 
+            // 加锁后获取，本方法平均执行时间143.48ns
             lock (_dic)
             {
                 if (!_dic.TryGetValue(key, out session)) return null;

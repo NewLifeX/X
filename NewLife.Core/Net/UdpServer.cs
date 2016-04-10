@@ -602,8 +602,11 @@ namespace NewLife.Net
         public virtual ISocketSession CreateSession(IPEndPoint remoteEP)
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
             var sessions = _Sessions;
             if (sessions == null) return null;
+
+            // 平均执行耗时260.80ns，其中55%花在sessions.Get上面，Get里面有加锁操作
 
             if (!Active)
             {
