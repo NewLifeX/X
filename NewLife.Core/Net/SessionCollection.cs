@@ -65,9 +65,11 @@ namespace NewLife.Net
         /// <returns></returns>
         public ISocketSession Get(String key)
         {
+            ISocketSession session = null;
+            if (!_dic.TryGetValue(key, out session)) return null;
+
             lock (_dic)
             {
-                ISocketSession session = null;
                 if (!_dic.TryGetValue(key, out session)) return null;
 
                 return session;
