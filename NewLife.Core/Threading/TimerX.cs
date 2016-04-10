@@ -157,11 +157,13 @@ namespace NewLife.Threading
                     {
                         var arr = GetTimers();
 
+                        var now = DateTime.Now;
+
                         // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
                         period = 60000;
                         foreach (var timer in arr)
                         {
-                            if (CheckTime(timer)) ProcessItem(timer);
+                            if (CheckTime(timer, now)) ProcessItem(timer);
                         }
                     }
                     catch (ThreadAbortException) { break; }
@@ -195,8 +197,9 @@ namespace NewLife.Threading
 
             /// <summary>检查定时器是否到期</summary>
             /// <param name="timer"></param>
+            /// <param name="now"></param>
             /// <returns></returns>
-            static Boolean CheckTime(TimerX timer)
+            static Boolean CheckTime(TimerX timer, DateTime now)
             {
                 // 删除过期的，为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度
                 var p = timer.Period;
@@ -212,7 +215,7 @@ namespace NewLife.Threading
                     return false;
                 }
 
-                var ts = timer.NextTime - DateTime.Now;
+                var ts = timer.NextTime - now;
                 var d = (Int32)ts.TotalMilliseconds;
                 if (d > 0)
                 {
