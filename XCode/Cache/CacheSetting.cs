@@ -10,7 +10,7 @@ namespace XCode.Cache
         #region 属性
         /// <summary>是否调试缓存模块</summary>
         [Description("是否调试缓存模块")]
-        public Boolean Debug { get; set; }
+        public Boolean CacheDebug { get; set; }
 
         /// <summary>是否独占数据库，独占时将大大加大缓存权重，默认true（Debug时为false）</summary>
         [Description("是否独占数据库，独占时将大大加大缓存权重，默认true（Debug时为false）")]
@@ -52,8 +52,8 @@ namespace XCode.Cache
         /// <summary>初始化</summary>
         public void Init()
         {
-            Debug = Config.GetConfig<Boolean>("XCode.Cache.Debug", false);
-            Alone = Config.GetConfig<Boolean>("XCode.Cache.Alone", !Debug);
+            CacheDebug = Config.GetConfig<Boolean>("XCode.Cache.Debug", false);
+            Alone = Config.GetConfig<Boolean>("XCode.Cache.Alone", !CacheDebug);
 
             //Expiration = Config.GetMutilConfig<Int32>(Alone ? 60 : -1, "XCode.Cache.Expiration", "XCacheExpiration");
             Expiration = Config.GetMutilConfig<Int32>(-1, "XCode.Cache.Expiration", "XCacheExpiration");

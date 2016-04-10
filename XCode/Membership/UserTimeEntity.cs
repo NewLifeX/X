@@ -177,8 +177,7 @@ namespace XCode.Membership
 
             return true;
         }
-
-
+        
         private DictionaryCache<Type, ICollection<String>> _ipFieldNames = new DictionaryCache<Type, ICollection<String>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>

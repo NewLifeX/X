@@ -11,6 +11,7 @@ using XCode.Code;
 using XCode.Exceptions;
 using System.ComponentModel;
 using NewLife;
+using System.IO;
 
 namespace XCode.DataAccessLayer
 {
@@ -34,16 +35,23 @@ namespace XCode.DataAccessLayer
             //if (!ConnStrs.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
             if (!ConnStrs.ContainsKey(connName))
             {
-                var dbpath = ".";
-                if (Runtime.IsWeb)
+                var set = Setting.Current;
+                var dbpath = set.SQLiteDbPath;
+                if (dbpath.IsNullOrEmpty())
                 {
-                    if (!Environment.CurrentDirectory.Contains("iisexpress") ||
-                        !Environment.CurrentDirectory.Contains("Web"))
-                        dbpath = "..\\Data";
-                    else
-                        dbpath = "~\\App_Data";
+                    dbpath = ".";
+                    if (Runtime.IsWeb)
+                    {
+                        if (!Environment.CurrentDirectory.Contains("iisexpress") ||
+                            !Environment.CurrentDirectory.Contains("Web"))
+                            dbpath = "..\\Data";
+                        else
+                            dbpath = "~\\App_Data";
+                    }
+                    set.SQLiteDbPath = dbpath;
+                    set.Save();
                 }
-                var connstr = "Data Source={0}\\{1}.db".F(dbpath, connName);
+                var connstr = "Data Source=" + dbpath.GetFullPath().CombinePath(connName + ".db");
                 WriteLog("自动为[{0}]设置连接字符串：{1}", connName, connstr);
                 AddConnStr(connName, connstr, null, "SQLite");
             }

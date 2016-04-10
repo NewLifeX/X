@@ -45,6 +45,10 @@ namespace XCode
         [Description("事务调试。打开时输出事务回滚日志，默认关闭")]
         public Boolean TransactionDebug { get; set; }
 
+        /// <summary>SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录</summary>
+        [Description("SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
+        public String SQLiteDbPath { get; set; }
+
         /// <summary>缓存</summary>
         [Description("缓存")]
         public CacheSetting Cache { get; set; }
