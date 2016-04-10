@@ -153,7 +153,10 @@ namespace XCode
             return _fieldNames.GetItem(entityType, t =>
             {
                 var fact = EntityFactory.CreateOperate(t);
-                return fact == null ? null : fact.FieldNames;
+                //return fact == null ? null : fact.FieldNames;
+                if (fact == null) return null;
+
+                return new HashSet<String>(fact.FieldNames);
             });
         }
         #endregion

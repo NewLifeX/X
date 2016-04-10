@@ -190,7 +190,8 @@ namespace XCode.Membership
                 var fs = GetFieldNames(t);
                 if (fs == null || fs.Count == 0) return null;
 
-                return fs.Where(e => e.EndsWith("IP")).ToList();
+                //return fs.Where(e => e.EndsWith("IP")).ToList();
+                return new HashSet<String>(fs.Where(e => e.EndsWith("IP")));
             });
         }
     }
