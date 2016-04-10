@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("9.0.*")]
-[assembly: AssemblyFileVersion("9.0.2016.0405")]
+[assembly: AssemblyFileVersion("9.0.2016.0410")]
 
 /*
  * XCode的重大改进
@@ -50,6 +50,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v9.0.2016.0410   IDataTable增加ConnName属性，允许模型文件中每个表单独指定连接名
+ * 
  * v9.0.2016.0405   增加实体队列和SaveAsync，支持延迟持久化，提升历史表和在线表的性能
  * 
  * v8.21.2016.0131  Oracle数据驱动更换为托管驱动

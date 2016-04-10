@@ -87,7 +87,7 @@ namespace XCode.Code
             }
 
             // 绑定表
-            Class.AddAttribute<BindTableAttribute>(Table.TableName, Table.Description, ConnName, Table.DbType, Table.IsView);
+            Class.AddAttribute<BindTableAttribute>(Table.TableName, Table.Description, Table.ConnName ?? ConnName, Table.DbType, Table.IsView);
 
             // 基类
             Class.BaseTypes.Add(BaseType);

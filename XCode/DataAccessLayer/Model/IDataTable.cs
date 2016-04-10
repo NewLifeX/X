@@ -22,6 +22,9 @@ namespace XCode.DataAccessLayer
         /// <summary>所有者</summary>
         String Owner { get; set; }
 
+        /// <summary>连接名</summary>
+        String ConnName { get; set; }
+
         /// <summary>
         /// 数据库类型。
         /// 仅用于记录实体类由何种类型数据库生成，当且仅当目标数据库同为该数据库类型时，采用实体属性信息上的RawType作为反向工程的目标字段类型，以期获得开发和生产的最佳兼容。

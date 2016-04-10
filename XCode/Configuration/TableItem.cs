@@ -247,6 +247,7 @@ namespace XCode.Configuration
             table.DbType = bt.DbType;
             table.IsView = bt.IsView;
             table.Description = Description;
+            //table.ConnName = ConnName;
 
             var allfields = new List<FieldItem>();
             var fields = new List<FieldItem>();

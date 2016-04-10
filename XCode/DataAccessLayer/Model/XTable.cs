@@ -89,6 +89,12 @@ namespace XCode.DataAccessLayer
         [Description("所有者")]
         public String Owner { get; set; }
 
+        /// <summary>连接名</summary>
+        [XmlAttribute]
+        [DisplayName("连接名")]
+        [Description("连接名")]
+        public String ConnName { get; set; }
+
         /// <summary>数据库类型</summary>
         [XmlAttribute]
         [DisplayName("数据库类型")]
