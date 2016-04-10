@@ -51,12 +51,44 @@ namespace NewLife.Cube
         {
             WriteLog(obj);
 
+            // 反射处理内部复杂成员
+            var keys = Request.Form.AllKeys;
+            foreach (var item in obj.GetType().GetProperties())
+            {
+                if (Type.GetTypeCode(item.PropertyType) == TypeCode.Object)
+                {
+                    var pv = obj.GetValue(item);
+                    foreach (var pi in item.PropertyType.GetProperties())
+                    {
+                        if (keys.Contains(pi.Name))
+                        {
+                            var v = (Object)Request.Form[pi.Name];
+                            if (pi.PropertyType == typeof(Boolean)) v = GetBool(pi.Name);
+
+                            pv.SetValue(pi, v);
+                        }
+                    }
+                }
+            }
+
             Value = obj;
 
             if (Request.IsAjaxRequest())
                 return Json(new { result = "success", content = "保存成功" });
             else
                 return View("ObjectForm", obj);
+        }
+
+        Boolean GetBool(String name)
+        {
+            var v = Request[name];
+            if (v.IsNullOrEmpty()) return false;
+
+            v = v.Split(",")[0];
+
+            if (!v.EqualIgnoreCase("true", "false")) throw new XException("非法布尔值Request[{0}]={1}", name, v);
+
+            return v.ToBoolean();
         }
 
         /// <summary>写日志</summary>
