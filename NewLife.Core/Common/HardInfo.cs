@@ -388,12 +388,12 @@ namespace NewLife.Common
                         bbs.Add(mo.Properties[property].Value.ToString());
                 }
             }
-            catch (Exception ex)
+            catch //(Exception ex)
             {
-                if (XTrace.Debug)
-                {
-                    XTrace.WriteLine("获取{0} {1}硬件信息失败\r\n{2}", path, property, ex);
-                }
+                //if (XTrace.Debug)
+                //{
+                //    XTrace.WriteLine("获取{0} {1}硬件信息失败\r\n{2}", path, property, ex);
+                //}
                 return null;
             }
             bbs.Sort();
