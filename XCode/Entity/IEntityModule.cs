@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace XCode
@@ -127,6 +128,34 @@ namespace XCode
         /// <param name="isNew"></param>
         /// <returns></returns>
         public virtual Boolean Valid(IEntity entity, bool isNew) { return true; }
+        #endregion
+
+        #region 辅助
+        /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
+        /// <param name="fieldNames"></param>
+        /// <param name="entity"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns>返回是否成功设置了数据</returns>
+        protected virtual Boolean SetNoDirtyItem(ICollection<String> fieldNames, IEntity entity, String name, Object value)
+        {
+            if (fieldNames.Contains(name) && !entity.Dirtys[name]) return entity.SetItem(name, value);
+
+            return false;
+        }
+
+        private DictionaryCache<Type, ICollection<String>> _fieldNames = new DictionaryCache<Type, ICollection<String>>();
+        /// <summary>获取实体类的字段名。带缓存</summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        protected ICollection<String> GetFieldNames(Type entityType)
+        {
+            return _fieldNames.GetItem(entityType, t =>
+            {
+                var fact = EntityFactory.CreateOperate(t);
+                return fact == null ? null : fact.FieldNames;
+            });
+        }
         #endregion
     }
 }

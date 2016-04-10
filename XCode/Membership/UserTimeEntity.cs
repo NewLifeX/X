@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;
@@ -28,10 +31,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public override Boolean Init(Type entityType)
         {
-            var fact = EntityFactory.CreateOperate(entityType);
-            if (fact == null) return false;
-
-            var fs = fact.FieldNames;
+            var fs = GetFieldNames(entityType);
             if (fs.Contains(__.CreateUserID)) return true;
             if (fs.Contains(__.UpdateUserID)) return true;
 
@@ -45,15 +45,14 @@ namespace XCode.Membership
         {
             if (!isNew && entity.Dirtys.Count == 0) return true;
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var fs = fact.FieldNames;
+            var fs = GetFieldNames(entity.GetType());
 
             // 当前登录用户
             var user = ManageProvider.Provider.Current;
             if (user != null)
             {
-                if (isNew) entity.SetNoDirtyItem(__.CreateUserID, user.ID);
-                entity.SetNoDirtyItem(__.UpdateUserID, user.ID);
+                if (isNew) SetNoDirtyItem(fs, entity, __.CreateUserID, user.ID);
+                SetNoDirtyItem(fs, entity, __.UpdateUserID, user.ID);
             }
 
             return true;
@@ -80,10 +79,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public override bool Init(Type entityType)
         {
-            var fact = EntityFactory.CreateOperate(entityType);
-            if (fact == null) return false;
-
-            var fs = fact.FieldNames;
+            var fs = GetFieldNames(entityType);
             if (fs.Contains(__.CreateTime)) return true;
             if (fs.Contains(__.UpdateTime)) return true;
 
@@ -97,10 +93,12 @@ namespace XCode.Membership
         {
             if (!isNew && entity.Dirtys.Count == 0) return true;
 
-            if (isNew) entity.SetNoDirtyItem(__.CreateTime, DateTime.Now);
+            var fs = GetFieldNames(entity.GetType());
+
+            if (isNew) SetNoDirtyItem(fs, entity, __.CreateTime, DateTime.Now);
 
             // 不管新建还是更新，都改变更新时间
-            entity.SetNoDirtyItem(__.UpdateTime, DateTime.Now);
+            SetNoDirtyItem(fs, entity, __.UpdateTime, DateTime.Now);
 
             return true;
         }
@@ -126,20 +124,20 @@ namespace XCode.Membership
         /// <returns></returns>
         public override bool Init(Type entityType)
         {
-            var fact = EntityFactory.CreateOperate(entityType);
-            if (fact == null) return false;
-
-            var fs = fact.FieldNames;
+            var fs = GetFieldNames(entityType);
             if (fs.Contains(__.CreateIP)) return true;
             if (fs.Contains(__.UpdateIP)) return true;
 
             // 任意以IP结尾的字段都要，仅在创建时生效
-            foreach (var item in fs)
-            {
-                if (item.EndsWith("IP")) return true;
-            }
+            //foreach (var item in fs)
+            //{
+            //    if (item.EndsWith("IP")) return true;
+            //}
 
-            return false;
+            //return false;
+
+            var fs2 = GetIPFieldNames(entityType);
+            return fs2 != null && fs2.Count > 0;
         }
 
         /// <summary>验证数据，自动加上创建和更新的信息</summary>
@@ -149,28 +147,51 @@ namespace XCode.Membership
         {
             if (!isNew && entity.Dirtys.Count == 0) return true;
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var fs = fact.FieldNames;
-
             var ip = WebHelper.UserHost;
             if (!ip.IsNullOrEmpty())
             {
+                var fs = GetFieldNames(entity.GetType());
+
                 if (isNew)
                 {
-                    entity.SetNoDirtyItem(__.CreateIP, ip);
+                    SetNoDirtyItem(fs, entity, __.CreateIP, ip);
 
                     // 任意以IP结尾的字段都要，仅在创建时生效
-                    foreach (var item in fs)
+                    //foreach (var item in fs)
+                    //{
+                    //    if (item.EndsWith("IP")) SetNoDirtyItem(fs, entity, item, ip);
+                    //}
+                    var fs2 = GetIPFieldNames(entity.GetType());
+                    if (fs2 != null)
                     {
-                        if (item.EndsWith("IP")) entity.SetNoDirtyItem(item, ip);
+                        foreach (var item in fs2)
+                        {
+                            SetNoDirtyItem(fs2, entity, item, ip);
+                        }
                     }
                 }
 
                 // 不管新建还是更新，都改变更新时间
-                entity.SetNoDirtyItem(__.UpdateIP, ip);
+                SetNoDirtyItem(fs, entity, __.UpdateIP, ip);
             }
 
             return true;
+        }
+
+
+        private DictionaryCache<Type, ICollection<String>> _ipFieldNames = new DictionaryCache<Type, ICollection<String>>();
+        /// <summary>获取实体类的字段名。带缓存</summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        protected ICollection<String> GetIPFieldNames(Type entityType)
+        {
+            return _ipFieldNames.GetItem(entityType, t =>
+            {
+                var fs = GetFieldNames(t);
+                if (fs == null || fs.Count == 0) return null;
+
+                return fs.Where(e => e.EndsWith("IP")).ToList();
+            });
         }
     }
 

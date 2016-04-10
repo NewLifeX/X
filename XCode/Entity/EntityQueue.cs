@@ -47,6 +47,9 @@ namespace XCode
         {
             if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period);
 
+            // 避免重复加入队列
+            if (Entities.Contains(entity)) return false;
+
             lock (this)
             {
                 // 避免重复加入队列
