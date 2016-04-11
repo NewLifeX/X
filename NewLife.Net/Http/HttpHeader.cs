@@ -131,7 +131,7 @@ namespace NewLife.Net.Http
 
             if (idx < 0) return null;
 
-            var line = stream.ReadBytes(idx + 2).ToStr();
+            var line = stream.ReadBytes(idx + 2).ToStr().Trim();
             if (line.IsNullOrWhiteSpace()) { stream.Position = p; return null; }
 
             var ss = line.Split(new Char[] { ' ' }, 3);
@@ -241,6 +241,8 @@ namespace NewLife.Net.Http
                 sb.AppendLine();
             else
                 sb.Append(_last);
+
+            stream.Write(sb.ToString().GetBytes());
         }
 
         /// <summary>获取Http头的数据流</summary>
