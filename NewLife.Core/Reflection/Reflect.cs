@@ -275,7 +275,7 @@ namespace NewLife.Reflection
         /// <param name="name">名称</param>
         /// <param name="value">数值</param>
         /// <remarks>反射调用是否成功</remarks>
-        [DebuggerHidden]
+        //[DebuggerHidden]
         public static Boolean SetValue(this Object target, String name, Object value)
         {
             if (String.IsNullOrEmpty(name)) return false;
@@ -290,7 +290,9 @@ namespace NewLife.Reflection
             var mi = type.GetMemberEx(name, true);
             if (mi == null) return false;
 
-            target.SetValue(mi, value);
+            //target.SetValue(mi, value);
+            // 修正无限递归的BUG，不过不知道为什么会产生无限递归
+            SetValue(target, mi, value);
 
             //throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
             return true;
