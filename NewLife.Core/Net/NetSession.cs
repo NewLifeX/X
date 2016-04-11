@@ -45,7 +45,7 @@ namespace NewLife.Net
         /// <summary>开始会话处理。</summary>
         public virtual void Start()
         {
-            if (Log.Enable) WriteLog("新会话 {0}", Session);
+            if (LogSession && Log != null && Log.Enable) WriteLog("新会话 {0}", Session);
 
             var ss = Session;
             if (ss != null)
@@ -60,7 +60,7 @@ namespace NewLife.Net
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void OnDispose(bool disposing)
         {
-            WriteLog("会话结束 {0}", Session);
+            if (LogSession && Log != null && Log.Enable) WriteLog("会话结束 {0}", Session);
 
             base.OnDispose(disposing);
 
@@ -124,9 +124,11 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
-        private ILog _Log = NetHelper.Debug ? XTrace.Log : Logger.Null;
         /// <summary>日志提供者</summary>
-        public ILog Log { get { return _Log; } set { _Log = value ?? Logger.Null; } }
+        public ILog Log { get; set; }
+
+        /// <summary>是否记录会话日志</summary>
+        public Boolean LogSession { get; set; }
 
         private String _LogPrefix;
         /// <summary>日志前缀</summary>
@@ -149,7 +151,7 @@ namespace NewLife.Net
         /// <param name="args"></param>
         public virtual void WriteLog(String format, params Object[] args)
         {
-            Log.Info(LogPrefix + format, args);
+            if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }
 
         /// <summary>输出错误日志</summary>
@@ -157,8 +159,7 @@ namespace NewLife.Net
         /// <param name="args"></param>
         public virtual void WriteError(String format, params Object[] args)
         {
-            //var name = _Host == null ? "" : _Host.Name;
-            Log.Error(LogPrefix + format, args);
+            if (Log != null && Log.Enable) Log.Error(LogPrefix + format, args);
         }
         #endregion
 
