@@ -346,7 +346,7 @@ namespace NewLife.Net
             if (UseSession) AddSession(ns);
 
             session.Received += OnReceived;
-            session.Error += OnError;
+            //session.Error += OnError;
 
             // 开始会话处理
             ns.Start();
