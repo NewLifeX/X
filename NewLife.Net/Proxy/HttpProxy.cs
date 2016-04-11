@@ -6,8 +6,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using NewLife.Net.Http;
-using NewLife.Net.Sockets;
-using NewLife.Serialization;
 
 namespace NewLife.Net.Proxy
 {
@@ -21,6 +19,8 @@ namespace NewLife.Net.Proxy
         {
             Port = 8080;
             ProtocolType = ProtocolType.Tcp;
+
+            Cache = new HttpCache();
         }
         #endregion
 
@@ -79,69 +79,11 @@ namespace NewLife.Net.Proxy
         #endregion
 
         #region 缓存
-        private Boolean _EnableCache;
         /// <summary>激活缓存</summary>
-        public Boolean EnableCache
-        {
-            get { return _EnableCache; }
-            set
-            {
-                //if (value)
-                //{
-                //    OnRequest += new EventHandler<HttpProxyEventArgs>(HttpProxy_OnRequest);
-                //    OnResponse += new EventHandler<HttpProxyEventArgs>(HttpProxy_OnResponse);
-                //}
-                //else
-                //{
-                //    OnResponse -= new EventHandler<HttpProxyEventArgs>(HttpProxy_OnResponse);
-                //}
+        public Boolean EnableCache { get; set; }
 
-                _EnableCache = value;
-            }
-        }
-
-        //void HttpProxy_OnRequest(object sender, HttpProxyEventArgs e)
-        //{
-        //    var session = sender as Session;
-        //    if (session == null) return;
-
-        //    // 缓存Get请求的304响应
-
-        //}
-
-        //static readonly HashSet<String> cacheSuffix = new HashSet<string>(
-        //    new String[] { ".htm", ".html", ".js", ".css", ".jpg", ".png", ".gif", ".swf" },
-        //    StringComparer.OrdinalIgnoreCase);
-        //void HttpProxy_OnResponse(object sender, HttpProxyEventArgs e)
-        //{
-        //    var session = sender as Session;
-        //    if (session == null) return;
-
-        //    // 缓存Get请求的304响应
-        //    var request = session.Request;
-        //    var response = e.Header;
-        //    if (request == null || response == null) return;
-
-        //    if (request.Method.EqualIgnoreCase("GET"))
-        //    {
-        //        if (response.StatusCode == 304)
-        //        {
-        //            Cache.Add(request, response);
-        //        }
-        //        else
-        //        {
-        //            var url = request.RawUrl;
-        //            if (!String.IsNullOrEmpty(url) && url[url.Length - 1] != '/' && cacheSuffix.Contains(Path.GetExtension(url)))
-        //            {
-        //                Cache.Add(request, response);
-        //            }
-        //        }
-        //    }
-        //}
-
-        private HttpCache _Cache;
         /// <summary>Http缓存</summary>
-        HttpCache Cache { get { return _Cache ?? (_Cache = new HttpCache()); } set { _Cache = value; } }
+        HttpCache Cache { get; set; }
         #endregion
 
         #region 会话

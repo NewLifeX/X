@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using NewLife.Log;
-using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy
 {
@@ -26,26 +24,26 @@ namespace NewLife.Net.Proxy
     public class ProxySession : NetSession, IProxySession
     {
         #region 属性
-        private IProxy _Proxy;
         /// <summary>代理对象</summary>
-        IProxy IProxySession.Proxy { get { return _Proxy; } set { _Proxy = value; } }
+        IProxy IProxySession.Proxy { get; set; }
 
-        private ISocketClient _RemoteServer;
         /// <summary>远程服务端。跟目标服务端通讯的那个Socket，其实是客户端TcpSession/UdpServer</summary>
-        public ISocketClient RemoteServer { get { return _RemoteServer; } set { _RemoteServer = value; } }
+        public ISocketClient RemoteServer { get; set; }
 
-        private NetUri _RemoteServerUri = new NetUri();
         /// <summary>服务端地址</summary>
-        public NetUri RemoteServerUri { get { return _RemoteServerUri; } set { _RemoteServerUri = value; } }
+        public NetUri RemoteServerUri { get; set; }
 
-        private Boolean _ExchangeEmptyData = true;
         /// <summary>是否中转空数据包。默认true</summary>
-        public Boolean ExchangeEmptyData { get { return _ExchangeEmptyData; } set { _ExchangeEmptyData = value; } }
+        public Boolean ExchangeEmptyData { get; set; }
         #endregion
 
         #region 构造
         /// <summary>实例化一个代理会话</summary>
-        public ProxySession() { }
+        public ProxySession()
+        {
+            RemoteServerUri = new NetUri();
+            ExchangeEmptyData = true;
+        }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
@@ -57,7 +55,7 @@ namespace NewLife.Net.Proxy
             if (remote != null)
             {
                 RemoteServer = null;
-                remote.Dispose();
+                remote.TryDispose();
             }
         }
         #endregion
@@ -78,10 +76,12 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            WriteLog("客户端[{0}] {1}", e.Length, e.ToHex(16));
+            //WriteLog("客户端[{0}] {1}", e.Length, e.ToHex(16));
 
             if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
             {
+                if (e.Length > 0) WriteLog("客户端[{0}] {1}", e.Length, e.ToHex(16));
+
                 // 如果未建立到远程服务器链接，则建立
                 if (RemoteServer == null) StartRemote(e);
 
@@ -106,7 +106,7 @@ namespace NewLife.Net.Proxy
                 session.OnDisposed += (s, e2) =>
                 {
                     // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定
-                    _RemoteServer = null;
+                    RemoteServer = null;
                     OnRemoteDispose(s as ISocketClient);
                 };
                 session.Received += Remote_Received;

@@ -1,4 +1,6 @@
 ﻿using System;
+using NewLife;
+using NewLife.Reflection;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -115,8 +117,14 @@ namespace Test2
 
         static void Test3()
         {
+            //var ms = new MemoryStream("Stone".GetBytes());
+            //var sw = new StreamWriter(ms);
+            //sw.SetValue("closable", false);
+            //sw.Dispose();
+
             //var _server = new NetServer();
-            var _server = new DNSServer();
+            //var _server = new DNSServer();
+            var _server = new HttpProxy();
             //_server.Port = 8888;
             _server.Log = XTrace.Log;
             //_server.SocketLog = null;

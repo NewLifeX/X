@@ -110,7 +110,7 @@ namespace NewLife.Net.Http
                     break;
             }
 
-            entity.ReadHeaders(stream);
+            if (stream.Position < stream.Length) entity.ReadHeaders(stream);
 
             //// 因为涉及字符编码，所以跟流位置可能不同。对于ASCII编码没有问题。
             //stream.Position = p + reader.CharPosition;
@@ -124,11 +124,14 @@ namespace NewLife.Net.Http
         public static HttpHeader ReadFirst(Stream stream)
         {
             // 如果不是Http头部，指针要回到原来位置
-            //var stream = reader.Stream;
-            var reader = new StreamReaderX(stream, null, false);
             var p = stream.Position;
 
-            var line = reader.ReadLine();
+            var idx = stream.IndexOf("\r\n".GetBytes());
+            stream.Position = p;
+
+            if (idx < 0) return null;
+
+            var line = stream.ReadBytes(idx + 2).ToStr();
             if (line.IsNullOrWhiteSpace()) { stream.Position = p; return null; }
 
             var ss = line.Split(new Char[] { ' ' }, 3);
@@ -157,24 +160,33 @@ namespace NewLife.Net.Http
             return entity;
         }
 
+        private static Byte[] _NewLine = "\r\n".GetBytes();
+
         /// <summary>读取头部键值</summary>
         /// <param name="stream"></param>
         public void ReadHeaders(Stream stream)
         {
-            var reader = new StreamReaderX(stream, null, false);
-            
+            //var reader = new StreamReaderX(stream, null, false);
+
             IsFinish = true;
             while (true)
             {
-                var line = reader.ReadLine();
+                //var line = reader.ReadLine();
+                var old = stream.Position;
+                var idx = stream.IndexOf(_NewLine);
+                if (idx <= 0) return;
+
+                //stream.Position = old;
+                stream.Seek(-idx - _NewLine.Length, SeekOrigin.Current);
+                var line = stream.ReadBytes(idx + _NewLine.Length).ToStr();
                 // 找到Empty，也就是找到了换行符，Http头结束
                 if (line == String.Empty) return;
                 if (line == null)
                 {
-                    if (!reader.EndOfStream)
+                    if (stream.Position < stream.Length)
                     {
                         // 可能是结束
-                        var str = reader.ReadToEnd();
+                        var str = stream.ReadBytes().ToStr();
                         if (str == Environment.NewLine) return;
 
                         IsFinish = false;
@@ -199,22 +211,36 @@ namespace NewLife.Net.Http
         /// <param name="stream"></param>
         public void Write(Stream stream)
         {
-            // StreamWriter太恶心了，自动把流给关闭了，还没有地方设置
-            using (var writer = new StreamWriterX(stream) { Closable = false })
+            //// StreamWriter太恶心了，自动把流给关闭了，还没有地方设置
+            //using (var writer = new StreamWriterX(stream) { Closable = false })
+            //{
+            //    if (!IsResponse)
+            //        writer.WriteLine("{0} {1} {2}", Method, Url, Version);
+            //    else
+            //        writer.WriteLine("{0} {1} {2}", Version, StatusCode, StatusDescription);
+            //    foreach (var item in Headers)
+            //    {
+            //        writer.WriteLine("{0}: {1}", item.Key, item.Value);
+            //    }
+            //    if (IsFinish)
+            //        writer.WriteLine();
+            //    else
+            //        writer.Write(_last);
+            //}
+
+            var sb = new StringBuilder();
+            if (!IsResponse)
+                sb.AppendFormat("{0} {1} {2}\r\n", Method, Url, Version);
+            else
+                sb.AppendFormat("{0} {1} {2}\r\n", Version, StatusCode, StatusDescription);
+            foreach (var item in Headers)
             {
-                if (!IsResponse)
-                    writer.WriteLine("{0} {1} {2}", Method, Url, Version);
-                else
-                    writer.WriteLine("{0} {1} {2}", Version, StatusCode, StatusDescription);
-                foreach (var item in Headers)
-                {
-                    writer.WriteLine("{0}: {1}", item.Key, item.Value);
-                }
-                if (IsFinish)
-                    writer.WriteLine();
-                else
-                    writer.Write(_last);
+                sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
             }
+            if (IsFinish)
+                sb.AppendLine();
+            else
+                sb.Append(_last);
         }
 
         /// <summary>获取Http头的数据流</summary>
