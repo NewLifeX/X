@@ -17,16 +17,6 @@ namespace NewLife.Net.Application
             Name = "日志服务";
         }
 
-        ///// <summary>已重载。</summary>
-        ///// <param name="session"></param>
-        ///// <param name="stream"></param>
-        //protected override void OnReceive(ISocketSession session, Stream stream)
-        //{
-        //    if (stream.Length == 0) return;
-
-        //    WriteLog("{0} [{1}] {2}", session.Remote, stream.Length, stream.ToStr());
-        //}
-
         /// <summary>日志会话</summary>
         public class LogSession : NetSession
         {

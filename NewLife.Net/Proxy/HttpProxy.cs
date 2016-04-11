@@ -104,6 +104,12 @@ namespace NewLife.Net.Proxy
             /// <param name="e"></param>
             protected override void OnReceive(ReceivedEventArgs e)
             {
+                if (e.Length == 0)
+                {
+                    base.OnReceive(e);
+                    return;
+                }
+
                 #region 解析请求头
                 // 解析请求头。
                 var stream = e.Stream;
@@ -147,13 +153,17 @@ namespace NewLife.Net.Proxy
                     var he = new HttpProxyEventArgs(Request, stream);
                     if (Proxy.RaiseEvent(this, EventKind.OnRequestBody, he)) return;
                     e.Stream = he.Stream;
+
                     base.OnReceive(e);
+
                     return;
                 }
 
                 // 请求头不完整，不发送，等下一部分到来
                 if (!entity.IsFinish) return;
                 #endregion
+
+                WriteLog("{0}", entity.Url);
 
                 #region 重构请求包
                 // 现在所在位置是一个全新的请求

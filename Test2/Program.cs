@@ -127,9 +127,9 @@ namespace Test2
             var _server = new HttpProxy();
             //_server.Port = 8888;
             _server.Log = XTrace.Log;
-            //_server.SocketLog = null;
-            //_server.SessionLog = null;
-            //_server.SessionLog = XTrace.Log;
+            _server.SocketLog = Logger.Null;
+            //_server.SessionLog = Logger.Null;
+            _server.SessionLog = XTrace.Log;
             _server.Start();
 
             while (true)
