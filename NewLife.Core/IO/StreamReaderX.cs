@@ -34,7 +34,7 @@ namespace NewLife.IO
         /// <param name="encoding">要使用的字符编码。</param>
         /// <exception cref="T:System.ArgumentException"><paramref name="stream" /> 不支持读取。</exception>
         /// <exception cref="T:System.ArgumentNullException"><paramref name="stream" /> 或 <paramref name="encoding" /> 为 null。</exception>
-        public StreamReaderX(Stream stream, Encoding encoding) : base(stream, encoding) { }
+        public StreamReaderX(Stream stream, Encoding encoding) : base(stream, encoding ?? Encoding.UTF8) { }
 
         /// <summary>为指定的流初始化 <see cref="T:System.IO.StreamReader" /> 类的新实例，带有指定的字符编码、字节顺序标记检测选项和缓冲区大小。</summary>
         /// <param name="stream">要读取的流。</param>
@@ -43,7 +43,7 @@ namespace NewLife.IO
         /// <exception cref="T:System.ArgumentException">流不支持读取。</exception>
         /// <exception cref="T:System.ArgumentNullException"><paramref name="stream" /> 或 <paramref name="encoding" /> 为 null。</exception>
         public StreamReaderX(Stream stream, Encoding encoding, bool closable)
-            : base(stream, encoding)
+            : base(stream, encoding ?? Encoding.UTF8)
         {
             Closable = closable;
         }
