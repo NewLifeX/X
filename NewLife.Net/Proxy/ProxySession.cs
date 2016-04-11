@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -80,7 +81,7 @@ namespace NewLife.Net.Proxy
 
             if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
             {
-                if (e.Length > 0) WriteLog("客户端[{0}] {1}", e.Length, e.ToHex(16));
+                if (e.Length > 0) WriteDebugLog("客户端[{0}] {1}", e.Length, e.ToHex(16));
 
                 // 如果未建立到远程服务器链接，则建立
                 if (RemoteServer == null) StartRemote(e);
@@ -98,11 +99,12 @@ namespace NewLife.Net.Proxy
             ISocketClient session = null;
             try
             {
-                WriteLog("连接远程服务器 {0} 解析 {1}", RemoteServerUri, RemoteServerUri.Address);
+                WriteDebugLog("连接远程服务器 {0} 解析 {1}", RemoteServerUri, RemoteServerUri.Address);
 
                 session = CreateRemote(e);
-                //session.Log = new ActionLog(WriteLog);
-                session.Log = Log;
+                //session.Log = Log;
+                // Socket日志一致
+                session.Log = Session.Log;
                 session.OnDisposed += (s, e2) =>
                 {
                     // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定
@@ -154,7 +156,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            WriteLog("服务端[{0}] {1}", e.Length, e.ToHex(16));
+            WriteDebugLog("服务端[{0}] {1}", e.Length, e.ToHex(16));
 
             if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
             {
@@ -256,6 +258,15 @@ namespace NewLife.Net.Proxy
                 return _LogPrefix;
             }
             set { _LogPrefix = value; }
+        }
+
+        /// <summary>写调试版日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        [Conditional("DEBUG")]
+        protected void WriteDebugLog(String format, params Object[] args)
+        {
+            WriteLog(format, args);
         }
 
         /// <summary>已重载。</summary>
