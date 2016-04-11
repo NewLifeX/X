@@ -71,8 +71,6 @@
     <Compile Include="Extension\SpeakProvider.cs" />
     <Compile Include="IO\EncodingHelper.cs" />
     <Compile Include="IO\PathHelper.cs" />
-    <Compile Include="IO\StreamReaderX.cs" />
-    <Compile Include="IO\StreamWriterX.cs" />
     <Compile Include="Log\ActionLog.cs" />
     <Compile Include="Log\CompositeLog.cs" />
     <Compile Include="Log\ConsoleLog.cs" />

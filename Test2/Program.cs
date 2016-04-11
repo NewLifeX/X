@@ -18,6 +18,7 @@ using NewLife.Net.Sockets;
 using NewLife.Net.Stress;
 using NewLife.Security;
 using NewLife.Threading;
+using NewLife.IO;
 
 namespace Test2
 {
@@ -117,11 +118,6 @@ namespace Test2
 
         static void Test3()
         {
-            //var ms = new MemoryStream("Stone".GetBytes());
-            //var sw = new StreamWriter(ms);
-            //sw.SetValue("closable", false);
-            //sw.Dispose();
-
             //var _server = new NetServer();
             //var _server = new DNSServer();
             var _server = new HttpProxy();

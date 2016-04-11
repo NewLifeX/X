@@ -237,24 +237,6 @@ namespace NewLife.Reflection
             return true;
         }
 
-        ///// <summary>获取目标对象的属性值</summary>
-        ///// <param name="target">目标对象</param>
-        ///// <param name="property">属性</param>
-        ///// <returns></returns>
-        //public static Object GetValue(this Object target, PropertyInfo property)
-        //{
-        //    return _Provider.GetValue(target, property);
-        //}
-
-        ///// <summary>获取目标对象的字段值</summary>
-        ///// <param name="target">目标对象</param>
-        ///// <param name="field">字段</param>
-        ///// <returns></returns>
-        //public static Object GetValue(this Object target, FieldInfo field)
-        //{
-        //    return _Provider.GetValue(target, field);
-        //}
-
         /// <summary>获取目标对象的成员值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="member">成员</param>
@@ -275,46 +257,21 @@ namespace NewLife.Reflection
         /// <param name="name">名称</param>
         /// <param name="value">数值</param>
         /// <remarks>反射调用是否成功</remarks>
-        //[DebuggerHidden]
+        [DebuggerHidden]
         public static Boolean SetValue(this Object target, String name, Object value)
         {
             if (String.IsNullOrEmpty(name)) return false;
 
             var type = GetType(ref target);
-            //var pi = GetPropertyEx(type, name);
-            //if (pi != null) { target.SetValue(pi, value); return true; }
-
-            //var fi = GetFieldEx(type, name);
-            //if (fi != null) { target.SetValue(fi, value); return true; }
 
             var mi = type.GetMemberEx(name, true);
             if (mi == null) return false;
 
-            //target.SetValue(mi, value);
-            // 修正无限递归的BUG，不过不知道为什么会产生无限递归
-            SetValue(target, mi, value);
+            target.SetValue(mi, value);
 
             //throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
             return true;
         }
-
-        ///// <summary>设置目标对象的属性值</summary>
-        ///// <param name="target">目标对象</param>
-        ///// <param name="property">属性</param>
-        ///// <param name="value">数值</param>
-        //public static void SetValue(this Object target, PropertyInfo property, Object value)
-        //{
-        //    _Provider.SetValue(target, property, value);
-        //}
-
-        ///// <summary>设置目标对象的字段值</summary>
-        ///// <param name="target">目标对象</param>
-        ///// <param name="field">字段</param>
-        ///// <param name="value">数值</param>
-        //public static void SetValue(this Object target, FieldInfo field, Object value)
-        //{
-        //    _Provider.SetValue(target, field, value);
-        //}
 
         /// <summary>设置目标对象的成员值</summary>
         /// <param name="target">目标对象</param>
