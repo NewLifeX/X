@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Common;
@@ -104,16 +105,16 @@ namespace Test
 
         static void Test4()
         {
-            //var buf = "41-54-0d-0d-0a-0d-0a-4F-4B-0d-0a".ToHex();
-            //Console.WriteLine(buf.ToHex());
-            //Console.WriteLine(buf.ToStr());
-            //MQTest.TestBase();
+            var user = UserX.FindAll()[0];
+            Console.WriteLine(user);
 
-            var ns = new Int32[] { 123, 0, -456, Int32.MinValue, Int32.MaxValue };
-            foreach (var item in ns)
-            {
-                Console.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}", item, (UInt32)item, (Int64)(UInt32)item, (Int64)item, (UInt64)item);
-            }
+            var sb = new StringBuilder();
+
+            var json = new Json();
+            json.Log = XTrace.Log;
+            json.Write(sb, user);
+
+            Console.WriteLine(sb.ToString());
         }
 
         static void Test5()

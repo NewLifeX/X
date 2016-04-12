@@ -164,6 +164,12 @@
     <Compile Include="Reflection\AttributeX.cs" />
     <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
+    <Compile Include="Serialization\Json\IJsonHost.cs" />
+    <Compile Include="Serialization\Json\Json.cs" />
+    <Compile Include="Serialization\Json\JsonComposite.cs" />
+    <Compile Include="Serialization\Json\JsonDictionary.cs" />
+    <Compile Include="Serialization\Json\JsonGeneral.cs" />
+    <Compile Include="Serialization\Json\JsonArray.cs" />
     <Compile Include="Serialization\Json\IJson.cs" />
     <Compile Include="Serialization\Protocol.cs">
       <SubType>Code</SubType>
