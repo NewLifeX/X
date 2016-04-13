@@ -338,6 +338,9 @@ namespace NewLife.Reflection
 
             if (baseFirst) list.AddRange(GetProperties(type.BaseType));
 
+            // 父类子类可能因为继承而有重名的属性，此时以子类优先，否则反射父类属性会出错
+            var set = new HashSet<String>(list.Select(e => e.Name));
+
             //var pis = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var pis = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             foreach (var pi in pis)
@@ -345,10 +348,14 @@ namespace NewLife.Reflection
                 if (pi.GetIndexParameters().Length > 0) continue;
                 if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
-                list.Add(pi);
+                if (!set.Contains(pi.Name))
+                {
+                    list.Add(pi);
+                    set.Add(pi.Name);
+                }
             }
 
-            if (!baseFirst) list.AddRange(GetProperties(type.BaseType));
+            if (!baseFirst) list.AddRange(GetProperties(type.BaseType).Where(e => !set.Contains(e.Name)));
 
             return list;
         }
