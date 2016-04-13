@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -105,8 +106,9 @@ namespace Test
 
         static void Test4()
         {
-            var user = UserX.FindAll()[0];
-            Console.WriteLine(user);
+            //var user = UserX.FindAll()[0];
+            ////Console.WriteLine(user);
+            //user.RegisterTime = DateTime.Now;
 
             //var sb = new StringBuilder();
 
@@ -116,11 +118,33 @@ namespace Test
 
             //Console.WriteLine(sb.ToString());
 
-            Console.WriteLine(user.ToJson(true));
+            //Console.WriteLine(user.ToJson(true));
 
-            var type = "JsonWriter".GetTypeEx();
-            var txt = (String)type.CreateInstance().Invoke("ToJson", user, true);
-            Console.WriteLine(txt);
+            //var type = "JsonWriter".GetTypeEx();
+            //var txt = (String)type.CreateInstance().Invoke("ToJson", user, true);
+            //Console.WriteLine(txt);
+
+            JsonTest.Start();
+
+            //// 为所有Json宿主创建实例
+            //var hosts = typeof(IJsonHost).GetAllSubclasses().Select(e => e.CreateInstance() as IJsonHost).ToArray();
+
+            //var json = hosts[2].Write(user);
+            //Thread.Sleep(1000);
+            //Console.Clear();
+
+            //CodeTimer.ShowHeader("Json序列化性能测试");
+            //foreach (var item in hosts)
+            //{
+            //    CodeTimer.TimeLine(item.GetType().Name, 100000, n => { item.Write(user); });
+            //}
+
+            //Console.WriteLine();
+            //CodeTimer.ShowHeader("Json反序列化性能测试");
+            //foreach (var item in hosts)
+            //{
+            //    CodeTimer.TimeLine(item.GetType().Name, 100000, n => { item.Read(json, user.GetType()); });
+            //}
         }
 
         static void Test5()
