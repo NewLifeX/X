@@ -125,6 +125,9 @@ namespace NewLife.Serialization
             //_builder.Append(value);
         }
 
+        /// <summary>写入</summary>
+        /// <param name="sb"></param>
+        /// <param name="value"></param>
         public virtual void Write(StringBuilder sb, Object value)
         {
             if (value == null) return;
@@ -175,6 +178,9 @@ namespace NewLife.Serialization
             return false;
         }
 
+        /// <summary>读取</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public virtual Boolean Read(String value)
         {
             return true;

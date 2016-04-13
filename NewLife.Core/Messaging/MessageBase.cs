@@ -77,10 +77,8 @@ namespace NewLife.Messaging
         public override string ToString()
         {
             var sb = new StringBuilder();
-            foreach (var pi in this.GetType().GetProperties())
+            foreach (var pi in this.GetType().GetProperties(true))
             {
-                if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
-
                 GetMember(pi, -16, sb);
             }
             return sb.ToString();

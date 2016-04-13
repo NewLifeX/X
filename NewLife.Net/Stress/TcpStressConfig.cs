@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using NewLife.Xml;
+using NewLife.Reflection;
 
 namespace NewLife.Net.Stress
 {
@@ -59,7 +60,7 @@ namespace NewLife.Net.Stress
         {
             var cfg = this;
 
-            var pis = cfg.GetType().GetProperties();
+            var pis = cfg.GetType().GetProperties(true);
             var len = 0;
             foreach (var item in pis)
             {

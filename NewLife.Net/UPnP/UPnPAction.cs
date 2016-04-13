@@ -21,9 +21,9 @@ namespace NewLife.Net.UPnP
             TEntity entity = new TEntity();
 
             //TypeX tx = TypeX.Create(typeof(TEntity));
-            foreach (var item in typeof(TEntity).GetProperties())
+            foreach (var item in typeof(TEntity).GetProperties(true))
             {
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) != null) continue;
+                //if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) != null) continue;
 
                 var elmName = item.Name;
                 var att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item, true);
@@ -67,9 +67,9 @@ namespace NewLife.Net.UPnP
             doc.AppendChild(root);
 
             //TypeX tx = TypeX.Create(this.GetType());
-            foreach (var item in this.GetType().GetProperties())
+            foreach (var item in this.GetType().GetProperties(true))
             {
-                if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) != null) continue;
+                //if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) != null) continue;
 
                 var elmName = item.Name;
                 var att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item, true);

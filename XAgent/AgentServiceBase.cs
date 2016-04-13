@@ -395,7 +395,7 @@ namespace XAgent
                     {
                         var type = item.Value.GetType();
                         // 遍历所有属性，查找指定的设置项
-                        foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty))
+                        foreach (var pi in type.GetProperties(true))
                         {
                             var name = String.Format("XAgent.{0}.{1}", item.Key, pi.Name);
                             Object value = null;

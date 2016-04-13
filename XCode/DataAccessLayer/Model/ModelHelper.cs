@@ -395,7 +395,7 @@ namespace XCode.DataAccessLayer
         /// <param name="value">数值</param>
         public static void ReadXml(XmlReader reader, Object value)
         {
-            var pis = GetProperties(value.GetType());
+            var pis = value.GetType().GetProperties(true);
             var names = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
             foreach (var pi in pis)
             {
@@ -486,10 +486,10 @@ namespace XCode.DataAccessLayer
             String name = null;
 
             // 基本类型，输出为特性
-            foreach (var pi in GetProperties(type))
+            foreach (var pi in type.GetProperties(true))
             {
                 if (!pi.CanWrite) continue;
-                if (pi.GetCustomAttribute<XmlIgnoreAttribute>(false) != null) continue;
+                //if (pi.GetCustomAttribute<XmlIgnoreAttribute>(false) != null) continue;
                 // 忽略ID
                 if (pi.Name == "ID") continue;
                 // IDataIndex跳过默认Name
@@ -588,16 +588,10 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        static DictionaryCache<Type, Object> cache = new DictionaryCache<Type, object>();
+        static DictionaryCache<Type, Object> cache = new DictionaryCache<Type, Object>();
         static Object GetDefault(Type type)
         {
             return cache.GetItem(type, item => item.CreateInstance());
-        }
-
-        static DictionaryCache<Type, PropertyInfo[]> cache2 = new DictionaryCache<Type, PropertyInfo[]>();
-        static PropertyInfo[] GetProperties(Type type)
-        {
-            return cache2.GetItem(type, item => item.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => !p.Name.EqualIgnoreCase("Item")).ToArray());
         }
         #endregion
 
@@ -608,7 +602,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static T CopyFrom<T>(this T src, T des)
         {
-            foreach (var pi in typeof(T).GetProperties())
+            foreach (var pi in typeof(T).GetProperties(true))
             {
                 if (pi.CanWrite) src.SetValue(pi, des.GetValue(pi));
             }

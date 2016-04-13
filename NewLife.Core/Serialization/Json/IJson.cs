@@ -25,10 +25,16 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         void Write(String value);
 
+        /// <summary>写入</summary>
+        /// <param name="sb"></param>
+        /// <param name="value"></param>
         void Write(StringBuilder sb, Object value);
         #endregion
 
         #region 读取
+        /// <summary>读取</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         Boolean Read(String value);
 
         /// <summary>读取字节</summary>

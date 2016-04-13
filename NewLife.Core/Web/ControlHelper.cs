@@ -116,7 +116,7 @@ namespace NewLife.Web
             if (!String.IsNullOrEmpty(id))
                 fi = type.GetFieldEx(id);
             else
-                fi = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == typeof(T));
+                fi = type.GetFields(true).FirstOrDefault(item => item.FieldType == typeof(T));
 
             if (fi == null) return null;
 
@@ -137,7 +137,7 @@ namespace NewLife.Web
             if (!String.IsNullOrEmpty(id))
                 fi = type.GetFieldEx(id);
             else
-                fi = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(item => item.FieldType == typeof(T));
+                fi = type.GetFields(true).FirstOrDefault(item => item.FieldType == typeof(T));
 
             if (fi == null) return null;
 

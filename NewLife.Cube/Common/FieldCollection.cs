@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using NewLife.Reflection;
 using XCode;
 using XCode.Configuration;
 using XCode.Membership;
@@ -31,7 +32,7 @@ namespace NewLife.Cube
         {
             var type = Factory.EntityType;
             // 扩展属性
-            foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var pi in type.GetProperties(true))
             {
                 ProcessRelation(pi, isForm);
             }

@@ -144,34 +144,7 @@ namespace NewLife.Serialization
         /// <summary>获取成员</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected virtual List<PropertyInfo> GetMembers(Type type) { return GetProperties(type).Cast<PropertyInfo>().ToList(); }
-
-        private static DictionaryCache<Type, List<PropertyInfo>> _cache1 = new DictionaryCache<Type, List<PropertyInfo>>();
-        /// <summary>获取字段</summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected static List<PropertyInfo> GetProperties(Type type)
-        {
-            return _cache1.GetItem(type, key => GetGetProperties2(key));
-        }
-
-        static List<PropertyInfo> GetGetProperties2(Type type)
-        {
-            var list = new List<PropertyInfo>();
-
-            if (type == typeof(Object)) return list;
-
-            var pis = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty);
-            foreach (var pi in pis)
-            {
-                if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
-                if (pi.GetIndexParameters().Length > 0) continue;
-
-                list.Add(pi);
-            }
-
-            return list;
-        }
+        protected virtual List<PropertyInfo> GetMembers(Type type) { return type.GetProperties(true).Cast<PropertyInfo>().ToList(); }
 
         static Type GetMemberType(MemberInfo member)
         {

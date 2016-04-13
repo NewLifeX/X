@@ -657,23 +657,23 @@ namespace NewLife.Reflection
         #endregion
 
         #region 获取属性或字段
-        private PropertyInfoX[] _Properties;
-        /// <summary>属性集合</summary>
-        public PropertyInfoX[] Properties
-        {
-            get
-            {
-                if (_Properties == null)
-                {
-                    var pis = Type.GetProperties();
-                    if (pis == null || pis.Length < 1)
-                        _Properties = new PropertyInfoX[0];
-                    else
-                        _Properties = pis.Select(e => PropertyInfoX.Create(e)).ToArray();
-                }
-                return _Properties;
-            }
-        }
+        //private PropertyInfoX[] _Properties;
+        ///// <summary>属性集合</summary>
+        //public PropertyInfoX[] Properties
+        //{
+        //    get
+        //    {
+        //        if (_Properties == null)
+        //        {
+        //            var pis = Type.GetProperties();
+        //            if (pis == null || pis.Length < 1)
+        //                _Properties = new PropertyInfoX[0];
+        //            else
+        //                _Properties = pis.Select(e => PropertyInfoX.Create(e)).ToArray();
+        //        }
+        //        return _Properties;
+        //    }
+        //}
         #endregion
 
         #region 辅助方法

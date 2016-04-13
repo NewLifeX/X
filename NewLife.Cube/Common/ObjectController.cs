@@ -53,12 +53,12 @@ namespace NewLife.Cube
 
             // 反射处理内部复杂成员
             var keys = Request.Form.AllKeys;
-            foreach (var item in obj.GetType().GetProperties())
+            foreach (var item in obj.GetType().GetProperties(true))
             {
                 if (Type.GetTypeCode(item.PropertyType) == TypeCode.Object)
                 {
                     var pv = obj.GetValue(item);
-                    foreach (var pi in item.PropertyType.GetProperties())
+                    foreach (var pi in item.PropertyType.GetProperties(true))
                     {
                         if (keys.Contains(pi.Name))
                         {
@@ -98,10 +98,10 @@ namespace NewLife.Cube
             // 构造修改日志
             var sb = new StringBuilder();
             var cfg = Value;
-            foreach (var pi in obj.GetType().GetProperties())
+            foreach (var pi in obj.GetType().GetProperties(true))
             {
                 if (!pi.CanWrite) continue;
-                if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
+                //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
                 var v1 = obj.GetValue(pi);
                 var v2 = cfg.GetValue(pi);
@@ -125,9 +125,9 @@ namespace NewLife.Cube
             var type = Value as Type;
             if (type == null) type = obj.GetType();
 
-            var pis = type.GetProperties();
-            pis = pis.Where(pi => pi.CanWrite && pi.GetIndexParameters().Length == 0 && pi.GetCustomAttribute<XmlIgnoreAttribute>() == null).ToArray();
-            return pis;
+            var pis = type.GetProperties(true);
+            //pis = pis.Where(pi => pi.CanWrite && pi.GetIndexParameters().Length == 0 && pi.GetCustomAttribute<XmlIgnoreAttribute>() == null).ToArray();
+            return pis.ToArray();
         }
     }
 }

@@ -164,8 +164,8 @@ namespace NewLife.Cube
         {
             if (value == null || Type.GetTypeCode(value.GetType()) != TypeCode.Object) return Html.ForEditor(name, value);
 
-            var pis = value.GetType().GetProperties();
-            pis = pis.Where(pi => pi.CanWrite && pi.GetIndexParameters().Length == 0 && pi.GetCustomAttribute<XmlIgnoreAttribute>() == null).ToArray();
+            var pis = value.GetType().GetProperties(true);
+            pis = pis.Where(pi => pi.CanWrite).ToArray();
 
             var sb = new StringBuilder();
             var txt = Html.Label(name);

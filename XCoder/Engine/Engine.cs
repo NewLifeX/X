@@ -122,13 +122,14 @@ namespace XCoder
             #region 配置
             // 复制表属性到配置
             var cfg = new ModelConfig();
-            foreach (var pi in cfg.GetType().GetProperties())
+            foreach (var pi in cfg.GetType().GetProperties(true))
             {
                 if (table.Properties.ContainsKey(pi.Name))
                     cfg.SetValue(pi, table.Properties[pi.Name]);
                 else
                     cfg.SetValue(pi, Config.GetValue(pi));
             }
+
             #region 命名空间处理
             var NameSpace = cfg.NameSpace;
             var reg = new Regex(@"\$\((\w+)\)", RegexOptions.Compiled);
@@ -146,6 +147,7 @@ namespace XCoder
             NewLife.Log.XTrace.WriteLine("NameSpace" + Config.NameSpace + "@" + NameSpace);
             cfg.NameSpace = NameSpace;
             #endregion
+
             data["Config"] = cfg;
             #endregion
 
