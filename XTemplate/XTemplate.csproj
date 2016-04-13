@@ -64,11 +64,11 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="App.config" />
+    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="说明.txt" />
-    <EmbeddedResource Include="UpdateInfo.txt" />
+    <None Include="UpdateInfo.txt" />
     <Content Include="XTemplate架构.jpg" />
   </ItemGroup>
   <ItemGroup>

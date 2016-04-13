@@ -283,68 +283,68 @@ namespace XCoder
         #endregion
 
         #region 修正表
-        /// <summary>预先修正表名等各种东西，简化模版编写。</summary>
-        public List<IDataTable> FixTable(List<IDataTable> tables)
-        {
-            if (tables == null || tables.Count < 1) return tables;
+        ///// <summary>预先修正表名等各种东西，简化模版编写。</summary>
+        //public List<IDataTable> FixTable(List<IDataTable> tables)
+        //{
+        //    if (tables == null || tables.Count < 1) return tables;
 
-            var type = tables[0].GetType();
-            var list = tables.Select(dt => (type.CreateInstance() as IDataTable).CopyAllFrom(dt)).ToList();
+        //    var type = tables[0].GetType();
+        //    var list = tables.Select(dt => (type.CreateInstance() as IDataTable).CopyAllFrom(dt)).ToList();
 
-            var noCNDic = new Dictionary<object, string>();
-            var existTrans = new List<string>();
+        //    var noCNDic = new Dictionary<object, string>();
+        //    var existTrans = new List<string>();
 
-            var mr = ObjectContainer.Current.Resolve<IModelResolver>();
-            mr.AutoCutPrefix = Config.AutoCutPrefix;
-            mr.AutoCutTableName = Config.AutoCutTableName;
-            mr.AutoFixWord = Config.AutoFixWord;
-            mr.FilterPrefixs = ("" + Config.Prefix).Split(',', ';');
-            mr.UseID = Config.UseID;
+        //    var mr = ObjectContainer.Current.Resolve<IModelResolver>();
+        //    //mr.AutoCutPrefix = Config.AutoCutPrefix;
+        //    //mr.AutoCutTableName = Config.AutoCutTableName;
+        //    //mr.AutoFixWord = Config.AutoFixWord;
+        //    //mr.FilterPrefixs = ("" + Config.Prefix).Split(',', ';');
+        //    //mr.UseID = Config.UseID;
 
-            #region 修正数据
-            foreach (var table in list)
-            {
-                table.Name = mr.GetName(table.TableName);
+        //    #region 修正数据
+        //    //foreach (var table in list)
+        //    //{
+        //    //    table.Name = mr.GetName(table.TableName);
 
-                if (String.IsNullOrEmpty(table.Description))
-                    noCNDic.Add(table, table.Name);
-                //else
-                //    AddExistTranslate(existTrans, !string.IsNullOrEmpty(table.Name) ? table.Name : table.TableName, table.Description);
+        //    //    if (String.IsNullOrEmpty(table.Description))
+        //    //        noCNDic.Add(table, table.Name);
+        //    //    //else
+        //    //    //    AddExistTranslate(existTrans, !string.IsNullOrEmpty(table.Name) ? table.Name : table.TableName, table.Description);
 
-                // 字段
-                foreach (var dc in table.Columns)
-                {
-                    dc.Name = mr.GetName(dc);
+        //    //    // 字段
+        //    //    foreach (var dc in table.Columns)
+        //    //    {
+        //    //        dc.Name = mr.GetName(dc);
 
-                    if (String.IsNullOrEmpty(dc.Description))
-                        noCNDic.Add(dc, dc.Name);
-                    //else
-                    //    AddExistTranslate(existTrans, !string.IsNullOrEmpty(dc.Name) ? dc.Name : dc.ColumnName, dc.Description);
-                }
+        //    //        if (String.IsNullOrEmpty(dc.Description))
+        //    //            noCNDic.Add(dc, dc.Name);
+        //    //        //else
+        //    //        //    AddExistTranslate(existTrans, !string.IsNullOrEmpty(dc.Name) ? dc.Name : dc.ColumnName, dc.Description);
+        //    //    }
 
-                //table.Fix();
-            }
+        //    //    //table.Fix();
+        //    //}
 
-            ModelHelper.Connect(list);
-            #endregion
+        //    ModelHelper.Connect(list);
+        //    #endregion
 
-            //#region 异步调用接口修正中文名
-            ////if (Config.UseCNFileName && noCNDic.Count > 0)
-            //if (noCNDic.Count > 0)
-            //{
-            //    ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic);
-            //}
-            //#endregion
+        //    //#region 异步调用接口修正中文名
+        //    ////if (Config.UseCNFileName && noCNDic.Count > 0)
+        //    //if (noCNDic.Count > 0)
+        //    //{
+        //    //    ThreadPoolX.QueueUserWorkItem(TranslateWords, noCNDic);
+        //    //}
+        //    //#endregion
 
-            //#region 提交已翻译的项目
-            //if (existTrans.Count > 0)
-            //{
-            //    ThreadPoolX.QueueUserWorkItem(SubmitTranslateNew, existTrans.ToArray());
-            //}
-            //#endregion
+        //    //#region 提交已翻译的项目
+        //    //if (existTrans.Count > 0)
+        //    //{
+        //    //    ThreadPoolX.QueueUserWorkItem(SubmitTranslateNew, existTrans.ToArray());
+        //    //}
+        //    //#endregion
 
-            return list;
-        }
+        //    return list;
+        //}
 
         //void TranslateWords(Object state)
         //{

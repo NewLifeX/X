@@ -368,7 +368,7 @@ namespace XCoder
             {
                 var list = DAL.Create(Config.ConnName).Tables;
                 if (!cbIncludeView.Checked) list = list.Where(t => !t.IsView).ToList();
-                if (Config.NeedFix) list = Engine.FixTable(list);
+                //if (Config.NeedFix) list = Engine.FixTable(list);
                 Engine.Tables = list;
             }
             catch (Exception ex)
@@ -704,7 +704,7 @@ namespace XCoder
 
         private void 自动格式化设置ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FrmFix.Create(Config).ShowDialog();
+            //FrmFix.Create(Config).ShowDialog();
         }
         #endregion
 
@@ -782,7 +782,7 @@ namespace XCoder
             {
                 var list = DAL.Import(File.ReadAllText(openFileDialog1.FileName));
                 if (!cbIncludeView.Checked) list = list.Where(t => !t.IsView).ToList();
-                if (Config.NeedFix) list = Engine.FixTable(list);
+                //if (Config.NeedFix) list = Engine.FixTable(list);
 
                 Engine = null;
                 Engine.Tables = list;

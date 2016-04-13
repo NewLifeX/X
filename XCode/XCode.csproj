@@ -60,7 +60,6 @@
     <Compile Include="Attributes\BindRelationAttribute.cs" />
     <Compile Include="Cache\CacheSetting.cs" />
     <Compile Include="Code\CodeDomHelper.cs" />
-    <Compile Include="Common\StringBuilderCache.cs" />
     <Compile Include="Configuration\FieldExtension.cs" />
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
       <SubType>Code</SubType>
@@ -214,9 +213,9 @@
     <None Include="Test\XCodeTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="App.config">
+    <None Include="App.config">
       <SubType>Designer</SubType>
-    </EmbeddedResource>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="DataAccessLayer\Database\Database.mdb">
@@ -229,16 +228,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UpdateInfo.txt" />
-    <Content Include="..\NewLife.Core\X组件.txt">
-      <Link>X组件.txt</Link>
-    </Content>
+    <None Include="UpdateInfo.txt" />
     <None Include="Membership\Member.xml">
       <SubType>Designer</SubType>
     </None>
     <None Include="Test\EntityTest.xml" />
     <Content Include="Sync\同步机制.txt" />
-    <Content Include="说明.txt" />
+    <None Include="说明.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="文档\" />

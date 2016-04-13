@@ -24,10 +24,10 @@ namespace XCoder
             set { _ConnName = value; }
         }
 
-        private String _Prefix;
-        /// <summary>前缀</summary>
-        [DisplayName("前缀")]
-        public String Prefix { get { return _Prefix; } set { _Prefix = value; } }
+        //private String _Prefix;
+        ///// <summary>前缀</summary>
+        //[DisplayName("前缀")]
+        //public String Prefix { get { return _Prefix; } set { _Prefix = value; } }
 
         private String _NameSpace;
         /// <summary>命名空间</summary>
@@ -84,43 +84,43 @@ namespace XCoder
         [DisplayName("生成泛型实体类")]
         public Boolean RenderGenEntity { get { return _RenderGenEntity; } set { _RenderGenEntity = value; } }
 
-        private Boolean _NeedFix = true;
-        /// <summary>是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等</summary>
-        [DisplayName("是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等")]
-        public Boolean NeedFix { get { return _NeedFix; } set { _NeedFix = value; } }
+        //private Boolean _NeedFix = true;
+        ///// <summary>是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等</summary>
+        //[DisplayName("是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等")]
+        //public Boolean NeedFix { get { return _NeedFix; } set { _NeedFix = value; } }
 
-        private Boolean _AutoCutPrefix;
-        /// <summary>自动去除前缀</summary>
-        [DisplayName("自动去除前缀")]
-        public Boolean AutoCutPrefix
-        {
-            get { return _AutoCutPrefix; }
-            set { _AutoCutPrefix = value; }
-        }
+        //private Boolean _AutoCutPrefix;
+        ///// <summary>自动去除前缀</summary>
+        //[DisplayName("自动去除前缀")]
+        //public Boolean AutoCutPrefix
+        //{
+        //    get { return _AutoCutPrefix; }
+        //    set { _AutoCutPrefix = value; }
+        //}
 
-        private Boolean _CutTableName;
-        /// <summary>是否自动去除字段前面的表名</summary>
-        [DisplayName("是否自动去除字段前面的表名")]
-        public Boolean AutoCutTableName { get { return _CutTableName; } set { _CutTableName = value; } }
+        //private Boolean _CutTableName;
+        ///// <summary>是否自动去除字段前面的表名</summary>
+        //[DisplayName("是否自动去除字段前面的表名")]
+        //public Boolean AutoCutTableName { get { return _CutTableName; } set { _CutTableName = value; } }
 
-        private Boolean _AutoFixWord;
-        /// <summary>自动纠正大小写</summary>
-        [DisplayName("自动纠正大小写")]
-        public Boolean AutoFixWord
-        {
-            get { return _AutoFixWord; }
-            set { _AutoFixWord = value; }
-        }
+        //private Boolean _AutoFixWord;
+        ///// <summary>自动纠正大小写</summary>
+        //[DisplayName("自动纠正大小写")]
+        //public Boolean AutoFixWord
+        //{
+        //    get { return _AutoFixWord; }
+        //    set { _AutoFixWord = value; }
+        //}
 
         private Boolean _UseCNFileName;
         /// <summary>使用中文文件名</summary>
         [DisplayName("使用中文文件名")]
         public Boolean UseCNFileName { get { return _UseCNFileName; } set { _UseCNFileName = value; } }
 
-        private Boolean _UseID;
-        /// <summary>强制使用ID</summary>
-        [DisplayName("强制使用ID")]
-        public Boolean UseID { get { return _UseID; } set { _UseID = value; } }
+        //private Boolean _UseID;
+        ///// <summary>强制使用ID</summary>
+        //[DisplayName("强制使用ID")]
+        //public Boolean UseID { get { return _UseID; } set { _UseID = value; } }
 
         private Boolean _UseHeadTemplate;
         /// <summary>使用头部模版</summary>

@@ -234,14 +234,14 @@
     <EmbeddedResource Include="Windows\SerialPortList.resx">
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="X组件.txt" />
+    <None Include="X组件.txt" />
     <Content Include="说明.txt" />
-    <EmbeddedResource Include="UpdateInfo.txt" />
+    <None Include="UpdateInfo.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="App.config">
+    <None Include="App.config">
       <SubType>Designer</SubType>
-    </EmbeddedResource>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Serialization\NameValue\" />
