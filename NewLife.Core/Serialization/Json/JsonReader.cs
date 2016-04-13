@@ -199,10 +199,10 @@ namespace NewLife.Serialization
                     val = CreateArray((IList<Object>)v, pt, pt.GetElementTypeEx());
                 else if (typeof(IList).IsAssignableFrom(pt))
                     val = CreateGenericList((IList<Object>)v, pt, pt.GetElementTypeEx());
+                else if (pt.IsGenericType && typeof(Dictionary<,>).IsAssignableFrom(pt.GetGenericTypeDefinition()))
+                    val = CreateStringKeyDictionary(vdic, pt, pt.GetGenericArguments());
                 else if (typeof(IDictionary).IsAssignableFrom(pt))
                     val = CreateDictionary((IList<Object>)v, pt, pt.GetGenericArguments());
-                else if (typeof(IDictionary<,>).IsAssignableFrom(pt))
-                    val = CreateStringKeyDictionary(vdic, pt, pt.GetGenericArguments());
                 else if (pt == typeof(NameValueCollection))
                     val = CreateNV(vdic);
                 else if (pt == typeof(StringDictionary))

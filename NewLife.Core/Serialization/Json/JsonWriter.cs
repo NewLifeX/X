@@ -107,7 +107,7 @@ namespace NewLife.Serialization
             {
                 if (NullValue || nvs[item] != null)
                 {
-                    if (first) _Builder.Append(',');
+                    if (!first) _Builder.Append(',');
                     first = false;
 
                     var name = LowerCaseName ? item.ToLower() : item;
@@ -127,7 +127,7 @@ namespace NewLife.Serialization
             {
                 if (NullValue || item.Value != null)
                 {
-                    if (first) _Builder.Append(',');
+                    if (!first) _Builder.Append(',');
                     first = false;
 
                     var name = (String)item.Key;
@@ -176,22 +176,19 @@ namespace NewLife.Serialization
 
             var map = new Dictionary<String, String>();
             var t = obj.GetType();
-            Boolean append = false;
+
+            var first = true;
             foreach (var pi in t.GetProperties(true))
             {
-                var o = obj.GetValue(pi);
-                if (!NullValue && (o == null || o is DBNull))
+                var value = obj.GetValue(pi);
+                if (NullValue || value != null && !(value is DBNull))
                 {
-                }
-                else
-                {
-                    if (append)
-                        _Builder.Append(',');
-                    if (LowerCaseName)
-                        WritePair(pi.Name.ToLower(), o);
-                    else
-                        WritePair(pi.Name, o);
-                    append = true;
+                    if (!first) _Builder.Append(',');
+                    first = false;
+
+                    var name = pi.Name;
+                    if (LowerCaseName) name = name.ToLower();
+                    WritePair(name, value);
                 }
             }
             _Builder.Append('}');
@@ -225,7 +222,7 @@ namespace NewLife.Serialization
             var first = true;
             foreach (var obj in arr)
             {
-                if (first) _Builder.Append(',');
+                if (!first) _Builder.Append(',');
                 first = false;
 
                 WriteValue(obj);
@@ -242,7 +239,7 @@ namespace NewLife.Serialization
             {
                 if (NullValue || item.Value != null)
                 {
-                    if (first) _Builder.Append(',');
+                    if (!first) _Builder.Append(',');
                     first = false;
 
                     var name = (String)item.Key;
@@ -262,7 +259,7 @@ namespace NewLife.Serialization
             {
                 if (NullValue || item.Value != null)
                 {
-                    if (first) _Builder.Append(',');
+                    if (!first) _Builder.Append(',');
                     first = false;
 
                     var name = LowerCaseName ? item.Key.ToLower() : item.Key;
@@ -279,7 +276,7 @@ namespace NewLife.Serialization
             var first = true;
             foreach (DictionaryEntry entry in dic)
             {
-                if (first) _Builder.Append(',');
+                if (!first) _Builder.Append(',');
                 first = false;
 
                 _Builder.Append('{');

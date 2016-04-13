@@ -32,10 +32,12 @@ namespace NewLife.Serialization
 
         static JsonHelper()
         {
-            if (JsonNet.Support())
-                Default = new JsonNet();
-            else
-                Default = new JsonDefault();
+            Default = new FastJson();
+
+            //if (JsonNet.Support())
+            //    Default = new JsonNet();
+            //else
+            //    Default = new JsonDefault();
         }
 
         /// <summary>写入对象，得到Json字符串</summary>
@@ -101,24 +103,24 @@ namespace NewLife.Serialization
                         {
                             sb.Append(ch);
                             sb.Append("\r\n");
-                            sb.Append('\t', indentation);
+                            sb.Append(' ', indentation * 2);
                         }
                         else if (ch == '[' || ch == '{')
                         {
                             sb.Append(ch);
                             sb.Append("\r\n");
-                            sb.Append('\t', ++indentation);
+                            sb.Append(' ', ++indentation * 2);
                         }
                         else if (ch == ']' || ch == '}')
                         {
                             sb.Append("\r\n");
-                            sb.Append('\t', --indentation);
+                            sb.Append(' ', --indentation * 2);
                             sb.Append(ch);
                         }
                         else if (ch == ':')
                         {
                             sb.Append(ch);
-                            sb.Append('\t');
+                            sb.Append(' ', 2);
                         }
                         else
                         {
@@ -307,6 +309,24 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
         {
             return _Convert.Invoke("DeserializeObject", json, type);
         }
+        #endregion
+    }
+
+    class FastJson : IJsonHost
+    {
+
+        #region IJsonHost 成员
+
+        public string Write(object value, bool indented = false)
+        {
+            return new JsonWriter().ToJson(value, indented);
+        }
+
+        public object Read(string json, Type type)
+        {
+            return new JsonReader().ToObject(json, type);
+        }
+
         #endregion
     }
 }
