@@ -7,7 +7,7 @@ namespace NewLife.Serialization
 {
 
     /// <summary>Json分析器</summary>
-    internal class JsonParser
+    public class JsonParser
     {
         #region 内部
         /// <summary>标识符</summary>
@@ -57,11 +57,15 @@ namespace NewLife.Serialization
         Int32 index;
         #endregion
 
+        /// <summary>实例化</summary>
+        /// <param name="json"></param>
         public JsonParser(String json)
         {
             _json = json;
         }
 
+        /// <summary>解码</summary>
+        /// <returns></returns>
         public Object Decode() { return ParseValue(); }
 
         private Dictionary<String, Object> ParseObject()

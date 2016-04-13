@@ -11,6 +11,7 @@ using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
 
+#if DEBUG
 namespace NewLife.Serialization
 {
     public static class JsonTest
@@ -73,6 +74,11 @@ namespace NewLife.Serialization
                 {
                     CodeTimer.TimeLine(item.GetType().Name, 100000, n => { item.Read(json, obj.GetType()); });
                 }
+                CodeTimer.TimeLine("JsonParser", 100000, n =>
+                {
+                    var jp = new JsonParser(json);
+                    jp.Decode();
+                });
             }
         }
 
@@ -137,3 +143,4 @@ namespace NewLife.Serialization
         public Dictionary<String, String> Container { get; set; }
     }
 }
+#endif
