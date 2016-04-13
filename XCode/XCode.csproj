@@ -102,7 +102,6 @@
     <Compile Include="Attributes\ModelSortMode.cs" />
     <Compile Include="Cache\EntityDependency.cs" />
     <Compile Include="Cache\IEntityCache.cs" />
-    <Compile Include="Cctor.cs" />
     <Compile Include="Code\EntityAssembly.cs" />
     <Compile Include="Code\EntityClass.cs" />
     <Compile Include="Code\EntityClassBiz.cs" />
