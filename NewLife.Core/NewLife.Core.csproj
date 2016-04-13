@@ -171,6 +171,9 @@
     <Compile Include="Serialization\Json\JsonGeneral.cs" />
     <Compile Include="Serialization\Json\JsonArray.cs" />
     <Compile Include="Serialization\Json\IJson.cs" />
+    <Compile Include="Serialization\Json\JsonParser.cs" />
+    <Compile Include="Serialization\Json\JsonReader.cs" />
+    <Compile Include="Serialization\Json\JsonWriter.cs" />
     <Compile Include="Serialization\Protocol.cs">
       <SubType>Code</SubType>
     </Compile>

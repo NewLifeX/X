@@ -64,6 +64,76 @@ namespace NewLife.Serialization
         {
             return (T)Default.Read(json, typeof(T));
         }
+
+        /// <summary>格式化Json文本</summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static String Format(String json)
+        {
+            var sb = new StringBuilder();
+
+            bool escaping = false;
+            bool inQuotes = false;
+            int indentation = 0;
+
+            foreach (char ch in json)
+            {
+                if (escaping)
+                {
+                    escaping = false;
+                    sb.Append(ch);
+                }
+                else
+                {
+                    if (ch == '\\')
+                    {
+                        escaping = true;
+                        sb.Append(ch);
+                    }
+                    else if (ch == '\"')
+                    {
+                        inQuotes = !inQuotes;
+                        sb.Append(ch);
+                    }
+                    else if (!inQuotes)
+                    {
+                        if (ch == ',')
+                        {
+                            sb.Append(ch);
+                            sb.Append("\r\n");
+                            sb.Append('\t', indentation);
+                        }
+                        else if (ch == '[' || ch == '{')
+                        {
+                            sb.Append(ch);
+                            sb.Append("\r\n");
+                            sb.Append('\t', ++indentation);
+                        }
+                        else if (ch == ']' || ch == '}')
+                        {
+                            sb.Append("\r\n");
+                            sb.Append('\t', --indentation);
+                            sb.Append(ch);
+                        }
+                        else if (ch == ':')
+                        {
+                            sb.Append(ch);
+                            sb.Append('\t');
+                        }
+                        else
+                        {
+                            sb.Append(ch);
+                        }
+                    }
+                    else
+                    {
+                        sb.Append(ch);
+                    }
+                }
+            }
+
+            return sb.ToString();
+        }
     }
 
     class JsonDefault : IJsonHost
@@ -94,7 +164,7 @@ namespace NewLife.Serialization
         {
             var json = new JavaScriptSerializer().Serialize(value);
             //if (indented) json = Process(json);
-            if (indented) json = FormatOutput(json);
+            if (indented) json = JsonHelper.Format(json);
 
             return json;
         }
@@ -171,73 +241,6 @@ namespace NewLife.Serialization
         //    }
         //    return sb.ToString();
         //}
-
-        static String FormatOutput(String json)
-        {
-            var sb = new StringBuilder();
-
-            bool escaping = false;
-            bool inQuotes = false;
-            int indentation = 0;
-
-            foreach (char ch in json)
-            {
-                if (escaping)
-                {
-                    escaping = false;
-                    sb.Append(ch);
-                }
-                else
-                {
-                    if (ch == '\\')
-                    {
-                        escaping = true;
-                        sb.Append(ch);
-                    }
-                    else if (ch == '\"')
-                    {
-                        inQuotes = !inQuotes;
-                        sb.Append(ch);
-                    }
-                    else if (!inQuotes)
-                    {
-                        if (ch == ',')
-                        {
-                            sb.Append(ch);
-                            sb.Append("\r\n");
-                            sb.Append('\t', indentation);
-                        }
-                        else if (ch == '[' || ch == '{')
-                        {
-                            sb.Append(ch);
-                            sb.Append("\r\n");
-                            sb.Append('\t', ++indentation);
-                        }
-                        else if (ch == ']' || ch == '}')
-                        {
-                            sb.Append("\r\n");
-                            sb.Append('\t', --indentation);
-                            sb.Append(ch);
-                        }
-                        else if (ch == ':')
-                        {
-                            sb.Append(ch);
-                            sb.Append('\t');
-                        }
-                        else
-                        {
-                            sb.Append(ch);
-                        }
-                    }
-                    else
-                    {
-                        sb.Append(ch);
-                    }
-                }
-            }
-
-            return sb.ToString();
-        }
         #endregion
     }
 

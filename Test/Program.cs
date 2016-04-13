@@ -108,13 +108,19 @@ namespace Test
             var user = UserX.FindAll()[0];
             Console.WriteLine(user);
 
-            var sb = new StringBuilder();
+            //var sb = new StringBuilder();
 
-            var json = new Json();
-            json.Log = XTrace.Log;
-            json.Write(sb, user);
+            //var json = new Json();
+            //json.Log = XTrace.Log;
+            //json.Write(sb, user);
 
-            Console.WriteLine(sb.ToString());
+            //Console.WriteLine(sb.ToString());
+
+            Console.WriteLine(user.ToJson(true));
+
+            var type = "JsonWriter".GetTypeEx();
+            var txt = (String)type.CreateInstance().Invoke("ToJson", user, true);
+            Console.WriteLine(txt);
         }
 
         static void Test5()
