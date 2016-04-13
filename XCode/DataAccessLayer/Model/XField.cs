@@ -174,12 +174,12 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>重新计算修正别名。避免与其它字段名或表名相同，避免关键字</summary>
-        /// <returns></returns>
-        public IDataColumn Fix()
-        {
-            return ModelResolver.Current.Fix(this);
-        }
+        ///// <summary>重新计算修正别名。避免与其它字段名或表名相同，避免关键字</summary>
+        ///// <returns></returns>
+        //public IDataColumn Fix()
+        //{
+        //    return ModelResolver.Current.Fix(this);
+        //}
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
@@ -207,7 +207,7 @@ namespace XCode.DataAccessLayer
         {
             var field = base.MemberwiseClone() as XField;
             field.Table = table;
-            field.Fix();
+            //field.Fix();
 
             return field;
         }

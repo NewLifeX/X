@@ -11,30 +11,30 @@ namespace XCode.DataAccessLayer
     public interface IModelResolver
     {
         #region 名称处理
-        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。另外，避免一个表中的字段别名重名</summary>
-        /// <param name="dc"></param>
-        /// <returns></returns>
-        String GetName(IDataColumn dc);
+        ///// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。另外，避免一个表中的字段别名重名</summary>
+        ///// <param name="dc"></param>
+        ///// <returns></returns>
+        //String GetName(IDataColumn dc);
 
-        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        String GetName(String name);
+        ///// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //String GetName(String name);
 
         /// <summary>根据字段名等信息计算索引的名称</summary>
         /// <param name="di"></param>
         /// <returns></returns>
         String GetName(IDataIndex di);
 
-        /// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        String CutPrefix(String name);
+        ///// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //String CutPrefix(String name);
 
-        /// <summary>自动处理大小写</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        String FixWord(String name);
+        ///// <summary>自动处理大小写</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //String FixWord(String name);
 
         /// <summary>获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）、换行分隔</summary>
         /// <param name="name">名称</param>
@@ -63,26 +63,26 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         IDataTable Fix(IDataTable table);
 
-        /// <summary>修正数据列</summary>
-        /// <param name="column"></param>
-        IDataColumn Fix(IDataColumn column);
+        ///// <summary>修正数据列</summary>
+        ///// <param name="column"></param>
+        //IDataColumn Fix(IDataColumn column);
         #endregion
 
         #region 设置
-        /// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
-        Boolean UseID { get; set; }
+        ///// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
+        //Boolean UseID { get; set; }
 
-        /// <summary>是否自动去除前缀。默认启用</summary>
-        Boolean AutoCutPrefix { get; set; }
+        ///// <summary>是否自动去除前缀。默认启用</summary>
+        //Boolean AutoCutPrefix { get; set; }
 
-        /// <summary>是否自动去除字段前面的表名。默认启用</summary>
-        Boolean AutoCutTableName { get; set; }
+        ///// <summary>是否自动去除字段前面的表名。默认启用</summary>
+        //Boolean AutoCutTableName { get; set; }
 
-        /// <summary>是否自动纠正大小写。默认启用</summary>
-        Boolean AutoFixWord { get; set; }
+        ///// <summary>是否自动纠正大小写。默认启用</summary>
+        //Boolean AutoFixWord { get; set; }
 
-        /// <summary>要过滤的前缀</summary>
-        String[] FilterPrefixs { get; set; }
+        ///// <summary>要过滤的前缀</summary>
+        //String[] FilterPrefixs { get; set; }
         #endregion
     }
 
@@ -90,112 +90,112 @@ namespace XCode.DataAccessLayer
     public class ModelResolver : IModelResolver
     {
         #region 名称处理
-        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。另外，避免一个表中的字段别名重名</summary>
-        /// <param name="dc"></param>
-        /// <returns></returns>
-        public virtual String GetName(IDataColumn dc)
-        {
-            var name = dc.ColumnName;
-            // 对于自增字段，如果强制使用ID，并且字段名以ID结尾，则直接取用ID
-            if (dc.Identity && UseID && name.EndsWithIgnoreCase("ID")) return "ID";
+        ///// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。另外，避免一个表中的字段别名重名</summary>
+        ///// <param name="dc"></param>
+        ///// <returns></returns>
+        //public virtual String GetName(IDataColumn dc)
+        //{
+        //    var name = dc.ColumnName;
+        //    // 对于自增字段，如果强制使用ID，并且字段名以ID结尾，则直接取用ID
+        //    if (dc.Identity && UseID && name.EndsWithIgnoreCase("ID")) return "ID";
 
-            #region 先去掉表前缀
-            var dt = dc.Table;
-            if (dt != null && AutoCutTableName)
-            {
-                // 要去掉的前缀集合
-                var pfs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-                // 表名、类名，已经包含的下划线前缀，一律过滤
-                foreach (var item in new String[] { dt.TableName, dt.Name })
-                {
-                    if (!item.IsNullOrWhiteSpace())
-                    {
-                        pfs.Add(item);
-                        // 如果包括下划线，再分割
-                        if (item.Contains("_"))
-                        {
-                            foreach (var elm in item.Split("_"))
-                            {
-                                if (elm != null && elm.Length >= 2 && !pfs.Contains(elm)) pfs.Add(elm);
-                            }
-                        }
-                    }
-                }
+        //    #region 先去掉表前缀
+        //    var dt = dc.Table;
+        //    if (dt != null && AutoCutTableName)
+        //    {
+        //        // 要去掉的前缀集合
+        //        var pfs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+        //        // 表名、类名，已经包含的下划线前缀，一律过滤
+        //        foreach (var item in new String[] { dt.TableName, dt.Name })
+        //        {
+        //            if (!item.IsNullOrWhiteSpace())
+        //            {
+        //                pfs.Add(item);
+        //                // 如果包括下划线，再分割
+        //                if (item.Contains("_"))
+        //                {
+        //                    foreach (var elm in item.Split("_"))
+        //                    {
+        //                        if (elm != null && elm.Length >= 2 && !pfs.Contains(elm)) pfs.Add(elm);
+        //                    }
+        //                }
+        //            }
+        //        }
 
-                foreach (var item in pfs)
-                {
-                    if (name.Length != item.Length) name = name.TrimStart(item);
-                }
-                name = name.TrimStart('_');
-            }
-            #endregion
+        //        foreach (var item in pfs)
+        //        {
+        //            if (name.Length != item.Length) name = name.TrimStart(item);
+        //        }
+        //        name = name.TrimStart('_');
+        //    }
+        //    #endregion
 
-            name = GetName(name);
-            if (dt != null)
-            {
-                var lastname = name;
-                var index = 0;
-                var cs = dt.Columns;
-                for (int i = 0; i < cs.Count; i++)
-                {
-                    var item = cs[i];
-                    if (item != dc && item.ColumnName != dc.ColumnName)
-                    {
-                        // 对于小于当前的采用别名，对于大于当前的，采用字段名，保证同名有优先级
-                        if (lastname.EqualIgnoreCase(item.ID < dc.ID ? item.Name : item.ColumnName))
-                        {
-                            lastname = name + ++index;
-                            // 从头开始
-                            i = -1;
-                        }
-                    }
-                }
-                name = lastname;
-            }
-            return name;
-        }
+        //    name = GetName(name);
+        //    if (dt != null)
+        //    {
+        //        var lastname = name;
+        //        var index = 0;
+        //        var cs = dt.Columns;
+        //        for (int i = 0; i < cs.Count; i++)
+        //        {
+        //            var item = cs[i];
+        //            if (item != dc && item.ColumnName != dc.ColumnName)
+        //            {
+        //                // 对于小于当前的采用别名，对于大于当前的，采用字段名，保证同名有优先级
+        //                if (lastname.EqualIgnoreCase(item.ID < dc.ID ? item.Name : item.ColumnName))
+        //                {
+        //                    lastname = name + ++index;
+        //                    // 从头开始
+        //                    i = -1;
+        //                }
+        //            }
+        //        }
+        //        name = lastname;
+        //    }
+        //    return name;
+        //}
 
-        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual String GetName(String name)
-        {
-            if (String.IsNullOrEmpty(name)) return name;
+        ///// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public virtual String GetName(String name)
+        //{
+        //    if (String.IsNullOrEmpty(name)) return name;
 
-            name = name.Replace("$", null);
-            name = name.Replace("(", null);
-            name = name.Replace(")", null);
-            name = name.Replace("（", null);
-            name = name.Replace("）", null);
-            name = name.Replace(" ", null);
-            name = name.Replace("　", null);
-            name = name.Replace("/", "_");
-            name = name.Replace("\\", "_");
+        //    name = name.Replace("$", null);
+        //    name = name.Replace("(", null);
+        //    name = name.Replace(")", null);
+        //    name = name.Replace("（", null);
+        //    name = name.Replace("）", null);
+        //    name = name.Replace(" ", null);
+        //    name = name.Replace("　", null);
+        //    name = name.Replace("/", "_");
+        //    name = name.Replace("\\", "_");
 
-            //if (name[0] == '_' && (name.Length == 1 || Char.IsLetter(name[1]))) name = name.Substring(1);
-            // 去除前缀不够严谨，导致出现数字开头的名称，那是非法的
-            if (name[0] == '_')
-            {
-                var str = name.Substring(1);
-                if (!IsKeyWord(str)) name = str;
-            }
+        //    //if (name[0] == '_' && (name.Length == 1 || Char.IsLetter(name[1]))) name = name.Substring(1);
+        //    // 去除前缀不够严谨，导致出现数字开头的名称，那是非法的
+        //    if (name[0] == '_')
+        //    {
+        //        var str = name.Substring(1);
+        //        if (!IsKeyWord(str)) name = str;
+        //    }
 
-            // 很多时候，这个别名就是表名
-            name = CutPrefix(name);
-            if (AutoFixWord) name = FixWord(name);
-            if (name[0] == '_')
-            {
-                var str = name.Substring(1);
-                if (!IsKeyWord(str)) name = str;
-            }
+        //    // 很多时候，这个别名就是表名
+        //    name = CutPrefix(name);
+        //    if (AutoFixWord) name = FixWord(name);
+        //    if (name[0] == '_')
+        //    {
+        //        var str = name.Substring(1);
+        //        if (!IsKeyWord(str)) name = str;
+        //    }
 
-            //关键字加后缀
-            //2016.02.12 @宁波-小董，测试发现下面代码在Oracle环境中产生死循环，修改为if
-            //while (IsKeyWord(name)) name += "_";
-            if (IsKeyWord(name)) name += "_";
+        //    //关键字加后缀
+        //    //2016.02.12 @宁波-小董，测试发现下面代码在Oracle环境中产生死循环，修改为if
+        //    //while (IsKeyWord(name)) name += "_";
+        //    if (IsKeyWord(name)) name += "_";
 
-            return name;
-        }
+        //    return name;
+        //}
 
         /// <summary>根据字段名等信息计算索引的名称</summary>
         /// <param name="di"></param>
@@ -225,127 +225,127 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        /// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual String CutPrefix(String name)
-        {
-            if (String.IsNullOrEmpty(name)) return null;
+        ///// <summary>去除前缀。默认去除第一个_前面部分，去除tbl和table前缀</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public virtual String CutPrefix(String name)
+        //{
+        //    if (String.IsNullOrEmpty(name)) return null;
 
-            var old = name;
-            foreach (var pfx in FilterPrefixs)
-            {
-                if (name.StartsWithIgnoreCase(pfx) && name.Length != pfx.Length)
-                {
-                    var str = name.Substring(pfx.Length);
-                    if (!IsKeyWord(str)) name = str;
-                }
-                else if (name.EndsWithIgnoreCase(pfx) && name.Length != pfx.Length)
-                {
-                    var str = name.Substring(0, name.Length - pfx.Length);
-                    if (!IsKeyWord(str)) name = str;
-                }
-            }
+        //    var old = name;
+        //    foreach (var pfx in FilterPrefixs)
+        //    {
+        //        if (name.StartsWithIgnoreCase(pfx) && name.Length != pfx.Length)
+        //        {
+        //            var str = name.Substring(pfx.Length);
+        //            if (!IsKeyWord(str)) name = str;
+        //        }
+        //        else if (name.EndsWithIgnoreCase(pfx) && name.Length != pfx.Length)
+        //        {
+        //            var str = name.Substring(0, name.Length - pfx.Length);
+        //            if (!IsKeyWord(str)) name = str;
+        //        }
+        //    }
 
-            // 自动去掉前缀，如果上面有过滤，这里是不能去除的，否则可能过度
-            if (AutoCutPrefix && name == old)
-            {
-                Int32 n = name.IndexOf("_");
-                // _后至少要有2个字母，并且后一个不能是_
-                if (n >= 0 && n < name.Length - 2 && name[n + 1] != '_')
-                {
-                    var str = name.Substring(n + 1);
-                    if (!IsKeyWord(str)) name = str;
-                }
-            }
+        //    // 自动去掉前缀，如果上面有过滤，这里是不能去除的，否则可能过度
+        //    if (AutoCutPrefix && name == old)
+        //    {
+        //        Int32 n = name.IndexOf("_");
+        //        // _后至少要有2个字母，并且后一个不能是_
+        //        if (n >= 0 && n < name.Length - 2 && name[n + 1] != '_')
+        //        {
+        //            var str = name.Substring(n + 1);
+        //            if (!IsKeyWord(str)) name = str;
+        //        }
+        //    }
 
-            return name;
-        }
+        //    return name;
+        //}
 
-        /// <summary>自动处理大小写</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual String FixWord(String name)
-        {
-            if (String.IsNullOrEmpty(name)) return null;
+        ///// <summary>自动处理大小写</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public virtual String FixWord(String name)
+        //{
+        //    if (String.IsNullOrEmpty(name)) return null;
 
-            if (UseID && name.EqualIgnoreCase("ID")) return "ID";
+        //    if (UseID && name.EqualIgnoreCase("ID")) return "ID";
 
-            if (name.Length <= 2) return name;
+        //    if (name.Length <= 2) return name;
 
-            // 如果包括下划线，特殊处理
-            if (name.Contains("_"))
-            {
-                var ss = name.Split('_');
-                for (int i = 0; i < ss.Length; i++)
-                {
-                    if (!ss[i].IsNullOrWhiteSpace()) ss[i] = FixWord(ss[i]);
-                }
-                return String.Join("_", ss);
-            }
+        //    // 如果包括下划线，特殊处理
+        //    if (name.Contains("_"))
+        //    {
+        //        var ss = name.Split('_');
+        //        for (int i = 0; i < ss.Length; i++)
+        //        {
+        //            if (!ss[i].IsNullOrWhiteSpace()) ss[i] = FixWord(ss[i]);
+        //        }
+        //        return String.Join("_", ss);
+        //    }
 
-            Int32 lowerCount = 0;
-            Int32 upperCount = 0;
-            foreach (var item in name)
-            {
-                if (item >= 'a' && item <= 'z')
-                    lowerCount++;
-                else if (item >= 'A' && item <= 'Z')
-                    upperCount++;
-            }
+        //    Int32 lowerCount = 0;
+        //    Int32 upperCount = 0;
+        //    foreach (var item in name)
+        //    {
+        //        if (item >= 'a' && item <= 'z')
+        //            lowerCount++;
+        //        else if (item >= 'A' && item <= 'Z')
+        //            upperCount++;
+        //    }
 
-            //没有或者只有一个小写字母的，需要修正
-            //没有大写的，也要修正
-            if (lowerCount <= 1 || upperCount < 1)
-            {
-                name = name.ToLower();
-                Char c = name[0];
-                if (c >= 'a' && c <= 'z') c = (Char)(c - 'a' + 'A');
-                name = c + name.Substring(1);
-            }
-            else
-            {
-                Char c = name[0];
-                if (c >= 'a' && c <= 'z')
-                {
-                    c = (Char)(c - 'a' + 'A');
-                    name = c + name.Substring(1);
-                }
-            }
+        //    //没有或者只有一个小写字母的，需要修正
+        //    //没有大写的，也要修正
+        //    if (lowerCount <= 1 || upperCount < 1)
+        //    {
+        //        name = name.ToLower();
+        //        Char c = name[0];
+        //        if (c >= 'a' && c <= 'z') c = (Char)(c - 'a' + 'A');
+        //        name = c + name.Substring(1);
+        //    }
+        //    else
+        //    {
+        //        Char c = name[0];
+        //        if (c >= 'a' && c <= 'z')
+        //        {
+        //            c = (Char)(c - 'a' + 'A');
+        //            name = c + name.Substring(1);
+        //        }
+        //    }
 
-            //处理Is开头的，第三个字母要大写
-            if (name.StartsWith("Is") && name.Length >= 3)
-            {
-                Char c = name[2];
-                if (c >= 'a' && c <= 'z')
-                {
-                    c = (Char)(c - 'a' + 'A');
-                    name = name.Substring(0, 2) + c + name.Substring(3);
-                }
-            }
+        //    //处理Is开头的，第三个字母要大写
+        //    if (name.StartsWith("Is") && name.Length >= 3)
+        //    {
+        //        Char c = name[2];
+        //        if (c >= 'a' && c <= 'z')
+        //        {
+        //            c = (Char)(c - 'a' + 'A');
+        //            name = name.Substring(0, 2) + c + name.Substring(3);
+        //        }
+        //    }
 
-            return name;
-        }
+        //    return name;
+        //}
 
-        /// <summary>代码生成器</summary>
-        private static CSharpCodeProvider _CG = new CSharpCodeProvider();
+        ///// <summary>代码生成器</summary>
+        //private static CSharpCodeProvider _CG = new CSharpCodeProvider();
 
-        /// <summary>是否关键字</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        static Boolean IsKeyWord(String name)
-        {
-            if (String.IsNullOrEmpty(name)) return false;
+        ///// <summary>是否关键字</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //static Boolean IsKeyWord(String name)
+        //{
+        //    if (String.IsNullOrEmpty(name)) return false;
 
-            // 特殊处理item，还有NewLife和System这两个最重要的命名空间
-            if (name.EqualIgnoreCase("item", "System", "NewLife")) return true;
+        //    // 特殊处理item，还有NewLife和System这两个最重要的命名空间
+        //    if (name.EqualIgnoreCase("item", "System", "NewLife")) return true;
 
-            // 只要有大写字母，就不是关键字
-            if (name.Any(c => c >= 'A' && c <= 'Z')) return false;
+        //    // 只要有大写字母，就不是关键字
+        //    if (name.Any(c => c >= 'A' && c <= 'Z')) return false;
 
-            // 只是判断是否合法变量，而不是判断是否真的关键字
-            return !_CG.IsValidIdentifier(name);
-        }
+        //    // 只是判断是否合法变量，而不是判断是否真的关键字
+        //    return !_CG.IsValidIdentifier(name);
+        //}
 
         /// <summary>获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）、换行分隔</summary>
         /// <param name="name">名称</param>
@@ -467,7 +467,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         public virtual IDataTable Fix(IDataTable table)
         {
-            if (table.Name.IsNullOrEmpty()) table.Name = GetName(table.TableName);
+            //if (table.Name.IsNullOrEmpty()) table.Name = GetName(table.TableName);
 
             // 根据单字段索引修正对应的关系
             FixRelationBySingleIndex(table);
@@ -492,11 +492,11 @@ namespace XCode.DataAccessLayer
             // 索引应该具有跟字段一样的唯一和主键约束
             FixIndex(table);
 
-            // 修正可能错误的别名
-            foreach (var dc in table.Columns)
-            {
-                dc.Fix();
-            }
+            //// 修正可能错误的别名
+            //foreach (var dc in table.Columns)
+            //{
+            //    dc.Fix();
+            //}
             foreach (var di in table.Indexes)
             {
                 di.Fix();
@@ -612,14 +612,14 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>修正数据列</summary>
-        /// <param name="column"></param>
-        public virtual IDataColumn Fix(IDataColumn column)
-        {
-            if (column.Name.IsNullOrEmpty()) column.Name = GetName(column);
+        ///// <summary>修正数据列</summary>
+        ///// <param name="column"></param>
+        //public virtual IDataColumn Fix(IDataColumn column)
+        //{
+        //    if (column.Name.IsNullOrEmpty()) column.Name = GetName(column);
 
-            return column;
-        }
+        //    return column;
+        //}
         #endregion
 
         #region 静态实例
@@ -628,32 +628,32 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 设置
-        /// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
-        public Boolean UseID { get; set; }
+        ///// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
+        //public Boolean UseID { get; set; }
 
-        /// <summary>是否自动去除前缀。默认启用</summary>
-        public Boolean AutoCutPrefix { get; set; }
+        ///// <summary>是否自动去除前缀。默认启用</summary>
+        //public Boolean AutoCutPrefix { get; set; }
 
-        /// <summary>是否自动去除字段前面的表名。默认启用</summary>
-        public Boolean AutoCutTableName { get; set; }
+        ///// <summary>是否自动去除字段前面的表名。默认启用</summary>
+        //public Boolean AutoCutTableName { get; set; }
 
-        /// <summary>是否自动纠正大小写。默认启用</summary>
-        public Boolean AutoFixWord { get; set; }
+        ///// <summary>是否自动纠正大小写。默认启用</summary>
+        //public Boolean AutoFixWord { get; set; }
 
-        /// <summary>要过滤的前缀</summary>
-        public String[] FilterPrefixs { get; set; }
+        ///// <summary>要过滤的前缀</summary>
+        //public String[] FilterPrefixs { get; set; }
         #endregion
 
         #region 构造
         /// <summary>实例化一个默认解析器</summary>
         public ModelResolver()
         {
-            var set = Setting.Current.Model;
-            UseID = set.UseID;
-            AutoCutPrefix = set.AutoCutPrefix;
-            AutoCutTableName = set.AutoCutTableName;
-            AutoFixWord = set.AutoFixWord;
-            FilterPrefixs = set.FilterPrefixs.Split();
+            //var set = Setting.Current.Model;
+            //UseID = set.UseID;
+            //AutoCutPrefix = set.AutoCutPrefix;
+            //AutoCutTableName = set.AutoCutTableName;
+            //AutoFixWord = set.AutoFixWord;
+            //FilterPrefixs = set.FilterPrefixs.Split();
         }
         #endregion
     }

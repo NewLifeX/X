@@ -326,7 +326,7 @@ namespace XCode.DataAccessLayer
                     WriteLog("无法识别{0}.{1}的类型{2}！", table.TableName, field.ColumnName, field.RawType);
                 }
 
-                field.Fix();
+                //field.Fix();
                 list.Add(field);
             }
 
@@ -338,10 +338,10 @@ namespace XCode.DataAccessLayer
         /// <param name="dr"></param>
         protected virtual void FixField(IDataColumn field, DataRow dr)
         {
-            DataTable dt = DataTypes;
+            var dt = DataTypes;
             if (dt == null) return;
 
-            DataRow[] drs = FindDataType(field, field.RawType, null);
+            var drs = FindDataType(field, field.RawType, null);
             if (drs == null || drs.Length < 1)
                 FixField(field, dr, null);
             else

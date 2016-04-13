@@ -62,6 +62,9 @@
     <Compile Include="Code\CodeDomHelper.cs" />
     <Compile Include="Common\StringBuilderCache.cs" />
     <Compile Include="Configuration\FieldExtension.cs" />
+    <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataAccessLayer\Model\NullableDictionary.cs" />
     <Compile Include="Entity\EntityQueue.cs" />
     <Compile Include="Entity\IEntityAddition.cs" />
@@ -128,7 +131,6 @@
     <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs">
     </Compile>
     <Compile Include="DataAccessLayer\MetaData\NegativeSetting.cs" />
-    <Compile Include="DataAccessLayer\Model\IModelResolver.cs" />
     <Compile Include="DataAccessLayer\Model\ModelHelper.cs" />
     <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
     <Compile Include="DataAccessLayer\Model\IDataRelation.cs" />

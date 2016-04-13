@@ -203,9 +203,9 @@ namespace XCode.DataAccessLayer
         /// <summary>获取Guid的函数，@老树 说SQLite没有这个函数</summary>
         public override String NewGuid { get { return null; } }
 
-        /// <summary>格式化时间为SQL字符串</summary>
-        /// <param name="dateTime">时间值</param>
-        /// <returns></returns>
+        ///// <summary>格式化时间为SQL字符串</summary>
+        ///// <param name="dateTime">时间值</param>
+        ///// <returns></returns>
         //public override String FormatDateTime(DateTime dateTime) { return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime); }
 
         /// <summary>格式化关键字</summary>
