@@ -13,6 +13,8 @@ namespace NewLife.Compression
     public class ZipEntry : IDisposable
     {
         #region 数据属性
+#pragma warning disable 0169, 0649
+
         /// <summary>签名</summary>
         public UInt32 Signature;
 
@@ -81,6 +83,8 @@ namespace NewLife.Compression
         /// <summary>注释</summary>
         [FieldSize("CommentLength")]
         public String Comment;
+
+#pragma warning restore 0169, 0649
         #endregion
 
         #region 属性
