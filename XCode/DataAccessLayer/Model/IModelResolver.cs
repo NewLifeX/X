@@ -414,6 +414,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Boolean GuessRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name)
         {
+            if (table == null || rtable == null || rname == null || column == null || name == null) return false;
             if (name.Length <= rtable.TableName.Length || !name.StartsWithIgnoreCase(rtable.TableName)) return false;
 
             var key = name.Substring(rtable.TableName.Length);
