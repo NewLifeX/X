@@ -336,6 +336,7 @@ namespace NewLife.Reflection
             // Void*的基类就是null
             if (type == typeof(Object) || type.BaseType == null) return list;
 
+            // 本身type.GetProperties就可以得到父类属性，只是不能保证父类属性在子类属性之前
             if (baseFirst) list.AddRange(GetProperties(type.BaseType));
 
             // 父类子类可能因为继承而有重名的属性，此时以子类优先，否则反射父类属性会出错

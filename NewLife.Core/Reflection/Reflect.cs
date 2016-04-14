@@ -92,7 +92,8 @@ namespace NewLife.Reflection
             return Provider.GetMember(type, name, ignoreCase);
         }
 
-        /// <summary>获取字段</summary>
+        /// <summary>获取用于序列化的字段</summary>
+        /// <remarks>过滤<seealso cref="T:NonSerializedAttribute"/>特性的字段</remarks>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
         /// <returns></returns>
@@ -101,7 +102,8 @@ namespace NewLife.Reflection
             return Provider.GetFields(type, baseFirst);
         }
 
-        /// <summary>获取属性</summary>
+        /// <summary>获取用于序列化的属性</summary>
+        /// <remarks>过滤<seealso cref="T:XmlIgnoreAttribute"/>特性的属性和索引器</remarks>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
         /// <returns></returns>
