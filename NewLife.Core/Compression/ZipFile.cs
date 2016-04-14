@@ -537,7 +537,7 @@ namespace NewLife.Compression
             var bn = new Binary() { Stream = stream };
             bn.EncodeInt = false;
             bn.UseFieldSize = true;
-            bn.UseProperty = true;
+            bn.UseProperty = false;
             bn.SizeWidth = 2;
             bn.IsLittleEndian = true;
             bn.Encoding = Encoding;

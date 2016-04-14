@@ -14,73 +14,73 @@ namespace NewLife.Compression
     {
         #region 数据属性
         /// <summary>签名</summary>
-        public UInt32 Signature { get; set; }
+        public UInt32 Signature;
 
         // ZipDirEntry成员
         /// <summary>系统类型</summary>
-        HostSystem VersionMadeBy { get; set; }
+        HostSystem VersionMadeBy;
 
         /// <summary>解压缩所需要的版本</summary>
-        public UInt16 VersionNeeded { get; set; }
+        public UInt16 VersionNeeded;
 
         /// <summary>标识位</summary>
-        GeneralBitFlags BitField { get; set; }
+        GeneralBitFlags BitField;
 
         /// <summary>压缩方法</summary>
-        public CompressionMethod CompressionMethod { get; set; }
+        public CompressionMethod CompressionMethod;
 
-        private Int32 _LastModified { get; set; }
+        private Int32 _LastModified;
         /// <summary>最后修改时间</summary>
         [XmlIgnore]
         public DateTime LastModified { get { return ZipFile.DosDateTimeToFileTime(_LastModified); } set { _LastModified = ZipFile.FileTimeToDosDateTime(value); } }
 
         /// <summary>CRC校验</summary>
-        public UInt32 Crc { get; set; }
+        public UInt32 Crc;
 
         /// <summary>压缩后大小</summary>
-        public UInt32 CompressedSize { get; set; }
+        public UInt32 CompressedSize;
 
         /// <summary>原始大小</summary>
-        public UInt32 UncompressedSize { get; set; }
+        public UInt32 UncompressedSize;
 
         /// <summary>文件名长度</summary>
-        private UInt16 FileNameLength { get; set; }
+        private UInt16 FileNameLength;
 
         /// <summary>扩展数据长度</summary>
-        private UInt16 ExtraFieldLength { get; set; }
+        private UInt16 ExtraFieldLength;
 
         // ZipDirEntry成员
         /// <summary>注释长度</summary>
-        private UInt16 CommentLength { get; set; }
+        private UInt16 CommentLength;
 
         // ZipDirEntry成员
         /// <summary>分卷号。</summary>
-        public UInt16 DiskNumber { get; set; }
+        public UInt16 DiskNumber;
 
         // ZipDirEntry成员
         /// <summary>内部文件属性</summary>
-        public UInt16 InternalFileAttrs { get; set; }
+        public UInt16 InternalFileAttrs;
 
         // ZipDirEntry成员
         /// <summary>扩展文件属性</summary>
-        public UInt32 ExternalFileAttrs { get; set; }
+        public UInt32 ExternalFileAttrs;
 
         // ZipDirEntry成员
         /// <summary>文件头相对位移</summary>
-        public UInt32 RelativeOffsetOfLocalHeader { get; set; }
+        public UInt32 RelativeOffsetOfLocalHeader;
 
         /// <summary>文件名，如果是目录，则以/结束</summary>
         [FieldSize("FileNameLength")]
-        public String FileName { get; set; }
+        public String FileName;
 
         /// <summary>扩展字段</summary>
         [FieldSize("ExtraFieldLength")]
-        public Byte[] ExtraField { get; set; }
+        public Byte[] ExtraField;
 
         // ZipDirEntry成员
         /// <summary>注释</summary>
         [FieldSize("CommentLength")]
-        public String Comment { get; set; }
+        public String Comment;
         #endregion
 
         #region 属性
@@ -89,8 +89,8 @@ namespace NewLife.Compression
         public Boolean IsDirectory { get { return ("" + FileName).EndsWith(ZipFile.DirSeparator); } }
 
         /// <summary>数据源</summary>
-        [XmlIgnore]
-        private IDataSource DataSource { get; set; }
+        [NonSerialized]
+        private IDataSource DataSource;
         #endregion
 
         #region 构造

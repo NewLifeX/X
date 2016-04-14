@@ -106,9 +106,12 @@ namespace Test
 
         static void Test4()
         {
-            //var user = UserX.FindAll()[0];
-            ////Console.WriteLine(user);
-            //user.RegisterTime = DateTime.Now;
+            var pis = typeof(B).GetProperties();
+            Console.WriteLine(pis);
+
+            var user = UserX.FindAll()[0];
+            //Console.WriteLine(user);
+            user.RegisterTime = DateTime.Now;
 
             //var sb = new StringBuilder();
 
@@ -124,7 +127,7 @@ namespace Test
             //var txt = (String)type.CreateInstance().Invoke("ToJson", user, true);
             //Console.WriteLine(txt);
 
-            JsonTest.Start();
+            //JsonTest.Start();
 
             //// 为所有Json宿主创建实例
             //var hosts = typeof(IJsonHost).GetAllSubclasses().Select(e => e.CreateInstance() as IJsonHost).ToArray();
@@ -145,6 +148,20 @@ namespace Test
             //{
             //    CodeTimer.TimeLine(item.GetType().Name, 100000, n => { item.Read(json, user.GetType()); });
             //}
+        }
+
+        class A
+        {
+            public Int32 ID { get; set; }
+
+            public virtual Guid Guid { get; set; }
+        }
+
+        class B:A
+        {
+            public String Name { get; set; }
+
+            public override Guid Guid { get; set; }
         }
 
         static void Test5()
