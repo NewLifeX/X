@@ -63,9 +63,9 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         IDataTable Fix(IDataTable table);
 
-        ///// <summary>修正数据列</summary>
-        ///// <param name="column"></param>
-        //IDataColumn Fix(IDataColumn column);
+        /// <summary>修正数据列</summary>
+        /// <param name="column"></param>
+        IDataColumn Fix(IDataColumn column);
         #endregion
 
         #region 设置
@@ -155,47 +155,47 @@ namespace XCode.DataAccessLayer
         //    return name;
         //}
 
-        ///// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //public virtual String GetName(String name)
-        //{
-        //    if (String.IsNullOrEmpty(name)) return name;
+        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public virtual String GetName(String name)
+        {
+            if (String.IsNullOrEmpty(name)) return name;
 
-        //    name = name.Replace("$", null);
-        //    name = name.Replace("(", null);
-        //    name = name.Replace(")", null);
-        //    name = name.Replace("（", null);
-        //    name = name.Replace("）", null);
-        //    name = name.Replace(" ", null);
-        //    name = name.Replace("　", null);
-        //    name = name.Replace("/", "_");
-        //    name = name.Replace("\\", "_");
+            name = name.Replace("$", null);
+            name = name.Replace("(", null);
+            name = name.Replace(")", null);
+            name = name.Replace("（", null);
+            name = name.Replace("）", null);
+            name = name.Replace(" ", null);
+            name = name.Replace("　", null);
+            name = name.Replace("/", "_");
+            name = name.Replace("\\", "_");
 
-        //    //if (name[0] == '_' && (name.Length == 1 || Char.IsLetter(name[1]))) name = name.Substring(1);
-        //    // 去除前缀不够严谨，导致出现数字开头的名称，那是非法的
-        //    if (name[0] == '_')
-        //    {
-        //        var str = name.Substring(1);
-        //        if (!IsKeyWord(str)) name = str;
-        //    }
+            //    //if (name[0] == '_' && (name.Length == 1 || Char.IsLetter(name[1]))) name = name.Substring(1);
+            //    // 去除前缀不够严谨，导致出现数字开头的名称，那是非法的
+            //    if (name[0] == '_')
+            //    {
+            //        var str = name.Substring(1);
+            //        if (!IsKeyWord(str)) name = str;
+            //    }
 
-        //    // 很多时候，这个别名就是表名
-        //    name = CutPrefix(name);
-        //    if (AutoFixWord) name = FixWord(name);
-        //    if (name[0] == '_')
-        //    {
-        //        var str = name.Substring(1);
-        //        if (!IsKeyWord(str)) name = str;
-        //    }
+            //    // 很多时候，这个别名就是表名
+            //    name = CutPrefix(name);
+            //    if (AutoFixWord) name = FixWord(name);
+            //    if (name[0] == '_')
+            //    {
+            //        var str = name.Substring(1);
+            //        if (!IsKeyWord(str)) name = str;
+            //    }
 
-        //    //关键字加后缀
-        //    //2016.02.12 @宁波-小董，测试发现下面代码在Oracle环境中产生死循环，修改为if
-        //    //while (IsKeyWord(name)) name += "_";
-        //    if (IsKeyWord(name)) name += "_";
+            //    //关键字加后缀
+            //    //2016.02.12 @宁波-小董，测试发现下面代码在Oracle环境中产生死循环，修改为if
+            //    //while (IsKeyWord(name)) name += "_";
+            //    if (IsKeyWord(name)) name += "_";
 
-        //    return name;
-        //}
+            return name;
+        }
 
         /// <summary>根据字段名等信息计算索引的名称</summary>
         /// <param name="di"></param>
@@ -468,7 +468,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         public virtual IDataTable Fix(IDataTable table)
         {
-            //if (table.Name.IsNullOrEmpty()) table.Name = GetName(table.TableName);
+            if (table.Name.IsNullOrEmpty()) table.Name = GetName(table.TableName);
 
             // 根据单字段索引修正对应的关系
             FixRelationBySingleIndex(table);
@@ -512,7 +512,14 @@ namespace XCode.DataAccessLayer
 
             return table;
         }
+        /// <summary>修正数据列</summary>
+        /// <param name="column"></param>
+        public virtual IDataColumn Fix(IDataColumn column)
+        {
+            if (column.Name.IsNullOrEmpty()) column.Name = GetName(column.ColumnName);
 
+            return column;
+        }
         /// <summary>根据单字段索引修正对应的关系</summary>
         /// <param name="table"></param>
         protected virtual void FixRelationBySingleIndex(IDataTable table)

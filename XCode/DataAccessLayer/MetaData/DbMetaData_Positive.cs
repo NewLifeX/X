@@ -250,7 +250,7 @@ namespace XCode.DataAccessLayer
 
                 // 名称
                 field.ColumnName = GetDataRowValue<String>(dr, _.ColumnName);
-
+                                
                 // 标识、主键
                 Boolean b;
                 if (TryGetDataRowValue<Boolean>(dr, "AUTOINCREMENT", out b))
@@ -326,7 +326,7 @@ namespace XCode.DataAccessLayer
                     WriteLog("无法识别{0}.{1}的类型{2}！", table.TableName, field.ColumnName, field.RawType);
                 }
 
-                //field.Fix();
+                field.Fix();
                 list.Add(field);
             }
 
