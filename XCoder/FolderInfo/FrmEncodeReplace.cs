@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using XCoder;
-using System.Windows.Forms;
 using System.IO;
+using System.Text;
+using System.Windows.Forms;
+using NewLife.IO;
 
 namespace XCoder.FolderInfo
 {
@@ -66,18 +61,18 @@ namespace XCoder.FolderInfo
             var targetEncoding = GetEncode();
             foreach (DataGridViewRow item in gv_data.Rows)
             {
-              if (item.Cells["序号"].Value == null) { continue; }
-              var fileCharset = item.Cells["编码"].Value.ToString();
-              if (string.Equals(fileCharset, targetCharset, StringComparison.OrdinalIgnoreCase)) { continue; }
+                if (item.Cells["序号"].Value == null) { continue; }
+                var fileCharset = item.Cells["编码"].Value.ToString();
+                if (string.Equals(fileCharset, targetCharset, StringComparison.OrdinalIgnoreCase)) { continue; }
 
-              try
-              {
-                ReplaceEncoding(txt_file_path.Text + item.Cells["名称"].Value.ToString(), fileCharset, targetEncoding);
-              }
-              catch (Exception ex)
-              {
-                MessageBox.Show("文件[" + txt_file_path.Text + item.Cells["名称"].Value.ToString() + "]" + "转换时出错,请手动转换" + ex.Message);
-              }
+                try
+                {
+                    ReplaceEncoding(txt_file_path.Text + item.Cells["名称"].Value.ToString(), fileCharset, targetEncoding);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("文件[" + txt_file_path.Text + item.Cells["名称"].Value.ToString() + "]" + "转换时出错,请手动转换" + ex.Message);
+                }
             }
 
             MessageBox.Show("转换完成");
@@ -90,16 +85,16 @@ namespace XCoder.FolderInfo
         /// <param name="file"></param>
         private void ReplaceEncoding(string file, string charset, Encoding targetEncoding)
         {
-          string fileInfo = "";
-          using (StreamReader sr = new StreamReader(file, Encoding.GetEncoding(charset), false))
-          {
-            fileInfo = sr.ReadToEnd();
-          }
+            string fileInfo = "";
+            using (StreamReader sr = new StreamReader(file, Encoding.GetEncoding(charset), false))
+            {
+                fileInfo = sr.ReadToEnd();
+            }
 
-          using (StreamWriter sw = new StreamWriter(file, false, targetEncoding))
-          {
-            sw.Write(fileInfo);
-          }
+            using (StreamWriter sw = new StreamWriter(file, false, targetEncoding))
+            {
+                sw.Write(fileInfo);
+            }
         }
 
         Encoding GetEncode()
@@ -203,24 +198,26 @@ namespace XCoder.FolderInfo
         /// 
         public static string GetEncoding(string fileName, Encoding defaultEncoding)
         {
-          using (var fs = File.OpenRead(fileName))
-          {
-            var cdet = new Ude.CharsetDetector();
-            cdet.Feed(fs);
-            cdet.DataEnd();
-            if (cdet.Charset != null)
+            using (var fs = File.OpenRead(fileName))
             {
-              return cdet.Charset;
+                //var cdet = new Ude.CharsetDetector();
+                //cdet.Feed(fs);
+                //cdet.DataEnd();
+                //if (cdet.Charset != null)
+                //{
+                //    return cdet.Charset;
+                //}
+                //else
+                //{
+                //    return defaultEncoding.WebName;
+                //}
+                var enc = fs.Detect() ?? defaultEncoding;
+                return enc != null ? enc.WebName : null;
             }
-            else
-            {
-              return defaultEncoding.WebName;
-            }
-          }
-          //FileStream fs = new FileStream(fileName, FileMode.Open);
-          //Encoding targetEncoding = GetEncoding(fs, defaultEncoding);
-          //fs.Close();
-          //return targetEncoding;
+            //FileStream fs = new FileStream(fileName, FileMode.Open);
+            //Encoding targetEncoding = GetEncoding(fs, defaultEncoding);
+            //fs.Close();
+            //return targetEncoding;
         }
 
         ///// <summary>
