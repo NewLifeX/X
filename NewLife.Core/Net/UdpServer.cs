@@ -17,9 +17,8 @@ namespace NewLife.Net
     public class UdpServer : SessionBase, ISocketServer
     {
         #region 属性
-        private UdpClient _Client;
         /// <summary>客户端</summary>
-        public UdpClient Client { get { return _Client; } set { _Client = value; } }
+        public UdpClient Client { get; set; }
 
         /// <summary>获取Socket</summary>
         /// <returns></returns>
@@ -31,17 +30,14 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        private IPEndPoint _LastRemote;
         /// <summary>最后一次同步接收数据得到的远程地址</summary>
-        public IPEndPoint LastRemote { get { return _LastRemote; } set { _LastRemote = value; } }
+        public IPEndPoint LastRemote { get; set; }
 
-        private Boolean _AllowAsyncOnSync = true;
-        /// <summary>在异步模式下，使用同步收到数据后，是否允许异步事件继续使用，默认true</summary>
-        public Boolean AllowAsyncOnSync { get { return _AllowAsyncOnSync; } set { _AllowAsyncOnSync = value; } }
+        ///// <summary>在异步模式下，使用同步收到数据后，是否允许异步事件继续使用，默认true</summary>
+        //public Boolean AllowAsyncOnSync { get; set; }
 
-        private Boolean _Loopback;
         /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
-        public Boolean Loopback { get { return _Loopback; } set { _Loopback = value; } }
+        public Boolean Loopback { get; set; }
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
@@ -52,6 +48,7 @@ namespace NewLife.Net
         public UdpServer()
         {
             SessionTimeout = 30;
+            //AllowAsyncOnSync = true;
 
             Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0);
             Remote.ProtocolType = ProtocolType.Udp;
@@ -183,150 +180,150 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>接收数据</summary>
-        /// <returns></returns>
-        public override Byte[] Receive()
-        {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+        ///// <summary>接收数据</summary>
+        ///// <returns></returns>
+        //public override Byte[] Receive()
+        //{
+        //    if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
-            if (!Open()) return null;
+        //    if (!Open()) return null;
 
-            var buf = new Byte[1024 * 2];
-            var count = Receive(buf, 0, buf.Length);
-            if (count < 0) return null;
-            if (count == 0) return new Byte[0];
+        //    var buf = new Byte[1024 * 2];
+        //    var count = Receive(buf, 0, buf.Length);
+        //    if (count < 0) return null;
+        //    if (count == 0) return new Byte[0];
 
-            //if (StatReceive != null) StatReceive.Increment(count);
+        //    //if (StatReceive != null) StatReceive.Increment(count);
 
-            return buf.ReadBytes(0, count);
-        }
+        //    return buf.ReadBytes(0, count);
+        //}
 
-        /// <summary>同步字典，等待</summary>
-        private List<SyncItem> _sync = new List<SyncItem>();
-        /// <summary>同步对象</summary>
-        class SyncItem
-        {
-            public Int32 ThreadID;
-            public AutoResetEvent Event;
-            public IPEndPoint EndPoint;
-            public Byte[] Data;
-        }
+        ///// <summary>同步字典，等待</summary>
+        //private List<SyncItem> _sync = new List<SyncItem>();
+        ///// <summary>同步对象</summary>
+        //class SyncItem
+        //{
+        //    public Int32 ThreadID;
+        //    public AutoResetEvent Event;
+        //    public IPEndPoint EndPoint;
+        //    public Byte[] Data;
+        //}
 
-        /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-        {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+        ///// <summary>读取指定长度的数据，一般是一帧</summary>
+        ///// <param name="buffer">缓冲区</param>
+        ///// <param name="offset">偏移</param>
+        ///// <param name="count">数量</param>
+        ///// <returns></returns>
+        //public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        //{
+        //    if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
-            if (!Open()) return -1;
+        //    if (!Open()) return -1;
 
-            if (count < 0) count = buffer.Length - offset;
+        //    if (count < 0) count = buffer.Length - offset;
 
-            var size = 0;
-            var sp = Client;
+        //    var size = 0;
+        //    var sp = Client;
 
-            try
-            {
-                // 如果已经打开异步，这里可能永远无法同步收到数据
-                if (!UseReceiveAsync)
-                {
-                    IPEndPoint remoteEP = null;
-                    var data = Client.Receive(ref remoteEP);
-                    LastRemote = remoteEP;
-                    if (data != null && data.Length > 0)
-                    {
-                        size = data.Length;
-                        // 计算还有多少可用空间
-                        if (size > count) size = count;
-                        buffer.Write(offset, data, 0, size);
-                    }
-                }
-                else
-                {
-                    size = ReceiveWait(buffer, offset, count);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("Receive", ex);
+        //    try
+        //    {
+        //        // 如果已经打开异步，这里可能永远无法同步收到数据
+        //        if (!UseReceiveAsync)
+        //        {
+        //            IPEndPoint remoteEP = null;
+        //            var data = Client.Receive(ref remoteEP);
+        //            LastRemote = remoteEP;
+        //            if (data != null && data.Length > 0)
+        //            {
+        //                size = data.Length;
+        //                // 计算还有多少可用空间
+        //                if (size > count) size = count;
+        //                buffer.Write(offset, data, 0, size);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            size = ReceiveWait(buffer, offset, count);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (!ex.IsDisposed())
+        //        {
+        //            OnError("Receive", ex);
 
-                    // 异常可能是连接出了问题，UDP不需要关闭
-                    //Close();
+        //            // 异常可能是连接出了问题，UDP不需要关闭
+        //            //Close();
 
-                    if (ThrowException) throw;
-                }
+        //            if (ThrowException) throw;
+        //        }
 
-                return -1;
-            }
+        //        return -1;
+        //    }
 
-            if (StatReceive != null) StatReceive.Increment(size);
+        //    if (StatReceive != null) StatReceive.Increment(size);
 
-            return size;
-        }
+        //    return size;
+        //}
 
-        Int32 ReceiveWait(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-        {
-            //WriteLog("已使用异步接收，等待异步数据 {0}", Remote.EndPoint);
+        //Int32 ReceiveWait(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        //{
+        //    //WriteLog("已使用异步接收，等待异步数据 {0}", Remote.EndPoint);
 
-            var si = new SyncItem();
-            // 当前线程
-            si.ThreadID = Thread.CurrentThread.ManagedThreadId;
-            // 要等待的地址
-            if (!Remote.EndPoint.IsAny()) si.EndPoint = Remote.EndPoint;
-            // 等待事件
-            var e = new AutoResetEvent(false);
-            si.Event = e;
+        //    var si = new SyncItem();
+        //    // 当前线程
+        //    si.ThreadID = Thread.CurrentThread.ManagedThreadId;
+        //    // 要等待的地址
+        //    if (!Remote.EndPoint.IsAny()) si.EndPoint = Remote.EndPoint;
+        //    // 等待事件
+        //    var e = new AutoResetEvent(false);
+        //    si.Event = e;
 
-            // 加入同步字典，异步接收事件里面会查找
-            lock (_sync)
-            {
-                _sync.Add(si);
-            }
+        //    // 加入同步字典，异步接收事件里面会查找
+        //    lock (_sync)
+        //    {
+        //        _sync.Add(si);
+        //    }
 
-            // 等待异步收到数据交给我
-            var time = Client.Client.ReceiveTimeout;
-            if (time <= 0) time = 1000;
+        //    // 等待异步收到数据交给我
+        //    var time = Client.Client.ReceiveTimeout;
+        //    if (time <= 0) time = 1000;
 
-            try
-            {
-                // 如果超时了还没有收到数据，则返回失败
-                if (!e.WaitOne(time))
-                {
-                    //WriteLog("等待异步数据包超时 {0}毫秒", time);
-                    return -1;
-                }
+        //    try
+        //    {
+        //        // 如果超时了还没有收到数据，则返回失败
+        //        if (!e.WaitOne(time))
+        //        {
+        //            //WriteLog("等待异步数据包超时 {0}毫秒", time);
+        //            return -1;
+        //        }
 
-                //WriteLog("拿到异步数据包 [{0}]", si.Data.Length);
+        //        //WriteLog("拿到异步数据包 [{0}]", si.Data.Length);
 
-                // 数据在Data里面
-                var data = si.Data;
-                LastRemote = si.EndPoint;
-                if (data != null && data.Length > 0)
-                {
-                    var size = data.Length;
-                    // 计算还有多少可用空间
-                    if (size > count) size = count;
-                    buffer.Write(offset, data, 0, size);
+        //        // 数据在Data里面
+        //        var data = si.Data;
+        //        LastRemote = si.EndPoint;
+        //        if (data != null && data.Length > 0)
+        //        {
+        //            var size = data.Length;
+        //            // 计算还有多少可用空间
+        //            if (size > count) size = count;
+        //            buffer.Write(offset, data, 0, size);
 
-                    return size;
-                }
-            }
-            finally
-            {
-                lock (_sync)
-                {
-                    _sync.Remove(si);
-                }
-                si.Event.Close();
-            }
+        //            return size;
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        lock (_sync)
+        //        {
+        //            _sync.Remove(si);
+        //        }
+        //        si.Event.Close();
+        //    }
 
-            return -1;
-        }
+        //    return -1;
+        //}
         #endregion
 
         #region 异步收发
@@ -529,30 +526,30 @@ namespace NewLife.Net
                 }
             }
 
-            // 可能有同步等待
-            if (_sync.Count > 0)
-            {
-                //WriteLog("收到异步数据包{0}，有人在等待", remote);
-                lock (_sync)
-                {
-                    if (_sync.Count > 0)
-                    {
-                        foreach (var item in _sync)
-                        {
-                            // 如果设定了只需要该地址的数据，则处理
-                            if (item.EndPoint.IsAny() || item.EndPoint.Equals(remote))
-                            {
-                                // 放好数据，告诉它，数据来了
-                                item.Data = data;
-                                item.Event.Set();
+            //// 可能有同步等待
+            //if (_sync.Count > 0)
+            //{
+            //    //WriteLog("收到异步数据包{0}，有人在等待", remote);
+            //    lock (_sync)
+            //    {
+            //        if (_sync.Count > 0)
+            //        {
+            //            foreach (var item in _sync)
+            //            {
+            //                // 如果设定了只需要该地址的数据，则处理
+            //                if (item.EndPoint.IsAny() || item.EndPoint.Equals(remote))
+            //                {
+            //                    // 放好数据，告诉它，数据来了
+            //                    item.Data = data;
+            //                    item.Event.Set();
 
-                                // 如果不允许异步继续使用，跳出
-                                if (!AllowAsyncOnSync) return;
-                            }
-                        }
-                    }
-                }
-            }
+            //                    // 如果不允许异步继续使用，跳出
+            //                    if (!AllowAsyncOnSync) return;
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
 #if !Android
             // 更新全局远程IP地址
             NewLife.Web.WebHelper.UserHost = remote.ToString();

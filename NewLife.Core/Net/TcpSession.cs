@@ -207,69 +207,69 @@ namespace NewLife.Net
             return true;
         }
 
-        /// <summary>接收数据</summary>
-        /// <returns>收到的数据。如果没有数据返回0长度数组，如果出错返回null</returns>
-        public override Byte[] Receive()
-        {
-            if (!Open()) return null;
+        ///// <summary>接收数据</summary>
+        ///// <returns>收到的数据。如果没有数据返回0长度数组，如果出错返回null</returns>
+        //public override Byte[] Receive()
+        //{
+        //    if (!Open()) return null;
 
-            var size = 1024 * 2;
+        //    var size = 1024 * 2;
 
-            // 报文模式调整缓冲区大小。还差这么多数据就足够一个报文
-            var ps = Stream as PacketStream;
-            if (ps != null && ps.Size > 0) size = ps.Size;
+        //    // 报文模式调整缓冲区大小。还差这么多数据就足够一个报文
+        //    var ps = Stream as PacketStream;
+        //    if (ps != null && ps.Size > 0) size = ps.Size;
 
-            var buf = new Byte[size];
+        //    var buf = new Byte[size];
 
-            var count = Receive(buf, 0, buf.Length);
-            if (count < 0) return null;
-            if (count == 0) return new Byte[0];
+        //    var count = Receive(buf, 0, buf.Length);
+        //    if (count < 0) return null;
+        //    if (count == 0) return new Byte[0];
 
-            LastTime = DateTime.Now;
-            //if (StatReceive != null) StatReceive.Increment(count);
+        //    LastTime = DateTime.Now;
+        //    //if (StatReceive != null) StatReceive.Increment(count);
 
-            if (count == buf.Length) return buf;
+        //    if (count == buf.Length) return buf;
 
-            return buf.ReadBytes(0, count);
-        }
+        //    return buf.ReadBytes(0, count);
+        //}
 
-        /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-        {
-            if (!Open()) return -1;
+        ///// <summary>读取指定长度的数据，一般是一帧</summary>
+        ///// <param name="buffer">缓冲区</param>
+        ///// <param name="offset">偏移</param>
+        ///// <param name="count">数量</param>
+        ///// <returns></returns>
+        //public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        //{
+        //    if (!Open()) return -1;
 
-            if (count < 0) count = buffer.Length - offset;
+        //    if (count < 0) count = buffer.Length - offset;
 
-            var rs = 0;
-            try
-            {
-                if (count > 0) rs = Stream.Read(buffer, offset, count);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("Receive", ex);
+        //    var rs = 0;
+        //    try
+        //    {
+        //        if (count > 0) rs = Stream.Read(buffer, offset, count);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (!ex.IsDisposed())
+        //        {
+        //            OnError("Receive", ex);
 
-                    // 发送异常可能是连接出了问题，需要关闭
-                    Close("同步接收出错");
-                    Reconnect();
+        //            // 发送异常可能是连接出了问题，需要关闭
+        //            Close("同步接收出错");
+        //            Reconnect();
 
-                    if (ThrowException) throw;
-                }
+        //            if (ThrowException) throw;
+        //        }
 
-                return -1;
-            }
+        //        return -1;
+        //    }
 
-            LastTime = DateTime.Now;
-            if (StatReceive != null) StatReceive.Increment(rs);
+        //    LastTime = DateTime.Now;
+        //    if (StatReceive != null) StatReceive.Increment(rs);
 
-            return rs;
-        }
+        //    return rs;
+        //}
         #endregion
 
         #region 异步收发

@@ -162,16 +162,16 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public abstract Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
-        /// <summary>接收数据</summary>
-        /// <returns></returns>
-        public abstract Byte[] Receive();
+        ///// <summary>接收数据</summary>
+        ///// <returns></returns>
+        //public abstract Byte[] Receive();
 
-        /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        public abstract Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        ///// <summary>读取指定长度的数据，一般是一帧</summary>
+        ///// <param name="buffer">缓冲区</param>
+        ///// <param name="offset">偏移</param>
+        ///// <param name="count">数量</param>
+        ///// <returns></returns>
+        //public abstract Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
         #endregion
 
         #region 异步收发

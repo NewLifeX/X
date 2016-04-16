@@ -34,24 +34,26 @@ namespace NewLife.Net.Modbus
     public class ModbusMaster : IDisposable
     {
         #region 属性
-        private ITransport _Transport;
         /// <summary>传输接口</summary>
-        public ITransport Transport { get { return _Transport; } set { _Transport = value; } }
+        public ITransport Transport { get; set; }
 
-        private Byte _Host = 1;
         /// <summary>主机地址。用于485编码</summary>
-        public Byte Host { get { return _Host; } set { _Host = value; } }
+        public Byte Host { get; set; }
 
-        private Boolean _EnableDebug;
         /// <summary>启用调试</summary>
-        public Boolean EnableDebug { get { return _EnableDebug; } set { _EnableDebug = value; } }
+        public Boolean EnableDebug { get; set; }
 
-        private Int32 _Delay;
         /// <summary>发送数据后接收数据前的延迟时间，默认0毫秒</summary>
-        public Int32 Delay { get { return _Delay; } set { _Delay = value; } }
+        public Int32 Delay { get; set; }
         #endregion
 
         #region 构造
+        /// <summary>实例化</summary>
+        public ModbusMaster()
+        {
+            Host = 1;
+        }
+
         /// <summary>析构</summary>
         ~ModbusMaster() { Dispose(false); }
 
@@ -69,12 +71,6 @@ namespace NewLife.Net.Modbus
         #endregion
 
         #region 方法
-#if MF
-        Byte[] buf_receive = new Byte[256];
-#else
-        Byte[] buf_receive = new Byte[1024];
-#endif
-
         /// <summary>处理指令</summary>
         /// <param name="entity">指令实体</param>
         /// <param name="expect">预期返回数据长度</param>
@@ -114,7 +110,10 @@ namespace NewLife.Net.Modbus
                 if (Delay > 0) Thread.Sleep(Delay);
 
                 // 读取
-                var count = Transport.Receive(buf_receive);
+                //var task = Transport.ReceiveAsync();
+                //var bts =  Transport.Receive();
+                var bts = new Byte[0];
+                var count = bts.Length;
                 if (count <= 0) return null;
 
 #if MF && DEBUG
@@ -127,10 +126,10 @@ namespace NewLife.Net.Modbus
             WriteLine("");
 #endif
 #if !MF
-                if (EnableDebug) WriteLine(new String(' ', entity.Function.ToString().Length) + "=>" + buf_receive.ToHex(0, count));
+                if (EnableDebug) WriteLine(new String(' ', entity.Function.ToString().Length) + "=>" + bts.ToHex(0, count));
 #endif
 
-                var rs = new ModbusEntity().Parse(buf_receive, 0, count);
+                var rs = new ModbusEntity().Parse(bts, 0, count);
                 if (rs == null) return null;
                 if (rs.IsException) throw new ModbusException(rs.Data != null && rs.Data.Length > 0 ? (Errors)rs.Data[0] : (Errors)0);
                 return rs;

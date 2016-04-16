@@ -106,6 +106,10 @@ namespace Test
 
         static void Test4()
         {
+            ushort v = 0xFD79;
+            var n = v.GetBytes().ToInt();
+            Console.WriteLine("{0:X4} {1:X4}", v, n);
+
             var pis = typeof(B).GetProperties();
             Console.WriteLine(pis);
 
@@ -157,7 +161,7 @@ namespace Test
             public virtual Guid Guid { get; set; }
         }
 
-        class B:A
+        class B : A
         {
             public String Name { get; set; }
 
@@ -382,87 +386,6 @@ namespace Test
             Thread.Sleep(500);
             while (count > 0) Thread.Sleep(200);
             server.Dispose();
-        }
-
-        static void Test15()
-        {
-            //"我是超级大石头！".Speak();
-
-            var tcp = new TcpSession();
-            tcp.Log = XTrace.Log;
-            tcp.Remote = "tcp://127.0.0.1:8";
-            //tcp.MessageDgram = true;
-            tcp.AutoReconnect = 0;
-            //tcp.Send("我是大石头！");
-            tcp.Open();
-            tcp.Stream = new PacketStream(tcp.Stream);
-            //var ms = new MemoryStream();
-            for (int i = 0; i < 10; i++)
-            {
-                tcp.Send("我是大石头{0}！".F(i + 1));
-                //var buf = "我是大石头{0}！".F(i + 1).GetBytes();
-                //ms.WriteEncodedInt(buf.Length);
-                //ms.Write(buf);
-            }
-            //ms.Position = 0;
-            //tcp.Client.GetStream().Write(ms);
-
-            while (tcp.Active)
-            {
-                var str = tcp.ReceiveString();
-                Console.WriteLine(str);
-            }
-
-            //NetHelper.Debug = true;
-            //var server = new StunServer();
-            //server.Start();
-
-            //Console.WriteLine(NetHelper.MyIP().GetAddress());
-            //Console.WriteLine(IPAddress.Any.GetAddress());
-            //Console.WriteLine(IPAddress.Loopback.GetAddress());
-
-            //var buf = NetHelper.MyIP().GetAddressBytes();
-            //buf[3] = 33;
-            //Console.WriteLine(new IPAddress(buf).GetAddress());
-
-            //var ip = NetHelper.ParseAddress("dg.newlifex.com");
-            //Console.WriteLine(ip.GetAddress());
-            //Console.WriteLine(Ip.GetAddress(ip.ToString()));
-
-            //var client = new StunClient();
-            //var rs = client.Query();
-            //if (rs != null)
-            //{
-            //    //if (rs != null && rs.Type == StunNetType.Blocked && rs.Public != null) rs.Type = StunNetType.Symmetric;
-            //    XTrace.WriteLine("网络类型：{0} {1}", rs.Type, rs.Type.GetDescription());
-            //    XTrace.WriteLine("公网地址：{0} {1}", rs.Public, Ip.GetAddress(rs.Public.Address.ToString()));
-            //}
-        }
-
-        static List<UdpServer> Clients = new List<UdpServer>();
-        private static void Test16()
-        {
-            for (int i = 0; i < 2000; i++)
-            {
-                var client = new UdpServer();
-                Clients.Add(client);
-
-                //client.Log = XTrace.Log;
-                //client.LogSend = true;
-                //client.LogReceive = true;
-                client.Remote = "udp://192.168.0.12:89";
-                client.Received += (s, e) => XTrace.WriteLine("{0} {1}", (s as UdpServer).Name, e.ToStr());
-                //client.ReceiveAsync();
-            }
-
-            for (int i = 0; i < 100; i++)
-            {
-                foreach (var client in Clients)
-                {
-                    client.Send("Hello NewLife!");
-                }
-                Thread.Sleep(10000);
-            }
         }
     }
 }

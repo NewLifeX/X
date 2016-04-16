@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace NewLife.Net
 {
@@ -18,12 +19,12 @@ namespace NewLife.Net
         /// <param name="count">数量</param>
         Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
-        /// <summary>读取指定长度的数据</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        ///// <summary>读取指定长度的数据</summary>
+        ///// <param name="buffer">缓冲区</param>
+        ///// <param name="offset">偏移</param>
+        ///// <param name="count">数量</param>
+        ///// <returns></returns>
+        //Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
         /// <summary>开始异步接收，数据将在<see cref="Received"/>中返回</summary>
         Boolean ReceiveAsync();
@@ -31,4 +32,16 @@ namespace NewLife.Net
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
     }
+
+    ///// <summary>传输口助手</summary>
+    //public static class TransportHelper
+    //{
+    //    /// <summary>同步接收</summary>
+    //    /// <param name="transport"></param>
+    //    /// <returns></returns>
+    //    public static Byte[] Receive(ITransport transport)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

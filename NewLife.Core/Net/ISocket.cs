@@ -97,16 +97,16 @@ namespace NewLife.Net
         /// <returns></returns>
         Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
 
-        /// <summary>接收数据</summary>
-        /// <returns></returns>
-        Byte[] Receive();
+        ///// <summary>接收数据</summary>
+        ///// <returns></returns>
+        //Byte[] Receive();
 
-        /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns>实际读取字节数</returns>
-        Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        ///// <summary>读取指定长度的数据，一般是一帧</summary>
+        ///// <param name="buffer">缓冲区</param>
+        ///// <param name="offset">偏移</param>
+        ///// <param name="count">数量</param>
+        ///// <returns>实际读取字节数</returns>
+        //Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
         #endregion
 
         #region 异步接收
@@ -173,6 +173,14 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
+        /// <summary>接收数据</summary>
+        /// <param name="session">会话</param>
+        /// <returns></returns>
+        public static Byte[] Receive(this ISocketRemote session)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>接收字符串</summary>
         /// <param name="session">会话</param>
         /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
