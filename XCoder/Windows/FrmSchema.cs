@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Threading;
@@ -42,19 +43,19 @@ namespace XCoder
 
         private void FrmSchema_Load(object sender, EventArgs e)
         {
-            ThreadPoolX.QueueUserWorkItem(SetTables);
-            ThreadPoolX.QueueUserWorkItem(SetSchemas);
+            Task.Factory.StartNew(SetTables).LogException();
+            Task.Factory.StartNew(SetSchemas).LogException();
         }
         #endregion
 
         #region 加载
-        void SetTables(Object data)
+        void SetTables()
         {
             var tables = Db.CreateMetaData().GetTables();
             this.Invoke<ComboBox, IEnumerable, Boolean>(SetList, cbTables, tables);
         }
 
-        void SetSchemas(Object data)
+        void SetSchemas()
         {
             var list = Db.CreateMetaData().MetaDataCollections;
             this.Invoke((s, lst) => SetList(s, lst), cbSchemas, list);

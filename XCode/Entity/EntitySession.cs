@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
@@ -327,7 +328,7 @@ namespace XCode
                     if (!Setting.Current.Negative.CheckOnly || def != this)
                         CheckTable();
                     else
-                        ThreadPoolX.QueueUserWorkItem(CheckTable);
+                        Task.Factory.StartNew(CheckTable).LogException();
                 }
 
                 _hasCheckModel = true;
@@ -467,12 +468,12 @@ namespace XCode
                         m = max;
 
                         // 异步查询弥补不足
-                        ThreadPoolX.QueueUserWorkItem(() =>
+                        Task.Factory.StartNew(() =>
                         {
                             _LastCount = _Count = Dal.Session.QueryCountFast(TableName);
 
                             if (_Count >= 1000) HttpRuntime.Cache.Insert(key, _Count, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
-                        });
+                        }).LogException();
                     }
                 }
 
@@ -547,7 +548,7 @@ namespace XCode
             {
                 if (_singleCache != null && _singleCache.Using)
                 {
-                    ThreadPoolX.QueueUserWorkItem(() =>
+                    Task.Factory.StartNew(() =>
                     {
                         _singleCache.Clear(reason);
                         _singleCache.Initialize();

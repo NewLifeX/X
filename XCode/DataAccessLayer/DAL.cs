@@ -12,6 +12,7 @@ using XCode.Exceptions;
 using System.ComponentModel;
 using NewLife;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace XCode.DataAccessLayer
 {
@@ -295,7 +296,7 @@ namespace XCode.DataAccessLayer
                 if (_Tables == null)
                     _Tables = GetTables();
                 else
-                    ThreadPool.QueueUserWorkItem(delegate(Object state) { _Tables = GetTables(); });
+                    Task.Factory.StartNew(() => { _Tables = GetTables(); });
 
                 return _Tables;
             }
@@ -369,7 +370,7 @@ namespace XCode.DataAccessLayer
             if (!Setting.Current.Negative.CheckOnly)
                 CheckTables();
             else
-                ThreadPoolX.QueueUserWorkItem(CheckTables);
+                Task.Factory.StartNew(CheckTables);
         }
 
         internal List<String> HasCheckTables = new List<String>();
@@ -436,12 +437,6 @@ namespace XCode.DataAccessLayer
                 WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2:n0}ms", ConnName, DbType, sw.Elapsed.TotalMilliseconds);
             }
         }
-
-        ///// <summary>在当前连接上检查指定数据表的架构</summary>
-        ///// <param name="tables"></param>
-        //[Obsolete("=>SetTables(set, tables)")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public void SetTables(params IDataTable[] tables) { SetTables(null, tables); }
 
         /// <summary>在当前连接上检查指定数据表的架构</summary>
         /// <param name="set"></param>

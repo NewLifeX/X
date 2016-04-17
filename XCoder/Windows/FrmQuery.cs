@@ -2,6 +2,7 @@
 using System.Data;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
@@ -36,26 +37,24 @@ namespace XCoder
 
         private void FrmQuery_Load(object sender, EventArgs e)
         {
-            //ThreadPoolX.QueueUserWorkItem(SetTables);
-            //ThreadPoolX.QueueUserWorkItem(SetSchemas);
         }
         #endregion
 
         private void btnQuery_Click(object sender, EventArgs e)
         {
-            String sql = txtSQL.Text;
+            var sql = txtSQL.Text;
             if (sql.IsNullOrWhiteSpace()) return;
 
-            WaitCallback callback = obj =>
+            Task.Factory.StartNew(() =>
             {
-                Stopwatch sw = new Stopwatch();
+                var sw = new Stopwatch();
                 sw.Start();
 
                 String msg = null;
                 DataTable dt = null;
                 try
                 {
-                    DataSet ds = Dal.Session.Query((String)obj);
+                    DataSet ds = Dal.Session.Query(sql);
                     if (ds != null && ds.Tables != null && ds.Tables.Count > 0) dt = ds.Tables[0];
 
                     msg = "查询完成！";
@@ -73,25 +72,23 @@ namespace XCoder
 
                 this.Invoke(s => lbStatus.Text = s, msg);
                 if (dt != null) this.Invoke(d => gv.DataSource = d, dt);
-            };
-
-            ThreadPoolX.QueueUserWorkItem(callback, sql);
+            }).LogException();
         }
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
-            String sql = txtSQL.Text;
+            var sql = txtSQL.Text;
             if (sql.IsNullOrWhiteSpace()) return;
 
-            WaitCallback callback = obj =>
+            Task.Factory.StartNew(() =>
             {
-                Stopwatch sw = new Stopwatch();
+                var sw = new Stopwatch();
                 sw.Start();
 
                 String msg = null;
                 try
                 {
-                    Int32 n = Dal.Session.Execute((String)obj);
+                    Int32 n = Dal.Session.Execute(sql);
 
                     msg = String.Format("执行完成！共影响{0}行！", n);
                 }
@@ -107,9 +104,7 @@ namespace XCoder
                 }
 
                 this.Invoke(s => lbStatus.Text = s, msg);
-            };
-
-            ThreadPoolX.QueueUserWorkItem(callback, sql);
+            }).LogException();
         }
     }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Net.Sockets;
 using NewLife.Threading;
@@ -227,7 +228,7 @@ namespace NewLife.Net.Application
             server.Start();
             server.Log = null;
 
-            ThreadPoolX.QueueUserWorkItem(ShowStatus);
+            Task.Factory.StartNew(ShowStatus);
 
             Console.WriteLine("服务端准备就绪，任何时候任意键退出服务程序！");
             Console.ReadKey(true);

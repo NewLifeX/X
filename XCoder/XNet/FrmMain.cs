@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
@@ -296,7 +297,7 @@ namespace XNet
             else
             {
                 // 多线程测试
-                ThreadPoolX.QueueUserWorkItem(() =>
+                Task.Factory.StartNew(() =>
                 {
                     for (int i = 0; i < ths; i++)
                     {
@@ -306,25 +307,9 @@ namespace XNet
                         //SendAsync(client, str, count, sleep);
                         client.SendAsync(str.GetBytes(), count, sleep);
                     }
-                });
+                }).LogException();
             }
         }
-
-        //void SendAsync(ISocketClient client, String str, Int32 count, Int32 sleep)
-        //{
-        //    ThreadStart func = () =>
-        //    {
-        //        for (int i = 0; i < count; i++)
-        //        {
-        //            if (client != null) client.Send(str);
-
-        //            if (count > 1) Thread.Sleep(sleep);
-        //        }
-        //    };
-        //    //ThreadPoolX.QueueUserWorkItem(func);
-        //    var th = new Thread(func);
-        //    th.Start();
-        //}
         #endregion
 
         #region 右键菜单

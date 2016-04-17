@@ -1,13 +1,13 @@
 ﻿using System;
-using NewLife.Windows;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace XCoder.FolderInfo
 {
@@ -85,7 +85,7 @@ namespace XCoder.FolderInfo
                 {
                     tn.Nodes.Add("no");
                     //使用后台线程统计大小信息
-                    ThreadPool.QueueUserWorkItem(TongJi, tn);
+                    Task.Factory.StartNew(() => TongJi(tn), TaskCreationOptions.LongRunning).LogException();
                 }
             }
         }

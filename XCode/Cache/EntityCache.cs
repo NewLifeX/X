@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
@@ -122,7 +123,7 @@ namespace XCode.Cache
                     DAL.WriteLog("异步更新实体缓存（第{2}次）：{0} 原因：{1} {3}", typeof(TEntity).FullName, reason, Times, XTrace.GetCaller(3, 16));
                 }
 
-                ThreadPoolX.QueueUserWorkItem(FillWaper, Times);
+                Task.Factory.StartNew(FillWaper, Times);
             }
             else
             {

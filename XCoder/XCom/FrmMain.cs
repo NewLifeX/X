@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Threading;
@@ -160,7 +161,7 @@ namespace XCom
                 return;
             }
 
-            ThreadPoolX.QueueUserWorkItem(() =>
+            Task.Factory.StartNew(() =>
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -168,7 +169,7 @@ namespace XCom
 
                     if (count > 1) Thread.Sleep(sleep);
                 }
-            });
+            }).LogException();
         }
         #endregion
 

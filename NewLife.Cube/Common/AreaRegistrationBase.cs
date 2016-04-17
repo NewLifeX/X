@@ -4,11 +4,13 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.WebPages;
 using NewLife.Cube.Precompiled;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Threading;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -134,7 +136,7 @@ namespace NewLife.Cube
             //routes.RouteExistingFiles = true;
 
             // 自动检查并添加菜单
-            ThreadPool.QueueUserWorkItem(s => ScanController());
+            Task.Factory.StartNew(ScanController).LogException();
         }
 
         /// <summary>自动扫描控制器，并添加到菜单</summary>

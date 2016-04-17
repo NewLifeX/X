@@ -22,6 +22,7 @@ using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Transform;
+using System.Threading.Tasks;
 
 namespace Test
 {
@@ -306,7 +307,7 @@ namespace Test
             server.Start();
 
             var count = 0;
-            WaitCallback func = s =>
+            Action<Object> func = s =>
             {
                 count++;
                 var client = new FileClient();
@@ -326,13 +327,13 @@ namespace Test
                 }
             };
 
-            ThreadPoolX.QueueUserWorkItem(func, "Test.exe");
-            ThreadPoolX.QueueUserWorkItem(func, "NewLife.Core.dll");
-            ThreadPoolX.QueueUserWorkItem(func, "NewLife.Net.dll");
+            Task.Factory.StartNew(func, "Test.exe");
+            Task.Factory.StartNew(func, "NewLife.Core.dll");
+            Task.Factory.StartNew(func, "NewLife.Net.dll");
 
             var file = @"F:\MS\cn_visual_studio_ultimate_2013_with_update_4_x86_dvd_5935081.iso";
             if (File.Exists(file))
-                ThreadPoolX.QueueUserWorkItem(func, file);
+                Task.Factory.StartNew(func, file);
 
             Thread.Sleep(500);
             while (count > 0) Thread.Sleep(200);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife.Net;
 using NewLife.Threading;
 
@@ -59,7 +60,7 @@ namespace NewLife.MessageQueue
             if (Queue.Count == 0) return;
             if (Subscribers.Count == 0) return;
 
-            ThreadPoolX.QueueUserWorkItem(() =>
+            Task.Factory.StartNew(() =>
             {
                 while (Queue.Count > 0)
                 {

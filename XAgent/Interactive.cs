@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Log;
 
@@ -36,7 +37,7 @@ namespace XAgent
             if (hasShown) return;
             hasShown = true;
 
-            NewLife.Threading.ThreadPoolX.QueueUserWorkItem(Show);
+            Task.Factory.StartNew(Show, TaskCreationOptions.LongRunning);
             //Thread thread = new Thread(Show);
             //thread.Name = "XAgentUI";
             //thread.IsBackground = true;

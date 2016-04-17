@@ -323,8 +323,6 @@ namespace NewLife.Windows
                 pt.Disconnected -= Port_Disconnected;
                 pt.Received -= OnReceived;
                 pt.Close();
-                // 异步调用释放，避免死锁卡死界面UI
-                //ThreadPoolX.QueueUserWorkItem(() => pt.Close());
             }
 
             ShowPorts();

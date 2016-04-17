@@ -6,6 +6,7 @@ using NewLife.Log;
 using NewLife.Threading;
 using XCode.Membership;
 using NewLife.Web;
+using System.Threading.Tasks;
 
 namespace NewLife.Cube.Admin
 {
@@ -39,7 +40,7 @@ namespace NewLife.Cube.Admin
             //bundles.Add(new ScriptBundle("~/bootstrap_js").IncludeDirectory("~/bootstrap/js", "*.js", true));
 
             // 自动检查并下载魔方资源
-            ThreadPoolX.QueueUserWorkItem(CheckContent);
+            Task.Factory.StartNew(CheckContent, TaskCreationOptions.LongRunning).LogException();
 
             // 自动检查并添加菜单
             XTrace.WriteLine("初始化权限管理体系");

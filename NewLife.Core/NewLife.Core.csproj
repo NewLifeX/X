@@ -193,6 +193,7 @@
     <Compile Include="Security\Crc32.cs" />
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />
+    <Compile Include="Threading\TaskHelper.cs" />
     <Compile Include="Threading\TaskState.cs" />
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\TimerX.cs" />

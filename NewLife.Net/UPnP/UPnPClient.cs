@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Net.Sockets;
+using NewLife.Threading;
 using NewLife.Xml;
 
 namespace NewLife.Net.UPnP
@@ -94,9 +95,9 @@ namespace NewLife.Net.UPnP
         /// <summary>开始</summary>
         public void StartDiscover()
         {
-            if (CacheGateway) ThreadPool.QueueUserWorkItem(delegate(Object state) { CheckCacheGateway(); });
+            if (CacheGateway) Task.Factory.StartNew(CheckCacheGateway);
 
-            IPAddress address = NetHelper.ParseAddress("239.255.255.250");
+            var address = NetHelper.ParseAddress("239.255.255.250");
 
             Udp.Client.EnableBroadcast = true;
             Udp.Client.Send(UPNP_DISCOVER, Encoding.ASCII, new IPEndPoint(address, 1900));

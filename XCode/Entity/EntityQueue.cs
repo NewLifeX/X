@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
@@ -75,7 +76,7 @@ namespace XCode
             if (es.Length == 0) return;
 
             _Running = true;
-            ThreadPoolX.QueueUserWorkItem(Process, es);
+            Task.Factory.StartNew(Process, es);
         }
 
         private Boolean _Running;

@@ -3,13 +3,13 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using NewLife.Threading;
 
 namespace XCoder.XRegex
 {
-    /// <summary>
-    /// 文件资源
-    /// </summary>
+    /// <summary>文件资源</summary>
     public static class FileResource
     {
         /// <summary>
@@ -17,7 +17,7 @@ namespace XCoder.XRegex
         /// </summary>
         public static void CheckTemplate()
         {
-            ThreadPool.QueueUserWorkItem(delegate(Object state)
+            Task.Factory.StartNew(() =>
             {
                 try
                 {

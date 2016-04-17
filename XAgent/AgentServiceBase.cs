@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Configuration;
 using NewLife.Log;
@@ -665,7 +666,7 @@ namespace XAgent
 
                     // 检查看门狗
                     //CheckWatchDog();
-                    if (WatchDogs.Length > 0) ThreadPoolX.QueueUserWorkItem(CheckWatchDog);
+                    if (WatchDogs.Length > 0) Task.Factory.StartNew(CheckWatchDog);
 
                     Thread.Sleep(60 * 1000);
                 }
