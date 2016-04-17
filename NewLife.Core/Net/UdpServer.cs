@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Model;
 using NewLife.Threading;
 
@@ -115,7 +116,9 @@ namespace NewLife.Net
 
             return true;
         }
+        #endregion
 
+        #region 发送
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
@@ -176,6 +179,82 @@ namespace NewLife.Net
             }
         }
 
+        /// <summary>异步多次发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <param name="times"></param>
+        /// <param name="msInterval"></param>
+        /// <returns></returns>
+        public override Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
+        {
+            return SendAsync(buffer, times, msInterval, Remote.EndPoint);
+        }
+
+        internal Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval, IPEndPoint remote)
+        {
+            if (!Open()) return null;
+
+            var count = buffer.Length;
+
+            if (StatSend != null) StatSend.Increment(count);
+            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+
+            var ts = new SendStat();
+            ts.Buffer = buffer;
+            ts.Times = times - 1;
+            ts.Interval = msInterval;
+            ts.Remote = remote;
+
+            //Client.BeginSend(buffer, count, remote, OnSend, ts);
+
+            var task = Task.Factory.FromAsync<Byte[], Int32, IPEndPoint>(Client.BeginSend, OnSend, buffer, count, remote, ts).LogException(ex =>
+            {
+                if (!ex.IsDisposed()) OnError("SendAsync", ex);
+            });
+
+            LastTime = DateTime.Now;
+
+            return task;
+        }
+
+        class SendStat
+        {
+            public Byte[] Buffer;
+            public Int32 Times;
+            public Int32 Interval;
+            public IPEndPoint Remote;
+        }
+
+        void OnSend(IAsyncResult ar)
+        {
+            if (!Active) return;
+
+            var client = Client;
+            if (client == null) return;
+
+            // 多次发送
+            var ts = (SendStat)ar.AsyncState;
+            try
+            {
+                Client.EndSend(ar);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("EndSend", ex);
+                }
+            }
+
+            // 如果发送次数未归零，则继续发送
+            if (ts.Times > 0)
+            {
+                if (ts.Interval > 0) Thread.Sleep(ts.Interval);
+                SendAsync(ts.Buffer, ts.Times, ts.Interval, ts.Remote);
+            }
+        }
+        #endregion
+
+        #region 接收
         /// <summary>接收数据</summary>
         /// <returns></returns>
         public override Byte[] Receive()
@@ -241,90 +320,6 @@ namespace NewLife.Net
             if (StatReceive != null) StatReceive.Increment(size);
 
             return size;
-        }
-        #endregion
-
-        #region 异步收发
-        /// <summary>异步多次发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="times"></param>
-        /// <param name="msInterval"></param>
-        /// <returns></returns>
-        public override Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
-        {
-            return SendAsync(buffer, times, msInterval, Remote.EndPoint);
-        }
-
-        internal Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval, IPEndPoint remote)
-        {
-            if (!Open()) return false;
-
-            var count = buffer.Length;
-
-            if (StatSend != null) StatSend.Increment(count);
-            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
-
-            try
-            {
-                var ts = new SendStat();
-                ts.Buffer = buffer;
-                ts.Times = times - 1;
-                ts.Interval = msInterval;
-                ts.Remote = remote;
-
-                Client.BeginSend(buffer, count, remote, OnSend, ts);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("SendAsync", ex);
-
-                    if (ThrowException) throw;
-                }
-                return false;
-            }
-
-            LastTime = DateTime.Now;
-
-            return true;
-        }
-
-        class SendStat
-        {
-            public Byte[] Buffer;
-            public Int32 Times;
-            public Int32 Interval;
-            public IPEndPoint Remote;
-        }
-
-        void OnSend(IAsyncResult ar)
-        {
-            if (!Active) return;
-
-            var client = Client;
-            if (client == null) return;
-
-            // 多次发送
-            var ts = (SendStat)ar.AsyncState;
-            try
-            {
-                Client.EndSend(ar);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("EndSend", ex);
-                }
-            }
-
-            // 如果发送次数未归零，则继续发送
-            if (ts.Times > 0)
-            {
-                if (ts.Interval > 0) Thread.Sleep(ts.Interval);
-                SendAsync(ts.Buffer, ts.Times, ts.Interval, ts.Remote);
-            }
         }
 
         private IAsyncResult _Async;
@@ -417,7 +412,7 @@ namespace NewLife.Net
             }
 
             // 在用户线程池里面去处理数据
-            ThreadPoolX.QueueUserWorkItem(() => OnReceive(data, ep), ex => OnError("OnReceive", ex));
+            Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
 
             // 开始新的监听
             ReceiveAsync();

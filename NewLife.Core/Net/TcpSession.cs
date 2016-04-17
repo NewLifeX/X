@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -271,9 +272,9 @@ namespace NewLife.Net
         /// <param name="times"></param>
         /// <param name="msInterval"></param>
         /// <returns></returns>
-        public override Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
+        public override Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
         {
-            if (!Open()) return false;
+            if (!Open()) return null;
 
             var count = buffer.Length;
 
@@ -285,15 +286,33 @@ namespace NewLife.Net
                 // 修改发送缓冲区
                 if (Client.SendBufferSize < count) Client.SendBufferSize = count;
 
-                var ts = new SendStat();
-                ts.Buffer = buffer;
-                ts.Times = times - 1;
-                ts.Interval = msInterval;
+                //var ts = new SendStat();
+                //ts.Buffer = buffer;
+                //ts.Times = times - 1;
+                //ts.Interval = msInterval;
 
+                //if (count == 0)
+                //    Client.Client.Send(new Byte[0]);
+                //else
+                //    Stream.BeginWrite(buffer, 0, count, OnSend, ts);
+
+                Task task = null;
                 if (count == 0)
-                    Client.Client.Send(new Byte[0]);
+                    task = Task.Factory.StartNew(() => Client.Client.Send(new Byte[0]));
                 else
-                    Stream.BeginWrite(buffer, 0, count, OnSend, ts);
+                {
+                    var ts = new SendStat();
+                    ts.Buffer = buffer;
+                    ts.Times = times - 1;
+                    ts.Interval = msInterval;
+
+                    //task = Task.Factory.FromAsync<Byte[], Int32, Int32>(Stream.BeginWrite, Stream.EndWrite, buffer, 0, buffer.Length);
+                    task = Task.Factory.FromAsync<Byte[], Int32, Int32>(Stream.BeginWrite, OnSend, buffer, 0, count, ts);
+                }
+
+                LastTime = DateTime.Now;
+
+                return task;
             }
             catch (Exception ex)
             {
@@ -308,12 +327,8 @@ namespace NewLife.Net
                     if (ThrowException) throw;
                 }
 
-                return false;
+                return null;
             }
-
-            LastTime = DateTime.Now;
-
-            return true;
         }
 
         class SendStat
@@ -437,18 +452,7 @@ namespace NewLife.Net
             if (count >= 0)
             {
                 // 在用户线程池里面处理数据，不要占用IO线程
-                ThreadPoolX.QueueUserWorkItem(() =>
-                {
-                    try
-                    {
-                        OnReceive(data, count);
-                    }
-                    finally
-                    {
-                        // 开始新的监听
-                        if (!Disposed) ReceiveAsync();
-                    }
-                }, ex => OnError("OnReceive", ex));
+                Task.Factory.StartNew(() => OnReceive(data, count)).ContinueWith(t => ReceiveAsync()).LogException(ex => OnError("OnReceive", ex));
             }
             else
             {

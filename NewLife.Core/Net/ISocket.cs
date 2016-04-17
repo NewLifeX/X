@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -88,14 +89,15 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        Boolean SendAsync(Byte[] buffer);
+        Task SendAsync(Byte[] buffer);
 
         /// <summary>异步多次发送数据</summary>
         /// <param name="buffer"></param>
         /// <param name="times"></param>
         /// <param name="msInterval"></param>
         /// <returns></returns>
-        Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
+        Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
+        #endregion
 
         #region 接收
         /// <summary>接收数据</summary>
@@ -108,7 +110,6 @@ namespace NewLife.Net
         /// <param name="count">数量</param>
         /// <returns>实际读取字节数</returns>
         Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
-        #endregion
 
         /// <summary>开始异步接收数据</summary>
         /// <returns>是否成功</returns>

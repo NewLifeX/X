@@ -33,7 +33,8 @@ namespace NewLife.Net.Application
             //session.Send(e.Buffer, e.Offset, stream.Length, e.RemoteEndPoint);
             //session.Send(e.Buffer, e.Offset, stream.Length);
             stream.Position = p;
-            session.Send(stream);
+            //session.Send(stream);
+            session.SendAsync(stream.ReadBytes());
         }
     }
 }

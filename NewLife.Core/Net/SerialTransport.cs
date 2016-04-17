@@ -7,6 +7,7 @@ using Microsoft.Win32;
 using NewLife.Log;
 using NewLife.Threading;
 using NewLife;
+using System.Threading.Tasks;
 
 namespace NewLife.Net
 {
@@ -183,7 +184,7 @@ namespace NewLife.Net
         {
             Open();
 
-            WriteLog("Write:{0}", BitConverter.ToString(buffer));
+            WriteLog("Send:{0}", BitConverter.ToString(buffer));
 
             if (count < 0) count = buffer.Length - offset;
 
@@ -194,6 +195,19 @@ namespace NewLife.Net
             }
 
             return true;
+        }
+
+
+        /// <summary>异步发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public virtual Task SendAsync(Byte[] buffer)
+        {
+            Open();
+
+            WriteLog("SendAsync:{0}", BitConverter.ToString(buffer));
+
+            return Task.Factory.StartNew(() => Serial.Write(buffer, 0, buffer.Length));
         }
 
         /// <summary>从串口中读取指定长度的数据，一般是一帧</summary>
@@ -501,16 +515,15 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
-        private ILog _Log;
         /// <summary>日志对象</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        public ILog Log { get; set; }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (Log != null) Log.Info(format, args);
+            if (Log != null && Log.Enable) Log.Info(format, args);
         }
 
         /// <summary>已重载</summary>

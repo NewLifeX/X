@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -167,14 +168,14 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public virtual Boolean SendAsync(Byte[] buffer) { return SendAsync(buffer, 1, 0); }
+        public virtual Task SendAsync(Byte[] buffer) { return SendAsync(buffer, 1, 0); }
 
         /// <summary>异步多次发送数据</summary>
         /// <param name="buffer"></param>
         /// <param name="times">次数</param>
         /// <param name="msInterval">间隔</param>
         /// <returns></returns>
-        public abstract Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
+        public abstract Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
         #endregion
 
         #region 接收

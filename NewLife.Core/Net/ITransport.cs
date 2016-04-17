@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace NewLife.Net
 {
@@ -17,6 +18,11 @@ namespace NewLife.Net
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+
+        /// <summary>异步发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        Task SendAsync(Byte[] buffer);
 
         /// <summary>读取指定长度的数据</summary>
         /// <param name="buffer">缓冲区</param>

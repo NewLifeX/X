@@ -292,8 +292,7 @@ namespace XNet
             str = str.Replace("\n", "\r\n");
 
             if (ths <= 1)
-                //SendAsync(_Client, str, count, sleep);
-                _Client.SendAsync(str.GetBytes(), count, sleep);
+                _Client.SendAsync(str.GetBytes(), count, sleep).LogException();
             else
             {
                 // 多线程测试
@@ -304,8 +303,7 @@ namespace XNet
                         var client = _Client.Remote.CreateRemote();
                         client.StatSend = _Client.StatSend;
                         client.StatReceive = _Client.StatReceive;
-                        //SendAsync(client, str, count, sleep);
-                        client.SendAsync(str.GetBytes(), count, sleep);
+                        client.SendAsync(str.GetBytes(), count, sleep).LogException();
                     }
                 }).LogException();
             }

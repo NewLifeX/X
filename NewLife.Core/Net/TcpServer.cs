@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -194,7 +195,7 @@ namespace NewLife.Net
             }
 
             // 在用户线程池里面去处理数据
-            ThreadPoolX.QueueUserWorkItem(obj => OnAccept(obj as TcpClient), client, ex => OnError("OnAccept", ex));
+            Task.Factory.StartNew(() => OnAccept(client)).LogException(ex => OnError("OnAccept", ex));
 
             // 开始新的征程
             AcceptAsync(false);
