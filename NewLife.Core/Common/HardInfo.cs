@@ -4,7 +4,6 @@ using System.IO;
 using System.Management;
 using System.Text;
 using Microsoft.VisualBasic.Devices;
-using NewLife.Log;
 using NewLife.Xml;
 
 namespace NewLife.Common
@@ -404,70 +403,6 @@ namespace NewLife.Common
                 sb.Append(s);
             }
             return sb.ToString().Trim();
-        }
-        #endregion
-
-        #region 导入导出
-        /// <summary></summary>
-        /// <returns></returns>
-        public ExtendData ToExtend()
-        {
-            var data = new ExtendData();
-            data["MachineName"] = MachineName;
-            data["BaseBoard"] = BaseBoard;
-            data["Processors"] = Processors;
-            data["Disk"] = Disk;
-            data["DiskSerial"] = DiskSerial;
-            data["Volume"] = Volume;
-            data["Macs"] = Macs;
-            data["IPs"] = IPs;
-            data["OSVersion"] = OSVersion;
-            data["Memory"] = Memory.ToString();
-            data["ScreenWidth"] = ScreenWidth.ToString();
-            data["ScreenHeight"] = ScreenHeight.ToString();
-            data["DiskSize"] = DiskSize.ToString();
-
-            return data;
-        }
-
-        /// <summary></summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public static HardInfo FromExtend(ExtendData data)
-        {
-            var entity = new HardInfo();
-            entity.MachineName = data["MachineName"];
-            entity.BaseBoard = data["BaseBoard"];
-            entity.Processors = data["Processors"];
-            entity.Disk = data["Disk"];
-            entity.DiskSerial = data["DiskSerial"];
-            entity.Volume = data["Volume"];
-            entity.Macs = data["Macs"];
-            entity.IPs = data["IPs"];
-            entity.OSVersion = data["OSVersion"];
-            entity.Memory = data.GetItem<Int64>("Memory");
-            entity.ScreenWidth = data.GetItem<Int32>("ScreenWidth");
-            entity.ScreenHeight = data.GetItem<Int32>("ScreenHeight");
-            entity.DiskSize = data.GetItem<Int64>("DiskSize");
-
-            return entity;
-        }
-
-        /// <summary>导出XML</summary>
-        /// <returns></returns>
-        public virtual String ToXml()
-        {
-            return ToExtend().ToXml();
-        }
-
-        /// <summary>导入</summary>
-        /// <param name="xml"></param>
-        /// <returns></returns>
-        public static HardInfo FromXml(String xml)
-        {
-            if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
-
-            return FromExtend(ExtendData.FromXml(xml));
         }
         #endregion
     }

@@ -106,62 +106,17 @@ namespace Test
 
         static void Test4()
         {
-            var pis = typeof(B).GetProperties();
-            Console.WriteLine(pis);
+            var func = new TimerCallback(s =>
+            {
+                XTrace.WriteLine("{0} Hi Start", s);
+                Thread.Sleep(3000);
+                XTrace.WriteLine("{0} Hi End", s);
+            });
 
-            var user = UserX.FindAll()[0];
-            //Console.WriteLine(user);
-            user.RegisterTime = DateTime.Now;
+            //var timer1 = new Timer(func, 1, 3500, 3500);
+            var timer2 = new Timer(func, 2, 2000, 2000);
 
-            //var sb = new StringBuilder();
 
-            //var json = new Json();
-            //json.Log = XTrace.Log;
-            //json.Write(sb, user);
-
-            //Console.WriteLine(sb.ToString());
-
-            //Console.WriteLine(user.ToJson(true));
-
-            //var type = "JsonWriter".GetTypeEx();
-            //var txt = (String)type.CreateInstance().Invoke("ToJson", user, true);
-            //Console.WriteLine(txt);
-
-            //JsonTest.Start();
-
-            //// 为所有Json宿主创建实例
-            //var hosts = typeof(IJsonHost).GetAllSubclasses().Select(e => e.CreateInstance() as IJsonHost).ToArray();
-
-            //var json = hosts[2].Write(user);
-            //Thread.Sleep(1000);
-            //Console.Clear();
-
-            //CodeTimer.ShowHeader("Json序列化性能测试");
-            //foreach (var item in hosts)
-            //{
-            //    CodeTimer.TimeLine(item.GetType().Name, 100000, n => { item.Write(user); });
-            //}
-
-            //Console.WriteLine();
-            //CodeTimer.ShowHeader("Json反序列化性能测试");
-            //foreach (var item in hosts)
-            //{
-            //    CodeTimer.TimeLine(item.GetType().Name, 100000, n => { item.Read(json, user.GetType()); });
-            //}
-        }
-
-        class A
-        {
-            public Int32 ID { get; set; }
-
-            public virtual Guid Guid { get; set; }
-        }
-
-        class B:A
-        {
-            public String Name { get; set; }
-
-            public override Guid Guid { get; set; }
         }
 
         static void Test5()

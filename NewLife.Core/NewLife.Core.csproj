@@ -54,7 +54,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Collections\NullableDictionary.cs" />
-    <Compile Include="Collections\ObjectPool.cs" />
     <Compile Include="Collections\SingleListNode.cs" />
     <Compile Include="Common\CombGuid.cs" />
     <Compile Include="Common\PinYin.cs" />
@@ -117,7 +116,6 @@
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Common\DisposeBase.cs" />
     <Compile Include="Event\WeakAction.cs" />
-    <Compile Include="Event\WeakEventHandler.cs" />
     <Compile Include="Exceptions\XException.cs" />
     <Compile Include="IO\FileSource.cs" />
     <Compile Include="IO\IOHelper.cs" />
@@ -184,7 +182,6 @@
     <Compile Include="Serialization\Xml\Xml.cs" />
     <Compile Include="Setting.cs" />
     <Compile Include="Reflection\快速反射\TypeX.cs" />
-    <Compile Include="Common\WeakReference.cs" />
     <Compile Include="Event\EventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\快速反射\FieldInfoX.cs" />
@@ -198,8 +195,6 @@
     <Compile Include="Common\IdentityCard.cs" />
     <Compile Include="Threading\TaskState.cs" />
     <Compile Include="Threading\ThreadPoolX.cs" />
-    <Compile Include="Threading\ThreadTask.cs" />
-    <Compile Include="Threading\ThreadX.cs" />
     <Compile Include="Threading\TimerX.cs" />
     <Compile Include="Web\Css.cs" />
     <Compile Include="Web\Js.cs" />
@@ -227,7 +222,6 @@
     <Compile Include="Windows\SerialPortList.designer.cs">
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </Compile>
-    <Compile Include="Xml\ExtendData.cs" />
     <Compile Include="Xml\SerializableDictionary.cs" />
     <Compile Include="Xml\XmlConfig.cs" />
     <Compile Include="Xml\XmlConfigFileAttribute.cs" />
@@ -247,9 +241,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Serialization\NameValue\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
