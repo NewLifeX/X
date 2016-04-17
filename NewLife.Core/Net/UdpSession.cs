@@ -21,7 +21,7 @@ namespace NewLife.Net
         public UdpServer Server { get; set; }
 
         /// <summary>底层Socket</summary>
-        Socket ISocket.Socket { get { return Server == null ? null : Server.Client.Client; } }
+        Socket ISocket.Socket { get { return Server == null ? null : Server.Client; } }
 
         /// <summary>数据流</summary>
         public Stream Stream { get; set; }
@@ -121,7 +121,7 @@ namespace NewLife.Net
 
             try
             {
-                Server.Client.Send(buffer, count, Remote.EndPoint);
+                Server.Client.SendTo(buffer, 0, count, SocketFlags.None, Remote.EndPoint);
 
                 return true;
             }

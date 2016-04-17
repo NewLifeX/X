@@ -23,21 +23,20 @@ namespace NewLife.Net
             }
         }
 
-        private Int32 _Length;
         /// <summary>数据长度</summary>
-        public Int32 Length { get { return _Length; } set { _Length = value; } }
+        public Int32 Length { get; set; }
 
         private Stream _Stream;
         /// <summary>数据流</summary>
         public Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream(Data, 0, Length)); } set { _Stream = value; } }
 
-        private Boolean _Feedback;
-        /// <summary>是否把数据反馈给对方</summary>
-        public Boolean Feedback { get { return _Feedback; } set { _Feedback = value; } }
+        //private Boolean _Feedback;
+        ///// <summary>是否把数据反馈给对方</summary>
+        //public Boolean Feedback { get { return _Feedback; } set { _Feedback = value; } }
 
-        private Object _UserState;
+        //private Object _UserState;
         /// <summary>用户数据。比如远程地址等</summary>
-        public Object UserState { get { return _UserState; } set { _UserState = value; } }
+        public Object UserState { get; set; }
 
         //private IDictionary<String, Object> _Properties = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
         ///// <summary>属性字典</summary>

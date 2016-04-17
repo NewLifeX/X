@@ -19,11 +19,11 @@ namespace NewLife.Net
     {
         #region 属性
         /// <summary>客户端</summary>
-        public UdpClient Client { get; set; }
+        public Socket Client { get; private set; }
 
         /// <summary>获取Socket</summary>
         /// <returns></returns>
-        internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
+        internal override Socket GetSocket() { return Client; }
 
         /// <summary>会话超时时间。默认30秒</summary>
         /// <remarks>
@@ -67,7 +67,7 @@ namespace NewLife.Net
         /// <summary>打开</summary>
         protected override Boolean OnOpen()
         {
-            if (Client == null || !Client.Client.IsBound)
+            if (Client == null || !Client.IsBound)
             {
                 // 根据目标地址适配本地IPv4/IPv6
                 if (Remote != null && !Remote.Address.IsAny())
@@ -75,7 +75,9 @@ namespace NewLife.Net
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
 
-                Client = new UdpClient(Local.EndPoint);
+                //Client = new UdpClient(Local.EndPoint);
+                Client = new Socket(Local.Address.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+                Client.Bind(Local.EndPoint);
                 CheckDynamic();
 
                 // 如果使用了新会话事件，也需要开启异步接收
@@ -98,7 +100,12 @@ namespace NewLife.Net
                 Client = null;
                 try
                 {
-                    if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
+                    //if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
+                    if (_saea != null)
+                    {
+                        _saea.TryDispose();
+                        _saea = null;
+                    }
 
                     CloseAllSession();
 
@@ -142,23 +149,17 @@ namespace NewLife.Net
                 var sp = Client;
                 lock (sp)
                 {
-                    if (Client.Client.Connected)
+                    if (Client.Connected)
                     {
                         if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
-                        if (offset == 0)
-                            sp.Send(buffer, count);
-                        else
-                            sp.Send(buffer.ReadBytes(offset, count), count);
+                        sp.Send(buffer, offset, count, SocketFlags.None);
                     }
                     else
                     {
                         if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)), Remote.EndPoint);
 
-                        if (offset == 0)
-                            sp.Send(buffer, count, Remote.EndPoint);
-                        else
-                            sp.Send(buffer.ReadBytes(offset, count), count, Remote.EndPoint);
+                        sp.SendTo(buffer, offset, count, SocketFlags.None, Remote.EndPoint);
                     }
                 }
 
@@ -206,7 +207,10 @@ namespace NewLife.Net
 
             //Client.BeginSend(buffer, count, remote, OnSend, ts);
 
-            var task = Task.Factory.FromAsync<Byte[], Int32, IPEndPoint>(Client.BeginSend, OnSend, buffer, count, remote, ts).LogException(ex =>
+            var task = Task.Factory.FromAsync<Byte[], Int32, IPEndPoint>((Byte[] buf, Int32 n, IPEndPoint ep, AsyncCallback callback, Object state) =>
+            {
+                return Client.BeginSendTo(buf, 0, n, SocketFlags.None, ep, callback, state);
+            }, OnSend, buffer, count, remote, ts).LogException(ex =>
             {
                 if (!ex.IsDisposed()) OnError("SendAsync", ex);
             });
@@ -291,16 +295,10 @@ namespace NewLife.Net
 
             try
             {
-                IPEndPoint remoteEP = null;
-                var data = Client.Receive(ref remoteEP);
-                LastRemote = remoteEP;
-                if (data != null && data.Length > 0)
-                {
-                    size = data.Length;
-                    // 计算还有多少可用空间
-                    if (size > count) size = count;
-                    buffer.Write(offset, data, 0, size);
-                }
+                EndPoint remoteEP = null;
+                //var data = Client.Receive(ref remoteEP);
+                size = Client.ReceiveFrom(buffer, offset, count, SocketFlags.None, ref remoteEP);
+                LastRemote = remoteEP as IPEndPoint;
             }
             catch (Exception ex)
             {
@@ -322,8 +320,9 @@ namespace NewLife.Net
             return size;
         }
 
-        private IAsyncResult _Async;
+        //private IAsyncResult _Async;
         private Int32 _AsyncCount;
+        private SocketAsyncEventArgs _saea;
 
         /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
@@ -348,13 +347,27 @@ namespace NewLife.Net
             }
             if (!UseReceiveAsync) UseReceiveAsync = true;
 
+            if (_saea == null)
+            {
+                var buf = new Byte[1024];
+                _saea = new SocketAsyncEventArgs();
+                _saea.SetBuffer(buf, 0, buf.Length);
+                _saea.Completed += _saea_Completed;
+                //_saea.RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            }
+
+            // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
+            _saea.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
+
             // 如果开启异步失败，重试10次
             for (int i = 0; i < 10; i++)
             {
                 try
                 {
                     // 开始新的监听
-                    _Async = Client.BeginReceive(OnReceive, Client);
+                    //_Async = Client.BeginReceive(OnReceive, Client);
+
+                    if (!Client.ReceiveFromAsync(_saea)) Task.Factory.StartNew(() => Process(_saea));
 
                     return true;
                 }
@@ -376,9 +389,40 @@ namespace NewLife.Net
             return false;
         }
 
+        void _saea_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            if (e.LastOperation == SocketAsyncOperation.ReceiveFrom ||
+                e.LastOperation == SocketAsyncOperation.Receive)
+                Process(e);
+        }
+        void Process(SocketAsyncEventArgs e)
+        {
+            if (!Active) return;
+
+            Interlocked.Decrement(ref _AsyncCount);
+
+            // 判断成功失败
+            if (e.SocketError != SocketError.Success)
+            {
+                if (e.SocketError != SocketError.ConnectionReset) OnError("EndReceive", e.ConnectByNameError);
+            }
+            else
+            {
+                // 拷贝走数据，参数要重复利用
+                var data = e.Buffer.ReadBytes(e.Offset, e.BytesTransferred);
+                var ep = e.RemoteEndPoint as IPEndPoint;
+
+                // 在用户线程池里面去处理数据
+                Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
+            }
+
+            // 开始新的监听
+            ReceiveAsync();
+        }
+
         void OnReceive(IAsyncResult ar)
         {
-            _Async = null;
+            //_Async = null;
 
             if (!Active) return;
             // 接收数据
@@ -463,13 +507,13 @@ namespace NewLife.Net
 
             if (session != null) RaiseReceive(session, e);
 
-            // 数据发回去
-            if (e.Feedback)
-            {
-                // 有没有可能事件处理者修改了这个用户对象？要求转发给别人？
-                remote = e.UserState as IPEndPoint;
-                Client.Send(e.Data, e.Length, remote);
-            }
+            //// 数据发回去
+            //if (e.Feedback)
+            //{
+            //    // 有没有可能事件处理者修改了这个用户对象？要求转发给别人？
+            //    remote = e.UserState as IPEndPoint;
+            //    Client.Send(e.Data, e.Length, remote);
+            //}
         }
         #endregion
 

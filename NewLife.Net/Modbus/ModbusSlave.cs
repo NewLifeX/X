@@ -89,7 +89,7 @@ namespace NewLife.Net.Modbus
             var name = transport.ToString();
 
 #if !MF
-            transport.Received += (s, e) => { e.Data = Process(e.Data); e.Feedback = true; };
+            transport.Received += (s, e) => { e.Data = Process(e.Data); };
 #else
             transport.Received += (ts, data) => { return Process(data); };
 #endif

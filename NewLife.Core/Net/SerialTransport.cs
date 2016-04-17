@@ -325,8 +325,8 @@ namespace NewLife.Net
                 var e = new ReceivedEventArgs(buf);
                 Received(this, e);
 
-                // 数据发回去
-                if (e.Feedback) Serial.Write(buf, 0, buf.Length);
+                //// 数据发回去
+                //if (e.Feedback) Serial.Write(buf, 0, buf.Length);
             }
         }
 

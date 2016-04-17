@@ -480,8 +480,8 @@ namespace NewLife.Net
 
             RaiseReceive(this, e);
 
-            // 数据发回去
-            if (e.Feedback) Send(e.Data, 0, e.Length);
+            //// 数据发回去
+            //if (e.Feedback) Send(e.Data, 0, e.Length);
         }
         #endregion
 

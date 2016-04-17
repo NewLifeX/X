@@ -101,6 +101,7 @@
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />
     <Compile Include="Net\SerialTransport.cs" />
+    <Compile Include="Net\SocketHelper.cs" />
     <Compile Include="Net\Statistics.cs" />
     <Compile Include="Net\TcpSession.cs" />
     <Compile Include="Net\TcpServer.cs" />
