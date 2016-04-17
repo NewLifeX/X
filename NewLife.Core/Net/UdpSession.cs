@@ -22,8 +22,8 @@ namespace NewLife.Net
         /// <summary>底层Socket</summary>
         Socket ISocket.Socket { get { return Server == null ? null : Server.Client.Client; } }
 
-        ///// <summary>数据流</summary>
-        //public Stream Stream { get; set; }
+        /// <summary>数据流</summary>
+        public Stream Stream { get; set; }
 
         private NetUri _Local;
         /// <summary>本地地址</summary>
@@ -39,8 +39,9 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
+        private NetUri _Remote;
         /// <summary>远程地址</summary>
-        public NetUri Remote { get; set; }
+        public NetUri Remote { get { return _Remote; } set { _Remote = value; } }
 
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer ISocketSession.Server { get { return Server; } }
@@ -54,7 +55,7 @@ namespace NewLife.Net
         /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
         public IStatistics StatReceive { get; set; }
 
-        //private IPEndPoint _Filter;
+        private IPEndPoint _Filter;
 
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; }
@@ -67,12 +68,12 @@ namespace NewLife.Net
         public UdpSession(UdpServer server, IPEndPoint remote)
         {
             Name = server.Name;
-            //Stream = new MemoryStream();
+            Stream = new MemoryStream();
             StartTime = DateTime.Now;
 
             Server = server;
             Remote = new NetUri(ProtocolType.Udp, remote);
-            //_Filter = remote;
+            _Filter = remote;
 
             //StatSend = new Statistics();
             //StatReceive = new Statistics();
@@ -146,63 +147,63 @@ namespace NewLife.Net
             return Server.SendAsync(buffer, times, msInterval, Remote.EndPoint);
         }
 
-        //Boolean CheckFilter(IPEndPoint remote)
-        //{
-        //    // IPAddress是类，不同实例对象当然不相等啦
-        //    if (!_Filter.IsAny())
-        //    {
-        //        //if (_Filter.Address != remote.Address || _Filter.Port != remote.Port) return false;
-        //        if (!_Filter.Equals(remote)) return false;
-        //    }
+        Boolean CheckFilter(IPEndPoint remote)
+        {
+            // IPAddress是类，不同实例对象当然不相等啦
+            if (!_Filter.IsAny())
+            {
+                //if (_Filter.Address != remote.Address || _Filter.Port != remote.Port) return false;
+                if (!_Filter.Equals(remote)) return false;
+            }
 
-        //    return true;
-        //}
+            return true;
+        }
 
-        //public byte[] Receive()
-        //{
-        //    if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+        public byte[] Receive()
+        {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
-        //    // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
-        //    var buf = Server.Receive();
+            // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
+            var buf = Server.Receive();
 
-        //    var ep = Server.Remote.EndPoint;
-        //    if (!CheckFilter(ep))
-        //    {
-        //        // 交给其它会话
-        //        Server.OnReceive(buf, ep);
-        //        return new Byte[0];
-        //    }
+            var ep = Server.Remote.EndPoint;
+            if (!CheckFilter(ep))
+            {
+                // 交给其它会话
+                Server.OnReceive(buf, ep);
+                return new Byte[0];
+            }
 
-        //    Remote.EndPoint = ep;
+            Remote.EndPoint = ep;
 
-        //    LastTime = DateTime.Now;
-        //    //if (StatReceive != null) StatReceive.Increment(buf.Length);
+            LastTime = DateTime.Now;
+            //if (StatReceive != null) StatReceive.Increment(buf.Length);
 
-        //    return buf;
-        //}
+            return buf;
+        }
 
-        //public int Receive(byte[] buffer, int offset = 0, int count = -1)
-        //{
-        //    if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+        public int Receive(byte[] buffer, int offset = 0, int count = -1)
+        {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
-        //    // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
-        //    var size = Server.Receive(buffer, offset, count);
+            // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
+            var size = Server.Receive(buffer, offset, count);
 
-        //    var ep = Server.Remote.EndPoint;
-        //    if (!CheckFilter(ep))
-        //    {
-        //        // 交给其它会话
-        //        Server.OnReceive(buffer.ReadBytes(offset, size), ep);
-        //        return 0;
-        //    }
+            var ep = Server.Remote.EndPoint;
+            if (!CheckFilter(ep))
+            {
+                // 交给其它会话
+                Server.OnReceive(buffer.ReadBytes(offset, size), ep);
+                return 0;
+            }
 
-        //    Remote.EndPoint = ep;
+            Remote.EndPoint = ep;
 
-        //    LastTime = DateTime.Now;
-        //    //if (StatReceive != null) StatReceive.Increment(size);
+            LastTime = DateTime.Now;
+            //if (StatReceive != null) StatReceive.Increment(size);
 
-        //    return size;
-        //}
+            return size;
+        }
         #endregion
 
         #region 异步接收
@@ -265,8 +266,9 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
+        private ILog _Log;
         /// <summary>日志提供者</summary>
-        public ILog Log { get; set; }
+        public ILog Log { get { return _Log; } set { _Log = value; } }
 
         /// <summary>是否输出发送日志。默认false</summary>
         public Boolean LogSend { get; set; }
@@ -298,13 +300,13 @@ namespace NewLife.Net
             if (Log != null) Log.Info(LogPrefix + format, args);
         }
 
-        ///// <summary>输出日志</summary>
-        ///// <param name="format"></param>
-        ///// <param name="args"></param>
-        //public void WriteDebugLog(String format, params Object[] args)
-        //{
-        //    if (Log != null) Log.Debug(LogPrefix + format, args);
-        //}
+        /// <summary>输出日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteDebugLog(String format, params Object[] args)
+        {
+            if (Log != null) Log.Debug(LogPrefix + format, args);
+        }
         #endregion
     }
 }

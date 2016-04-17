@@ -102,20 +102,17 @@ namespace NewLife.Net
             // 打开端口前如果已设定远程地址，则自动连接
             if (Remote == null || Remote.EndPoint.IsAny()) return false;
 
-            //if (Remote != null && !Remote.EndPoint.IsAny())
+            try
             {
-                try
-                {
-                    Client.Connect(Remote.EndPoint);
-                    Stream = Client.GetStream();
-                }
-                catch (Exception ex)
-                {
-                    if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
-                    if (ThrowException) throw;
+                Client.Connect(Remote.EndPoint);
+                Stream = Client.GetStream();
+            }
+            catch (Exception ex)
+            {
+                if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
+                if (ThrowException) throw;
 
-                    return false;
-                }
+                return false;
             }
 
             _Reconnect = 0;
@@ -134,10 +131,6 @@ namespace NewLife.Net
                 Active = false;
                 try
                 {
-                    //var ac = _Async;
-                    //_Async = null;
-                    //if (ac != null && ac.AsyncWaitHandle != null) ac.AsyncWaitHandle.Close();
-
                     // 温和一点关闭连接
                     //Client.Client.Shutdown();
                     Client.Close();
@@ -174,7 +167,7 @@ namespace NewLife.Net
             if (count < 0) count = buffer.Length - offset;
 
             if (StatSend != null) StatSend.Increment(count);
-            if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
             try
             {
@@ -207,69 +200,69 @@ namespace NewLife.Net
             return true;
         }
 
-        ///// <summary>接收数据</summary>
-        ///// <returns>收到的数据。如果没有数据返回0长度数组，如果出错返回null</returns>
-        //public override Byte[] Receive()
-        //{
-        //    if (!Open()) return null;
+        /// <summary>接收数据</summary>
+        /// <returns>收到的数据。如果没有数据返回0长度数组，如果出错返回null</returns>
+        public override Byte[] Receive()
+        {
+            if (!Open()) return null;
 
-        //    var size = 1024 * 2;
+            var size = 1024 * 2;
 
-        //    // 报文模式调整缓冲区大小。还差这么多数据就足够一个报文
-        //    var ps = Stream as PacketStream;
-        //    if (ps != null && ps.Size > 0) size = ps.Size;
+            // 报文模式调整缓冲区大小。还差这么多数据就足够一个报文
+            var ps = Stream as PacketStream;
+            if (ps != null && ps.Size > 0) size = ps.Size;
 
-        //    var buf = new Byte[size];
+            var buf = new Byte[size];
 
-        //    var count = Receive(buf, 0, buf.Length);
-        //    if (count < 0) return null;
-        //    if (count == 0) return new Byte[0];
+            var count = Receive(buf, 0, buf.Length);
+            if (count < 0) return null;
+            if (count == 0) return new Byte[0];
 
-        //    LastTime = DateTime.Now;
-        //    //if (StatReceive != null) StatReceive.Increment(count);
+            LastTime = DateTime.Now;
+            //if (StatReceive != null) StatReceive.Increment(count);
 
-        //    if (count == buf.Length) return buf;
+            if (count == buf.Length) return buf;
 
-        //    return buf.ReadBytes(0, count);
-        //}
+            return buf.ReadBytes(0, count);
+        }
 
-        ///// <summary>读取指定长度的数据，一般是一帧</summary>
-        ///// <param name="buffer">缓冲区</param>
-        ///// <param name="offset">偏移</param>
-        ///// <param name="count">数量</param>
-        ///// <returns></returns>
-        //public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-        //{
-        //    if (!Open()) return -1;
+        /// <summary>读取指定长度的数据，一般是一帧</summary>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
+        /// <returns></returns>
+        public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        {
+            if (!Open()) return -1;
 
-        //    if (count < 0) count = buffer.Length - offset;
+            if (count < 0) count = buffer.Length - offset;
 
-        //    var rs = 0;
-        //    try
-        //    {
-        //        if (count > 0) rs = Stream.Read(buffer, offset, count);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (!ex.IsDisposed())
-        //        {
-        //            OnError("Receive", ex);
+            var rs = 0;
+            try
+            {
+                if (count > 0) rs = Stream.Read(buffer, offset, count);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("Receive", ex);
 
-        //            // 发送异常可能是连接出了问题，需要关闭
-        //            Close("同步接收出错");
-        //            Reconnect();
+                    // 发送异常可能是连接出了问题，需要关闭
+                    Close("同步接收出错");
+                    Reconnect();
 
-        //            if (ThrowException) throw;
-        //        }
+                    if (ThrowException) throw;
+                }
 
-        //        return -1;
-        //    }
+                return -1;
+            }
 
-        //    LastTime = DateTime.Now;
-        //    if (StatReceive != null) StatReceive.Increment(rs);
+            LastTime = DateTime.Now;
+            if (StatReceive != null) StatReceive.Increment(rs);
 
-        //    return rs;
-        //}
+            return rs;
+        }
         #endregion
 
         #region 异步收发
@@ -489,13 +482,11 @@ namespace NewLife.Net
         #endregion
 
         #region 粘包处理
-        private MemoryStream _Packet;
         /// <summary>用于粘包处理的数据流缓冲区，指针位于末端，便于附加数据。前面是7位压缩编码整数表示的报文长度</summary>
-        private MemoryStream Packet { get { return _Packet; } set { _Packet = value; } }
+        private MemoryStream Packet { get; set; }
 
-        private Int32 _PacketSize;
         /// <summary>所期望的报文大小</summary>
-        private Int32 PacketSize { get { return _PacketSize; } set { _PacketSize = value; } }
+        private Int32 PacketSize { get; set; }
 
         private Byte[] CheckPacket(Byte[] data, ref Int32 count)
         {

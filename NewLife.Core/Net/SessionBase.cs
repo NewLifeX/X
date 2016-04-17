@@ -65,6 +65,8 @@ namespace NewLife.Net
 
             StatSend = new Statistics();
             StatReceive = new Statistics();
+
+            Log = Logger.Null;
         }
 
         /// <summary>销毁</summary>
@@ -151,7 +153,7 @@ namespace NewLife.Net
         public event EventHandler Closed;
         #endregion
 
-        #region 同步收发
+        #region 发送
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
@@ -162,19 +164,6 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public abstract Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
-        ///// <summary>接收数据</summary>
-        ///// <returns></returns>
-        //public abstract Byte[] Receive();
-
-        ///// <summary>读取指定长度的数据，一般是一帧</summary>
-        ///// <param name="buffer">缓冲区</param>
-        ///// <param name="offset">偏移</param>
-        ///// <param name="count">数量</param>
-        ///// <returns></returns>
-        //public abstract Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
-        #endregion
-
-        #region 异步收发
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
@@ -182,10 +171,23 @@ namespace NewLife.Net
 
         /// <summary>异步多次发送数据</summary>
         /// <param name="buffer"></param>
-        /// <param name="times"></param>
-        /// <param name="msInterval"></param>
+        /// <param name="times">次数</param>
+        /// <param name="msInterval">间隔</param>
         /// <returns></returns>
         public abstract Boolean SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
+        #endregion
+
+        #region 接收
+        /// <summary>接收数据</summary>
+        /// <returns></returns>
+        public abstract Byte[] Receive();
+
+        /// <summary>读取指定长度的数据，一般是一帧</summary>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
+        /// <returns></returns>
+        public abstract Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get; set; }
@@ -197,7 +199,7 @@ namespace NewLife.Net
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>触发数据到达时间</summary>
+        /// <summary>触发数据到达事件</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
@@ -240,13 +242,8 @@ namespace NewLife.Net
             set { _LogPrefix = value; }
         }
 
-#if DEBUG
-        private ILog _Log = XTrace.Log;
-#else
-        private ILog _Log = Logger.Null;
-#endif
         /// <summary>日志对象。禁止设为空对象</summary>
-        public ILog Log { get { return _Log; } set { _Log = value ?? Logger.Null; } }
+        public ILog Log { get; set; }
 
         /// <summary>是否输出发送日志。默认false</summary>
         public Boolean LogSend { get; set; }
@@ -259,7 +256,7 @@ namespace NewLife.Net
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (Log != null) Log.Info(LogPrefix + format, args);
+            if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }
         #endregion
 

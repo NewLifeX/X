@@ -78,6 +78,8 @@ namespace NewLife.Net
             StatSession = new Statistics();
             StatSend = new Statistics();
             StatReceive = new Statistics();
+
+            Log = Logger.Null;
         }
 
         /// <summary>构造TCP服务器对象</summary>
@@ -298,13 +300,8 @@ namespace NewLife.Net
             set { _LogPrefix = value; }
         }
 
-#if DEBUG
-        private ILog _Log = XTrace.Log;
-#else
-        private ILog _Log = Logger.Null;
-#endif
         /// <summary>日志对象</summary>
-        public ILog Log { get { return _Log; } set { _Log = value ?? Logger.Null; } }
+        public ILog Log { get; set; }
 
         /// <summary>是否输出发送日志。默认false</summary>
         public Boolean LogSend { get; set; }
@@ -317,7 +314,7 @@ namespace NewLife.Net
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (Log != null) Log.Info(LogPrefix + format, args);
+            if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }
         #endregion
 
