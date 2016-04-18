@@ -16,7 +16,7 @@ namespace System.Collections.Generic
         {
             lock (collection)
             {
-                var arr = new T[collection.Count];
+                var arr = new T[collection.Count - index];
                 collection.CopyTo(arr, index);
                 return arr;
             }
