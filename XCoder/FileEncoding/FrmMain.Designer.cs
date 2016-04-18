@@ -1,6 +1,6 @@
-﻿namespace XCoder.FolderInfo
+﻿namespace XCoder.FileEncoding
 {
-    partial class FrmEncodeReplace
+    partial class FrmMain
     {
         /// <summary>
         /// Required designer variable.

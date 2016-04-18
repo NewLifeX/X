@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Net.Sockets;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCoder;
 
 namespace XNet
 {
+    [DisplayName("网络调试工具")]
     public partial class FrmMain : Form
     {
         NetServer _Server;

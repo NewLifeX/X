@@ -12,6 +12,7 @@ using XCoder.XRegex;
 
 namespace NewLife.XRegex
 {
+    [DisplayName("正则表达式工具")]
     public partial class FrmMain : Form
     {
         #region 窗体初始化

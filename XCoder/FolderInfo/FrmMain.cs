@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -11,6 +12,7 @@ using NewLife.Threading;
 
 namespace XCoder.FolderInfo
 {
+    [DisplayName("文件夹大小统计")]
     public partial class FrmMain : Form
     {
         #region 初始化

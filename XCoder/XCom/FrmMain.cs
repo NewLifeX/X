@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -9,6 +10,7 @@ using XCoder;
 
 namespace XCom
 {
+    [DisplayName("串口调试工具")]
     public partial class FrmMain : Form
     {
         #region 窗体

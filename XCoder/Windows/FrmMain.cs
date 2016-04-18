@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Data.Common;
@@ -19,6 +20,7 @@ using XTemplate.Templating;
 
 namespace XCoder
 {
+    [DisplayName("数据建模工具")]
     public partial class FrmMain : Form
     {
         #region 属性

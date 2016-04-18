@@ -1,18 +1,20 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using NewLife.IO;
 
-namespace XCoder.FolderInfo
+namespace XCoder.FileEncoding
 {
-    public partial class FrmEncodeReplace : Form
+    [DisplayName("文件编码工具")]
+    public partial class FrmMain : Form
     {
         string[] EncodeType = new string[] { "UTF-8", "ASNI", "Unicode", "Default" };
         private string ChiocePath { get; set; }
 
         private Int32 Count { get; set; }
-        public FrmEncodeReplace()
+        public FrmMain()
         {
             InitializeComponent();
         }

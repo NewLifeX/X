@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -9,6 +10,7 @@ using XCoder;
 
 namespace XICO
 {
+    [DisplayName("图标水印处理工具")]
     public partial class FrmMain : Form
     {
         #region 窗口初始化

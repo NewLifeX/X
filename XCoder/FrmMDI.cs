@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -10,8 +11,12 @@ namespace XCoder
     public partial class FrmMDI : Form
     {
         #region 窗口初始化
+        Task<Type[]> _load;
+
         public FrmMDI()
         {
+            _load = Task<Type[]>.Factory.StartNew(() => typeof(Form).GetAllSubclasses(true).Where(e => e.Name == "FrmMain").ToArray());
+
             InitializeComponent();
 
             this.Icon = Source.GetIcon();
@@ -32,15 +37,18 @@ namespace XCoder
             if (set.Title.IsNullOrEmpty()) set.Title = asm.Title;
             Text = String.Format("{2} v{0} {1:HH:mm:ss}", asm.CompileVersion, asm.Compile, set.Title);
 
-            Task.Factory.StartNew(LoadForms);
+            //Task.Factory.StartNew(LoadForms);
+            _load.ContinueWith(t => LoadForms(t.Result));
         }
 
-        void LoadForms()
+        void LoadForms(Type[] ts)
         {
+            //var ts = typeof(Form).GetAllSubclasses(true).Where(e => e.Name == "FrmMain").ToArray();
+
             var name = XConfig.Current.LastTool + "";
-            foreach (var item in typeof(Form).GetAllSubclasses(true))
+            foreach (var item in ts)
             {
-                if (item.Name == "FrmMain" && item.FullName.EqualIgnoreCase(name))
+                if (item.FullName.EqualIgnoreCase(name))
                 {
                     //CreateForm(item.CreateInstance() as Form);
                     //var frm = item.CreateInstance() as Form;
@@ -50,6 +58,22 @@ namespace XCoder
                     break;
                 }
             }
+
+            this.Invoke(() =>
+            {
+                var root = toolsMenu;
+                foreach (var item in ts)
+                {
+                    var mi = root.DropDownItems.Add(item.GetDisplayName() ?? item.FullName);
+                    mi.Tag = item;
+                    mi.Click += (s, e) =>
+                    {
+                        var tsi = s as ToolStripItem;
+                        var type = tsi.Tag as Type;
+                        CreateForm(type.CreateInstance() as Form);
+                    };
+                }
+            });
         }
         #endregion
 
@@ -73,40 +97,6 @@ namespace XCoder
             frm.MdiParent = this;
             frm.WindowState = FormWindowState.Maximized;
             frm.Show();
-        }
-
-        private void 数据建模工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<FrmMain>();
-        }
-
-        private void 正则表达式工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<NewLife.XRegex.FrmMain>();
-        }
-
-        private void 通讯调试工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<XCom.FrmMain>();
-        }
-
-        private void 图标水印处理工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<XICO.FrmMain>();
-        }
-
-        private void 网络调试工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<XNet.FrmMain>();
-        }
-
-        private void 文件夹大小统计ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<FolderInfo.FrmMain>();
-        }
-        private void 文件编码格式替换工具ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CreateForm<FolderInfo.FrmEncodeReplace>();
         }
         #endregion
 
