@@ -428,7 +428,7 @@ namespace NewLife.Net
             Interlocked.Decrement(ref _AsyncCount);
 
             // 开始新的监听
-            ReceiveAsync();
+            if (e.SocketError != SocketError.OperationAborted) ReceiveAsync();
         }
 
         //void OnReceive(IAsyncResult ar)
