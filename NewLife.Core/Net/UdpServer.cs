@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -409,8 +410,6 @@ namespace NewLife.Net
         {
             if (!Active) return;
 
-            Interlocked.Decrement(ref _AsyncCount);
-
             // 判断成功失败
             if (e.SocketError != SocketError.Success)
             {
@@ -426,51 +425,53 @@ namespace NewLife.Net
                 Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
             }
 
-            // 开始新的监听
-            ReceiveAsync();
-        }
-
-        void OnReceive(IAsyncResult ar)
-        {
-            //_Async = null;
-
-            if (!Active) return;
-            // 接收数据
-            var client = ar.AsyncState as UdpClient;
-            if (client == null || client.Client == null) return;
-
-            IPEndPoint ep = null;
-            Byte[] data = null;
-
-            try
-            {
-                data = client.EndReceive(ar, ref ep);
-                Interlocked.Decrement(ref _AsyncCount);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    // 屏蔽连接重置的异常
-                    var sex = ex as SocketException;
-                    if (sex == null || sex.SocketErrorCode != SocketError.ConnectionReset) OnError("EndReceive", ex);
-
-                    // 异常一般是网络错误，UDP不需要关闭
-                    //Close();
-                    //if (ex.SocketErrorCode != SocketError.ConnectionReset) Close();
-
-                    // 开始新的监听，避免因为异常就失去网络服务
-                    ReceiveAsync();
-                }
-                return;
-            }
-
-            // 在用户线程池里面去处理数据
-            Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
+            Interlocked.Decrement(ref _AsyncCount);
 
             // 开始新的监听
             ReceiveAsync();
         }
+
+        //void OnReceive(IAsyncResult ar)
+        //{
+        //    //_Async = null;
+
+        //    if (!Active) return;
+        //    // 接收数据
+        //    var client = ar.AsyncState as UdpClient;
+        //    if (client == null || client.Client == null) return;
+
+        //    IPEndPoint ep = null;
+        //    Byte[] data = null;
+
+        //    try
+        //    {
+        //        data = client.EndReceive(ar, ref ep);
+        //        Interlocked.Decrement(ref _AsyncCount);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (!ex.IsDisposed())
+        //        {
+        //            // 屏蔽连接重置的异常
+        //            var sex = ex as SocketException;
+        //            if (sex == null || sex.SocketErrorCode != SocketError.ConnectionReset) OnError("EndReceive", ex);
+
+        //            // 异常一般是网络错误，UDP不需要关闭
+        //            //Close();
+        //            //if (ex.SocketErrorCode != SocketError.ConnectionReset) Close();
+
+        //            // 开始新的监听，避免因为异常就失去网络服务
+        //            ReceiveAsync();
+        //        }
+        //        return;
+        //    }
+
+        //    // 在用户线程池里面去处理数据
+        //    Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
+
+        //    // 开始新的监听
+        //    ReceiveAsync();
+        //}
 
         /// <summary>处理收到的数据</summary>
         /// <param name="data"></param>
