@@ -180,17 +180,15 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>异步多次发送数据</summary>
+        /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
-        /// <param name="times"></param>
-        /// <param name="msInterval"></param>
         /// <returns></returns>
-        public override Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
+        public override Task SendAsync(Byte[] buffer)
         {
-            return SendAsync(buffer, times, msInterval, Remote.EndPoint);
+            return SendAsync(buffer, Remote.EndPoint);
         }
 
-        internal Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval, IPEndPoint remote)
+        internal Task SendAsync(Byte[] buffer, IPEndPoint remote)
         {
             if (!Open()) return null;
 
@@ -199,18 +197,30 @@ namespace NewLife.Net
             if (StatSend != null) StatSend.Increment(count);
             if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
-            var ts = new SendStat();
-            ts.Buffer = buffer;
-            ts.Times = times - 1;
-            ts.Interval = msInterval;
-            ts.Remote = remote;
+            //var ts = new SendStat();
+            //ts.Buffer = buffer;
+            //ts.Times = times - 1;
+            //ts.Interval = msInterval;
+            //ts.Remote = remote;
 
             //Client.BeginSend(buffer, count, remote, OnSend, ts);
 
-            var task = Task.Factory.FromAsync<Byte[], Int32, IPEndPoint>((Byte[] buf, Int32 n, IPEndPoint ep, AsyncCallback callback, Object state) =>
-            {
-                return Client.BeginSendTo(buf, 0, n, SocketFlags.None, ep, callback, state);
-            }, OnSend, buffer, count, remote, ts).LogException(ex =>
+            //var task = Task.Factory.FromAsync<Byte[], Int32, IPEndPoint>((Byte[] buf, Int32 n, IPEndPoint ep, AsyncCallback callback, Object state) =>
+            //{
+            //    return Client.BeginSendTo(buf, 0, n, SocketFlags.None, ep, callback, state);
+            //}, OnSend, buffer, count, remote, ts).LogException(ex =>
+            //{
+            //    if (!ex.IsDisposed()) OnError("SendAsync", ex);
+            //});
+
+            //var task = Task.Factory.FromAsync<Byte[], Int32, IPEndPoint>((Byte[] buf, Int32 n, IPEndPoint ep, AsyncCallback callback, Object state) =>
+            //{
+            //    return Client.BeginSendTo(buf, 0, n, SocketFlags.None, ep, callback, state);
+            //}, OnSend, buffer, count, remote, ts).LogException(ex =>
+            //{
+            //    if (!ex.IsDisposed()) OnError("SendAsync", ex);
+            //});
+            var task = Client.SendToAsync(buffer, remote).LogException(ex =>
             {
                 if (!ex.IsDisposed()) OnError("SendAsync", ex);
             });
@@ -220,42 +230,42 @@ namespace NewLife.Net
             return task;
         }
 
-        class SendStat
-        {
-            public Byte[] Buffer;
-            public Int32 Times;
-            public Int32 Interval;
-            public IPEndPoint Remote;
-        }
+        //class SendStat
+        //{
+        //    public Byte[] Buffer;
+        //    public Int32 Times;
+        //    public Int32 Interval;
+        //    public IPEndPoint Remote;
+        //}
 
-        void OnSend(IAsyncResult ar)
-        {
-            if (!Active) return;
+        //void OnSend(IAsyncResult ar)
+        //{
+        //    if (!Active) return;
 
-            var client = Client;
-            if (client == null) return;
+        //    var client = Client;
+        //    if (client == null) return;
 
-            // 多次发送
-            var ts = (SendStat)ar.AsyncState;
-            try
-            {
-                Client.EndSend(ar);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("EndSend", ex);
-                }
-            }
+        //    // 多次发送
+        //    var ts = (SendStat)ar.AsyncState;
+        //    try
+        //    {
+        //        Client.EndSend(ar);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (!ex.IsDisposed())
+        //        {
+        //            OnError("EndSend", ex);
+        //        }
+        //    }
 
-            // 如果发送次数未归零，则继续发送
-            if (ts.Times > 0)
-            {
-                if (ts.Interval > 0) Thread.Sleep(ts.Interval);
-                SendAsync(ts.Buffer, ts.Times, ts.Interval, ts.Remote);
-            }
-        }
+        //    // 如果发送次数未归零，则继续发送
+        //    if (ts.Times > 0)
+        //    {
+        //        if (ts.Interval > 0) Thread.Sleep(ts.Interval);
+        //        SendAsync(ts.Buffer, ts.Times, ts.Interval, ts.Remote);
+        //    }
+        //}
         #endregion
 
         #region 接收

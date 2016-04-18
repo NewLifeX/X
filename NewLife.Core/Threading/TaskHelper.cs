@@ -52,9 +52,9 @@ namespace NewLife.Threading
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public static Task ReadAsync(this Stream stream, Byte[] buffer, Int32 offset, Int32 count)
+        public static Task<Int32> ReadAsync(this Stream stream, Byte[] buffer, Int32 offset, Int32 count)
         {
-            return Task.Factory.FromAsync<Byte[], Int32, Int32, Int32>(stream.BeginRead, stream.EndRead, buffer, offset, count, null);
+            return Task<Int32>.Factory.FromAsync<Byte[], Int32, Int32>(stream.BeginRead, stream.EndRead, buffer, offset, count, null);
         }
 
         /// <summary>异步读取数据</summary>
@@ -86,10 +86,5 @@ namespace NewLife.Threading
         {
             return Task.Factory.FromAsync<Byte[], Int32, Int32>(stream.BeginWrite, stream.EndWrite, buffer, offset, count, null);
         }
-
-        //[StructLayout(LayoutKind.Sequential, Size = 1)]
-        //internal struct VoidTaskResult
-        //{
-        //}
     }
 }

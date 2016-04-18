@@ -136,17 +136,17 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public Task SendAsync(Byte[] buffer) { return SendAsync(buffer, 1, 0); }
+        public Task SendAsync(Byte[] buffer) { return Server.SendAsync(buffer, Remote.EndPoint); }
 
-        /// <summary>异步多次发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="times"></param>
-        /// <param name="msInterval"></param>
-        /// <returns></returns>
-        public Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
-        {
-            return Server.SendAsync(buffer, times, msInterval, Remote.EndPoint);
-        }
+        ///// <summary>异步多次发送数据</summary>
+        ///// <param name="buffer"></param>
+        ///// <param name="times"></param>
+        ///// <param name="msInterval"></param>
+        ///// <returns></returns>
+        //public Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
+        //{
+        //    return Server.SendAsync(buffer, times, msInterval, Remote.EndPoint);
+        //}
 
         Boolean CheckFilter(IPEndPoint remote)
         {

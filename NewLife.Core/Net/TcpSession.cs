@@ -152,7 +152,9 @@ namespace NewLife.Net
 
             return true;
         }
+        #endregion
 
+        #region 发送
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
@@ -201,6 +203,46 @@ namespace NewLife.Net
             return true;
         }
 
+        /// <summary>异步发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public override Task SendAsync(Byte[] buffer)
+        {
+            if (!Open()) return null;
+
+            var count = buffer.Length;
+
+            if (StatSend != null) StatSend.Increment(count);
+            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+
+            // 修改发送缓冲区
+            if (Client.SendBufferSize < count) Client.SendBufferSize = count;
+
+            Task task = null;
+            if (count == 0)
+                task = Task.Factory.StartNew(() => Client.Client.Send(new Byte[0]));
+            else
+                task = Stream.WriteAsync(buffer, 0, count);
+
+            task = task.LogException(ex =>
+            {
+                if (!ex.IsDisposed())
+                {
+                    OnError("EndSend", ex);
+
+                    // 异常一般是网络错误
+                    Close("完成异步发送出错");
+                    Reconnect();
+                }
+            });
+
+            LastTime = DateTime.Now;
+
+            return task;
+        }
+        #endregion
+
+        #region 接收
         /// <summary>接收数据</summary>
         /// <returns>收到的数据。如果没有数据返回0长度数组，如果出错返回null</returns>
         public override Byte[] Receive()
@@ -264,112 +306,46 @@ namespace NewLife.Net
 
             return rs;
         }
-        #endregion
 
-        #region 异步收发
-        /// <summary>异步多次发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="times"></param>
-        /// <param name="msInterval"></param>
-        /// <returns></returns>
-        public override Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
-        {
-            if (!Open()) return null;
+        //class SendStat
+        //{
+        //    public Byte[] Buffer;
+        //    public Int32 Times;
+        //    public Int32 Interval;
+        //}
 
-            var count = buffer.Length;
+        //void OnSend(IAsyncResult ar)
+        //{
+        //    if (!Active) return;
 
-            if (StatSend != null) StatSend.Increment(count);
-            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+        //    var client = Client;
+        //    if (client == null || !client.Connected) return;
 
-            try
-            {
-                // 修改发送缓冲区
-                if (Client.SendBufferSize < count) Client.SendBufferSize = count;
+        //    // 多次发送
+        //    var ts = (SendStat)ar.AsyncState;
+        //    try
+        //    {
+        //        Stream.EndWrite(ar);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (!ex.IsDisposed())
+        //        {
+        //            OnError("EndSend", ex);
 
-                //var ts = new SendStat();
-                //ts.Buffer = buffer;
-                //ts.Times = times - 1;
-                //ts.Interval = msInterval;
+        //            // 异常一般是网络错误
+        //            Close("完成异步发送出错");
+        //            Reconnect();
+        //        }
+        //    }
 
-                //if (count == 0)
-                //    Client.Client.Send(new Byte[0]);
-                //else
-                //    Stream.BeginWrite(buffer, 0, count, OnSend, ts);
-
-                Task task = null;
-                if (count == 0)
-                    task = Task.Factory.StartNew(() => Client.Client.Send(new Byte[0]));
-                else
-                {
-                    var ts = new SendStat();
-                    ts.Buffer = buffer;
-                    ts.Times = times - 1;
-                    ts.Interval = msInterval;
-
-                    //task = Task.Factory.FromAsync<Byte[], Int32, Int32>(Stream.BeginWrite, Stream.EndWrite, buffer, 0, buffer.Length);
-                    task = Task.Factory.FromAsync<Byte[], Int32, Int32>(Stream.BeginWrite, OnSend, buffer, 0, count, ts);
-                }
-
-                LastTime = DateTime.Now;
-
-                return task;
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("SendAsync", ex);
-
-                    // 发送异常可能是连接出了问题，需要关闭
-                    Close("发送出错");
-                    Reconnect();
-
-                    if (ThrowException) throw;
-                }
-
-                return null;
-            }
-        }
-
-        class SendStat
-        {
-            public Byte[] Buffer;
-            public Int32 Times;
-            public Int32 Interval;
-        }
-
-        void OnSend(IAsyncResult ar)
-        {
-            if (!Active) return;
-
-            var client = Client;
-            if (client == null || !client.Connected) return;
-
-            // 多次发送
-            var ts = (SendStat)ar.AsyncState;
-            try
-            {
-                Stream.EndWrite(ar);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("EndSend", ex);
-
-                    // 异常一般是网络错误
-                    Close("完成异步发送出错");
-                    Reconnect();
-                }
-            }
-
-            // 如果发送次数未归零，则继续发送
-            if (ts.Times > 0)
-            {
-                if (ts.Interval > 0) Thread.Sleep(ts.Interval);
-                SendAsync(ts.Buffer, ts.Times, ts.Interval);
-            }
-        }
+        //    // 如果发送次数未归零，则继续发送
+        //    if (ts.Times > 0)
+        //    {
+        //        if (ts.Interval > 0) Thread.Sleep(ts.Interval);
+        //        SendAsync(ts.Buffer, ts.Times, ts.Interval);
+        //    }
+        //}
 
         //private IAsyncResult _Async;
         private Boolean _Async;

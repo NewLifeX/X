@@ -9,13 +9,11 @@ namespace NewLife.Net
     public class PacketStream : Stream
     {
         #region 属性
-        private Int32 _Size;
         /// <summary>包大小</summary>
-        public Int32 Size { get { return _Size; } set { _Size = value; } }
+        public Int32 Size { get; set; }
 
-        private Int32 _ReadPosition;
         /// <summary>_ms中当前数据包开始的位置</summary>
-        private Int32 ReadPosition { get { return _ReadPosition; } set { _ReadPosition = value; } }
+        private Int32 ReadPosition { get; set; }
 
         Stream _s;
         MemoryStream _ms = new MemoryStream();
@@ -32,7 +30,7 @@ namespace NewLife.Net
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
         /// <param name="count"></param>
-        public override void Write(byte[] buffer, int offset, int count)
+        public override void Write(Byte[] buffer, Int32 offset, Int32 count)
         {
             if (count < 0) count = buffer.Length - offset;
 
@@ -54,7 +52,7 @@ namespace NewLife.Net
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public override int Read(byte[] buffer, int offset, int count)
+        public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count)
         {
             var p = ReadPosition + Size;
             // 一个全新的包，或者还没完全的包，都要从底层读取更多数据
