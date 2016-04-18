@@ -67,6 +67,7 @@
     <Compile Include="FrmMDI.Designer.cs">
       <DependentUpon>FrmMDI.cs</DependentUpon>
     </Compile>
+    <Compile Include="ITool.cs" />
     <Compile Include="NewModelForm\AddField.cs">
       <SubType>UserControl</SubType>
     </Compile>

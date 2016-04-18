@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Reflection;
 
@@ -31,28 +32,23 @@ namespace XCoder
             if (set.Title.IsNullOrEmpty()) set.Title = asm.Title;
             Text = String.Format("{2} v{0} {1:HH:mm:ss}", asm.CompileVersion, asm.Compile, set.Title);
 
-            //var name = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
+            Task.Factory.StartNew(LoadForms);
+        }
+
+        void LoadForms()
+        {
             var name = XConfig.Current.LastTool + "";
-            switch (name.ToLower())
+            foreach (var item in typeof(Form).GetAllSubclasses(true))
             {
-                case "xcoder":
-                    CreateForm<FrmMain>();
+                if (item.Name == "FrmMain" && item.FullName.EqualIgnoreCase(name))
+                {
+                    //CreateForm(item.CreateInstance() as Form);
+                    //var frm = item.CreateInstance() as Form;
+                    //frm.Invoke(() => CreateForm(frm));
+                    this.Invoke(() => CreateForm(item.CreateInstance() as Form));
+
                     break;
-                case "xcom":
-                case "com":
-                    CreateForm<XCom.FrmMain>();
-                    break;
-                case "xregex":
-                case "regex":
-                    CreateForm<NewLife.XRegex.FrmMain>();
-                    break;
-                case "xico":
-                case "ico":
-                    CreateForm<XICO.FrmMain>();
-                    break;
-                default:
-                    //CreateForm<FrmMain>();
-                    break;
+                }
             }
         }
         #endregion
@@ -60,20 +56,20 @@ namespace XCoder
         #region 应用窗口
         void CreateForm<TForm>() where TForm : Form, new()
         {
-            // 倒数第二段
-            var ss = typeof(TForm).FullName.Split(".");
-            if (ss.Length >= 2)
+            var name = typeof(TForm).FullName;
+            var cfg = XConfig.Current;
+            if (name != cfg.LastTool)
             {
-                var name = ss[ss.Length - 2];
-                var cfg = XConfig.Current;
-                if (name != cfg.LastTool)
-                {
-                    cfg.LastTool = name;
-                    cfg.Save();
-                }
+                cfg.LastTool = name;
+                cfg.Save();
             }
 
             var frm = new TForm();
+            CreateForm(frm);
+        }
+
+        void CreateForm(Form frm)
+        {
             frm.MdiParent = this;
             frm.WindowState = FormWindowState.Maximized;
             frm.Show();
@@ -137,7 +133,8 @@ namespace XCoder
         private void FrmMDI_FormClosing(object sender, FormClosingEventArgs e)
         {
             var set = XConfig.Current;
-            //if (set.Width == 0 || set.Height == 0)
+            var area = Screen.PrimaryScreen.WorkingArea;
+            if (this.Left >= 0 && this.Top >= 0 && this.Width < area.Width - 60 && this.Height < area.Height - 60)
             {
                 set.Width = this.Width;
                 set.Height = this.Height;
