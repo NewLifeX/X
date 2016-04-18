@@ -144,6 +144,7 @@ namespace XCode.DataAccessLayer
             if (_Conn != null && Conn.State != ConnectionState.Closed)
             {
                 try { Conn.Close(); }
+                catch (ObjectDisposedException) { }
                 catch (Exception ex)
                 {
                     WriteLog("执行" + DbType.ToString() + "的Close时出错：" + ex.ToString());
