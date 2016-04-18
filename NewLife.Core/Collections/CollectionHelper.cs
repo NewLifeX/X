@@ -14,9 +14,12 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public static T[] ToArray<T>(this ICollection<T> collection, Int32 index = 0)
         {
-            var arr = new T[collection.Count];
-            collection.CopyTo(arr, index);
-            return arr;
+            lock (collection)
+            {
+                var arr = new T[collection.Count];
+                collection.CopyTo(arr, index);
+                return arr;
+            }
         }
     }
 }
