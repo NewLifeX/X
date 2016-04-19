@@ -84,9 +84,7 @@ namespace NewLife.Net
 
         public void Start()
         {
-            //server.Received += server_Received;
             Server.ReceiveAsync();
-            //server.Error += server_Error;
 
             WriteLog("New {0}", Remote.EndPoint);
         }
@@ -95,14 +93,10 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
-            //Server.WriteLog("{0}[{1}].Close {2}", Server.Name, ID, this);
             WriteLog("Close {0}", Remote.EndPoint);
 
-            //Server.Received -= server_Received;
-            //Server.Error -= server_Error;
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
             Server = null;
-            //GC.Collect();
         }
         #endregion
 
@@ -136,24 +130,18 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public Task SendAsync(Byte[] buffer) { return Server.SendAsync(buffer, Remote.EndPoint); }
+        public Task SendAsync(Byte[] buffer)
+        {
+            if (Server == null) return null;
 
-        ///// <summary>异步多次发送数据</summary>
-        ///// <param name="buffer"></param>
-        ///// <param name="times"></param>
-        ///// <param name="msInterval"></param>
-        ///// <returns></returns>
-        //public Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval)
-        //{
-        //    return Server.SendAsync(buffer, times, msInterval, Remote.EndPoint);
-        //}
+            return Server.SendAsync(buffer, Remote.EndPoint);
+        }
 
         Boolean CheckFilter(IPEndPoint remote)
         {
             // IPAddress是类，不同实例对象当然不相等啦
             if (!_Filter.IsAny())
             {
-                //if (_Filter.Address != remote.Address || _Filter.Port != remote.Port) return false;
                 if (!_Filter.Equals(remote)) return false;
             }
 
@@ -232,11 +220,6 @@ namespace NewLife.Net
         #region 异常处理
         /// <summary>错误发生/断开连接时</summary>
         public event EventHandler<ExceptionEventArgs> Error;
-
-        //void server_Error(object sender, ExceptionEventArgs e)
-        //{
-        //    OnError(null, e.Exception);
-        //}
 
         /// <summary>触发异常</summary>
         /// <param name="action">动作</param>
