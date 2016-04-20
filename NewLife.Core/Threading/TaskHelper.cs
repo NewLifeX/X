@@ -86,5 +86,88 @@ namespace NewLife.Threading
         {
             return Task.Factory.FromAsync<Byte[], Int32, Int32>(stream.BeginWrite, stream.EndWrite, buffer, offset, count, null);
         }
+
+        #region 任务转换
+        /// <summary>任务转换</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="task"></param>
+        /// <param name="cancellationToken"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public static Task<TResult> ToTask<TResult>(this Task task, CancellationToken cancellationToken = default(CancellationToken), TResult result = default(TResult))
+        {
+            if (task == null) return null;
+
+            if (task.IsCompleted)
+            {
+                if (task.IsFaulted) return FromErrors<TResult>(task.Exception.InnerExceptions);
+
+                if (task.IsCanceled || cancellationToken.IsCancellationRequested) return Canceled<TResult>();
+
+                if (task.Status == TaskStatus.RanToCompletion) return FromResult<TResult>(result);
+            }
+            return ToTaskContinuation<TResult>(task, result);
+        }
+
+        private static Task<TResult> FromErrors<TResult>(IEnumerable<Exception> exceptions)
+        {
+            var tcs = new TaskCompletionSource<TResult>();
+            tcs.SetException(exceptions);
+            return tcs.Task;
+        }
+
+        private static Task<TResult> Canceled<TResult>()
+        {
+            return CancelCache<TResult>.Canceled;
+        }
+
+        private static class CancelCache<TResult>
+        {
+            public static readonly Task<TResult> Canceled = GetCancelledTask();
+
+            private static Task<TResult> GetCancelledTask()
+            {
+                var tcs = new TaskCompletionSource<TResult>();
+                tcs.SetCanceled();
+                return tcs.Task;
+            }
+        }
+
+        private static Task<TResult> FromResult<TResult>(TResult result)
+        {
+            var tcs = new TaskCompletionSource<TResult>();
+            tcs.SetResult(result);
+            return tcs.Task;
+        }
+
+        private static Task<TResult> ToTaskContinuation<TResult>(Task task, TResult result)
+        {
+            var tcs = new TaskCompletionSource<TResult>();
+            task.ContinueWith(delegate(Task innerTask)
+            {
+                if (task.Status == TaskStatus.RanToCompletion)
+                {
+                    tcs.TrySetResult(result);
+                    return;
+                }
+                tcs.TrySetFromTask(innerTask);
+            }, TaskContinuationOptions.ExecuteSynchronously);
+            return tcs.Task;
+        }
+
+        private static bool TrySetFromTask<TResult>(this TaskCompletionSource<TResult> tcs, Task source)
+        {
+            if (source.Status == TaskStatus.Canceled) return tcs.TrySetCanceled();
+
+            if (source.Status == TaskStatus.Faulted) return tcs.TrySetException(source.Exception.InnerExceptions);
+
+            if (source.Status == TaskStatus.RanToCompletion)
+            {
+                var task = source as Task<TResult>;
+                return tcs.TrySetResult((task == null) ? default(TResult) : task.Result);
+            }
+            return false;
+        }
+        #endregion
     }
 }
