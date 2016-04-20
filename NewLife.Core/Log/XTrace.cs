@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 #if !Android
 using System.Windows.Forms;
 #endif
@@ -68,6 +69,7 @@ namespace NewLife.Log
         static XTrace()
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         }
 
 #if Android
@@ -81,6 +83,15 @@ namespace NewLife.Log
             }
         }
 #endif
+
+        private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            if (!e.Observed)
+            {
+                WriteException(e.Exception);
+                e.SetObserved();
+            }
+        }
 
         static Object _lock = new object();
         static Int32 _initing = 0;

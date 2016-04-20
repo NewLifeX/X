@@ -19,8 +19,6 @@ namespace NewLife.Threading
         /// <returns></returns>
         public static Task LogException(this Task task, ILog log = null)
         {
-            //var flag = enable != null ? enable.Value : XTrace.Debug;
-            //if (!flag) return task;
             if (log == null) log = XTrace.Log;
             if (log == Logger.Null || !log.Enable) return task;
 
@@ -36,8 +34,6 @@ namespace NewLife.Threading
         /// <returns></returns>
         public static Task LogException(this Task task, Action<Exception> errCallback)
         {
-            //var flag = enable != null ? enable.Value : XTrace.Debug;
-            //if (!flag) return task;
             if (errCallback == null) return task;
 
             return task.ContinueWith(t =>
