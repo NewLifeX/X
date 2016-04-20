@@ -80,7 +80,6 @@
     <Compile Include="NewModelForm\AddTable.Designer.cs">
       <DependentUpon>AddTable.cs</DependentUpon>
     </Compile>
-    <Compile Include="Network\BingTranslate.cs" />
     <Compile Include="Engine\FileSource.cs" />
     <Compile Include="Engine\XConfig.cs" />
     <Compile Include="Engine\XCoderBase.cs" />
@@ -197,7 +196,6 @@
     <Compile Include="Windows\FrmText.Designer.cs">
       <DependentUpon>FrmText.cs</DependentUpon>
     </Compile>
-    <Compile Include="Network\ITranslate.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -241,7 +239,6 @@
     <EmbeddedResource Include="Template\实体数据\中文名.cs" />
     <EmbeddedResource Include="Template\纯属性\I中文名.cs" />
     <EmbeddedResource Include="Template\纯属性\中文名.cs" />
-    <Compile Include="Network\TranslateResult.cs" />
     <EmbeddedResource Include="Windows\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
       <SubType>Designer</SubType>

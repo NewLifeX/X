@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -21,8 +22,14 @@ namespace XNet
     {
         NetServer _Server;
         ISocketClient _Client;
+        static Task<NetServer[]> _task;
 
         #region 窗体
+        static FrmMain()
+        {
+            _task = Task.Factory.StartNew(() => GetNetServers());
+        }
+
         public FrmMain()
         {
             InitializeComponent();
@@ -33,7 +40,6 @@ namespace XNet
         private void FrmMain_Load(object sender, EventArgs e)
         {
             txtReceive.UseWinFormControl();
-            //NetHelper.Debug = true;
 
             txtReceive.SetDefaultStyle(12);
             txtSend.SetDefaultStyle(12);
@@ -42,13 +48,19 @@ namespace XNet
             gbReceive.Tag = gbReceive.Text;
             gbSend.Tag = gbSend.Text;
 
-            var list = EnumHelper.GetDescriptions<WorkModes>().Select(kv => kv.Value).ToList();
-            foreach (var item in GetNetServers())
+            _task.ContinueWith(t =>
             {
-                list.Add(item.Name);
-            }
-            cbMode.DataSource = list;
-            cbMode.SelectedIndex = 0;
+                var list = EnumHelper.GetDescriptions<WorkModes>().Select(kv => kv.Value).ToList();
+                foreach (var item in t.Result)
+                {
+                    list.Add(item.Name);
+                }
+                this.Invoke(() =>
+                {
+                    cbMode.DataSource = list;
+                    cbMode.SelectedIndex = 0;
+                });
+            });
 
             cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
             cbAddr.DataSource = GetIPs();
@@ -419,14 +431,23 @@ namespace XNet
         {
             if (_ns != null) return _ns;
 
-            var list = new List<NetServer>();
-            foreach (var item in typeof(NetServer).GetAllSubclasses(true))
+            lock (typeof(FrmMain))
             {
-                var ns = item.CreateInstance() as NetServer;
-                if (ns != null) list.Add(ns);
-            }
+                if (_ns != null) return _ns;
 
-            return _ns = list.ToArray();
+                var sw = new Stopwatch();
+                sw.Start();
+                var list = new List<NetServer>();
+                foreach (var item in typeof(NetServer).GetAllSubclasses(true))
+                {
+                    var ns = item.CreateInstance() as NetServer;
+                    if (ns != null) list.Add(ns);
+                }
+                sw.Stop();
+                XTrace.WriteLine("GetNetServers 耗时 {0}", sw.Elapsed);
+
+                return _ns = list.ToArray();
+            }
         }
     }
 }

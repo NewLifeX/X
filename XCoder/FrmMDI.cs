@@ -37,22 +37,16 @@ namespace XCoder
             if (set.Title.IsNullOrEmpty()) set.Title = asm.Title;
             Text = String.Format("{2} v{0} {1:HH:mm:ss}", asm.CompileVersion, asm.Compile, set.Title);
 
-            //Task.Factory.StartNew(LoadForms);
             _load.ContinueWith(t => LoadForms(t.Result));
         }
 
         void LoadForms(Type[] ts)
         {
-            //var ts = typeof(Form).GetAllSubclasses(true).Where(e => e.Name == "FrmMain").ToArray();
-
             var name = XConfig.Current.LastTool + "";
             foreach (var item in ts)
             {
                 if (item.FullName.EqualIgnoreCase(name))
                 {
-                    //CreateForm(item.CreateInstance() as Form);
-                    //var frm = item.CreateInstance() as Form;
-                    //frm.Invoke(() => CreateForm(frm));
                     this.Invoke(() => CreateForm(item.CreateInstance() as Form));
 
                     break;
