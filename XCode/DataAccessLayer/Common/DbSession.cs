@@ -141,9 +141,9 @@ namespace XCode.DataAccessLayer
         /// <summary>关闭</summary>
         public virtual void Close()
         {
-            if (_Conn != null && Conn.State != ConnectionState.Closed)
+            if (_Conn != null)
             {
-                try { Conn.Close(); }
+                try { if (Conn.State != ConnectionState.Closed) Conn.Close(); }
                 catch (ObjectDisposedException) { }
                 catch (Exception ex)
                 {
