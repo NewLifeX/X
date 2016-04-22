@@ -206,9 +206,9 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public override Task SendAsync(Byte[] buffer)
+        public override Boolean SendAsync(Byte[] buffer)
         {
-            if (!Open()) return null;
+            if (!Open()) return false;
 
             var count = buffer.Length;
 
@@ -218,27 +218,29 @@ namespace NewLife.Net
             // 修改发送缓冲区
             if (Client.SendBufferSize < count) Client.SendBufferSize = count;
 
-            Task task = null;
-            if (count == 0)
-                task = Task.Factory.StartNew(() => Client.Client.Send(new Byte[0]));
-            else
-                task = Stream.WriteAsync(buffer, 0, count);
+            //Task task = null;
+            //if (count == 0)
+            //    task = Task.Factory.StartNew(() => Client.Client.Send(new Byte[0]));
+            //else
+            //    task = Stream.WriteAsync(buffer, 0, count);
 
-            task = task.LogException(ex =>
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("EndSend", ex);
+            //task = task.LogException(ex =>
+            //{
+            //    if (!ex.IsDisposed())
+            //    {
+            //        OnError("EndSend", ex);
 
-                    // 异常一般是网络错误
-                    Close("完成异步发送出错");
-                    Reconnect();
-                }
-            });
+            //        // 异常一般是网络错误
+            //        Close("完成异步发送出错");
+            //        Reconnect();
+            //    }
+            //});
 
             LastTime = DateTime.Now;
 
-            return task;
+            //return task;
+
+            throw new NotImplementedException();
         }
         #endregion
 

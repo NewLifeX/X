@@ -175,14 +175,16 @@ namespace NewLife.Net
 
             return true;
         }
+        #endregion
 
+        #region 发送
         /// <summary>写入数据</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         public virtual Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            Open();
+            if (!Open()) return false;
 
             WriteLog("Send:{0}", BitConverter.ToString(buffer));
 
@@ -201,13 +203,15 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public virtual Task SendAsync(Byte[] buffer)
+        public virtual Boolean SendAsync(Byte[] buffer)
         {
-            Open();
+            if (!Open()) return false;
 
             WriteLog("SendAsync:{0}", BitConverter.ToString(buffer));
 
-            return Task.Factory.StartNew(() => Serial.Write(buffer, 0, buffer.Length));
+            Task.Factory.StartNew(() => Serial.Write(buffer, 0, buffer.Length));
+
+            return true;
         }
 
         /// <summary>从串口中读取指定长度的数据，一般是一帧</summary>
@@ -217,7 +221,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            Open();
+            if (!Open()) return 0;
 
             if (count < 0) count = buffer.Length - offset;
 

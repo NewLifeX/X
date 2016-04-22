@@ -22,7 +22,7 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        Task SendAsync(Byte[] buffer);
+        Boolean SendAsync(Byte[] buffer);
 
         /// <summary>读取指定长度的数据</summary>
         /// <param name="buffer">缓冲区</param>

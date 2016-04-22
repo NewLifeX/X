@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -181,14 +182,18 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public override Task SendAsync(Byte[] buffer)
+        public override Boolean SendAsync(Byte[] buffer)
         {
             return SendAsync(buffer, Remote.EndPoint);
         }
 
-        internal Task SendAsync(Byte[] buffer, IPEndPoint remote)
+        private SocketAsyncEventArgs _eSend;
+        private Int32 _Sending;
+        private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
+
+        internal Boolean SendAsync(Byte[] buffer, IPEndPoint remote)
         {
-            if (!Open()) return null;
+            if (!Open()) return false;
 
             var count = buffer.Length;
 
@@ -197,12 +202,23 @@ namespace NewLife.Net
 
             LastTime = DateTime.Now;
 
-            var task = Client.SendToAsync(buffer, remote).LogException(ex =>
-            {
-                if (!ex.IsDisposed()) OnError("SendAsync", ex);
-            });
+            //var task = Client.SendToAsync(buffer, remote).LogException(ex =>
+            //{
+            //    if (!ex.IsDisposed()) OnError("SendAsync", ex);
+            //});
 
-            return task;
+            //return task;
+
+            // 同时只允许一个异步发送，其它发送放入队列
+            var qi = new QueueItem();
+            qi.Buffer = buffer;
+            qi.Remote = remote;
+
+            _SendQueue.Enqueue(qi);
+
+            CheckSendQueue(false);
+
+            return true;
 
             //try
             //{
@@ -221,6 +237,64 @@ namespace NewLife.Net
 
             //    return false;
             //}
+        }
+
+        void CheckSendQueue(Boolean io)
+        {
+            var qu = _SendQueue;
+            if (qu.Count == 0) return;
+
+            // 如果没有在发送，就开始发送
+            if (Interlocked.CompareExchange(ref _Sending, 1, 0) != 0) return;
+
+            QueueItem qi = null;
+            if (!qu.TryDequeue(out qi)) return;
+
+            var se = _eSend;
+            if (se == null)
+            {
+                var buf = new Byte[1500];
+                se = _eSend = new SocketAsyncEventArgs();
+                se.SetBuffer(buf, 0, buf.Length);
+                se.Completed += (s, e) => ProcessSend(e);
+            }
+
+            // 拷贝缓冲区，设置长度
+            Buffer.BlockCopy(qi.Buffer, 0, se.Buffer, 0, qi.Buffer.Length);
+            se.SetBuffer(0, qi.Buffer.Length);
+            se.RemoteEndPoint = qi.Remote;
+
+            if (!Client.SendToAsync(se))
+            {
+                if (io)
+                    ProcessSend(se);
+                else
+                    Task.Factory.StartNew(s => ProcessSend(s as SocketAsyncEventArgs), se);
+            }
+        }
+
+        void ProcessSend(SocketAsyncEventArgs se)
+        {
+            if (!Active || se.SocketError == SocketError.OperationAborted)
+            {
+                se.TryDispose();
+                return;
+            }
+
+            // 判断成功失败
+            if (se.SocketError != SocketError.Success)
+            {
+                if (se.SocketError != SocketError.ConnectionReset) OnError("OnSend", se.ConnectByNameError);
+            }
+
+            // 发送新的数据
+            if (Interlocked.CompareExchange(ref _Sending, 0, 1) == 1) CheckSendQueue(true);
+        }
+
+        class QueueItem
+        {
+            public Byte[] Buffer { get; set; }
+            public IPEndPoint Remote { get; set; }
         }
         #endregion
 
@@ -308,16 +382,16 @@ namespace NewLife.Net
                     return false;
                 }
 
-                var buf = new Byte[1024];
-                var sa = new SocketAsyncEventArgs();
-                sa.SetBuffer(buf, 0, buf.Length);
-                sa.Completed += _saea_Completed;
+                var buf = new Byte[1500];
+                var se = new SocketAsyncEventArgs();
+                se.SetBuffer(buf, 0, buf.Length);
+                se.Completed += (s, e) => ProcessReceive(e);
 
                 WriteDebugLog("创建SA {0}", _RecvCount);
 
-                if (sa == null) return false;
+                if (se == null) return false;
 
-                ReceiveAsync(sa, false);
+                ReceiveAsync(se, false);
             }
 
             return true;
@@ -363,35 +437,37 @@ namespace NewLife.Net
             if (!rs)
             {
                 if (io)
-                    Process(e);
+                    ProcessReceive(e);
                 else
-                    Task.Factory.StartNew(() => Process(e));
+                    Task.Factory.StartNew(() => ProcessReceive(e));
             }
 
             return true;
         }
 
-        void _saea_Completed(object sender, SocketAsyncEventArgs e)
+        void ProcessReceive(SocketAsyncEventArgs se)
         {
-            if (e.LastOperation == SocketAsyncOperation.ReceiveFrom ||
-                e.LastOperation == SocketAsyncOperation.Receive)
-                Process(e);
-        }
-
-        void Process(SocketAsyncEventArgs e)
-        {
-            if (!Active) return;
+            if (!Active || se.SocketError == SocketError.OperationAborted)
+            {
+                se.TryDispose();
+                return;
+            }
 
             // 判断成功失败
-            if (e.SocketError != SocketError.Success)
+            if (se.SocketError != SocketError.Success)
             {
-                if (e.SocketError != SocketError.ConnectionReset) OnError("OnReceive", e.ConnectByNameError);
+                if (se.SocketError != SocketError.ConnectionReset)
+                {
+                    var ex = se.ConnectByNameError;
+                    if (ex == null) ex = new SocketException((Int32)se.SocketError);
+                    OnError("OnReceive", ex);
+                }
             }
             else
             {
                 // 拷贝走数据，参数要重复利用
-                var data = e.Buffer.ReadBytes(e.Offset, e.BytesTransferred);
-                var ep = e.RemoteEndPoint as IPEndPoint;
+                var data = se.Buffer.ReadBytes(se.Offset, se.BytesTransferred);
+                var ep = se.RemoteEndPoint as IPEndPoint;
 
                 // 在用户线程池里面去处理数据
                 //Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
@@ -408,13 +484,8 @@ namespace NewLife.Net
                 }
             }
 
-            //Interlocked.Decrement(ref _AsyncCount);
-
             // 开始新的监听
-            if (e.SocketError != SocketError.OperationAborted)
-                ReceiveAsync(e, true);
-            else
-                e.TryDispose();
+            ReceiveAsync(se, true);
         }
 
         //void OnReceive(IAsyncResult ar)

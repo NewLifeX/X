@@ -91,7 +91,7 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        Task SendAsync(Byte[] buffer);
+        Boolean SendAsync(Byte[] buffer);
         #endregion
 
         #region 接收
@@ -173,11 +173,11 @@ namespace NewLife.Net
         /// <param name="times"></param>
         /// <param name="msInterval"></param>
         /// <returns></returns>
-        public static Task SendAsync(this ISocketRemote session, Byte[] buffer, Int32 times, Int32 msInterval)
+        public static Boolean SendAsync(this ISocketRemote session, Byte[] buffer, Int32 times, Int32 msInterval)
         {
             if (times <= 1) return session.SendAsync(buffer);
 
-            var src = new TaskCompletionSource<Int32>();
+            //var src = new TaskCompletionSource<Int32>();
 
             var timer = new TimerX(s =>
             {
@@ -189,11 +189,13 @@ namespace NewLife.Net
                 if (--times <= 0)
                 {
                     t.Period = 0;
-                    src.SetResult(0);
+                    //src.SetResult(0);
                 }
             }, null, 0, msInterval);
 
-            return src.Task;
+            //return src.Task;
+
+            return true;
         }
         #endregion
 

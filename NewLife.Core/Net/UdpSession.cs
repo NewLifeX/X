@@ -100,7 +100,7 @@ namespace NewLife.Net
         }
         #endregion
 
-        #region 收发
+        #region 发送
         public Boolean Send(byte[] buffer, int offset = 0, int count = -1)
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
@@ -130,13 +130,15 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public Task SendAsync(Byte[] buffer)
+        public Boolean SendAsync(Byte[] buffer)
         {
-            if (Server == null) return null;
+            if (Server == null) return false;
 
             return Server.SendAsync(buffer, Remote.EndPoint);
         }
+        #endregion
 
+        #region 接收
         Boolean CheckFilter(IPEndPoint remote)
         {
             // IPAddress是类，不同实例对象当然不相等啦
@@ -193,9 +195,6 @@ namespace NewLife.Net
 
             return size;
         }
-        #endregion
-
-        #region 异步接收
         /// <summary>开始异步接收数据</summary>
         public Boolean ReceiveAsync()
         {

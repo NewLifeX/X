@@ -169,7 +169,7 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public abstract Task SendAsync(Byte[] buffer);
+        public abstract Boolean SendAsync(Byte[] buffer);
 
         ///// <summary>异步多次发送数据</summary>
         ///// <param name="buffer"></param>
