@@ -250,7 +250,7 @@ namespace NewLife.Net
 
         void ProcessSend(SocketAsyncEventArgs se)
         {
-            if (!Active || se.SocketError == SocketError.OperationAborted)
+            if (!Active)
             {
                 se.TryDispose();
                 return;
@@ -259,7 +259,18 @@ namespace NewLife.Net
             // 判断成功失败
             if (se.SocketError != SocketError.Success)
             {
-                if (se.SocketError != SocketError.ConnectionReset) OnError("SendAsync", se.ConnectByNameError);
+                // 未被关闭Socket时，可以继续使用
+                if (!se.IsNotClosed())
+                {
+                    var ex = se.GetException();
+                    if (ex != null) OnError("SendAsync", ex);
+
+                    se.TryDispose();
+
+                    if (se.SocketError == SocketError.ConnectionReset) Dispose();
+
+                    return;
+                }
             }
 
             // 发送新的数据
@@ -356,8 +367,6 @@ namespace NewLife.Net
                     OnError("ReceiveAsync", ex);
 
                     // 异常一般是网络错误，UDP不需要关闭
-                    //Close();
-
                     if (!io && ThrowException) throw;
                 }
                 return false;
@@ -379,7 +388,7 @@ namespace NewLife.Net
 
         void ProcessReceive(SocketAsyncEventArgs se)
         {
-            if (!Active || se.SocketError == SocketError.OperationAborted)
+            if (!Active)
             {
                 se.TryDispose();
                 return;
@@ -388,11 +397,17 @@ namespace NewLife.Net
             // 判断成功失败
             if (se.SocketError != SocketError.Success)
             {
-                if (se.SocketError != SocketError.ConnectionReset)
+                // 未被关闭Socket时，可以继续使用
+                if (!se.IsNotClosed())
                 {
-                    var ex = se.ConnectByNameError;
-                    if (ex == null) ex = new SocketException((Int32)se.SocketError);
-                    OnError("OnReceive", ex);
+                    var ex = se.GetException();
+                    if (ex != null) OnError("ReceiveAsync", ex);
+
+                    se.TryDispose();
+
+                    if (se.SocketError == SocketError.ConnectionReset) Dispose();
+
+                    return;
                 }
             }
             else

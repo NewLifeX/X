@@ -200,7 +200,7 @@ namespace NewLife.Net
 
         void ProcessAccept(SocketAsyncEventArgs se)
         {
-            if (!Active || Client == null || se.SocketError == SocketError.OperationAborted)
+            if (!Active || Client == null)
             {
                 se.TryDispose();
                 return;
@@ -209,11 +209,14 @@ namespace NewLife.Net
             // 判断成功失败
             if (se.SocketError != SocketError.Success)
             {
-                if (se.SocketError != SocketError.ConnectionReset)
+                // 未被关闭Socket时，可以继续使用
+                if (!se.IsNotClosed())
                 {
-                    var ex = se.ConnectByNameError;
-                    if (ex == null) ex = new SocketException((Int32)se.SocketError);
-                    OnError("AcceptAsync", ex);
+                    var ex = se.GetException();
+                    if (ex != null) OnError("AcceptAsync", ex);
+
+                    se.TryDispose();
+                    return;
                 }
             }
             else
@@ -236,50 +239,6 @@ namespace NewLife.Net
             // 开始新的征程
             AcceptAsync(se, true);
         }
-
-        //void OnAccept(IAsyncResult ar)
-        //{
-        //    _Async = null;
-
-        //    if (!Active) return;
-
-        //    if (Server == null) return;
-
-        //    TcpClient client = null;
-        //    try
-        //    {
-        //        client = Server.EndAcceptTcpClient(ar);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (!ex.IsDisposed())
-        //        {
-        //            OnError("EndAcceptTcpClient", ex);
-
-        //            // EndAcceptTcpClient异常一般是网络故障，但是为了确保系统可靠性，我们仍然不能关闭服务器
-        //            //Stop();
-
-        //            // 开始新的监听，避免因为异常就失去网络服务
-        //            AcceptAsync(true);
-        //        }
-
-        //        return;
-        //    }
-
-        //    // 在用户线程池里面去处理数据
-        //    //Task.Factory.StartNew(() => OnAccept(client)).LogException(ex => OnError("OnAccept", ex));
-        //    try
-        //    {
-        //        OnAccept(client);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        OnError("OnAccept", ex);
-        //    }
-
-        //    // 开始新的征程
-        //    AcceptAsync(true);
-        //}
 
         Int32 g_ID = 0;
         /// <summary>收到新连接时处理</summary>

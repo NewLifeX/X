@@ -294,8 +294,10 @@ namespace NewLife.Net
             if (session != null) RaiseReceive(session, e);
         }
 
-        internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
+        internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
         {
+            if (!Active || Client == null) return false;
+
             // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
             se.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
 
@@ -375,8 +377,6 @@ namespace NewLife.Net
             var sessions = _Sessions;
             if (sessions != null)
             {
-                _Sessions = null;
-
                 if (sessions.Count > 0)
                 {
                     WriteLog("准备释放会话{0}个！", sessions.Count);
