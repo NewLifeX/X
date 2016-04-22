@@ -260,7 +260,7 @@ namespace NewLife.Net
             if (se.SocketError != SocketError.Success)
             {
                 // 未被关闭Socket时，可以继续使用
-                if (!se.IsNotClosed())
+                //if (!se.IsNotClosed())
                 {
                     var ex = se.GetException();
                     if (ex != null) OnError("SendAsync", ex);
@@ -398,7 +398,7 @@ namespace NewLife.Net
             if (se.SocketError != SocketError.Success)
             {
                 // 未被关闭Socket时，可以继续使用
-                if (!se.IsNotClosed())
+                //if (!se.IsNotClosed())
                 {
                     var ex = se.GetException();
                     if (ex != null) OnError("ReceiveAsync", ex);
@@ -432,7 +432,7 @@ namespace NewLife.Net
             }
 
             // 开始新的监听
-            ReceiveAsync(se, true);
+            if (Active && !Disposed) ReceiveAsync(se, true);
         }
 
         /// <summary>处理收到的数据</summary>

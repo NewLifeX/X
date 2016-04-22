@@ -210,7 +210,7 @@ namespace NewLife.Net
             if (se.SocketError != SocketError.Success)
             {
                 // 未被关闭Socket时，可以继续使用
-                if (!se.IsNotClosed())
+                //if (!se.IsNotClosed())
                 {
                     var ex = se.GetException();
                     if (ex != null) OnError("AcceptAsync", ex);
