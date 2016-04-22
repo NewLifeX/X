@@ -227,6 +227,10 @@ namespace NewLife.Net
                 {
                     if (!ex.IsDisposed()) OnError("EndAccept", ex);
                 }
+                finally
+                {
+                    se.AcceptSocket = null;
+                }
             }
 
             // 开始新的征程
