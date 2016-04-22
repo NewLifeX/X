@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -42,7 +40,7 @@ namespace NewLife.Net
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
 
-        /// <summary>最大并行接收数</summary>
+        /// <summary>最大并行接收数。默认1</summary>
         public Int32 MaxReceive { get; set; }
         #endregion
 
@@ -58,7 +56,8 @@ namespace NewLife.Net
 
             StatSession = new Statistics();
 
-            MaxReceive = Environment.ProcessorCount * 2 + 2;
+            MaxReceive = 1;
+            //MaxReceive = Environment.ProcessorCount * 2 + 2;
         }
 
         /// <summary>使用监听口初始化</summary>
@@ -107,14 +106,6 @@ namespace NewLife.Net
                 Client = null;
                 try
                 {
-                    //if (_saea != null)
-                    //{
-                    //    _saea.TryDispose();
-                    //    _saea = null;
-                    //}
-                    SocketAsyncEventArgs sa = null;
-                    while (_recvs.TryPop(out sa)) sa.TryDispose();
-
                     CloseAllSession();
 
                     udp.Shutdown();
@@ -294,9 +285,7 @@ namespace NewLife.Net
             return size;
         }
 
-        //private Int32 _AsyncCount;
-        //private SocketAsyncEventArgs _saea;
-        private ConcurrentStack<SocketAsyncEventArgs> _recvs = new ConcurrentStack<SocketAsyncEventArgs>();
+        private Int32 _RecvCount;
 
         /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
@@ -308,33 +297,41 @@ namespace NewLife.Net
 
             if (!UseReceiveAsync) UseReceiveAsync = true;
 
-            SocketAsyncEventArgs sa = null;
-            if (!_recvs.TryPop(out sa) && _recvs.Count < MaxReceive)
+            if (_RecvCount >= MaxReceive) return false;
+
+            // 按照最大并发创建异步委托
+            for (int i = _RecvCount; i < MaxReceive; i++)
             {
+                if (Interlocked.Increment(ref _RecvCount) > MaxReceive)
+                {
+                    Interlocked.Decrement(ref _RecvCount);
+                    return false;
+                }
+
                 var buf = new Byte[1024];
-                sa = new SocketAsyncEventArgs();
+                var sa = new SocketAsyncEventArgs();
                 sa.SetBuffer(buf, 0, buf.Length);
                 sa.Completed += _saea_Completed;
 
-                //_recvs.Push(sa);
-                Debug.WriteLine("创建SA {0}", _recvs.Count);
+                WriteDebugLog("创建SA {0}", _RecvCount);
+
+                if (sa == null) return false;
+
+                ReceiveAsync(sa, false);
             }
 
-            if (sa == null) return false;
-
-            return ReceiveAsync(sa, false);
+            return true;
         }
 
         Boolean ReceiveAsync(SocketAsyncEventArgs e, Boolean io)
         {
             if (Disposed)
             {
-                _recvs.Push(e);
+                Interlocked.Decrement(ref _RecvCount);
+                e.TryDispose();
 
                 throw new ObjectDisposedException(this.GetType().Name);
             }
-
-            //if (Interlocked.CompareExchange(ref _AsyncCount, 1, 0) != 0) return false;
 
             // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
             e.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
@@ -347,7 +344,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
-                _recvs.Push(e);
+                Interlocked.Decrement(ref _RecvCount);
+                e.TryDispose();
 
                 if (!ex.IsDisposed())
                 {

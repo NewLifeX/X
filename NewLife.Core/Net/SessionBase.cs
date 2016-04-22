@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -256,6 +257,15 @@ namespace NewLife.Net
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
+        {
+            if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
+        }
+
+        /// <summary>输出调试日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        [Conditional("DEBUG")]
+        public void WriteDebugLog(String format, params Object[] args)
         {
             if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }

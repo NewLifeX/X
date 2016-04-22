@@ -4,18 +4,18 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Security;
-using NewLife.Serialization;
+
 
 #if DEBUG
 namespace NewLife.Serialization
 {
+    /// <summary>Json测试</summary>
     public static class JsonTest
     {
+        /// <summary>开始测试</summary>
         public static void Start()
         {
             // 提升进程优先级
