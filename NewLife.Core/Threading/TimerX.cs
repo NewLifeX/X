@@ -10,7 +10,6 @@ namespace NewLife.Threading
     /// 为了避免系统的Timer可重入的问题，差别在于本地调用完成后才开始计算时间间隔。这实际上也是经常用到的。
     /// 
     /// 因为挂载在静态列表上，必须从外部主动调用<see cref="IDisposable.Dispose"/>才能销毁定时器。
-    /// 因为<see cref="Callback"/>采用弱引用，当回调函数所在对象被销毁时，对应的定时器可以自动销毁。
     /// 
     /// 该定时器不能放入太多任务，否则适得其反！
     /// 
@@ -20,7 +19,7 @@ namespace NewLife.Threading
     {
         #region 属性
         /// <summary>回调</summary>
-        public WeakAction<Object> Callback { get; set; }
+        public Action<Object> Callback { get; set; }
 
         /// <summary>用户数据</summary>
         public Object State { get; set; }
@@ -50,7 +49,7 @@ namespace NewLife.Threading
             if (dueTime < 0) throw new ArgumentOutOfRangeException("dueTime");
             if (period < 0) throw new ArgumentOutOfRangeException("period");
 
-            Callback = new WeakAction<Object>(callback);
+            Callback = new Action<Object>(callback);
             State = state;
             Period = period;
 
@@ -203,7 +202,7 @@ namespace NewLife.Threading
             {
                 // 删除过期的，为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度
                 var p = timer.Period;
-                if (!timer.Callback.IsAlive || p < 10 && p > 0)
+                if (p < 10 && p > 0)
                 {
                     // 周期0表示只执行一次
                     if (p < 10 && p > 0) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于{1}ms<10ms的任务调度，关闭任务{0}", timer, p);
@@ -236,8 +235,8 @@ namespace NewLife.Threading
                 {
                     timer.Calling = true;
 
-                    Action<Object> callback = timer.Callback;
-                    callback(timer.State ?? timer);
+                    //Action<Object> callback = timer.Callback;
+                    timer.Callback(timer.State ?? timer);
                 }
                 catch (ThreadAbortException) { throw; }
                 catch (ThreadInterruptedException) { throw; }
