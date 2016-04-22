@@ -100,7 +100,6 @@ namespace NewLife.Net
                 Client = null;
                 try
                 {
-                    //if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
                     if (_saea != null)
                     {
                         _saea.TryDispose();
@@ -109,8 +108,7 @@ namespace NewLife.Net
 
                     CloseAllSession();
 
-                    udp.Close();
-                    //NetHelper.Close(Client.Client);
+                    udp.Shutdown();
                 }
                 catch (Exception ex)
                 {
@@ -264,7 +262,6 @@ namespace NewLife.Net
             try
             {
                 EndPoint remoteEP = null;
-                //var data = Client.Receive(ref remoteEP);
                 size = Client.ReceiveFrom(buffer, offset, count, SocketFlags.None, ref remoteEP);
                 LastRemote = remoteEP as IPEndPoint;
             }
@@ -455,7 +452,6 @@ namespace NewLife.Net
             // 分析处理
             var e = new ReceivedEventArgs();
             e.Data = data;
-            //e.Remote = remote;
             e.UserState = remote;
 
             // 为该连接单独创建一个会话，方便直接通信
@@ -551,15 +547,9 @@ namespace NewLife.Net
         #endregion
 
         #region IServer接口
-        void IServer.Start()
-        {
-            Open();
-        }
+        void IServer.Start() { Open(); }
 
-        void IServer.Stop()
-        {
-            Close("服务停止");
-        }
+        void IServer.Stop() { Close("服务停止"); }
         #endregion
 
         #region 辅助

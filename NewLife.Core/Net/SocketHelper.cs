@@ -1,9 +1,12 @@
 ﻿using System;
+using NewLife.Reflection;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace NewLife.Net
 {
@@ -134,5 +137,56 @@ namespace NewLife.Net
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetString(buf, 0, len);
         }
+
+        #region 关闭连接
+        /// <summary>关闭连接</summary>
+        /// <param name="socket"></param>
+        /// <param name="reuseAddress"></param>
+        public static void Shutdown(this Socket socket, Boolean reuseAddress = false)
+        {
+            if (socket == null || mSafeHandle == null) return;
+
+            var value = socket.GetValue(mSafeHandle);
+            var hand = value as SafeHandle;
+            if (hand == null || hand.IsClosed) return;
+
+            // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
+            if (socket.Connected)
+            {
+                try
+                {
+                    socket.Disconnect(reuseAddress);
+                    socket.Shutdown(SocketShutdown.Both);
+                }
+                catch (SocketException ex2)
+                {
+                    //if (ex2.SocketErrorCode != SocketError.NotConnected) WriteLog(ex2.ToString());
+                }
+                catch (ObjectDisposedException) { }
+                catch (Exception ex3)
+                {
+                    //if (Debug) WriteLog(ex3.ToString());
+                }
+            }
+
+            socket.Close();
+        }
+
+        private static MemberInfo[] _mSafeHandle;
+        /// <summary>SafeHandle字段</summary>
+        private static MemberInfo mSafeHandle
+        {
+            get
+            {
+                if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
+
+                MemberInfo pi = typeof(Socket).GetFieldEx("m_Handle");
+                if (pi == null) pi = typeof(Socket).GetPropertyEx("SafeHandle");
+                _mSafeHandle = new MemberInfo[] { pi };
+
+                return pi;
+            }
+        }
+        #endregion
     }
 }
