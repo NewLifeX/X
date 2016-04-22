@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -39,6 +41,9 @@ namespace NewLife.Net
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
+
+        /// <summary>最大并行接收数</summary>
+        public Int32 MaxReceive { get; set; }
         #endregion
 
         #region 构造
@@ -52,6 +57,8 @@ namespace NewLife.Net
             _Sessions = new SessionCollection(this);
 
             StatSession = new Statistics();
+
+            MaxReceive = Environment.ProcessorCount * 2 + 2;
         }
 
         /// <summary>使用监听口初始化</summary>
@@ -100,11 +107,13 @@ namespace NewLife.Net
                 Client = null;
                 try
                 {
-                    if (_saea != null)
-                    {
-                        _saea.TryDispose();
-                        _saea = null;
-                    }
+                    //if (_saea != null)
+                    //{
+                    //    _saea.TryDispose();
+                    //    _saea = null;
+                    //}
+                    SocketAsyncEventArgs sa = null;
+                    while (_recvs.TryPop(out sa)) sa.TryDispose();
 
                     CloseAllSession();
 
@@ -285,8 +294,9 @@ namespace NewLife.Net
             return size;
         }
 
-        private Int32 _AsyncCount;
-        private SocketAsyncEventArgs _saea;
+        //private Int32 _AsyncCount;
+        //private SocketAsyncEventArgs _saea;
+        private ConcurrentStack<SocketAsyncEventArgs> _recvs = new ConcurrentStack<SocketAsyncEventArgs>();
 
         /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
@@ -298,22 +308,33 @@ namespace NewLife.Net
 
             if (!UseReceiveAsync) UseReceiveAsync = true;
 
-            if (_saea == null)
+            SocketAsyncEventArgs sa = null;
+            if (!_recvs.TryPop(out sa) && _recvs.Count < MaxReceive)
             {
                 var buf = new Byte[1024];
-                _saea = new SocketAsyncEventArgs();
-                _saea.SetBuffer(buf, 0, buf.Length);
-                _saea.Completed += _saea_Completed;
+                sa = new SocketAsyncEventArgs();
+                sa.SetBuffer(buf, 0, buf.Length);
+                sa.Completed += _saea_Completed;
+
+                //_recvs.Push(sa);
+                Debug.WriteLine("创建SA {0}", _recvs.Count);
             }
 
-            return ReceiveAsync(_saea, false);
+            if (sa == null) return false;
+
+            return ReceiveAsync(sa, false);
         }
 
         Boolean ReceiveAsync(SocketAsyncEventArgs e, Boolean io)
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed)
+            {
+                _recvs.Push(e);
 
-            if (Interlocked.CompareExchange(ref _AsyncCount, 1, 0) != 0) return false;
+                throw new ObjectDisposedException(this.GetType().Name);
+            }
+
+            //if (Interlocked.CompareExchange(ref _AsyncCount, 1, 0) != 0) return false;
 
             // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
             e.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
@@ -326,6 +347,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                _recvs.Push(e);
+
                 if (!ex.IsDisposed())
                 {
                     OnError("ReceiveAsync", ex);
@@ -338,6 +361,7 @@ namespace NewLife.Net
                 return false;
             }
 
+            // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
             if (!rs)
             {
                 if (io)
@@ -363,7 +387,7 @@ namespace NewLife.Net
             // 判断成功失败
             if (e.SocketError != SocketError.Success)
             {
-                if (e.SocketError != SocketError.ConnectionReset) OnError("EndReceive", e.ConnectByNameError);
+                if (e.SocketError != SocketError.ConnectionReset) OnError("OnReceive", e.ConnectByNameError);
             }
             else
             {
@@ -372,14 +396,27 @@ namespace NewLife.Net
                 var ep = e.RemoteEndPoint as IPEndPoint;
 
                 // 在用户线程池里面去处理数据
-                Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
+                //Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
                 //ThreadPool.QueueUserWorkItem(s => OnReceive(data, ep));
+
+                // 直接在IO线程调用业务逻辑
+                try
+                {
+                    OnReceive(data, ep);
+                }
+                catch (Exception ex)
+                {
+                    if (!ex.IsDisposed()) OnError("OnReceive", ex);
+                }
             }
 
-            Interlocked.Decrement(ref _AsyncCount);
+            //Interlocked.Decrement(ref _AsyncCount);
 
             // 开始新的监听
-            if (e.SocketError != SocketError.OperationAborted) ReceiveAsync(e, true);
+            if (e.SocketError != SocketError.OperationAborted)
+                ReceiveAsync(e, true);
+            else
+                e.TryDispose();
         }
 
         //void OnReceive(IAsyncResult ar)

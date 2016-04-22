@@ -158,15 +158,7 @@ namespace NewLife.Net
                     socket.Disconnect(reuseAddress);
                     socket.Shutdown(SocketShutdown.Both);
                 }
-                catch (SocketException ex2)
-                {
-                    //if (ex2.SocketErrorCode != SocketError.NotConnected) WriteLog(ex2.ToString());
-                }
-                catch (ObjectDisposedException) { }
-                catch (Exception ex3)
-                {
-                    //if (Debug) WriteLog(ex3.ToString());
-                }
+                catch (Exception) { }
             }
 
             socket.Close();
