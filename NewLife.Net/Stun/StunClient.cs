@@ -157,9 +157,9 @@ namespace NewLife.Net.Stun
             if (Socket == null)
             {
                 //var client = NetService.Container.Resolve<ISocketClient>(socket.Local.ProtocolType);
-                var tcp = new TcpClient();
-                tcp.Client = socket.Socket;
-                Socket = new TcpSession(tcp);
+                //var tcp = new TcpClient();
+                //tcp.Client = socket.Client;
+                Socket = new TcpSession(socket.Client);
             }
         }
 
@@ -192,8 +192,8 @@ namespace NewLife.Net.Stun
                 //client.Port = Port;
                 var client = new NetUri(ProtocolType, "", Port).CreateClient();
                 client.Open();
-                client.Socket.SendTimeout = Timeout;
-                client.Socket.ReceiveTimeout = Timeout;
+                client.Client.SendTimeout = Timeout;
+                client.Client.ReceiveTimeout = Timeout;
                 _Socket = client;
             }
         }
@@ -202,7 +202,7 @@ namespace NewLife.Net.Stun
         {
             if (_Socket2 == null)
             {
-                var socket = Socket.Socket;
+                var socket = Socket.Client;
                 var ep = socket.LocalEndPoint as IPEndPoint;
                 var sto = socket.SendTimeout;
                 var rto = socket.ReceiveTimeout;
@@ -216,10 +216,10 @@ namespace NewLife.Net.Stun
                 ////sk.Port = ep.Port;
                 //sk.Local.EndPoint = ep;
                 var sk = new NetUri(socket.ProtocolType, ep).CreateClient();
-                sk.Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                sk.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 //sk.Bind();
-                sk.Socket.SendTimeout = sto;
-                sk.Socket.ReceiveTimeout = rto;
+                sk.Client.SendTimeout = sto;
+                sk.Client.ReceiveTimeout = rto;
 
                 _Socket2 = sk;
             }

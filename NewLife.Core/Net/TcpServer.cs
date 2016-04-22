@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
-using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -42,17 +41,20 @@ namespace NewLife.Net
         /// <summary>是否异步处理接收到的数据，默认true利于提升网络吞吐量。异步处理有可能造成数据包乱序，特别是Tcp</summary>
         public Boolean UseProcessAsync { get; set; }
 
-        /// <summary>服务器</summary>
-        public TcpListener Server { get; set; }
+        ///// <summary>服务器</summary>
+        //public TcpListener Server { get; set; }
 
         /// <summary>底层Socket</summary>
-        Socket ISocket.Socket { get { return Server == null ? null : Server.Server; } }
+        public Socket Client { get; private set; }
 
         /// <summary>是否活动</summary>
         public Boolean Active { get; set; }
 
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
+
+        /// <summary>最大并行数。默认CPU*1.6</summary>
+        public Int32 MaxAsync { get; set; }
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
@@ -74,6 +76,8 @@ namespace NewLife.Net
             SessionTimeout = 30;
             AutoReceiveAsync = true;
             UseProcessAsync = true;
+
+            MaxAsync = Environment.ProcessorCount * 16 / 10;
 
             _Sessions = new SessionCollection(this);
             StatSession = new Statistics();
@@ -106,15 +110,28 @@ namespace NewLife.Net
             if (Active || Disposed) return;
 
             // 开始监听
-            if (Server == null) Server = new TcpListener(Local.EndPoint);
+            //if (Server == null) Server = new TcpListener(Local.EndPoint);
+            if (Client == null) Client = new Socket(Local.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             WriteLog("Start {0}", this);
 
             // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
-            Server.Start();
+            //Server.Start();
+            Client.Bind(Local.EndPoint);
+            Client.Listen(Int32.MaxValue);
 
-            if (!AcceptAsync(true)) return;
+            Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+
+            //if (!AcceptAsync(false)) return;
+            for (int i = 0; i < MaxAsync; i++)
+            {
+                var se = new SocketAsyncEventArgs();
+                se.Completed += (s, e) => ProcessAccept(e);
+
+                AcceptAsync(se, false);
+            }
 
             Active = true;
         }
@@ -126,14 +143,15 @@ namespace NewLife.Net
 
             WriteLog("Stop {0}", this);
 
-            if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
+            // 关闭的时候会除非一系列异步回调，提前清空Client
+            Active = false;
+
+            //if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
 
             CloseAllSession();
 
-            if (Server != null) Server.Stop();
-            Server = null;
-
-            Active = false;
+            Client.Shutdown();
+            Client = null;
         }
         #endregion
 
@@ -141,75 +159,134 @@ namespace NewLife.Net
         /// <summary>新会话时触发</summary>
         public event EventHandler<SessionEventArgs> NewSession;
 
-        private IAsyncResult _Async;
+        //private IAsyncResult _Async;
 
         /// <summary>开启异步接受新连接</summary>
-        /// <param name="throwException">是否抛出异常</param>
+        /// <param name="se"></param>
+        /// <param name="io">是否IO线程</param>
         /// <returns>开启异步是否成功</returns>
-        Boolean AcceptAsync(Boolean throwException)
+        Boolean AcceptAsync(SocketAsyncEventArgs se, Boolean io)
         {
-            //if (_Async != null) return true;
-            try
+            if (!Active || Client == null)
             {
-                _Async = Server.BeginAcceptTcpClient(OnAccept, null);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed()) OnError("BeginAcceptTcpClient", ex);
-
-                // BeginAcceptTcpClient异常一般是服务器已经被关闭，所以这里不需要去关闭服务器
-
-                if (throwException) throw;
+                se.TryDispose();
                 return false;
             }
-        }
 
-        void OnAccept(IAsyncResult ar)
-        {
-            _Async = null;
-
-            if (!Active) return;
-
-            if (Server == null) return;
-
-            TcpClient client = null;
+            var rs = false;
             try
             {
-                client = Server.EndAcceptTcpClient(ar);
+                //_Async = Server.BeginAcceptTcpClient(OnAccept, null);
+                rs = Client.AcceptAsync(se);
             }
             catch (Exception ex)
             {
-                if (!ex.IsDisposed())
-                {
-                    OnError("EndAcceptTcpClient", ex);
+                if (!ex.IsDisposed()) OnError("AcceptAsync", ex);
 
-                    // EndAcceptTcpClient异常一般是网络故障，但是为了确保系统可靠性，我们仍然不能关闭服务器
-                    //Stop();
+                if (!io) throw;
 
-                    // 开始新的监听，避免因为异常就失去网络服务
-                    AcceptAsync(false);
-                }
+                return false;
+            }
 
+            if (!rs)
+            {
+                if (io)
+                    ProcessAccept(se);
+                else
+                    Task.Factory.StartNew(() => ProcessAccept(se));
+            }
+
+            return true;
+        }
+
+        void ProcessAccept(SocketAsyncEventArgs se)
+        {
+            if (!Active || Client == null || se.SocketError == SocketError.OperationAborted)
+            {
+                se.TryDispose();
                 return;
             }
 
-            // 在用户线程池里面去处理数据
-            Task.Factory.StartNew(() => OnAccept(client)).LogException(ex => OnError("OnAccept", ex));
+            // 判断成功失败
+            if (se.SocketError != SocketError.Success)
+            {
+                if (se.SocketError != SocketError.ConnectionReset)
+                {
+                    var ex = se.ConnectByNameError;
+                    if (ex == null) ex = new SocketException((Int32)se.SocketError);
+                    OnError("AcceptAsync", ex);
+                }
+            }
+            else
+            {
+                // 直接在IO线程调用业务逻辑
+                try
+                {
+                    OnAccept(se.AcceptSocket);
+                }
+                catch (Exception ex)
+                {
+                    if (!ex.IsDisposed()) OnError("EndAccept", ex);
+                }
+            }
 
             // 开始新的征程
-            AcceptAsync(false);
+            AcceptAsync(se, true);
         }
+
+        //void OnAccept(IAsyncResult ar)
+        //{
+        //    _Async = null;
+
+        //    if (!Active) return;
+
+        //    if (Server == null) return;
+
+        //    TcpClient client = null;
+        //    try
+        //    {
+        //        client = Server.EndAcceptTcpClient(ar);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (!ex.IsDisposed())
+        //        {
+        //            OnError("EndAcceptTcpClient", ex);
+
+        //            // EndAcceptTcpClient异常一般是网络故障，但是为了确保系统可靠性，我们仍然不能关闭服务器
+        //            //Stop();
+
+        //            // 开始新的监听，避免因为异常就失去网络服务
+        //            AcceptAsync(true);
+        //        }
+
+        //        return;
+        //    }
+
+        //    // 在用户线程池里面去处理数据
+        //    //Task.Factory.StartNew(() => OnAccept(client)).LogException(ex => OnError("OnAccept", ex));
+        //    try
+        //    {
+        //        OnAccept(client);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OnError("OnAccept", ex);
+        //    }
+
+        //    // 开始新的征程
+        //    AcceptAsync(true);
+        //}
 
         Int32 g_ID = 1;
         /// <summary>收到新连接时处理</summary>
         /// <param name="client"></param>
-        protected virtual void OnAccept(TcpClient client)
+        protected virtual void OnAccept(Socket client)
         {
             var session = CreateSession(client);
 
             // 设置心跳时间
-            client.Client.SetTcpKeepAlive(true);
+            client.SetTcpKeepAlive(true);
 
             if (_Sessions.Add(session))
             {
@@ -223,8 +300,6 @@ namespace NewLife.Net
 
                 if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
 
-                //// 必须在ReceiveAsync之前设定是否使用异步处理，否则ReceiveAsync可能马上有数据返回
-                //session.UseProcessAsync = UseProcessAsync;
                 // 自动开始异步接收处理
                 if (AutoReceiveAsync) session.ReceiveAsync();
             }
@@ -239,7 +314,7 @@ namespace NewLife.Net
         /// <summary>创建会话</summary>
         /// <param name="client"></param>
         /// <returns></returns>
-        protected virtual TcpSession CreateSession(TcpClient client)
+        protected virtual TcpSession CreateSession(Socket client)
         {
             var session = new TcpSession(this, client);
             // 服务端不支持掉线重连
@@ -258,8 +333,6 @@ namespace NewLife.Net
             var sessions = _Sessions;
             if (sessions != null)
             {
-                //_Sessions = null;
-
                 if (sessions.Count > 0)
                 {
                     WriteLog("准备释放会话{0}个！", sessions.Count);

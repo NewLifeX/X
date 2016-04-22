@@ -182,7 +182,7 @@ namespace NewLife.Net.SGIP
             {
                 WriteLog("正在注销……");
 
-                if (Client != null && Client.Socket.Connected)
+                if (Client != null && Client.Client.Connected)
                 {
                     try
                     {
@@ -221,7 +221,7 @@ namespace NewLife.Net.SGIP
         /// <returns></returns>
         private SGIPEntity Read()
         {
-            if (Client == null || !Client.Socket.Connected) throw new InvalidOperationException("没有连接到服务器！");
+            if (Client == null || !Client.Client.Connected) throw new InvalidOperationException("没有连接到服务器！");
 
             try
             {
@@ -241,7 +241,7 @@ namespace NewLife.Net.SGIP
         /// <param name="cmd"></param>
         private void Write(SGIPEntity cmd)
         {
-            if (Client == null || !Client.Socket.Connected) throw new InvalidOperationException("没有连接到服务器！");
+            if (Client == null || !Client.Client.Connected) throw new InvalidOperationException("没有连接到服务器！");
 
             if (cmd.SrcNodeSequence < 1) cmd.SrcNodeSequence = SrcNodeSequence;
 

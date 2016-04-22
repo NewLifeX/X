@@ -21,7 +21,7 @@ namespace NewLife.Net
         public UdpServer Server { get; set; }
 
         /// <summary>底层Socket</summary>
-        Socket ISocket.Socket { get { return Server == null ? null : Server.Client; } }
+        Socket ISocket.Client { get { return Server == null ? null : Server.Client; } }
 
         /// <summary>数据流</summary>
         public Stream Stream { get; set; }

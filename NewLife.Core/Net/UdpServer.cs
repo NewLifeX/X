@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -8,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Model;
-using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -19,12 +17,12 @@ namespace NewLife.Net
     public class UdpServer : SessionBase, ISocketServer
     {
         #region 属性
-        /// <summary>客户端</summary>
-        public Socket Client { get; private set; }
+        ///// <summary>客户端</summary>
+        //public Socket Client { get; private set; }
 
-        /// <summary>获取Socket</summary>
-        /// <returns></returns>
-        internal override Socket GetSocket() { return Client; }
+        ///// <summary>获取Socket</summary>
+        ///// <returns></returns>
+        //internal override Socket GetSocket() { return Client; }
 
         /// <summary>会话超时时间。默认30秒</summary>
         /// <remarks>
@@ -40,9 +38,6 @@ namespace NewLife.Net
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
-
-        /// <summary>最大并行接收数。默认1</summary>
-        public Int32 MaxReceive { get; set; }
         #endregion
 
         #region 构造
@@ -57,7 +52,7 @@ namespace NewLife.Net
 
             StatSession = new Statistics();
 
-            MaxReceive = 1;
+            //MaxAsync = 1;
             //MaxReceive = Environment.ProcessorCount * 2 + 2;
         }
 
@@ -127,7 +122,7 @@ namespace NewLife.Net
         #region 发送
         /// <summary>发送数据</summary>
         /// <remarks>
-        /// 目标地址由<seealso cref="SessionBase.Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
+        /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
         /// </remarks>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
@@ -179,122 +174,17 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>异步发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public override Boolean SendAsync(Byte[] buffer)
+        ///// <summary>异步发送数据</summary>
+        ///// <param name="buffer"></param>
+        ///// <returns></returns>
+        //public override Boolean SendAsync(Byte[] buffer)
+        //{
+        //    return SendAsync(buffer, Remote.EndPoint);
+        //}
+
+        internal override bool OnSendAsync(SocketAsyncEventArgs se)
         {
-            return SendAsync(buffer, Remote.EndPoint);
-        }
-
-        private SocketAsyncEventArgs _eSend;
-        private Int32 _Sending;
-        private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
-
-        internal Boolean SendAsync(Byte[] buffer, IPEndPoint remote)
-        {
-            if (!Open()) return false;
-
-            var count = buffer.Length;
-
-            if (StatSend != null) StatSend.Increment(count);
-            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
-
-            LastTime = DateTime.Now;
-
-            //var task = Client.SendToAsync(buffer, remote).LogException(ex =>
-            //{
-            //    if (!ex.IsDisposed()) OnError("SendAsync", ex);
-            //});
-
-            //return task;
-
-            // 同时只允许一个异步发送，其它发送放入队列
-            var qi = new QueueItem();
-            qi.Buffer = buffer;
-            qi.Remote = remote;
-
-            _SendQueue.Enqueue(qi);
-
-            CheckSendQueue(false);
-
-            return true;
-
-            //try
-            //{
-            //    Client.BeginSendTo(buffer, 0, buffer.Length, SocketFlags.None, remote, null, this);
-
-            //    return true;
-            //}
-            //catch (Exception ex)
-            //{
-            //    if (!ex.IsDisposed())
-            //    {
-            //        OnError("SendAsync", ex);
-
-            //        if (ThrowException) throw;
-            //    }
-
-            //    return false;
-            //}
-        }
-
-        void CheckSendQueue(Boolean io)
-        {
-            var qu = _SendQueue;
-            if (qu.Count == 0) return;
-
-            // 如果没有在发送，就开始发送
-            if (Interlocked.CompareExchange(ref _Sending, 1, 0) != 0) return;
-
-            QueueItem qi = null;
-            if (!qu.TryDequeue(out qi)) return;
-
-            var se = _eSend;
-            if (se == null)
-            {
-                var buf = new Byte[1500];
-                se = _eSend = new SocketAsyncEventArgs();
-                se.SetBuffer(buf, 0, buf.Length);
-                se.Completed += (s, e) => ProcessSend(e);
-            }
-
-            // 拷贝缓冲区，设置长度
-            Buffer.BlockCopy(qi.Buffer, 0, se.Buffer, 0, qi.Buffer.Length);
-            se.SetBuffer(0, qi.Buffer.Length);
-            se.RemoteEndPoint = qi.Remote;
-
-            if (!Client.SendToAsync(se))
-            {
-                if (io)
-                    ProcessSend(se);
-                else
-                    Task.Factory.StartNew(s => ProcessSend(s as SocketAsyncEventArgs), se);
-            }
-        }
-
-        void ProcessSend(SocketAsyncEventArgs se)
-        {
-            if (!Active || se.SocketError == SocketError.OperationAborted)
-            {
-                se.TryDispose();
-                return;
-            }
-
-            // 判断成功失败
-            if (se.SocketError != SocketError.Success)
-            {
-                if (se.SocketError != SocketError.ConnectionReset) OnError("OnSend", se.ConnectByNameError);
-            }
-
-            // 发送新的数据
-            if (Interlocked.CompareExchange(ref _Sending, 0, 1) == 1) CheckSendQueue(true);
-        }
-
-        class QueueItem
-        {
-            public Byte[] Buffer { get; set; }
-            public IPEndPoint Remote { get; set; }
+            return Client.SendToAsync(se);
         }
         #endregion
 
@@ -359,181 +249,10 @@ namespace NewLife.Net
             return size;
         }
 
-        private Int32 _RecvCount;
-
-        /// <summary>开始监听</summary>
-        /// <returns>是否成功</returns>
-        public override Boolean ReceiveAsync()
-        {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
-
-            if (!Open()) return false;
-
-            if (!UseReceiveAsync) UseReceiveAsync = true;
-
-            if (_RecvCount >= MaxReceive) return false;
-
-            // 按照最大并发创建异步委托
-            for (int i = _RecvCount; i < MaxReceive; i++)
-            {
-                if (Interlocked.Increment(ref _RecvCount) > MaxReceive)
-                {
-                    Interlocked.Decrement(ref _RecvCount);
-                    return false;
-                }
-
-                var buf = new Byte[1500];
-                var se = new SocketAsyncEventArgs();
-                se.SetBuffer(buf, 0, buf.Length);
-                se.Completed += (s, e) => ProcessReceive(e);
-
-                WriteDebugLog("创建SA {0}", _RecvCount);
-
-                if (se == null) return false;
-
-                ReceiveAsync(se, false);
-            }
-
-            return true;
-        }
-
-        Boolean ReceiveAsync(SocketAsyncEventArgs e, Boolean io)
-        {
-            if (Disposed)
-            {
-                Interlocked.Decrement(ref _RecvCount);
-                e.TryDispose();
-
-                throw new ObjectDisposedException(this.GetType().Name);
-            }
-
-            // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
-            e.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
-
-            var rs = false;
-            try
-            {
-                // 开始新的监听
-                rs = Client.ReceiveFromAsync(e);
-            }
-            catch (Exception ex)
-            {
-                Interlocked.Decrement(ref _RecvCount);
-                e.TryDispose();
-
-                if (!ex.IsDisposed())
-                {
-                    OnError("ReceiveAsync", ex);
-
-                    // 异常一般是网络错误，UDP不需要关闭
-                    //Close();
-
-                    if (!io && ThrowException) throw;
-                }
-                return false;
-            }
-
-            // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
-            if (!rs)
-            {
-                if (io)
-                    ProcessReceive(e);
-                else
-                    Task.Factory.StartNew(() => ProcessReceive(e));
-            }
-
-            return true;
-        }
-
-        void ProcessReceive(SocketAsyncEventArgs se)
-        {
-            if (!Active || se.SocketError == SocketError.OperationAborted)
-            {
-                se.TryDispose();
-                return;
-            }
-
-            // 判断成功失败
-            if (se.SocketError != SocketError.Success)
-            {
-                if (se.SocketError != SocketError.ConnectionReset)
-                {
-                    var ex = se.ConnectByNameError;
-                    if (ex == null) ex = new SocketException((Int32)se.SocketError);
-                    OnError("OnReceive", ex);
-                }
-            }
-            else
-            {
-                // 拷贝走数据，参数要重复利用
-                var data = se.Buffer.ReadBytes(se.Offset, se.BytesTransferred);
-                var ep = se.RemoteEndPoint as IPEndPoint;
-
-                // 在用户线程池里面去处理数据
-                //Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
-                //ThreadPool.QueueUserWorkItem(s => OnReceive(data, ep));
-
-                // 直接在IO线程调用业务逻辑
-                try
-                {
-                    OnReceive(data, ep);
-                }
-                catch (Exception ex)
-                {
-                    if (!ex.IsDisposed()) OnError("OnReceive", ex);
-                }
-            }
-
-            // 开始新的监听
-            ReceiveAsync(se, true);
-        }
-
-        //void OnReceive(IAsyncResult ar)
-        //{
-        //    //_Async = null;
-
-        //    if (!Active) return;
-        //    // 接收数据
-        //    var client = ar.AsyncState as UdpClient;
-        //    if (client == null || client.Client == null) return;
-
-        //    IPEndPoint ep = null;
-        //    Byte[] data = null;
-
-        //    try
-        //    {
-        //        data = client.EndReceive(ar, ref ep);
-        //        Interlocked.Decrement(ref _AsyncCount);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (!ex.IsDisposed())
-        //        {
-        //            // 屏蔽连接重置的异常
-        //            var sex = ex as SocketException;
-        //            if (sex == null || sex.SocketErrorCode != SocketError.ConnectionReset) OnError("EndReceive", ex);
-
-        //            // 异常一般是网络错误，UDP不需要关闭
-        //            //Close();
-        //            //if (ex.SocketErrorCode != SocketError.ConnectionReset) Close();
-
-        //            // 开始新的监听，避免因为异常就失去网络服务
-        //            ReceiveAsync();
-        //        }
-        //        return;
-        //    }
-
-        //    // 在用户线程池里面去处理数据
-        //    Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
-
-        //    // 开始新的监听
-        //    ReceiveAsync();
-        //}
-
         /// <summary>处理收到的数据</summary>
         /// <param name="data"></param>
         /// <param name="remote"></param>
-        internal protected virtual void OnReceive(Byte[] data, IPEndPoint remote)
+        internal protected override void OnReceive(Byte[] data, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
@@ -574,6 +293,14 @@ namespace NewLife.Net
 
             if (session != null) RaiseReceive(session, e);
         }
+
+        ///// <summary>开始监听</summary>
+        ///// <returns>是否成功</returns>
+        //public override Boolean ReceiveAsync()
+        //{
+        //    if (_RecvCount >= MaxAsync) return false;
+
+        //}
         #endregion
 
         #region 会话
@@ -584,7 +311,7 @@ namespace NewLife.Net
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         public IDictionary<String, ISocketSession> Sessions { get { return _Sessions; } }
 
-        Int32 g_ID = 1;
+        Int32 g_ID = 0;
         /// <summary>创建会话</summary>
         /// <param name="remoteEP"></param>
         /// <returns></returns>

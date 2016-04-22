@@ -159,7 +159,7 @@ namespace NewLife.Net.IO
                 if (StartTime == DateTime.MinValue) StartTime = Session.StartTime;
 
                 // 加大网络缓冲区
-                Session.Socket.ReceiveBufferSize = 8 * 1024 * 1024;
+                Session.Client.ReceiveBufferSize = 8 * 1024 * 1024;
 
                 var file = Host.SavedPath.CombinePath(Inf.Name).EnsureDirectory();
                 Stream = file.AsFile().OpenWrite();

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
 
@@ -30,11 +32,11 @@ namespace NewLife.Net
         public Boolean Active { get; set; }
 
         /// <summary>底层Socket</summary>
-        public Socket Socket { get { return GetSocket(); } }
+        public Socket Client { get; protected set; }
 
-        /// <summary>获取Socket</summary>
-        /// <returns></returns>
-        internal abstract Socket GetSocket();
+        ///// <summary>获取Socket</summary>
+        ///// <returns></returns>
+        //internal abstract Socket GetSocket();
 
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
@@ -53,6 +55,9 @@ namespace NewLife.Net
 
         /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
         public Boolean DynamicPort { get; private set; }
+
+        /// <summary>最大并行接收数。默认1</summary>
+        public Int32 MaxAsync { get; set; }
         #endregion
 
         #region 构造
@@ -69,6 +74,8 @@ namespace NewLife.Net
             StatReceive = new Statistics();
 
             Log = Logger.Null;
+
+            MaxAsync = 1;
         }
 
         /// <summary>销毁</summary>
@@ -76,6 +83,8 @@ namespace NewLife.Net
         protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
+
+            _seSend.TryDispose();
 
             try
             {
@@ -101,7 +110,7 @@ namespace NewLife.Net
             Active = OnOpen();
             if (!Active) return false;
 
-            if (Timeout > 0) Socket.ReceiveTimeout = Timeout;
+            if (Timeout > 0) Client.ReceiveTimeout = Timeout;
 
             // 触发打开完成的事件
             if (Opened != null) Opened(this, EventArgs.Empty);
@@ -121,7 +130,7 @@ namespace NewLife.Net
             if (Port == 0)
             {
                 DynamicPort = true;
-                if (Port == 0) Port = (Socket.LocalEndPoint as IPEndPoint).Port;
+                if (Port == 0) Port = (Client.LocalEndPoint as IPEndPoint).Port;
             }
         }
 
@@ -169,14 +178,99 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public abstract Boolean SendAsync(Byte[] buffer);
+        public virtual Boolean SendAsync(Byte[] buffer)
+        {
+            return SendAsync(buffer, Remote.EndPoint);
+        }
 
-        ///// <summary>异步多次发送数据</summary>
-        ///// <param name="buffer"></param>
-        ///// <param name="times">次数</param>
-        ///// <param name="msInterval">间隔</param>
-        ///// <returns></returns>
-        //public abstract Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
+        private SocketAsyncEventArgs _seSend;
+        private Int32 _Sending;
+        private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
+
+        internal Boolean SendAsync(Byte[] buffer, IPEndPoint remote)
+        {
+            if (!Open()) return false;
+
+            var count = buffer.Length;
+
+            if (StatSend != null) StatSend.Increment(count);
+            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+
+            LastTime = DateTime.Now;
+
+            // 同时只允许一个异步发送，其它发送放入队列
+            var qi = new QueueItem();
+            qi.Buffer = buffer;
+            qi.Remote = remote;
+
+            _SendQueue.Enqueue(qi);
+
+            CheckSendQueue(false);
+
+            return true;
+        }
+
+        void CheckSendQueue(Boolean io)
+        {
+            var qu = _SendQueue;
+            if (qu.Count == 0) return;
+
+            // 如果没有在发送，就开始发送
+            if (Interlocked.CompareExchange(ref _Sending, 1, 0) != 0) return;
+
+            //todo 如果是Tcp发送，这里可以考虑拿出来多个包合并发送
+            QueueItem qi = null;
+            if (!qu.TryDequeue(out qi)) return;
+
+            var se = _seSend;
+            if (se == null)
+            {
+                var buf = new Byte[1500];
+                se = _seSend = new SocketAsyncEventArgs();
+                se.SetBuffer(buf, 0, buf.Length);
+                se.Completed += (s, e) => ProcessSend(e);
+            }
+
+            // 拷贝缓冲区，设置长度
+            Buffer.BlockCopy(qi.Buffer, 0, se.Buffer, 0, qi.Buffer.Length);
+            se.SetBuffer(0, qi.Buffer.Length);
+            se.RemoteEndPoint = qi.Remote;
+
+            //if (!Socket.SendToAsync(se))
+            if (!OnSendAsync(se))
+            {
+                if (io)
+                    ProcessSend(se);
+                else
+                    Task.Factory.StartNew(s => ProcessSend(s as SocketAsyncEventArgs), se);
+            }
+        }
+
+        internal abstract Boolean OnSendAsync(SocketAsyncEventArgs se);
+
+        void ProcessSend(SocketAsyncEventArgs se)
+        {
+            if (!Active || se.SocketError == SocketError.OperationAborted)
+            {
+                se.TryDispose();
+                return;
+            }
+
+            // 判断成功失败
+            if (se.SocketError != SocketError.Success)
+            {
+                if (se.SocketError != SocketError.ConnectionReset) OnError("SendAsync", se.ConnectByNameError);
+            }
+
+            // 发送新的数据
+            if (Interlocked.CompareExchange(ref _Sending, 0, 1) == 1) CheckSendQueue(true);
+        }
+
+        class QueueItem
+        {
+            public Byte[] Buffer { get; set; }
+            public IPEndPoint Remote { get; set; }
+        }
         #endregion
 
         #region 接收
@@ -194,9 +288,143 @@ namespace NewLife.Net
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get; set; }
 
-        /// <summary>开始异步接收</summary>
+        ///// <summary>开始异步接收</summary>
+        ///// <returns>是否成功</returns>
+        //public abstract Boolean ReceiveAsync();
+
+        private Int32 _RecvCount;
+
+        /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
-        public abstract Boolean ReceiveAsync();
+        public virtual Boolean ReceiveAsync()
+        {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
+            if (!Open()) return false;
+
+            if (!UseReceiveAsync) UseReceiveAsync = true;
+
+            if (_RecvCount >= MaxAsync) return false;
+
+            // 按照最大并发创建异步委托
+            for (int i = _RecvCount; i < MaxAsync; i++)
+            {
+                if (Interlocked.Increment(ref _RecvCount) > MaxAsync)
+                {
+                    Interlocked.Decrement(ref _RecvCount);
+                    return false;
+                }
+
+                var buf = new Byte[1500];
+                var se = new SocketAsyncEventArgs();
+                se.SetBuffer(buf, 0, buf.Length);
+                se.Completed += (s, e) => ProcessReceive(e);
+
+                WriteDebugLog("创建SA {0}", _RecvCount);
+
+                if (se == null) return false;
+
+                ReceiveAsync(se, false);
+            }
+
+            return true;
+        }
+
+        Boolean ReceiveAsync(SocketAsyncEventArgs e, Boolean io)
+        {
+            if (Disposed)
+            {
+                Interlocked.Decrement(ref _RecvCount);
+                e.TryDispose();
+
+                throw new ObjectDisposedException(this.GetType().Name);
+            }
+
+            // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
+            e.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
+
+            var rs = false;
+            try
+            {
+                // 开始新的监听
+                rs = Client.ReceiveFromAsync(e);
+            }
+            catch (Exception ex)
+            {
+                Interlocked.Decrement(ref _RecvCount);
+                e.TryDispose();
+
+                if (!ex.IsDisposed())
+                {
+                    OnError("ReceiveAsync", ex);
+
+                    // 异常一般是网络错误，UDP不需要关闭
+                    //Close();
+
+                    if (!io && ThrowException) throw;
+                }
+                return false;
+            }
+
+            // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
+            if (!rs)
+            {
+                if (io)
+                    ProcessReceive(e);
+                else
+                    Task.Factory.StartNew(() => ProcessReceive(e));
+            }
+
+            return true;
+        }
+
+        void ProcessReceive(SocketAsyncEventArgs se)
+        {
+            if (!Active || se.SocketError == SocketError.OperationAborted)
+            {
+                se.TryDispose();
+                return;
+            }
+
+            // 判断成功失败
+            if (se.SocketError != SocketError.Success)
+            {
+                if (se.SocketError != SocketError.ConnectionReset)
+                {
+                    var ex = se.ConnectByNameError;
+                    if (ex == null) ex = new SocketException((Int32)se.SocketError);
+                    OnError("OnReceive", ex);
+                }
+            }
+            else
+            {
+                // 拷贝走数据，参数要重复利用
+                var data = se.Buffer.ReadBytes(se.Offset, se.BytesTransferred);
+                var ep = se.RemoteEndPoint as IPEndPoint;
+
+                // 在用户线程池里面去处理数据
+                //Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
+                //ThreadPool.QueueUserWorkItem(s => OnReceive(data, ep));
+
+                // 直接在IO线程调用业务逻辑
+                try
+                {
+                    OnReceive(data, ep);
+                }
+                catch (Exception ex)
+                {
+                    if (!ex.IsDisposed()) OnError("OnReceive", ex);
+                }
+            }
+
+            // 开始新的监听
+            ReceiveAsync(se, true);
+        }
+
+        /// <summary>处理收到的数据</summary>
+        /// <param name="data"></param>
+        /// <param name="remote"></param>
+        internal protected abstract void OnReceive(Byte[] data, IPEndPoint remote);
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;

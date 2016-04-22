@@ -23,7 +23,7 @@ namespace NewLife.Net
         String Name { get; set; }
 
         /// <summary>基础Socket对象</summary>
-        Socket Socket { get; /*set;*/ }
+        Socket Client { get; /*set;*/ }
 
         /// <summary>本地地址</summary>
         NetUri Local { get; set; }
@@ -132,10 +132,10 @@ namespace NewLife.Net
             if (remain == 0) return session.Send(new Byte[0]);
 
             // TCP可以加大
-            if (remain > size && session.Socket.SocketType == SocketType.Stream)
+            if (remain > size && session.Client.SocketType == SocketType.Stream)
             {
                 // 至少使用发送缓冲区的大小，默认8k
-                size = session.Socket.SendBufferSize;
+                size = session.Client.SendBufferSize;
                 // 超大数据流，缓存加大一千倍
                 while (size < 0x80000000 && remain > size << 10)
                     size <<= 1;

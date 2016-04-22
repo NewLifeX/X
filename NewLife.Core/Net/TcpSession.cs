@@ -15,18 +15,18 @@ namespace NewLife.Net
         /// <summary>会话编号</summary>
         public Int32 ID { get; set; }
 
-        /// <summary>客户端</summary>
-        public TcpClient Client { get; private set; }
+        ///// <summary>客户端</summary>
+        //public Socket Client { get; private set; }
 
-        /// <summary>获取Socket</summary>
-        /// <returns></returns>
-        internal override Socket GetSocket() { return Client == null ? null : Client.Client; }
+        ///// <summary>获取Socket</summary>
+        ///// <returns></returns>
+        //internal override Socket GetSocket() { return Client; }
 
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; }
 
-        /// <summary>会话数据流，供用户程序使用。可用于解决Tcp粘包的问题。</summary>
-        public Stream Stream { get; set; }
+        ///// <summary>会话数据流，供用户程序使用。可用于解决Tcp粘包的问题。</summary>
+        //public Stream Stream { get; set; }
 
         ISocketServer _Server;
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
@@ -58,19 +58,19 @@ namespace NewLife.Net
 
         /// <summary>用TCP客户端初始化</summary>
         /// <param name="client"></param>
-        public TcpSession(TcpClient client)
+        public TcpSession(Socket client)
             : this()
         {
             if (client == null) return;
 
             Client = client;
-            if (client.Connected) Stream = client.GetStream();
-            var socket = client.Client;
+            //if (client.Connected) Stream = client.GetStream();
+            var socket = client;
             if (socket.LocalEndPoint != null) Local.EndPoint = (IPEndPoint)socket.LocalEndPoint;
             if (socket.RemoteEndPoint != null) Remote.EndPoint = (IPEndPoint)socket.RemoteEndPoint;
         }
 
-        internal TcpSession(ISocketServer server, TcpClient client)
+        internal TcpSession(ISocketServer server, Socket client)
             : this(client)
         {
             Active = true;
@@ -86,7 +86,7 @@ namespace NewLife.Net
             // 服务端会话没有打开
             if (_Server != null) return false;
 
-            if (Client == null || !Client.Client.IsBound)
+            if (Client == null || !Client.IsBound)
             {
                 // 根据目标地址适配本地IPv4/IPv6
                 if (Remote != null && !Remote.Address.IsAny())
@@ -94,7 +94,9 @@ namespace NewLife.Net
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
 
-                Client = new TcpClient(Local.EndPoint);
+                //Client = new TcpClient(Local.EndPoint);
+                Client = new Socket(Local.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                Client.Bind(Local.EndPoint);
                 CheckDynamic();
 
                 WriteLog("Open {0}", this);
@@ -106,7 +108,7 @@ namespace NewLife.Net
             try
             {
                 Client.Connect(Remote.EndPoint);
-                Stream = Client.GetStream();
+                //Stream = Client.GetStream();
             }
             catch (Exception ex)
             {
@@ -133,7 +135,7 @@ namespace NewLife.Net
                 try
                 {
                     // 温和一点关闭连接
-                    //Client.Client.Shutdown();
+                    //Client.Shutdown();
                     Client.Close();
 
                     // 如果是服务端，这个时候就是销毁
@@ -148,7 +150,7 @@ namespace NewLife.Net
                 }
             }
             Client = null;
-            Stream = null;
+            //Stream = null;
 
             return true;
         }
@@ -157,7 +159,7 @@ namespace NewLife.Net
         #region 发送
         /// <summary>发送数据</summary>
         /// <remarks>
-        /// 目标地址由<seealso cref="SessionBase.Remote"/>决定，如需精细控制，可直接操作<seealso cref="Client"/>
+        /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
         /// </remarks>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
@@ -178,9 +180,9 @@ namespace NewLife.Net
                 if (Client.SendBufferSize < count) Client.SendBufferSize = count;
 
                 if (count == 0)
-                    Client.Client.Send(new Byte[0]);
+                    Client.Send(new Byte[0]);
                 else
-                    Stream.Write(buffer, offset, count);
+                    Client.Send(buffer, offset, count, SocketFlags.None);
             }
             catch (Exception ex)
             {
@@ -203,44 +205,29 @@ namespace NewLife.Net
             return true;
         }
 
-        /// <summary>异步发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public override Boolean SendAsync(Byte[] buffer)
+        ///// <summary>异步发送数据</summary>
+        ///// <param name="buffer"></param>
+        ///// <returns></returns>
+        //public override Boolean SendAsync(Byte[] buffer)
+        //{
+        //    if (!Open()) return false;
+
+        //    var count = buffer.Length;
+
+        //    if (StatSend != null) StatSend.Increment(count);
+        //    if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+
+        //    // 修改发送缓冲区
+        //    if (Client.SendBufferSize < count) Client.SendBufferSize = count;
+
+        //    LastTime = DateTime.Now;
+
+        //    throw new NotImplementedException();
+        //}
+
+        internal override bool OnSendAsync(SocketAsyncEventArgs se)
         {
-            if (!Open()) return false;
-
-            var count = buffer.Length;
-
-            if (StatSend != null) StatSend.Increment(count);
-            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
-
-            // 修改发送缓冲区
-            if (Client.SendBufferSize < count) Client.SendBufferSize = count;
-
-            //Task task = null;
-            //if (count == 0)
-            //    task = Task.Factory.StartNew(() => Client.Client.Send(new Byte[0]));
-            //else
-            //    task = Stream.WriteAsync(buffer, 0, count);
-
-            //task = task.LogException(ex =>
-            //{
-            //    if (!ex.IsDisposed())
-            //    {
-            //        OnError("EndSend", ex);
-
-            //        // 异常一般是网络错误
-            //        Close("完成异步发送出错");
-            //        Reconnect();
-            //    }
-            //});
-
-            LastTime = DateTime.Now;
-
-            //return task;
-
-            throw new NotImplementedException();
+            return Client.SendAsync(se);
         }
         #endregion
 
@@ -253,9 +240,9 @@ namespace NewLife.Net
 
             var size = 1024 * 2;
 
-            // 报文模式调整缓冲区大小。还差这么多数据就足够一个报文
-            var ps = Stream as PacketStream;
-            if (ps != null && ps.Size > 0) size = ps.Size;
+            //// 报文模式调整缓冲区大小。还差这么多数据就足够一个报文
+            //var ps = Stream as PacketStream;
+            //if (ps != null && ps.Size > 0) size = ps.Size;
 
             var buf = new Byte[size];
 
@@ -285,7 +272,8 @@ namespace NewLife.Net
             var rs = 0;
             try
             {
-                if (count > 0) rs = Stream.Read(buffer, offset, count);
+                //if (count > 0) rs = Stream.Read(buffer, offset, count);
+                if (count > 0) rs = Client.Receive(buffer, offset, count, SocketFlags.None);
             }
             catch (Exception ex)
             {
@@ -309,134 +297,102 @@ namespace NewLife.Net
             return rs;
         }
 
-        //class SendStat
+        //private IAsyncResult _Async;
+        //private Boolean _Async;
+
+        ///// <summary>开始监听</summary>
+        ///// <returns>是否成功</returns>
+        //public override Boolean ReceiveAsync()
         //{
-        //    public Byte[] Buffer;
-        //    public Int32 Times;
-        //    public Int32 Interval;
-        //}
+        //    if (Disposed || !Open()) return false;
 
-        //void OnSend(IAsyncResult ar)
-        //{
-        //    if (!Active) return;
-
-        //    var client = Client;
-        //    if (client == null || !client.Connected) return;
-
-        //    // 多次发送
-        //    var ts = (SendStat)ar.AsyncState;
+        //    //if (_Async != null) return true;
+        //    if (_Async) return true;
+        //    _Async = true;
         //    try
         //    {
-        //        Stream.EndWrite(ar);
+        //        // 开始新的监听
+        //        var buf = new Byte[Client.ReceiveBufferSize];
+        //        //_Async = Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
+        //        Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
         //    }
         //    catch (Exception ex)
         //    {
         //        if (!ex.IsDisposed())
         //        {
-        //            OnError("EndSend", ex);
+        //            OnError("ReceiveAsync", ex);
 
         //            // 异常一般是网络错误
-        //            Close("完成异步发送出错");
+        //            Close("开始异步接收出错");
         //            Reconnect();
+
+        //            if (ThrowException) throw;
         //        }
+        //        return false;
         //    }
 
-        //    // 如果发送次数未归零，则继续发送
-        //    if (ts.Times > 0)
+        //    return true;
+        //}
+
+        //void OnReceive(IAsyncResult ar)
+        //{
+        //    //_Async = null;
+        //    _Async = false;
+
+        //    if (!Active) return;
+
+        //    var client = Client;
+        //    if (client == null || !client.Connected) return;
+
+        //    // 接收数据
+        //    var data = (Byte[])ar.AsyncState;
+        //    // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
+        //    var count = 0;
+        //    try
         //    {
-        //        if (ts.Interval > 0) Thread.Sleep(ts.Interval);
-        //        SendAsync(ts.Buffer, ts.Times, ts.Interval);
+        //        count = Stream.EndRead(ar);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (!ex.IsDisposed())
+        //        {
+        //            OnError("EndReceive", ex);
+
+        //            // 异常一般是网络错误
+        //            Close("完成异步接收出错");
+        //            Reconnect();
+        //        }
+        //        return;
+        //    }
+
+        //    if (DisconnectWhenEmptyData && count == 0)
+        //    {
+        //        Close("收到空数据");
+        //        return;
+        //    }
+
+        //    // 最后收到有效数据的时间
+        //    LastTime = DateTime.Now;
+
+        //    // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
+        //    if (count >= 0)
+        //    {
+        //        // 在用户线程池里面处理数据，不要占用IO线程
+        //        Task.Factory.StartNew(() => OnReceive(data, count)).ContinueWith(t => ReceiveAsync()).LogException(ex => OnError("OnReceive", ex));
+        //    }
+        //    else
+        //    {
+        //        // 开始新的监听
+        //        ReceiveAsync();
         //    }
         //}
 
-        //private IAsyncResult _Async;
-        private Boolean _Async;
-
-        /// <summary>开始监听</summary>
-        /// <returns>是否成功</returns>
-        public override Boolean ReceiveAsync()
+        /// <summary>处理收到的数据</summary>
+        /// <param name="data"></param>
+        /// <param name="remote"></param>
+        internal protected override void OnReceive(Byte[] data, IPEndPoint remote)
         {
-            if (Disposed || !Open()) return false;
-
-            //if (_Async != null) return true;
-            if (_Async) return true;
-            _Async = true;
-            try
-            {
-                // 开始新的监听
-                var buf = new Byte[Client.ReceiveBufferSize];
-                //_Async = Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
-                Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("ReceiveAsync", ex);
-
-                    // 异常一般是网络错误
-                    Close("开始异步接收出错");
-                    Reconnect();
-
-                    if (ThrowException) throw;
-                }
-                return false;
-            }
-
-            return true;
-        }
-
-        void OnReceive(IAsyncResult ar)
-        {
-            //_Async = null;
-            _Async = false;
-
-            if (!Active) return;
-
-            var client = Client;
-            if (client == null || !client.Connected) return;
-
-            // 接收数据
-            var data = (Byte[])ar.AsyncState;
-            // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
-            var count = 0;
-            try
-            {
-                count = Stream.EndRead(ar);
-            }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed())
-                {
-                    OnError("EndReceive", ex);
-
-                    // 异常一般是网络错误
-                    Close("完成异步接收出错");
-                    Reconnect();
-                }
-                return;
-            }
-
-            if (DisconnectWhenEmptyData && count == 0)
-            {
-                Close("收到空数据");
-                return;
-            }
-
-            // 最后收到有效数据的时间
-            LastTime = DateTime.Now;
-
-            // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
-            if (count >= 0)
-            {
-                // 在用户线程池里面处理数据，不要占用IO线程
-                Task.Factory.StartNew(() => OnReceive(data, count)).ContinueWith(t => ReceiveAsync()).LogException(ex => OnError("OnReceive", ex));
-            }
-            else
-            {
-                // 开始新的监听
-                ReceiveAsync();
-            }
+            OnReceive(data, data.Length);
         }
 
         /// <summary>处理收到的数据</summary>

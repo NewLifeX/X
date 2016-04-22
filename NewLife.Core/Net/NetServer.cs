@@ -191,7 +191,7 @@ namespace NewLife.Net
 
             // 处理UDP最大并发接收
             var udp = server as UdpServer;
-            if (udp != null) udp.MaxReceive = Environment.ProcessorCount * 16 / 10;
+            if (udp != null) udp.MaxAsync = Environment.ProcessorCount * 16 / 10;
 
             server.StatSession.Parent = StatSession;
             server.StatSend.Parent = StatSend;
