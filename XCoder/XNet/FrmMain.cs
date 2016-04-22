@@ -101,7 +101,6 @@ namespace XNet
         #endregion
 
         #region 收发数据
-        TimerX _timer;
         void Connect()
         {
             _Server = null;
@@ -208,6 +207,7 @@ namespace XNet
             btnConnect.Text = "打开";
         }
 
+        TimerX _timer;
         void ShowStat(Object state)
         {
             if (!NetConfig.Current.ShowStat) return;
@@ -302,9 +302,10 @@ namespace XNet
 
             // 处理换行
             str = str.Replace("\n", "\r\n");
+            var buf = str.GetBytes();
 
             if (ths <= 1)
-                _Client.SendAsync(str.GetBytes(), count, sleep);
+                _Client.SendAsync(buf, count, sleep);
             else
             {
                 // 多线程测试
@@ -315,7 +316,8 @@ namespace XNet
                         var client = _Client.Remote.CreateRemote();
                         client.StatSend = _Client.StatSend;
                         client.StatReceive = _Client.StatReceive;
-                        client.SendAsync(str.GetBytes(), count, sleep);
+                        //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
+                        client.SendAsync(buf, count, sleep);
                     }
                 }).LogException();
             }
@@ -435,16 +437,12 @@ namespace XNet
             {
                 if (_ns != null) return _ns;
 
-                var sw = new Stopwatch();
-                sw.Start();
                 var list = new List<NetServer>();
                 foreach (var item in typeof(NetServer).GetAllSubclasses(true))
                 {
                     var ns = item.CreateInstance() as NetServer;
                     if (ns != null) list.Add(ns);
                 }
-                sw.Stop();
-                XTrace.WriteLine("GetNetServers 耗时 {0}", sw.Elapsed);
 
                 return _ns = list.ToArray();
             }
