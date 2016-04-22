@@ -197,14 +197,32 @@ namespace NewLife.Net
             if (StatSend != null) StatSend.Increment(count);
             if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
+            LastTime = DateTime.Now;
+
             var task = Client.SendToAsync(buffer, remote).LogException(ex =>
             {
                 if (!ex.IsDisposed()) OnError("SendAsync", ex);
             });
 
-            LastTime = DateTime.Now;
-
             return task;
+
+            //try
+            //{
+            //    Client.BeginSendTo(buffer, 0, buffer.Length, SocketFlags.None, remote, null, this);
+
+            //    return true;
+            //}
+            //catch (Exception ex)
+            //{
+            //    if (!ex.IsDisposed())
+            //    {
+            //        OnError("SendAsync", ex);
+
+            //        if (ThrowException) throw;
+            //    }
+
+            //    return false;
+            //}
         }
         #endregion
 
@@ -281,19 +299,6 @@ namespace NewLife.Net
 
             if (!Open()) return false;
 
-            /*
-             * ！！！不能同时开启多个异步委托。
-             * UdpClient.BeginReceive调用Socket.BeginReceiveFrom的时候，需要传入一个缓冲区
-             * 这个缓冲区不是临时分配，而是UdpClient的对象成员
-             * 这就解释了为什么多次开启异步委托的时候，有些会话收到相同的数据包和不同的远程地址，因为一共就只有一个缓冲区
-             * 
-             * 暂时继续使用一个缓冲区，目前吞吐量还不错
-             */
-            if (Interlocked.CompareExchange(ref _AsyncCount, 1, 0) != 0)
-            {
-                //XTrace.WriteLine("多次启动异步 {0}", _AsyncCount);
-                return true;
-            }
             if (!UseReceiveAsync) UseReceiveAsync = true;
 
             if (_saea == null)
@@ -304,35 +309,47 @@ namespace NewLife.Net
                 _saea.Completed += _saea_Completed;
             }
 
+            return ReceiveAsync(_saea, false);
+        }
+
+        Boolean ReceiveAsync(SocketAsyncEventArgs e, Boolean io)
+        {
+            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+
+            if (Interlocked.CompareExchange(ref _AsyncCount, 1, 0) != 0) return false;
+
             // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
-            _saea.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
+            e.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
 
-            // 如果开启异步失败，重试10次
-            for (int i = 0; i < 10; i++)
+            var rs = false;
+            try
             {
-                try
+                // 开始新的监听
+                rs = Client.ReceiveFromAsync(e);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed())
                 {
-                    // 开始新的监听
-                    if (!Client.ReceiveFromAsync(_saea)) Task.Factory.StartNew(() => Process(_saea));
+                    OnError("ReceiveAsync", ex);
 
-                    return true;
+                    // 异常一般是网络错误，UDP不需要关闭
+                    //Close();
+
+                    if (!io && ThrowException) throw;
                 }
-                catch (Exception ex)
-                {
-                    if (!ex.IsDisposed())
-                    {
-                        OnError("ReceiveAsync", ex);
-
-                        // 异常一般是网络错误，UDP不需要关闭
-                        //Close();
-
-                        if (ThrowException) throw;
-                    }
-                    //return false;
-                }
+                return false;
             }
 
-            return false;
+            if (!rs)
+            {
+                if (io)
+                    Process(e);
+                else
+                    Task.Factory.StartNew(() => Process(e));
+            }
+
+            return true;
         }
 
         void _saea_Completed(object sender, SocketAsyncEventArgs e)
@@ -359,12 +376,13 @@ namespace NewLife.Net
 
                 // 在用户线程池里面去处理数据
                 Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
+                //ThreadPool.QueueUserWorkItem(s => OnReceive(data, ep));
             }
 
             Interlocked.Decrement(ref _AsyncCount);
 
             // 开始新的监听
-            if (e.SocketError != SocketError.OperationAborted) ReceiveAsync();
+            if (e.SocketError != SocketError.OperationAborted) ReceiveAsync(e, true);
         }
 
         //void OnReceive(IAsyncResult ar)

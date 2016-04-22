@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Threading;
@@ -91,13 +92,6 @@ namespace NewLife.Net
         /// <param name="buffer"></param>
         /// <returns></returns>
         Task SendAsync(Byte[] buffer);
-
-        ///// <summary>异步多次发送数据</summary>
-        ///// <param name="buffer"></param>
-        ///// <param name="times"></param>
-        ///// <param name="msInterval"></param>
-        ///// <returns></returns>
-        //Task SendAsync(Byte[] buffer, Int32 times, Int32 msInterval);
         #endregion
 
         #region 接收
@@ -179,17 +173,27 @@ namespace NewLife.Net
         /// <param name="times"></param>
         /// <param name="msInterval"></param>
         /// <returns></returns>
-        public static void SendAsync(this ISocketRemote session, Byte[] buffer, Int32 times, Int32 msInterval)
+        public static Task SendAsync(this ISocketRemote session, Byte[] buffer, Int32 times, Int32 msInterval)
         {
-            var ts = times;
+            if (times <= 1) return session.SendAsync(buffer);
+
+            var src = new TaskCompletionSource<Int32>();
+
             var timer = new TimerX(s =>
             {
                 session.SendAsync(buffer);
+                //session.Send(buffer);
 
                 // 如果次数足够，则把定时器周期置空，内部会删除
                 var t = s as TimerX;
-                if (--ts <= 0) t.Period = 0;
+                if (--times <= 0)
+                {
+                    t.Period = 0;
+                    src.SetResult(0);
+                }
             }, null, 0, msInterval);
+
+            return src.Task;
         }
         #endregion
 
