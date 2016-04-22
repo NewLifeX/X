@@ -124,7 +124,8 @@ namespace NewLife.Net
             Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
 
-            //if (!AcceptAsync(false)) return;
+            Active = true;
+
             for (int i = 0; i < MaxAsync; i++)
             {
                 var se = new SocketAsyncEventArgs();
@@ -132,8 +133,6 @@ namespace NewLife.Net
 
                 AcceptAsync(se, false);
             }
-
-            Active = true;
         }
 
         /// <summary>停止</summary>
@@ -278,7 +277,7 @@ namespace NewLife.Net
         //    AcceptAsync(true);
         //}
 
-        Int32 g_ID = 1;
+        Int32 g_ID = 0;
         /// <summary>收到新连接时处理</summary>
         /// <param name="client"></param>
         protected virtual void OnAccept(Socket client)

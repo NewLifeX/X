@@ -252,7 +252,7 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="data"></param>
         /// <param name="remote"></param>
-        internal protected override void OnReceive(Byte[] data, IPEndPoint remote)
+        internal override void OnReceive(Byte[] data, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
@@ -292,6 +292,14 @@ namespace NewLife.Net
             }
 
             if (session != null) RaiseReceive(session, e);
+        }
+
+        internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
+        {
+            // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
+            se.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
+
+            return Client.ReceiveFromAsync(se);
         }
 
         ///// <summary>开始监听</summary>

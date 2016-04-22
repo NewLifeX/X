@@ -387,10 +387,15 @@ namespace NewLife.Net
         //    }
         //}
 
+        internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
+        {
+            return Client.ReceiveAsync(se);
+        }
+
         /// <summary>处理收到的数据</summary>
         /// <param name="data"></param>
         /// <param name="remote"></param>
-        internal protected override void OnReceive(Byte[] data, IPEndPoint remote)
+        internal override void OnReceive(Byte[] data, IPEndPoint remote)
         {
             OnReceive(data, data.Length);
         }

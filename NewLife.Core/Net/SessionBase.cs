@@ -330,29 +330,26 @@ namespace NewLife.Net
             return true;
         }
 
-        Boolean ReceiveAsync(SocketAsyncEventArgs e, Boolean io)
+        Boolean ReceiveAsync(SocketAsyncEventArgs se, Boolean io)
         {
             if (Disposed)
             {
                 Interlocked.Decrement(ref _RecvCount);
-                e.TryDispose();
+                se.TryDispose();
 
                 throw new ObjectDisposedException(this.GetType().Name);
             }
-
-            // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
-            e.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
 
             var rs = false;
             try
             {
                 // 开始新的监听
-                rs = Client.ReceiveFromAsync(e);
+                rs = OnReceiveAsync(se);
             }
             catch (Exception ex)
             {
                 Interlocked.Decrement(ref _RecvCount);
-                e.TryDispose();
+                se.TryDispose();
 
                 if (!ex.IsDisposed())
                 {
@@ -370,13 +367,15 @@ namespace NewLife.Net
             if (!rs)
             {
                 if (io)
-                    ProcessReceive(e);
+                    ProcessReceive(se);
                 else
-                    Task.Factory.StartNew(() => ProcessReceive(e));
+                    Task.Factory.StartNew(() => ProcessReceive(se));
             }
 
             return true;
         }
+
+        internal abstract Boolean OnReceiveAsync(SocketAsyncEventArgs se);
 
         void ProcessReceive(SocketAsyncEventArgs se)
         {
@@ -424,7 +423,7 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="data"></param>
         /// <param name="remote"></param>
-        internal protected abstract void OnReceive(Byte[] data, IPEndPoint remote);
+        internal abstract void OnReceive(Byte[] data, IPEndPoint remote);
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
