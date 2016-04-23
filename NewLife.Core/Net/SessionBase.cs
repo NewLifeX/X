@@ -142,6 +142,8 @@ namespace NewLife.Net
 
             if (OnClose(reason)) Active = false;
 
+            _RecvCount = 0;
+
             // 触发关闭完成的事件
             if (Closed != null) Closed(this, EventArgs.Empty);
 
@@ -267,7 +269,8 @@ namespace NewLife.Net
 
                     se.TryDispose();
 
-                    if (se.SocketError == SocketError.ConnectionReset) Dispose();
+                    //if (se.SocketError == SocketError.ConnectionReset) Dispose();
+                    if (se.SocketError == SocketError.ConnectionReset) Close("SendAsync " + se.SocketError);
 
                     return;
                 }
@@ -405,7 +408,8 @@ namespace NewLife.Net
 
                     se.TryDispose();
 
-                    if (se.SocketError == SocketError.ConnectionReset) Dispose();
+                    //if (se.SocketError == SocketError.ConnectionReset) Dispose();
+                    if (se.SocketError == SocketError.ConnectionReset) Close("ReceiveAsync " + se.SocketError);
 
                     return;
                 }
