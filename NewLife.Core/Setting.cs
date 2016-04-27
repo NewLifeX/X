@@ -23,9 +23,13 @@ namespace NewLife
         [Description("日志等级，只输出大于等于该级别的日志")]
         public LogLevel LogLevel { get; set; }
 
-        /// <summary>文本日志目录</summary>
-        [Description("文本日志目录")]
+        /// <summary>文件日志目录</summary>
+        [Description("文件日志目录")]
         public String LogPath { get; set; }
+
+        /// <summary>网络日志。本地子网日志广播255.255.255.255:514</summary>
+        [Description("网络日志。本地子网日志广播255.255.255.255:514")]
+        public String NetworkLog { get; set; }
 
         /// <summary>临时目录</summary>
         [Description("临时目录")]
@@ -66,6 +70,7 @@ namespace NewLife
 
             LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
             TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
+            NetworkLog = "";
             PluginServer = "http://www.newlifex.com/showtopic-51.aspx";
             //PluginPath = Runtime.IsWeb ? "Bin" : "Plugins";
             PluginPath = "Plugins";

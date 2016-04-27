@@ -33,7 +33,7 @@ namespace NewLife.Log
         {
             if (String.IsNullOrEmpty(path)) path = XTrace.LogPath;
 
-            String key = path.ToLower();
+            var key = path.ToLower();
             return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p, false));
         }
 

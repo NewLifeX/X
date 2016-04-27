@@ -124,6 +124,14 @@ namespace NewLife.Log
 #else
                 _Log = new NetworkLog();
 #endif
+
+                var set = Setting.Current;
+                if (!set.NetworkLog.IsNullOrEmpty())
+                {
+                    var nlog = new NetworkLog(NetHelper.ParseEndPoint(set.NetworkLog, 514));
+                    _Log = new CompositeLog(_Log, nlog);
+                }
+
                 _initing = 0;
             }
 
@@ -135,11 +143,15 @@ namespace NewLife.Log
 
         #region 使用控制台输出
 #if !Android
+        private static Boolean _useConsole;
         /// <summary>使用控制台输出日志，只能调用一次</summary>
         /// <param name="useColor">是否使用颜色，默认使用</param>
         /// <param name="useFileLog">是否同时使用文件日志，默认使用</param>
         public static void UseConsole(Boolean useColor = true, Boolean useFileLog = true)
         {
+            if (_useConsole) return;
+            _useConsole = true;
+
             if (!Runtime.IsConsole) return;
 
             // 适当加大控制台窗口
@@ -150,56 +162,62 @@ namespace NewLife.Log
             }
             catch { }
 
-            var clg = _Log as ConsoleLog;
-            var ftl = _Log as TextFileLog;
-            var cmp = _Log as CompositeLog;
-            if (cmp != null)
-            {
-                ftl = cmp.Get<TextFileLog>();
-                clg = cmp.Get<ConsoleLog>();
-            }
-
-            // 控制控制台日志
-            if (clg == null)
-                clg = new ConsoleLog { UseColor = useColor };
+            var clg = new ConsoleLog { UseColor = useColor };
+            if (useFileLog)
+                _Log = new CompositeLog(clg, Log);
             else
-                clg.UseColor = useColor;
+                _Log = clg;
 
-            if (!useFileLog)
-            {
-                // 如果原有提供者是文本日志，则直接替换
-                if (ftl != null)
-                {
-                    Log = clg;
-                    ftl.Dispose();
-                }
-                // 否则组件复合日志
-                else
-                {
-                    if (cmp != null)
-                    {
-                        cmp.Remove(clg);
-                        if (cmp.Logs.Count == 0) _Log = null;
-                    }
+            //var clg = _Log as ConsoleLog;
+            //var ftl = _Log as TextFileLog;
+            //var cmp = _Log as CompositeLog;
+            //if (cmp != null)
+            //{
+            //    ftl = cmp.Get<TextFileLog>();
+            //    clg = cmp.Get<ConsoleLog>();
+            //}
 
-                    cmp = new CompositeLog();
-                    cmp.Add(clg);
-                    if (_Log != null) cmp.Add(_Log);
-                    Log = cmp;
-                }
-            }
-            else
-            {
-                cmp = new CompositeLog();
-                cmp.Add(clg);
-                if (ftl == null)
-                {
-                    //if (_Log != null) cmp.Add(_Log);
-                    ftl = TextFileLog.Create(null);
-                }
-                cmp.Add(ftl);
-                Log = cmp;
-            }
+            //// 控制控制台日志
+            //if (clg == null)
+            //    clg = new ConsoleLog { UseColor = useColor };
+            //else
+            //    clg.UseColor = useColor;
+
+            //if (!useFileLog)
+            //{
+            //    // 如果原有提供者是文本日志，则直接替换
+            //    if (ftl != null)
+            //    {
+            //        Log = clg;
+            //        ftl.Dispose();
+            //    }
+            //    // 否则组件复合日志
+            //    else
+            //    {
+            //        if (cmp != null)
+            //        {
+            //            cmp.Remove(clg);
+            //            if (cmp.Logs.Count == 0) _Log = null;
+            //        }
+
+            //        cmp = new CompositeLog();
+            //        cmp.Add(clg);
+            //        if (_Log != null) cmp.Add(_Log);
+            //        Log = cmp;
+            //    }
+            //}
+            //else
+            //{
+            //    cmp = new CompositeLog();
+            //    cmp.Add(clg);
+            //    if (ftl == null)
+            //    {
+            //        //if (_Log != null) cmp.Add(_Log);
+            //        ftl = TextFileLog.Create(null);
+            //    }
+            //    cmp.Add(ftl);
+            //    Log = cmp;
+            //}
 
             //WriteVersion();
         }

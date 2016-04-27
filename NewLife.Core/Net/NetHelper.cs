@@ -103,7 +103,10 @@ namespace System
         {
             if (String.IsNullOrEmpty(address)) return null;
 
-            Int32 p = address.IndexOf(":");
+            var p = address.IndexOf("://");
+            if (p >= 0) address = address.Substring(p + 3);
+
+            p = address.IndexOf(":");
             if (p > 0)
                 return new IPEndPoint(ParseAddress(address.Substring(0, p)), Int32.Parse(address.Substring(p + 1)));
             else

@@ -7,13 +7,24 @@ namespace NewLife.Log
     /// <summary>网络日志</summary>
     public class NetworkLog : Logger, IDisposable
     {
-        private Socket _Client;
         /// <summary>网络套接字</summary>
-        public Socket Client { get { return _Client; } set { _Client = value; } }
+        public Socket Client { get; set; }
 
-        private IPEndPoint _Remote = new IPEndPoint(IPAddress.Broadcast, 514);
         /// <summary>远程服务器地址</summary>
-        public IPEndPoint Remote { get { return _Remote; } set { _Remote = value; } }
+        public IPEndPoint Remote { get; set; }
+
+        /// <summary>实例化网络日志。默认广播到514端口</summary>
+        public NetworkLog()
+        {
+            Remote = new IPEndPoint(IPAddress.Broadcast, 514);
+        }
+
+        /// <summary>指定日志服务器地址来实例化网络日志</summary>
+        /// <param name="server"></param>
+        public NetworkLog(IPEndPoint server)
+        {
+            Remote = server;
+        }
 
         /// <summary>销毁</summary>
         public void Dispose()
@@ -28,7 +39,7 @@ namespace NewLife.Log
 
             // 默认Udp广播
             var client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            client.EnableBroadcast = true;
+            if (Remote.Address.Equals(IPAddress.Broadcast)) client.EnableBroadcast = true;
             Client = client;
 
             try
