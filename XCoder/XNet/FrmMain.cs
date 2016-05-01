@@ -1,18 +1,17 @@
-﻿using System;
+﻿using NewLife;
+using NewLife.Log;
+using NewLife.Net;
+using NewLife.Reflection;
+using NewLife.Threading;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using NewLife;
-using NewLife.Log;
-using NewLife.Net;
-using NewLife.Reflection;
-using NewLife.Threading;
 using XCoder;
 
 namespace XNet
@@ -440,8 +439,12 @@ namespace XNet
                 var list = new List<NetServer>();
                 foreach (var item in typeof(NetServer).GetAllSubclasses(true))
                 {
-                    var ns = item.CreateInstance() as NetServer;
-                    if (ns != null) list.Add(ns);
+                    try
+                    {
+                        var ns = item.CreateInstance() as NetServer;
+                        if (ns != null) list.Add(ns);
+                    }
+                    catch { }
                 }
 
                 return _ns = list.ToArray();
