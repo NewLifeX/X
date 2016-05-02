@@ -88,6 +88,14 @@ namespace XCoder
 
         void CreateForm(Form frm)
         {
+            var name = frm.GetType().FullName;
+            var cfg = XConfig.Current;
+            if (name != cfg.LastTool)
+            {
+                cfg.LastTool = name;
+                cfg.Save();
+            }
+
             frm.MdiParent = this;
             frm.WindowState = FormWindowState.Maximized;
             frm.Show();
