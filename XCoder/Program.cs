@@ -39,7 +39,7 @@ namespace XCoder
             {
                 Update(true);
 
-                new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
+                if (!Runtime.Mono) new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
             }
             catch (Exception ex)
             {

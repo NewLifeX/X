@@ -95,12 +95,6 @@
     <Compile Include="Http\HttpCache.cs" />
     <Compile Include="Http\HttpServer.cs" />
     <Compile Include="Http\HttpSession.cs" />
-    <Compile Include="Http\Messages.cs" />
-    <Compile Include="Http\NtlmAuth.cs" />
-    <Compile Include="Http\WebHost.cs" />
-    <Compile Include="Http\WebRequest.cs" />
-    <Compile Include="Http\WebServer.cs" />
-    <Compile Include="Http\WebSession.cs" />
     <Compile Include="ISO\COTP.cs" />
     <Compile Include="ISO\TPKT.cs" />
     <Compile Include="Modbus\DataStore.cs" />

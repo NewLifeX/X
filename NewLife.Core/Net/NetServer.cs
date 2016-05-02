@@ -493,7 +493,9 @@ namespace NewLife.Net
 #if !NET4
                     if (Socket.SupportsIPv4) list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetwork));
 #else
-                    if (Socket.OSSupportsIPv4) list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetwork));
+                    // 兼容Linux
+                    //if (Socket.OSSupportsIPv4)
+                    list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetwork));
 #endif
                     if (Socket.OSSupportsIPv6) list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetworkV6));
                     break;

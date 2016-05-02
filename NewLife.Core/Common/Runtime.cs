@@ -134,22 +134,24 @@ namespace NewLife
                             sys = vs.ToString();
                             break;
                     }
+                    sys = "Windows " + sys;
                 }
                 #endregion
                 else if (os.Platform == PlatformID.Win32NT)
-                    sys = GetNTName(vs);
-                else
-                    return _OSName = os.ToString();
-
-                if (sys != "")
                 {
-                    sys = "Windows " + sys;
-
-                    // 补丁
-                    if (os.ServicePack != "") sys += " " + os.ServicePack;
-
-                    if (is64) sys += " x64";
+                    sys = GetNTName(vs);
+                    if (sys.IsNullOrEmpty())
+                        sys = os.ToString();
+                    else
+                        sys = "Windows " + sys;
                 }
+
+                if (sys.IsNullOrEmpty()) sys = os.ToString();
+
+                // 补丁
+                if (os.ServicePack != "") sys += " " + os.ServicePack;
+
+                if (is64) sys += " x64";
 
                 return _OSName = sys;
             }
@@ -157,6 +159,8 @@ namespace NewLife
 
         static String GetNTName(Version vs)
         {
+            if (Mono) return null;
+
             var ver = new Win32Native.OSVersionInfoEx();
             if (!Win32Native.GetVersionEx(ver)) ver = null;
             var isStation = ver == null || ver.ProductType == OSProductType.WorkStation;
@@ -338,6 +342,8 @@ namespace NewLife
 
         private static void Refresh()
         {
+            if (Mono) return;
+
             //var ci = new ComputerInfo();
             //_PhysicalMemory = (Int32)(ci.TotalPhysicalMemory / 1024 / 1024);
             //_VirtualMemory = (Int32)(ci.TotalVirtualMemory / 1024 / 1024);

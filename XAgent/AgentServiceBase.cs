@@ -204,9 +204,9 @@ namespace XAgent
                         case 7:
                             if (WatchDogs.Length > 0) CheckWatchDog();
                             break;
-                        case 8:
-                            RunUI();
-                            break;
+                        //case 8:
+                        //    RunUI();
+                        //    break;
                         default:
                             break;
                     }

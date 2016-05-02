@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Web;
-using NewLife.Net.Sockets;
 using NewLife.Reflection;
 
 namespace NewLife.Net.Http

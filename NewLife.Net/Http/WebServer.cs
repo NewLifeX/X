@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Web.Hosting;
-using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Http
 {
@@ -76,6 +75,7 @@ namespace NewLife.Net.Http
                 _ProcessUser = WindowsIdentity.GetCurrent().Name;
             }
         }
+
         [DllImport("ADVAPI32.DLL", SetLastError = true)]
         private static extern bool ImpersonateSelf(int level);
         [DllImport("KERNEL32.DLL", SetLastError = true)]

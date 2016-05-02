@@ -163,17 +163,17 @@ namespace XAgent
         #endregion
 
         #region 运行UI
-        internal static void RunUI()
-        {
-            FreeConsole();
+        //internal static void RunUI()
+        //{
+        //    FreeConsole();
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FrmMain());
-        }
+        //    Application.EnableVisualStyles();
+        //    Application.SetCompatibleTextRenderingDefault(false);
+        //    Application.Run(new FrmMain());
+        //}
 
-        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
-        internal static extern bool FreeConsole();
+        //[DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        //internal static extern bool FreeConsole();
         #endregion
     }
 }

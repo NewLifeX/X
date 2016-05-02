@@ -614,12 +614,15 @@ namespace NewLife.Net.Proxy
                 key.SetValue("ProxyEnable", 0);
             key.Close();
 
-            InternetSetOption(IntPtr.Zero, INTERNET_OPTION_PROXY, ptr, Marshal.SizeOf(info));
+            if (!Runtime.Mono)
+            {
+                InternetSetOption(IntPtr.Zero, INTERNET_OPTION_PROXY, ptr, Marshal.SizeOf(info));
 
-            const int INTERNET_OPTION_REFRESH = 0x000025;
-            const int INTERNET_OPTION_SETTINGS_CHANGED = 0x000027;
-            InternetSetOption(IntPtr.Zero, INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);
-            InternetSetOption(IntPtr.Zero, INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);
+                const int INTERNET_OPTION_REFRESH = 0x000025;
+                const int INTERNET_OPTION_SETTINGS_CHANGED = 0x000027;
+                InternetSetOption(IntPtr.Zero, INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);
+                InternetSetOption(IntPtr.Zero, INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);
+            }
         }
         #endregion
     }
