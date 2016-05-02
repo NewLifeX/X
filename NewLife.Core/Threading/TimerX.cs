@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using NewLife.Log;
 
@@ -19,7 +21,7 @@ namespace NewLife.Threading
     {
         #region 属性
         /// <summary>回调</summary>
-        public Action<Object> Callback { get; set; }
+        public WaitCallback Callback { get; set; }
 
         /// <summary>用户数据</summary>
         public Object State { get; set; }
@@ -35,6 +37,9 @@ namespace NewLife.Threading
 
         /// <summary>调用中</summary>
         public Boolean Calling { get; private set; }
+
+        /// <summary>平均耗时。毫秒</summary>
+        public Int32 Cost { get; private set; }
         #endregion
 
         #region 构造
@@ -49,7 +54,7 @@ namespace NewLife.Threading
             if (dueTime < 0) throw new ArgumentOutOfRangeException("dueTime");
             if (period < 0) throw new ArgumentOutOfRangeException("period");
 
-            Callback = new Action<Object>(callback);
+            Callback = callback;
             State = state;
             Period = period;
 
@@ -82,7 +87,29 @@ namespace NewLife.Threading
         /// <returns></returns>
         public override string ToString()
         {
-            return Callback != null ? "" + Callback : base.ToString();
+            //return Callback != null ? "" + Callback.Method : base.ToString();
+            if (Callback == null) return base.ToString();
+
+            var mi = Callback.Method;
+            //return "{0} {1}.{2}()".F(mi.DeclaringType.Name,mi.)
+            var sb = new StringBuilder();
+            sb.Append(mi.ReturnType.Name);
+            sb.Append(" ");
+            if (mi.DeclaringType != null)
+            {
+                sb.Append(mi.DeclaringType.Name);
+                sb.Append(".");
+            }
+            sb.Append(mi.Name);
+            sb.Append("(");
+            var pis = mi.GetParameters();
+            for (int i = 0; i < pis.Length; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                sb.AppendFormat("{0} {1}", pis[i].ParameterType.Name, pis[i].Name);
+            }
+            sb.Append(")");
+            return sb.ToString();
         }
         #endregion
 
@@ -231,6 +258,13 @@ namespace NewLife.Threading
             /// <param name="timer"></param>
             static void ProcessItem(TimerX timer)
             {
+                Stopwatch sw = null;
+                if (Debug)
+                {
+                    sw = new Stopwatch();
+                    sw.Start();
+                }
+
                 try
                 {
                     timer.Calling = true;
@@ -244,6 +278,19 @@ namespace NewLife.Threading
                 catch (Exception ex) { XTrace.WriteException(ex); }
                 finally
                 {
+                    if (sw != null)
+                    {
+                        sw.Stop();
+
+                        var d = (Int32)sw.ElapsedMilliseconds;
+                        if (timer.Cost == 0)
+                            timer.Cost = d;
+                        else
+                            timer.Cost = (timer.Cost + d) / 2;
+
+                        if (d > 1000) WriteLog("任务 {0} 耗时过长 {1:n0}ms", timer, d);
+                    }
+
                     // 再次读取周期，因为任何函数可能会修改
                     var p = timer.Period;
 
