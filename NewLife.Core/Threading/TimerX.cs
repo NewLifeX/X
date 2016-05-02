@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace NewLife.Threading
@@ -20,20 +21,23 @@ namespace NewLife.Threading
     public class TimerX : /*DisposeBase*/IDisposable
     {
         #region 属性
-        /// <summary>回调</summary>
+        /// <summary>获取/设置 回调</summary>
         public WaitCallback Callback { get; set; }
 
-        /// <summary>用户数据</summary>
+        /// <summary>获取/设置 用户数据</summary>
         public Object State { get; set; }
 
-        /// <summary>下一次调用时间</summary>
+        /// <summary>获取/设置 下一次调用时间</summary>
         public DateTime NextTime { get; set; }
 
-        /// <summary>调用次数</summary>
+        /// <summary>获取/设置 调用次数</summary>
         public Int32 Timers { get; private set; }
 
-        /// <summary>间隔周期。毫秒，设为0则只调用一次</summary>
+        /// <summary>获取/设置 间隔周期。毫秒，设为0则只调用一次</summary>
         public Int32 Period { get; set; }
+
+        /// <summary>获取/设置 异步执行任务。默认false</summary>
+        public Boolean Async { get; set; }
 
         /// <summary>调用中</summary>
         public Boolean Calling { get; private set; }
@@ -91,24 +95,27 @@ namespace NewLife.Threading
             if (Callback == null) return base.ToString();
 
             var mi = Callback.Method;
-            //return "{0} {1}.{2}()".F(mi.DeclaringType.Name,mi.)
             var sb = new StringBuilder();
-            sb.Append(mi.ReturnType.Name);
-            sb.Append(" ");
+            //sb.Append(mi.ReturnType.Name);
+            //sb.Append(" ");
             if (mi.DeclaringType != null)
             {
                 sb.Append(mi.DeclaringType.Name);
                 sb.Append(".");
             }
             sb.Append(mi.Name);
-            sb.Append("(");
-            var pis = mi.GetParameters();
-            for (int i = 0; i < pis.Length; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.AppendFormat("{0} {1}", pis[i].ParameterType.Name, pis[i].Name);
-            }
-            sb.Append(")");
+            //sb.Append("(");
+            //var pis = mi.GetParameters();
+            //for (int i = 0; i < pis.Length; i++)
+            //{
+            //    if (i > 0) sb.Append(", ");
+            //    sb.AppendFormat("{0} {1}", pis[i].ParameterType.Name, pis[i].Name);
+            //}
+            //sb.Append(")");
+            sb.Append(" ");
+
+            sb.Append(State);
+
             return sb.ToString();
         }
         #endregion
@@ -189,7 +196,13 @@ namespace NewLife.Threading
                         period = 60000;
                         foreach (var timer in arr)
                         {
-                            if (CheckTime(timer, now)) ProcessItem(timer);
+                            if (!timer.Calling && CheckTime(timer, now))
+                            {
+                                if (!timer.Async)
+                                    ProcessItem(timer);
+                                else
+                                    Task.Factory.StartNew(() => ProcessItem(timer));
+                            }
                         }
                     }
                     catch (ThreadAbortException) { break; }
@@ -233,11 +246,7 @@ namespace NewLife.Threading
                 {
                     // 周期0表示只执行一次
                     if (p < 10 && p > 0) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于{1}ms<10ms的任务调度，关闭任务{0}", timer, p);
-                    lock (timers)
-                    {
-                        timers.Remove(timer);
-                        timer.Dispose();
-                    }
+                    timer.Dispose();
                     return false;
                 }
 
@@ -259,7 +268,7 @@ namespace NewLife.Threading
             static void ProcessItem(TimerX timer)
             {
                 Stopwatch sw = null;
-                if (Debug)
+                //if (Debug)
                 {
                     sw = new Stopwatch();
                     sw.Start();
@@ -269,7 +278,6 @@ namespace NewLife.Threading
                 {
                     timer.Calling = true;
 
-                    //Action<Object> callback = timer.Callback;
                     timer.Callback(timer.State ?? timer);
                 }
                 catch (ThreadAbortException) { throw; }
@@ -288,7 +296,7 @@ namespace NewLife.Threading
                         else
                             timer.Cost = (timer.Cost + d) / 2;
 
-                        if (d > 1000) WriteLog("任务 {0} 耗时过长 {1:n0}ms", timer, d);
+                        if (d > 500 && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms", timer, d);
                     }
 
                     // 再次读取周期，因为任何函数可能会修改
@@ -300,14 +308,9 @@ namespace NewLife.Threading
 
                     // 清理一次性定时器
                     if (p <= 0)
-                    {
-                        lock (timers)
-                        {
-                            timers.Remove(timer);
-                            timer.Dispose();
-                        }
-                    }
-                    if (p < period) period = p;
+                        timer.Dispose();
+                    else if (p < period)
+                        period = p;
                 }
             }
         }

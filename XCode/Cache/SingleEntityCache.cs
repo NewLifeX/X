@@ -81,7 +81,7 @@ namespace XCode.Cache
 
             // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
             _Timer = new TimerX(CheckExpire, null, Expire * 1000, Expire * 1000);
-            _Timer.Pool = true;
+            _Timer.Async = true;
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
