@@ -82,7 +82,7 @@ namespace XCode.Cache
 
         /// <summary>维护</summary>
         /// <param name="obj"></param>
-        private static void Check(Object obj)
+        private static void CheckExpire(Object obj)
         {
             //关闭缓存、永久静态缓存和请求级缓存时，不需要检查
             if (Kind != CacheKinds.有效期缓存) return;
@@ -146,7 +146,7 @@ namespace XCode.Cache
 
             //var period = CheckPeriod;
             var period = 30;
-            AutoCheckCacheTimer = new TimerX(Check, null, period * 1000, period * 1000);
+            AutoCheckCacheTimer = new TimerX(CheckExpire, null, period * 1000, period * 1000);
         }
         #endregion
 

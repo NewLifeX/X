@@ -49,14 +49,16 @@ namespace XCode
             if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period);
 
             // 避免重复加入队列
-            if (Entities.Contains(entity)) return false;
+            var list = Entities;
+            if (list.Contains(entity)) return false;
 
             lock (this)
             {
+                list = Entities;
                 // 避免重复加入队列
-                if (Entities.Contains(entity)) return false;
+                if (list.Contains(entity)) return false;
 
-                Entities.Add(entity);
+                list.Add(entity);
             }
 
             return true;
@@ -65,28 +67,36 @@ namespace XCode
         private void Work(Object state)
         {
             if (_Running) return;
-            if (Entities.Count == 0) return;
 
-            IEntity[] es = null;
+            var list = Entities;
+            if (list.Count == 0) return;
+
+            //var es = list;
             lock (this)
             {
-                es = Entities.ToArray();
-                Entities.Clear();
+                //es = list.ToArray();
+                //list.Clear();
+
+                // 为了速度，不拷贝，直接创建一个新的集合
+                list = Entities;
+                if (list.Count == 0) return;
+
+                Entities = new HashSet<IEntity>();
             }
-            if (es.Length == 0) return;
+            if (list.Count == 0) return;
 
             _Running = true;
-            Task.Factory.StartNew(Process, es);
+            Task.Factory.StartNew(Process, list);
         }
 
         private Boolean _Running;
         private void Process(Object state)
         {
-            var es = state as IEntity[];
+            var list = state as IEntity[];
             var dal = Dal;
 
             //var cfg = Setting.Current;
-            if (Debug) XTrace.WriteLine("实体队列[{0}]\t准备持久化{1}个对象", dal.ConnName, es.Length);
+            if (Debug) XTrace.WriteLine("实体队列[{0}]\t准备持久化{1}个对象", dal.ConnName, list.Length);
 
             var rs = new List<Int32>();
             var sw = new Stopwatch();
@@ -96,7 +106,7 @@ namespace XCode
             dal.BeginTransaction();
             try
             {
-                foreach (var item in es)
+                foreach (var item in list)
                 {
                     rs.Add(item.Save());
                 }
@@ -119,10 +129,10 @@ namespace XCode
             // 大于1000个对象时，说明需要加快持久化间隔，缩小周期
             // 小于1000个对象时，说明持久化太快了，加大周期
             var p = Period;
-            if (es.Length > 1000)
-                p = p * 1000 / es.Length;
+            if (list.Length > 1000)
+                p = p * 1000 / list.Length;
             else
-                p = p * 1000 / es.Length;
+                p = p * 1000 / list.Length;
 
             // 最小间隔100毫秒
             if (p < 100) p = 100;
@@ -139,9 +149,9 @@ namespace XCode
 
             if (Completed != null)
             {
-                for (int i = 0; i < es.Length; i++)
+                for (int i = 0; i < list.Length; i++)
                 {
-                    Completed(this, new EventArgs<IEntity, int>(es[i], rs[i]));
+                    Completed(this, new EventArgs<IEntity, int>(list[i], rs[i]));
                 }
             }
         }

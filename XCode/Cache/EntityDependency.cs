@@ -28,7 +28,7 @@ namespace XCode.Cache
             if (period > 1000)
             {
                 count = session.LongCount;
-                timer = new TimerX(d => CheckCount(), null, period, period);
+                timer = new TimerX(CheckCount, null, period, period);
             }
         }
 
@@ -37,7 +37,7 @@ namespace XCode.Cache
             NotifyDependencyChanged(this, EventArgs.Empty);
         }
 
-        void CheckCount()
+        void CheckCount(Object state)
         {
             if (Entity<TEntity>.Meta.Session.LongCount != count)
             {
