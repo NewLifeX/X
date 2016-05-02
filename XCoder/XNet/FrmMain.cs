@@ -1,9 +1,4 @@
-﻿using NewLife;
-using NewLife.Log;
-using NewLife.Net;
-using NewLife.Reflection;
-using NewLife.Threading;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,6 +7,11 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NewLife;
+using NewLife.Log;
+using NewLife.Net;
+using NewLife.Reflection;
+using NewLife.Threading;
 using XCoder;
 
 namespace XNet
@@ -308,17 +308,25 @@ namespace XNet
             else
             {
                 // 多线程测试
-                Task.Factory.StartNew(() =>
+                //Task.Factory.StartNew(() =>
+                //{
+                //    for (int i = 0; i < ths; i++)
+                //    {
+                //        var client = _Client.Remote.CreateRemote();
+                //        client.StatSend = _Client.StatSend;
+                //        client.StatReceive = _Client.StatReceive;
+                //        //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
+                //        client.SendAsync(buf, count, sleep);
+                //    }
+                //}).LogException();
+                Parallel.For(0, ths, n =>
                 {
-                    for (int i = 0; i < ths; i++)
-                    {
-                        var client = _Client.Remote.CreateRemote();
-                        client.StatSend = _Client.StatSend;
-                        client.StatReceive = _Client.StatReceive;
-                        //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
-                        client.SendAsync(buf, count, sleep);
-                    }
-                }).LogException();
+                    var client = _Client.Remote.CreateRemote();
+                    client.StatSend = _Client.StatSend;
+                    client.StatReceive = _Client.StatReceive;
+                    //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
+                    client.SendAsync(buf, count, sleep);
+                });
             }
         }
         #endregion

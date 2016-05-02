@@ -177,6 +177,15 @@ namespace NewLife.Net
         {
             if (times <= 1) return session.SendAsync(buffer);
 
+            if (msInterval < 10)
+            {
+                for (int i = 0; i < times; i++)
+                {
+                    session.SendAsync(buffer);
+                }
+                return true;
+            }
+
             //var src = new TaskCompletionSource<Int32>();
 
             var timer = new TimerX(s =>
