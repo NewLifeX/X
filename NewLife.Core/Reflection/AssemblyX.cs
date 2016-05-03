@@ -281,6 +281,21 @@ namespace NewLife.Reflection
                         }
                     }
                 }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    if (XTrace.Debug)
+                    {
+                        //XTrace.WriteException(ex);
+                        XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
+
+                        foreach (var item in ex.LoaderExceptions)
+                        {
+                            XTrace.WriteException(item);
+                        }
+                    }
+
+                    return null;
+                }
                 catch (Exception ex)
                 {
                     if (XTrace.Debug) XTrace.WriteException(ex);
