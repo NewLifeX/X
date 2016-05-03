@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using NewLife;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Application;
@@ -45,6 +46,10 @@ namespace Test2
 
         static void Test1()
         {
+            Console.WriteLine(Runtime.OSName);
+            var os = Environment.OSVersion;
+            Console.WriteLine(os);
+
             var wc = new WebClientX(true, true);
             var html = wc.DownloadString("http://www.newlifex.com/showtopic-1433.aspx");
             if (!html.IsNullOrEmpty())
