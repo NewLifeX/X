@@ -10,6 +10,7 @@ namespace NewLife.Extension
     class SpeakProvider
     {
         private static String typeName = "Microsoft.Speech.Synthesis.SpeechSynthesizer";
+        private static String typeName2 = "System.Speech.Synthesis.SpeechSynthesizer";
         private Type _type;
 
         public SpeakProvider()
@@ -19,9 +20,10 @@ namespace NewLife.Extension
                 var url = Setting.Current.PluginServer;
 
                 // 新版系统内置
-                if (Environment.OSVersion.Version.Major >= 6) typeName = "System.Speech.Synthesis.SpeechSynthesizer";
+                //if (Environment.OSVersion.Version.Major >= 6) typeName = "System.Speech.Synthesis.SpeechSynthesizer";
 
-                _type = PluginHelper.LoadPlugin(typeName, "语音驱动库", "Microsoft.Speech.dll", "Microsoft.Speech", url);
+                _type = typeName2.GetTypeEx();
+                if (_type == null) _type = PluginHelper.LoadPlugin(typeName, "语音驱动库", "Microsoft.Speech.dll", "Microsoft.Speech", url);
 
                 CheckVoice();
             }
@@ -95,7 +97,7 @@ namespace NewLife.Extension
                 try
                 {
                     synth = _type.CreateInstance(new object[0]);
-                    //synth.Invoke("SetOutputToDefaultAudioDevice", new object[0]);
+                    synth.Invoke("SetOutputToDefaultAudioDevice", new object[0]);
                 }
                 catch (Exception ex)
                 {
