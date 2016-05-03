@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -201,11 +202,34 @@ namespace NewLife.Net
             LastTime = DateTime.Now;
 
             // 同时只允许一个异步发送，其它发送放入队列
-            var qi = new QueueItem();
-            qi.Buffer = buffer;
-            qi.Remote = remote;
 
-            _SendQueue.Enqueue(qi);
+            // 考虑到超长数据包，拆分为多个包
+            var max = 1472;
+            if (buffer.Length <= max)
+            {
+                var qi = new QueueItem();
+                qi.Buffer = buffer;
+                qi.Remote = remote;
+
+                _SendQueue.Enqueue(qi);
+            }
+            else
+            {
+                var ms = new MemoryStream(buffer);
+                while (true)
+                {
+                    var remain = (Int32)(ms.Length - ms.Position);
+                    if (remain <= 0) break;
+
+                    var len = Math.Min(remain, max);
+
+                    var qi = new QueueItem();
+                    qi.Buffer = ms.ReadBytes(len);
+                    qi.Remote = remote;
+
+                    _SendQueue.Enqueue(qi);
+                }
+            }
 
             CheckSendQueue(false);
 

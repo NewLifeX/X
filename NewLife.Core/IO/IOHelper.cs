@@ -359,65 +359,41 @@ namespace System
             if (stream == null) return null;
             if (length == 0) return new Byte[0];
 
-            #region 规避内存读取错误
             if (length > 0 && stream.CanSeek && stream.Length - stream.Position < length)
                 throw new XException("无法从长度只有{0}的数据流里面读取{1}字节的数据", stream.Length - stream.Position, length);
-            //if (XTrace.Debug)
-            //{
-            //    if (length > 2048)
-            //        XTrace.WriteLine("设计错误！读取数据{0}字节超大，很有可能是上层代码逻辑出错，如果上层无错而需要屏蔽当前提示，建议关闭NewLife.Debug调试开关", length);
-            //}
-            #endregion
-
-            // 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
-            var ms = stream as MemoryStream;
-            if (ms != null && ms.Position == 0 && (length <= 0 || length == ms.Length))
-            {
-                ms.Position = ms.Length;
-                // 如果MemoryStream(byte[] buffer,...)构造生成的实例，是不允许访问MemoryStream内部的_buffer数组的
-                //try
-                //{
-                //    // 如果长度一致
-                //    var buf = ms.GetBuffer();
-                //    if (buf.Length == ms.Length) return buf;
-                //}
-                //catch { }
-                // ToArray带有复制，效率稍逊
-                return ms.ToArray();
-            }
 
             if (length > 0)
             {
-                var bytes = new Byte[length];
-                stream.Read(bytes, 0, bytes.Length);
-                return bytes;
+                var buf = new Byte[length];
+                var n = stream.Read(buf, 0, buf.Length);
+                //if (n != buf.Length) buf = buf.ReadBytes(0, n);
+                return buf;
             }
 
             // 如果要读完数据，又不支持定位，则采用内存流搬运
             if (!stream.CanSeek)
             {
-                ms = new MemoryStream();
+                var ms = new MemoryStream();
                 while (true)
                 {
-                    var buffer = new Byte[1024];
-                    Int32 count = stream.Read(buffer, 0, buffer.Length);
+                    var buf = new Byte[1024];
+                    var count = stream.Read(buf, 0, buf.Length);
                     if (count <= 0) break;
 
-                    ms.Write(buffer, 0, count);
-                    if (count < buffer.Length) break;
+                    ms.Write(buf, 0, count);
+                    if (count < buf.Length) break;
                 }
 
                 return ms.ToArray();
             }
             else
             {
-                //if (length <= 0 || stream.CanSeek && stream.Position + length > stream.Length) length = (Int32)(stream.Length - stream.Position);
                 // 如果指定长度超过数据流长度，就让其报错，因为那是调用者所期望的值
                 length = (Int32)(stream.Length - stream.Position);
 
-                var bytes = new Byte[length];
-                stream.Read(bytes, 0, bytes.Length);
-                return bytes;
+                var buf = new Byte[length];
+                stream.Read(buf, 0, buf.Length);
+                return buf;
             }
         }
 
