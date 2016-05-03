@@ -88,6 +88,8 @@ namespace NewLife.Windows
 
                 var gr = new Grammar(gb);
 
+                // 不能加载自然语法，否则关键字识别率大大下降
+                //_rg.LoadGrammarAsync(new DictationGrammar());
                 _rg.LoadGrammarAsync(gr);
 
                 // 首次启动
@@ -100,7 +102,7 @@ namespace NewLife.Windows
             var rs = e.Result;
             if (rs == null) return;
 
-            XTrace.WriteLine("{0} {1}", rs.Text, rs.Confidence);
+            XTrace.WriteLine("语音识别：{0} {1}", rs.Text, rs.Confidence);
 
             if (rs.Confidence < 0.5) return;
 
