@@ -25,10 +25,12 @@ using System.Runtime.InteropServices;
 //      内部版本号
 //      修订号
 //
-[assembly: AssemblyVersion("6.7.*")]
-[assembly: AssemblyFileVersion("6.7.2016.0418")]
+[assembly: AssemblyVersion("6.8.*")]
+[assembly: AssemblyFileVersion("6.8.2016.0504")]
 
 /*
+ * v6.8.2016.0504   增加操作语音提示和语音识别辅助操作
+ * 
  * v6.7.2016.0418   异步加载子工具，支持外部FrmMain窗体
  * 
  * v6.6.2016.0205   升级网络调试工具，增加收发数据的日志控制，增加统计信息

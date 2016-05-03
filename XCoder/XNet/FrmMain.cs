@@ -74,11 +74,14 @@ namespace XNet
             LoadConfig();
 
             // 语音识别
-            SpeechRecognition.Register("打开", Connect);
-            SpeechRecognition.Register("关闭", Disconnect);
-            SpeechRecognition.Register("退出", () => Application.Exit());
+            Task.Factory.StartNew(() =>
+            {
+                SpeechRecognition.Register("打开", Connect);
+                SpeechRecognition.Register("关闭", Disconnect);
+                SpeechRecognition.Register("退出", () => Application.Exit());
 
-            XTrace.WriteLine("有效的语音识别命令：{0}", SpeechRecognition.GetAllKeys().Join());
+                XTrace.WriteLine("有效的语音识别命令：{0}", SpeechRecognition.GetAllKeys().Join());
+            });
         }
         #endregion
 
