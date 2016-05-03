@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\CollectionHelper.cs" />
+    <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
     <Compile Include="Collections\ListBase.cs">
       <SubType>Code</SubType>
