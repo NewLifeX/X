@@ -12,6 +12,7 @@ using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Threading;
+using NewLife.Windows;
 using XCoder;
 
 namespace XNet
@@ -71,6 +72,13 @@ namespace XNet
             UIConfig.Apply(txtReceive);
 
             LoadConfig();
+
+            // 语音识别
+            SpeechRecognition.Register("打开", Connect);
+            SpeechRecognition.Register("关闭", Disconnect);
+            SpeechRecognition.Register("退出", () => Application.Exit());
+
+            XTrace.WriteLine("有效的语音识别命令：{0}", SpeechRecognition.GetAllKeys().Join());
         }
         #endregion
 

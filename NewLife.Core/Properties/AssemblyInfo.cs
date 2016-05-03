@@ -35,6 +35,7 @@ using System.Runtime.InteropServices;
 
 /*
  * v5.7.2016.0503   增加代码耗时统计TimeCost，用于统计关键点功能耗时情况，并输出日志
+ *                  增加语音识别SpeechRecognition
  * 
  * v5.6.2016.0407   增加随机数生成器Rand
  * 

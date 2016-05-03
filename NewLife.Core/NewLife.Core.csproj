@@ -225,6 +225,7 @@
     <Compile Include="Windows\SerialPortList.designer.cs">
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </Compile>
+    <Compile Include="Windows\SpeechRecognition.cs" />
     <Compile Include="Xml\SerializableDictionary.cs" />
     <Compile Include="Xml\XmlConfig.cs" />
     <Compile Include="Xml\XmlConfigFileAttribute.cs" />

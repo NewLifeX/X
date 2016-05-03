@@ -16,6 +16,7 @@ using NewLife.Net.Stress;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Windows;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -81,37 +82,38 @@ namespace Test
             var os = Environment.OSVersion;
             Console.WriteLine(os);
 
-            foreach (var item in SpeechRecognitionEngine.InstalledRecognizers())
-            {
-                Console.WriteLine(item);
-            }
-            using (var rg = new SpeechRecognitionEngine())
-            {
-                rg.UnloadAllGrammars();
-                //rg.LoadGrammar(new DictationGrammar());
+            SpeechRecognition.Register("开灯", () => Console.WriteLine("打开客厅大灯"));
+            SpeechRecognition.Register("回家", () => Console.WriteLine("打开门道灯光"));
+            SpeechRecognition.Register("看电影", () => Console.WriteLine("调暗灯光"));
+            SpeechRecognition.Register("下雨", () => Console.WriteLine("关闭窗帘"));
 
-                var ss = "爸爸,妈妈,开灯,开门,关灯,关门,我饿了,吃饭,睡觉,连接,断开,关闭,编译,回家模式,影音模式,关闭所有灯";
-                var preCmd = new Choices();
-                preCmd.Add(ss.Split(","));
-                var gb = new GrammarBuilder();
-                gb.Append(preCmd);
-                var gr = new Grammar(gb);
-                rg.LoadGrammarAsync(gr);
+            //using (var rg = new SpeechRecognitionEngine())
+            //{
+            //    rg.UnloadAllGrammars();
+            //    //rg.LoadGrammar(new DictationGrammar());
 
-                rg.SetInputToDefaultAudioDevice();
-                //rg.InitialSilenceTimeout = TimeSpan.FromSeconds(500);
+            //    var ss = "爸爸,妈妈,开灯,开门,关灯,关门,我饿了,吃饭,睡觉,连接,断开,关闭,编译,回家模式,影音模式,关闭所有灯";
+            //    var preCmd = new Choices();
+            //    preCmd.Add(ss.Split(","));
+            //    var gb = new GrammarBuilder();
+            //    gb.Append(preCmd);
+            //    var gr = new Grammar(gb);
+            //    rg.LoadGrammarAsync(gr);
 
-                Console.WriteLine("准备就绪，语音识别正在聆听……");
+            //    rg.SetInputToDefaultAudioDevice();
+            //    //rg.InitialSilenceTimeout = TimeSpan.FromSeconds(500);
 
-                //var rs = rg.Recognize();
-                //Console.WriteLine(rs.Text);
-                //rg.RecognizeCompleted += rg_RecognizeCompleted;
-                rg.SpeechRecognized += rg_SpeechRecognized;
+            //    Console.WriteLine("准备就绪，语音识别正在聆听……");
 
-                rg.RecognizeAsync(RecognizeMode.Multiple);
+            //    //var rs = rg.Recognize();
+            //    //Console.WriteLine(rs.Text);
+            //    //rg.RecognizeCompleted += rg_RecognizeCompleted;
+            //    rg.SpeechRecognized += rg_SpeechRecognized;
 
-                Thread.Sleep(60000);
-            }
+            //    rg.RecognizeAsync(RecognizeMode.Multiple);
+
+            //    Thread.Sleep(60000);
+            //}
         }
 
         static void rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
