@@ -1,28 +1,25 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Text;
+using System.Speech.Synthesis;
 using System.Threading;
-using System.Xml.Serialization;
+using System.Threading.Tasks;
+using NewLife;
 using NewLife.Common;
 using NewLife.Compression;
 using NewLife.Log;
-using NewLife.MessageQueue;
 using NewLife.Net;
 using NewLife.Net.IO;
 using NewLife.Net.Stress;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Threading;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Transform;
-using System.Threading.Tasks;
 
 namespace Test
 {
@@ -45,7 +42,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -80,11 +77,21 @@ namespace Test
 
         static void Test2()
         {
+            Console.WriteLine(Runtime.OSName);
+            var os = Environment.OSVersion;
+            Console.WriteLine(os);
+
             var ss = PinYin.GetMulti('石');
             Console.WriteLine(ss.Join());
 
             var count = UserX.Meta.Count;
             "共有{0}行数据".F(count).SpeakAsync();
+
+            //var syn = new SpeechSynthesizer();
+            ////syn.SetOutputToWaveFile("bb.wav");
+            //var list = syn.GetInstalledVoices();
+            //Console.WriteLine(list.Count);
+            //syn.SpeakAsync("轻舞菲扬");
         }
 
         static void Test3()
@@ -351,7 +358,7 @@ namespace Test
             tcp.AutoReconnect = 0;
             //tcp.Send("我是大石头！");
             tcp.Open();
-            tcp.Stream = new PacketStream(tcp.Stream);
+            //tcp.Stream = new PacketStream(tcp.Stream);
             //var ms = new MemoryStream();
             for (int i = 0; i < 10; i++)
             {

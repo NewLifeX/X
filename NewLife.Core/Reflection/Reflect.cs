@@ -28,6 +28,9 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(typeName)) return null;
 
+            var type = Type.GetType(typeName);
+            if (type != null) return type;
+
             return Provider.GetType(typeName, isLoadAssembly);
         }
 

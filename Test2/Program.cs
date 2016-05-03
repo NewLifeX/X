@@ -1,9 +1,5 @@
 ﻿using System;
-using NewLife;
-using NewLife.Reflection;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -11,14 +7,8 @@ using System.Threading;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Application;
-using NewLife.Net.DNS;
-using NewLife.Net.Modbus;
 using NewLife.Net.Proxy;
-using NewLife.Net.Sockets;
-using NewLife.Net.Stress;
-using NewLife.Security;
-using NewLife.Threading;
-using NewLife.IO;
+using NewLife.Web;
 
 namespace Test2
 {
@@ -35,7 +25,7 @@ namespace Test2
                 try
                 {
 #endif
-                    Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -53,11 +43,24 @@ namespace Test2
             }
         }
 
-        private static void Test1()
+        static void Test1()
         {
-            AppTest.Start();
-            //AppTest.TcpConnectionTest();
-            //TcpStress.Main();
+            var wc = new WebClientX(true, true);
+            var html = wc.DownloadString("http://www.newlifex.com/showtopic-1433.aspx");
+            if (!html.IsNullOrEmpty())
+            {
+                var txt = html.Substring("<div id=\"firstpost\">", "</div>");
+                txt = txt.Substring("<b>", "<pre>");
+                txt = txt.Replace("<br/>", Environment.NewLine)
+                    .Replace("<font color=\"Red\">", null)
+                    .Replace("<font color=\"Green\">", null)
+                    .Replace("<font color=\"Blue\">", null)
+                    .Replace("</font>", null)
+                    .Replace("<b>", null)
+                    .Replace("</b>", null);
+                Console.WriteLine(txt);
+                txt.SpeakAsync();
+            }
         }
 
         static void Test2()

@@ -19,11 +19,13 @@ namespace NewLife.Extension
             {
                 var url = Setting.Current.PluginServer;
 
-                // 新版系统内置
+                //// 新版系统内置
                 //if (Environment.OSVersion.Version.Major >= 6) typeName = "System.Speech.Synthesis.SpeechSynthesizer";
 
-                _type = typeName2.GetTypeEx();
-                if (_type == null) _type = PluginHelper.LoadPlugin(typeName, "语音驱动库", "Microsoft.Speech.dll", "Microsoft.Speech", url);
+                //_type = typeName2.GetTypeEx(true);
+                //if (_type == null) _type = PluginHelper.LoadPlugin(typeName, "语音驱动库", "Microsoft.Speech.dll", "Microsoft.Speech", url);
+
+                _type = typeof(System.Speech.Synthesis.SpeechSynthesizer);
 
                 CheckVoice();
             }
