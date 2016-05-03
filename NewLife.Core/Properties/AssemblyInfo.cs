@@ -30,10 +30,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("5.6.*")]
-[assembly: AssemblyFileVersion("5.6.2016.0407")]
+[assembly: AssemblyVersion("5.7.*")]
+[assembly: AssemblyFileVersion("5.7.2016.0503")]
 
 /*
+ * v5.7.2016.0503   增加代码耗时统计TimeCost，用于统计关键点功能耗时情况，并输出日志
+ * 
  * v5.6.2016.0407   增加随机数生成器Rand
  * 
  * v5.5.2016.0205   网络库增加异步发送、收发统计

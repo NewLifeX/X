@@ -20,7 +20,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public static CodeTimer Time(Int32 times, Action<Int32> action, Boolean needTimeOne = true)
         {
-            CodeTimer timer = new CodeTimer();
+            var timer = new CodeTimer();
             timer.Times = times;
             timer.Action = action;
 
@@ -40,12 +40,12 @@ namespace NewLife.Log
             var n = Encoding.Default.GetByteCount(title);
             Console.Write("{0}{1}：", n >= 16 ? "" : new String(' ', 16 - n), title);
 
-            CodeTimer timer = new CodeTimer();
+            var timer = new CodeTimer();
             timer.Times = times;
             timer.Action = action;
             timer.ShowProgress = true;
 
-            ConsoleColor currentForeColor = Console.ForegroundColor;
+            var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Int32 left = Console.CursorLeft;
 
@@ -67,7 +67,7 @@ namespace NewLife.Log
             Write(title, 16);
             Console.Write("：");
 
-            ConsoleColor currentForeColor = Console.ForegroundColor;
+            var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
 
             Write("执行时间", 9);
@@ -135,68 +135,36 @@ namespace NewLife.Log
         #endregion
 
         #region 属性
-        private Int32 _Times;
         /// <summary>次数</summary>
-        public Int32 Times
-        {
-            get { return _Times; }
-            set { _Times = value; }
-        }
+        public Int32 Times { get; set; }
 
-        private Action<Int32> _Action;
         /// <summary>迭代方法，如不指定，则使用Time(int index)</summary>
-        public Action<Int32> Action
-        {
-            get { return _Action; }
-            set { _Action = value; }
-        }
+        public Action<Int32> Action { get; set; }
 
-        private Boolean _ShowProgress;
         /// <summary>是否显示控制台进度</summary>
-        public Boolean ShowProgress
-        {
-            get { return _ShowProgress; }
-            set { _ShowProgress = value; }
-        }
+        public Boolean ShowProgress { get; set; }
 
-        private Int32 _Index;
         /// <summary>进度</summary>
-        public Int32 Index
-        {
-            get { return _Index; }
-            set { _Index = value; }
-        }
+        public Int32 Index { get; set; }
 
-        private long _CpuCycles;
         /// <summary>CPU周期</summary>
-        public long CpuCycles
-        {
-            get { return _CpuCycles; }
-            set { _CpuCycles = value; }
-        }
+        public long CpuCycles { get; set; }
 
-        private long _ThreadTime;
         /// <summary>线程时间，单位是100ns，除以10000转为ms</summary>
-        public long ThreadTime
-        {
-            get { return _ThreadTime; }
-            set { _ThreadTime = value; }
-        }
+        public Int64 ThreadTime { get; set; }
 
-        private Int32[] _Gen = new Int32[] { 0, 0, 0 };
         /// <summary>GC代数</summary>
-        public Int32[] Gen
-        {
-            get { return _Gen; }
-            set { _Gen = value; }
-        }
+        public Int32[] Gen { get; set; }
 
-        private TimeSpan _Elapsed;
         /// <summary>执行时间</summary>
-        public TimeSpan Elapsed
+        public TimeSpan Elapsed { get; set; }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化一个代码计时器</summary>
+        public CodeTimer()
         {
-            get { return _Elapsed; }
-            set { _Elapsed = value; }
+            Gen = new Int32[] { 0, 0, 0 };
         }
         #endregion
 
@@ -207,8 +175,8 @@ namespace NewLife.Log
             if (Times <= 0) throw new XException("非法迭代次数！");
 
             // 设定进程、线程优先级，并在完成时还原
-            ProcessPriorityClass pp = Process.GetCurrentProcess().PriorityClass;
-            ThreadPriority tp = Thread.CurrentThread.Priority;
+            var pp = Process.GetCurrentProcess().PriorityClass;
+            var tp = Thread.CurrentThread.Priority;
             try
             {
                 Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
@@ -241,7 +209,7 @@ namespace NewLife.Log
                 gen[i] = GC.CollectionCount(i);
             }
 
-            Stopwatch watch = new Stopwatch();
+            var watch = new Stopwatch();
             watch.Start();
             cpuCycles = GetCycleCount();
             threadTime = GetCurrentThreadTimes();
@@ -275,7 +243,7 @@ namespace NewLife.Log
             Elapsed = watch.Elapsed;
 
             // 统计GC代数
-            List<Int32> list = new List<Int32>();
+            var list = new List<Int32>();
             for (Int32 i = 0; i <= GC.MaxGeneration; i++)
             {
                 int count = GC.CollectionCount(i) - gen[i];
@@ -339,7 +307,7 @@ namespace NewLife.Log
             Boolean cursorVisible = Console.CursorVisible;
             Console.CursorVisible = false;
 
-            Stopwatch sw = new Stopwatch();
+            var sw = new Stopwatch();
             sw.Start();
             while (true)
             {

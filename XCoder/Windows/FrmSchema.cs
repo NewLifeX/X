@@ -43,33 +43,29 @@ namespace XCoder
 
         private void FrmSchema_Load(object sender, EventArgs e)
         {
-            Task.Factory.StartNew(SetTables).LogException();
-            Task.Factory.StartNew(SetSchemas).LogException();
+            Task.Factory.StartNew(() =>
+            {
+                var tables = Db.CreateMetaData().GetTables();
+                this.Invoke(SetList, cbTables, tables);
+            }).LogException();
+            Task.Factory.StartNew(() =>
+            {
+                var list = Db.CreateMetaData().MetaDataCollections;
+                this.Invoke(SetList, cbSchemas, list);
+            }).LogException();
         }
         #endregion
 
         #region 加载
-        void SetTables()
+        void SetList(ComboBox cb, IEnumerable data)
         {
-            var tables = Db.CreateMetaData().GetTables();
-            this.Invoke<ComboBox, IEnumerable, Boolean>(SetList, cbTables, tables);
-        }
-
-        void SetSchemas()
-        {
-            var list = Db.CreateMetaData().MetaDataCollections;
-            this.Invoke((s, lst) => SetList(s, lst), cbSchemas, list);
-        }
-
-        Boolean SetList(ComboBox cb, IEnumerable data)
-        {
-            if (cb == null || data == null) return false;
+            if (cb == null || data == null) return;
 
             try
             {
                 if (!(data is IList))
                 {
-                    List<Object> list = new List<Object>();
+                    var list = new List<Object>();
                     foreach (Object item in data)
                     {
                         list.Add(item);
@@ -79,13 +75,10 @@ namespace XCoder
                 cb.DataSource = data;
                 //cb.DisplayMember = "value";
                 cb.Update();
-
-                return true;
             }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
-                return false;
             }
         }
         #endregion

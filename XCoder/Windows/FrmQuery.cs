@@ -70,8 +70,8 @@ namespace XCoder
                     msg += String.Format(" 耗时{0}", sw.Elapsed);
                 }
 
-                this.Invoke(s => lbStatus.Text = s, msg);
-                if (dt != null) this.Invoke(d => gv.DataSource = d, dt);
+                this.Invoke(() => lbStatus.Text = msg);
+                if (dt != null) this.Invoke(() => gv.DataSource = dt);
             }).LogException();
         }
 
@@ -103,7 +103,7 @@ namespace XCoder
                     msg += String.Format(" 耗时{0:HH:mm:ss.zzz}", sw.Elapsed);
                 }
 
-                this.Invoke(s => lbStatus.Text = s, msg);
+                this.Invoke(() => lbStatus.Text = msg);
             }).LogException();
         }
     }
