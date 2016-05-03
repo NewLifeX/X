@@ -57,15 +57,15 @@ namespace XNet
                 this.Invoke(() =>
                 {
                     cbMode.DataSource = list;
-                    cbMode.SelectedIndex = 0;
+                    //cbMode.SelectedIndex = 0;
                 });
             });
 
             cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
             cbAddr.DataSource = GetIPs();
 
-            var config = NetConfig.Current;
-            if (config.Port > 0) numPort.Value = config.Port;
+            var cfg = NetConfig.Current;
+            if (cfg.Port > 0) numPort.Value = cfg.Port;
 
             // 加载保存的颜色
             UIConfig.Apply(txtReceive);
@@ -84,6 +84,11 @@ namespace XNet
             mi显示发送数据.Checked = cfg.ShowSend;
             mi显示接收数据.Checked = cfg.ShowReceive;
             mi显示统计信息.Checked = cfg.ShowStat;
+
+            txtSend.Text = cfg.SendContent;
+            numMutilSend.Value = cfg.SendTimes;
+            numSleep.Value = cfg.SendSleep;
+            numThreads.Value = cfg.SendUsers;
         }
 
         void SaveConfig()
@@ -95,6 +100,12 @@ namespace XNet
             cfg.ShowSend = mi显示发送数据.Checked;
             cfg.ShowReceive = mi显示接收数据.Checked;
             cfg.ShowStat = mi显示统计信息.Checked;
+
+            cfg.SendContent = txtSend.Text;
+            cfg.SendTimes = (Int32)numMutilSend.Value;
+            cfg.SendSleep = (Int32)numSleep.Value;
+            cfg.SendUsers = (Int32)numThreads.Value;
+
             cfg.Save();
         }
         #endregion
@@ -297,7 +308,15 @@ namespace XNet
             var sleep = (Int32)numSleep.Value;
             var ths = (Int32)numThreads.Value;
             if (count <= 0) count = 1;
-            if (sleep <= 0) sleep = 100;
+            if (sleep <= 0) sleep = 1;
+
+            SaveConfig();
+
+            if (_Client == null)
+            {
+                XTrace.WriteLine("未连接服务端！");
+                return;
+            }
 
             // 处理换行
             str = str.Replace("\n", "\r\n");

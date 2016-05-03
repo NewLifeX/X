@@ -11,29 +11,41 @@ namespace XNet
     [XmlConfigFile("Config\\Net.config")]
     public class NetConfig : XmlConfig<NetConfig>
     {
-        private String _Address;
         /// <summary>目的地址</summary>
         [Description("目的地址")]
-        public String Address { get { return _Address; } set { _Address = value; } }
+        public String Address { get; set; }
 
-        private Int32 _Port;
         /// <summary>端口</summary>
         [Description("端口")]
-        public Int32 Port { get { return _Port; } set { _Port = value; } }
+        public Int32 Port { get; set; }
 
-        private Encoding _Encoding = Encoding.Default;
         /// <summary>文本编码</summary>
         [XmlIgnore]
-        public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
+        public Encoding Encoding { get; set; }
 
         /// <summary>编码</summary>
         [Description("编码 gb2312/us-ascii/utf-8")]
-        public String WebEncoding { get { return _Encoding.WebName; } set { _Encoding = Encoding.GetEncoding(value); } }
+        public String WebEncoding { get { return Encoding.WebName; } set { Encoding = Encoding.GetEncoding(value); } }
 
-        private Boolean _HexShow;
         /// <summary>十六进制显示</summary>
         [Description("十六进制显示")]
-        public Boolean HexShow { get { return _HexShow; } set { _HexShow = value; } }
+        public Boolean HexShow { get; set; }
+
+        /// <summary>发送内容</summary>
+        [Description("发送内容")]
+        public String SendContent { get; set; }
+
+        /// <summary>发送次数</summary>
+        [Description("发送次数")]
+        public Int32 SendTimes { get; set; }
+
+        /// <summary>发送间隔。毫秒</summary>
+        [Description("发送间隔。毫秒")]
+        public Int32 SendSleep { get; set; }
+
+        /// <summary>发送用户数</summary>
+        [Description("发送用户数")]
+        public Int32 SendUsers { get; set; }
 
         /// <summary>显示应用日志</summary>
         [Description("显示应用日志")]
@@ -58,5 +70,22 @@ namespace XNet
         /// <summary>显示统计信息</summary>
         [Description("显示统计信息")]
         public Boolean ShowStat { get; set; }
+
+        public NetConfig()
+        {
+            Encoding = Encoding.Default;
+
+            SendContent = "新生命开发团队，学无先后达者为师";
+            SendTimes = 1;
+            SendSleep = 1000;
+            SendUsers = 1;
+
+            ShowLog = true;
+            ShowSocketLog = true;
+            ShowReceiveString = true;
+            ShowSend = true;
+            ShowReceive = true;
+            ShowStat = true;
+        }
     }
 }
