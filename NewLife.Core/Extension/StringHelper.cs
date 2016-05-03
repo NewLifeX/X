@@ -614,12 +614,22 @@ namespace System
 
         #region 文字转语音
 #if !Android
-        private static NewLife.Extension.SpeakProvider _provider;
+        //private static NewLife.Extension.SpeakProvider _provider;
+        private static System.Speech.Synthesis.SpeechSynthesizer _provider;
+        static void Init()
+        {
+            if (_provider == null)
+            {
+                _provider = new Speech.Synthesis.SpeechSynthesizer();
+                _provider.SetOutputToDefaultAudioDevice();
+            }
+        }
+
         /// <summary>调用语音引擎说出指定话</summary>
         /// <param name="value"></param>
         public static void Speak(this String value)
         {
-            if (_provider == null) _provider = new NewLife.Extension.SpeakProvider();
+            Init();
 
             _provider.Speak(value);
         }
@@ -628,7 +638,7 @@ namespace System
         /// <param name="value"></param>
         public static void SpeakAsync(this String value)
         {
-            if (_provider == null) _provider = new NewLife.Extension.SpeakProvider();
+            Init();
 
             _provider.SpeakAsync(value);
         }
