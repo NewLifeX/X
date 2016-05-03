@@ -9,15 +9,15 @@ namespace NewLife.Extension
 {
     class SpeakProvider
     {
-        private static String typeName = "Microsoft.Speech.Synthesis.SpeechSynthesizer";
-        private static String typeName2 = "System.Speech.Synthesis.SpeechSynthesizer";
+        //private static String typeName = "Microsoft.Speech.Synthesis.SpeechSynthesizer";
+        //private static String typeName2 = "System.Speech.Synthesis.SpeechSynthesizer";
         private Type _type;
 
         public SpeakProvider()
         {
             try
             {
-                var url = Setting.Current.PluginServer;
+                //var url = Setting.Current.PluginServer;
 
                 //// 新版系统内置
                 //if (Environment.OSVersion.Version.Major >= 6) typeName = "System.Speech.Synthesis.SpeechSynthesizer";

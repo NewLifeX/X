@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Speech.Synthesis;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
