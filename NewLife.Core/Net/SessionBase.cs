@@ -257,10 +257,33 @@ namespace NewLife.Net
                 se.Completed += (s, e) => ProcessSend(e);
             }
 
-            // 拷贝缓冲区，设置长度
-            Buffer.BlockCopy(qi.Buffer, 0, se.Buffer, 0, qi.Buffer.Length);
-            se.SetBuffer(0, qi.Buffer.Length);
             se.RemoteEndPoint = qi.Remote;
+
+            // 拷贝缓冲区，设置长度
+            {
+                var p = 0;
+                var len = qi.Buffer.Length;
+                var max = 1472;
+                var remote = qi.Remote;
+
+                // 为了提高吞吐量，减少数据收发次数，尽可能的把发送队列多个数据包合并成为一个大包发出
+                while (true)
+                {
+                    Buffer.BlockCopy(qi.Buffer, 0, se.Buffer, p, len);
+                    p += len;
+
+                    // 不足最大长度，试试下一个
+                    if (!qu.TryPeek(out qi)) break;
+                    if (qi.Remote != remote) break;
+                    if (p + qi.Buffer.Length > max) break;
+
+                    if (!qu.TryDequeue(out qi)) break;
+
+                    len = qi.Buffer.Length;
+                }
+
+                se.SetBuffer(0, p);
+            }
 
             //if (!Socket.SendToAsync(se))
             if (!OnSendAsync(se))
