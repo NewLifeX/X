@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Speech.Recognition;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
@@ -80,17 +81,59 @@ namespace Test
             var os = Environment.OSVersion;
             Console.WriteLine(os);
 
-            var ss = PinYin.GetMulti('石');
-            Console.WriteLine(ss.Join());
+            foreach (var item in SpeechRecognitionEngine.InstalledRecognizers())
+            {
+                Console.WriteLine(item);
+            }
+            using (var rg = new SpeechRecognitionEngine())
+            {
+                rg.UnloadAllGrammars();
+                //rg.LoadGrammar(new DictationGrammar());
 
-            var count = UserX.Meta.Count;
-            "共有{0}行数据".F(count).SpeakAsync();
+                var ss = "爸爸,妈妈,开灯,开门,关灯,关门,我饿了,吃饭,睡觉,连接,断开,关闭,编译,回家模式,影音模式,关闭所有灯";
+                var preCmd = new Choices();
+                preCmd.Add(ss.Split(","));
+                var gb = new GrammarBuilder();
+                gb.Append(preCmd);
+                var gr = new Grammar(gb);
+                rg.LoadGrammarAsync(gr);
 
-            //var syn = new SpeechSynthesizer();
-            ////syn.SetOutputToWaveFile("bb.wav");
-            //var list = syn.GetInstalledVoices();
-            //Console.WriteLine(list.Count);
-            //syn.SpeakAsync("轻舞菲扬");
+                rg.SetInputToDefaultAudioDevice();
+                //rg.InitialSilenceTimeout = TimeSpan.FromSeconds(500);
+
+                Console.WriteLine("准备就绪，语音识别正在聆听……");
+
+                //var rs = rg.Recognize();
+                //Console.WriteLine(rs.Text);
+                //rg.RecognizeCompleted += rg_RecognizeCompleted;
+                rg.SpeechRecognized += rg_SpeechRecognized;
+
+                rg.RecognizeAsync(RecognizeMode.Multiple);
+
+                Thread.Sleep(60000);
+            }
+        }
+
+        static void rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            Console.WriteLine("{0} 准确度：{1}", e.Result.Text, e.Result.Confidence);
+            if (e.Result.Words.Count > 1)
+            {
+                foreach (var item in e.Result.Words)
+                {
+                    Console.WriteLine("\t{0} {1}", item.Text, item.Confidence);
+                }
+            }
+        }
+
+        static void rg_RecognizeCompleted(object sender, RecognizeCompletedEventArgs e)
+        {
+            Console.WriteLine(e.Result.Text);
+        }
+
+        static void rg_SpeechDetected(object sender, SpeechDetectedEventArgs e)
+        {
+            Console.WriteLine(e.AudioPosition);
         }
 
         static void Test3()

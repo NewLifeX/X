@@ -158,6 +158,8 @@ namespace NewLife.Windows
             // 如果端口有所改变，则重新绑定
             if (_ports != str)
             {
+                if (_ports != null) "串口有改变".SpeechTip();
+
                 _ports = str;
 
                 this.Invoke(() =>
@@ -255,6 +257,7 @@ namespace NewLife.Windows
             var name = cbName.SelectedItem + "";
             if (String.IsNullOrEmpty(name))
             {
+                "请选择串口".SpeechTip();
                 MessageBox.Show("请选择串口！", this.Text);
                 cbName.Focus();
                 return;
@@ -332,15 +335,7 @@ namespace NewLife.Windows
 
         private void OnCheck(Object state)
         {
-            if (this.Enabled)
-            {
-                ShowPorts();
-            }
-            //else
-            //{
-            //    // 检查串口是否已断开，自动关闭已断开的串口，避免内存暴涨
-            //    if (Port != null && Port.Serial != null && !Port.Serial.IsOpen) Disconnect();
-            //}
+            if (this.Enabled) ShowPorts();
         }
         #endregion
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using NewLife;
 using NewLife.Log;
 
 namespace System
@@ -641,6 +642,13 @@ namespace System
             Init();
 
             _provider.SpeakAsync(value);
+        }
+
+        /// <summary>语音提示操作</summary>
+        /// <param name="value"></param>
+        public static void SpeechTip(this String value)
+        {
+            if (Setting.Current.SpeechTip) SpeakAsync(value);
         }
 #endif
         #endregion

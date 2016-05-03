@@ -46,6 +46,8 @@ namespace XCoder
                 XTrace.WriteException(ex);
             }
 
+            if (XConfig.Current.IsNew) "学无先后达者为师，欢迎使用新生命超级码神工具！".SpeechTip();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmMDI());

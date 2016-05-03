@@ -58,9 +58,20 @@ namespace NewLife
         /// <summary>网页压缩文件</summary>
         [Description("网页压缩文件")]
         public String WebCompressFiles { get; set; }
+
+        /// <summary>语音提示。默认true</summary>
+        [Description("语音提示。默认true")]
+        public Boolean SpeechTip { get; set; }
         #endregion
 
         #region 方法
+        /// <summary>实例化</summary>
+        public Setting()
+        {
+            Debug = true;
+            SpeechTip = true;
+        }
+
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {

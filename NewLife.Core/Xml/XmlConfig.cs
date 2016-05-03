@@ -61,6 +61,7 @@ namespace NewLife.Xml
                     config = _Current;
                     config.ConfigFile = _.ConfigFile.GetFullPath();
                     config.SetExpire();  // 设定过期时间
+                    config.IsNew = true;
                     config.OnNew();
 
                     //// 新建配置不要检查格式
@@ -183,6 +184,10 @@ namespace NewLife.Xml
                 expire = DateTime.Now.AddMilliseconds(_.ReloadTime);
             }
         }
+
+        /// <summary>是否新的配置文件</summary>
+        [XmlIgnore]
+        public Boolean IsNew { get; set; }
         #endregion
 
         #region 加载
