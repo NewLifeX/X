@@ -288,6 +288,8 @@ namespace System
             //if (des.CanSeek && len > des.Length - des.Position) len = (Int32)(des.Length - des.Position);
             if (des.CanSeek && len > des.Length - des.Position) throw new XException("ReadArray错误，变长数组长度为{0}，但数据流可用数据只有{1}", len, des.Length - des.Position);
 
+            if (len > 1024 * 2) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", len, 1024 * 2);
+
             return des.ReadBytes(len);
         }
 

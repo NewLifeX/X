@@ -418,11 +418,8 @@ namespace NewLife.Serialization
 
             if (count <= 0) return null;
 
-            //Byte[] buffer = new Byte[count];
-            //for (int i = 0; i < count; i++)
-            //{
-            //    buffer[i] = ReadByte();
-            //}
+            if (count > 1024 * 2) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", count, 1024 * 2);
+
             var buffer = Host.ReadBytes(count);
 
             return buffer;
