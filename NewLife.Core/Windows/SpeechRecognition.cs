@@ -17,10 +17,7 @@ namespace NewLife.Windows
         #region 构造
         private SpeechRecognition()
         {
-            _rg = new SpeechRecognitionEngine();
-            _rg.SetInputToDefaultAudioDevice();
-            _rg.SpeechRecognized += _rg_SpeechRecognized;
-            //_rg.RecognizeAsync(RecognizeMode.Multiple);
+            Init();
 
             _dic = new Dictionary<String, Func>();
         }
@@ -31,7 +28,7 @@ namespace NewLife.Windows
         {
             base.OnDispose(disposing);
 
-            _rg.TryDispose();
+            if (_rg != null) _rg.TryDispose();
         }
         #endregion
 
@@ -58,6 +55,28 @@ namespace NewLife.Windows
         #endregion
 
         #region 方法
+        Boolean Init()
+        {
+            if (_rg != null) return true;
+
+            var sr = new SpeechRecognitionEngine();
+            try
+            {
+                sr.SetInputToDefaultAudioDevice();
+                sr.SpeechRecognized += _rg_SpeechRecognized;
+                //_rg.RecognizeAsync(RecognizeMode.Multiple);
+
+                _rg = sr;
+
+                return true;
+            }
+            catch
+            {
+                sr.TryDispose();
+                return false;
+            }
+        }
+
         void RegisterInternal(String text, Func callback)
         {
             var flag = _dic.ContainsKey(text);
@@ -76,6 +95,8 @@ namespace NewLife.Windows
         {
             lock (this)
             {
+                if (!Init()) return;
+
                 var gc = _rg.Grammars.Count;
                 //_rg.RecognizeAsyncCancel();
                 _rg.UnloadAllGrammars();
