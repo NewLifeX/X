@@ -75,7 +75,10 @@ namespace NewLife.Log
             Write("CPU时间", 9);
             Console.Write(" ");
             Write("指令周期", 15);
-            Console.WriteLine("   GC(0/1/2)");
+            Write("GC(0/1/2)", 9);
+            Console.WriteLine("   百分比");
+
+            msBase = 0;
 
             Console.ForegroundColor = currentForeColor;
         }
@@ -278,6 +281,8 @@ namespace NewLife.Log
 
         #region 进度
         Thread thread;
+        /// <summary>基准时间</summary>
+        static Double msBase;
 
         void StartProgress()
         {
@@ -342,7 +347,11 @@ namespace NewLife.Log
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0,7:n0}ms {1,7:n0}ms {2,15:n0} {3,3}/{4}/{5}", Elapsed.TotalMilliseconds, ThreadTime / 10000, CpuCycles, Gen[0], Gen[1], Gen[2]);
+            var ms = Elapsed.TotalMilliseconds;
+            if (msBase == 0) msBase = ms;
+            var pc = ms / msBase;
+
+            return String.Format("{0,7:n0}ms {1,7:n0}ms {2,15:n0} {3,3}/{4}/{5}\t{6,8:p2}", ms, ThreadTime / 10000, CpuCycles, Gen[0], Gen[1], Gen[2], pc);
         }
         #endregion
     }
