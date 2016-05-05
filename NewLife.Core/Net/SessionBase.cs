@@ -303,7 +303,6 @@ namespace NewLife.Net
                 se.SetBuffer(0, p);
             }
 
-            //if (!Socket.SendToAsync(se))
             if (!OnSendAsync(se))
             {
                 if (io)

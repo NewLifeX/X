@@ -86,6 +86,7 @@ namespace NewLife.Net
 
                 //Client = new TcpClient(Local.EndPoint);
                 Client = new Socket(Local.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
                 Client.Bind(Local.EndPoint);
                 CheckDynamic();
 
