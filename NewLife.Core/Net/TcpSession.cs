@@ -2,9 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
-using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -13,14 +10,7 @@ namespace NewLife.Net
     {
         #region 属性
         /// <summary>会话编号</summary>
-        public Int32 ID { get; set; }
-
-        ///// <summary>客户端</summary>
-        //public Socket Client { get; private set; }
-
-        ///// <summary>获取Socket</summary>
-        ///// <returns></returns>
-        //internal override Socket GetSocket() { return Client; }
+        public Int32 ID { get; internal set; }
 
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; }
@@ -205,30 +195,7 @@ namespace NewLife.Net
             return true;
         }
 
-        ///// <summary>异步发送数据</summary>
-        ///// <param name="buffer"></param>
-        ///// <returns></returns>
-        //public override Boolean SendAsync(Byte[] buffer)
-        //{
-        //    if (!Open()) return false;
-
-        //    var count = buffer.Length;
-
-        //    if (StatSend != null) StatSend.Increment(count);
-        //    if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
-
-        //    // 修改发送缓冲区
-        //    if (Client.SendBufferSize < count) Client.SendBufferSize = count;
-
-        //    LastTime = DateTime.Now;
-
-        //    throw new NotImplementedException();
-        //}
-
-        internal override bool OnSendAsync(SocketAsyncEventArgs se)
-        {
-            return Client.SendAsync(se);
-        }
+        internal override bool OnSendAsync(SocketAsyncEventArgs se) { return Client.SendAsync(se); }
         #endregion
 
         #region 接收
@@ -297,100 +264,7 @@ namespace NewLife.Net
             return rs;
         }
 
-        //private IAsyncResult _Async;
-        //private Boolean _Async;
-
-        ///// <summary>开始监听</summary>
-        ///// <returns>是否成功</returns>
-        //public override Boolean ReceiveAsync()
-        //{
-        //    if (Disposed || !Open()) return false;
-
-        //    //if (_Async != null) return true;
-        //    if (_Async) return true;
-        //    _Async = true;
-        //    try
-        //    {
-        //        // 开始新的监听
-        //        var buf = new Byte[Client.ReceiveBufferSize];
-        //        //_Async = Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
-        //        Stream.BeginRead(buf, 0, buf.Length, OnReceive, buf);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (!ex.IsDisposed())
-        //        {
-        //            OnError("ReceiveAsync", ex);
-
-        //            // 异常一般是网络错误
-        //            Close("开始异步接收出错");
-        //            Reconnect();
-
-        //            if (ThrowException) throw;
-        //        }
-        //        return false;
-        //    }
-
-        //    return true;
-        //}
-
-        //void OnReceive(IAsyncResult ar)
-        //{
-        //    //_Async = null;
-        //    _Async = false;
-
-        //    if (!Active) return;
-
-        //    var client = Client;
-        //    if (client == null || !client.Connected) return;
-
-        //    // 接收数据
-        //    var data = (Byte[])ar.AsyncState;
-        //    // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
-        //    var count = 0;
-        //    try
-        //    {
-        //        count = Stream.EndRead(ar);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (!ex.IsDisposed())
-        //        {
-        //            OnError("EndReceive", ex);
-
-        //            // 异常一般是网络错误
-        //            Close("完成异步接收出错");
-        //            Reconnect();
-        //        }
-        //        return;
-        //    }
-
-        //    if (DisconnectWhenEmptyData && count == 0)
-        //    {
-        //        Close("收到空数据");
-        //        return;
-        //    }
-
-        //    // 最后收到有效数据的时间
-        //    LastTime = DateTime.Now;
-
-        //    // 数据长度，0表示收到空数据，-1表示收到部分包，后续跳过处理
-        //    if (count >= 0)
-        //    {
-        //        // 在用户线程池里面处理数据，不要占用IO线程
-        //        Task.Factory.StartNew(() => OnReceive(data, count)).ContinueWith(t => ReceiveAsync()).LogException(ex => OnError("OnReceive", ex));
-        //    }
-        //    else
-        //    {
-        //        // 开始新的监听
-        //        ReceiveAsync();
-        //    }
-        //}
-
-        internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
-        {
-            return Client.ReceiveAsync(se);
-        }
+        internal override bool OnReceiveAsync(SocketAsyncEventArgs se) { return Client.ReceiveAsync(se); }
 
         /// <summary>处理收到的数据</summary>
         /// <param name="data"></param>
@@ -418,9 +292,6 @@ namespace NewLife.Net
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
             RaiseReceive(this, e);
-
-            //// 数据发回去
-            //if (e.Feedback) Send(e.Data, 0, e.Length);
         }
         #endregion
 

@@ -14,7 +14,7 @@ namespace NewLife.Net
     {
         #region 属性
         /// <summary>编号</summary>
-        Int32 ID { get; set; }
+        Int32 ID { get; }
 
         /// <summary>主服务</summary>
         NetServer Host { get; set; }

@@ -341,7 +341,7 @@ namespace NewLife.Net
             // sessionID变大后，可能达到最大值，然后变为-1，再变为0，所以不用担心
             //ns.ID = ++sessionID;
             // 网络会话改为原子操作，避免多线程冲突
-            ns.ID = Interlocked.Increment(ref sessionID);
+            if (ns is NetSession) (ns as NetSession).ID = Interlocked.Increment(ref sessionID);
             ns.Host = this;
             ns.Server = session.Server;
             ns.Session = session;
@@ -352,8 +352,14 @@ namespace NewLife.Net
             session.Received += OnReceived;
             //session.Error += OnError;
 
-            // 开始会话处理
-            ns.Start();
+            // 估算完成时间，执行过长时提示
+            using (var tc = new TimeCost("NetServer.OnNewSession", 500))
+            {
+                tc.Log = Log;
+
+                // 开始会话处理
+                ns.Start();
+            }
 
             return ns;
         }
@@ -405,19 +411,25 @@ namespace NewLife.Net
         /// <param name="session"></param>
         protected virtual void AddSession(INetSession session)
         {
-            var dic = Sessions;
-            lock (dic)
+            // 估算完成时间，锁争夺过大时提示
+            using (var tc = new TimeCost("NetServer.AddSession", 100))
             {
-                if (session.Host == null) session.Host = this;
-                session.OnDisposed += (s, e) =>
+                tc.Log = Log;
+
+                var dic = Sessions;
+                lock (dic)
                 {
-                    var dic2 = Sessions;
-                    lock (dic2)
+                    if (session.Host == null) session.Host = this;
+                    session.OnDisposed += (s, e) =>
                     {
-                        dic2.Remove((s as INetSession).ID);
-                    }
-                };
-                dic[session.ID] = session;
+                        var dic2 = Sessions;
+                        lock (dic2)
+                        {
+                            dic2.Remove((s as INetSession).ID);
+                        }
+                    };
+                    dic[session.ID] = session;
+                }
             }
         }
 
@@ -441,12 +453,18 @@ namespace NewLife.Net
         {
             if (sessionid == 0) return null;
 
-            var dic = Sessions;
-            lock (dic)
+            // 估算完成时间，锁争夺过大时提示
+            using (var tc = new TimeCost("NetServer.GetSession", 100))
             {
-                INetSession ns = null;
-                if (!dic.TryGetValue(sessionid, out ns)) return null;
-                return ns;
+                tc.Log = Log;
+
+                var dic = Sessions;
+                lock (dic)
+                {
+                    INetSession ns = null;
+                    if (!dic.TryGetValue(sessionid, out ns)) return null;
+                    return ns;
+                }
             }
         }
         #endregion

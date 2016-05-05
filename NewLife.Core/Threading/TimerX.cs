@@ -267,12 +267,8 @@ namespace NewLife.Threading
             /// <param name="timer"></param>
             static void ProcessItem(TimerX timer)
             {
-                Stopwatch sw = null;
-                //if (Debug)
-                {
-                    sw = new Stopwatch();
-                    sw.Start();
-                }
+                var sw = new Stopwatch();
+                sw.Start();
 
                 try
                 {
@@ -286,18 +282,15 @@ namespace NewLife.Threading
                 catch (Exception ex) { XTrace.WriteException(ex); }
                 finally
                 {
-                    if (sw != null)
-                    {
-                        sw.Stop();
+                    sw.Stop();
 
-                        var d = (Int32)sw.ElapsedMilliseconds;
-                        if (timer.Cost == 0)
-                            timer.Cost = d;
-                        else
-                            timer.Cost = (timer.Cost + d) / 2;
+                    var d = (Int32)sw.ElapsedMilliseconds;
+                    if (timer.Cost == 0)
+                        timer.Cost = d;
+                    else
+                        timer.Cost = (timer.Cost + d) / 2;
 
-                        if (d > 500 && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms", timer, d);
-                    }
+                    if (d > 500 && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms", timer, d);
 
                     // 再次读取周期，因为任何函数可能会修改
                     var p = timer.Period;

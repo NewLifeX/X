@@ -145,8 +145,6 @@ namespace NewLife.Net
             // 关闭的时候会除非一系列异步回调，提前清空Client
             Active = false;
 
-            //if (_Async != null && _Async.AsyncWaitHandle != null) _Async.AsyncWaitHandle.Close();
-
             CloseAllSession();
 
             Client.Shutdown();
@@ -157,8 +155,6 @@ namespace NewLife.Net
         #region 连接处理
         /// <summary>新会话时触发</summary>
         public event EventHandler<SessionEventArgs> NewSession;
-
-        //private IAsyncResult _Async;
 
         /// <summary>开启异步接受新连接</summary>
         /// <param name="se"></param>
@@ -224,7 +220,13 @@ namespace NewLife.Net
                 // 直接在IO线程调用业务逻辑
                 try
                 {
-                    OnAccept(se.AcceptSocket);
+                    // 估算完成时间，执行过长时提示
+                    using (var tc = new TimeCost("{0}.OnAccept".F(this.GetType().Name), 200))
+                    {
+                        tc.Log = Log;
+
+                        OnAccept(se.AcceptSocket);
+                    }
                 }
                 catch (Exception ex)
                 {

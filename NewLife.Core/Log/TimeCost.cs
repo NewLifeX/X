@@ -62,13 +62,16 @@ namespace NewLife.Log
             {
                 _sw.Stop();
 
-                var ms = _sw.ElapsedMilliseconds;
-                if (ms > Max)
+                if (Log != null && Log != Logger.Null && Log.Enable)
                 {
-                    if (Max > 0)
-                        Log.Info("{0}执行 {1:n0}ms > {2:n0}ms", Name, ms, Max);
-                    else
-                        Log.Info("{0}执行 {1:n0}ms", Name, ms);
+                    var ms = _sw.ElapsedMilliseconds;
+                    if (ms > Max)
+                    {
+                        if (Max > 0)
+                            Log.Warn("{0}执行过长警告 {1:n0}ms > {2:n0}ms", Name, ms, Max);
+                        else
+                            Log.Warn("{0}执行 {1:n0}ms", Name, ms);
+                    }
                 }
             }
         }

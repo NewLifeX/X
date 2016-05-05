@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -17,13 +16,6 @@ namespace NewLife.Net
     public class UdpServer : SessionBase, ISocketServer
     {
         #region 属性
-        ///// <summary>客户端</summary>
-        //public Socket Client { get; private set; }
-
-        ///// <summary>获取Socket</summary>
-        ///// <returns></returns>
-        //internal override Socket GetSocket() { return Client; }
-
         /// <summary>会话超时时间。默认30秒</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
@@ -51,9 +43,6 @@ namespace NewLife.Net
             _Sessions = new SessionCollection(this);
 
             StatSession = new Statistics();
-
-            //MaxAsync = 1;
-            //MaxReceive = Environment.ProcessorCount * 2 + 2;
         }
 
         /// <summary>使用监听口初始化</summary>
@@ -77,7 +66,6 @@ namespace NewLife.Net
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
 
-                //Client = new UdpClient(Local.EndPoint);
                 Client = new Socket(Local.Address.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
                 Client.Bind(Local.EndPoint);
                 CheckDynamic();
@@ -174,18 +162,7 @@ namespace NewLife.Net
             }
         }
 
-        ///// <summary>异步发送数据</summary>
-        ///// <param name="buffer"></param>
-        ///// <returns></returns>
-        //public override Boolean SendAsync(Byte[] buffer)
-        //{
-        //    return SendAsync(buffer, Remote.EndPoint);
-        //}
-
-        internal override bool OnSendAsync(SocketAsyncEventArgs se)
-        {
-            return Client.SendToAsync(se);
-        }
+        internal override bool OnSendAsync(SocketAsyncEventArgs se) { return Client.SendToAsync(se); }
         #endregion
 
         #region 接收
@@ -303,14 +280,6 @@ namespace NewLife.Net
 
             return Client.ReceiveFromAsync(se);
         }
-
-        ///// <summary>开始监听</summary>
-        ///// <returns>是否成功</returns>
-        //public override Boolean ReceiveAsync()
-        //{
-        //    if (_RecvCount >= MaxAsync) return false;
-
-        //}
         #endregion
 
         #region 会话

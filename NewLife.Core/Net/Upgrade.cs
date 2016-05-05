@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using NewLife.Compression;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;

@@ -21,21 +21,17 @@ namespace NewLife.Net
     public class NetSession : DisposeBase, INetSession
     {
         #region 属性
-        private Int32 _ID;
         /// <summary>编号</summary>
-        public virtual Int32 ID { get { return _ID; } set { if (_ID > 0)throw new NetException("禁止修改会话编号！"); _ID = value; } }
+        public virtual Int32 ID { get; internal set; }
 
-        private NetServer _Host;
         /// <summary>主服务</summary>
-        NetServer INetSession.Host { get { return _Host; } set { _Host = value; } }
+        NetServer INetSession.Host { get; set; }
 
-        private ISocketSession _Session;
         /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-        public ISocketSession Session { get { return _Session; } set { _Session = value; } }
+        public ISocketSession Session { get; set; }
 
-        private ISocketServer _Server;
         /// <summary>服务端</summary>
-        public ISocketServer Server { get { return _Server; } set { _Server = value; } }
+        public ISocketServer Server { get; set; }
 
         /// <summary>客户端地址</summary>
         public NetUri Remote { get { return Session == null ? null : Session.Remote; } }
@@ -138,7 +134,8 @@ namespace NewLife.Net
             {
                 if (_LogPrefix == null)
                 {
-                    var name = _Host == null ? "" : _Host.Name;
+                    var host = (this as INetSession).Host;
+                    var name = host == null ? "" : host.Name;
                     _LogPrefix = "{0}[{1}] ".F(name, ID);
                 }
                 return _LogPrefix;
@@ -168,8 +165,8 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
-            //return Session == null ? base.ToString() : Session.ToString();
-            return String.Format("{0}[{1}] {2}", _Host == null ? "" : _Host.Name, ID, Session);
+            var host = (this as INetSession).Host;
+            return String.Format("{0}[{1}] {2}", host == null ? "" : host.Name, ID, Session);
         }
         #endregion
     }

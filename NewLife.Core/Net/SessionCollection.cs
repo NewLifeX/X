@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -45,16 +46,22 @@ namespace NewLife.Net
         /// <returns>返回添加新会话是否成功</returns>
         public Boolean Add(ISocketSession session)
         {
-            var key = session.Remote.EndPoint + "";
-            if (_dic.ContainsKey(key)) return false;
-            lock (_dic)
+            // 估算完成时间，执行过长时提示
+            using (var tc = new TimeCost("{0}.Add".F(this.GetType().Name), 100))
             {
+                tc.Log = Server.Log;
+
+                var key = session.Remote.EndPoint + "";
                 if (_dic.ContainsKey(key)) return false;
+                lock (_dic)
+                {
+                    if (_dic.ContainsKey(key)) return false;
 
-                session.OnDisposed += (s, e) => { lock (_dic) { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); } };
-                _dic.Add(key, session);
+                    session.OnDisposed += (s, e) => { lock (_dic) { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); } };
+                    _dic.Add(key, session);
 
-                if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, ClearPeriod, ClearPeriod);
+                    if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, ClearPeriod, ClearPeriod);
+                }
             }
 
             return true;
@@ -65,15 +72,21 @@ namespace NewLife.Net
         /// <returns></returns>
         public ISocketSession Get(String key)
         {
-            ISocketSession session = null;
-            if (!_dic.TryGetValue(key, out session)) return null;
-
-            // 加锁后获取，本方法平均执行时间143.48ns
-            lock (_dic)
+            // 估算完成时间，执行过长时提示
+            using (var tc = new TimeCost("{0}.Get".F(this.GetType().Name), 100))
             {
+                tc.Log = Server.Log;
+
+                ISocketSession session = null;
                 if (!_dic.TryGetValue(key, out session)) return null;
 
-                return session;
+                // 加锁后获取，本方法平均执行时间143.48ns
+                lock (_dic)
+                {
+                    if (!_dic.TryGetValue(key, out session)) return null;
+
+                    return session;
+                }
             }
         }
 
@@ -107,26 +120,32 @@ namespace NewLife.Net
             if (Server != null) timeout = Server.SessionTimeout;
             var keys = new List<String>();
             var values = new List<ISocketSession>();
-            lock (_dic)
+            // 估算完成时间，执行过长时提示
+            using (var tc = new TimeCost("{0}.RemoveNotAlive".F(this.GetType().Name), 100))
             {
-                if (_dic.Count < 1) return;
+                tc.Log = Server.Log;
 
-                // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
-                // 操作这个字典的时候，必须加锁，否则就会数据错乱，成了这个样子，无法枚举
-                foreach (var elm in _dic)
+                lock (_dic)
                 {
-                    var item = elm.Value;
-                    // 判断是否已超过最大不活跃时间
-                    if (item == null || item.Disposed || timeout > 0 && IsNotAlive(item, timeout))
+                    if (_dic.Count < 1) return;
+
+                    // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
+                    // 操作这个字典的时候，必须加锁，否则就会数据错乱，成了这个样子，无法枚举
+                    foreach (var elm in _dic)
                     {
-                        keys.Add(elm.Key);
-                        values.Add(elm.Value);
+                        var item = elm.Value;
+                        // 判断是否已超过最大不活跃时间
+                        if (item == null || item.Disposed || timeout > 0 && IsNotAlive(item, timeout))
+                        {
+                            keys.Add(elm.Key);
+                            values.Add(elm.Value);
+                        }
                     }
-                }
-                // 从会话集合里删除这些键值，现在在锁内部，操作安全
-                foreach (var item in keys)
-                {
-                    _dic.Remove(item);
+                    // 从会话集合里删除这些键值，现在在锁内部，操作安全
+                    foreach (var item in keys)
+                    {
+                        _dic.Remove(item);
+                    }
                 }
             }
             // 已经离开了锁，慢慢释放各个会话

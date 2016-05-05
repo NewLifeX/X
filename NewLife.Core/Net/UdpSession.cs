@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -40,9 +40,8 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
-        private NetUri _Remote;
         /// <summary>远程地址</summary>
-        public NetUri Remote { get { return _Remote; } set { _Remote = value; } }
+        public NetUri Remote { get; set; }
 
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer ISocketSession.Server { get { return Server; } }
@@ -249,9 +248,8 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
-        private ILog _Log;
         /// <summary>日志提供者</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        public ILog Log { get; set; }
 
         /// <summary>是否输出发送日志。默认false</summary>
         public Boolean LogSend { get; set; }
@@ -286,6 +284,7 @@ namespace NewLife.Net
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
+        [Conditional("DEBUG")]
         public void WriteDebugLog(String format, params Object[] args)
         {
             if (Log != null) Log.Debug(LogPrefix + format, args);

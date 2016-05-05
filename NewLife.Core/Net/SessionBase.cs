@@ -108,13 +108,19 @@ namespace NewLife.Net
             // 即使没有事件，也允许强行打开异步接收
             if (!UseReceiveAsync && Received != null) UseReceiveAsync = true;
 
-            Active = OnOpen();
-            if (!Active) return false;
+            // 估算完成时间，执行过长时提示
+            using (var tc = new TimeCost("{0}.Open".F(this.GetType().Name), 500))
+            {
+                tc.Log = Log;
 
-            if (Timeout > 0) Client.ReceiveTimeout = Timeout;
+                Active = OnOpen();
+                if (!Active) return false;
 
-            // 触发打开完成的事件
-            if (Opened != null) Opened(this, EventArgs.Empty);
+                if (Timeout > 0) Client.ReceiveTimeout = Timeout;
+
+                // 触发打开完成的事件
+                if (Opened != null) Opened(this, EventArgs.Empty);
+            }
 
             if (UseReceiveAsync) ReceiveAsync();
 
@@ -141,12 +147,18 @@ namespace NewLife.Net
         {
             if (!Active) return true;
 
-            if (OnClose(reason)) Active = false;
+            // 估算完成时间，执行过长时提示
+            using (var tc = new TimeCost("{0}.Close".F(this.GetType().Name), 500))
+            {
+                tc.Log = Log;
 
-            _RecvCount = 0;
+                if (OnClose(reason)) Active = false;
 
-            // 触发关闭完成的事件
-            if (Closed != null) Closed(this, EventArgs.Empty);
+                _RecvCount = 0;
+
+                // 触发关闭完成的事件
+                if (Closed != null) Closed(this, EventArgs.Empty);
+            }
 
             // 如果是动态端口，需要清零端口
             if (DynamicPort) Port = 0;
@@ -201,37 +213,43 @@ namespace NewLife.Net
 
             LastTime = DateTime.Now;
 
-            // 同时只允许一个异步发送，其它发送放入队列
-
-            // 考虑到超长数据包，拆分为多个包
-            var max = 1472;
-            if (buffer.Length <= max)
+                     // 估算完成时间，执行过长时提示
+            using (var tc = new TimeCost("{0}.SendAsync".F(this.GetType().Name), 500))
             {
-                var qi = new QueueItem();
-                qi.Buffer = buffer;
-                qi.Remote = remote;
+                tc.Log = Log;
 
-                _SendQueue.Enqueue(qi);
-            }
-            else
-            {
-                var ms = new MemoryStream(buffer);
-                while (true)
+                // 同时只允许一个异步发送，其它发送放入队列
+
+                // 考虑到超长数据包，拆分为多个包
+                var max = 1472;
+                if (buffer.Length <= max)
                 {
-                    var remain = (Int32)(ms.Length - ms.Position);
-                    if (remain <= 0) break;
-
-                    var len = Math.Min(remain, max);
-
                     var qi = new QueueItem();
-                    qi.Buffer = ms.ReadBytes(len);
+                    qi.Buffer = buffer;
                     qi.Remote = remote;
 
                     _SendQueue.Enqueue(qi);
                 }
-            }
+                else
+                {
+                    var ms = new MemoryStream(buffer);
+                    while (true)
+                    {
+                        var remain = (Int32)(ms.Length - ms.Position);
+                        if (remain <= 0) break;
 
-            CheckSendQueue(false);
+                        var len = Math.Min(remain, max);
+
+                        var qi = new QueueItem();
+                        qi.Buffer = ms.ReadBytes(len);
+                        qi.Remote = remote;
+
+                        _SendQueue.Enqueue(qi);
+                    }
+                }
+
+                CheckSendQueue(false);
+            }
 
             return true;
         }
@@ -348,10 +366,6 @@ namespace NewLife.Net
 
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get; set; }
-
-        ///// <summary>开始异步接收</summary>
-        ///// <returns>是否成功</returns>
-        //public abstract Boolean ReceiveAsync();
 
         private Int32 _RecvCount;
 
@@ -474,7 +488,13 @@ namespace NewLife.Net
                 // 直接在IO线程调用业务逻辑
                 try
                 {
-                    OnReceive(data, ep);
+                    // 估算完成时间，执行过长时提示
+                    using (var tc = new TimeCost("{0}.OnReceive".F(this.GetType().Name), 1000))
+                    {
+                        tc.Log = Log;
+
+                        OnReceive(data, ep);
+                    }
                 }
                 catch (Exception ex)
                 {
