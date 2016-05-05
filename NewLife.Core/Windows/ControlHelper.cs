@@ -14,14 +14,17 @@ namespace System.Windows.Forms
         /// <param name="control"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public static void Invoke(this Control control, Func method)
+        public static void Invoke(this Control control, Action method)
         {
             if (control.IsDisposed) return;
 
-            using (var tc = new TimeCost("Control.Invoke", 500))
+            control.BeginInvoke(new Action(() =>
             {
-                control.Invoke(method);
-            }
+                using (var tc = new TimeCost("Control.Invoke", 500))
+                {
+                    method();
+                }
+            }));
         }
 
         ///// <summary>执行仅返回值委托</summary>
@@ -46,10 +49,13 @@ namespace System.Windows.Forms
         {
             if (control.IsDisposed) return;
 
-            using (var tc = new TimeCost("Control.Invoke", 500))
+            control.BeginInvoke(new Action(() =>
             {
-                control.Invoke(method, arg);
-            }
+                using (var tc = new TimeCost("Control.Invoke", 500))
+                {
+                    method(arg);
+                }
+            }));
         }
 
         ///// <summary>执行单一参数和返回值的委托</summary>
@@ -77,10 +83,13 @@ namespace System.Windows.Forms
         {
             if (control.IsDisposed) return;
 
-            using (var tc = new TimeCost("Control.Invoke", 500))
+            control.BeginInvoke(new Action(() =>
             {
-                control.Invoke(method, arg, arg2);
-            }
+                using (var tc = new TimeCost("Control.Invoke", 500))
+                {
+                    method(arg, arg2);
+                }
+            }));
         }
 
         ///// <summary>执行二参数和返回值的委托</summary>
