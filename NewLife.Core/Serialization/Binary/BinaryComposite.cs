@@ -30,8 +30,6 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean Write(Object value, Type type)
         {
-            if (value == null) return false;
-
             // 不支持基本类型
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
@@ -48,6 +46,9 @@ namespace NewLife.Serialization
                     if (att != null) att.SetReferenceSize(value, member, Host.Encoding);
                 }
             }
+
+            // 如果不是第一层，这里开始必须写对象引用
+            if (WriteRef(value)) return true;
 
             Host.Hosts.Push(value);
 
@@ -85,6 +86,41 @@ namespace NewLife.Serialization
             if (offset > 0) throw new XException("类{0}的位域字段不足8位", type);
 
             return true;
+        }
+
+        Boolean WriteRef(Object value)
+        {
+            if (Host.Hosts.Count == 0) return false;
+
+            // 如果使用名称，且对象为空，则什么也不做
+            if (Host.UseName)
+            {
+                if (value == null) return true;
+            }
+            else
+            {
+                if (value == null)
+                {
+                    Host.Write((Byte)0);
+                    return true;
+                }
+
+                // 找到对象索引，并写入
+                var hs = Host.Hosts.ToArray();
+                for (int i = 0; i < hs.Length; i++)
+                {
+                    if (value == hs[i])
+                    {
+                        Host.WriteSize(i + 1);
+                        return true;
+                    }
+                }
+
+                // 埋下自己
+                Host.WriteSize(Host.Hosts.Count + 1);
+            }
+
+            return false;
         }
 
         Boolean WriteBit(MemberInfo member, ref Int32 bit, ref Int32 offset, ref Object v)
@@ -130,7 +166,7 @@ namespace NewLife.Serialization
                 buf = ms.ToArray();
             }
 
-            WriteLog("WritePair {0}\t= {1}", member.Name, v);
+            WriteLog("    WritePair {0}\t= {1}", member.Name, v);
 
             // 开始写入
             var key = member.Name.GetBytes(Host.Encoding);
@@ -160,6 +196,9 @@ namespace NewLife.Serialization
 
             var ms = GetMembers(type);
             WriteLog("BinaryRead类{0} 共有成员{1}个", type.Name, ms.Count);
+
+            // 读取对象引用
+            if (ReadRef(ref value)) return true;
 
             if (value == null) value = type.CreateInstance();
 
@@ -199,13 +238,7 @@ namespace NewLife.Serialization
                 // 特殊处理写入名值对
                 if (Host.UseName)
                 {
-                    //if (!TryReadPair(dic, member, ref v))
-                    //{
-                    //    Host.Hosts.Pop();
-                    //    return false;
-                    //}
-                    // 名值对即使没有配对也没有关系
-                    TryReadPair(dic, member, ref v);
+                    if (!TryReadPair(dic, member, ref v)) continue;
                 }
                 else if (!Host.TryRead(mtype, ref v))
                 {
@@ -220,6 +253,33 @@ namespace NewLife.Serialization
             if (offset > 0) throw new XException("类{0}的位域字段不足8位", type);
 
             return true;
+        }
+
+        Boolean ReadRef(ref Object value)
+        {
+            if (Host.Hosts.Count == 0) return false;
+
+            if (!Host.UseName)
+            {
+                var rf = Host.ReadSize();
+                if (rf == 0)
+                {
+                    value = null;
+                    return true;
+                }
+
+                // 找到对象索引
+                var hs = Host.Hosts.ToArray();
+                // 如果引用是对象数加一，说明有对象紧跟着
+                if (rf == hs.Length + 1) return false;
+
+                if (rf < 0 || rf > hs.Length) throw new XException("无法在 {0} 个对象中找到引用 {1}", hs.Length, rf);
+
+                value = hs[rf - 1];
+                return true;
+            }
+
+            return false;
         }
 
         Boolean TryReadAccessor(MemberInfo member, Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)
@@ -304,12 +364,12 @@ namespace NewLife.Serialization
 
             var mtype = GetMemberType(member);
 
-            WriteLog("TryReadPair {0}\t= {1}", member.Name, buf.ToHex("-", 0, 32));
+            WriteLog("    TryReadPair {0}\t= {1}", member.Name, buf.ToHex("-", 0, 32));
 
             if (mtype == typeof(String))
             {
                 value = buf.ToStr(Host.Encoding);
-                WriteLog(value + "");
+                WriteLog("        " + value + "");
                 return true;
             }
             if (mtype == typeof(Byte[]))
@@ -327,7 +387,7 @@ namespace NewLife.Serialization
             finally
             {
                 Host.Stream = old;
-                WriteLog("{0}".F(value));
+                WriteLog("        {0}".F(value));
             }
         }
 

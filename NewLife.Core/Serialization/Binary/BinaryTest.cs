@@ -45,7 +45,7 @@ namespace NewLife.Serialization
                     buf = bn.GetBytes();
                     Console.Write("{0}\t大小：{1:n0}\t", bn.GetType().Name, bn.Stream.Length);
                     bn.Stream = new MemoryStream(buf);
-                    bn.EnableTrace();
+                    //bn.EnableTrace();
                     bn.Read(obj.GetType());
                 }
                 {
@@ -57,7 +57,7 @@ namespace NewLife.Serialization
                     Console.WriteLine("{0}\t大小：{1:n0}", bn.GetType().Name, ms.Length);
                 }
 
-                CodeTimer.ShowHeader("Binary序列化性能测试");
+                CodeTimer.ShowHeader("序列化");
                 CodeTimer.TimeLine("Binary", 100000, n =>
                 {
                     var bn = new Binary();
@@ -73,7 +73,7 @@ namespace NewLife.Serialization
                 });
 
                 Console.WriteLine();
-                CodeTimer.ShowHeader("Binary反序列化性能测试");
+                CodeTimer.ShowHeader("反序列化");
                 CodeTimer.TimeLine("Binary", 100000, n =>
                 {
                     var bn = new Binary();
@@ -127,6 +127,9 @@ namespace NewLife.Serialization
                     obj.Container.Add("元素" + (i + 1), Rand.NextString(32));
                 }
 
+                // 自引用对象
+                obj.Self = obj;
+
                 obj.Bin = Create(false);
                 obj.Bin.Name = "内部对象";
             }
@@ -163,6 +166,8 @@ namespace NewLife.Serialization
         public List<String> Items { get; set; }
 
         public Dictionary<String, String> Container { get; set; }
+
+        public BinObject Self { get; set; }
 
         public BinObject Bin { get; set; }
     }
