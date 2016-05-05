@@ -73,7 +73,7 @@ namespace NewLife.Threading
         /// <summary>带异常处理的线程池任务调度</summary>
         /// <param name="callback"></param>
         [DebuggerHidden]
-        public static void QueueUserWorkItem(Func callback)
+        public static void QueueUserWorkItem(Action callback)
         {
             QueueUserWorkItem(callback, ex =>
             {
@@ -85,7 +85,7 @@ namespace NewLife.Threading
         /// <param name="callback"></param>
         /// <param name="errCallback">发生异常时调用的方法</param>
         [DebuggerHidden]
-        public static Task QueueUserWorkItem(Func callback, Action<Exception> errCallback)
+        public static Task QueueUserWorkItem(Action callback, Action<Exception> errCallback)
         {
             if (callback == null) return null;
 

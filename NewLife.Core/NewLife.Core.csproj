@@ -187,7 +187,6 @@
     <Compile Include="Event\EventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\快速反射\FieldInfoX.cs" />
-    <Compile Include="Reflection\Func.cs" />
     <Compile Include="Reflection\IIndexAccessor.cs" />
     <Compile Include="Reflection\快速反射\MemberInfoX.cs" />
     <Compile Include="Reflection\快速反射\MethodInfoX.cs" />

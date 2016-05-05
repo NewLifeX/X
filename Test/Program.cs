@@ -158,17 +158,12 @@ namespace Test
 
         static void Test4()
         {
-            var func = new TimerCallback(s =>
-            {
-                XTrace.WriteLine("{0} Hi Start", s);
-                Thread.Sleep(3000);
-                XTrace.WriteLine("{0} Hi End", s);
-            });
+            XTrace.WriteLine("111");
 
-            //var timer1 = new Timer(func, 1, 3500, 3500);
-            var timer2 = new Timer(func, 2, 2000, 2000);
-
-
+            var count = 10000000;
+            CodeTimer.ShowHeader("上下文切换性能测试");
+            CodeTimer.TimeLine("QueueUserWorkItem", count, n => ThreadPool.QueueUserWorkItem(s => Thread.Sleep(1000)));
+            CodeTimer.TimeLine("UnsafeQueueUserWorkItem", count, n => ThreadPool.UnsafeQueueUserWorkItem(s => Thread.Sleep(1000), null));
         }
 
         static void Test5()

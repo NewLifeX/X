@@ -11,7 +11,7 @@ namespace NewLife.Windows
         #region 属性
         private SpeechRecognitionEngine _rg;
 
-        private IDictionary<String, Func> _dic;
+        private IDictionary<String, Action> _dic;
         #endregion
 
         #region 构造
@@ -19,7 +19,7 @@ namespace NewLife.Windows
         {
             Init();
 
-            _dic = new Dictionary<String, Func>();
+            _dic = new Dictionary<String, Action>();
         }
 
         /// <summary>销毁</summary>
@@ -37,7 +37,7 @@ namespace NewLife.Windows
         /// <summary>注册要语音识别的关键字到委托</summary>
         /// <param name="text"></param>
         /// <param name="callback"></param>
-        public static void Register(String text, Func callback)
+        public static void Register(String text, Action callback)
         {
             if (_instance == null) _instance = new SpeechRecognition();
 
@@ -77,7 +77,7 @@ namespace NewLife.Windows
             }
         }
 
-        void RegisterInternal(String text, Func callback)
+        void RegisterInternal(String text, Action callback)
         {
             var flag = _dic.ContainsKey(text);
 
@@ -127,7 +127,7 @@ namespace NewLife.Windows
 
             if (rs.Confidence < 0.5) return;
 
-            Func func = null;
+            Action func = null;
             if (_dic.TryGetValue(rs.Text, out func)) func();
         }
         #endregion

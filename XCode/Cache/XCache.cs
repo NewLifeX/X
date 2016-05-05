@@ -379,7 +379,7 @@ namespace XCode.Cache
         /// <param name="next"></param>
         /// <param name="total"></param>
         /// <param name="show"></param>
-        public static void CheckShowStatics(ref DateTime next, ref Int32 total, Func show)
+        public static void CheckShowStatics(ref DateTime next, ref Int32 total, Action show)
         {
             if (next < DateTime.Now)
             {

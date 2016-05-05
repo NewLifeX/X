@@ -52,7 +52,7 @@ namespace XCode.Cache
         #endregion
 
         /// <summary>初始化缓存的方法，默认为空</summary>
-        public Func InitializeMethod { get; set; }
+        public Action InitializeMethod { get; set; }
 
         /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
         /// <remarks>独占模式也需要用到定时器，否则无法自动保存</remarks>
