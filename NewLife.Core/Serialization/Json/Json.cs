@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Text;
-using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization

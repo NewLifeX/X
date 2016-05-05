@@ -84,11 +84,8 @@ namespace NewLife.Serialization
     public abstract class FormatterBase //: IFormatterX
     {
         #region 属性
-        private Int64 _StartPosition = 0;
-
-        private Stream _Stream;
         /// <summary>数据流。默认实例化一个内存数据流</summary>
-        public virtual Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream()); } set { _Stream = value; _StartPosition = value == null ? 0 : value.Position; } }
+        public virtual Stream Stream { get; set; }
 
         /// <summary>主对象</summary>
         public Stack<Object> Hosts { get; private set; }
@@ -107,6 +104,7 @@ namespace NewLife.Serialization
         /// <summary>实例化</summary>
         public FormatterBase()
         {
+            Stream = new MemoryStream();
             Hosts = new Stack<Object>();
             Encoding = Encoding.Default;
             UseProperty = true;
@@ -120,7 +118,7 @@ namespace NewLife.Serialization
         {
             var ms = Stream;
             var pos = ms.Position;
-            var start = _StartPosition;
+            var start = 0;
             if (pos == 0 || pos == start) return new Byte[0];
 
             if (ms is MemoryStream && pos == ms.Length && start == 0)
@@ -151,13 +149,11 @@ namespace NewLife.Serialization
         where THost : IFormatterX
         where THandler : IHandler<THost>
     {
-        private THost _Host;
         /// <summary>宿主读写器</summary>
-        public THost Host { get { return _Host; } set { _Host = value; } }
+        public THost Host { get; set; }
 
-        private Int32 _Priority;
         /// <summary>优先级</summary>
-        public Int32 Priority { get { return _Priority; } set { _Priority = value; } }
+        public Int32 Priority { get; set; }
 
         /// <summary>写入一个对象</summary>
         /// <param name="value">目标对象</param>

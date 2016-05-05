@@ -17,6 +17,9 @@ namespace NewLife.Serialization
         /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
         Boolean UseFieldSize { get; set; }
 
+        /// <summary>是否写入名称。默认false</summary>
+        Boolean UseName { get; set; }
+
         /// <summary>处理器列表</summary>
         IList<IBinaryHandler> Handlers { get; }
         #endregion

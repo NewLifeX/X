@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
@@ -65,31 +66,15 @@ namespace NewLife.Serialization
                 var v = value.GetValue(member);
                 WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
 
-                #region 处理位域支持
-                // 仅支持Byte
+                // 处理位域支持，仅支持Byte
                 if (member.GetMemberType() == typeof(Byte))
                 {
-                    var att = member.GetCustomAttribute<BitSizeAttribute>();
-                    if (att != null)
-                    {
-                        // 合并位域数据
-                        bit = att.Set(bit, (Byte)v, offset);
-
-                        // 偏移
-                        offset += att.Size;
-
-                        // 不足8位，等下一次
-                        if (offset < 8) continue;
-
-                        // 足够8位，可以写入了，清空位移和bit给下一次使用
-                        v = (Byte)bit;
-                        offset = 0;
-                        bit = 0;
-                    }
+                    if (WriteBit(member, ref bit, ref offset, ref v)) continue;
                 }
-                #endregion
 
-                if (!Host.Write(v, mtype))
+                // 特殊处理写入名值对
+                var rs = (Host.UseName) ? WritePair(member, v) : Host.Write(v, mtype);
+                if (!rs)
                 {
                     Host.Hosts.Pop();
                     return false;
@@ -98,6 +83,59 @@ namespace NewLife.Serialization
             Host.Hosts.Pop();
 
             if (offset > 0) throw new XException("类{0}的位域字段不足8位", type);
+
+            return true;
+        }
+
+        Boolean WriteBit(MemberInfo member, ref Int32 bit, ref Int32 offset, ref Object v)
+        {
+            var att = member.GetCustomAttribute<BitSizeAttribute>();
+            if (att != null)
+            {
+                // 合并位域数据
+                bit = att.Set(bit, (Byte)v, offset);
+
+                // 偏移
+                offset += att.Size;
+
+                // 不足8位，等下一次
+                if (offset < 8) return true;
+
+                // 足够8位，可以写入了，清空位移和bit给下一次使用
+                v = (Byte)bit;
+                offset = 0;
+                bit = 0;
+            }
+
+            return false;
+        }
+
+        Boolean WritePair(MemberInfo member, Object v)
+        {
+            Byte[] buf = null;
+            if (v is String)
+                buf = (v as String).GetBytes(Host.Encoding);
+            else if (v is Byte[])
+                buf = (Byte[])v;
+            else
+            {
+                // 准备好名值对再一起写入。为了得到数据长度，需要提前计算好数据长度，所以需要临时切换数据流
+                var ms = new MemoryStream();
+                var old = Host.Stream;
+                Host.Stream = ms;
+                var rs = Host.Write(v, GetMemberType(member));
+                Host.Stream = old;
+
+                if (!rs) return false;
+                buf = ms.ToArray();
+            }
+
+            WriteLog("WritePair {0}\t= {1}", member.Name, v);
+
+            // 开始写入
+            var key = member.Name.GetBytes(Host.Encoding);
+            if (!Host.Write(key, key.GetType())) return false;
+            if (!Host.Write(buf, buf.GetType())) return false;
 
             return true;
         }
@@ -134,6 +172,10 @@ namespace NewLife.Serialization
             // 成员序列化访问器
             var ac = value as IMemberAccessor;
 
+            // 提前准备名值对
+            IDictionary<String, Byte[]> dic = null;
+            if (Host.UseName) dic = ReadPair();
+
             // 获取成员
             for (int i = 0; i < ms.Count; i++)
             {
@@ -144,66 +186,28 @@ namespace NewLife.Serialization
                 Host.Member = member;
                 WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
 
-                #region 处理位域支持
-                // 仅支持Byte
+                // 处理位域支持，仅支持Byte
                 if (member.GetMemberType() == typeof(Byte))
                 {
-                    var att = member.GetCustomAttribute<BitSizeAttribute>();
-                    if (att != null)
-                    {
-                        // 仅在第一个位移处读取
-                        if (offset == 0)
-                        {
-                            Object v2 = null;
-                            if (!Host.TryRead(mtype, ref v2))
-                            {
-                                Host.Hosts.Pop();
-                                return false;
-                            }
-                            bit = (Byte)v2;
-                        }
-
-                        // 取得当前字段所属部分
-                        var n = att.Get(bit, offset);
-
-                        value.SetValue(member, (Byte)n);
-
-                        // 偏移
-                        offset += att.Size;
-
-                        // 足够8位，可以写入了，清空位移和bit给下一次使用
-                        if (offset >= 8)
-                        {
-                            offset = 0;
-                            bit = 0;
-                        }
-
-                        continue;
-                    }
+                    if (TryReadBit(member, ref bit, ref offset, value)) continue;
                 }
-                #endregion
 
                 // 成员访问器优先
-                if (ac != null)
-                {
-                    // 访问器直接写入成员
-                    if (ac.Read(Host, member))
-                    {
-                        // 访问器内部可能直接操作Hosts修改了父级对象，典型应用在于某些类需要根据某个字段值决定采用哪个派生类
-                        var obj = Host.Hosts.Peek();
-                        if (obj != value)
-                        {
-                            value = obj;
-                            ms = GetMembers(value.GetType());
-                            ac = value as IMemberAccessor;
-                        }
-
-                        continue;
-                    }
-                }
+                if (ac != null && TryReadAccessor(member, value, ref ac, ref ms)) continue;
 
                 Object v = null;
-                if (!Host.TryRead(mtype, ref v))
+                // 特殊处理写入名值对
+                if (Host.UseName)
+                {
+                    //if (!TryReadPair(dic, member, ref v))
+                    //{
+                    //    Host.Hosts.Pop();
+                    //    return false;
+                    //}
+                    // 名值对即使没有配对也没有关系
+                    TryReadPair(dic, member, ref v);
+                }
+                else if (!Host.TryRead(mtype, ref v))
                 {
                     Host.Hosts.Pop();
                     return false;
@@ -216,6 +220,115 @@ namespace NewLife.Serialization
             if (offset > 0) throw new XException("类{0}的位域字段不足8位", type);
 
             return true;
+        }
+
+        Boolean TryReadAccessor(MemberInfo member, Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)
+        {
+            // 访问器直接写入成员
+            if (!ac.Read(Host, member)) return false;
+
+            // 访问器内部可能直接操作Hosts修改了父级对象，典型应用在于某些类需要根据某个字段值决定采用哪个派生类
+            var obj = Host.Hosts.Peek();
+            if (obj != value)
+            {
+                value = obj;
+                ms = GetMembers(value.GetType());
+                ac = value as IMemberAccessor;
+            }
+
+            return true;
+        }
+
+        Boolean TryReadBit(MemberInfo member, ref Int32 bit, ref Int32 offset, Object value)
+        {
+            var att = member.GetCustomAttribute<BitSizeAttribute>();
+            if (att == null) return false;
+
+            // 仅在第一个位移处读取
+            if (offset == 0)
+            {
+                var mtype = GetMemberType(member);
+                Object v2 = null;
+                if (!Host.TryRead(mtype, ref v2))
+                {
+                    Host.Hosts.Pop();
+                    return false;
+                }
+                bit = (Byte)v2;
+            }
+
+            // 取得当前字段所属部分
+            var n = att.Get(bit, offset);
+
+            value.SetValue(member, (Byte)n);
+
+            // 偏移
+            offset += att.Size;
+
+            // 足够8位，可以写入了，清空位移和bit给下一次使用
+            if (offset >= 8)
+            {
+                offset = 0;
+                bit = 0;
+            }
+
+            return true;
+        }
+
+        IDictionary<String, Byte[]> ReadPair()
+        {
+            var ms = Host.Stream;
+            var dic = new Dictionary<String, Byte[]>();
+            while (ms.Position < ms.Length)
+            {
+                var len = ms.ReadEncodedInt();
+                if (len > ms.Length - ms.Position) break;
+
+                var name = ms.ReadBytes(len).ToStr(Host.Encoding);
+                // 避免名称为空导致dic[name]报错
+                name += "";
+
+                len = ms.ReadEncodedInt();
+                if (len > ms.Length - ms.Position) break;
+
+                dic[name] = ms.ReadBytes(len);
+            }
+
+            return dic;
+        }
+
+        Boolean TryReadPair(IDictionary<String, Byte[]> dic, MemberInfo member, ref Object value)
+        {
+            Byte[] buf = null;
+            if (!dic.TryGetValue(member.Name, out buf)) return false;
+
+            var mtype = GetMemberType(member);
+
+            WriteLog("TryReadPair {0}\t= {1}", member.Name, buf.ToHex("-", 0, 32));
+
+            if (mtype == typeof(String))
+            {
+                value = buf.ToStr(Host.Encoding);
+                WriteLog(value + "");
+                return true;
+            }
+            if (mtype == typeof(Byte[]))
+            {
+                value = buf;
+                return true;
+            }
+
+            var old = Host.Stream;
+            Host.Stream = new MemoryStream(buf);
+            try
+            {
+                return Host.TryRead(mtype, ref value);
+            }
+            finally
+            {
+                Host.Stream = old;
+                WriteLog("{0}".F(value));
+            }
         }
 
         #region 获取成员

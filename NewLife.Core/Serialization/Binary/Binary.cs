@@ -20,9 +20,12 @@ namespace NewLife.Serialization
 
         /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
         public Boolean UseFieldSize { get; set; }
-        
+
         /// <summary>大小宽度。可选0/1/2/4，默认0表示压缩编码整数</summary>
         public Int32 SizeWidth { get; set; }
+
+        /// <summary>是否写入名称。默认false</summary>
+        public Boolean UseName { get; set; }
 
         /// <summary>处理器列表</summary>
         public IList<IBinaryHandler> Handlers { get; private set; }
@@ -32,18 +35,14 @@ namespace NewLife.Serialization
         /// <summary>实例化</summary>
         public Binary()
         {
+            UseName = false;
+
             // 遍历所有处理器实现
             var list = new List<IBinaryHandler>();
-            //foreach (var item in typeof(IBinaryHandler).GetAllSubclasses(true))
-            //{
-            //    var handler = item.CreateInstance() as IBinaryHandler;
-            //    handler.Host = this;
-            //    list.Add(handler);
-            //}
             list.Add(new BinaryGeneral { Host = this });
             list.Add(new BinaryComposite { Host = this });
             list.Add(new BinaryList { Host = this });
-            //list.Add(new BinaryDictionary { Host = this });
+            list.Add(new BinaryDictionary { Host = this });
             // 根据优先级排序
             list.Sort();
 
@@ -158,20 +157,21 @@ namespace NewLife.Serialization
                     break;
                 case 0:
                 default:
-                    if (EncodeInt)
-                        WriteEncoded(size);
-                    else
-                        Write(size);
+                    //if (EncodeInt)
+                    WriteEncoded(size);
+                    //else
+                    //    Write(size);
                     break;
             }
 
             return -1;
         }
 
-        /// <summary>
+        /// <summary>写7位压缩编码整数</summary>
+        /// <remarks>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-        /// </summary>
+        /// </remarks>
         /// <param name="value">数值</param>
         /// <returns>实际写入字节数</returns>
         Int32 WriteEncoded(Int32 value)
@@ -273,10 +273,10 @@ namespace NewLife.Serialization
                     return (Int32)Read(typeof(Int32));
                 case 0:
                 default:
-                    if (EncodeInt)
-                        return ReadEncodedInt32();
-                    else
-                        return (Int32)Read(typeof(Int32));
+                    //if (EncodeInt)
+                    return ReadEncodedInt32();
+                //else
+                //    return (Int32)Read(typeof(Int32));
             }
         }
 

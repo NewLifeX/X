@@ -78,42 +78,7 @@ namespace Test
 
         static void Test2()
         {
-            Console.WriteLine(Runtime.OSName);
-            var os = Environment.OSVersion;
-            Console.WriteLine(os);
-
-            SpeechRecognition.Register("开灯", () => Console.WriteLine("打开客厅大灯"));
-            SpeechRecognition.Register("回家", () => Console.WriteLine("打开门道灯光"));
-            SpeechRecognition.Register("看电影", () => Console.WriteLine("调暗灯光"));
-            SpeechRecognition.Register("下雨", () => Console.WriteLine("关闭窗帘"));
-
-            //using (var rg = new SpeechRecognitionEngine())
-            //{
-            //    rg.UnloadAllGrammars();
-            //    //rg.LoadGrammar(new DictationGrammar());
-
-            //    var ss = "爸爸,妈妈,开灯,开门,关灯,关门,我饿了,吃饭,睡觉,连接,断开,关闭,编译,回家模式,影音模式,关闭所有灯";
-            //    var preCmd = new Choices();
-            //    preCmd.Add(ss.Split(","));
-            //    var gb = new GrammarBuilder();
-            //    gb.Append(preCmd);
-            //    var gr = new Grammar(gb);
-            //    rg.LoadGrammarAsync(gr);
-
-            //    rg.SetInputToDefaultAudioDevice();
-            //    //rg.InitialSilenceTimeout = TimeSpan.FromSeconds(500);
-
-            //    Console.WriteLine("准备就绪，语音识别正在聆听……");
-
-            //    //var rs = rg.Recognize();
-            //    //Console.WriteLine(rs.Text);
-            //    //rg.RecognizeCompleted += rg_RecognizeCompleted;
-            //    rg.SpeechRecognized += rg_SpeechRecognized;
-
-            //    rg.RecognizeAsync(RecognizeMode.Multiple);
-
-            //    Thread.Sleep(60000);
-            //}
+            BinaryTest.Start();
         }
 
         static void rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
