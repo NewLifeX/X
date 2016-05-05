@@ -74,7 +74,7 @@ namespace NewLife.Serialization
                 }
 
                 // 特殊处理写入名值对
-                var rs = (Host.UseName) ? WritePair(member, v) : Host.Write(v, mtype);
+                var rs = (Host.UseName) ? Host.WritePair(member.Name, v) : Host.Write(v, mtype);
                 if (!rs)
                 {
                     Host.Hosts.Pop();
@@ -146,36 +146,6 @@ namespace NewLife.Serialization
             return false;
         }
 
-        Boolean WritePair(MemberInfo member, Object v)
-        {
-            Byte[] buf = null;
-            if (v is String)
-                buf = (v as String).GetBytes(Host.Encoding);
-            else if (v is Byte[])
-                buf = (Byte[])v;
-            else
-            {
-                // 准备好名值对再一起写入。为了得到数据长度，需要提前计算好数据长度，所以需要临时切换数据流
-                var ms = new MemoryStream();
-                var old = Host.Stream;
-                Host.Stream = ms;
-                var rs = Host.Write(v, GetMemberType(member));
-                Host.Stream = old;
-
-                if (!rs) return false;
-                buf = ms.ToArray();
-            }
-
-            WriteLog("    WritePair {0}\t= {1}", member.Name, v);
-
-            // 开始写入
-            var key = member.Name.GetBytes(Host.Encoding);
-            if (!Host.Write(key, key.GetType())) return false;
-            if (!Host.Write(buf, buf.GetType())) return false;
-
-            return true;
-        }
-
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
@@ -213,7 +183,7 @@ namespace NewLife.Serialization
 
             // 提前准备名值对
             IDictionary<String, Byte[]> dic = null;
-            if (Host.UseName) dic = ReadPair();
+            if (Host.UseName) dic = Host.ReadPair();
 
             // 获取成员
             for (int i = 0; i < ms.Count; i++)
@@ -238,7 +208,7 @@ namespace NewLife.Serialization
                 // 特殊处理写入名值对
                 if (Host.UseName)
                 {
-                    if (!TryReadPair(dic, member, ref v)) continue;
+                    if (!Host.TryReadPair(dic, member.Name, mtype, ref v)) continue;
                 }
                 else if (!Host.TryRead(mtype, ref v))
                 {
@@ -333,62 +303,6 @@ namespace NewLife.Serialization
             }
 
             return true;
-        }
-
-        IDictionary<String, Byte[]> ReadPair()
-        {
-            var ms = Host.Stream;
-            var dic = new Dictionary<String, Byte[]>();
-            while (ms.Position < ms.Length)
-            {
-                var len = ms.ReadEncodedInt();
-                if (len > ms.Length - ms.Position) break;
-
-                var name = ms.ReadBytes(len).ToStr(Host.Encoding);
-                // 避免名称为空导致dic[name]报错
-                name += "";
-
-                len = ms.ReadEncodedInt();
-                if (len > ms.Length - ms.Position) break;
-
-                dic[name] = ms.ReadBytes(len);
-            }
-
-            return dic;
-        }
-
-        Boolean TryReadPair(IDictionary<String, Byte[]> dic, MemberInfo member, ref Object value)
-        {
-            Byte[] buf = null;
-            if (!dic.TryGetValue(member.Name, out buf)) return false;
-
-            var mtype = GetMemberType(member);
-
-            WriteLog("    TryReadPair {0}\t= {1}", member.Name, buf.ToHex("-", 0, 32));
-
-            if (mtype == typeof(String))
-            {
-                value = buf.ToStr(Host.Encoding);
-                WriteLog("        " + value + "");
-                return true;
-            }
-            if (mtype == typeof(Byte[]))
-            {
-                value = buf;
-                return true;
-            }
-
-            var old = Host.Stream;
-            Host.Stream = new MemoryStream(buf);
-            try
-            {
-                return Host.TryRead(mtype, ref value);
-            }
-            finally
-            {
-                Host.Stream = old;
-                WriteLog("        {0}".F(value));
-            }
         }
 
         #region 获取成员

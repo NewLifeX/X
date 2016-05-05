@@ -39,6 +39,11 @@ namespace NewLife.Serialization
         /// <param name="size">要写入的大小值</param>
         /// <returns>返回特性指定的固定长度，如果没有则返回-1</returns>
         Int32 WriteSize(Int32 size);
+
+        /// <summary>写入名值对</summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        Boolean WritePair(String name, Object value);
         #endregion
 
         #region 读取
@@ -54,6 +59,18 @@ namespace NewLife.Serialization
         /// <summary>读取大小</summary>
         /// <returns></returns>
         Int32 ReadSize();
+
+        /// <summary>读取原始名值对</summary>
+        /// <returns></returns>
+        IDictionary<String, Byte[]> ReadPair();
+
+        /// <summary>从原始名值对读取数据</summary>
+        /// <param name="dic"></param>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        Boolean TryReadPair(IDictionary<String, Byte[]> dic, String name, Type type, ref Object value);
         #endregion
     }
 

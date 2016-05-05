@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using NewLife.Log;
 using NewLife.Reflection;
+using System.Linq;
 
 namespace NewLife.Serialization
 {
@@ -193,6 +194,47 @@ namespace NewLife.Serialization
 
             return count;
         }
+
+        /// <summary>写入名值对</summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public Boolean WritePair(String name, Object value)
+        {
+            if (value == null) return true;
+
+            // 检测循环引用。名值对不支持循环引用
+            var hs = Hosts.ToArray();
+            if (hs.Contains(value)) return true;
+
+            var type = value.GetType();
+
+            Byte[] buf = null;
+            if (value is String)
+                buf = (value as String).GetBytes(Encoding);
+            else if (value is Byte[])
+                buf = (Byte[])value;
+            else
+            {
+                // 准备好名值对再一起写入。为了得到数据长度，需要提前计算好数据长度，所以需要临时切换数据流
+                var ms = new MemoryStream();
+                var old = Stream;
+                Stream = ms;
+                var rs = Write(value, type);
+                Stream = old;
+
+                if (!rs) return false;
+                buf = ms.ToArray();
+            }
+
+            WriteLog("    WritePair {0}\t= {1}", name, value);
+
+            // 开始写入
+            var key = name.GetBytes(Encoding);
+            if (!Write(key, key.GetType())) return false;
+            if (!Write(buf, buf.GetType())) return false;
+
+            return true;
+        }
         #endregion
 
         #region 读取
@@ -299,6 +341,75 @@ namespace NewLife.Serialization
             }
 
             return -1;
+        }
+
+        /// <summary>读取原始名值对</summary>
+        /// <returns></returns>
+        public IDictionary<String, Byte[]> ReadPair()
+        {
+            var ms = Stream;
+            var dic = new Dictionary<String, Byte[]>();
+            while (ms.Position < ms.Length)
+            {
+                var len = ms.ReadEncodedInt();
+                if (len > ms.Length - ms.Position) break;
+
+                var name = ms.ReadBytes(len).ToStr(Encoding);
+                // 避免名称为空导致dic[name]报错
+                name += "";
+
+                len = ms.ReadEncodedInt();
+                if (len > ms.Length - ms.Position) break;
+
+                dic[name] = ms.ReadBytes(len);
+            }
+
+            return dic;
+        }
+
+        /// <summary>从原始名值对读取数据</summary>
+        /// <param name="dic"></param>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean TryReadPair(IDictionary<String, Byte[]> dic, String name, Type type, ref Object value)
+        {
+            Byte[] buf = null;
+            if (!dic.TryGetValue(name, out buf)) return false;
+
+            if (type == null)
+            {
+                if (value == null) return false;
+
+                type = value.GetType();
+            }
+
+            WriteLog("    TryReadPair {0}\t= {1}", name, buf.ToHex("-", 0, 32));
+
+            if (type == typeof(String))
+            {
+                value = buf.ToStr(Encoding);
+                WriteLog("        " + value + "");
+                return true;
+            }
+            if (type == typeof(Byte[]))
+            {
+                value = buf;
+                return true;
+            }
+
+            var old = Stream;
+            Stream = new MemoryStream(buf);
+            try
+            {
+                return TryRead(type, ref value);
+            }
+            finally
+            {
+                Stream = old;
+                WriteLog("        {0}".F(value));
+            }
         }
         #endregion
 

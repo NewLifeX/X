@@ -36,8 +36,8 @@ namespace NewLife.Serialization
                 Console.WriteLine("{0} 序列化", ks[i]);
                 {
                     var bn = new Binary();
-                    bn.Log = XTrace.Log;
-                    bn.EnableTrace();
+                    //bn.Log = XTrace.Log;
+                    //bn.EnableTrace();
                     if (!ext) SetExt(bn);
                     bn.UseName = unm;
                     bn.Write(obj);
