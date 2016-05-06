@@ -17,8 +17,11 @@ namespace NewLife.Serialization
         /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
         Boolean UseFieldSize { get; set; }
 
-        /// <summary>是否写入名称。默认false</summary>
-        Boolean UseName { get; set; }
+        /// <summary>要忽略的成员</summary>
+        ICollection<String> IgnoreMembers { get; set; }
+
+        ///// <summary>是否写入名称。默认false</summary>
+        //Boolean UseName { get; set; }
 
         /// <summary>处理器列表</summary>
         IList<IBinaryHandler> Handlers { get; }
@@ -40,10 +43,10 @@ namespace NewLife.Serialization
         /// <returns>返回特性指定的固定长度，如果没有则返回-1</returns>
         Int32 WriteSize(Int32 size);
 
-        /// <summary>写入名值对</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        Boolean WritePair(String name, Object value);
+        ///// <summary>写入名值对</summary>
+        ///// <param name="name"></param>
+        ///// <param name="value"></param>
+        //Boolean WritePair(String name, Object value);
         #endregion
 
         #region 读取
@@ -60,17 +63,17 @@ namespace NewLife.Serialization
         /// <returns></returns>
         Int32 ReadSize();
 
-        /// <summary>读取原始名值对</summary>
-        /// <returns></returns>
-        IDictionary<String, Byte[]> ReadPair();
+        ///// <summary>读取原始名值对</summary>
+        ///// <returns></returns>
+        //IDictionary<String, Byte[]> ReadPair();
 
-        /// <summary>从原始名值对读取数据</summary>
-        /// <param name="dic"></param>
-        /// <param name="name"></param>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        Boolean TryReadPair(IDictionary<String, Byte[]> dic, String name, Type type, ref Object value);
+        ///// <summary>从原始名值对读取数据</summary>
+        ///// <param name="dic"></param>
+        ///// <param name="name"></param>
+        ///// <param name="type"></param>
+        ///// <param name="value"></param>
+        ///// <returns></returns>
+        //Boolean TryReadPair(IDictionary<String, Byte[]> dic, String name, Type type, ref Object value);
         #endregion
     }
 

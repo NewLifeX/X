@@ -25,34 +25,20 @@ namespace NewLife.Serialization
 
             var dic = value as IDictionary;
 
-            if (Host.UseName)
+            // 先写入长度
+            if (dic == null || dic.Count == 0)
             {
-                var gs = type.GetGenericArguments();
-                if (gs.Length != 2) throw new NotSupportedException("字典类型仅支持 {0}".F(typeof(Dictionary<,>).FullName));
-                if (gs[0] != typeof(String)) throw new NotSupportedException("字典类型仅支持Key=String的名值对");
-
-                foreach (DictionaryEntry item in dic)
-                {
-                    Host.WritePair(item.Key as String, item.Value);
-                }
+                Host.WriteSize(0);
+                return true;
             }
-            else
+
+            Host.WriteSize(dic.Count);
+
+            // 循环写入数据
+            foreach (DictionaryEntry item in dic)
             {
-                // 先写入长度
-                if (dic == null || dic.Count == 0)
-                {
-                    Host.WriteSize(0);
-                    return true;
-                }
-
-                Host.WriteSize(dic.Count);
-
-                // 循环写入数据
-                foreach (DictionaryEntry item in dic)
-                {
-                    Host.Write(item.Key);
-                    Host.Write(item.Value);
-                }
+                Host.Write(item.Key);
+                Host.Write(item.Value);
             }
 
             return true;
@@ -73,14 +59,9 @@ namespace NewLife.Serialization
             var keyType = gs[0];
             var valType = gs[1];
 
-            // 非名值对，开头就要检查元素个数
-            var count = 0;
-            if (!Host.UseName)
-            {
-                // 先读取长度
-                count = Host.ReadSize();
-                if (count == 0) return true;
-            }
+            // 先读取长度
+            var count = Host.ReadSize();
+            if (count == 0) return true;
 
             // 创建字典
             if (value == null && type != null)
@@ -90,30 +71,14 @@ namespace NewLife.Serialization
 
             var dic = value as IDictionary;
 
-            // 处理名值对
-            if (Host.UseName)
+            for (int i = 0; i < count; i++)
             {
-                if (keyType != typeof(String)) throw new NotSupportedException("字典类型仅支持Key=String的名值对");
+                Object key = null;
+                Object val = null;
+                if (!Host.TryRead(keyType, ref key)) return false;
+                if (!Host.TryRead(valType, ref val)) return false;
 
-                var ds = Host.ReadPair();
-                foreach (var item in ds)
-                {
-                    Object v = null;
-                    if (Host.TryReadPair(ds, item.Key, valType, ref v))
-                        dic[item.Key] = v;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    Object key = null;
-                    Object val = null;
-                    if (!Host.TryRead(keyType, ref key)) return false;
-                    if (!Host.TryRead(valType, ref val)) return false;
-
-                    dic[key] = val;
-                }
+                dic[key] = val;
             }
 
             return true;

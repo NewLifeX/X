@@ -126,8 +126,8 @@ namespace NewLife.Compression
             // 读取文件头时忽略掉这些字段，这些都是DirEntry的字段
             //reader.Settings.IgnoreMembers = dirMembers;
 
-            var handler = (reader as Binary).GetHandler<BinaryComposite>();
-            if (handler != null) handler.IgnoreMembers = dirMembers;
+            var bn = (reader as Binary);
+            if (bn != null) bn.IgnoreMembers = dirMembers;
 
             // 有时候Zip文件以PK00开头
             if (first)

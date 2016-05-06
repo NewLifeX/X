@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -12,8 +9,8 @@ namespace NewLife.Serialization
     /// <summary>复合对象处理器</summary>
     public class BinaryComposite : BinaryHandlerBase
     {
-        /// <summary>要忽略的成员</summary>
-        public ICollection<String> IgnoreMembers { get; set; }
+        ///// <summary>要忽略的成员</summary>
+        //public ICollection<String> IgnoreMembers { get; set; }
 
         /// <summary>实例化</summary>
         public BinaryComposite()
@@ -21,7 +18,7 @@ namespace NewLife.Serialization
             Priority = 100;
 
             //IgnoreMembers = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-            IgnoreMembers = new HashSet<String>();
+            //IgnoreMembers = new HashSet<String>();
         }
 
         /// <summary>写入对象</summary>
@@ -33,7 +30,9 @@ namespace NewLife.Serialization
             // 不支持基本类型
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
-            var ms = GetMembers(type);
+            var ims = Host.IgnoreMembers;
+
+            var ms = GetMembers(type).Where(e => !ims.Contains(e.Name)).ToList();
             WriteLog("BinaryWrite类{0} 共有成员{1}个", type.Name, ms.Count);
 
             if (Host.UseFieldSize)
@@ -59,7 +58,7 @@ namespace NewLife.Serialization
             // 获取成员
             foreach (var member in ms)
             {
-                if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;
+                //if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;
 
                 var mtype = GetMemberType(member);
                 Host.Member = member;
@@ -73,9 +72,7 @@ namespace NewLife.Serialization
                     if (WriteBit(member, ref bit, ref offset, ref v)) continue;
                 }
 
-                // 特殊处理写入名值对
-                var rs = (Host.UseName) ? Host.WritePair(member.Name, v) : Host.Write(v, mtype);
-                if (!rs)
+                if (!Host.Write(v, mtype))
                 {
                     Host.Hosts.Pop();
                     return false;
@@ -92,33 +89,25 @@ namespace NewLife.Serialization
         {
             if (Host.Hosts.Count == 0) return false;
 
-            // 如果使用名称，且对象为空，则什么也不做
-            if (Host.UseName)
+            if (value == null)
             {
-                if (value == null) return true;
+                Host.Write((Byte)0);
+                return true;
             }
-            else
+
+            // 找到对象索引，并写入
+            var hs = Host.Hosts.ToArray();
+            for (int i = 0; i < hs.Length; i++)
             {
-                if (value == null)
+                if (value == hs[i])
                 {
-                    Host.Write((Byte)0);
+                    Host.WriteSize(i + 1);
                     return true;
                 }
-
-                // 找到对象索引，并写入
-                var hs = Host.Hosts.ToArray();
-                for (int i = 0; i < hs.Length; i++)
-                {
-                    if (value == hs[i])
-                    {
-                        Host.WriteSize(i + 1);
-                        return true;
-                    }
-                }
-
-                // 埋下自己
-                Host.WriteSize(Host.Hosts.Count + 1);
             }
+
+            // 埋下自己
+            Host.WriteSize(Host.Hosts.Count + 1);
 
             return false;
         }
@@ -164,7 +153,9 @@ namespace NewLife.Serialization
             //if (type.BaseType != typeof(Object)) return false;
             if (!typeof(Object).IsAssignableFrom(type)) return false;
 
-            var ms = GetMembers(type);
+            var ims = Host.IgnoreMembers;
+
+            var ms = GetMembers(type).Where(e => !ims.Contains(e.Name)).ToList();
             WriteLog("BinaryRead类{0} 共有成员{1}个", type.Name, ms.Count);
 
             // 读取对象引用
@@ -181,15 +172,11 @@ namespace NewLife.Serialization
             // 成员序列化访问器
             var ac = value as IMemberAccessor;
 
-            // 提前准备名值对
-            IDictionary<String, Byte[]> dic = null;
-            if (Host.UseName) dic = Host.ReadPair();
-
             // 获取成员
             for (int i = 0; i < ms.Count; i++)
             {
                 var member = ms[i];
-                if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;
+                //if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;
 
                 var mtype = GetMemberType(member);
                 Host.Member = member;
@@ -205,12 +192,7 @@ namespace NewLife.Serialization
                 if (ac != null && TryReadAccessor(member, value, ref ac, ref ms)) continue;
 
                 Object v = null;
-                // 特殊处理写入名值对
-                if (Host.UseName)
-                {
-                    if (!Host.TryReadPair(dic, member.Name, mtype, ref v)) continue;
-                }
-                else if (!Host.TryRead(mtype, ref v))
+                if (!Host.TryRead(mtype, ref v))
                 {
                     Host.Hosts.Pop();
                     return false;
@@ -229,27 +211,23 @@ namespace NewLife.Serialization
         {
             if (Host.Hosts.Count == 0) return false;
 
-            if (!Host.UseName)
+            var rf = Host.ReadSize();
+            if (rf == 0)
             {
-                var rf = Host.ReadSize();
-                if (rf == 0)
-                {
-                    value = null;
-                    return true;
-                }
-
-                // 找到对象索引
-                var hs = Host.Hosts.ToArray();
-                // 如果引用是对象数加一，说明有对象紧跟着
-                if (rf == hs.Length + 1) return false;
-
-                if (rf < 0 || rf > hs.Length) throw new XException("无法在 {0} 个对象中找到引用 {1}", hs.Length, rf);
-
-                value = hs[rf - 1];
+                value = null;
                 return true;
             }
 
-            return false;
+            // 找到对象索引
+            var hs = Host.Hosts.ToArray();
+            // 如果引用是对象数加一，说明有对象紧跟着
+            if (rf == hs.Length + 1) return false;
+
+            if (rf < 0 || rf > hs.Length) throw new XException("无法在 {0} 个对象中找到引用 {1}", hs.Length, rf);
+
+            value = hs[rf - 1];
+
+            return true;
         }
 
         Boolean TryReadAccessor(MemberInfo member, Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)

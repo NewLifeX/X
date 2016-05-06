@@ -39,7 +39,8 @@ namespace NewLife.Serialization
                     //bn.Log = XTrace.Log;
                     //bn.EnableTrace();
                     if (!ext) SetExt(bn);
-                    bn.UseName = unm;
+                    //bn.UseName = unm;
+                    if (unm) bn.AddHandler<BinaryPair>();
                     bn.Write(obj);
 
                     buf = bn.GetBytes();
@@ -62,7 +63,8 @@ namespace NewLife.Serialization
                 {
                     var bn = new Binary();
                     if (!ext) SetExt(bn);
-                    bn.UseName = unm;
+                    //bn.UseName = unm;
+                    if (unm) bn.AddHandler<BinaryPair>();
                     bn.Write(obj);
                 });
                 CodeTimer.TimeLine("BinaryFormatter", 100000, n =>
@@ -78,7 +80,8 @@ namespace NewLife.Serialization
                 {
                     var bn = new Binary();
                     if (!ext) SetExt(bn);
-                    bn.UseName = unm;
+                    //bn.UseName = unm;
+                    if (unm) bn.AddHandler<BinaryPair>();
                     bn.Stream = new MemoryStream(buf);
                     bn.Read(obj.GetType());
                 });
@@ -139,10 +142,12 @@ namespace NewLife.Serialization
 
         static void SetExt(Binary bn)
         {
-            var bc = bn.GetHandler<BinaryComposite>();
-            bc.IgnoreMembers.Add("Points");
-            bc.IgnoreMembers.Add("Items");
-            bc.IgnoreMembers.Add("Container");
+            var ims = bn.IgnoreMembers;
+            ims.Add("Points");
+            ims.Add("Items");
+            ims.Add("Container");
+            ims.Add("Self");
+            ims.Add("Bin");
         }
     }
 
