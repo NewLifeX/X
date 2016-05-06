@@ -84,7 +84,7 @@ namespace NewLife.Serialization
                 var ms = new MemoryStream();
                 var old = Host.Stream;
                 Host.Stream = ms;
-                var rs = Write(value, type);
+                var rs = Host.Write(value, type);
                 Host.Stream = old;
 
                 if (!rs) return false;
@@ -95,8 +95,8 @@ namespace NewLife.Serialization
 
             // 开始写入
             var key = name.GetBytes(Host.Encoding);
-            if (!Write(key, key.GetType())) return false;
-            if (!Write(buf, buf.GetType())) return false;
+            if (!Host.Write(key, key.GetType())) return false;
+            if (!Host.Write(buf, buf.GetType())) return false;
 
             return true;
         }
@@ -169,7 +169,7 @@ namespace NewLife.Serialization
             Host.Stream = new MemoryStream(buf);
             try
             {
-                return TryRead(type, ref value);
+                return Host.TryRead(type, ref value);
             }
             finally
             {
