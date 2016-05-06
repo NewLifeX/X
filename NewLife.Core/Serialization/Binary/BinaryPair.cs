@@ -36,6 +36,7 @@ namespace NewLife.Serialization
 
             //todo 名值对还不能很好的支持数组
             if (WriteDictionary(value, type)) return true;
+            if (WriteArray(value, type)) return true;
             if (WriteObject(value, type)) return true;
 
             return false;
@@ -54,6 +55,7 @@ namespace NewLife.Serialization
             }
 
             if (TryReadDictionary(type, ref value)) return true;
+            if (TryReadArray(type, ref value)) return true;
             if (TryReadObject(type, ref value)) return true;
 
             return false;
@@ -227,6 +229,53 @@ namespace NewLife.Serialization
                 if (TryReadPair(ds, item.Key, valType, ref v))
                     dic[item.Key] = v;
             }
+
+            return true;
+        }
+        #endregion
+
+        #region 数组名值对
+        private Boolean WriteArray(Object value, Type type)
+        {
+            if (!typeof(IList).IsAssignableFrom(type)) return false;
+
+            var list = value as IList;
+            if (list == null || list.Count == 0) return true;
+
+            // 循环写入数据
+            for (int i = 0; i < list.Count; i++)
+            {
+                WritePair(i + "", list[i]);
+            }
+
+            return true;
+        }
+
+        private Boolean TryReadArray(Type type, ref Object value)
+        {
+            if (!typeof(IList).IsAssignableFrom(type)) return false;
+
+            // 子元素类型
+            var elmType = type.GetElementTypeEx();
+
+            var list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
+
+            var ds = ReadPair();
+            for (int i = 0; i < ds.Count; i++)
+            {
+                Object v = null;
+                if (TryReadPair(ds, i + "", elmType, ref v)) list.Add(v);
+            }
+
+            // 数组的创建比较特别
+            if (type.IsArray)
+            {
+                var arr = Array.CreateInstance(elmType, list.Count);
+                list.CopyTo(arr, 0);
+                value = arr;
+            }
+            else
+                value = list;
 
             return true;
         }

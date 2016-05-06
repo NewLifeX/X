@@ -36,17 +36,16 @@ namespace NewLife.Serialization
                 Console.WriteLine("{0} 序列化", ks[i]);
                 {
                     var bn = new Binary();
-                    bn.Log = XTrace.Log;
-                    bn.EnableTrace();
+                    //bn.Log = XTrace.Log;
+                    //bn.EnableTrace();
                     if (!ext) SetExt(bn);
-                    //bn.UseName = unm;
                     if (unm) bn.AddHandler<BinaryPair>();
                     bn.Write(obj);
 
                     buf = bn.GetBytes();
                     Console.Write("{0}\t大小：{1:n0}\t", bn.GetType().Name, bn.Stream.Length);
                     bn.Stream = new MemoryStream(buf);
-                    bn.EnableTrace();
+                    //bn.EnableTrace();
                     bn.Read(obj.GetType());
                 }
                 {
@@ -63,7 +62,6 @@ namespace NewLife.Serialization
                 {
                     var bn = new Binary();
                     if (!ext) SetExt(bn);
-                    //bn.UseName = unm;
                     if (unm) bn.AddHandler<BinaryPair>();
                     bn.Write(obj);
                 });
@@ -80,7 +78,6 @@ namespace NewLife.Serialization
                 {
                     var bn = new Binary();
                     if (!ext) SetExt(bn);
-                    //bn.UseName = unm;
                     if (unm) bn.AddHandler<BinaryPair>();
                     bn.Stream = new MemoryStream(buf);
                     bn.Read(obj.GetType());
