@@ -70,25 +70,26 @@ namespace NewLife.Serialization
         {
             if (value == null) return true;
 
+            var host = Host;
             // 检测循环引用。名值对不支持循环引用
-            var hs = Host.Hosts.ToArray();
+            var hs = host.Hosts.ToArray();
             if (hs.Contains(value)) return true;
 
             var type = value.GetType();
 
             Byte[] buf = null;
             if (value is String)
-                buf = (value as String).GetBytes(Host.Encoding);
+                buf = (value as String).GetBytes(host.Encoding);
             else if (value is Byte[])
                 buf = (Byte[])value;
             else
             {
                 // 准备好名值对再一起写入。为了得到数据长度，需要提前计算好数据长度，所以需要临时切换数据流
                 var ms = new MemoryStream();
-                var old = Host.Stream;
-                Host.Stream = ms;
-                var rs = Host.Write(value, type);
-                Host.Stream = old;
+                var old = host.Stream;
+                host.Stream = ms;
+                var rs = host.Write(value, type);
+                host.Stream = old;
 
                 if (!rs) return false;
                 buf = ms.ToArray();
@@ -97,9 +98,9 @@ namespace NewLife.Serialization
             WriteLog("    WritePair {0}\t= {1}", name, value);
 
             // 开始写入
-            var key = name.GetBytes(Host.Encoding);
-            if (!Host.Write(key, key.GetType())) return false;
-            if (!Host.Write(buf, buf.GetType())) return false;
+            var key = name.GetBytes(host.Encoding);
+            if (!host.Write(key, key.GetType())) return false;
+            if (!host.Write(buf, buf.GetType())) return false;
 
             return true;
         }
