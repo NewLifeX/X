@@ -45,13 +45,8 @@ namespace XCode.DataAccessLayer
             set { _IsDescs = value; }
         }
 
-        private Boolean _IsInt;
         /// <summary>是否整数自增主键</summary>
-        public Boolean IsInt
-        {
-            get { return _IsInt; }
-            set { _IsInt = value; }
-        }
+        public Boolean IsInt { get; set; }
 
         /// <summary>分页主键排序</summary>
         public String KeyOrder
@@ -99,14 +94,20 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region SQL查询语句基本部分
-        private String _Column;
-        /// <summary>选择列</summary>
-        public String Column { get { return _Column; } set { _Column = value; } }
+        #region 构造
+        /// <summary>实例化一个SQL语句</summary>
+        public SelectBuilder()
+        {
+            Parameters = new List<DbParameter>();
+        }
+        #endregion
 
-        private String _Table;
+        #region SQL查询语句基本部分
+        /// <summary>选择列</summary>
+        public String Column { get; set; }
+
         /// <summary>数据表</summary>
-        public String Table { get { return _Table; } set { _Table = value; } }
+        public String Table { get; set; }
 
         private static Regex reg_gb = new Regex(@"\bgroup\b\s*\bby\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private String _Where;
@@ -142,13 +143,11 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private String _GroupBy;
         /// <summary>分组</summary>
-        public String GroupBy { get { return _GroupBy; } set { _GroupBy = value; } }
+        public String GroupBy { get; set; }
 
-        private String _Having;
         /// <summary>分组条件</summary>
-        public String Having { get { return _Having; } set { _Having = value; } }
+        public String Having { get; set; }
 
         private String _OrderBy;
         /// <summary>排序</summary>
@@ -191,9 +190,43 @@ namespace XCode.DataAccessLayer
         /// <summary>选择列，为空时为*</summary>
         public String ColumnOrDefault { get { return String.IsNullOrEmpty(Column) ? "*" : Column; } }
 
-        private List<DbParameter> _Parameters;
+        /// <summary>选择列，去除聚合，为空时为*</summary>
+        public String ColumnNoAggregate
+        {
+            get
+            {
+                if (Column.IsNullOrEmpty() || Column == "*") return "*";
+
+                // 分解重构，把聚合函数干掉
+                var ss = Column.Split(",");
+                var sb = new StringBuilder();
+                foreach (var item in ss)
+                {
+                    if (sb.Length > 0) sb.Append(", ");
+
+                    // 聚合函数有三种，等号、AS、空格
+                    if (item.Contains("="))
+                        sb.Append(item.Substring(null, "="));
+                    else if (item.ToLower().Contains(" as "))
+                    {
+                        var p = item.LastIndexOf(' ');
+                        sb.Append(item.Substring(p + 1));
+                    }
+                    else if (item.Contains(" "))
+                    {
+                        var p = item.LastIndexOf(' ');
+                        sb.Append(item.Substring(p + 1));
+                    }
+                    else
+                        sb.Append(item);
+                }
+
+                return sb.ToString();
+            }
+        }
+
         /// <summary>参数集合</summary>
-        internal List<DbParameter> Parameters { get { return _Parameters ?? (_Parameters = new List<DbParameter>()); } set { _Parameters = value; } }
+        internal List<DbParameter> Parameters { get; set; }
         #endregion
 
         #region 导入SQL
@@ -280,7 +313,7 @@ $";
         /// <returns></returns>
         public SelectBuilder Clone()
         {
-            SelectBuilder sb = new SelectBuilder();
+            var sb = new SelectBuilder();
             sb.Column = this.Column;
             sb.Table = this.Table;
             // 直接拷贝字段，避免属性set时触发分析代码
