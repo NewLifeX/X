@@ -960,6 +960,9 @@ namespace XCode
             sb.Table = session.FormatedTableName;
             sb.Where = whereClause;
 
+            // MSSQL分组查分组数的时候，必须带上全部selects字段
+            if (session.Dal.DbType == DatabaseType.SqlServer && !sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
+
             return session.QueryCount(sb);
         }
 

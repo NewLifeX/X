@@ -301,7 +301,7 @@ $";
             // 该BUG由@行走江湖（534163320）发现
 
             // 包含GroupBy时，作为子查询
-            SelectBuilder sb = this.CloneWithGroupBy("XCode_T0");
+            var sb = this.CloneWithGroupBy("XCode_T0");
             sb.Column = "Count(*)";
             sb.OrderBy = null;
             return sb;
