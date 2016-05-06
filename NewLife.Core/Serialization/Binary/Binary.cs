@@ -181,20 +181,21 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         Int32 WriteEncoded(Int32 value)
         {
-            var list = new List<Byte>();
+            var arr = new Byte[16];
+            var k = 0;
 
             Int32 count = 1;
-            UInt32 num = (UInt32)value;
+            var num = (UInt32)value;
             while (num >= 0x80)
             {
-                list.Add((byte)(num | 0x80));
+                arr[k++] = (Byte)(num | 0x80);
                 num = num >> 7;
 
                 count++;
             }
-            list.Add((byte)num);
+            arr[k++] = (byte)num;
 
-            Write(list.ToArray(), 0, list.Count);
+            Write(arr, 0, k);
 
             return count;
         }
