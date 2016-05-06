@@ -34,6 +34,7 @@ namespace NewLife.Serialization
             // 不写空名值对
             if (value == null) return true;
 
+            //todo 名值对还不能很好的支持数组
             if (WriteDictionary(value, type)) return true;
             if (WriteObject(value, type)) return true;
 
