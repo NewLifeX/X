@@ -207,7 +207,7 @@ namespace XCode.DataAccessLayer
             var builder1 = builder.CloneWithGroupBy("XCode_T0");
             //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
             // 不必追求极致，把所有列放出来
-            builder1.Column = "*, row_number() over(Order By {1}) as rowNumber".F(builder.OrderBy ?? builder.KeyOrder);
+            builder1.Column = "*, row_number() over(Order By {0}) as rowNumber".F(builder.OrderBy ?? builder.KeyOrder);
 
             var builder2 = builder1.AsChild("XCode_T1");
             // 结果列处理
