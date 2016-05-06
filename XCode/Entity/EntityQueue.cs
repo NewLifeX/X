@@ -71,12 +71,8 @@ namespace XCode
             var list = Entities;
             if (list.Count == 0) return;
 
-            //var es = list;
             lock (this)
             {
-                //es = list.ToArray();
-                //list.Clear();
-
                 // 为了速度，不拷贝，直接创建一个新的集合
                 list = Entities;
                 if (list.Count == 0) return;
@@ -148,10 +144,6 @@ namespace XCode
 
             if (Completed != null)
             {
-                //for (int i = 0; i < list.Count; i++)
-                //{
-                //    Completed(this, new EventArgs<IEntity, int>(list[i], rs[i]));
-                //}
                 var k = 0;
                 foreach (var item in list)
                 {
