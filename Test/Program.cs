@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -78,7 +78,29 @@ namespace Test
 
         static void Test2()
         {
-            BinaryTest.Start();
+            //BinaryTest.Start();
+            var bs = new DateTime(1970, 1, 1);
+            var ts = DateTime.Now - bs;
+            var ms = (Int64)ts.TotalMilliseconds;
+            Console.WriteLine("{0:n0}", ms);
+
+            var dt = bs.AddMilliseconds(ms);
+            Console.WriteLine(dt.ToFullString());
+
+            ms /= 1000;
+            Console.WriteLine("{0:n0}", ms);
+
+            dt = bs.AddMilliseconds(ms);
+            Console.WriteLine(dt.ToFullString());
+
+            var bn = new Binary();
+            bn.EncodeInt = true;
+            bn.Write(ms);
+            Console.WriteLine(bn.Stream.Length);
+            bn.Stream.Position = 0;
+
+            dt = bn.Read<DateTime>();
+            Console.WriteLine(dt.ToFullString());
         }
 
         static void rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
