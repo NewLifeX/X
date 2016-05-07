@@ -255,6 +255,20 @@ namespace XCode.DataAccessLayer
     internal class SQLiteSession : FileDbSession
     {
         #region 方法
+        public override void Open()
+        {
+            try
+            {
+                base.Open();
+            }
+            catch (Exception ex)
+            {
+                if (!ex.Message.Contains(" malformed")) throw;
+
+                throw new XCodeException("数据库文件损坏 {0}".F((Database as SQLite).FileName), ex);
+            }
+        }
+
         protected override void CreateDatabase()
         {
             // 内存数据库不需要创建
