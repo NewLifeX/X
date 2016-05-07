@@ -11,49 +11,10 @@ namespace NewLife.Reflection
     public class PropertyInfoX : MemberInfoX
     {
         #region 属性
-        private PropertyInfo _Property;
         /// <summary>目标属性</summary>
-        public PropertyInfo Property
-        {
-            get { return _Property; }
-            set { _Property = value; }
-        }
+        public PropertyInfo Property { get; set; }
 
         private List<String> hasLoad = new List<String>();
-
-        private MethodInfo _GetMethod;
-        /// <summary>读取方法</summary>
-        public MethodInfo GetMethod
-        {
-            get
-            {
-                if (_GetMethod == null && !hasLoad.Contains("GetMethod"))
-                {
-                    _GetMethod = Property.GetGetMethod();
-                    if (_GetMethod == null) _GetMethod = Property.GetGetMethod(true);
-                    hasLoad.Add("GetMethod");
-                }
-                return _GetMethod;
-            }
-            set { _GetMethod = value; }
-        }
-
-        private MethodInfo _SetMethod;
-        /// <summary>设置方法</summary>
-        public MethodInfo SetMethod
-        {
-            get
-            {
-                if (_SetMethod == null && !hasLoad.Contains("SetMethod"))
-                {
-                    _SetMethod = Property.GetSetMethod();
-                    if (_SetMethod == null) _SetMethod = Property.GetSetMethod(true);
-                    hasLoad.Add("SetMethod");
-                }
-                return _SetMethod;
-            }
-            set { _SetMethod = value; }
-        }
 
         FastGetValueHandler _GetHandler;
         /// <summary>快速调用委托，延迟到首次使用才创建</summary>
@@ -61,9 +22,11 @@ namespace NewLife.Reflection
         {
             get
             {
-                //if (_GetHandler == null && GetMethod != null)
-                //_GetHandler = CreateDelegate<FastGetValueHandler>(GetMethod, typeof(Object), new Type[] { typeof(Object) });
-                if (_GetHandler == null && GetMethod != null) _GetHandler = GetValueInvoker(GetMethod);
+                if (_GetHandler == null && Property.CanRead)
+                {
+                    var mi = Property.GetGetMethod() ?? Property.GetGetMethod(true);
+                    if (mi != null) _GetHandler = GetValueInvoker(mi);
+                }
 
                 return _GetHandler;
             }
@@ -75,9 +38,11 @@ namespace NewLife.Reflection
         {
             get
             {
-                //if (_SetHandler == null && SetMethod != null)
-                //    _SetHandler = CreateDelegate<FastSetValueHandler>(SetMethod, null, new Type[] { typeof(Object), typeof(Object[]) });
-                if (_SetHandler == null && SetMethod != null) _SetHandler = SetValueInvoker(SetMethod);
+                if (_SetHandler == null && Property.CanWrite)
+                {
+                    var mi = Property.GetSetMethod() ?? Property.GetSetMethod(true);
+                    if (mi != null) _SetHandler = SetValueInvoker(mi);
+                }
 
                 return _SetHandler;
             }
@@ -175,7 +140,8 @@ namespace NewLife.Reflection
         [DebuggerStepThrough]
         public override Object GetValue(Object obj)
         {
-            if (GetHandler == null) throw new InvalidOperationException("不支持GetValue操作！");
+            if (GetHandler == null) throw new InvalidOperationException("{0}不支持GetValue操作！".F(this));
+
             return GetHandler.Invoke(obj);
         }
 
@@ -196,7 +162,7 @@ namespace NewLife.Reflection
         [DebuggerStepThrough]
         public override void SetValue(Object obj, Object value)
         {
-            if (SetHandler == null) throw new InvalidOperationException("不支持SetValue操作！");
+            if (SetHandler == null) throw new InvalidOperationException("{0}不支持SetValue操作！".F(this));
 
             // 如果类型不匹配，先做类型转换
             if (value != null && !Type.IsAssignableFrom(value.GetType())) value = TypeX.ChangeType(value, Type);
