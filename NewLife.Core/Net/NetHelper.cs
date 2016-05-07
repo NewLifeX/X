@@ -367,7 +367,7 @@ namespace System
         /// <returns></returns>
         public static IPAddress MyIP()
         {
-            return GetIPsWithCache().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip));
+            return GetIPsWithCache().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip) && ip.GetAddressBytes()[0] != 169);
         }
 
         /// <summary>获取本地第一个IPv6地址</summary>
