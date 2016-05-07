@@ -313,6 +313,25 @@ namespace NewLife.Reflection
             else
                 throw new ArgumentOutOfRangeException("member");
         }
+
+        /// <summary>从源对象拷贝数据到目标对象</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="src">源对象</param>
+        /// <param name="excludes">要忽略的成员</param>
+        /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
+        public static void Copy(this Object target, Object src, ICollection<String> excludes = null, Boolean deep = false)
+        {
+            Provider.Copy(target, src, excludes, deep);
+        }
+
+        /// <summary>从源字典拷贝数据到目标对象</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="dic">源字典</param>
+        /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
+        public static void Copy(this Object target, IDictionary<String, Object> dic, Boolean deep = false)
+        {
+            Provider.Copy(target, dic, deep);
+        }
         #endregion
 
         #region 类型辅助
@@ -383,6 +402,14 @@ namespace NewLife.Reflection
                 default:
                     return null;
             }
+        }
+
+        /// <summary>获取类型代码</summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static TypeCode GetTypeCode(this Type type)
+        {
+            return Type.GetTypeCode(type);
         }
         #endregion
 

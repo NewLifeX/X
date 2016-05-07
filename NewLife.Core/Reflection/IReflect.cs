@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Collections;
@@ -114,6 +114,19 @@ namespace NewLife.Reflection
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         void SetValue(Object target, FieldInfo field, Object value);
+
+        /// <summary>从源对象拷贝数据到目标对象</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="src">源对象</param>
+        /// <param name="excludes">要忽略的成员</param>
+        /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
+        void Copy(Object target, Object src, ICollection<String> excludes = null, Boolean deep = false);
+
+        /// <summary>从源字典拷贝数据到目标对象</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="dic">源字典</param>
+        /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
+        void Copy(Object target, IDictionary<String, Object> dic, Boolean deep = false);
         #endregion
 
         #region 类型辅助
@@ -420,6 +433,92 @@ namespace NewLife.Reflection
         public virtual void SetValue(Object target, FieldInfo field, Object value)
         {
             field.SetValue(target, value);
+        }
+        #endregion
+
+        #region 对象拷贝
+        /// <summary>从源对象拷贝数据到目标对象</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="src">源对象</param>
+        /// <param name="excludes">要忽略的成员</param>
+        /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
+        public virtual void Copy(Object target, Object src, ICollection<String> excludes = null, Boolean deep = false)
+        {
+            if (target == null || src == null || target == src) return;
+
+            var type = target.GetType();
+            // 基础类型无法拷贝
+            if (type.GetTypeCode() != TypeCode.Object) throw new XException("基础类型 {0} 无法拷贝", type.FullName);
+
+            // 不是深度拷贝时，直接复制引用
+            if (!deep)
+            {
+                var stype = src.GetType();
+
+                foreach (var pi in type.GetProperties())
+                {
+                    if (excludes != null && excludes.Contains(pi.Name)) continue;
+
+                    var pi2 = stype.GetProperty(pi.Name);
+                    if (pi2 != null) SetValue(target, pi, GetValue(src, pi2));
+                }
+                return;
+            }
+
+            //// 特殊处理列表
+            //if (typeof(IList).IsAssignableFrom(type))
+            //{
+            //    var list1 = target as IList;
+            //    var list2 = src as IList;
+            //}
+
+            //// 特殊处理字典
+            //if (typeof(IDictionary).IsAssignableFrom(type))
+            //{
+
+            //}
+
+            // 来源对象转为字典
+            var dic = new Dictionary<String, Object>();
+            foreach (var pi in src.GetType().GetProperties())
+            {
+                if (excludes != null && excludes.Contains(pi.Name)) continue;
+
+                dic[pi.Name] = GetValue(src, pi);
+            }
+
+            Copy(target, dic, deep);
+        }
+
+        /// <summary>从源字典拷贝数据到目标对象</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="dic">源字典</param>
+        /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
+        public virtual void Copy(Object target, IDictionary<String, Object> dic, Boolean deep = false)
+        {
+            if (target == null || dic == null || dic.Count == 0 || target == dic) return;
+
+            foreach (var pi in target.GetType().GetProperties())
+            {
+                Object obj = null;
+                if (dic.TryGetValue(pi.Name, out obj))
+                {
+                    // 基础类型直接拷贝，不考虑深拷贝
+                    if (deep && pi.PropertyType.GetTypeCode() == TypeCode.Object)
+                    {
+                        var v = GetValue(target, pi);
+                        // 如果目标对象该成员为空，需要创建再拷贝
+                        if (v == null)
+                        {
+                            v = pi.PropertyType.CreateInstance();
+                            SetValue(target, pi, v);
+                        }
+                        Copy(v, obj, null, deep);
+                    }
+                    else
+                        SetValue(target, pi, obj);
+                }
+            }
         }
         #endregion
 
