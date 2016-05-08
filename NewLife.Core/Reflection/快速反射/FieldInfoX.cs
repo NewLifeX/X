@@ -10,13 +10,8 @@ namespace NewLife.Reflection
     public class FieldInfoX : MemberInfoX
     {
         #region 属性
-        private FieldInfo _Field;
         /// <summary>目标字段</summary>
-        public FieldInfo Field
-        {
-            get { return _Field; }
-            set { _Field = value; }
-        }
+        public FieldInfo Field { get; set; }
 
         FastGetValueHandler _GetHandler;
         /// <summary>快速调用委托，延迟到首次使用才创建</summary>
@@ -280,6 +275,15 @@ namespace NewLife.Reflection
         public static implicit operator FieldInfoX(FieldInfo obj)
         {
             return obj != null ? Create(obj) : null;
+        }
+        #endregion
+
+        #region 重载
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return (Field.DeclaringType != null ? Field.DeclaringType.Name : null) + "." + (Field != null ? Field.Name : null);
         }
         #endregion
     }

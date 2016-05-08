@@ -118,9 +118,9 @@ namespace NewLife.Reflection
         /// <summary>从源对象拷贝数据到目标对象</summary>
         /// <param name="target">目标对象</param>
         /// <param name="src">源对象</param>
-        /// <param name="excludes">要忽略的成员</param>
         /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
-        void Copy(Object target, Object src, ICollection<String> excludes = null, Boolean deep = false);
+        /// <param name="excludes">要忽略的成员</param>
+        void Copy(Object target, Object src, Boolean deep = false, params String[] excludes);
 
         /// <summary>从源字典拷贝数据到目标对象</summary>
         /// <param name="target">目标对象</param>
@@ -440,9 +440,9 @@ namespace NewLife.Reflection
         /// <summary>从源对象拷贝数据到目标对象</summary>
         /// <param name="target">目标对象</param>
         /// <param name="src">源对象</param>
-        /// <param name="excludes">要忽略的成员</param>
         /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
-        public virtual void Copy(Object target, Object src, ICollection<String> excludes = null, Boolean deep = false)
+        /// <param name="excludes">要忽略的成员</param>
+        public virtual void Copy(Object target, Object src, Boolean deep = false, params String[] excludes)
         {
             if (target == null || src == null || target == src) return;
 
@@ -458,9 +458,10 @@ namespace NewLife.Reflection
                 foreach (var pi in type.GetProperties())
                 {
                     if (excludes != null && excludes.Contains(pi.Name)) continue;
+                    if (!pi.CanWrite) continue;
 
                     var pi2 = stype.GetProperty(pi.Name);
-                    if (pi2 != null) SetValue(target, pi, GetValue(src, pi2));
+                    if (pi2 != null && pi2.CanRead) SetValue(target, pi, GetValue(src, pi2));
                 }
                 return;
             }
@@ -483,6 +484,7 @@ namespace NewLife.Reflection
             foreach (var pi in src.GetType().GetProperties())
             {
                 if (excludes != null && excludes.Contains(pi.Name)) continue;
+                if (!pi.CanRead) continue;
 
                 dic[pi.Name] = GetValue(src, pi);
             }
@@ -500,6 +502,8 @@ namespace NewLife.Reflection
 
             foreach (var pi in target.GetType().GetProperties())
             {
+                if (!pi.CanWrite) continue;
+
                 Object obj = null;
                 if (dic.TryGetValue(pi.Name, out obj))
                 {
@@ -513,7 +517,7 @@ namespace NewLife.Reflection
                             v = pi.PropertyType.CreateInstance();
                             SetValue(target, pi, v);
                         }
-                        Copy(v, obj, null, deep);
+                        Copy(v, obj, deep);
                     }
                     else
                         SetValue(target, pi, obj);

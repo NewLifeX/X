@@ -289,5 +289,14 @@ namespace NewLife.Reflection
         //    }
         //}
         #endregion
+
+        #region 重载
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return (Property.DeclaringType != null ? Property.DeclaringType.Name : null) + "." + (Property != null ? Property.Name : null);
+        }
+        #endregion
     }
 }
