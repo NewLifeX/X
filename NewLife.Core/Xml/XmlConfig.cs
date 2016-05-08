@@ -29,15 +29,18 @@ namespace NewLife.Xml
         {
             get
             {
+                var dcf = _.ConfigFile;
+
                 // 这里要小心，避免_Current的null判断完成后，_Current被别人置空，而导致这里返回null
                 var config = _Current;
                 if (config != null)
                 {
                     // 现存有对象，尝试再次加载，可能因为未修改而返回null，这样只需要返回现存对象即可
                     if (!config.IsUpdated) return config;
+
                     XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
-                    var cfg = Load(_.ConfigFile);
+                    var cfg = Load(dcf);
                     if (cfg == null) return config;
 
                     _Current = cfg;
@@ -45,11 +48,11 @@ namespace NewLife.Xml
                 }
 
                 // 现在没有对象，尝试加载，若返回null则实例化一个新的
-                lock (_.ConfigFile)
+                lock (dcf)
                 {
                     if (_Current != null) return _Current;
 
-                    config = Load(_.ConfigFile);
+                    config = Load(dcf);
                     if (config != null)
                         _Current = config;
                     else
@@ -59,20 +62,16 @@ namespace NewLife.Xml
                 if (config == null)
                 {
                     config = _Current;
-                    config.ConfigFile = _.ConfigFile.GetFullPath();
+                    config.ConfigFile = dcf.GetFullPath();
                     config.SetExpire();  // 设定过期时间
                     config.IsNew = true;
                     config.OnNew();
 
-                    //// 新建配置不要检查格式
-                    //var b = _.CheckFormat;
-                    //_.CheckFormat = false;
                     config.OnLoaded();
-                    //_.CheckFormat = b;
 #if !Android
                     // 创建或覆盖
-                    var act = File.Exists(_.ConfigFile.GetFullPath()) ? "加载出错" : "不存在";
-                    XTrace.WriteLine("{0}的配置文件{1} {2}，准备用默认配置覆盖！", typeof(TConfig).Name, _.ConfigFile, act);
+                    var act = File.Exists(dcf.GetFullPath()) ? "加载出错" : "不存在";
+                    XTrace.WriteLine("{0}的配置文件{1} {2}，准备用默认配置覆盖！", typeof(TConfig).Name, dcf, act);
                     try
                     {
                         // 根据配置，有可能不保存，直接返回默认
@@ -80,8 +79,7 @@ namespace NewLife.Xml
                     }
                     catch (Exception ex)
                     {
-                        //XTrace.WriteException(ex);
-                        XTrace.WriteLine(ex.ToString());
+                        XTrace.WriteException(ex);
                     }
 #endif
                 }
@@ -94,24 +92,24 @@ namespace NewLife.Xml
         /// <summary>一些设置。派生类可以在自己的静态构造函数中指定</summary>
         public static class _
         {
-            private static String _ConfigFile;
             /// <summary>配置文件路径</summary>
-            public static String ConfigFile { get { return _ConfigFile; } set { _ConfigFile = value; } }
+            public static String ConfigFile { get; set; }
 
-            private static Int32 _ReloadTime;
             /// <summary>重新加载时间。单位：毫秒</summary>
-            public static Int32 ReloadTime { get { return _ReloadTime; } set { _ReloadTime = value; } }
+            public static Int32 ReloadTime { get; set; }
 
-            private static Boolean _SaveNew = true;
             /// <summary>没有配置文件时是否保存新配置。默认true</summary>
-            public static Boolean SaveNew { get { return _SaveNew; } set { _SaveNew = value; } }
+            public static Boolean SaveNew { get; set; }
 
-            private static Boolean _CheckFormat = true;
             /// <summary>是否检查配置文件格式，当格式不一致是保存新格式配置文件。默认true</summary>
-            public static Boolean CheckFormat { get { return _CheckFormat; } set { _CheckFormat = value; } }
+            public static Boolean CheckFormat { get; set; }
 
             static _()
-            {             // 获取XmlConfigFileAttribute特性，那里会指定配置文件名称
+            {
+                SaveNew = true;
+                CheckFormat = true;
+
+                // 获取XmlConfigFileAttribute特性，那里会指定配置文件名称
                 var att = typeof(TConfig).GetCustomAttribute<XmlConfigFileAttribute>(true);
                 if (att == null || att.FileName.IsNullOrWhiteSpace())
                 {
@@ -131,11 +129,9 @@ namespace NewLife.Xml
         #endregion
 
         #region 属性
-        [NonSerialized]
-        private String _ConfigFile;
         /// <summary>配置文件</summary>
         [XmlIgnore]
-        public String ConfigFile { get { return _ConfigFile; } set { _ConfigFile = value; } }
+        public String ConfigFile { get; set; }
 
         /// <summary>最后写入时间</summary>
         [XmlIgnore]
@@ -144,7 +140,7 @@ namespace NewLife.Xml
         [XmlIgnore]
         private DateTime expire;
 
-        /// <summary>是否已更新</summary>
+        /// <summary>是否已更新。通过文件写入时间判断</summary>
         [XmlIgnore]
         protected Boolean IsUpdated
         {
@@ -225,7 +221,11 @@ namespace NewLife.Xml
 
                 return config;
             }
-            catch (Exception ex) { XTrace.WriteLine(ex.ToString()); return null; }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+                return null;
+            }
         }
         #endregion
 
@@ -243,38 +243,37 @@ namespace NewLife.Xml
             var config = this;
             try
             {
+                var cfi = ConfigFile;
                 // 新建配置不要检查格式
-                var flag = File.Exists(ConfigFile);
+                var flag = File.Exists(cfi);
                 if (!flag) return;
 
                 if (flag)
                 {
-                    var xml1 = File.ReadAllText(ConfigFile);
-                    var xml2 = config.ToXml(null, "", "", true, true);
+                    var xml1 = File.ReadAllText(cfi).Trim();
+                    var xml2 = config.ToXml(null, "", "", true, true).Trim();
                     flag = xml1 == xml2;
                 }
                 if (!flag)
                 {
 #if !Android
                     // 异步处理，避免加载日志路径配置时死循环
-                    XTrace.WriteLine("配置文件{0}格式不一致，保存为最新格式！", ConfigFile);
+                    XTrace.WriteLine("配置文件{0}格式不一致，保存为最新格式！", cfi);
                     config.Save();
 #endif
                 }
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine(ex.ToString());
+                XTrace.WriteException(ex);
             }
         }
 
-        DateTime dt = DateTime.Now;
         /// <summary>保存到配置文件中去</summary>
         /// <param name="filename"></param>
         public virtual void Save(String filename)
         {
 #if !Android
-            //var filename = _.ConfigFile;
             if (filename.IsNullOrWhiteSpace()) filename = ConfigFile;
             if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
             filename = filename.GetFullPath();

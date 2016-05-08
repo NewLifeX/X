@@ -82,7 +82,7 @@ namespace XCode
             if (list.Count == 0) return;
 
             _Running = true;
-            Task.Factory.StartNew(Process, list);
+            Task.Factory.StartNew(Process, list).LogException();
         }
 
         private Boolean _Running;

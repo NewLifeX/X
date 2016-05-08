@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Web.Mvc;
-using System.Xml.Serialization;
 using NewLife.Reflection;
 using XCode.Membership;
 
@@ -21,6 +20,7 @@ namespace NewLife.Cube
         {
             base.OnActionExecuting(filterContext);
 
+            // 显示名和描述
             var name = this.GetType().GetDisplayName() ?? typeof(TObject).GetDisplayName() ?? typeof(TObject).Name;
             var des = this.GetType().GetDescription() ?? typeof(TObject).GetDescription();
 
@@ -101,7 +101,6 @@ namespace NewLife.Cube
             foreach (var pi in obj.GetType().GetProperties(true))
             {
                 if (!pi.CanWrite) continue;
-                //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
                 var v1 = obj.GetValue(pi);
                 var v2 = cfg.GetValue(pi);
