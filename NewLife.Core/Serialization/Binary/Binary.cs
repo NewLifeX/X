@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using NewLife.Log;
 using NewLife.Reflection;
-using System.Linq;
 
 namespace NewLife.Serialization
 {
@@ -45,6 +44,7 @@ namespace NewLife.Serialization
             // 遍历所有处理器实现
             var list = new List<IBinaryHandler>();
             list.Add(new BinaryGeneral { Host = this });
+            list.Add(new BinaryNormal { Host = this });
             list.Add(new BinaryComposite { Host = this });
             list.Add(new BinaryList { Host = this });
             list.Add(new BinaryDictionary { Host = this });
