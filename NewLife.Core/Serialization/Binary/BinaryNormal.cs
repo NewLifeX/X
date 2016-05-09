@@ -26,14 +26,19 @@ namespace NewLife.Serialization
             }
             else if (type == typeof(Byte[]))
             {
-                Write((Byte[])value, -1);
+                //Write((Byte[])value);
+                var bn = Host as Binary;
+                var bc = bn.GetHandler<BinaryGeneral>();
+                bc.Write((Byte[])value);
+                
                 return true;
             }
             else if (type == typeof(Char[]))
             {
                 //Write((Char[])value);
                 var bn = Host as Binary;
-                bn.GetHandler<BinaryGeneral>().Write((Char[])value, 0, -1);
+                var bc = bn.GetHandler<BinaryGeneral>();
+                bc.Write((Char[])value, 0, -1);
 
                 return true;
             }
