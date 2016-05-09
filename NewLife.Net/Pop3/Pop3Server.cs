@@ -18,7 +18,7 @@ namespace NewLife.Net.Pop3
         public Pop3Server()
         {
             Port = 110;
-            ProtocolType = ProtocolType.Tcp;
+            ProtocolType = NetType.Tcp;
         }
     }
 }

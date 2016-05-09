@@ -65,7 +65,7 @@ namespace NewLife.Net.Application
         {
             Console.WriteLine();
 
-            String msg = String.Format("{0}Test_{1}_{2}!", name, uri.ProtocolType, isAsync ? "异步" : "同步");
+            String msg = String.Format("{0}Test_{1}_{2}!", name, uri.Type, isAsync ? "异步" : "同步");
             var client = uri.CreateRemote();
             client.Error += OnError;
             if (isAsync && isReceiveData)
@@ -119,10 +119,10 @@ namespace NewLife.Net.Application
             //TestSend(name, ProtocolType.Udp, ep, true, isSendData, isReceiveData);
             //TestSend(name, ProtocolType.Tcp, ep, false, isSendData, isReceiveData);
             //TestSend(name, ProtocolType.Tcp, ep, true, isSendData, isReceiveData);
-            var uri = new NetUri(ProtocolType.Udp, ep);
+            var uri = new NetUri(NetType.Udp, ep);
             TestSend(name, uri, false, isSendData, isReceiveData);
             TestSend(name, uri, true, isSendData, isReceiveData);
-            uri.ProtocolType = ProtocolType.Tcp;
+            uri.Type = NetType.Tcp;
             TestSend(name, uri, false, isSendData, isReceiveData);
             TestSend(name, uri, true, isSendData, isReceiveData);
 
@@ -216,7 +216,7 @@ namespace NewLife.Net.Application
             //NetEventArgs.Pool.Max = 200000;
 
             server = new NetServer();
-            server.ProtocolType = ProtocolType.Tcp;
+            server.ProtocolType = NetType.Tcp;
             server.Port = port;
             server.UseSession = true;
             server.Received += server_Received;
@@ -300,7 +300,7 @@ namespace NewLife.Net.Application
             var port = ReadInt("请输入服务器端口：", 1, 65535);
 
             var ep = NetHelper.ParseEndPoint(host, port);
-            var uri = new NetUri(ProtocolType.Tcp, ep);
+            var uri = new NetUri(NetType.Tcp, ep);
 
             Console.WriteLine("开始测试连接{0}……", uri);
 

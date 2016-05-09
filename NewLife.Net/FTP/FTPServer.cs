@@ -18,7 +18,7 @@ namespace NewLife.Net.FTP
         public FTPServer()
         {
             Port = 21;
-            ProtocolType = ProtocolType.Tcp;
+            ProtocolType = NetType.Tcp;
         }
     }
 }

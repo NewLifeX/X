@@ -10,7 +10,7 @@ namespace NewLife.Net.SGIP
         /// <summary>实例化</summary>
         public SGIPServer()
         {
-            ProtocolType = ProtocolType.Tcp;
+            ProtocolType = NetType.Tcp;
             Port = 8801;
         }
         #endregion

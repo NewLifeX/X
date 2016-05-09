@@ -18,7 +18,7 @@ namespace NewLife.Net.Proxy
         public HttpProxy()
         {
             Port = 8080;
-            ProtocolType = ProtocolType.Tcp;
+            ProtocolType = NetType.Tcp;
 
             Cache = new HttpCache();
         }

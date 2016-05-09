@@ -307,7 +307,7 @@ namespace Test2
             {
                 foreach (var item in clients)
                 {
-                    item.Send("第{0}次{1}发送".F(i + 1, item.Remote.ProtocolType));
+                    item.Send("第{0}次{1}发送".F(i + 1, item.Remote.Type));
                     var str = item.ReceiveString();
                     Trace.Assert(!str.IsNullOrEmpty());
                 }

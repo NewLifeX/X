@@ -19,7 +19,7 @@ namespace NewLife.Net.IO
         public FileServer()
         {
             Port = 33;
-            ProtocolType = ProtocolType.Tcp;
+            ProtocolType = NetType.Tcp;
 
             Name = "文件服务";
         }

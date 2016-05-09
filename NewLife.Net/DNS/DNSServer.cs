@@ -88,7 +88,7 @@ namespace NewLife.Net.DNS
                     WriteLog("取得的本地DNS[{0}]有误，任意地址不能作为父级DNS地址。", item);
                     continue;
                 }
-                var uri = new NetUri(ProtocolType.Udp, item, 53);
+                var uri = new NetUri(NetType.Udp, item, 53);
                 WriteLog("使用本地地址作为父级DNS：{0}", uri);
                 list.Add(uri);
             }
@@ -157,7 +157,7 @@ namespace NewLife.Net.DNS
             var isTcp = session.Local.IsTcp;
 
             // 处理，修改
-            WriteLog("{0} 请求 {1}", session.Local.ProtocolType, request);
+            WriteLog("{0} 请求 {1}", session.Local.Type, request);
 
             // 请求事件，如果第二参数有值，则直接返回
             // 结合数据库缓存，可以在这里进行返回
@@ -274,7 +274,7 @@ namespace NewLife.Net.DNS
                 try
                 {
                     client.Timeout = 1000;
-                    client.Send(request.GetStream(item.ProtocolType == ProtocolType.Tcp));
+                    client.Send(request.GetStream(item.IsTcp));
                     data = client.Receive();
 
                     if (data != null && data.Length > 0)
@@ -304,7 +304,7 @@ namespace NewLife.Net.DNS
             try
             {
                 // 解析父级代理返回的数据
-                response = DNSEntity.Read(data, parent.ProtocolType == ProtocolType.Tcp);
+                response = DNSEntity.Read(data, parent.IsTcp);
 
                 // 处理，修改
                 WriteLog("{0} 返回 {1}", parent, response);

@@ -18,7 +18,7 @@ namespace NewLife.Net
         public SandBoxServer()
         {
             Port = 843;
-            ProtocolType = ProtocolType.Tcp;
+            ProtocolType = NetType.Tcp;
         }
         /// <summary>数据返回</summary>
         /// <param name="session"></param>

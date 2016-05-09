@@ -115,9 +115,9 @@ namespace NewLife.Net.Stun
         /// <summary>用于测试更换本地套接字的第二套接字</summary>
         public ISocketClient Socket2 { get { return _Socket2; } set { _Socket2 = value; } }
 
-        private ProtocolType _ProtocolType = ProtocolType.Udp;
+        private NetType _ProtocolType = NetType.Udp;
         /// <summary>协议，默认Udp</summary>
-        public ProtocolType ProtocolType { get { return _ProtocolType; } set { _ProtocolType = value; } }
+        public NetType ProtocolType { get { return _ProtocolType; } set { _ProtocolType = value; } }
 
         private Int32 _Port;
         /// <summary>本地端口</summary>
@@ -135,13 +135,13 @@ namespace NewLife.Net.Stun
         /// <summary>在指定协议上执行查询</summary>
         /// <param name="protocol"></param>
         /// <returns></returns>
-        public StunClient(ProtocolType protocol) : this(protocol, 0) { }
+        public StunClient(NetType protocol) : this(protocol, 0) { }
 
         /// <summary>在指定协议和本地端口上执行查询</summary>
         /// <param name="protocol"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public StunClient(ProtocolType protocol, Int32 port)
+        public StunClient(NetType protocol, Int32 port)
         {
             ProtocolType = protocol;
             Port = port;
@@ -215,7 +215,7 @@ namespace NewLife.Net.Stun
                 ////sk.Address = ep.Address;
                 ////sk.Port = ep.Port;
                 //sk.Local.EndPoint = ep;
-                var sk = new NetUri(socket.ProtocolType, ep).CreateClient();
+                var sk = new NetUri((NetType)socket.ProtocolType, ep).CreateClient();
                 sk.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 //sk.Bind();
                 sk.Client.SendTimeout = sto;
@@ -332,7 +332,7 @@ namespace NewLife.Net.Stun
                 msg.ResetTransactionID();
 
                 // 如果是Tcp，这里需要准备第二个重用的Socket
-                if (client.Local.ProtocolType == ProtocolType.Tcp)
+                if (client.Local.IsTcp)
                 {
                     EnsureSocket2();
                     client = Socket2 as ISocketClient;
@@ -408,7 +408,7 @@ namespace NewLife.Net.Stun
             Byte[] buffer = null;
             try
             {
-                if (client.Local.ProtocolType == ProtocolType.Tcp)
+                if (client.Local.IsTcp)
                 {
                     // Tcp协议不支持更换IP或者端口
                     if (request.ChangeIP || request.ChangePort) return null;

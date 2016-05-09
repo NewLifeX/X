@@ -18,7 +18,7 @@ namespace NewLife.Net.Smtp
         public RelayServer()
         {
             Port = 25;
-            ProtocolType = ProtocolType.Tcp;
+            ProtocolType = NetType.Tcp;
         }
     }
 }

@@ -101,8 +101,8 @@ namespace NewLife.Net
         {
             if (socket != null && socket.LocalEndPoint != null)
             {
-                //var ip = socket.Client.LocalEndPoint as IPEndPoint;
-                if (socket.LocalEndPoint.AddressFamily == AddressFamily.InterNetworkV6) throw new NotSupportedException("IPv6不支持广播！");
+                var ip = socket.LocalEndPoint as IPEndPoint;
+                if (!ip.Address.IsIPv4()) throw new NotSupportedException("IPv6不支持广播！");
             }
 
             if (!socket.EnableBroadcast) socket.EnableBroadcast = true;

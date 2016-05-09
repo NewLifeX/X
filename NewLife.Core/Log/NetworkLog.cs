@@ -38,7 +38,7 @@ namespace NewLife.Log
             if (_inited) return;
 
             // 默认Udp广播
-            var client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            var client = NetHelper.CreateUdp();
             if (Remote.Address.Equals(IPAddress.Broadcast)) client.EnableBroadcast = true;
             Client = client;
 

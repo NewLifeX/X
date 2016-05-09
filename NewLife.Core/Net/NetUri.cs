@@ -6,17 +6,30 @@ using System.Xml.Serialization;
 
 namespace NewLife.Net
 {
+    /// <summary>协议类型</summary>
+    public enum NetType : byte
+    {
+        /// <summary>未知协议</summary>
+        Unknown = 0,
+
+        /// <summary>传输控制协议</summary>
+        Tcp = 6,
+
+        /// <summary>用户数据报协议</summary>
+        Udp = 17
+    }
+
     /// <summary>网络资源标识，指定协议、地址、端口、地址族（IPv4/IPv6）</summary>
     /// <remarks>
-    /// 仅序列化<see cref="ProtocolType"/>和<see cref="EndPoint"/>，其它均是配角！
+    /// 仅序列化<see cref="Type"/>和<see cref="EndPoint"/>，其它均是配角！
     /// 有可能<see cref="Host"/>代表主机域名，而<see cref="Address"/>指定主机IP地址。
     /// </remarks>
     public class NetUri //: IAccessor
     {
         #region 属性
-        private ProtocolType _ProtocolType;
+        private NetType _Type;
         /// <summary>协议类型</summary>
-        public ProtocolType ProtocolType { get { return _ProtocolType; } set { _ProtocolType = value; _Protocol = value.ToString(); } }
+        public NetType Type { get { return _Type; } set { _Type = value; _Protocol = value.ToString(); } }
 
         [NonSerialized]
         private String _Protocol;
@@ -29,16 +42,16 @@ namespace NewLife.Net
             {
                 _Protocol = value;
                 if (String.IsNullOrEmpty(value))
-                    _ProtocolType = ProtocolType.Unknown;
+                    _Type = NetType.Unknown;
                 else
                 {
                     try
                     {
-                        _ProtocolType = (ProtocolType)Enum.Parse(typeof(ProtocolType), value, true);
+                        _Type = (NetType)Enum.Parse(typeof(NetType), value, true);
                         // 规范化名字
-                        _Protocol = _ProtocolType.ToString();
+                        _Protocol = _Type.ToString();
                     }
-                    catch { _ProtocolType = ProtocolType.Unknown; }
+                    catch { _Type = NetType.Unknown; }
                 }
             }
         }
@@ -88,11 +101,11 @@ namespace NewLife.Net
         #region 扩展属性
         /// <summary>是否Tcp协议</summary>
         [XmlIgnore]
-        public Boolean IsTcp { get { return ProtocolType == ProtocolType.Tcp; } }
+        public Boolean IsTcp { get { return Type == NetType.Tcp; } }
 
         /// <summary>是否Udp协议</summary>
         [XmlIgnore]
-        public Boolean IsUdp { get { return ProtocolType == ProtocolType.Udp; } }
+        public Boolean IsUdp { get { return Type == NetType.Udp; } }
         #endregion
 
         #region 构造
@@ -106,9 +119,9 @@ namespace NewLife.Net
         /// <summary>实例化</summary>
         /// <param name="protocol"></param>
         /// <param name="endpoint"></param>
-        public NetUri(ProtocolType protocol, IPEndPoint endpoint)
+        public NetUri(NetType protocol, IPEndPoint endpoint)
         {
-            ProtocolType = protocol;
+            Type = protocol;
             EndPoint = endpoint;
         }
 
@@ -116,9 +129,9 @@ namespace NewLife.Net
         /// <param name="protocol"></param>
         /// <param name="address"></param>
         /// <param name="port"></param>
-        public NetUri(ProtocolType protocol, IPAddress address, Int32 port)
+        public NetUri(NetType protocol, IPAddress address, Int32 port)
         {
-            ProtocolType = protocol;
+            Type = protocol;
             Address = address;
             Port = port;
         }
@@ -127,9 +140,9 @@ namespace NewLife.Net
         /// <param name="protocol"></param>
         /// <param name="host"></param>
         /// <param name="port"></param>
-        public NetUri(ProtocolType protocol, String host, Int32 port)
+        public NetUri(NetType protocol, String host, Int32 port)
         {
-            ProtocolType = protocol;
+            Type = protocol;
             Host = host;
             Port = port;
         }
@@ -254,7 +267,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public Boolean Equals(NetUri uri)
         {
-            return ProtocolType == uri.ProtocolType && Port == uri.Port && Address == uri.Address;
+            return Type == uri.Type && Port == uri.Port && Address == uri.Address;
         }
         #endregion
 

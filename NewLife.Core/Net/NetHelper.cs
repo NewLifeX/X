@@ -76,23 +76,7 @@ namespace System
         {
             if (String.IsNullOrEmpty(hostname)) return null;
 
-            try
-            {
-                return _dnsCache.GetItem(hostname, key =>
-                {
-                    IPAddress addr = null;
-                    if (IPAddress.TryParse(key, out addr)) return addr;
-
-                    var hostAddresses = Dns.GetHostAddresses(key);
-                    if (hostAddresses == null || hostAddresses.Length < 1) return null;
-
-                    return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
-                });
-            }
-            catch (SocketException ex)
-            {
-                throw new NetException("解析主机" + hostname + "的地址失败！" + ex.Message, ex);
-            }
+            return _dnsCache.GetItem(hostname, NetUri.ParseAddress);
         }
 
         /// <summary>分析网络终结点</summary>
@@ -164,8 +148,7 @@ namespace System
             if (addr == null || !addr.IsAny()) return addr;
 
             // 如果是本地环回地址，返回环回地址
-            if (IPAddress.IsLoopback(remote))
-                return addr.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Loopback : IPAddress.IPv6Loopback;
+            if (IPAddress.IsLoopback(remote)) return addr.IsIPv4() ? IPAddress.Loopback : IPAddress.IPv6Loopback;
 
             // 否则返回本地第一个IP地址
             foreach (var item in NetHelper.GetIPsWithCache())
@@ -192,17 +175,22 @@ namespace System
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public static Boolean CheckPort(this IPAddress address, ProtocolType protocol, Int32 port)
+        public static Boolean CheckPort(this IPAddress address, NetType protocol, Int32 port)
         {
             var gp = IPGlobalProperties.GetIPGlobalProperties();
 
             IPEndPoint[] eps = null;
-            if (protocol == ProtocolType.Tcp)
-                eps = gp.GetActiveTcpListeners();
-            else if (protocol == ProtocolType.Udp)
-                eps = gp.GetActiveUdpListeners();
-            else
-                return false;
+            switch (protocol)
+            {
+                case NetType.Tcp:
+                    eps = gp.GetActiveTcpListeners();
+                    break;
+                case NetType.Udp:
+                    eps = gp.GetActiveUdpListeners();
+                    break;
+                default:
+                    return false;
+            }
 
             foreach (var item in eps)
             {
@@ -218,7 +206,7 @@ namespace System
         /// <returns></returns>
         public static Boolean CheckPort(this NetUri uri)
         {
-            return CheckPort(uri.Address, uri.ProtocolType, uri.Port);
+            return CheckPort(uri.Address, uri.Type, uri.Port);
         }
         #endregion
 
@@ -630,16 +618,16 @@ namespace System
         {
             if (local == null) throw new ArgumentNullException("local");
 
-            switch (local.ProtocolType)
+            switch (local.Type)
             {
-                case ProtocolType.Tcp:
+                case NetType.Tcp:
                     var tcp = new TcpSession { Local = local };
                     return tcp;
-                case ProtocolType.Udp:
+                case NetType.Udp:
                     var udp = new UdpServer { Local = local, UseReceiveAsync = true };
                     return udp;
                 default:
-                    throw new NotSupportedException("不支持{0}协议".F(local.ProtocolType));
+                    throw new NotSupportedException("不支持{0}协议".F(local.Type));
             }
         }
 
@@ -650,16 +638,16 @@ namespace System
         {
             if (remote == null) throw new ArgumentNullException("remote");
 
-            switch (remote.ProtocolType)
+            switch (remote.Type)
             {
-                case ProtocolType.Tcp:
+                case NetType.Tcp:
                     var tcp = new TcpSession { Remote = remote };
                     return tcp;
-                case ProtocolType.Udp:
+                case NetType.Udp:
                     var udp = new UdpServer { Remote = remote, UseReceiveAsync = true };
                     return udp;
                 default:
-                    throw new NotSupportedException("不支持{0}协议".F(remote.ProtocolType));
+                    throw new NotSupportedException("不支持{0}协议".F(remote.Type));
             }
         }
 
@@ -682,6 +670,16 @@ namespace System
         //            throw new NotSupportedException("不支持{0}协议".F(remote.ProtocolType));
         //    }
         //}
+
+        internal static Socket CreateTcp(Boolean ipv4 = true)
+        {
+            return new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+        }
+
+        internal static Socket CreateUdp(Boolean ipv4 = true)
+        {
+            return new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+        }
         #endregion
     }
 }

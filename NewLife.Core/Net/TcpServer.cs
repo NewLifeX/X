@@ -72,7 +72,7 @@ namespace NewLife.Net
         {
             Name = this.GetType().Name;
 
-            Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
+            Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
             SessionTimeout = 30;
             AutoReceiveAsync = true;
             UseProcessAsync = true;
@@ -111,7 +111,7 @@ namespace NewLife.Net
 
             // 开始监听
             //if (Server == null) Server = new TcpListener(Local.EndPoint);
-            if (Client == null) Client = new Socket(Local.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            if (Client == null) Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
 
             WriteLog("Start {0}", this);
 

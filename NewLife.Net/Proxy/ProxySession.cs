@@ -66,7 +66,7 @@ namespace NewLife.Net.Proxy
         public override void Start()
         {
             // 如果未指定远程协议，则与来源协议一致
-            if (RemoteServerUri.ProtocolType == 0) RemoteServerUri.ProtocolType = Session.Local.ProtocolType;
+            if (RemoteServerUri.Type == 0) RemoteServerUri.Type = Session.Local.Type;
             // 如果是Tcp，收到空数据时不要断开。为了稳定可靠，默认设置
             if (Session is TcpSession) (Session as TcpSession).DisconnectWhenEmptyData = false;
 

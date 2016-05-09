@@ -52,7 +52,7 @@ namespace NewLife.Net
         public Int32 Port { get { return _Local.Port; } set { _Local.Port = value; } }
 
         /// <summary>协议类型</summary>
-        public ProtocolType ProtocolType { get { return _Local.ProtocolType; } set { _Local.ProtocolType = value; } }
+        public NetType ProtocolType { get { return _Local.Type; } set { _Local.Type = value; } }
 
         /// <summary>寻址方案</summary>
         public AddressFamily AddressFamily { get; set; }
@@ -130,10 +130,10 @@ namespace NewLife.Net
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <param name="protocolType"></param>
-        public NetServer(IPAddress address, Int32 port, ProtocolType protocolType)
+        public NetServer(IPAddress address, Int32 port, NetType protocolType)
             : this(address, port)
         {
-            Local.ProtocolType = protocolType;
+            Local.Type = protocolType;
         }
 
         /// <summary>已重载。释放会话集合等资源</summary>
@@ -213,7 +213,7 @@ namespace NewLife.Net
         /// <param name="protocol"></param>
         /// <param name="family"></param>
         /// <returns></returns>
-        public virtual Int32 AddServer(IPAddress address, Int32 port, ProtocolType protocol = ProtocolType.Unknown, AddressFamily family = AddressFamily.Unspecified)
+        public virtual Int32 AddServer(IPAddress address, Int32 port, NetType protocol = NetType.Unknown, AddressFamily family = AddressFamily.Unspecified)
         {
             var list = CreateServer(address, port, protocol, family);
             Int32 count = 0;
@@ -231,7 +231,7 @@ namespace NewLife.Net
         {
             if (Servers.Count <= 0)
             {
-                var list = CreateServer(Local.Address, Port, Local.ProtocolType, AddressFamily);
+                var list = CreateServer(Local.Address, Port, Local.Type, AddressFamily);
                 foreach (var item in list)
                 {
                     AttachServer(item);
@@ -255,7 +255,7 @@ namespace NewLife.Net
                 return;
             }
 
-            Local.ProtocolType = Server.Local.ProtocolType;
+            Local.Type = Server.Local.Type;
 
             WriteLog("准备就绪！");
         }
@@ -476,10 +476,10 @@ namespace NewLife.Net
         /// <param name="protocol"></param>
         /// <param name="family"></param>
         /// <returns></returns>
-        protected static ISocketServer[] CreateServer(IPAddress address, Int32 port, ProtocolType protocol, AddressFamily family)
+        protected static ISocketServer[] CreateServer(IPAddress address, Int32 port, NetType protocol, AddressFamily family)
         {
-            if (protocol == ProtocolType.Tcp) return CreateServer<TcpServer>(address, port, family);
-            if (protocol == ProtocolType.Udp) return CreateServer<UdpServer>(address, port, family);
+            if (protocol == NetType.Tcp) return CreateServer<TcpServer>(address, port, family);
+            if (protocol == NetType.Udp) return CreateServer<UdpServer>(address, port, family);
 
             var list = new List<ISocketServer>();
 

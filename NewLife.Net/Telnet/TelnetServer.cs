@@ -18,7 +18,7 @@ namespace NewLife.Net.Telnet
         public TelnetServer()
         {
             Port = 23;
-            ProtocolType = ProtocolType.Tcp;
+            ProtocolType = NetType.Tcp;
         }
     }
 }

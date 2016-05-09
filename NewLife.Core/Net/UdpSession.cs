@@ -72,7 +72,7 @@ namespace NewLife.Net
             StartTime = DateTime.Now;
 
             Server = server;
-            Remote = new NetUri(ProtocolType.Udp, remote);
+            Remote = new NetUri(NetType.Udp, remote);
             _Filter = remote;
 
             //StatSend = new Statistics();

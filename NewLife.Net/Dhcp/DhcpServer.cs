@@ -10,7 +10,7 @@ namespace NewLife.Net.Dhcp
         /// <summary>实例化DHCP服务器</summary>
         public DhcpServer()
         {
-            ProtocolType = ProtocolType.Udp;
+            ProtocolType = NetType.Udp;
             Port = 67;
         }
 
@@ -24,7 +24,7 @@ namespace NewLife.Net.Dhcp
             // 附加多一个端口
             if (count == 0)
             {
-                var list = CreateServer(Local.Address, 68, Local.ProtocolType, AddressFamily);
+                var list = CreateServer(Local.Address, 68, Local.Type, AddressFamily);
                 foreach (var item in list)
                 {
                     AttachServer(item);

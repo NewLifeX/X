@@ -140,11 +140,11 @@ namespace XNet
                     break;
                 case WorkModes.UDP_Server:
                     _Server = new NetServer();
-                    _Server.ProtocolType = ProtocolType.Udp;
+                    _Server.ProtocolType = NetType.Udp;
                     break;
                 case WorkModes.TCP_Server:
                     _Server = new NetServer();
-                    _Server.ProtocolType = ProtocolType.Tcp;
+                    _Server.ProtocolType = NetType.Tcp;
                     break;
                 case WorkModes.TCP_Client:
                     var tcp = new TcpSession();

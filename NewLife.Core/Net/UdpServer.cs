@@ -38,8 +38,8 @@ namespace NewLife.Net
         {
             SessionTimeout = 30;
 
-            Local = new NetUri(ProtocolType.Udp, IPAddress.Any, 0);
-            Remote.ProtocolType = ProtocolType.Udp;
+            Local = new NetUri(NetType.Udp, IPAddress.Any, 0);
+            Remote.Type = NetType.Udp;
             _Sessions = new SessionCollection(this);
 
             StatSession = new Statistics();
@@ -66,7 +66,7 @@ namespace NewLife.Net
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
 
-                Client = new Socket(Local.Address.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+                Client = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
                 Client.Bind(Local.EndPoint);
                 CheckDynamic();
 
@@ -437,8 +437,8 @@ namespace NewLife.Net
         {
             if (udp.Client != null && udp.Client.LocalEndPoint != null)
             {
-                //var ip = udp.Client.LocalEndPoint as IPEndPoint;
-                if (udp.Client.LocalEndPoint.AddressFamily == AddressFamily.InterNetworkV6) throw new NotSupportedException("IPv6不支持广播！");
+                var ip = udp.Client.LocalEndPoint as IPEndPoint;
+                if (!ip.Address.IsIPv4()) throw new NotSupportedException("IPv6不支持广播！");
             }
 
             if (!udp.EnableBroadcast) udp.EnableBroadcast = true;

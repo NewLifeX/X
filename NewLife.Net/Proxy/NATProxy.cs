@@ -20,13 +20,13 @@ namespace NewLife.Net.Proxy
         /// <summary>实例化</summary>
         /// <param name="hostname">目标服务器地址</param>
         /// <param name="port">目标服务器端口</param>
-        public NATProxy(String hostname, Int32 port) : this(hostname, port, ProtocolType.Tcp) { }
+        public NATProxy(String hostname, Int32 port) : this(hostname, port, NetType.Tcp) { }
 
         /// <summary>实例化</summary>
         /// <param name="hostname">目标服务器地址</param>
         /// <param name="port">目标服务器端口</param>
         /// <param name="protocol">协议</param>
-        public NATProxy(String hostname, Int32 port, ProtocolType protocol)
+        public NATProxy(String hostname, Int32 port, NetType protocol)
             : this()
         {
             RemoteServer = new NetUri(protocol, hostname, port);
@@ -40,7 +40,7 @@ namespace NewLife.Net.Proxy
         {
             WriteLog("NAT代理 => {0}", RemoteServer);
 
-            if (RemoteServer.ProtocolType == 0) RemoteServer.ProtocolType = ProtocolType;
+            if (RemoteServer.Type == 0) RemoteServer.Type = ProtocolType;
 
             base.OnStart();
         }
@@ -53,7 +53,7 @@ namespace NewLife.Net.Proxy
             ps.RemoteServerUri = RemoteServer;
             // 如果不是Tcp/Udp，则使用本地协议
             if (!RemoteServer.IsTcp && !RemoteServer.IsUdp)
-                ps.RemoteServerUri.ProtocolType = Local.ProtocolType;
+                ps.RemoteServerUri.Type = Local.Type;
 
             base.AddSession(session);
         }

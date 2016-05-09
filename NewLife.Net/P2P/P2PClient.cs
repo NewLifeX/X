@@ -40,9 +40,9 @@ namespace NewLife.Net.P2P
         /// <summary>客户端</summary>
         public ISocketClient Client { get { return _Client; } set { _Client = value; } }
 
-        private ProtocolType _ProtocolType = ProtocolType.Udp;
+        private NetType _ProtocolType = NetType.Udp;
         /// <summary>协议</summary>
-        public ProtocolType ProtocolType { get { return _ProtocolType; } set { _ProtocolType = value; } }
+        public NetType ProtocolType { get { return _ProtocolType; } set { _ProtocolType = value; } }
 
         private IPEndPoint _ParterAddress;
         /// <summary>目标伙伴地址</summary>
@@ -59,7 +59,7 @@ namespace NewLife.Net.P2P
         {
             if (Server == null)
             {
-                if (ProtocolType == ProtocolType.Tcp)
+                if (ProtocolType == NetType.Tcp)
                 {
                     var server = new TcpServer();
                     Server = server;

@@ -131,7 +131,7 @@ namespace Test
             var uri = new NetUri("udp://x2:3389");
 
             Console.WriteLine(uri);
-            Console.WriteLine(uri.ProtocolType);
+            Console.WriteLine(uri.Type);
             Console.WriteLine(uri.EndPoint);
             Console.WriteLine(uri.Address);
             Console.WriteLine(uri.Host);

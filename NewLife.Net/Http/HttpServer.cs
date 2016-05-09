@@ -18,7 +18,7 @@ namespace NewLife.Net.Http
         public HttpServer()
         {
             Port = 80;
-            ProtocolType = ProtocolType.Tcp;
+            ProtocolType = NetType.Tcp;
         }
     }
 }

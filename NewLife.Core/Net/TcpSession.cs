@@ -31,8 +31,8 @@ namespace NewLife.Net
         public TcpSession()
         {
             Name = this.GetType().Name;
-            Local = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
-            Remote = new NetUri(ProtocolType.Tcp, IPAddress.Any, 0);
+            Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
+            Remote = new NetUri(NetType.Tcp, IPAddress.Any, 0);
 
             DisconnectWhenEmptyData = true;
             AutoReconnect = 3;
@@ -84,8 +84,7 @@ namespace NewLife.Net
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
 
-                //Client = new TcpClient(Local.EndPoint);
-                Client = new Socket(Local.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
                 Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
                 Client.Bind(Local.EndPoint);
                 CheckDynamic();
