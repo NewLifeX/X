@@ -16,7 +16,7 @@ namespace NewLife.Serialization
         /// <summary>使用7位编码整数。默认false不使用</summary>
         public Boolean EncodeInt { get; set; }
 
-        /// <summary>小端字节序。默认false，是大端而不是小端</summary>
+        /// <summary>小端字节序。默认false大端</summary>
         public Boolean IsLittleEndian { get; set; }
 
         /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>

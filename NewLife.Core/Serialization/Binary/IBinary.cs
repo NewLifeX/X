@@ -11,7 +11,7 @@ namespace NewLife.Serialization
         /// <summary>编码整数</summary>
         Boolean EncodeInt { get; set; }
 
-        /// <summary>小端字节序</summary>
+        /// <summary>小端字节序。默认false大端</summary>
         Boolean IsLittleEndian { get; set; }
 
         /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
