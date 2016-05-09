@@ -76,9 +76,10 @@ namespace XNet
             // 语音识别
             Task.Factory.StartNew(() =>
             {
-                SpeechRecognition.Register("打开", Connect);
-                SpeechRecognition.Register("关闭", Disconnect);
+                SpeechRecognition.Register("打开", () => this.Invoke(Connect));
+                SpeechRecognition.Register("关闭", () => this.Invoke(Disconnect));
                 SpeechRecognition.Register("退出", () => Application.Exit());
+                SpeechRecognition.Register("发送", () => this.Invoke(() => btnSend_Click(null, null)));
 
                 XTrace.WriteLine("有效的语音识别命令：{0}", SpeechRecognition.GetAllKeys().Join());
             });
