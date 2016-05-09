@@ -132,7 +132,7 @@ namespace NewLife.Serialization
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
         /// <param name="offset">buffer 中开始写入的起始点。</param>
         /// <param name="count">要写入的字节数。</param>
-        public virtual void Write(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public virtual void Write(Byte[] buffer, Int32 offset, Int32 count)
         {
             if (count < 0) count = buffer.Length - offset;
             Stream.Write(buffer, offset, count);

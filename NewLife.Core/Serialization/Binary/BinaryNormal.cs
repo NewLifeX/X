@@ -39,13 +39,15 @@ namespace NewLife.Serialization
             }
             else if (type == typeof(IPAddress))
             {
-                Write(((IPAddress)value).GetAddressBytes(), -1);
+                Host.Write(((IPAddress)value).GetAddressBytes());
+                return true;
             }
             else if (type == typeof(IPEndPoint))
             {
                 var ep = value as IPEndPoint;
-                Write(ep.Address.GetAddressBytes(), -1);
+                Host.Write(ep.Address.GetAddressBytes());
                 Host.Write((UInt16)ep.Port);
+                return true;
             }
 
             return false;
