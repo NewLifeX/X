@@ -1,4 +1,6 @@
 ﻿using System.Web.Mvc;
+using System.IO;
+using System;
 using NewLife.Xml;
 
 namespace NewLife.Cube
@@ -29,6 +31,9 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            var fi = XmlConfig<TConfig>._.ConfigFile;
+            if (fi.IsNullOrEmpty() || !fi.AsFile().Exists) throw new Exception("无法找到配置文件 {0}".F(fi));
+
             var bs = this.Bootstrap();
             bs.MaxColumn = 1;
             bs.LabelWidth = 3;
