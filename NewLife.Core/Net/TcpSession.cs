@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace NewLife.Net
 {
@@ -54,7 +55,6 @@ namespace NewLife.Net
             if (client == null) return;
 
             Client = client;
-            //if (client.Connected) Stream = client.GetStream();
             var socket = client;
             if (socket.LocalEndPoint != null) Local.EndPoint = (IPEndPoint)socket.LocalEndPoint;
             if (socket.RemoteEndPoint != null) Remote.EndPoint = (IPEndPoint)socket.RemoteEndPoint;
@@ -85,7 +85,7 @@ namespace NewLife.Net
                 }
 
                 Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
-                Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
+                //Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
                 Client.Bind(Local.EndPoint);
                 CheckDynamic();
 
@@ -98,7 +98,6 @@ namespace NewLife.Net
             try
             {
                 Client.Connect(Remote.EndPoint);
-                //Stream = Client.GetStream();
             }
             catch (Exception ex)
             {
@@ -389,7 +388,7 @@ namespace NewLife.Net
         {
             if (Disposed) return;
             // 如果重连次数达到最大重连次数，则退出
-            if (_Reconnect++ >= AutoReconnect) return;
+            if (Interlocked.Increment(ref _Reconnect) > AutoReconnect) return;
 
             WriteLog("Reconnect {0}", this);
 

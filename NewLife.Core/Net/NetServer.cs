@@ -191,7 +191,13 @@ namespace NewLife.Net
 
             // 处理UDP最大并发接收
             var udp = server as UdpServer;
-            if (udp != null) udp.MaxAsync = Environment.ProcessorCount * 16 / 10;
+            if (udp != null)
+            {
+                udp.MaxAsync = Environment.ProcessorCount * 16 / 10;
+                // Udp服务器不能关闭自己，但是要关闭会话
+                // Udp客户端一般不关闭自己
+                udp.EnableReset = true;
+            }
 
             server.StatSession.Parent = StatSession;
             server.StatSend.Parent = StatSend;

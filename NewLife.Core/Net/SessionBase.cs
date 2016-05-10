@@ -35,10 +35,6 @@ namespace NewLife.Net
         /// <summary>底层Socket</summary>
         public Socket Client { get; protected set; }
 
-        ///// <summary>获取Socket</summary>
-        ///// <returns></returns>
-        //internal abstract Socket GetSocket();
-
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
@@ -102,14 +98,13 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
-            //if (Disposed) return false;
             if (Active) return true;
 
             // 即使没有事件，也允许强行打开异步接收
             if (!UseReceiveAsync && Received != null) UseReceiveAsync = true;
 
             // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.Open".F(this.GetType().Name), 500))
+            using (var tc = new TimeCost("{0}.Open".F(this.GetType().Name), 1500))
             {
                 tc.Log = Log;
 
@@ -213,7 +208,7 @@ namespace NewLife.Net
 
             LastTime = DateTime.Now;
 
-                     // 估算完成时间，执行过长时提示
+            // 估算完成时间，执行过长时提示
             using (var tc = new TimeCost("{0}.SendAsync".F(this.GetType().Name), 500))
             {
                 tc.Log = Log;
@@ -462,15 +457,13 @@ namespace NewLife.Net
             {
                 // 未被关闭Socket时，可以继续使用
                 //if (!se.IsNotClosed())
+                if (OnReceiveError(se))
                 {
                     var ex = se.GetException();
                     if (ex != null) OnError("ReceiveAsync", ex);
 
                     se.TryDispose();
-
-                    //if (se.SocketError == SocketError.ConnectionReset) Dispose();
-                    if (se.SocketError == SocketError.ConnectionReset) Close("ReceiveAsync " + se.SocketError);
-
+                    
                     return;
                 }
             }
@@ -502,7 +495,21 @@ namespace NewLife.Net
             }
 
             // 开始新的监听
-            if (Active && !Disposed) ReceiveAsync(se, true);
+            if (Active && !Disposed)
+                ReceiveAsync(se, true);
+            else
+                se.TryDispose();
+        }
+
+        /// <summary>收到异常时如何处理</summary>
+        /// <param name="se"></param>
+        /// <returns>是否当作异常处理并结束会话</returns>
+        internal virtual Boolean OnReceiveError(SocketAsyncEventArgs se)
+        {
+            //if (se.SocketError == SocketError.ConnectionReset) Dispose();
+            if (se.SocketError == SocketError.ConnectionReset) Close("ReceiveAsync " + se.SocketError);
+
+            return true;
         }
 
         /// <summary>处理收到的数据</summary>

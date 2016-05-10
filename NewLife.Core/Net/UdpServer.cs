@@ -28,6 +28,9 @@ namespace NewLife.Net
         /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
         public Boolean Loopback { get; set; }
 
+        /// <summary>收到Reset错误时是否结束。默认false</summary>
+        public Boolean EnableReset { get; set; }
+
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
         #endregion
@@ -37,6 +40,10 @@ namespace NewLife.Net
         public UdpServer()
         {
             SessionTimeout = 30;
+
+            // Udp服务器不能关闭自己，但是要关闭会话
+            // Udp客户端一般不关闭自己
+            EnableReset = false;
 
             Local = new NetUri(NetType.Udp, IPAddress.Any, 0);
             Remote.Type = NetType.Udp;
@@ -269,6 +276,25 @@ namespace NewLife.Net
             }
 
             if (session != null) RaiseReceive(session, e);
+        }
+
+        internal override Boolean OnReceiveError(SocketAsyncEventArgs se)
+        {
+            // Udp服务器不能关闭自己，但是要关闭会话
+            // Udp客户端一般不关闭自己
+            if (se.SocketError != SocketError.ConnectionReset) return base.OnReceiveError(se);
+
+            if (!EnableReset) return false;
+
+            // 关闭相应会话
+            var sessions = _Sessions;
+            if (sessions != null)
+            {
+                var ep = se.RemoteEndPoint as IPEndPoint;
+                var ss = sessions.Get(ep + "");
+                if (ss != null) ss.Dispose();
+            }
+            return true;
         }
 
         internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
