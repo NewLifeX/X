@@ -285,9 +285,9 @@ namespace Test2
             Console.WriteLine();
 
             // 构造多个客户端连接上面的服务端
-            var uri1 = new NetUri(ProtocolType.Udp, IPAddress.Loopback, 3388);
-            var uri2 = new NetUri(ProtocolType.Tcp, IPAddress.Loopback, 3388);
-            var uri3 = new NetUri(ProtocolType.Tcp, IPAddress.IPv6Loopback, 3377);
+            var uri1 = new NetUri(NetType.Udp, IPAddress.Loopback, 3388);
+            var uri2 = new NetUri(NetType.Tcp, IPAddress.Loopback, 3388);
+            var uri3 = new NetUri(NetType.Tcp, IPAddress.IPv6Loopback, 3377);
             var clients = new ISocketClient[] { uri1.CreateRemote(), uri2.CreateRemote(), uri3.CreateRemote() };
 
             // 打开每个客户端，如果是TCP，此时连接服务器。

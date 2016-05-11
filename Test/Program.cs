@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -78,7 +78,14 @@ namespace Test
 
         static void Test2()
         {
-            BinaryTest.Start();
+            //BinaryTest.Start();
+
+            var type = typeof(NetUri);
+            var pis = type.GetProperties(true);
+            foreach (var item in pis)
+            {
+                Console.WriteLine("{0}\t{1}", item.PropertyType, item.Name);
+            }
 
             //var bs = new DateTime(1970, 1, 1);
             //var ts = DateTime.Now - bs;

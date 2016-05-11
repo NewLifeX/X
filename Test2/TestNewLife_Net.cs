@@ -68,7 +68,7 @@ namespace Test2
         #endregion
 
         #region 客户端
-        private ISocketClient CreateSession(string host, int port = 65530, ProtocolType protocolType = ProtocolType.Tcp)
+        private ISocketClient CreateSession(string host, int port = 65530, NetType protocolType = NetType.Tcp)
         {
             //var ip = NetHelper.ParseAddress(host);
             //var session = NetService.CreateSession(new NetUri(protocolType, ip, port), 5000);

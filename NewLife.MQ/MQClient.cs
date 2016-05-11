@@ -27,7 +27,7 @@ namespace NewLife.MessageQueue
         /// <summary>实例化</summary>
         public MQClient()
         {
-            Remote = new NetUri(ProtocolType.Tcp, NetHelper.MyIP(), 2234);
+            Remote = new NetUri(NetType.Tcp, NetHelper.MyIP(), 2234);
             // 还未上消息格式，暂时用Udp替代Tcp，避免粘包问题
             //Remote = new NetUri(ProtocolType.Udp, NetHelper.MyIP(), 2234);
         }
