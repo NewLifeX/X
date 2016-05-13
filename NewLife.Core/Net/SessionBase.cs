@@ -190,14 +190,20 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Boolean SendAsync(Byte[] buffer)
         {
-            return SendAsync(buffer, Remote.EndPoint);
+            return SendAsync_(buffer, Remote.EndPoint);
         }
 
         private SocketAsyncEventArgs _seSend;
         private Int32 _Sending;
         private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
 
-        internal Boolean SendAsync(Byte[] buffer, IPEndPoint remote)
+        /// <summary>异步发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        public virtual Boolean SendAsync(Byte[] buffer, IPEndPoint remote) { return SendAsync_(buffer, remote); }
+
+        internal Boolean SendAsync_(Byte[] buffer, IPEndPoint remote)
         {
             if (!Open()) return false;
 
@@ -463,7 +469,7 @@ namespace NewLife.Net
                     if (ex != null) OnError("ReceiveAsync", ex);
 
                     se.TryDispose();
-                    
+
                     return;
                 }
             }

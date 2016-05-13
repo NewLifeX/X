@@ -128,6 +128,17 @@ namespace NewLife.Net
 
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        Boolean ISocketRemote.SendAsync(Byte[] buffer, IPEndPoint remote)
+        {
+            if (Server == null) return false;
+
+            return Server.SendAsync(buffer, remote);
+        }
+
+        /// <summary>异步发送数据</summary>
+        /// <param name="buffer"></param>
         /// <returns></returns>
         public Boolean SendAsync(Byte[] buffer)
         {

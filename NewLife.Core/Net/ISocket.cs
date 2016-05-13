@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Log;
@@ -90,6 +91,12 @@ namespace NewLife.Net
         /// <param name="buffer"></param>
         /// <returns></returns>
         Boolean SendAsync(Byte[] buffer);
+
+        /// <summary>异步发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        Boolean SendAsync(Byte[] buffer, IPEndPoint remote);
         #endregion
 
         #region 接收

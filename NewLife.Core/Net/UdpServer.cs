@@ -169,6 +169,17 @@ namespace NewLife.Net
             }
         }
 
+        /// <summary>发送数据包到目的地址</summary>
+        /// <param name="buffer"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        public override Boolean SendAsync(Byte[] buffer, IPEndPoint remote)
+        {
+            if (remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast) Client.EnableBroadcast = true;
+
+            return SendAsync_(buffer, remote);
+        }
+
         internal override bool OnSendAsync(SocketAsyncEventArgs se) { return Client.SendToAsync(se); }
         #endregion
 
