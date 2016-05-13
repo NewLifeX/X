@@ -155,13 +155,16 @@ namespace NewLife.Serialization
 
         private bool CheckScriptIgnoreAttribute(MemberInfo memberInfo)
         {
+#if !Android
             if (memberInfo.IsDefined(typeof(ScriptIgnoreAttribute), true)) return true;
+#endif
             if (memberInfo.IsDefined(typeof(XmlIgnoreAttribute), true)) return true;
 
             return false;
         }
 
         #region IJsonHost 成员
+#if !Android
         public String Write(Object value, Boolean indented)
         {
             var json = new JavaScriptSerializer().Serialize(value);
@@ -176,7 +179,7 @@ namespace NewLife.Serialization
             // 如果有必要，可以实现JavaScriptTypeResolver，然后借助Type.GetTypeEx得到更强的反射类型能力
             return new JavaScriptSerializer().Deserialize(json, type);
         }
-
+#endif
         //static String Process(String inputText)
         //{
         //    bool escaped = false;

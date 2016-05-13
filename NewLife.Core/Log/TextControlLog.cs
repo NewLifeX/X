@@ -23,6 +23,7 @@ namespace NewLife.Log
             WriteLog(Control, Format(format, args) + Environment.NewLine, MaxLines);
         }
 
+#if !Android
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
         /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>
         /// <param name="control">要绑定日志输出的WinForm控件</param>
@@ -37,5 +38,6 @@ namespace NewLife.Log
 
             txt.Append(msg, maxLines);
         }
+#endif
     }
 }

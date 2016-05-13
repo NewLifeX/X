@@ -97,17 +97,20 @@
     <Compile Include="..\NewLife.Core\IO\IOHelper.cs">
       <Link>IO\IOHelper.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\IO\Json.cs">
-      <Link>IO\Json.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\IO\PathHelper.cs">
       <Link>IO\PathHelper.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Log\ActionLog.cs">
       <Link>Log\ActionLog.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Log\CodeTimer.cs">
+      <Link>Log\CodeTimer.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Log\CompositeLog.cs">
       <Link>Log\CompositeLog.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\ConsoleLog.cs">
+      <Link>Log\ConsoleLog.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Log\ILog.cs">
       <Link>Log\ILog.cs</Link>
@@ -123,6 +126,12 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Log\TextFileLog.cs">
       <Link>Log\TextFileLog.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\TimeCost.cs">
+      <Link>Log\TimeCost.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\TraceStream.cs">
+      <Link>Log\TraceStream.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Log\WriteLogEventArgs.cs">
       <Link>Log\WriteLogEventArgs.cs</Link>
@@ -148,6 +157,9 @@
     <Compile Include="..\NewLife.Core\Model\ObjectContainerHelper.cs">
       <Link>Model\ObjectContainerHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Net\INetSession.cs">
+      <Link>Net\INetSession.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Net\ISocket.cs">
       <Link>Net\ISocket.cs</Link>
     </Compile>
@@ -172,6 +184,12 @@
     <Compile Include="..\NewLife.Core\Net\NetHelper.cs">
       <Link>Net\NetHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Net\NetServer.cs">
+      <Link>Net\NetServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\NetSession.cs">
+      <Link>Net\NetSession.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Net\NetUri.cs">
       <Link>Net\NetUri.cs</Link>
     </Compile>
@@ -186,6 +204,9 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Net\SessionCollection.cs">
       <Link>Net\SessionCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\SocketHelper.cs">
+      <Link>Net\SocketHelper.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Net\Statistics.cs">
       <Link>Net\Statistics.cs</Link>
@@ -262,11 +283,11 @@
     <Compile Include="..\NewLife.Core\Security\Crc32.cs">
       <Link>Security\Crc32.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Security\DataHelper.cs">
-      <Link>Security\DataHelper.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Security\DSAHelper.cs">
       <Link>Security\DSAHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Security\Rand.cs">
+      <Link>Security\Rand.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Security\RC4.cs">
       <Link>Security\RC4.cs</Link>
@@ -292,6 +313,12 @@
     <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryList.cs">
       <Link>Serialization\Binary\BinaryList.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryNormal.cs">
+      <Link>Serialization\Binary\BinaryNormal.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryPair.cs">
+      <Link>Serialization\Binary\BinaryPair.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Serialization\Binary\BitSizeAttribute.cs">
       <Link>Serialization\Binary\BitSizeAttribute.cs</Link>
     </Compile>
@@ -304,20 +331,32 @@
     <Compile Include="..\NewLife.Core\Serialization\Interface\IFormatterX.cs">
       <Link>Serialization\Interface\IFormatterX.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Interface\IMemberAccessor.cs">
+      <Link>Serialization\Interface\IMemberAccessor.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Xml\IXml.cs">
+      <Link>Serialization\Xml\IXml.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Xml\Xml.cs">
+      <Link>Serialization\Xml\Xml.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Xml\XmlComposite.cs">
+      <Link>Serialization\Xml\XmlComposite.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Xml\XmlGeneral.cs">
+      <Link>Serialization\Xml\XmlGeneral.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Setting.cs">
       <Link>Core\Setting.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Threading\TaskHelper.cs">
+      <Link>Threading\TaskHelper.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Threading\TaskState.cs">
       <Link>Threading\TaskState.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Threading\ThreadPoolX.cs">
       <Link>Threading\ThreadPoolX.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Threading\ThreadTask.cs">
-      <Link>Threading\ThreadTask.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Threading\ThreadX.cs">
-      <Link>Threading\ThreadX.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Threading\TimerX.cs">
       <Link>Threading\TimerX.cs</Link>
@@ -333,33 +372,6 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Xml\XmlHelper.cs">
       <Link>Xml\XmlHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Net\NetService.cs">
-      <Link>Net\NetService.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Net\Proxy\IProxy.cs">
-      <Link>Net\Proxy\IProxy.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Net\Proxy\IProxySession.cs">
-      <Link>Net\Proxy\IProxySession.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Net\Proxy\ProxyBase.cs">
-      <Link>Net\Proxy\ProxyBase.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Net\Proxy\ProxySession.cs">
-      <Link>Net\Proxy\ProxySession.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Net\Sockets\INetSession.cs">
-      <Link>Net\Sockets\INetSession.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Net\Sockets\Netbase.cs">
-      <Link>Net\Sockets\Netbase.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Net\Sockets\NetServer.cs">
-      <Link>Net\Sockets\NetServer.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Net\Sockets\NetSession.cs">
-      <Link>Net\Sockets\NetSession.cs</Link>
     </Compile>
     <Compile Include="Resources\Resource.Designer.cs" />
   </ItemGroup>

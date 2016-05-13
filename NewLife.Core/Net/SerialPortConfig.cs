@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+#if !Android
 using System.IO.Ports;
+#endif
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.Xml;
@@ -26,6 +28,7 @@ namespace NewLife.Net
         [Description("数据位")]
         public Int32 DataBits { get { return _DataBits; } set { _DataBits = value; } }
 
+#if !Android
         private StopBits _StopBits = StopBits.One;
         /// <summary>停止位</summary>
         [Description("停止位 None/One/Two/OnePointFive")]
@@ -35,7 +38,7 @@ namespace NewLife.Net
         /// <summary>奇偶校验</summary>
         [Description("奇偶校验 None/Odd/Even/Mark/Space")]
         public Parity Parity { get { return _Parity; } set { _Parity = value; } }
-
+#endif
         private Encoding _Encoding = Encoding.Default;
         /// <summary>文本编码</summary>
         [XmlIgnore]

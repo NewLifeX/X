@@ -44,20 +44,23 @@ namespace NewLife.Log
             timer.Times = times;
             timer.Action = action;
             timer.ShowProgress = true;
-
+#if !Android
             var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Int32 left = Console.CursorLeft;
-
+#endif
             if (needTimeOne) timer.TimeOne();
             timer.Time();
 
             // 等一会，让进度那边先输出
             Thread.Sleep(10);
+#if !Android
             Console.CursorLeft = left;
+#endif
             Console.WriteLine(timer.ToString());
-
+#if !Android
             Console.ForegroundColor = currentForeColor;
+#endif
         }
 
         /// <summary>显示头部</summary>
@@ -66,10 +69,10 @@ namespace NewLife.Log
         {
             Write(title, 16);
             Console.Write("：");
-
+#if !Android
             var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-
+#endif
             Write("执行时间", 9);
             Console.Write(" ");
             Write("CPU时间", 9);
@@ -79,8 +82,9 @@ namespace NewLife.Log
             Console.WriteLine("   百分比");
 
             msBase = 0;
-
+#if !Android
             Console.ForegroundColor = currentForeColor;
+#endif
         }
 
         static void Write(String name, Int32 max)
@@ -306,12 +310,13 @@ namespace NewLife.Log
 
         void Progress(Object state)
         {
+#if !Android
             Int32 left = Console.CursorLeft;
 
             // 设置光标不可见
             Boolean cursorVisible = Console.CursorVisible;
             Console.CursorVisible = false;
-
+#endif
             var sw = new Stopwatch();
             sw.Start();
             while (true)
@@ -327,7 +332,9 @@ namespace NewLife.Log
                         Double ms = sw.Elapsed.TotalMilliseconds;
                         TimeSpan ts = new TimeSpan(0, 0, 0, 0, (Int32)(ms * Times / i));
                         Console.Write("{0,7:n0}ms {1:p} Total=>{2}", ms, d, ts);
+#if !Android
                         Console.CursorLeft = left;
+#endif
                     }
                 }
                 catch (ThreadAbortException) { break; }
@@ -336,9 +343,10 @@ namespace NewLife.Log
                 Thread.Sleep(500);
             }
             sw.Stop();
-
+#if !Android
             Console.CursorLeft = left;
             Console.CursorVisible = cursorVisible;
+#endif
         }
         #endregion
 
