@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Xml.Serialization;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -301,8 +302,12 @@ namespace NewLife.Serialization
                 var v = value.GetValue(member);
                 WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
 
+                var name = member.Name;
+                var att = member.GetCustomAttribute<XmlElementAttribute>();
+                if (att != null) name = att.ElementName;
+
                 // 特殊处理写入名值对
-                if (!WritePair(member.Name, v))
+                if (!WritePair(name, v))
                 {
                     Host.Hosts.Pop();
                     return false;
@@ -343,8 +348,12 @@ namespace NewLife.Serialization
                 Host.Member = member;
                 WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
 
+                var name = member.Name;
+                var att = member.GetCustomAttribute<XmlElementAttribute>();
+                if (att != null) name = att.ElementName;
+
                 Object v = null;
-                if (TryReadPair(dic, member.Name, mtype, ref v)) value.SetValue(member, v);
+                if (TryReadPair(dic, name, mtype, ref v)) value.SetValue(member, v);
             }
             Host.Hosts.Pop();
 
