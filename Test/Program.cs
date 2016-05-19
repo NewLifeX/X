@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Speech.Recognition;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife;
 using NewLife.Common;
 using NewLife.Compression;
 using NewLife.Log;
@@ -16,7 +14,6 @@ using NewLife.Net.Stress;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Windows;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -76,61 +73,26 @@ namespace Test
             File.WriteAllBytes("stone.pfx", buf);
         }
 
-        static void Test2()
+        static async void Test2()
         {
-            //BinaryTest.Start();
+            Console.WriteLine("Start");
 
-            var type = typeof(NetUri);
-            var pis = type.GetProperties(true);
-            foreach (var item in pis)
+            var tk = Add(22, 33);
+
+            Console.WriteLine("Second");
+
+            Console.WriteLine(await tk);
+
+            Console.WriteLine("End");
+        }
+
+        static async Task<Int32> Add(Int32 m, Int32 n)
+        {
+            return await Task<Int32>.Factory.StartNew(() =>
             {
-                Console.WriteLine("{0}\t{1}", item.PropertyType, item.Name);
-            }
-
-            //var bs = new DateTime(1970, 1, 1);
-            //var ts = DateTime.Now - bs;
-            //var ms = (Int64)ts.TotalMilliseconds;
-            //Console.WriteLine("{0:n0}", ms);
-
-            //var dt = bs.AddMilliseconds(ms);
-            //Console.WriteLine(dt.ToFullString());
-
-            //ms /= 1000;
-            //Console.WriteLine("{0:n0}", ms);
-
-            //dt = bs.AddMilliseconds(ms);
-            //Console.WriteLine(dt.ToFullString());
-
-            //var bn = new Binary();
-            //bn.EncodeInt = true;
-            //bn.Write(ms);
-            //Console.WriteLine(bn.Stream.Length);
-            //bn.Stream.Position = 0;
-
-            //dt = bn.Read<DateTime>();
-            //Console.WriteLine(dt.ToFullString());
-        }
-
-        static void rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        {
-            Console.WriteLine("{0} 准确度：{1}", e.Result.Text, e.Result.Confidence);
-            if (e.Result.Words.Count > 1)
-            {
-                foreach (var item in e.Result.Words)
-                {
-                    Console.WriteLine("\t{0} {1}", item.Text, item.Confidence);
-                }
-            }
-        }
-
-        static void rg_RecognizeCompleted(object sender, RecognizeCompletedEventArgs e)
-        {
-            Console.WriteLine(e.Result.Text);
-        }
-
-        static void rg_SpeechDetected(object sender, SpeechDetectedEventArgs e)
-        {
-            Console.WriteLine(e.AudioPosition);
+                Thread.Sleep(3000);
+                return m + n;
+            });
         }
 
         static void Test3()
