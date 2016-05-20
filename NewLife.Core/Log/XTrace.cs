@@ -246,7 +246,8 @@ namespace NewLife.Log
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var show = _ShowErrorMessage && Application.MessageLoop;
-            var msg = "" + e.ExceptionObject;
+            var ex = e.ExceptionObject as Exception;
+            var msg = ex?.Message;
             WriteLine(msg);
             if (e.IsTerminating)
             {
@@ -264,7 +265,7 @@ namespace NewLife.Log
             WriteException(e.Exception);
 
             var show = _ShowErrorMessage && Application.MessageLoop;
-            if (show) MessageBox.Show("" + e.Exception, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (show) MessageBox.Show(e.Exception?.Message, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
