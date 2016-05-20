@@ -303,9 +303,9 @@ namespace NewLife.Cube
         /// <param name="ext"></param>
         protected void SetAttachment(String name, String ext)
         {
-            if (name.IsNullOrEmpty()) name = this.GetType().GetDisplayName();
+            if (name.IsNullOrEmpty()) name = GetType().GetDisplayName();
             if (name.IsNullOrEmpty()) name = Factory.EntityType.GetDisplayName();
-            if (name.IsNullOrEmpty()) name = this.GetType().Name.TrimEnd("Controller");
+            if (name.IsNullOrEmpty()) name = GetType().Name.TrimEnd("Controller");
             if (!ext.IsNullOrEmpty()) ext = ext.EnsureStart(".");
             name += ext;
             name = HttpUtility.UrlEncode(name, Encoding.UTF8);
@@ -383,7 +383,7 @@ namespace NewLife.Cube
 
             ms.Position = 0;
 
-            var name = this.GetType().GetDisplayName() ?? Factory.EntityType.GetDisplayName() ?? Factory.EntityType.Name;
+            var name = GetType().GetDisplayName() ?? Factory.EntityType.GetDisplayName() ?? Factory.EntityType.Name;
             //name = HttpUtility.UrlEncode(name, Encoding.UTF8);
 
             return File(ms, "application/ms-excel", name + ".csv");
@@ -535,7 +535,7 @@ namespace NewLife.Cube
 
             var txt = (String)ViewBag.HeaderContent;
             if (txt.IsNullOrEmpty() && ManageProvider.Menu.Current != null) txt = ManageProvider.Menu.Current.Remark;
-            if (txt.IsNullOrEmpty()) txt = this.GetType().GetDescription();
+            if (txt.IsNullOrEmpty()) txt = GetType().GetDescription();
             if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
                 txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
             //txt = "这里是页头内容，你可以通过重载OnActionExecuting然后设置ViewBag.HeaderTitle/HeaderContent来修改，或者给控制器增加Description特性";

@@ -21,7 +21,7 @@ namespace XCom
             //var asmx = AssemblyX.Entry;
             //this.Text = asmx.Title;
 
-            this.Icon = IcoHelper.GetIcon("串口");
+            Icon = IcoHelper.GetIcon("串口");
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
@@ -148,7 +148,7 @@ namespace XCom
             var str = txtSend.Text;
             if (String.IsNullOrEmpty(str))
             {
-                MessageBox.Show("发送内容不能为空！", this.Text);
+                MessageBox.Show("发送内容不能为空！", Text);
                 txtSend.Focus();
                 return;
             }

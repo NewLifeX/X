@@ -41,7 +41,7 @@ namespace XCoder
         {
             InitializeComponent();
 
-            this.Icon = IcoHelper.GetIcon("模型");
+            Icon = IcoHelper.GetIcon("模型");
 
             AutoLoadTables(Config.ConnName);
         }
@@ -376,7 +376,7 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), this.Text);
+                MessageBox.Show(ex.ToString(), Text);
                 return;
             }
 
@@ -465,7 +465,7 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.ToString(), Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             sw.Stop();
@@ -619,7 +619,7 @@ namespace XCoder
         private void 退出XToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //Application.Exit();
-            this.Close();
+            Close();
         }
 
         private void 组件手册ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -725,7 +725,7 @@ namespace XCoder
             var tables = Engine.Tables;
             if (tables == null || tables.Count < 1)
             {
-                MessageBox.Show(this.Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -750,7 +750,7 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -800,7 +800,7 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }

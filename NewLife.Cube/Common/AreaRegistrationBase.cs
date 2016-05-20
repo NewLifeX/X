@@ -29,7 +29,7 @@ namespace NewLife.Cube
         {
             get
             {
-                return this.GetType().Name.TrimEnd("AreaRegistration");
+                return GetType().Name.TrimEnd("AreaRegistration");
             }
         }
 
@@ -129,7 +129,7 @@ namespace NewLife.Cube
                 AreaName,
                 AreaName + "/{controller}/{action}/{id}",
                 new { controller = "Index", action = "Index", id = UrlParameter.Optional },
-                  new[] { this.GetType().Namespace + ".Controllers" }
+                  new[] { GetType().Namespace + ".Controllers" }
             );
 
             // 所有已存在文件的请求都交给Mvc处理，比如Admin目录
@@ -146,14 +146,14 @@ namespace NewLife.Cube
             //// 延迟几秒钟等其它地方初始化完成
             //Thread.Sleep(3000);
             XTrace.WriteLine("初始化[{0}]的菜单体系", AreaName);
-            ManageProvider.Menu.ScanController(AreaName, this.GetType().Assembly, this.GetType().Namespace + ".Controllers");
+            ManageProvider.Menu.ScanController(AreaName, GetType().Assembly, GetType().Namespace + ".Controllers");
 
             // 更新区域名称为友好中文名
             var menu = ManageProvider.Menu.Root.FindByPath(AreaName);
             if (menu != null && menu.DisplayName.IsNullOrEmpty())
             {
-                var dis = this.GetType().GetDisplayName();
-                var des = this.GetType().GetDescription();
+                var dis = GetType().GetDisplayName();
+                var des = GetType().GetDescription();
 
                 if (!dis.IsNullOrEmpty()) menu.DisplayName = dis;
                 if (!des.IsNullOrEmpty()) menu.Remark = des;

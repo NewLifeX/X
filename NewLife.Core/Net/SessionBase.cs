@@ -61,7 +61,7 @@ namespace NewLife.Net
         /// <summary>构造函数，初始化默认名称</summary>
         public SessionBase()
         {
-            Name = this.GetType().Name;
+            Name = GetType().Name;
             Local = new NetUri();
             Remote = new NetUri();
             Timeout = 3000;
@@ -96,7 +96,7 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public virtual Boolean Open()
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (Active) return true;
 
@@ -104,7 +104,7 @@ namespace NewLife.Net
             if (!UseReceiveAsync && Received != null) UseReceiveAsync = true;
 
             // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.Open".F(this.GetType().Name), 1500))
+            using (var tc = new TimeCost("{0}.Open".F(GetType().Name), 1500))
             {
                 tc.Log = Log;
 
@@ -143,7 +143,7 @@ namespace NewLife.Net
             if (!Active) return true;
 
             // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.Close".F(this.GetType().Name), 500))
+            using (var tc = new TimeCost("{0}.Close".F(GetType().Name), 500))
             {
                 tc.Log = Log;
 
@@ -215,7 +215,7 @@ namespace NewLife.Net
             LastTime = DateTime.Now;
 
             // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.SendAsync".F(this.GetType().Name), 500))
+            using (var tc = new TimeCost("{0}.SendAsync".F(GetType().Name), 500))
             {
                 tc.Log = Log;
 
@@ -373,7 +373,7 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public virtual Boolean ReceiveAsync()
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (!Open()) return false;
 
@@ -412,7 +412,7 @@ namespace NewLife.Net
                 Interlocked.Decrement(ref _RecvCount);
                 se.TryDispose();
 
-                throw new ObjectDisposedException(this.GetType().Name);
+                throw new ObjectDisposedException(GetType().Name);
             }
 
             var rs = false;
@@ -487,7 +487,7 @@ namespace NewLife.Net
                 try
                 {
                     // 估算完成时间，执行过长时提示
-                    using (var tc = new TimeCost("{0}.OnReceive".F(this.GetType().Name), 1000))
+                    using (var tc = new TimeCost("{0}.OnReceive".F(GetType().Name), 1000))
                     {
                         tc.Log = Log;
 

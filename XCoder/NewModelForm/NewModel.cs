@@ -68,7 +68,7 @@ namespace XCoder
             }
             else
             {
-                this.ParentForm.Close();
+                ParentForm.Close();
             }            
         }
 
@@ -77,7 +77,7 @@ namespace XCoder
         {
             if (Tables == null || Tables.Count < 1)
             {
-                MessageBox.Show(this.Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }            
             if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
@@ -90,7 +90,7 @@ namespace XCoder
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }

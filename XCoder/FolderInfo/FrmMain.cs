@@ -20,7 +20,7 @@ namespace XCoder.FolderInfo
         {
             InitializeComponent();
 
-            this.Icon = IcoHelper.GetIcon("文件");
+            Icon = IcoHelper.GetIcon("文件");
         }
 
         private void Form1_Load(object sender, EventArgs e)

@@ -21,7 +21,7 @@ namespace NewLife.Net.DNS
 
         public override bool Write(object value, Type type)
         {
-            _binary.Host = this.Host;
+            _binary.Host = Host;
 
             // TXT记录的Text字段不采用DNS字符串
             if (type == typeof(String) && Host.Member.Name != "_Text")
@@ -45,7 +45,7 @@ namespace NewLife.Net.DNS
 
         public override bool TryRead(Type type, ref object value)
         {
-            _binary.Host = this.Host;
+            _binary.Host = Host;
 
             // TXT记录的Text字段不采用DNS字符串
             if (type == typeof(String) && Host.Member.Name != "_Text")

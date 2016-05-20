@@ -21,20 +21,20 @@ namespace XAgent
 
             AssemblyX ax = AssemblyX.Create(Assembly.GetEntryAssembly());
             String msg = String.Format("{0} {1} v{2}", ax.Title, ax.Name, ax.Version);
-            this.Text = msg;
+            Text = msg;
         }
         #endregion
 
         #region 托盘图标
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            this.Visible = true;
+            Visible = true;
         }
 
         private void 主界面ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Visible = true;
-            this.BringToFront();
+            Visible = true;
+            BringToFront();
         }
 
         private void 启动ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -64,7 +64,7 @@ namespace XAgent
         {
             if (e.CloseReason == CloseReason.UserClosing)
             {
-                this.Visible = false;
+                Visible = false;
                 e.Cancel = true;
             }
         }

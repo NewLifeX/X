@@ -258,7 +258,7 @@ namespace NewLife.Windows
             if (String.IsNullOrEmpty(name))
             {
                 "请选择串口".SpeechTip();
-                MessageBox.Show("请选择串口！", this.Text);
+                MessageBox.Show("请选择串口！", Text);
                 cbName.Focus();
                 return;
             }
@@ -308,7 +308,7 @@ namespace NewLife.Windows
             }
             catch { }
 
-            this.Enabled = false;
+            Enabled = false;
         }
 
         void Port_Disconnected(object sender, EventArgs e)
@@ -330,12 +330,12 @@ namespace NewLife.Windows
 
             ShowPorts();
 
-            this.Enabled = true;
+            Enabled = true;
         }
 
         private void OnCheck(Object state)
         {
-            if (this.Enabled) ShowPorts();
+            if (Enabled) ShowPorts();
         }
         #endregion
 

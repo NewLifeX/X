@@ -102,7 +102,7 @@ namespace NewLife.Net
         #region 发送
         public Boolean Send(byte[] buffer, int offset = 0, int count = -1)
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (count <= 0) count = buffer.Length - offset;
             if (offset > 0) buffer = buffer.ReadBytes(offset, count);
@@ -162,7 +162,7 @@ namespace NewLife.Net
 
         public byte[] Receive()
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
             var buf = Server.Receive();
@@ -185,7 +185,7 @@ namespace NewLife.Net
 
         public int Receive(byte[] buffer, int offset = 0, int count = -1)
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
             var size = Server.Receive(buffer, offset, count);
@@ -208,7 +208,7 @@ namespace NewLife.Net
         /// <summary>开始异步接收数据</summary>
         public Boolean ReceiveAsync()
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             return Server.ReceiveAsync();
         }

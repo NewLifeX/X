@@ -47,7 +47,7 @@ namespace NewLife.Net
             if (ss != null)
             {
                 ss.Received += (s, e2) => OnReceive(e2);
-                ss.OnDisposed += (s, e2) => this.Dispose();
+                ss.OnDisposed += (s, e2) => Dispose();
                 ss.Error += OnError;
             }
         }

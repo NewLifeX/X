@@ -21,7 +21,7 @@ namespace NewLife.Cube
         #region 构造
         /// <summary>使用工厂实例化一个字段集合</summary>
         /// <param name="factory"></param>
-        public FieldCollection(IEntityOperate factory) { Factory = factory; this.AddRange(Factory.Fields); }
+        public FieldCollection(IEntityOperate factory) { Factory = factory; AddRange(Factory.Fields); }
         #endregion
 
         #region 方法
@@ -205,7 +205,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         public FieldCollection RemoveCreateField()
         {
-            this.RemoveAll(e => e.Name.EqualIgnoreCase("CreateUserID", "CreateUserName", "CreateTime", "CreateIP", "CreateAddress"));
+            RemoveAll(e => e.Name.EqualIgnoreCase("CreateUserID", "CreateUserName", "CreateTime", "CreateIP", "CreateAddress"));
 
             return this;
         }
@@ -214,7 +214,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         public FieldCollection RemoveUpdateField()
         {
-            this.RemoveAll(e => e.Name.EqualIgnoreCase("UpdateUserID", "UpdateUserName", "UpdateTime", "UpdateIP", "CreateAddress"));
+            RemoveAll(e => e.Name.EqualIgnoreCase("UpdateUserID", "UpdateUserName", "UpdateTime", "UpdateIP", "CreateAddress"));
 
             return this;
         }
@@ -223,7 +223,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         public FieldCollection RemoveRemarkField()
         {
-            this.RemoveAll(e => e.Name.EqualIgnoreCase("Remark", "Description"));
+            RemoveAll(e => e.Name.EqualIgnoreCase("Remark", "Description"));
 
             return this;
         }

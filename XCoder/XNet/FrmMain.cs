@@ -34,7 +34,7 @@ namespace XNet
         {
             InitializeComponent();
 
-            this.Icon = IcoHelper.GetIcon("网络");
+            Icon = IcoHelper.GetIcon("网络");
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
@@ -317,7 +317,7 @@ namespace XNet
             var str = txtSend.Text;
             if (String.IsNullOrEmpty(str))
             {
-                MessageBox.Show("发送内容不能为空！", this.Text);
+                MessageBox.Show("发送内容不能为空！", Text);
                 txtSend.Focus();
                 return;
             }

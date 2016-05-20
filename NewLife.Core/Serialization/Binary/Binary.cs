@@ -397,7 +397,7 @@ namespace NewLife.Serialization
             var stream = Stream;
             if (stream == null || stream is TraceStream) return;
 
-            Stream = new TraceStream(stream) { Encoding = this.Encoding, IsLittleEndian = this.IsLittleEndian };
+            Stream = new TraceStream(stream) { Encoding = Encoding, IsLittleEndian = IsLittleEndian };
         }
 #endif
         #endregion

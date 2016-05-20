@@ -266,10 +266,10 @@ namespace NewLife.Reflection
                 // 没有类名，包含一个
                 if (!code.Contains("class "))
                 {
-                    code = String.Format("\tpublic class {0}\r\n\t{{\r\n{1}\r\n\t}}", this.GetType().Name, code);
+                    code = String.Format("\tpublic class {0}\r\n\t{{\r\n{1}\r\n\t}}", GetType().Name, code);
                 }
 
-                code = String.Format("namespace {0}\r\n{{\r\n{1}\r\n}}", this.GetType().Namespace, code);
+                code = String.Format("namespace {0}\r\n{{\r\n{1}\r\n}}", GetType().Namespace, code);
             }
 
             // 命名空间

@@ -18,15 +18,15 @@ namespace Test2
 
         public NatProxyTest(string remoteHost, int remotePort)
         {
-            this.RemoteHost = remoteHost;
-            this.RemotePort = remotePort;
-            this.LocalPort = 8000;
+            RemoteHost = remoteHost;
+            RemotePort = remotePort;
+            LocalPort = 8000;
         }
 
         public void Init()
         {
             proxy = new NATProxy(RemoteHost, RemotePort);
-            proxy.Port = this.LocalPort;
+            proxy.Port = LocalPort;
             //proxy.Servers.ForEach(ser => ser.MaxNotActive = 0);
         }
 

@@ -95,7 +95,7 @@ namespace NewLife.Net.Modbus
 #endif
             transport.ReceiveAsync();
 
-            WriteLine(this.GetType().Name + "在" + name + "上监听Host=" + Host);
+            WriteLine(GetType().Name + "在" + name + "上监听Host=" + Host);
 
             return this;
         }

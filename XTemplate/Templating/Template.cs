@@ -126,7 +126,7 @@ namespace XTemplate.Templating
                     }
                     else
                     {
-                        String namespaceName = this.GetType().Namespace;
+                        String namespaceName = GetType().Namespace;
                         namespaceName += "s";
 
                         _NameSpace = namespaceName;

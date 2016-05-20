@@ -92,7 +92,7 @@ namespace NewLife.Log
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append(this.GetType().Name);
+            sb.Append(GetType().Name);
 
             foreach (var item in Logs)
             {

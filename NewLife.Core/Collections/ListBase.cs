@@ -58,15 +58,15 @@ namespace NewLife.Collections
         /// <param name="value">数值</param>
         public virtual void Add(T value)
         {
-            this.Insert(this.Count, value);
+            Insert(Count, value);
         }
 
         /// <summary>清空</summary>
         public virtual void Clear()
         {
-            for (int i = this.Count - 1; i >= 0; i--)
+            for (int i = Count - 1; i >= 0; i--)
             {
-                this.RemoveAt(i);
+                RemoveAt(i);
             }
         }
 
@@ -75,7 +75,7 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual bool Contains(T value)
         {
-            return (this.IndexOf(value) != -1);
+            return (IndexOf(value) != -1);
         }
 
         /// <summary>把元素复制到一个数组里面</summary>
@@ -83,7 +83,7 @@ namespace NewLife.Collections
         /// <param name="index"></param>
         public virtual void CopyTo(T[] array, int index)
         {
-            for (int i = 0; i < this.Count; i++)
+            for (int i = 0; i < Count; i++)
             {
                 array[index + i] = this[i];
             }
@@ -139,10 +139,10 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual bool Remove(T value)
         {
-            int index = this.IndexOf(value);
+            int index = IndexOf(value);
             if (index >= 0)
             {
-                this.RemoveAt(index);
+                RemoveAt(index);
                 return true;
             }
             return false;
@@ -159,7 +159,7 @@ namespace NewLife.Collections
         #region ICollection接口
         void ICollection.CopyTo(Array array, int index)
         {
-            for (int i = 0; i < this.Count; i++)
+            for (int i = 0; i < Count; i++)
             {
                 array.SetValue(this[i], index);
             }
@@ -169,7 +169,7 @@ namespace NewLife.Collections
         {
             get
             {
-                return this.IsReadOnly;
+                return IsReadOnly;
             }
         }
 
@@ -205,41 +205,41 @@ namespace NewLife.Collections
         {
             if (!IsCompatibleType(value)) throw new ArgumentException();
 
-            this.Add((T)value);
-            return (this.Count - 1);
+            Add((T)value);
+            return (Count - 1);
         }
 
         void IList.Clear()
         {
-            this.Clear();
+            Clear();
         }
 
         bool IList.Contains(object value)
         {
             if (!IsCompatibleType(value)) return false;
 
-            return this.Contains((T)value);
+            return Contains((T)value);
         }
 
         int IList.IndexOf(object value)
         {
             if (!IsCompatibleType(value)) return -1;
 
-            return this.IndexOf((T)value);
+            return IndexOf((T)value);
         }
 
         void IList.Insert(int index, object value)
         {
             if (!IsCompatibleType(value)) throw new ArgumentException();
 
-            this.Insert(index, (T)value);
+            Insert(index, (T)value);
         }
 
         void IList.Remove(object value)
         {
             if (!IsCompatibleType(value)) throw new ArgumentException();
 
-            this.Remove((T)value);
+            Remove((T)value);
         }
 
         object IList.this[int index]

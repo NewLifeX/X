@@ -20,11 +20,11 @@ namespace System.Runtime.CompilerServices
         {
             get
             {
-                if (this.m_objectIdForDebugger == null)
+                if (m_objectIdForDebugger == null)
                 {
-                    this.m_objectIdForDebugger = new object();
+                    m_objectIdForDebugger = new object();
                 }
-                return this.m_objectIdForDebugger;
+                return m_objectIdForDebugger;
             }
         }
 
@@ -56,13 +56,13 @@ namespace System.Runtime.CompilerServices
 
         private AsyncVoidMethodBuilder(SynchronizationContext synchronizationContext)
         {
-            this.m_synchronizationContext = synchronizationContext;
+            m_synchronizationContext = synchronizationContext;
             if (synchronizationContext != null)
             {
                 synchronizationContext.OperationStarted();
             }
-            this.m_coreState = default(AsyncMethodBuilderCore);
-            this.m_objectIdForDebugger = null;
+            m_coreState = default(AsyncMethodBuilderCore);
+            m_objectIdForDebugger = null;
         }
 
         /// <summary>开始运行有关联状态机的生成器。</summary>
@@ -71,14 +71,14 @@ namespace System.Runtime.CompilerServices
         [DebuggerStepThrough]
         public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
         {
-            this.m_coreState.Start<TStateMachine>(ref stateMachine);
+            m_coreState.Start<TStateMachine>(ref stateMachine);
         }
 
         /// <summary>一个生成器与指定的状态机关联。</summary>
         /// <param name="stateMachine"></param>
         public void SetStateMachine(IAsyncStateMachine stateMachine)
         {
-            this.m_coreState.SetStateMachine(stateMachine);
+            m_coreState.SetStateMachine(stateMachine);
         }
 
         void IAsyncMethodBuilder.PreBoxInitialization()
@@ -94,7 +94,7 @@ namespace System.Runtime.CompilerServices
         {
             try
             {
-                Action completionAction = this.m_coreState.GetCompletionAction<AsyncVoidMethodBuilder, TStateMachine>(ref this, ref stateMachine);
+                Action completionAction = m_coreState.GetCompletionAction<AsyncVoidMethodBuilder, TStateMachine>(ref this, ref stateMachine);
                 awaiter.OnCompleted(completionAction);
             }
             catch (Exception exception)
@@ -112,7 +112,7 @@ namespace System.Runtime.CompilerServices
         {
             try
             {
-                Action completionAction = this.m_coreState.GetCompletionAction<AsyncVoidMethodBuilder, TStateMachine>(ref this, ref stateMachine);
+                Action completionAction = m_coreState.GetCompletionAction<AsyncVoidMethodBuilder, TStateMachine>(ref this, ref stateMachine);
                 awaiter.UnsafeOnCompleted(completionAction);
             }
             catch (Exception exception)
@@ -124,9 +124,9 @@ namespace System.Runtime.CompilerServices
         /// <summary>标记此方法生成器为成功完成。</summary>
         public void SetResult()
         {
-            if (this.m_synchronizationContext != null)
+            if (m_synchronizationContext != null)
             {
-                this.NotifySynchronizationContextOfCompletion();
+                NotifySynchronizationContextOfCompletion();
             }
         }
 
@@ -138,16 +138,16 @@ namespace System.Runtime.CompilerServices
             {
                 throw new ArgumentNullException("exception");
             }
-            if (this.m_synchronizationContext != null)
+            if (m_synchronizationContext != null)
             {
                 try
                 {
-                    AsyncServices.ThrowAsync(exception, this.m_synchronizationContext);
+                    AsyncServices.ThrowAsync(exception, m_synchronizationContext);
                     return;
                 }
                 finally
                 {
-                    this.NotifySynchronizationContextOfCompletion();
+                    NotifySynchronizationContextOfCompletion();
                 }
             }
             AsyncServices.ThrowAsync(exception, null);
@@ -157,7 +157,7 @@ namespace System.Runtime.CompilerServices
         {
             try
             {
-                this.m_synchronizationContext.OperationCompleted();
+                m_synchronizationContext.OperationCompleted();
             }
             catch (Exception exception)
             {

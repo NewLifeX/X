@@ -33,7 +33,7 @@ namespace NewLife.Net.Stun
         /// <summary>实例化</summary>
         public StunServer()
         {
-            Name = this.GetType().Name.TrimEnd("Server");
+            Name = GetType().Name.TrimEnd("Server");
 
             Port = 3478;
             Port2 = Port + 1;
@@ -222,7 +222,7 @@ namespace NewLife.Net.Stun
             }
 
             var name = Name;
-            if (name == this.GetType().Name) name = this.GetType().FullName;
+            if (name == GetType().Name) name = GetType().FullName;
             rs.ServerName = String.Format("{0} v{1}", name, AssemblyX.Create(Assembly.GetExecutingAssembly()).CompileVersion);
 
             // 换成另一个

@@ -98,7 +98,7 @@ namespace XCoder
             }
             else
             {
-                this.ParentForm.Close();
+                ParentForm.Close();
             }          
         }
 

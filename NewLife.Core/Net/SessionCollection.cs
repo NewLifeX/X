@@ -47,7 +47,7 @@ namespace NewLife.Net
         public Boolean Add(ISocketSession session)
         {
             // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.Add".F(this.GetType().Name), 100))
+            using (var tc = new TimeCost("{0}.Add".F(GetType().Name), 100))
             {
                 tc.Log = Server.Log;
 
@@ -73,7 +73,7 @@ namespace NewLife.Net
         public ISocketSession Get(String key)
         {
             // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.Get".F(this.GetType().Name), 100))
+            using (var tc = new TimeCost("{0}.Get".F(GetType().Name), 100))
             {
                 tc.Log = Server.Log;
 
@@ -121,7 +121,7 @@ namespace NewLife.Net
             var keys = new List<String>();
             var values = new List<ISocketSession>();
             // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.RemoveNotAlive".F(this.GetType().Name), 100))
+            using (var tc = new TimeCost("{0}.RemoveNotAlive".F(GetType().Name), 100))
             {
                 tc.Log = Server.Log;
 

@@ -54,7 +54,7 @@ namespace NewLife.Xml
 
                 reader.ReadEndElement();
 
-                this.Add(key, value);
+                Add(key, value);
                 reader.MoveToContent();
             }
             reader.ReadEndElement();

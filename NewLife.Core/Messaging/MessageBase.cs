@@ -28,7 +28,7 @@ namespace NewLife.Messaging
             fm.Log = NewLife.Log.XTrace.Log;
 #endif
             Object obj = this;
-            return fm.TryRead(this.GetType(), ref obj);
+            return fm.TryRead(GetType(), ref obj);
         }
 
         /// <summary>把消息写入到数据流中</summary>
@@ -77,7 +77,7 @@ namespace NewLife.Messaging
         public override string ToString()
         {
             var sb = new StringBuilder();
-            foreach (var pi in this.GetType().GetProperties(true))
+            foreach (var pi in GetType().GetProperties(true))
             {
                 GetMember(pi, -16, sb);
             }

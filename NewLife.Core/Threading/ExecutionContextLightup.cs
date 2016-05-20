@@ -18,18 +18,18 @@ namespace System
 
         private ExecutionContextLightup(object executionContext) : base(LightupType.ExecutionContext)
         {
-            this._executionContext = executionContext;
+            _executionContext = executionContext;
         }
 
         protected override object GetInstance()
         {
-            return this._executionContext;
+            return _executionContext;
         }
 
         public ExecutionContextLightup Capture()
         {
             object obj;
-            if (base.TryCall<object>(ref this._capture, "Capture", out obj) && obj != null)
+            if (base.TryCall<object>(ref _capture, "Capture", out obj) && obj != null)
             {
                 return new ExecutionContextLightup(obj);
             }
@@ -38,7 +38,7 @@ namespace System
 
         public ExecutionContextLightup CreateCopy()
         {
-            object executionContext = base.Call<object>(ref this._createCopy, "CreateCopy");
+            object executionContext = base.Call<object>(ref _createCopy, "CreateCopy");
             return new ExecutionContextLightup(executionContext);
         }
 
@@ -55,7 +55,7 @@ namespace System
                 LightupType.ContextCallback,
                 typeof(object)
             });
-            Delegate methodAccessor = base.GetMethodAccessor(ref this._run, type, "Run", true);
+            Delegate methodAccessor = base.GetMethodAccessor(ref _run, type, "Run", true);
             methodAccessor.DynamicInvoke(new object[]
             {
                 executionContext._executionContext,
@@ -66,7 +66,7 @@ namespace System
 
         public void Dispose()
         {
-            base.Call(ref this._dispose, "Dispose");
+            base.Call(ref _dispose, "Dispose");
         }
     }
 }

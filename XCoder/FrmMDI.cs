@@ -19,7 +19,7 @@ namespace XCoder
 
             InitializeComponent();
 
-            this.Icon = Source.GetIcon();
+            Icon = Source.GetIcon();
         }
 
         private void FrmMDI_Shown(object sender, EventArgs e)
@@ -27,10 +27,10 @@ namespace XCoder
             var set = XConfig.Current;
             if (set.Width > 0 || set.Height > 0)
             {
-                this.Width = set.Width;
-                this.Height = set.Height;
-                this.Top = set.Top;
-                this.Left = set.Left;
+                Width = set.Width;
+                Height = set.Height;
+                Top = set.Top;
+                Left = set.Left;
             }
 
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
@@ -126,12 +126,12 @@ namespace XCoder
         {
             var set = XConfig.Current;
             var area = Screen.PrimaryScreen.WorkingArea;
-            if (this.Left >= 0 && this.Top >= 0 && this.Width < area.Width - 60 && this.Height < area.Height - 60)
+            if (Left >= 0 && Top >= 0 && Width < area.Width - 60 && Height < area.Height - 60)
             {
-                set.Width = this.Width;
-                set.Height = this.Height;
-                set.Top = this.Top;
-                set.Left = this.Left;
+                set.Width = Width;
+                set.Height = Height;
+                set.Top = Top;
+                set.Left = Left;
                 set.Save();
             }
         }

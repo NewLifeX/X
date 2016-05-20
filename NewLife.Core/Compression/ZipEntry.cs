@@ -464,7 +464,7 @@ namespace NewLife.Compression
         /// <param name="entry"></param>
         internal void CopyFromDirEntry(ZipEntry entry)
         {
-            var type = this.GetType();
+            var type = GetType();
             foreach (var item in dirMembers)
             {
                 this.SetValue(item, entry.GetValue(item));

@@ -29,7 +29,7 @@ namespace XAgent
         public AgentServiceBase()
         {
             // 指定默认服务名
-            if (String.IsNullOrEmpty(ServiceName)) ServiceName = this.GetType().Name;
+            if (String.IsNullOrEmpty(ServiceName)) ServiceName = GetType().Name;
         }
         #endregion
 

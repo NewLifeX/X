@@ -278,7 +278,7 @@ namespace NewLife.Net.Proxy
                     (ep.Address == IPAddress.Loopback || ep.Address == IPAddress.IPv6Loopback))
                 {
                     WriteLog("不要连自己，避免死循环");
-                    this.Dispose();
+                    Dispose();
                     return false;
                 }
 

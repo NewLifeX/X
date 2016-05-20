@@ -15,12 +15,12 @@ namespace System.Runtime.CompilerServices
 
 			internal MoveNextRunner(ExecutionContextLightup context)
 			{
-				this.m_context = context;
+                m_context = context;
 			}
 
 			internal void Run()
 			{
-				if (this.m_context != null)
+				if (m_context != null)
 				{
 					try
 					{
@@ -29,25 +29,25 @@ namespace System.Runtime.CompilerServices
 						{
 							action = (AsyncMethodBuilderCore.MoveNextRunner.s_invokeMoveNext = new Action<object>(AsyncMethodBuilderCore.MoveNextRunner.InvokeMoveNext));
 						}
-						if (this.m_context == null)
+						if (m_context == null)
 						{
-							action.Invoke(this.m_stateMachine);
+							action.Invoke(m_stateMachine);
 						}
 						else
 						{
-							ExecutionContextLightup.Instance.Run(this.m_context, action, this.m_stateMachine);
+							ExecutionContextLightup.Instance.Run(m_context, action, m_stateMachine);
 						}
 						return;
 					}
 					finally
 					{
-						if (this.m_context != null)
+						if (m_context != null)
 						{
-							this.m_context.Dispose();
+                            m_context.Dispose();
 						}
 					}
 				}
-				this.m_stateMachine.MoveNext();
+                m_stateMachine.MoveNext();
 			}
 
 			private static void InvokeMoveNext(object stateMachine)
@@ -74,11 +74,11 @@ namespace System.Runtime.CompilerServices
 			{
 				throw new ArgumentNullException("stateMachine");
 			}
-			if (this.m_stateMachine != null)
+			if (m_stateMachine != null)
 			{
 				throw new InvalidOperationException("The builder was not properly initialized.");
 			}
-			this.m_stateMachine = stateMachine;
+            m_stateMachine = stateMachine;
 		}
 
 		internal Action GetCompletionAction<TMethodBuilder, TStateMachine>(ref TMethodBuilder builder, ref TStateMachine stateMachine) where TMethodBuilder : IAsyncMethodBuilder where TStateMachine : IAsyncStateMachine
@@ -86,13 +86,13 @@ namespace System.Runtime.CompilerServices
 			ExecutionContextLightup context = ExecutionContextLightup.Instance.Capture();
 			AsyncMethodBuilderCore.MoveNextRunner moveNextRunner = new AsyncMethodBuilderCore.MoveNextRunner(context);
 			Action result = new Action(moveNextRunner.Run);
-			if (this.m_stateMachine == null)
+			if (m_stateMachine == null)
 			{
 				builder.PreBoxInitialization();
-				this.m_stateMachine = stateMachine;
-				this.m_stateMachine.SetStateMachine(this.m_stateMachine);
+                m_stateMachine = stateMachine;
+                m_stateMachine.SetStateMachine(m_stateMachine);
 			}
-			moveNextRunner.m_stateMachine = this.m_stateMachine;
+			moveNextRunner.m_stateMachine = m_stateMachine;
 			return result;
 		}
 	}

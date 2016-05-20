@@ -21,8 +21,8 @@ namespace NewLife.Cube
             base.OnActionExecuting(filterContext);
 
             // 显示名和描述
-            var name = this.GetType().GetDisplayName() ?? typeof(TObject).GetDisplayName() ?? typeof(TObject).Name;
-            var des = this.GetType().GetDescription() ?? typeof(TObject).GetDescription();
+            var name = GetType().GetDisplayName() ?? typeof(TObject).GetDisplayName() ?? typeof(TObject).Name;
+            var des = GetType().GetDescription() ?? typeof(TObject).GetDescription();
 
             ViewBag.HeaderTitle = name;
 

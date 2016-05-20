@@ -13,9 +13,9 @@ namespace System.Runtime.CompilerServices
 
             internal sealed override TaskCompletionSource<bool> FromResult(bool result)
             {
-                if (!result) return this.m_false;
+                if (!result) return m_false;
 
-                return this.m_true;
+                return m_true;
             }
         }
 

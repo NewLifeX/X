@@ -282,9 +282,9 @@ namespace NewLife.Log
         public override string ToString()
         {
             if (!String.IsNullOrEmpty(LogFile))
-                return String.Format("{0} {1}", this.GetType().Name, LogFile);
+                return String.Format("{0} {1}", GetType().Name, LogFile);
             else
-                return String.Format("{0} {1}", this.GetType().Name, LogPath);
+                return String.Format("{0} {1}", GetType().Name, LogPath);
         }
         #endregion
     }

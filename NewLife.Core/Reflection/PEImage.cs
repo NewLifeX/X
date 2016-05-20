@@ -358,8 +358,8 @@ namespace NewLife.Reflection
 
             public DataDirectory(RVA rva, uint size)
             {
-                this.VirtualAddress = rva;
-                this.Size = size;
+                VirtualAddress = rva;
+                Size = size;
             }
 
             public DataDirectory(BinaryReader reader) : this(reader.ReadUInt32(), reader.ReadUInt32()) { }

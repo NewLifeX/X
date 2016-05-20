@@ -453,7 +453,7 @@ namespace NewLife.Model
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return String.Format("{0}[Count={1}]", this.GetType().Name, Stores.Count); }
+        public override string ToString() { return String.Format("{0}[Count={1}]", GetType().Name, Stores.Count); }
         #endregion
     }
 }

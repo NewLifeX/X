@@ -31,7 +31,7 @@ namespace NewLife.Net
         /// <summary>实例化增强TCP</summary>
         public TcpSession()
         {
-            Name = this.GetType().Name;
+            Name = GetType().Name;
             Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
             Remote = new NetUri(NetType.Tcp, IPAddress.Any, 0);
 

@@ -53,7 +53,7 @@ namespace NewLife.Net.UPnP
         [XmlIgnore]
         public virtual String Name
         {
-            get { return _Name ?? (_Name = this.GetType().Name); }
+            get { return _Name ?? (_Name = GetType().Name); }
             set { _Name = value; }
         }
 
@@ -67,7 +67,7 @@ namespace NewLife.Net.UPnP
             doc.AppendChild(root);
 
             //TypeX tx = TypeX.Create(this.GetType());
-            foreach (var item in this.GetType().GetProperties(true))
+            foreach (var item in GetType().GetProperties(true))
             {
                 //if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) != null) continue;
 

@@ -106,7 +106,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0} UseColor={1}", this.GetType().Name, UseColor);
+            return String.Format("{0} UseColor={1}", GetType().Name, UseColor);
         }
     }
 }

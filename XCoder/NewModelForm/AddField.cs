@@ -30,7 +30,7 @@ namespace XCoder
             //combRawType.DisplayMember = "Name";
             //combRawType.ValueMember = "DataType";
 
-            this.DataColumn = dc;
+            DataColumn = dc;
 
             //修改的话，直接绑定数据到文本框
             if(!IsNew)  BandText ();
@@ -120,14 +120,14 @@ namespace XCoder
         private void btnSave_Click(object sender, EventArgs e)
         {
             SaveValue();
-            this.ParentForm.DialogResult = DialogResult.OK;
-            this.ParentForm.Close();
+            ParentForm.DialogResult = DialogResult.OK;
+            ParentForm.Close();
         }
 
         private void btnCancle_Click(object sender, EventArgs e)
         {
-            this.ParentForm.DialogResult = DialogResult.Cancel ;
-            this.ParentForm.Close();
+            ParentForm.DialogResult = DialogResult.Cancel ;
+            ParentForm.Close();
         }
 
         private void txtLength_TextChanged(object sender, EventArgs e)

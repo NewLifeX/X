@@ -132,7 +132,7 @@ namespace NewLife.Net.Sdp
             {
                 retVal.Append("m=" + MediaType + " " + Port + " " + Protocol);
             }
-            foreach (string mediaFormat in this.MediaFormats)
+            foreach (string mediaFormat in MediaFormats)
             {
                 retVal.Append(" " + mediaFormat);
             }
@@ -152,7 +152,7 @@ namespace NewLife.Net.Sdp
             {
                 retVal.Append(Connection.ToString());
             }
-            foreach (var attribute in this.Attributes)
+            foreach (var attribute in Attributes)
             {
                 retVal.Append(attribute.ToString());
             }

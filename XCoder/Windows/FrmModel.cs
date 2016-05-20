@@ -25,7 +25,7 @@ namespace XCoder
         {
             InitializeComponent();
 
-            this.Icon = Source.GetIcon();
+            Icon = Source.GetIcon();
         }
 
         public static FrmModel Create(List<IDataTable> tables)
@@ -269,11 +269,11 @@ namespace XCoder
                 set.NoDelete = false;
                 md.SetTables(set, Tables.ToArray());
 
-                MessageBox.Show("成功建立" + Tables.Count + "张数据表！", this.Text);
+                MessageBox.Show("成功建立" + Tables.Count + "张数据表！", Text);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("建表失败！" + Environment.NewLine + ex.Message, this.Text);
+                MessageBox.Show("建表失败！" + Environment.NewLine + ex.Message, Text);
             }
         }
         #endregion

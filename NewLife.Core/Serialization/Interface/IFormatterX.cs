@@ -170,7 +170,7 @@ namespace NewLife.Serialization
         Int32 IComparable<IHandler<THost>>.CompareTo(IHandler<THost> other)
         {
             // 优先级较大在前面
-            return this.Priority.CompareTo(other.Priority);
+            return Priority.CompareTo(other.Priority);
         }
 
         /// <summary>输出日志</summary>

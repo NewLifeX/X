@@ -20,7 +20,7 @@ namespace NewLife.XRegex
         {
             InitializeComponent();
 
-            this.Icon = IcoHelper.GetIcon("正则");
+            Icon = IcoHelper.GetIcon("正则");
 
             FileResource.CheckTemplate();
         }
@@ -339,7 +339,7 @@ namespace NewLife.XRegex
         #region 辅助函数
         void ShowError(String msg)
         {
-            MessageBox.Show(msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(msg, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private static String _FileVersion;

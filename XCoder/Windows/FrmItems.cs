@@ -31,7 +31,7 @@ namespace XCoder
         {
             InitializeComponent();
 
-            this.Icon = Source.GetIcon();
+            Icon = Source.GetIcon();
         }
 
         /// <summary>初始化界面</summary>
@@ -81,13 +81,13 @@ namespace XCoder
         //加载
         void SetDic(Dictionary<string, string> dic)
         {
-            DataGridViewColumnCollection columns = this.dataGridView1.Columns;
+            DataGridViewColumnCollection columns = dataGridView1.Columns;
             columns.Add("key", "键");
             columns.Add("value", "值");
 
             foreach (var item in dic)
             {
-                DataGridViewRowCollection rows = this.dataGridView1.Rows;
+                DataGridViewRowCollection rows = dataGridView1.Rows;
                 rows.Add(item.Key, item.Value);
             }
         }
@@ -103,8 +103,8 @@ namespace XCoder
 
         void AddItems()
         {
-            var rows = this.dataGridView1.Rows;
-            var column = this.dataGridView1.Columns;
+            var rows = dataGridView1.Rows;
+            var column = dataGridView1.Columns;
 
             for (int i = 0; i < rows.Count-1; i++)
             {

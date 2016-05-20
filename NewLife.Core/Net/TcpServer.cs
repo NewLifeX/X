@@ -70,7 +70,7 @@ namespace NewLife.Net
         /// <summary>构造TCP服务器对象</summary>
         public TcpServer()
         {
-            Name = this.GetType().Name;
+            Name = GetType().Name;
 
             Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
             SessionTimeout = 30;
@@ -105,7 +105,7 @@ namespace NewLife.Net
         /// <summary>开始</summary>
         public virtual void Start()
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (Active || Disposed) return;
 
@@ -221,7 +221,7 @@ namespace NewLife.Net
                 try
                 {
                     // 估算完成时间，执行过长时提示
-                    using (var tc = new TimeCost("{0}.OnAccept".F(this.GetType().Name), 200))
+                    using (var tc = new TimeCost("{0}.OnAccept".F(GetType().Name), 200))
                     {
                         tc.Log = Log;
 

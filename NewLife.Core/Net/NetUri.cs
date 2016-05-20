@@ -197,9 +197,9 @@ namespace NewLife.Net
         {
             if (uri == null) return this;
 
-            this.Protocol = uri.Protocol;
-            this.Host = uri.Host;
-            this.Port = uri.Port;
+            Protocol = uri.Protocol;
+            Host = uri.Host;
+            Port = uri.Port;
 
             return this;
         }
@@ -211,8 +211,8 @@ namespace NewLife.Net
         {
             if (uri == null) return this;
 
-            this.Host = uri.Host;
-            this.Port = uri.Port;
+            Host = uri.Host;
+            Port = uri.Port;
 
             return this;
         }

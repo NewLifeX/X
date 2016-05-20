@@ -242,8 +242,8 @@ namespace NewLife.Security
 
             public CryptoApiBlob(int dataLength, IntPtr data)
             {
-                this.DataLength = dataLength;
-                this.Data = data;
+                DataLength = dataLength;
+                Data = data;
             }
         }
 

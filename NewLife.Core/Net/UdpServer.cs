@@ -125,7 +125,7 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (!Open()) return false;
 
@@ -188,7 +188,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public override Byte[] Receive()
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (!Open()) return null;
 
@@ -209,7 +209,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (!Open()) return -1;
 
@@ -333,7 +333,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual ISocketSession CreateSession(IPEndPoint remoteEP)
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             var sessions = _Sessions;
             if (sessions == null) return null;

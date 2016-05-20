@@ -13,37 +13,37 @@ namespace System
 
 		protected Lightup(Type type)
 		{
-			this._type = type;
+            _type = type;
 		}
 
 		protected bool TryGet<T>(ref Delegate storage, string propertyName, out T value)
 		{
-			return this.TryCall<T>(ref storage, "get_" + propertyName, out value);
+			return TryCall(ref storage, "get_" + propertyName, out value);
 		}
 
 		protected T Get<T>(ref Delegate storage, string propertyName)
 		{
-			return this.Call<T>(ref storage, "get_" + propertyName);
+			return Call<T>(ref storage, "get_" + propertyName);
 		}
 
 		protected void Set<T>(ref Delegate storage, string propertyName, T value)
 		{
-			this.Call<T>(ref storage, "set_" + propertyName, value);
+            Call(ref storage, "set_" + propertyName, value);
 		}
 
 		protected void Set<TI, TV>(ref Delegate storage, TI instance, string propertyName, TV value)
 		{
-			this.Call<TI, TV>(ref storage, instance, "set_" + propertyName, value);
+            Call(ref storage, instance, "set_" + propertyName, value);
 		}
 
 		protected bool TrySet<TI, TV>(ref Delegate storage, TI instance, string propertyName, TV value)
 		{
-			return this.TryCall<TI, TV>(ref storage, instance, "set_" + propertyName, value);
+			return TryCall(ref storage, instance, "set_" + propertyName, value);
 		}
 
 		protected bool TryCall<T>(ref Delegate storage, string methodName, out T returnValue)
 		{
-			Func<T> methodAccessor = this.GetMethodAccessor<Func<T>>(ref storage, methodName, true);
+			Func<T> methodAccessor = GetMethodAccessor<Func<T>>(ref storage, methodName, true);
 			if (methodAccessor == null)
 			{
 				returnValue = default(T);
@@ -55,7 +55,7 @@ namespace System
 
 		protected T Call<T>(ref Delegate storage, string methodName)
 		{
-			Func<T> methodAccessor = this.GetMethodAccessor<Func<T>>(ref storage, methodName, true);
+			Func<T> methodAccessor = GetMethodAccessor<Func<T>>(ref storage, methodName, true);
 			if (methodAccessor == null)
 			{
 				throw new InvalidOperationException();
@@ -65,7 +65,7 @@ namespace System
 
 		protected void Call(ref Delegate storage, string methodName)
 		{
-			Action methodAccessor = this.GetMethodAccessor<Action>(ref storage, methodName, true);
+			Action methodAccessor = GetMethodAccessor<Action>(ref storage, methodName, true);
 			if (methodAccessor == null)
 			{
 				throw new InvalidOperationException();
@@ -75,7 +75,7 @@ namespace System
 
 		protected bool TryCall<TI, TV>(ref Delegate storage, TI instance, string methodName, TV parameter)
 		{
-			Action<TI, TV> methodAccessor = this.GetMethodAccessor<Action<TI, TV>>(ref storage, methodName, false);
+			Action<TI, TV> methodAccessor = GetMethodAccessor<Action<TI, TV>>(ref storage, methodName, false);
 			if (methodAccessor == null)
 			{
 				return false;
@@ -86,7 +86,7 @@ namespace System
 
 		protected bool TryCall<TI, TV1, TV2>(ref Delegate storage, TI instance, string methodName, TV1 parameter1, TV2 parameter2)
 		{
-			Action<TI, TV1, TV2> methodAccessor = this.GetMethodAccessor<Action<TI, TV1, TV2>>(ref storage, methodName, false);
+			Action<TI, TV1, TV2> methodAccessor = GetMethodAccessor<Action<TI, TV1, TV2>>(ref storage, methodName, false);
 			if (methodAccessor == null)
 			{
 				return false;
@@ -97,7 +97,7 @@ namespace System
 
 		protected void Call<TI, TV>(ref Delegate storage, TI instance, string methodName, TV parameter)
 		{
-			Action<TI, TV> methodAccessor = this.GetMethodAccessor<Action<TI, TV>>(ref storage, methodName, false);
+			Action<TI, TV> methodAccessor = GetMethodAccessor<Action<TI, TV>>(ref storage, methodName, false);
 			if (methodAccessor == null)
 			{
 				throw new InvalidOperationException();
@@ -107,7 +107,7 @@ namespace System
 
 		protected void Call<T>(ref Delegate storage, string methodName, T parameter)
 		{
-			Action<T> methodAccessor = this.GetMethodAccessor<Action<T>>(ref storage, methodName, true);
+			Action<T> methodAccessor = GetMethodAccessor<Action<T>>(ref storage, methodName, true);
 			if (methodAccessor == null)
 			{
 				throw new InvalidOperationException();
@@ -135,29 +135,29 @@ namespace System
 
 		private Delegate CreateMethodAccessor(Type type, string name, bool bindInstance = true)
 		{
-			if (this._type == null)
+			if (_type == null)
 			{
 				return null;
 			}
 			Type[] methodArgumentTypes = LightupServices.GetMethodArgumentTypes(type, bindInstance);
-			MethodInfo method = this._type.GetMethod(name, methodArgumentTypes);
+			MethodInfo method = _type.GetMethod(name, methodArgumentTypes);
 			if (method == null)
 			{
 				return null;
 			}
-			return LightupServices.CreateDelegate(type, bindInstance ? this.GetInstance() : null, method);
+			return LightupServices.CreateDelegate(type, bindInstance ? GetInstance() : null, method);
 		}
 
 		protected T GetMethodAccessor<T>(ref Delegate storage, string name, bool bindInstance = true)
 		{
-			return (T)((object)this.GetMethodAccessor(ref storage, typeof(T), name, bindInstance));
+			return (T)((object)GetMethodAccessor(ref storage, typeof(T), name, bindInstance));
 		}
 
 		protected Delegate GetMethodAccessor(ref Delegate storage, Type type, string name, bool bindInstance = true)
 		{
 			if (storage == null)
 			{
-				Delegate @delegate = this.CreateMethodAccessor(type, name, bindInstance);
+				Delegate @delegate = CreateMethodAccessor(type, name, bindInstance);
 				Interlocked.CompareExchange<Delegate>(ref storage, @delegate, null);
 			}
 			if (!(storage == LightupServices.NotFound))

@@ -21,7 +21,7 @@ namespace XICO
             //AllowDrop = true;
             picSrc.AllowDrop = true;
 
-            this.Icon = IcoHelper.GetIcon("图标");
+            Icon = IcoHelper.GetIcon("图标");
         }
 
         private void FrmMain_Shown(object sender, EventArgs e)

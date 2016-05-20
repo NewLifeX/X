@@ -122,7 +122,7 @@ namespace NewLife.Net.Proxy
                 WriteError("无法为{0}连接远程服务器{1}！耗时{2}！{3}", Remote, RemoteServerUri, ts, ex.Message);
 
                 if (session != null) session.Dispose();
-                this.Dispose();
+                Dispose();
             }
         }
 
@@ -137,7 +137,7 @@ namespace NewLife.Net.Proxy
 
         /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>
         /// <param name="client"></param>
-        protected virtual void OnRemoteDispose(ISocketClient client) { this.Dispose(); }
+        protected virtual void OnRemoteDispose(ISocketClient client) { Dispose(); }
 
         void Remote_Received(object sender, ReceivedEventArgs e)
         {
@@ -148,7 +148,7 @@ namespace NewLife.Net.Proxy
             catch (Exception ex)
             {
                 WriteError(ex.Message);
-                this.Dispose();
+                Dispose();
             }
         }
 
@@ -162,7 +162,7 @@ namespace NewLife.Net.Proxy
             {
                 var session = Session;
                 if (session == null || session.Disposed)
-                    this.Dispose();
+                    Dispose();
                 else
                 {
                     try
@@ -173,7 +173,7 @@ namespace NewLife.Net.Proxy
                     {
                         WriteError("转发给客户端出错，{0}", ex.Message);
 
-                        this.Dispose();
+                        Dispose();
                         throw;
                     }
                 }
@@ -192,7 +192,7 @@ namespace NewLife.Net.Proxy
             {
                 RemoteServer.Send(buffer, offset, size);
             }
-            catch { this.Dispose(); throw; }
+            catch { Dispose(); throw; }
 
             return this;
         }
@@ -210,7 +210,7 @@ namespace NewLife.Net.Proxy
             {
                 WriteError("转发给服务端出错，{0}", ex.Message);
 
-                this.Dispose();
+                Dispose();
                 throw;
             }
 
@@ -226,7 +226,7 @@ namespace NewLife.Net.Proxy
             {
                 RemoteServer.Send(msg, encoding);
             }
-            catch { this.Dispose(); throw; }
+            catch { Dispose(); throw; }
 
             return this;
         }
