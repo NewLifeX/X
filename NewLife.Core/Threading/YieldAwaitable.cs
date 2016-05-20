@@ -1,47 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Microsoft.Runtime.CompilerServices
 {
+    /// <summary>yield</summary>
     [StructLayout(LayoutKind.Sequential, Size = 1)]
-    internal struct YieldAwaitable
+    public struct YieldAwaitable
     {
+        /// <summary></summary>
         [StructLayout(LayoutKind.Sequential, Size = 1)]
         public struct YieldAwaiter : ICriticalNotifyCompletion, INotifyCompletion
         {
             private static readonly Task s_completed = TaskEx.FromResult<int>(0);
 
-            public bool IsCompleted
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            /// <summary></summary>
+            public bool IsCompleted { get { return false; } }
 
+            /// <summary></summary>
+            /// <param name="continuation"></param>
             public void OnCompleted(Action continuation)
             {
-                YieldAwaitable.YieldAwaiter.s_completed.GetAwaiter().OnCompleted(continuation);
+                s_completed.GetAwaiter().OnCompleted(continuation);
             }
 
+            /// <summary></summary>
+            /// <param name="continuation"></param>
             public void UnsafeOnCompleted(Action continuation)
             {
-                YieldAwaitable.YieldAwaiter.s_completed.GetAwaiter().UnsafeOnCompleted(continuation);
+                s_completed.GetAwaiter().UnsafeOnCompleted(continuation);
             }
 
-            public void GetResult()
-            {
-            }
+            /// <summary></summary>
+            public void GetResult() { }
         }
 
-        public YieldAwaitable.YieldAwaiter GetAwaiter()
+        /// <summary></summary>
+        /// <returns></returns>
+        public YieldAwaiter GetAwaiter()
         {
-            return default(YieldAwaitable.YieldAwaiter);
+            return default(YieldAwaiter);
         }
     }
 }
