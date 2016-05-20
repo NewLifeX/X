@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using NewLife.Log;
 
-namespace NewLife.Threading
+namespace System.Threading.Tasks
 {
     /// <summary>任务助手</summary>
     public static class TaskHelper
