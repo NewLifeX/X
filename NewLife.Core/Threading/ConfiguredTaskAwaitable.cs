@@ -1,21 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Microsoft.Runtime.CompilerServices
 {
-    internal struct ConfiguredTaskAwaitable
+    /// <summary>配置任务await</summary>
+    public struct ConfiguredTaskAwaitable
     {
+        /// <summary>配置任务await</summary>
         public struct ConfiguredTaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
         {
             private readonly Task m_task;
 
             private readonly bool m_continueOnCapturedContext;
 
+            /// <summary>是否已完成</summary>
             public bool IsCompleted
             {
                 get
@@ -31,16 +31,21 @@ namespace Microsoft.Runtime.CompilerServices
                 this.m_continueOnCapturedContext = continueOnCapturedContext;
             }
 
+            /// <summary>指定的 awaiter 完成时，安排状态机，以继续下一操作。</summary>
+            /// <param name="continuation"></param>
             public void OnCompleted(Action continuation)
             {
                 TaskAwaiter.OnCompletedInternal(this.m_task, continuation, this.m_continueOnCapturedContext);
             }
 
+            /// <summary>指定的 awaiter 完成时，安排状态机，以继续下一操作。此方法可从部分受信任的代码调用。</summary>
+            /// <param name="continuation"></param>
             public void UnsafeOnCompleted(Action continuation)
             {
                 TaskAwaiter.OnCompletedInternal(this.m_task, continuation, this.m_continueOnCapturedContext);
             }
 
+            /// <summary>将任务标记为已成功完成。</summary>
             public void GetResult()
             {
                 TaskAwaiter.ValidateEnd(this.m_task);
@@ -55,20 +60,26 @@ namespace Microsoft.Runtime.CompilerServices
             this.m_configuredTaskAwaiter = new ConfiguredTaskAwaitable.ConfiguredTaskAwaiter(task, continueOnCapturedContext);
         }
 
+        /// <summary>获取await</summary>
+        /// <returns></returns>
         public ConfiguredTaskAwaitable.ConfiguredTaskAwaiter GetAwaiter()
         {
             return this.m_configuredTaskAwaiter;
         }
     }
 
-    internal struct ConfiguredTaskAwaitable<TResult>
+    /// <summary>配置任务await</summary>
+    /// <typeparam name="TResult"></typeparam>
+    public struct ConfiguredTaskAwaitable<TResult>
     {
+        /// <summary>配置任务await</summary>
         public struct ConfiguredTaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
         {
             private readonly Task<TResult> m_task;
 
             private readonly bool m_continueOnCapturedContext;
 
+            /// <summary>是否已完成</summary>
             public bool IsCompleted
             {
                 get
@@ -84,16 +95,21 @@ namespace Microsoft.Runtime.CompilerServices
                 this.m_continueOnCapturedContext = continueOnCapturedContext;
             }
 
+            /// <summary>指定的 awaiter 完成时，安排状态机，以继续下一操作。</summary>
+            /// <param name="continuation"></param>
             public void OnCompleted(Action continuation)
             {
                 TaskAwaiter.OnCompletedInternal(this.m_task, continuation, this.m_continueOnCapturedContext);
             }
 
+            /// <summary>指定的 awaiter 完成时，安排状态机，以继续下一操作。此方法可从部分受信任的代码调用。</summary>
+            /// <param name="continuation"></param>
             public void UnsafeOnCompleted(Action continuation)
             {
                 TaskAwaiter.OnCompletedInternal(this.m_task, continuation, this.m_continueOnCapturedContext);
             }
 
+            /// <summary>将任务标记为已成功完成。</summary>
             public TResult GetResult()
             {
                 TaskAwaiter.ValidateEnd(this.m_task);
@@ -101,14 +117,16 @@ namespace Microsoft.Runtime.CompilerServices
             }
         }
 
-        private readonly ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter m_configuredTaskAwaiter;
+        private readonly ConfiguredTaskAwaiter m_configuredTaskAwaiter;
 
         internal ConfiguredTaskAwaitable(Task<TResult> task, bool continueOnCapturedContext)
         {
-            this.m_configuredTaskAwaiter = new ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter(task, continueOnCapturedContext);
+            this.m_configuredTaskAwaiter = new ConfiguredTaskAwaiter(task, continueOnCapturedContext);
         }
 
-        public ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter GetAwaiter()
+        /// <summary>获取await</summary>
+        /// <returns></returns>
+        public ConfiguredTaskAwaiter GetAwaiter()
         {
             return this.m_configuredTaskAwaiter;
         }

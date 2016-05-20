@@ -10,6 +10,11 @@ namespace NewLife.Threading
     /// <summary>任务助手</summary>
     public static class TaskHelper
     {
+        /// <summary>是否正确完成</summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        public static Boolean IsOK(this Task task) { return task != null && task.Status == TaskStatus.RanToCompletion; }
+
         /// <summary>捕获异常并输出日志</summary>
         /// <param name="task"></param>
         /// <param name="log"></param>
@@ -136,7 +141,7 @@ namespace NewLife.Threading
         private static Task<TResult> ToTaskContinuation<TResult>(Task task, TResult result)
         {
             var tcs = new TaskCompletionSource<TResult>();
-            task.ContinueWith(delegate(Task innerTask)
+            task.ContinueWith(delegate (Task innerTask)
             {
                 if (task.Status == TaskStatus.RanToCompletion)
                 {
