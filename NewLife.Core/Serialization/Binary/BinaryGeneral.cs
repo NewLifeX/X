@@ -498,10 +498,10 @@ namespace NewLife.Serialization
             var ms = ReadInt64();
 
             var dt = _Base.AddMilliseconds(ms);
-            if (dt.Year > 1970) return dt;
+            //if (dt.Year > 1970) return dt;
 
-            var dt2 = _Base.AddSeconds(ms);
-            if (dt2.Year < 3000) return dt2;
+            //var dt2 = _Base.AddSeconds(ms);
+            //if (dt2.Year < 3000) return dt2;
 
             return dt;
         }
