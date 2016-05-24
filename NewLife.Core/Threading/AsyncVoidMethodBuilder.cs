@@ -32,7 +32,7 @@ namespace System.Runtime.CompilerServices
         {
             try
             {
-                AsyncVoidMethodBuilder.PreventUnobservedTaskExceptions();
+                PreventUnobservedTaskExceptions();
             }
             catch
             {
@@ -41,7 +41,7 @@ namespace System.Runtime.CompilerServices
 
         internal static void PreventUnobservedTaskExceptions()
         {
-            if (Interlocked.CompareExchange(ref AsyncVoidMethodBuilder.s_preventUnobservedTaskExceptionsInvoked, 1, 0) == 0)
+            if (Interlocked.CompareExchange(ref s_preventUnobservedTaskExceptionsInvoked, 1, 0) == 0)
             {
                 TaskScheduler.UnobservedTaskException += (s, e) => { e.SetObserved(); };
             }
