@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using NewLife.Log;
 
@@ -8,11 +9,14 @@ namespace System.Threading.Tasks
     /// <summary>任务助手</summary>
     public static class TaskHelper
     {
+        #region 任务已完成
         /// <summary>是否正确完成</summary>
         /// <param name="task"></param>
         /// <returns></returns>
         public static Boolean IsOK(this Task task) { return task != null && task.Status == TaskStatus.RanToCompletion; }
+        #endregion
 
+        #region 异常日志/执行时间
         /// <summary>捕获异常并输出日志</summary>
         /// <param name="task"></param>
         /// <param name="log"></param>
@@ -42,6 +46,49 @@ namespace System.Threading.Tasks
             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
+        /// <summary>统计时间并输出日志</summary>
+        /// <param name="task"></param>
+        /// <param name="name"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        public static Task LogTime(this Task task, String name, ILog log = null)
+        {
+            if (log == null) log = XTrace.Log;
+            if (log == Logger.Null || !log.Enable) return task;
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            return task.ContinueWith(t =>
+            {
+                sw.Stop();
+                log.Info("{0} 耗时 {0}ms", name, sw.ElapsedMilliseconds);
+            }, TaskContinuationOptions.OnlyOnRanToCompletion);
+        }
+
+        /// <summary>统计时间并输出日志</summary>
+        /// <param name="task"></param>
+        /// <param name="name"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        public static Task<TResult> LogTime<TResult>(this Task<TResult> task, String name, ILog log = null)
+        {
+            if (log == null) log = XTrace.Log;
+            if (log == Logger.Null || !log.Enable) return task;
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            return task.ContinueWith(t =>
+            {
+                sw.Stop();
+                log.Info("{0} 耗时 {1}ms", name, sw.ElapsedMilliseconds);
+                return t.Result;
+            }, TaskContinuationOptions.OnlyOnRanToCompletion);
+        }
+        #endregion
+
+        #region 数据流异步
         /// <summary>异步读取数据流</summary>
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
@@ -82,6 +129,7 @@ namespace System.Threading.Tasks
         {
             return Task.Factory.FromAsync<Byte[], Int32, Int32>(stream.BeginWrite, stream.EndWrite, buffer, offset, count, null);
         }
+        #endregion
 
         #region 任务转换
         /// <summary>任务转换</summary>
