@@ -23,6 +23,8 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task LogException(this Task task, ILog log = null)
         {
+            if (task == null) return null;
+
             if (log == null) log = XTrace.Log;
             if (log == Logger.Null || !log.Enable) return task;
 
@@ -34,10 +36,31 @@ namespace System.Threading.Tasks
 
         /// <summary>捕获异常并输出日志</summary>
         /// <param name="task"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        public static Task<TResult> LogException<TResult>(this Task<TResult> task, ILog log = null)
+        {
+            if (task == null) return null;
+
+            if (log == null) log = XTrace.Log;
+            if (log == Logger.Null || !log.Enable) return task;
+
+            task.ContinueWith(t =>
+            {
+                if (t.IsFaulted && t.Exception != null && t.Exception.InnerException != null) log.Error(null, t.Exception.InnerException);
+            }, TaskContinuationOptions.OnlyOnFaulted);
+
+            return task;
+        }
+
+        /// <summary>捕获异常并输出日志</summary>
+        /// <param name="task"></param>
         /// <param name="errCallback"></param>
         /// <returns></returns>
         public static Task LogException(this Task task, Action<Exception> errCallback)
         {
+            if (task == null) return null;
+
             if (errCallback == null) return task;
 
             return task.ContinueWith(t =>
@@ -53,6 +76,8 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task LogTime(this Task task, String name, ILog log = null)
         {
+            if (task == null) return null;
+
             if (log == null) log = XTrace.Log;
             if (log == Logger.Null || !log.Enable) return task;
 
@@ -73,6 +98,8 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<TResult> LogTime<TResult>(this Task<TResult> task, String name, ILog log = null)
         {
+            if (task == null) return null;
+
             if (log == null) log = XTrace.Log;
             if (log == Logger.Null || !log.Enable) return task;
 
