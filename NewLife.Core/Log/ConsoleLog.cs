@@ -78,9 +78,13 @@ namespace NewLife.Log
         }
 
         static Dictionary<Int32, ConsoleColor> dic = new Dictionary<Int32, ConsoleColor>();
-        static ConsoleColor[] colors = new ConsoleColor[] { ConsoleColor.Gray, ConsoleColor.Green, ConsoleColor.Cyan, ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.DarkGray, ConsoleColor.DarkYellow, ConsoleColor.DarkMagenta, ConsoleColor.DarkRed, ConsoleColor.DarkCyan, ConsoleColor.DarkGreen };
+        static ConsoleColor[] colors = new ConsoleColor[] {
+            ConsoleColor.Green, ConsoleColor.Cyan, ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.Yellow,
+            ConsoleColor.DarkGreen, ConsoleColor.DarkCyan, ConsoleColor.DarkMagenta, ConsoleColor.DarkRed, ConsoleColor.DarkYellow };
         private ConsoleColor GetColor(Int32 threadid)
         {
+            if (threadid == 1) return ConsoleColor.Gray;
+
             // 好像因为dic.TryGetValue也会引发线程冲突，真是悲剧！
             lock (dic)
             {
