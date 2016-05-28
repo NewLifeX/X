@@ -15,7 +15,7 @@
     <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AndroidUseLatestPlatformSdk>False</AndroidUseLatestPlatformSdk>
-    <TargetFrameworkVersion>v2.3</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -349,6 +349,15 @@
     <Compile Include="..\NewLife.Core\Setting.cs">
       <Link>Core\Setting.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Threading\AsyncServices.cs">
+      <Link>Threading\AsyncServices.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Threading\TaskAwaiter.cs">
+      <Link>Threading\TaskAwaiter.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Threading\TaskEx.cs">
+      <Link>Threading\TaskEx.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Threading\TaskHelper.cs">
       <Link>Threading\TaskHelper.cs</Link>
     </Compile>
@@ -357,6 +366,9 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Threading\ThreadPoolX.cs">
       <Link>Threading\ThreadPoolX.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Threading\TimerManager.cs">
+      <Link>Threading\TimerManager.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Threading\TimerX.cs">
       <Link>Threading\TimerX.cs</Link>

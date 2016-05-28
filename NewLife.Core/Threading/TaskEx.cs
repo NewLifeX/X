@@ -298,13 +298,14 @@ namespace System.Threading.Tasks
             return taskCompletionSource.Task;
         }
 
+#if !Android
         /// <summary></summary>
         /// <returns></returns>
         public static YieldAwaitable Yield()
         {
             return default(YieldAwaitable);
         }
-
+#endif
         /// <summary></summary>
         /// <param name="targetList"></param>
         /// <param name="exception"></param>
