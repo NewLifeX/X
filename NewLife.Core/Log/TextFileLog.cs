@@ -1,20 +1,21 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using NewLife.Collections;
-using NewLife.Configuration;
 
 namespace NewLife.Log
 {
-    /// <summary>文本文件日志类。提供向文本文件写日志的能力
+    /// <summary>文本文件日志类。提供向文本文件写日志的能力</summary>
+    /// <remarks>
     /// 2015-06-01 为了继承TextFileLog，增加了无参构造函数，修改了异步写日志方法为虚方法，可以进行重载
-    /// </summary>
+    /// </remarks>
     public class TextFileLog : Logger, IDisposable
     {
         #region 构造
+        /// <summary>该构造函数没有作用，为了继承而设置</summary>
+        public TextFileLog() { }
+
         private TextFileLog(String path, Boolean isfile)
         {
             if (!isfile)
@@ -22,8 +23,6 @@ namespace NewLife.Log
             else
                 LogFile = path;
         }
-        /// <summary>该构造函数没有作用，为了继承而设置</summary>
-        public TextFileLog() { }
 
         static DictionaryCache<String, TextFileLog> cache = new DictionaryCache<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
@@ -60,9 +59,8 @@ namespace NewLife.Log
         #endregion
 
         #region 属性
-        private String _LogFile;
         /// <summary>日志文件</summary>
-        public String LogFile { get { return _LogFile; } set { _LogFile = value; } }
+        public String LogFile { get; set; }
 
         private String _LogPath;
         /// <summary>日志目录</summary>
@@ -170,7 +168,7 @@ namespace NewLife.Log
         #endregion
 
         #region 异步写日志
-        private Timer AutoCloseWriterTimer;
+        private Timer _Timer;
         private object Log_Lock = new object();
         private Boolean LastIsNewLine = true;
 
@@ -209,9 +207,9 @@ namespace NewLife.Log
                             LogWriter.Write(msg);
                     }
                     // 声明自动关闭日志读写器的定时器。无限延长时间，实际上不工作
-                    if (AutoCloseWriterTimer == null) AutoCloseWriterTimer = new Timer(new TimerCallback(CloseWriter), null, Timeout.Infinite, Timeout.Infinite);
+                    if (_Timer == null) _Timer = new Timer(CloseWriter, null, Timeout.Infinite, Timeout.Infinite);
                     // 改变定时器为5秒后触发一次。如果5秒内有多次写日志操作，估计定时器不会触发，直到空闲五秒为止
-                    AutoCloseWriterTimer.Change(5000, Timeout.Infinite);
+                    _Timer.Change(5000, Timeout.Infinite);
 
                     // 清空日志对象
                     e.Clear();
@@ -236,44 +234,44 @@ namespace NewLife.Log
                 PerformWriteLog(e.Set(Format(format, args), null, true));
         }
 
-        /// <summary>输出日志</summary>
-        /// <param name="msg">信息</param>
-        public void Write(String msg)
-        {
-            PerformWriteLog(WriteLogEventArgs.Current.Set(msg, null, false));
-        }
+        ///// <summary>输出日志</summary>
+        ///// <param name="msg">信息</param>
+        //public void Write(String msg)
+        //{
+        //    PerformWriteLog(WriteLogEventArgs.Current.Set(msg, null, false));
+        //}
 
-        /// <summary>写日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public void Write(String format, params Object[] args)
-        {
-            Write(Format(format, args));
-        }
+        ///// <summary>写日志</summary>
+        ///// <param name="format"></param>
+        ///// <param name="args"></param>
+        //public void Write(String format, params Object[] args)
+        //{
+        //    Write(Format(format, args));
+        //}
 
-        /// <summary>输出日志</summary>
-        /// <param name="msg">信息</param>
-        public void WriteLine(String msg)
-        {
-            // 小对象，采用对象池的成本太高了
-            PerformWriteLog(WriteLogEventArgs.Current.Set(msg, null, true));
-        }
+        ///// <summary>输出日志</summary>
+        ///// <param name="msg">信息</param>
+        //public void WriteLine(String msg)
+        //{
+        //    // 小对象，采用对象池的成本太高了
+        //    PerformWriteLog(WriteLogEventArgs.Current.Set(msg, null, true));
+        //}
 
-        /// <summary>写日志</summary>
-        /// <param name="level"></param>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public void WriteLine(LogLevel level, String format, params Object[] args)
-        {
-            WriteLine(Format(format, args));
-        }
+        ///// <summary>写日志</summary>
+        ///// <param name="level"></param>
+        ///// <param name="format"></param>
+        ///// <param name="args"></param>
+        //public void WriteLine(LogLevel level, String format, params Object[] args)
+        //{
+        //    WriteLine(Format(format, args));
+        //}
 
-        /// <summary>输出异常日志</summary>
-        /// <param name="ex">异常信息</param>
-        public void WriteException(Exception ex)
-        {
-            PerformWriteLog(WriteLogEventArgs.Current.Set(null, ex, false));
-        }
+        ///// <summary>输出异常日志</summary>
+        ///// <param name="ex">异常信息</param>
+        //public void WriteException(Exception ex)
+        //{
+        //    PerformWriteLog(WriteLogEventArgs.Current.Set(null, ex, false));
+        //}
         #endregion
 
         #region 辅助

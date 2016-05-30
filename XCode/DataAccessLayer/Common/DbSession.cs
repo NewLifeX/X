@@ -741,7 +741,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        static TextFileLog logger;
+        static ILog logger;
 
         /// <summary>写入SQL到文本中</summary>
         /// <param name="sql"></param>
@@ -794,7 +794,7 @@ namespace XCode.DataAccessLayer
             else
             {
                 if (logger == null) logger = TextFileLog.Create(DAL.SQLPath);
-                logger.WriteLine(sql);
+                logger.Info(sql);
             }
         }
 

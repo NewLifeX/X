@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Text;
 #if !Android
 using System.Web;
 #endif
@@ -11,70 +10,67 @@ namespace NewLife.Log
     public class WriteLogEventArgs : EventArgs
     {
         #region 属性
-        private LogLevel _Level;
         /// <summary>日志等级</summary>
-        public LogLevel Level { get { return _Level; } set { _Level = value; } }
+        public LogLevel Level { get; set; }
 
-        private String _Message;
         /// <summary>日志信息</summary>
-        public String Message { get { return _Message; } set { _Message = value; } }
+        public String Message { get; set; }
 
-        private Exception _Exception;
         /// <summary>异常</summary>
-        public Exception Exception { get { return _Exception; } set { _Exception = value; } }
+        public Exception Exception { get; set; }
 
-        private Boolean _IsNewLine = true;
         /// <summary>是否换行</summary>
-        public Boolean IsNewLine { get { return _IsNewLine; } set { _IsNewLine = value; } }
+        public Boolean IsNewLine { get; set; }
         #endregion
 
         #region 扩展属性
-        private DateTime _Time;
         /// <summary>时间</summary>
-        public DateTime Time { get { return _Time; } set { _Time = value; } }
+        public DateTime Time { get; set; }
 
-        private Int32 _ThreadID;
         /// <summary>线程编号</summary>
-        public Int32 ThreadID { get { return _ThreadID; } set { _ThreadID = value; } }
+        public Int32 ThreadID { get; set; }
 
-        private Boolean _IsPoolThread;
         /// <summary>是否线程池线程</summary>
-        public Boolean IsPoolThread { get { return _IsPoolThread; } set { _IsPoolThread = value; } }
+        public Boolean IsPoolThread { get; set; }
 
-        private Boolean _IsWeb;
         /// <summary>是否Web线程</summary>
-        public Boolean IsWeb { get { return _IsWeb; } set { _IsWeb = value; } }
+        public Boolean IsWeb { get; set; }
 
-        private String _ThreadName;
         /// <summary>线程名</summary>
-        public String ThreadName { get { return _ThreadName; } set { _ThreadName = value; } }
+        public String ThreadName { get; set; }
+
+        /// <summary>任务编号</summary>
+        public Int32 TaskID { get; set; }
         #endregion
 
         #region 构造
         /// <summary>实例化一个日志事件参数</summary>
-        internal WriteLogEventArgs() { }
-
-        /// <summary>构造函数</summary>
-        /// <param name="message">日志</param>
-        public WriteLogEventArgs(String message) : this(message, null, true) { }
-
-        /// <summary>构造函数</summary>
-        /// <param name="message">日志</param>
-        /// <param name="exception">异常</param>
-        public WriteLogEventArgs(String message, Exception exception) : this(message, null, true) { }
-
-        /// <summary>构造函数</summary>
-        /// <param name="message">日志</param>
-        /// <param name="exception">异常</param>
-        /// <param name="isNewLine">是否换行</param>
-        public WriteLogEventArgs(String message, Exception exception, Boolean isNewLine)
+        internal WriteLogEventArgs()
         {
-            Message = message;
-            Exception = exception;
-            IsNewLine = isNewLine;
-
-            Init();
+            IsNewLine = true;
         }
+
+        ///// <summary>构造函数</summary>
+        ///// <param name="message">日志</param>
+        //public WriteLogEventArgs(String message) : this(message, null, true) { }
+
+        ///// <summary>构造函数</summary>
+        ///// <param name="message">日志</param>
+        ///// <param name="exception">异常</param>
+        //public WriteLogEventArgs(String message, Exception exception) : this(message, null, true) { }
+
+        ///// <summary>构造函数</summary>
+        ///// <param name="message">日志</param>
+        ///// <param name="exception">异常</param>
+        ///// <param name="isNewLine">是否换行</param>
+        //public WriteLogEventArgs(String message, Exception exception, Boolean isNewLine)
+        //{
+        //    Message = message;
+        //    Exception = exception;
+        //    IsNewLine = isNewLine;
+
+        //    Init();
+        //}
         #endregion
 
         #region 线程专有实例
@@ -134,35 +130,6 @@ namespace NewLife.Log
 #endif
         }
 
-        //private static DateTime _Last;
-        ///// <summary>已重载。</summary>
-        ///// <returns></returns>
-        //public string ToShortString()
-        //{
-        //    if (Exception != null) Message += Exception.ToString();
-
-        //    var sb = new StringBuilder();
-
-        //    // 屏蔽小时和分钟部分，仅改变时显示一次
-        //    var now = DateTime.Now;
-        //    if (now.Hour == _Last.Hour && now.Minute == _Last.Minute)
-        //        sb.AppendFormat("{0:ss.fff} {1,2}", Time, ThreadID);
-        //    else
-        //    {
-        //        _Last = now;
-        //        sb.AppendFormat("{0:HH:mm:ss.fff} {1,2}", Time, ThreadID);
-        //    }
-
-        //    if (!Runtime.IsConsole)
-        //        sb.AppendFormat(" {0}", IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N');
-
-        //    if (!ThreadName.IsNullOrEmpty())
-        //        sb.AppendFormat(" {0}", ThreadName);
-        //    sb.AppendFormat(" {0}", Message);
-
-        //    return sb.ToString();
-        //}
-
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override string ToString()
@@ -170,7 +137,7 @@ namespace NewLife.Log
             if (Exception != null) Message += Exception.ToString();
 
             var name = ThreadName;
-            if (name.IsNullOrEmpty()) name = "-";
+            if (name.IsNullOrEmpty()) name = TaskID > 0 ? TaskID + "" : "-";
 #if Android
             if (name.EqualIgnoreCase("Threadpool worker")) name = "P";
             if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
