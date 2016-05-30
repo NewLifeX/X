@@ -170,7 +170,6 @@ namespace NewLife.Log
         #region 异步写日志
         private Timer _Timer;
         private object Log_Lock = new object();
-        private Boolean LastIsNewLine = true;
 
         /// <summary>使用线程池线程异步执行日志写入动作</summary>
         /// <param name="e"></param>
@@ -183,36 +182,11 @@ namespace NewLife.Log
                     // 初始化日志读写器
                     if (LogWriter == null) InitLog();
                     // 写日志
-                    if (LastIsNewLine)
-                    {
-                        // 如果上一次是换行，则这次需要输出行头信息
-                        if (e.IsNewLine)
-                            LogWriter.WriteLine(e.ToString());
-                        else
-                        {
-                            LogWriter.Write(e.ToString());
-                            LastIsNewLine = false;
-                        }
-                    }
-                    else
-                    {
-                        // 如果上一次不是换行，则这次不需要行头信息
-                        var msg = e.Message + e.Exception;
-                        if (e.IsNewLine)
-                        {
-                            LogWriter.WriteLine(msg);
-                            LastIsNewLine = true;
-                        }
-                        else
-                            LogWriter.Write(msg);
-                    }
+                    LogWriter.WriteLine(e.ToString());
                     // 声明自动关闭日志读写器的定时器。无限延长时间，实际上不工作
                     if (_Timer == null) _Timer = new Timer(CloseWriter, null, Timeout.Infinite, Timeout.Infinite);
                     // 改变定时器为5秒后触发一次。如果5秒内有多次写日志操作，估计定时器不会触发，直到空闲五秒为止
                     _Timer.Change(5000, Timeout.Infinite);
-
-                    // 清空日志对象
-                    e.Clear();
                 }
                 catch { }
             }
@@ -229,9 +203,9 @@ namespace NewLife.Log
             var e = WriteLogEventArgs.Current.Set(level);
             // 特殊处理异常对象
             if (args != null && args.Length == 1 && args[0] is Exception && (String.IsNullOrEmpty(format) || format == "{0}"))
-                PerformWriteLog(e.Set(null, args[0] as Exception, true));
+                PerformWriteLog(e.Set(null, args[0] as Exception));
             else
-                PerformWriteLog(e.Set(Format(format, args), null, true));
+                PerformWriteLog(e.Set(Format(format, args), null));
         }
 
         ///// <summary>输出日志</summary>

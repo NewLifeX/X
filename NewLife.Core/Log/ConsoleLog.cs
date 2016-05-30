@@ -16,7 +16,7 @@ namespace NewLife.Log
         /// <param name="args"></param>
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
-            var e = WriteLogEventArgs.Current.Set(level).Set(Format(format, args), null, true);
+            var e = WriteLogEventArgs.Current.Set(level).Set(Format(format, args), null);
 
             if (!UseColor)
             {
@@ -48,33 +48,10 @@ namespace NewLife.Log
 #endif
         }
 
-        private Boolean LastIsNewLine = true;
         private void ConsoleWriteLog(WriteLogEventArgs e)
         {
-            if (LastIsNewLine)
-            {
-                var msg = e.ToString();
-                // 如果上一次是换行，则这次需要输出行头信息
-                if (e.IsNewLine)
-                    Console.WriteLine(msg);
-                else
-                {
-                    Console.Write(msg);
-                    LastIsNewLine = false;
-                }
-            }
-            else
-            {
-                // 如果上一次不是换行，则这次不需要行头信息
-                var msg = e.Message + e.Exception;
-                if (e.IsNewLine)
-                {
-                    Console.WriteLine(msg);
-                    LastIsNewLine = true;
-                }
-                else
-                    Console.Write(msg);
-            }
+            var msg = e.ToString();
+            Console.WriteLine(msg);
         }
 
         static Dictionary<Int32, ConsoleColor> dic = new Dictionary<Int32, ConsoleColor>();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 #if !Android
 using System.Web;
 #endif
@@ -19,11 +20,6 @@ namespace NewLife.Log
         /// <summary>异常</summary>
         public Exception Exception { get; set; }
 
-        /// <summary>是否换行</summary>
-        public Boolean IsNewLine { get; set; }
-        #endregion
-
-        #region 扩展属性
         /// <summary>时间</summary>
         public DateTime Time { get; set; }
 
@@ -31,7 +27,7 @@ namespace NewLife.Log
         public Int32 ThreadID { get; set; }
 
         /// <summary>是否线程池线程</summary>
-        public Boolean IsPoolThread { get; set; }
+        public Boolean IsPool { get; set; }
 
         /// <summary>是否Web线程</summary>
         public Boolean IsWeb { get; set; }
@@ -45,32 +41,7 @@ namespace NewLife.Log
 
         #region 构造
         /// <summary>实例化一个日志事件参数</summary>
-        internal WriteLogEventArgs()
-        {
-            IsNewLine = true;
-        }
-
-        ///// <summary>构造函数</summary>
-        ///// <param name="message">日志</param>
-        //public WriteLogEventArgs(String message) : this(message, null, true) { }
-
-        ///// <summary>构造函数</summary>
-        ///// <param name="message">日志</param>
-        ///// <param name="exception">异常</param>
-        //public WriteLogEventArgs(String message, Exception exception) : this(message, null, true) { }
-
-        ///// <summary>构造函数</summary>
-        ///// <param name="message">日志</param>
-        ///// <param name="exception">异常</param>
-        ///// <param name="isNewLine">是否换行</param>
-        //public WriteLogEventArgs(String message, Exception exception, Boolean isNewLine)
-        //{
-        //    Message = message;
-        //    Exception = exception;
-        //    IsNewLine = isNewLine;
-
-        //    Init();
-        //}
+        internal WriteLogEventArgs() { }
         #endregion
 
         #region 线程专有实例
@@ -98,24 +69,15 @@ namespace NewLife.Log
         /// <summary>初始化为新日志</summary>
         /// <param name="message">日志</param>
         /// <param name="exception">异常</param>
-        /// <param name="isNewLine">是否换行</param>
         /// <returns>返回自身，链式写法</returns>
-        public WriteLogEventArgs Set(String message, Exception exception, Boolean isNewLine)
+        public WriteLogEventArgs Set(String message, Exception exception)
         {
             Message = message;
             Exception = exception;
-            IsNewLine = isNewLine;
 
             Init();
 
             return this;
-        }
-
-        /// <summary>清空日志特别是异常对象，避免因线程静态而导致内存泄漏</summary>
-        public void Clear()
-        {
-            Message = null;
-            Exception = null;
         }
 
         void Init()
@@ -123,8 +85,12 @@ namespace NewLife.Log
             Time = DateTime.Now;
             var thread = Thread.CurrentThread;
             ThreadID = thread.ManagedThreadId;
-            IsPoolThread = thread.IsThreadPoolThread;
+            IsPool = thread.IsThreadPoolThread;
             ThreadName = thread.Name;
+
+            var tid = Task.CurrentId;
+            TaskID = tid != null ? tid.Value : -1;
+
 #if !Android
             IsWeb = HttpContext.Current != null;
 #endif
@@ -137,13 +103,13 @@ namespace NewLife.Log
             if (Exception != null) Message += Exception.ToString();
 
             var name = ThreadName;
-            if (name.IsNullOrEmpty()) name = TaskID > 0 ? TaskID + "" : "-";
+            if (name.IsNullOrEmpty()) name = TaskID >= 0 ? TaskID + "" : "-";
 #if Android
             if (name.EqualIgnoreCase("Threadpool worker")) name = "P";
             if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
 #endif
 
-            return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPoolThread ? (IsWeb ? 'W' : 'Y') : 'N', name, Message);
+            return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPool ? (IsWeb ? 'W' : 'Y') : 'N', name, Message);
         }
         #endregion
     }
