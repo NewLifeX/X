@@ -172,7 +172,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task WhenAll(IEnumerable<Task> tasks)
         {
-            return WhenAllCore<object>(tasks, delegate (Task[] completedTasks, TaskCompletionSource<object> tcs)
+            return WhenAllCore<object>(tasks, (completedTasks, tcs) =>
             {
                 tcs.TrySetResult(null);
             });
@@ -184,9 +184,9 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<TResult[]> WhenAll<TResult>(IEnumerable<Task<TResult>> tasks)
         {
-            return WhenAllCore<TResult[]>(Enumerable.Cast<Task>(tasks), delegate (Task[] completedTasks, TaskCompletionSource<TResult[]> tcs)
+            return WhenAllCore<TResult[]>(tasks.Cast<Task>(), (completedTasks, tcs) =>
             {
-                tcs.TrySetResult(Enumerable.ToArray<TResult>(Enumerable.Select<Task, TResult>(completedTasks, (Task t) => ((Task<TResult>)t).Result)));
+                tcs.TrySetResult(completedTasks.Select(t => ((Task<TResult>)t).Result).ToArray());
             });
         }
 
@@ -203,8 +203,8 @@ namespace System.Threading.Tasks
             }
             Contract.EndContractBlock();
             Contract.Assert(setResultAction != null, null);
-            TaskCompletionSource<TResult> tcs = new TaskCompletionSource<TResult>();
-            Task[] array = (tasks as Task[]) ?? Enumerable.ToArray<Task>(tasks);
+            var tcs = new TaskCompletionSource<TResult>();
+            Task[] array = (tasks as Task[]) ?? tasks.ToArray();
             if (array.Length == 0)
             {
                 setResultAction.Invoke(array, tcs);
@@ -260,7 +260,7 @@ namespace System.Threading.Tasks
 
             Contract.EndContractBlock();
             var tcs = new TaskCompletionSource<Task>();
-            Task.Factory.ContinueWhenAny<bool>((tasks as Task[]) ?? Enumerable.ToArray<Task>(tasks), (Task completed) => tcs.TrySetResult(completed), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            Task.Factory.ContinueWhenAny<bool>((tasks as Task[]) ?? tasks.ToArray(), (Task completed) => tcs.TrySetResult(completed), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return tcs.Task;
         }
 
@@ -283,7 +283,7 @@ namespace System.Threading.Tasks
 
             Contract.EndContractBlock();
             var tcs = new TaskCompletionSource<Task<TResult>>();
-            Task.Factory.ContinueWhenAny<TResult, bool>((tasks as Task<TResult>[]) ?? Enumerable.ToArray<Task<TResult>>(tasks), (Task<TResult> completed) => tcs.TrySetResult(completed), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            Task.Factory.ContinueWhenAny<TResult, bool>((tasks as Task<TResult>[]) ?? tasks.ToArray(), (Task<TResult> completed) => tcs.TrySetResult(completed), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return tcs.Task;
         }
 
@@ -293,9 +293,9 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<TResult> FromResult<TResult>(TResult result)
         {
-            TaskCompletionSource<TResult> taskCompletionSource = new TaskCompletionSource<TResult>(result);
-            taskCompletionSource.TrySetResult(result);
-            return taskCompletionSource.Task;
+            var tcs = new TaskCompletionSource<TResult>(result);
+            tcs.TrySetResult(result);
+            return tcs.Task;
         }
 
 #if !Android
@@ -311,7 +311,7 @@ namespace System.Threading.Tasks
         /// <param name="exception"></param>
         private static void AddPotentiallyUnwrappedExceptions(ref List<Exception> targetList, Exception exception)
         {
-            AggregateException ex = exception as AggregateException;
+            var ex = exception as AggregateException;
             Contract.Assert(exception != null, null);
             Contract.Assert(ex == null || ex.InnerExceptions.Count > 0, null);
             if (targetList == null)
