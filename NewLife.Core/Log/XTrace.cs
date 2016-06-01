@@ -88,7 +88,11 @@ namespace NewLife.Log
         {
             if (!e.Observed)
             {
-                WriteException(e.Exception);
+                //WriteException(e.Exception);
+                foreach (var ex in e.Exception.Flatten().InnerExceptions)
+                {
+                    WriteException(ex);
+                }
                 e.SetObserved();
             }
         }
