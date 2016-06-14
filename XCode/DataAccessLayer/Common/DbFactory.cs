@@ -32,8 +32,8 @@ namespace XCode.DataAccessLayer
                 .Reg<Firebird>()
                 .Reg<PostgreSQL>()
                 .Reg<SqlCe>()
-                .Reg<Access>(String.Empty);
-            // Access作为默认实现
+                .Reg<SQLite>(String.Empty);
+            // SQLite作为默认实现
         }
 
         private static IObjectContainer Reg<T>(this IObjectContainer container, Object id = null)
