@@ -1,0 +1,26 @@
+选择主要源码，发布到GitHub
+建议每个git项目都建立Src作为源码目录，然后并排Src放DLL/Doc等其它相关目录
+
+1，X组件源代码 https://svn.newlifex.com/svn/X/trunk/Src
+
+树形结构表示依赖关系
+NewLife.Core 核心库
+	XCode	数据映射框架
+		NewLife.Cube	魔方，MVC管理后台
+	XCoder	码神工具，代码生成，串口调试，网络调试，图标编辑，正则表达式
+	NewLife.Net	网络库
+	XAgent		服务代理组件
+	XControl	WebForm时代的Web控件
+	XTemplate	C#模版引擎
+	NewLife.MQ	消息队列，未完成
+	
+NewLife.Android	X组件的Android/IOS版本，依赖于Xamarin编译
+
+2，办公自动化，任务管理 https://svn.newlifex.com/svn/OS/NewLife.OA
+依赖于 NewLife.Cube + XCode + NewLife.Core
+
+3，内容管理系统 https://svn.newlifex.com/svn/X/CMX
+依赖于 NewLife.Cube + XCode + NewLife.Core
+
+4，脚本引擎  https://svn.newlifex.com/svn/X/XScript
+依赖于 NewLife.Core
