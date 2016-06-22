@@ -24,3 +24,17 @@ NewLife.Android	X组件的Android/IOS版本，依赖于Xamarin编译
 
 4，脚本引擎  https://svn.newlifex.com/svn/X/XScript
 依赖于 NewLife.Core
+
+5，CHM手册生成 https://svn.newlifex.com/svn/OS/ADB
+修改别人的版本，7年了都联系不上作者，可能会有版权问题
+
+6，DNS代理服务器 https://svn.newlifex.com/svn/OS/DNS
+包括Windows服务和一个管理平台，.Net 2.0
+
+7，网络抓包工具 https://svn.newlifex.com/svn/OS/XAnalyzer
+
+8，串口调试工具 https://svn.newlifex.com/svn/OS/XCom
+新版本继承到码神工具XCoder，该独立版本不再更新
+
+9，味精邮件 https://svn.newlifex.com/svn/OS/XMail
+通过设定关键字，在各大搜索引擎大规模采集网页邮箱地址，并保存到数据库
