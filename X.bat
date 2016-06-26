@@ -11,6 +11,7 @@ for %%i in (NewLife.Core NewLife.Net XCode XAgent XCoder XControl XTemplate) do 
 		git svn clone %url%/%%i --no-metadata --authors-file=..\user.txt .\
 		git remote add origin https://github.com/NewLifeX/%%i.git
 	) else (
+		git fetch -v --progress "origin"
 		git svn fetch
 	)
 
