@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 title 自动同步
 
 set url=https://svn.newlifex.com/svn/X/trunk/Src
-for %%i in (NewLife.Core NewLife.Net XCode XAgent XCoder XControl XTemplate) do (
+for %%i in (NewLife.Core NewLife.Net XCode XAgent XCoder XControl XTemplate NewLife.Cube) do (
 	pushd %%i
 
 	if not exist .git (
