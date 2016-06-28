@@ -219,6 +219,8 @@ namespace NewLife.Net
             {
                 tc.Log = Log;
 
+                if (Object.Equals(remote.Address, IPAddress.Broadcast)) Client.EnableBroadcast = true;
+
                 // 同时只允许一个异步发送，其它发送放入队列
 
                 // 考虑到超长数据包，拆分为多个包
