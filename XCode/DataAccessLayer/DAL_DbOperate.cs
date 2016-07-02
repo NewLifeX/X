@@ -40,7 +40,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 使用缓存后的数据操作方法
-        private DictionaryCache<String, SelectBuilder> _PageSplitCache2;
+        //private DictionaryCache<String, SelectBuilder> _PageSplitCache2;
         /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
         /// <remarks>
         /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
@@ -52,21 +52,24 @@ namespace XCode.DataAccessLayer
         /// <returns>分页SQL</returns>
         public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            var cacheKey = String.Format("{0}_{1}_{2}_{3}", builder, startRowIndex, maximumRows, ConnName);
+            //var cacheKey = String.Format("{0}_{1}_{2}_{3}", builder, startRowIndex, maximumRows, ConnName);
 
-            // 一个项目可能同时采用多种数据库，分页缓存不能采用静态
-            if (_PageSplitCache2 == null)
-            {
-                _PageSplitCache2 = new DictionaryCache<String, SelectBuilder>(StringComparer.OrdinalIgnoreCase);
+            //// 一个项目可能同时采用多种数据库，分页缓存不能采用静态
+            //if (_PageSplitCache2 == null)
+            //{
+            //    _PageSplitCache2 = new DictionaryCache<String, SelectBuilder>(StringComparer.OrdinalIgnoreCase);
 
-                // Access、SqlCe和SqlServer2000在处理DoubleTop时，最后一页可能导致数据不对，故不能长时间缓存其分页语句
-                var dt = DbType;
-                if (dt == DatabaseType.Access || dt == DatabaseType.SqlCe || dt == DatabaseType.SqlServer && Db.ServerVersion.StartsWith("08"))
-                {
-                    _PageSplitCache2.Expire = 60;
-                }
-            }
-            return _PageSplitCache2.GetItem(cacheKey, builder, startRowIndex, maximumRows, (k, b, s, m) => Db.PageSplit(b, s, m));
+            //    // Access、SqlCe和SqlServer2000在处理DoubleTop时，最后一页可能导致数据不对，故不能长时间缓存其分页语句
+            //    var dt = DbType;
+            //    if (dt == DatabaseType.Access || dt == DatabaseType.SqlCe || dt == DatabaseType.SqlServer && Db.ServerVersion.StartsWith("08"))
+            //    {
+            //        _PageSplitCache2.Expire = 60;
+            //    }
+            //}
+            //return _PageSplitCache2.GetItem(cacheKey, builder, startRowIndex, maximumRows, (k, b, s, m) => Db.PageSplit(b, s, m));
+
+            //2016年7月2日 HUIYUE 取消分页SQL缓存，此部分缓存提升性能不多，但有可能会造成分页数据不准确，感觉得不偿失
+            return Db.PageSplit(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
