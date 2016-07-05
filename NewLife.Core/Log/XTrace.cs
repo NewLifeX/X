@@ -251,7 +251,7 @@ namespace NewLife.Log
         {
             var show = _ShowErrorMessage && Application.MessageLoop;
             var ex = e.ExceptionObject as Exception;
-            var msg = ex.Message;
+            var msg = ex == null ? "" : ex.Message;
             WriteLine(msg);
             if (e.IsTerminating)
             {
@@ -269,7 +269,7 @@ namespace NewLife.Log
             WriteException(e.Exception);
 
             var show = _ShowErrorMessage && Application.MessageLoop;
-            if (show) MessageBox.Show(e.Exception.Message, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (show) MessageBox.Show(e.Exception == null ? "" : e.Exception.Message, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
