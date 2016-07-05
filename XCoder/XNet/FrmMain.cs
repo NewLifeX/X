@@ -244,12 +244,17 @@ namespace XNet
             var sb = new StringBuilder();
             if (_Client != null)
             {
-                XTrace.WriteLine("发送：{0} 接收：{1}", _Client.StatSend, _Client.StatReceive);
+                if (_Client.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", _Client.StatSend);
+                if (_Client.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", _Client.StatReceive);
             }
             else if (_Server != null)
             {
-                XTrace.WriteLine("在线：{3:n0}/{4:n0} 会话：{2} 发送：{0} 接收：{1}", _Server.StatSend, _Server.StatReceive, _Server.StatSession, _Server.SessionCount, _Server.MaxSessionCount);
+                sb.AppendFormat("在线：{0:n0}/{1:n0} ", _Server.SessionCount, _Server.MaxSessionCount);
+                if (_Server.StatSession.Total > 0) sb.AppendFormat("会话：{0} ", _Server.StatSession);
+                if (_Server.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", _Server.StatSend);
+                if (_Server.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", _Server.StatReceive);
             }
+            XTrace.WriteLine(sb.ToString());
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
