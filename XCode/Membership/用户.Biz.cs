@@ -159,9 +159,6 @@ namespace XCode.Membership
             }
         }
 
-        ///// <summary>当前登录用户，不带自动登录</summary>
-        //public static TEntity CurrentNoAutoLogin { get { return HttpState.Get(null, null); } }
-
         /// <summary>友好名字</summary>
         public virtual String FriendName { get { return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName; } }
 
@@ -169,6 +166,11 @@ namespace XCode.Membership
         [DisplayName("性别")]
         [BindRelation(__.Sex)]
         public SexKinds SexKind { get { return (SexKinds)Sex; } set { Sex = (Int32)value; } }
+
+        /// <summary>物理地址</summary>
+        [DisplayName("物理地址")]
+        //[BindRelation(__.LastLoginIP)]
+        public String LastLoginAddress { get { return LastLoginIP.IPToAddress(); } }
         #endregion
 
         #region 扩展查询
@@ -533,6 +535,7 @@ namespace XCode.Membership
 
         /// <summary>角色名</summary>
         [DisplayName("角色")]
+        [BindRelation(__.RoleID)]
         public virtual String RoleName { get { return Role == null ? null : Role.Name; } set { } }
         #endregion
 

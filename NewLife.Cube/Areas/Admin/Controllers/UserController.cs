@@ -16,6 +16,17 @@ namespace NewLife.Cube.Admin.Controllers
     [Description("系统基于角色授权，每个角色对不同的功能模块具备添删改查以及自定义权限等多种权限设定。")]
     public class UserController : EntityController<UserX>
     {
+        static UserController()
+        {
+            ListFields.RemoveField("Phone");
+            ListFields.RemoveField("Code");
+            ListFields.RemoveField("StartTime");
+            ListFields.RemoveField("EndTime");
+            ListFields.RemoveField("RegisterTime");
+            ListFields.RemoveField("Question");
+            ListFields.RemoveField("Answer");
+        }
+
         ///// <summary>动作执行前</summary>
         ///// <param name="filterContext"></param>
         //protected override void OnActionExecuting(ActionExecutingContext filterContext)

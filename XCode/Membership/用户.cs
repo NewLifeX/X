@@ -128,11 +128,11 @@ namespace XCode.Membership
         }
 
         private Boolean _Enable;
-        /// <summary>是否启用</summary>
-        [DisplayName("是否启用")]
-        [Description("是否启用")]
+        /// <summary>启用</summary>
+        [DisplayName("启用")]
+        [Description("启用")]
         [DataObjectField(false, false, true, 1)]
-        [BindColumn(10, "Enable", "是否启用", null, "bit", 0, 0, false)]
+        [BindColumn(10, "Enable", "启用", null, "bit", 0, 0, false)]
         public virtual Boolean Enable
         {
             get { return _Enable; }
