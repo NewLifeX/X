@@ -12,6 +12,12 @@ namespace NewLife.Windows
         private SpeechRecognitionEngine _rg;
 
         private IDictionary<String, Action> _dic;
+
+        /// <summary>系统名称。用于引导前缀</summary>
+        private String _Name = "小七";
+
+        /// <summary>最后一次进入引导前缀的时间。</summary>
+        private DateTime _Tip;
         #endregion
 
         #region 构造
@@ -34,6 +40,10 @@ namespace NewLife.Windows
 
         #region 静态
         private static SpeechRecognition _instance;
+
+        /// <summary>系统名称。用于引导前缀</summary>
+        public static String Name { get { return _instance._Name; } set { _instance._Name = value; } }
+
         /// <summary>注册要语音识别的关键字到委托</summary>
         /// <param name="text"></param>
         /// <param name="callback"></param>
@@ -102,6 +112,7 @@ namespace NewLife.Windows
                 _rg.UnloadAllGrammars();
 
                 var cs = new Choices();
+                cs.Add(_Name);
                 cs.Add(_dic.Keys.ToArray());
 
                 var gb = new GrammarBuilder();
@@ -127,8 +138,20 @@ namespace NewLife.Windows
 
             if (rs.Confidence < 0.5) return;
 
-            Action func = null;
-            if (_dic.TryGetValue(rs.Text, out func)) func();
+            // 语音识别前，必须先识别前缀名称，然后几秒内识别关键字
+            if (_Tip.AddSeconds(3) < DateTime.Now)
+            {
+                // 此时只识别前缀
+                if (rs.Text != _Name) return;
+
+                // 现在可以开始识别关键字啦
+                _Tip = DateTime.Now;
+            }
+            else
+            {
+                Action func = null;
+                if (_dic.TryGetValue(rs.Text, out func)) func();
+            }
         }
         #endregion
     }
