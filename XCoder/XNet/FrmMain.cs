@@ -81,7 +81,7 @@ namespace XNet
                 SpeechRecognition.Register("退出", () => Application.Exit());
                 SpeechRecognition.Register("发送", () => this.Invoke(() => btnSend_Click(null, null)));
 
-                XTrace.WriteLine("有效的语音识别命令：{0}", SpeechRecognition.GetAllKeys().Join());
+                XTrace.WriteLine("语音识别前缀：{0} 可用命令：{1}", SpeechRecognition.Name, SpeechRecognition.GetAllKeys().Join());
             });
         }
         #endregion
