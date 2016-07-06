@@ -30,10 +30,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("5.7.*")]
-[assembly: AssemblyFileVersion("5.7.2016.0503")]
+[assembly: AssemblyVersion("6.0.*")]
+[assembly: AssemblyFileVersion("6.0.2016.0706")]
 
 /*
+ * v6.0.2016.0706   合并XAgent和NewLife.IP到核心库
+ * 
  * v5.7.2016.0503   增加代码耗时统计TimeCost，用于统计关键点功能耗时情况，并输出日志
  *                  增加语音识别SpeechRecognition
  * 
