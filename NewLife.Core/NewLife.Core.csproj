@@ -42,6 +42,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Speech" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
@@ -49,6 +50,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Agent\AgentService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Agent\AgentServiceBase.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Agent\AgentServiceBase_Base.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Agent\IAgentService.cs" />
+    <Compile Include="Agent\ServiceControl.cs" />
+    <Compile Include="Agent\ServiceHelper.cs" />
+    <Compile Include="Agent\Setting.cs" />
     <Compile Include="Applications\IP\Ip.cs" />
     <Compile Include="Applications\IP\Zip.cs" />
     <Compile Include="Collections\CollectionHelper.cs" />
