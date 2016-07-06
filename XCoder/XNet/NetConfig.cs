@@ -75,6 +75,10 @@ namespace XNet
         [Description("显示统计信息")]
         public Boolean ShowStat { get; set; }
 
+        /// <summary>日志着色</summary>
+        [Description("日志着色")]
+        public Boolean ColorLog { get; set; }
+
         public NetConfig()
         {
             Encoding = Encoding.Default;

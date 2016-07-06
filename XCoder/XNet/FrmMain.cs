@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife;
@@ -96,11 +94,13 @@ namespace XNet
             mi显示发送数据.Checked = cfg.ShowSend;
             mi显示接收数据.Checked = cfg.ShowReceive;
             mi显示统计信息.Checked = cfg.ShowStat;
+            miHex发送.Checked = cfg.HexSend;
 
             txtSend.Text = cfg.SendContent;
             numMutilSend.Value = cfg.SendTimes;
             numSleep.Value = cfg.SendSleep;
             numThreads.Value = cfg.SendUsers;
+            cbColor.Checked = cfg.ColorLog;
         }
 
         void SaveConfig()
@@ -112,11 +112,13 @@ namespace XNet
             cfg.ShowSend = mi显示发送数据.Checked;
             cfg.ShowReceive = mi显示接收数据.Checked;
             cfg.ShowStat = mi显示统计信息.Checked;
+            cfg.HexSend = miHex发送.Checked;
 
             cfg.SendContent = txtSend.Text;
             cfg.SendTimes = (Int32)numMutilSend.Value;
             cfg.SendSleep = (Int32)numSleep.Value;
             cfg.SendUsers = (Int32)numThreads.Value;
+            cfg.ColorLog = cbColor.Checked;
 
             cfg.Save();
         }
