@@ -49,6 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Applications\IP\Ip.cs" />
+    <Compile Include="Applications\IP\Zip.cs" />
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />

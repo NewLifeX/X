@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCoder", "XCoder\XCoder.csproj", "{3EB3A5F1-F785-4672-A21D-A3117FC12129}"
 EndProject
@@ -18,8 +18,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Net", "NewLife.Net\NewLife.Net.csproj", "{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test2", "Test2\Test2.csproj", "{181FE587-CA12-49DF-9A7C-96697C41F32D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.IP", "NewLife.IP\NewLife.IP.csproj", "{B2D1B525-2D28-405B-AE41-9D8B76D34A9F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Cube", "NewLife.Cube\NewLife.Cube.csproj", "{7AC0E99B-CFD8-4B59-8838-503EAA30523F}"
 EndProject
@@ -63,10 +61,6 @@ Global
 		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{181FE587-CA12-49DF-9A7C-96697C41F32D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B2D1B525-2D28-405B-AE41-9D8B76D34A9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B2D1B525-2D28-405B-AE41-9D8B76D34A9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B2D1B525-2D28-405B-AE41-9D8B76D34A9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B2D1B525-2D28-405B-AE41-9D8B76D34A9F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AC0E99B-CFD8-4B59-8838-503EAA30523F}.Release|Any CPU.ActiveCfg = Release|Any CPU

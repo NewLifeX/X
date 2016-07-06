@@ -51,10 +51,6 @@
       <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NewLife.IP\NewLife.IP.csproj">
-      <Project>{b2d1b525-2d28-405b-ae41-9d8b76d34a9f}</Project>
-      <Name>NewLife.IP</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NewLife.MQ\NewLife.MQ.csproj">
       <Project>{d32add53-5267-479d-96b7-b987e032e010}</Project>
       <Name>NewLife.MQ</Name>
