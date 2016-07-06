@@ -332,9 +332,11 @@ namespace XNet
                 return;
             }
 
+            var cfg = NetConfig.Current;
+
             // 处理换行
             str = str.Replace("\n", "\r\n");
-            var buf = str.GetBytes();
+            var buf = cfg.HexSend ? str.ToHex() : str.GetBytes();
 
             if (ths <= 1)
                 _Client.SendAsync(buf, count, sleep);
@@ -411,6 +413,12 @@ namespace XNet
         {
             var mi = sender as ToolStripMenuItem;
             NetConfig.Current.ShowReceiveString = mi.Checked = !mi.Checked;
+        }
+
+        private void miHex发送_Click(Object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            NetConfig.Current.HexSend = mi.Checked = !mi.Checked;
         }
         #endregion
 

@@ -18,9 +18,6 @@ namespace XCom
         {
             InitializeComponent();
 
-            //var asmx = AssemblyX.Entry;
-            //this.Text = asmx.Title;
-
             Icon = IcoHelper.GetIcon("串口");
         }
 
@@ -32,8 +29,6 @@ namespace XCom
 
             gbReceive.Tag = gbReceive.Text;
             gbSend.Tag = gbSend.Text;
-
-            //spList.ReceivedString += OnReceived;
 
             var menu = spList.Menu;
             txtReceive.ContextMenuStrip = menu;
