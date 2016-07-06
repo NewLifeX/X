@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -27,5 +28,27 @@ namespace NewLife.Net
 
         /// <summary>新会话时触发</summary>
         event EventHandler<SessionEventArgs> NewSession;
+    }
+
+    /// <summary>服务端通信Socket扩展</summary>
+    public static class SocketServerHelper
+    {
+        #region 统计
+        /// <summary>获取统计信息</summary>
+        /// <param name="socket"></param>
+        /// <returns></returns>
+        public static String GetStat(this ISocketServer socket)
+        {
+            if (socket == null) return null;
+
+            var sb = new StringBuilder();
+            //sb.AppendFormat("在线：{0:n0}/{1:n0} ", socket.SessionCount, socket.MaxSessionCount);
+            if (socket.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
+            if (socket.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
+            if (socket.StatSession.Total > 0) sb.AppendFormat("会话：{0} ", socket.StatSession);
+
+            return sb.ToString();
+        }
+        #endregion
     }
 }

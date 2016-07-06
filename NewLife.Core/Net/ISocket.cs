@@ -123,6 +123,22 @@ namespace NewLife.Net
     /// <summary>远程通信Socket扩展</summary>
     public static class SocketRemoteHelper
     {
+        #region 统计
+        /// <summary>获取统计信息</summary>
+        /// <param name="socket"></param>
+        /// <returns></returns>
+        public static String GetStat(this ISocketRemote socket)
+        {
+            if (socket == null) return null;
+
+            var sb = new StringBuilder();
+            if (socket.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
+            if (socket.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
+
+            return sb.ToString();
+        }
+        #endregion
+
         #region 发送
         /// <summary>发送数据流</summary>
         /// <param name="session">会话</param>

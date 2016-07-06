@@ -241,20 +241,10 @@ namespace XNet
         {
             if (!NetConfig.Current.ShowStat) return;
 
-            var sb = new StringBuilder();
             if (_Client != null)
-            {
-                if (_Client.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", _Client.StatSend);
-                if (_Client.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", _Client.StatReceive);
-            }
+                XTrace.WriteLine(_Client.GetStat());
             else if (_Server != null)
-            {
-                sb.AppendFormat("在线：{0:n0}/{1:n0} ", _Server.SessionCount, _Server.MaxSessionCount);
-                if (_Server.StatSession.Total > 0) sb.AppendFormat("会话：{0} ", _Server.StatSession);
-                if (_Server.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", _Server.StatSend);
-                if (_Server.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", _Server.StatReceive);
-            }
-            XTrace.WriteLine(sb.ToString());
+                XTrace.WriteLine(_Server.GetStat());
         }
 
         private void btnConnect_Click(object sender, EventArgs e)

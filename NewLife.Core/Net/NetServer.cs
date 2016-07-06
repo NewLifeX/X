@@ -529,6 +529,21 @@ namespace NewLife.Net
         }
         #endregion
 
+        #region 统计
+        /// <summary>获取统计信息</summary>
+        /// <returns></returns>
+        public String GetStat()
+        {
+            var sb = new StringBuilder();
+            if (SessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
+            if (StatSend.Total > 0) sb.AppendFormat("发送：{0} ", StatSend);
+            if (StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", StatReceive);
+            if (StatSession.Total > 0) sb.AppendFormat("会话：{0} ", StatSession);
+
+            return sb.ToString();
+        }
+        #endregion
+
         #region 日志
         private ILog _Log = NetHelper.Debug ? XTrace.Log : Logger.Null;
         /// <summary>日志提供者</summary>
