@@ -13,64 +13,55 @@ namespace NewLife.Net
     [XmlConfigFile("Config\\Serial.config")]
     public class SerialPortConfig : XmlConfig<SerialPortConfig>
     {
-        private String _PortName = "COM1";
         /// <summary>串口名</summary>
         [Description("串口名")]
-        public String PortName { get { return _PortName; } set { _PortName = value; } }
+        public String PortName { get; set; } = "COM1";
 
-        private Int32 _BaudRate = 115200;
         /// <summary>波特率</summary>
         [Description("波特率")]
-        public Int32 BaudRate { get { return _BaudRate; } set { _BaudRate = value; } }
+        public Int32 BaudRate { get; set; } = 115200;
 
-        private Int32 _DataBits = 8;
         /// <summary>数据位</summary>
         [Description("数据位")]
-        public Int32 DataBits { get { return _DataBits; } set { _DataBits = value; } }
+        public Int32 DataBits { get; set; } = 8;
 
 #if !Android
-        private StopBits _StopBits = StopBits.One;
         /// <summary>停止位</summary>
         [Description("停止位 None/One/Two/OnePointFive")]
-        public StopBits StopBits { get { return _StopBits; } set { _StopBits = value; } }
+        public StopBits StopBits { get; set; } = StopBits.One;
 
         private Parity _Parity = Parity.None;
         /// <summary>奇偶校验</summary>
         [Description("奇偶校验 None/Odd/Even/Mark/Space")]
-        public Parity Parity { get { return _Parity; } set { _Parity = value; } }
+        public Parity Parity { get; set; } = Parity.None;
 #endif
-        private Encoding _Encoding = Encoding.Default;
+
         /// <summary>文本编码</summary>
         [XmlIgnore]
-        public Encoding Encoding { get { return _Encoding; } set { _Encoding = value; } }
+        public Encoding Encoding { get; set; } = Encoding.Default;
 
         /// <summary>编码</summary>
         [Description("编码 gb2312/us-ascii/utf-8")]
-        public String WebEncoding { get { return _Encoding.WebName; } set { _Encoding = Encoding.GetEncoding(value); } }
+        public String WebEncoding { get { return Encoding.WebName; } set { Encoding = Encoding.GetEncoding(value); } }
 
-        private Boolean _HexShow;
         /// <summary>十六进制显示</summary>
         [Description("十六进制显示")]
-        public Boolean HexShow { get { return _HexShow; } set { _HexShow = value; } }
+        public Boolean HexShow { get; set; }
 
-        private Boolean _HexNewLine;
         /// <summary>十六进制自动换行</summary>
         [Description("十六进制自动换行")]
-        public Boolean HexNewLine { get { return _HexNewLine; } set { _HexNewLine = value; } }
+        public Boolean HexNewLine { get; set; }
 
-        private Boolean _HexSend;
         /// <summary>十六进制发送</summary>
         [Description("十六进制发送")]
-        public Boolean HexSend { get { return _HexSend; } set { _HexSend = value; } }
+        public Boolean HexSend { get; set; }
 
-        private DateTime _LastUpdate;
         /// <summary>最后更新时间</summary>
         [Description("最后更新时间")]
-        public DateTime LastUpdate { get { return _LastUpdate; } set { _LastUpdate = value; } }
+        public DateTime LastUpdate { get; set; }
 
-        private String _Extend;
         /// <summary>扩展数据</summary>
         [Description("扩展数据")]
-        public String Extend { get { return _Extend; } set { _Extend = value; } }
+        public String Extend { get; set; }
     }
 }

@@ -42,6 +42,8 @@ namespace XCom
 
             // 加载保存的颜色
             UIConfig.Apply(txtReceive);
+
+            cbColor.Checked = XConfig.Current.ColorLog;
         }
         #endregion
 
@@ -70,6 +72,10 @@ namespace XCom
             btnConnect.Text = "关闭";
 
             BizLog = TextFileLog.Create("SerialLog");
+
+            var cfg = XConfig.Current;
+            cfg.ColorLog = cbColor.Checked;
+            cfg.Save();
         }
 
         void Disconnect()

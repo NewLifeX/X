@@ -33,6 +33,10 @@ namespace XCoder
         [Description("扩展数据")]
         public String Extend { get; set; }
 
+        /// <summary>日志着色</summary>
+        [Description("日志着色")]
+        public Boolean ColorLog { get; set; }
+
         /// <summary>更新服务器</summary>
         [Description("更新服务器")]
         public String UpdateServer { get; set; }

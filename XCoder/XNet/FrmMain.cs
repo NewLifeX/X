@@ -94,7 +94,7 @@ namespace XNet
             mi显示发送数据.Checked = cfg.ShowSend;
             mi显示接收数据.Checked = cfg.ShowReceive;
             mi显示统计信息.Checked = cfg.ShowStat;
-            miHex发送.Checked = cfg.HexSend;
+            miHexSend.Checked = cfg.HexSend;
 
             txtSend.Text = cfg.SendContent;
             numMutilSend.Value = cfg.SendTimes;
@@ -112,7 +112,7 @@ namespace XNet
             cfg.ShowSend = mi显示发送数据.Checked;
             cfg.ShowReceive = mi显示接收数据.Checked;
             cfg.ShowStat = mi显示统计信息.Checked;
-            cfg.HexSend = miHex发送.Checked;
+            cfg.HexSend = miHexSend.Checked;
 
             cfg.SendContent = txtSend.Text;
             cfg.SendTimes = (Int32)numMutilSend.Value;

@@ -41,7 +41,7 @@
             this.mi显示接收数据 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi显示统计信息 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.miHex发送 = new System.Windows.Forms.ToolStripMenuItem();
+            this.miHexSend = new System.Windows.Forms.ToolStripMenuItem();
             this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
             this.btnConnect = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
@@ -170,17 +170,17 @@
             // menuSend
             // 
             this.menuSend.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miHex发送,
+            this.miHexSend,
             this.mi清空2});
             this.menuSend.Name = "menuSend";
             this.menuSend.Size = new System.Drawing.Size(153, 70);
             // 
-            // miHex发送
+            // miHexSend
             // 
-            this.miHex发送.Name = "miHex发送";
-            this.miHex发送.Size = new System.Drawing.Size(152, 22);
-            this.miHex发送.Text = "Hex发送";
-            this.miHex发送.Click += new System.EventHandler(this.miHex发送_Click);
+            this.miHexSend.Name = "miHexSend";
+            this.miHexSend.Size = new System.Drawing.Size(152, 22);
+            this.miHexSend.Text = "Hex发送";
+            this.miHexSend.Click += new System.EventHandler(this.miHex发送_Click);
             // 
             // mi清空2
             // 
@@ -492,7 +492,7 @@
         private System.Windows.Forms.ToolStripMenuItem mi显示应用日志;
         private System.Windows.Forms.ToolStripMenuItem mi显示网络日志;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.ToolStripMenuItem miHex发送;
+        private System.Windows.Forms.ToolStripMenuItem miHexSend;
     }
 }
 
