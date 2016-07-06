@@ -416,7 +416,7 @@ namespace NewLife.Net
                             foreach (var elm in usbvid.GetSubKeyNames())
                             {
                                 var sub = usbvid.OpenSubKey(elm);
-                                if (sub.GetValue("Class") + "" == "Ports")
+                                //if (sub.GetValue("Class") + "" == "Ports")
                                 {
                                     var FriendlyName = sub.GetValue("FriendlyName") + "";
                                     if (FriendlyName.Contains("({0})".F(name)))
