@@ -30,11 +30,6 @@ namespace System
             {
                 if (_Debug != null) return _Debug.Value;
 
-                //#if DEBUG
-                //                _Debug = Config.GetConfig<Boolean>("NewLife.Net.Debug", true);
-                //#else
-                //                _Debug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
-                //#endif
                 _Debug = Setting.Current.NetDebug;
 
                 return _Debug.Value;
