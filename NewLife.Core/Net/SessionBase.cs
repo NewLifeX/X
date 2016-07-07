@@ -81,7 +81,7 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
-            _seSend.TryDispose();
+            ReleaseSend("Dispose");
 
             try
             {
@@ -257,6 +257,14 @@ namespace NewLife.Net
             return true;
         }
 
+        void ReleaseSend(String reason)
+        {
+            _seSend.TryDispose();
+            _seSend = null;
+
+            Log.Debug("释放SendSA {0} {1}", 1, reason);
+        }
+
         void CheckSendQueue(Boolean io)
         {
             var qu = _SendQueue;
@@ -265,7 +273,6 @@ namespace NewLife.Net
             // 如果没有在发送，就开始发送
             if (Interlocked.CompareExchange(ref _Sending, 1, 0) != 0) return;
 
-            //todo 如果是Tcp发送，这里可以考虑拿出来多个包合并发送
             QueueItem qi = null;
             if (!qu.TryDequeue(out qi)) return;
 
@@ -276,6 +283,8 @@ namespace NewLife.Net
                 se = _seSend = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
                 se.Completed += (s, e) => ProcessSend(e);
+
+                Log.Debug("创建SendSA {0}", 1);
             }
 
             se.RemoteEndPoint = qi.Remote;
@@ -321,7 +330,8 @@ namespace NewLife.Net
         {
             if (!Active)
             {
-                se.TryDispose();
+                ReleaseSend("!Active " + se.SocketError);
+
                 return;
             }
 
@@ -334,7 +344,7 @@ namespace NewLife.Net
                     var ex = se.GetException();
                     if (ex != null) OnError("SendAsync", ex);
 
-                    se.TryDispose();
+                    ReleaseSend("SocketError " + se.SocketError);
 
                     //if (se.SocketError == SocketError.ConnectionReset) Dispose();
                     if (se.SocketError == SocketError.ConnectionReset) Close("SendAsync " + se.SocketError);
@@ -369,6 +379,7 @@ namespace NewLife.Net
         /// <summary>是否异步接收数据</summary>
         public Boolean UseReceiveAsync { get; set; }
 
+        /// <summary>当前异步接收个数</summary>
         private Int32 _RecvCount;
 
         /// <summary>开始监听</summary>
@@ -396,10 +407,9 @@ namespace NewLife.Net
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
                 se.Completed += (s, e) => ProcessReceive(e);
+                se.UserToken = _RecvCount;
 
-                WriteDebugLog("创建SA {0}", _RecvCount);
-
-                if (se == null) return false;
+                Log.Debug("创建RecvSA {0}", _RecvCount);
 
                 ReceiveAsync(se, false);
             }
@@ -407,12 +417,21 @@ namespace NewLife.Net
             return true;
         }
 
+        void ReleaseRecv(SocketAsyncEventArgs se, String reason)
+        {
+            var idx = (Int32)se.UserToken;
+
+            Log.Debug("释放RecvSA {0} {1}", idx, reason);
+
+            Interlocked.Decrement(ref _RecvCount);
+            se.TryDispose();
+        }
+
         Boolean ReceiveAsync(SocketAsyncEventArgs se, Boolean io)
         {
             if (Disposed)
             {
-                Interlocked.Decrement(ref _RecvCount);
-                se.TryDispose();
+                ReleaseRecv(se, "Disposed " + se.SocketError);
 
                 throw new ObjectDisposedException(GetType().Name);
             }
@@ -425,8 +444,7 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
-                Interlocked.Decrement(ref _RecvCount);
-                se.TryDispose();
+                ReleaseRecv(se, "ReceiveAsyncError " + ex.Message);
 
                 if (!ex.IsDisposed())
                 {
@@ -456,7 +474,7 @@ namespace NewLife.Net
         {
             if (!Active)
             {
-                se.TryDispose();
+                ReleaseRecv(se, "!Active " + se.SocketError);
                 return;
             }
 
@@ -470,7 +488,7 @@ namespace NewLife.Net
                     var ex = se.GetException();
                     if (ex != null) OnError("ReceiveAsync", ex);
 
-                    se.TryDispose();
+                    ReleaseRecv(se, "SocketError " + se.SocketError);
 
                     return;
                 }
@@ -506,7 +524,7 @@ namespace NewLife.Net
             if (Active && !Disposed)
                 ReceiveAsync(se, true);
             else
-                se.TryDispose();
+                ReleaseRecv(se, "!Active || Disposed");
         }
 
         /// <summary>收到异常时如何处理</summary>

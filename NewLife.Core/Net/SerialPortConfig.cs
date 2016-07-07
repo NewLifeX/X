@@ -30,7 +30,6 @@ namespace NewLife.Net
         [Description("停止位 None/One/Two/OnePointFive")]
         public StopBits StopBits { get; set; } = StopBits.One;
 
-        private Parity _Parity = Parity.None;
         /// <summary>奇偶校验</summary>
         [Description("奇偶校验 None/Odd/Even/Mark/Space")]
         public Parity Parity { get; set; } = Parity.None;
