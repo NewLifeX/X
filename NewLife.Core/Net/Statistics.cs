@@ -38,6 +38,8 @@ namespace NewLife.Net
                 if (_PeriodTimes <= 0 || _Cur <= DateTime.MinValue) return 0;
 
                 var ts = DateTime.Now - _Cur;
+                //if (ts.TotalSeconds < 1 || ts.TotalSeconds > Period) return 0;
+                // 即使超过周期，也继续计算速度，保持平滑
                 if (ts.TotalSeconds < 1) return 0;
 
                 return (Int32)(0.5 + (Double)_PeriodTimes / ts.TotalSeconds);
