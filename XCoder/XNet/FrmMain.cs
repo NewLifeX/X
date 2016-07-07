@@ -239,6 +239,7 @@ namespace XNet
         }
 
         TimerX _timer;
+        String _lastStat;
         void ShowStat(Object state)
         {
             if (!NetConfig.Current.ShowStat) return;
@@ -249,7 +250,11 @@ namespace XNet
             else if (_Server != null)
                 msg = _Server.GetStat();
 
-            if (!msg.IsNullOrEmpty()) XTrace.WriteLine(msg);
+            if (!msg.IsNullOrEmpty() && msg != _lastStat)
+            {
+                _lastStat = msg;
+                XTrace.WriteLine(msg);
+            }
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
