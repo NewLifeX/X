@@ -243,10 +243,13 @@ namespace XNet
         {
             if (!NetConfig.Current.ShowStat) return;
 
+            var msg = "";
             if (_Client != null)
-                XTrace.WriteLine(_Client.GetStat());
+                msg = _Client.GetStat();
             else if (_Server != null)
-                XTrace.WriteLine(_Server.GetStat());
+                msg = _Server.GetStat();
+
+            if (!msg.IsNullOrEmpty()) XTrace.WriteLine(msg);
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
@@ -289,7 +292,7 @@ namespace XNet
         Int32 lastSend = 0;
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (!pnlSetting.Enabled)
+            //if (!pnlSetting.Enabled)
             {
                 var rcount = BytesOfReceived;
                 var tcount = BytesOfSent;
