@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using XCode.DataAccessLayer;
-using System.Linq;
 
 namespace XCode.Configuration
 {
@@ -25,9 +25,8 @@ namespace XCode.Configuration
 
         private DisplayNameAttribute _DisplayName;
 
-        private String _des;
         /// <summary>备注</summary>
-        public String Description { get { return _des; } internal set { _des = value; } }
+        public String Description { get; internal set; }
 
         private String _dis;
         /// <summary>说明</summary>
@@ -52,13 +51,11 @@ namespace XCode.Configuration
         #endregion
 
         #region 扩展属性
-        private String _Name;
         /// <summary>属性名</summary>
-        public String Name { get { return _Name; } internal set { _Name = value; } }
+        public String Name { get; internal set; }
 
-        private Type _Type;
         /// <summary>属性类型</summary>
-        public Type Type { get { return _Type; } internal set { _Type = value; } }
+        public Type Type { get; internal set; }
 
         private Type _DeclaringType;
         /// <summary>声明类型</summary>
@@ -73,29 +70,23 @@ namespace XCode.Configuration
             set { _DeclaringType = value; }
         }
 
-        private Boolean _IsIdentity;
         /// <summary>是否标识列</summary>
-        public Boolean IsIdentity { get { return _IsIdentity; } internal set { _IsIdentity = value; } }
+        public Boolean IsIdentity { get; internal set; }
 
-        private Boolean _PrimaryKey;
         /// <summary>是否主键</summary>
-        public Boolean PrimaryKey { get { return _PrimaryKey; } internal set { _PrimaryKey = value; } }
+        public Boolean PrimaryKey { get; internal set; }
 
-        private Boolean _Master;
         /// <summary>是否主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
-        public Boolean Master { get { return _Master; } private set { _Master = value; } }
+        public Boolean Master { get; private set; }
 
-        private Boolean _IsNullable;
         /// <summary>是否允许空</summary>
-        public Boolean IsNullable { get { return _IsNullable; } internal set { _IsNullable = value; } }
+        public Boolean IsNullable { get; internal set; }
 
-        private Int32 _Length;
         /// <summary>长度</summary>
-        public Int32 Length { get { return _Length; } internal set { _Length = value; } }
+        public Int32 Length { get; internal set; }
 
-        private Boolean _IsDataObjectField;
         /// <summary>是否数据绑定列</summary>
-        public Boolean IsDataObjectField { get { return _IsDataObjectField; } set { _IsDataObjectField = value; } }
+        public Boolean IsDataObjectField { get; set; }
 
         /// <summary>是否动态字段</summary>
         public Boolean IsDynamic { get { return _Property == null; } }
@@ -126,22 +117,18 @@ namespace XCode.Configuration
         /// </remarks>
         public String ColumnName { get { return _ColumnName; } set { if (value != null) _ColumnName = value.Trim(COLUMNNAME_FLAG); } }
 
-        private String _DefaultValue;
         /// <summary>默认值</summary>
-        public String DefaultValue { get { return _DefaultValue; } internal set { _DefaultValue = value; } }
+        public String DefaultValue { get; set; }
 
-        private Boolean _ReadOnly;
         /// <summary>是否只读</summary>
         /// <remarks>set { _ReadOnly = value; } 放出只读属性的设置，比如在编辑页面的时候，有的字段不能修改 如修改用户时  不能修改用户名</remarks>
-        public Boolean ReadOnly { get { return _ReadOnly; }set { _ReadOnly = value; } }
+        public Boolean ReadOnly { get; set; }
 
-        internal TableItem _Table;
         /// <summary>表</summary>
-        public TableItem Table { get { return _Table; } }
+        public TableItem Table { get; internal protected set; }
 
-        private IDataColumn _Field;
         /// <summary>字段</summary>
-        public IDataColumn Field { get { return _Field; } }
+        public IDataColumn Field { get; private set; }
 
         /// <summary>实体操作者</summary>
         public IEntityOperate Factory
@@ -161,18 +148,17 @@ namespace XCode.Configuration
         /// <summary>跟当前字段有关系的原始字段</summary>
         public FieldItem OriField { get; internal set; }
 
-        /// <summary>宽度</summary>
-        /// <remarks>主要用于界面上的控件宽度</remarks>
-        public int Width { get; set; }
+        ///// <summary>宽度</summary>
+        ///// <remarks>主要用于界面上的控件宽度</remarks>
+        //public int Width { get; set; }
 
-        /// <summary>排序</summary>
-        /// <remarks>主要用于界面上的控件显示排序</remarks>
-        public int Sort { get; set; }
+        ///// <summary>排序</summary>
+        ///// <remarks>主要用于界面上的控件显示排序</remarks>
+        //public int Sort { get; set; }
 
-
-        /// <summary>跟当前字段有关系的原始字段</summary>
-        /// <remarks>（原始字段，主要是在列表或者是Form里替换字段后可以读取原来的绑定关系）,不敢用OriField，因为暂时没有去查OriField具体的用途。</remarks>
-        public FieldItem OldField { get;  set; }
+        ///// <summary>跟当前字段有关系的原始字段</summary>
+        ///// <remarks>（原始字段，主要是在列表或者是Form里替换字段后可以读取原来的绑定关系）,不敢用OriField，因为暂时没有去查OriField具体的用途。</remarks>
+        //public FieldItem OldField { get;  set; }
         #endregion
 
         #region 构造
@@ -183,9 +169,7 @@ namespace XCode.Configuration
         /// <param name="property">属性</param>
         public FieldItem(TableItem table, PropertyInfo property)
         {
-            //if (property == null) throw new ArgumentNullException("property");
-
-            _Table = table;
+            Table = table;
 
             if (property != null)
             {
@@ -226,9 +210,10 @@ namespace XCode.Configuration
                 if (di != null && !di.DisplayName.IsNullOrEmpty())
                     DisplayName = di.DisplayName;
 
-                _ReadOnly = !property.CanWrite;
+                var map = property.GetCustomAttribute<MapAttribute>();
+                if (map == null || map.Provider == null) ReadOnly = !property.CanWrite;
                 var ra = property.GetCustomAttribute<ReadOnlyAttribute>();
-                if (ra != null) _ReadOnly = ra.IsReadOnly;
+                if (ra != null) ReadOnly = ra.IsReadOnly;
             }
         }
         #endregion
@@ -246,7 +231,7 @@ namespace XCode.Configuration
         /// <param name="field">字段</param>
         public void Fill(IDataColumn field)
         {
-            _Field = field;
+            Field = field;
 
             if (field == null) return;
 
@@ -564,7 +549,7 @@ namespace XCode.Configuration
 
         internal Field(TableItem table, String name, Type type, String description, Int32 length)
         {
-            _Table = table;
+            Table = table;
 
             _ID = table.Fields.Length + 1;
 

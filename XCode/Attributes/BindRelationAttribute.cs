@@ -4,25 +4,21 @@ using XCode.DataAccessLayer;
 namespace XCode
 {
     /// <summary>用于指定数据类所绑定到的关系</summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class BindRelationAttribute : Attribute
     {
         #region 属性
-        private String _Column;
         /// <summary>数据列</summary>
-        public String Column { get { return _Column; } set { _Column = value; } }
+        public String Column { get; set; }
 
-        private String _RelationTable;
         /// <summary>引用表</summary>
-        public String RelationTable { get { return _RelationTable; } set { _RelationTable = value; } }
+        public String RelationTable { get; set; }
 
-        private String _RelationColumn;
         /// <summary>引用列</summary>
-        public String RelationColumn { get { return _RelationColumn; } set { _RelationColumn = value; } }
+        public String RelationColumn { get; set; }
 
-        private Boolean _Unique;
         /// <summary>是否唯一</summary>
-        public Boolean Unique { get { return _Unique; } set { _Unique = value; } }
+        public Boolean Unique { get; set; }
         #endregion
 
         #region 构造

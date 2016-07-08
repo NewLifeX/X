@@ -99,29 +99,18 @@ namespace NewLife.Cube
                 // 如果是实体树，并且当前是父级字段，则生产下拉
                 if (entity is IEntityTree)
                 {
-                    var fact = EntityFactory.CreateOperate(entity.GetType());
-                    var set = entity.GetType().GetValue("Setting") as IEntityTreeSetting;
-                    if (set != null && set.Parent == field.Name)
-                    {
-                        var root = entity.GetType().GetValue("Root") as IEntityTree;
-                        // 找到完整菜单树，但是排除当前节点这个分支
-                        var list = root.FindAllChildsExcept(entity as IEntityTree);
-                        var data = new SelectList(list, set.Key, "TreeNodeText", entity[field.Name]);
-                        return Html.DropDownList(field.Name, data, new { @class = "multiselect" });
-                    }
+                    var mhs = ForTreeEditor(Html, field, entity as IEntityTree);
+                    if (mhs != null) return mhs;
                 }
-                // 如果有表间关系，且是当前字段
+                {
+                    var mhs = ForMap(Html, field, entity);
+                    if (mhs != null) return mhs;
+                }
+                // 如果有表间关系，且是当前字段，则产生关联下拉
                 if (field.Table.DataTable.Relations.Count > 0)
                 {
-                    var dr = field.Table.DataTable.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(field.Name));
-                    // 为该字段创建下拉菜单
-                    if (dr != null)
-                    {
-                        var rt = EntityFactory.CreateOperate(dr.RelationTable);
-                        var list = rt.FindAllWithCache();
-                        var data = new SelectList(list, dr.RelationColumn, rt.Master.Name, entity[field.Name]);
-                        return Html.DropDownList(field.Name, data, field.IsNullable ? "无" : null, new { @class = "multiselect" });
-                    }
+                    var mhs = ForRelation(Html, field, entity);
+                    if (mhs != null) return mhs;
                 }
 
                 txt = Html.ForEditor(field.Name, entity[field.Name], field.Type);
@@ -138,6 +127,43 @@ namespace NewLife.Cube
             //}
 
             return txt;
+        }
+
+        private static MvcHtmlString ForTreeEditor(HtmlHelper Html, FieldItem field, IEntityTree entity)
+        {
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var set = entity.GetType().GetValue("Setting") as IEntityTreeSetting;
+            if (set == null || set.Parent != field.Name) return null;
+
+            var root = entity.GetType().GetValue("Root") as IEntityTree;
+            // 找到完整菜单树，但是排除当前节点这个分支
+            var list = root.FindAllChildsExcept(entity as IEntityTree);
+            var data = new SelectList(list, set.Key, "TreeNodeText", entity[field.Name]);
+            return Html.DropDownList(field.Name, data, new { @class = "multiselect" });
+        }
+
+        private static MvcHtmlString ForMap(HtmlHelper Html, FieldItem field, IEntity entity)
+        {
+            var map = entity.GetType().GetProperty(field.Name).GetCustomAttribute<MapAttribute>();
+            // 为该字段创建下拉菜单
+            if (map == null || map.Provider == null) return null;
+
+            var rt = EntityFactory.CreateOperate(map.Provider.EntityType);
+            var list = rt.FindAllWithCache();
+            var data = new SelectList(list, map.Provider.Key, rt.Master.Name, entity[map.Name]);
+            return Html.DropDownList(map.Name, data, field.IsNullable ? "无" : null, new { @class = "multiselect" });
+        }
+
+        private static MvcHtmlString ForRelation(HtmlHelper Html, FieldItem field, IEntity entity)
+        {
+            var dr = field.Table.DataTable.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(field.Name));
+            // 为该字段创建下拉菜单
+            if (dr == null) return null;
+
+            var rt = EntityFactory.CreateOperate(dr.RelationTable);
+            var list = rt.FindAllWithCache();
+            var data = new SelectList(list, dr.RelationColumn, rt.Master.Name, entity[field.Name]);
+            return Html.DropDownList(field.Name, data, field.IsNullable ? "无" : null, new { @class = "multiselect" });
         }
 
         /// <summary>输出编辑框</summary>

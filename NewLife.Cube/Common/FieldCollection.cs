@@ -13,15 +13,18 @@ namespace NewLife.Cube
     public class FieldCollection : List<FieldItem>
     {
         #region 属性
-        private IEntityOperate _Factory;
         /// <summary>工厂</summary>
-        public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
+        public IEntityOperate Factory { get; set; }
         #endregion
 
         #region 构造
         /// <summary>使用工厂实例化一个字段集合</summary>
         /// <param name="factory"></param>
-        public FieldCollection(IEntityOperate factory) { Factory = factory; AddRange(Factory.Fields); }
+        public FieldCollection(IEntityOperate factory)
+        {
+            Factory = factory;
+            AddRange(Factory.Fields);
+        }
         #endregion
 
         #region 方法
@@ -32,7 +35,7 @@ namespace NewLife.Cube
         {
             var type = Factory.EntityType;
             // 扩展属性
-            foreach (var pi in type.GetProperties(true))
+            foreach (var pi in type.GetProperties())
             {
                 ProcessRelation(pi, isForm);
             }
@@ -61,41 +64,46 @@ namespace NewLife.Cube
 
         void ProcessRelation(PropertyInfo pi, Boolean isForm)
         {
-            // 处理带有BindRelation特性的扩展属性
-            var dr = pi.GetCustomAttribute<BindRelationAttribute>();
-            //if (dr != null && !dr.RelationTable.IsNullOrEmpty())
-            if (dr == null) return;
+            // 处理带有Map特性的扩展属性
+            var map = pi.GetCustomAttribute<MapAttribute>();
+            if (map == null) return;
 
-            var type = Factory.EntityType;
-            var rt = EntityFactory.CreateOperate(dr.RelationTable);
-            if (rt != null && rt.Master != null)
-            {
-                // 找到扩展表主字段是否属于当前实体类扩展属性
-                // 首先用对象扩展属性名加上外部主字段名
-                var master = type.GetProperty(pi.Name + rt.Master.Name);
-                // 再用外部类名加上外部主字段名
-                if (master == null) master = type.GetProperty(dr.RelationTable + rt.Master.Name);
-                // 再试试加上Name
-                if (master == null) master = type.GetProperty(pi.Name + "Name");
-                if (master != null)
-                {
-                    if (!isForm)
-                    {
-                        // 去掉本地用于映射的字段（如果不是主键），替换为扩展属性
-                        Replace(dr.Column, master.Name);
-                    }
-                    else
-                    {
-                        // 加到后面
-                        AddField(dr.Column, master.Name);
-                    }
-                }
-            }
             // 如果是本实体类关系，可以覆盖
-            if (dr.RelationTable.IsNullOrEmpty() || dr.RelationTable.EqualIgnoreCase(type.Name))
+            if (map.Provider == null)
             {
-                if (!dr.RelationColumn.IsNullOrEmpty()) Replace(dr.RelationColumn, pi.Name);
+                if (!isForm && !map.Name.IsNullOrEmpty()) Replace(map.Name, pi.Name);
             }
+            else
+            {
+                if (isForm) Replace(map.Name, pi.Name);
+            }
+
+            // 如果没有标注Map特性，那就算了吧
+            //var type = Factory.EntityType;
+            //var fact = EntityFactory.CreateOperate(map.Provider.EntityType);
+            //if (fact != null && fact.Master != null)
+            //{
+            //    // 找到扩展表主字段是否属于当前实体类扩展属性
+            //    // 首先用对象扩展属性名加上外部主字段名
+            //    var master = type.GetProperty(pi.Name + fact.Master.Name);
+            //    // 再用外部类名加上外部主字段名
+            //    if (master == null) master = type.GetProperty(map.Provider.EntityType.Name + fact.Master.Name);
+            //    // 再试试加上Name
+            //    if (master == null) master = type.GetProperty(pi.Name + "Name");
+            //    if (master != null)
+            //    {
+            //        if (!isForm)
+            //        {
+            //            // 去掉本地用于映射的字段（如果不是主键），替换为扩展属性
+            //            Replace(map.Column, master.Name);
+            //        }
+            //        else
+            //        {
+            //            // 加到后面
+            //            AddField(map.Column, master.Name);
+            //        }
+            //    }
+            //}
         }
 
         void NoPass()

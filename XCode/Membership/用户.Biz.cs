@@ -30,6 +30,7 @@ namespace XCode.Membership
     /// <summary>管理员</summary>
     [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
+    [BindRelation("RoleID", false, "Role", "ID")]
     public class UserX : User<UserX> { }
 
     /// <summary>管理员</summary>
@@ -164,7 +165,7 @@ namespace XCode.Membership
 
         /// <summary>性别</summary>
         [DisplayName("性别")]
-        [BindRelation(__.Sex)]
+        [Map(__.Sex)]
         public SexKinds SexKind { get { return (SexKinds)Sex; } set { Sex = (Int32)value; } }
 
         /// <summary>物理地址</summary>
@@ -520,7 +521,7 @@ namespace XCode.Membership
         /// <summary>角色</summary>
         /// <remarks>扩展属性不缓存空对象，一般来说，每个管理员都有对应的角色，如果没有，可能是在初始化</remarks>
         [XmlIgnore, ScriptIgnore]
-        [BindRelation("RoleID", false, "Role", "ID")]
+        [Map(__.RoleID, typeof(RoleMapProvider))]
         public virtual IRole Role
         {
             get
@@ -535,7 +536,7 @@ namespace XCode.Membership
 
         /// <summary>角色名</summary>
         [DisplayName("角色")]
-        [BindRelation(__.RoleID)]
+        [Map(__.RoleID)]
         public virtual String RoleName { get { return Role == null ? null : Role.Name; } set { } }
         #endregion
 
@@ -551,6 +552,16 @@ namespace XCode.Membership
         #endregion
     }
 
+    class RoleMapProvider : MapProvider
+    {
+        public RoleMapProvider()
+        {
+            var role = ManageProvider.Get<IRole>();
+            EntityType = role.GetType();
+            Key = EntityFactory.CreateOperate(EntityType).Unique?.Name;
+        }
+    }
+
     public partial interface IUser
     {
         /// <summary>友好名字</summary>
@@ -563,7 +574,7 @@ namespace XCode.Membership
         String RoleName { get; set; }
 
         /// <summary>性别</summary>
-         SexKinds SexKind { get; set; }
+        SexKinds SexKind { get; set; }
 
         /// <summary>注销</summary>
         void Logout();

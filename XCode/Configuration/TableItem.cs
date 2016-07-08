@@ -277,11 +277,11 @@ namespace XCode.Configuration
                 if (!item.IsDynamic)
                 {
                     // 如果不是数据字段，则检查绑定关系
-                    var dr = item._Property.GetCustomAttribute<BindRelationAttribute>();
-                    if (dr != null && !dr.RelationColumn.IsNullOrEmpty() && (dr.RelationTable.IsNullOrEmpty() || dr.RelationTable.EqualIgnoreCase(TableName)))
+                    var map = item._Property.GetCustomAttribute<MapAttribute>();
+                    if (map != null)
                     {
                         // 找到被关系映射的字段，拷贝相关属性
-                        var fi = allfields.FirstOrDefault(e => e.Name.EqualIgnoreCase(dr.RelationColumn));
+                        var fi = allfields.FirstOrDefault(e => e.Name.EqualIgnoreCase(map.Name));
                         if (fi != null)
                         {
                             if (item.OriField == null) item.OriField = fi;
