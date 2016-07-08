@@ -148,10 +148,12 @@ namespace NewLife.Cube
             // 为该字段创建下拉菜单
             if (map == null || map.Provider == null) return null;
 
-            var rt = EntityFactory.CreateOperate(map.Provider.EntityType);
-            var list = rt.FindAllWithCache();
-            var data = new SelectList(list, map.Provider.Key, rt.Master.Name, entity[map.Name]);
-            return Html.DropDownList(map.Name, data, field.IsNullable ? "无" : null, new { @class = "multiselect" });
+            //var rt = EntityFactory.CreateOperate(map.Provider.EntityType);
+            //var list = rt.FindAllWithCache();
+            //var data = new SelectList(list, map.Provider.Key, rt.Master.Name, entity[map.Name]);
+            //return Html.DropDownList(map.Name, data, field.IsNullable ? "无" : null, new { @class = "multiselect" });
+
+            return Html.ForDropDownList(map.Name, map.Provider.GetDataSource(), entity[map.Name]);
         }
 
         private static MvcHtmlString ForRelation(HtmlHelper Html, FieldItem field, IEntity entity)
