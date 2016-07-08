@@ -71,7 +71,7 @@ namespace NewLife.Cube
             // 如果是本实体类关系，可以覆盖
             if (map.Provider == null)
             {
-                if (!isForm && !map.Name.IsNullOrEmpty()) Replace(map.Name, pi.Name);
+                if (!isForm || pi.CanWrite) Replace(map.Name, pi.Name);
             }
             else
             {

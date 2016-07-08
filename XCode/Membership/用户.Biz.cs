@@ -537,7 +537,7 @@ namespace XCode.Membership
         /// <summary>角色名</summary>
         [DisplayName("角色")]
         [Map(__.RoleID)]
-        public virtual String RoleName { get { return Role == null ? null : Role.Name; } set { } }
+        public virtual String RoleName { get { return Role == null ? null : Role.Name; } }
         #endregion
 
         #region IManageUser 成员
@@ -568,10 +568,10 @@ namespace XCode.Membership
         String FriendName { get; }
 
         /// <summary>角色</summary>
-        IRole Role { get; /*set;*/ }
+        IRole Role { get; }
 
         /// <summary>角色名</summary>
-        String RoleName { get; set; }
+        String RoleName { get; }
 
         /// <summary>性别</summary>
         SexKinds SexKind { get; set; }

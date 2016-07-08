@@ -236,8 +236,7 @@ namespace XCode.Membership
             {
                 var fact = Get<IRole>();
                 var role = fact.FindOrCreateByName(rolename);
-                user.ID = role.ID;
-                user.RoleName = role.Name;
+                user.RoleID = role.ID;
             }
 
             user.Register();
