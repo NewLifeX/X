@@ -12,3 +12,10 @@
     zoom: 1; 
     overflow:hidden; 
 }*/
+
+/*.form-group {
+    height: 60px;
+}*/
+.input-group[class*=col-] {
+    float: left;
+}

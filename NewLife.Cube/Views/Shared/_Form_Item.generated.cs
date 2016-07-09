@@ -107,15 +107,15 @@ Write(Html.ForEditor(item, entity));
             
             #line default
             #line hidden
-WriteLiteral("\r\n    <span");
+WriteLiteral("\r\n</div>\r\n<span");
 
-WriteLiteral(" class=\"hidden-xs\"");
+WriteLiteral(" class=\"hidden-xs col-md-5\"");
 
 WriteLiteral(">");
 
             
-            #line 23 "..\..\Views\Shared\_Form_Item.cshtml"
-                       Write(Html.ForDescription(item));
+            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
+                            Write(Html.ForDescription(item));
 
             
             #line default
@@ -123,61 +123,47 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
-    
-            
-            #line default
-            #line hidden
-            
-            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
-      
-        ModelState st = null;
-    
+            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
+  
+    ModelState st = null;
+
             
             #line default
             #line hidden
 WriteLiteral("\r\n");
 
             
-            #line 27 "..\..\Views\Shared\_Form_Item.cshtml"
-    
-            
-            #line default
-            #line hidden
-            
-            #line 27 "..\..\Views\Shared\_Form_Item.cshtml"
-     if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null && st.Errors.Count > 0)
-    {
+            #line 28 "..\..\Views\Shared\_Form_Item.cshtml"
+ if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null && st.Errors.Count > 0)
+{
 
             
             #line default
             #line hidden
-WriteLiteral("        <span");
+WriteLiteral("    <span");
 
 WriteLiteral(" class=\"alert alert-danger\"");
 
 WriteLiteral(">\r\n");
 
-WriteLiteral("            ");
+WriteLiteral("        ");
 
             
-            #line 30 "..\..\Views\Shared\_Form_Item.cshtml"
-       Write(Html.ValidationMessage(item.Name));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        </span>\r\n");
-
-            
-            #line 32 "..\..\Views\Shared\_Form_Item.cshtml"
-    }
+            #line 31 "..\..\Views\Shared\_Form_Item.cshtml"
+   Write(Html.ValidationMessage(item.Name));
 
             
             #line default
             #line hidden
-WriteLiteral("</div>");
+WriteLiteral("\r\n    </span>\r\n");
 
+            
+            #line 33 "..\..\Views\Shared\_Form_Item.cshtml"
+}
+
+            
+            #line default
+            #line hidden
         }
     }
 }

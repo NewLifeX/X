@@ -20,14 +20,14 @@
 <label class="control-label col-xs-2 col-sm-2 col-md-2 col-lg-2">@item.DisplayName</label>
 <div class="input-group col-xs-5 col-sm-5 col-md-5 col-lg-5">
     @Html.ForEditor(item, entity)
-    <span class="hidden-xs">@Html.ForDescription(item)</span>
-    @{
-        ModelState st = null;
-    }
-    @if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null && st.Errors.Count > 0)
-    {
-        <span class="alert alert-danger">
-            @Html.ValidationMessage(item.Name)
-        </span>
-    }
 </div>
+<span class="hidden-xs col-md-5">@Html.ForDescription(item)</span>
+@{
+    ModelState st = null;
+}
+@if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null && st.Errors.Count > 0)
+{
+    <span class="alert alert-danger">
+        @Html.ValidationMessage(item.Name)
+    </span>
+}
