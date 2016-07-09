@@ -527,7 +527,7 @@ namespace NewLife.Net
                 ReleaseRecv(se, "!Active || Disposed");
         }
 
-        /// <summary>收到异常时如何处理</summary>
+        /// <summary>收到异常时如何处理。默认关闭会话</summary>
         /// <param name="se"></param>
         /// <returns>是否当作异常处理并结束会话</returns>
         internal virtual Boolean OnReceiveError(SocketAsyncEventArgs se)

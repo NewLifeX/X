@@ -28,8 +28,8 @@ namespace NewLife.Net
         /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
         public Boolean Loopback { get; set; }
 
-        /// <summary>收到Reset错误时是否结束。默认false</summary>
-        public Boolean EnableReset { get; set; }
+        ///// <summary>收到Reset错误时是否结束。默认false</summary>
+        //public Boolean EnableReset { get; set; }
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
@@ -43,7 +43,7 @@ namespace NewLife.Net
 
             // Udp服务器不能关闭自己，但是要关闭会话
             // Udp客户端一般不关闭自己
-            EnableReset = false;
+            //EnableReset = false;
 
             Local = new NetUri(NetType.Udp, IPAddress.Any, 0);
             Remote.Type = NetType.Udp;
@@ -289,13 +289,17 @@ namespace NewLife.Net
             if (session != null) RaiseReceive(session, e);
         }
 
+        /// <summary>收到异常时如何处理。Tcp/Udp客户端默认关闭会话，但是Udp服务端不能关闭服务器，仅关闭会话</summary>
+        /// <param name="se"></param>
+        /// <returns>是否当作异常处理并结束会话</returns>
         internal override Boolean OnReceiveError(SocketAsyncEventArgs se)
         {
             // Udp服务器不能关闭自己，但是要关闭会话
             // Udp客户端一般不关闭自己
             if (se.SocketError != SocketError.ConnectionReset) return base.OnReceiveError(se);
 
-            if (!EnableReset) return false;
+            // 以下仅处理Reset
+            //if (!EnableReset) return false;
 
             // 关闭相应会话
             var sessions = _Sessions;
@@ -305,7 +309,8 @@ namespace NewLife.Net
                 var ss = sessions.Get(ep + "");
                 if (ss != null) ss.Dispose();
             }
-            return true;
+            // 无论如何，Udp都不关闭自己
+            return false;
         }
 
         internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)

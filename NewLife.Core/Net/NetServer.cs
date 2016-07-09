@@ -196,7 +196,7 @@ namespace NewLife.Net
                 udp.MaxAsync = Environment.ProcessorCount * 16 / 10;
                 // Udp服务器不能关闭自己，但是要关闭会话
                 // Udp客户端一般不关闭自己
-                udp.EnableReset = true;
+                //udp.EnableReset = true;
             }
 
             server.StatSession.Parent = StatSession;
