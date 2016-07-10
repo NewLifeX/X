@@ -22,7 +22,10 @@
                     <th class="text-center"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
                 }
             }
-            <th class="text-center">操作</th>
+            @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+            {
+                <th class="text-center">操作</th>
+            }
         </tr>
     </thead>
     <tbody>
