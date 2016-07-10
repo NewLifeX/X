@@ -167,20 +167,39 @@ WriteLiteral("</a></th>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("            <th");
+WriteLiteral("            ");
+
+            
+            #line 25 "..\..\Views\Shared\_List_Data.cshtml"
+             if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+            {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                <th");
 
 WriteLiteral(" class=\"text-center\"");
 
-WriteLiteral(">操作</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
+WriteLiteral(">操作</th>\r\n");
 
             
-            #line 29 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 28 "..\..\Views\Shared\_List_Data.cshtml"
+            }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
+
+            
+            #line 32 "..\..\Views\Shared\_List_Data.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 29 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 32 "..\..\Views\Shared\_List_Data.cshtml"
          foreach (var entity in Model)
         {
 
@@ -190,13 +209,13 @@ WriteLiteral(">操作</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n")
 WriteLiteral("            <tr>\r\n");
 
             
-            #line 32 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 35 "..\..\Views\Shared\_List_Data.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 32 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 35 "..\..\Views\Shared\_List_Data.cshtml"
                  foreach (var item in fields)
                 {
                     
@@ -204,14 +223,14 @@ WriteLiteral("            <tr>\r\n");
             #line default
             #line hidden
             
-            #line 34 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 37 "..\..\Views\Shared\_List_Data.cshtml"
                Write(Html.Partial("_List_Data_Item", new Pair(entity, item)));
 
             
             #line default
             #line hidden
             
-            #line 34 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 37 "..\..\Views\Shared\_List_Data.cshtml"
                                                                             
                 }
 
@@ -221,7 +240,7 @@ WriteLiteral("            <tr>\r\n");
 WriteLiteral("                ");
 
             
-            #line 36 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 39 "..\..\Views\Shared\_List_Data.cshtml"
                  if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
@@ -237,7 +256,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 39 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 42 "..\..\Views\Shared\_List_Data.cshtml"
                    Write(Html.Partial("_List_Data_Action", (Object)entity));
 
             
@@ -246,7 +265,7 @@ WriteLiteral("                        ");
 WriteLiteral("\r\n                    </td>\r\n");
 
             
-            #line 41 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 44 "..\..\Views\Shared\_List_Data.cshtml"
                 }
 
             
@@ -255,7 +274,7 @@ WriteLiteral("\r\n                    </td>\r\n");
 WriteLiteral("            </tr>\r\n");
 
             
-            #line 43 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 46 "..\..\Views\Shared\_List_Data.cshtml"
         }
 
             
