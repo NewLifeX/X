@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using XCode.Configuration;
@@ -40,6 +43,142 @@ namespace NewLife.Cube
         public static Bootstrap Bootstrap(this Controller controller)
         {
             return Bootstrap(controller.HttpContext);
+        }
+
+        internal static Boolean MakeListDataView(String vpath, List<FieldItem> fields)
+        {
+            var tmp = @"@using NewLife;
+@using NewLife.Web;
+@using XCode;
+@using XCode.Configuration;
+@{
+    var fact = ViewBag.Factory as IEntityOperate;
+    var page = ViewBag.Page as Pager;
+    var fields = ViewBag.Fields as List<FieldItem>;
+}
+<table class=""table table-bordered table-hover table-striped table-condensed"">
+    <thead>
+        <tr>
+            @foreach (var item in fields)
+            {
+                var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
+                if (item.PrimaryKey)
+                {
+                    <th class=""text-center hidden-md hidden-sm hidden-xs""><a href=""@Html.Raw(sortUrl)"">@item.DisplayName</a></th>
+                }
+                else
+                {
+                    <th class=""text-center""><a href=""@Html.Raw(sortUrl)"">@item.DisplayName</a></th>
+                }
+            }
+            @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+            {
+                <th class=""text-center"">操作</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entity in Model)
+        {
+            <tr>
+                @foreach (var item in fields)
+                {
+                    @Html.Partial(""_List_Data_Item"", new Pair(entity, item))
+                }
+                @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                {
+                    <td class=""text-center"">
+                        @Html.Partial(""_List_Data_Action"", (Object)entity)
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>";
+            var sb = new StringBuilder();
+
+            var ident = new String(' ', 4 * 3);
+            sb.Append(tmp.Substring(null, "            @foreach"));
+
+            foreach (var item in fields)
+            {
+                // 缩进
+                sb.Append(ident);
+                var css = "";
+                if (item.PrimaryKey) css = " hidden-md hidden-sm hidden-xs";
+                sb.AppendFormat(@"<th class=""text-center{2}""><a href=""@Html.Raw(page.GetSortUrl(""{1}""))"">{0}</a></th>", item.DisplayName ?? item.Name, item.OriField?.Name ?? item.Name, css);
+                sb.AppendLine();
+            }
+
+            var ps = new Int32[2];
+            sb.Append("            @if");
+            sb.Append(tmp.Substring("            @if", "                @foreach (var item in fields)", 0, ps));
+
+            ident = new String(' ', 4 * 4);
+            foreach (var item in fields)
+            {
+                // 缩进
+                sb.Append(ident);
+                //sb.AppendLine(@"@Html.Partial(""_List_Data_Item"", new Pair(entity, item))");
+                if (item.PrimaryKey)
+                    sb.AppendFormat(@"<td class=""text-center hidden-md hidden-sm hidden-xs"">@entity.{0}</td>", item.Name);
+                else
+                {
+                    switch (Type.GetTypeCode(item.Type))
+                    {
+                        case TypeCode.Boolean:
+                            sb.AppendLine(@"<td class=""text-center"">");
+                            sb.Append(ident);
+                            sb.AppendFormat(@"    <i class=""glyphicon glyphicon-@(entity.{0} ? ""ok"" : ""remove"")"" style=""color: @(entity.{0} ? ""green"" : ""red"");""></i>", item.Name);
+                            sb.AppendLine();
+                            sb.Append(ident);
+                            sb.Append(@"</td>");
+                            break;
+                        case TypeCode.DateTime:
+                            sb.AppendFormat(@"<td>@entity.{0}.ToFullString("""")</td>", item.Name);
+                            break;
+                        case TypeCode.Decimal:
+                            sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
+                            break;
+                        case TypeCode.Single:
+                        case TypeCode.Double:
+                            sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
+                            break;
+                        case TypeCode.Byte:
+                        case TypeCode.Int16:
+                        case TypeCode.Int32:
+                        case TypeCode.Int64:
+                        case TypeCode.UInt16:
+                        case TypeCode.UInt32:
+                        case TypeCode.UInt64:
+                            //特殊处理枚举
+                            if (item.Type.IsEnum)
+                                sb.AppendFormat(@"<td class=""text-center"">@entity.{0}</td>", item.Name);
+                            else
+                                sb.AppendFormat(@"<td class=""text-right"">@entity.{0}.ToString(""n0"")</td>", item.Name);
+                            break;
+                        case TypeCode.String:
+                            sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
+                            break;
+                        default:
+                            sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
+                            break;
+                    }
+                }
+                sb.AppendLine();
+            }
+
+            sb.Append("                @if");
+            sb.Append(tmp.Substring("                @if", null, ps[1]));
+
+            File.WriteAllText(vpath.GetFullPath(), sb.ToString(), Encoding.UTF8);
+
+            return true;
+        }
+
+        internal static Boolean MakeFormView()
+        {
+            return false;
         }
     }
 
