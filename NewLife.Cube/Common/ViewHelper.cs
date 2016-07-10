@@ -135,7 +135,7 @@ namespace NewLife.Cube
                             sb.Append(@"</td>");
                             break;
                         case TypeCode.DateTime:
-                            sb.AppendFormat(@"<td>@entity.{0}.ToFullString("""")</td>", item.Name);
+                            sb.AppendFormat(@"<td>@Utility.ToFullString(entity.{0}, """")</td>", item.Name);
                             break;
                         case TypeCode.Decimal:
                             sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
