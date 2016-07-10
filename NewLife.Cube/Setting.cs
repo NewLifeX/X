@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Xml;

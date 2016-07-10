@@ -8,7 +8,6 @@ using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
-using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Web;
 using XCode;
@@ -465,6 +464,44 @@ namespace NewLife.Cube
         }
         #endregion
 
+        #region 模版Action
+        /// <summary>生成列表</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Delete)]
+        [DisplayName("生成列表")]
+        public ActionResult MakeList()
+        {
+            if (!SysConfig.Current.Develop) throw new InvalidOperationException("仅支持开发模式下使用！");
+
+            // 视图路径，Areas/区域/Views/控制器/_List_Data.cshtml
+            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], this.GetType().Name.TrimEnd("Controller"));
+
+            var rs = ViewHelper.MakeListDataView(vpath, ListFields);
+
+            Js.Alert("生成列表模版 {0} 成功！".F(vpath));
+
+            return Index();
+        }
+
+        /// <summary>生成表单</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Delete)]
+        [DisplayName("生成表单")]
+        public ActionResult MakeForm()
+        {
+            if (!SysConfig.Current.Develop) throw new InvalidOperationException("仅支持开发模式下使用！");
+
+            // 视图路径，Areas/区域/Views/控制器/_List_Data.cshtml
+            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], this.GetType().Name.TrimEnd("Controller"));
+
+            var rs = ViewHelper.MakeListDataView(vpath, FormFields);
+
+            Js.Alert("生成列表模版 {0} 成功！".F(vpath));
+
+            return Index();
+        }
+        #endregion
+
         #region 实体操作重载
         /// <summary>添加实体对象</summary>
         /// <param name="entity"></param>
@@ -544,114 +581,5 @@ namespace NewLife.Cube
             base.OnActionExecuting(filterContext);
         }
         #endregion
-    }
-
-    /// <summary>实体树控制器基类</summary>
-    /// <typeparam name="TEntity"></typeparam>
-    public class EntityTreeController<TEntity> : EntityController<TEntity> where TEntity : EntityTree<TEntity>, new()
-    {
-        static EntityTreeController()
-        {
-            var type = typeof(TEntity);
-            var all = Entity<TEntity>.Meta.AllFields;
-            //var list = new List<FieldItem>();
-            var list = ListFields;
-            var set = type.GetValue("Setting") as IEntityTreeSetting;
-            var k = 0;
-            var names = new String[] { set.Key, "TreeNodeName" };
-            foreach (var item in names)
-            {
-                var fi = all.FirstOrDefault(e => e.Name.EqualIgnoreCase(item));
-                if (fi != null)
-                {
-                    if (list.Contains(fi)) list.Remove(fi);
-                    list.Insert(k++, fi);
-                }
-            }
-
-            foreach (var item in all)
-            {
-                if (set != null && item.Name.EqualIgnoreCase(set.Name, set.Parent))
-                {
-                    list.Remove(item);
-                    continue;
-                }
-
-                var pi = type.GetProperty(item.Name);
-                if (pi == null || pi.GetCustomAttribute<DisplayNameAttribute>() == null)
-                {
-                    list.Remove(item);
-                    continue;
-                }
-
-                //if (!list.Contains(item)) list.Insert(k++, item);
-            }
-
-            //ListFields.Clear();
-            //ListFields.AddRange(list);
-        }
-
-        /// <summary>列表页视图。子控制器可重载，以传递更多信息给视图，比如修改要显示的列</summary>
-        /// <param name="p"></param>
-        /// <returns></returns>
-        protected override ActionResult IndexView(Pager p)
-        {
-            // 一页显示全部菜单，取自缓存
-            p.PageSize = 10000;
-            ViewBag.Page = p;
-
-            var list = EntityTree<TEntity>.Root.AllChilds;
-
-            return View("ListTree", list);
-        }
-
-        /// <summary>要导出Xml的对象</summary>
-        /// <returns></returns>
-        protected override Object OnExportXml()
-        {
-            return EntityTree<TEntity>.Root.Childs;
-        }
-
-        /// <summary>要导出Json的对象</summary>
-        /// <returns></returns>
-        protected override object OnExportJson()
-        {
-            return EntityTree<TEntity>.Root.Childs;
-        }
-
-        /// <summary>上升</summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [DisplayName("上升")]
-        [EntityAuthorize(PermissionFlags.Update)]
-        public ActionResult Up(Int32 id)
-        {
-            var menu = FindByID(id);
-            menu.Up();
-
-            return RedirectToAction("Index");
-        }
-
-        /// <summary>下降</summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [DisplayName("下降")]
-        [EntityAuthorize(PermissionFlags.Update)]
-        public ActionResult Down(Int32 id)
-        {
-            var menu = FindByID(id);
-            menu.Down();
-
-            return RedirectToAction("Index");
-        }
-
-        /// <summary>根据ID查找节点</summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        protected static TEntity FindByID(Int32 id)
-        {
-            var key = EntityTree<TEntity>.Meta.Unique.Name;
-            return EntityTree<TEntity>.Meta.Cache.Entities.ToList().FirstOrDefault(e => (Int32)e[key] == id);
-        }
     }
 }
