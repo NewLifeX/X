@@ -13,7 +13,7 @@ namespace XCode.Configuration
     {
         #region 属性
         /// <summary>属性元数据</summary>
-        internal PropertyInfo _Property;
+        private PropertyInfo _Property;
 
         /// <summary>绑定列特性</summary>
         private BindColumnAttribute _Column;
@@ -148,6 +148,9 @@ namespace XCode.Configuration
         /// <summary>跟当前字段有关系的原始字段</summary>
         public FieldItem OriField { get; internal set; }
 
+        /// <summary>获取映射特性</summary>
+        public MapAttribute Map { get; private set; }
+
         ///// <summary>宽度</summary>
         ///// <remarks>主要用于界面上的控件宽度</remarks>
         //public int Width { get; set; }
@@ -178,6 +181,7 @@ namespace XCode.Configuration
                 var df = _DataObjectField = property.GetCustomAttribute<DataObjectFieldAttribute>();
                 var ds = _Description = property.GetCustomAttribute<DescriptionAttribute>();
                 var di = _DisplayName = property.GetCustomAttribute<DisplayNameAttribute>();
+                Map = property.GetCustomAttribute<MapAttribute>();
                 Name = property.Name;
                 Type = property.PropertyType;
                 DeclaringType = property.DeclaringType;
@@ -210,7 +214,7 @@ namespace XCode.Configuration
                 if (di != null && !di.DisplayName.IsNullOrEmpty())
                     DisplayName = di.DisplayName;
 
-                var map = property.GetCustomAttribute<MapAttribute>();
+                var map = Map;
                 if (map == null || map.Provider == null) ReadOnly = !property.CanWrite;
                 var ra = property.GetCustomAttribute<ReadOnlyAttribute>();
                 if (ra != null) ReadOnly = ra.IsReadOnly;

@@ -84,49 +84,37 @@ namespace NewLife.Cube
         {
             if (entity == null) entity = Html.ViewData.Model as IEntity;
 
-            MvcHtmlString txt = null;
+            // 优先处理映射。因为映射可能是字符串
+            {
+                var mhs = ForMap(Html, field, entity);
+                if (mhs != null) return mhs;
+            }
+
             if (field.ReadOnly)
             {
                 var label = "<label class=\"control-label\">{0}</label>".F(entity[field.Name]);
-                txt = new MvcHtmlString(label);
+                return new MvcHtmlString(label);
             }
-            else if (field.Type == typeof(String) && (field.Length <= 0 || field.Length > 300))
+
+            if (field.Type == typeof(String) && (field.Length <= 0 || field.Length > 300))
             {
-                txt = Html.ForString(field.Name, (String)entity[field.Name], field.Length);
+                return Html.ForString(field.Name, (String)entity[field.Name], field.Length);
             }
-            else
+
+            // 如果是实体树，并且当前是父级字段，则生产下拉
+            if (entity is IEntityTree)
             {
-                // 如果是实体树，并且当前是父级字段，则生产下拉
-                if (entity is IEntityTree)
-                {
-                    var mhs = ForTreeEditor(Html, field, entity as IEntityTree);
-                    if (mhs != null) return mhs;
-                }
-                {
-                    var mhs = ForMap(Html, field, entity);
-                    if (mhs != null) return mhs;
-                }
-                // 如果有表间关系，且是当前字段，则产生关联下拉
-                if (field.Table.DataTable.Relations.Count > 0)
-                {
-                    var mhs = ForRelation(Html, field, entity);
-                    if (mhs != null) return mhs;
-                }
-
-                txt = Html.ForEditor(field.Name, entity[field.Name], field.Type);
+                var mhs = ForTreeEditor(Html, field, entity as IEntityTree);
+                if (mhs != null) return mhs;
+            }
+            // 如果有表间关系，且是当前字段，则产生关联下拉
+            if (field.Table.DataTable.Relations.Count > 0)
+            {
+                var mhs = ForRelation(Html, field, entity);
+                if (mhs != null) return mhs;
             }
 
-            //if (showDescription)
-            //{
-            //    var des = field.Description.TrimStart(field.DisplayName).TrimStart("。");
-            //    if (!des.IsNullOrWhiteSpace())
-            //    {
-            //        des = "<p class=\"help-block\">{0}</p>".F(des);
-            //        txt = new MvcHtmlString(txt.ToString() + des);
-            //    }
-            //}
-
-            return txt;
+            return Html.ForEditor(field.Name, entity[field.Name], field.Type);
         }
 
         private static MvcHtmlString ForTreeEditor(HtmlHelper Html, FieldItem field, IEntityTree entity)
@@ -144,7 +132,7 @@ namespace NewLife.Cube
 
         private static MvcHtmlString ForMap(HtmlHelper Html, FieldItem field, IEntity entity)
         {
-            var map = entity.GetType().GetProperty(field.Name).GetCustomAttribute<MapAttribute>();
+            var map = field.Map;
             // 为该字段创建下拉菜单
             if (map == null || map.Provider == null) return null;
 

@@ -277,7 +277,7 @@ namespace XCode.Configuration
                 if (!item.IsDynamic)
                 {
                     // 如果不是数据字段，则检查绑定关系
-                    var map = item._Property.GetCustomAttribute<MapAttribute>();
+                    var map = item.Map;
                     if (map != null)
                     {
                         // 找到被关系映射的字段，拷贝相关属性

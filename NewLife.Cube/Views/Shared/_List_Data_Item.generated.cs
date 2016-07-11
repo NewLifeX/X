@@ -178,11 +178,11 @@ WriteLiteral("                <td></td>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("        <td>");
+WriteLiteral("            <td>");
 
             
             #line 42 "..\..\Views\Shared\_List_Data_Item.cshtml"
-       Write(entity[item.Name]);
+           Write(entity[item.Name]);
 
             
             #line default
@@ -198,11 +198,11 @@ WriteLiteral("</td>\r\n");
             
             #line default
             #line hidden
-WriteLiteral("        <td>");
+WriteLiteral("            <td>");
 
             
             #line 46 "..\..\Views\Shared\_List_Data_Item.cshtml"
-       Write(entity[item.Name]);
+           Write(entity[item.Name]);
 
             
             #line default
@@ -270,34 +270,22 @@ WriteLiteral("</td>\r\n");
             }
             break;
         case TypeCode.String:
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        <td>");
-
-            
-            #line 66 "..\..\Views\Shared\_List_Data_Item.cshtml"
-       Write(entity[item.Name]);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</td>\r\n");
-
-            
-            #line 67 "..\..\Views\Shared\_List_Data_Item.cshtml"
-            break;
         default:
+            {
+                var map = item.Map;
+                if (map != null && map.Provider != null)
+                {
+                    var dic = new RouteValueDictionary();
+                    dic[map.Provider.Key] = entity[item.OriField.Name];
 
             
             #line default
             #line hidden
-WriteLiteral("        <td>");
+WriteLiteral("                    <td>");
 
             
-            #line 69 "..\..\Views\Shared\_List_Data_Item.cshtml"
-       Write(entity[item.Name]);
+            #line 73 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                   Write(Html.ActionLink(entity[item.Name] + "", "Edit", map.Provider.EntityType.Name, dic, null));
 
             
             #line default
@@ -305,8 +293,37 @@ WriteLiteral("        <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 70 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 74 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                }
+                else
+                {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                    <td>");
+
+            
+            #line 77 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                   Write(entity[item.Name]);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</td>\r\n");
+
+            
+            #line 78 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                }
+            }
             break;
+        
+            
+            #line default
+            #line hidden
+            
+            #line 83 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                    
     }
 }
             

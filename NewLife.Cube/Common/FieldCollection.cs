@@ -69,14 +69,15 @@ namespace NewLife.Cube
             if (map == null) return;
 
             // 如果是本实体类关系，可以覆盖
-            if (map.Provider == null)
-            {
-                if (!isForm || pi.CanWrite) Replace(map.Name, pi.Name);
-            }
-            else
-            {
-                if (isForm) Replace(map.Name, pi.Name);
-            }
+            //if (map.Provider == null)
+            //{
+            //    if (!isForm || pi.CanWrite) Replace(map.Name, pi.Name);
+            //}
+            //else
+            //{
+            //    if (isForm) Replace(map.Name, pi.Name);
+            //}
+            Replace(map.Name, pi.Name);
 
             // 如果没有标注Map特性，那就算了吧
             //var type = Factory.EntityType;
