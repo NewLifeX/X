@@ -21,7 +21,6 @@
 <div class="input-group col-xs-5 col-sm-5 col-md-5 col-lg-5">
     @Html.ForEditor(item, entity)
 </div>
-<span class="hidden-xs col-md-5">@Html.ForDescription(item)</span>
 @{
     ModelState st = null;
 }
@@ -30,4 +29,8 @@
     <span class="alert alert-danger">
         @Html.ValidationMessage(item.Name)
     </span>
+}
+else
+{
+    <span class="hidden-xs col-md-5">@Html.ForDescription(item)</span>
 }
