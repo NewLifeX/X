@@ -246,10 +246,11 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
+            var p = Type == NetType.Unknown ? "" : Protocol;
             if (Port > 0)
-                return String.Format("{0}://{1}:{2}", Protocol, Host, Port);
+                return String.Format("{0}://{1}:{2}", p, Host, Port);
             else
-                return String.Format("{0}://{1}", Protocol, Host);
+                return String.Format("{0}://{1}", p, Host);
         }
         #endregion
 
