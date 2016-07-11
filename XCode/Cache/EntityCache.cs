@@ -27,8 +27,8 @@ namespace XCode.Cache
         /// <summary>过期时间。单位是秒，默认60秒</summary>
         public Int32 Expire { get; set; }
 
-        /// <summary>异步更新，默认打开</summary>
-        public Boolean Asynchronous { get; set; }
+        /// <summary>填充数据的方法</summary>
+        public Func<EntityList<TEntity>> FillListMethod { get; set; } = Entity<TEntity>.FindAll;
 
         /// <summary>是否在使用缓存，在不触发缓存动作的情况下检查是否有使用缓存</summary>
         internal Boolean Using { get; private set; }
@@ -42,7 +42,6 @@ namespace XCode.Cache
         public EntityCache()
         {
             Expire = Setting.Current.Cache.EntityCacheExpire;
-            Asynchronous = true;
         }
         #endregion
 
@@ -91,18 +90,6 @@ namespace XCode.Cache
                 return _Entities;
             }
         }
-
-        private Func<EntityList<TEntity>> _FillListMethod;
-        /// <summary>填充数据的方法</summary>
-        public Func<EntityList<TEntity>> FillListMethod
-        {
-            get
-            {
-                if (_FillListMethod == null) _FillListMethod = Entity<TEntity>.FindAll;
-                return _FillListMethod;
-            }
-            set { _FillListMethod = value; }
-        }
         #endregion
 
         #region 缓存操作
@@ -110,7 +97,7 @@ namespace XCode.Cache
         {
             // 异步更新时，如果为空，表明首次，同步获取数据
             // 有且仅有非首次且数据不为空时执行异步查询
-            if (Times > 0 && Asynchronous && !nodata)
+            if (Times > 0 && !nodata)
             {
                 // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
                 // 设置时间放在获取缓存之前，让其它线程不要空等
@@ -157,7 +144,7 @@ namespace XCode.Cache
                 if (_Entities.Count > 0 && Debug) DAL.WriteLog("清空实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, reason);
 
                 // 使用异步时，马上打开异步查询更新数据
-                if (Asynchronous && _Entities.Count > 0)
+                if (_Entities.Count > 0)
                     UpdateCache(false);
                 else
                 {
@@ -253,7 +240,6 @@ namespace XCode.Cache
         internal EntityCache<TEntity> CopySettingFrom(EntityCache<TEntity> ec)
         {
             this.Expire = ec.Expire;
-            this.Asynchronous = ec.Asynchronous;
             this.FillListMethod = ec.FillListMethod;
 
             return this;
