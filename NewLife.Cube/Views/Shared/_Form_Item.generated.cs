@@ -147,7 +147,7 @@ WriteLiteral("\r\n    </span>\r\n");
             
             #line 32 "..\..\Views\Shared\_Form_Item.cshtml"
 }
-else
+else if (!item.Description.IsNullOrEmpty())
 {
 
             

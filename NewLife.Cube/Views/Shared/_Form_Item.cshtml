@@ -30,7 +30,7 @@
         @Html.ValidationMessage(item.Name)
     </span>
 }
-else
+else if (!item.Description.IsNullOrEmpty())
 {
     <span class="hidden-xs col-md-5">@Html.ForDescription(item)</span>
 }
