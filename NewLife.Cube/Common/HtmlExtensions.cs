@@ -7,7 +7,6 @@ using System.Text;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
-using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
@@ -136,11 +135,6 @@ namespace NewLife.Cube
             // 为该字段创建下拉菜单
             if (map == null || map.Provider == null) return null;
 
-            //var rt = EntityFactory.CreateOperate(map.Provider.EntityType);
-            //var list = rt.FindAllWithCache();
-            //var data = new SelectList(list, map.Provider.Key, rt.Master.Name, entity[map.Name]);
-            //return Html.DropDownList(map.Name, data, field.IsNullable ? "无" : null, new { @class = "multiselect" });
-
             return Html.ForDropDownList(map.Name, map.Provider.GetDataSource(), entity[map.Name]);
         }
 
@@ -206,7 +200,6 @@ namespace NewLife.Cube
             }
 
             return new MvcHtmlString(sb.ToString());
-            //return Html.Editor(name);
         }
 
         #region 基础属性
@@ -236,30 +229,30 @@ namespace NewLife.Cube
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-phone-alt\"></i></span>";
                 if (!atts.ContainsKey("type")) atts.Add("type", "tel");
-                txt = Html.TextBox(name, (String)value, atts);
+                txt = Html.TextBox(name, value, atts);
             }
             else if (name.EqualIgnoreCase("email", "mail"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-envelope\"></i></span>";
                 if (!atts.ContainsKey("type")) atts.Add("type", "email");
-                txt = Html.TextBox(name, (String)value, atts);
+                txt = Html.TextBox(name, value, atts);
             }
             else if (name.EndsWithIgnoreCase("url"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-home\"></i></span>";
                 //if (!atts.ContainsKey("type")) atts.Add("type", "url");
-                txt = Html.TextBox(name, (String)value, atts);
+                txt = Html.TextBox(name, value, atts);
             }
             else if (length < 0 || length > 300)
             {
-                txt = Html.TextArea(name, (String)value, atts);
+                txt = Html.TextArea(name, value, atts);
             }
             else
             {
-                txt = Html.TextBox(name, (String)value, atts);
+                txt = Html.TextBox(name, value, atts);
             }
-            string icog = "<div class=\"input-group\">{0}</div>";
-            string html = !string.IsNullOrWhiteSpace(ico) ? string.Format(icog, ico.ToString() + txt.ToString()) : txt.ToString();
+            var icog = "<div class=\"input-group\">{0}</div>";
+            var html = !String.IsNullOrWhiteSpace(ico) ? String.Format(icog, ico.ToString() + txt.ToString()) : txt.ToString();
             return new MvcHtmlString(html);
         }
 
@@ -465,11 +458,6 @@ namespace NewLife.Cube
         #endregion
 
         #region 下拉列表
-        //public static SelectList ToList(this IDictionary dic, Object selectedValue = null)
-        //{
-        //    return new SelectList(dic, "Value", "Key", selectedValue);
-        //}
-
         /// <summary>字典的下拉列表</summary>
         /// <param name="Html"></param>
         /// <param name="name"></param>
