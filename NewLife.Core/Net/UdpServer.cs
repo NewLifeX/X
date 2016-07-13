@@ -296,7 +296,9 @@ namespace NewLife.Net
         {
             // Udp服务器不能关闭自己，但是要关闭会话
             // Udp客户端一般不关闭自己
-            if (se.SocketError != SocketError.ConnectionReset) return base.OnReceiveError(se);
+            if (se.SocketError != SocketError.ConnectionReset &&
+                se.SocketError != SocketError.ConnectionAborted
+                ) return true;
 
             // 以下仅处理Reset
             //if (!EnableReset) return false;
