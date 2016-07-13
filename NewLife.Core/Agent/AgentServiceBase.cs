@@ -15,7 +15,7 @@ namespace NewLife.Agent
 {
     /// <summary>服务程序基类</summary>
     /// <typeparam name="TService">服务类型</typeparam>
-    public abstract class AgentServiceBase<TService> : AgentServiceBase
+    public abstract class AgentServiceBase<TService> : AgentServiceBase, IAgentService
          where TService : AgentServiceBase<TService>, new()
     {
         #region 构造
@@ -141,19 +141,20 @@ namespace NewLife.Agent
                             #region 单步调试
                             try
                             {
+                                var count = Instance.ThreadCount;
                                 Int32 n = 0;
-                                if (Instance.ThreadCount > 1)
+                                if (count > 1)
                                 {
-                                    Console.Write("请输入要调试的任务（任务数：{0}）：", Instance.ThreadCount);
+                                    Console.Write("请输入要调试的任务（任务数：{0}）：", count);
                                     ConsoleKeyInfo k = Console.ReadKey();
                                     Console.WriteLine();
                                     n = k.KeyChar - '0';
                                 }
 
                                 Console.WriteLine("正在单步调试……");
-                                if (n < 0 || n > Instance.ThreadCount - 1)
+                                if (n < 0 || n > count - 1)
                                 {
-                                    for (int i = 0; i < Instance.ThreadCount; i++)
+                                    for (int i = 0; i < count; i++)
                                     {
                                         service.Work(i);
                                     }
@@ -219,7 +220,7 @@ namespace NewLife.Agent
             var color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
 
-            var service = Instance;
+            var service = Instance as IAgentService;
             var name = service.ServiceName;
 
             if (name != service.DisplayName)
@@ -262,7 +263,7 @@ namespace NewLife.Agent
         /// <summary>显示菜单</summary>
         protected virtual void ShowMenu()
         {
-            var service = Instance;
+            var service = Instance as IAgentService;
 
             var color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -566,11 +567,11 @@ namespace NewLife.Agent
         /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
         public virtual Boolean Work(Int32 index) { return false; }
 
-        /// <summary>
-        /// 停止循环工作。
+        /// <summary>停止循环工作</summary>
+        /// <remarks>
         /// 只能停止循环而已，如果已经有一批任务在处理，
         /// 则内部需要捕获ThreadAbortException异常，否则无法停止任务处理。
-        /// </summary>
+        /// </remarks>
         public virtual void StopWork()
         {
             WriteLine("服务停止");
@@ -747,7 +748,7 @@ namespace NewLife.Agent
             {
                 WriteLine("当前进程占用内存" + cur + "M，超过阀值" + max + "M，准备重新启动！");
 
-                RestartService();
+                Restart();
 
                 return true;
             }
@@ -767,7 +768,7 @@ namespace NewLife.Agent
             {
                 WriteLine("当前进程总线程" + p.Threads.Count + "个，超过阀值" + max + "个，准备重新启动！");
 
-                RestartService();
+                Restart();
 
                 return true;
             }
@@ -790,7 +791,7 @@ namespace NewLife.Agent
             {
                 WriteLine("服务已运行" + ts.TotalMinutes + "分钟，达到预设重启时间（" + f + "分钟），准备重启！");
 
-                RestartService();
+                Restart();
 
                 return true;
             }
@@ -802,7 +803,7 @@ namespace NewLife.Agent
         private Boolean IsShutdowning = false;
 
         /// <summary>重启服务</summary>
-        protected void RestartService()
+        public void Restart()
         {
             WriteLine("重启服务！");
 

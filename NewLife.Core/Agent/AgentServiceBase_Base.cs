@@ -6,7 +6,7 @@ using NewLife.Reflection;
 namespace NewLife.Agent
 {
     /// <summary>服务程序基类</summary>
-    public abstract class AgentServiceBase : ServiceBase, IAgentService
+    public abstract class AgentServiceBase : ServiceBase
     {
         #region 属性
         /// <summary>显示名</summary>

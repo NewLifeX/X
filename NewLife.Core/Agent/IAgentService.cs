@@ -19,5 +19,11 @@ namespace NewLife.Agent
 
         ///// <summary>是否已启动</summary>
         //Boolean? IsRunning { get; }
+
+        /// <summary>停止</summary>
+        void Stop();
+
+        /// <summary>重启服务</summary>
+        void Restart();
     }
 }
