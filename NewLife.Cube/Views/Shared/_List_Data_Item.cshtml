@@ -65,11 +65,13 @@ else
         case TypeCode.String:
         default:
             {
+                var val = entity[item.Name];
                 var map = item.Map;
-                if (map != null && map.Provider != null)
+                if (map != null && map.Provider != null && val + "" != "")
                 {
                     var dic = new RouteValueDictionary();
-                    dic[map.Provider.Key] = entity[item.OriField.Name];
+                    var key = map.Provider.Key;
+                    if (!key.IsNullOrEmpty() && item.OriField != null) { dic[key] = entity[item.OriField.Name]; }
                     <td>@Html.ActionLink(entity[item.Name] + "", "Edit", map.Provider.EntityType.Name, dic, null)</td>
                 }
                 else
@@ -78,8 +80,8 @@ else
                 }
             }
             break;
-        @*default:
-            <td>@entity[item.Name]</td>
-            break;*@
+            @*default:
+                <td>@entity[item.Name]</td>
+                break;*@
     }
 }

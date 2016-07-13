@@ -272,11 +272,13 @@ WriteLiteral("</td>\r\n");
         case TypeCode.String:
         default:
             {
+                var val = entity[item.Name];
                 var map = item.Map;
-                if (map != null && map.Provider != null)
+                if (map != null && map.Provider != null && val + "" != "")
                 {
                     var dic = new RouteValueDictionary();
-                    dic[map.Provider.Key] = entity[item.OriField.Name];
+                    var key = map.Provider.Key;
+                    if (!key.IsNullOrEmpty() && item.OriField != null) { dic[key] = entity[item.OriField.Name]; }
 
             
             #line default
@@ -284,7 +286,7 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("                    <td>");
 
             
-            #line 73 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 75 "..\..\Views\Shared\_List_Data_Item.cshtml"
                    Write(Html.ActionLink(entity[item.Name] + "", "Edit", map.Provider.EntityType.Name, dic, null));
 
             
@@ -293,7 +295,7 @@ WriteLiteral("                    <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 74 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 76 "..\..\Views\Shared\_List_Data_Item.cshtml"
                 }
                 else
                 {
@@ -304,7 +306,7 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("                    <td>");
 
             
-            #line 77 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 79 "..\..\Views\Shared\_List_Data_Item.cshtml"
                    Write(entity[item.Name]);
 
             
@@ -313,17 +315,17 @@ WriteLiteral("                    <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 78 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 80 "..\..\Views\Shared\_List_Data_Item.cshtml"
                 }
             }
             break;
-        
+            
             
             #line default
             #line hidden
             
-            #line 83 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                    
+            #line 85 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                        
     }
 }
             
