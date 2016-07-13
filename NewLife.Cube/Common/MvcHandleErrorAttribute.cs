@@ -10,14 +10,17 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         public override void OnException(ExceptionContext filterContext)
         {
-            XTrace.WriteException(filterContext.Exception);
-            filterContext.ExceptionHandled = true;
+            if (!filterContext.ExceptionHandled)
+            {
+                XTrace.WriteException(filterContext.Exception);
+                filterContext.ExceptionHandled = true;
 
-            var vr = new ViewResult();
-            vr.ViewName = "Error";
-            vr.ViewBag.Context = filterContext;
+                var vr = new ViewResult();
+                vr.ViewName = "Error";
+                vr.ViewBag.Context = filterContext;
 
-            filterContext.Result = vr;
+                filterContext.Result = vr;
+            }
 
             base.OnException(filterContext);
         }
