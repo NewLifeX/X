@@ -527,19 +527,16 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="isLittleEndian">是否小端字节序</param>
         /// <returns></returns>
-        public static unsafe UInt32 ToUInt32(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
+        public static UInt32 ToUInt32(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
         {
             if (isLittleEndian) return BitConverter.ToUInt32(data, offset);
 
             // BitConverter得到小端，如果不是小端字节顺序，则倒序
-            fixed (byte* numRef = &(data[offset]))
-            {
-                //if (offset % 4 == 0) return *(((UInt32*)numRef));
-                if (isLittleEndian)
-                    return (UInt32)(numRef[0] | numRef[1] << 8 | numRef[2] << 0x10 | numRef[3] << 0x18);
-                else
-                    return (UInt32)(numRef[0] << 0x18 | numRef[1] << 0x10 | numRef[2] << 8 | numRef[3]);
-            }
+            data = data.ReadBytes(offset, 4);
+            if (isLittleEndian)
+                return (UInt32)(data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18);
+            else
+                return (UInt32)(data[0] << 0x18 | data[1] << 0x10 | data[2] << 8 | data[3]);
         }
 
         /// <summary>从字节数据指定位置读取一个无符号64位整数</summary>
@@ -547,25 +544,22 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="isLittleEndian">是否小端字节序</param>
         /// <returns></returns>
-        public static unsafe UInt64 ToUInt64(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
+        public static UInt64 ToUInt64(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
         {
             if (isLittleEndian) return BitConverter.ToUInt64(data, offset);
 
-            fixed (byte* numRef = &(data[offset]))
+            data = data.ReadBytes(offset, 8);
+            if (isLittleEndian)
             {
-                //if (offset % 8 == 0) return *(((UInt64*)numRef));
-                if (isLittleEndian)
-                {
-                    int num1 = numRef[0] | numRef[1] << 8 | numRef[2] << 0x10 | numRef[3] << 0x18;
-                    int num2 = numRef[4] | numRef[5] << 8 | numRef[6] << 0x10 | numRef[7] << 0x18;
-                    return (UInt32)num1 | (UInt64)num2 << 0x20;
-                }
-                else
-                {
-                    int num3 = numRef[0] << 0x18 | numRef[1] << 0x10 | numRef[2] << 8 | numRef[3];
-                    int num4 = numRef[4] << 0x18 | numRef[5] << 0x10 | numRef[6] << 8 | numRef[7];
-                    return (UInt32)num4 | (UInt64)num3 << 0x20;
-                }
+                int num1 = data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18;
+                int num2 = data[4] | data[5] << 8 | data[6] << 0x10 | data[7] << 0x18;
+                return (UInt32)num1 | (UInt64)num2 << 0x20;
+            }
+            else
+            {
+                int num3 = data[0] << 0x18 | data[1] << 0x10 | data[2] << 8 | data[3];
+                int num4 = data[4] << 0x18 | data[5] << 0x10 | data[6] << 8 | data[7];
+                return (UInt32)num4 | (UInt64)num3 << 0x20;
             }
         }
 
@@ -827,7 +821,7 @@ namespace System
             // 位置
             Int64 p = -1;
 
-            for (Int64 i = 0; i < length; )
+            for (Int64 i = 0; i < length;)
             {
                 Int32 c = stream.ReadByte();
                 if (c == -1) return -1;
@@ -1038,29 +1032,29 @@ namespace System
         /// <summary>倒序、更换字节序</summary>
         /// <param name="buf">字节数组</param>
         /// <returns></returns>
-        public static unsafe Byte[] Reverse(this Byte[] buf)
+        public static Byte[] Reverse(this Byte[] buf)
         {
             if (buf == null || buf.Length < 2) return buf;
 
-            if (buf.Length > 100)
-            {
-                Array.Reverse(buf);
-                return buf;
-            }
-
-            // 小数组使用指针更快
-            fixed (Byte* p = buf)
-            {
-                Byte* pStart = p;
-                Byte* pEnd = p + buf.Length - 1;
-                for (var i = buf.Length / 2; i > 0; i--)
-                {
-                    var temp = *pStart;
-                    *pStart++ = *pEnd;
-                    *pEnd-- = temp;
-                }
-            }
+            //if (buf.Length > 100)
+            //{
+            Array.Reverse(buf);
             return buf;
+            //}
+
+            //// 小数组使用指针更快
+            //fixed (Byte* p = buf)
+            //{
+            //    Byte* pStart = p;
+            //    Byte* pEnd = p + buf.Length - 1;
+            //    for (var i = buf.Length / 2; i > 0; i--)
+            //    {
+            //        var temp = *pStart;
+            //        *pStart++ = *pEnd;
+            //        *pEnd-- = temp;
+            //    }
+            //}
+            //return buf;
         }
         #endregion
 
