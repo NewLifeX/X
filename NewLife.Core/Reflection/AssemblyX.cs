@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-#if !Android
+#if !__MOBILE__
 using System.Web;
 #endif
 using NewLife.Collections;
@@ -118,7 +118,7 @@ namespace NewLife.Reflection
 
         static AssemblyX()
         {
-#if !Android
+#if !__MOBILE__
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) => Assembly.ReflectionOnlyLoad(args.Name);
 #endif
         }
@@ -481,7 +481,7 @@ namespace NewLife.Reflection
 
                     var basedir = AppDomain.CurrentDomain.BaseDirectory;
                     set.Add(basedir);
-#if !Android
+#if !__MOBILE__
                     if (HttpRuntime.AppDomainId != null) set.Add(HttpRuntime.BinDirectory);
                     var plugin = Setting.Current.GetPluginPath();
                     if (!set.Contains(plugin)) set.Add(plugin);
@@ -575,7 +575,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Assembly ReflectionOnlyLoadFrom(String file, Version ver = null)
         {
-#if !Android
+#if !__MOBILE__
             // 仅加载.Net文件，并且小于等于当前版本
             var pe = PEImage.Read(file);
             if (pe == null || !pe.IsNet) return null;

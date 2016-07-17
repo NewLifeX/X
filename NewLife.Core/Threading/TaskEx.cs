@@ -298,7 +298,7 @@ namespace System.Threading.Tasks
             return tcs.Task;
         }
 
-#if !Android
+#if !__MOBILE__
         /// <summary></summary>
         /// <returns></returns>
         public static YieldAwaitable Yield()

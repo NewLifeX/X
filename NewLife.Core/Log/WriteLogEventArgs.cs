@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-#if !Android
+#if !__MOBILE__
 using System.Web;
 #endif
 
@@ -91,7 +91,7 @@ namespace NewLife.Log
             var tid = Task.CurrentId;
             TaskID = tid != null ? tid.Value : -1;
 
-#if !Android
+#if !__MOBILE__
             IsWeb = HttpContext.Current != null;
 #endif
         }
@@ -104,7 +104,7 @@ namespace NewLife.Log
 
             var name = ThreadName;
             if (name.IsNullOrEmpty()) name = TaskID >= 0 ? TaskID + "" : "-";
-#if Android
+#if __MOBILE__
             if (name.EqualIgnoreCase("Threadpool worker")) name = "P";
             if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
 #endif

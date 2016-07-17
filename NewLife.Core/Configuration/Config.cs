@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
-#if !Android
+#if !__MOBILE__
 using System.Web.Configuration;
 #endif
 using NewLife.Reflection;
@@ -18,9 +18,9 @@ namespace NewLife.Configuration
         #region 属性
         private static List<String> hasLoad = new List<String>();
 
-#if Android
+#if __MOBILE__
         private static NameValueCollection _AppSettings = new NameValueCollection();
-        /// <summary>应用设置。Android不支持这种配置，仅用该技巧欺骗编译器</summary>
+        /// <summary>应用设置。__MOBILE__不支持这种配置，仅用该技巧欺骗编译器</summary>
         public static NameValueCollection AppSettings{get { return _AppSettings; }}
 
         class ConfigurationErrorsException : Exception { }
@@ -245,7 +245,7 @@ namespace NewLife.Configuration
         #endregion
 
         #region 设置参数 老树添加
-#if !Android
+#if !__MOBILE__
         /// <summary>设置配置文件参数</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name">名称</param>

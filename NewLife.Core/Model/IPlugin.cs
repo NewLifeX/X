@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NewLife.Log;
 using NewLife.Reflection;
-#if Android
+#if __MOBILE__
 using System.Reflection;
 #endif
 

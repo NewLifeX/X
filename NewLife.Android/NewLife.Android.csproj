@@ -22,20 +22,20 @@
     <DebugType>full</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\Android\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;Android,NET4</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;__UNIFIED__;__MOBILE__;__ANDROID__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <DocumentationFile>..\..\Android\NewLife.Android.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\Android\</OutputPath>
-    <DefineConstants>TRACE;Android,NET4</DefineConstants>
+    <DefineConstants>TRACE;__UNIFIED__;__MOBILE__;__ANDROID__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <DocumentationFile>..\..\Android\NewLife.Android.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
@@ -240,9 +240,6 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Reflection\EmitReflect.cs">
       <Link>Reflection\EmitReflect.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Reflection\Func.cs">
-      <Link>Reflection\Func.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Reflection\IReflect.cs">
       <Link>Reflection\IReflect.cs</Link>

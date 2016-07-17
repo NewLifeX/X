@@ -278,7 +278,7 @@ namespace NewLife.Net
         /// <param name="count"></param>
         protected virtual void OnReceive(Byte[] data, Int32 count)
         {
-#if !Android
+#if !__MOBILE__
             // 更新全局远程IP地址
             NewLife.Web.WebHelper.UserHost = Remote.EndPoint.ToString();
 #endif

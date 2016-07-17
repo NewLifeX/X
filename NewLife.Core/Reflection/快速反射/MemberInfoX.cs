@@ -59,7 +59,7 @@ namespace NewLife.Reflection
             }
         }
 
-#if !Android
+#if !__MOBILE__
         private String _DocName;
         /// <summary>文档名</summary>
         public String DocName

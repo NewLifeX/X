@@ -9,7 +9,7 @@ namespace NewLife
 {
     /// <summary>核心设置</summary>
     [DisplayName("核心设置")]
-#if !Android
+#if !__MOBILE__
     [XmlConfigFile(@"Config\Core.config", 15000)]
 #endif
     public class Setting : XmlConfig<Setting>
@@ -92,7 +92,7 @@ namespace NewLife
         /// <summary>加载完成后</summary>
         protected override void OnLoaded()
         {
-#if !Android
+#if !__MOBILE__
             if (PluginCache.IsNullOrWhiteSpace())
             {
                 // 兼容Linux Mono

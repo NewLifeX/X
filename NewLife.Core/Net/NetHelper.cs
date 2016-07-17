@@ -283,10 +283,10 @@ namespace System
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetIPs()
         {
-#if Android
+#if __MOBILE__
             return Dns.GetHostAddresses(Dns.GetHostName());
 #endif
-#if !Android
+#if !__MOBILE__
 
             var list = new List<IPAddress>();
             foreach (var item in GetActiveInterfaces())
@@ -490,7 +490,7 @@ namespace System
         #endregion
 
         #region Tcp参数
-#if !Android
+#if !__MOBILE__
         /// <summary>设置最大Tcp连接数</summary>
         public static void SetTcpMax()
         {

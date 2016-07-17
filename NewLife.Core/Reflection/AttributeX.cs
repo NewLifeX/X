@@ -10,7 +10,7 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
-#if !NET45 && !Android
+#if !NET45 && !__MOBILE__
 
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();

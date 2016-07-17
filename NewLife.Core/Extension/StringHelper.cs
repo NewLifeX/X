@@ -614,7 +614,7 @@ namespace System
         #endregion
 
         #region 文字转语音
-#if !Android
+#if !__MOBILE__
         //private static NewLife.Extension.SpeakProvider _provider;
         private static System.Speech.Synthesis.SpeechSynthesizer _provider;
         static void Init()

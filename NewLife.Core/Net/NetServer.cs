@@ -514,13 +514,9 @@ namespace NewLife.Net
                     break;
                 default:
                     // 其它情况表示同时支持IPv4和IPv6
-#if !NET4
-                    if (Socket.SupportsIPv4) list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetwork));
-#else
                     // 兼容Linux
                     //if (Socket.OSSupportsIPv4)
                     list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetwork));
-#endif
                     if (Socket.OSSupportsIPv6) list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetworkV6));
                     break;
             }

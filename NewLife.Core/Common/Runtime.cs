@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
-#if !Android
+#if !__MOBILE__
 using System.Web;
 using Microsoft.VisualBasic.Devices;
 #endif
@@ -15,7 +15,7 @@ namespace NewLife
     public static class Runtime
     {
         #region 控制台
-#if !Android
+#if !__MOBILE__
         static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 #endif
 
@@ -27,7 +27,7 @@ namespace NewLife
             {
                 if (_IsConsole != null) return _IsConsole.Value;
 
-#if !Android
+#if !__MOBILE__
                 IntPtr ip = Win32Native.GetStdHandle(-11);
                 if (ip == IntPtr.Zero || ip == INVALID_HANDLE_VALUE)
                     _IsConsole = false;
@@ -49,7 +49,7 @@ namespace NewLife
         #endregion
 
         #region Web环境
-#if !Android
+#if !__MOBILE__
         /// <summary>是否Web环境</summary>
         public static Boolean IsWeb { get { return !String.IsNullOrEmpty(HttpRuntime.AppDomainAppId); } }
 #else
@@ -82,7 +82,7 @@ namespace NewLife
             {
                 if (Is64BitProcess) return true;
 
-#if !Android && !NET4
+#if !__MOBILE__ && !NET4
                 Boolean flag;
                 return Win32Native.DoesWin32MethodExist("kernel32.dll", "IsWow64Process") && Win32Native.IsWow64Process(Win32Native.GetCurrentProcess(), out flag) && flag;
 #else
@@ -98,7 +98,7 @@ namespace NewLife
         #endregion
 
         #region 操作系统
-#if !Android
+#if !__MOBILE__
         private static String _OSName;
         /// <summary>操作系统</summary>
         public static String OSName
@@ -286,7 +286,7 @@ namespace NewLife
         #endregion
 
         #region 内存设置
-#if !Android
+#if !__MOBILE__
         /// <summary>设置进程的程序集大小，将部分物理内存占用转移到虚拟内存</summary>
         /// <param name="pid">要设置的进程ID</param>
         /// <param name="min">最小值</param>
@@ -361,7 +361,7 @@ namespace NewLife
         #endregion
     }
 
-#if !Android
+#if !__MOBILE__
     /// <summary>标识系统上的程序组</summary>
     [Flags]
     enum OSSuites : ushort

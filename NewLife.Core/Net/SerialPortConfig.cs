@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
-#if !Android
+#if !__MOBILE__
 using System.IO.Ports;
 #endif
 using System.Text;
@@ -25,7 +25,7 @@ namespace NewLife.Net
         [Description("数据位")]
         public Int32 DataBits { get; set; } = 8;
 
-#if !Android
+#if !__MOBILE__
         /// <summary>停止位</summary>
         [Description("停止位 None/One/Two/OnePointFive")]
         public StopBits StopBits { get; set; } = StopBits.One;

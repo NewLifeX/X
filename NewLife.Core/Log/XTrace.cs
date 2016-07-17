@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-#if !Android
+#if !__MOBILE__
 using System.Windows.Forms;
 #endif
 using NewLife.Reflection;
@@ -18,7 +18,7 @@ namespace NewLife.Log
     /// 该静态类包括写日志、写调用栈和Dump进程内存等调试功能。
     /// 
     /// 默认写日志到文本文件，可通过修改<see cref="Log"/>属性来增加日志输出方式。
-    /// 对于控制台工程，可以直接通过<see cref="UseConsole"/>方法，把日志输出重定向为控制台输出，并且可以为不同线程使用不同颜色。
+    /// 对于控制台工程，可以直接通过UseConsole方法，把日志输出重定向为控制台输出，并且可以为不同线程使用不同颜色。
     /// </remarks>
     public static class XTrace
     {
@@ -72,7 +72,7 @@ namespace NewLife.Log
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         }
 
-#if Android
+#if __MOBILE__
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var msg = "" + e.ExceptionObject;
@@ -123,7 +123,7 @@ namespace NewLife.Log
                 if (_Log != null) return true;
 
                 _initing = Thread.CurrentThread.ManagedThreadId;
-#if !Android
+#if !__MOBILE__
                 _Log = TextFileLog.Create(LogPath);
 #else
                 _Log = new NetworkLog();
@@ -146,7 +146,7 @@ namespace NewLife.Log
         #endregion
 
         #region 使用控制台输出
-#if !Android
+#if !__MOBILE__
         private static Boolean _useConsole;
         /// <summary>使用控制台输出日志，只能调用一次</summary>
         /// <param name="useColor">是否使用颜色，默认使用</param>
@@ -229,7 +229,7 @@ namespace NewLife.Log
         #endregion
 
         #region 拦截WinForm异常
-#if !Android
+#if !__MOBILE__
         private static Int32 initWF = 0;
         private static Boolean _ShowErrorMessage;
         //private static String _Title;

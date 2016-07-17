@@ -44,7 +44,7 @@ namespace NewLife.Log
             timer.Times = times;
             timer.Action = action;
             timer.ShowProgress = true;
-#if !Android
+#if !__MOBILE__
             var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Int32 left = Console.CursorLeft;
@@ -54,11 +54,11 @@ namespace NewLife.Log
 
             // 等一会，让进度那边先输出
             Thread.Sleep(10);
-#if !Android
+#if !__MOBILE__
             Console.CursorLeft = left;
 #endif
             Console.WriteLine(timer.ToString());
-#if !Android
+#if !__MOBILE__
             Console.ForegroundColor = currentForeColor;
 #endif
         }
@@ -69,7 +69,7 @@ namespace NewLife.Log
         {
             Write(title, 16);
             Console.Write("：");
-#if !Android
+#if !__MOBILE__
             var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
 #endif
@@ -82,7 +82,7 @@ namespace NewLife.Log
             Console.WriteLine("   百分比");
 
             msBase = 0;
-#if !Android
+#if !__MOBILE__
             Console.ForegroundColor = currentForeColor;
 #endif
         }
@@ -310,7 +310,7 @@ namespace NewLife.Log
 
         void Progress(Object state)
         {
-#if !Android
+#if !__MOBILE__
             Int32 left = Console.CursorLeft;
 
             // 设置光标不可见
@@ -332,7 +332,7 @@ namespace NewLife.Log
                         Double ms = sw.Elapsed.TotalMilliseconds;
                         TimeSpan ts = new TimeSpan(0, 0, 0, 0, (Int32)(ms * Times / i));
                         Console.Write("{0,7:n0}ms {1:p} Total=>{2}", ms, d, ts);
-#if !Android
+#if !__MOBILE__
                         Console.CursorLeft = left;
 #endif
                     }
@@ -343,7 +343,7 @@ namespace NewLife.Log
                 Thread.Sleep(500);
             }
             sw.Stop();
-#if !Android
+#if !__MOBILE__
             Console.CursorLeft = left;
             Console.CursorVisible = cursorVisible;
 #endif

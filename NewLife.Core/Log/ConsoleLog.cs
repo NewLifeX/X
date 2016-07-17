@@ -23,7 +23,7 @@ namespace NewLife.Log
                 ConsoleWriteLog(e);
                 return;
             }
-#if !Android
+#if !__MOBILE__
             var cc = Console.ForegroundColor;
             switch (level)
             {
@@ -43,7 +43,7 @@ namespace NewLife.Log
             Console.ForegroundColor = cc;
 #endif
             ConsoleWriteLog(e);
-#if !Android
+#if !__MOBILE__
             Console.ForegroundColor = old;
 #endif
         }

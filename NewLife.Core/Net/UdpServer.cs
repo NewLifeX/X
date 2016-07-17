@@ -265,7 +265,7 @@ namespace NewLife.Net
                 }
             }
 
-#if !Android
+#if !__MOBILE__
             // 更新全局远程IP地址
             NewLife.Web.WebHelper.UserHost = remote.ToString();
 #endif

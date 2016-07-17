@@ -155,7 +155,7 @@ namespace NewLife.Serialization
 
         private bool CheckScriptIgnoreAttribute(MemberInfo memberInfo)
         {
-#if !Android
+#if !__MOBILE__
             if (memberInfo.IsDefined(typeof(ScriptIgnoreAttribute), true)) return true;
 #endif
             if (memberInfo.IsDefined(typeof(XmlIgnoreAttribute), true)) return true;
@@ -164,7 +164,7 @@ namespace NewLife.Serialization
         }
 
         #region IJsonHost 成员
-#if !Android
+#if !__MOBILE__
         public String Write(Object value, Boolean indented)
         {
             var json = new JavaScriptSerializer().Serialize(value);

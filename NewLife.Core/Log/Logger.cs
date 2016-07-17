@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
-#if Android
+#if __ANDROID__
 using Android.OS;     
 #endif
 
@@ -172,7 +172,7 @@ namespace NewLife.Log
             try
             {
                 fileName = process.StartInfo.FileName;
-#if !Android
+#if !__MOBILE__
                 // MonoAndroid无法识别MainModule，致命异常
                 if (fileName.IsNullOrWhiteSpace()) fileName = process.MainModule.FileName;
 #endif
@@ -204,15 +204,27 @@ namespace NewLife.Log
                 }
             }
 
-#if Android
+#if __MOBILE__
+#if __ANDROID__
             sb.AppendFormat("#ApplicationType: {0}\r\n", "Android");
+#elif __IOS__
+            sb.AppendFormat("#ApplicationType: {0}\r\n", "iOS");
+#else
+            sb.AppendFormat("#ApplicationType: {0}\r\n", "Mobile");
+#endif
 #else
             sb.AppendFormat("#ApplicationType: {0}\r\n", Runtime.IsWeb ? "Web" : (Runtime.IsConsole ? "Console" : "WinForm"));
 #endif
             sb.AppendFormat("#CLR: {0}\r\n", System.Environment.Version);
 
-#if Android
+#if __MOBILE__
+#if __ANDROID__
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Build.Fingerprint, Build.Host, Build.Model);
+#elif __IOS__
+            sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", "iOS", "", "");
+#else
+            sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", "Mobile", "", "");
+#endif
 #else
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Runtime.OSName, Environment.UserName, Environment.MachineName);
             try
@@ -230,6 +242,6 @@ namespace NewLife.Log
 
             return sb.ToString();
         }
-        #endregion
+#endregion
     }
 }
