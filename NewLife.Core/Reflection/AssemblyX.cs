@@ -208,43 +208,8 @@ namespace NewLife.Reflection
         #endregion
 
         #region 静态属性
-        ///// <summary>当前执行代码程序集</summary>
-        //public static AssemblyX Executing { get { return Create(Assembly.GetExecutingAssembly()); } }
-
         /// <summary>入口程序集</summary>
         public static AssemblyX Entry { get { return Create(Assembly.GetEntryAssembly()); } }
-
-        ///// <summary>调用者</summary>
-        //public static AssemblyX Calling { get { return Create(Assembly.GetCallingAssembly()); } }
-        #endregion
-
-        #region 获取特性
-        ///// <summary>获取自定义属性</summary>
-        ///// <typeparam name="TAttribute"></typeparam>
-        ///// <returns></returns>
-        //[Obsolete("=>Asm.GetCustomAttribute<TAttribute>")]
-        //public TAttribute GetCustomAttribute<TAttribute>() { return Asm.GetCustomAttribute<TAttribute>(); }
-
-        ///// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
-        ///// <typeparam name="TAttribute"></typeparam>
-        ///// <typeparam name="TResult"></typeparam>
-        ///// <returns></returns>
-        //[Obsolete("=>Asm.GetCustomAttributeValue<TAttribute, TResult>")]
-        //public TResult GetCustomAttributeValue<TAttribute, TResult>()
-        //{
-        //    var list = CustomAttributeData.GetCustomAttributes(Asm);
-        //    if (list == null || list.Count < 1) return default(TResult);
-
-        //    foreach (var item in list)
-        //    {
-        //        if (typeof(TAttribute) != item.Constructor.DeclaringType) continue;
-
-        //        if (item.ConstructorArguments != null && item.ConstructorArguments.Count > 0)
-        //            return (TResult)item.ConstructorArguments[0].Value;
-        //    }
-
-        //    return default(TResult);
-        //}
         #endregion
 
         #region 方法
@@ -698,23 +663,22 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public override string ToString()
         {
-            //return String.Format("{0} {1}", Name, Title);
             if (!String.IsNullOrEmpty(Title))
                 return Title;
             else
                 return Name;
         }
 
-        /// <summary>判断两个程序集是否相同，避免引用加载和执行上下文加载的相同程序集显示不同</summary>
-        /// <param name="asm1"></param>
-        /// <param name="asm2"></param>
-        /// <returns></returns>
-        public static Boolean Equal(Assembly asm1, Assembly asm2)
-        {
-            if (asm1 == asm2) return true;
+        ///// <summary>判断两个程序集是否相同，避免引用加载和执行上下文加载的相同程序集显示不同</summary>
+        ///// <param name="asm1"></param>
+        ///// <param name="asm2"></param>
+        ///// <returns></returns>
+        //public static Boolean Equal(Assembly asm1, Assembly asm2)
+        //{
+        //    if (asm1 == asm2) return true;
 
-            return asm1.FullName == asm2.FullName;
-        }
+        //    return asm1.FullName == asm2.FullName;
+        //}
         #endregion
     }
 }
