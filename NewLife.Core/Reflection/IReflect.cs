@@ -175,7 +175,10 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Type GetType(String typeName, Boolean isLoadAssembly)
         {
-            return Type.GetType(typeName);
+            //var type = Type.GetType(typeName);
+            //if (type != null) return type;
+
+            return AssemblyX.GetType(typeName, isLoadAssembly);
         }
 
         static BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
@@ -536,7 +539,76 @@ namespace NewLife.Reflection
         /// <param name="value">数值</param>
         /// <param name="conversionType"></param>
         /// <returns></returns>
-        public virtual Object ChangeType(Object value, Type conversionType) { return Convert.ChangeType(value, conversionType); }
+        public virtual Object ChangeType(Object value, Type conversionType)
+        {
+            //return Convert.ChangeType(value, conversionType);
+
+            Type vtype = null;
+            if (value != null) vtype = value.GetType();
+            //if (vtype == conversionType || conversionType.IsAssignableFrom(vtype)) return value;
+            if (vtype == conversionType) return value;
+
+            if (conversionType.IsEnum)
+            {
+                if (vtype == typeof(String))
+                    return Enum.Parse(conversionType, (String)value, true);
+                else
+                    return Enum.ToObject(conversionType, value);
+            }
+
+            // 字符串转为货币类型，处理一下
+            if (vtype == typeof(String))
+            {
+                var str = (String)value;
+                if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
+                {
+                    value = str.TrimStart(new Char[] { '$', '￥' });
+                }
+                else if (typeof(Type).IsAssignableFrom(conversionType))
+                {
+                    return GetType((String)value, true);
+                }
+
+                // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型
+                var code = Type.GetTypeCode(conversionType);
+                if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10) return Convert.ChangeType(value.ToInt(), conversionType);
+            }
+
+            if (value != null)
+            {
+                // 尝试基础类型转换
+                switch (Type.GetTypeCode(conversionType))
+                {
+                    case TypeCode.Boolean:
+                        return value.ToBoolean();
+                    case TypeCode.DateTime:
+                        return value.ToDateTime();
+                    case TypeCode.Double:
+                        return value.ToDouble();
+                    case TypeCode.Int16:
+                        return (Int16)value.ToInt();
+                    case TypeCode.Int32:
+                        return value.ToInt();
+                    case TypeCode.UInt16:
+                        return (UInt16)value.ToInt();
+                    case TypeCode.UInt32:
+                        return (UInt32)value.ToInt();
+                    default:
+                        break;
+                }
+
+                if (value is IConvertible) value = Convert.ChangeType(value, conversionType);
+            }
+            else
+            {
+                // 如果原始值是null，要转为值类型，则new一个空白的返回
+                if (conversionType.IsValueType) value = CreateInstance(conversionType);
+            }
+
+            if (conversionType.IsAssignableFrom(vtype)) return value;
+
+            return value;
+        }
 
         /// <summary>获取类型的友好名称</summary>
         /// <param name="type">指定类型</param>

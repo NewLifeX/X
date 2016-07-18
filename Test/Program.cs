@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -58,41 +58,42 @@ namespace Test
 
         static void Test1()
         {
-            //using (var zip = new ZipFile(@"..\System.Data.SQLite.zip".GetFullPath()))
-            //{
-            //    foreach (var item in zip.Entries)
-            //    {
-            //        Console.WriteLine("{0}\t{1}\t{2}", item.Key, item.Value.FileName, item.Value.UncompressedSize);
-            //    }
-            //    zip.Extract("SQLite".GetFullPath());
-            //}
+            Console.WriteLine("版本：{0} {1}", Environment.Version, Environment.OSVersion);
 
-            //ZipFile.CompressDirectory("SQLite".GetFullPath());
+            var times = 100000000;
 
-            var buf = Certificate.CreateSelfSignCertificatePfx("CN=新生命团队;C=China;OU=NewLife;O=开发团队;E=nnhy@vip.qq.com");
-            File.WriteAllBytes("stone.pfx", buf);
+            var obj = new A();
+            obj.ID = 123;
+            obj.Name = "SmartStone";
+
+            var pi = typeof(A).GetProperty("Name");
+            var mi = typeof(A).GetMethod("Add");
+
+            CodeTimer.ShowHeader("获取性能测试：");
+            CodeTimer.TimeLine("直接获取", times, n => { var m = obj.Name; });
+            CodeTimer.TimeLine("普通反射", times, n => { var m = pi.GetValue(obj, null); });
+            CodeTimer.TimeLine("快速反射", times, n => { var m = obj.GetValue(pi); });
+
+            CodeTimer.ShowHeader("赋值性能测试：");
+            CodeTimer.TimeLine("直接赋值", times, n => { obj.Name = "Stone"; });
+            CodeTimer.TimeLine("普通反射", times, n => { pi.SetValue(obj, "Stone", null); });
+            CodeTimer.TimeLine("快速反射", times, n => { obj.SetValue(pi, "Stone"); });
+
+            CodeTimer.ShowHeader("调用性能测试：");
+            CodeTimer.TimeLine("直接调用", times, n => { var m = obj.Add(321); });
+            CodeTimer.TimeLine("普通反射", times, n => { var m = mi.Invoke(obj, new Object[] { 321 }); });
+            CodeTimer.TimeLine("快速反射", times, n => { var m = obj.Invoke(mi, 321); });
         }
 
-        static async void Test2()
+        class A
         {
-            Console.WriteLine("Start");
+            public Int32 ID { get; set; }
+            public String Name { get; set; }
 
-            var tk = Add(22, 33);
-
-            Console.WriteLine("Second");
-
-            Console.WriteLine(await tk);
-
-            Console.WriteLine("End");
-        }
-
-        static async Task<Int32> Add(Int32 m, Int32 n)
-        {
-            return await Task<Int32>.Factory.StartNew(() =>
+            public Int32 Add(Int32 m)
             {
-                Thread.Sleep(3000);
-                return m + n;
-            });
+                return ID + m;
+            }
         }
 
         static void Test3()

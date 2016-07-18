@@ -379,10 +379,10 @@ namespace NewLife.Agent
                     {
                         WriteLine("");
                         WriteLine("正在加载：{0} = {1}", item.Key, item.Value);
-                        var type = TypeX.GetType(item.Value, true);
+                        var type = item.Value.GetTypeEx();
                         if (type != null)
                         {
-                            var service = TypeX.CreateInstance(type) as IServer;
+                            var service = type.CreateInstance() as IServer;
                             if (service != null) AttachServers[item.Key] = service;
                         }
                     }

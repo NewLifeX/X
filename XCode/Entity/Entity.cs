@@ -1348,7 +1348,7 @@ namespace XCode
                 Object obj = null;
                 if (Extends.TryGetValue(name, out obj))
                 {
-                    if (f != null && f.IsDynamic) return TypeX.ChangeType(obj, f.Type);
+                    if (f != null && f.IsDynamic) return obj.ChangeType(f.Type);
 
                     return obj;
                 }
@@ -1383,7 +1383,7 @@ namespace XCode
 
                 // 检查动态增加的字段，返回默认值
                 var f = Meta.Table.FindByName(name) as FieldItem;
-                if (f != null && f.IsDynamic) value = TypeX.ChangeType(value, f.Type);
+                if (f != null && f.IsDynamic) value = value.ChangeType(f.Type);
 
                 Extends[name] = value;
 

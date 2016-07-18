@@ -167,7 +167,7 @@ namespace System
                 {
                     foreach (var item in list)
                     {
-                        if (!TypeX.Equal(typeof(TAttribute), item.Constructor.DeclaringType)) continue;
+                        if (typeof(TAttribute).FullName != item.Constructor.DeclaringType.FullName) continue;
 
                         var args = item.ConstructorArguments;
                         if (args != null && args.Count > 0) return (TResult)args[0].Value;

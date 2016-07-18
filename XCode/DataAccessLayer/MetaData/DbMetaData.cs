@@ -150,8 +150,8 @@ namespace XCode.DataAccessLayer
                 {
                     if (obj != null)
                     {
-                        var tx = TypeX.Create(obj.GetType());
-                        if (tx.IsInt)
+                        var tc = Type.GetTypeCode(obj.GetType());
+                        if (tc >= TypeCode.Int16 && tc <= TypeCode.UInt64)
                         {
                             var n = Convert.ToUInt64(obj);
                             if (n == UInt32.MaxValue && Type.GetTypeCode(typeof(T)) == TypeCode.Int32)
@@ -160,7 +160,7 @@ namespace XCode.DataAccessLayer
                             }
                         }
                     }
-                    value = (T)Reflect.ChangeType(obj, typeof(T));
+                    value = obj.ChangeType<T>();
                 }
             }
             catch { return false; }

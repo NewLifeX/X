@@ -142,13 +142,9 @@
     <Compile Include="Model\IObjectContainer.cs" />
     <Compile Include="Model\ObjectContainer.cs" />
     <Compile Include="Model\IServer.cs" />
-    <Compile Include="Reflection\EmitReflect.cs" />
-    <Compile Include="Reflection\IL\ILInstruction.cs" />
-    <Compile Include="Reflection\IL\MethodBodyReader.cs" />
     <Compile Include="Reflection\IReflect.cs" />
     <Compile Include="Reflection\PEImage.cs" />
     <Compile Include="Reflection\Reflect.cs" />
-    <Compile Include="Reflection\快速反射\EventInfoX.cs" />
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\ScriptEngine.cs" />
     <Compile Include="Security\Certificate.cs" />
@@ -180,7 +176,6 @@
     <Compile Include="Log\CodeTimer.cs" />
     <Compile Include="Reflection\AssemblyX.cs" />
     <Compile Include="Reflection\AttributeX.cs" />
-    <Compile Include="Reflection\快速反射\ConstructorInfoX.cs" />
     <Compile Include="Reflection\EmitHelper.cs" />
     <Compile Include="Serialization\Json\IJsonHost.cs" />
     <Compile Include="Serialization\Json\Json.cs" />
@@ -201,14 +196,9 @@
     <Compile Include="Serialization\Xml\IXml.cs" />
     <Compile Include="Serialization\Xml\Xml.cs" />
     <Compile Include="Setting.cs" />
-    <Compile Include="Reflection\快速反射\TypeX.cs" />
     <Compile Include="Event\EventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Reflection\快速反射\FieldInfoX.cs" />
     <Compile Include="Reflection\IIndexAccessor.cs" />
-    <Compile Include="Reflection\快速反射\MemberInfoX.cs" />
-    <Compile Include="Reflection\快速反射\MethodInfoX.cs" />
-    <Compile Include="Reflection\快速反射\PropertyInfoX.cs" />
     <Compile Include="Security\Crc32.cs" />
     <Compile Include="Common\HardInfo.cs" />
     <Compile Include="Common\IdentityCard.cs" />

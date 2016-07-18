@@ -15,7 +15,9 @@ namespace NewLife.Reflection
 
         static Reflect()
         {
-            Provider = new EmitReflect();
+            Provider = new DefaultReflect();
+            // 如果需要使用快速反射，启用下面这一行
+            //Provider = new EmitReflect();
         }
         #endregion
 

@@ -14,7 +14,7 @@ using NewLife.Log;
 namespace NewLife.Reflection
 {
     /// <summary>程序集辅助类。使用Create创建，保证每个程序集只有一个辅助类</summary>
-    public class AssemblyX //: FastIndexAccessor
+    public class AssemblyX
     {
         #region 属性
         private Assembly _Asm;
@@ -338,7 +338,7 @@ namespace NewLife.Reflection
                 list = new List<Type>();
                 foreach (var item in Types)
                 {
-                    if (TypeX.Create(item).IsPlugin(baseType)) list.Add(item);
+                    if (baseType.IsAssignableFrom(item)) list.Add(item);
                 }
                 if (list.Count <= 0) list = null;
 
@@ -446,6 +446,46 @@ namespace NewLife.Reflection
             }
 
             return false;
+        }
+
+        /// <summary>根据名称获取类型</summary>
+        /// <param name="typeName">类型名</param>
+        /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
+        /// <returns></returns>
+        public static Type GetType(String typeName, Boolean isLoadAssembly)
+        {
+            var type = Type.GetType(typeName);
+            if (type != null) return type;
+
+            // 尝试加载只读程序集
+            if (!isLoadAssembly) return null;
+
+            foreach (var asm in ReflectionOnlyGetAssemblies())
+            {
+                type = asm.GetType(typeName);
+                if (type != null)
+                {
+                    // 真实加载
+                    var file = asm.Asm.Location;
+                    try
+                    {
+                        type = null;
+                        var asm2 = Assembly.LoadFile(file);
+                        var type2 = AssemblyX.Create(asm2).GetType(typeName);
+                        if (type2 == null) continue;
+                        type = type2;
+                        if (XTrace.Debug) XTrace.WriteLine("TypeX.GetType(\"{0}\")导致加载{1}", typeName, file);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (XTrace.Debug) XTrace.WriteException(ex);
+                    }
+
+                    return type;
+                }
+            }
+
+            return null;
         }
         #endregion
 

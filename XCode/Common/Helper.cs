@@ -35,7 +35,7 @@ namespace XCode.Common
 
             if (type == null) type = key.GetType();
 
-            key = TypeX.ChangeType(key, type);
+            key = key.ChangeType(type);
 
             //由于key的实际类型是由类型推倒而来，所以必须根据实际传入的参数类型分别进行装箱操作
             //如果不根据类型分别进行会导致类型转换失败抛出异常
