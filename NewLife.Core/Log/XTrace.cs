@@ -354,6 +354,7 @@ namespace NewLife.Log
         #endregion
 
         #region Dump
+#if !__MOBILE__
         /// <summary>写当前线程的MiniDump</summary>
         /// <param name="dumpFile">如果不指定，则自动写入日志目录</param>
         public static void WriteMiniDump(String dumpFile)
@@ -434,6 +435,7 @@ namespace NewLife.Log
                 WithCodeSegs = 0x00002000
             }
         }
+#endif
         #endregion
 
         #region 调用栈

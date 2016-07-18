@@ -95,11 +95,21 @@ namespace NewLife.Reflection
         public String Description { get { return _Description ?? (_Description = "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>()); } }
 
         /// <summary>获取包含清单的已加载文件的路径或 UNC 位置。</summary>
-#if !NET4
-        public String Location { get { try { return Asm == null || Asm is _AssemblyBuilder ? null : Asm.Location; } catch { return null; } } }
+        public String Location
+        {
+            get
+            {
+                try
+                {
+#if !__IOS__
+                    return Asm == null || Asm is _AssemblyBuilder || Asm.IsDynamic ? null : Asm.Location;
 #else
-        public String Location { get { try { return Asm == null || Asm is _AssemblyBuilder || Asm.IsDynamic ? null : Asm.Location; } catch { return null; } } }
+                    return Asm == null || Asm.IsDynamic ? null : Asm.Location;
 #endif
+                }
+                catch { return null; }
+            }
+        }
         #endregion
 
         #region 构造

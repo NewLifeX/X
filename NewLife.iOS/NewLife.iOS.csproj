@@ -216,47 +216,23 @@
     <Compile Include="..\newlife.core\net\UdpSession.cs">
       <Link>Net\UdpSession.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
+      <Link>Properties\AssemblyInfo_.cs</Link>
+    </Compile>
     <Compile Include="..\newlife.core\reflection\AssemblyX.cs">
       <Link>Reflection\AssemblyX.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\reflection\AttributeX.cs">
       <Link>Reflection\AttributeX.cs</Link>
     </Compile>
-    <Compile Include="..\newlife.core\reflection\EmitReflect.cs">
-      <Link>Reflection\EmitReflect.cs</Link>
-    </Compile>
     <Compile Include="..\newlife.core\reflection\IReflect.cs">
       <Link>Reflection\IReflect.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\reflection\Reflect.cs">
       <Link>Reflection\Reflect.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\reflection\快速反射\ConstructorInfoX.cs">
-      <Link>Reflection\快速反射\ConstructorInfoX.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\reflection\快速反射\EventInfoX.cs">
-      <Link>Reflection\快速反射\EventInfoX.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\reflection\快速反射\FastMethod.cs">
-      <Link>Reflection\快速反射\FastMethod.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\reflection\快速反射\FieldInfoX.cs">
-      <Link>Reflection\快速反射\FieldInfoX.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\reflection\快速反射\MemberInfoX.cs">
-      <Link>Reflection\快速反射\MemberInfoX.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\reflection\快速反射\MethodInfoX.cs">
-      <Link>Reflection\快速反射\MethodInfoX.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\reflection\快速反射\PropertyInfoX.cs">
-      <Link>Reflection\快速反射\PropertyInfoX.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\reflection\快速反射\TypeX.cs">
-      <Link>Reflection\快速反射\TypeX.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\security\Certificate.cs">
-      <Link>Security\Certificate.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\security\Crc16.cs">
       <Link>Security\Crc16.cs</Link>
@@ -366,7 +342,6 @@
     <Compile Include="..\newlife.core\xml\XmlHelper.cs">
       <Link>Xml\XmlHelper.cs</Link>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>
