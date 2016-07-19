@@ -210,7 +210,7 @@ namespace NewLife.Net
             var count = buffer.Length;
 
             if (StatSend != null) StatSend.Increment(count);
-            if (Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+            if (Log != null && Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
 
             LastTime = DateTime.Now;
 
@@ -262,7 +262,7 @@ namespace NewLife.Net
             _seSend.TryDispose();
             _seSend = null;
 
-            if (Log.Level <= LogLevel.Debug) WriteLog("释放SendSA {0} {1}", 1, reason);
+            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放SendSA {0} {1}", 1, reason);
         }
 
         void CheckSendQueue(Boolean io)
@@ -284,7 +284,7 @@ namespace NewLife.Net
                 se.SetBuffer(buf, 0, buf.Length);
                 se.Completed += (s, e) => ProcessSend(e);
 
-                if (Log.Level <= LogLevel.Debug) WriteLog("创建SendSA {0}", 1);
+                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建SendSA {0}", 1);
             }
 
             se.RemoteEndPoint = qi.Remote;
@@ -409,7 +409,7 @@ namespace NewLife.Net
                 se.Completed += (s, e) => ProcessReceive(e);
                 se.UserToken = _RecvCount;
 
-                if (Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", _RecvCount);
+                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", _RecvCount);
 
                 ReceiveAsync(se, false);
             }
@@ -421,7 +421,7 @@ namespace NewLife.Net
         {
             var idx = (Int32)se.UserToken;
 
-            if (Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", idx, reason);
+            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", idx, reason);
 
             Interlocked.Decrement(ref _RecvCount);
             se.TryDispose();
