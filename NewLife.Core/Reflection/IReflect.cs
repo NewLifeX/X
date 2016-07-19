@@ -192,7 +192,19 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual MethodInfo GetMethod(Type type, String name, params Type[] paramTypes)
         {
-            return type.GetMethod(name, bf, null, paramTypes, null);
+            MethodInfo mi = null;
+            while (true)
+            {
+                if (paramTypes == null || paramTypes.Length == 0)
+                    mi = type.GetMethod(name, bf);
+                else
+                    mi = type.GetMethod(name, bf, null, paramTypes, null);
+                if (mi != null) return mi;
+
+                type = type.BaseType;
+                if (type == null || type == typeof(Object)) break;
+            }
+            return null;
         }
 
         /// <summary>获取指定名称的方法集合，支持指定参数个数来匹配过滤</summary>

@@ -173,7 +173,7 @@ namespace NewLife.Reflection
             }
 
             // 如果参数数组出现null，则无法精确匹配，可按参数个数进行匹配
-            var method = GetMethodEx(type, name, list.ToArray());
+            var method = GetMethodEx(type, name, list.Count == 0 ? null : list.ToArray());
             if (method == null) return false;
 
             value = Invoke(target, method, parameters);
