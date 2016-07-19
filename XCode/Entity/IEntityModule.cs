@@ -47,7 +47,7 @@ namespace XCode
             EntityType = entityType;
 
             // 扫描添加
-            foreach (var item in AssemblyX.FindAllPlugins(typeof(IEntityModule), true))
+            foreach (var item in typeof(IEntityModule).GetAllSubclasses(true))
             {
                 var module = item.CreateInstance() as IEntityModule;
                 Add(module);

@@ -293,14 +293,14 @@ namespace NewLife.Reflection
         /// <summary>查找插件</summary>
         /// <typeparam name="TPlugin"></typeparam>
         /// <returns></returns>
-        public List<Type> FindPlugins<TPlugin>() { return FindPlugins(typeof(TPlugin)); }
+        internal List<Type> FindPlugins<TPlugin>() { return FindPlugins(typeof(TPlugin)); }
 
         private Dictionary<Type, List<Type>> _plugins = new Dictionary<Type, List<Type>>();
         /// <summary>查找插件，带缓存</summary>
         /// <param name="baseType">类型</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public List<Type> FindPlugins(Type baseType)
+        internal List<Type> FindPlugins(Type baseType)
         {
             // 如果type是null，则返回所有类型
 
@@ -313,7 +313,8 @@ namespace NewLife.Reflection
                 list = new List<Type>();
                 foreach (var item in Types)
                 {
-                    if (baseType.IsAssignableFrom(item)) list.Add(item);
+                    if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
+                    if (baseType != item && baseType.IsAssignableFrom(item)) list.Add(item);
                 }
                 if (list.Count <= 0) list = null;
 
@@ -330,7 +331,7 @@ namespace NewLife.Reflection
         /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly = false, Boolean excludeGlobalTypes = true)
+        internal static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly = false, Boolean excludeGlobalTypes = true)
         {
             var baseAssemblyName = baseType.Assembly.GetName().Name;
 
@@ -409,7 +410,7 @@ namespace NewLife.Reflection
         /// <param name="asm">程序集</param>
         /// <param name="baseAsmName">被引用程序集全名</param>
         /// <returns></returns>
-        public static Boolean IsReferencedFrom(Assembly asm, String baseAsmName)
+        private static Boolean IsReferencedFrom(Assembly asm, String baseAsmName)
         {
             //if (asm.FullName.EqualIgnoreCase(baseAsmName)) return true;
             if (asm.GetName().Name.EqualIgnoreCase(baseAsmName)) return true;
@@ -427,7 +428,7 @@ namespace NewLife.Reflection
         /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public static Type GetType(String typeName, Boolean isLoadAssembly)
+        internal static Type GetType(String typeName, Boolean isLoadAssembly)
         {
             var type = Type.GetType(typeName);
             if (type != null) return type;

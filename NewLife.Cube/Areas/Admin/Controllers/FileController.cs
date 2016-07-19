@@ -13,9 +13,8 @@ namespace NewLife.Cube.Admin.Controllers
     [EntityAuthorize(PermissionFlags.Detail)]
     public class FileController : ControllerBaseX
     {
-        //
-        // GET: /Admin/File/
-
+        /// <summary>文件管理主视图</summary>
+        /// <returns></returns>
         public ActionResult Index()
         {
             return View();

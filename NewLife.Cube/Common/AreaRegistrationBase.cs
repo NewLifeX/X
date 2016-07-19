@@ -92,7 +92,7 @@ namespace NewLife.Cube
         static List<Assembly> FindAllArea()
         {
             var list = new List<Assembly>();
-            foreach (var item in AssemblyX.FindAllPlugins(typeof(AreaRegistrationBase), true))
+            foreach (var item in typeof(AreaRegistrationBase).GetAllSubclasses(true))
             {
                 var asm = item.Assembly;
                 if (!list.Contains(asm))

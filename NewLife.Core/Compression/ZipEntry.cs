@@ -98,7 +98,8 @@ namespace NewLife.Compression
         #endregion
 
         #region 构造
-        internal ZipEntry()
+        /// <summary>实例化Zip实体</summary>
+        public ZipEntry()
         {
             Signature = ZipConstants.ZipEntrySignature;
             VersionNeeded = 20;

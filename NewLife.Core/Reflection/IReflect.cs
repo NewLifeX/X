@@ -469,19 +469,6 @@ namespace NewLife.Reflection
                 return;
             }
 
-            //// 特殊处理列表
-            //if (typeof(IList).IsAssignableFrom(type))
-            //{
-            //    var list1 = target as IList;
-            //    var list2 = src as IList;
-            //}
-
-            //// 特殊处理字典
-            //if (typeof(IDictionary).IsAssignableFrom(type))
-            //{
-
-            //}
-
             // 来源对象转为字典
             var dic = new Dictionary<String, Object>();
             foreach (var pi in src.GetType().GetProperties())
@@ -624,13 +611,15 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual IEnumerable<Type> GetSubclasses(Assembly asm, Type baseType)
         {
-            if (asm == null) throw new ArgumentNullException("asm");
+            //if (asm == null) throw new ArgumentNullException(nameof(asm));
+            //if (baseType == null) throw new ArgumentNullException(nameof(baseType));
 
-            foreach (var item in asm.GetTypes())
-            {
-                if (baseType == null || baseType.IsAssignableFrom(item))
-                    yield return item;
-            }
+            //foreach (var item in asm.GetTypes())
+            //{
+            //    if (baseType != item && baseType.IsAssignableFrom(item))
+            //        yield return item;
+            //}
+            return AssemblyX.Create(asm).FindPlugins(baseType);
         }
 
         /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
@@ -639,14 +628,15 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual IEnumerable<Type> GetAllSubclasses(Type baseType, Boolean isLoadAssembly)
         {
-            // 不支持isLoadAssembly
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in GetSubclasses(asm, baseType))
-                {
-                    yield return type;
-                }
-            }
+            //// 不支持isLoadAssembly
+            //foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            //{
+            //    foreach (var type in GetSubclasses(asm, baseType))
+            //    {
+            //        yield return type;
+            //    }
+            //}
+            return AssemblyX.FindAllPlugins(baseType, isLoadAssembly);
         }
         #endregion
 
