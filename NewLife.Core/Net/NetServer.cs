@@ -355,7 +355,7 @@ namespace NewLife.Net
 
             if (UseSession) AddSession(ns);
 
-            session.Received += OnReceived;
+            ns.Received += OnReceived;
             //session.Error += OnError;
 
             // 估算完成时间，执行过长时提示
@@ -375,9 +375,9 @@ namespace NewLife.Net
         /// <param name="e"></param>
         void OnReceived(Object sender, ReceivedEventArgs e)
         {
-            var session = sender as ISocketSession;
+            var session = sender as INetSession;
 
-            OnReceive(session, e.Stream);
+            OnReceive(session.Session, e.Stream);
 
             if (Received != null) Received(sender, e);
         }
