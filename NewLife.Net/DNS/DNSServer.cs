@@ -131,9 +131,9 @@ namespace NewLife.Net.DNS
         /// <summary>接收处理</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
-        protected override void OnReceive(ISocketSession session, Stream stream)
+        protected override void OnReceive(INetSession session, Stream stream)
         {
-            var isTcp = session.Local.IsTcp;
+            var isTcp = session.Session.Local.IsTcp;
 
             // 解析
             var request = DNSEntity.Read(stream, isTcp);
@@ -152,12 +152,13 @@ namespace NewLife.Net.DNS
         /// <param name="session"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        protected virtual DNSEntity Request(ISocketSession session, DNSEntity request)
+        protected virtual DNSEntity Request(INetSession session, DNSEntity request)
         {
-            var isTcp = session.Local.IsTcp;
+            var local = session.Session.Local;
+            var isTcp = local.IsTcp;
 
             // 处理，修改
-            WriteLog("{0} 请求 {1}", session.Local.Type, request);
+            WriteLog("{0} 请求 {1}", local.Type, request);
 
             // 请求事件，如果第二参数有值，则直接返回
             // 结合数据库缓存，可以在这里进行返回
@@ -234,13 +235,13 @@ namespace NewLife.Net.DNS
         /// <param name="session"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
-        protected virtual void Response(ISocketSession session, DNSEntity request, DNSEntity response)
+        protected virtual void Response(INetSession session, DNSEntity request, DNSEntity response)
         {
-            var isTcp = session.Local.IsTcp;
+            var isTcp = session.Session.Local.IsTcp;
 
             if (OnResponse != null)
             {
-                var e = new DNSEventArgs { Request = request, Response = response, Session = session };
+                var e = new DNSEventArgs { Request = request, Response = response, Session = session.Session };
                 OnResponse(this, e);
             }
 

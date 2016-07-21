@@ -377,7 +377,7 @@ namespace NewLife.Net
         {
             var session = sender as INetSession;
 
-            OnReceive(session.Session, e.Stream);
+            OnReceive(session, e.Stream);
 
             if (Received != null) Received(sender, e);
         }
@@ -385,7 +385,7 @@ namespace NewLife.Net
         /// <summary>收到数据时，最原始的数据处理，但不影响会话内部的数据处理</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
-        protected virtual void OnReceive(ISocketSession session, Stream stream) { }
+        protected virtual void OnReceive(INetSession session, Stream stream) { }
 
         /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
         public event EventHandler<ExceptionEventArgs> Error;

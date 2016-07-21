@@ -30,13 +30,13 @@ namespace NewLife.Net.P2P
         /// <summary>收到数据时</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
-        protected override void OnReceive(ISocketSession session, Stream stream)
+        protected override void OnReceive(INetSession session, Stream stream)
         {
             var remoteEP = session.Remote.EndPoint;
 
             var str = stream.ToStr();
             WriteLog("");
-            WriteLog(remoteEP + "=>" + session.Local.EndPoint + " " + str);
+            WriteLog(remoteEP + "=>" + session.Session.Local.EndPoint + " " + str);
 
             var ss = str.Split(":");
             ss[0] = ss[0].ToLower();
@@ -49,7 +49,7 @@ namespace NewLife.Net.P2P
                     // 集合里面没有，认为是发起邀请方，做好记录
                     ns = new NetSession();
                     //ns.Server = sender as ISocketServer;
-                    ns.Session = session;
+                    ns.Session = session.Session;
                     //ns.ClientEndPoint = remoteEP;
                     Clients[name] = ns;
                     session.OnDisposed += (s, e2) => ns.Dispose();

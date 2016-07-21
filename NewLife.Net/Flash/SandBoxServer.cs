@@ -23,7 +23,7 @@ namespace NewLife.Net
         /// <summary>数据返回</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
-        protected override void OnReceive(ISocketSession session, Stream stream)
+        protected override void OnReceive(INetSession session, Stream stream)
         {
             string sss = stream.ToStr();
             if (sss == "<policy-file-request/>\0")

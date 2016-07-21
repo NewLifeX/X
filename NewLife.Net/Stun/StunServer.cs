@@ -107,7 +107,7 @@ namespace NewLife.Net.Stun
         /// <summary>接收到数据时</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
-        protected override void OnReceive(ISocketSession session, Stream stream)
+        protected override void OnReceive(INetSession session, Stream stream)
         {
             if (stream.Length > 0)
             {
@@ -161,7 +161,7 @@ namespace NewLife.Net.Stun
                 {
                     case StunMessageType.BindingRequest:
                         //case StunMessageType.BindingResponse:
-                        OnBind(request, session);
+                        OnBind(request, session.Session);
                         break;
                     case StunMessageType.SharedSecretRequest:
                         break;

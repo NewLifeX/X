@@ -19,7 +19,7 @@ namespace NewLife.Net.Application
         /// <summary>已重载。</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
-        protected override void OnReceive(ISocketSession session, Stream stream)
+        protected override void OnReceive(INetSession session, Stream stream)
         {
             if (stream.Length == 0) return;
 
@@ -34,7 +34,7 @@ namespace NewLife.Net.Application
             //session.Send(e.Buffer, e.Offset, stream.Length);
             stream.Position = p;
             //session.Send(stream);
-            session.SendAsync(stream.ReadBytes());
+            session.Send(stream.ReadBytes());
         }
     }
 }
