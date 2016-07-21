@@ -59,9 +59,12 @@ namespace Test
         static void Test1()
         {
             var svr = new NetServer<WebSocketSession>();
+            svr.ProtocolType = NetType.Tcp;
             svr.Port = 8888;
             svr.Received += Svr_Received;
             svr.Log = XTrace.Log;
+            svr.LogSend = true;
+            svr.LogReceive = true;
             svr.Start();
 
             Console.ReadKey();
@@ -70,6 +73,9 @@ namespace Test
         private static void Svr_Received(Object sender, ReceivedEventArgs e)
         {
             Console.WriteLine(e.ToStr());
+
+            var ss = sender as INetSession;
+            ss.Send("收到 {0}".F(DateTime.Now));
         }
 
         class A
