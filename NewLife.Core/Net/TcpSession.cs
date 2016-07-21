@@ -270,6 +270,12 @@ namespace NewLife.Net
         /// <param name="remote"></param>
         internal override void OnReceive(Byte[] data, IPEndPoint remote)
         {
+            if (data.Length == 0 && DisconnectWhenEmptyData)
+            {
+                Close("收到空数据");
+                Dispose();
+            }
+
             OnReceive(data, data.Length);
         }
 
