@@ -356,6 +356,7 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </Content>
+    <Content Include="ws.html" />
     <None Include="Content\ace\css\ace-fonts.min.css" />
     <None Include="Content\ace\css\ace-ie.min.css" />
     <None Include="Content\ace\css\ace-part2.min.css" />

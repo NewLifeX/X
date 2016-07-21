@@ -58,31 +58,18 @@ namespace Test
 
         static void Test1()
         {
-            Console.WriteLine("版本：{0} {1}", Environment.Version, Environment.OSVersion);
+            var svr = new NetServer<WebSocketSession>();
+            svr.Port = 8888;
+            svr.Received += Svr_Received;
+            svr.Log = XTrace.Log;
+            svr.Start();
 
-            var times = 100000000;
+            Console.ReadKey();
+        }
 
-            var obj = new A();
-            obj.ID = 123;
-            obj.Name = "SmartStone";
-
-            var pi = typeof(A).GetProperty("Name");
-            var mi = typeof(A).GetMethod("Add");
-
-            CodeTimer.ShowHeader("获取性能测试：");
-            CodeTimer.TimeLine("直接获取", times, n => { var m = obj.Name; });
-            CodeTimer.TimeLine("普通反射", times, n => { var m = pi.GetValue(obj, null); });
-            CodeTimer.TimeLine("快速反射", times, n => { var m = obj.GetValue(pi); });
-
-            CodeTimer.ShowHeader("赋值性能测试：");
-            CodeTimer.TimeLine("直接赋值", times, n => { obj.Name = "Stone"; });
-            CodeTimer.TimeLine("普通反射", times, n => { pi.SetValue(obj, "Stone", null); });
-            CodeTimer.TimeLine("快速反射", times, n => { obj.SetValue(pi, "Stone"); });
-
-            CodeTimer.ShowHeader("调用性能测试：");
-            CodeTimer.TimeLine("直接调用", times, n => { var m = obj.Add(321); });
-            CodeTimer.TimeLine("普通反射", times, n => { var m = mi.Invoke(obj, new Object[] { 321 }); });
-            CodeTimer.TimeLine("快速反射", times, n => { var m = obj.Invoke(mi, 321); });
+        private static void Svr_Received(Object sender, ReceivedEventArgs e)
+        {
+            Console.WriteLine(e.ToStr());
         }
 
         class A
