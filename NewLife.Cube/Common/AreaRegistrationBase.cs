@@ -30,9 +30,8 @@ namespace NewLife.Cube
             }
         }
 
-        private static PrecompiledViewAssembly[] _PrecompiledEngines;
         /// <summary>预编译引擎集合。便于外部设置属性</summary>
-        public static PrecompiledViewAssembly[] PrecompiledEngines { get { return _PrecompiledEngines; } private set { _PrecompiledEngines = value; } }
+        public static PrecompiledViewAssembly[] PrecompiledEngines { get; private set; }
 
         static AreaRegistrationBase()
         {
