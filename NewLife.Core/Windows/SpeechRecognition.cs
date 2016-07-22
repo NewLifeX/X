@@ -23,7 +23,7 @@ namespace NewLife.Windows
         #region 构造
         private SpeechRecognition()
         {
-            Init();
+            //Init();
 
             _dic = new Dictionary<String, Action>();
         }
@@ -39,7 +39,7 @@ namespace NewLife.Windows
         #endregion
 
         #region 静态
-        private static SpeechRecognition _instance;
+        private static SpeechRecognition _instance = new SpeechRecognition();
 
         /// <summary>系统名称。用于引导前缀</summary>
         public static String Name { get { return _instance._Name; } set { _instance._Name = value; } }
@@ -134,8 +134,6 @@ namespace NewLife.Windows
             var rs = e.Result;
             if (rs == null) return;
 
-            XTrace.WriteLine("语音识别：{0} {1}", rs.Text, rs.Confidence);
-
             if (rs.Confidence < 0.5) return;
 
             // 语音识别前，必须先识别前缀名称，然后几秒内识别关键字
@@ -144,11 +142,15 @@ namespace NewLife.Windows
                 // 此时只识别前缀
                 if (rs.Text != _Name) return;
 
+                XTrace.WriteLine("语音识别：{0} {1}", rs.Text, rs.Confidence);
+
                 // 现在可以开始识别关键字啦
                 _Tip = DateTime.Now;
             }
             else
             {
+                XTrace.WriteLine("语音识别：{0} {1}", rs.Text, rs.Confidence);
+
                 Action func = null;
                 if (_dic.TryGetValue(rs.Text, out func)) func();
             }
