@@ -252,7 +252,8 @@ namespace NewLife.Log
             var show = _ShowErrorMessage && Application.MessageLoop;
             var ex = e.ExceptionObject as Exception;
             var msg = ex == null ? "" : ex.Message;
-            WriteLine(msg);
+            //WriteLine(msg);
+            WriteException(ex);
             if (e.IsTerminating)
             {
                 Log.Fatal("异常退出！" + msg);
