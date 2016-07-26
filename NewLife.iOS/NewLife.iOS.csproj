@@ -339,7 +339,6 @@
     <Compile Include="..\newlife.core\xml\XmlHelper.cs">
       <Link>Xml\XmlHelper.cs</Link>
     </Compile>
-    <Compile Include="Net\iOSIpResolver.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>

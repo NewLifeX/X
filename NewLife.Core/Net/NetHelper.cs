@@ -281,50 +281,47 @@ namespace System
                 }
             }
         }
-        #region IIpResolver
-        public interface IIpResolver
-        {
-            IEnumerable<IPAddress> GetIPs();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        public class DefaultIIpResolver : IIpResolver
-        {
-            public IEnumerable<IPAddress> GetIPs()
-            {
-#if __MOBILE__
-            return Dns.GetHostAddresses(Dns.GetHostName());
-#endif
-#if !__MOBILE__
-
-                var list = new List<IPAddress>();
-                foreach (var item in GetActiveInterfaces())
-                {
-                    if (item != null && item.UnicastAddresses.Count > 0)
-                    {
-                        foreach (var elm in item.UnicastAddresses)
-                        {
-                            if (list.Contains(elm.Address)) continue;
-                            list.Add(elm.Address);
-
-                            yield return elm.Address;
-                        }
-                    }
-                }
-#endif
-            }
-        }
-        #endregion
+        
         /// <summary>获取可用的IP地址</summary>
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetIPs()
         {
-            return ObjectContainer
-                .Current
-                .AutoRegister<IIpResolver, DefaultIIpResolver>()
-                .Resolve<IIpResolver>()
-                .GetIPs();
+#if __ANDROID__
+            return Dns.GetHostAddresses(Dns.GetHostName());
+#endif
+#if __IOS__
+            foreach (var netInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (netInterface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
+                    netInterface.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+                {
+                    foreach (var addrInfo in netInterface.GetIPProperties().UnicastAddresses)
+                    {
+                        if (addrInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            yield return addrInfo.Address;
+                        }
+                    }
+                }
+            }
+#endif
+#if !__MOBILE__
+
+            var list = new List<IPAddress>();
+            foreach (var item in GetActiveInterfaces())
+            {
+                if (item != null && item.UnicastAddresses.Count > 0)
+                {
+                    foreach (var elm in item.UnicastAddresses)
+                    {
+                        if (list.Contains(elm.Address)) continue;
+                        list.Add(elm.Address);
+
+                        yield return elm.Address;
+                    }
+                }
+            }
+#endif
         }
 
         private static DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expire = 60, Asynchronous = true };
@@ -381,9 +378,9 @@ namespace System
         {
             return GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
         }
-        #endregion
+#endregion
 #if !__MOBILE__
-        #region 设置适配器信息
+#region 设置适配器信息
         static private ManagementObjectCollection GetInstances()
         {
             ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
@@ -461,9 +458,9 @@ namespace System
             }
         }
 
-        #endregion
+#endregion
 #endif
-        #region 远程开机
+#region 远程开机
         /// <summary>唤醒指定MAC地址的计算机</summary>
         /// <param name="macs"></param>
         public static void Wake(params String[] macs)
@@ -502,9 +499,9 @@ namespace System
             client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
             client.Close();
         }
-        #endregion
+#endregion
 
-        #region MAC获取/ARP协议
+#region MAC获取/ARP协议
         [DllImport("Iphlpapi.dll")]
         private static extern int SendARP(UInt32 destip, UInt32 srcip, Byte[] mac, ref Int32 length);
 
@@ -522,9 +519,9 @@ namespace System
             if (len != buf.Length) buf = buf.ReadBytes(0, len);
             return buf;
         }
-        #endregion
+#endregion
 
-        #region IP地理位置
+#region IP地理位置
         static IpProvider _IpProvider;
         /// <summary>获取IP地址的物理地址位置</summary>
         /// <param name="addr"></param>
@@ -589,9 +586,9 @@ namespace System
                 return "";
             }
         }
-        #endregion
+#endregion
 
-        #region Tcp参数
+#region Tcp参数
 #if !__MOBILE__
         /// <summary>设置最大Tcp连接数</summary>
         public static void SetTcpMax()
@@ -676,9 +673,9 @@ namespace System
             }
         }
 #endif
-        #endregion
+#endregion
 
-        #region 读写器扩展
+#region 读写器扩展
         /// <summary>把网络节点写入数据流</summary>
         /// <param name="stream"></param>
         /// <param name="ep"></param>
@@ -705,9 +702,9 @@ namespace System
 
             return new IPEndPoint(addr, port);
         }
-        #endregion
+#endregion
 
-        #region 创建客户端和会话
+#region 创建客户端和会话
         /// <summary>根据本地网络标识创建客户端</summary>
         /// <param name="local"></param>
         /// <returns></returns>
@@ -777,6 +774,6 @@ namespace System
         {
             return new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
         }
-        #endregion
+#endregion
     }
 }
