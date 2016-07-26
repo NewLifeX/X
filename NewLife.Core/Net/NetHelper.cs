@@ -363,6 +363,12 @@ namespace System
         #endregion
 
         #region 设置适配器信息
+        static private ManagementObjectCollection GetInstances()
+        {
+            ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
+            return mc.GetInstances();
+        }
+
         /// <summary>
         /// 设置IP，默认掩码255.255.255.0
         /// </summary>
@@ -372,36 +378,68 @@ namespace System
         {
             ManagementBaseObject inPar = null;
             ManagementBaseObject outPar = null;
+            var moc = GetInstances();
+            if (moc == null) return false;
 
-            ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
-            ManagementObjectCollection moc = mc.GetInstances();
             foreach (ManagementObject mo in moc)
             {
                 if (!(bool)mo["IPEnabled"])
                     continue;
-                //Set   IPAddress   &   SubnetMask   
+                //设置IP和掩码
                 inPar = mo.GetMethodParameters("EnableStatic");
                 inPar["IPAddress"] = new string[] { "10.0.0.121" };
                 inPar["SubnetMask"] = new string[] { "255.255.255.0" };
                 outPar = mo.InvokeMethod("EnableStatic", inPar, null);
-
-                //set   Getway   
-                //inPar = mo.GetMethodParameters("SetGateways");
-                //inPar["DefaultIPGateway"] = new string[] { "10.0.0.1" };
-                //outPar = mo.InvokeMethod("SetGateways", inPar, null);
-
-                // Win32_NetworkAdapterConfiguration
             }
 
             var ips = GetIPs().ToList();
             var pp = ips.Find(e => e.ToString() == ip);
-            return pp != null;
-            //  mo.InvokeMethod（"SetDNSServerSearchOrder", null);
-            ////开启DHCP
-
-            // mo.InvokeMethod（"EnableDHCP", null);
-
+            return pp != null;       
         }
+        /// <summary>
+        /// 设置默认网关
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        static public Boolean SetGateways(String address)
+        {
+            ManagementBaseObject inPar = null;
+            ManagementBaseObject outPar = null;
+            var moc = GetInstances();
+            if (moc == null) return false;
+
+            foreach (ManagementObject mo in moc)
+            {
+                if (!(bool)mo["IPEnabled"])
+                    continue;
+                //设置网关 
+                inPar = mo.GetMethodParameters("SetGateways");
+                inPar["DefaultIPGateway"] = new string[] { "10.0.0.1" };
+                outPar = mo.InvokeMethod("SetGateways", inPar, null);
+            }
+
+            var ips = GetGateways().ToList();
+            var pp = ips.Find(e => e.ToString() == address);
+            return pp != null;
+        }
+        /// <summary>
+        /// 启动DHCP,
+        /// </summary>
+        static public void StartDHCP()
+        {
+            var moc = GetInstances();
+            if (moc == null) return;
+
+            foreach (ManagementObject mo in moc)
+            {
+                if (!(bool)mo["IPEnabled"])
+                    continue;
+                mo.InvokeMethod("SetDNSServerSearchOrder", null);
+                //开启DHCP
+                mo.InvokeMethod("EnableDHCP", null);
+            }
+        }
+
         #endregion
 
         #region 远程开机
