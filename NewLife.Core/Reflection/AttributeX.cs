@@ -10,7 +10,38 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
-#if !NET45 && !__MOBILE__
+#if NET4 && !__MOBILE__
+        /// <summary>获取自定义属性</summary>
+        /// <typeparam name="TAttribute"></typeparam>
+        /// <param name="member"></param>
+        /// <param name="inherit"></param>
+        /// <returns></returns>
+        public static TAttribute GetCustomAttribute<TAttribute>(this MemberInfo member, Boolean inherit = true)
+        {
+            var atts = member.GetCustomAttributes<TAttribute>(false);
+            if (atts != null && atts.Length > 0) return atts[0];
+
+            if (inherit)
+            {
+                atts = member.GetCustomAttributes<TAttribute>(inherit);
+                if (atts != null && atts.Length > 0) return atts[0];
+            }
+
+            return default(TAttribute);
+        }
+
+        /// <summary>获取自定义属性</summary>
+        /// <typeparam name="TAttribute"></typeparam>
+        /// <param name="assembly"></param>
+        /// <returns></returns>
+        public static TAttribute GetCustomAttribute<TAttribute>(this Assembly assembly)
+        {
+            var avs = assembly.GetCustomAttributes<TAttribute>();
+            if (avs == null || avs.Length < 1) return default(TAttribute);
+
+            return avs[0];
+        }
+#endif
 
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
@@ -54,25 +85,6 @@ namespace System
             //});
         }
 
-        /// <summary>获取自定义属性</summary>
-        /// <typeparam name="TAttribute"></typeparam>
-        /// <param name="member"></param>
-        /// <param name="inherit"></param>
-        /// <returns></returns>
-        public static TAttribute GetCustomAttribute<TAttribute>(this MemberInfo member, Boolean inherit = true)
-        {
-            var atts = member.GetCustomAttributes<TAttribute>(false);
-            if (atts != null && atts.Length > 0) return atts[0];
-
-            if (inherit)
-            {
-                atts = member.GetCustomAttributes<TAttribute>(inherit);
-                if (atts != null && atts.Length > 0) return atts[0];
-            }
-
-            return default(TAttribute);
-        }
-
         private static DictionaryCache<String, Object> _asmCache = new DictionaryCache<String, Object>();
 
         /// <summary>获取自定义属性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
@@ -91,19 +103,6 @@ namespace System
                 return atts == null ? new TAttribute[0] : atts;
             });
         }
-
-        /// <summary>获取自定义属性</summary>
-        /// <typeparam name="TAttribute"></typeparam>
-        /// <param name="assembly"></param>
-        /// <returns></returns>
-        public static TAttribute GetCustomAttribute<TAttribute>(this Assembly assembly)
-        {
-            var avs = assembly.GetCustomAttributes<TAttribute>();
-            if (avs == null || avs.Length < 1) return default(TAttribute);
-
-            return avs[0];
-        }
-#endif
         /// <summary>获取成员绑定的显示名，优先DisplayName，然后Description</summary>
         /// <param name="member"></param>
         /// <param name="inherit"></param>
