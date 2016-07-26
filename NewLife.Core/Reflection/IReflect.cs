@@ -149,6 +149,12 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
+        /// <summary>是否子类</summary>
+        /// <param name="type"></param>
+        /// <param name="baseType"></param>
+        /// <returns></returns>
+        Boolean IsSubOf(Type type, Type baseType);
+
         /// <summary>在指定程序集中查找指定基类或接口的所有子类实现</summary>
         /// <param name="asm">指定程序集</param>
         /// <param name="baseType">基类或接口，为空时返回所有类型</param>
@@ -634,6 +640,31 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
+        /// <summary>是否子类</summary>
+        /// <param name="type"></param>
+        /// <param name="baseType"></param>
+        /// <returns></returns>
+        public Boolean IsSubOf(Type type, Type baseType)
+        {
+            if (type == null) return false;
+            if (type == baseType) return false;
+
+            if (baseType.IsAssignableFrom(type)) return true;
+
+            // 判断是否子类时，支持只反射加载的程序集
+            if (type.Assembly.ReflectionOnly)
+            {
+                while (type != typeof(Object))
+                {
+                    if (type.FullName == baseType.FullName &&
+                        type.AssemblyQualifiedName == baseType.AssemblyQualifiedName) return true;
+                    type = type.BaseType;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>在指定程序集中查找指定基类的子类</summary>
         /// <param name="asm">指定程序集</param>
         /// <param name="baseType">基类或接口，为空时返回所有类型</param>

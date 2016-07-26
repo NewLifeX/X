@@ -416,6 +416,24 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
+        /// <summary>是否子类</summary>
+        /// <param name="type"></param>
+        /// <param name="baseType"></param>
+        /// <returns></returns>
+        public static Boolean IsSubOf(this Type type, Type baseType)
+        {
+            return Provider.IsSubOf(type, baseType);
+        }
+
+        /// <summary>是否子类</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static Boolean IsSubOf<T>(this Type type)
+        {
+            return Provider.IsSubOf(type, typeof(T));
+        }
+
         /// <summary>在指定程序集中查找指定基类的子类</summary>
         /// <param name="asm">指定程序集</param>
         /// <param name="baseType">基类或接口</param>
