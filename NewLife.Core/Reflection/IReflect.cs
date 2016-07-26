@@ -532,7 +532,24 @@ namespace NewLife.Reflection
         /// <summary>获取一个类型的元素类型</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        public virtual Type GetElementType(Type type) { return type.GetElementType(); }
+        public virtual Type GetElementType(Type type)
+        {
+            if (type.HasElementType) return type.GetElementType();
+
+            if (typeof(IEnumerable).IsAssignableFrom(type))
+            {
+                // 如果实现了IEnumerable<>接口，那么取泛型参数
+                foreach (var item in type.GetInterfaces())
+                {
+                    if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return item.GetGenericArguments()[0];
+                }
+                //// 通过索引器猜测元素类型
+                //var pi = type.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                //if (pi != null) return pi.PropertyType;
+            }
+
+            return null;
+        }
 
         /// <summary>类型转换</summary>
         /// <param name="value">数值</param>
