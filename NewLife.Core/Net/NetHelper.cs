@@ -15,14 +15,16 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
+#if !__MOBILE__
 using System.Management;
+#endif
 
 namespace System
 {
     /// <summary>网络工具类</summary>
     public static class NetHelper
     {
-        #region 日志输出
+#region 日志输出
         private static Boolean? _Debug;
         /// <summary>是否调试</summary>
         public static Boolean Debug
@@ -45,9 +47,9 @@ namespace System
         {
             if (Debug) XTrace.WriteLine(format, args);
         }
-        #endregion
+#endregion
 
-        #region 辅助函数
+#region 辅助函数
         /// <summary>设置超时检测时间和检测间隔</summary>
         /// <param name="socket">要设置的Socket对象</param>
         /// <param name="iskeepalive">是否启用Keep-Alive</param>
@@ -204,9 +206,9 @@ namespace System
         {
             return CheckPort(uri.Address, uri.Type, uri.Port);
         }
-        #endregion
+#endregion
 
-        #region 本机信息
+#region 本机信息
         /// <summary>获取活动的接口信息</summary>
         /// <returns></returns>
         public static IEnumerable<IPInterfaceProperties> GetActiveInterfaces()
@@ -360,9 +362,9 @@ namespace System
         {
             return GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
         }
-        #endregion
-
-        #region 设置适配器信息
+#endregion
+#if !__MOBILE__
+#region 设置适配器信息
         static private ManagementObjectCollection GetInstances()
         {
             ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
@@ -440,9 +442,9 @@ namespace System
             }
         }
 
-        #endregion
-
-        #region 远程开机
+#endregion
+#endif
+#region 远程开机
         /// <summary>唤醒指定MAC地址的计算机</summary>
         /// <param name="macs"></param>
         public static void Wake(params String[] macs)
@@ -481,9 +483,9 @@ namespace System
             client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
             client.Close();
         }
-        #endregion
+#endregion
 
-        #region MAC获取/ARP协议
+#region MAC获取/ARP协议
         [DllImport("Iphlpapi.dll")]
         private static extern int SendARP(UInt32 destip, UInt32 srcip, Byte[] mac, ref Int32 length);
 
@@ -501,9 +503,9 @@ namespace System
             if (len != buf.Length) buf = buf.ReadBytes(0, len);
             return buf;
         }
-        #endregion
+#endregion
 
-        #region IP地理位置
+#region IP地理位置
         static IpProvider _IpProvider;
         /// <summary>获取IP地址的物理地址位置</summary>
         /// <param name="addr"></param>
@@ -568,9 +570,9 @@ namespace System
                 return "";
             }
         }
-        #endregion
+#endregion
 
-        #region Tcp参数
+#region Tcp参数
 #if !__MOBILE__
         /// <summary>设置最大Tcp连接数</summary>
         public static void SetTcpMax()
@@ -655,9 +657,9 @@ namespace System
             }
         }
 #endif
-        #endregion
+#endregion
 
-        #region 读写器扩展
+#region 读写器扩展
         /// <summary>把网络节点写入数据流</summary>
         /// <param name="stream"></param>
         /// <param name="ep"></param>
@@ -684,9 +686,9 @@ namespace System
 
             return new IPEndPoint(addr, port);
         }
-        #endregion
+#endregion
 
-        #region 创建客户端和会话
+#region 创建客户端和会话
         /// <summary>根据本地网络标识创建客户端</summary>
         /// <param name="local"></param>
         /// <returns></returns>
@@ -756,6 +758,6 @@ namespace System
         {
             return new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
         }
-        #endregion
+#endregion
     }
 }

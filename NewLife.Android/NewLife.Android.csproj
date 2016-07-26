@@ -142,9 +142,6 @@
     <Compile Include="..\NewLife.Core\Model\IObjectContainer.cs">
       <Link>Model\IObjectContainer.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Model\IPlugin.cs">
-      <Link>Model\IPlugin.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Model\IServer.cs">
       <Link>Model\IServer.cs</Link>
     </Compile>
