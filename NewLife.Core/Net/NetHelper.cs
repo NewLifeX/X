@@ -15,6 +15,7 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
+using System.Management;
 
 namespace System
 {
@@ -358,6 +359,48 @@ namespace System
         public static IPAddress MyIPv6()
         {
             return GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
+        }
+        #endregion
+
+        #region 设置适配器信息
+        /// <summary>
+        /// 设置IP，默认掩码255.255.255.0
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        public static Boolean SetIP(String ip)
+        {
+            ManagementBaseObject inPar = null;
+            ManagementBaseObject outPar = null;
+
+            ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
+            ManagementObjectCollection moc = mc.GetInstances();
+            foreach (ManagementObject mo in moc)
+            {
+                if (!(bool)mo["IPEnabled"])
+                    continue;
+                //Set   IPAddress   &   SubnetMask   
+                inPar = mo.GetMethodParameters("EnableStatic");
+                inPar["IPAddress"] = new string[] { "10.0.0.121" };
+                inPar["SubnetMask"] = new string[] { "255.255.255.0" };
+                outPar = mo.InvokeMethod("EnableStatic", inPar, null);
+
+                //set   Getway   
+                //inPar = mo.GetMethodParameters("SetGateways");
+                //inPar["DefaultIPGateway"] = new string[] { "10.0.0.1" };
+                //outPar = mo.InvokeMethod("SetGateways", inPar, null);
+
+                // Win32_NetworkAdapterConfiguration
+            }
+
+            var ips = GetIPs().ToList();
+            var pp = ips.Find(e => e.ToString() == ip);
+            return pp != null;
+            //  mo.InvokeMethod（"SetDNSServerSearchOrder", null);
+            ////开启DHCP
+
+            // mo.InvokeMethod（"EnableDHCP", null);
+
         }
         #endregion
 
