@@ -177,7 +177,7 @@ namespace System.Threading.Tasks
 
                 if (task.Status == TaskStatus.RanToCompletion) return FromResult<TResult>(result);
             }
-            return ToTaskContinuation<TResult>(task, result);
+            return ToTaskContinuation(task, result);
         }
 
         private static Task<TResult> FromErrors<TResult>(IEnumerable<Exception> exceptions)

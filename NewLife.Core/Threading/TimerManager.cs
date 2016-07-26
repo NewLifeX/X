@@ -9,17 +9,17 @@ namespace System.Threading
 
 		public static void Add(Timer timer)
 		{
-			lock (TimerManager.s_rootedTimers)
+			lock (s_rootedTimers)
 			{
-				TimerManager.s_rootedTimers.Add(timer, null);
+                s_rootedTimers.Add(timer, null);
 			}
 		}
 
 		public static void Remove(Timer timer)
 		{
-			lock (TimerManager.s_rootedTimers)
+			lock (s_rootedTimers)
 			{
-				TimerManager.s_rootedTimers.Remove(timer);
+                s_rootedTimers.Remove(timer);
 			}
 		}
 	}

@@ -71,7 +71,7 @@ namespace System.Runtime.CompilerServices
         [DebuggerStepThrough]
         public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
         {
-            m_coreState.Start<TStateMachine>(ref stateMachine);
+            m_coreState.Start(ref stateMachine);
         }
 
         /// <summary>一个生成器与指定的状态机关联。</summary>
@@ -94,7 +94,7 @@ namespace System.Runtime.CompilerServices
         {
             try
             {
-                Action completionAction = m_coreState.GetCompletionAction<AsyncVoidMethodBuilder, TStateMachine>(ref this, ref stateMachine);
+                Action completionAction = m_coreState.GetCompletionAction(ref this, ref stateMachine);
                 awaiter.OnCompleted(completionAction);
             }
             catch (Exception exception)
@@ -112,7 +112,7 @@ namespace System.Runtime.CompilerServices
         {
             try
             {
-                Action completionAction = m_coreState.GetCompletionAction<AsyncVoidMethodBuilder, TStateMachine>(ref this, ref stateMachine);
+                Action completionAction = m_coreState.GetCompletionAction(ref this, ref stateMachine);
                 awaiter.UnsafeOnCompleted(completionAction);
             }
             catch (Exception exception)

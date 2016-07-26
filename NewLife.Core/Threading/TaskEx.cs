@@ -33,7 +33,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<TResult> Run<TResult>(Func<TResult> function)
         {
-            return Run<TResult>(function, CancellationToken.None);
+            return Run(function, CancellationToken.None);
         }
 
         /// <summary></summary>
@@ -43,7 +43,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<TResult> Run<TResult>(Func<TResult> function, CancellationToken cancellationToken)
         {
-            return Task.Factory.StartNew<TResult>(function, cancellationToken, 0, TaskScheduler.Default);
+            return Task.Factory.StartNew(function, cancellationToken, 0, TaskScheduler.Default);
         }
 
         /// <summary></summary>
@@ -69,7 +69,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<TResult> Run<TResult>(Func<Task<TResult>> function)
         {
-            return Run<TResult>(function, CancellationToken.None);
+            return Run(function, CancellationToken.None);
         }
 
         /// <summary></summary>
@@ -79,7 +79,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<TResult> Run<TResult>(Func<Task<TResult>> function, CancellationToken cancellationToken)
         {
-            return TaskExtensions.Unwrap<TResult>(Run<Task<TResult>>(function, cancellationToken));
+            return TaskExtensions.Unwrap(Run<Task<TResult>>(function, cancellationToken));
         }
 
         /// <summary></summary>
@@ -197,10 +197,8 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         private static Task<TResult> WhenAllCore<TResult>(IEnumerable<Task> tasks, Action<Task[], TaskCompletionSource<TResult>> setResultAction)
         {
-            if (tasks == null)
-            {
-                throw new ArgumentNullException("tasks");
-            }
+            if (tasks == null) throw new ArgumentNullException("tasks");
+
             Contract.EndContractBlock();
             Contract.Assert(setResultAction != null, null);
             var tcs = new TaskCompletionSource<TResult>();
@@ -270,7 +268,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<Task<TResult>> WhenAny<TResult>(params Task<TResult>[] tasks)
         {
-            return WhenAny<TResult>((IEnumerable<Task<TResult>>)tasks);
+            return WhenAny((IEnumerable<Task<TResult>>)tasks);
         }
 
         /// <summary></summary>
@@ -283,7 +281,7 @@ namespace System.Threading.Tasks
 
             Contract.EndContractBlock();
             var tcs = new TaskCompletionSource<Task<TResult>>();
-            Task.Factory.ContinueWhenAny<TResult, bool>((tasks as Task<TResult>[]) ?? tasks.ToArray(), (Task<TResult> completed) => tcs.TrySetResult(completed), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            Task.Factory.ContinueWhenAny((tasks as Task<TResult>[]) ?? tasks.ToArray(), (Task<TResult> completed) => tcs.TrySetResult(completed), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return tcs.Task;
         }
 

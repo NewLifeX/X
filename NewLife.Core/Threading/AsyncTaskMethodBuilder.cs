@@ -34,7 +34,7 @@ namespace System.Runtime.CompilerServices
         [DebuggerStepThrough]
         public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
         {
-            m_builder.Start<TStateMachine>(ref stateMachine);
+            m_builder.Start(ref stateMachine);
         }
 
         /// <summary>一个生成器与指定的状态机关联。</summary>
@@ -56,7 +56,7 @@ namespace System.Runtime.CompilerServices
         /// <param name="stateMachine"></param>
         public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
         {
-            m_builder.AwaitOnCompleted<TAwaiter, TStateMachine>(ref awaiter, ref stateMachine);
+            m_builder.AwaitOnCompleted(ref awaiter, ref stateMachine);
         }
 
         /// <summary>指定的 awaiter 完成时，安排状态机，以继续下一操作。此方法可从部分受信任的代码调用。</summary>
@@ -66,13 +66,13 @@ namespace System.Runtime.CompilerServices
         /// <param name="stateMachine"></param>
         public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine
         {
-            m_builder.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref awaiter, ref stateMachine);
+            m_builder.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
         }
 
         /// <summary>将任务标记为已成功完成。</summary>
         public void SetResult()
         {
-            m_builder.SetResult(AsyncTaskMethodBuilder.s_cachedCompleted);
+            m_builder.SetResult(s_cachedCompleted);
         }
 
         /// <summary>标记此任务为失败并绑定指定的异常至此任务。</summary>
@@ -124,17 +124,11 @@ namespace System.Runtime.CompilerServices
             }
         }
 
-        private object ObjectIdForDebugger
-        {
-            get
-            {
-                return Task;
-            }
-        }
+        private object ObjectIdForDebugger { get { return Task; } }
 
         static AsyncTaskMethodBuilder()
         {
-            AsyncTaskMethodBuilder<TResult>.s_defaultResultTask = AsyncMethodTaskCache<TResult>.CreateCompleted(default(TResult));
+            s_defaultResultTask = AsyncMethodTaskCache<TResult>.CreateCompleted(default(TResult));
             try
             {
                 AsyncVoidMethodBuilder.PreventUnobservedTaskExceptions();
@@ -157,7 +151,7 @@ namespace System.Runtime.CompilerServices
         [DebuggerStepThrough]
         public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
         {
-            m_coreState.Start<TStateMachine>(ref stateMachine);
+            m_coreState.Start(ref stateMachine);
         }
 
         /// <summary>一个生成器与指定的状态机关联。</summary>
@@ -181,7 +175,7 @@ namespace System.Runtime.CompilerServices
         {
             try
             {
-                Action completionAction = m_coreState.GetCompletionAction<AsyncTaskMethodBuilder<TResult>, TStateMachine>(ref this, ref stateMachine);
+                Action completionAction = m_coreState.GetCompletionAction(ref this, ref stateMachine);
                 awaiter.OnCompleted(completionAction);
             }
             catch (Exception exception)
@@ -199,7 +193,7 @@ namespace System.Runtime.CompilerServices
         {
             try
             {
-                Action completionAction = m_coreState.GetCompletionAction<AsyncTaskMethodBuilder<TResult>, TStateMachine>(ref this, ref stateMachine);
+                Action completionAction = m_coreState.GetCompletionAction(ref this, ref stateMachine);
                 awaiter.UnsafeOnCompleted(completionAction);
             }
             catch (Exception exception)

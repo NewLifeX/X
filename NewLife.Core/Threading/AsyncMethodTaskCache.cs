@@ -25,23 +25,23 @@ namespace System.Runtime.CompilerServices
 
             internal const int EXCLUSIVE_INT32_MAX = 9;
 
-            internal static readonly TaskCompletionSource<int>[] Int32Tasks = AsyncMethodInt32TaskCache.CreateInt32Tasks();
+            internal static readonly TaskCompletionSource<int>[] Int32Tasks = CreateInt32Tasks();
 
             private static TaskCompletionSource<int>[] CreateInt32Tasks()
             {
                 var array = new TaskCompletionSource<int>[10];
                 for (int i = 0; i < array.Length; i++)
                 {
-                    array[i] = AsyncMethodTaskCache<int>.CreateCompleted(i + -1);
+                    array[i] = CreateCompleted(i + -1);
                 }
                 return array;
             }
 
             internal sealed override TaskCompletionSource<int> FromResult(int result)
             {
-                if (result < -1 || result >= 9) return AsyncMethodTaskCache<int>.CreateCompleted(result);
+                if (result < -1 || result >= 9) return CreateCompleted(result);
 
-                return AsyncMethodInt32TaskCache.Int32Tasks[result - -1];
+                return Int32Tasks[result - -1];
             }
         }
 

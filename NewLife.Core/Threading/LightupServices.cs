@@ -20,7 +20,7 @@ namespace System
             {
                 array = Enumerable.ToArray<Type>(Enumerable.Skip<Type>(array, 1));
             }
-            if (LightupServices.IsActionType(actionOrFuncType))
+            if (IsActionType(actionOrFuncType))
             {
                 return array;
             }
@@ -52,7 +52,7 @@ namespace System
             catch (MemberAccessException)
             {
             }
-            return LightupServices.NotFound;
+            return NotFound;
         }
     }
 }

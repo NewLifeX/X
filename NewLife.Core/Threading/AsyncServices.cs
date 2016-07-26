@@ -34,7 +34,7 @@ namespace System.Runtime.CompilerServices
 				{
 					targetContext.Post(delegate(object state)
 					{
-						throw AsyncServices.PrepareExceptionForRethrow((Exception)state);
+						throw PrepareExceptionForRethrow((Exception)state);
 					}, exception);
 					return;
 				}
@@ -49,7 +49,7 @@ namespace System.Runtime.CompilerServices
 			}
 			ThreadPool.QueueUserWorkItem(delegate(object state)
 			{
-				throw AsyncServices.PrepareExceptionForRethrow((Exception)state);
+				throw PrepareExceptionForRethrow((Exception)state);
 			}, exception);
 		}
 

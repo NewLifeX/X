@@ -4,13 +4,13 @@ namespace System
 {
     internal static class LightupType
     {
-        public static readonly Type ParameterizedThreadStart = LightupType.GetExternallyVisibleType("System.Threading.ParameterizedThreadStart, mscorlib");
+        public static readonly Type ParameterizedThreadStart = GetExternallyVisibleType("System.Threading.ParameterizedThreadStart, mscorlib");
 
-        public static readonly Type ExecutionContext = LightupType.GetExternallyVisibleType("System.Threading.ExecutionContext, mscorlib");
+        public static readonly Type ExecutionContext = GetExternallyVisibleType("System.Threading.ExecutionContext, mscorlib");
 
-        public static readonly Type ContextCallback = LightupType.GetExternallyVisibleType("System.Threading.ContextCallback, mscorlib");
+        public static readonly Type ContextCallback = GetExternallyVisibleType("System.Threading.ContextCallback, mscorlib");
 
-        public static readonly Type OperatingSystem = LightupType.GetExternallyVisibleType("System.OperatingSystem, mscorlib");
+        public static readonly Type OperatingSystem = GetExternallyVisibleType("System.OperatingSystem, mscorlib");
 
         private static Type GetExternallyVisibleType(string typeName)
         {
