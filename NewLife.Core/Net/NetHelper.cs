@@ -281,7 +281,7 @@ namespace System
                 }
             }
         }
-        
+
         /// <summary>获取可用的IP地址</summary>
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetIPs()
@@ -378,9 +378,9 @@ namespace System
         {
             return GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
         }
-#endregion
+        #endregion
 #if !__MOBILE__
-#region 设置适配器信息
+        #region 设置适配器信息
         static private ManagementObjectCollection GetInstances()
         {
             ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
@@ -392,7 +392,7 @@ namespace System
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        public static Boolean SetIP(String ip)
+        public static Boolean SetIP(String ip, String SubnetMask = "255.255.255.0")
         {
             ManagementBaseObject inPar = null;
             ManagementBaseObject outPar = null;
@@ -405,8 +405,8 @@ namespace System
                     continue;
                 //设置IP和掩码
                 inPar = mo.GetMethodParameters("EnableStatic");
-                inPar["IPAddress"] = new string[] { "10.0.0.121" };
-                inPar["SubnetMask"] = new string[] { "255.255.255.0" };
+                inPar["IPAddress"] = new string[] { ip };
+                inPar["SubnetMask"] = new string[] { SubnetMask };
                 outPar = mo.InvokeMethod("EnableStatic", inPar, null);
             }
 
@@ -432,7 +432,7 @@ namespace System
                     continue;
                 //设置网关 
                 inPar = mo.GetMethodParameters("SetGateways");
-                inPar["DefaultIPGateway"] = new string[] { "10.0.0.1" };
+                inPar["DefaultIPGateway"] = new string[] { address };
                 outPar = mo.InvokeMethod("SetGateways", inPar, null);
             }
 
@@ -458,9 +458,9 @@ namespace System
             }
         }
 
-#endregion
+        #endregion
 #endif
-#region 远程开机
+        #region 远程开机
         /// <summary>唤醒指定MAC地址的计算机</summary>
         /// <param name="macs"></param>
         public static void Wake(params String[] macs)
@@ -499,9 +499,9 @@ namespace System
             client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
             client.Close();
         }
-#endregion
+        #endregion
 
-#region MAC获取/ARP协议
+        #region MAC获取/ARP协议
         [DllImport("Iphlpapi.dll")]
         private static extern int SendARP(UInt32 destip, UInt32 srcip, Byte[] mac, ref Int32 length);
 
@@ -519,9 +519,9 @@ namespace System
             if (len != buf.Length) buf = buf.ReadBytes(0, len);
             return buf;
         }
-#endregion
+        #endregion
 
-#region IP地理位置
+        #region IP地理位置
         static IpProvider _IpProvider;
         /// <summary>获取IP地址的物理地址位置</summary>
         /// <param name="addr"></param>
@@ -586,9 +586,9 @@ namespace System
                 return "";
             }
         }
-#endregion
+        #endregion
 
-#region Tcp参数
+        #region Tcp参数
 #if !__MOBILE__
         /// <summary>设置最大Tcp连接数</summary>
         public static void SetTcpMax()
@@ -673,9 +673,9 @@ namespace System
             }
         }
 #endif
-#endregion
+        #endregion
 
-#region 读写器扩展
+        #region 读写器扩展
         /// <summary>把网络节点写入数据流</summary>
         /// <param name="stream"></param>
         /// <param name="ep"></param>
@@ -702,9 +702,9 @@ namespace System
 
             return new IPEndPoint(addr, port);
         }
-#endregion
+        #endregion
 
-#region 创建客户端和会话
+        #region 创建客户端和会话
         /// <summary>根据本地网络标识创建客户端</summary>
         /// <param name="local"></param>
         /// <returns></returns>
@@ -774,6 +774,6 @@ namespace System
         {
             return new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
         }
-#endregion
+        #endregion
     }
 }
