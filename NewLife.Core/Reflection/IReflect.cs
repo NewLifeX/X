@@ -401,7 +401,13 @@ namespace NewLife.Reflection
         /// <param name="type">类型</param>
         /// <param name="parameters">参数数组</param>
         /// <returns></returns>
-        public virtual Object CreateInstance(Type type, params Object[] parameters) { return Activator.CreateInstance(type, parameters); }
+        public virtual Object CreateInstance(Type type, params Object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return Activator.CreateInstance(type, true);
+            else
+                return Activator.CreateInstance(type, parameters);
+        }
 
         /// <summary>反射调用指定对象的方法</summary>
         /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
