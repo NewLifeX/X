@@ -165,16 +165,6 @@ namespace NewLife.Log
                 catch { }
             }
         }
-        /// <summary>
-        /// 停止日志，以便于接下来直接读取日志文件。
-        /// </summary>
-        /// <example>
-        /// 作者：Soar、毅
-        /// </example>
-        public void CloseWriter()
-        {
-            this.CloseWriter(null);
-        }
         #endregion
 
         #region 异步写日志
