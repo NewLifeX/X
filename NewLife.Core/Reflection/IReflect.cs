@@ -428,7 +428,7 @@ namespace NewLife.Reflection
         {
             // 该方法没有参数，无视外部传入参数
             var pis = method.GetParameters();
-            if (pis == null || pis.Length < 1) return Invoke(target, null);
+            if (pis == null || pis.Length < 1) return Invoke(target, method, null);
 
             var ps = new Object[pis.Length];
             for (int i = 0; i < pis.Length; i++)
@@ -678,7 +678,8 @@ namespace NewLife.Reflection
                 while (type != typeof(Object))
                 {
                     if (type.FullName == baseType.FullName &&
-                        type.AssemblyQualifiedName == baseType.AssemblyQualifiedName) return true;
+                        type.AssemblyQualifiedName == baseType.AssemblyQualifiedName)
+                        return true;
                     type = type.BaseType;
                 }
             }
