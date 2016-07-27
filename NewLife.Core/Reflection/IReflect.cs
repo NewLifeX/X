@@ -424,7 +424,22 @@ namespace NewLife.Reflection
         /// <param name="method">方法</param>
         /// <param name="parameters">方法参数字典</param>
         /// <returns></returns>
-        public virtual Object InvokeWithParams(Object target, MethodBase method, IDictionary parameters) { throw new NotSupportedException(); }
+        public virtual Object InvokeWithParams(Object target, MethodBase method, IDictionary parameters)
+        {
+            // 该方法没有参数，无视外部传入参数
+            var pis = method.GetParameters();
+            if (pis == null || pis.Length < 1) return Invoke(target, null);
+
+            var ps = new Object[pis.Length];
+            for (int i = 0; i < pis.Length; i++)
+            {
+                Object v = null;
+                if (parameters != null && parameters.Contains(pis[i].Name)) v = parameters[pis[i].Name];
+                ps[i] = v.ChangeType(pis[i].ParameterType);
+            }
+
+            return method.Invoke(target, ps);
+        }
 
         /// <summary>获取目标对象的属性值</summary>
         /// <param name="target">目标对象</param>
