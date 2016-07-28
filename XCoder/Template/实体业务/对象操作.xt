@@ -118,7 +118,7 @@
             else if(dc.DataType==typeof(Guid)){#>
         //    entity.<#=dc.Name#> = Guid.NewGuid();<#}
             else{#>
-        //    entity.<#=dc.Name#> = <#=TypeX.CreateInstance(dc.DataType)#>;<#}
+        //    entity.<#=dc.Name#> = <#=dc.DataType.CreateInstance()#>;<#}
         }#>
         //    entity.Insert();
 
