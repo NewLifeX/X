@@ -208,7 +208,8 @@ namespace NewLife.Serialization
         [DebuggerHidden]
         public virtual Object Read(Type type)
         {
-            var value = type.CreateInstance();
+            //var value = type.CreateInstance();
+            Object value = null;
             if (!TryRead(type, ref value)) throw new Exception("读取失败！");
 
             return value;
