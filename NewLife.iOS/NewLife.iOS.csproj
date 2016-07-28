@@ -39,6 +39,7 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Core\" />
     <Folder Include="Resources\" />
   </ItemGroup>
   <ItemGroup>
@@ -301,7 +302,7 @@
       <Link>Serialization\Xml\XmlGeneral.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\Setting.cs">
-      <Link>Core\Setting.cs</Link>
+      <Link>Setting.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\threading\AsyncServices.cs">
       <Link>Threading\AsyncServices.cs</Link>

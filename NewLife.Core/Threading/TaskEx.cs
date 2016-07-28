@@ -1,4 +1,3 @@
-using Microsoft.Runtime.CompilerServices;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -296,14 +295,6 @@ namespace System.Threading.Tasks
             return tcs.Task;
         }
 
-#if !__MOBILE__
-        /// <summary></summary>
-        /// <returns></returns>
-        public static YieldAwaitable Yield()
-        {
-            return default(YieldAwaitable);
-        }
-#endif
         /// <summary></summary>
         /// <param name="targetList"></param>
         /// <param name="exception"></param>
