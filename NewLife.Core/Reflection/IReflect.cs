@@ -465,7 +465,7 @@ namespace NewLife.Reflection
         /// <param name="value">数值</param>
         public virtual void SetValue(Object target, PropertyInfo property, Object value)
         {
-            property.SetValue(target, value, null);
+            property.SetValue(target, value.ChangeType(property.PropertyType), null);
         }
 
         /// <summary>设置目标对象的字段值</summary>
@@ -474,7 +474,7 @@ namespace NewLife.Reflection
         /// <param name="value">数值</param>
         public virtual void SetValue(Object target, FieldInfo field, Object value)
         {
-            field.SetValue(target, value);
+            field.SetValue(target, value.ChangeType(field.FieldType));
         }
         #endregion
 
