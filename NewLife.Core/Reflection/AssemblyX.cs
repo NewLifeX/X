@@ -434,6 +434,32 @@ namespace NewLife.Reflection
             var type = Type.GetType(typeName);
             if (type != null) return type;
 
+            // 尝试本程序集
+            var asms = new[] {
+                AssemblyX.Create(Assembly.GetExecutingAssembly()),
+                AssemblyX.Create(Assembly.GetCallingAssembly()),
+                AssemblyX.Create(Assembly.GetEntryAssembly()) };
+            var loads = new List<AssemblyX>();
+
+            foreach (var asm in asms)
+            {
+                if (asm == null || loads.Contains(asm)) continue;
+                loads.Add(asm);
+
+                type = asm.GetType(typeName);
+                if (type != null) return type;
+            }
+
+            // 尝试所有程序集
+            foreach (var asm in AssemblyX.GetAssemblies())
+            {
+                if (loads.Contains(asm)) continue;
+                loads.Add(asm);
+
+                type = asm.GetType(typeName);
+                if (type != null) return type;
+            }
+
             // 尝试加载只读程序集
             if (!isLoadAssembly) return null;
 
