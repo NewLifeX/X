@@ -3,9 +3,6 @@ using System.IO;
 using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Log;
-#if __MOBILE__
-using System.Reflection;
-#endif
 
 namespace NewLife.Xml
 {
