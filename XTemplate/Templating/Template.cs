@@ -848,7 +848,7 @@ namespace XTemplate.Templating
 
                 //if (!String.IsNullOrEmpty(tempPath) && !Directory.Exists(tempPath)) Directory.CreateDirectory(tempPath);
 
-                var srcpath = tempPath.CombinePath("src").EnsureDirectory(false);
+                //var srcpath = tempPath.CombinePath("src").EnsureDirectory(false);
 
                 var files = new List<String>();
                 foreach (var item in tmp.Templates)
@@ -857,7 +857,7 @@ namespace XTemplate.Templating
                     File.WriteAllText(tempPath.CombinePath(item.Name), item.Content);
                     if (item.Included) continue;
 
-                    String name = item.Name.EndsWithIgnoreCase(".cs") ? item.Name : item.ClassName;
+                    var name = item.Name.EndsWithIgnoreCase(".cs") ? item.Name : item.ClassName;
                     // 猜测后缀
                     Int32 p = name.LastIndexOf("_");
                     if (p > 0 && name.Length - p <= 5)
@@ -866,7 +866,9 @@ namespace XTemplate.Templating
                         name += ".cs";
 
                     //name = Path.Combine(tempPath, name);
-                    name = srcpath.CombinePath(name);
+                    //name = srcpath.CombinePath(name);
+                    // 必须放在同一个目录，编译时会搜索源码所在目录
+                    name = tempPath.CombinePath(Path.GetFileNameWithoutExtension(name) + "_src" + Path.GetExtension(name));
                     File.WriteAllText(name, item.Source);
 
                     //sb.AppendLine(item.Source);
@@ -878,7 +880,7 @@ namespace XTemplate.Templating
                 {
                     options.TempFiles = new TempFileCollection(tempPath, false);
                     options.OutputAssembly = Path.Combine(tempPath, outputAssembly);
-                    options.GenerateInMemory = true;
+                    //options.GenerateInMemory = true;
                     options.IncludeDebugInformation = true;
                 }
 
