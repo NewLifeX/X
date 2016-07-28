@@ -313,12 +313,6 @@
     <Compile Include="..\NewLife.Core\Setting.cs">
       <Link>Setting.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Threading\AsyncServices.cs">
-      <Link>Threading\AsyncServices.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Threading\TaskAwaiter.cs">
-      <Link>Threading\TaskAwaiter.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Threading\TaskEx.cs">
       <Link>Threading\TaskEx.cs</Link>
     </Compile>
@@ -349,13 +343,6 @@
     <Compile Include="..\NewLife.Core\Xml\XmlHelper.cs">
       <Link>Xml\XmlHelper.cs</Link>
     </Compile>
-    <Compile Include="Resources\Resource.Designer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\AboutResources.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\Values\Strings.xml" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
