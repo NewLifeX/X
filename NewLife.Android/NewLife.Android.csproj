@@ -319,9 +319,6 @@
     <Compile Include="..\NewLife.Core\Threading\TaskHelper.cs">
       <Link>Threading\TaskHelper.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Threading\TaskState.cs">
-      <Link>Threading\TaskState.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Threading\ThreadPoolX.cs">
       <Link>Threading\ThreadPoolX.cs</Link>
     </Compile>

@@ -304,20 +304,11 @@
     <Compile Include="..\newlife.core\Setting.cs">
       <Link>Setting.cs</Link>
     </Compile>
-    <Compile Include="..\newlife.core\threading\AsyncServices.cs">
-      <Link>Threading\AsyncServices.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\threading\TaskAwaiter.cs">
-      <Link>Threading\TaskAwaiter.cs</Link>
-    </Compile>
     <Compile Include="..\newlife.core\threading\TaskEx.cs">
       <Link>Threading\TaskEx.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\threading\TaskHelper.cs">
       <Link>Threading\TaskHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\threading\TaskState.cs">
-      <Link>Threading\TaskState.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\threading\ThreadPoolX.cs">
       <Link>Threading\ThreadPoolX.cs</Link>
