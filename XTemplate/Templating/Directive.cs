@@ -12,22 +12,19 @@ namespace XTemplate.Templating
         /// <param name="block"></param>
         public Directive(String name, IDictionary<String, String> parameters, Block block)
         {
-            _Name = name;
-            _Parameters = parameters;
-            _Block = block;
+            Name = name;
+            Parameters = parameters;
+            Block = block;
         }
 
-        private Block _Block;
         /// <summary>块</summary>
-        public Block Block { get { return _Block; } }
+        public Block Block { get; private set; }
 
-        private String _Name;
         /// <summary>指令名</summary>
-        public String Name { get { return _Name; } }
+        public String Name { get; private set; }
 
-        private IDictionary<String, String> _Parameters;
         /// <summary>参数集合</summary>
-        public IDictionary<String, String> Parameters { get { return _Parameters; } }
+        public IDictionary<String, String> Parameters { get; private set; }
 
         /// <summary>读取参数值</summary>
         /// <param name="name">参数名</param>
@@ -47,15 +44,17 @@ namespace XTemplate.Templating
         public Boolean TryGetParameter(String name, out String value)
         {
             value = null;
-            if (Parameters == null || Parameters.Count < 1) return false;
 
-            if (Parameters.TryGetValue(name, out value) || Parameters.TryGetValue(name.ToLower(), out value)) return true;
+            var ps = Parameters;
+            if (ps == null || ps.Count < 1) return false;
 
-            foreach (String item in Parameters.Keys)
+            if (ps.TryGetValue(name, out value) || ps.TryGetValue(name.ToLower(), out value)) return true;
+
+            foreach (var item in ps)
             {
-                if (item.EqualIgnoreCase(name))
+                if (item.Key.EqualIgnoreCase(name))
                 {
-                    value = Parameters[item];
+                    value = item.Value;
                     return true;
                 }
             }

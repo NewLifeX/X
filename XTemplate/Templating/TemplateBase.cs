@@ -13,41 +13,28 @@ namespace XTemplate.Templating
     public abstract class TemplateBase : DisposeBase
     {
         #region 构造和释放
-        /// <summary>释放</summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
-        {
-            base.OnDispose(disposing);
+        ///// <summary>释放</summary>
+        ///// <param name="disposing"></param>
+        //protected override void OnDispose(bool disposing)
+        //{
+        //    base.OnDispose(disposing);
 
-            if (_Output != null) _Output = null;
-        }
+        //    if (Output != null) Output = null;
+        //}
         #endregion
 
         #region 缩进
-        private String _CurrentIndent = "";
         /// <summary>当前缩进</summary>
-        public String CurrentIndent
-        {
-            get { return _CurrentIndent; }
-        }
+        public String CurrentIndent { get; private set; } = "";
 
-        private List<Int32> _indentLengths;
         /// <summary>缩进长度集合</summary>
-        private List<Int32> indentLengths
-        {
-            get
-            {
-                if (_indentLengths == null) _indentLengths = new List<Int32>();
-
-                return _indentLengths;
-            }
-        }
+        private List<Int32> indentLengths { get; set; } = new List<Int32>();
 
         /// <summary>清除缩进</summary>
         public void ClearIndent()
         {
             indentLengths.Clear();
-            _CurrentIndent = "";
+            CurrentIndent = "";
         }
 
         /// <summary>弹出缩进</summary>
@@ -61,8 +48,8 @@ namespace XTemplate.Templating
                 indentLengths.RemoveAt(indentLengths.Count - 1);
                 if (num > 0)
                 {
-                    str = _CurrentIndent.Substring(_CurrentIndent.Length - num);
-                    _CurrentIndent = _CurrentIndent.Remove(_CurrentIndent.Length - num);
+                    str = CurrentIndent.Substring(CurrentIndent.Length - num);
+                    CurrentIndent = CurrentIndent.Remove(CurrentIndent.Length - num);
                 }
             }
             return str;
@@ -74,7 +61,7 @@ namespace XTemplate.Templating
         {
             if (indent == null) throw new ArgumentNullException("indent");
 
-            _CurrentIndent = _CurrentIndent + indent;
+            CurrentIndent = CurrentIndent + indent;
             indentLengths.Add(indent.Length);
         }
         #endregion
@@ -89,19 +76,19 @@ namespace XTemplate.Templating
 
             if ((Output.Length == 0) || endsWithNewline)
             {
-                Output.Append(_CurrentIndent);
+                Output.Append(CurrentIndent);
                 endsWithNewline = false;
             }
             if (str.EndsWithIgnoreCase(Environment.NewLine)) endsWithNewline = true;
-            if (_CurrentIndent.Length == 0)
+            if (CurrentIndent.Length == 0)
             {
                 Output.Append(str);
             }
             else
             {
-                str = str.Replace(Environment.NewLine, Environment.NewLine + _CurrentIndent);
+                str = str.Replace(Environment.NewLine, Environment.NewLine + CurrentIndent);
                 if (endsWithNewline)
-                    Output.Append(str, 0, str.Length - _CurrentIndent.Length);
+                    Output.Append(str, 0, str.Length - CurrentIndent.Length);
                 else
                     Output.Append(str);
             }
@@ -112,6 +99,7 @@ namespace XTemplate.Templating
         public void Write(Object obj)
         {
             if (obj == null) return;
+
             Write(obj.ToString());
         }
 
@@ -174,13 +162,11 @@ namespace XTemplate.Templating
         #endregion
 
         #region 属性
-        private Template _Template;
         /// <summary>模版引擎实例</summary>
-        public Template Template { get { return _Template; } set { _Template = value; } }
+        public Template Template { get; set; }
 
-        private TemplateItem _TemplateItem;
         /// <summary>模版项实例</summary>
-        public TemplateItem TemplateItem { get { return _TemplateItem; } set { _TemplateItem = value; } }
+        public TemplateItem TemplateItem { get; set; }
         #endregion
 
         #region 生成
@@ -191,28 +177,13 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public virtual String Render() { return Output.ToString(); }
 
-        private StringBuilder _Output;
         /// <summary>输出</summary>
-        protected StringBuilder Output
-        {
-            get
-            {
-                if (_Output == null) _Output = new StringBuilder();
-
-                return _Output;
-            }
-            set { _Output = value; }
-        }
+        protected StringBuilder Output { get; set; } = new StringBuilder();
         #endregion
 
         #region 数据属性
-        private IDictionary<String, Object> _Data;
         /// <summary>数据</summary>
-        public IDictionary<String, Object> Data
-        {
-            get { return _Data ?? (_Data = new Dictionary<String, Object>()); }
-            set { _Data = value; }
-        }
+        public IDictionary<String, Object> Data { get; set; } = new Dictionary<String, Object>();
 
         /// <summary>获取数据，主要处理数据字典中不存在的元素</summary>
         /// <param name="name">名称</param>
@@ -237,13 +208,8 @@ namespace XTemplate.Templating
         #endregion
 
         #region 模版变量
-        private IDictionary<String, Type> _Vars;
         /// <summary>模版变量集合</summary>
-        public IDictionary<String, Type> Vars
-        {
-            get { return _Vars ?? (_Vars = new Dictionary<String, Type>()); }
-            set { _Vars = value; }
-        }
+        public IDictionary<String, Type> Vars { get; set; } = new Dictionary<String, Type>();
         #endregion
     }
 }

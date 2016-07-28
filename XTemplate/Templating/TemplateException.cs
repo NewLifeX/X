@@ -8,13 +8,8 @@ namespace XTemplate.Templating
     public class TemplateException : XException
     {
         #region 属性
-        private Block _Block;
         /// <summary>代码块</summary>
-        internal Block Block
-        {
-            get { return _Block; }
-            private set { _Block = value; }
-        }
+        internal Block Block { get; private set; }
 
         private CompilerError _Error;
         /// <summary>编译器错误</summary>

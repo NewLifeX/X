@@ -7,33 +7,17 @@ namespace XTemplate.Templating
     public class TemplateItem
     {
         #region 属性
-        private String _Name;
         /// <summary>模版名</summary>
-        public String Name
-        {
-            get { return _Name; }
-            set { _Name = value; }
-        }
+        public String Name { get; set; }
 
-        private String _Content;
         /// <summary>模版内容</summary>
-        public String Content
-        {
-            get { return _Content; }
-            set { _Content = value; }
-        }
+        public String Content { get; set; }
 
-        private List<String> _Imports;
         /// <summary>引用命名空间</summary>
-        public List<String> Imports { get { return _Imports ?? (_Imports = new List<String>()); } }
+        public List<String> Imports { get; set; } = new List<String>();
 
-        private Boolean _Processed;
         /// <summary>是否已处理过</summary>
-        internal Boolean Processed
-        {
-            get { return _Processed; }
-            set { _Processed = value; }
-        }
+        internal Boolean Processed { get; set; }
 
         private String _ClassName;
         /// <summary>类名</summary>
@@ -49,39 +33,19 @@ namespace XTemplate.Templating
 
         private String _BaseClassName;
         /// <summary>模版头指令指定的基类名。如果为空表示没有指令指定基类</summary>
-        public String BaseClassName
-        {
-            get { return _BaseClassName; }
-            set { _BaseClassName = value; }
-        }
+        public String BaseClassName { get; set; }
 
-        private List<Block> _Blocks;
         /// <summary>模版块集合</summary>
-        internal List<Block> Blocks
-        {
-            get { return _Blocks; }
-            set { _Blocks = value; }
-        }
+        internal List<Block> Blocks { get; set; }
 
-        private String _Source;
         /// <summary>源代码</summary>
-        public String Source
-        {
-            get { return _Source; }
-            set { _Source = value; }
-        }
+        public String Source { get; set; }
 
-        private Boolean _Included;
         /// <summary>是否被包含，被包含的模版不生成类</summary>
-        public Boolean Included
-        {
-            get { return _Included; }
-            internal set { _Included = value; }
-        }
+        public Boolean Included { get; internal set; }
 
-        private Dictionary<String, Type> _Vars;
         /// <summary>模版变量集合</summary>
-        public IDictionary<String, Type> Vars { get { return _Vars ?? (_Vars = new Dictionary<String, Type>()); } }
+        public IDictionary<String, Type> Vars { get; set; } = new Dictionary<String, Type>();
         #endregion
 
         #region 方法

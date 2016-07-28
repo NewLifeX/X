@@ -61,25 +61,17 @@ namespace XTemplate.Templating
     public partial class Template : DisposeBase
     {
         #region 属性
-        private CompilerErrorCollection _Errors;
         /// <summary>编译错误集合</summary>
-        public CompilerErrorCollection Errors { get { return _Errors ?? (_Errors = new CompilerErrorCollection()); } }
+        public CompilerErrorCollection Errors { get; private set; } = new CompilerErrorCollection();
 
-        private List<TemplateItem> _Templates;
         /// <summary>模版集合</summary>
-        public List<TemplateItem> Templates { get { return _Templates ?? (_Templates = new List<TemplateItem>()); } }
+        public List<TemplateItem> Templates { get; private set; } = new List<TemplateItem>();
 
-        private List<String> _AssemblyReferences;
         /// <summary>程序集引用</summary>
-        public List<String> AssemblyReferences { get { return _AssemblyReferences ?? (_AssemblyReferences = new List<String>()); } }
+        public List<String> AssemblyReferences { get; private set; } = new List<String>();
 
-        private String _AssemblyName;
         /// <summary>程序集名称。一旦指定，编译时将会生成持久化的模版程序集文件。</summary>
-        public String AssemblyName
-        {
-            get { return _AssemblyName; }
-            set { _AssemblyName = value; }
-        }
+        public String AssemblyName { get; set; }
 
         private Assembly _Assembly;
         /// <summary>程序集</summary>
@@ -137,13 +129,8 @@ namespace XTemplate.Templating
             set { _NameSpace = value; }
         }
 
-        private TemplateStatus _Status;
         /// <summary>模版引擎状态</summary>
-        public TemplateStatus Status
-        {
-            get { return _Status; }
-            set { _Status = value; }
-        }
+        public TemplateStatus Status { get; set; }
         #endregion
 
         #region 创建
@@ -192,7 +179,7 @@ namespace XTemplate.Templating
 
             var hash = Hash(sb.ToString());
 
-            return cache.GetItem<IDictionary<String, String>>(hash, templates, delegate(String key, IDictionary<String, String> contents)
+            return cache.GetItem<IDictionary<String, String>>(hash, templates, delegate (String key, IDictionary<String, String> contents)
             {
                 var entity = new Template();
 

@@ -14,69 +14,34 @@ namespace XTemplate.Templating
         /// <param name="text"></param>
         public Block(BlockType type, String text)
         {
-            _Type = type;
-            _Text = text;
+            Type = type;
+            Text = text;
         }
         #endregion
 
         #region 行号/列数
-        private Int32 _StartColumn;
         /// <summary>开始列数</summary>
-        public Int32 StartColumn
-        {
-            get { return _StartColumn; }
-            set { _StartColumn = value; }
-        }
+        public Int32 StartColumn { get; set; }
 
-        private Int32 _StartLine;
         /// <summary>开始行数</summary>
-        public Int32 StartLine
-        {
-            get { return _StartLine; }
-            set { _StartLine = value; }
-        }
+        public Int32 StartLine { get; set; }
 
-        private Int32 _EndColumn;
         /// <summary>结束列数</summary>
-        public Int32 EndColumn
-        {
-            get { return _EndColumn; }
-            set { _EndColumn = value; }
-        }
+        public Int32 EndColumn { get; set; }
 
-        private Int32 _EndLine;
         /// <summary>结束行数</summary>
-        public Int32 EndLine
-        {
-            get { return _EndLine; }
-            set { _EndLine = value; }
-        }
+        public Int32 EndLine { get; set; }
         #endregion
 
         #region 基本属性
-        private String _Name;
         /// <summary>文件名</summary>
-        public String Name
-        {
-            get { return _Name; }
-            set { _Name = value; }
-        }
+        public String Name { get; set; }
 
-        private String _Text;
         /// <summary>文本</summary>
-        public String Text
-        {
-            get { return _Text; }
-            set { _Text = value; }
-        }
+        public String Text { get; set; }
 
-        private BlockType _Type;
         /// <summary>块类型</summary>
-        public BlockType Type
-        {
-            get { return _Type; }
-            set { _Type = value; }
-        }
+        public BlockType Type { get; set; }
         #endregion
 
         #region 方法

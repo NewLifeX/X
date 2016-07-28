@@ -194,9 +194,9 @@ namespace XTemplate.Templating
 
             if (!ValidateDirectiveString(block)) throw new TemplateException(block, "指令格式错误！");
 
-            MatchCollection matchs = directiveParsingRegex.Matches(block.Text);
+            var matchs = directiveParsingRegex.Matches(block.Text);
             String directiveName = null;
-            Dictionary<String, String> parameters = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var parameters = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             foreach (Match match in matchs)
             {
                 Group group;
@@ -236,7 +236,7 @@ namespace XTemplate.Templating
             if (!match.Success) return false;
 
             Int32 length = match.Length;
-            MatchCollection matchs = paramValueValidatingRegex.Matches(block.Text);
+            var matchs = paramValueValidatingRegex.Matches(block.Text);
             if (matchs.Count == 0) return false;
 
             foreach (Match match2 in matchs)
