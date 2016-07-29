@@ -30,7 +30,8 @@ namespace NewLife.Log
         /// <returns></returns>
         public static TextFileLog Create(String path)
         {
-            if (String.IsNullOrEmpty(path)) path = XTrace.LogPath;
+            if (path.IsNullOrEmpty()) path = XTrace.LogPath;
+            if (path.IsNullOrEmpty()) path = Runtime.IsWeb ? "../Log" : "Log";
 
             var key = path.ToLower();
             return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p, false));
