@@ -403,7 +403,9 @@ namespace NewLife.Net
                     return false;
                 }
 
-                var buf = new Byte[1500];
+                //var buf = new Byte[1500];
+                // 加大接收缓冲区，规避SocketError.MessageSize问题
+                var buf = new Byte[8 * 1024];
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
                 se.Completed += (s, e) => ProcessReceive(e);
