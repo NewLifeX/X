@@ -1,7 +1,7 @@
 ﻿.list-toolbar .btn-sm-force, .btn-toolbar .btn-sm-force {
-    height:33px;
-    line-height:0;
-    vertical-align:middle;
+    height: 33px;
+    line-height: 0;
+    vertical-align: middle;
 }
 
 .list-toolbar .pull-right {
@@ -9,13 +9,17 @@
 }
 
 /*.list-toolbar .clear-fix {
-    zoom: 1; 
-    overflow:hidden; 
+	zoom: 1; 
+	overflow:hidden; 
 }*/
 
 /*.form-group {
-    height: 60px;
+	height: 60px;
 }*/
 .input-group[class*=col-] {
     float: left;
+}
+
+.input-group > .btn-group > .btn {
+    line-height: 20px;
 }
