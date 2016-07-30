@@ -5,16 +5,13 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using Microsoft.Win32;
-using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Reflection;
 #if !__MOBILE__
 using System.Management;
 #endif
@@ -24,31 +21,6 @@ namespace System
     /// <summary>网络工具类</summary>
     public static class NetHelper
     {
-        #region 日志输出
-        private static Boolean? _Debug;
-        /// <summary>是否调试</summary>
-        public static Boolean Debug
-        {
-            get
-            {
-                if (_Debug != null) return _Debug.Value;
-
-                _Debug = Setting.Current.NetDebug;
-
-                return _Debug.Value;
-            }
-            set { _Debug = value; }
-        }
-
-        /// <summary>输出日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args)
-        {
-            if (Debug) XTrace.WriteLine(format, args);
-        }
-        #endregion
-
         #region 辅助函数
         /// <summary>设置超时检测时间和检测间隔</summary>
         /// <param name="socket">要设置的Socket对象</param>
@@ -379,70 +351,64 @@ namespace System
             return GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
         }
         #endregion
-#if !__MOBILE__
+
         #region 设置适配器信息
+#if !__MOBILE__
         static private ManagementObjectCollection GetInstances()
         {
             ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
             return mc.GetInstances();
         }
 
-        /// <summary>
-        /// 设置IP，默认掩码255.255.255.0
-        /// </summary>
+        /// <summary>设置IP，默认掩码255.255.255.0</summary>
         /// <param name="ip"></param>
+        /// <param name="mask"></param>
         /// <returns></returns>
-        public static Boolean SetIP(String ip, String SubnetMask = "255.255.255.0")
+        public static Boolean SetIP(String ip, String mask = "255.255.255.0")
         {
-            ManagementBaseObject inPar = null;
-            ManagementBaseObject outPar = null;
             var moc = GetInstances();
             if (moc == null) return false;
 
             foreach (ManagementObject mo in moc)
             {
-                if (!(bool)mo["IPEnabled"])
-                    continue;
-                //设置IP和掩码
-                inPar = mo.GetMethodParameters("EnableStatic");
+                if (!(bool)mo["IPEnabled"]) continue;
+
+                // 设置IP和掩码
+                var inPar = mo.GetMethodParameters("EnableStatic");
                 inPar["IPAddress"] = new string[] { ip };
-                inPar["SubnetMask"] = new string[] { SubnetMask };
-                outPar = mo.InvokeMethod("EnableStatic", inPar, null);
+                inPar["SubnetMask"] = new string[] { mask };
+                var outPar = mo.InvokeMethod("EnableStatic", inPar, null);
             }
 
             var ips = GetIPs().ToList();
             var pp = ips.Find(e => e.ToString() == ip);
             return pp != null;
         }
-        /// <summary>
-        /// 设置默认网关
-        /// </summary>
+
+        /// <summary>设置默认网关</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        static public Boolean SetGateways(String address)
+        static public Boolean SetGateway(String address)
         {
-            ManagementBaseObject inPar = null;
-            ManagementBaseObject outPar = null;
             var moc = GetInstances();
             if (moc == null) return false;
 
             foreach (ManagementObject mo in moc)
             {
-                if (!(bool)mo["IPEnabled"])
-                    continue;
-                //设置网关 
-                inPar = mo.GetMethodParameters("SetGateways");
+                if (!(bool)mo["IPEnabled"]) continue;
+
+                // 设置网关 
+                var inPar = mo.GetMethodParameters("SetGateways");
                 inPar["DefaultIPGateway"] = new string[] { address };
-                outPar = mo.InvokeMethod("SetGateways", inPar, null);
+                var outPar = mo.InvokeMethod("SetGateways", inPar, null);
             }
 
             var ips = GetGateways().ToList();
             var pp = ips.Find(e => e.ToString() == address);
             return pp != null;
         }
-        /// <summary>
-        /// 启动DHCP,
-        /// </summary>
+
+        /// <summary>启动DHCP</summary>
         static public void StartDHCP()
         {
             var moc = GetInstances();
@@ -450,16 +416,16 @@ namespace System
 
             foreach (ManagementObject mo in moc)
             {
-                if (!(bool)mo["IPEnabled"])
-                    continue;
+                if (!(bool)mo["IPEnabled"]) continue;
+
                 mo.InvokeMethod("SetDNSServerSearchOrder", null);
-                //开启DHCP
+                // 开启DHCP
                 mo.InvokeMethod("EnableDHCP", null);
             }
         }
-
-        #endregion
 #endif
+        #endregion
+
         #region 远程开机
         /// <summary>唤醒指定MAC地址的计算机</summary>
         /// <param name="macs"></param>

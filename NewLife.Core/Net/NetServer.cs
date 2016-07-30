@@ -115,6 +115,8 @@ namespace NewLife.Net
             StatSession = new Statistics();
             StatSend = new Statistics();
             StatReceive = new Statistics();
+
+            if (Setting.Current.NetDebug) Log = XTrace.Log;
         }
 
         /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
@@ -541,9 +543,8 @@ namespace NewLife.Net
         #endregion
 
         #region 日志
-        private ILog _Log = NetHelper.Debug ? XTrace.Log : Logger.Null;
         /// <summary>日志提供者</summary>
-        public ILog Log { get { return _Log; } set { _Log = value ?? Logger.Null; } }
+        public ILog Log { get; set; } = Logger.Null;
 
         /// <summary>用于内部Socket服务器的日志提供者</summary>
         public ILog SocketLog { get; set; }

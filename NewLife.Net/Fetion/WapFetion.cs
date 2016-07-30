@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using NewLife.Log;
 using NewLife.Web;
 
 namespace NewLife.Net.Fetion
@@ -94,11 +95,11 @@ namespace NewLife.Net.Fetion
             if (ps != null && ps.Length > 0) data = String.Format(data, ps);
             var d = Encoding.UTF8.GetBytes(data);
             Client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
-            if (ShowResponse) NetHelper.WriteLog("{0} {1}", uri, data);
+            if (ShowResponse) WriteLog("{0} {1}", uri, data);
             Client.Encoding = Encoding.UTF8;
             d = Client.UploadData(server + uri, d);
             var result = Encoding.UTF8.GetString(d);
-            if (ShowResponse) NetHelper.WriteLog(result);
+            if (ShowResponse) WriteLog(result);
             return result;
         }
 
@@ -107,10 +108,10 @@ namespace NewLife.Net.Fetion
             if (!hasLogined) Login();
 
             if (ps != null && ps.Length > 0) uri = String.Format(uri, ps);
-            if (ShowResponse) NetHelper.WriteLog(uri);
+            if (ShowResponse) WriteLog(uri);
             Client.Encoding = Encoding.UTF8;
             var result = Client.DownloadString(server + uri);
-            if (ShowResponse) NetHelper.WriteLog(result);
+            if (ShowResponse) WriteLog(result);
             return result;
         }
         #endregion
@@ -360,7 +361,7 @@ namespace NewLife.Net.Fetion
 
             private String _Name;
             /// <summary>名称</summary>
-            public String Name { get { return _Name; } set { _Name = value; if (Client != null)Client.UpdateLocalName(ID, Name); } }
+            public String Name { get { return _Name; } set { _Name = value; if (Client != null) Client.UpdateLocalName(ID, Name); } }
 
             private String _Mobile;
             /// <summary>号码</summary>
@@ -390,6 +391,19 @@ namespace NewLife.Net.Fetion
             }
         }
         #endregion
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(format, args);
+        }
         #endregion
     }
 }

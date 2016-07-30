@@ -16,12 +16,17 @@ namespace NewLife.Net.Sockets
             //XTrace.WriteLine("{0,-16} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
             Assembly.GetExecutingAssembly().WriteVersion();
         }
+
+        /// <summary>实例化</summary>
+        public Netbase()
+        {
+            if (Setting.Current.NetDebug) Log = XTrace.Log;
+        }
         #endregion
 
         #region 日志
-        private ILog _Log = NetHelper.Debug ? XTrace.Log : Logger.Null;
         /// <summary>日志提供者</summary>
-        public ILog Log { get { return _Log; } set { _Log = value ?? Logger.Null; } }
+        public ILog Log { get; set; } = Logger.Null;
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
