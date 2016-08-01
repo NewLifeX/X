@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Net;
 
 namespace NewLife.Log
 {
@@ -8,7 +10,7 @@ namespace NewLife.Log
     public class NetworkLog : Logger, IDisposable
     {
         /// <summary>网络套接字</summary>
-        public Socket Client { get; set; }
+        public UdpClient Client { get; set; }
 
         /// <summary>远程服务器地址</summary>
         public IPEndPoint Remote { get; set; }
@@ -38,20 +40,21 @@ namespace NewLife.Log
             if (_inited) return;
 
             // 默认Udp广播
-            var client = NetHelper.CreateUdp();
+            var client = new UdpClient();
+            client.Connect(Remote);
             if (Remote.Address.Equals(IPAddress.Broadcast)) client.EnableBroadcast = true;
             Client = client;
 
             try
             {
                 // 首先发送日志头
-                client.SendTo(GetHead().GetBytes(), Remote);
+                client.Send(GetHead().GetBytes());
 
                 // 尝试向日志服务器表名身份
                 var buf = "{0} {1}/{2} 准备上报日志".F(DateTime.Now.ToFullString(), Environment.UserName, Environment.MachineName).GetBytes();
-                client.SendTo(buf, Remote);
+                client.Send(buf);
             }
-            catch (Exception ex) { client.SendTo(("读取环境变量错误=>" + ex.Message).GetBytes(), Remote); }
+            catch (Exception ex) { client.Send(("读取环境变量错误=>" + ex.Message).GetBytes()); }
 
             _inited = true;
         }
@@ -66,12 +69,12 @@ namespace NewLife.Log
 
             var e = WriteLogEventArgs.Current.Set(level).Set(Format(format, args), null);
             var buf = e.ToString().GetBytes();
-            if (Client.ProtocolType == ProtocolType.Udp)
+            if (Client.Client.ProtocolType == ProtocolType.Udp)
             {
                 // 捕获异常，不能因为写日志异常导致上层出错
                 try
                 {
-                    Client.SendTo(buf, Remote);
+                    Client.Send(new MemoryStream(buf));
                 }
                 catch
                 {
