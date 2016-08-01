@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
+#if NET4
 namespace System
 {
     internal static class LightupServices
@@ -56,3 +57,4 @@ namespace System
         }
     }
 }
+#endif

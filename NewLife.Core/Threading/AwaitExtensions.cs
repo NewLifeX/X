@@ -1,3 +1,4 @@
+#if NET4
 using System;
 using System.Diagnostics.Contracts;
 using System.Threading;
@@ -99,3 +100,4 @@ public static class AwaitExtensions
         return new ConfiguredTaskAwaitable<TResult>(task, continueOnCapturedContext);
     }
 }
+#endif

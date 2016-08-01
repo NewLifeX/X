@@ -10,7 +10,7 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
-#if NET4 && !__MOBILE__
+#if NET4
         /// <summary>获取自定义属性</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <param name="member"></param>
@@ -41,7 +41,6 @@ namespace System
 
             return avs[0];
         }
-#endif
 
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
@@ -66,24 +65,9 @@ namespace System
             });
             if (atts == null || atts.Length <= 0) return new TAttribute[0];
 
-            //return atts.Cast<TAttribute>().ToArray();
             return atts as TAttribute[];
-
-            //var key = "";
-            //var type = (member as Type) ?? member.DeclaringType ?? member.ReflectedType;
-            //if (type != null)
-            //    key = String.Format("{0}_{1}", type.FullName, member.Name);
-            //else
-            //    key = String.Format("{0}_{1}", member.Module.Assembly.FullName, member.MetadataToken);
-
-            //key = String.Format("{0}_{1}_{2}", key, typeof(TAttribute).FullName, inherit);
-
-            //return (TAttribute[])_miCache.GetItem<MemberInfo, Boolean>(key, member, inherit, (k, m, h) =>
-            //{
-            //    var atts = m.GetCustomAttributes(typeof(TAttribute), h) as TAttribute[];
-            //    return atts == null ? new TAttribute[0] : atts;
-            //});
         }
+#endif
 
         private static DictionaryCache<String, Object> _asmCache = new DictionaryCache<String, Object>();
 
@@ -103,6 +87,7 @@ namespace System
                 return atts == null ? new TAttribute[0] : atts;
             });
         }
+
         /// <summary>获取成员绑定的显示名，优先DisplayName，然后Description</summary>
         /// <param name="member"></param>
         /// <param name="inherit"></param>

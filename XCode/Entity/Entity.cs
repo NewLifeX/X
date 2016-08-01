@@ -1409,12 +1409,9 @@ namespace XCode
         //[Obsolete("该成员在后续版本中将不再被支持！")]
         public static TEntity FromJson(String json)
         {
-#if NET4
             //return JsonHelper.ToJsonEntity<TEntity>(json);
             return json.ToJsonEntity<TEntity>();
-#else
-            return new Json().Deserialize<TEntity>(json);
-#endif
+            //return new Json().Deserialize<TEntity>(json);
         }
         #endregion
 

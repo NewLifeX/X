@@ -1,5 +1,6 @@
 using System;
 
+#if NET4
 namespace System
 {
     internal static class LightupType
@@ -23,3 +24,4 @@ namespace System
         }
     }
 }
+#endif

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Reflection;
@@ -26,7 +27,7 @@ namespace NewLife.Net.UPnP
                 //if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) != null) continue;
 
                 var elmName = item.Name;
-                var att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item, true);
+                var att = item.GetCustomAttribute<XmlElementAttribute>(true);
                 if (att != null && !String.IsNullOrEmpty(att.ElementName)) elmName = att.ElementName;
 
                 var node = doc.SelectSingleNode("//" + elmName);
@@ -72,7 +73,7 @@ namespace NewLife.Net.UPnP
                 //if (AttributeX.GetCustomAttribute<XmlIgnoreAttribute>(item, true) != null) continue;
 
                 var elmName = item.Name;
-                var att = AttributeX.GetCustomAttribute<XmlElementAttribute>(item, true);
+                var att = item.GetCustomAttribute<XmlElementAttribute>(true);
                 if (att != null && !String.IsNullOrEmpty(att.ElementName)) elmName = att.ElementName;
 
                 var elm = doc.CreateElement(elmName);

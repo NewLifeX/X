@@ -31,7 +31,6 @@ namespace XTemplate.Templating
             set { _ClassName = value; }
         }
 
-        private String _BaseClassName;
         /// <summary>模版头指令指定的基类名。如果为空表示没有指令指定基类</summary>
         public String BaseClassName { get; set; }
 

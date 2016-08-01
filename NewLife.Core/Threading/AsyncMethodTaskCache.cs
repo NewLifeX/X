@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
+#if NET4
 namespace System.Runtime.CompilerServices
 {
     internal class AsyncMethodTaskCache<TResult>
@@ -70,3 +71,4 @@ namespace System.Runtime.CompilerServices
         }
     }
 }
+#endif

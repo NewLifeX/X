@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if NET4
 [assembly: TypeForwardedTo(typeof(AggregateException))]
 [assembly: TypeForwardedTo(typeof(OperationCanceledException))]
 [assembly: TypeForwardedTo(typeof(CancellationToken))]
@@ -59,3 +60,4 @@ namespace System.Runtime.CompilerServices
 		}
 	}
 }
+#endif

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+#if NET4
 namespace System.Threading
 {
 	internal static class TimerManager
@@ -24,3 +25,4 @@ namespace System.Threading
 		}
 	}
 }
+#endif

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
+using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Configuration;
@@ -217,8 +219,8 @@ namespace XCode.Configuration
             _Table = type.GetCustomAttribute<BindTableAttribute>(true);
             if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
-            _Indexes = type.GetCustomAttributes<BindIndexAttribute>(true);
-            _Relations = type.GetCustomAttributes<BindRelationAttribute>(true);
+            _Indexes = type.GetCustomAttributes<BindIndexAttribute>(true).ToArray();
+            _Relations = type.GetCustomAttributes<BindRelationAttribute>(true).ToArray();
             _Description = type.GetCustomAttribute<DescriptionAttribute>(true);
             _ModelCheckMode = type.GetCustomAttribute<ModelCheckModeAttribute>(true);
 

@@ -21,10 +21,10 @@ namespace System
             if (outStream == null) outStream = new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET45
-            using (var stream = new DeflateStream(outStream, (CompressionLevel)9, true))
-#else
+#if NET4
             using (var stream = new DeflateStream(outStream, CompressionMode.Compress, true))
+#else
+            using (var stream = new DeflateStream(outStream, (CompressionLevel)9, true))
 #endif
             {
                 inStream.CopyTo(stream);
@@ -82,10 +82,10 @@ namespace System
             if (outStream == null) outStream = new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET45
-            using (var stream = new DeflateStream(outStream, CompressionLevel.Optimal, true))
-#else
+#if NET4
             using (var stream = new GZipStream(outStream, CompressionMode.Compress, true))
+#else
+            using (var stream = new DeflateStream(outStream, CompressionLevel.Optimal, true))
 #endif
             {
                 inStream.CopyTo(stream);

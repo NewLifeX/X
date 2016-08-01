@@ -1,5 +1,6 @@
 using System;
 
+#if NET4
 namespace System
 {
     internal class ExecutionContextLightup : Lightup
@@ -70,3 +71,4 @@ namespace System
         }
     }
 }
+#endif

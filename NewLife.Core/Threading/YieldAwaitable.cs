@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
+#if NET4
 namespace Microsoft.Runtime.CompilerServices
 {
     /// <summary>yield</summary>
@@ -44,3 +45,4 @@ namespace Microsoft.Runtime.CompilerServices
         }
     }
 }
+#endif

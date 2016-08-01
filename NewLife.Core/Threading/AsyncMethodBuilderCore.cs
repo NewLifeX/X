@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 
+#if NET4
 namespace System.Runtime.CompilerServices
 {
     internal struct AsyncMethodBuilderCore
@@ -97,3 +98,4 @@ namespace System.Runtime.CompilerServices
         }
     }
 }
+#endif

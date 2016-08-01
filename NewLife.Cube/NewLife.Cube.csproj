@@ -13,7 +13,6 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NewLife.Cube</RootNamespace>
     <AssemblyName>NewLife.Cube</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
@@ -28,6 +27,7 @@
     <OldToolsVersion>15.0</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -38,6 +38,7 @@
     <DocumentationFile>Bin\NewLife.Cube.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>Bin\</OutputPath>
@@ -46,6 +47,17 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>Bin\NewLife.Cube.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NET4|AnyCPU'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <OutputPath>Bin4\</OutputPath>
+    <DefineConstants>TRACE;NET4</DefineConstants>
+    <DocumentationFile>Bin\NewLife.Cube.XML</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -671,9 +683,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>
-      md $(ProjectDir)..\..\Bin4
-      copy $(TargetDir)$(TargetName).* $(ProjectDir)..\..\Bin4\ /y
-      del $(ProjectDir)..\..\Bin4\NewLife.Cube.dll.config /q
+      md $(ProjectDir)..\..\Bin
+      copy $(TargetDir)$(TargetName).* $(ProjectDir)..\..\Bin\ /y
+      del $(ProjectDir)..\..\Bin\NewLife.Cube.dll.config /q
     </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

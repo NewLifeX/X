@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
+#if NET4
 namespace System.Threading.Tasks
 {
     /// <summary>»ŒŒÒ¿©’π</summary>
@@ -316,3 +317,4 @@ namespace System.Threading.Tasks
         }
     }
 }
+#endif

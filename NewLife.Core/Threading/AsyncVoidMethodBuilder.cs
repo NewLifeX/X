@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if NET4
 namespace System.Runtime.CompilerServices
 {
     /// <summary> 表示生成器，用于不返回值的异步方法。</summary>
@@ -166,3 +167,4 @@ namespace System.Runtime.CompilerServices
         }
     }
 }
+#endif

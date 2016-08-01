@@ -14,11 +14,9 @@ using NewLife.Reflection;
 using ADODB;
 using ADOX;
 using DAO;
-#if NET4
 using ConnectionClass = ADODB.Connection;
 using DBEngineClass = DAO.DBEngine;
 using CatalogClass = ADOX.Catalog;
-#endif
 #endif
 
 namespace XCode.DataAccessLayer
@@ -38,11 +36,6 @@ namespace XCode.DataAccessLayer
                 if (_dbProviderFactory == null)
                 {
                     _dbProviderFactory = OleDbFactory.Instance;
-
-                    // 检查ADOX
-#if !NET4
-                    //CheckAndDownload("Interop.ADOX.dll");
-#endif
                 }
                 return _dbProviderFactory;
             }

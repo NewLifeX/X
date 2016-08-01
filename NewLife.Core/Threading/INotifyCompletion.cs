@@ -1,5 +1,6 @@
 using System;
 
+#if NET4
 namespace System.Runtime.CompilerServices
 {
     /// <summary>表示操作，其计划等待操作完成时的后续部分。</summary>
@@ -10,3 +11,4 @@ namespace System.Runtime.CompilerServices
 		void OnCompleted(Action continuation);
 	}
 }
+#endif

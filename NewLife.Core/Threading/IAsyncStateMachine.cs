@@ -1,5 +1,6 @@
 using System;
 
+#if NET4
 namespace System.Runtime.CompilerServices
 {
     /// <summary>表示为异步方法生成的状态机。此类别仅供编译器使用。</summary>
@@ -13,3 +14,4 @@ namespace System.Runtime.CompilerServices
 		void SetStateMachine(IAsyncStateMachine stateMachine);
 	}
 }
+#endif

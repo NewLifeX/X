@@ -3,6 +3,7 @@ using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+#if NET4
 namespace Microsoft.Runtime.CompilerServices
 {
     /// <summary>配置任务await</summary>
@@ -111,3 +112,4 @@ namespace Microsoft.Runtime.CompilerServices
         public ConfiguredTaskAwaiter GetAwaiter() { return m_configuredTaskAwaiter; }
     }
 }
+#endif
