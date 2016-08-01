@@ -5,6 +5,9 @@ using System.Security.Cryptography;
 namespace NewLife.Security
 {
     /// <summary>RSA算法</summary>
+    /// <remarks>
+    /// RSA加密或签名小数据块时，密文长度128，速度也很快。
+    /// </remarks>
     public static class RSAHelper
     {
         #region 加密解密
@@ -16,7 +19,6 @@ namespace NewLife.Security
             var rsa = new RSACryptoServiceProvider(keySize);
 
             var ss = new String[2];
-            var pa = rsa.ExportParameters(true);
             ss[0] = rsa.ToXmlString(true);
             ss[1] = rsa.ToXmlString(false);
 
