@@ -1,14 +1,12 @@
-﻿using System;
+﻿#if NET4
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
+using NewLife;
 using NewLife.Serialization;
-//using BinaryReaderX = NewLife.Serialization.BinaryReaderX;
-//using BinaryWriterX = NewLife.Serialization.BinaryWriterX;
 
-namespace NewLife.Compression
+namespace System.IO.Compression
 {
     /// <summary>Zip文件</summary>
     /// <remarks>
@@ -358,7 +356,7 @@ namespace NewLife.Compression
         /// <param name="outputPath"></param>
         /// <param name="overrideExisting"></param>
         /// <param name="throwException"></param>
-        public static void Extract(String fileName, String outputPath, Boolean overrideExisting = true, Boolean throwException = true)
+        public static void ExtractToDirectory(String fileName, String outputPath, Boolean overrideExisting = true, Boolean throwException = true)
         {
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
             // 默认使用没有后缀的路径作为目录
@@ -766,3 +764,4 @@ namespace NewLife.Compression
 //            9-15 year (since 1980)
 //
 // see http://msdn.microsoft.com/en-us/library/ms724274(VS.85).aspx
+#endif

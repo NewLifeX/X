@@ -1,6 +1,7 @@
-﻿using System;
+﻿#if NET4
+using System;
 
-namespace NewLife.Compression
+namespace System.IO.Compression
 {
     /// <summary>压缩方法</summary>
     public enum CompressionMethod : ushort
@@ -137,3 +138,4 @@ namespace NewLife.Compression
         public const UInt32 ZipDirEntrySignature = 0x02014b50;
     }
 }
+#endif

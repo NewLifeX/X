@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using NewLife.Compression;
 using NewLife.Log;
 
 namespace NewLife.Web
@@ -269,7 +269,7 @@ namespace NewLife.Web
                 if (!file.IsNullOrEmpty())
                 {
                     Log.Info("解压缩到 {0}", destdir);
-                    ZipFile.Extract(file, destdir, true, false);
+                    ZipFile.ExtractToDirectory(file, destdir);
 
                     return file;
                 }

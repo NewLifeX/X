@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
-using NewLife.Compression;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -169,7 +169,7 @@ namespace NewLife.Net
 
             var p = TempPath.CombinePath(Path.GetFileNameWithoutExtension(file));
             WriteLog("解压缩更新包到临时目录 {0}", p);
-            ZipFile.Extract(file, p);
+            ZipFile.ExtractToDirectory(file, p);
 
             var updatebat = UpdatePath.CombinePath("update.bat").GetFullPath();
             MakeBat(updatebat, p, ".".GetFullPath());

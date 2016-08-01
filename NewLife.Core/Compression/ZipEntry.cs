@@ -1,13 +1,15 @@
-﻿using System;
+﻿#if NET4
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Xml.Serialization;
+using NewLife;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
 
-namespace NewLife.Compression
+namespace System.IO.Compression
 {
     /// <summary>Zip实体。包含文件头信息和文件位置</summary>
     public class ZipEntry : IDisposable
@@ -458,7 +460,7 @@ namespace NewLife.Compression
         #endregion
 
         #region 辅助
-        internal static readonly ICollection<String> dirMembers = new HashSet<String>(new String[] { 
+        internal static readonly ICollection<String> dirMembers = new HashSet<String>(new String[] {
             "VersionMadeBy", "CommentLength", "DiskNumber", "InternalFileAttrs", "ExternalFileAttrs", "RelativeOffsetOfLocalHeader", "Comment" }, StringComparer.OrdinalIgnoreCase);
 
         /// <summary>复制DirEntry专属的字段</summary>
@@ -613,3 +615,4 @@ namespace NewLife.Compression
         #endregion
     }
 }
+#endif

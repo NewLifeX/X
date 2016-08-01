@@ -4,10 +4,10 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using NewLife;
-using NewLife.Compression;
 using NewLife.Reflection;
 using NewLife.Security;
 
@@ -475,7 +475,7 @@ namespace XCode.DataAccessLayer
                 //var rnd = new Random();
                 var tmp = Path.GetDirectoryName(bakfile).CombinePath(Rand.Next() + ".tmp");
                 File.Move(bakfile, tmp);
-                ZipFile.CompressFile(tmp, bakfile);
+                ZipFile.ExtractToDirectory(tmp, bakfile);
                 File.Delete(tmp);
                 WriteLog("压缩后大小：{0:n0}字节", bakfile.AsFile().Length);
             }
