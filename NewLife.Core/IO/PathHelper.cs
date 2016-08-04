@@ -266,6 +266,7 @@ namespace System.IO
         /// <param name="destFile"></param>
         public static void Compress(this FileInfo fi, String destFile)
         {
+            if (File.Exists(destFile)) File.Delete(destFile);
             using (var zf = ZipFile.Open(destFile, ZipArchiveMode.Create))
             {
                 zf.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
@@ -386,6 +387,7 @@ namespace System.IO
         /// <param name="destFile"></param>
         public static void Compress(this DirectoryInfo di, String destFile)
         {
+            if (File.Exists(destFile)) File.Delete(destFile);
             ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
         }
         #endregion

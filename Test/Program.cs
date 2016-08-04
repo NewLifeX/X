@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -118,23 +118,12 @@ namespace Test
 
         static void Test5()
         {
-            using (var zf = new ZipFile())
-            {
-                zf.AddFile("XCode.pdb");
-                zf.AddFile("NewLife.Core.pdb");
+            var f = "XCode.pdb".GetFullPath();
+            f.AsFile().Compress("x.zip");
 
-                zf.Write("test.zip");
-                zf.Write("test.7z");
-            }
-            //using (var zf = new ZipFile("Test.lzma.zip"))
-            //{
-            //    foreach (var item in zf.Entries.Values)
-            //    {
-            //        Console.WriteLine("{0} {1}", item.FileName, item.CompressionMethod);
-            //    }
+            "x.zip".AsFile().Extract("./xx");
 
-            //    zf.Extract("lzma");
-            //}
+            "./xx".AsDirectory().Compress("xx.zip");
         }
 
         static void Test7()

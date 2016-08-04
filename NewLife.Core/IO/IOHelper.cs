@@ -24,7 +24,7 @@ namespace System
 #if NET4
             using (var stream = new DeflateStream(outStream, CompressionMode.Compress, true))
 #else
-            using (var stream = new DeflateStream(outStream, (CompressionLevel)9, true))
+            using (var stream = new DeflateStream(outStream, CompressionLevel.Optimal, true))
 #endif
             {
                 inStream.CopyTo(stream);
