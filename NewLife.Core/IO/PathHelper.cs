@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO.Compression;
 using System.Text;
 using NewLife.IO;
 
@@ -251,6 +252,25 @@ namespace System.IO
 
             return false;
         }
+
+        /// <summary>解压缩</summary>
+        /// <param name="fi"></param>
+        /// <param name="destDir"></param>
+        public static void Extract(this FileInfo fi, String destDir)
+        {
+            ZipFile.ExtractToDirectory(fi.FullName, destDir);
+        }
+
+        /// <summary>压缩文件</summary>
+        /// <param name="fi"></param>
+        /// <param name="destFile"></param>
+        public static void Compress(this FileInfo fi, String destFile)
+        {
+            using (var zf = ZipFile.Open(destFile, ZipArchiveMode.Create))
+            {
+                zf.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
+            }
+        }
         #endregion
 
         #region 目录扩展
@@ -359,6 +379,14 @@ namespace System.IO
             }
 
             return count;
+        }
+
+        /// <summary>压缩</summary>
+        /// <param name="di"></param>
+        /// <param name="destFile"></param>
+        public static void Compress(this DirectoryInfo di, String destFile)
+        {
+            ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
         }
         #endregion
     }

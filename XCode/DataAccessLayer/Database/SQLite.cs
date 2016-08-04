@@ -475,7 +475,7 @@ namespace XCode.DataAccessLayer
                 //var rnd = new Random();
                 var tmp = Path.GetDirectoryName(bakfile).CombinePath(Rand.Next() + ".tmp");
                 File.Move(bakfile, tmp);
-                ZipFile.ExtractToDirectory(tmp, bakfile);
+                tmp.AsFile().Compress(bakfile);
                 File.Delete(tmp);
                 WriteLog("压缩后大小：{0:n0}字节", bakfile.AsFile().Length);
             }
