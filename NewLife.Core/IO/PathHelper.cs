@@ -9,9 +9,9 @@ namespace System.IO
     public static class PathHelper
     {
         #region 属性
-        private static String _BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        private static String _baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         /// <summary>基础目录。GetFullPath依赖于此，默认为当前应用程序域基础目录</summary>
-        public static String BaseDirectory { get { return _BaseDirectory; } set { _BaseDirectory = value; } }
+        public static String BaseDirectory { get { return _baseDirectory; } set { _baseDirectory = value; } }
         #endregion
 
         #region 路径操作辅助
@@ -252,7 +252,7 @@ namespace System.IO
 
             return false;
         }
-
+#if !__MOBILE__
         /// <summary>解压缩</summary>
         /// <param name="fi"></param>
         /// <param name="destDir"></param>
@@ -272,6 +272,7 @@ namespace System.IO
                 zf.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
             }
         }
+#endif
         #endregion
 
         #region 目录扩展
@@ -381,7 +382,7 @@ namespace System.IO
 
             return count;
         }
-
+#if !__MOBILE__
         /// <summary>压缩</summary>
         /// <param name="di"></param>
         /// <param name="destFile"></param>
@@ -390,6 +391,7 @@ namespace System.IO
             if (File.Exists(destFile)) File.Delete(destFile);
             ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
         }
+#endif
         #endregion
     }
 }
