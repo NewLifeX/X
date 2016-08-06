@@ -31,7 +31,7 @@ namespace NewLife.Cube
         {
             Debug = false;
             ShowRunTime = true;
-            PluginServer = "http://www.newlifex.com/showtopic-1488.aspx";
+            PluginServer = "http://x.newlifex.com/";
         }
 
         /// <summary>新建时调用</summary>

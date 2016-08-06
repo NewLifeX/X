@@ -118,12 +118,9 @@ namespace Test
 
         static void Test5()
         {
-            var f = "XCode.pdb".GetFullPath();
-            f.AsFile().Compress("x.zip");
-
-            "x.zip".AsFile().Extract("./xx");
-
-            "./xx".AsDirectory().Compress("xx.zip");
+            var dt = new DateTime(2000, 1, 1);
+            var ts = DateTime.Now - dt;
+            Console.WriteLine("{0},{0:X4}", (Int32)ts.TotalDays);
         }
 
         static void Test7()

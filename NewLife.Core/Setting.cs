@@ -82,7 +82,7 @@ namespace NewLife
             LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
             TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
             NetworkLog = "";
-            PluginServer = "http://www.newlifex.com/showtopic-51.aspx";
+            PluginServer = "http://x.newlifex.com/";
             //PluginPath = Runtime.IsWeb ? "Bin" : "Plugins";
             PluginPath = "Plugins";
             ThreadDebug = Config.GetMutilConfig<Boolean>(false, "NewLife.Thread.Debug", "ThreadPoolDebug");
@@ -101,7 +101,7 @@ namespace NewLife
                 PluginCache = Path.GetPathRoot(sys).CombinePath("X", "Cache");
             }
 #endif
-            if (PluginServer.IsNullOrWhiteSpace()) PluginServer = "http://www.newlifex.com/showtopic-51.aspx";
+            if (PluginServer.IsNullOrWhiteSpace()) PluginServer = "http://x.newlifex.com/";
 
             base.OnLoaded();
         }
