@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,11 +117,42 @@ namespace Test
             CodeTimer.TimeLine("UnsafeQueueUserWorkItem", count, n => ThreadPool.UnsafeQueueUserWorkItem(s => Thread.Sleep(1000), null));
         }
 
+        static Statistics stat = new Statistics();
         static void Test5()
         {
-            var dt = new DateTime(2000, 1, 1);
-            var ts = DateTime.Now - dt;
-            Console.WriteLine("{0},{0:X4}", (Int32)ts.TotalDays);
+            var svr = new HttpListener();
+            svr.Prefixes.Add("http://*:888/");
+            svr.Start();
+
+            svr.GetContextAsync().ContinueWith(t => OnRequest(svr, t.Result));
+
+            // 预热一下
+            {
+                var client = new WebClient();
+                client.DownloadData("http://127.0.0.1:888/");
+                client.Dispose();
+            }
+
+            // 启动ab跑测试
+            //Process.Start("ab.exe", "-n 100000 -c 100 http://127.0.0.1:888/");
+
+            while (true)
+            {
+                Console.Title = stat.ToString();
+                Thread.Sleep(500);
+            }
+        }
+
+        static void OnRequest(HttpListener svr, HttpListenerContext context)
+        {
+            svr.GetContextAsync().ContinueWith(t => OnRequest(svr, t.Result));
+
+            stat.Increment();
+
+            var buf = DateTime.Now.ToFullString().GetBytes();
+            context.Response.ContentLength64 = buf.Length;
+            context.Response.OutputStream.Write(buf);
+            context.Response.OutputStream.Close();
         }
 
         static void Test7()
