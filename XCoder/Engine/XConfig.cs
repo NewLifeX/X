@@ -57,7 +57,7 @@ namespace XCoder
 
         protected override void OnLoaded()
         {
-            if (UpdateServer.IsNullOrEmpty()) UpdateServer = "http://www.newlifex.com/showtopic-260.aspx";
+            if (UpdateServer.IsNullOrEmpty()) UpdateServer = "http://x.newlifex.com/";
             
             base.OnLoaded();
         }
