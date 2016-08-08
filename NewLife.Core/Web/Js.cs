@@ -14,9 +14,8 @@ namespace NewLife.Web
     public class Js : IJs
     {
         #region 通用静态
-        private static IJs _Current;
         /// <summary>当前实现</summary>
-        public static IJs Current { get { return _Current; } set { _Current = value; } }
+        public static IJs Current { get; set; }
 
         static Js()
         {
