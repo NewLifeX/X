@@ -52,7 +52,7 @@ namespace XCode.DataAccessLayer
                     set.SQLiteDbPath = dbpath;
                     set.Save();
                 }
-                var connstr = "Data Source=" + dbpath.GetFullPath().CombinePath(connName + ".db");
+                var connstr = "Data Source=" + dbpath.CombinePath(connName + ".db");
                 WriteLog("自动为[{0}]设置连接字符串：{1}", connName, connstr);
                 AddConnStr(connName, connstr, null, "SQLite");
             }

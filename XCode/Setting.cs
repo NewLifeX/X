@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using NewLife;
 using NewLife.Configuration;
 using NewLife.Xml;
 using XCode.Cache;
@@ -94,39 +95,29 @@ namespace XCode
             Cache.Init();
             Negative.Init();
         }
+
+        /// <summary>加载后检查默认值</summary>
+        protected override void OnLoaded()
+        {
+            var dbpath = SQLiteDbPath;
+            if (dbpath.IsNullOrEmpty())
+            {
+                dbpath = ".";
+                if (Runtime.IsWeb)
+                {
+                    if (!Environment.CurrentDirectory.Contains("iisexpress") ||
+                        !Environment.CurrentDirectory.Contains("Web"))
+                        dbpath = "..\\Data";
+                    else
+                        dbpath = "~\\App_Data";
+                }
+                SQLiteDbPath = dbpath;
+            }
+
+            base.OnLoaded();
+        }
         #endregion
     }
-
-    ///// <summary>模型设置</summary>
-    //public class ModelSetting
-    //{
-    //    #region 属性
-    //    private Boolean _UseID = true;
-    //    /// <summary>是否ID作为id的格式化，否则使用原名。默认使用ID</summary>
-    //    [Description("是否ID作为id的格式化，否则使用原名。默认使用ID")]
-    //    public Boolean UseID { get { return _UseID; } set { _UseID = value; } }
-
-    //    private Boolean _AutoCutPrefix = true;
-    //    /// <summary>是否自动去除前缀，第一个_之前。默认启用</summary>
-    //    [Description("是否自动去除前缀，第一个_之前。默认启用")]
-    //    public Boolean AutoCutPrefix { get { return _AutoCutPrefix; } set { _AutoCutPrefix = value; } }
-
-    //    private Boolean _AutoCutTableName = true;
-    //    /// <summary>是否自动去除字段前面的表名。默认启用</summary>
-    //    [Description("是否自动去除字段前面的表名。默认启用")]
-    //    public Boolean AutoCutTableName { get { return _AutoCutTableName; } set { _AutoCutTableName = value; } }
-
-    //    private Boolean _AutoFixWord = true;
-    //    /// <summary>是否自动纠正大小写。默认启用</summary>
-    //    [Description("是否自动纠正大小写。默认启用")]
-    //    public Boolean AutoFixWord { get { return _AutoFixWord; } set { _AutoFixWord = value; } }
-
-    //    private String _FilterPrefixs = "tbl,table";
-    //    /// <summary>格式化表名字段名时，要过滤的前缀。默认tbl,table</summary>
-    //    [Description("格式化表名字段名时，要过滤的前缀。默认tbl,table")]
-    //    public String FilterPrefixs { get { return _FilterPrefixs; } set { _FilterPrefixs = value; } }
-    //    #endregion
-    //}
 
     /// <summary>Oracle设置</summary>
     public class OracleSetting
