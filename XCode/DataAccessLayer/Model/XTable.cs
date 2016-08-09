@@ -106,6 +106,12 @@ namespace XCode.DataAccessLayer
         [DisplayName("基类")]
         [Description("基类")]
         public String BaseType { get; set; }
+
+        /// <summary>仅插入的日志型数据</summary>
+        [XmlAttribute]
+        [DisplayName("只写")]
+        [Description("只写")]
+        public Boolean InsertOnly { get; set; }
         #endregion
 
         #region 扩展属性

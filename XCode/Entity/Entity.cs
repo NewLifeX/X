@@ -227,6 +227,12 @@ namespace XCode
 
         Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
+            if (Meta.Table.DataTable.InsertOnly)
+            {
+                if (isnew == null) throw new XCodeException("只写的日志型数据禁止删除！");
+                if (!isnew.Value) throw new XCodeException("只写的日志型数据禁止修改！");
+            }
+
             var session = Meta.Session;
 
             using (var trans = new EntityTransaction<TEntity>())

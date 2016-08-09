@@ -17,6 +17,11 @@ namespace XCode.Membership
     public partial class Log<TEntity> : UserTimeEntity<TEntity> where TEntity : Log<TEntity>, new()
     {
         #region 对象操作
+        static Log()
+        {
+            Meta.Table.DataTable.InsertOnly = true;
+        }
+
         /// <summary>已重载。记录当前管理员</summary>
         /// <param name="isNew"></param>
         public override void Valid(bool isNew)

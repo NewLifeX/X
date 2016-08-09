@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -556,7 +557,16 @@ namespace NewLife.Cube
                 //menu.Save();
             }
 
-            return base.ScanActionMenu(menu);
+            var dic = base.ScanActionMenu(menu);
+
+            // 只写实体类过滤掉添删改权限
+            if (Factory.Table.DataTable.InsertOnly)
+            {
+                var arr = new PermissionFlags[] { PermissionFlags.Insert, PermissionFlags.Update, PermissionFlags.Delete }.Select(e => (Int32)e).ToArray();
+                dic = dic.Where(e => !arr.Contains(e.Value)).ToDictionary(e => e.Key, e => e.Value);
+            }
+
+            return dic;
         }
         #endregion
 

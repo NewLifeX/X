@@ -39,6 +39,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>说明</summary>
         String Description { get; set; }
+
+        /// <summary>仅插入的日志型数据</summary>
+        Boolean InsertOnly { get; set; }
         #endregion
 
         #region 扩展属性

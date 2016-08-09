@@ -224,10 +224,9 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展权限
-        private Dictionary<Int32, String> _Permissions = new Dictionary<Int32, String>();
         /// <summary>可选权限子项</summary>
         [XmlIgnore, ScriptIgnore]
-        public Dictionary<Int32, String> Permissions { get { return _Permissions; } set { _Permissions = value; } }
+        public Dictionary<Int32, String> Permissions { get; set; } = new Dictionary<Int32, String>();
 
         void LoadPermission()
         {
@@ -443,7 +442,7 @@ namespace XCode.Membership
 
         /// <summary>非业务的目录列表</summary>
         static HashSet<String> _NotBizDirs = new HashSet<string>(
-            new String[] { 
+            new String[] {
                 "Frame", "Asc", "Ascx", "images", "js", "css", "scripts" ,
                 "Bin","App_Code","App_Data","Config","Log"
             },
