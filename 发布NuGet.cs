@@ -118,14 +118,14 @@ namespace NewLife.Reflection
             }
         }
 
-        static void AddFile(Manifest cfg, String name, String ext, Boolean fx2 = true)
+        static void AddFile(Manifest cfg, String name, String ext, Boolean fx45 = true)
         {
             var mf = new ManifestFile();
 
-            if (fx2)
+            if (fx45)
             {
                 mf.Source = @"..\..\BIN\{0}.{1}".F(name, ext);
-                mf.Target = @"lib\net20\{0}.{1}".F(name, ext);
+                mf.Target = @"lib\net45\{0}.{1}".F(name, ext);
             }
             else
             {
