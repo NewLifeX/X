@@ -1,4 +1,15 @@
-﻿.list-toolbar .btn-sm-force, .btn-toolbar .btn-sm-force {
+﻿@media(max-width: 500px) {
+    body {
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    .page-content{
+        padding: 0px;
+    }
+}
+
+.list-toolbar .btn-sm-force, .btn-toolbar .btn-sm-force {
     height: 33px;
     line-height: 0;
     vertical-align: middle;
