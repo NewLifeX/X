@@ -4,9 +4,40 @@
         padding-right: 0px;
     }
 
-    .page-content{
+    .page-content {
         padding: 0px;
     }
+
+    .form-horizontal .control-label {
+        float: left;
+    }
+
+    .form-group {
+        display: inline-block;
+        margin-bottom: 2px;
+    }
+
+    .form-inline .form-group {
+        display: inline-block;
+        margin-bottom: 0;
+        vertical-align: middle;
+    }
+
+    .form-inline .control-label {
+        margin-bottom: 0;
+        vertical-align: middle;
+    }
+
+    /*.form-inline .input-group {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .form-inline .input-group-addon {
+        display: inline-table;
+        vertical-align: middle;
+        float: left;
+    }*/
 }
 
 .list-toolbar .btn-sm-force, .btn-toolbar .btn-sm-force {
@@ -20,12 +51,12 @@
 }
 
 /*.list-toolbar .clear-fix {
-	zoom: 1; 
-	overflow:hidden; 
+    zoom: 1; 
+    overflow:hidden; 
 }*/
 
 /*.form-group {
-	height: 60px;
+    height: 60px;
 }*/
 .input-group[class*=col-] {
     float: left;
