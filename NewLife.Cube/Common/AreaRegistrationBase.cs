@@ -141,11 +141,14 @@ namespace NewLife.Cube
         {
             //// 延迟几秒钟等其它地方初始化完成
             //Thread.Sleep(3000);
+            var mf = ManageProvider.Menu;
+            if (mf == null) return;
+
             XTrace.WriteLine("初始化[{0}]的菜单体系", AreaName);
-            ManageProvider.Menu.ScanController(AreaName, GetType().Assembly, GetType().Namespace + ".Controllers");
+            mf.ScanController(AreaName, GetType().Assembly, GetType().Namespace + ".Controllers");
 
             // 更新区域名称为友好中文名
-            var menu = ManageProvider.Menu.Root.FindByPath(AreaName);
+            var menu = mf.Root.FindByPath(AreaName);
             if (menu != null && menu.DisplayName.IsNullOrEmpty())
             {
                 var dis = GetType().GetDisplayName();
