@@ -383,10 +383,10 @@ namespace NewLife.Reflection
                         if (XTrace.Debug)
                         {
                             // 如果是本目录的程序集，去掉目录前缀
-                            var p = item.Asm.Location;
-                            var cur = AppDomain.CurrentDomain.BaseDirectory;
-                            if (p.StartsWithIgnoreCase(cur)) p = p.Substring(cur.Length).TrimStart("\\");
-                            XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\")导致加载{1}", baseType.FullName, p);
+                            var file = item.Asm.Location;
+                            var root = ".".GetFullPath();
+                            if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+                            XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\") => {1}", baseType.FullName, file);
                         }
                         var asm2 = Assembly.LoadFile(item.Asm.Location);
                         ts = Create(asm2).FindPlugins(baseType);
@@ -477,7 +477,12 @@ namespace NewLife.Reflection
                         var type2 = AssemblyX.Create(asm2).GetType(typeName);
                         if (type2 == null) continue;
                         type = type2;
-                        if (XTrace.Debug) XTrace.WriteLine("TypeX.GetType(\"{0}\")导致加载{1}", typeName, file);
+                        if (XTrace.Debug)
+                        {
+                            var root = ".".GetFullPath();
+                            if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+                            XTrace.WriteLine("TypeX.GetType(\"{0}\") => {1}", typeName, file);
+                        }
                     }
                     catch (Exception ex)
                     {
