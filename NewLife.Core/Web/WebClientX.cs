@@ -164,7 +164,8 @@ namespace NewLife.Web
         /// <returns>返回已下载的文件，无效时返回空</returns>
         public String DownloadLink(String url, String name, String destdir)
         {
-            var cacheTime = DateTime.Now.AddDays(1);
+            // 一定时间之内，不再重复下载
+            var cacheTime = DateTime.Now.AddDays(-1);
             var cachedir = Setting.Current.PluginCache;
             var names = name.Split(",", ";");
 
@@ -173,12 +174,12 @@ namespace NewLife.Web
             {
                 // 猜测本地可能存在的文件
                 var fi = CheckCache(item, destdir);
-                if (fi != null && fi.LastWriteTime < cacheTime) return fi.FullName;
+                if (fi != null && fi.LastWriteTime > cacheTime) return fi.FullName;
                 // 检查缓存目录
                 if (!destdir.EqualIgnoreCase(cachedir))
                 {
                     fi = CheckCache(item, cachedir) ?? fi;
-                    if (fi != null && fi.LastWriteTime < cacheTime) return fi.FullName;
+                    if (fi != null && fi.LastWriteTime > cacheTime) return fi.FullName;
                 }
 
                 // 确保即使联网下载失败，也返回较旧版本
@@ -202,34 +203,46 @@ namespace NewLife.Web
             }
             if (link == null) return file;
 
-            file = destdir.CombinePath(link.Name).EnsureDirectory();
+            var file2 = destdir.CombinePath(link.Name).EnsureDirectory();
 
             // 已经提前检查过，这里几乎不可能有文件存在
-            if (File.Exists(file))
+            if (File.Exists(file2))
             {
-                Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", link.Name, link.Url);
-                return file;
+                // 如果连接名所表示的文件存在，并且带有时间，那么就智能是它啦
+                var p = link.Name.LastIndexOf("_");
+                if (p > 0 && (p + 8 + 1 == link.Name.Length || p + 14 + 1 == link.Name.Length))
+                {
+                    Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", link.Name, link.Url);
+                    return file;
+                }
+
+                // 如果文件存在，另外改一个名字吧
+                var ext = Path.GetExtension(link.Name);
+                file2 = Path.GetFileNameWithoutExtension(link.Name);
+                file2 = "{0}_{1:yyyyMMddHHmmss}.{2}".F(file2, DateTime.Now, ext);
+                file2 = destdir.CombinePath(file2).EnsureDirectory();
             }
 
             Log.Info("分析得到文件 {0}，准备下载 {1}", link.Name, link.Url);
             // 开始下载文件，注意要提前建立目录，否则会报错
-            file = file.EnsureDirectory();
+            file2 = file2.EnsureDirectory();
 
             var sw = new Stopwatch();
             sw.Start();
-            DownloadFile(link.Url, file);
+            DownloadFile(link.Url, file2);
             sw.Stop();
 
-            if (File.Exists(file))
+            if (File.Exists(file2))
             {
-                Log.Info("下载完成，共{0:n0}字节，耗时{1:n0}毫秒", file.AsFile().Length, sw.ElapsedMilliseconds);
+                Log.Info("下载完成，共{0:n0}字节，耗时{1:n0}毫秒", file2.AsFile().Length, sw.ElapsedMilliseconds);
                 // 缓存文件
                 if (!destdir.EqualIgnoreCase(cachedir))
                 {
                     var cachefile = cachedir.CombinePath(link.Name);
                     Log.Info("缓存到 {0}", cachefile);
-                    File.Copy(file, cachefile.EnsureDirectory(), true);
+                    File.Copy(file2, cachefile.EnsureDirectory(), true);
                 }
+                file = file2;
             }
 
             return file;
