@@ -107,7 +107,7 @@ namespace NewLife.Security
             {
                 crc = (UInt16)((crc << 8) ^ CrcTable[(crc >> 8 ^ buffer[offset + i]) & 0xFF]);
             }
-            crc ^= crc;
+            //crc ^= crc;
 
             return this;
         }
