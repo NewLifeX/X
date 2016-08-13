@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Numerics;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Common;
@@ -13,6 +15,7 @@ using NewLife.Net;
 using NewLife.Net.IO;
 using NewLife.Net.Stress;
 using NewLife.Reflection;
+using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
@@ -120,27 +123,39 @@ namespace Test
         static Statistics stat = new Statistics();
         static void Test5()
         {
-            var svr = new HttpListener();
-            svr.Prefixes.Add("http://*:888/");
-            svr.Start();
+            //var ks = RSAHelper.GenerateKey(1024);
+            //Console.WriteLine(ks[0]);
+            //Console.WriteLine(ks[1]);
 
-            svr.GetContextAsync().ContinueWith(t => OnRequest(svr, t.Result));
-
-            // 预热一下
+            var rsa = new RSACryptoServiceProvider(1024);
+            var pa = rsa.ExportParameters(true);
+            foreach (var pi in pa.GetType().GetFields())
             {
-                var client = new WebClient();
-                client.DownloadData("http://127.0.0.1:888/");
-                client.Dispose();
+                var bts = pa.GetValue(pi) as Byte[];
+                Console.WriteLine("{0}=\t{1}\t{2:X4}", pi.Name, bts.ToBase64(), bts.Crc16());
             }
 
-            // 启动ab跑测试
-            //Process.Start("ab.exe", "-n 100000 -c 100 http://127.0.0.1:888/");
+            Console.WriteLine();
+            var p = new BigInteger(pa.P.Reverse());
+            var q = new BigInteger(pa.Q.Reverse());
+            var buf = (p - 1).ToByteArray().Reverse();
+            Console.WriteLine("p-1=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
+            buf = (q - 1).ToByteArray().Reverse();
+            Console.WriteLine("q-1=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
 
-            while (true)
-            {
-                Console.Title = stat.ToString();
-                Thread.Sleep(500);
-            }
+            buf = p.ToByteArray().Reverse();
+            Console.WriteLine("^p=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
+            buf = q.ToByteArray().Reverse();
+            Console.WriteLine("^q=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
+
+            var n = p * q;
+            buf = n.ToByteArray().Reverse();
+            Console.WriteLine("n=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
+            buf = pa.Modulus;
+            Console.WriteLine("m=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
+            //var n = new BigInteger(pa.Modulus);
+            var e = new BigInteger(pa.Exponent);
+            var d = new BigInteger(pa.D);
         }
 
         static void OnRequest(HttpListener svr, HttpListenerContext context)
