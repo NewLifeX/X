@@ -1,5 +1,7 @@
-﻿using System.Web.Mvc;
+﻿using System.Linq;
+using System.Web.Mvc;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace NewLife.Cube
 {
@@ -12,14 +14,23 @@ namespace NewLife.Cube
         {
             if (!filterContext.ExceptionHandled)
             {
-                XTrace.WriteException(filterContext.Exception);
-                filterContext.ExceptionHandled = true;
+                // 判断控制器是否在管辖范围之内，不拦截其它控制器的异常信息
+                var ns = filterContext.Controller.GetType().Name;
+                if (ns.EndsWith(".Controllers"))
+                {
+                    var list = typeof(AreaRegistrationBase).GetAllSubclasses().ToList();
+                    if (!list.Any(e => e.Namespace == ns))
+                    {
+                        XTrace.WriteException(filterContext.Exception);
+                        filterContext.ExceptionHandled = true;
 
-                var vr = new ViewResult();
-                vr.ViewName = "Error";
-                vr.ViewBag.Context = filterContext;
+                        var vr = new ViewResult();
+                        vr.ViewName = "Error";
+                        vr.ViewBag.Context = filterContext;
 
-                filterContext.Result = vr;
+                        filterContext.Result = vr;
+                    }
+                }
             }
 
             base.OnException(filterContext);

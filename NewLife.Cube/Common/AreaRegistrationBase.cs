@@ -22,16 +22,16 @@ namespace NewLife.Cube
     public abstract class AreaRegistrationBase : AreaRegistration
     {
         /// <summary>区域名称</summary>
-        public override String AreaName
-        {
-            get
-            {
-                return GetType().Name.TrimEnd("AreaRegistration");
-            }
-        }
+        public override String AreaName { get; }
 
         /// <summary>预编译引擎集合。便于外部设置属性</summary>
         public static PrecompiledViewAssembly[] PrecompiledEngines { get; private set; }
+
+        /// <summary>实例化区域注册</summary>
+        public AreaRegistrationBase()
+        {
+            AreaName = GetType().Name.TrimEnd("AreaRegistration");
+        }
 
         static AreaRegistrationBase()
         {
@@ -125,7 +125,7 @@ namespace NewLife.Cube
                 AreaName,
                 AreaName + "/{controller}/{action}/{id}",
                 new { controller = "Index", action = "Index", id = UrlParameter.Optional },
-                  new[] { GetType().Namespace + ".Controllers" }
+                new[] { GetType().Namespace + ".Controllers" }
             );
 
             // 所有已存在文件的请求都交给Mvc处理，比如Admin目录
