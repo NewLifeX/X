@@ -12,9 +12,13 @@ namespace NewLife.Security
     {
         #region 加密解密
         /// <summary>产生非对称密钥对</summary>
+        /// <remarks>
+        /// RSAParameters的各个字段采用大端字节序，转为BigInteger的之前一定要倒序。
+        /// RSA加密后密文最小长度就是密钥长度，所以1024密钥最小密文长度是128字节。
+        /// </remarks>
         /// <param name="keySize">密钥长度，默认1024位强密钥</param>
         /// <returns></returns>
-        public static String[] GenerateKey(int keySize = 1024)
+        public static String[] GenerateKey(int keySize = 2048)
         {
             var rsa = new RSACryptoServiceProvider(keySize);
 
