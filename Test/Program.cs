@@ -123,39 +123,16 @@ namespace Test
         static Statistics stat = new Statistics();
         static void Test5()
         {
-            //var ks = RSAHelper.GenerateKey(1024);
-            //Console.WriteLine(ks[0]);
-            //Console.WriteLine(ks[1]);
-
-            var rsa = new RSACryptoServiceProvider(1024);
-            var pa = rsa.ExportParameters(true);
-            foreach (var pi in pa.GetType().GetFields())
+            var svr = new UdpServer(3345);
+            svr.Log = XTrace.Log;
+            svr.LogSend = true;
+            svr.LogReceive = true;
+            var ss = svr.CreateSession(new IPEndPoint(IPAddress.Broadcast, 3377));
+            for (int i = 0; i < 100; i++)
             {
-                var bts = pa.GetValue(pi) as Byte[];
-                Console.WriteLine("{0}=\t{1}\t{2:X4}", pi.Name, bts.ToBase64(), bts.Crc16());
+                ss.Send("Stone");
+                Thread.Sleep(1000);
             }
-
-            Console.WriteLine();
-            var p = new BigInteger(pa.P.Reverse());
-            var q = new BigInteger(pa.Q.Reverse());
-            var buf = (p - 1).ToByteArray().Reverse();
-            Console.WriteLine("p-1=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
-            buf = (q - 1).ToByteArray().Reverse();
-            Console.WriteLine("q-1=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
-
-            buf = p.ToByteArray().Reverse();
-            Console.WriteLine("^p=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
-            buf = q.ToByteArray().Reverse();
-            Console.WriteLine("^q=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
-
-            var n = p * q;
-            buf = n.ToByteArray().Reverse();
-            Console.WriteLine("n=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
-            buf = pa.Modulus;
-            Console.WriteLine("m=\t{0}\t{1:X4}", buf.ToBase64(), buf.Crc16());
-            //var n = new BigInteger(pa.Modulus);
-            var e = new BigInteger(pa.Exponent);
-            var d = new BigInteger(pa.D);
         }
 
         static void OnRequest(HttpListener svr, HttpListenerContext context)

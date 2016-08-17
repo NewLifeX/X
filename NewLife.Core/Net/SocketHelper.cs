@@ -138,6 +138,21 @@ namespace NewLife.Net
             return encoding.GetString(buf, 0, len);
         }
 
+        /// <summary>检查并开启广播</summary>
+        /// <param name="socket"></param>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        internal static Socket CheckBroadcast(this Socket socket, IPAddress address)
+        {
+            var buf = address.GetAddressBytes();
+            if (buf?.Length == 4 && buf[3] == 255)
+            {
+                if (!socket.EnableBroadcast) socket.EnableBroadcast = true;
+            }
+
+            return socket;
+        }
+
         #region 关闭连接
         /// <summary>关闭连接</summary>
         /// <param name="socket"></param>

@@ -146,6 +146,7 @@ namespace NewLife.Net
                     }
                     else
                     {
+                        Client.CheckBroadcast(Remote.Address);
                         if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)), Remote.EndPoint);
 
                         sp.SendTo(buffer, offset, count, SocketFlags.None, Remote.EndPoint);

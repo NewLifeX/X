@@ -79,6 +79,9 @@ namespace NewLife.Net
             //StatReceive = new Statistics();
             StatSend = server.StatSend;
             StatReceive = server.StatReceive;
+
+            // 检查并开启广播
+            server.Client.CheckBroadcast(remote.Address);
         }
 
         public void Start()
