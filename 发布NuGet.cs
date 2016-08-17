@@ -35,7 +35,7 @@ namespace NewLife.Reflection
             
             if (!File.Exists(spec.GetFullPath()))
             {
-				var tar = "..\\..\\Bin4\\" + name + ".dll";
+				var tar = "..\\..\\Bin\\" + name + ".dll";
 				tar = tar.GetFullPath();
                 if (!File.Exists(tar))
                 {
