@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
@@ -31,7 +32,7 @@ namespace XCode.DataAccessLayer
                 // 注意，没有Commit的数据，在这里将会被回滚
                 //if (Trans != null) Rollback();
                 // 在嵌套事务中，Rollback只能减少嵌套层数，而_Trans.Rollback能让事务马上回滚
-                if (_Trans != null && Opened) _Trans.Rollback();
+                if (Trans != null && Opened) Trans.Rollback();
                 if (_Conn != null) Close();
                 if (_Conn != null)
                 {
@@ -49,9 +50,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 属性
-        private IDatabase _Database;
         /// <summary>数据库</summary>
-        public IDatabase Database { get { return _Database; } set { _Database = value; } }
+        public IDatabase Database { get; set; }
 
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
         private DatabaseType DbType { get { return Database.DbType; } }
@@ -59,9 +59,8 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         private DbProviderFactory Factory { get { return Database.Factory; } }
 
-        private String _ConnectionString;
         /// <summary>链接字符串，会话单独保存，允许修改，修改不会影响数据库中的连接字符串</summary>
-        public String ConnectionString { get { return _ConnectionString; } set { _ConnectionString = value; } }
+        public String ConnectionString { get; set; }
 
         private DbConnection _Conn;
         /// <summary>数据连接对象。</summary>
@@ -91,26 +90,22 @@ namespace XCode.DataAccessLayer
                 throw new XCodeException("[{0}]未指定连接字符串！", Database == null ? "" : Database.ConnName);
         }
 
-        private Int32 _QueryTimes;
         /// <summary>查询次数</summary>
-        public Int32 QueryTimes { get { return _QueryTimes; } set { _QueryTimes = value; } }
+        public Int32 QueryTimes { get; set; }
 
-        private Int32 _ExecuteTimes;
         /// <summary>执行次数</summary>
-        public Int32 ExecuteTimes { get { return _ExecuteTimes; } set { _ExecuteTimes = value; } }
+        public Int32 ExecuteTimes { get; set; }
 
-        private Int32 _ThreadID = Thread.CurrentThread.ManagedThreadId;
         /// <summary>线程编号，每个数据库会话应该只属于一个线程，该属性用于检查错误的跨线程操作</summary>
-        public Int32 ThreadID { get { return _ThreadID; } set { _ThreadID = value; } }
+        public Int32 ThreadID { get; } = Thread.CurrentThread.ManagedThreadId;
         #endregion
 
         #region 打开/关闭
-        private Boolean _IsAutoClose = true;
         /// <summary>是否自动关闭。
         /// 启用事务后，该设置无效。
         /// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
         /// </summary>
-        public Boolean IsAutoClose { get { return _IsAutoClose; } set { _IsAutoClose = value; } }
+        public Boolean IsAutoClose { get; set; } = true;
 
         /// <summary>连接是否已经打开</summary>
         public Boolean Opened { get { return _Conn != null && _Conn.State != ConnectionState.Closed; } }
@@ -136,6 +131,17 @@ namespace XCode.DataAccessLayer
                 Conn.Open();
 #endif
             }
+        }
+
+        /// <summary>异步打开</summary>
+        public virtual Task OpenAsync()
+        {
+            if (DAL.Debug && ThreadID != Thread.CurrentThread.ManagedThreadId) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！");
+
+            if (Conn != null && Conn.State == ConnectionState.Closed)
+                return Conn.OpenAsync();
+            else
+                return null;
         }
 
         /// <summary>关闭</summary>
@@ -227,13 +233,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 事务
-        private DbTransaction _Trans;
         /// <summary>数据库事务</summary>
-        protected DbTransaction Trans
-        {
-            get { return _Trans; }
-            set { _Trans = value; }
-        }
+        protected DbTransaction Trans { get; set; }
 
         /// <summary>事务计数。当且仅当事务计数等于1时，才提交或回滚。</summary>
         private Int32 TransactionCount = 0;
@@ -437,6 +438,41 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        /// <summary>异步执行DbCommand，返回记录集</summary>
+        /// <param name="cmd">DbCommand</param>
+        /// <returns></returns>
+        public virtual async Task<DataSet> QueryAsync(DbCommand cmd)
+        {
+            QueryTimes++;
+            WriteSQL(cmd);
+            using (var da = Factory.CreateDataAdapter())
+            {
+                try
+                {
+                    if (!Opened) await OpenAsync();
+                    cmd.Connection = Conn;
+                    if (Trans != null) cmd.Transaction = Trans;
+                    da.SelectCommand = cmd;
+
+                    var ds = new DataSet();
+                    BeginTrace();
+                    da.Fill(ds);
+                    return ds;
+                }
+                catch (DbException ex)
+                {
+                    throw OnException(ex, cmd.CommandText);
+                }
+                finally
+                {
+                    EndTrace(cmd.CommandText);
+
+                    AutoClose();
+                    cmd.Parameters.Clear();
+                }
+            }
+        }
+
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
@@ -505,6 +541,35 @@ namespace XCode.DataAccessLayer
 
                 BeginTrace();
                 return cmd.ExecuteNonQuery();
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd.CommandText);
+            }
+            finally
+            {
+                EndTrace(cmd.CommandText);
+
+                AutoClose();
+                cmd.Parameters.Clear();
+            }
+        }
+
+        /// <summary>执行DbCommand，返回受影响的行数</summary>
+        /// <param name="cmd">DbCommand</param>
+        /// <returns></returns>
+        public virtual async Task<Int32> ExecuteAsync(DbCommand cmd)
+        {
+            ExecuteTimes++;
+            WriteSQL(cmd);
+            try
+            {
+                if (!Opened) await OpenAsync();
+                cmd.Connection = Conn;
+                if (Trans != null) cmd.Transaction = Trans;
+
+                BeginTrace();
+                return await cmd.ExecuteNonQueryAsync();
             }
             catch (DbException ex)
             {
