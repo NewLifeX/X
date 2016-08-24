@@ -3,3 +3,14 @@
 ################################################################################
 
 /.vs
+/NewLife.Core/obj
+/NewLife.Cube/Bin
+/NewLife.Cube/obj
+/NewLife.MQ/obj
+/NewLife.Net/obj
+/packages
+/Test/obj
+/XCode/obj
+/XCoder/obj
+/XTemplate/obj
+*.user

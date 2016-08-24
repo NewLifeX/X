@@ -225,7 +225,7 @@ namespace NewLife.Net
 
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 
-            if (Received != null) Received(this, e);
+            Received?.Invoke(this, e);
         }
         #endregion
 

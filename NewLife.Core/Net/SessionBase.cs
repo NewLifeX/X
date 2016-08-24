@@ -114,7 +114,7 @@ namespace NewLife.Net
                 if (Timeout > 0) Client.ReceiveTimeout = Timeout;
 
                 // 触发打开完成的事件
-                if (Opened != null) Opened(this, EventArgs.Empty);
+                Opened?.Invoke(this, EventArgs.Empty);
             }
 
             if (UseReceiveAsync) ReceiveAsync();
@@ -152,7 +152,7 @@ namespace NewLife.Net
                 _RecvCount = 0;
 
                 // 触发关闭完成的事件
-                if (Closed != null) Closed(this, EventArgs.Empty);
+                Closed?.Invoke(this, EventArgs.Empty);
             }
 
             // 如果是动态端口，需要清零端口
@@ -506,22 +506,34 @@ namespace NewLife.Net
                 // 在用户线程池里面去处理数据
                 //Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
                 //ThreadPool.QueueUserWorkItem(s => OnReceive(data, ep));
-
-                // 直接在IO线程调用业务逻辑
-                try
+                // 根据不信任用户原则，这里另外开线程执行用户逻辑
+                ThreadPool.UnsafeQueueUserWorkItem(s =>
                 {
-                    // 估算完成时间，执行过长时提示
-                    using (var tc = new TimeCost("{0}.OnReceive".F(GetType().Name), 1000))
+                    try
                     {
-                        tc.Log = Log;
-
                         OnReceive(data, ep);
                     }
-                }
-                catch (Exception ex)
-                {
-                    if (!ex.IsDisposed()) OnError("OnReceive", ex);
-                }
+                    catch (Exception ex)
+                    {
+                        if (!ex.IsDisposed()) OnError("OnReceive", ex);
+                    }
+                }, null);
+
+                //// 直接在IO线程调用业务逻辑
+                //try
+                //{
+                //    // 估算完成时间，执行过长时提示
+                //    using (var tc = new TimeCost("{0}.OnReceive".F(GetType().Name), 1000))
+                //    {
+                //        tc.Log = Log;
+
+                //        OnReceive(data, ep);
+                //    }
+                //}
+                //catch (Exception ex)
+                //{
+                //    if (!ex.IsDisposed()) OnError("OnReceive", ex);
+                //}
             }
 
             // 开始新的监听
