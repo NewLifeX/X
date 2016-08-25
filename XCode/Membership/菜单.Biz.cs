@@ -730,11 +730,15 @@ namespace XCode.Membership
                     if (controller == null)
                     {
                         url += "/" + name;
-                        // DisplayName特性作为中文名
-                        controller = node.Add(name, type.GetDisplayName(), url);
-                        controller.Remark = type.GetDescription();
+                        controller = FindByUrl(url);
+                        if (controller == null)
+                        {
+                            // DisplayName特性作为中文名
+                            controller = node.Add(name, type.GetDisplayName(), url);
+                            controller.Remark = type.GetDescription();
 
-                        list.Add(node);
+                            list.Add(node);
+                        }
                     }
 
                     // 反射调用控制器的GetActions方法来获取动作

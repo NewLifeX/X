@@ -14,3 +14,7 @@
 /XCoder/obj
 /XTemplate/obj
 *.user
+/Data
+/Log
+/NewLife.Cube/Config
+/NewLife.Cube/Plugins
