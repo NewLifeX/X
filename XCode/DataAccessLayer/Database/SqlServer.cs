@@ -203,6 +203,17 @@ namespace XCode.DataAccessLayer
         public override String FormatDateTime(DateTime dateTime) { return "{ts'" + dateTime.ToFullString() + "'}"; }
         //public override String FormatDateTime(DateTime dateTime) { return "{ts" + String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime) + "}"; }
 
+        /// <summary>格式化名称，如果是关键字，则格式化后返回，否则原样返回</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public override String FormatName(String name)
+        {
+            // SqlServer数据库名和表名可以用横线。。。
+            if (name.Contains("-")) return "[{0}]".F(name);
+
+            return base.FormatName(name);
+        }
+
         /// <summary>格式化关键字</summary>
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
@@ -652,7 +663,7 @@ namespace XCode.DataAccessLayer
 
             if (String.IsNullOrEmpty(file))
             {
-                if (String.IsNullOrEmpty(dataPath)) return String.Format("CREATE DATABASE {0}", FormatName(dbname));
+                if (String.IsNullOrEmpty(dataPath)) return String.Format("CREATE DATABASE [{0}]", FormatName(dbname));
 
                 file = dbname + ".mdf";
             }
