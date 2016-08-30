@@ -42,6 +42,8 @@ namespace NewLife.Agent
             var name = service.ServiceName;
             if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
 
+            if (name.Length < name.GetBytes().Length) throw new Exception("服务名不能是中文！");
+
             name = name.Replace(" ", "_");
             // win7及以上系统时才提示
             if (Environment.OSVersion.Version.Major >= 6) WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
