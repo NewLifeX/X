@@ -20,6 +20,7 @@ namespace NewLife.Net
                     Length = value.Length;
                 else
                     Length = 0;
+                _Stream = null;
             }
         }
 
@@ -27,7 +28,7 @@ namespace NewLife.Net
         public Int32 Length { get; set; }
 
         private Stream _Stream;
-        /// <summary>数据流</summary>
+        /// <summary>数据区对应的一个数据流实例</summary>
         public Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream(Data, 0, Length)); } set { _Stream = value; } }
 
         //private Boolean _Feedback;
@@ -57,6 +58,10 @@ namespace NewLife.Net
         #endregion
 
         #region 方法
+        /// <summary>为数据区创建一个新的数据流实例</summary>
+        /// <returns></returns>
+        public Stream GetStream() { return new MemoryStream(Data, 0, Length); }
+
         /// <summary>以字符串表示</summary>
         /// <param name="encoding">字符串编码，默认URF-8</param>
         /// <returns></returns>

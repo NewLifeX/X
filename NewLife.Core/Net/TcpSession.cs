@@ -115,8 +115,10 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose(String reason)
         {
-            if (Client != null)
+            var client = Client;
+            if (client != null)
             {
+                Client = null;
                 WriteLog("Close {0} {1}", reason, this);
 
                 // 提前关闭这个标识，否则Close时可能触发自动重连机制
@@ -125,7 +127,7 @@ namespace NewLife.Net
                 {
                     // 温和一点关闭连接
                     //Client.Shutdown();
-                    Client.Close();
+                    client.Close();
 
                     // 如果是服务端，这个时候就是销毁
                     if (_Server != null) Dispose();
@@ -138,7 +140,6 @@ namespace NewLife.Net
                     return false;
                 }
             }
-            Client = null;
             //Stream = null;
 
             return true;
@@ -263,7 +264,13 @@ namespace NewLife.Net
             return rs;
         }
 
-        internal override bool OnReceiveAsync(SocketAsyncEventArgs se) { return Client.ReceiveAsync(se); }
+        internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
+        {
+            var client = Client;
+            if (client == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
+            
+            return client.ReceiveAsync(se);
+        }
 
         /// <summary>处理收到的数据</summary>
         /// <param name="data"></param>
