@@ -27,6 +27,7 @@ namespace NewLife.Net.Proxy
         public HttpReverseProxy()
         {
             Port = 80;
+            if (RemoteServer.Port == 0) RemoteServer.Port = 80;
         }
 
         /// <summary>创建会话</summary>

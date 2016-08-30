@@ -8,9 +8,8 @@ namespace NewLife.Net.Proxy
     public class NATProxy : ProxyBase<NATSession>
     {
         #region 属性
-        private NetUri _RemoteServer = new NetUri();
         /// <summary>远程服务器地址</summary>
-        public NetUri RemoteServer { get { return _RemoteServer; } set { _RemoteServer = value; } }
+        public NetUri RemoteServer { get; set; } = new NetUri();
         #endregion
 
         #region 构造

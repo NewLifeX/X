@@ -13,6 +13,7 @@ using NewLife.Common;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.IO;
+using NewLife.Net.Proxy;
 using NewLife.Net.Stress;
 using NewLife.Reflection;
 using NewLife.Security;
@@ -43,7 +44,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -123,15 +124,15 @@ namespace Test
         static Statistics stat = new Statistics();
         static void Test5()
         {
-            var svr = new UdpServer(3345);
-            svr.Log = XTrace.Log;
-            svr.LogSend = true;
-            svr.LogReceive = true;
-            var ss = svr.CreateSession(new IPEndPoint(IPAddress.Broadcast, 3377));
-            for (int i = 0; i < 100; i++)
+            var svr = new HttpReverseProxy();
+            svr.RemoteServer.Host = "www.qq.com";
+            svr.Port = 8080;
+            svr.Start();
+
+            while (true)
             {
-                ss.Send("Stone");
-                Thread.Sleep(1000);
+                Console.Title = "在线 {0:n0} {1}".F(svr.SessionCount, svr.StatSession);
+                Thread.Sleep(500);
             }
         }
 
