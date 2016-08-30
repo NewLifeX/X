@@ -30,6 +30,8 @@ namespace NewLife.Net.Proxy
 
             Port = 80;
             if (RemoteServer.Port == 0) RemoteServer.Port = 80;
+
+            ProtocolType = NetType.Tcp;
         }
 
         /// <summary>创建会话</summary>
@@ -47,17 +49,14 @@ namespace NewLife.Net.Proxy
             ///// <summary>代理对象</summary>
             //public new HttpReverseProxy Proxy { get { return base.Proxy as HttpReverseProxy; } set { base.Proxy = value; } }
 
-            private HttpHeader _Request;
             /// <summary>请求头部</summary>
-            public HttpHeader Request { get { return _Request; } set { _Request = value; } }
+            public HttpHeader Request { get; set; }
 
-            private String _Host;
             /// <summary>属性说明</summary>
-            public String Host { get { return _Host; } set { _Host = value; } }
+            public String Host { get; set; }
 
-            private String _RawHost;
             /// <summary>属性说明</summary>
-            public String RawHost { get { return _RawHost; } set { _RawHost = value; } }
+            public String RawHost { get; set; }
 
             /// <summary>请求时触发。</summary>
             public event EventHandler<ReceivedEventArgs> OnRequest;
@@ -133,6 +132,8 @@ namespace NewLife.Net.Proxy
             /// <param name="stream"></param>
             protected override void WriteDebugLog(String action, Stream stream)
             {
+                if (Log == null || !Log.Enable) return;
+
                 var p = stream.Position;
                 var str = stream.ReadBytes(5).ToStr();
                 stream.Position = p;
