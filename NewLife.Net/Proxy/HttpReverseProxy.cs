@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using NewLife.Net.Http;
-using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Proxy
 {
@@ -26,6 +26,8 @@ namespace NewLife.Net.Proxy
         /// <summary>实例化</summary>
         public HttpReverseProxy()
         {
+            Name = "HttpRev";
+
             Port = 80;
             if (RemoteServer.Port == 0) RemoteServer.Port = 80;
         }
@@ -125,6 +127,27 @@ namespace NewLife.Net.Proxy
 
             //    return base.OnReceiveRemote(e, stream);
             //}
+
+            /// <summary>写调试版日志</summary>
+            /// <param name="action"></param>
+            /// <param name="stream"></param>
+            protected override void WriteDebugLog(String action, Stream stream)
+            {
+                var p = stream.Position;
+                var str = stream.ReadBytes(5).ToStr();
+                stream.Position = p;
+                if (str.StartsWithIgnoreCase("HTTP/", "GET ", "POST "))
+                {
+                    // 只显示头部
+                    str = stream.ToStr().Substring(null, "\r\n\r\n").Trim();
+                    str = Environment.NewLine + str;
+                }
+                else
+                    str = stream.ReadBytes(16).ToHex();
+                stream.Position = p;
+
+                WriteLog(action + "[{0}] {1}", stream.Length, str);
+            }
         }
         #endregion
     }

@@ -125,7 +125,7 @@ namespace Test
         static void Test5()
         {
             var svr = new HttpReverseProxy();
-            svr.RemoteServer.Host = "www.qq.com";
+            svr.RemoteServer.Host = "www.bing.com";
             svr.Port = 8080;
             svr.Start();
 

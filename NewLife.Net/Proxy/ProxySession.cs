@@ -83,7 +83,7 @@ namespace NewLife.Net.Proxy
 
             if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
             {
-                if (e.Length > 0) WriteDebugLog("客户端[{0}] {1}", e.Length, e.ToHex(16));
+                if (e.Length > 0) WriteDebugLog("客户端", e.Stream);
 
                 // 如果未建立到远程服务器链接，则建立
                 if (RemoteServer == null) StartRemote(e);
@@ -97,34 +97,42 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void StartRemote(ReceivedEventArgs e)
         {
-            var start = DateTime.Now;
-            ISocketClient session = null;
-            try
+            if (RemoteServer != null) return;
+            lock (this)
             {
-                WriteDebugLog("连接远程服务器 {0} 解析 {1}", RemoteServerUri, RemoteServerUri.Address);
+                if (RemoteServer != null) return;
 
-                session = CreateRemote(e);
-                //session.Log = Log;
-                // Socket日志一致
-                session.Log = Session.Log;
-                session.OnDisposed += (s, e2) =>
+                var start = DateTime.Now;
+                ISocketClient session = null;
+                try
                 {
+                    WriteDebugLog("连接远程服务器 {0} 解析 {1}", RemoteServerUri, RemoteServerUri.Address);
+
+                    session = CreateRemote(e);
+                    //session.Log = Log;
+                    // Socket日志一致
+                    session.Log = Session.Log;
+                    session.OnDisposed += (s, e2) =>
+                    {
                     // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定
                     RemoteServer = null;
-                    OnRemoteDispose(s as ISocketClient);
-                };
-                session.Received += Remote_Received;
-                session.ReceiveAsync();
+                        OnRemoteDispose(s as ISocketClient);
+                    };
+                    session.Received += Remote_Received;
+                    session.ReceiveAsync();
 
-                RemoteServer = session;
-            }
-            catch (Exception ex)
-            {
-                var ts = DateTime.Now - start;
-                WriteError("无法为{0}连接远程服务器{1}！耗时{2}！{3}", Remote, RemoteServerUri, ts, ex.Message);
+                    WriteDebugLog("连接远程服务器成功");
 
-                if (session != null) session.Dispose();
-                Dispose();
+                    RemoteServer = session;
+                }
+                catch (Exception ex)
+                {
+                    var ts = DateTime.Now - start;
+                    WriteError("无法为{0}连接远程服务器{1}！耗时{2}！{3}", Remote, RemoteServerUri, ts, ex.Message);
+
+                    if (session != null) session.Dispose();
+                    Dispose();
+                }
             }
         }
 
@@ -143,6 +151,8 @@ namespace NewLife.Net.Proxy
 
         void Remote_Received(object sender, ReceivedEventArgs e)
         {
+            if (Disposed) return;
+
             try
             {
                 OnReceiveRemote(e);
@@ -158,7 +168,7 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            if (e.Length > 0) WriteDebugLog("服务端[{0}] {1}", e.Length, e.ToHex(16));
+            if (e.Length > 0) WriteDebugLog("服务端", e.Stream);
 
             if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
             {
@@ -269,6 +279,15 @@ namespace NewLife.Net.Proxy
         protected void WriteDebugLog(String format, params Object[] args)
         {
             WriteLog(format, args);
+        }
+
+        /// <summary>写调试版日志</summary>
+        /// <param name="action"></param>
+        /// <param name="stream"></param>
+        [Conditional("DEBUG")]
+        protected virtual void WriteDebugLog(String action, Stream stream)
+        {
+            WriteLog(action + "[{0}] {1}", stream.Length, stream.ReadBytes(16).ToHex());
         }
 
         /// <summary>已重载。</summary>
