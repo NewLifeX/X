@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using NewLife.Reflection;
 
 namespace NewLife.Web
 {
@@ -10,33 +10,26 @@ namespace NewLife.Web
     public class Link
     {
         #region 属性
-        private String _Name;
         /// <summary>名称</summary>
-        public String Name { get { return _Name; } set { _Name = value; } }
+        public String Name { get; set; }
 
-        private String _Url;
         /// <summary>超链接</summary>
-        public String Url { get { return _Url; } set { _Url = value; } }
+        public String Url { get; set; }
 
-        private String _RawUrl;
         /// <summary>原始超链接</summary>
-        public String RawUrl { get { return _RawUrl; } set { _RawUrl = value; } }
+        public String RawUrl { get; set; }
 
-        private String _Title;
         /// <summary>标题</summary>
-        public String Title { get { return _Title; } set { _Title = value; } }
+        public String Title { get; set; }
 
-        private Version _Version;
         /// <summary>版本</summary>
-        public Version Version { get { return _Version; } set { _Version = value; } }
+        public Version Version { get; set; }
 
-        private DateTime _Time;
         /// <summary>时间</summary>
-        public DateTime Time { get { return _Time; } set { _Time = value; } }
+        public DateTime Time { get; set; }
 
-        private String _Html;
         /// <summary>原始Html</summary>
-        public String Html { get { return _Html; } set { _Html = value; } }
+        public String Html { get; set; }
         #endregion
 
         #region 方法
@@ -50,6 +43,8 @@ namespace NewLife.Web
         /// <returns></returns>
         public static Link[] Parse(String html, String baseurl = null, Func<Link, Boolean> filter = null)
         {
+            if (baseurl.StartsWithIgnoreCase("ftp://")) return ParseFTP(html, baseurl, filter);
+
             // 分析所有链接
             var list = new List<Link>();
             var buri = new Uri(baseurl);
@@ -95,66 +90,114 @@ namespace NewLife.Web
             return list.ToArray();
         }
 
-        void ParseTime()
+        private static Link[] ParseFTP(String html, String url, Func<Link, Boolean> filter = null)
+        {
+            var list = new List<Link>();
+
+            var ns = html.Split(Environment.NewLine);
+            if (ns.Length == 0) return list.ToArray();
+
+            // 如果由很多段组成，可能是unix格式
+            var unix = ns[0].Split(" ").Length >= 6;
+            var buri = new Uri(url);
+            foreach (var item in ns)
+            {
+                var link = new Link();
+
+                link.Name = Path.GetFileNameWithoutExtension(item);
+                //link.Url = new Uri(buri, item).ToString();
+                //link.RawUrl = link.Url;
+
+                // 过滤器
+                if (filter != null && !filter(link)) continue;
+
+                // 分析title
+                link.Title = link.Name;
+
+                // 完善下载地址
+                var uri = new Uri(buri, item);
+                link.Url = uri.ToString();
+
+                // 分割名称，计算结尾的时间 yyyyMMddHHmmss
+                var idx = link.ParseTime();
+                if (idx > 0) link.Name = link.Name.Substring(0, idx);
+
+                // 分割版本，_v1.0.0.0
+                idx = link.ParseVersion();
+                if (idx > 0) link.Name = link.Name.Substring(0, idx);
+
+                list.Add(link);
+            }
+
+            return list.ToArray();
+        }
+
+        Int32 ParseTime()
         {
             // 分割名称，计算结尾的时间 yyyyMMddHHmmss
             var p = Name.LastIndexOf("_");
-            if (p > 0)
+            if (p <= 0) return -1;
+
+            var ts = Name.Substring(p + 1);
+            if (ts.StartsWith("20") && ts.Length >= 4 + 2 + 2 + 2 + 2 + 2)
             {
-                var ts = Name.Substring(p + 1);
-                if (ts.StartsWith("20") && ts.Length >= 4 + 2 + 2 + 2 + 2 + 2)
-                {
-                    Time = new DateTime(
-                        ts.Substring(0, 4).ToInt(),
-                        ts.Substring(4, 2).ToInt(),
-                        ts.Substring(6, 2).ToInt(),
-                        ts.Substring(8, 2).ToInt(),
-                        ts.Substring(10, 2).ToInt(),
-                        ts.Substring(12, 2).ToInt());
-                }
+                Time = new DateTime(
+                    ts.Substring(0, 4).ToInt(),
+                    ts.Substring(4, 2).ToInt(),
+                    ts.Substring(6, 2).ToInt(),
+                    ts.Substring(8, 2).ToInt(),
+                    ts.Substring(10, 2).ToInt(),
+                    ts.Substring(12, 2).ToInt());
             }
+
+            return p;
         }
 
-        void ParseVersion()
+        Int32 ParseVersion()
         {
             // 分割版本，_v1.0.0.0
-            var vs = Name.CutStart("_v", "_V");
+            var vs = Name.CutStart("_v", "_V", " v", " V");
             if (vs == Name)
             {
                 // 也可能没有v，但是这是必须有圆点
                 if (Name.Contains(".") && (Name.Contains(" ") || Name.Contains("_")))
                 {
                     vs = Name.CutStart(" ", "_");
-                    if (!Name.Contains(".")) return;
+                    if (!Name.Contains(".")) return -1;
                 }
             }
-            if (vs != Name)
+            if (vs == Name) return -1;
+
+            // 返回位置
+            var p = Name.LastIndexOf(vs) - 2;
+
+            // 尾部截断
+            vs = vs.CutEnd(" ", "_", "-");
+            // 有可能只有_v1，而没有子版本
+            var ss = vs.SplitAsInt(".");
+            if (ss.Length > 0)
             {
-                // 尾部截断
-                vs = vs.CutEnd(" ", "_", "-");
-                // 有可能只有_v1，而没有子版本
-                var ss = vs.SplitAsInt(".");
-                if (ss.Length > 0)
+                switch (ss.Length)
                 {
-                    switch (ss.Length)
-                    {
-                        case 1:
-                            Version = new Version(ss[0], 0);
-                            break;
-                        case 2:
-                            Version = new Version(ss[0], ss[1]);
-                            break;
-                        case 3:
-                            Version = new Version(ss[0], ss[1], ss[2]);
-                            break;
-                        case 4:
-                            Version = new Version(ss[0], ss[1], ss[2], ss[3]);
-                            break;
-                        default:
-                            break;
-                    }
+                    case 1:
+                        Version = new Version(ss[0], 0);
+                        break;
+                    case 2:
+                        Version = new Version(ss[0], ss[1]);
+                        break;
+                    case 3:
+                        Version = new Version(ss[0], ss[1], ss[2]);
+                        break;
+                    case 4:
+                        Version = new Version(ss[0], ss[1], ss[2], ss[3]);
+                        break;
+                    default:
+                        break;
                 }
             }
+
+            // 返回位置
+            return p;
         }
 
         /// <summary>已重载。</summary>
@@ -165,7 +208,7 @@ namespace NewLife.Web
             //return "{0} {1} {2} {3}".F(Name, RawUrl, Version, Time);
             var sb = new StringBuilder();
             sb.AppendFormat("{0} {1}", Name, RawUrl);
-            if (Version != null) sb.AppendFormat(" {0}", Version);
+            if (Version != null) sb.AppendFormat(" v{0}", Version);
             if (Time > DateTime.MinValue) sb.AppendFormat(" {0}", Time.ToFullString());
 
             return sb.ToString();

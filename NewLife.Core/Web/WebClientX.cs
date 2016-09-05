@@ -109,7 +109,9 @@ namespace NewLife.Web
                     // 斜杠结尾，或者://后面没有任何斜杠，则认为是目录
                     var path = address.PathAndQuery;
                     if (path.IsNullOrEmpty() || path.EndsWith("/"))
-                        fr.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+                        fr.Method = WebRequestMethods.Ftp.ListDirectory;
+                    // 不能列出明细，那样子不好分割名称
+                    //fr.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
                 }
             }
 
@@ -129,6 +131,17 @@ namespace NewLife.Web
             {
                 Cookie.Add(http.Cookies);
                 if (!String.IsNullOrEmpty(http.CharacterSet)) Encoding = System.Text.Encoding.GetEncoding(http.CharacterSet);
+            }
+
+            var fr = response as FtpWebResponse;
+            if (fr != null)
+            {
+                if (Log != null && Log.Enable)
+                {
+                    Log.Info(fr.BannerMessage);
+                    Log.Info(fr.StatusDescription);
+                    Log.Info(fr.WelcomeMessage);
+                }
             }
 
             return response;
