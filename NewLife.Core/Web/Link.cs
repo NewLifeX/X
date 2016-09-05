@@ -104,7 +104,8 @@ namespace NewLife.Web
             {
                 var link = new Link();
 
-                link.Name = Path.GetFileNameWithoutExtension(item);
+                link.Name = item;
+                //link.Name = Path.GetFileNameWithoutExtension(item);
                 //link.Url = new Uri(buri, item).ToString();
                 //link.RawUrl = link.Url;
 
@@ -112,7 +113,7 @@ namespace NewLife.Web
                 if (filter != null && !filter(link)) continue;
 
                 // 分析title
-                link.Title = link.Name;
+                link.Title = Path.GetFileNameWithoutExtension(item);
 
                 // 完善下载地址
                 var uri = new Uri(buri, item);
@@ -120,11 +121,11 @@ namespace NewLife.Web
 
                 // 分割名称，计算结尾的时间 yyyyMMddHHmmss
                 var idx = link.ParseTime();
-                if (idx > 0) link.Name = link.Name.Substring(0, idx);
+                if (idx > 0) link.Title = link.Title.Substring(0, idx);
 
                 // 分割版本，_v1.0.0.0
                 idx = link.ParseVersion();
-                if (idx > 0) link.Name = link.Name.Substring(0, idx);
+                if (idx > 0) link.Title = link.Title.Substring(0, idx);
 
                 list.Add(link);
             }
