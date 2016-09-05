@@ -54,6 +54,11 @@ namespace XCode.Membership
                 if (isNew) SetNoDirtyItem(fs, entity, __.CreateUserID, user.ID);
                 SetNoDirtyItem(fs, entity, __.UpdateUserID, user.ID);
             }
+            else
+            {
+                // 在没有当前登录用户的场合，把更新者清零
+                SetNoDirtyItem(fs, entity, __.UpdateUserID, 0);
+            }
 
             return true;
         }
@@ -177,7 +182,7 @@ namespace XCode.Membership
 
             return true;
         }
-        
+
         private DictionaryCache<Type, ICollection<String>> _ipFieldNames = new DictionaryCache<Type, ICollection<String>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
