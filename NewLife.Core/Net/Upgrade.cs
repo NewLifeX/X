@@ -68,18 +68,21 @@ namespace NewLife.Net
         {
             var url = Server;
             // 如果配置地址未指定参数，则附加参数
-            if (!url.Contains("{0}"))
+            if (url.StartsWithIgnoreCase("http://"))
             {
-                if (!url.Contains("?"))
-                    url += "?";
-                else
-                    url += "&";
+                if (!url.Contains("{0}"))
+                {
+                    if (!url.Contains("?"))
+                        url += "?";
+                    else
+                        url += "&";
 
-                url += String.Format("Name={0}&Version={1}", Name, Version);
-            }
-            else
-            {
-                url = String.Format(url, Name, Version);
+                    url += String.Format("Name={0}&Version={1}", Name, Version);
+                }
+                else
+                {
+                    url = String.Format(url, Name, Version);
+                }
             }
 
             WriteLog("准备获取更新信息 {0}", url);

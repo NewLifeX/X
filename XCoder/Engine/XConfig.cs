@@ -57,8 +57,8 @@ namespace XCoder
 
         protected override void OnLoaded()
         {
-            if (UpdateServer.IsNullOrEmpty()) UpdateServer = "http://x.newlifex.com/";
-            
+            if (UpdateServer.IsNullOrEmpty() || UpdateServer.EqualIgnoreCase("http://x.newlifex.com/")) UpdateServer = NewLife.Setting.Current.PluginServer;
+
             base.OnLoaded();
         }
         #endregion
