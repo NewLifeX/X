@@ -687,10 +687,10 @@
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>
-      md $(ProjectDir)..\..\Bin
-      copy $(TargetDir)$(TargetName).* $(ProjectDir)..\..\Bin\ /y
-      del $(ProjectDir)..\..\Bin\NewLife.Cube.dll.config /q
-    </PostBuildEvent>
+      md "$(ProjectDir)..\..\Bin"
+      copy "$(TargetDir)$(TargetName)".* "$(ProjectDir)..\..\Bin\" /y
+      del "$(ProjectDir)..\..\Bin\NewLife.Cube.dll.config" /q
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
