@@ -26,6 +26,8 @@ namespace NewLife.Remoting
         #region 属性
         /// <summary>客户端</summary>
         public IApiClient Client { get; set; }
+
+        public IEncoder Encoder { get; set; }
         #endregion
 
         #region 构造
@@ -37,7 +39,11 @@ namespace NewLife.Remoting
         public ApiClient(NetUri uri)
         {
             Type type = null;
-            if (Providers.TryGetValue(uri.Protocol, out type)) Client = type.CreateInstance(uri) as IApiClient;
+            if (Providers.TryGetValue(uri.Protocol, out type))
+            {
+                var ac = type.CreateInstance() as IApiClient;
+                if (ac != null && ac.Init(uri)) Client = ac;
+            }
         }
 
         /// <summary>销毁</summary>
@@ -79,7 +85,15 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> Invoke<TResult>(String action, Object args = null)
         {
-            return default(TResult);
+            //return default(TResult);
+
+            //Client.Invoke(action, args);
+
+            var data = Encoder.Encode(new { action, args });
+
+            var rs = await Client.SendAsync(data);
+
+            return Encoder.Decode<TResult>(rs);
         }
         #endregion
 

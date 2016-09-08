@@ -94,11 +94,17 @@ namespace NewLife.Remoting
         {
             if (Active) return;
 
-            Log.Info("启动{0}", this.GetType().Name);
+            Log.Info("启动{0}，共有服务器{1}个", this.GetType().Name, Servers.Count);
             foreach (var item in Servers)
             {
                 item.Log = Log;
                 item.Start();
+            }
+
+            Log.Info("可用接口{0}个：", Services.Count);
+            foreach (var item in Services)
+            {
+                Log.Info("\t{0}\t{1}", item.Key, item.Value);
             }
 
             Active = true;

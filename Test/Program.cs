@@ -16,6 +16,7 @@ using NewLife.Net.IO;
 using NewLife.Net.Proxy;
 using NewLife.Net.Stress;
 using NewLife.Reflection;
+using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Xml;
@@ -44,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -113,12 +114,7 @@ namespace Test
 
         static void Test4()
         {
-            XTrace.WriteLine("111");
-
-            var count = 10000000;
-            CodeTimer.ShowHeader("上下文切换性能测试");
-            CodeTimer.TimeLine("QueueUserWorkItem", count, n => ThreadPool.QueueUserWorkItem(s => Thread.Sleep(1000)));
-            CodeTimer.TimeLine("UnsafeQueueUserWorkItem", count, n => ThreadPool.UnsafeQueueUserWorkItem(s => Thread.Sleep(1000), null));
+            ApiTest.Main();
         }
 
         static Statistics stat = new Statistics();

@@ -9,5 +9,8 @@ namespace NewLife.Remoting
     /// <summary>编码器</summary>
     public interface IEncoder
     {
+        Byte[] Encode(Object obj);
+
+        T Decode<T>(Byte[] data);
     }
 }
