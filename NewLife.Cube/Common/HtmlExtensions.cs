@@ -91,7 +91,7 @@ namespace NewLife.Cube
 
             if (field.ReadOnly)
             {
-                var label = "<label class=\"control-label\">{0}</label>".F(entity[field.Name]);
+                var label = "<label class=\"form-control\">{0}</label>".F(entity[field.Name]);
                 return new MvcHtmlString(label);
             }
 
