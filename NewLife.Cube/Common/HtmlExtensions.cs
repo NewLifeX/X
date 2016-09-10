@@ -91,7 +91,7 @@ namespace NewLife.Cube
 
             if (field.ReadOnly)
             {
-                var label = "<label class=\"control-label\">{0}</label>".F(entity[field.Name]);
+                var label = "<label class=\"form-control\">{0}</label>".F(entity[field.Name]);
                 return new MvcHtmlString(label);
             }
 
@@ -365,12 +365,10 @@ namespace NewLife.Cube
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
             if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
-
-            // 首先输出图标
-            var ico = Html.Raw("<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-yen\"></i></span>");
+            
             var txt = Html.TextBox(name, value, format, atts);
 
-            return new MvcHtmlString(ico.ToString() + txt);
+            return txt;
         }
         #endregion
 

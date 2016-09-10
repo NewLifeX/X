@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife.Data;
-using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Xml;

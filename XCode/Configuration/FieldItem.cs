@@ -425,7 +425,7 @@ namespace XCode.Configuration
         {
             if (builder == null) return new Expression();
 
-            return CreateFormatExpression("{0} NotIn({1})", builder);
+            return CreateFormatExpression("{0} NOT IN ({1})", builder);
         }
 
         /// <summary>IsNull操作，不为空，一般用于字符串，但不匹配0长度字符串</summary>
