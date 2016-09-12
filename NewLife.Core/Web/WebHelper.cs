@@ -103,16 +103,23 @@ namespace NewLife.Web
             {
                 if (HttpContext.Current != null)
                 {
-                    String str = (String)HttpContext.Current.Items["UserHostAddress"];
+                    var str = (String)HttpContext.Current.Items["UserHostAddress"];
                     if (!String.IsNullOrEmpty(str)) return str;
 
                     if (Request != null)
                     {
-                        str = Request.ServerVariables["REMOTE_ADDR"];
                         if (String.IsNullOrEmpty(str)) str = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+                        if (String.IsNullOrEmpty(str)) str = Request.ServerVariables["X-Forwarded-For"];
+                        if (String.IsNullOrEmpty(str)) str = Request.ServerVariables["REMOTE_ADDR"];
                         if (String.IsNullOrEmpty(str)) str = Request.UserHostName;
                         if (String.IsNullOrEmpty(str)) str = Request.UserHostAddress;
+
+                        // 加上浏览器端口
+                        var port = Request.ServerVariables["REMOTE_PORT"];
+                        if (!port.IsNullOrEmpty()) str += ":" + port;
+
                         HttpContext.Current.Items["UserHostAddress"] = str;
+
                         return str;
                     }
                 }
