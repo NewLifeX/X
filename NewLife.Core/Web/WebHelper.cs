@@ -108,8 +108,9 @@ namespace NewLife.Web
 
                     if (Request != null)
                     {
-                        str = Request.ServerVariables["REMOTE_ADDR"];
                         if (String.IsNullOrEmpty(str)) str = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+                        if (String.IsNullOrEmpty(str)) str = Request.ServerVariables["X-Forwarded-For"];
+                        if (String.IsNullOrEmpty(str)) str = Request.ServerVariables["REMOTE_ADDR"];
                         if (String.IsNullOrEmpty(str)) str = Request.UserHostName;
                         if (String.IsNullOrEmpty(str)) str = Request.UserHostAddress;
 
