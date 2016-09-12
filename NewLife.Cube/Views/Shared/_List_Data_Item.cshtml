@@ -55,7 +55,9 @@ else
             //特殊处理枚举
             if (item.Type.IsEnum)
             {
-                <td class="text-center">@entity[item.Name]</td>
+                var v = entity[item.Name];
+                var val = System.EnumHelper.GetDescription((Enum)v) ?? v + "";
+                <td class="text-center">@val</td>
             }
             else
             {
