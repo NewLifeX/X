@@ -202,6 +202,8 @@ namespace XCode.Membership
 
     /// <summary>用户时间实体基类</summary>
     /// <typeparam name="TEntity"></typeparam>
+    [Obsolete("=>Entity<TEntity> 改为EntityModule横切")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class UserTimeEntity<TEntity> : Entity<TEntity>, IUserInfo2, ITimeInfo where TEntity : UserTimeEntity<TEntity>, new()
     {
         #region 静态引用
@@ -321,6 +323,8 @@ namespace XCode.Membership
 
     /// <summary>用户时间实体基类</summary>
     /// <typeparam name="TEntity"></typeparam>
+    [Obsolete("=>EntityTree<TEntity> 改为EntityModule横切")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class UserTimeEntityTree<TEntity> : EntityTree<TEntity>, IUserInfo2, ITimeInfo where TEntity : UserTimeEntityTree<TEntity>, new()
     {
         #region 静态引用
@@ -439,6 +443,8 @@ namespace XCode.Membership
     }
 
     /// <summary>用户信息接口。包含创建用户和更新用户</summary>
+    [Obsolete("=>Entity<TEntity> 改为EntityModule横切")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public interface IUserInfo
     {
         /// <summary>创建用户</summary>
@@ -455,6 +461,8 @@ namespace XCode.Membership
     }
 
     /// <summary>用户信息接口。包含创建用户和更新用户</summary>
+    [Obsolete("=>Entity<TEntity> 改为EntityModule横切")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public interface IUserInfo2 : IUserInfo
     {
         /// <summary>创建用户ID</summary>
@@ -465,6 +473,8 @@ namespace XCode.Membership
     }
 
     /// <summary>时间信息接口。包含创建时间和更新时间</summary>
+    [Obsolete("=>Entity<TEntity> 改为EntityModule横切")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public interface ITimeInfo
     {
         /// <summary>创建时间</summary>

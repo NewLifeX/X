@@ -411,6 +411,11 @@ namespace XCode.Configuration
                 if (item.ColumnName.EqualIgnoreCase(name)) return item as Field;
             }
 
+            foreach (var item in AllFields)
+            {
+                if (item.Name.EqualIgnoreCase(name)) return item as Field;
+            }
+
             return null;
         }
 

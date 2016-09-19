@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Web;
 using XCode.Cache;
@@ -14,7 +16,7 @@ namespace XCode.Membership
     public class Log : Log<Log> { }
 
     /// <summary>日志</summary>
-    public partial class Log<TEntity> : UserTimeEntity<TEntity> where TEntity : Log<TEntity>, new()
+    public partial class Log<TEntity> : Entity<TEntity> where TEntity : Log<TEntity>, new()
     {
         #region 对象操作
         static Log()
@@ -64,6 +66,12 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
+        /// <summary>创建人名称</summary>
+        [XmlIgnore, ScriptIgnore]
+        [DisplayName("创建人")]
+        [Map("CreateUserID")]
+        public String CreateUserName { get { return ManageProvider.Provider.FindByID(CreateUserID) + ""; } }
+
         /// <summary>物理地址</summary>
         //[BindRelation("CreateIP")]
         [DisplayName("物理地址")]
