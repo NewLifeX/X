@@ -27,6 +27,7 @@ namespace NewLife.Remoting
         /// <summary>客户端</summary>
         public IApiClient Client { get; set; }
 
+        /// <summary>编码器。用于对象与字节数组相互转换</summary>
         public IEncoder Encoder { get; set; }
         #endregion
 
