@@ -334,16 +334,17 @@ namespace XCode
                 }
             }
 
-            //不影响脏数据的状态
+            // 不影响脏数据的状态
+            var ds = entity.Dirtys;
             Boolean? b = null;
-            if (entity.Dirtys.ContainsKey(name)) b = entity.Dirtys[name];
+            if (ds.ContainsKey(name)) b = ds[name];
 
             entity[name] = value == DBNull.Value ? null : value;
 
             if (b != null)
-                entity.Dirtys[name] = b.Value;
+                ds[name] = b.Value;
             else
-                entity.Dirtys.Remove(name);
+                ds.Remove(name);
         }
         #endregion
     }

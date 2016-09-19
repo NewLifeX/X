@@ -5,235 +5,230 @@ using XCode.Configuration;
 
 namespace XCode
 {
-	public partial class EntityBase : ICustomTypeDescriptor, IEditableObject
-	{
-		#region INotifyPropertyChanged接口
-		/// <summary>如果实体来自数据库，在给数据属性赋相同值时，不改变脏数据，其它情况均改变脏数据</summary>
-		[NonSerialized]
-		protected Boolean _IsFromDatabase;
+    public partial class EntityBase : ICustomTypeDescriptor, IEditableObject
+    {
+        #region INotifyPropertyChanged接口
+        /// <summary>如果实体来自数据库，在给数据属性赋相同值时，不改变脏数据，其它情况均改变脏数据</summary>
+        [NonSerialized]
+        protected Boolean _IsFromDatabase;
 
-		/// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
-		/// <param name="fieldName">字段名</param>
-		/// <param name="newValue">新属性值</param>
-		/// <returns>是否允许改变</returns>
-		protected virtual Boolean OnPropertyChanging(String fieldName, Object newValue)
-		{
-			// 如果数据没有改变，不应该影响脏数据
-			if (_IsFromDatabase && CheckEqual(this[fieldName], newValue))
-			{
-				return false;
-			}
-			else
-			{
-				Dirtys[fieldName] = true;
-				return true;
-			}
-		}
+        /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
+        /// <param name="fieldName">字段名</param>
+        /// <param name="newValue">新属性值</param>
+        /// <returns>是否允许改变</returns>
+        protected virtual Boolean OnPropertyChanging(String fieldName, Object newValue)
+        {
+            // 如果数据没有改变，不应该影响脏数据
+            if (_IsFromDatabase && CheckEqual(this[fieldName], newValue)) return false;
 
-		/// <summary>检查相等，主要特殊处理时间相等</summary>
-		/// <param name="v1"></param>
-		/// <param name="v2"></param>
-		/// <returns></returns>
-		private Boolean CheckEqual(Object v1, Object v2)
-		{
-			if (v1 == null || v2 == null) return Object.Equals(v1, v2);
+            Dirtys[fieldName] = true;
+            return true;
+        }
 
-			switch (Type.GetTypeCode(v1.GetType()))
-			{
-				case TypeCode.DateTime:
-					{
-						var d1 = (DateTime)v1;
-						var d2 = (DateTime)v2;
+        /// <summary>检查相等，主要特殊处理时间相等</summary>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <returns></returns>
+        private Boolean CheckEqual(Object v1, Object v2)
+        {
+            if (v1 == null || v2 == null) return Object.Equals(v1, v2);
 
-						// 时间存储包括年月日时分秒，后面还有微秒，而我们数据库存储默认不需要微秒，所以时间的相等判断需要做特殊处理
-						return d1.Date == d2.Date &&
-							d1.Hour == d2.Hour &&
-							d1.Minute == d2.Minute &&
-							d1.Second == d2.Second;
-					}
-				case TypeCode.Int16:
-				case TypeCode.Int32:
-				case TypeCode.Int64:
-				case TypeCode.UInt16:
-				case TypeCode.UInt32:
-				case TypeCode.UInt64:
-					return Convert.ToInt64(v1) == Convert.ToInt64(v2);
-				case TypeCode.String:
-					return v1 + "" == v2 + "";
-				default:
-					break;
-			}
+            switch (Type.GetTypeCode(v1.GetType()))
+            {
+                case TypeCode.DateTime:
+                    {
+                        var d1 = (DateTime)v1;
+                        var d2 = (DateTime)v2;
 
-			return Object.Equals(v1, v2);
-		}
+                        // 时间存储包括年月日时分秒，后面还有微秒，而我们数据库存储默认不需要微秒，所以时间的相等判断需要做特殊处理
+                        return d1.Date == d2.Date &&
+                            d1.Hour == d2.Hour &&
+                            d1.Minute == d2.Minute &&
+                            d1.Second == d2.Second;
+                    }
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    return Convert.ToInt64(v1) == Convert.ToInt64(v2);
+                case TypeCode.String:
+                    return v1 + "" == v2 + "";
+                default:
+                    break;
+            }
 
-		/// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
-		/// <param name="fieldName">字段名</param>
-		protected virtual void OnPropertyChanged(String fieldName) { }
-		#endregion
+            return Object.Equals(v1, v2);
+        }
 
-		#region ICustomTypeDescriptor 成员
-		AttributeCollection ICustomTypeDescriptor.GetAttributes()
-		{
-			// 重载。从DescriptionAttribute和BindColumnAttribute中获取备注，创建DisplayNameAttribute特性
-			var atts = TypeDescriptor.GetAttributes(this, true);
+        /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
+        /// <param name="fieldName">字段名</param>
+        protected virtual void OnPropertyChanged(String fieldName) { }
+        #endregion
 
-			if (atts != null && !ContainAttribute(atts, typeof(DisplayNameAttribute)))
-			{
-				var list = new List<Attribute>();
-				String description = null;
-				foreach (Attribute item in atts)
-				{
-					if (item.GetType() == typeof(DescriptionAttribute))
-					{
-						description = (item as DescriptionAttribute).Description;
-						if (!String.IsNullOrEmpty(description)) break;
-					}
-					if (item.GetType() == typeof(BindColumnAttribute))
-					{
-						description = (item as BindColumnAttribute).Description;
-						if (!String.IsNullOrEmpty(description)) break;
-					}
-				}
+        #region ICustomTypeDescriptor 成员
+        AttributeCollection ICustomTypeDescriptor.GetAttributes()
+        {
+            // 重载。从DescriptionAttribute和BindColumnAttribute中获取备注，创建DisplayNameAttribute特性
+            var atts = TypeDescriptor.GetAttributes(this, true);
 
-				if (!String.IsNullOrEmpty(description))
-				{
-					list.Add(new DisplayNameAttribute(description));
-					atts = new AttributeCollection(list.ToArray());
-				}
-			}
+            if (atts != null && !ContainAttribute(atts, typeof(DisplayNameAttribute)))
+            {
+                var list = new List<Attribute>();
+                String description = null;
+                foreach (Attribute item in atts)
+                {
+                    if (item.GetType() == typeof(DescriptionAttribute))
+                    {
+                        description = (item as DescriptionAttribute).Description;
+                        if (!String.IsNullOrEmpty(description)) break;
+                    }
+                    if (item.GetType() == typeof(BindColumnAttribute))
+                    {
+                        description = (item as BindColumnAttribute).Description;
+                        if (!String.IsNullOrEmpty(description)) break;
+                    }
+                }
 
-			return atts;
-		}
+                if (!String.IsNullOrEmpty(description))
+                {
+                    list.Add(new DisplayNameAttribute(description));
+                    atts = new AttributeCollection(list.ToArray());
+                }
+            }
 
-		string ICustomTypeDescriptor.GetClassName()
-		{
-			//return TypeDescriptor.GetClassName(this, true);
-			return this.GetType().FullName;
-		}
+            return atts;
+        }
 
-		string ICustomTypeDescriptor.GetComponentName()
-		{
-			return TypeDescriptor.GetComponentName(this, true);
-		}
+        string ICustomTypeDescriptor.GetClassName()
+        {
+            //return TypeDescriptor.GetClassName(this, true);
+            return this.GetType().FullName;
+        }
 
-		TypeConverter ICustomTypeDescriptor.GetConverter()
-		{
-			return TypeDescriptor.GetConverter(this, true);
-		}
+        string ICustomTypeDescriptor.GetComponentName()
+        {
+            return TypeDescriptor.GetComponentName(this, true);
+        }
 
-		EventDescriptor ICustomTypeDescriptor.GetDefaultEvent()
-		{
-			return TypeDescriptor.GetDefaultEvent(this, true);
-		}
+        TypeConverter ICustomTypeDescriptor.GetConverter()
+        {
+            return TypeDescriptor.GetConverter(this, true);
+        }
 
-		PropertyDescriptor ICustomTypeDescriptor.GetDefaultProperty()
-		{
-			return TypeDescriptor.GetDefaultProperty(this, true);
-		}
+        EventDescriptor ICustomTypeDescriptor.GetDefaultEvent()
+        {
+            return TypeDescriptor.GetDefaultEvent(this, true);
+        }
 
-		object ICustomTypeDescriptor.GetEditor(Type editorBaseType)
-		{
-			return TypeDescriptor.GetEditor(this, editorBaseType, true);
-		}
+        PropertyDescriptor ICustomTypeDescriptor.GetDefaultProperty()
+        {
+            return TypeDescriptor.GetDefaultProperty(this, true);
+        }
 
-		EventDescriptorCollection ICustomTypeDescriptor.GetEvents(Attribute[] attributes)
-		{
-			return TypeDescriptor.GetEvents(this, attributes, true);
-		}
+        object ICustomTypeDescriptor.GetEditor(Type editorBaseType)
+        {
+            return TypeDescriptor.GetEditor(this, editorBaseType, true);
+        }
 
-		EventDescriptorCollection ICustomTypeDescriptor.GetEvents()
-		{
-			return TypeDescriptor.GetEvents(this, true);
-		}
+        EventDescriptorCollection ICustomTypeDescriptor.GetEvents(Attribute[] attributes)
+        {
+            return TypeDescriptor.GetEvents(this, attributes, true);
+        }
 
-		PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties(Attribute[] attributes)
-		{
-			return Fix(this.GetType(), TypeDescriptor.GetProperties(this, attributes, true));
-		}
+        EventDescriptorCollection ICustomTypeDescriptor.GetEvents()
+        {
+            return TypeDescriptor.GetEvents(this, true);
+        }
 
-		PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties()
-		{
-			return Fix(this.GetType(), TypeDescriptor.GetProperties(this, true));
-		}
+        PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties(Attribute[] attributes)
+        {
+            return Fix(this.GetType(), TypeDescriptor.GetProperties(this, attributes, true));
+        }
 
-		object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd)
-		{
-			return this;
-		}
+        PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties()
+        {
+            return Fix(this.GetType(), TypeDescriptor.GetProperties(this, true));
+        }
 
-		internal static PropertyDescriptorCollection Fix(Type type, PropertyDescriptorCollection pdc)
-		{
-			if (pdc == null || pdc.Count < 1) return pdc;
+        object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd)
+        {
+            return this;
+        }
 
-			var factory = EntityFactory.CreateOperate(type);
+        internal static PropertyDescriptorCollection Fix(Type type, PropertyDescriptorCollection pdc)
+        {
+            if (pdc == null || pdc.Count < 1) return pdc;
 
-			// 准备字段集合
-			var dic = new Dictionary<string, FieldItem>(StringComparer.OrdinalIgnoreCase);
-			foreach (var item in factory.Fields)
-			{
-				dic.Add(item.Name, item);
-			}
+            var factory = EntityFactory.CreateOperate(type);
 
-			Boolean hasChanged = false;
-			var list = new List<PropertyDescriptor>();
-			foreach (PropertyDescriptor item in pdc)
-			{
-				// 显示名与属性名相同，并且没有DisplayName特性
-				if (item.Name == item.DisplayName && !ContainAttribute(item.Attributes, typeof(DisplayNameAttribute)))
-				{
-					// 添加一个特性
-					FieldItem fi = null;
-					if (dic.TryGetValue(item.Name, out fi) && !String.IsNullOrEmpty(fi.Description))
-					{
-						var dis = new DisplayNameAttribute(fi.Description);
-						list.Add(TypeDescriptor.CreateProperty(type, item, dis));
-						hasChanged = true;
-						continue;
-					}
-				}
-				list.Add(item);
-			}
-			if (hasChanged) pdc = new PropertyDescriptorCollection(list.ToArray());
+            // 准备字段集合
+            var dic = new Dictionary<string, FieldItem>(StringComparer.OrdinalIgnoreCase);
+            foreach (var item in factory.Fields)
+            {
+                dic.Add(item.Name, item);
+            }
 
-			return pdc;
-		}
+            Boolean hasChanged = false;
+            var list = new List<PropertyDescriptor>();
+            foreach (PropertyDescriptor item in pdc)
+            {
+                // 显示名与属性名相同，并且没有DisplayName特性
+                if (item.Name == item.DisplayName && !ContainAttribute(item.Attributes, typeof(DisplayNameAttribute)))
+                {
+                    // 添加一个特性
+                    FieldItem fi = null;
+                    if (dic.TryGetValue(item.Name, out fi) && !String.IsNullOrEmpty(fi.Description))
+                    {
+                        var dis = new DisplayNameAttribute(fi.Description);
+                        list.Add(TypeDescriptor.CreateProperty(type, item, dis));
+                        hasChanged = true;
+                        continue;
+                    }
+                }
+                list.Add(item);
+            }
+            if (hasChanged) pdc = new PropertyDescriptorCollection(list.ToArray());
 
-		static Boolean ContainAttribute(AttributeCollection attributes, Type type)
-		{
-			if (attributes == null || attributes.Count < 1 || type == null) return false;
+            return pdc;
+        }
 
-			foreach (Attribute item in attributes)
-			{
-				if (type.IsAssignableFrom(item.GetType())) return true;
-			}
-			return false;
-		}
-		#endregion
+        static Boolean ContainAttribute(AttributeCollection attributes, Type type)
+        {
+            if (attributes == null || attributes.Count < 1 || type == null) return false;
 
-		#region IEditableObject 成员
-		[NonSerialized]
-		private EntityBase _bak;
+            foreach (Attribute item in attributes)
+            {
+                if (type.IsAssignableFrom(item.GetType())) return true;
+            }
+            return false;
+        }
+        #endregion
 
-		void IEditableObject.BeginEdit()
-		{
-			_bak = Clone() as EntityBase;
-		}
+        #region IEditableObject 成员
+        [NonSerialized]
+        private EntityBase _bak;
 
-		void IEditableObject.CancelEdit()
-		{
-			CopyFrom(_bak, false);
+        void IEditableObject.BeginEdit()
+        {
+            _bak = Clone() as EntityBase;
+        }
 
-			_bak = null;
-		}
+        void IEditableObject.CancelEdit()
+        {
+            CopyFrom(_bak, false);
 
-		void IEditableObject.EndEdit()
-		{
-			//Update();
-			Save();
+            _bak = null;
+        }
 
-			_bak = null;
-		}
-		#endregion
-	}
+        void IEditableObject.EndEdit()
+        {
+            //Update();
+            Save();
+
+            _bak = null;
+        }
+        #endregion
+    }
 }

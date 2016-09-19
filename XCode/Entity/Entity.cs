@@ -297,6 +297,8 @@ namespace XCode
                 Meta._Modules.Valid(this, isnew);
             }
 
+            if (!HasDirty) return false;
+
             return Meta.Session.Dal.Queue.Add(this);
         }
 
