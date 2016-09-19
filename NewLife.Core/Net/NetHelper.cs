@@ -516,7 +516,9 @@ namespace System
             // 有可能是NetUri
             var p = addr.IndexOf("://");
             if (p >= 0) addr = addr.Substring(p + 3);
-            if (addr.Contains(".") && addr.Contains(":")) addr = addr.Substring(null, ":");
+
+            // 过滤IPv4/IPv6端口
+            if (addr.Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
 
             IPAddress ip = null;
             if (!IPAddress.TryParse(addr, out ip)) return null;
