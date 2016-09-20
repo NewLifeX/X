@@ -49,7 +49,7 @@ namespace XCode.Membership
         /// <returns></returns>
         protected override Int32 OnUpdate()
         {
-            LogProvider.Provider.WriteLog("修改", this);
+            if (HasDirty) LogProvider.Provider.WriteLog("修改", this);
 
             return base.OnUpdate();
         }
