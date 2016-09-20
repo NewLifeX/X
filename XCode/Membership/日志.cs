@@ -13,6 +13,10 @@ namespace XCode.Membership
     [DataObject]
     [Description("日志")]
     [BindIndex("IX_Log_Category", false, "Category")]
+    [BindIndex("IX_Log_Category_LinkID", false, "Category,LinkID")]
+    [BindIndex("IX_Log_Action", false, "Action")]
+    [BindIndex("IX_Log_CreateUserID", false, "CreateUserID")]
+    [BindIndex("IX_Log_CreateTime", false, "CreateTime")]
     [BindTable("Log", Description = "日志", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public abstract partial class Log<TEntity> : ILog
     {
@@ -53,12 +57,24 @@ namespace XCode.Membership
             set { if (OnPropertyChanging(__.Action, value)) { _Action = value; OnPropertyChanged(__.Action); } }
         }
 
+        private Int32 _LinkID;
+        /// <summary>链接</summary>
+        [DisplayName("链接")]
+        [Description("链接")]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn(4, "LinkID", "链接", null, "int", 10, 0, false)]
+        public virtual Int32 LinkID
+        {
+            get { return _LinkID; }
+            set { if (OnPropertyChanging(__.LinkID, value)) { _LinkID = value; OnPropertyChanged(__.LinkID); } }
+        }
+
         private String _UserName;
         /// <summary>用户名</summary>
         [DisplayName("用户名")]
         [Description("用户名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "UserName", "用户名", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(5, "UserName", "用户名", null, "nvarchar(50)", 0, 0, true)]
         public virtual String UserName
         {
             get { return _UserName; }
@@ -70,7 +86,7 @@ namespace XCode.Membership
         [DisplayName("用户编号")]
         [Description("用户编号")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(5, "CreateUserID", "用户编号", null, "int", 10, 0, false)]
+        [BindColumn(6, "CreateUserID", "用户编号", null, "int", 10, 0, false)]
         public virtual Int32 CreateUserID
         {
             get { return _CreateUserID; }
@@ -82,7 +98,7 @@ namespace XCode.Membership
         [DisplayName("IP地址")]
         [Description("IP地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(6, "CreateIP", "IP地址", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(7, "CreateIP", "IP地址", null, "nvarchar(50)", 0, 0, true)]
         public virtual String CreateIP
         {
             get { return _CreateIP; }
@@ -94,7 +110,7 @@ namespace XCode.Membership
         [DisplayName("时间")]
         [Description("时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(7, "CreateTime", "时间", null, "datetime", 3, 0, false)]
+        [BindColumn(8, "CreateTime", "时间", null, "datetime", 3, 0, false)]
         public virtual DateTime CreateTime
         {
             get { return _CreateTime; }
@@ -106,7 +122,7 @@ namespace XCode.Membership
         [DisplayName("详细信息")]
         [Description("详细信息")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(8, "Remark", "详细信息", null, "nvarchar(500)", 0, 0, true)]
+        [BindColumn(9, "Remark", "详细信息", null, "nvarchar(500)", 0, 0, true)]
         public virtual String Remark
         {
             get { return _Remark; }
@@ -131,6 +147,7 @@ namespace XCode.Membership
                     case __.ID : return _ID;
                     case __.Category : return _Category;
                     case __.Action : return _Action;
+                    case __.LinkID : return _LinkID;
                     case __.UserName : return _UserName;
                     case __.CreateUserID : return _CreateUserID;
                     case __.CreateIP : return _CreateIP;
@@ -146,6 +163,7 @@ namespace XCode.Membership
                     case __.ID : _ID = Convert.ToInt32(value); break;
                     case __.Category : _Category = Convert.ToString(value); break;
                     case __.Action : _Action = Convert.ToString(value); break;
+                    case __.LinkID : _LinkID = Convert.ToInt32(value); break;
                     case __.UserName : _UserName = Convert.ToString(value); break;
                     case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
@@ -169,6 +187,9 @@ namespace XCode.Membership
 
             ///<summary>操作</summary>
             public static readonly Field Action = FindByName(__.Action);
+
+            ///<summary>链接</summary>
+            public static readonly Field LinkID = FindByName(__.LinkID);
 
             ///<summary>用户名</summary>
             public static readonly Field UserName = FindByName(__.UserName);
@@ -199,6 +220,9 @@ namespace XCode.Membership
 
             ///<summary>操作</summary>
             public const String Action = "Action";
+
+            ///<summary>链接</summary>
+            public const String LinkID = "LinkID";
 
             ///<summary>用户名</summary>
             public const String UserName = "UserName";
@@ -231,6 +255,9 @@ namespace XCode.Membership
 
         /// <summary>操作</summary>
         String Action { get; set; }
+
+        /// <summary>链接</summary>
+        Int32 LinkID { get; set; }
 
         /// <summary>用户名</summary>
         String UserName { get; set; }

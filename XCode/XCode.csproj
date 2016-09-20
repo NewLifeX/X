@@ -205,8 +205,8 @@
       <DependentUpon>XCoder.tt</DependentUpon>
     </None>
     <None Include="Membership\XCoder.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>XCoder.log</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
     </None>
     <None Include="Transform\DataTransform.cs" />
     <Compile Include="Transform\EntityTransform.cs" />

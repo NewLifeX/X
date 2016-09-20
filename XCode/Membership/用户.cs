@@ -14,6 +14,7 @@ namespace XCode.Membership
     [Description("用户")]
     [BindIndex("IU_User_Name", true, "Name")]
     [BindIndex("IX_User_RoleID", false, "RoleID")]
+    [BindRelation("RoleID", false, "Role", "ID")]
     [BindTable("User", Description = "用户", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public abstract partial class User<TEntity> : IUser
     {
@@ -343,7 +344,7 @@ namespace XCode.Membership
             ///<summary>角色</summary>
             public static readonly Field RoleID = FindByName(__.RoleID);
 
-            ///<summary>是否启用</summary>
+            ///<summary>启用</summary>
             public static readonly Field Enable = FindByName(__.Enable);
 
             ///<summary>开始时间</summary>
@@ -406,7 +407,7 @@ namespace XCode.Membership
             ///<summary>角色</summary>
             public const String RoleID = "RoleID";
 
-            ///<summary>是否启用</summary>
+            ///<summary>启用</summary>
             public const String Enable = "Enable";
 
             ///<summary>开始时间</summary>
@@ -471,7 +472,7 @@ namespace XCode.Membership
         /// <summary>角色</summary>
         Int32 RoleID { get; set; }
 
-        /// <summary>是否启用</summary>
+        /// <summary>启用</summary>
         Boolean Enable { get; set; }
 
         /// <summary>开始时间</summary>

@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.0.*")]
-[assembly: AssemblyFileVersion("9.0.2016.0413")]
+[assembly: AssemblyVersion("9.1.*")]
+[assembly: AssemblyFileVersion("9.1.2016.0920")]
 
 /*
  * XCode的重大改进
@@ -50,6 +50,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v9.1.2016.0920   日志表增加链接编号LinkID，用于关联实体表对应记录，加强数据修改审计功能
+ * 
  * v9.0.2016.0413   去掉模型解析器自动修正表名字段名的功能
  * 
  * v9.0.2016.0410   IDataTable增加ConnName属性，允许模型文件中每个表单独指定连接名
