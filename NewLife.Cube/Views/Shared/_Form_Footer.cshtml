@@ -10,15 +10,15 @@
     var cip = fact.Table.FindByName("CreateIP") as FieldItem;
     var uip = fact.Table.FindByName("UpdateIP") as FieldItem;
     var remark = fact.Table.FindByName("Remark") as FieldItem;
-    if (remark != null) { remark = fact.Table.FindByName("Description"); }
+    if (remark == null) { remark = fact.Table.FindByName("Description"); }
 }
 @if (cid != null)
 {
     var user = fact.Table.FindByName("CreateUserName") as FieldItem;
     var time = fact.Table.FindByName("CreateTime") as FieldItem;
     <div class="form-group col-sm-12 col-md-6">
-        <label class="control-label col-md-2">创建</label>
-        <div class="control-label col-md-10" style="text-align: left;">
+        <label class="control-label col-xs-2 col-sm-2 col-md-2">创建</label>
+        <div class="control-label col-xs-8 col-sm-8 col-md-10" style="text-align: left;">
             @if (user != null)
                 {
                 <span class="text-primary">@entity[user.Name]</span>
@@ -41,8 +41,8 @@
     var user = fact.Table.FindByName("UpdateUserName") as FieldItem;
     var time = fact.Table.FindByName("UpdateTime") as FieldItem;
     <div class="form-group col-sm-12 col-md-6">
-        <label class="control-label col-md-2">更新</label>
-        <div class="control-label col-md-10" style="text-align: left;">
+        <label class="control-label col-xs-2 col-sm-2 col-md-2">更新</label>
+        <div class="control-label col-xs-8 col-sm-8 col-md-10" style="text-align: left;">
             @if (user != null)
                 {
                 <span class="text-primary">@entity[user.Name]</span>
@@ -63,8 +63,8 @@
 @if (remark != null && !fields.Contains(remark))
 {
     <div class="form-group col-sm-12 col-md-12">
-        <label class="control-label col-md-2">@remark.DisplayName</label>
-        <div class="input-group col-md-6">
+        <label class="control-label col-xs-2 col-sm-2 col-md-1">@remark.DisplayName</label>
+        <div class="col-xs-8 col-sm-8 col-md-8">
             @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
             @Html.ForDescription(remark)
         </div>

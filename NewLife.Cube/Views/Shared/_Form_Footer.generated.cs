@@ -65,7 +65,7 @@ namespace ASP
     var cip = fact.Table.FindByName("CreateIP") as FieldItem;
     var uip = fact.Table.FindByName("UpdateIP") as FieldItem;
     var remark = fact.Table.FindByName("Remark") as FieldItem;
-    if (remark != null) { remark = fact.Table.FindByName("Description"); }
+    if (remark == null) { remark = fact.Table.FindByName("Description"); }
 
             
             #line default
@@ -88,11 +88,11 @@ WriteLiteral(" class=\"form-group col-sm-12 col-md-6\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteLiteral(" class=\"control-label col-md-2\"");
+WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-2\"");
 
 WriteLiteral(">创建</label>\r\n        <div");
 
-WriteLiteral(" class=\"control-label col-md-10\"");
+WriteLiteral(" class=\"control-label col-xs-8 col-sm-8 col-md-10\"");
 
 WriteLiteral(" style=\"text-align: left;\"");
 
@@ -182,14 +182,14 @@ WriteLiteral("                <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1426), Tuple.Create("\"", 1437)
+WriteAttribute("title", Tuple.Create(" title=\"", 1462), Tuple.Create("\"", 1473)
             
             #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1434), Tuple.Create<System.Object, System.Int32>(ip
+, Tuple.Create(Tuple.Create("", 1470), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 1434), false)
+, 1470), false)
 );
 
 WriteLiteral(">");
@@ -235,11 +235,11 @@ WriteLiteral(" class=\"form-group col-sm-12 col-md-6\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteLiteral(" class=\"control-label col-md-2\"");
+WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-2\"");
 
 WriteLiteral(">更新</label>\r\n        <div");
 
-WriteLiteral(" class=\"control-label col-md-10\"");
+WriteLiteral(" class=\"control-label col-xs-8 col-sm-8 col-md-10\"");
 
 WriteLiteral(" style=\"text-align: left;\"");
 
@@ -329,14 +329,14 @@ WriteLiteral("                <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 2325), Tuple.Create("\"", 2336)
+WriteAttribute("title", Tuple.Create(" title=\"", 2397), Tuple.Create("\"", 2408)
             
             #line 58 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2333), Tuple.Create<System.Object, System.Int32>(ip
+, Tuple.Create(Tuple.Create("", 2405), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 2333), false)
+, 2405), false)
 );
 
 WriteLiteral(">");
@@ -380,20 +380,20 @@ WriteLiteral(" class=\"form-group col-sm-12 col-md-12\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteLiteral(" class=\"control-label col-md-2\"");
+WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-1\"");
 
 WriteLiteral(">");
 
             
             #line 66 "..\..\Views\Shared\_Form_Footer.cshtml"
-                                         Write(remark.DisplayName);
+                                                           Write(remark.DisplayName);
 
             
             #line default
             #line hidden
 WriteLiteral("</label>\r\n        <div");
 
-WriteLiteral(" class=\"input-group col-md-6\"");
+WriteLiteral(" class=\"col-xs-8 col-sm-8 col-md-8\"");
 
 WriteLiteral(">\r\n");
 
@@ -422,7 +422,6 @@ WriteLiteral("\r\n        </div>\r\n    </div>\r\n");
             
             #line 72 "..\..\Views\Shared\_Form_Footer.cshtml"
 }
-
             
             #line default
             #line hidden

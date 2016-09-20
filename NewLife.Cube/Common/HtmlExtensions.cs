@@ -245,7 +245,7 @@ namespace NewLife.Cube
             }
             else if (length < 0 || length > 300)
             {
-                txt = Html.TextArea(name, value, atts);
+                txt = Html.TextArea(name, value, 3, 20, atts);
             }
             else
             {
@@ -365,7 +365,7 @@ namespace NewLife.Cube
         {
             var atts = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
             if (!atts.ContainsKey("class")) atts.Add("class", "form-control");
-            
+
             var txt = Html.TextBox(name, value, format, atts);
 
             return txt;
