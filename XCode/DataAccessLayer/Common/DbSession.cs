@@ -925,7 +925,7 @@ namespace XCode.DataAccessLayer
                 _trace_sqls.Add(sql);
             }
 
-            XTrace.WriteLine("SQL耗时较长，建议优化 {0:n}毫秒 {1}", _swSql.ElapsedMilliseconds, sql);
+            XTrace.WriteLine("SQL耗时较长，建议优化 {0:n0}毫秒 {1}", _swSql.ElapsedMilliseconds, sql);
         }
         #endregion
     }
