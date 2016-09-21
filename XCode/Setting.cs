@@ -26,9 +26,9 @@ namespace XCode
         [Description("设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录")]
         public String SQLPath { get; set; }
 
-        /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪</summary>
-        [Description("跟踪SQL执行时间，大于该阀值将输出日志，默认0毫秒不跟踪")]
-        public Int32 TraceSQLTime { get; set; }
+        /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认500毫秒</summary>
+        [Description("跟踪SQL执行时间，大于该阀值将输出日志，默认500毫秒")]
+        public Int32 TraceSQLTime { get; set; } = 500;
 
         /// <summary>连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去</summary>
         [Description("连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
@@ -71,7 +71,7 @@ namespace XCode
         /// <summary>实例化设置</summary>
         public Setting()
         {
-            Debug = true; 
+            Debug = true;
             ShowSQL = true;
             SQLPath = "";
             ConnMaps = "Conn2#Conn,Table3@Table";
