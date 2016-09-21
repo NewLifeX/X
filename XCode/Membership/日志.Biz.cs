@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
@@ -146,23 +147,7 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展操作
-        static EntityCache<TEntity> _categoryCache;
-        /// <summary>类别名实体缓存，异步，缓存10分钟</summary>
-        static EntityCache<TEntity> CategoryCache
-        {
-            get
-            {
-                if (_categoryCache == null)
-                {
-                    // 缓存查询所有类别名，并缓存10分钟，缓存过期时将使用异步查询，不影响返回速度
-                    _categoryCache = new EntityCache<TEntity>();
-                    _categoryCache.Expire = 10 * 60;
-                    _categoryCache.FillListMethod = () => FindAll(_.Category.GroupBy(), null, __.Category, 0, 0);
-                    _categoryCache.WaitFirst = false;
-                }
-                return _categoryCache;
-            }
-        }
+        static FieldCache<TEntity> CategoryCache = new FieldCache<TEntity>(_.Category);
 
         /// <summary>查找所有类别名</summary>
         /// <returns></returns>
@@ -174,9 +159,9 @@ namespace XCode.Membership
 
         /// <summary>获取所有类别名称</summary>
         /// <returns></returns>
-        public static String[] FindAllCategoryName()
+        public static IDictionary<String, String> FindAllCategoryName()
         {
-            return CategoryCache.Entities.ToList().Select(e => e.Category).ToArray();
+            return CategoryCache.FindAllName();
         }
         #endregion
 
