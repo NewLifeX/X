@@ -116,9 +116,8 @@ namespace NewLife.Log
         #endregion
 
         #region 静态空实现
-        private static ILog _Null = new NullLogger();
         /// <summary>空日志实现</summary>
-        public static ILog Null { get { return _Null; } }
+        public static ILog Null { get; } = new NullLogger();
 
         class NullLogger : Logger
         {
@@ -242,6 +241,6 @@ namespace NewLife.Log
 
             return sb.ToString();
         }
-#endregion
+        #endregion
     }
 }

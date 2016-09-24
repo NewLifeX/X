@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Collections;
-using NewLife.Configuration;
 using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
@@ -412,6 +409,11 @@ namespace XCode.Configuration
             foreach (var item in Fields)
             {
                 if (item.ColumnName.EqualIgnoreCase(name)) return item as Field;
+            }
+
+            foreach (var item in AllFields)
+            {
+                if (item.Name.EqualIgnoreCase(name)) return item as Field;
             }
 
             return null;

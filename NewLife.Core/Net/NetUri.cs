@@ -159,7 +159,7 @@ namespace NewLife.Net
 
             // 分析协议
             var p = uri.IndexOf(Sep);
-            if (p > 0)
+            if (p >= 0)
             {
                 Protocol = uri.Substring(0, p);
                 uri = uri.Substring(p + Sep.Length);

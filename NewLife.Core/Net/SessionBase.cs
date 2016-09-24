@@ -267,6 +267,9 @@ namespace NewLife.Net
 
         void CheckSendQueue(Boolean io)
         {
+            // 如果已销毁，则停止检查发送队列
+            if (Client == null || Disposed) return;
+
             var qu = _SendQueue;
             if (qu.Count == 0) return;
 

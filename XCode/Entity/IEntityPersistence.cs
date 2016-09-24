@@ -192,8 +192,8 @@ namespace XCode
                 rs = dps != null && dps.Length > 0 ? session.Execute(false, false, sql, CommandType.Text, dps) : session.Execute(false, false, sql);
             }
 
-            //清除脏数据，避免连续两次调用Save造成重复提交
-            if (entity.Dirtys != null) entity.Dirtys.Clear();
+            // 清除脏数据，避免连续两次调用Save造成重复提交
+            entity.Dirtys.Clear();
 
             return rs;
         }
@@ -220,8 +220,9 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntity entity)
         {
-            //没有脏数据，不需要更新
-            if (entity.Dirtys == null || entity.Dirtys.Count <= 0) return 0;
+            var ds = entity.Dirtys;
+            // 没有脏数据，不需要更新
+            if (ds.Count == 0) return 0;
 
             DbParameter[] dps = null;
             var sql = SQL(entity, DataObjectMethodType.Update, ref dps);
@@ -233,7 +234,7 @@ namespace XCode
             Int32 rs = dps != null && dps.Length > 0 ? session.Execute(false, true, sql, CommandType.Text, dps) : session.Execute(false, true, sql);
 
             //清除脏数据，避免重复提交
-            if (entity.Dirtys != null) entity.Dirtys.Clear();
+            ds.Clear();
 
             //entity.ClearAdditionalValues();
             EntityAddition.ClearValues(entity as EntityBase);
@@ -249,14 +250,14 @@ namespace XCode
             var op = EntityFactory.CreateOperate(entity.GetType());
             var session = op.Session;
 
-            String sql = DefaultCondition(entity);
+            var sql = DefaultCondition(entity);
             if (String.IsNullOrEmpty(sql)) return 0;
 
             //return session.Execute(String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
             var rs = session.Execute(false, false, String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
 
-            //清除脏数据，避免重复提交保存
-            if (entity.Dirtys != null) entity.Dirtys.Clear();
+            // 清除脏数据，避免重复提交保存
+            entity.Dirtys.Clear();
 
             return rs;
         }

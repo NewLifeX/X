@@ -370,7 +370,7 @@ namespace NewLife.Common
         public static String GetInfo(String path, String property)
         {
             // Linux Mono不支持WMI
-            if (Runtime.Mono) return null;
+            if (Runtime.Mono) return "";
 
             var bbs = new List<String>();
             try
@@ -393,7 +393,7 @@ namespace NewLife.Common
                 //{
                 //    XTrace.WriteLine("获取{0} {1}硬件信息失败\r\n{2}", path, property, ex);
                 //}
-                return null;
+                return "";
             }
             bbs.Sort();
             var sb = new StringBuilder(bbs.Count * 15);

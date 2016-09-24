@@ -14,7 +14,7 @@ namespace NewLife.Windows
         private IDictionary<String, Action> _dic;
 
         /// <summary>系统名称。用于引导前缀</summary>
-        private String _Name = "小七";
+        private String _Name = "丁丁";
 
         /// <summary>最后一次进入引导前缀的时间。</summary>
         private DateTime _Tip;

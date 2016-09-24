@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Web;
 using XCode.Cache;
@@ -14,7 +17,7 @@ namespace XCode.Membership
     public class Log : Log<Log> { }
 
     /// <summary>日志</summary>
-    public partial class Log<TEntity> : UserTimeEntity<TEntity> where TEntity : Log<TEntity>, new()
+    public partial class Log<TEntity> : Entity<TEntity> where TEntity : Log<TEntity>, new()
     {
         #region 对象操作
         static Log()
@@ -64,6 +67,12 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
+        /// <summary>创建人名称</summary>
+        [XmlIgnore, ScriptIgnore]
+        [DisplayName("创建人")]
+        [Map("CreateUserID")]
+        public String CreateUserName { get { return ManageProvider.Provider.FindByID(CreateUserID) + ""; } }
+
         /// <summary>物理地址</summary>
         //[BindRelation("CreateIP")]
         [DisplayName("物理地址")]
@@ -138,23 +147,7 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展操作
-        static EntityCache<TEntity> _categoryCache;
-        /// <summary>类别名实体缓存，异步，缓存10分钟</summary>
-        static EntityCache<TEntity> CategoryCache
-        {
-            get
-            {
-                if (_categoryCache == null)
-                {
-                    // 缓存查询所有类别名，并缓存10分钟，缓存过期时将使用异步查询，不影响返回速度
-                    _categoryCache = new EntityCache<TEntity>();
-                    _categoryCache.Expire = 10 * 60;
-                    _categoryCache.FillListMethod = () => FindAll(_.Category.GroupBy(), null, __.Category, 0, 0);
-                    _categoryCache.WaitFirst = false;
-                }
-                return _categoryCache;
-            }
-        }
+        static FieldCache<TEntity> CategoryCache = new FieldCache<TEntity>(_.Category);
 
         /// <summary>查找所有类别名</summary>
         /// <returns></returns>
@@ -166,9 +159,9 @@ namespace XCode.Membership
 
         /// <summary>获取所有类别名称</summary>
         /// <returns></returns>
-        public static String[] FindAllCategoryName()
+        public static IDictionary<String, String> FindAllCategoryName()
         {
-            return CategoryCache.Entities.ToList().Select(e => e.Category).ToArray();
+            return CategoryCache.FindAllName();
         }
         #endregion
 

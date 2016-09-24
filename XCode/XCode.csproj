@@ -84,6 +84,7 @@
     <Compile Include="Entity\IEntityModule.cs" />
     <Compile Include="Entity\IEntitySession.cs" />
     <Compile Include="Exceptions\EntityException.cs" />
+    <Compile Include="Cache\FieldCache.cs" />
     <Compile Include="Membership\LogEntity.cs" />
     <Compile Include="Membership\IManageProvider.cs" />
     <Compile Include="Membership\IManageUser.cs" />
@@ -205,8 +206,8 @@
       <DependentUpon>XCoder.tt</DependentUpon>
     </None>
     <None Include="Membership\XCoder.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>XCoder.log</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
     </None>
     <None Include="Transform\DataTransform.cs" />
     <Compile Include="Transform\EntityTransform.cs" />

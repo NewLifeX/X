@@ -1066,7 +1066,8 @@ namespace System
         /// <returns></returns>
         public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
-            if (data == null || data.Length < 1) return null;
+            if (data == null || data.Length < 1) return "";
+
             if (count < 0)
                 count = data.Length - offset;
             else if (offset + count > data.Length)
@@ -1094,7 +1095,8 @@ namespace System
         /// <returns></returns>
         public static String ToHex(this Byte[] data, String separate, Int32 groupSize = 0, Int32 maxLength = -1)
         {
-            if (data == null || data.Length < 1) return null;
+            if (data == null || data.Length < 1) return "";
+
             if (groupSize < 0) groupSize = 0;
 
             var count = data.Length;
@@ -1153,7 +1155,7 @@ namespace System
         /// <returns></returns>
         public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = -1)
         {
-            if (String.IsNullOrEmpty(data)) return null;
+            if (String.IsNullOrEmpty(data)) return new Byte[0];
 
             // 过滤特殊字符
             data = data.Trim()
@@ -1185,7 +1187,8 @@ namespace System
         /// <returns></returns>
         public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = -1, Boolean lineBreak = false)
         {
-            if (data == null || data.Length < 1) return null;
+            if (data == null || data.Length < 1) return "";
+
             if (count <= 0)
                 count = data.Length - offset;
             else if (offset + count > data.Length)
@@ -1199,7 +1202,7 @@ namespace System
         /// <returns></returns>
         public static Byte[] ToBase64(this String data)
         {
-            if (String.IsNullOrEmpty(data)) return null;
+            if (String.IsNullOrEmpty(data)) return new Byte[0];
 
             return Convert.FromBase64String(data);
         }

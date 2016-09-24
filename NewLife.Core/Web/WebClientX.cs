@@ -21,41 +21,37 @@ namespace NewLife.Web
         #endregion
 
         #region 为了Cookie而重写
-        private CookieContainer _Cookie;
         /// <summary>Cookie容器</summary>
-        public CookieContainer Cookie { get { return _Cookie ?? (_Cookie = new CookieContainer()); } set { _Cookie = value; } }
-
+        public CookieContainer Cookie { get; set; } = new CookieContainer();
         #endregion
 
         #region 属性
-        private String _Accept;
         /// <summary>可接受类型</summary>
-        public String Accept { get { return _Accept; } set { _Accept = value; } }
+        public String Accept { get; set; }
 
-        private String _AcceptLanguage;
         /// <summary>可接受语言</summary>
-        public String AcceptLanguage { get { return _AcceptLanguage; } set { _AcceptLanguage = value; } }
+        public String AcceptLanguage { get; set; }
 
-        private String _Referer;
         /// <summary>引用页面</summary>
-        public String Referer { get { return _Referer; } set { _Referer = value; } }
+        public String Referer { get; set; }
 
-        private Int32 _Timeout;
         /// <summary>超时，毫秒</summary>
-        public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
+        public Int32 Timeout { get; set; }
 
-        private DecompressionMethods _AutomaticDecompression;
         /// <summary>自动解压缩模式。</summary>
-        public DecompressionMethods AutomaticDecompression { get { return _AutomaticDecompression; } set { _AutomaticDecompression = value; } }
+        public DecompressionMethods AutomaticDecompression { get; set; }
 
-        private String _UserAgent;
         /// <summary>User-Agent 标头，指定有关客户端代理的信息</summary>
-        public String UserAgent { get { return _UserAgent; } set { _UserAgent = value; } }
+        public String UserAgent { get; set; }
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
-        public WebClientX() { }
+        public WebClientX()
+        {
+            // 网络时代，绝大部分使用utf8编码
+            Encoding = System.Text.Encoding.UTF8;
+        }
 
         /// <summary>初始化常用的东西</summary>
         /// <param name="ie">是否模拟ie</param>
@@ -104,6 +100,21 @@ namespace NewLife.Web
                 if (!String.IsNullOrEmpty(Accept)) hr.Accept = Accept;
             }
 
+            var fr = request as FtpWebRequest;
+            if (fr != null)
+            {
+                // 特殊支持获取字符串
+                if (fr.Method == WebRequestMethods.Ftp.DownloadFile)
+                {
+                    // 斜杠结尾，或者://后面没有任何斜杠，则认为是目录
+                    var path = address.PathAndQuery;
+                    if (path.IsNullOrEmpty() || path.EndsWith("/"))
+                        fr.Method = WebRequestMethods.Ftp.ListDirectory;
+                    // 不能列出明细，那样子不好分割名称
+                    //fr.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+                }
+            }
+
             if (Timeout > 0) request.Timeout = Timeout;
 
             return request;
@@ -120,6 +131,17 @@ namespace NewLife.Web
             {
                 Cookie.Add(http.Cookies);
                 if (!String.IsNullOrEmpty(http.CharacterSet)) Encoding = System.Text.Encoding.GetEncoding(http.CharacterSet);
+            }
+
+            var fr = response as FtpWebResponse;
+            if (fr != null)
+            {
+                if (Log != null && Log.Enable)
+                {
+                    Log.Info(fr.BannerMessage);
+                    Log.Info(fr.StatusDescription);
+                    Log.Info(fr.WelcomeMessage);
+                }
             }
 
             return response;

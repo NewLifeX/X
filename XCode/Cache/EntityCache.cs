@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace XCode.Cache
     /// 以后更新，都开异步线程去读取，而当前马上返回，让大家继续用着旧数据，这么做性能非常好。
     /// </remarks>
     /// <typeparam name="TEntity">实体类型</typeparam>
+    [DisplayName("实体缓存")]
     public class EntityCache<TEntity> : CacheBase<TEntity>, IEntityCache where TEntity : Entity<TEntity>, new()
     {
         #region 基础属性
@@ -110,12 +112,12 @@ namespace XCode.Cache
             if (Debug)
             {
                 var reason = Times == 1 ? "第一次" : Expire + "秒过期";
-                DAL.WriteLog("更新实体缓存（第{2}次）：{0} 原因：{1}", typeof(TEntity).FullName, reason, Times);
+                DAL.WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), reason, Times);
             }
 
             _Entities = Invoke<Object, EntityList<TEntity>>(s => FillListMethod(), null);
 
-            if (Debug) DAL.WriteLog("完成更新缓存（第{1}次）：{0}", typeof(TEntity).FullName, Times);
+            if (Debug) DAL.WriteLog("完成{0}（第{1}次）", ToString(), Times);
         }
 
         /// <summary>清除缓存</summary>
@@ -123,7 +125,7 @@ namespace XCode.Cache
         {
             lock (this)
             {
-                if (_Entities.Count > 0 && Debug) DAL.WriteLog("清空实体缓存：{0} 原因：{1}", typeof(TEntity).FullName, reason);
+                if (_Entities.Count > 0 && Debug) DAL.WriteLog("清空{0} 原因：{1}", ToString(), reason);
 
                 // 使用异步时，马上打开异步查询更新数据
                 if (_Entities.Count > 0)
@@ -178,8 +180,9 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                sb.AppendFormat("实体缓存<{0,-20}>", typeof(TEntity).Name);
-                sb.AppendFormat("总次数{0,7:n0}", Total);
+                //sb.AppendFormat("实体缓存<{0,-20}>", typeof(TEntity).Name);
+                sb.Append(ToString());
+                sb.AppendFormat(" 总次数{0,7:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Success, (Double)Success / Total);
 
                 XTrace.WriteLine(sb.ToString());
@@ -215,6 +218,14 @@ namespace XCode.Cache
             this.FillListMethod = ec.FillListMethod;
 
             return this;
+        }
+
+        /// <summary>输出名称</summary>
+        /// <returns></returns>
+        public override String ToString()
+        {
+            var type = GetType();
+            return "{0}<{1}>".F(type.GetDisplayName() ?? type.Name, typeof(TEntity).FullName);
         }
         #endregion
     }

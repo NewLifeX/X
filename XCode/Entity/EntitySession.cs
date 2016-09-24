@@ -11,9 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
-using NewLife.Configuration;
 using NewLife.Log;
-using NewLife.Threading;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -352,7 +350,7 @@ namespace XCode
                     // 从默认会话复制参数
                     if (Default != this) ec.CopySettingFrom(Default.Cache);
                     //_cache = ec;
-                    Interlocked.CompareExchange<EntityCache<TEntity>>(ref _cache, ec, null);
+                    Interlocked.CompareExchange(ref _cache, ec, null);
                 }
                 return _cache;
             }
@@ -376,7 +374,7 @@ namespace XCode
                     // 从默认会话复制参数
                     if (Default != this) sc.CopySettingFrom(Default.SingleCache);
 
-                    Interlocked.CompareExchange<ISingleEntityCache<Object, TEntity>>(ref _singleCache, sc, null);
+                    Interlocked.CompareExchange(ref _singleCache, sc, null);
                 }
                 return _singleCache;
             }
@@ -415,7 +413,7 @@ namespace XCode
                 if (n >= 0)
                 {
                     // 等于0的时候也应该缓存，否则会一直查询这个表
-                    if (n < 1000L) { return n; }
+                    if (n < 1000L) return n;
 
                     // 大于1000，使用HttpCache
                     Int64? k = (Int64?)HttpRuntime.Cache[key];
@@ -427,13 +425,13 @@ namespace XCode
 
                 Int64 m = 0L;
                 // 小于1000的精确查询，大于1000的快速查询
-                if (n > -1L && n <= 1000L)
+                if (n >= 0 && n <= 1000L)
                 {
                     var sb = new SelectBuilder();
                     sb.Table = FormatedTableName;
 
                     WaitForInitData();
-                    m = Dal.SelectCount(sb, new String[] { TableName });
+                    m = Dal.SelectCount(sb, TableName);
                 }
                 else
                 {
@@ -718,8 +716,7 @@ namespace XCode
             }
 
             ClearCache("TRUNCATE TABLE");
-            if (_OnDataChange != null) { _OnDataChange(ThisType); }
-
+            _OnDataChange?.Invoke(ThisType);
             return rs;
         }
 
@@ -844,7 +841,7 @@ namespace XCode
                 ForceClearCache(String.Format("{0}（F{1}-U{2}）", reason, forceClearCache ? 1 : 0, isUpdateMode ? 1 : 0), isUpdateMode);
             }
 
-            if (_OnDataChange != null) { _OnDataChange(ThisType); }
+            _OnDataChange?.Invoke(ThisType);
         }
 
         private Action<Type> _OnDataChange;
@@ -1097,15 +1094,9 @@ namespace XCode
             return rs;
         }
         #endregion
-
-        //#region 队列
-        ///// <summary>实体队列</summary>
-        //public EntityQueue Queue { get; private set; }
-        //#endregion
     }
 
     #region 脏实体会话
-
     /// <summary>脏实体会话，嵌套事务回滚时使用</summary>
     /// <remarks>http://www.newlifex.com/showtopic-1216.aspx</remarks>
     public class DirtiedEntitySession
@@ -1126,6 +1117,5 @@ namespace XCode
             DirectExecuteSQLCount = directExecuteSQLCount;
         }
     }
-
     #endregion
 }

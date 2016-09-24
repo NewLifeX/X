@@ -43,17 +43,18 @@ namespace XCode
         #region 方法
         /// <summary>添加实体对象进入队列</summary>
         /// <param name="entity"></param>
-        /// <returns></returns>
+        /// <returns>返回是否添加城南公馆，实体对象已存在于队列中则返回false</returns>
         public Boolean Add(IEntity entity)
         {
-            if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period);
-
             // 避免重复加入队列
             var list = Entities;
             if (list.Contains(entity)) return false;
 
             lock (this)
             {
+                // 放到锁里面，避免重入
+                if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period);
+
                 list = Entities;
                 // 避免重复加入队列
                 if (list.Contains(entity)) return false;
@@ -103,7 +104,9 @@ namespace XCode
             {
                 foreach (var item in list)
                 {
-                    rs.Add(item.Save());
+                    //rs.Add(item.Save());
+                    // 加入队列时已经Valid一次，这里不需要再次Valid
+                    rs.Add(item.SaveWithoutValid());
                 }
 
                 dal.Commit();

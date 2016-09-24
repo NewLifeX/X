@@ -51,7 +51,6 @@ namespace XCode.DataAccessLayer
         /// <summary>是否内存数据库</summary>
         public Boolean IsMemoryDatabase { get { return FileName.EqualIgnoreCase(MemoryDatabase); } }
 
-        private Boolean _AutoVacuum;
         /// <summary>自动收缩数据库</summary>
         /// <remarks>
         /// 当一个事务从数据库中删除了数据并提交后，数据库文件的大小保持不变。
@@ -60,11 +59,7 @@ namespace XCode.DataAccessLayer
         /// 但是，如果一个数据库在创建时被指定为auto_vacuum数据库，当删除事务提交时，数据库文件会自动缩小。
         /// 使用auto_vacuum数据库可以节省空间，但却会增加数据库操作的时间。
         /// </remarks>
-        public Boolean AutoVacuum { get { return _AutoVacuum; } set { _AutoVacuum = value; } }
-
-        //private Boolean _UseLock;
-        ///// <summary>使用锁来控制并发</summary>
-        //public Boolean UseLock { get { return _UseLock; } set { _UseLock = value; } }
+        public Boolean AutoVacuum { get; set; }
 
         static readonly String MemoryDatabase = ":memory:";
 
@@ -107,13 +102,6 @@ namespace XCode.DataAccessLayer
 
             // 默认超时时间
             if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";
-
-            //var value = "";
-            //if (builder.TryGetAndRemove("UseLock", out value) && !String.IsNullOrEmpty(value))
-            //{
-            //    UseLock = value.ToBoolean();
-            //    if (UseLock) DAL.WriteLog("[{0}]使用SQLite文件锁", ConnName);
-            //}
         }
         #endregion
 

@@ -9,7 +9,7 @@ namespace XCode.Membership
     public class LogEntity<TEntity> : Entity<TEntity> where TEntity : LogEntity<TEntity>, new()
     {
         #region 改动时写日志
-        /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
+        /// <summary>调用Save时写日志</summary>
         /// <returns></returns>
         public override int Save()
         {
@@ -32,6 +32,26 @@ namespace XCode.Membership
             if (isNew) LogProvider.Provider.WriteLog(action, this);
 
             return result;
+        }
+
+        /// <summary>添加时写日志</summary>
+        /// <returns></returns>
+        public override Int32 Insert()
+        {
+            var rs = base.Insert();
+
+            LogProvider.Provider.WriteLog("添加", this);
+
+            return rs;
+        }
+
+        /// <summary>修改时写日志</summary>
+        /// <returns></returns>
+        protected override Int32 OnUpdate()
+        {
+            if (HasDirty) LogProvider.Provider.WriteLog("修改", this);
+
+            return base.OnUpdate();
         }
 
         /// <summary>删除时写日志</summary>

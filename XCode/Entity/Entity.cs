@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife.Data;
-using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Xml;
@@ -278,12 +277,12 @@ namespace XCode
         /// <remarks>
         /// 调用平均耗时190.86ns，IPModule占38.89%，TimeModule占16.31%，UserModule占7.20%，Valid占14.36%
         /// </remarks>
-        /// <returns>是否成功加入异步队列</returns>
+        /// <returns>是否成功加入异步队列，实体对象已存在于队列中则返回false</returns>
         public override Boolean SaveAsync()
         {
             var isnew = false;
 
-            //优先使用自增字段判断
+            // 优先使用自增字段判断
             var fi = Meta.Table.Identity;
             if (fi != null)
                 isnew = Convert.ToInt64(this[fi.Name]) == 0;
@@ -297,6 +296,8 @@ namespace XCode
                 Valid(isnew);
                 Meta._Modules.Valid(this, isnew);
             }
+
+            if (!HasDirty) return false;
 
             return Meta.Session.Dal.Queue.Add(this);
         }

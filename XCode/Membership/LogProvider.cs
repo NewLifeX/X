@@ -21,6 +21,8 @@ namespace XCode.Membership
         /// <param name="entity"></param>
         public void WriteLog(String action, IEntity entity)
         {
+            if (!Enable) return;
+
             var fact = EntityFactory.CreateOperate(entity.GetType());
 
             // 构造字段数据的字符串表示形式
@@ -41,15 +43,14 @@ namespace XCode.Membership
                 // 日志里面不要出现密码
                 if (fi.Name.EqualIgnoreCase("pass", "password")) v = null;
 
-                sb.Separate(",").AppendFormat("{0}={1}", fi.Name, v);
+                sb.Separate(",").Append("{0}={1}".F(fi.Name, v));
             }
 
             WriteLog(entity.GetType(), action, sb.ToString());
         }
 
-        private Boolean _Enable = true;
         /// <summary>是否使用日志</summary>
-        public Boolean Enable { get { return _Enable; } set { _Enable = value; } }
+        public Boolean Enable { get; set; } = true;
         #endregion
 
         #region 静态属性
@@ -87,6 +88,13 @@ namespace XCode.Membership
 
             var factory = EntityFactory.CreateOperate(typeof(TLog));
             var log = (factory.Default as ILog).Create(type, action);
+
+            // 加上关联编号
+            if (remark.StartsWithIgnoreCase("ID="))
+            {
+                var fi = factory.Table.Identity;
+                if (fi != null) log.LinkID = remark.Substring("ID=", ",").ToInt();
+            }
 
             log.Remark = remark;
             log.SaveAsync();
