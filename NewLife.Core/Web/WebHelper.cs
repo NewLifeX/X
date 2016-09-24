@@ -212,7 +212,22 @@ namespace NewLife.Web
 
         #region Http请求
         /// <summary>Http请求</summary>
-        public static HttpRequest Request { get { return HttpContext.Current != null ? HttpContext.Current.Request : null; } }
+        public static HttpRequest Request {
+            get
+            {
+                if (HttpContext.Current == null)
+                    return null;
+                try
+                {
+                    return HttpContext.Current.Request;
+                }
+                catch (Exception ex)
+                {
+                    return null;
+                }
+                //return HttpContext.Current != null ? HttpContext.Current.Request : null;
+            }
+        }
 
         /// <summary>返回请求字符串和表单的名值字段，过滤空值和ViewState，同名时优先表单</summary>
         public static IDictionary<String, String> Params
