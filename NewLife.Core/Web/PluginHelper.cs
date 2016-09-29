@@ -45,14 +45,13 @@ namespace NewLife.Web
             }
 
             type = typeName.GetTypeEx(true);
-            if (type != null) return type;
+            return type;
 
             //var assembly = Assembly.LoadFrom(file);
             //if (assembly == null) return null;
 
             //type = assembly.GetType(typeName);
             //if (type == null) type = AssemblyX.Create(assembly).GetType(typeName);
-            return type;
         }
     }
 }

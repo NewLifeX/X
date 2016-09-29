@@ -251,12 +251,11 @@ namespace NewLife.Xml
                 var flag = File.Exists(cfi);
                 if (!flag) return;
 
-                if (flag)
-                {
+               
                     var xml1 = File.ReadAllText(cfi).Trim();
                     var xml2 = config.ToXml(null, "", "", true, true).Trim();
                     flag = xml1 == xml2;
-                }
+            
                 if (!flag)
                 {
                     // 异步处理，避免加载日志路径配置时死循环
