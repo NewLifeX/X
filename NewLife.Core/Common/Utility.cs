@@ -24,6 +24,14 @@ namespace System
         /// <returns></returns>
         public static Int32 ToInt(this Object value, Int32 defaultValue = 0) { return _Convert.ToInt(value, defaultValue); }
 
+
+        /// <summary>转为长整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
+        /// <remarks></remarks>
+        /// <param name="value">待转换对象</param>
+        /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
+        /// <returns></returns>
+        public static long ToLong(this Object value, long defaultValue = 0) { return _Convert.ToLong(value, defaultValue); }
+
         /// <summary>转为浮点数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
         /// <remarks>Single可以先转为最常用的Double后再二次处理</remarks>
         /// <param name="value">待转换对象</param>
@@ -124,6 +132,20 @@ namespace System
             catch { return defaultValue; }
         }
 
+        /// <summary>转为长整数</summary>
+        /// <param name="value">待转换对象</param>
+        /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
+        /// <returns></returns>
+        public virtual long ToLong(Object value, long defaultValue)
+        {
+            //暂时不做处理  先处理异常转换
+            try
+            {
+                return Convert.ToInt64(value);
+            }
+            catch { return defaultValue; }
+        }
+        
         /// <summary>转为浮点数</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
