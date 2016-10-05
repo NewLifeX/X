@@ -312,6 +312,12 @@ namespace NewLife.Web
         /// <returns></returns>
         public static Int32 RequestInt(String name) { return Request[name].ToInt(); }
 
+
+        /// <summary>获取长整型参数</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        public static long RequestLong(String name) { return Request[name].ToLong(); }
+
         /// <summary>接收布尔值</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
