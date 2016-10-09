@@ -61,21 +61,21 @@ namespace NewLife
 
         /// <summary>语音提示。默认true</summary>
         [Description("语音提示。默认true")]
-        public Boolean SpeechTip { get; set; }
+        public Boolean SpeechTip { get; set; } = true;
         #endregion
 
         #region 方法
         /// <summary>实例化</summary>
         public Setting()
         {
-            Debug = true;
-            SpeechTip = true;
+            //Debug = true;
+            //SpeechTip = true;
         }
 
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {
-            Debug = Config.GetConfig<Boolean>("NewLife.Debug", true);
+            Debug = Config.GetConfig<Boolean>("NewLife.Debug", false);
             NetDebug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
             LogLevel = Config.GetConfig<LogLevel>("NewLife.LogLevel", Debug ? LogLevel.Debug : LogLevel.Info);
 
@@ -102,7 +102,7 @@ namespace NewLife
                 PluginCache = Path.GetPathRoot(sys).CombinePath("X", "Cache");
             }
 #endif
-            if (PluginServer.IsNullOrWhiteSpace()||PluginServer.EqualIgnoreCase("http://x.newlifex.com/")) PluginServer = "ftp://ftp.newlifex.com/x/";
+            if (PluginServer.IsNullOrWhiteSpace() || PluginServer.EqualIgnoreCase("http://x.newlifex.com/")) PluginServer = "ftp://ftp.newlifex.com/x/";
 
             base.OnLoaded();
         }
