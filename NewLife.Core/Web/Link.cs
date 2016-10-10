@@ -78,6 +78,9 @@ namespace NewLife.Web
                 var uri = new Uri(buri, link.RawUrl);
                 link.Url = uri.ToString();
 
+                // 从github.com下载需要处理Url
+                if (link.Url.Contains("github.com") && link.Url.Contains("/blob/")) link.Url = link.Url.Replace("/blob/", "/raw/");
+
                 // 分割名称，计算结尾的时间 yyyyMMddHHmmss
                 link.ParseTime();
 
