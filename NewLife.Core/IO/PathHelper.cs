@@ -9,9 +9,8 @@ namespace System.IO
     public static class PathHelper
     {
         #region 属性
-        private static String _baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         /// <summary>基础目录。GetFullPath依赖于此，默认为当前应用程序域基础目录</summary>
-        public static String BaseDirectory { get { return _baseDirectory; } set { _baseDirectory = value; } }
+        public static String BaseDirectory { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
         #endregion
 
         #region 路径操作辅助
@@ -258,6 +257,8 @@ namespace System.IO
         /// <param name="destDir"></param>
         public static void Extract(this FileInfo fi, String destDir)
         {
+            if (destDir.IsNullOrEmpty()) destDir = fi.Name.GetFullPath();
+
             ZipFile.ExtractToDirectory(fi.FullName, destDir);
         }
 
@@ -266,6 +267,8 @@ namespace System.IO
         /// <param name="destFile"></param>
         public static void Compress(this FileInfo fi, String destFile)
         {
+            if (destFile.IsNullOrEmpty()) destFile = fi.Name + ".zip";
+
             if (File.Exists(destFile)) File.Delete(destFile);
             using (var zf = ZipFile.Open(destFile, ZipArchiveMode.Create))
             {
@@ -302,54 +305,33 @@ namespace System.IO
             }
         }
 
-        //public static IEnumerable<String> GetAllFileNames(this DirectoryInfo di, String searchPattern = null, Boolean allSub = true)
-        //{
-        //    var root = di.FullName.GetFullPath().EnsureEnd("\\");
-        //    if (String.IsNullOrEmpty(searchPattern)) searchPattern = "*";
-        //    var opt = allSub ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        /// <summary>复制目录中的文件</summary>
+        /// <param name="di">源目录</param>
+        /// <param name="destDirName">目标目录</param>
+        /// <param name="exts">文件扩展列表。比如*.exe;*.dll;*.config</param>
+        /// <param name="allSub">是否包含所有子孙目录文件</param>
+        /// <param name="callback">复制每一个文件之前的回调</param>
+        /// <returns></returns>
+        public static String[] CopyTo(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
+        {
+            if (!di.Exists) return new String[0];
 
-        //    foreach (var pattern in searchPattern.Split(";", "|"))
-        //    {
-        //        foreach (var item in di.GetFiles(pattern, opt))
-        //        {
-        //            yield return item.FullName.TrimStart(root);
-        //        }
-        //    }
-        //}
+            var list = new List<String>();
 
-        ///// <summary>从指定目录更新本目录的文件</summary>
-        ///// <param name="di"></param>
-        ///// <param name="src"></param>
-        ///// <param name="searchPattern"></param>
-        ///// <param name="allSub"></param>
-        ///// <returns></returns>
-        //public static Int32 UpdateFrom(this DirectoryInfo di, String src, String searchPattern = null, Boolean allSub = true)
-        //{
-        //    if (di == null || String.IsNullOrEmpty(di.FullName)) return 0;
-        //    if (!String.IsNullOrEmpty(src) || !Directory.Exists(src)) return 0;
+            // 来源目录根，用于截断
+            var root = di.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
+            foreach (var item in di.GetAllFiles(exts, allSub))
+            {
+                var name = item.FullName.TrimStart(root);
+                var dst = destDirName.CombinePath(name);
+                callback?.Invoke(name);
+                item.CopyTo(dst.EnsureDirectory(true), true);
 
-        //    var root = di.FullName.GetFullPath().EnsureEnd("\\");
-        //    if (String.IsNullOrEmpty(searchPattern)) searchPattern = "*";
-        //    var opt = allSub ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+                list.Add(dst);
+            }
 
-        //    var count = 0;
-        //    foreach (var pattern in searchPattern.Split(";"))
-        //    {
-        //        foreach (var item in Directory.GetFiles(root, pattern, opt))
-        //        {
-        //            var srcFile = src.CombinePath(item.TrimStart(root));
-
-        //            try
-        //            {
-        //                File.Copy(srcFile, item, true);
-
-        //                count++;
-        //            }
-        //            catch { }
-        //        }
-        //    }
-        //    return count;
-        //}
+            return list.ToArray();
+        }
 
         /// <summary>对比源目录和目标目录，复制双方都存在且源目录较新的文件</summary>
         /// <param name="di">源目录</param>
@@ -358,15 +340,16 @@ namespace System.IO
         /// <param name="allSub">是否包含所有子孙目录文件</param>
         /// <param name="callback">复制每一个文件之前的回调</param>
         /// <returns></returns>
-        public static Int32 CopyToIfNewer(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
+        public static String[] CopyToIfNewer(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
         {
             var dest = destDirName.AsDirectory();
-            if (!dest.Exists) return 0;
+            if (!dest.Exists) return new String[0];
 
-            var count = 0;
+            var list = new List<String>();
 
             // 目标目录根，用于截断
             var root = dest.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
+            // 遍历目标目录，拷贝同名文件
             foreach (var item in dest.GetAllFiles(exts, allSub))
             {
                 var name = item.FullName.TrimStart(root);
@@ -374,20 +357,23 @@ namespace System.IO
                 //fi.CopyToIfNewer(item.FullName);
                 if (fi.Exists && item.Exists && fi.LastWriteTime > item.LastWriteTime)
                 {
-                    if (callback != null) callback(name);
+                    callback?.Invoke(name);
                     fi.CopyTo(item.FullName, true);
-                    count++;
+                    list.Add(fi.FullName);
                 }
             }
 
-            return count;
+            return list.ToArray();
         }
+
 #if !__MOBILE__
         /// <summary>压缩</summary>
         /// <param name="di"></param>
         /// <param name="destFile"></param>
-        public static void Compress(this DirectoryInfo di, String destFile)
+        public static void Compress(this DirectoryInfo di, String destFile = null)
         {
+            if (destFile.IsNullOrEmpty()) destFile = di.Name + ".zip";
+
             if (File.Exists(destFile)) File.Delete(destFile);
             ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
         }
