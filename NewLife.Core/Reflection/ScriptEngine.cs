@@ -402,6 +402,18 @@ namespace NewLife.Reflection
                 if (!options.ReferencedAssemblies.Contains(name)) options.ReferencedAssemblies.Add(name);
             }
 
+            // 最高仅支持C# 5.0
+            /*
+             * Microsoft (R) Visual C# Compiler version 4.6.1590.0 for C# 5
+             * Copyright (C) Microsoft Corporation. All rights reserved.
+             * 
+             * This compiler is provided as part of the Microsoft (R) .NET Framework, 
+             * but only supports language versions up to C# 5, which is no longer the latest version. 
+             * For compilers that support newer versions of the C# programming language, see http://go.microsoft.com/fwlink/?LinkID=533240
+             */
+            //var opts = new Dictionary<String, String>();
+            //opts["CompilerVersion"] = "v6.0";
+            //var provider = CodeDomProvider.CreateProvider("CSharp", opts);
             var provider = CodeDomProvider.CreateProvider("CSharp");
             return provider.CompileAssemblyFromSource(options, classCode);
         }
