@@ -411,10 +411,17 @@ namespace NewLife.Reflection
              * but only supports language versions up to C# 5, which is no longer the latest version. 
              * For compilers that support newer versions of the C# programming language, see http://go.microsoft.com/fwlink/?LinkID=533240
              */
-            //var opts = new Dictionary<String, String>();
+            var opts = new Dictionary<String, String>();
             //opts["CompilerVersion"] = "v6.0";
-            //var provider = CodeDomProvider.CreateProvider("CSharp", opts);
-            var provider = CodeDomProvider.CreateProvider("CSharp");
+            // 开发者机器有C# 6.0编译器
+            var pro = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
+            if (!pro.IsNullOrEmpty() && Directory.Exists(pro))
+            {
+                var msbuild = pro.CombinePath(@"MSBuild\14.0\bin");
+                if (File.Exists(msbuild.CombinePath("csc.exe"))) opts["CompilerDirectoryPath"] = msbuild;
+            }
+            var provider = CodeDomProvider.CreateProvider("CSharp", opts);
+            //var provider = CodeDomProvider.CreateProvider("CSharp");
             return provider.CompileAssemblyFromSource(options, classCode);
         }
         #endregion
