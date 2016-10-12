@@ -335,8 +335,15 @@ namespace NewLife.Reflection
 
                     // 异常中输出错误代码行
                     var code = "";
-                    var ss = FinalCode.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                    if (err.Line > 0 && err.Line <= ss.Length) code = ss[err.Line - 1].Trim();
+                    if (!err.FileName.IsNullOrEmpty() && File.Exists(err.FileName))
+                    {
+                        code = File.ReadAllLines(err.FileName)[err.Line - 1];
+                    }
+                    else
+                    {
+                        var ss = FinalCode.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                        if (err.Line > 0 && err.Line <= ss.Length) code = ss[err.Line - 1].Trim();
+                    }
 
                     throw new XException("{0} {1} {2}({3},{4}) {5}", err.ErrorNumber, err.ErrorText, err.FileName, err.Line, err.Column, code);
                 }
@@ -464,6 +471,8 @@ namespace NewLife.Reflection
                         var len = "using ".Length;
                         line = line.Substring(len, line.Length - len - 1);
                         if (!NameSpaces.Contains(line)) NameSpaces.Add(line);
+                        // 不能截断命名空间，否则报错行号会出错
+                        sb.AppendLine();
                         continue;
                     }
                 }
