@@ -223,7 +223,12 @@ WriteLiteral("</td>\r\n");
             if (item.Type.IsEnum)
             {
                 var v = entity[item.Name];
-                var val = System.EnumHelper.GetDescription((Enum)v) ?? v + "";
+                var val = v + "";
+                try
+                {
+                    val = System.EnumHelper.GetDescription((Enum)v) ?? v + "";
+                }
+                catch { }
 
             
             #line default
@@ -235,7 +240,7 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">");
 
             
-            #line 60 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 65 "..\..\Views\Shared\_List_Data_Item.cshtml"
                                    Write(val);
 
             
@@ -244,7 +249,7 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n");
 
             
-            #line 61 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 66 "..\..\Views\Shared\_List_Data_Item.cshtml"
             }
             else
             {
@@ -259,7 +264,7 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 64 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 69 "..\..\Views\Shared\_List_Data_Item.cshtml"
                                   Write(Convert.ToInt64(entity[item.Name]).ToString("n0"));
 
             
@@ -268,7 +273,7 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n");
 
             
-            #line 65 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 70 "..\..\Views\Shared\_List_Data_Item.cshtml"
             }
             break;
         case TypeCode.String:
@@ -288,7 +293,7 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("                    <td>");
 
             
-            #line 77 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 82 "..\..\Views\Shared\_List_Data_Item.cshtml"
                    Write(Html.ActionLink(entity[item.Name] + "", "Edit", map.Provider.EntityType.Name, dic, null));
 
             
@@ -297,7 +302,7 @@ WriteLiteral("                    <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 78 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 83 "..\..\Views\Shared\_List_Data_Item.cshtml"
                 }
                 else
                 {
@@ -308,7 +313,7 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("                    <td>");
 
             
-            #line 81 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 86 "..\..\Views\Shared\_List_Data_Item.cshtml"
                    Write(entity[item.Name]);
 
             
@@ -317,7 +322,7 @@ WriteLiteral("                    <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 82 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 87 "..\..\Views\Shared\_List_Data_Item.cshtml"
                 }
             }
             break;
@@ -326,7 +331,7 @@ WriteLiteral("</td>\r\n");
             #line default
             #line hidden
             
-            #line 87 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 92 "..\..\Views\Shared\_List_Data_Item.cshtml"
                         
     }
 }

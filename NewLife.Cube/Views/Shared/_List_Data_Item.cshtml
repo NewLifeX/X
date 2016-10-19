@@ -56,7 +56,12 @@ else
             if (item.Type.IsEnum)
             {
                 var v = entity[item.Name];
-                var val = System.EnumHelper.GetDescription((Enum)v) ?? v + "";
+                var val = v + "";
+                try
+                {
+                    val = System.EnumHelper.GetDescription((Enum)v) ?? v + "";
+                }
+                catch { }
                 <td class="text-center">@val</td>
             }
             else
