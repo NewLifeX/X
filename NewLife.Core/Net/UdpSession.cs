@@ -43,6 +43,20 @@ namespace NewLife.Net
         /// <summary>远程地址</summary>
         public NetUri Remote { get; set; }
 
+
+        private int _timeout;
+        /// <summary>超时。默认3000ms</summary>
+        public Int32 Timeout
+        {
+            get { return _timeout; }
+            set
+            {
+                _timeout = value;
+                if (Server != null)
+                    Server.Client.ReceiveTimeout = _timeout;
+            }
+        }
+
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer ISocketSession.Server { get { return Server; } }
 

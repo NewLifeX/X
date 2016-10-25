@@ -26,6 +26,7 @@ namespace NewLife.Net
         /// <summary>远程结点地址</summary>
         public NetUri Remote { get; set; }
 
+        private int _timeout;
         /// <summary>超时。默认3000ms</summary>
         public Int32 Timeout
         {
@@ -602,7 +603,6 @@ namespace NewLife.Net
 
         #region 日志
         private String _LogPrefix;
-        private int _timeout;
 
         /// <summary>日志前缀</summary>
         public virtual String LogPrefix
