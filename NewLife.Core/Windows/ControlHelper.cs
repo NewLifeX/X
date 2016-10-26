@@ -108,6 +108,7 @@ namespace System.Windows.Forms
         #endregion
 
         #region 文本控件扩展
+        private static Regex _line = new Regex("(?:[^\n])\r", RegexOptions.Compiled);
         /// <summary>附加文本到文本控件末尾。主要解决非UI线程以及滚动控件等问题</summary>
         /// <param name="txt">控件</param>
         /// <param name="msg">消息</param>
@@ -137,6 +138,23 @@ namespace System.Windows.Forms
                         //ProcessReturn(txt, ref m);
 
                         m = m.Trim('\0');
+                        // 针对非Windows系统到来的数据，处理一下换行
+                        if (txt is RichTextBox && Environment.NewLine == "\r\n")
+                        {
+                            // 合并多个回车
+                            while (m.Contains("\r\r")) m = m.Replace("\r\r", "\r");
+                            //while (m.Contains("\n\r")) m = m.Replace("\n\r", "\r\n");
+                            //m = m.Replace("\r\n", "<TagOfLine>");
+                            m = m.Replace("\r\n", "\n");
+                            //m = m.Replace("\r", "\r\n");
+                            m = m.Replace("\n\r", "\n");
+                            // 单独的\r换成\n
+                            //if (_line.IsMatch(m))
+                            //    m = _line.Replace(m, "\n");
+                            m = m.Replace("\r", "\n");
+                            //m = m.Replace("\r", null);
+                            //m = m.Replace("<TagOfLine>", "\r\n");
+                        }
                         if (String.IsNullOrEmpty(m)) return;
                         txt.AppendText(m);
                     }
@@ -335,9 +353,9 @@ namespace System.Windows.Forms
         static Color _Num = Color.FromArgb(255, 58, 131);
         static Color _KeyName = Color.FromArgb(0, 255, 255);
 
-        static String[] _Keys = new String[] { 
-            "(", ")", "{", "}", "[", "]", "*", "->", "+", "-", "*", "/", "\\", "%", "&", "|", "!", "=", ";", ",", ">", "<", 
-            "void", "new", "delete", "true", "false" 
+        static String[] _Keys = new String[] {
+            "(", ")", "{", "}", "[", "]", "*", "->", "+", "-", "*", "/", "\\", "%", "&", "|", "!", "=", ";", ",", ">", "<",
+            "void", "new", "delete", "true", "false"
         };
 
         /// <summary>采用默认着色方案进行着色</summary>
