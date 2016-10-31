@@ -6,9 +6,8 @@ namespace NewLife.Log
     /// <summary>控制台输出日志</summary>
     public class ConsoleLog : Logger
     {
-        private Boolean _UseColor = true;
         /// <summary>是否使用多种颜色，默认使用</summary>
-        public Boolean UseColor { get { return _UseColor; } set { _UseColor = value; } }
+        public Boolean UseColor { get; set; } = true;
 
         /// <summary>写日志</summary>
         /// <param name="level"></param>
