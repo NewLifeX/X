@@ -13,30 +13,64 @@ namespace NewLife.Cube.Admin.Controllers
     [EntityAuthorize(PermissionFlags.Detail)]
     public class FileController : ControllerBaseX
     {
+        private String Root { get { return "../".GetFullPath(); } }
+
+        private FileInfo GetFile(String r)
+        {
+            if (r.IsNullOrEmpty()) return null;
+
+            // 默认根目录
+            var fi = Root.CombinePath(r).AsFile();
+            if (!fi.Exists) return null;
+
+            return fi;
+        }
+
+        private DirectoryInfo GetDirectory(String r)
+        {
+            if (r.IsNullOrEmpty()) return null;
+
+            // 默认根目录
+            var di = Root.CombinePath(r).AsDirectory();
+            if (!di.Exists) return null;
+
+            return di;
+        }
+
+        //private FileSystemInfo Get(String r)
+        //{
+        //    var fi = GetFile(r);
+        //    if (fi != null)
+        //        fi.Delete();
+        //    else
+        //    {
+        //        var di = GetDirectory(r);
+        //        if (di == null) throw new Exception("找不到文件或目录！");
+        //        di.Delete(true);
+        //    }
+        //}
+
         /// <summary>文件管理主视图</summary>
         /// <returns></returns>
         public ActionResult Index(String r)
         {
-            // 默认根目录
-            var root = "../".GetFullPath();
-
-            if (r.IsNullOrEmpty()) r = "./";
-            var di = root.CombinePath(r).AsDirectory();
+            var di = GetDirectory(r) ?? Root.AsDirectory();
 
             // 检查目录越界
-            if (!di.FullName.StartsWithIgnoreCase(root)) di = root.AsDirectory();
+            var root = Root.TrimEnd(Path.DirectorySeparatorChar);
+            if (!di.FullName.StartsWithIgnoreCase(root)) di = Root.AsDirectory();
 
             ViewBag.Current = di.FullName;
 
             var fis = di.GetFileSystemInfos();
             var list = new List<FileItem>();
-            if (di.FullName.EnsureEnd(Path.DirectorySeparatorChar + "") != root)
+            if (di.FullName != root)
             {
                 list.Add(new FileItem
                 {
                     Name = "../",
                     Directory = true,
-                    FullName = di.Parent.FullName.EnsureEnd(Path.DirectorySeparatorChar + "").TrimStart(root)
+                    FullName = GetFullName(di.Parent.FullName)
                 });
             }
             foreach (var item in fis)
@@ -45,7 +79,7 @@ namespace NewLife.Cube.Admin.Controllers
 
                 var fi = new FileItem();
                 fi.Name = item.Name;
-                fi.FullName = item.FullName.TrimStart(root);
+                fi.FullName = GetFullName(item.FullName);
                 fi.Directory = item is DirectoryInfo;
                 fi.LastWrite = item.LastWriteTime;
 
@@ -69,6 +103,35 @@ namespace NewLife.Cube.Admin.Controllers
             list = list.OrderByDescending(e => e.Directory).ThenBy(e => e.Name).ToList();
 
             return View(list);
+        }
+
+        /// <summary>删除</summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        public ActionResult Delete(String r)
+        {
+            var p = "";
+
+            var fi = GetFile(r);
+            if (fi != null)
+            {
+                p = GetFullName(fi.Directory.FullName);
+                fi.Delete();
+            }
+            else
+            {
+                var di = GetDirectory(r);
+                if (di == null) throw new Exception("找不到文件或目录！");
+                p = GetFullName(di.Parent.FullName);
+                di.Delete(true);
+            }
+
+            return RedirectToAction("Index", new { r = p });
+        }
+
+        private String GetFullName(String r)
+        {
+            return r.TrimStart(Root).TrimStart(Root.TrimEnd(Path.DirectorySeparatorChar + ""));
         }
     }
 }
