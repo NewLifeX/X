@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Web.Mvc;
 using XCode.Membership;
@@ -64,7 +65,7 @@ namespace NewLife.Cube.Admin.Controllers
 
             var fis = di.GetFileSystemInfos();
             var list = new List<FileItem>();
-            if (di.FullName != root)
+            if (!di.FullName.EqualIgnoreCase(Root, root))
             {
                 list.Add(new FileItem
                 {
@@ -123,8 +124,52 @@ namespace NewLife.Cube.Admin.Controllers
                 var di = GetDirectory(r);
                 if (di == null) throw new Exception("找不到文件或目录！");
                 p = GetFullName(di.Parent.FullName);
-                di.Delete(true);
+                di.Delete();
             }
+
+            return RedirectToAction("Index", new { r = p });
+        }
+
+        /// <summary>压缩文件</summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        public ActionResult Compress(String r)
+        {
+            var p = "";
+
+            var fi = GetFile(r);
+            if (fi != null)
+            {
+                p = GetFullName(fi.Directory.FullName);
+                var dst = "{0}_{1:yyyyMMddHHmmss}.zip".F(fi.Name, DateTime.Now);
+                dst = fi.Directory.FullName.CombinePath(dst);
+                fi.Compress(dst);
+            }
+            else
+            {
+                var di = GetDirectory(r);
+                if (di == null) throw new Exception("找不到文件或目录！");
+                p = GetFullName(di.Parent.FullName);
+                var dst = "{0}_{1:yyyyMMddHHmmss}.zip".F(di.Name, DateTime.Now);
+                dst = di.Parent.FullName.CombinePath(dst);
+                di.Compress(dst);
+            }
+
+            return RedirectToAction("Index", new { r = p });
+        }
+
+        /// <summary>解压缩</summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        public ActionResult Decompress(String r)
+        {
+            var p = "";
+
+            var fi = GetFile(r);
+            if (fi == null) throw new Exception("找不到文件或目录！");
+
+            p = GetFullName(fi.Directory.FullName);
+            fi.Extract(fi.Directory.FullName);
 
             return RedirectToAction("Index", new { r = p });
         }
