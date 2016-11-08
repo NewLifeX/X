@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Speech.Recognition;
+//using System.Speech.Recognition;
 using NewLife.Log;
 
 namespace NewLife.Windows
@@ -9,7 +9,7 @@ namespace NewLife.Windows
     public class SpeechRecognition : DisposeBase
     {
         #region 属性
-        private SpeechRecognitionEngine _rg;
+        //private SpeechRecognitionEngine _rg;
 
         private IDictionary<String, Action> _dic;
 
@@ -34,7 +34,7 @@ namespace NewLife.Windows
         {
             base.OnDispose(disposing);
 
-            if (_rg != null) _rg.TryDispose();
+            //if (_rg != null) _rg.TryDispose();
         }
         #endregion
 
@@ -65,27 +65,27 @@ namespace NewLife.Windows
         #endregion
 
         #region 方法
-        Boolean Init()
-        {
-            if (_rg != null) return true;
+        //Boolean Init()
+        //{
+        //    if (_rg != null) return true;
 
-            var sr = new SpeechRecognitionEngine();
-            try
-            {
-                sr.SetInputToDefaultAudioDevice();
-                sr.SpeechRecognized += _rg_SpeechRecognized;
-                //_rg.RecognizeAsync(RecognizeMode.Multiple);
+        //    var sr = new SpeechRecognitionEngine();
+        //    try
+        //    {
+        //        sr.SetInputToDefaultAudioDevice();
+        //        sr.SpeechRecognized += _rg_SpeechRecognized;
+        //        //_rg.RecognizeAsync(RecognizeMode.Multiple);
 
-                _rg = sr;
+        //        _rg = sr;
 
-                return true;
-            }
-            catch
-            {
-                sr.TryDispose();
-                return false;
-            }
-        }
+        //        return true;
+        //    }
+        //    catch
+        //    {
+        //        sr.TryDispose();
+        //        return false;
+        //    }
+        //}
 
         void RegisterInternal(String text, Action callback)
         {
@@ -95,66 +95,66 @@ namespace NewLife.Windows
             {
                 _dic[text] = callback;
 
-                if (!flag) Change();
+                //if (!flag) Change();
             }
             else if (flag)
                 _dic.Remove(text);
         }
 
-        void Change()
-        {
-            lock (this)
-            {
-                if (!Init()) return;
+        //void Change()
+        //{
+        //    lock (this)
+        //    {
+        //        if (!Init()) return;
 
-                var gc = _rg.Grammars.Count;
-                //_rg.RecognizeAsyncCancel();
-                _rg.UnloadAllGrammars();
+        //        var gc = _rg.Grammars.Count;
+        //        //_rg.RecognizeAsyncCancel();
+        //        _rg.UnloadAllGrammars();
 
-                var cs = new Choices();
-                cs.Add(_Name);
-                cs.Add(_dic.Keys.ToArray());
+        //        var cs = new Choices();
+        //        cs.Add(_Name);
+        //        cs.Add(_dic.Keys.ToArray());
 
-                var gb = new GrammarBuilder();
-                gb.Append(cs);
+        //        var gb = new GrammarBuilder();
+        //        gb.Append(cs);
 
-                var gr = new Grammar(gb);
+        //        var gr = new Grammar(gb);
 
-                // 不能加载自然语法，否则关键字识别率大大下降
-                //_rg.LoadGrammarAsync(new DictationGrammar());
-                _rg.LoadGrammarAsync(gr);
+        //        // 不能加载自然语法，否则关键字识别率大大下降
+        //        //_rg.LoadGrammarAsync(new DictationGrammar());
+        //        _rg.LoadGrammarAsync(gr);
 
-                // 首次启动
-                if (gc == 0) _rg.RecognizeAsync(RecognizeMode.Multiple);
-            }
-        }
+        //        // 首次启动
+        //        if (gc == 0) _rg.RecognizeAsync(RecognizeMode.Multiple);
+        //    }
+        //}
 
-        void _rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        {
-            var rs = e.Result;
-            if (rs == null) return;
+        //void _rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        //{
+        //    var rs = e.Result;
+        //    if (rs == null) return;
 
-            if (rs.Confidence < 0.5) return;
+        //    if (rs.Confidence < 0.5) return;
 
-            // 语音识别前，必须先识别前缀名称，然后几秒内识别关键字
-            if (_Tip.AddSeconds(3) < DateTime.Now)
-            {
-                // 此时只识别前缀
-                if (rs.Text != _Name) return;
+        //    // 语音识别前，必须先识别前缀名称，然后几秒内识别关键字
+        //    if (_Tip.AddSeconds(3) < DateTime.Now)
+        //    {
+        //        // 此时只识别前缀
+        //        if (rs.Text != _Name) return;
 
-                XTrace.WriteLine("语音识别：{0} {1}", rs.Text, rs.Confidence);
+        //        XTrace.WriteLine("语音识别：{0} {1}", rs.Text, rs.Confidence);
 
-                // 现在可以开始识别关键字啦
-                _Tip = DateTime.Now;
-            }
-            else
-            {
-                XTrace.WriteLine("语音识别：{0} {1}", rs.Text, rs.Confidence);
+        //        // 现在可以开始识别关键字啦
+        //        _Tip = DateTime.Now;
+        //    }
+        //    else
+        //    {
+        //        XTrace.WriteLine("语音识别：{0} {1}", rs.Text, rs.Confidence);
 
-                Action func = null;
-                if (_dic.TryGetValue(rs.Text, out func)) func();
-            }
-        }
+        //        Action func = null;
+        //        if (_dic.TryGetValue(rs.Text, out func)) func();
+        //    }
+        //}
         #endregion
     }
 }
