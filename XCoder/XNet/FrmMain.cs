@@ -184,7 +184,7 @@ namespace XNet
 
                 _Client.Open();
 
-                //"已连接服务器".SpeechTip();
+                "已连接服务器".SpeechTip();
             }
             else if (_Server != null)
             {
@@ -200,7 +200,7 @@ namespace XNet
 
                 _Server.Start();
 
-                //"正在监听{0}".F(port).SpeechTip();
+                "正在监听{0}".F(port).SpeechTip();
             }
 
             pnlSetting.Enabled = false;
@@ -220,11 +220,11 @@ namespace XNet
                 _Client.Dispose();
                 _Client = null;
 
-                //"关闭连接".SpeechTip();
+                "关闭连接".SpeechTip();
             }
             if (_Server != null)
             {
-                //"停止监听{0}".F(_Server.Port).SpeechTip();
+                "停止监听{0}".F(_Server.Port).SpeechTip();
                 _Server.Dispose();
                 _Server = null;
             }
