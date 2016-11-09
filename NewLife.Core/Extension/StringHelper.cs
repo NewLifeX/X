@@ -613,45 +613,45 @@ namespace System
         }
         #endregion
 
-        #region 文字转语音
-#if !__MOBILE__
-        //private static NewLife.Extension.SpeakProvider _provider;
-        private static System.Speech.Synthesis.SpeechSynthesizer _provider;
-        static void Init()
-        {
-            if (_provider == null)
-            {
-                _provider = new Speech.Synthesis.SpeechSynthesizer();
-                _provider.SetOutputToDefaultAudioDevice();
-            }
-        }
+//        #region 文字转语音
+//#if !__MOBILE__
+//        //private static NewLife.Extension.SpeakProvider _provider;
+//        private static System.Speech.Synthesis.SpeechSynthesizer _provider;
+//        static void Init()
+//        {
+//            if (_provider == null)
+//            {
+//                _provider = new Speech.Synthesis.SpeechSynthesizer();
+//                _provider.SetOutputToDefaultAudioDevice();
+//            }
+//        }
 
-        /// <summary>调用语音引擎说出指定话</summary>
-        /// <param name="value"></param>
-        public static void Speak(this String value)
-        {
-            Init();
+//        /// <summary>调用语音引擎说出指定话</summary>
+//        /// <param name="value"></param>
+//        public static void Speak(this String value)
+//        {
+//            Init();
 
-            _provider.Speak(value);
-        }
+//            _provider.Speak(value);
+//        }
 
-        /// <summary>异步调用语音引擎说出指定话。可能导致后来的调用打断前面的语音</summary>
-        /// <param name="value"></param>
-        public static void SpeakAsync(this String value)
-        {
-            Init();
+//        /// <summary>异步调用语音引擎说出指定话。可能导致后来的调用打断前面的语音</summary>
+//        /// <param name="value"></param>
+//        public static void SpeakAsync(this String value)
+//        {
+//            Init();
 
-            _provider.SpeakAsync(value);
-        }
+//            _provider.SpeakAsync(value);
+//        }
 
-        /// <summary>语音提示操作</summary>
-        /// <param name="value"></param>
-        public static void SpeechTip(this String value)
-        {
-            if (Setting.Current.SpeechTip) SpeakAsync(value);
-        }
-#endif
-        #endregion
+//        /// <summary>语音提示操作</summary>
+//        /// <param name="value"></param>
+//        public static void SpeechTip(this String value)
+//        {
+//            if (Setting.Current.SpeechTip) SpeakAsync(value);
+//        }
+//#endif
+//        #endregion
 
         #region 执行命令行
         /// <summary>以隐藏窗口执行命令行</summary>

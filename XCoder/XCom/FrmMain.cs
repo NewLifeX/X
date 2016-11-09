@@ -67,7 +67,7 @@ namespace XCom
                 TextControlLog.WriteLog(txtReceive, cmd);
             }
 
-            "连接串口{0}".F(st.PortName).SpeechTip();
+            //"连接串口{0}".F(st.PortName).SpeechTip();
 
             btnConnect.Text = "关闭";
 
@@ -84,7 +84,7 @@ namespace XCom
             if (st != null) st.Disconnected -= (s, e) => this.Invoke(Disconnect);
             spList.Disconnect();
 
-            "串口已断开".SpeechTip();
+            //"串口已断开".SpeechTip();
 
             btnConnect.Text = "打开";
         }
