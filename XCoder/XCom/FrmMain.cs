@@ -80,6 +80,9 @@ namespace XCom
 
         void Disconnect()
         {
+            //if (spList.Enabled) return;
+            if (btnConnect.Text == "打开") return;
+
             var st = spList.Port;
             if (st != null) st.Disconnected -= (s, e) => this.Invoke(Disconnect);
             spList.Disconnect();
