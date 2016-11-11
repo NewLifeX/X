@@ -615,14 +615,15 @@ namespace System
 
         #region 文字转语音
 #if !__MOBILE__
-        //private static NewLife.Extension.SpeakProvider _provider;
-        private static System.Speech.Synthesis.SpeechSynthesizer _provider;
+        private static NewLife.Extension.SpeakProvider _provider;
+        //private static System.Speech.Synthesis.SpeechSynthesizer _provider;
         static void Init()
         {
             if (_provider == null)
             {
-                _provider = new Speech.Synthesis.SpeechSynthesizer();
-                _provider.SetOutputToDefaultAudioDevice();
+                //_provider = new Speech.Synthesis.SpeechSynthesizer();
+                //_provider.SetOutputToDefaultAudioDevice();
+                _provider = new NewLife.Extension.SpeakProvider();
             }
         }
 

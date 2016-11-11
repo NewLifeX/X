@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using System.Reflection;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -9,25 +10,31 @@ namespace NewLife.Extension
 {
     class SpeakProvider
     {
-        //private static String typeName = "Microsoft.Speech.Synthesis.SpeechSynthesizer";
-        //private static String typeName2 = "System.Speech.Synthesis.SpeechSynthesizer";
+        private static String typeName = "Microsoft.Speech.Synthesis.SpeechSynthesizer";
+        private static String typeName2 = "System.Speech.Synthesis.SpeechSynthesizer";
         private Type _type;
 
         public SpeakProvider()
         {
             try
             {
-                //var url = Setting.Current.PluginServer;
+                var url = Setting.Current.PluginServer;
 
-                //// 新版系统内置
-                //if (Environment.OSVersion.Version.Major >= 6) typeName = "System.Speech.Synthesis.SpeechSynthesizer";
+                // 新版系统内置
+                if (Environment.OSVersion.Version.Major >= 6)
+                {
+                    typeName = "System.Speech.Synthesis.SpeechSynthesizer";
 
-                //_type = typeName2.GetTypeEx(true);
-                //if (_type == null) _type = PluginHelper.LoadPlugin(typeName, "语音驱动库", "Microsoft.Speech.dll", "Microsoft.Speech", url);
+                    Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
+                }
 
-                _type = typeof(System.Speech.Synthesis.SpeechSynthesizer);
+                _type = typeName2.GetTypeEx(true);
+                if (_type == null) _type = PluginHelper.LoadPlugin(typeName, "语音驱动库", "Microsoft.Speech.dll", "Microsoft.Speech", url);
 
-                CheckVoice();
+                //_type = typeof(System.Speech.Synthesis.SpeechSynthesizer);
+
+                // 低版本系统需要安装语音库
+                if (_type != null && _type.FullName.StartsWith("Microsoft.Speech")) CheckVoice();
             }
             catch (Exception ex)
             {
