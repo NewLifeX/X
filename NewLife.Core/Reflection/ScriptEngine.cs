@@ -254,9 +254,13 @@ namespace NewLife.Reflection
             // 这里也许用正则判断会更好一些
             else if (!code.Contains(" Main("))
             {
-                // 如果不是;和}结尾，则增加分号
-                var last = code[code.Length - 1];
-                if (last != ';' && last != '}') code += ";";
+                // 单行才考虑加分号，多行可能有 #line 指令开头
+                if (!code.Contains(Environment.NewLine))
+                {
+                    // 如果不是;和}结尾，则增加分号
+                    var last = code[code.Length - 1];
+                    if (last != ';' && last != '}') code += ";";
+                }
                 code = String.Format("\t\tstatic void Main()\r\n\t\t{{\r\n\t\t\t{0}\r\n\t\t}}", code);
             }
 
