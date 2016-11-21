@@ -304,7 +304,7 @@ namespace NewLife.Web
                 {
                     Log.Info("解压缩到 {0}", destdir);
                     //ZipFile.ExtractToDirectory(file, destdir);
-                    file.AsFile().Extract(destdir);
+                    file.AsFile().Extract(destdir, true);
 
                     return file;
                 }

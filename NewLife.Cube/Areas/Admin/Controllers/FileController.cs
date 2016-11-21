@@ -169,7 +169,7 @@ namespace NewLife.Cube.Admin.Controllers
             if (fi == null) throw new Exception("找不到文件或目录！");
 
             p = GetFullName(fi.Directory.FullName);
-            fi.Extract(fi.Directory.FullName);
+            fi.Extract(fi.Directory.FullName, true);
 
             return RedirectToAction("Index", new { r = p });
         }

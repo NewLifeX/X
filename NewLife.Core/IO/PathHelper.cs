@@ -255,11 +255,39 @@ namespace System.IO
         /// <summary>解压缩</summary>
         /// <param name="fi"></param>
         /// <param name="destDir"></param>
-        public static void Extract(this FileInfo fi, String destDir)
+        /// <param name="overwrite">是否覆盖目标同名文件</param>
+        public static void Extract(this FileInfo fi, String destDir, Boolean overwrite = false)
         {
             if (destDir.IsNullOrEmpty()) destDir = fi.Name.GetFullPath();
 
-            ZipFile.ExtractToDirectory(fi.FullName, destDir);
+            //ZipFile.ExtractToDirectory(fi.FullName, destDir);
+
+            using (var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null))
+            {
+                var di = Directory.CreateDirectory(destDir);
+                string fullName = di.FullName;
+                foreach (var current in zip.Entries)
+                {
+                    string fullPath = Path.GetFullPath(Path.Combine(fullName, current.FullName));
+                    if (!fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new IOException("IO_ExtractingResultsInOutside");
+                    }
+                    if (Path.GetFileName(fullPath).Length == 0)
+                    {
+                        if (current.Length != 0L)
+                        {
+                            throw new IOException("IO_DirectoryNameWithData");
+                        }
+                        Directory.CreateDirectory(fullPath);
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                        current.ExtractToFile(fullPath, overwrite);
+                    }
+                }
+            }
         }
 
         /// <summary>压缩文件</summary>
