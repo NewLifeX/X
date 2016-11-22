@@ -176,6 +176,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="Areas\Admin\Views\User\_Form_Action.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_Form_Action.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Views\User\_List_Toolbar.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -383,6 +388,10 @@
     <Content Include="Areas\Admin\Views\File\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\User\_Form_Action.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
     </Content>
     <None Include="Content\ace\css\ace-fonts.min.css" />
     <None Include="Content\ace\css\ace-ie.min.css" />

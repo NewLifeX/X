@@ -215,5 +215,19 @@ namespace NewLife.Cube.Admin.Controllers
 
             return View("Login");
         }
+
+        /// <summary>清空密码</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public ActionResult ClearPassword(Int32 id)
+        {
+            // 前面表单可能已经清空密码
+            var user = UserX.FindByID(id);
+            //user.Password = "nopass";
+            user.Password = null;
+            user.SaveWithoutValid();
+
+            return RedirectToAction("Edit", new { id });
+        }
     }
 }

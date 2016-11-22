@@ -97,6 +97,7 @@ namespace XCode.Membership
                 }
             }
         }
+
         /// <summary>删除用户</summary>
         /// <returns></returns>
         protected override int OnDelete()
