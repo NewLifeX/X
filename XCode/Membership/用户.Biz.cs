@@ -405,6 +405,22 @@ namespace XCode.Membership
                     if (!p.EqualIgnoreCase(password)) throw new EntityException("密码不正确！");
                 }
             }
+            else
+            {
+                if (hashTimes > 0)
+                {
+                    var p = password;
+                    if (!String.IsNullOrEmpty(p))
+                    {
+                        for (int i = 0; i < hashTimes; i++)
+                        {
+                            p = p.MD5();
+                        }
+                    }
+                    password = p;
+                }
+                user.Password = password;
+            }
 
             user.SaveLoginInfo();
 
