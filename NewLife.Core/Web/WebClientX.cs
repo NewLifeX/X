@@ -209,19 +209,26 @@ namespace NewLife.Web
             }
 
             // 确保即使联网下载失败，也返回较旧版本
-            var ls = GetLinks(url);
-            if (ls.Length == 0) return file;
-
-            // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
             Link link = null;
-            foreach (var item in names)
+            try
             {
-                link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                   .Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
-                   .OrderByDescending(e => e.Version)
-                   .OrderByDescending(e => e.Time)
-                   .FirstOrDefault();
-                if (link != null) break;
+                var ls = GetLinks(url);
+                if (ls.Length == 0) return file;
+
+                // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
+                foreach (var item in names)
+                {
+                    link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
+                       .Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
+                       .OrderByDescending(e => e.Version)
+                       .OrderByDescending(e => e.Time)
+                       .FirstOrDefault();
+                    if (link != null) break;
+                }
+            }
+            catch (WebException ex)
+            {
+                Log.Error(ex.Message);
             }
             if (link == null) return file;
 
