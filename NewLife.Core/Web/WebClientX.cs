@@ -298,8 +298,9 @@ namespace NewLife.Web
         /// <param name="url">指定页面</param>
         /// <param name="name">页面上指定名称的链接</param>
         /// <param name="destdir">要下载到的目标目录</param>
+        /// <param name="overwrite">是否覆盖目标同名文件</param>
         /// <returns></returns>
-        public String DownloadLinkAndExtract(String url, String name, String destdir)
+        public String DownloadLinkAndExtract(String url, String name, String destdir, Boolean overwrite = false)
         {
             var file = "";
             var cachedir = Setting.Current.PluginCache;
@@ -311,7 +312,7 @@ namespace NewLife.Web
                 {
                     Log.Info("解压缩到 {0}", destdir);
                     //ZipFile.ExtractToDirectory(file, destdir);
-                    file.AsFile().Extract(destdir, true);
+                    file.AsFile().Extract(destdir, overwrite);
 
                     return file;
                 }

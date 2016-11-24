@@ -70,7 +70,7 @@ namespace NewLife.Cube.Admin
 
             var wc = new WebClientX(true, true);
             wc.Log = XTrace.Log;
-            wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath());
+            wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath(), false);
         }
     }
 }
