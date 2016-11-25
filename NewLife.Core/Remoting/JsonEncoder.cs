@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Log;
 using NewLife.Serialization;
 
 namespace NewLife.Remoting
@@ -11,12 +12,20 @@ namespace NewLife.Remoting
     {
         public T Decode<T>(Byte[] data)
         {
-            return data.ToStr().ToJsonEntity<T>();
+            var json = data.ToStr();
+
+            XTrace.WriteLine("<={0}", json);
+
+            return json.ToJsonEntity<T>();
         }
 
         public Byte[] Encode(Object obj)
         {
-            return obj.ToJson().GetBytes();
+            var json = obj.ToJson();
+
+            XTrace.WriteLine("=>{0}", json);
+
+            return json.GetBytes();
         }
     }
 }

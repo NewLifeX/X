@@ -86,10 +86,6 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> Invoke<TResult>(String action, Object args = null)
         {
-            //return default(TResult);
-
-            //Client.Invoke(action, args);
-
             var data = Encoder.Encode(new { action, args });
 
             var rs = await Client.SendAsync(data);
