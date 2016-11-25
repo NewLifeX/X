@@ -3,16 +3,17 @@
 ################################################################################
 
 /.vs
-/NewLife.Core/obj
-/NewLife.Cube/Bin
-/NewLife.Cube/obj
-/NewLife.MQ/obj
-/NewLife.Net/obj
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
 /packages
-/Test/obj
-/XCode/obj
-/XCoder/obj
-/XTemplate/obj
 *.user
 /Data
 /Log
@@ -21,3 +22,5 @@
 *.log
 *.config
 *.htm
+*.nuspec
+*.nupkg
