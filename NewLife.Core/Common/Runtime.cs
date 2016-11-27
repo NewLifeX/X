@@ -361,7 +361,7 @@ namespace NewLife
         #endregion
     }
 
-#if !__MOBILE__
+#if !__MOBILE__  && !__CORE__
     /// <summary>标识系统上的程序组</summary>
     [Flags]
     enum OSSuites : ushort

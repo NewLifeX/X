@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.ConstrainedExecution;
 using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Log;
@@ -37,7 +36,7 @@ namespace NewLife
     /// }
     /// </code>
     /// </example>
-    public abstract class DisposeBase : CriticalFinalizerObject, IDisposable2
+    public abstract class DisposeBase : IDisposable2
     {
         #region 释放资源
         /// <summary>释放资源</summary>
@@ -52,7 +51,7 @@ namespace NewLife
         /// <summary>被销毁时触发事件</summary>
         [field: NonSerialized]
         public event EventHandler OnDisposed;
-        
+
         /// <summary>释放资源，参数表示是否由Dispose调用。该方法保证OnDispose只被调用一次！</summary>
         /// <param name="disposing"></param>
         private void Dispose(Boolean disposing)

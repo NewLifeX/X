@@ -29,10 +29,10 @@ namespace XTemplate.Templating
         /// <param name="innerException"></param>
         public TemplateExecutionException(Exception innerException) : base((innerException != null ? innerException.Message : null), innerException) { }
 
-        /// <summary>初始化</summary>
-        /// <param name="info"></param>
-        /// <param name="context"></param>
-        protected TemplateExecutionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        ///// <summary>初始化</summary>
+        ///// <param name="info"></param>
+        ///// <param name="context"></param>
+        //protected TemplateExecutionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
         #endregion
     }
 }

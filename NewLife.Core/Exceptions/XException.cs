@@ -6,7 +6,7 @@ namespace NewLife
 {
     /// <summary>X组件异常</summary>
     [Serializable]
-    public class XException : ApplicationException
+    public class XException : Exception
     {
         #region 构造
         /// <summary>初始化</summary>
@@ -36,10 +36,10 @@ namespace NewLife
         /// <param name="innerException"></param>
         public XException(Exception innerException) : base((innerException != null ? innerException.Message : null), innerException) { }
 
-        /// <summary>初始化</summary>
-        /// <param name="info"></param>
-        /// <param name="context"></param>
-        protected XException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        ///// <summary>初始化</summary>
+        ///// <param name="info"></param>
+        ///// <param name="context"></param>
+        //protected XException(SerializationInfo info, StreamingContext context) : base(info, context) { }
         #endregion
     }
 

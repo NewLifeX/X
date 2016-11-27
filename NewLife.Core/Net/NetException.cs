@@ -29,10 +29,10 @@ namespace NewLife.Net
         /// <param name="innerException"></param>
         public NetException(Exception innerException) : base((innerException != null ? innerException.Message : null), innerException) { }
 
-        /// <summary>初始化</summary>
-        /// <param name="info"></param>
-        /// <param name="context"></param>
-        protected NetException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        ///// <summary>初始化</summary>
+        ///// <param name="info"></param>
+        ///// <param name="context"></param>
+        //protected NetException(SerializationInfo info, StreamingContext context) : base(info, context) { }
         #endregion
     }
 }

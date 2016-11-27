@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,14 +19,14 @@ namespace NewLife.Agent
     public abstract class AgentServiceBase<TService> : AgentServiceBase, IAgentService
          where TService : AgentServiceBase<TService>, new()
     {
-        #region 构造
+#region 构造
         static AgentServiceBase()
         {
             if (_Instance == null) _Instance = new TService();
         }
-        #endregion
+#endregion
 
-        #region 静态辅助函数
+#region 静态辅助函数
         /// <summary>服务主函数</summary>
         public static void ServiceMain()
         {
@@ -42,7 +43,7 @@ namespace NewLife.Agent
 
             if (Args.Length > 1)
             {
-                #region 命令
+#region 命令
                 String cmd = Args[1].ToLower();
                 if (cmd == "-s")  //启动服务
                 {
@@ -94,13 +95,13 @@ namespace NewLife.Agent
                     }
                     return;
                 }
-                #endregion
+#endregion
             }
             else
             {
                 Console.Title = service.DisplayName;
 
-                #region 命令行
+#region 命令行
                 XTrace.UseConsole();
 
                 //输出状态
@@ -138,7 +139,7 @@ namespace NewLife.Agent
                                 service.ControlService(true);
                             break;
                         case 4:
-                            #region 单步调试
+#region 单步调试
                             try
                             {
                                 var count = Instance.ThreadCount;
@@ -169,10 +170,10 @@ namespace NewLife.Agent
                             {
                                 Console.WriteLine(ex.ToString());
                             }
-                            #endregion
+#endregion
                             break;
                         case 5:
-                            #region 循环调试
+#region 循环调试
                             try
                             {
                                 Console.WriteLine("正在循环调试……");
@@ -187,10 +188,10 @@ namespace NewLife.Agent
                             {
                                 Console.WriteLine(ex.ToString());
                             }
-                            #endregion
+#endregion
                             break;
                         case 6:
-                            #region 附加服务
+#region 附加服务
                             Console.WriteLine("正在附加服务调试……");
                             service.StartAttachServers();
 
@@ -198,7 +199,7 @@ namespace NewLife.Agent
                             Console.ReadKey(true);
 
                             service.StopAttachServers();
-                            #endregion
+#endregion
                             break;
                         case 7:
                             if (WatchDogs.Length > 0) CheckWatchDog();
@@ -210,7 +211,7 @@ namespace NewLife.Agent
                             break;
                     }
                 }
-                #endregion
+#endregion
             }
         }
 
@@ -324,9 +325,9 @@ namespace NewLife.Agent
 
             Console.ForegroundColor = color;
         }
-        #endregion
+#endregion
 
-        #region 服务控制
+#region 服务控制
         private Thread[] _Threads;
         /// <summary>线程组</summary>
         private Thread[] Threads { get { return _Threads ?? (_Threads = new Thread[ThreadCount]); } set { _Threads = value; } }
@@ -614,9 +615,9 @@ namespace NewLife.Agent
                 WriteLine(ex.ToString());
             }
         }
-        #endregion
+#endregion
 
-        #region 服务维护线程
+#region 服务维护线程
         /// <summary>服务管理线程</summary>
         private Thread ManagerThread;
 
@@ -847,9 +848,9 @@ namespace NewLife.Agent
 
             //if (File.Exists(filename)) File.Delete(filename);
         }
-        #endregion
+#endregion
 
-        #region 看门狗
+#region 看门狗
         private static String[] _WatchDogs;
         /// <summary>看门狗要保护的服务</summary>
         public static String[] WatchDogs
@@ -887,6 +888,7 @@ namespace NewLife.Agent
                 }
             }
         }
-        #endregion
+#endregion
     }
 }
+#endif
