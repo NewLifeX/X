@@ -79,6 +79,7 @@ namespace NewLife.Log
         #endregion
 
         #region 异步读写方法
+#if !__CORE__
         /// <summary>异步开始读</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
@@ -125,6 +126,7 @@ namespace NewLife.Log
 
             BaseStream.EndWrite(asyncResult);
         }
+#endif
         #endregion
 
         #region 其它方法
@@ -139,6 +141,8 @@ namespace NewLife.Log
             return BaseStream.Seek(offset, origin);
         }
 
+#if __CORE__
+#else
         /// <summary>关闭数据流</summary>
         public override void Close()
         {
@@ -146,6 +150,7 @@ namespace NewLife.Log
 
             BaseStream.Close();
         }
+#endif
 
         /// <summary>刷新缓冲区</summary>
         public override void Flush()
@@ -163,9 +168,9 @@ namespace NewLife.Log
 
             BaseStream.SetLength(value);
         }
-        #endregion
+#endregion
 
-        #region 属性
+#region 属性
         /// <summary>可读</summary>
         public override Boolean CanRead { get { return BaseStream.CanRead; } }
 
@@ -198,9 +203,9 @@ namespace NewLife.Log
                 BaseStream.Position = value;
             }
         }
-        #endregion
+#endregion
 
-        #region 构造
+#region 构造
         /// <summary>实例化跟踪流</summary>
         public TraceStream() : this(null) { }
 
@@ -219,9 +224,9 @@ namespace NewLife.Log
 
             if (!UseConsole) OnAction += XTrace_OnAction;
         }
-        #endregion
+#endregion
 
-        #region 事件
+#region 事件
         /// <summary>操作时触发</summary>
         public event EventHandler<EventArgs<String, Object[]>> OnAction;
 
@@ -251,9 +256,9 @@ namespace NewLife.Log
                 OnAction(this, new EventArgs<String, Object[]>(action, args));
             }
         }
-        #endregion
+#endregion
 
-        #region 控制台
+#region 控制台
         private Boolean _UseConsole;
         /// <summary>是否使用控制台</summary>
         public Boolean UseConsole
@@ -373,9 +378,9 @@ namespace NewLife.Log
 
             return bts;
         }
-        #endregion
+#endregion
 
-        #region 日志
+#region 日志
         void XTrace_OnAction(Object sender, EventArgs<String, Object[]> e)
         {
             var sb = new StringBuilder();
@@ -449,6 +454,6 @@ namespace NewLife.Log
 
             XTrace.WriteLine(sb.ToString());
         }
-        #endregion
+#endregion
     }
 }

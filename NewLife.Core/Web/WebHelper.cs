@@ -4,10 +4,14 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using System.Text;
+#if !__CORE__
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
+#else
+using Microsoft.AspNetCore.Http;
+#endif
 using NewLife.Collections;
 using NewLife.Reflection;
 
@@ -219,7 +223,8 @@ namespace NewLife.Web
 
         #region Http请求
         /// <summary>Http请求</summary>
-        public static HttpRequest Request {
+        public static HttpRequest Request
+        {
             get
             {
                 if (HttpContext.Current == null)

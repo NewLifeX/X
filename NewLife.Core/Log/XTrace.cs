@@ -6,7 +6,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-#if !__MOBILE__
+#if __MOBILE__
+#elif __CORE__
+#else
 using System.Windows.Forms;
 #endif
 using NewLife.Reflection;
@@ -68,7 +70,10 @@ namespace NewLife.Log
         #region 构造
         static XTrace()
         {
+#if __CORE__
+#else
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+#endif
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         }
 
@@ -229,7 +234,9 @@ namespace NewLife.Log
         #endregion
 
         #region 拦截WinForm异常
-#if !__MOBILE__
+#if __MOBILE__
+#elif __CORE__
+#else
         private static Int32 initWF = 0;
         private static Boolean _ShowErrorMessage;
         //private static String _Title;
@@ -355,7 +362,9 @@ namespace NewLife.Log
         #endregion
 
         #region Dump
-#if !__MOBILE__
+#if __MOBILE__
+#elif __CORE__
+#else
         /// <summary>写当前线程的MiniDump</summary>
         /// <param name="dumpFile">如果不指定，则自动写入日志目录</param>
         public static void WriteMiniDump(String dumpFile)
@@ -440,6 +449,8 @@ namespace NewLife.Log
         #endregion
 
         #region 调用栈
+#if __CORE__
+#else
         /// <summary>堆栈调试。
         /// 输出堆栈信息，用于调试时处理调用上下文。
         /// 本方法会造成大量日志，请慎用。
@@ -526,17 +537,23 @@ namespace NewLife.Log
             }
             return sb.ToString();
         }
+#endif
         #endregion
 
         #region 版本信息
         /// <summary>输出核心库和启动程序的版本号</summary>
         public static void WriteVersion()
         {
+#if __CORE__
+            var asm2 = Assembly.GetEntryAssembly();
+            WriteVersion(asm2);
+#else
             var asm = Assembly.GetExecutingAssembly();
             WriteVersion(asm);
 
             var asm2 = Assembly.GetEntryAssembly();
             if (asm2 != asm) WriteVersion(asm2);
+#endif
         }
 
         /// <summary>输出程序集版本</summary>
@@ -548,6 +565,6 @@ namespace NewLife.Log
             var asmx = AssemblyX.Create(asm);
             if (asmx != null) WriteLine("{0,-12} v{1,-13} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
-        #endregion
+#endregion
     }
 }

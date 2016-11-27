@@ -1,10 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+#if !__CORE__
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
+#endif
 using System.Security;
-#if !__MOBILE__
+#if !__MOBILE__ && !__CORE__
 using System.Web;
 using Microsoft.VisualBasic.Devices;
 #endif
@@ -15,7 +17,7 @@ namespace NewLife
     public static class Runtime
     {
         #region 控制台
-#if !__MOBILE__
+#if !__MOBILE__ && !__CORE__
         static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 #endif
 
@@ -27,7 +29,9 @@ namespace NewLife
             {
                 if (_IsConsole != null) return _IsConsole.Value;
 
-#if !__MOBILE__
+#if __MOBILE__ || __CORE__
+                _IsConsole = false;
+#else
                 IntPtr ip = Win32Native.GetStdHandle(-11);
                 if (ip == IntPtr.Zero || ip == INVALID_HANDLE_VALUE)
                     _IsConsole = false;
@@ -39,8 +43,6 @@ namespace NewLife
                     else
                         _IsConsole = true;
                 }
-#else
-                _IsConsole = false;
 #endif
 
                 return _IsConsole.Value;
@@ -49,12 +51,12 @@ namespace NewLife
         #endregion
 
         #region Web环境
-#if !__MOBILE__
-        /// <summary>是否Web环境</summary>
-        public static Boolean IsWeb { get { return !String.IsNullOrEmpty(HttpRuntime.AppDomainAppId); } }
-#else
+#if __MOBILE__ || __CORE__
         /// <summary>是否Web环境</summary>
         public static Boolean IsWeb { get { return false; } }
+#else
+        /// <summary>是否Web环境</summary>
+        public static Boolean IsWeb { get { return !String.IsNullOrEmpty(HttpRuntime.AppDomainAppId); } }
 #endif
         #endregion
 
@@ -82,12 +84,13 @@ namespace NewLife
             {
                 if (Is64BitProcess) return true;
 
-#if !__MOBILE__ && !NET4
+#if __MOBILE__ || NET4
+                return Environment.Is64BitOperatingSystem;
+#elif  __CORE__
+                return Is64BitProcess;
+#else
                 Boolean flag;
                 return Win32Native.DoesWin32MethodExist("kernel32.dll", "IsWow64Process") && Win32Native.IsWow64Process(Win32Native.GetCurrentProcess(), out flag) && flag;
-#else
-
-                return Environment.Is64BitOperatingSystem;
 #endif
             }
         }
@@ -98,7 +101,22 @@ namespace NewLife
         #endregion
 
         #region 操作系统
-#if !__MOBILE__
+#if __MOBILE__
+        private static String _OSName;
+        /// <summary>操作系统</summary>
+        public static String OSName
+        {
+            get
+            {
+                if (_OSName != null) return _OSName;
+
+                _OSName = Environment.OSVersion + "";
+
+                return _OSName;
+            }
+        }
+#elif __CORE__
+#else
         private static String _OSName;
         /// <summary>操作系统</summary>
         public static String OSName
@@ -112,7 +130,7 @@ namespace NewLife
                 var is64 = Is64BitOperatingSystem;
                 var sys = "";
 
-                #region Win32
+        #region Win32
                 if (os.Platform == PlatformID.Win32Windows)
                 {
                     // 非NT系统
@@ -136,7 +154,7 @@ namespace NewLife
                     }
                     sys = "Windows " + sys;
                 }
-                #endregion
+        #endregion
                 else if (os.Platform == PlatformID.Win32NT)
                 {
                     sys = GetNTName(vs);
@@ -268,25 +286,13 @@ namespace NewLife
 
             return sys;
         }
-#else
-        private static String _OSName;
-        /// <summary>操作系统</summary>
-        public static String OSName
-        {
-            get
-            {
-                if (_OSName != null) return _OSName;
-
-                _OSName = Environment.OSVersion.ToString();
-
-                return _OSName;
-            }
-        }
 #endif
         #endregion
 
         #region 内存设置
-#if !__MOBILE__
+#if __MOBILE__
+#elif __CORE__
+#else
         /// <summary>设置进程的程序集大小，将部分物理内存占用转移到虚拟内存</summary>
         /// <param name="pid">要设置的进程ID</param>
         /// <param name="min">最小值</param>
@@ -361,7 +367,9 @@ namespace NewLife
         #endregion
     }
 
-#if !__MOBILE__  && !__CORE__
+#if __MOBILE__
+#elif __CORE__
+#else
     /// <summary>标识系统上的程序组</summary>
     [Flags]
     enum OSSuites : ushort

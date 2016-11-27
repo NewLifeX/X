@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-#if !__MOBILE__
+#if __MOBILE__
+#elif __CORE__
+#else
 using System.Web;
 #endif
 using NewLife.Collections;

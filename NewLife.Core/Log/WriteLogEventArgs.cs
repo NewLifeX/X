@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-#if !__MOBILE__
+#if __MOBILE__
+#elif __CORE__
+#else
 using System.Web;
 #endif
 
@@ -85,13 +87,17 @@ namespace NewLife.Log
             Time = DateTime.Now;
             var thread = Thread.CurrentThread;
             ThreadID = thread.ManagedThreadId;
+#if !__CORE__
             IsPool = thread.IsThreadPoolThread;
+#endif
             ThreadName = thread.Name;
 
             var tid = Task.CurrentId;
             TaskID = tid != null ? tid.Value : -1;
 
-#if !__MOBILE__
+#if __MOBILE__
+#elif __CORE__
+#else
             IsWeb = HttpContext.Current != null;
 #endif
         }
@@ -111,6 +117,6 @@ namespace NewLife.Log
 
             return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPool ? (IsWeb ? 'W' : 'Y') : 'N', name, Message);
         }
-        #endregion
+#endregion
     }
 }

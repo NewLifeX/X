@@ -12,7 +12,7 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-#if !__MOBILE__
+#if !__MOBILE__ && !__CORE__
 using System.Management;
 #endif
 

@@ -614,7 +614,9 @@ namespace System
         #endregion
 
         #region 文字转语音
-#if !__MOBILE__
+#if __MOBILE__
+#elif __CORE__
+#else
         private static NewLife.Extension.SpeakProvider _provider;
         //private static System.Speech.Synthesis.SpeechSynthesizer _provider;
         static void Init()
@@ -670,7 +672,10 @@ namespace System
             var si = p.StartInfo;
             si.FileName = cmd;
             si.Arguments = arguments;
+#if __CORE__
+#else
             si.WindowStyle = ProcessWindowStyle.Hidden;
+#endif
 
             // 对于控制台项目，这里需要捕获输出
             if (msWait > 0)
@@ -705,6 +710,6 @@ namespace System
 
             return p.ExitCode;
         }
-        #endregion
+#endregion
     }
 }
