@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Web.Mvc;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -18,8 +19,10 @@ namespace NewLife.Cube
                 var ns = filterContext.Controller.GetType().Name;
                 if (ns.EndsWith(".Controllers"))
                 {
-                    var list = typeof(AreaRegistrationBase).GetAllSubclasses().ToList();
-                    if (!list.Any(e => e.Namespace == ns))
+                    // 该控制器父级命名空间必须有对应的区域注册类，才会拦截其异常
+                    ns = ns.TrimEnd(".Controllers");
+                    var list = AreaRegistrationBase.Areas;
+                    if (list.Any(e => e.Namespace == ns))
                     {
                         XTrace.WriteException(filterContext.Exception);
                         filterContext.ExceptionHandled = true;

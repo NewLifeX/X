@@ -27,6 +27,9 @@ namespace NewLife.Cube
         /// <summary>预编译引擎集合。便于外部设置属性</summary>
         public static PrecompiledViewAssembly[] PrecompiledEngines { get; private set; }
 
+        /// <summary>所有区域类型</summary>
+        public static Type[] Areas { get; private set; }
+
         /// <summary>实例化区域注册</summary>
         public AreaRegistrationBase()
         {
@@ -91,7 +94,8 @@ namespace NewLife.Cube
         static List<Assembly> FindAllArea()
         {
             var list = new List<Assembly>();
-            foreach (var item in typeof(AreaRegistrationBase).GetAllSubclasses(true))
+            Areas = typeof(AreaRegistrationBase).GetAllSubclasses(true).ToArray();
+            foreach (var item in Areas)
             {
                 var asm = item.Assembly;
                 if (!list.Contains(asm))
@@ -118,14 +122,15 @@ namespace NewLife.Cube
         /// <param name="context"></param>
         public override void RegisterArea(AreaRegistrationContext context)
         {
-            XTrace.WriteLine("开始注册权限管理区域[{0}]", AreaName);
+            var ns = GetType().Namespace + ".Controllers";
+            XTrace.WriteLine("开始注册权限管理区域[{0}]，控制器命名空间 {1}", AreaName, ns);
 
             // 注册本区域默认路由
             context.MapRoute(
                 AreaName,
                 AreaName + "/{controller}/{action}/{id}",
                 new { controller = "Index", action = "Index", id = UrlParameter.Optional },
-                new[] { GetType().Namespace + ".Controllers" }
+                new[] { ns }
             );
 
             // 所有已存在文件的请求都交给Mvc处理，比如Admin目录
