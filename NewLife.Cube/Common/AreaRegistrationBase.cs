@@ -166,10 +166,13 @@ namespace NewLife.Cube
             }
         }
 
+        /// <summary>判断控制器是否归属于魔方管辖</summary>
+        /// <param name="controller"></param>
+        /// <returns></returns>
         internal static Boolean Contains(IController controller)
         {
             // 判断控制器是否在管辖范围之内，不拦截其它控制器的异常信息
-            var ns = controller.GetType().Name;
+            var ns = controller.GetType().Namespace;
             if (!ns.EndsWith(".Controllers")) return false;
 
             // 该控制器父级命名空间必须有对应的区域注册类，才会拦截其异常
