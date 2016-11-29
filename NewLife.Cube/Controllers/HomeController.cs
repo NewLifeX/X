@@ -3,7 +3,7 @@
 namespace NewLife.Cube.Controllers
 {
     /// <summary>主页面</summary>
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public class HomeController : Controller
     {
         /// <summary>主页面</summary>

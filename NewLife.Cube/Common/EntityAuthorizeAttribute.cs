@@ -10,13 +10,11 @@ namespace NewLife.Cube
     public class EntityAuthorizeAttribute : AuthorizeAttribute
     {
         #region 属性
-        private String _ResourceName;
         /// <summary>资源名称。需要增加新菜单而不需要控制器名称时，指定资源名称</summary>
-        public String ResourceName { get { return _ResourceName; } set { _ResourceName = value; } }
+        public String ResourceName { get; set; }
 
-        private PermissionFlags _Permission;
         /// <summary>授权项</summary>
-        public PermissionFlags Permission { get { return _Permission; } set { _Permission = value; } }
+        public PermissionFlags Permission { get; set; }
 
         /// <summary>是否全局特性</summary>
         internal Boolean IsGlobal;
@@ -52,6 +50,9 @@ namespace NewLife.Cube
             //// 基类方法会检查AllowAnonymous
             //base.OnAuthorization(filterContext);
             //if (filterContext.Result == null) return;
+
+            // 只验证管辖范围
+            if (!AreaRegistrationBase.Contains(filterContext.Controller)) return;
 
             var act = filterContext.ActionDescriptor;
 
