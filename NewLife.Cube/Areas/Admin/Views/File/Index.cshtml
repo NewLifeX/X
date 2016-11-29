@@ -58,7 +58,7 @@
                 {
                     <td class="text-center"><a href="~/Admin/File/Compress?r=@item.FullName" title="压缩到当前目录，加上时间后缀">压缩</a></td>
                 }
-                <td class="text-center"><a href="~/Admin/File/Delete?r=@item.FullName">删除</a></td>
+                <td class="text-center"><a href="~/Admin/File/Delete?r=@item.FullName" onclick="return confirm('确认删除？');">删除</a></td>
                 <td class="text-center">
                     @if (!item.Directory)
                     {

@@ -446,6 +446,8 @@ WriteAttribute("href", Tuple.Create(" href=\"", 2464), Tuple.Create("\"", 2507)
 , 2493), false)
 );
 
+WriteLiteral(" onclick=\"return confirm(\'确认删除？\');\"");
+
 WriteLiteral(">删除</a></td>\r\n                <td");
 
 WriteLiteral(" class=\"text-center\"");
@@ -468,16 +470,16 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2656), Tuple.Create("\"", 2701)
-, Tuple.Create(Tuple.Create("", 2663), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Download?r=")
-, 2663), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 2691), Tuple.Create("\"", 2736)
+, Tuple.Create(Tuple.Create("", 2698), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Download?r=")
+, 2698), false)
             
             #line 65 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 2687), Tuple.Create<System.Object, System.Int32>(item.FullName
+, Tuple.Create(Tuple.Create("", 2722), Tuple.Create<System.Object, System.Int32>(item.FullName
             
             #line default
             #line hidden
-, 2687), false)
+, 2722), false)
 );
 
 WriteLiteral(">下载</a>\r\n");
