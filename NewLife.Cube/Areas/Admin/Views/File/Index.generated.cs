@@ -141,8 +141,49 @@ WriteLiteral(" class=\"glyphicon glyphicon-folder-open icon-on-right bigger-110\
 WriteLiteral("></span>\r\n                    跳转\r\n                </button>\r\n            </span>\r" +
 "\n        </div>\r\n");
 
+WriteLiteral("        <div");
+
+WriteLiteral(" class=\"input-group\"");
+
+WriteLiteral(">\r\n            <span");
+
+WriteLiteral(" class=\"input-group-addon\"");
+
+WriteLiteral(">\r\n                <i");
+
+WriteLiteral(" class=\"glyphicon glyphicon-file\"");
+
+WriteLiteral("></i>\r\n            </span>\r\n            <input");
+
+WriteLiteral(" name=\"upload\"");
+
+WriteLiteral(" type=\"file\"");
+
+WriteLiteral(" id=\"upload\"");
+
+WriteLiteral(" class=\"form-control\"");
+
+WriteLiteral(" placeholder=\"上传文件\"");
+
+WriteLiteral(" />\r\n            <span");
+
+WriteLiteral(" class=\"input-group-btn\"");
+
+WriteLiteral(">\r\n                <button");
+
+WriteLiteral(" type=\"submit\"");
+
+WriteLiteral(" class=\"btn btn-purple btn-sm\"");
+
+WriteLiteral(">\r\n                    <span");
+
+WriteLiteral(" class=\"glyphicon glyphicon-plus icon-on-right bigger-110\"");
+
+WriteLiteral("></span>\r\n                    上传\r\n                </button>\r\n            </span>\r" +
+"\n        </div>\r\n");
+
             
-            #line 24 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 36 "..\..\Areas\Admin\Views\File\Index.cshtml"
     }
 
             
@@ -158,16 +199,16 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 985), Tuple.Create("\"", 1007)
-, Tuple.Create(Tuple.Create("", 992), Tuple.Create("?r=", 992), true)
+WriteAttribute("href", Tuple.Create(" href=\"", 1541), Tuple.Create("\"", 1563)
+, Tuple.Create(Tuple.Create("", 1548), Tuple.Create("?r=", 1548), true)
             
-            #line 29 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 995), Tuple.Create<System.Object, System.Int32>(r
+            #line 41 "..\..\Areas\Admin\Views\File\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 1551), Tuple.Create<System.Object, System.Int32>(r
             
             #line default
             #line hidden
-, 995), false)
-, Tuple.Create(Tuple.Create("", 997), Tuple.Create("&sort=name", 997), true)
+, 1551), false)
+, Tuple.Create(Tuple.Create("", 1553), Tuple.Create("&sort=name", 1553), true)
 );
 
 WriteLiteral(">名称</a></th>\r\n            <th");
@@ -176,16 +217,16 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1060), Tuple.Create("\"", 1082)
-, Tuple.Create(Tuple.Create("", 1067), Tuple.Create("?r=", 1067), true)
+WriteAttribute("href", Tuple.Create(" href=\"", 1616), Tuple.Create("\"", 1638)
+, Tuple.Create(Tuple.Create("", 1623), Tuple.Create("?r=", 1623), true)
             
-            #line 30 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 1070), Tuple.Create<System.Object, System.Int32>(r
+            #line 42 "..\..\Areas\Admin\Views\File\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 1626), Tuple.Create<System.Object, System.Int32>(r
             
             #line default
             #line hidden
-, 1070), false)
-, Tuple.Create(Tuple.Create("", 1072), Tuple.Create("&sort=size", 1072), true)
+, 1626), false)
+, Tuple.Create(Tuple.Create("", 1628), Tuple.Create("&sort=size", 1628), true)
 );
 
 WriteLiteral(">大小</a></th>\r\n            <th");
@@ -194,16 +235,16 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1135), Tuple.Create("\"", 1162)
-, Tuple.Create(Tuple.Create("", 1142), Tuple.Create("?r=", 1142), true)
+WriteAttribute("href", Tuple.Create(" href=\"", 1691), Tuple.Create("\"", 1718)
+, Tuple.Create(Tuple.Create("", 1698), Tuple.Create("?r=", 1698), true)
             
-            #line 31 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 1145), Tuple.Create<System.Object, System.Int32>(r
+            #line 43 "..\..\Areas\Admin\Views\File\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 1701), Tuple.Create<System.Object, System.Int32>(r
             
             #line default
             #line hidden
-, 1145), false)
-, Tuple.Create(Tuple.Create("", 1147), Tuple.Create("&sort=lastwrite", 1147), true)
+, 1701), false)
+, Tuple.Create(Tuple.Create("", 1703), Tuple.Create("&sort=lastwrite", 1703), true)
 );
 
 WriteLiteral(">修改时间</a></th>\r\n            <th");
@@ -225,13 +266,13 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">下载</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
 
             
-            #line 39 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 51 "..\..\Areas\Admin\Views\File\Index.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 39 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 51 "..\..\Areas\Admin\Views\File\Index.cshtml"
          foreach (var item in fs)
         {
 
@@ -241,13 +282,13 @@ WriteLiteral(">下载</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n")
 WriteLiteral("            <tr>\r\n");
 
             
-            #line 42 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 54 "..\..\Areas\Admin\Views\File\Index.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 42 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 54 "..\..\Areas\Admin\Views\File\Index.cshtml"
                  if (item.Directory)
                 {
 
@@ -256,22 +297,22 @@ WriteLiteral("            <tr>\r\n");
             #line hidden
 WriteLiteral("                    <td>&nbsp;&nbsp;<a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1560), Tuple.Create("\"", 1596)
-, Tuple.Create(Tuple.Create("", 1567), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File?r=")
-, 1567), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 2116), Tuple.Create("\"", 2152)
+, Tuple.Create(Tuple.Create("", 2123), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File?r=")
+, 2123), false)
             
-            #line 44 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 1582), Tuple.Create<System.Object, System.Int32>(item.FullName
+            #line 56 "..\..\Areas\Admin\Views\File\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 2138), Tuple.Create<System.Object, System.Int32>(item.FullName
             
             #line default
             #line hidden
-, 1582), false)
+, 2138), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 44 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 56 "..\..\Areas\Admin\Views\File\Index.cshtml"
                                                                        Write(item.Name);
 
             
@@ -280,7 +321,7 @@ WriteLiteral(">");
 WriteLiteral("</a></td>\r\n");
 
             
-            #line 45 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 57 "..\..\Areas\Admin\Views\File\Index.cshtml"
                 }
                 else
                 {
@@ -291,7 +332,7 @@ WriteLiteral("</a></td>\r\n");
 WriteLiteral("                    <td>&nbsp;&nbsp;");
 
             
-            #line 48 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 60 "..\..\Areas\Admin\Views\File\Index.cshtml"
                                Write(item.Name);
 
             
@@ -300,7 +341,7 @@ WriteLiteral("                    <td>&nbsp;&nbsp;");
 WriteLiteral("</td>\r\n");
 
             
-            #line 49 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 61 "..\..\Areas\Admin\Views\File\Index.cshtml"
                 }
 
             
@@ -313,7 +354,7 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 50 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 62 "..\..\Areas\Admin\Views\File\Index.cshtml"
                                   Write(item.Size);
 
             
@@ -326,7 +367,7 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">");
 
             
-            #line 51 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 63 "..\..\Areas\Admin\Views\File\Index.cshtml"
                                    Write(item.LastWrite.ToFullString(""));
 
             
@@ -338,16 +379,16 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1928), Tuple.Create("\"", 1969)
-, Tuple.Create(Tuple.Create("", 1935), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Copy?r=")
-, 1935), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 2484), Tuple.Create("\"", 2525)
+, Tuple.Create(Tuple.Create("", 2491), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Copy?r=")
+, 2491), false)
             
-            #line 52 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 1955), Tuple.Create<System.Object, System.Int32>(item.FullName
+            #line 64 "..\..\Areas\Admin\Views\File\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 2511), Tuple.Create<System.Object, System.Int32>(item.FullName
             
             #line default
             #line hidden
-, 1955), false)
+, 2511), false)
 );
 
 WriteLiteral(" title=\"复制到剪切板，然后去目标目录粘贴\"");
@@ -355,13 +396,13 @@ WriteLiteral(" title=\"复制到剪切板，然后去目标目录粘贴\"");
 WriteLiteral(">复制</a></td>\r\n");
 
             
-            #line 53 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 65 "..\..\Areas\Admin\Views\File\Index.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 53 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 65 "..\..\Areas\Admin\Views\File\Index.cshtml"
                  if (item.Name.EndsWithIgnoreCase(".zip"))
                 {
 
@@ -374,16 +415,16 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2134), Tuple.Create("\"", 2181)
-, Tuple.Create(Tuple.Create("", 2141), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Decompress?r=")
-, 2141), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 2690), Tuple.Create("\"", 2737)
+, Tuple.Create(Tuple.Create("", 2697), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Decompress?r=")
+, 2697), false)
             
-            #line 55 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 2167), Tuple.Create<System.Object, System.Int32>(item.FullName
+            #line 67 "..\..\Areas\Admin\Views\File\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 2723), Tuple.Create<System.Object, System.Int32>(item.FullName
             
             #line default
             #line hidden
-, 2167), false)
+, 2723), false)
 );
 
 WriteLiteral(" title=\"解压缩到当前目录\"");
@@ -391,7 +432,7 @@ WriteLiteral(" title=\"解压缩到当前目录\"");
 WriteLiteral(">解压缩</a></td>\r\n");
 
             
-            #line 56 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 68 "..\..\Areas\Admin\Views\File\Index.cshtml"
                 }
                 else
                 {
@@ -405,16 +446,16 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2320), Tuple.Create("\"", 2365)
-, Tuple.Create(Tuple.Create("", 2327), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Compress?r=")
-, 2327), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 2876), Tuple.Create("\"", 2921)
+, Tuple.Create(Tuple.Create("", 2883), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Compress?r=")
+, 2883), false)
             
-            #line 59 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 2351), Tuple.Create<System.Object, System.Int32>(item.FullName
+            #line 71 "..\..\Areas\Admin\Views\File\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 2907), Tuple.Create<System.Object, System.Int32>(item.FullName
             
             #line default
             #line hidden
-, 2351), false)
+, 2907), false)
 );
 
 WriteLiteral(" title=\"压缩到当前目录，加上时间后缀\"");
@@ -422,7 +463,7 @@ WriteLiteral(" title=\"压缩到当前目录，加上时间后缀\"");
 WriteLiteral(">压缩</a></td>\r\n");
 
             
-            #line 60 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 72 "..\..\Areas\Admin\Views\File\Index.cshtml"
                 }
 
             
@@ -434,16 +475,16 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2464), Tuple.Create("\"", 2507)
-, Tuple.Create(Tuple.Create("", 2471), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Delete?r=")
-, 2471), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 3020), Tuple.Create("\"", 3063)
+, Tuple.Create(Tuple.Create("", 3027), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Delete?r=")
+, 3027), false)
             
-            #line 61 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 2493), Tuple.Create<System.Object, System.Int32>(item.FullName
+            #line 73 "..\..\Areas\Admin\Views\File\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 3049), Tuple.Create<System.Object, System.Int32>(item.FullName
             
             #line default
             #line hidden
-, 2493), false)
+, 3049), false)
 );
 
 WriteLiteral(" onclick=\"return confirm(\'确认删除？\');\"");
@@ -455,13 +496,13 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">\r\n");
 
             
-            #line 63 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 75 "..\..\Areas\Admin\Views\File\Index.cshtml"
                     
             
             #line default
             #line hidden
             
-            #line 63 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 75 "..\..\Areas\Admin\Views\File\Index.cshtml"
                      if (!item.Directory)
                     {
 
@@ -470,22 +511,22 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2691), Tuple.Create("\"", 2736)
-, Tuple.Create(Tuple.Create("", 2698), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Download?r=")
-, 2698), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 3247), Tuple.Create("\"", 3292)
+, Tuple.Create(Tuple.Create("", 3254), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/File/Download?r=")
+, 3254), false)
             
-            #line 65 "..\..\Areas\Admin\Views\File\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 2722), Tuple.Create<System.Object, System.Int32>(item.FullName
+            #line 77 "..\..\Areas\Admin\Views\File\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 3278), Tuple.Create<System.Object, System.Int32>(item.FullName
             
             #line default
             #line hidden
-, 2722), false)
+, 3278), false)
 );
 
 WriteLiteral(">下载</a>\r\n");
 
             
-            #line 66 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 78 "..\..\Areas\Admin\Views\File\Index.cshtml"
                     }
 
             
@@ -494,7 +535,7 @@ WriteLiteral(">下载</a>\r\n");
 WriteLiteral("                </td>\r\n            </tr>\r\n");
 
             
-            #line 69 "..\..\Areas\Admin\Views\File\Index.cshtml"
+            #line 81 "..\..\Areas\Admin\Views\File\Index.cshtml"
         }
 
             
