@@ -53,7 +53,7 @@ namespace NewLife.Cube.Admin.Controllers
 
         /// <summary>文件管理主视图</summary>
         /// <returns></returns>
-        public ActionResult Index(String r)
+        public ActionResult Index(String r, String sort)
         {
             var di = GetDirectory(r) ?? Root.AsDirectory();
 
@@ -67,15 +67,6 @@ namespace NewLife.Cube.Admin.Controllers
 
             var fis = di.GetFileSystemInfos();
             var list = new List<FileItem>();
-            if (!di.FullName.EqualIgnoreCase(Root, root))
-            {
-                list.Add(new FileItem
-                {
-                    Name = "../",
-                    Directory = true,
-                    FullName = GetFullName(di.Parent.FullName)
-                });
-            }
             foreach (var item in fis)
             {
                 if (item.Attributes.Has(FileAttributes.Hidden)) continue;
@@ -103,7 +94,29 @@ namespace NewLife.Cube.Admin.Controllers
             }
 
             // 排序，目录优先
-            list = list.OrderByDescending(e => e.Directory).ThenBy(e => e.Name).ToList();
+            switch (sort)
+            {
+                case "size":
+                    list = list.OrderByDescending(e => e.Size).ThenBy(e => e.Name).ToList();
+                    break;
+                case "lastwrite":
+                    list = list.OrderByDescending(e => e.LastWrite).ThenBy(e => e.Name).ToList();
+                    break;
+                case "name":
+                default:
+                    list = list.OrderByDescending(e => e.Directory).ThenBy(e => e.Name).ToList();
+                    break;
+            }
+            // 在开头插入上一级目录
+            if (!di.FullName.EqualIgnoreCase(Root, root))
+            {
+                list.Insert(0, new FileItem
+                {
+                    Name = "../",
+                    Directory = true,
+                    FullName = GetFullName(di.Parent.FullName)
+                });
+            }
 
             return View(list);
         }
@@ -126,7 +139,7 @@ namespace NewLife.Cube.Admin.Controllers
                 var di = GetDirectory(r);
                 if (di == null) throw new Exception("找不到文件或目录！");
                 p = GetFullName(di.Parent.FullName);
-                di.Delete();
+                di.Delete(true);
             }
 
             return RedirectToAction("Index", new { r = p });

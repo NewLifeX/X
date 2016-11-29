@@ -4,6 +4,7 @@
 @{
     //ViewBag.Title = "服务器信息";
     var fs = Model as List<FileItem>;
+    var r = ViewBag.Current as String;
 }
 <div class="form-inline">
     @using (Html.BeginForm())
@@ -12,7 +13,7 @@
             <span class="input-group-addon">
                 <i class="ace-icon fa fa-check"></i>
             </span>
-            <input name="r" type="search" id="r" value="@ViewBag.Current" class="form-control" placeholder="当前路径" />
+            <input name="r" type="search" id="r" value="@r" class="form-control" placeholder="当前路径" />
             <span class="input-group-btn">
                 <button type="submit" class="btn btn-purple btn-sm">
                     <span class="glyphicon glyphicon-folder-open icon-on-right bigger-110"></span>
@@ -25,9 +26,9 @@
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
         <tr>
-            <th class="text-center">名称</th>
-            <th class="text-center">大小</th>
-            <th class="text-center">修改时间</th>
+            <th class="text-center"><a href="?r=@r&sort=name">名称</a></th>
+            <th class="text-center"><a href="?r=@r&sort=size">大小</a></th>
+            <th class="text-center"><a href="?r=@r&sort=lastwrite">修改时间</a></th>
             <th class="text-center">复制</th>
             <th class="text-center">压缩</th>
             <th class="text-center">删除</th>
