@@ -61,7 +61,9 @@ namespace NewLife.Cube.Admin.Controllers
             var root = Root.TrimEnd(Path.DirectorySeparatorChar);
             if (!di.FullName.StartsWithIgnoreCase(root)) di = Root.AsDirectory();
 
-            ViewBag.Current = di.FullName;
+            var fd = di.FullName;
+            if (fd.StartsWith(Root)) fd = fd.Substring(Root.Length);
+            ViewBag.Current = fd;
 
             var fis = di.GetFileSystemInfos();
             var list = new List<FileItem>();

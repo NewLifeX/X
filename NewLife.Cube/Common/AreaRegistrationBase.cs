@@ -123,7 +123,7 @@ namespace NewLife.Cube
         public override void RegisterArea(AreaRegistrationContext context)
         {
             var ns = GetType().Namespace + ".Controllers";
-            XTrace.WriteLine("开始注册权限管理区域[{0}]，控制器命名空间 {1}", AreaName, ns);
+            XTrace.WriteLine("开始注册权限管理区域[{0}]，控制器命名空间[{1}]", AreaName, ns);
 
             // 注册本区域默认路由
             context.MapRoute(

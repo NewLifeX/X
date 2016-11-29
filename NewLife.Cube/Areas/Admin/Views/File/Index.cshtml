@@ -5,9 +5,22 @@
     //ViewBag.Title = "服务器信息";
     var fs = Model as List<FileItem>;
 }
-<div>
-    <span>当前目录：</span>
-    <span>@ViewBag.Current</span>
+<div class="form-inline">
+    @using (Html.BeginForm())
+    {
+        <div class="input-group">
+            <span class="input-group-addon">
+                <i class="ace-icon fa fa-check"></i>
+            </span>
+            <input name="r" type="search" id="r" value="@ViewBag.Current" class="form-control" placeholder="当前路径" />
+            <span class="input-group-btn">
+                <button type="submit" class="btn btn-purple btn-sm">
+                    <span class="glyphicon glyphicon-folder-open icon-on-right bigger-110"></span>
+                    跳转
+                </button>
+            </span>
+        </div>
+    }
 </div>
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
@@ -27,11 +40,11 @@
             <tr>
                 @if (item.Directory)
                 {
-                    <td><a href="~/Admin/File?r=@item.FullName">@item.Name</a></td>
+                    <td>&nbsp;&nbsp;<a href="~/Admin/File?r=@item.FullName">@item.Name</a></td>
                 }
                 else
                 {
-                    <td>@item.Name</td>
+                    <td>&nbsp;&nbsp;@item.Name</td>
                 }
                 <td class="text-right">@item.Size</td>
                 <td class="text-center">@item.LastWrite.ToFullString("")</td>
@@ -45,7 +58,12 @@
                     <td class="text-center"><a href="~/Admin/File/Compress?r=@item.FullName" title="压缩到当前目录，加上时间后缀">压缩</a></td>
                 }
                 <td class="text-center"><a href="~/Admin/File/Delete?r=@item.FullName">删除</a></td>
-                <td class="text-center"><a href="~/Admin/File/Download?r=@item.FullName">下载</a></td>
+                <td class="text-center">
+                    @if (!item.Directory)
+                    {
+                        <a href="~/Admin/File/Download?r=@item.FullName">下载</a>
+                    }
+                </td>
             </tr>
         }
     </tbody>
