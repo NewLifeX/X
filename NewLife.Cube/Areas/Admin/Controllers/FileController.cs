@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using XCode.Membership;
 
@@ -164,6 +165,7 @@ namespace NewLife.Cube.Admin.Controllers
             {
                 var di = GetDirectory(r);
                 if (di == null) throw new Exception("找不到文件或目录！");
+
                 p = GetFullName(di.Parent.FullName);
                 var dst = "{0}_{1:yyyyMMddHHmmss}.zip".F(di.Name, DateTime.Now);
                 dst = di.Parent.FullName.CombinePath(dst);
@@ -192,6 +194,24 @@ namespace NewLife.Cube.Admin.Controllers
         private String GetFullName(String r)
         {
             return r.TrimStart(Root).TrimStart(Root.TrimEnd(Path.DirectorySeparatorChar + ""));
+        }
+
+        /// <summary>上传文件</summary>
+        /// <param name="r"></param>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public ActionResult Upload(String r, HttpPostedFileBase file)
+        {
+            if (file != null)
+            {
+                var di = GetDirectory(r);
+                if (di == null) throw new Exception("找不到目录！");
+
+                var dest = di.FullName.CombinePath(file.FileName);
+                file.SaveAs(dest);
+            }
+
+            return RedirectToAction("Index", new { r });
         }
     }
 }

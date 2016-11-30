@@ -7,8 +7,7 @@
     var r = ViewBag.Current as String;
 }
 <div class="form-inline">
-    @using (Html.BeginForm())
-    {
+    <form action="~/Admin/File" id="tool" method="post">
         <div class="input-group">
             <span class="input-group-addon">
                 <i class="ace-icon fa fa-check"></i>
@@ -25,15 +24,15 @@
             <span class="input-group-addon">
                 <i class="glyphicon glyphicon-file"></i>
             </span>
-            <input name="upload" type="file" id="upload" class="form-control" placeholder="上传文件" />
+            <input name="file" type="file" id="file" placeholder="上传文件" />
             <span class="input-group-btn">
-                <button type="submit" class="btn btn-purple btn-sm">
+                <button type="submit" class="btn btn-purple btn-sm" onclick="$('#tool').attr('action', '/Admin/File/Upload');$('#tool').attr('enctype', 'multipart/form-data'); return true;">
                     <span class="glyphicon glyphicon-plus icon-on-right bigger-110"></span>
                     上传
                 </button>
             </span>
         </div>
-    }
+    </form>
 </div>
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
