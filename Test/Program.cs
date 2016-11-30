@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Agent;
 using NewLife.Common;
 using NewLife.Log;
 using NewLife.Net;
@@ -114,7 +115,18 @@ namespace Test
 
         static void Test4()
         {
-            ApiTest.Main();
+            //ApiTest.Main();
+            TestService.ServiceMain();
+        }
+
+        class TestService : AgentServiceBase<TestService>
+        {
+            public override Boolean Work(Int32 index)
+            {
+                XTrace.WriteLine("当前时间：{0}", DateTime.Now);
+
+                return base.Work(index);
+            }
         }
 
         static Statistics stat = new Statistics();
