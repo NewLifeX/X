@@ -11,10 +11,20 @@ namespace XCode.Membership
     {
         #region 基本功能
         /// <summary>写日志</summary>
+        /// <param name="category">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="remark">备注</param>
+        public abstract void WriteLog(String category, String action, String remark);
+
+        /// <summary>写日志</summary>
         /// <param name="type">类型</param>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
-        public abstract void WriteLog(Type type, String action, String remark);
+        public virtual void WriteLog(Type type, String action, String remark)
+        {
+            var name = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
+            WriteLog(name, action, remark);
+        }
 
         /// <summary>输出实体对象日志</summary>
         /// <param name="action"></param>
@@ -77,17 +87,19 @@ namespace XCode.Membership
     public class LogProvider<TLog> : LogProvider where TLog : Log<TLog>, new()
     {
         /// <summary>写日志</summary>
-        /// <param name="type">类型</param>
+        /// <param name="category">类型</param>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
-        public override void WriteLog(Type type, String action, String remark)
+        public override void WriteLog(String category, String action, String remark)
         {
             if (!Enable) return;
 
-            if (type == null) throw new ArgumentNullException("type");
+            if (category == null) throw new ArgumentNullException("category");
 
             var factory = EntityFactory.CreateOperate(typeof(TLog));
-            var log = (factory.Default as ILog).Create(type, action);
+            var log = factory.Create() as ILog;
+            log.Category = category;
+            log.Action = action;
 
             // 加上关联编号
             if (remark.StartsWithIgnoreCase("ID="))

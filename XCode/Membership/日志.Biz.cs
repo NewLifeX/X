@@ -166,50 +166,50 @@ namespace XCode.Membership
         #endregion
 
         #region 业务
-        /// <summary>创建日志</summary>
-        /// <param name="category"></param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public static TEntity Create(String category, String action)
-        {
-            var entity = new TEntity();
+        ///// <summary>创建日志</summary>
+        ///// <param name="category"></param>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //public static TEntity Create(String category, String action)
+        //{
+        //    var entity = new TEntity();
 
-            entity.Category = category;
-            entity.Action = action;
+        //    entity.Category = category;
+        //    entity.Action = action;
 
-            return entity;
-        }
+        //    return entity;
+        //}
 
-        /// <summary>创建日志</summary>
-        /// <param name="type">类型</param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public static TEntity Create(Type type, String action)
-        {
-            var name = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
+        ///// <summary>创建日志</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //public static TEntity Create(Type type, String action)
+        //{
+        //    var name = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
 
-            return Create(name, action);
-        }
+        //    return Create(name, action);
+        //}
 
-        /// <summary>创建</summary>
-        /// <param name="type"></param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        ILog ILog.Create(Type type, String action) { return Create(type, action); }
+        ///// <summary>创建</summary>
+        ///// <param name="type"></param>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //ILog ILog.Create(Type type, String action) { return Create(type, action); }
 
-        /// <summary>写日志</summary>
-        /// <param name="type">类型</param>
-        /// <param name="action">操作</param>
-        /// <param name="remark">备注</param>
-        public void WriteLog(Type type, String action, String remark)
-        {
-            var log = Create(type, action);
-            if (log != null)
-            {
-                log.Remark = remark;
-                log.Save();
-            }
-        }
+        ///// <summary>写日志</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action">操作</param>
+        ///// <param name="remark">备注</param>
+        //public void WriteLog(Type type, String action, String remark)
+        //{
+        //    var log = Create(type, action);
+        //    if (log != null)
+        //    {
+        //        log.Remark = remark;
+        //        log.Save();
+        //    }
+        //}
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
@@ -222,17 +222,17 @@ namespace XCode.Membership
 
     public partial interface ILog
     {
-        /// <summary>创建</summary>
-        /// <param name="type"></param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        ILog Create(Type type, String action);
+        ///// <summary>创建</summary>
+        ///// <param name="type"></param>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        //ILog Create(Type type, String action);
 
-        /// <summary>写日志</summary>
-        /// <param name="type">类型</param>
-        /// <param name="action">操作</param>
-        /// <param name="remark">备注</param>
-        void WriteLog(Type type, String action, String remark);
+        ///// <summary>写日志</summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="action">操作</param>
+        ///// <param name="remark">备注</param>
+        //void WriteLog(Type type, String action, String remark);
 
         /// <summary>保存</summary>
         /// <returns></returns>
