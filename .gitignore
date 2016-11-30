@@ -24,3 +24,4 @@ bld/
 *.htm
 *.nuspec
 *.nupkg
+/NewLife.Core.Core/project.lock.json
