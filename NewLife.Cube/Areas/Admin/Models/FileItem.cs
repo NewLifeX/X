@@ -15,6 +15,9 @@ namespace NewLife.Cube.Admin
         /// <summary>全路径</summary>
         public String FullName { get; set; }
 
+        /// <summary>原始路径</summary>
+        public String Raw { get; set; }
+
         /// <summary>是否目录</summary>
         public Boolean Directory { get; set; }
 

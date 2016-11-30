@@ -53,12 +53,41 @@ namespace NewLife.Cube.Admin.Controllers
         //    }
         //}
 
+        private FileItem GetItme(String r)
+        {
+            var inf = GetFile(r) as FileSystemInfo ?? GetDirectory(r);
+            if (inf == null) return null;
+
+            var fi = new FileItem();
+            fi.Name = inf.Name;
+            fi.FullName = GetFullName(inf.FullName);
+            fi.Raw = inf.FullName;
+            fi.Directory = inf is DirectoryInfo;
+            fi.LastWrite = inf.LastWriteTime;
+
+            if (inf is FileInfo)
+            {
+                var f = inf as FileInfo;
+                if (f.Length < 1024)
+                    fi.Size = "{0:n0}".F(f.Length);
+                else if (f.Length < 1024 * 1024)
+                    fi.Size = "{0:n2}K".F((Double)f.Length / 1024);
+                else if (f.Length < 1024 * 1024 * 1024)
+                    fi.Size = "{0:n2}M".F((Double)f.Length / 1024 / 1024);
+                else if (f.Length < 1024L * 1024 * 1024 * 1024)
+                    fi.Size = "{0:n2}G".F((Double)f.Length / 1024 / 1024 / 1024);
+            }
+
+            return fi;
+        }
+
         private String GetFullName(String r)
         {
             return r.TrimStart(Root).TrimStart(Root.TrimEnd(Path.DirectorySeparatorChar + ""));
         }
         #endregion
 
+        #region 列表&删除
         /// <summary>文件管理主视图</summary>
         /// <returns></returns>
         public ActionResult Index(String r, String sort)
@@ -69,34 +98,19 @@ namespace NewLife.Cube.Admin.Controllers
             var root = Root.TrimEnd(Path.DirectorySeparatorChar);
             if (!di.FullName.StartsWithIgnoreCase(root)) di = Root.AsDirectory();
 
+            // 计算当前路径
             var fd = di.FullName;
             if (fd.StartsWith(Root)) fd = fd.Substring(Root.Length);
             ViewBag.Current = fd;
 
+            // 遍历所有子目录
             var fis = di.GetFileSystemInfos();
             var list = new List<FileItem>();
             foreach (var item in fis)
             {
                 if (item.Attributes.Has(FileAttributes.Hidden)) continue;
 
-                var fi = new FileItem();
-                fi.Name = item.Name;
-                fi.FullName = GetFullName(item.FullName);
-                fi.Directory = item is DirectoryInfo;
-                fi.LastWrite = item.LastWriteTime;
-
-                if (item is FileInfo)
-                {
-                    var f = item as FileInfo;
-                    if (f.Length < 1024)
-                        fi.Size = "{0:n0}".F(f.Length);
-                    else if (f.Length < 1024 * 1024)
-                        fi.Size = "{0:n2}K".F((Double)f.Length / 1024);
-                    else if (f.Length < 1024 * 1024 * 1024)
-                        fi.Size = "{0:n2}M".F((Double)f.Length / 1024 / 1024);
-                    else if (f.Length < 1024L * 1024 * 1024 * 1024)
-                        fi.Size = "{0:n2}G".F((Double)f.Length / 1024 / 1024 / 1024);
-                }
+                var fi = GetItme(item.FullName);
 
                 list.Add(fi);
             }
@@ -126,7 +140,10 @@ namespace NewLife.Cube.Admin.Controllers
                 });
             }
 
-            return View(list);
+            // 剪切板
+            ViewBag.Clip = GetClip();
+
+            return View("Index", list);
         }
 
         /// <summary>删除</summary>
@@ -152,6 +169,7 @@ namespace NewLife.Cube.Admin.Controllers
 
             return RedirectToAction("Index", new { r = p });
         }
+        #endregion
 
         #region 压缩与解压缩
         /// <summary>压缩文件</summary>
@@ -231,10 +249,10 @@ namespace NewLife.Cube.Admin.Controllers
 
         #region 复制粘贴
         private const String CLIPKEY = "File_Clipboard";
-        private ICollection<String> GetClip()
+        private List<FileItem> GetClip()
         {
-            var list = Session[CLIPKEY] as ICollection<String>;
-            if (list == null) Session[CLIPKEY] = list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+            var list = Session[CLIPKEY] as List<FileItem>;
+            if (list == null) Session[CLIPKEY] = list = new List<FileItem>();
 
             return list;
         }
@@ -242,12 +260,31 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>复制文件到剪切板</summary>
         /// <param name="r"></param>
         /// <returns></returns>
-        public ActionResult Copy(String r)
+        public ActionResult Copy(String r, String f)
         {
-            var list = GetClip();
-            if (!list.Contains(r)) list.Add(r);
+            var fi = GetItme(f);
+            if (fi == null) throw new Exception("找不到文件或目录！");
 
-            return RedirectToAction("Index", new { r });
+            var list = GetClip();
+            if (!list.Any(e => e.Raw == fi.Raw)) list.Add(fi);
+
+            //return RedirectToAction("Index", new { r });
+            return Index(r, null);
+        }
+
+        /// <summary>从剪切板移除</summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        public ActionResult CancelCopy(String r, String f)
+        {
+            var fi = GetItme(f);
+            if (fi == null) throw new Exception("找不到文件或目录！");
+
+            var list = GetClip();
+            list.RemoveAll(e => e.Raw == fi.Raw);
+
+            //return RedirectToAction("Index", new { r });
+            return Index(r, null);
         }
 
         /// <summary>粘贴文件到当前目录</summary>
@@ -255,14 +292,45 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         public ActionResult Paste(String r)
         {
-            return RedirectToAction("Index", new { r });
+            var di = GetDirectory(r);
+            if (di == null) throw new Exception("找不到目录！");
+
+            var list = GetClip();
+            foreach (var item in list)
+            {
+                System.IO.File.Copy(item.Raw, di.FullName.CombinePath(item.Name), true);
+            }
+            list.Clear();
+
+            return Index(r, null);
+        }
+
+        /// <summary>移动文件到当前目录</summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        public ActionResult Move(String r)
+        {
+            var di = GetDirectory(r);
+            if (di == null) throw new Exception("找不到目录！");
+
+            var list = GetClip();
+            foreach (var item in list)
+            {
+                System.IO.File.Move(item.Raw, di.FullName.CombinePath(item.Name));
+            }
+            list.Clear();
+
+            return Index(r, null);
         }
 
         /// <summary>清空剪切板</summary>
         /// <returns></returns>
         public ActionResult ClearClipboard(String r)
         {
-            return RedirectToAction("Index", new { r });
+            var list = GetClip();
+            list.Clear();
+
+            return Index(r, null);
         }
         #endregion
     }
