@@ -43,7 +43,6 @@
             <th class="text-center">复制</th>
             <th class="text-center">压缩</th>
             <th class="text-center">删除</th>
-            <th class="text-center">下载</th>
         </tr>
     </thead>
     <tbody>
@@ -52,11 +51,11 @@
             <tr>
                 @if (item.Directory)
                 {
-                    <td>&nbsp;&nbsp;<a href="~/Admin/File?r=@item.FullName">@item.Name</a></td>
+                    <td>&nbsp;&nbsp;<a href="~/Admin/File?r=@item.FullName" title="进入目录">@item.Name</a></td>
                 }
                 else
                 {
-                    <td>&nbsp;&nbsp;@item.Name</td>
+                    <td>&nbsp;&nbsp;<a href="~/Admin/File/Download?r=@item.FullName" title="下载文件">@item.Name</a></td>
                 }
                 <td class="text-right">@item.Size</td>
                 <td class="text-center">@item.LastWrite.ToFullString("")</td>
@@ -70,12 +69,6 @@
                     <td class="text-center"><a href="~/Admin/File/Compress?r=@item.FullName" title="压缩到当前目录，加上时间后缀">压缩</a></td>
                 }
                 <td class="text-center"><a href="~/Admin/File/Delete?r=@item.FullName" onclick="return confirm('确认删除？');">删除</a></td>
-                <td class="text-center">
-                    @if (!item.Directory)
-                    {
-                        <a href="~/Admin/File/Download?r=@item.FullName">下载</a>
-                    }
-                </td>
             </tr>
         }
     </tbody>

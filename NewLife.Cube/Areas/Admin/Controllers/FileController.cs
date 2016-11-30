@@ -15,6 +15,7 @@ namespace NewLife.Cube.Admin.Controllers
     [EntityAuthorize(PermissionFlags.Detail)]
     public class FileController : ControllerBaseX
     {
+        #region 基础
         private String Root { get { return "../".GetFullPath(); } }
 
         private FileInfo GetFile(String r)
@@ -51,6 +52,12 @@ namespace NewLife.Cube.Admin.Controllers
         //        di.Delete(true);
         //    }
         //}
+
+        private String GetFullName(String r)
+        {
+            return r.TrimStart(Root).TrimStart(Root.TrimEnd(Path.DirectorySeparatorChar + ""));
+        }
+        #endregion
 
         /// <summary>文件管理主视图</summary>
         /// <returns></returns>
@@ -146,6 +153,7 @@ namespace NewLife.Cube.Admin.Controllers
             return RedirectToAction("Index", new { r = p });
         }
 
+        #region 压缩与解压缩
         /// <summary>压缩文件</summary>
         /// <param name="r"></param>
         /// <returns></returns>
@@ -180,22 +188,17 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         public ActionResult Decompress(String r)
         {
-            var p = "";
-
             var fi = GetFile(r);
-            if (fi == null) throw new Exception("找不到文件或目录！");
+            if (fi == null) throw new Exception("找不到文件！");
 
-            p = GetFullName(fi.Directory.FullName);
+            var p = GetFullName(fi.Directory.FullName);
             fi.Extract(fi.Directory.FullName, true);
 
             return RedirectToAction("Index", new { r = p });
         }
+        #endregion
 
-        private String GetFullName(String r)
-        {
-            return r.TrimStart(Root).TrimStart(Root.TrimEnd(Path.DirectorySeparatorChar + ""));
-        }
-
+        #region 上传下载
         /// <summary>上传文件</summary>
         /// <param name="r"></param>
         /// <param name="file"></param>
@@ -213,5 +216,54 @@ namespace NewLife.Cube.Admin.Controllers
 
             return RedirectToAction("Index", new { r });
         }
+
+        /// <summary>下载文件</summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        public ActionResult Download(String r)
+        {
+            var fi = GetFile(r);
+            if (fi == null) throw new Exception("找不到文件！");
+
+            return File(fi.FullName, "application/octet-stream", fi.Name);
+        }
+        #endregion
+
+        #region 复制粘贴
+        private const String CLIPKEY = "File_Clipboard";
+        private ICollection<String> GetClip()
+        {
+            var list = Session[CLIPKEY] as ICollection<String>;
+            if (list == null) Session[CLIPKEY] = list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+
+            return list;
+        }
+
+        /// <summary>复制文件到剪切板</summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        public ActionResult Copy(String r)
+        {
+            var list = GetClip();
+            if (!list.Contains(r)) list.Add(r);
+
+            return RedirectToAction("Index", new { r });
+        }
+
+        /// <summary>粘贴文件到当前目录</summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        public ActionResult Paste(String r)
+        {
+            return RedirectToAction("Index", new { r });
+        }
+
+        /// <summary>清空剪切板</summary>
+        /// <returns></returns>
+        public ActionResult ClearClipboard(String r)
+        {
+            return RedirectToAction("Index", new { r });
+        }
+        #endregion
     }
 }
