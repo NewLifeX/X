@@ -298,7 +298,11 @@ namespace NewLife.Cube.Admin.Controllers
             var list = GetClip();
             foreach (var item in list)
             {
-                System.IO.File.Copy(item.Raw, di.FullName.CombinePath(item.Name), true);
+                var dst = di.FullName.CombinePath(item.Name);
+                if (item.Directory)
+                    item.Raw.AsDirectory().CopyTo(dst);
+                else
+                    System.IO.File.Copy(item.Raw, dst, true);
             }
             list.Clear();
 
@@ -316,7 +320,11 @@ namespace NewLife.Cube.Admin.Controllers
             var list = GetClip();
             foreach (var item in list)
             {
-                System.IO.File.Move(item.Raw, di.FullName.CombinePath(item.Name));
+                var dst = di.FullName.CombinePath(item.Name);
+                if (item.Directory)
+                    Directory.Move(item.Raw, dst);
+                else
+                    System.IO.File.Move(item.Raw, dst);
             }
             list.Clear();
 
