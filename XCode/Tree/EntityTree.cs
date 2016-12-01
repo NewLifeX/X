@@ -402,7 +402,8 @@ namespace XCode
                 keys = new String[] { Setting.Name };
             }
 
-            var list = Childs;
+            //var list = Childs;
+            var list = FindChilds();
             if (list == null || list.Count < 1) return null;
 
             //// 尝试一次性查找
