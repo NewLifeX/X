@@ -30,8 +30,6 @@ namespace XCode
         #region 静态构造
         static EntityTree()
         {
-            //Meta.Session.OnDataChange += delegate { Root = null; };
-
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
             TEntity entity = new TEntity();
 
@@ -54,8 +52,8 @@ namespace XCode
         /// <summary>子节点</summary>
         public virtual EntityList<TEntity> Childs
         {
-            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("Childs", e => FindChilds(), !IsNullKey) : FindChilds(); }
-            set { SetExtend("Childs", value); }
+            get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("Childs", e => FindChilds()) : FindChilds(); }
+            set { Extends.Remove("Childs"); }
         }
 
         /// <summary>子节点</summary>
@@ -65,8 +63,8 @@ namespace XCode
         [XmlIgnore, ScriptIgnore]
         public virtual TEntity Parent
         {
-            get { return Setting.EnableCaching ? GetExtend<TEntity>("Parent", e => FindParent()) : FindParent(); }
-            set { SetExtend("Parent", value); }
+            get { return Setting.EnableCaching ? Extends.Get<TEntity>("Parent", e => FindParent()) : FindParent(); }
+            set { Extends.Remove("Parent"); }
         }
 
         /// <summary>父节点</summary>
@@ -85,24 +83,24 @@ namespace XCode
         [XmlIgnore, ScriptIgnore]
         public virtual EntityList<TEntity> AllChilds
         {
-            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this), !IsNullKey) : FindAllChilds(this); }
-            set { SetExtend("AllChilds", value); }
+            get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this)) : FindAllChilds(this); }
+            set { Extends.Remove("AllChilds"); }
         }
 
         /// <summary>子孙节点，包含自己</summary>
         [XmlIgnore, ScriptIgnore]
         public virtual EntityList<TEntity> MyAllChilds
         {
-            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("MyAllChilds", e => FindAllChilds(this, true), !IsNullKey) : FindAllChilds(this, true); }
-            set { SetExtend("MyAllChilds", value); }
+            get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("MyAllChilds", e => FindAllChilds(this, true)) : FindAllChilds(this, true); }
+            set { Extends.Remove("MyAllChilds"); }
         }
 
         /// <summary>父节点集合</summary>
         [XmlIgnore, ScriptIgnore]
         public virtual EntityList<TEntity> AllParents
         {
-            get { return Setting.EnableCaching ? GetExtend<EntityList<TEntity>>("AllParents", e => FindAllParents(this)) : FindAllParents(this); }
-            set { SetExtend("AllParents", value); }
+            get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("AllParents", e => FindAllParents(this)) : FindAllParents(this); }
+            set { Extends.Remove("AllParents"); }
         }
 
         /// <summary>深度</summary>

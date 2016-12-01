@@ -77,9 +77,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataAccessLayer\Model\NullableDictionary.cs" />
+    <Compile Include="Entity\EntityExtend.cs" />
     <Compile Include="Entity\EntityQueue.cs" />
     <Compile Include="Entity\IEntityAddition.cs" />
-    <Compile Include="Entity\EntityExtend.cs" />
     <Compile Include="Entity\EntitySession.cs" />
     <Compile Include="Entity\IEntityModule.cs" />
     <Compile Include="Entity\IEntitySession.cs" />
