@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -90,6 +89,7 @@ namespace NewLife.Cube.Admin.Controllers
         #region 列表&删除
         /// <summary>文件管理主视图</summary>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Index(String r, String sort)
         {
             var di = GetDirectory(r) ?? Root.AsDirectory();
@@ -149,6 +149,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>删除</summary>
         /// <param name="r"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Delete)]
         public ActionResult Delete(String r)
         {
             var p = "";
@@ -178,6 +179,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>压缩文件</summary>
         /// <param name="r"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Insert)]
         public ActionResult Compress(String r)
         {
             var p = "";
@@ -209,6 +211,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>解压缩</summary>
         /// <param name="r"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Update)]
         public ActionResult Decompress(String r)
         {
             var fi = GetFile(r);
@@ -227,6 +230,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="r"></param>
         /// <param name="file"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Insert)]
         public ActionResult Upload(String r, HttpPostedFileBase file)
         {
             if (file != null)
@@ -245,6 +249,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>下载文件</summary>
         /// <param name="r"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Download(String r)
         {
             var fi = GetFile(r);
@@ -270,6 +275,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="r"></param>
         /// <param name="f"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Copy(String r, String f)
         {
             var fi = GetItme(f);
@@ -286,6 +292,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="r"></param>
         /// <param name="f"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult CancelCopy(String r, String f)
         {
             var fi = GetItme(f);
@@ -301,6 +308,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>粘贴文件到当前目录</summary>
         /// <param name="r"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Insert)]
         public ActionResult Paste(String r)
         {
             var di = GetDirectory(r);
@@ -324,6 +332,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>移动文件到当前目录</summary>
         /// <param name="r"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Insert)]
         public ActionResult Move(String r)
         {
             var di = GetDirectory(r);
@@ -346,6 +355,7 @@ namespace NewLife.Cube.Admin.Controllers
 
         /// <summary>清空剪切板</summary>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult ClearClipboard(String r)
         {
             var list = GetClip();

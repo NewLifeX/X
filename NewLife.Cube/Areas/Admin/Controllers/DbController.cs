@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using NewLife.Security;
 using NewLife.Web;
@@ -19,6 +17,7 @@ namespace NewLife.Cube.Admin.Controllers
     {
         /// <summary>数据库列表</summary>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Index()
         {
             var list = new List<DbItem>();
@@ -57,6 +56,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>持久化连接</summary>
         /// <param name="name"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Update)]
         public ActionResult SetStatic(String name)
         {
             // 读取配置文件
@@ -100,6 +100,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>备份数据库</summary>
         /// <param name="name"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Insert)]
         public ActionResult Backup(String name)
         {
             return Index();
@@ -108,6 +109,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>下载数据库备份</summary>
         /// <param name="name"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Download(String name)
         {
 
