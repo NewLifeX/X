@@ -34,7 +34,7 @@ namespace NewLife.Log
             if (path.IsNullOrEmpty()) path = Runtime.IsWeb ? "../Log" : "Log";
 
             var key = path.ToLower();
-            return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p, false));
+            return cache.GetItem(key, k => new TextFileLog(path, false));
         }
 
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
@@ -45,7 +45,7 @@ namespace NewLife.Log
             if (String.IsNullOrEmpty(path)) return Create(path);
 
             String key = path.ToLower();
-            return cache.GetItem<String>(key, path, (k, p) => new TextFileLog(p, true));
+            return cache.GetItem(key, k => new TextFileLog(path, true));
         }
 
         /// <summary>销毁</summary>

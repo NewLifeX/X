@@ -142,11 +142,11 @@ namespace XCode.Code
             }
             var key = sb.ToString().MD5();
 
-            return cache.GetItem<String, List<IDataTable>>(key, name, tables, (k, n, ts) =>
+            return cache.GetItem(key, k =>
             {
                 var asm = new EntityAssembly();
-                asm.Name = n;
-                asm.Tables = ts;
+                asm.Name = name;
+                asm.Tables = tables;
                 //asm.CreateAll();
 
                 //asm.Compile();

@@ -81,7 +81,7 @@ namespace XCode
 
             // 字符串连接有较大性能损耗
             var key = connName + "$$$" + tableName;
-            return _es.GetItem<String, String>(key, connName, tableName, (k, c, t) => new EntitySession<TEntity> { ConnName = c, TableName = t });
+            return _es.GetItem(key, k => new EntitySession<TEntity> { ConnName = connName, TableName = tableName });
         }
         #endregion
 

@@ -268,6 +268,7 @@ namespace NewLife.Cube.Admin.Controllers
 
         /// <summary>复制文件到剪切板</summary>
         /// <param name="r"></param>
+        /// <param name="f"></param>
         /// <returns></returns>
         public ActionResult Copy(String r, String f)
         {
@@ -283,6 +284,7 @@ namespace NewLife.Cube.Admin.Controllers
 
         /// <summary>从剪切板移除</summary>
         /// <param name="r"></param>
+        /// <param name="f"></param>
         /// <returns></returns>
         public ActionResult CancelCopy(String r, String f)
         {

@@ -11,7 +11,7 @@ namespace NewLife.Collections
     /// <remarks>常用匿名函数或者Lambda表达式作为委托。</remarks>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
-    public class DictionaryCache<TKey, TValue> : /*DisposeBase, */IDictionary<TKey, TValue>, IDisposable
+    public class DictionaryCache<TKey, TValue> : IDisposable
     {
         #region 属性
         /// <summary>过期时间。单位是秒，默认0秒，表示永不过期</summary>
@@ -51,15 +51,11 @@ namespace NewLife.Collections
             CacheDefault = true;
         }
 
-        ///// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
-        ///// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
-        ///// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
-        //protected override void OnDispose(bool disposing)
-        //{
-        //    base.OnDispose(disposing);
-
-        //    StopTimer();
-        //}
+        /// <summary>销毁资源</summary>
+        ~DictionaryCache()
+        {
+            Dispose();
+        }
 
         /// <summary>销毁字典，关闭</summary>
         public void Dispose()
@@ -77,11 +73,10 @@ namespace NewLife.Collections
         class CacheItem
         {
             /// <summary>数值</summary>
-            public TValue Value;
+            public TValue Value { get; set; }
 
-            private DateTime _ExpiredTime;
             /// <summary>过期时间</summary>
-            public DateTime ExpiredTime { get { return _ExpiredTime; } set { _ExpiredTime = value; } }
+            public DateTime ExpiredTime { get; set; }
 
             /// <summary>是否过期</summary>
             public Boolean Expired { get { return ExpiredTime <= DateTime.Now; } }
@@ -171,142 +166,6 @@ namespace NewLife.Collections
                 return value;
             }
         }
-
-        /// <summary>扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。</summary>
-        /// <typeparam name="TArg">参数类型</typeparam>
-        /// <param name="key">键</param>
-        /// <param name="arg">参数</param>
-        /// <param name="func">获取值的委托，该委托除了键参数外，还有一个泛型参数</param>
-        /// <returns></returns>
-        [DebuggerHidden]
-        public virtual TValue GetItem<TArg>(TKey key, TArg arg, Func<TKey, TArg, TValue> func)
-        {
-            var exp = Expire;
-            var items = Items;
-            CacheItem item;
-            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
-            lock (items)
-            {
-                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
-
-                // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                if (exp > 0 && Asynchronous)
-                {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
-                }
-
-                var value = func(key, arg);
-                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
-                StartTimer();
-
-                return value;
-            }
-        }
-
-        /// <summary>扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。</summary>
-        /// <typeparam name="TArg">参数类型</typeparam>
-        /// <typeparam name="TArg2">参数类型2</typeparam>
-        /// <param name="key">键</param>
-        /// <param name="arg">参数</param>
-        /// <param name="arg2">参数2</param>
-        /// <param name="func">获取值的委托，该委托除了键参数外，还有两个泛型参数</param>
-        /// <returns></returns>
-        [DebuggerHidden]
-        public virtual TValue GetItem<TArg, TArg2>(TKey key, TArg arg, TArg2 arg2, Func<TKey, TArg, TArg2, TValue> func)
-        {
-            var exp = Expire;
-            var items = Items;
-            CacheItem item;
-            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
-            lock (items)
-            {
-                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
-
-                // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                if (exp > 0 && Asynchronous)
-                {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
-                }
-
-                var value = func(key, arg, arg2);
-                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
-                StartTimer();
-
-                return value;
-            }
-        }
-
-        /// <summary>扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。</summary>
-        /// <typeparam name="TArg">参数类型</typeparam>
-        /// <typeparam name="TArg2">参数类型2</typeparam>
-        /// <typeparam name="TArg3">参数类型3</typeparam>
-        /// <param name="key">键</param>
-        /// <param name="arg">参数</param>
-        /// <param name="arg2">参数2</param>
-        /// <param name="arg3">参数3</param>
-        /// <param name="func">获取值的委托，该委托除了键参数外，还有三个泛型参数</param>
-        /// <returns></returns>
-        [DebuggerHidden]
-        public virtual TValue GetItem<TArg, TArg2, TArg3>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, Func<TKey, TArg, TArg2, TArg3, TValue> func)
-        {
-            var exp = Expire;
-            var items = Items;
-            CacheItem item;
-            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
-            lock (items)
-            {
-                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
-
-                // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                if (exp > 0 && Asynchronous)
-                {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
-                }
-
-                var value = func(key, arg, arg2, arg3);
-                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
-                StartTimer();
-
-                return value;
-            }
-        }
-
-        /// <summary>扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。</summary>
-        /// <typeparam name="TArg">参数类型</typeparam>
-        /// <typeparam name="TArg2">参数类型2</typeparam>
-        /// <typeparam name="TArg3">参数类型3</typeparam>
-        /// <typeparam name="TArg4">参数类型4</typeparam>
-        /// <param name="key">键</param>
-        /// <param name="arg">参数</param>
-        /// <param name="arg2">参数2</param>
-        /// <param name="arg3">参数3</param>
-        /// <param name="arg4">参数4</param>
-        /// <param name="func">获取值的委托，该委托除了键参数外，还有三个泛型参数</param>
-        /// <returns></returns>
-        [DebuggerHidden]
-        public virtual TValue GetItem<TArg, TArg2, TArg3, TArg4>(TKey key, TArg arg, TArg2 arg2, TArg3 arg3, TArg4 arg4, Func<TKey, TArg, TArg2, TArg3, TArg4, TValue> func)
-        {
-            var exp = Expire;
-            var items = Items;
-            CacheItem item;
-            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
-            lock (items)
-            {
-                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
-
-                // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                if (exp > 0 && Asynchronous)
-                {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
-                }
-
-                var value = func(key, arg, arg2, arg3, arg4);
-                if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
-                StartTimer();
-
-                return value;
-            }
-        }
         #endregion
 
         #region 清理过期缓存
@@ -365,90 +224,6 @@ namespace NewLife.Collections
                 }
             }
         }
-        #endregion
-
-        #region IDictionary<TKey,TValue> 成员
-        /// <summary></summary>
-        /// <param name="key"></param>
-        /// <param name="value">数值</param>
-        public void Add(TKey key, TValue value) { Items.Add(key, new CacheItem(value, Expire)); }
-
-        /// <summary></summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public bool ContainsKey(TKey key) { return Items.ContainsKey(key); }
-
-        /// <summary></summary>
-        public ICollection<TKey> Keys { get { return Items.Keys; } }
-
-        /// <summary></summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public bool Remove(TKey key) { return Items.Remove(key); }
-
-        /// <summary></summary>
-        /// <param name="key"></param>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        public bool TryGetValue(TKey key, out TValue value)
-        {
-            CacheItem item = null;
-            var rs = Items.TryGetValue(key, out item);
-            value = rs && item != null && (Expire <= 0 || !item.Expired) ? item.Value : default(TValue);
-            return rs;
-        }
-
-        /// <summary></summary>
-        public ICollection<TValue> Values { get { return Items.Values.Select(e => e.Value).ToArray(); } }
-
-        #endregion
-
-        #region ICollection<KeyValuePair<TKey,TValue>> 成员
-
-        /// <summary></summary>
-        /// <param name="item"></param>
-        public void Add(KeyValuePair<TKey, TValue> item) { Add(item.Key, item.Value); }
-
-        /// <summary></summary>
-        public void Clear() { Items.Clear(); }
-
-        /// <summary></summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public bool Contains(KeyValuePair<TKey, TValue> item) { return ContainsKey(item.Key); }
-
-        /// <summary></summary>
-        /// <param name="array"></param>
-        /// <param name="arrayIndex"></param>
-        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) { throw new NotImplementedException(); }
-
-        /// <summary></summary>
-        public int Count { get { return Items.Count; } }
-
-        /// <summary></summary>
-        public bool IsReadOnly { get { return (Items as ICollection<KeyValuePair<TKey, CacheItem>>).IsReadOnly; } }
-
-        /// <summary></summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public bool Remove(KeyValuePair<TKey, TValue> item) { return Remove(item.Key); }
-
-        #endregion
-
-        #region IEnumerable<KeyValuePair<TKey,TValue>> 成员
-        /// <summary></summary>
-        /// <returns></returns>
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-        {
-            return Items.Select(e => new KeyValuePair<TKey, TValue>(e.Key, e.Value.Value)).ToList().GetEnumerator();
-        }
-
-        #endregion
-
-        #region IEnumerable 成员
-
-        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
-
         #endregion
     }
 }

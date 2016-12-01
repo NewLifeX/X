@@ -121,7 +121,7 @@ namespace NewLife.Reflection
             if (String.IsNullOrEmpty(code)) throw new ArgumentNullException("code");
 
             var key = code + isExpression;
-            return _cache.GetItem<String, Boolean>(key, code, isExpression, (k, c, b) => new ScriptEngine(c, b));
+            return _cache.GetItem(key, k => new ScriptEngine(code, isExpression));
         }
         #endregion
 

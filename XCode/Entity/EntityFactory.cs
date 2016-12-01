@@ -38,7 +38,7 @@ namespace XCode
         public static IEntityOperate CreateOperate(String typeName)
         {
             if (String.IsNullOrEmpty(typeName)) return null;
-            
+
             Type type = GetEntityType(typeName);
             if (type == null)
             {
@@ -49,7 +49,7 @@ namespace XCode
             return CreateOperate(type);
         }
 
-        private static DictionaryCache<Type, IEntityOperate> op_cache = new DictionaryCache<Type, IEntityOperate>();
+        private static Dictionary<Type, IEntityOperate> op_cache = new Dictionary<Type, IEntityOperate>();
         /// <summary>创建实体操作接口</summary>
         /// <remarks>
         /// 因为只用来做实体操作，所以只需要一个实例即可。
@@ -67,7 +67,11 @@ namespace XCode
             // 确保实体类已被初始化，实际上，因为实体类静态构造函数中会注册IEntityOperate，所以下面的委托按理应该再也不会被执行了
             EnsureInit(type);
 
-            return op_cache.GetItem(type, key => { throw new XCodeException("无法创建{0}的实体操作接口！", key); });
+            //return op_cache.GetItem(type, key => { throw new XCodeException("无法创建{0}的实体操作接口！", key); });
+
+            IEntityOperate eop = null;
+            if (op_cache.TryGetValue(type, out eop)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
+            return eop;
         }
 
         /// <summary>根据类型创建实体工厂</summary>

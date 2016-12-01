@@ -81,9 +81,9 @@ namespace System
 
             var key = String.Format("{0}_{1}", assembly.FullName, typeof(TAttribute).FullName);
 
-            return (TAttribute[])_asmCache.GetItem<Assembly>(key, assembly, (k, m) =>
+            return (TAttribute[])_asmCache.GetItem(key, k =>
             {
-                var atts = m.GetCustomAttributes(typeof(TAttribute), true) as TAttribute[];
+                var atts = assembly.GetCustomAttributes(typeof(TAttribute), true) as TAttribute[];
                 return atts == null ? new TAttribute[0] : atts;
             });
         }

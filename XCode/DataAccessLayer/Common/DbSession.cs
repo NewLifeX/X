@@ -699,7 +699,7 @@ namespace XCode.DataAccessLayer
             // 小心collectionName为空，此时列出所有架构名称
             var key = "" + collectionName;
             if (restrictionValues != null && restrictionValues.Length > 0) key += "_" + String.Join("_", restrictionValues);
-            return _schCache.GetItem<String, String[]>(key, collectionName, restrictionValues, GetSchemaInternal);
+            return _schCache.GetItem(key, k => GetSchemaInternal(k, collectionName, restrictionValues));
         }
 
         DataTable GetSchemaInternal(String key, String collectionName, String[] restrictionValues)

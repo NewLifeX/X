@@ -227,13 +227,13 @@ namespace NewLife.Web
         {
             get
             {
-                if (HttpContext.Current == null)
-                    return null;
+                if (HttpContext.Current == null) return null;
+
                 try
                 {
                     return HttpContext.Current.Request;
                 }
-                catch (Exception ex)
+                catch //(Exception ex)
                 {
                     return null;
                 }
