@@ -70,7 +70,7 @@ namespace XCode
             //return op_cache.GetItem(type, key => { throw new XCodeException("无法创建{0}的实体操作接口！", key); });
 
             IEntityOperate eop = null;
-            if (op_cache.TryGetValue(type, out eop)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
+            if (!op_cache.TryGetValue(type, out eop)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
             return eop;
         }
 

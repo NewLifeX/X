@@ -15,7 +15,7 @@ namespace XCode
         /// <summary>过期时间。单位是秒，默认60秒，0表示永不过期</summary>
         public Int32 Expire { get; set; } = 60;
 
-        private Dictionary<String, CacheItem> Items;
+        private Dictionary<String, CacheItem> Items = new Dictionary<String, CacheItem>();
         #endregion
 
         /// <summary>实例化一个不区分键大小写的实体扩展</summary>
