@@ -44,11 +44,15 @@ namespace XCode
 
                 // 首次访问同步计算，以后异步计算
                 if (item == null)
-                    items[key] = new CacheItem(func(key), exp);
+                {
+                    value = func(key);
+                    items[key] = new CacheItem(value, exp);
+                }
                 else
                 {
                     // 马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
                     item.ExpiredTime = DateTime.Now.AddSeconds(exp);
+                    value = item.Value;
                     Task.Run(() => { item.Value = func(key); });
                 }
 
