@@ -178,7 +178,7 @@ namespace NewLife.Net.DNS
             }
 
             // 读取缓存
-            var rs = cache.GetItem<DNSEntity>(request.ToString(), request, GetDNS);
+            var rs = cache.GetItem(request.ToString(), k => GetDNS(k, request));
 
             // 返回给客户端
             if (rs != null)

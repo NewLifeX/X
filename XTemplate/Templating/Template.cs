@@ -178,12 +178,11 @@ namespace XTemplate.Templating
             }
 
             var hash = Hash(sb.ToString());
-
-            return cache.GetItem<IDictionary<String, String>>(hash, templates, delegate (String key, IDictionary<String, String> contents)
+            return cache.GetItem(hash, k =>
             {
                 var entity = new Template();
 
-                foreach (var item in contents)
+                foreach (var item in templates)
                 {
                     entity.AddTemplateItem(item.Key, item.Value);
                 }
