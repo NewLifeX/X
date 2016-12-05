@@ -207,12 +207,14 @@ namespace NewLife.Serialization
                     val = CreateNV(vdic);
                 else if (pt == typeof(StringDictionary))
                     val = CreateSD(vdic);
+                else if (Type.GetTypeCode(pt) != TypeCode.Object)
+                    val = v;
                 else
                 {
-                    if (Type.GetTypeCode(pt) != TypeCode.Object)
-                        val = v;
-                    else
-                        throw new NotSupportedException();
+                    // 内嵌对象
+                    val = Parse(vdic, pt, obj.GetValue(pi));
+
+                    //throw new NotSupportedException();
                 }
 
                 obj.SetValue(pi, val);
