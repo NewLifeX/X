@@ -682,7 +682,7 @@ namespace System
                     var tcp = new TcpSession { Local = local };
                     return tcp;
                 case NetType.Udp:
-                    var udp = new UdpServer { Local = local, UseReceiveAsync = true };
+                    var udp = new UdpServer { Local = local };
                     return udp;
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(local.Type));
@@ -702,7 +702,7 @@ namespace System
                     var tcp = new TcpSession { Remote = remote };
                     return tcp;
                 case NetType.Udp:
-                    var udp = new UdpServer { Remote = remote, UseReceiveAsync = true };
+                    var udp = new UdpServer { Remote = remote };
                     return udp;
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(remote.Type));

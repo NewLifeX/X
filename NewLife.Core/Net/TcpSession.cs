@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace NewLife.Net
 {
@@ -225,6 +226,8 @@ namespace NewLife.Net
             return buf.ReadBytes(0, count);
         }
 
+        private TaskCompletionSource<ReceivedEventArgs> _recv;
+
         /// <summary>读取指定长度的数据，一般是一帧</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
@@ -236,39 +239,35 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            var rs = 0;
             try
             {
-                //if (count > 0) rs = Stream.Read(buffer, offset, count);
-                if (count > 0) rs = Client.Receive(buffer, offset, count, SocketFlags.None);
+                // 通过任务拦截异步接收
+                var tsc = _recv;
+                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
+                if (!tsc.Task.Wait(Timeout)) return -1;
+
+                var e = tsc.Task.Result;
+                if (e == null) return -1;
+
+                // 读取数据
+                if (offset + count > e.Length) count = e.Length - offset;
+                var size = e.Stream.Read(buffer, offset, count);
+
+                if (StatReceive != null) StatReceive.Increment(size);
+
+                return size;
             }
-            catch (Exception ex)
+            finally
             {
-                if (!ex.IsDisposed())
-                {
-                    OnError("Receive", ex);
-
-                    // 发送异常可能是连接出了问题，需要关闭
-                    Close("同步接收出错");
-                    Reconnect();
-
-                    if (ThrowException) throw;
-                }
-
-                return -1;
+                _recv = null;
             }
-
-            LastTime = DateTime.Now;
-            if (StatReceive != null) StatReceive.Increment(rs);
-
-            return rs;
         }
 
         internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
         {
             var client = Client;
             if (client == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
-            
+
             return client.ReceiveAsync(se);
         }
 
@@ -300,6 +299,10 @@ namespace NewLife.Net
             e.Data = data;
             e.Length = count;
             e.UserState = Remote.EndPoint;
+
+            // 同步匹配
+            _recv?.SetResult(e);
+            _recv = null;
 
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
 

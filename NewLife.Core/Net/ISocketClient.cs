@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace NewLife.Net
 {
@@ -34,6 +35,8 @@ namespace NewLife.Net
 
         #region 异步接收
         /// <summary>是否异步接收数据</summary>
+        [Obsolete("默认异步，不再支持设置")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Boolean UseReceiveAsync { get; }
         #endregion
     }

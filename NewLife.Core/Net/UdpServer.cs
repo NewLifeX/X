@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -28,9 +29,6 @@ namespace NewLife.Net
         /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
         public Boolean Loopback { get; set; }
 
-        ///// <summary>收到Reset错误时是否结束。默认false</summary>
-        //public Boolean EnableReset { get; set; }
-
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
         #endregion
@@ -40,10 +38,6 @@ namespace NewLife.Net
         public UdpServer()
         {
             SessionTimeout = 30;
-
-            // Udp服务器不能关闭自己，但是要关闭会话
-            // Udp客户端一般不关闭自己
-            //EnableReset = false;
 
             Local = new NetUri(NetType.Udp, IPAddress.Any, 0);
             Remote.Type = NetType.Udp;
@@ -76,9 +70,6 @@ namespace NewLife.Net
                 Client = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
                 Client.Bind(Local.EndPoint);
                 CheckDynamic();
-
-                // 如果使用了新会话事件，也需要开启异步接收
-                if (!UseReceiveAsync && NewSession != null) UseReceiveAsync = true;
 
                 WriteLog("Open {0}", this);
             }
@@ -203,6 +194,8 @@ namespace NewLife.Net
             return buf.ReadBytes(0, count);
         }
 
+        private TaskCompletionSource<ReceivedEventArgs> _recv;
+
         /// <summary>读取指定长度的数据，一般是一帧</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
@@ -216,33 +209,29 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            var size = 0;
-            var sp = Client;
-
             try
             {
-                EndPoint remoteEP = null;
-                size = Client.ReceiveFrom(buffer, offset, count, SocketFlags.None, ref remoteEP);
-                LastRemote = remoteEP as IPEndPoint;
+                // 通过任务拦截异步接收
+                var tsc = _recv;
+                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
+                if (!tsc.Task.Wait(Timeout)) return -1;
+
+                var e = tsc.Task.Result;
+                if (e == null) return -1;
+
+                // 读取数据
+                if (offset + count > e.Length) count = e.Length - offset;
+                var size = e.Stream.Read(buffer, offset, count);
+                LastRemote = e.UserState as IPEndPoint;
+
+                if (StatReceive != null) StatReceive.Increment(size);
+
+                return size;
             }
-            catch (Exception ex)
+            finally
             {
-                if (!ex.IsDisposed())
-                {
-                    OnError("Receive", ex);
-
-                    // 异常可能是连接出了问题，UDP不需要关闭
-                    //Close();
-
-                    if (ThrowException) throw;
-                }
-
-                return -1;
+                _recv = null;
             }
-
-            if (StatReceive != null) StatReceive.Increment(size);
-
-            return size;
         }
 
         /// <summary>处理收到的数据</summary>
@@ -274,6 +263,10 @@ namespace NewLife.Net
             var e = new ReceivedEventArgs();
             e.Data = data;
             e.UserState = remote;
+
+            // 同步匹配
+            _recv?.SetResult(e);
+            _recv = null;
 
             // 为该连接单独创建一个会话，方便直接通信
             var session = CreateSession(remote);

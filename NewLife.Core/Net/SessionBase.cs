@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -110,9 +111,6 @@ namespace NewLife.Net
 
             if (Active) return true;
 
-            // 即使没有事件，也允许强行打开异步接收
-            if (!UseReceiveAsync && Received != null) UseReceiveAsync = true;
-
             // 估算完成时间，执行过长时提示
             using (var tc = new TimeCost("{0}.Open".F(GetType().Name), 1500))
             {
@@ -127,7 +125,7 @@ namespace NewLife.Net
                 Opened?.Invoke(this, EventArgs.Empty);
             }
 
-            if (UseReceiveAsync) ReceiveAsync();
+            ReceiveAsync();
 
             return true;
         }
@@ -390,6 +388,8 @@ namespace NewLife.Net
         public abstract Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
         /// <summary>是否异步接收数据</summary>
+        [Obsolete("默认异步，不再支持设置")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public Boolean UseReceiveAsync { get; set; }
 
         /// <summary>当前异步接收个数</summary>
@@ -402,8 +402,6 @@ namespace NewLife.Net
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (!Open()) return false;
-
-            if (!UseReceiveAsync) UseReceiveAsync = true;
 
             if (_RecvCount >= MaxAsync) return false;
 

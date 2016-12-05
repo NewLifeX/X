@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -42,8 +43,7 @@ namespace NewLife.Net
 
         /// <summary>远程地址</summary>
         public NetUri Remote { get; set; }
-
-
+        
         private int _timeout;
         /// <summary>超时。默认3000ms</summary>
         public Int32 Timeout
@@ -69,8 +69,6 @@ namespace NewLife.Net
         /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
         public IStatistics StatReceive { get; set; }
 
-        private IPEndPoint _Filter;
-
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; }
 
@@ -87,10 +85,7 @@ namespace NewLife.Net
 
             Server = server;
             Remote = new NetUri(NetType.Udp, remote);
-            _Filter = remote;
 
-            //StatSend = new Statistics();
-            //StatReceive = new Statistics();
             StatSend = server.StatSend;
             StatReceive = server.StatReceive;
 
@@ -166,62 +161,51 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
-        Boolean CheckFilter(IPEndPoint remote)
-        {
-            // IPAddress是类，不同实例对象当然不相等啦
-            if (!_Filter.IsAny())
-            {
-                if (!_Filter.Equals(remote)) return false;
-            }
-
-            return true;
-        }
-
         public byte[] Receive()
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
-            var buf = Server.Receive();
+            var buf = new Byte[1024 * 2];
+            var count = Receive(buf, 0, buf.Length);
+            if (count < 0) return null;
+            if (count == 0) return new Byte[0];
 
-            var ep = Server.Remote.EndPoint;
-            if (!CheckFilter(ep))
-            {
-                // 交给其它会话
-                Server.OnReceive(buf, ep);
-                return new Byte[0];
-            }
-
-            Remote.EndPoint = ep;
-
-            LastTime = DateTime.Now;
-            //if (StatReceive != null) StatReceive.Increment(buf.Length);
-
-            return buf;
+            return buf.ReadBytes(0, count);
         }
+
+        private TaskCompletionSource<ReceivedEventArgs> _recv;
 
         public int Receive(byte[] buffer, int offset = 0, int count = -1)
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            // UDP会话的直接读取可能会读到不是自己的数据，所以尽量不要两个会话一起读
-            var size = Server.Receive(buffer, offset, count);
-
-            var ep = Server.Remote.EndPoint;
-            if (!CheckFilter(ep))
+            try
             {
-                // 交给其它会话
-                Server.OnReceive(buffer.ReadBytes(offset, size), ep);
-                return 0;
+                // 通过任务拦截异步接收
+                var tsc = _recv;
+                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
+                if (!tsc.Task.Wait(Timeout)) return -1;
+
+                var e = tsc.Task.Result;
+                if (e == null) return -1;
+
+                // 读取数据
+                if (offset + count > e.Length) count = e.Length - offset;
+                var size = e.Stream.Read(buffer, offset, count);
+                Remote.EndPoint = e.UserState as IPEndPoint;
+
+                LastTime = DateTime.Now;
+
+                if (StatReceive != null) StatReceive.Increment(size);
+
+                return size;
             }
-
-            Remote.EndPoint = ep;
-
-            LastTime = DateTime.Now;
-            //if (StatReceive != null) StatReceive.Increment(size);
-
-            return size;
+            finally
+            {
+                _recv = null;
+            }
         }
+
         /// <summary>开始异步接收数据</summary>
         public Boolean ReceiveAsync()
         {
@@ -234,6 +218,10 @@ namespace NewLife.Net
 
         internal void OnReceive(ReceivedEventArgs e)
         {
+            // 同步匹配
+            _recv?.SetResult(e);
+            _recv = null;
+
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);
 
