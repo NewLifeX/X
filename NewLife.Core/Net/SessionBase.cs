@@ -66,6 +66,9 @@ namespace NewLife.Net
 
         /// <summary>最大并行接收数。默认1</summary>
         public Int32 MaxAsync { get; set; }
+
+        /// <summary>缓冲区大小。默认8k</summary>
+        public Int32 BufferSize { get; set; } = 8 * 1024;
         #endregion
 
         #region 构造
@@ -232,8 +235,7 @@ namespace NewLife.Net
                 // 同时只允许一个异步发送，其它发送放入队列
 
                 // 考虑到超长数据包，拆分为多个包
-                var max = 1472;
-                if (buffer.Length <= max)
+                if (buffer.Length <= BufferSize)
                 {
                     var qi = new QueueItem();
                     qi.Buffer = buffer;
@@ -249,7 +251,7 @@ namespace NewLife.Net
                         var remain = (Int32)(ms.Length - ms.Position);
                         if (remain <= 0) break;
 
-                        var len = Math.Min(remain, max);
+                        var len = Math.Min(remain, BufferSize);
 
                         var qi = new QueueItem();
                         qi.Buffer = ms.ReadBytes(len);
@@ -290,7 +292,7 @@ namespace NewLife.Net
             var se = _seSend;
             if (se == null)
             {
-                var buf = new Byte[1500];
+                var buf = new Byte[BufferSize];
                 se = _seSend = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
                 se.Completed += (s, e) => ProcessSend(e);
@@ -304,7 +306,6 @@ namespace NewLife.Net
             {
                 var p = 0;
                 var len = qi.Buffer.Length;
-                var max = 1472;
                 var remote = qi.Remote;
 
                 // 为了提高吞吐量，减少数据收发次数，尽可能的把发送队列多个数据包合并成为一个大包发出
@@ -316,7 +317,7 @@ namespace NewLife.Net
                     // 不足最大长度，试试下一个
                     if (!qu.TryPeek(out qi)) break;
                     if (qi.Remote != remote) break;
-                    if (p + qi.Buffer.Length > max) break;
+                    if (p + qi.Buffer.Length > BufferSize) break;
 
                     if (!qu.TryDequeue(out qi)) break;
 
@@ -414,11 +415,8 @@ namespace NewLife.Net
                     return false;
                 }
 
-                //var buf = new Byte[1500];
                 // 加大接收缓冲区，规避SocketError.MessageSize问题
-                var size = 1500;
-                if (Local.IsUdp) size = 128 * 1024;
-                var buf = new Byte[size];
+                var buf = new Byte[BufferSize];
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
                 se.Completed += (s, e) => ProcessReceive(e);

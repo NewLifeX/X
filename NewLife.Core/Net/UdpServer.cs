@@ -288,6 +288,9 @@ namespace NewLife.Net
         /// <returns>是否当作异常处理并结束会话</returns>
         internal override Boolean OnReceiveError(SocketAsyncEventArgs se)
         {
+            // 缓冲区不足时，加大
+            if (se.SocketError == SocketError.MessageSize && BufferSize < 1024 * 1024) BufferSize *= 2;
+
             // Udp服务器不能关闭自己，但是要关闭会话
             // Udp客户端一般不关闭自己
             if (se.SocketError != SocketError.ConnectionReset &&
