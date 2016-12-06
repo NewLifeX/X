@@ -510,41 +510,23 @@ namespace NewLife.Net
             }
             else
             {
-                // 拷贝走数据，参数要重复利用
-                var data = se.Buffer.ReadBytes(se.Offset, se.BytesTransferred);
                 var ep = se.RemoteEndPoint as IPEndPoint;
 
-                // 在用户线程池里面去处理数据
-                //Task.Factory.StartNew(() => OnReceive(data, ep)).LogException(ex => OnError("OnReceive", ex));
-                //ThreadPool.QueueUserWorkItem(s => OnReceive(data, ep));
-                // 根据不信任用户原则，这里另外开线程执行用户逻辑
-                ThreadPool.UnsafeQueueUserWorkItem(s =>
+                if (MaxAsync > 1)
                 {
-                    try
-                    {
-                        OnReceive(data, ep);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (!ex.IsDisposed()) OnError("OnReceive", ex);
-                    }
-                }, null);
-
-                //// 直接在IO线程调用业务逻辑
-                //try
-                //{
-                //    // 估算完成时间，执行过长时提示
-                //    using (var tc = new TimeCost("{0}.OnReceive".F(GetType().Name), 1000))
-                //    {
-                //        tc.Log = Log;
-
-                //        OnReceive(data, ep);
-                //    }
-                //}
-                //catch (Exception ex)
-                //{
-                //    if (!ex.IsDisposed()) OnError("OnReceive", ex);
-                //}
+                    // 拷贝走数据，参数要重复利用
+                    var data = se.Buffer.ReadBytes(se.Offset, se.BytesTransferred);
+                    var ms = new MemoryStream(data, false);
+                    // 根据不信任用户原则，这里另外开线程执行用户逻辑
+                    ThreadPool.UnsafeQueueUserWorkItem(s => ProcessReceive(ms, ep), null);
+                }
+                else
+                {
+                    // 同步执行，直接使用数据，不需要拷贝
+                    var ms = new MemoryStream(se.Buffer, se.Offset, se.BytesTransferred, false);
+                    // 直接在IO线程调用业务逻辑
+                    ProcessReceive(ms, ep);
+                }
             }
 
             // 开始新的监听
@@ -552,6 +534,35 @@ namespace NewLife.Net
                 ReceiveAsync(se, true);
             else
                 ReleaseRecv(se, "!Active || Disposed");
+        }
+
+        /// <summary>封包算法</summary>
+        public IPacket Packet { get; set; }
+
+        void ProcessReceive(Stream stream, IPEndPoint remote)
+        {
+            try
+            {
+                if (Packet == null)
+                    OnReceive(stream.ReadBytes(), remote);
+                else
+                {
+                    // 凑包
+                    Packet.Write(stream);
+                    while (true)
+                    {
+                        // 拆包，多个包多次调用处理程序
+                        var ms = Packet.Read();
+                        if (ms == null) break;
+
+                        OnReceive(ms.ReadBytes(), remote);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed()) OnError("OnReceive", ex);
+            }
         }
 
         /// <summary>收到异常时如何处理。默认关闭会话</summary>
