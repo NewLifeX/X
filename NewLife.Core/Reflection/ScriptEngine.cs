@@ -388,8 +388,9 @@ namespace NewLife.Reflection
                 if (item is AssemblyBuilder) continue;
 
                 // 三趾树獭  303409914 发现重复加载同一个DLL，表现为Web站点Bin目录有一个，系统缓存有一个
-                if (hs.Contains(item.FullName)) continue;
-                hs.Add(item.FullName);
+                // 相同程序集不同版本，全名不想等
+                if (hs.Contains(item.GetName().Name)) continue;
+                hs.Add(item.GetName().Name);
 
                 String name = null;
                 try

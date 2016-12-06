@@ -210,7 +210,7 @@ namespace NewLife.Reflection
         {
             get
             {
-                String name = Asm.FullName;
+                var name = Asm.FullName;
                 if (name.EndsWith("PublicKeyToken=b77a5c561934e089")) return true;
                 if (name.EndsWith("PublicKeyToken=b03f5f7f11d50a3a")) return true;
 
@@ -569,7 +569,9 @@ namespace NewLife.Reflection
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item.Location))) continue;
                 // 尽管目录不一样，但这两个可能是相同的程序集
                 // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
-                if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(item.Asm.FullName))) continue;
+                //if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(item.Asm.FullName))) continue;
+                // 相同程序集不同版本，全名不想等
+                if (loadeds.Any(e => e.Asm.GetName().Name.EqualIgnoreCase(item.Asm.GetName().Name))) continue;
 
                 yield return item;
             }
@@ -611,8 +613,11 @@ namespace NewLife.Reflection
 
                 // 尽管目录不一样，但这两个可能是相同的程序集
                 // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
-                if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName)) ||
-                    loadeds2.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName))) continue;
+                //if (loadeds.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName)) ||
+                //    loadeds2.Any(e => e.Asm.FullName.EqualIgnoreCase(asm.FullName))) continue;
+                // 相同程序集不同版本，全名不想等
+                if (loadeds.Any(e => e.Asm.GetName().Name.EqualIgnoreCase(asm.GetName().Name)) ||
+                    loadeds2.Any(e => e.Asm.GetName().Name.EqualIgnoreCase(asm.GetName().Name))) continue;
 
                 var asmx = Create(asm);
                 if (asmx != null) yield return asmx;

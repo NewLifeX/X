@@ -112,7 +112,10 @@ namespace NewLife.Cube
                 if (x != null && y == null) return 1;
                 if (x == null && y != null) return -1;
 
-                return x.GetReferencedAssemblies().Any(e => e.FullName == y.FullName) ? 1 : -1;
+                //return x.GetReferencedAssemblies().Any(e => e.FullName == y.FullName) ? 1 : -1;
+                // 对程序集引用进行排序时，不能使用全名，当魔方更新而APP没有重新编译时，版本的不同将会导致全名不同，无法准确进行排序
+                var yname = y.GetName().Name;
+                return x.GetReferencedAssemblies().Any(e => e.Name == yname) ? 1 : -1;
             });
 
             return list;
