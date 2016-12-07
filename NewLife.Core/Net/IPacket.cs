@@ -198,9 +198,28 @@ namespace NewLife.Net
     /// <summary>头部长度粘包处理工厂</summary>
     public class HeaderLengthPacketFactory : IPacketFactory
     {
+        #region 属性
+        /// <summary>长度所在位置，默认0</summary>
+        public Int32 Offset { get; set; }
+
+        /// <summary>长度占据字节数，1/2/4个字节，默认0表示压缩编码整数</summary>
+        public Int32 Size { get; set; }
+
+        /// <summary>过期时间，超过该时间后按废弃数据处理，默认3000ms</summary>
+        public Int32 Expire { get; set; } = 3000;
+        #endregion
+
         /// <summary>创建粘包处理实例，内含缓冲区，不同会话不能共用</summary>
         /// <returns></returns>
-        public IPacket Create() { return new HeaderLengthPacket(); }
+        public IPacket Create()
+        {
+            return new HeaderLengthPacket
+            {
+                Offset = Offset,
+                Size = Size,
+                Expire = Expire
+            };
+        }
     }
 
     /// <summary>数据流包装，表示一个数据流的子数据流</summary>
