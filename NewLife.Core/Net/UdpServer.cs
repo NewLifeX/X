@@ -33,7 +33,7 @@ namespace NewLife.Net
         public IStatistics StatSession { get; set; }
 
         /// <summary>粘包处理接口</summary>
-        public IPacket SessionPacket { get; set; }
+        public IPacketFactory SessionPacket { get; set; }
         #endregion
 
         #region 构造
@@ -373,7 +373,7 @@ namespace NewLife.Net
                 // UDP不好分会话统计
                 //us.StatSend.Parent = StatSend;
                 //us.StatReceive.Parent = StatReceive;
-                us.Packet = SessionPacket;
+                us.Packet = SessionPacket.Create();
 
                 session = us;
                 if (sessions.Add(session))

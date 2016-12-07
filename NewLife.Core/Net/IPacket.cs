@@ -3,13 +3,21 @@ using System.IO;
 
 namespace NewLife.Net
 {
-    /// <summary>封包接口</summary>
+    /// <summary>粘包处理接口</summary>
     public interface IPacket
     {
         /// <summary>分析数据流，得到一帧数据</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
         Stream Parse(Stream stream);
+    }
+
+    /// <summary>粘包处理接口工厂</summary>
+    public interface IPacketFactory
+    {
+        /// <summary>创建粘包处理实例，内含缓冲区，不同会话不能共用</summary>
+        /// <returns></returns>
+        IPacket Create();
     }
 
     /// <summary>头部指明长度的封包格式</summary>
@@ -149,7 +157,7 @@ namespace NewLife.Net
         {
             var svr = new NetServer();
             svr.Port = 777;
-            svr.SessionPacket = new HeaderLengthPacket();
+            svr.SessionPacket = new HeaderLengthPacketFactory();
             svr.Log = Log.XTrace.Log;
             svr.LogReceive = true;
             svr.Start();
@@ -185,6 +193,14 @@ namespace NewLife.Net
             svr.Dispose();
         }
 #endif
+    }
+
+    /// <summary>头部长度粘包处理工厂</summary>
+    public class HeaderLengthPacketFactory : IPacketFactory
+    {
+        /// <summary>创建粘包处理实例，内含缓冲区，不同会话不能共用</summary>
+        /// <returns></returns>
+        public IPacket Create() { return new HeaderLengthPacket(); }
     }
 
     /// <summary>数据流包装，表示一个数据流的子数据流</summary>

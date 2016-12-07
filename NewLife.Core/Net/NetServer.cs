@@ -83,7 +83,7 @@ namespace NewLife.Net
         public Int32 SessionTimeout { get; set; }
 
         /// <summary>粘包处理接口</summary>
-        public IPacket SessionPacket { get; set; }
+        public IPacketFactory SessionPacket { get; set; }
 
         /// <summary>使用会话集合，允许遍历会话。默认false</summary>
         public Boolean UseSession { get; set; }
