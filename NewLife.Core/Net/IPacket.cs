@@ -180,19 +180,24 @@ namespace NewLife.Net
 
             // 凑齐10个带有长度的数据帧一起发出
             var ms = new MemoryStream();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 5; i++)
             {
-                var str = Security.Rand.NextString(Security.Rand.Next(4, 8));
-                Console.WriteLine("{0}\t{1}\t{2}", str.Length, str, str.GetBytes().ToHex());
+                var size = i < 4 ? Security.Rand.Next(1400) : Security.Rand.Next(2000, 3000);
+                var str = Security.Rand.NextString(size);
+                var s = str.Substring(0, Math.Min(str.Length, 16));
+                var h = str.GetBytes().ToHex();
+                h = h.Substring(0, Math.Min(h.Length, 32));
+                Console.WriteLine("{0}\t{1}\t{2}", str.Length, s, h);
 
                 ms.WriteArray(str.GetBytes());
             }
-            ms.Position = 0;
 
             var client = new NetUri("udp://127.0.0.1:777").CreateRemote();
+            //client.Remote.Address = NetHelper.MyIP();
+            //client.Remote.Address = System.Net.IPAddress.Parse("1.0.0.13");
             client.Log = Log.XTrace.Log;
             client.LogSend = true;
-            client.SendAsync(ms.ReadBytes());
+            client.SendAsync(ms.ToArray());
 
             Console.ReadKey(true);
 
