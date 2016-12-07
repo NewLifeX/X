@@ -545,15 +545,13 @@ namespace NewLife.Net
                     OnReceive(stream.ReadBytes(), remote);
                 else
                 {
-                    // 凑包
-                    Packet.Write(stream);
-                    while (true)
+                    // 拆包，多个包多次调用处理程序
+                    var msg = Packet.Parse(stream);
+                    while (msg != null)
                     {
-                        // 拆包，多个包多次调用处理程序
-                        var ms = Packet.Read();
-                        if (ms == null) break;
+                        OnReceive(msg.ReadBytes(), remote);
 
-                        OnReceive(ms.ReadBytes(), remote);
+                        msg = Packet.Parse(null);
                     }
                 }
             }
