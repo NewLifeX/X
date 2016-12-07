@@ -74,6 +74,9 @@ namespace NewLife.Net
 
         /// <summary>最后一次通信时间，主要表示会话活跃时间，包括收发</summary>
         DateTime LastTime { get; }
+        
+        /// <summary>粘包处理接口</summary>
+        IPacket Packet { get; set; }
         #endregion
 
         #region 发送

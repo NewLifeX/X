@@ -43,7 +43,7 @@ namespace NewLife.Net
 
         /// <summary>远程地址</summary>
         public NetUri Remote { get; set; }
-        
+
         private int _timeout;
         /// <summary>超时。默认3000ms</summary>
         public Int32 Timeout
@@ -216,8 +216,35 @@ namespace NewLife.Net
 
         public event EventHandler<ReceivedEventArgs> Received;
 
+        /// <summary>粘包处理接口</summary>
+        public IPacket Packet { get; set; }
+
         internal void OnReceive(ReceivedEventArgs e)
         {
+            //    var stream = e.Stream;
+            //    var remote = e.UserState as IPEndPoint;
+
+            //    if (Packet == null)
+            //        OnReceive(stream.ReadBytes(), remote);
+            //    else
+            //    {
+            //        // 拆包，多个包多次调用处理程序
+            //        var msg = Packet.Parse(stream);
+            //        while (msg != null)
+            //        {
+            //            OnReceive(msg.ReadBytes(), remote);
+
+            //            msg = Packet.Parse(null);
+            //        }
+            //    }
+            //}
+
+            //private void OnReceive(Byte[] data, IPEndPoint remote)
+            //{
+            //    var e = new ReceivedEventArgs();
+            //    e.Data = data;
+            //    e.UserState = remote;
+
             // 同步匹配
             _recv?.SetResult(e);
             _recv = null;

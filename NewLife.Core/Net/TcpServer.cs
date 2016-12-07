@@ -56,6 +56,9 @@ namespace NewLife.Net
         /// <summary>最大并行数。默认CPU*1.6</summary>
         public Int32 MaxAsync { get; set; }
 
+        /// <summary>粘包处理接口</summary>
+        public IPacket Packet { get; set; }
+
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
 

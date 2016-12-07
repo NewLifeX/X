@@ -73,16 +73,16 @@ namespace NewLife.Net
         /// <returns></returns>
         public Stream Parse(Stream stream)
         {
-            // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
-            if (_ms == null || _ms.Position == _ms.Length)
-            {
-                var len = GetLength(stream);
-                if (len > 0 && stream.Position + len == stream.Length) return stream;
-            }
-
-            if (_ms == null) _ms = new MemoryStream();
             if (stream != null)
             {
+                // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
+                if (_ms == null || _ms.Position == _ms.Length)
+                {
+                    var len = GetLength(stream);
+                    if (len > 0 && stream.Position + len == stream.Length) return stream;
+                }
+
+                if (_ms == null) _ms = new MemoryStream();
                 // 超过该时间后按废弃数据处理
                 var now = DateTime.Now;
                 if (_last.AddMilliseconds(Expire) < now)
@@ -93,8 +93,12 @@ namespace NewLife.Net
                 _last = now;
 
                 // 拷贝数据
+                var p = _ms.Position;
                 stream.CopyTo(_ms);
+                _ms.Position = p;
             }
+
+            if (_ms == null || _ms.Position == _ms.Length) return null;
 
             {
                 var len = GetLength(_ms);
@@ -162,6 +166,40 @@ namespace NewLife.Net
         {
             return new StreamSegment(stream, len);
         }
+
+#if DEBUG
+        /// <summary>粘包测试</summary>
+        public static void Test()
+        {
+            var svr = new NetServer();
+            svr.Port = 777;
+            svr.Packet = new HeaderLengthPacket();
+            svr.Log = Log.XTrace.Log;
+            svr.LogReceive = true;
+            svr.Start();
+
+            // 凑齐10个带有长度的数据帧一起发出
+            var ms = new MemoryStream();
+            for (int i = 0; i < 10; i++)
+            {
+                var str = Security.Rand.NextString(Security.Rand.Next(4, 8));
+                Console.WriteLine("{0}\t{1}\t{2}", str.Length, str, str.GetBytes().ToHex());
+
+                ms.WriteArray(str.GetBytes());
+            }
+            ms.Position = 0;
+
+            var client = new NetUri("udp://127.0.0.1:777").CreateRemote();
+            client.Log = Log.XTrace.Log;
+            client.LogSend = true;
+            client.SendAsync(ms.ReadBytes());
+
+            Console.ReadKey(true);
+
+            client.Close();
+            svr.Dispose();
+        }
+#endif
     }
 
     /// <summary>数据流包装，表示一个数据流的子数据流</summary>

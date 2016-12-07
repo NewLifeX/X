@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Reflection;
@@ -46,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                Test4();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -116,7 +117,8 @@ namespace Test
         static void Test4()
         {
             //ApiTest.Main();
-            TestService.ServiceMain();
+            //TestService.ServiceMain();
+            HeaderLengthPacket.Test();
         }
 
         class TestService : AgentServiceBase<TestService>

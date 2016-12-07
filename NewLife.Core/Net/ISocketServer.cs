@@ -20,6 +20,9 @@ namespace NewLife.Net
         /// </remarks>
         Int32 SessionTimeout { get; set; }
 
+        /// <summary>粘包处理接口</summary>
+        IPacket Packet { get; set; }
+
         /// <summary>会话统计</summary>
         IStatistics StatSession { get; set; }
 

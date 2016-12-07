@@ -534,7 +534,7 @@ namespace NewLife.Net
                 ReleaseRecv(se, "!Active || Disposed");
         }
 
-        /// <summary>封包算法</summary>
+        /// <summary>粘包处理接口</summary>
         public IPacket Packet { get; set; }
 
         void ProcessReceive(Stream stream, IPEndPoint remote)
