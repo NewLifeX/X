@@ -108,7 +108,7 @@ namespace NewLife.Net
         /// <summary>实例化一个网络服务器</summary>
         public NetServer()
         {
-            Name = GetType().Name;
+            Name = GetType().Name.TrimEnd("Server");
 
             //SessionTimeout = 30;
             //AddressFamily = AddressFamily.Unknown;
