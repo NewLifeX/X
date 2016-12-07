@@ -6,11 +6,6 @@ namespace NewLife.Net
     /// <summary>封包接口</summary>
     public interface IPacket
     {
-        ///// <summary>验证数据包是否完整</summary>
-        ///// <param name="stream"></param>
-        ///// <returns></returns>
-        //Boolean Valid(Stream stream);
-
         /// <summary>分析数据流，得到一帧数据</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
@@ -33,38 +28,6 @@ namespace NewLife.Net
         private DateTime _last;
         #endregion
 
-        ///// <summary>验证数据包是否完整</summary>
-        ///// <param name="stream"></param>
-        ///// <returns></returns>
-        //public Boolean Valid(Stream stream)
-        //{
-        //    // 移动到长度所在位置
-        //    if (Offset > 0) stream.Seek(Offset, SeekOrigin.Current);
-
-        //    // 读取大小
-        //    var s = 0;
-        //    switch (Size)
-        //    {
-        //        case 0:
-        //            s = stream.ReadEncodedInt();
-        //            break;
-        //        case 1:
-        //            s = stream.ReadByte();
-        //            break;
-        //        case 2:
-        //            s = stream.ReadBytes(2).ToInt();
-        //            break;
-        //        case 4:
-        //            s = (Int32)stream.ReadBytes(4).ToUInt32();
-        //            break;
-        //        default:
-        //            throw new NotSupportedException();
-        //    }
-
-        //    // 判断后续数据是否足够
-        //    return stream.Position + s <= stream.Length;
-        //}
-
         /// <summary>内部缓存</summary>
         private MemoryStream _ms;
 
@@ -73,34 +36,45 @@ namespace NewLife.Net
         /// <returns></returns>
         public Stream Parse(Stream stream)
         {
-            if (stream != null)
+            var nodata = _ms == null || _ms.Position == _ms.Length;
+
+            // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
+            if (nodata)
             {
-                // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
-                if (_ms == null || _ms.Position == _ms.Length)
-                {
-                    var len = GetLength(stream);
-                    if (len > 0 && stream.Position + len == stream.Length) return stream;
-                }
+                if (stream == null) return null;
 
-                if (_ms == null) _ms = new MemoryStream();
-                // 超过该时间后按废弃数据处理
-                var now = DateTime.Now;
-                if (_last.AddMilliseconds(Expire) < now)
-                {
-                    _ms.SetLength(0);
-                    _ms.Position = 0;
-                }
-                _last = now;
-
-                // 拷贝数据
-                var p = _ms.Position;
-                stream.CopyTo(_ms);
-                _ms.Position = p;
+                var len = GetLength(stream);
+                if (len > 0 && stream.Position + len == stream.Length) return stream;
             }
 
-            if (_ms == null || _ms.Position == _ms.Length) return null;
+            if (_ms == null) _ms = new MemoryStream();
 
+            // 加锁，避免多线程冲突
+            lock (_ms)
             {
+                if (stream != null)
+                {
+                    //Log.XTrace.WriteLine("Parse {0} {1:X2}", stream.Length, stream.ReadByte());
+                    //stream.Seek(-1, SeekOrigin.Current);
+                    //System.Threading.Thread.Sleep(10);
+
+                    // 超过该时间后按废弃数据处理
+                    var now = DateTime.Now;
+                    if (_last.AddMilliseconds(Expire) < now)
+                    {
+                        _ms.SetLength(0);
+                        _ms.Position = 0;
+                    }
+                    _last = now;
+
+                    // 拷贝数据到最后面
+                    var p = _ms.Position;
+                    _ms.Position = _ms.Length;
+                    stream.CopyTo(_ms);
+                    _ms.Position = p;
+                }
+                //Log.XTrace.WriteLine("Parse _ms={0} {1}", _ms.Position, _ms.Length);
+
                 var len = GetLength(_ms);
                 if (len <= 0) return null;
 
@@ -117,6 +91,8 @@ namespace NewLife.Net
         protected virtual Int32 GetLength(Stream stream)
         {
             var p = stream.Position;
+            // 数据不够，连长度都读取不了
+            if (p + Offset >= stream.Length) return 0;
 
             // 移动到长度所在位置
             if (Offset > 0) stream.Seek(Offset, SeekOrigin.Current);
@@ -190,7 +166,7 @@ namespace NewLife.Net
                 mm.WriteArray(str.GetBytes());
                 var h = mm.ToArray().ToHex();
                 h = h.Substring(0, Math.Min(h.Length, 32));
-                Console.WriteLine("{0}\t{1}\t{2}", str.Length, s, h);
+                Console.WriteLine("{0}\t{1}\t{2}", mm.ToArray().Length, s, h);
 
                 ms.WriteArray(str.GetBytes());
             }
