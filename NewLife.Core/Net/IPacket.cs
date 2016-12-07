@@ -158,7 +158,7 @@ namespace NewLife.Net
             var ms = new MemoryStream();
             for (int i = 0; i < 5; i++)
             {
-                var size = i < 4 ? Security.Rand.Next(1400) : Security.Rand.Next(2000, 3000);
+                var size = i < 4 ? Security.Rand.Next(1400) : Security.Rand.Next(2000, 30000);
                 var str = Security.Rand.NextString(size);
                 var s = str.Substring(0, Math.Min(str.Length, 16));
                 //var h = str.GetBytes().ToHex();
@@ -171,12 +171,12 @@ namespace NewLife.Net
                 ms.WriteArray(str.GetBytes());
             }
 
-            var client = new NetUri("udp://127.0.0.1:777").CreateRemote();
+            var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
             //client.Remote.Address = NetHelper.MyIP();
             //client.Remote.Address = System.Net.IPAddress.Parse("1.0.0.13");
             client.Log = Log.XTrace.Log;
             client.LogSend = true;
-            client.BufferSize = 1500;
+            //client.BufferSize = 1500;
             client.SendAsync(ms.ToArray());
 
             Console.ReadKey(true);
