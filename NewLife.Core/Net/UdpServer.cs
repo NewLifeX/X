@@ -357,8 +357,15 @@ namespace NewLife.Net
 
             // 需要查找已有会话，已有会话不存在时才创建新会话
             var session = sessions.Get(remoteEP + "");
-            if (session == null)
+            if (session != null) return session;
+
+            // 相同远程地址可能同时发来多个数据包，而底层采取多线程方式同时调度，导致创建多个会话
+            lock (sessions)
             {
+                // 需要查找已有会话，已有会话不存在时才创建新会话
+                session = sessions.Get(remoteEP + "");
+                if (session != null) return session;
+
                 var us = new UdpSession(this, remoteEP);
                 us.Log = Log;
                 us.LogSend = LogSend;
@@ -379,7 +386,7 @@ namespace NewLife.Net
                     if (StatSession != null) StatSession.Increment(1);
 
                     // 触发新会话事件
-                    if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
+                    NewSession?.Invoke(this, new SessionEventArgs { Session = session });
                 }
             }
 
