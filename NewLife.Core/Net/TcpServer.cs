@@ -57,7 +57,7 @@ namespace NewLife.Net
         public Int32 MaxAsync { get; set; }
 
         /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; }
+        public IPacket SessionPacket { get; set; }
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
@@ -291,6 +291,7 @@ namespace NewLife.Net
             session.LogReceive = LogReceive;
             session.StatSend.Parent = StatSend;
             session.StatReceive.Parent = StatReceive;
+            session.Packet = SessionPacket;
 
             return session;
         }

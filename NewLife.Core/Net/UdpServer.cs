@@ -31,6 +31,9 @@ namespace NewLife.Net
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
+
+        /// <summary>粘包处理接口</summary>
+        public IPacket SessionPacket { get; set; }
         #endregion
 
         #region 构造
@@ -363,6 +366,7 @@ namespace NewLife.Net
                 // UDP不好分会话统计
                 //us.StatSend.Parent = StatSend;
                 //us.StatReceive.Parent = StatReceive;
+                us.Packet = SessionPacket;
 
                 session = us;
                 if (sessions.Add(session))

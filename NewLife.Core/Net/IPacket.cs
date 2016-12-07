@@ -173,7 +173,7 @@ namespace NewLife.Net
         {
             var svr = new NetServer();
             svr.Port = 777;
-            svr.Packet = new HeaderLengthPacket();
+            svr.SessionPacket = new HeaderLengthPacket();
             svr.Log = Log.XTrace.Log;
             svr.LogReceive = true;
             svr.Start();
@@ -185,7 +185,10 @@ namespace NewLife.Net
                 var size = i < 4 ? Security.Rand.Next(1400) : Security.Rand.Next(2000, 3000);
                 var str = Security.Rand.NextString(size);
                 var s = str.Substring(0, Math.Min(str.Length, 16));
-                var h = str.GetBytes().ToHex();
+                //var h = str.GetBytes().ToHex();
+                var mm = new MemoryStream();
+                mm.WriteArray(str.GetBytes());
+                var h = mm.ToArray().ToHex();
                 h = h.Substring(0, Math.Min(h.Length, 32));
                 Console.WriteLine("{0}\t{1}\t{2}", str.Length, s, h);
 
@@ -197,6 +200,7 @@ namespace NewLife.Net
             //client.Remote.Address = System.Net.IPAddress.Parse("1.0.0.13");
             client.Log = Log.XTrace.Log;
             client.LogSend = true;
+            client.BufferSize = 1500;
             client.SendAsync(ms.ToArray());
 
             Console.ReadKey(true);

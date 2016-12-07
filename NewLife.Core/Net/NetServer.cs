@@ -83,7 +83,7 @@ namespace NewLife.Net
         public Int32 SessionTimeout { get; set; }
 
         /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; }
+        public IPacket SessionPacket { get; set; }
 
         /// <summary>使用会话集合，允许遍历会话。默认false</summary>
         public Boolean UseSession { get; set; }
@@ -193,7 +193,7 @@ namespace NewLife.Net
             server.NewSession += Server_NewSession;
 
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
-            if (Packet != null) server.Packet = Packet;
+            if (SessionPacket != null) server.SessionPacket = SessionPacket;
 
             // 处理UDP最大并发接收
             var udp = server as UdpServer;

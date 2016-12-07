@@ -74,6 +74,9 @@ namespace NewLife.Net
 
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get; private set; }
+
+        /// <summary>缓冲区大小。默认8k</summary>
+        public Int32 BufferSize { get { return Server.BufferSize; } set { Server.BufferSize = value; } }
         #endregion
 
         #region 构造
@@ -221,29 +224,29 @@ namespace NewLife.Net
 
         internal void OnReceive(ReceivedEventArgs e)
         {
-            //    var stream = e.Stream;
-            //    var remote = e.UserState as IPEndPoint;
+            var stream = e.Stream;
+            var remote = e.UserState as IPEndPoint;
 
-            //    if (Packet == null)
-            //        OnReceive(stream.ReadBytes(), remote);
-            //    else
-            //    {
-            //        // 拆包，多个包多次调用处理程序
-            //        var msg = Packet.Parse(stream);
-            //        while (msg != null)
-            //        {
-            //            OnReceive(msg.ReadBytes(), remote);
+            if (Packet == null)
+                OnReceive(stream.ReadBytes(), remote);
+            else
+            {
+                // 拆包，多个包多次调用处理程序
+                var msg = Packet.Parse(stream);
+                while (msg != null)
+                {
+                    OnReceive(msg.ReadBytes(), remote);
 
-            //            msg = Packet.Parse(null);
-            //        }
-            //    }
-            //}
+                    msg = Packet.Parse(null);
+                }
+            }
+        }
 
-            //private void OnReceive(Byte[] data, IPEndPoint remote)
-            //{
-            //    var e = new ReceivedEventArgs();
-            //    e.Data = data;
-            //    e.UserState = remote;
+        private void OnReceive(Byte[] data, IPEndPoint remote)
+        {
+            var e = new ReceivedEventArgs();
+            e.Data = data;
+            e.UserState = remote;
 
             // 同步匹配
             _recv?.SetResult(e);
