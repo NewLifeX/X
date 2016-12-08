@@ -252,6 +252,7 @@ namespace NewLife.Net
                 // 读取数据
                 if (offset + count > e.Length) count = e.Length - offset;
                 var size = e.Stream.Read(buffer, offset, count);
+                e.Stream.Seek(-size, SeekOrigin.Current);
 
                 if (StatReceive != null) StatReceive.Increment(size);
 
@@ -272,23 +273,22 @@ namespace NewLife.Net
         }
 
         /// <summary>处理收到的数据</summary>
-        /// <param name="data"></param>
+        /// <param name="stream"></param>
         /// <param name="remote"></param>
-        internal override void OnReceive(Byte[] data, IPEndPoint remote)
+        internal override void OnReceive(Stream stream, IPEndPoint remote)
         {
-            if (data.Length == 0 && DisconnectWhenEmptyData)
+            if (stream.Length == 0 && DisconnectWhenEmptyData)
             {
                 Close("收到空数据");
                 Dispose();
             }
 
-            OnReceive(data, data.Length);
+            OnReceive(stream);
         }
 
         /// <summary>处理收到的数据</summary>
-        /// <param name="data"></param>
-        /// <param name="count"></param>
-        protected virtual void OnReceive(Byte[] data, Int32 count)
+        /// <param name="stream"></param>
+        protected virtual void OnReceive(Stream stream)
         {
 #if !__MOBILE__
             // 更新全局远程IP地址
@@ -296,15 +296,14 @@ namespace NewLife.Net
 #endif
             // 分析处理
             var e = new ReceivedEventArgs();
-            e.Data = data;
-            e.Length = count;
+            e.Stream = stream;
             e.UserState = Remote.EndPoint;
 
             // 同步匹配
             _recv?.SetResult(e);
             _recv = null;
 
-            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex());
 
             RaiseReceive(this, e);
         }

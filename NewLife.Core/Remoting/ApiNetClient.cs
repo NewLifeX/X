@@ -60,7 +60,7 @@ namespace NewLife.Remoting
 
         private void Client_Received(Object sender, ReceivedEventArgs e)
         {
-            if (_src != null) _src.SetResult(e.Data.ReadBytes(e.Length));
+            if (_src != null) _src.SetResult(e.Data);
         }
         #endregion
 

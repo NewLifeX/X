@@ -544,14 +544,14 @@ namespace NewLife.Net
             try
             {
                 if (Packet == null)
-                    OnReceive(stream.ReadBytes(), remote);
+                    OnReceive(stream, remote);
                 else
                 {
                     // 拆包，多个包多次调用处理程序
                     var msg = Packet.Parse(stream);
                     while (msg != null)
                     {
-                        OnReceive(msg.ReadBytes(), remote);
+                        OnReceive(msg, remote);
 
                         msg = Packet.Parse(null);
                     }
@@ -575,9 +575,9 @@ namespace NewLife.Net
         }
 
         /// <summary>处理收到的数据</summary>
-        /// <param name="data"></param>
+        /// <param name="stream"></param>
         /// <param name="remote"></param>
-        internal abstract void OnReceive(Byte[] data, IPEndPoint remote);
+        internal abstract void OnReceive(Stream stream, IPEndPoint remote);
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;

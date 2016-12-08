@@ -17,6 +17,7 @@ namespace NewLife.Net
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
+            var buf = e.Data;
             if (!_HandeShake && e.Data.StartsWith(_prefix))
             {
                 HandeShake(e.ToStr());
@@ -26,9 +27,10 @@ namespace NewLife.Net
                 return;
             }
 
-            e.Data = ProcessReceive(e.Stream);
+            buf = ProcessReceive(e.Stream);
+            e.Data = buf;
 
-            if (e.Data != null) base.OnReceive(e);
+            if (buf != null) base.OnReceive(e);
         }
 
         /// <summary>发送数据前需要处理</summary>

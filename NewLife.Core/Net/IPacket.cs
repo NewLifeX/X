@@ -77,8 +77,10 @@ namespace NewLife.Net
 
                     // 拷贝数据到最后面
                     var p = _ms.Position;
+                    var p2 = stream.Position;
                     _ms.Position = _ms.Length;
                     stream.CopyTo(_ms);
+                    stream.Position = p2;
                     _ms.Position = p;
                 }
                 //Log.XTrace.WriteLine("Parse _ms={0} {1}", _ms.Position, _ms.Length);

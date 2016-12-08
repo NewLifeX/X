@@ -225,6 +225,7 @@ namespace NewLife.Net
                 // 读取数据
                 if (offset + count > e.Length) count = e.Length - offset;
                 var size = e.Stream.Read(buffer, offset, count);
+                e.Stream.Seek(-size, SeekOrigin.Current);
                 LastRemote = e.UserState as IPEndPoint;
 
                 if (StatReceive != null) StatReceive.Increment(size);
@@ -238,9 +239,9 @@ namespace NewLife.Net
         }
 
         /// <summary>处理收到的数据</summary>
-        /// <param name="data"></param>
+        /// <param name="stream"></param>
         /// <param name="remote"></param>
-        internal override void OnReceive(Byte[] data, IPEndPoint remote)
+        internal override void OnReceive(Stream stream, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
@@ -264,7 +265,7 @@ namespace NewLife.Net
 #endif
             // 分析处理
             var e = new ReceivedEventArgs();
-            e.Data = data;
+            e.Stream = stream;
             e.UserState = remote;
 
             // 同步匹配
@@ -280,7 +281,7 @@ namespace NewLife.Net
             else
             {
                 // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
-                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex());
             }
 
             if (session != null) RaiseReceive(session, e);

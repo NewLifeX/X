@@ -81,9 +81,10 @@ namespace NewLife.Net.Proxy
 
             //WriteLog("客户端[{0}] {1}", e.Length, e.ToHex(16));
 
-            if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
+            var len = e.Length;
+            if (len > 0 || len == 0 && ExchangeEmptyData)
             {
-                if (e.Length > 0) WriteDebugLog("客户端", e.Stream);
+                if (len > 0) WriteDebugLog("客户端", e.Stream);
 
                 // 如果未建立到远程服务器链接，则建立
                 if (RemoteServer == null) StartRemote(e);
@@ -168,9 +169,10 @@ namespace NewLife.Net.Proxy
         /// <param name="e"></param>
         protected virtual void OnReceiveRemote(ReceivedEventArgs e)
         {
-            if (e.Length > 0) WriteDebugLog("服务端", e.Stream);
+            var len = e.Length;
+            if (len > 0) WriteDebugLog("服务端", e.Stream);
 
-            if (e.Length > 0 || e.Length == 0 && ExchangeEmptyData)
+            if (len > 0 || len == 0 && ExchangeEmptyData)
             {
                 var session = Session;
                 if (session == null || session.Disposed)

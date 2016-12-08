@@ -195,6 +195,7 @@ namespace NewLife.Net
                 // 读取数据
                 if (offset + count > e.Length) count = e.Length - offset;
                 var size = e.Stream.Read(buffer, offset, count);
+                e.Stream.Seek(-size, SeekOrigin.Current);
                 Remote.EndPoint = e.UserState as IPEndPoint;
 
                 LastTime = DateTime.Now;
@@ -228,24 +229,24 @@ namespace NewLife.Net
             var remote = e.UserState as IPEndPoint;
 
             if (Packet == null)
-                OnReceive(stream.ReadBytes(), remote);
+                OnReceive(stream, remote);
             else
             {
                 // 拆包，多个包多次调用处理程序
                 var msg = Packet.Parse(stream);
                 while (msg != null)
                 {
-                    OnReceive(msg.ReadBytes(), remote);
+                    OnReceive(msg, remote);
 
                     msg = Packet.Parse(null);
                 }
             }
         }
 
-        private void OnReceive(Byte[] data, IPEndPoint remote)
+        private void OnReceive(Stream stream, IPEndPoint remote)
         {
             var e = new ReceivedEventArgs();
-            e.Data = data;
+            e.Stream = stream;
             e.UserState = remote;
 
             // 同步匹配
@@ -255,7 +256,7 @@ namespace NewLife.Net
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);
 
-            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.Data.ToHex(0, Math.Min(e.Length, 32)));
+            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex());
 
             Received?.Invoke(this, e);
         }

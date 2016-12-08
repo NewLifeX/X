@@ -9,39 +9,30 @@ namespace NewLife.Net
     {
         #region 属性
         private Byte[] _Data;
-        /// <summary>数据。设置数据时会修改Length属性</summary>
+        /// <summary>数据</summary>
         public Byte[] Data
         {
-            get { return _Data; }
+            get
+            {
+                if (_Data == null && Stream != null) _Data = GetData();
+                return _Data;
+            }
             set
             {
                 _Data = value;
-                if (value != null)
-                    Length = value.Length;
-                else
-                    Length = 0;
-                _Stream = null;
+                _Stream = new MemoryStream(_Data, false);
             }
         }
 
         /// <summary>数据长度</summary>
-        public Int32 Length { get; set; }
+        public Int32 Length { get { return (Int32)Stream.Length; } }
 
         private Stream _Stream;
         /// <summary>数据区对应的一个数据流实例</summary>
-        public Stream Stream { get { return _Stream ?? (_Stream = new MemoryStream(Data, 0, Length)); } set { _Stream = value; } }
+        public Stream Stream { get { return _Stream; } set { _Stream = value; _Data = null; } }
 
-        //private Boolean _Feedback;
-        ///// <summary>是否把数据反馈给对方</summary>
-        //public Boolean Feedback { get { return _Feedback; } set { _Feedback = value; } }
-
-        //private Object _UserState;
         /// <summary>用户数据。比如远程地址等</summary>
         public Object UserState { get; set; }
-
-        //private IDictionary<String, Object> _Properties = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
-        ///// <summary>属性字典</summary>
-        //public IDictionary<String, Object> Properties { get { return _Properties; } set { _Properties = value; } }
         #endregion
 
         #region 构造
@@ -53,21 +44,34 @@ namespace NewLife.Net
         public ReceivedEventArgs(Byte[] data)
         {
             Data = data;
-            Length = data.Length;
+            //Length = data.Length;
+            //Stream = new MemoryStream(data, false);
         }
         #endregion
 
         #region 方法
-        /// <summary>为数据区创建一个新的数据流实例</summary>
+        /// <summary>读取数据，不改变数据流指针</summary>
         /// <returns></returns>
-        public Stream GetStream() { return new MemoryStream(Data, 0, Length); }
+        public Byte[] GetData()
+        {
+            if (Stream is MemoryStream)
+                return (Stream as MemoryStream).ToArray();
+
+            var ms = Stream;
+            var p = ms.Position;
+            //ms.Position = 0;
+            var data = ms.ReadBytes();
+            ms.Position = p;
+            return data;
+        }
 
         /// <summary>以字符串表示</summary>
         /// <param name="encoding">字符串编码，默认URF-8</param>
         /// <returns></returns>
         public String ToStr(Encoding encoding = null)
         {
-            if (Length <= 0 || Data == null || Data.Length <= 0) return String.Empty;
+            var ms = Stream;
+            if (ms == null || ms.Length <= 0) return String.Empty;
 
             if (encoding == null) encoding = Encoding.UTF8;
 
@@ -81,7 +85,8 @@ namespace NewLife.Net
         /// <returns></returns>
         public String ToHex(Int32 maxLength = 32, String separate = "-", Int32 groupSize = 0)
         {
-            if (Length <= 0 || Data == null || Data.Length <= 0) return String.Empty;
+            var ms = Stream;
+            if (ms == null || ms.Length <= 0) return String.Empty;
 
             return Data.ToHex(separate, groupSize, Math.Min(Length, maxLength));
         }
