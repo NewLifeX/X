@@ -21,22 +21,22 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Android\</OutputPath>
+    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG;__UNIFIED__;__MOBILE__;__ANDROID__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <DocumentationFile>..\..\Android\NewLife.Android.XML</DocumentationFile>
+    <DocumentationFile>..\..\Bin\NewLife.Android.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Android\</OutputPath>
+    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;__UNIFIED__;__MOBILE__;__ANDROID__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <DocumentationFile>..\..\Android\NewLife.Android.XML</DocumentationFile>
+    <DocumentationFile>..\..\Bin\NewLife.Android.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Android" />
@@ -66,9 +66,6 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Common\Utility.cs">
       <Link>Common\Utility.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Common\WeakReference.cs">
-      <Link>Common\WeakReference.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Configuration\Config.cs">
       <Link>Configuration\Config.cs</Link>
@@ -156,6 +153,9 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Net\INetSession.cs">
       <Link>Net\INetSession.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\IPacket.cs">
+      <Link>Net\IPacket.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Net\ISocket.cs">
       <Link>Net\ISocket.cs</Link>

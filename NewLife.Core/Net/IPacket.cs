@@ -213,7 +213,7 @@ namespace NewLife.Net
 
         /// <summary>创建粘包处理实例，内含缓冲区，不同会话不能共用</summary>
         /// <returns></returns>
-        public IPacket Create()
+        public virtual IPacket Create()
         {
             return new HeaderLengthPacket
             {
