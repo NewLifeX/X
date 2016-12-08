@@ -374,7 +374,7 @@ namespace NewLife.Net
                 // UDP不好分会话统计
                 //us.StatSend.Parent = StatSend;
                 //us.StatReceive.Parent = StatReceive;
-                us.Packet = SessionPacket.Create();
+                us.Packet = SessionPacket?.Create();
 
                 session = us;
                 if (sessions.Add(session))

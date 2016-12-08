@@ -291,7 +291,7 @@ namespace NewLife.Net
             session.LogReceive = LogReceive;
             session.StatSend.Parent = StatSend;
             session.StatReceive.Parent = StatReceive;
-            session.Packet = SessionPacket.Create();
+            session.Packet = SessionPacket?.Create();
 
             return session;
         }
