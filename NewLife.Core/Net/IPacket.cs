@@ -274,33 +274,39 @@ namespace NewLife.Net
         public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count)
         {
             // 读写前后，控制好数据流指针
-            var p = _s.Position;
-            _s.Position = Position + _offset;
-            try
+            lock (_s)
             {
-                var rs = _s.Read(buffer, offset, count);
-                Position += (_s.Position - p);
-                return rs;
-            }
-            finally
-            {
-                _s.Position = p;
+                var p = _s.Position;
+                _s.Position = Position + _offset;
+                try
+                {
+                    var rs = _s.Read(buffer, offset, count);
+                    Position += (_s.Position - p);
+                    return rs;
+                }
+                finally
+                {
+                    _s.Position = p;
+                }
             }
         }
 
         public override void Write(Byte[] buffer, Int32 offset, Int32 count)
         {
             // 读写前后，控制好数据流指针
-            var p = _s.Position;
-            _s.Position = Position + _offset;
-            try
+            lock (_s)
             {
-                _s.Write(buffer, offset, count);
-                Position += (_s.Position - p);
-            }
-            finally
-            {
-                _s.Position = p;
+                var p = _s.Position;
+                _s.Position = Position + _offset;
+                try
+                {
+                    _s.Write(buffer, offset, count);
+                    Position += (_s.Position - p);
+                }
+                finally
+                {
+                    _s.Position = p;
+                }
             }
         }
 
