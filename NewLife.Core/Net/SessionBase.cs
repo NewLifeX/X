@@ -65,7 +65,11 @@ namespace NewLife.Net
         public Boolean DynamicPort { get; private set; }
 
         /// <summary>最大并行接收数。默认1</summary>
-        public Int32 MaxAsync { get; set; }
+        public Int32 MaxAsync { get; set; } = 1;
+
+        /// <summary>异步处理接收到的数据，默认true。</summary>
+        /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
+        public Boolean ProcessAsync { get; set; } = true;
 
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get; set; } = 8 * 1024;
@@ -85,8 +89,6 @@ namespace NewLife.Net
             StatReceive = new Statistics();
 
             Log = Logger.Null;
-
-            MaxAsync = 1;
         }
 
         /// <summary>销毁</summary>
@@ -512,7 +514,7 @@ namespace NewLife.Net
 
                 //if (Log.Enable && LogReceive) WriteLog("Recv# [{0}]: {1}", se.BytesTransferred, se.Buffer.ToHex(se.Offset, Math.Min(se.BytesTransferred, 32)));
 
-                if (MaxAsync > 1)
+                if (ProcessAsync)
                 {
                     // 拷贝走数据，参数要重复利用
                     var data = se.Buffer.ReadBytes(se.Offset, se.BytesTransferred);

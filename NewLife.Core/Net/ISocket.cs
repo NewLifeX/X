@@ -33,6 +33,10 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         Boolean ThrowException { get; set; }
 
+        /// <summary>异步处理接收到的数据。</summary>
+        /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
+        Boolean ProcessAsync { get; set; }
+
         /// <summary>发送统计</summary>
         IStatistics StatSend { get; set; }
 

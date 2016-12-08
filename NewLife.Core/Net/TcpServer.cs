@@ -34,15 +34,13 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        /// <summary>自动开始会话的异步接收，默认true。
-        /// 接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</summary>
+        /// <summary>自动开始会话的异步接收，默认true。</summary>
+        /// <remarks>接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</remarks>
         public Boolean AutoReceiveAsync { get; set; }
 
-        /// <summary>是否异步处理接收到的数据，默认true利于提升网络吞吐量。异步处理有可能造成数据包乱序，特别是Tcp</summary>
-        public Boolean UseProcessAsync { get; set; }
-
-        ///// <summary>服务器</summary>
-        //public TcpListener Server { get; set; }
+        /// <summary>异步处理接收到的数据，默认false。</summary>
+        /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
+        public Boolean ProcessAsync { get; set; }
 
         /// <summary>底层Socket</summary>
         public Socket Client { get; private set; }
@@ -78,7 +76,7 @@ namespace NewLife.Net
             Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
             SessionTimeout = 30;
             AutoReceiveAsync = true;
-            UseProcessAsync = true;
+            ProcessAsync = true;
 
             MaxAsync = Environment.ProcessorCount * 16 / 10;
 
@@ -292,6 +290,7 @@ namespace NewLife.Net
             session.StatSend.Parent = StatSend;
             session.StatReceive.Parent = StatReceive;
             session.Packet = SessionPacket?.Create();
+            session.ProcessAsync = ProcessAsync;
 
             return session;
         }

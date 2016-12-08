@@ -33,7 +33,7 @@ namespace NewLife.Net.IO
             if (server is TcpServer)
             {
                 var tcp = server as TcpServer;
-                tcp.UseProcessAsync = false;
+                tcp.ProcessAsync = false;
                 // 连续传输文件，间隔不得超过5秒
                 tcp.SessionTimeout = 5;
             }
