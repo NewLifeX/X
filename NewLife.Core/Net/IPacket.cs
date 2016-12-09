@@ -44,7 +44,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public Stream Parse(Stream stream)
         {
-            var nodata = _ms == null || _ms.Position == _ms.Length;
+            var nodata = _ms == null || _ms.Position < 0 || _ms.Position >= _ms.Length;
 
             // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
             if (nodata)
