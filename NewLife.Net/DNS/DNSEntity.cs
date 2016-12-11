@@ -172,7 +172,7 @@ namespace NewLife.Net.DNS
             {
                 bn.EncodeInt = false;
                 bn.UseFieldSize = true;
-                bn.SizeWidth = -1;
+                bn.UseRef = false;
                 bn.AddHandler<BinaryDNS>();
             }
 

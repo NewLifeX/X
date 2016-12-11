@@ -87,6 +87,8 @@ namespace NewLife.Serialization
 
         Boolean WriteRef(Object value)
         {
+            var bn = Host as Binary;
+            if (!bn.UseRef) return false;
             if (Host.Hosts.Count == 0) return false;
 
             if (value == null)
@@ -210,9 +212,11 @@ namespace NewLife.Serialization
 
         Boolean ReadRef(ref Object value)
         {
+            var bn = Host as Binary;
+            if (!bn.UseRef) return false;
             if (Host.Hosts.Count == 0) return false;
 
-            var rf = (Host as Binary).ReadEncodedInt32();
+            var rf = bn.ReadEncodedInt32();
             if (rf == 0)
             {
                 //value = null;
