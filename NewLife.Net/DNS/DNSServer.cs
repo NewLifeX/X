@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Net.Sockets;
 
 namespace NewLife.Net.DNS
 {
@@ -17,46 +15,8 @@ namespace NewLife.Net.DNS
         /// <summary>域名</summary>
         public String DomainName { get; set; }
 
-        private List<NetUri> _Parents;
         /// <summary>上级DNS地址</summary>
-        public List<NetUri> Parents
-        {
-            get
-            {
-                if (_Parents == null)
-                {
-                    _Parents = GetParents();
-                    _Parents.Add(new NetUri("tcp://8.8.8.8:53"));
-                    _Parents.Add(new NetUri("udp://4.4.4.4:53"));
-                }
-
-                return _Parents;
-            }
-            set { _Parents = value; }
-        }
-
-        /// <summary>上级DNS地址，多个地址以逗号隔开</summary>
-        public String Parent
-        {
-            get
-            {
-                var ps = Parents;
-                if (ps == null || ps.Count < 1) return null;
-
-                var sb = new StringBuilder();
-                foreach (var item in ps)
-                {
-                    if (sb.Length > 0) sb.Append(",");
-                    sb.Append(item);
-                }
-                return sb.ToString();
-            }
-            set
-            {
-                if (value.IsNullOrWhiteSpace()) return;
-
-            }
-        }
+        public List<NetUri> Parents { get; set; } = new List<NetUri>();
         #endregion
 
         #region 构造
@@ -76,7 +36,7 @@ namespace NewLife.Net.DNS
         #region 父级DNS
         /// <summary>获取本机DNS列表</summary>
         /// <returns></returns>
-        public virtual List<NetUri> GetParents()
+        public virtual List<NetUri> GetLocalDNS()
         {
             var list = new List<NetUri>();
             foreach (var item in NetHelper.GetDns())
@@ -109,23 +69,46 @@ namespace NewLife.Net.DNS
 
             for (int i = ss.Length - 1; i >= 0; i--)
             {
-                var uri = new NetUri(ss[i]);
-                if (uri.Port <= 0) uri.Port = 53;
-                if (!list.Contains(uri.ToString()))
+                try
                 {
-                    if (uri.Address.IsAny())
+                    var uri = new NetUri(ss[i]);
+                    if (uri.Port <= 0) uri.Port = 53;
+                    if (!list.Contains(uri.ToString()))
                     {
-                        WriteLog("配置的父级DNS[{0}]有误，任意地址不能作为父级DNS地址。", uri);
-                        continue;
+                        if (uri.Address.IsAny())
+                        {
+                            WriteLog("配置的父级DNS[{0}]有误，任意地址不能作为父级DNS地址。", uri);
+                            continue;
+                        }
+                        ps.Insert(0, uri);
+                        list.Add(uri.ToString());
                     }
-                    ps.Insert(0, uri);
-                    list.Add(uri.ToString());
+                }
+                catch (Exception ex)
+                {
+                    WriteLog("配置的父级DNS[{0}]有误，{1}", ss[i], ex.Message);
                 }
             }
         }
         #endregion
 
         #region 方法
+        /// <summary>启动服务</summary>
+        protected override void OnStart()
+        {
+            // 如果没有设置父级DNS，则使用本地DNS
+            var ps = Parents;
+            if (ps.Count == 0) ps.AddRange(GetLocalDNS());
+
+            WriteLog("父级DNS[{0}]：", ps.Count);
+            foreach (var item in ps)
+            {
+                WriteLog("\t{0}", item);
+            }
+
+            base.OnStart();
+        }
+
         DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>() { Expire = 600, Asynchronous = true, CacheDefault = false };
 
         /// <summary>接收处理</summary>
@@ -248,20 +231,35 @@ namespace NewLife.Net.DNS
             if (session != null && !session.Disposed) session.Send(response.GetStream(isTcp));
         }
 
+        private IDictionary<String, ISocketClient> _Clients = new Dictionary<String, ISocketClient>();
+
         DNSEntity GetDNS(String key, DNSEntity request)
         {
+            // 准备连接
+            if (_Clients == null)
+            {
+                var dic = new Dictionary<String, ISocketClient>();
+                foreach (var item in Parents.ToArray())
+                {
+                    var nc = item.CreateRemote();
+                    nc.Timeout = 1000;
+                    dic[item + ""] = nc;
+                }
+
+                _Clients = dic;
+            }
+
             // 请求父级代理
             NetUri parent = null;
             Byte[] data = null;
             ISocketClient client = null;
 
-            NetUri[] us = null;
-            lock (Parents) { us = Parents.ToArray(); }
-
-            foreach (var item in us)
+            foreach (var item in _Clients)
             {
-                WriteLog("GetDNS key={0} {1}", key, item);
-                client = item.CreateRemote();
+                WriteLog("GetDNS key={0} {1}", key, item.Key);
+
+                client = item.Value;
+                var remote = client.Remote;
                 // 如果是PTR请求
                 if (request.IsPTR)
                 {
@@ -269,18 +267,18 @@ namespace NewLife.Net.DNS
                     request = new DNSEntity().CloneFrom(request);
 
                     var ptr = request.GetAnswer(true) as DNS_PTR;
-                    if (ptr != null) ptr.Address = item.Address;
+                    if (ptr != null) ptr.Address = remote.Address;
                 }
 
+                // 发送DNS请求
                 try
                 {
-                    client.Timeout = 1000;
-                    client.Send(request.GetStream(item.IsTcp));
+                    client.Send(request.GetStream(remote.IsTcp));
                     data = client.Receive();
 
                     if (data != null && data.Length > 0)
                     {
-                        parent = item;
+                        parent = remote;
                         break;
                     }
                 }
@@ -288,18 +286,18 @@ namespace NewLife.Net.DNS
             }
             if (data == null || data.Length < 1) return null;
 
-            // 调到第一位
-            if (Parents.Count > 1 && Parents[0] != parent)
-            {
-                lock (Parents)
-                {
-                    if (Parents.Count > 1 && Parents[0] != parent)
-                    {
-                        Parents.Remove(parent);
-                        Parents.Insert(0, parent);
-                    }
-                }
-            }
+            //// 调到第一位
+            //if (Parents.Count > 1 && Parents[0] != parent)
+            //{
+            //    lock (Parents)
+            //    {
+            //        if (Parents.Count > 1 && Parents[0] != parent)
+            //        {
+            //            Parents.Remove(parent);
+            //            Parents.Insert(0, parent);
+            //        }
+            //    }
+            //}
 
             DNSEntity response = null;
             try
@@ -336,15 +334,6 @@ namespace NewLife.Net.DNS
 
         /// <summary>取得新DNS时触发。</summary>
         public event EventHandler<DNSEventArgs> OnNew;
-        #endregion
-
-        #region 写日志
-        //static TextFileLog log = TextFileLog.Create("DNSLog");
-        //[Conditional("DEBUG")]
-        //void WriteDNSLog(String format, params Object[] args)
-        //{
-        //    log.WriteLine(LogLevel.Debug, format, args);
-        //}
         #endregion
     }
 
