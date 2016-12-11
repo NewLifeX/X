@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using NewLife.Messaging;
 using NewLife.Reflection;
@@ -43,34 +44,37 @@ namespace NewLife.Net.DNS
         #endregion
 
         #region 扩展属性
-        /// <summary>是否响应</summary>
-        public Boolean Response { get { return Header.Response; } set { Header.Response = value; } }
+        ///// <summary>是否响应</summary>
+        //public Boolean Response { get { return Header.Response; } set { Header.Response = value; } }
 
-        DNSQuery Question
-        {
-            get
-            {
-                if (Questions == null || Questions.Length < 1) Questions = new DNSQuery[] { new DNSQuery() };
+        //DNSQuery Question
+        //{
+        //    get
+        //    {
+        //        if (Questions == null || Questions.Length < 1) Questions = new DNSQuery[] { new DNSQuery() };
 
-                return Questions[0];
-            }
-        }
+        //        return Questions[0];
+        //    }
+        //}
 
-        /// <summary>名称</summary>
-        public virtual String Name { get { return Question.Name; } set { Question.Name = value; } }
+        ///// <summary>名称</summary>
+        //public virtual String Name { get { return Question.Name; } set { Question.Name = value; } }
 
-        /// <summary>查询类型</summary>
-        public virtual DNSQueryType Type { get { return Question.Type; } set { Question.Type = value; } }
+        ///// <summary>查询类型</summary>
+        //public virtual DNSQueryType Type { get { return Question.Type; } set { Question.Type = value; } }
 
-        /// <summary>协议组</summary>
-        public virtual DNSQueryClass Class { get { return Question.Class; } set { Question.Class = value; } }
+        ///// <summary>协议组</summary>
+        //public virtual DNSQueryClass Class { get { return Question.Class; } set { Question.Class = value; } }
 
         /// <summary>获取响应</summary>
         /// <param name="create"></param>
         /// <returns></returns>
         internal protected DNSRecord GetAnswer(Boolean create = false)
         {
-            var type = Question.Type;
+            var qs = Questions;
+            if (qs == null || qs.Length == 0) return null;
+
+            var type = qs.First().Type;
             if (Answers == null || Answers.Length < 1)
             {
                 if (!create) return null;
@@ -86,8 +90,8 @@ namespace NewLife.Net.DNS
             return Answers[0];
         }
 
-        /// <summary>是否PTR类型</summary>
-        public Boolean IsPTR { get { return Type == DNSQueryType.PTR; } }
+        ///// <summary>是否PTR类型</summary>
+        //public Boolean IsPTR { get { return Type == DNSQueryType.PTR; } }
         #endregion
 
         #region 读写
@@ -226,7 +230,7 @@ namespace NewLife.Net.DNS
         public override string ToString()
         {
             var rs = Questions;
-            if (!Response)
+            if (!Header.Response)
             {
                 if (rs != null && rs.Length > 0)
                     return rs[0].ToString();

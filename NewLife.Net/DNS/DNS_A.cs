@@ -6,7 +6,7 @@ namespace NewLife.Net.DNS
 {
     /// <summary>A记录</summary>
     /// <remarks>
-    /// 查询的时候只需要设置<see cref="DNSEntity.Name"/>，返回的数据里面，<see cref="Address"/>和<see cref="DNSRecord.TTL"/>最有价值。
+    /// 查询的时候只需要设置Question.Name，返回的数据里面，Address和DNSRecord.TTL最有价值。
     /// </remarks>
     public class DNS_A : DNSRecord
     {

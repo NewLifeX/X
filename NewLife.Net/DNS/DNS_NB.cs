@@ -6,7 +6,7 @@ namespace NewLife.Net.DNS
 {
     /// <summary>NetBIOS记录</summary>
     /// <remarks>
-    /// 查询的时候只需要设置<see cref="DNSEntity.Name"/>。
+    /// 查询的时候只需要设置Question.Name。
     /// </remarks>
     public class DNS_NB : DNSRecord
     {

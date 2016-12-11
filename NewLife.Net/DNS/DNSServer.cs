@@ -171,7 +171,8 @@ namespace NewLife.Net.DNS
             }
 
             // 如果是PTR请求
-            if (request.IsPTR)
+            var rq = request.Questions[0];
+            if (rq.Type == DNSQueryType.PTR)
             {
                 var ptr = RequestPTR(request);
                 if (ptr != null) return ptr;
@@ -184,9 +185,9 @@ namespace NewLife.Net.DNS
             if (rs != null)
             {
                 // 如果是PTR请求
-                if (request.IsPTR && rs.IsPTR)
+                if (rq.Type == DNSQueryType.PTR && rs.Questions[0].Type == DNSQueryType.PTR)
                 {
-                    var ptr = request.Questions[0] as DNS_PTR;
+                    var ptr = rq as DNS_PTR;
                     var ptr2 = rs.GetAnswer() as DNS_PTR;
                     if (ptr2 != null)
                     {
@@ -211,8 +212,9 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         protected virtual DNSEntity RequestPTR(DNSEntity request)
         {
-            var ptr = request.Questions[0] as DNS_PTR;
-            if (ptr == null) ptr = new DNS_PTR { Name = request.Questions[0].Name };
+            var rq = request.Questions[0];
+            var ptr = rq as DNS_PTR;
+            if (ptr == null) ptr = new DNS_PTR { Name = rq.Name };
             // 对本地的请求马上返回
             var addr = ptr.Address;
             if (addr != null && addr.IsLocal())
@@ -263,7 +265,7 @@ namespace NewLife.Net.DNS
                 WriteLog("GetDNS key={0} {1}", key, item);
                 client = item.CreateRemote();
                 // 如果是PTR请求
-                if (request.IsPTR)
+                if (request.Questions[0].Type == DNSQueryType.PTR)
                 {
                     // 复制一份，防止修改外部
                     request = new DNSEntity().CloneFrom(request);
