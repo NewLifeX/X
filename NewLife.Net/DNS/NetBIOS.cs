@@ -15,7 +15,7 @@ namespace NewLife.Net.DNS
         {
             //DnsRequest request = new DnsRequest(new Question(EncodeName(name), DnsType.NB, DnsClass.IN));
             var request = new DNSEntity();
-            request.Name = EncodeName(name);
+            request.Questions[0].Name = EncodeName(name);
             request.Header.RecursionDesired = true;
             request.Header.Broadcast = true;
 
@@ -38,7 +38,7 @@ namespace NewLife.Net.DNS
         {
             //DnsRequest request = new DnsRequest(new Question(EncodeName(name), DnsType.NB, DnsClass.IN));
             var request = new DNSEntity();
-            request.Name = EncodeName(name);
+            request.Questions[0].Name = EncodeName(name);
             request.Header.Opcode = DNSOpcodeType.Registration;
             request.Header.RecursionAvailable = false;
             request.Header.RecursionDesired = false;

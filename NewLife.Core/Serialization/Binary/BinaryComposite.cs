@@ -87,6 +87,8 @@ namespace NewLife.Serialization
 
         Boolean WriteRef(Object value)
         {
+            var bn = Host as Binary;
+            if (!bn.UseRef) return false;
             if (Host.Hosts.Count == 0) return false;
 
             if (value == null)
@@ -189,9 +191,10 @@ namespace NewLife.Serialization
                 }
 
                 // 成员访问器优先
-                if (ac != null && TryReadAccessor(member, value, ref ac, ref ms)) continue;
+                if (ac != null && TryReadAccessor(member, ref value, ref ac, ref ms)) continue;
 
                 Object v = null;
+                v = value.GetValue(member);
                 if (!Host.TryRead(mtype, ref v))
                 {
                     Host.Hosts.Pop();
@@ -209,12 +212,14 @@ namespace NewLife.Serialization
 
         Boolean ReadRef(ref Object value)
         {
+            var bn = Host as Binary;
+            if (!bn.UseRef) return false;
             if (Host.Hosts.Count == 0) return false;
 
-            var rf = Host.ReadSize();
+            var rf = bn.ReadEncodedInt32();
             if (rf == 0)
             {
-                value = null;
+                //value = null;
                 return true;
             }
 
@@ -230,7 +235,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        Boolean TryReadAccessor(MemberInfo member, Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)
+        Boolean TryReadAccessor(MemberInfo member, ref Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)
         {
             // 访问器直接写入成员
             if (!ac.Read(Host, member)) return false;

@@ -14,6 +14,7 @@ using NewLife.Agent;
 using NewLife.Common;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Net.DNS;
 using NewLife.Net.IO;
 using NewLife.Net.Proxy;
 using NewLife.Net.Stress;
@@ -118,7 +119,9 @@ namespace Test
         {
             //ApiTest.Main();
             //TestService.ServiceMain();
-            HeaderLengthPacket.Test();
+            //HeaderLengthPacket.Test();
+            var svr = new DNSServer();
+            svr.Start();
         }
 
         class TestService : AgentServiceBase<TestService>

@@ -21,6 +21,9 @@ namespace NewLife.Serialization
         /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
         public Boolean UseFieldSize { get; set; }
 
+        /// <summary>使用对象引用，默认true</summary>
+        public Boolean UseRef { get; set; } = true;
+
         /// <summary>大小宽度。可选0/1/2/4，默认0表示压缩编码整数</summary>
         public Int32 SizeWidth { get; set; }
 
@@ -88,7 +91,7 @@ namespace NewLife.Serialization
         /// <summary>获取处理器</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T GetHandler<T>() where T : class,IBinaryHandler
+        public T GetHandler<T>() where T : class, IBinaryHandler
         {
             foreach (var item in Handlers)
             {
@@ -279,11 +282,9 @@ namespace NewLife.Serialization
                 case 4:
                     return (Int32)Read(typeof(Int32));
                 case 0:
-                default:
-                    //if (EncodeInt)
                     return ReadEncodedInt32();
-                //else
-                //    return (Int32)Read(typeof(Int32));
+                default:
+                    return -1;
             }
         }
 
