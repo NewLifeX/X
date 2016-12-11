@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Log;
 
@@ -90,6 +91,8 @@ namespace NewLife.Net.DNS
                 }
             }
         }
+
+        private List<DNSClient> _Clients;
         #endregion
 
         #region 方法
@@ -100,13 +103,31 @@ namespace NewLife.Net.DNS
             var ps = Parents;
             if (ps.Count == 0) ps.AddRange(GetLocalDNS());
 
-            WriteLog("父级DNS[{0}]：", ps.Count);
-            foreach (var item in ps)
-            {
-                WriteLog("\t{0}", item);
-            }
-
             base.OnStart();
+
+            // 准备连接
+            _Clients = new List<DNSClient>();
+            foreach (var item in Parents.ToArray())
+            {
+                var nc = new DNSClient(item);
+                Task.Run(() =>
+                {
+                    if (nc.Open())
+                    {
+                        WriteLog("已连接父级DNS：{0}", nc.Client.Remote);
+                        lock (_Clients) { _Clients.Add(nc); }
+                    }
+                });
+            }
+        }
+
+        /// <summary>停止服务</summary>
+        protected override void OnStop()
+        {
+            base.OnStop();
+
+            _Clients.TryDispose();
+            _Clients = null;
         }
 
         DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>() { Expire = 600, Asynchronous = true, CacheDefault = false };
@@ -222,108 +243,38 @@ namespace NewLife.Net.DNS
         /// <param name="response"></param>
         protected virtual void Response(INetSession session, DNSEntity request, DNSEntity response)
         {
-            var isTcp = session.Session.Local.IsTcp;
+            var ss = session?.Session;
+            if (ss == null) return;
+
+            var isTcp = ss.Local.IsTcp;
 
             if (OnResponse != null)
             {
-                var e = new DNSEventArgs { Request = request, Response = response, Session = session.Session };
+                var e = new DNSEventArgs { Request = request, Response = response, Session = ss };
                 OnResponse(this, e);
             }
 
-            if (session != null && !session.Disposed) session.Send(response.GetStream(isTcp));
+            session?.Send(response.GetStream(isTcp));
         }
-
-        private IDictionary<String, ISocketClient> _Clients = new Dictionary<String, ISocketClient>();
 
         DNSEntity GetDNS(String key, DNSEntity request)
         {
-            // 准备连接
-            if (_Clients == null)
+            // 批量请求父级代理
+            var dic = DNSClient.QueryAll(_Clients, request);
+            if (dic.Count == 0) return null;
+
+            DNSEntity rs = null;
+            foreach (var item in dic)
             {
-                var dic = new Dictionary<String, ISocketClient>();
-                foreach (var item in Parents.ToArray())
+                rs = item.Value;
+                if (OnNew != null)
                 {
-                    var nc = item.CreateRemote();
-                    nc.Timeout = 1000;
-                    dic[item + ""] = nc;
+                    var e = new DNSEventArgs { Request = request, Response = item.Value, Session = item.Key.Client };
+                    OnNew(this, e);
                 }
-
-                _Clients = dic;
             }
 
-            // 请求父级代理
-            NetUri parent = null;
-            Byte[] data = null;
-            ISocketClient client = null;
-
-            foreach (var item in _Clients)
-            {
-                WriteLog("GetDNS key={0} {1}", key, item.Key);
-
-                client = item.Value;
-                var remote = client.Remote;
-                // 如果是PTR请求
-                if (request.Questions[0].Type == DNSQueryType.PTR)
-                {
-                    // 复制一份，防止修改外部
-                    request = new DNSEntity().CloneFrom(request);
-
-                    var ptr = request.GetAnswer(true) as DNS_PTR;
-                    if (ptr != null) ptr.Address = remote.Address;
-                }
-
-                // 发送DNS请求
-                try
-                {
-                    client.Send(request.GetStream(remote.IsTcp));
-                    data = client.Receive();
-
-                    if (data != null && data.Length > 0)
-                    {
-                        parent = remote;
-                        break;
-                    }
-                }
-                catch { }
-            }
-            if (data == null || data.Length < 1) return null;
-
-            //// 调到第一位
-            //if (Parents.Count > 1 && Parents[0] != parent)
-            //{
-            //    lock (Parents)
-            //    {
-            //        if (Parents.Count > 1 && Parents[0] != parent)
-            //        {
-            //            Parents.Remove(parent);
-            //            Parents.Insert(0, parent);
-            //        }
-            //    }
-            //}
-
-            DNSEntity response = null;
-            try
-            {
-                // 解析父级代理返回的数据
-                response = DNSEntity.Read(data, parent.IsTcp);
-
-                // 处理，修改
-                WriteLog("{0} 返回 {1}", parent, response);
-            }
-            catch (Exception ex)
-            {
-                String file = String.Format("dns_{0:MMddHHmmss}.bin", DateTime.Now);
-                XTrace.WriteLine("解析父级代理返回数据出错！数据保存于" + file + "。" + ex.Message);
-                File.WriteAllBytes(file, data);
-            }
-
-            if (OnNew != null)
-            {
-                var e = new DNSEventArgs { Request = request, Response = response, Session = client };
-                OnNew(this, e);
-            }
-
-            return response;
+            return rs;
         }
         #endregion
 
