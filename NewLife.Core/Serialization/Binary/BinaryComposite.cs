@@ -192,6 +192,7 @@ namespace NewLife.Serialization
                 if (ac != null && TryReadAccessor(member, value, ref ac, ref ms)) continue;
 
                 Object v = null;
+                v = value.GetValue(member);
                 if (!Host.TryRead(mtype, ref v))
                 {
                     Host.Hosts.Pop();
@@ -212,6 +213,8 @@ namespace NewLife.Serialization
             if (Host.Hosts.Count == 0) return false;
 
             var rf = Host.ReadSize();
+            // 不使用引用
+            if (rf < 0) return false;
             if (rf == 0)
             {
                 value = null;

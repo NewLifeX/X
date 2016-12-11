@@ -172,6 +172,7 @@ namespace NewLife.Net.DNS
             {
                 bn.EncodeInt = false;
                 bn.UseFieldSize = true;
+                bn.SizeWidth = -1;
                 bn.AddHandler<BinaryDNS>();
             }
 
@@ -224,17 +225,18 @@ namespace NewLife.Net.DNS
         [DebuggerHidden]
         public override string ToString()
         {
+            var rs = Questions;
             if (!Response)
             {
-                if (_Questions != null && _Questions.Length > 0)
-                    return _Questions[0].ToString();
+                if (rs != null && rs.Length > 0)
+                    return rs[0].ToString();
             }
             else
             {
                 var sb = new StringBuilder();
 
-                if (_Questions != null && _Questions.Length > 0)
-                    sb.AppendFormat("[{0}]", _Questions[0]);
+                if (rs != null && rs.Length > 0)
+                    sb.AppendFormat("[{0}]", rs[0]);
 
                 if (Answers != null && Answers.Length > 0)
                 {
