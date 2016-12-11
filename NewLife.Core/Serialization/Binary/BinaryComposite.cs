@@ -212,12 +212,10 @@ namespace NewLife.Serialization
         {
             if (Host.Hosts.Count == 0) return false;
 
-            var rf = Host.ReadSize();
-            // 不使用引用
-            if (rf < 0) return false;
+            var rf = (Host as Binary).ReadEncodedInt32();
             if (rf == 0)
             {
-                value = null;
+                //value = null;
                 return true;
             }
 
