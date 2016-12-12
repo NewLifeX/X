@@ -72,6 +72,8 @@ namespace NewLife.Net.DNS
 
         private void Client_Received(Object sender, ReceivedEventArgs e)
         {
+            if (e.Length == 0) return;
+
             var dns = DNSEntity.Read(e.Stream, Client.Local.IsTcp);
             OnReceive(dns);
         }
@@ -111,15 +113,25 @@ namespace NewLife.Net.DNS
 
             var nc = Client;
 
-            _recv = new TaskCompletionSource<DNSEntity>();
+            var tcs = new TaskCompletionSource<DNSEntity>();
+            _recv = tcs;
 
             // 发送请求
             var ms = dns.GetStream(nc.Local.IsTcp);
-            nc.Send(ms);
+            nc.Send(ms.ReadBytes());
 
             Total++;
 
-            return await _recv.Task;
+            return await tcs.Task;
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString()
+        {
+            return "{0} {1:n0}/{2:n0}={3:p0}".F(Server, Success, Total, Percent);
         }
         #endregion
 
@@ -129,7 +141,7 @@ namespace NewLife.Net.DNS
         /// <param name="dns"></param>
         /// <param name="msTimeout"></param>
         /// <returns></returns>
-        public static IDictionary<DNSClient, DNSEntity> QueryAll(IEnumerable<DNSClient> clients, DNSEntity dns, Int32 msTimeout = 3000)
+        public static IDictionary<DNSClient, DNSEntity> QueryAll(IEnumerable<DNSClient> clients, DNSEntity dns, Int32 msTimeout = 1000)
         {
             DNSClient[] cs = null;
             lock (clients) { cs = clients.ToArray(); }

@@ -162,7 +162,7 @@ namespace NewLife.Net.DNS
             var isTcp = local.IsTcp;
 
             // 处理，修改
-            WriteLog("{0} 请求 {1}", local.Type, request);
+            WriteLog("{0} 请求 {1}", session.Session.Remote, request);
 
             // 请求事件，如果第二参数有值，则直接返回
             // 结合数据库缓存，可以在这里进行返回
@@ -267,9 +267,13 @@ namespace NewLife.Net.DNS
             foreach (var item in dic)
             {
                 rs = item.Value;
+                var nc = item.Key.Client;
+
+                WriteLog("{0} GetDNS {1}", nc.Remote, rs);
+
                 if (OnNew != null)
                 {
-                    var e = new DNSEventArgs { Request = request, Response = item.Value, Session = item.Key.Client };
+                    var e = new DNSEventArgs { Request = request, Response = item.Value, Session = nc };
                     OnNew(this, e);
                 }
             }

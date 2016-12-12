@@ -573,6 +573,7 @@ namespace NewLife.Net
         /// <param name="args"></param>
         public virtual void WriteLog(String format, params Object[] args)
         {
+            if (!LogPrefix.EndsWith(" ") && !format.StartsWith(" ")) format = " " + format;
             Log.Info(LogPrefix + format, args);
         }
 

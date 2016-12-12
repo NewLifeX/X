@@ -14,7 +14,7 @@ namespace NewLife.Net.DNS
         [FieldSize("_Length")]
         private Byte[] _Address;
         /// <summary>IP地址</summary>
-        public IPAddress Address { get { return _Address == null ? null : new IPAddress(_Address); } set { _Address = value.GetAddressBytes(); } }
+        public IPAddress Address { get { return _Address == null ? null : new IPAddress(_Address); } set { _Address = value?.GetAddressBytes(); } }
 
         /// <summary>文本信息</summary>
         public override String Text { get { return Address + ""; } set { Address = String.IsNullOrEmpty(value) ? null : IPAddress.Parse(value); } }
