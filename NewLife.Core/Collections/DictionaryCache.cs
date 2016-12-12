@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using NewLife.Threading;
 
 namespace NewLife.Collections
@@ -30,6 +31,7 @@ namespace NewLife.Collections
         public Boolean CacheDefault { get; set; }
 
         /// <summary>延迟加锁，字典没有数据时，先计算结果再加锁加入字典，避免大量不同键的插入操作形成排队影响性能。默认false</summary>
+        [Obsolete("不再支持延迟加锁")]
         public Boolean DelayLock { get; set; }
 
         private Dictionary<TKey, CacheItem> Items;
@@ -137,8 +139,6 @@ namespace NewLife.Collections
 
             // 提前计算，避免因为不同的Key错误锁定了主键
             var value = default(TValue);
-            // 如果延迟加锁，则提前计算
-            if (DelayLock && func != null) value = func(key);
 
             lock (items)
             {
@@ -147,7 +147,14 @@ namespace NewLife.Collections
                 // 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
                 if (exp > 0 && Asynchronous)
                 {
-                    if (item != null) item.ExpiredTime = DateTime.Now.AddSeconds(exp);
+                    if (item != null)
+                    {
+                        item.ExpiredTime = DateTime.Now.AddSeconds(exp);
+                        // 异步更新缓存
+                        if (func != null) Task.Run(() => { item.Value = func(key); });
+
+                        return item.Value;
+                    }
                 }
 
                 if (func == null)
@@ -156,8 +163,7 @@ namespace NewLife.Collections
                 }
                 else
                 {
-                    // 如果不是延迟加锁，则现在计算
-                    if (!DelayLock) value = func(key);
+                    value = func(key);
 
                     if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
                 }
