@@ -135,6 +135,17 @@ namespace NewLife.Cube
             // 为该字段创建下拉菜单
             if (map == null || map.Provider == null) return null;
 
+            // 如果映射目标列表项过多，不能使用下拉
+            var fact = EntityFactory.CreateOperate(map.Provider.EntityType);
+            if (fact != null && fact.Count > 30)
+            {
+                // 输出数字编辑框和标签
+                var label = "<label class=\"\">{0}</label>".F(entity[field.Name]);
+                if (field.OriField != null) field = field.OriField;
+                var mhs = Html.ForEditor(field.Name, entity[field.Name], field.Type);
+                return new MvcHtmlString(mhs.ToString() + label);
+            }
+
             return Html.ForDropDownList(map.Name, map.Provider.GetDataSource(), entity[map.Name]);
         }
 

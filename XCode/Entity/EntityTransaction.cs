@@ -72,9 +72,8 @@ namespace XCode
         /// <summary>是否已完成事务</summary>
         protected Boolean hasFinish;
 
-        private IDbSession _Session;
         /// <summary>会话</summary>
-        public IDbSession Session { get { return _Session; } private set { _Session = value; } }
+        public IDbSession Session { get; private set; }
         #endregion
 
         #region 构造
