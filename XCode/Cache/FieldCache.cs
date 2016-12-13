@@ -18,6 +18,12 @@ namespace XCode.Cache
         /// <summary>最大行数。默认20</summary>
         public Int32 MaxRows { get; set; } = 20;
 
+        /// <summary>获取显示名的委托</summary>
+        public Func<TEntity, String> GetDisplay { get; set; }
+
+        /// <summary>显示名格式化字符串，两个参数是名称和个数</summary>
+        public String DisplayFormat { get; set; } = "{0} ({1:n0})";
+
         /// <summary>对指定字段使用实体缓存</summary>
         /// <param name="field"></param>
         public FieldCache(FieldItem field)
@@ -44,19 +50,9 @@ namespace XCode.Cache
             var dic = new Dictionary<String, String>();
             foreach (var entity in list)
             {
-                var k = entity[_field.Name];
+                var k = GetDisplay != null ? GetDisplay(entity) + "" : entity[_field.Name] + "";
 
-                // 非字符串16进制显示
-                if (k is String)
-                {
-                    var v = "{0} ({1:n0})".F(k, entity[id.Name]);
-                    dic[k + ""] = v;
-                }
-                else
-                {
-                    var v = "{0:x4} ({1:n0})".F(k, entity[id.Name]);
-                    dic[k + ""] = v;
-                }
+                dic[k] = DisplayFormat.F(k, entity[id.Name]);
             }
             return dic;
         }
