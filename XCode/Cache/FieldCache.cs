@@ -50,9 +50,15 @@ namespace XCode.Cache
             var dic = new Dictionary<String, String>();
             foreach (var entity in list)
             {
-                var k = GetDisplay != null ? GetDisplay(entity) + "" : entity[_field.Name] + "";
+                var k = entity[_field.Name] + "";
+                var v = k;
+                if (GetDisplay != null)
+                {
+                    v = GetDisplay(entity);
+                    if (v.IsNullOrEmpty()) v = "[{0}]".F(k);
+                }
 
-                dic[k] = DisplayFormat.F(k, entity[id.Name]);
+                dic[k] = DisplayFormat.F(v, entity[id.Name]);
             }
             return dic;
         }
