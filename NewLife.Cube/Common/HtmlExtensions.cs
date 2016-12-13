@@ -472,14 +472,39 @@ namespace NewLife.Cube
         /// <param name="name"></param>
         /// <param name="items"></param>
         /// <param name="selectedValue"></param>
-        /// <param name="optionLabel"></param>
+        /// <param name="optionLabel">默认空项的文本。此参数可以为 null。</param>
         /// <param name="autoPostback">自动回发</param>
         /// <returns></returns>
         public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IEnumerable items, Object selectedValue = null, String optionLabel = null, Boolean autoPostback = false)
         {
             SelectList data = null;
             if (items is IDictionary)
+            {
+                //// 特殊处理字符串字典，把空字符串的key更换为String.Empty
+                //var dic = items as IDictionary<String, String>;
+                //var v = "";
+                //if (dic.TryGetValue("", out v))
+                //{
+                //    dic.Remove("");
+                //    dic["String.Empty"] = v;
+                //}
+
+                //// 特殊处理 optionLabel
+                //if (optionLabel.EqualIgnoreCase("全部", "All") && items is IDictionary<String, String>)
+                //{
+                //    var dic = new Dictionary<String, String>();
+                //    dic.Add(optionLabel, optionLabel);
+                //    foreach (var item in (items as IDictionary<String, String>))
+                //    {
+                //        dic[item.Key] = item.Value;
+                //    }
+                //    items = dic;
+
+                //    optionLabel = null;
+                //}
+
                 data = new SelectList(items, "Key", "Value", selectedValue);
+            }
             else
                 data = new SelectList(items, selectedValue);
 
