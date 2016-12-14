@@ -127,70 +127,78 @@ WriteLiteral(">\r\n");
                 foreach (var pi in pis)
                 {
                     var name = pi.Name;
+                    var dis = pi.GetDisplayName();
+                    var des = pi.GetDescription();
+                    if (dis.IsNullOrEmpty() && !des.IsNullOrEmpty()) { dis = des; des = null; }
+                    if (!dis.IsNullOrEmpty() && des.IsNullOrEmpty() && dis.Contains("。"))
+                    {
+                        des = dis.Substring("。");
+                        dis = dis.Substring(null, "。");
+                    }
 
             
             #line default
             #line hidden
 WriteLiteral("                    <div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 631), Tuple.Create("\"", 686)
-, Tuple.Create(Tuple.Create("", 639), Tuple.Create("form-group", 639), true)
-, Tuple.Create(Tuple.Create(" ", 649), Tuple.Create("col-sm-12", 650), true)
-, Tuple.Create(Tuple.Create(" ", 659), Tuple.Create("col-md-", 660), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1077), Tuple.Create("\"", 1132)
+, Tuple.Create(Tuple.Create("", 1085), Tuple.Create("form-group", 1085), true)
+, Tuple.Create(Tuple.Create(" ", 1095), Tuple.Create("col-sm-12", 1096), true)
+, Tuple.Create(Tuple.Create(" ", 1105), Tuple.Create("col-md-", 1106), true)
             
-            #line 22 "..\..\Views\Shared\ObjectForm.cshtml"
-, Tuple.Create(Tuple.Create("", 667), Tuple.Create<System.Object, System.Int32>(bs.GetGroupWidth()
+            #line 30 "..\..\Views\Shared\ObjectForm.cshtml"
+, Tuple.Create(Tuple.Create("", 1113), Tuple.Create<System.Object, System.Int32>(bs.GetGroupWidth()
             
             #line default
             #line hidden
-, 667), false)
+, 1113), false)
 );
 
 WriteLiteral(">\r\n                        <label");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 720), Tuple.Create("\"", 788)
-, Tuple.Create(Tuple.Create("", 728), Tuple.Create("control-label", 728), true)
-, Tuple.Create(Tuple.Create(" ", 741), Tuple.Create("col-xs-2", 742), true)
-, Tuple.Create(Tuple.Create(" ", 750), Tuple.Create("col-md-", 751), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1166), Tuple.Create("\"", 1234)
+, Tuple.Create(Tuple.Create("", 1174), Tuple.Create("control-label", 1174), true)
+, Tuple.Create(Tuple.Create(" ", 1187), Tuple.Create("col-xs-2", 1188), true)
+, Tuple.Create(Tuple.Create(" ", 1196), Tuple.Create("col-md-", 1197), true)
             
-            #line 23 "..\..\Views\Shared\ObjectForm.cshtml"
-, Tuple.Create(Tuple.Create("", 758), Tuple.Create<System.Object, System.Int32>(bs.LabelWidth
+            #line 31 "..\..\Views\Shared\ObjectForm.cshtml"
+, Tuple.Create(Tuple.Create("", 1204), Tuple.Create<System.Object, System.Int32>(bs.LabelWidth
             
             #line default
             #line hidden
-, 758), false)
-, Tuple.Create(Tuple.Create(" ", 772), Tuple.Create("no-padding-left", 773), true)
+, 1204), false)
+, Tuple.Create(Tuple.Create(" ", 1218), Tuple.Create("no-padding-left", 1219), true)
 );
 
-WriteAttribute("for", Tuple.Create(" for=\"", 789), Tuple.Create("\"", 803)
+WriteAttribute("for", Tuple.Create(" for=\"", 1235), Tuple.Create("\"", 1249)
             
-            #line 23 "..\..\Views\Shared\ObjectForm.cshtml"
-                          , Tuple.Create(Tuple.Create("", 795), Tuple.Create<System.Object, System.Int32>(pi.Name
+            #line 31 "..\..\Views\Shared\ObjectForm.cshtml"
+                         , Tuple.Create(Tuple.Create("", 1241), Tuple.Create<System.Object, System.Int32>(pi.Name
             
             #line default
             #line hidden
-, 795), false)
+, 1241), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 23 "..\..\Views\Shared\ObjectForm.cshtml"
-                                                                                                               Write(pi.GetDisplayName() ?? pi.Name);
+            #line 31 "..\..\Views\Shared\ObjectForm.cshtml"
+                                                                                                               Write(dis ?? pi.Name);
 
             
             #line default
             #line hidden
 WriteLiteral("</label>\r\n                        <div");
 
-WriteLiteral(" class=\"input-group col-xs-10 col-md-8\"");
+WriteLiteral(" class=\"input-group col-xs-10 col-md-5\"");
 
 WriteLiteral(">\r\n");
 
 WriteLiteral("                            ");
 
             
-            #line 25 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 33 "..\..\Views\Shared\ObjectForm.cshtml"
                        Write(Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType));
 
             
@@ -201,25 +209,29 @@ WriteLiteral("\r\n");
 WriteLiteral("                            ");
 
             
-            #line 26 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 34 "..\..\Views\Shared\ObjectForm.cshtml"
                        Write(Html.ValidationMessage(pi.Name));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                            <span>&nbsp; ");
+WriteLiteral("\r\n                        </div>\r\n                        <span");
+
+WriteLiteral(" class=\"hidden-xs col-md-4\"");
+
+WriteLiteral(">&nbsp; ");
 
             
-            #line 27 "..\..\Views\Shared\ObjectForm.cshtml"
-                                    Write(pi.GetDescription());
+            #line 36 "..\..\Views\Shared\ObjectForm.cshtml"
+                                                           Write(des);
 
             
             #line default
             #line hidden
-WriteLiteral("</span>\r\n                        </div>\r\n                    </div>\r\n");
+WriteLiteral("</span>\r\n                    </div>\r\n");
 
             
-            #line 30 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 38 "..\..\Views\Shared\ObjectForm.cshtml"
                 }
 
             
@@ -258,7 +270,7 @@ WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 WriteLiteral("></i><strong>取消</strong></button>\r\n                </div>\r\n");
 
             
-            #line 36 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 44 "..\..\Views\Shared\ObjectForm.cshtml"
             }
 
             
