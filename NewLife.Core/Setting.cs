@@ -20,7 +20,7 @@ namespace NewLife
         public Boolean Debug { get; set; }
 
         /// <summary>日志等级，只输出大于等于该级别的日志</summary>
-        [Description("日志等级，只输出大于等于该级别的日志")]
+        [Description("日志等级。只输出大于等于该级别的日志")]
         public LogLevel LogLevel { get; set; }
 
         /// <summary>文件日志目录</summary>
@@ -51,13 +51,13 @@ namespace NewLife
         [Description("网络调试")]
         public Boolean NetDebug { get; set; }
 
-        /// <summary>多线程调试</summary>
-        [Description("多线程调试")]
-        public Boolean ThreadDebug { get; set; }
+        ///// <summary>多线程调试</summary>
+        //[Description("多线程调试")]
+        //public Boolean ThreadDebug { get; set; }
 
-        /// <summary>网页压缩文件</summary>
-        [Description("网页压缩文件")]
-        public String WebCompressFiles { get; set; }
+        ///// <summary>网页压缩文件</summary>
+        //[Description("网页压缩文件")]
+        //public String WebCompressFiles { get; set; }
 
         /// <summary>语音提示。默认true</summary>
         [Description("语音提示。默认true")]
@@ -86,8 +86,8 @@ namespace NewLife
             //PluginServer = "ftp://ftp.newlifex.com/x/";
             //PluginPath = Runtime.IsWeb ? "Bin" : "Plugins";
             PluginPath = "Plugins";
-            ThreadDebug = Config.GetMutilConfig<Boolean>(false, "NewLife.Thread.Debug", "ThreadPoolDebug");
-            WebCompressFiles = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
+            //ThreadDebug = Config.GetMutilConfig<Boolean>(false, "NewLife.Thread.Debug", "ThreadPoolDebug");
+            //WebCompressFiles = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
         }
 
         /// <summary>加载完成后</summary>

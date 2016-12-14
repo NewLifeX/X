@@ -19,27 +19,27 @@ namespace XCode
         public Boolean Debug { get; set; }
 
         /// <summary>是否输出SQL语句，默认启用</summary>
-        [Description("是否输出SQL语句，默认启用")]
+        [Description("输出SQL。是否输出SQL语句，默认启用")]
         public Boolean ShowSQL { get; set; }
 
         /// <summary>设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录</summary>
-        [Description("设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录")]
+        [Description("SQL目录。设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录")]
         public String SQLPath { get; set; }
 
         /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认500毫秒</summary>
-        [Description("跟踪SQL执行时间，大于该阀值将输出日志，默认500毫秒")]
+        [Description("SQL执行时间。跟踪SQL执行时间，大于该阀值将输出日志，默认500毫秒")]
         public Int32 TraceSQLTime { get; set; } = 500;
 
         /// <summary>连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去</summary>
-        [Description("连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
+        [Description("连接映射。连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
         public String ConnMaps { get; set; }
 
         /// <summary>是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用</summary>
-        [Description("是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
+        [Description("代码调试。是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
         public Boolean CodeDebug { get; set; }
 
         /// <summary>实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭</summary>
-        [Description("实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭")]
+        [Description("数据初始化。实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭")]
         public Boolean InitData { get; set; }
 
         /// <summary>事务调试。打开时输出事务回滚日志，默认关闭</summary>
@@ -47,7 +47,7 @@ namespace XCode
         public Boolean TransactionDebug { get; set; }
 
         /// <summary>SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录</summary>
-        [Description("SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
+        [Description("SQLite默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
         public String SQLiteDbPath { get; set; }
 
         /// <summary>缓存</summary>

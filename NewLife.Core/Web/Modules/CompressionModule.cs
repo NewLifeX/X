@@ -1,8 +1,8 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO.Compression;
 using System.Linq;
 using System.Web;
-using NewLife.Configuration;
 using NewLife.Reflection;
 
 namespace NewLife.Web
@@ -20,6 +20,10 @@ namespace NewLife.Web
             context.PostReleaseRequestState += CompressContent;
         }
         #endregion
+
+        /// <summary>网页压缩文件</summary>
+        [Description("网页压缩文件")]
+        public String WebCompressFiles { get; set; } = ".aspx,.axd,.js,.css";
 
         #region Compression
         private const string GZIP = "gzip";
@@ -62,7 +66,7 @@ namespace NewLife.Web
             if (exts == null)
             {
                 //String files = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
-                var files = Setting.Current.WebCompressFiles;
+                var files = WebCompressFiles;
                 exts = files.ToLower().Split(",", ";", " ");
             }
             return exts.Any(t => url.Contains(t));
