@@ -311,7 +311,7 @@ namespace NewLife.Cube.Admin.Controllers
         [EntityAuthorize(PermissionFlags.Insert)]
         public ActionResult Paste(String r)
         {
-            var di = GetDirectory(r);
+            var di = GetDirectory(r) ?? Root.AsDirectory();
             if (di == null) throw new Exception("找不到目录！");
 
             var list = GetClip();
@@ -335,7 +335,7 @@ namespace NewLife.Cube.Admin.Controllers
         [EntityAuthorize(PermissionFlags.Insert)]
         public ActionResult Move(String r)
         {
-            var di = GetDirectory(r);
+            var di = GetDirectory(r) ?? Root.AsDirectory();
             if (di == null) throw new Exception("找不到目录！");
 
             var list = GetClip();
