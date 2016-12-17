@@ -209,28 +209,6 @@ namespace NewLife.Net
             return SendAsync(null).Result;
         }
 
-        /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-        {
-            if (!Open()) return -1;
-
-            if (count < 0) count = buffer.Length - offset;
-
-            var buf = SendAsync(null, null).Result;
-
-            // 读取数据
-            if (offset + count > buf.Length) count = buf.Length - offset;
-            Buffer.BlockCopy(buf, 0, buffer, offset, count);
-
-            if (StatReceive != null) StatReceive.Increment(count);
-
-            return count;
-        }
-
         internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
         {
             var client = Client;

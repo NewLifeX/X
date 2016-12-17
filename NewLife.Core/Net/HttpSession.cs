@@ -41,6 +41,8 @@ namespace NewLife.Net
         {
             Name = GetType().Name;
             Remote.Port = 80;
+
+            //DisconnectWhenEmptyData = false;
         }
 
         internal HttpSession(ISocketServer server, Socket client)

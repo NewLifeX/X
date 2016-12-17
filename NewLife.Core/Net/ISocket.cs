@@ -115,13 +115,6 @@ namespace NewLife.Net
         /// <returns></returns>
         Byte[] Receive();
 
-        /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns>实际读取字节数</returns>
-        Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
-
         /// <summary>开始异步接收数据</summary>
         /// <returns>是否成功</returns>
         Boolean ReceiveAsync();

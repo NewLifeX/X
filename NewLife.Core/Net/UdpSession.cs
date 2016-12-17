@@ -149,21 +149,35 @@ namespace NewLife.Net
         /// <param name="buffer"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        Task<Byte[]> ISocketRemote.SendAsync(Byte[] buffer, IPEndPoint remote)
+        public async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
         {
             if (Server == null) return null;
 
-            return Server.SendAsync(buffer, remote);
+            if (buffer != null && buffer.Length > 0 && !Server.SendInternal(buffer, Remote.EndPoint)) return null;
+
+            try
+            {
+                // 通过任务拦截异步接收
+                var tsc = _recv;
+                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
+
+                var e = await tsc.Task;
+                return e?.Data;
+            }
+            finally
+            {
+                _recv = null;
+            }
         }
 
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public async Task<Byte[]> SendAsync(Byte[] buffer)
+        public Task<Byte[]> SendAsync(Byte[] buffer)
         {
             if (Server == null) return null;
 
-            return await Server.SendAsync(buffer, Remote.EndPoint);
+            return Server.SendAsync(buffer, Remote.EndPoint);
         }
         #endregion
 
@@ -172,46 +186,31 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            var buf = new Byte[1024 * 2];
-            var count = Receive(buf, 0, buf.Length);
-            if (count < 0) return null;
-            if (count == 0) return new Byte[0];
+            var task = Server.SendAsync(null, Remote.EndPoint);
+            if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
-            return buf.ReadBytes(0, count);
+            return task.Result;
         }
 
         private TaskCompletionSource<ReceivedEventArgs> _recv;
 
-        public int Receive(byte[] buffer, int offset = 0, int count = -1)
+        /// <summary>读取指定长度的数据，一般是一帧</summary>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
+        /// <returns></returns>
+        Int32 ITransport.Receive(Byte[] buffer, Int32 offset, Int32 count)
         {
-            if (Disposed) throw new ObjectDisposedException(GetType().Name);
+            if (count < 0) count = buffer.Length - offset;
 
-            try
-            {
-                // 通过任务拦截异步接收
-                var tsc = _recv;
-                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
-                if (!tsc.Task.Wait(Timeout)) return -1;
+            var buf = Receive();
+            if (buffer == null || buffer.Length == 0) return 0;
 
-                var e = tsc.Task.Result;
-                if (e == null) return -1;
+            if (buf.Length < count) count = buf.Length;
 
-                // 读取数据
-                if (offset + count > e.Length) count = e.Length - offset;
-                var size = e.Stream.Read(buffer, offset, count);
-                e.Stream.Seek(-size, SeekOrigin.Current);
-                Remote.EndPoint = e.UserState as IPEndPoint;
+            Buffer.BlockCopy(buf, 0, buffer, offset, count);
 
-                LastTime = DateTime.Now;
-
-                if (StatReceive != null) StatReceive.Increment(size);
-
-                return size;
-            }
-            finally
-            {
-                _recv = null;
-            }
+            return count;
         }
 
         /// <summary>开始异步接收数据</summary>
@@ -254,8 +253,9 @@ namespace NewLife.Net
             e.UserState = remote;
 
             // 同步匹配
-            _recv?.SetResult(e);
+            var task = _recv;
             _recv = null;
+            task?.SetResult(e);
 
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);

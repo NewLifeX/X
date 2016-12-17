@@ -164,14 +164,6 @@ namespace NewLife.Net
             }
         }
 
-        ///// <summary>异步发送数据包</summary>
-        ///// <param name="buffer"></param>
-        ///// <returns></returns>
-        //public override async Task<Byte[]> SendAsync(Byte[] buffer)
-        //{
-        //    return await base.SendAsync(buffer);
-        //}
-
         /// <summary>发送数据包到目的地址</summary>
         /// <param name="buffer"></param>
         /// <param name="remote"></param>
@@ -198,31 +190,10 @@ namespace NewLife.Net
 
             if (!Open()) return null;
 
-            return SendAsync(null, null).Result;
-        }
+            var task = SendAsync(null, null);
+            if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
-        /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        public override Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-        {
-            if (Disposed) throw new ObjectDisposedException(GetType().Name);
-
-            if (!Open()) return -1;
-
-            if (count < 0) count = buffer.Length - offset;
-
-            var buf = SendAsync(null, null).Result;
-
-            // 读取数据
-            if (offset + count > buf.Length) count = buf.Length - offset;
-            Buffer.BlockCopy(buf, 0, buffer, offset, count);
-
-            if (StatReceive != null) StatReceive.Increment(count);
-
-            return count;
+            return task.Result;
         }
 
         /// <summary>处理收到的数据</summary>
@@ -250,6 +221,10 @@ namespace NewLife.Net
             // 更新全局远程IP地址
             NewLife.Web.WebHelper.UserHost = remote.ToString();
 #endif
+            LastRemote = remote;
+
+            base.OnReceive(stream, remote);
+
             // 分析处理
             var e = new ReceivedEventArgs();
             e.Stream = stream;

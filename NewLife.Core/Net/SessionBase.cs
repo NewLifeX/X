@@ -209,6 +209,7 @@ namespace NewLife.Net
         private SocketAsyncEventArgs _seSend;
         private Int32 _Sending;
         private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
+        private static ReceiveQueue _RecvQueue;
 
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
@@ -216,23 +217,11 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
         {
-            if (!SendInternal(buffer, Remote.EndPoint)) return null;
+            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, Remote.EndPoint)) return null;
 
-            try
-            {
-                // 通过任务拦截异步接收
-                var tsc = _recv;
-                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
+            if (_RecvQueue == null) _RecvQueue = new ReceiveQueue();
 
-                var e = await tsc.Task;
-                if (e == null) return null;
-
-                return e.Data;
-            }
-            finally
-            {
-                _recv = null;
-            }
+            return await _RecvQueue.Add(this, remote, buffer, Timeout);
         }
 
         internal virtual Boolean SendInternal(Byte[] buffer, IPEndPoint remote)
@@ -407,7 +396,19 @@ namespace NewLife.Net
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        public abstract Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        Int32 ITransport.Receive(Byte[] buffer, Int32 offset, Int32 count)
+        {
+            if (count < 0) count = buffer.Length - offset;
+
+            var buf = Receive();
+            if (buffer == null || buffer.Length == 0) return 0;
+
+            if (buf.Length < count) count = buf.Length;
+
+            Buffer.BlockCopy(buf, 0, buffer, offset, count);
+
+            return count;
+        }
 
         /// <summary>是否异步接收数据</summary>
         [Obsolete("默认异步，不再支持设置")]
@@ -595,18 +596,13 @@ namespace NewLife.Net
             return true;
         }
 
-        private TaskCompletionSource<ReceivedEventArgs> _recv;
-
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
         /// <param name="stream"></param>
         /// <param name="remote"></param>
         internal virtual void OnReceive(Stream stream, IPEndPoint remote)
         {
             // 同步匹配
-            var task = _recv;
-            _recv = null;
-
-            task?.SetResult(new ReceivedEventArgs { Stream = stream, UserState = remote });
+            _RecvQueue?.Match(this, remote, stream.ReadBytes());
         }
 
         /// <summary>数据到达事件</summary>

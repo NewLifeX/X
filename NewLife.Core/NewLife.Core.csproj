@@ -132,6 +132,7 @@
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />
+    <Compile Include="Net\ReceiveQueue.cs" />
     <Compile Include="Net\SerialTransport.cs" />
     <Compile Include="Net\SocketHelper.cs" />
     <Compile Include="Net\Statistics.cs" />
@@ -267,9 +268,7 @@
     <Compile Include="Web\OAuthClient.cs" />
     <Compile Include="Web\Pager.cs" />
     <Compile Include="Web\PluginHelper.cs" />
-    <Compile Include="Web\WebClientX.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="Web\WebClientX.cs" />
     <Compile Include="Web\WebDownload.cs" />
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Net\SerialPortConfig.cs" />
