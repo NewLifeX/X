@@ -206,27 +206,8 @@ namespace NewLife.Net
         {
             if (!Open()) return null;
 
-            var size = 1024 * 2;
-
-            //// 报文模式调整缓冲区大小。还差这么多数据就足够一个报文
-            //var ps = Stream as PacketStream;
-            //if (ps != null && ps.Size > 0) size = ps.Size;
-
-            var buf = new Byte[size];
-
-            var count = Receive(buf, 0, buf.Length);
-            if (count < 0) return null;
-            if (count == 0) return new Byte[0];
-
-            LastTime = DateTime.Now;
-            //if (StatReceive != null) StatReceive.Increment(count);
-
-            if (count == buf.Length) return buf;
-
-            return buf.ReadBytes(0, count);
+            return SendAsync(null).Result;
         }
-
-        private TaskCompletionSource<ReceivedEventArgs> _recv;
 
         /// <summary>读取指定长度的数据，一般是一帧</summary>
         /// <param name="buffer">缓冲区</param>
@@ -239,29 +220,15 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            try
-            {
-                // 通过任务拦截异步接收
-                var tsc = _recv;
-                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
-                if (!tsc.Task.Wait(Timeout)) return -1;
+            var buf = SendAsync(null, null).Result;
 
-                var e = tsc.Task.Result;
-                if (e == null) return -1;
+            // 读取数据
+            if (offset + count > buf.Length) count = buf.Length - offset;
+            Buffer.BlockCopy(buf, 0, buffer, offset, count);
 
-                // 读取数据
-                if (offset + count > e.Length) count = e.Length - offset;
-                var size = e.Stream.Read(buffer, offset, count);
-                e.Stream.Seek(-size, SeekOrigin.Current);
+            if (StatReceive != null) StatReceive.Increment(count);
 
-                if (StatReceive != null) StatReceive.Increment(size);
-
-                return size;
-            }
-            finally
-            {
-                _recv = null;
-            }
+            return count;
         }
 
         internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
@@ -283,6 +250,8 @@ namespace NewLife.Net
                 Dispose();
             }
 
+            base.OnReceive(stream, remote);
+
             OnReceive(stream);
         }
 
@@ -298,10 +267,6 @@ namespace NewLife.Net
             var e = new ReceivedEventArgs();
             e.Stream = stream;
             e.UserState = Remote.EndPoint;
-
-            // 同步匹配
-            _recv?.SetResult(e);
-            _recv = null;
 
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex());
 

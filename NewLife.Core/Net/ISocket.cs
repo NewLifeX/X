@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -100,13 +101,13 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        Boolean SendAsync(Byte[] buffer);
+        Task<Byte[]> SendAsync(Byte[] buffer);
 
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        Boolean SendAsync(Byte[] buffer, IPEndPoint remote);
+        Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote);
         #endregion
 
         #region 接收
@@ -206,7 +207,11 @@ namespace NewLife.Net
         /// <returns></returns>
         public static Boolean SendAsync(this ISocketRemote session, Byte[] buffer, Int32 times, Int32 msInterval)
         {
-            if (times <= 1) return session.SendAsync(buffer);
+            if (times <= 1)
+            {
+                session.SendAsync(buffer);
+                return true;
+            }
 
             if (msInterval < 10)
             {

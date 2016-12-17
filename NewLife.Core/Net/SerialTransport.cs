@@ -61,34 +61,23 @@ namespace NewLife.Net
             }
         }
 
-        private String _PortName = "COM1";
         /// <summary>端口名称。默认COM1</summary>
-        public String PortName { get { return _PortName; } set { _PortName = value; } }
+        public String PortName { get; set; } = "COM1";
 
-        private Int32 _BaudRate = 115200;
         /// <summary>波特率。默认115200</summary>
-        public Int32 BaudRate { get { return _BaudRate; } set { _BaudRate = value; } }
+        public Int32 BaudRate { get; set; } = 115200;
 
-        private Parity _Parity = Parity.None;
         /// <summary>奇偶校验位。默认None</summary>
-        public Parity Parity { get { return _Parity; } set { _Parity = value; } }
+        public Parity Parity { get; set; } = Parity.None;
 
-        private Int32 _DataBits = 8;
         /// <summary>数据位。默认8</summary>
-        public Int32 DataBits { get { return _DataBits; } set { _DataBits = value; } }
+        public Int32 DataBits { get; set; } = 8;
 
-        private StopBits _StopBits = StopBits.One;
         /// <summary>停止位。默认One</summary>
-        public StopBits StopBits { get { return _StopBits; } set { _StopBits = value; } }
+        public StopBits StopBits { get; set; } = StopBits.One;
 
-        //private Int32 _FrameSize = 1;
-        ///// <summary>读取的期望帧长度，小于该长度为未满一帧，读取不做返回</summary>
-        ///// <remarks>如果读取超时，也有可能返回</remarks>
-        //public Int32 FrameSize { get { return _FrameSize; } set { _FrameSize = value; } }
-
-        private Int32 _Timeout = 10;
         /// <summary>超时时间。超过该大小未收到数据，说明是另一帧。默认10ms</summary>
-        public Int32 Timeout { get { return _Timeout; } set { _Timeout = value; } }
+        public Int32 Timeout { get; set; } = 10;
 
         private String _Description;
         /// <summary>描述信息</summary>
@@ -199,19 +188,36 @@ namespace NewLife.Net
             return true;
         }
 
-
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public virtual Boolean SendAsync(Byte[] buffer)
+        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
         {
-            if (!Open()) return false;
+            if (!Open()) return null;
 
             WriteLog("SendAsync:{0}", BitConverter.ToString(buffer));
 
-            Task.Factory.StartNew(() => Serial.Write(buffer, 0, buffer.Length));
+            // 发送数据
+            Serial.Write(buffer, 0, buffer.Length);
 
-            return true;
+            var tsc = new TaskCompletionSource<Byte[]>();
+
+            // 另外一个线程去同步接收数据
+            ThreadPool.QueueUserWorkItem(s =>
+            {
+                var buf = new Byte[1024];
+                try
+                {
+                    var count = Receive(buf, 0, buf.Length);
+                    tsc.SetResult(buf.ReadBytes(count));
+                }
+                catch (Exception ex)
+                {
+                    tsc.SetException(ex);
+                }
+            });
+
+            return await tsc.Task;
         }
 
         /// <summary>从串口中读取指定长度的数据，一般是一帧</summary>

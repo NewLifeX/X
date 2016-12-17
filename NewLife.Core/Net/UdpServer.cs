@@ -164,15 +164,26 @@ namespace NewLife.Net
             }
         }
 
+        ///// <summary>异步发送数据包</summary>
+        ///// <param name="buffer"></param>
+        ///// <returns></returns>
+        //public override async Task<Byte[]> SendAsync(Byte[] buffer)
+        //{
+        //    return await base.SendAsync(buffer);
+        //}
+
         /// <summary>发送数据包到目的地址</summary>
         /// <param name="buffer"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        public override Boolean SendAsync(Byte[] buffer, IPEndPoint remote)
+        public override async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
         {
-            if (remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast) Client.EnableBroadcast = true;
+            if (buffer != null && buffer.Length > 0)
+            {
+                if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast) Client.EnableBroadcast = true;
+            }
 
-            return SendAsyncInternal(buffer, remote);
+            return await base.SendAsync(buffer, remote);
         }
 
         internal override bool OnSendAsync(SocketAsyncEventArgs se) { return Client.SendToAsync(se); }
@@ -187,17 +198,8 @@ namespace NewLife.Net
 
             if (!Open()) return null;
 
-            var buf = new Byte[1024 * 2];
-            var count = Receive(buf, 0, buf.Length);
-            if (count < 0) return null;
-            if (count == 0) return new Byte[0];
-
-            //if (StatReceive != null) StatReceive.Increment(count);
-
-            return buf.ReadBytes(0, count);
+            return SendAsync(null, null).Result;
         }
-
-        private TaskCompletionSource<ReceivedEventArgs> _recv;
 
         /// <summary>读取指定长度的数据，一般是一帧</summary>
         /// <param name="buffer">缓冲区</param>
@@ -212,30 +214,15 @@ namespace NewLife.Net
 
             if (count < 0) count = buffer.Length - offset;
 
-            try
-            {
-                // 通过任务拦截异步接收
-                var tsc = _recv;
-                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
-                if (!tsc.Task.Wait(Timeout)) return -1;
+            var buf = SendAsync(null, null).Result;
 
-                var e = tsc.Task.Result;
-                if (e == null) return -1;
+            // 读取数据
+            if (offset + count > buf.Length) count = buf.Length - offset;
+            Buffer.BlockCopy(buf, 0, buffer, offset, count);
 
-                // 读取数据
-                if (offset + count > e.Length) count = e.Length - offset;
-                var size = e.Stream.Read(buffer, offset, count);
-                e.Stream.Seek(-size, SeekOrigin.Current);
-                LastRemote = e.UserState as IPEndPoint;
+            if (StatReceive != null) StatReceive.Increment(count);
 
-                if (StatReceive != null) StatReceive.Increment(size);
-
-                return size;
-            }
-            finally
-            {
-                _recv = null;
-            }
+            return count;
         }
 
         /// <summary>处理收到的数据</summary>
@@ -267,10 +254,6 @@ namespace NewLife.Net
             var e = new ReceivedEventArgs();
             e.Stream = stream;
             e.UserState = remote;
-
-            // 同步匹配
-            _recv?.SetResult(e);
-            _recv = null;
 
             // 为该连接单独创建一个会话，方便直接通信
             var session = CreateSession(remote);

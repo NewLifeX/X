@@ -75,10 +75,10 @@ namespace NewLife.Net
             return base.Send(buffer, offset, count);
         }
 
-        internal override Boolean SendAsyncInternal(Byte[] buffer, IPEndPoint remote)
+        internal override Boolean SendInternal(Byte[] buffer, IPEndPoint remote)
         {
             buffer = Make(buffer);
-            return base.SendAsyncInternal(buffer, remote);
+            return base.SendInternal(buffer, remote);
         }
 
         /// <summary>处理收到的数据</summary>

@@ -149,9 +149,9 @@ namespace NewLife.Net
         /// <param name="buffer"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        Boolean ISocketRemote.SendAsync(Byte[] buffer, IPEndPoint remote)
+        Task<Byte[]> ISocketRemote.SendAsync(Byte[] buffer, IPEndPoint remote)
         {
-            if (Server == null) return false;
+            if (Server == null) return null;
 
             return Server.SendAsync(buffer, remote);
         }
@@ -159,11 +159,11 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public Boolean SendAsync(Byte[] buffer)
+        public async Task<Byte[]> SendAsync(Byte[] buffer)
         {
-            if (Server == null) return false;
+            if (Server == null) return null;
 
-            return Server.SendAsync(buffer, Remote.EndPoint);
+            return await Server.SendAsync(buffer, Remote.EndPoint);
         }
         #endregion
 

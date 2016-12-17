@@ -224,13 +224,13 @@ namespace NewLife.Web
             //http.Received += Http_OnDisposed;
 
             // 发送请求
-            http.Send(data);
+            var buf = await http.SendAsync(data);
 
             // 修改引用地址
             Referer = address;
 
             // 接收数据
-            return http.Receive();
+            return buf;
         }
 
         /// <summary>下载数据</summary>

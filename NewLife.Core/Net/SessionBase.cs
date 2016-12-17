@@ -201,9 +201,9 @@ namespace NewLife.Net
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public virtual Boolean SendAsync(Byte[] buffer)
+        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
         {
-            return SendAsyncInternal(buffer, Remote.EndPoint);
+            return await SendAsync(buffer, Remote.EndPoint);
         }
 
         private SocketAsyncEventArgs _seSend;
@@ -214,9 +214,28 @@ namespace NewLife.Net
         /// <param name="buffer"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        public virtual Boolean SendAsync(Byte[] buffer, IPEndPoint remote) { return SendAsyncInternal(buffer, remote); }
+        public virtual async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
+        {
+            if (!SendInternal(buffer, Remote.EndPoint)) return null;
 
-        internal virtual Boolean SendAsyncInternal(Byte[] buffer, IPEndPoint remote)
+            try
+            {
+                // 通过任务拦截异步接收
+                var tsc = _recv;
+                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
+
+                var e = await tsc.Task;
+                if (e == null) return null;
+
+                return e.Data;
+            }
+            finally
+            {
+                _recv = null;
+            }
+        }
+
+        internal virtual Boolean SendInternal(Byte[] buffer, IPEndPoint remote)
         {
             if (!Open()) return false;
 
@@ -576,10 +595,19 @@ namespace NewLife.Net
             return true;
         }
 
-        /// <summary>处理收到的数据</summary>
+        private TaskCompletionSource<ReceivedEventArgs> _recv;
+
+        /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
         /// <param name="stream"></param>
         /// <param name="remote"></param>
-        internal abstract void OnReceive(Stream stream, IPEndPoint remote);
+        internal virtual void OnReceive(Stream stream, IPEndPoint remote)
+        {
+            // 同步匹配
+            var task = _recv;
+            _recv = null;
+
+            task?.SetResult(new ReceivedEventArgs { Stream = stream, UserState = remote });
+        }
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
