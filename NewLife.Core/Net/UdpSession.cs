@@ -186,7 +186,7 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            var task = Server.SendAsync(null, Remote.EndPoint);
+            var task = Server.SendAsync(null, null);
             if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
             return task.Result;

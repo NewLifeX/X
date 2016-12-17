@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -52,22 +53,20 @@ namespace NewLife.Net
         {
             if (Items.IsEmpty) return false;
 
-            var dls = new List<Item>();
             foreach (var qi in Items)
             {
-                if (qi.Owner == owner && (qi.Remote == null || qi.Remote == remote) && IsMatch(owner, remote, qi.Request, response))
+                //XTrace.WriteLine("比较 {0} {1}", qi.Remote, remote);
+                if (qi.Owner == owner && (qi.Remote == null || remote == null || qi.Remote == remote) && IsMatch(owner, remote, qi.Request, response))
                 {
-                    dls.Add(qi);
+                    Items.TryRemove(qi);
 
+                    //XTrace.WriteLine("匹配");
                     qi.Source.SetResult(response);
 
                     return true;
                 }
             }
-            foreach (var item in dls)
-            {
-                Items.TryRemove(item);
-            }
+            //XTrace.WriteLine("没有匹配项 {0}", Items.Count);
 
             return false;
         }
@@ -102,6 +101,7 @@ namespace NewLife.Net
                 {
                     if (qi.EndTime <= now)
                     {
+                        //XTrace.WriteLine("过期");
                         qi.Source.SetCanceled();
                         dls.Add(qi);
                     }

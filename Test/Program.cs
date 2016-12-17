@@ -22,6 +22,7 @@ using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Web;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -123,11 +124,15 @@ namespace Test
             //var svr = new DNSServer();
             //svr.Start();
 
-            var uri = new NetUri("http://www.baidu.com");
-            var http = uri.CreateRemote();
-            http.Log = XTrace.Log;
-            http.Send("");
-            var html = http.ReceiveString();
+            //var uri = new NetUri("http://www.baidu.com");
+            //var http = uri.CreateRemote();
+            //http.Log = XTrace.Log;
+            //http.Send("");
+            //var html = http.ReceiveString();
+            //Console.WriteLine(html);
+
+            var client = new WebClientX(true, false);
+            var html = client.DownloadString("http://www.newlifex.com");
             Console.WriteLine(html);
         }
 

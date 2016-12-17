@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace NewLife.Net
 {
@@ -33,6 +30,9 @@ namespace NewLife.Net
 
         /// <summary>状态码</summary>
         public HttpStatusCode StatusCode { get; set; }
+
+        /// <summary>响应头</summary>
+        public WebHeaderCollection ResponseHeaders { get; } = new WebHeaderCollection();
         #endregion
 
         #region 构造
@@ -73,30 +73,56 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            buffer = Make(buffer);
+            buffer = MakeRequest(buffer);
             return base.Send(buffer, offset, count);
         }
 
         internal override Boolean SendInternal(Byte[] buffer, IPEndPoint remote)
         {
-            buffer = Make(buffer);
+            buffer = MakeRequest(buffer);
             return base.SendInternal(buffer, remote);
         }
 
+        private MemoryStream _cache;
+        private DateTime _next;
         /// <summary>处理收到的数据</summary>
         /// <param name="stream"></param>
         /// <param name="remote"></param>
         internal override void OnReceive(Stream stream, IPEndPoint remote)
         {
-            var buffer = Parse(stream.ReadBytes());
-            stream = new MemoryStream(buffer);
+            if (stream.Length == 0 && DisconnectWhenEmptyData)
+            {
+                Close("收到空数据");
+                Dispose();
 
-            base.OnReceive(stream, remote);
+                return;
+            }
+
+            var buffer = stream.ReadBytes();
+            // 是否全新请求
+            if (_next < DateTime.Now || _cache == null)
+            {
+                buffer = ParseResponse(buffer);
+
+                _cache = new MemoryStream();
+            }
+
+            _cache.Write(buffer);
+            _next = DateTime.Now.AddSeconds(1);
+
+            // 如果长度不足
+            var len = ResponseHeaders[HttpResponseHeader.ContentLength].ToInt();
+            if (len > 0 && _cache.Length < len) return;
+
+            _cache.Position = 0;
+            base.OnReceive(_cache, remote);
+
+            _cache = null;
         }
         #endregion
 
         #region Http封包解包
-        private Byte[] Make(Byte[] buffer)
+        private Byte[] MakeRequest(Byte[] buffer)
         {
             // 分解主机和资源
             var host = Remote.Host;
@@ -121,6 +147,11 @@ namespace NewLife.Net
             // 内容长度
             if (buffer?.Length > 0) sb.AppendFormat("Content-Length:{0}\r\n", buffer.Length);
 
+            foreach (var item in Headers.AllKeys)
+            {
+                sb.AppendFormat("{0}:{1}\r\n", item, Headers[item]);
+            }
+
             sb.AppendLine();
 
             var header = sb.ToString().GetBytes();
@@ -135,7 +166,7 @@ namespace NewLife.Net
             return ms.ToArray();
         }
 
-        private Byte[] Parse(Byte[] buffer)
+        private Byte[] ParseResponse(Byte[] buffer)
         {
             var p = (Int32)buffer.IndexOf("\r\n\r\n".GetBytes());
             if (p < 0) return buffer;
@@ -143,6 +174,21 @@ namespace NewLife.Net
             // 截取
             var headers = buffer.ReadBytes(0, p).ToStr().Split("\r\n");
             buffer = buffer.ReadBytes(p + 4);
+
+            // 分析响应码
+            var line = headers[0];
+            var code = line.Substring(" ", " ").ToInt();
+            if (code > 0) StatusCode = (HttpStatusCode)code;
+
+            // 分析响应头
+            var rs = ResponseHeaders;
+            rs.Clear();
+            for (int i = 1; i < headers.Length; i++)
+            {
+                line = headers[i];
+                p = line.IndexOf(':');
+                if (p > 0) rs.Set(line.Substring(0, p), line.Substring(p + 1));
+            }
 
             return buffer;
         }

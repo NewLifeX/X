@@ -178,7 +178,12 @@ namespace NewLife.Net
             return await base.SendAsync(buffer, remote);
         }
 
-        internal override bool OnSendAsync(SocketAsyncEventArgs se) { return Client.SendToAsync(se); }
+        internal override bool OnSendAsync(SocketAsyncEventArgs se)
+        {
+            if (se.RemoteEndPoint == null) se.RemoteEndPoint = Remote.EndPoint;
+
+            return Client.SendToAsync(se);
+        }
         #endregion
 
         #region 接收

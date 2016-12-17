@@ -206,7 +206,7 @@ namespace NewLife.Net
         {
             if (!Open()) return null;
 
-            return SendAsync(null).Result;
+            return SendAsync(null, null).Result;
         }
 
         internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
@@ -226,6 +226,8 @@ namespace NewLife.Net
             {
                 Close("收到空数据");
                 Dispose();
+
+                return;
             }
 
             base.OnReceive(stream, remote);

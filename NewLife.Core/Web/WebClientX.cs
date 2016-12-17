@@ -14,21 +14,10 @@ namespace NewLife.Web
     /// <summary>扩展的Web客户端</summary>
     public class WebClientX //: WebClient
     {
-        #region 静态
-        //static WebClientX()
-        //{
-        //    // 设置默认最大连接为20，关闭默认代理，提高响应速度
-        //    ServicePointManager.DefaultConnectionLimit = 20;
-        //    WebRequest.DefaultWebProxy = null;
-        //}
-        #endregion
-
-        #region 为了Cookie而重写
+        #region 属性
         /// <summary>Cookie容器</summary>
         public CookieContainer Cookie { get; set; } = new CookieContainer();
-        #endregion
 
-        #region 属性
         /// <summary>可接受类型</summary>
         public String Accept { get; set; }
 
@@ -164,6 +153,11 @@ namespace NewLife.Web
         {
             var http = uri.CreateRemote() as HttpSession;
             http.Log = Log;
+            if (XTrace.Debug)
+            {
+                http.LogSend = true;
+                http.LogReceive = true;
+            }
             http.UserAgent = UserAgent;
 
             if (AutomaticDecompression != DecompressionMethods.None) http.Compressed = true;
@@ -199,17 +193,40 @@ namespace NewLife.Web
         /// <returns></returns>
         protected virtual Byte[] Get(String address, Byte[] data)
         {
-            var http = Check(address);
-            http.Method = "GET";
+            while (true)
+            {
+                var http = Check(address);
+                http.Method = "GET";
 
-            // 发送请求
-            http.Send(data);
+                // 发送请求
+                http.Send(data);
 
-            // 修改引用地址
-            Referer = address;
+                // 修改引用地址
+                Referer = address;
 
-            // 接收数据
-            return http.Receive();
+                // 接收数据
+                var rs = http.Receive();
+
+                // 如果是重定向
+                switch (http.StatusCode)
+                {
+                    case HttpStatusCode.MovedPermanently:
+                    case HttpStatusCode.Redirect:
+                    case HttpStatusCode.RedirectMethod:
+                        var url = http.ResponseHeaders[HttpResponseHeader.Location];
+                        if (!url.IsNullOrEmpty())
+                        {
+                            address = url;
+                            data = null;
+                            continue;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                return rs;
+            }
         }
 
         /// <summary>异步上传数据</summary>
