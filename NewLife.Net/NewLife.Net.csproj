@@ -93,9 +93,6 @@
     <Compile Include="DNS\DNS_SOA.cs" />
     <Compile Include="DNS\DNS_TXT.cs" />
     <Compile Include="DNS\NetBIOS.cs" />
-    <Compile Include="Fetion\WapFetion.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Flash\SandBoxServer.cs" />
     <Compile Include="FTP\FTPClient.cs" />
     <Compile Include="FTP\FTPItem.cs" />

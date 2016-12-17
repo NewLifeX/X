@@ -4,20 +4,23 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Net;
 
 namespace NewLife.Web
 {
     /// <summary>扩展的Web客户端</summary>
-    public class WebClientX : WebClient
+    public class WebClientX //: WebClient
     {
         #region 静态
-        static WebClientX()
-        {
-            // 设置默认最大连接为20，关闭默认代理，提高响应速度
-            ServicePointManager.DefaultConnectionLimit = 20;
-            WebRequest.DefaultWebProxy = null;
-        }
+        //static WebClientX()
+        //{
+        //    // 设置默认最大连接为20，关闭默认代理，提高响应速度
+        //    ServicePointManager.DefaultConnectionLimit = 20;
+        //    WebRequest.DefaultWebProxy = null;
+        //}
         #endregion
 
         #region 为了Cookie而重写
@@ -43,14 +46,19 @@ namespace NewLife.Web
 
         /// <summary>User-Agent 标头，指定有关客户端代理的信息</summary>
         public String UserAgent { get; set; }
+
+        /// <summary>编码</summary>
+        public Encoding Encoding { get; set; } = Encoding.UTF8;
+
+        private HttpSession _client;
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
         public WebClientX()
         {
-            // 网络时代，绝大部分使用utf8编码
-            Encoding = System.Text.Encoding.UTF8;
+            //// 网络时代，绝大部分使用utf8编码
+            //Encoding = Encoding.UTF8;
         }
 
         /// <summary>初始化常用的东西</summary>
@@ -81,70 +89,184 @@ namespace NewLife.Web
         #endregion
 
         #region 重载设置属性
-        /// <summary>重写获取请求</summary>
-        /// <param name="address"></param>
+        ///// <summary>重写获取请求</summary>
+        ///// <param name="address"></param>
+        ///// <returns></returns>
+        //protected override WebRequest GetWebRequest(Uri address)
+        //{
+        //    var request = base.GetWebRequest(address);
+
+        //    var hr = request as HttpWebRequest;
+        //    if (hr != null)
+        //    {
+        //        hr.CookieContainer = Cookie;
+        //        hr.AutomaticDecompression = AutomaticDecompression;
+
+        //        if (!String.IsNullOrEmpty(Accept)) hr.Accept = Accept;
+        //        if (!String.IsNullOrEmpty(AcceptLanguage)) hr.Headers[HttpRequestHeader.AcceptLanguage] = AcceptLanguage;
+        //        if (!String.IsNullOrEmpty(UserAgent)) hr.UserAgent = UserAgent;
+        //        if (!String.IsNullOrEmpty(Accept)) hr.Accept = Accept;
+        //    }
+
+        //    var fr = request as FtpWebRequest;
+        //    if (fr != null)
+        //    {
+        //        // 特殊支持获取字符串
+        //        if (fr.Method == WebRequestMethods.Ftp.DownloadFile)
+        //        {
+        //            // 斜杠结尾，或者://后面没有任何斜杠，则认为是目录
+        //            var path = address.PathAndQuery;
+        //            if (path.IsNullOrEmpty() || path.EndsWith("/"))
+        //                fr.Method = WebRequestMethods.Ftp.ListDirectory;
+        //            // 不能列出明细，那样子不好分割名称
+        //            //fr.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+        //        }
+        //    }
+
+        //    if (Timeout > 0) request.Timeout = Timeout;
+
+        //    return request;
+        //}
+
+        ///// <summary>重写获取响应</summary>
+        ///// <param name="request"></param>
+        ///// <returns></returns>
+        //protected override WebResponse GetWebResponse(WebRequest request)
+        //{
+        //    var response = base.GetWebResponse(request);
+        //    var http = response as HttpWebResponse;
+        //    if (http != null)
+        //    {
+        //        Cookie.Add(http.Cookies);
+        //        if (!String.IsNullOrEmpty(http.CharacterSet)) Encoding = Encoding.GetEncoding(http.CharacterSet);
+        //    }
+
+        //    var fr = response as FtpWebResponse;
+        //    if (fr != null)
+        //    {
+        //        if (Log != null && Log.Enable)
+        //        {
+        //            Log.Info(fr.BannerMessage);
+        //            Log.Info(fr.StatusDescription);
+        //            Log.Info(fr.WelcomeMessage);
+        //        }
+        //    }
+
+        //    return response;
+        //}
+        #endregion
+
+        #region 核心方法
+        /// <summary>创建客户端会话</summary>
+        /// <param name="uri"></param>
         /// <returns></returns>
-        protected override WebRequest GetWebRequest(Uri address)
+        protected virtual HttpSession Create(NetUri uri)
         {
-            var request = base.GetWebRequest(address);
+            var http = uri.CreateRemote() as HttpSession;
+            http.Log = Log;
+            http.UserAgent = UserAgent;
 
-            var hr = request as HttpWebRequest;
-            if (hr != null)
-            {
-                hr.CookieContainer = Cookie;
-                hr.AutomaticDecompression = AutomaticDecompression;
+            if (AutomaticDecompression != DecompressionMethods.None) http.Compressed = true;
 
-                if (!String.IsNullOrEmpty(Accept)) hr.Accept = Accept;
-                if (!String.IsNullOrEmpty(AcceptLanguage)) hr.Headers[HttpRequestHeader.AcceptLanguage] = AcceptLanguage;
-                if (!String.IsNullOrEmpty(UserAgent)) hr.UserAgent = UserAgent;
-                if (!String.IsNullOrEmpty(Accept)) hr.Accept = Accept;
-            }
+            if (!String.IsNullOrEmpty(Accept)) http.Headers[HttpRequestHeader.Accept] = Accept;
+            if (!String.IsNullOrEmpty(AcceptLanguage)) http.Headers[HttpRequestHeader.AcceptLanguage] = AcceptLanguage;
+            if (!String.IsNullOrEmpty(Referer)) http.Headers[HttpRequestHeader.Referer] = Referer;
 
-            var fr = request as FtpWebRequest;
-            if (fr != null)
-            {
-                // 特殊支持获取字符串
-                if (fr.Method == WebRequestMethods.Ftp.DownloadFile)
-                {
-                    // 斜杠结尾，或者://后面没有任何斜杠，则认为是目录
-                    var path = address.PathAndQuery;
-                    if (path.IsNullOrEmpty() || path.EndsWith("/"))
-                        fr.Method = WebRequestMethods.Ftp.ListDirectory;
-                    // 不能列出明细，那样子不好分割名称
-                    //fr.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
-                }
-            }
-
-            if (Timeout > 0) request.Timeout = Timeout;
-
-            return request;
+            return http;
         }
 
-        /// <summary>重写获取响应</summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        protected override WebResponse GetWebResponse(WebRequest request)
+        private HttpSession Check(String address)
         {
-            var response = base.GetWebResponse(request);
-            var http = response as HttpWebResponse;
-            if (http != null)
+            var uri = new NetUri(address);
+
+            if (_client == null)
+                _client = Create(uri);
+            // 远程主机不同，需要重新建立
+            else if (!_client.Remote.Host.EqualIgnoreCase(uri.Host))
             {
-                Cookie.Add(http.Cookies);
-                if (!String.IsNullOrEmpty(http.CharacterSet)) Encoding = System.Text.Encoding.GetEncoding(http.CharacterSet);
+                _client.Dispose();
+                _client = Create(uri);
             }
 
-            var fr = response as FtpWebResponse;
-            if (fr != null)
-            {
-                if (Log != null && Log.Enable)
-                {
-                    Log.Info(fr.BannerMessage);
-                    Log.Info(fr.StatusDescription);
-                    Log.Info(fr.WelcomeMessage);
-                }
-            }
+            _client.Uri = address;
 
-            return response;
+            return _client;
+        }
+
+        /// <summary>下载数据</summary>
+        /// <param name="address"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected virtual Byte[] Get(String address, Byte[] data)
+        {
+            var http = Check(address);
+            http.Method = "GET";
+
+            // 发送请求
+            http.Send(data);
+
+            // 修改引用地址
+            Referer = address;
+
+            // 接收数据
+            return http.Receive();
+        }
+
+        /// <summary>异步上传数据</summary>
+        /// <param name="address"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected virtual async Task<Byte[]> PostAsync(String address, Byte[] data)
+        {
+            var http = Check(address);
+            http.Method = "POST";
+
+            //http.Received += Http_OnDisposed;
+
+            // 发送请求
+            http.Send(data);
+
+            // 修改引用地址
+            Referer = address;
+
+            // 接收数据
+            return http.Receive();
+        }
+
+        /// <summary>下载数据</summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public virtual Byte[] DownloadData(String address)
+        {
+            return Get(address, new Byte[0]);
+        }
+
+        /// <summary>下载字符串</summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public virtual String DownloadString(String address)
+        {
+            var buf = DownloadData(address);
+            if (buf == null || buf.Length == 0) return null;
+
+            return buf.ToStr(Encoding);
+        }
+
+        /// <summary>下载文件</summary>
+        /// <param name="address"></param>
+        /// <param name="fileName"></param>
+        public virtual void DownloadFile(String address, String fileName)
+        {
+            var buf = DownloadData(address);
+            if (buf?.Length > 0) File.WriteAllBytes(fileName, buf);
+        }
+
+        /// <summary>异步上传数据</summary>
+        /// <param name="address"></param>
+        /// <param name="data"></param>
+        public virtual async Task<Byte[]> UploadDataTaskAsync(String address, Byte[] data)
+        {
+            return await PostAsync(address, data);
         }
         #endregion
 
@@ -160,7 +282,7 @@ namespace NewLife.Web
 
             // 处理编码
             var enc = Encoding;
-            //if (ResponseHeaders[HttpResponseHeader.ContentType].Contains("utf-8")) enc = System.Text.Encoding.UTF8;
+            //if (ResponseHeaders[HttpResponseHeader.ContentType].Contains("utf-8")) enc = Encoding.UTF8;
 
             return buf.ToStr(enc);
         }
@@ -342,9 +464,8 @@ namespace NewLife.Web
         #endregion
 
         #region 日志
-        private ILog _Log = Logger.Null;
         /// <summary>日志</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        public ILog Log { get; set; } = XTrace.Debug ? XTrace.Log : Logger.Null;
         #endregion
     }
 }

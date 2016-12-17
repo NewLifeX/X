@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Web;
@@ -11,7 +7,7 @@ namespace NewLife.Remoting
 {
     class ApiHttpClient : IApiClient
     {
-        public WebClient Client { get; set; }
+        public WebClientX Client { get; set; }
 
         public String Remote { get; set; }
 

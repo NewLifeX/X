@@ -18,6 +18,21 @@ namespace NewLife.Net
 
         /// <summary>资源路径</summary>
         public String Uri { get; set; } = "/";
+
+        /// <summary>用户代理</summary>
+        public String UserAgent { get; set; }
+
+        /// <summary>是否压缩</summary>
+        public Boolean Compressed { get; set; }
+
+        /// <summary>保持连接</summary>
+        public Boolean KeepAlive { get; set; }
+
+        /// <summary>头部集合</summary>
+        public WebHeaderCollection Headers { get; set; } = new WebHeaderCollection();
+
+        /// <summary>状态码</summary>
+        public HttpStatusCode StatusCode { get; set; }
         #endregion
 
         #region 构造
@@ -81,14 +96,39 @@ namespace NewLife.Net
         #region Http封包解包
         private Byte[] Make(Byte[] buffer)
         {
+            // 分解主机和资源
+            var host = Remote.Host;
+            var url = Uri;
+
+            if (url.StartsWithIgnoreCase("http"))
+            {
+                var uri = new Uri(url);
+                host = uri.Host;
+                url = uri.PathAndQuery;
+            }
+
+            // 构建请求头部
             var sb = new StringBuilder();
-            sb.AppendFormat("{0} {1} HTTP/1.1\r\n", Method, Uri);
-            sb.AppendFormat("Host: {0}\r\n", Remote.Host);
+            sb.AppendFormat("{0} {1} HTTP/1.1\r\n", Method, url);
+            sb.AppendFormat("Host:{0}\r\n", host);
+
+            if (Compressed) sb.AppendLine("Accept-Encoding:gzip, deflate");
+            if (KeepAlive) sb.AppendLine("Connection:keep-alive");
+            if (!UserAgent.IsNullOrEmpty()) sb.AppendFormat("User-Agent:{0}\r\n", UserAgent);
+
+            // 内容长度
+            if (buffer?.Length > 0) sb.AppendFormat("Content-Length:{0}\r\n", buffer.Length);
+
             sb.AppendLine();
 
+            var header = sb.ToString().GetBytes();
+
+            // 如果没有负载，直接返回
+            if (buffer == null || buffer.Length == 0) return header;
+
             var ms = new MemoryStream();
-            ms.Write(sb.ToString().GetBytes());
-            if (buffer?.Length > 0) ms.Write(buffer);
+            ms.Write(header);
+            ms.Write(buffer);
 
             return ms.ToArray();
         }
