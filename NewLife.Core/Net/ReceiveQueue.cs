@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
-using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -55,18 +53,15 @@ namespace NewLife.Net
 
             foreach (var qi in Items)
             {
-                //XTrace.WriteLine("比较 {0} {1}", qi.Remote, remote);
                 if (qi.Owner == owner && (qi.Remote == null || remote == null || qi.Remote == remote) && IsMatch(owner, remote, qi.Request, response))
                 {
                     Items.TryRemove(qi);
 
-                    //XTrace.WriteLine("匹配");
-                    qi.Source.SetResult(response);
+                    if (!qi.Source.Task.IsCompleted) qi.Source.SetResult(response);
 
                     return true;
                 }
             }
-            //XTrace.WriteLine("没有匹配项 {0}", Items.Count);
 
             return false;
         }
@@ -96,21 +91,14 @@ namespace NewLife.Net
                 if (Items.IsEmpty) return;
 
                 var now = DateTime.Now;
-                var dls = new List<Item>();
                 foreach (var qi in Items)
                 {
                     if (qi.EndTime <= now)
                     {
-                        //XTrace.WriteLine("过期");
-                        qi.Source.SetCanceled();
-                        dls.Add(qi);
-                    }
-                }
+                        Items.TryRemove(qi);
 
-                // 在这里被删除的，都是超时
-                foreach (var item in dls)
-                {
-                    Items.TryRemove(item);
+                        if (!qi.Source.Task.IsCompleted) qi.Source.SetCanceled();
+                    }
                 }
             }
             finally

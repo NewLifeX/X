@@ -108,7 +108,7 @@ namespace NewLife.Net
             }
 
             _cache.Write(buffer);
-            _next = DateTime.Now.AddSeconds(1);
+            _next = DateTime.Now.AddSeconds(3);
 
             // 如果长度不足
             var len = ResponseHeaders[HttpResponseHeader.ContentLength].ToInt();

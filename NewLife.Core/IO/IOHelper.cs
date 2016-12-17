@@ -85,7 +85,7 @@ namespace System
 #if NET4
             using (var stream = new GZipStream(outStream, CompressionMode.Compress, true))
 #else
-            using (var stream = new DeflateStream(outStream, CompressionLevel.Optimal, true))
+            using (var stream = new GZipStream(outStream, CompressionLevel.Optimal, true))
 #endif
             {
                 inStream.CopyTo(stream);

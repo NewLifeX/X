@@ -206,7 +206,10 @@ namespace NewLife.Net
         {
             if (!Open()) return null;
 
-            return SendAsync(null, null).Result;
+            var task = SendAsync(null, null);
+            if (Timeout > 0 && !task.Wait(Timeout)) return null;
+
+            return task.Result;
         }
 
         internal override bool OnReceiveAsync(SocketAsyncEventArgs se)

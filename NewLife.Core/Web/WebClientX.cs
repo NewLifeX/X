@@ -153,11 +153,11 @@ namespace NewLife.Web
         {
             var http = uri.CreateRemote() as HttpSession;
             http.Log = Log;
-            if (XTrace.Debug)
-            {
-                http.LogSend = true;
-                http.LogReceive = true;
-            }
+            //if (XTrace.Debug)
+            //{
+            //    http.LogSend = true;
+            //    http.LogReceive = true;
+            //}
             http.UserAgent = UserAgent;
 
             if (AutomaticDecompression != DecompressionMethods.None) http.Compressed = true;
@@ -205,7 +205,7 @@ namespace NewLife.Web
                 Referer = address;
 
                 // 接收数据
-                var rs = http.Receive();
+                var buf = http.Receive();
 
                 // 如果是重定向
                 switch (http.StatusCode)
@@ -225,7 +225,24 @@ namespace NewLife.Web
                         break;
                 }
 
-                return rs;
+                // 解压缩
+                if (buf != null)
+                {
+                    var enc = http.ResponseHeaders[HttpResponseHeader.ContentEncoding];
+                    if (enc.EqualIgnoreCase("gzip"))
+                    {
+                        var ms = new MemoryStream(buf);
+                        var ms2 = ms.DecompressGZip();
+                        ms2.Position = 0;
+                        buf = ms2.ReadBytes();
+                    }
+                    else if (enc.EqualIgnoreCase("deflate"))
+                    {
+                        buf = buf.Decompress();
+                    }
+                }
+
+                return buf;
             }
         }
 

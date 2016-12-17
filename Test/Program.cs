@@ -131,7 +131,7 @@ namespace Test
             //var html = http.ReceiveString();
             //Console.WriteLine(html);
 
-            var client = new WebClientX(true, false);
+            var client = new WebClientX(true, true);
             var html = client.DownloadString("http://www.newlifex.com");
             Console.WriteLine(html);
         }
