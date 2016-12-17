@@ -639,35 +639,6 @@ namespace System
 #endif
         #endregion
 
-        #region 读写器扩展
-        /// <summary>把网络节点写入数据流</summary>
-        /// <param name="stream"></param>
-        /// <param name="ep"></param>
-        /// <returns></returns>
-        public static Stream Write(this Stream stream, IPEndPoint ep)
-        {
-            if (stream == null) return stream;
-
-            stream.Write(ep.Address.GetAddressBytes());
-            stream.Write(((UInt16)ep.Port).GetBytes());
-
-            return stream;
-        }
-
-        /// <summary>从数据流读取网络节点</summary>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        public static IPEndPoint ReadEndPoint(this Stream stream)
-        {
-            if (stream == null) return null;
-
-            var addr = new IPAddress(stream.ReadBytes(4));
-            var port = (UInt16)stream.ReadBytes(2).ToInt();
-
-            return new IPEndPoint(addr, port);
-        }
-        #endregion
-
         #region 创建客户端和会话
         /// <summary>根据本地网络标识创建客户端</summary>
         /// <param name="local"></param>
@@ -679,11 +650,11 @@ namespace System
             switch (local.Type)
             {
                 case NetType.Tcp:
-                    var tcp = new TcpSession { Local = local };
-                    return tcp;
+                    return new TcpSession { Local = local };
                 case NetType.Udp:
-                    var udp = new UdpServer { Local = local };
-                    return udp;
+                    return new UdpServer { Local = local };
+                case NetType.Http:
+                    return new HttpSession { Local = local };
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(local.Type));
             }
@@ -699,35 +670,15 @@ namespace System
             switch (remote.Type)
             {
                 case NetType.Tcp:
-                    var tcp = new TcpSession { Remote = remote };
-                    return tcp;
+                    return new TcpSession { Remote = remote };
                 case NetType.Udp:
-                    var udp = new UdpServer { Remote = remote };
-                    return udp;
+                    return new UdpServer { Remote = remote };
+                case NetType.Http:
+                    return new HttpSession { Remote = remote };
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(remote.Type));
             }
         }
-
-        ///// <summary>根据网络标识创建客户端会话</summary>
-        ///// <param name="remote"></param>
-        ///// <returns></returns>
-        //public static ISocketSession CreateSession(this NetUri remote)
-        //{
-        //    if (remote == null) throw new ArgumentNullException("remote");
-
-        //    switch (remote.ProtocolType)
-        //    {
-        //        case ProtocolType.Tcp:
-        //            var tcp = new TcpSession { Remote = remote };
-        //            return tcp;
-        //        case ProtocolType.Udp:
-        //            var udp = new UdpServer { UseReceiveAsync = true };
-        //            return udp.CreateSession(remote.EndPoint);
-        //        default:
-        //            throw new NotSupportedException("不支持{0}协议".F(remote.ProtocolType));
-        //    }
-        //}
 
         internal static Socket CreateTcp(Boolean ipv4 = true)
         {

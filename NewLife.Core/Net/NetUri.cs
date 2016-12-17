@@ -16,7 +16,10 @@ namespace NewLife.Net
         Tcp = 6,
 
         /// <summary>用户数据报协议</summary>
-        Udp = 17
+        Udp = 17,
+
+        /// <summary>WebSocket协议</summary>
+        Http = 80
     }
 
     /// <summary>网络资源标识，指定协议、地址、端口、地址族（IPv4/IPv6）</summary>
@@ -24,7 +27,7 @@ namespace NewLife.Net
     /// 仅序列化<see cref="Type"/>和<see cref="EndPoint"/>，其它均是配角！
     /// 有可能<see cref="Host"/>代表主机域名，而<see cref="Address"/>指定主机IP地址。
     /// </remarks>
-    public class NetUri //: IAccessor
+    public class NetUri
     {
         #region 属性
         private NetType _Type;
@@ -47,7 +50,10 @@ namespace NewLife.Net
                 {
                     try
                     {
-                        _Type = (NetType)Enum.Parse(typeof(NetType), value, true);
+                        if (value.EqualIgnoreCase("Http"))
+                            _Type = NetType.Http;
+                        else
+                            _Type = (NetType)Enum.Parse(typeof(ProtocolType), value, true);
                         // 规范化名字
                         _Protocol = _Type.ToString();
                     }
@@ -182,40 +188,6 @@ namespace NewLife.Net
 
             return this;
         }
-
-        /// <summary>克隆</summary>
-        /// <returns></returns>
-        public NetUri Clone()
-        {
-            return new NetUri().CopyFrom(this);
-        }
-
-        /// <summary>从另一个对象复制</summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        public NetUri CopyFrom(NetUri uri)
-        {
-            if (uri == null) return this;
-
-            Protocol = uri.Protocol;
-            Host = uri.Host;
-            Port = uri.Port;
-
-            return this;
-        }
-
-        /// <summary>从另一个对象复制</summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        public NetUri CopyFrom(Uri uri)
-        {
-            if (uri == null) return this;
-
-            Host = uri.Host;
-            Port = uri.Port;
-
-            return this;
-        }
         #endregion
 
         #region 辅助
@@ -270,25 +242,6 @@ namespace NewLife.Net
         {
             return Type == uri.Type && Port == uri.Port && Address == uri.Address;
         }
-        #endregion
-
-        #region IAccessor 成员
-
-        //bool IAccessor.Read(IReader reader) { return false; }
-
-        //bool IAccessor.ReadComplete(IReader reader, bool success)
-        //{
-        //    // 因为反序列化仅给字段复制，重新设置一下，保证Protocol等属性有值
-        //    ProtocolType = ProtocolType;
-        //    EndPoint = EndPoint;
-
-        //    return success;
-        //}
-
-        //bool IAccessor.Write(IWriter writer) { return false; }
-
-        //bool IAccessor.WriteComplete(IWriter writer, bool success) { return success; }
-
         #endregion
     }
 }

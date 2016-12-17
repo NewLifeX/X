@@ -172,7 +172,7 @@ namespace NewLife.Net
         {
             if (remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast) Client.EnableBroadcast = true;
 
-            return SendAsync_(buffer, remote);
+            return SendAsyncInternal(buffer, remote);
         }
 
         internal override bool OnSendAsync(SocketAsyncEventArgs se) { return Client.SendToAsync(se); }

@@ -203,7 +203,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Boolean SendAsync(Byte[] buffer)
         {
-            return SendAsync_(buffer, Remote.EndPoint);
+            return SendAsyncInternal(buffer, Remote.EndPoint);
         }
 
         private SocketAsyncEventArgs _seSend;
@@ -214,9 +214,9 @@ namespace NewLife.Net
         /// <param name="buffer"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        public virtual Boolean SendAsync(Byte[] buffer, IPEndPoint remote) { return SendAsync_(buffer, remote); }
+        public virtual Boolean SendAsync(Byte[] buffer, IPEndPoint remote) { return SendAsyncInternal(buffer, remote); }
 
-        internal Boolean SendAsync_(Byte[] buffer, IPEndPoint remote)
+        internal virtual Boolean SendAsyncInternal(Byte[] buffer, IPEndPoint remote)
         {
             if (!Open()) return false;
 

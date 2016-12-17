@@ -102,11 +102,7 @@
     <Compile Include="FTP\FTPServer.cs" />
     <Compile Include="FTP\FTPSession.cs" />
     <Compile Include="FTP\FTPTransferMode.cs" />
-    <Compile Include="Http\ByteParser.cs" />
-    <Compile Include="Http\ByteString.cs" />
     <Compile Include="Http\HttpCache.cs" />
-    <Compile Include="Http\HttpServer.cs" />
-    <Compile Include="Http\HttpSession.cs" />
     <Compile Include="ISO\COTP.cs" />
     <Compile Include="ISO\TPKT.cs" />
     <Compile Include="Modbus\DataStore.cs" />

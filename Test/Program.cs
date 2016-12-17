@@ -120,8 +120,15 @@ namespace Test
             //ApiTest.Main();
             //TestService.ServiceMain();
             //HeaderLengthPacket.Test();
-            var svr = new DNSServer();
-            svr.Start();
+            //var svr = new DNSServer();
+            //svr.Start();
+
+            var uri = new NetUri("http://www.baidu.com");
+            var http = uri.CreateRemote();
+            http.Log = XTrace.Log;
+            http.Send("");
+            var html = http.ReceiveString();
+            Console.WriteLine(html);
         }
 
         class TestService : AgentServiceBase<TestService>
