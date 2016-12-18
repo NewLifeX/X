@@ -10,6 +10,12 @@ namespace NewLife.Net
     public class HttpSession : TcpSession
     {
         #region 属性
+        /// <summary>是否WebSocket</summary>
+        public Boolean IsWebSocket { get; set; }
+
+        /// <summary>是否启用SSL</summary>
+        public Boolean IsSSL { get; set; }
+
         /// <summary>Http方法</summary>
         public String Method { get; set; } = "GET";
 

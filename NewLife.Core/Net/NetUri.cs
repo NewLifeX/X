@@ -18,8 +18,11 @@ namespace NewLife.Net
         /// <summary>用户数据报协议</summary>
         Udp = 17,
 
+        /// <summary>Http协议</summary>
+        Http = 80,
+
         /// <summary>WebSocket协议</summary>
-        Http = 80
+        WebSocket = 81
     }
 
     /// <summary>网络资源标识，指定协议、地址、端口、地址族（IPv4/IPv6）</summary>
@@ -50,12 +53,16 @@ namespace NewLife.Net
                 {
                     try
                     {
-                        if (value.EqualIgnoreCase("Http"))
+                        if (value.EqualIgnoreCase("Http", "Https"))
                             _Type = NetType.Http;
+                        else if (value.EqualIgnoreCase("ws", "wss"))
+                            _Type = NetType.WebSocket;
                         else
+                        {
                             _Type = (NetType)Enum.Parse(typeof(ProtocolType), value, true);
-                        // 规范化名字
-                        _Protocol = _Type.ToString();
+                            // 规范化名字
+                            _Protocol = _Type.ToString();
+                        }
                     }
                     catch { _Type = NetType.Unknown; }
                 }
@@ -171,6 +178,19 @@ namespace NewLife.Net
                 uri = uri.Substring(p + Sep.Length);
             }
 
+            // 特殊协议端口
+            switch (Protocol.ToLower())
+            {
+                case "http":
+                case "ws":
+                    Port = 80;
+                    break;
+                case "https":
+                case "wss":
+                    Port = 443;
+                    break;
+            }
+
             // 这个可能是一个Uri，去掉尾部
             p = uri.IndexOf('/');
             if (p < 0) p = uri.IndexOf('\\');
@@ -223,7 +243,16 @@ namespace NewLife.Net
         /// <returns></returns>
         public override string ToString()
         {
-            var p = Type == NetType.Unknown ? "" : Protocol;
+            var p = Protocol;
+            switch (Type)
+            {
+                case NetType.Unknown:
+                    p = "";
+                    break;
+                case NetType.WebSocket:
+                    p = Port == 443 ? "wss" : "ws";
+                    break;
+            }
             if (Port > 0)
                 return String.Format("{0}://{1}:{2}", p, Host, Port);
             else

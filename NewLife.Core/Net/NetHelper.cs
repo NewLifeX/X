@@ -645,7 +645,7 @@ namespace System
         /// <returns></returns>
         public static ISocketClient CreateClient(this NetUri local)
         {
-            if (local == null) throw new ArgumentNullException("local");
+            if (local == null) throw new ArgumentNullException(nameof(local));
 
             switch (local.Type)
             {
@@ -665,7 +665,7 @@ namespace System
         /// <returns></returns>
         public static ISocketClient CreateRemote(this NetUri remote)
         {
-            if (remote == null) throw new ArgumentNullException("remote");
+            if (remote == null) throw new ArgumentNullException(nameof(remote));
 
             switch (remote.Type)
             {
@@ -674,10 +674,44 @@ namespace System
                 case NetType.Udp:
                     return new UdpServer { Remote = remote };
                 case NetType.Http:
-                    return new HttpSession { Remote = remote };
+                    return new HttpSession { Remote = remote, IsSSL = remote.Protocol.EqualIgnoreCase("https") };
+                case NetType.WebSocket:
+                    return new HttpSession { Remote = remote, IsSSL = remote.Protocol.EqualIgnoreCase("wss"), IsWebSocket = true };
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(remote.Type));
             }
+        }
+
+        /// <summary>根据远程网络标识创建客户端</summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public static ISocketClient CreateRemote(this Uri uri)
+        {
+            if (uri == null) throw new ArgumentNullException(nameof(uri));
+
+            //var remote = new NetUri(NetType.Http, uri.Host, uri.Port);
+            var http = new HttpSession();
+            http.Uri = uri.ToString();
+            http.Remote = new NetUri(http.Uri);
+
+            //switch (uri.Scheme.ToLower())
+            //{
+            //    case "https":
+            //        http.IsSSL = true;
+            //        break;
+            //    case "ws":
+            //        http.IsWebSocket = true;
+            //        remote.Type = NetType.WebSocket;
+            //        break;
+            //    case "wss":
+            //        http.IsWebSocket = true;
+            //        http.IsSSL = true;
+            //        remote.Type = NetType.WebSocket;
+            //        break;
+            //    default:
+            //        throw new NotSupportedException("不支持{0}协议".F(uri.Scheme));
+            //}
+            return http;
         }
 
         internal static Socket CreateTcp(Boolean ipv4 = true)

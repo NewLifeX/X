@@ -176,7 +176,8 @@ namespace NewLife.Web
             if (_client == null)
                 _client = Create(uri);
             // 远程主机不同，需要重新建立
-            else if (!_client.Remote.Host.EqualIgnoreCase(uri.Host))
+            //else if (!_client.Remote.Host.EqualIgnoreCase(uri.Host))
+            else if (_client.Remote != uri)
             {
                 _client.Dispose();
                 _client = Create(uri);

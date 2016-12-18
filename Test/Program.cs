@@ -49,7 +49,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -124,16 +124,21 @@ namespace Test
             //var svr = new DNSServer();
             //svr.Start();
 
-            //var uri = new NetUri("http://www.baidu.com");
-            //var http = uri.CreateRemote();
-            //http.Log = XTrace.Log;
-            //http.Send("");
-            //var html = http.ReceiveString();
-            //Console.WriteLine(html);
+            var uri = new Uri("http://yun.wslink.cn/Home/About");
+            var http = uri.CreateRemote();
+            http.Send("");
+            var html = http.ReceiveString();
+            Console.WriteLine(html.Length);
 
             var client = new WebClientX(true, true);
-            var html = client.DownloadString("http://www.newlifex.com");
-            Console.WriteLine(html);
+            html = client.DownloadString("http://yun.wslink.cn/Home/About");
+            Console.WriteLine(html.Length);
+
+            uri = new Uri("ws://yun.wslink.cn");
+            http = uri.CreateRemote();
+            http.Send("");
+            html = http.ReceiveString();
+            Console.WriteLine(html.Length);
         }
 
         class TestService : AgentServiceBase<TestService>
