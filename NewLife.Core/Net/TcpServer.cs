@@ -65,6 +65,9 @@ namespace NewLife.Net
 
         /// <summary>接收统计</summary>
         public IStatistics StatReceive { get; set; }
+
+        /// <summary>数据包请求配对队列</summary>
+        public IPacketQueue PacketQueue { get; set; } = new DefaultPacketQueue();
         #endregion
 
         #region 构造
@@ -291,6 +294,8 @@ namespace NewLife.Net
             session.StatReceive.Parent = StatReceive;
             session.Packet = SessionPacket?.Create();
             session.ProcessAsync = ProcessAsync;
+            // 所有会话共用一个队列，减少定时器损耗
+            session.PacketQueue = PacketQueue;
 
             return session;
         }

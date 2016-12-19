@@ -4,15 +4,13 @@ namespace NewLife.Collections
 {
     /// <summary>单向链表节点</summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class SingleListNode<T>
+    public class SingleListNode<T>
     {
-        private T _Item;
         /// <summary>元素</summary>
-        public T Item { get { return _Item; } set { _Item = value; } }
+        public T Item { get; set; }
 
-        private SingleListNode<T> _Next;
         /// <summary>下一个节点</summary>
-        public SingleListNode<T> Next { get { return _Next; } set { _Next = value; } }
+        public SingleListNode<T> Next { get; set; }
 
         /// <summary>初始化</summary>
         public SingleListNode() { }
@@ -64,13 +62,6 @@ namespace NewLife.Collections
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            var item = Item;
-            if (item != null)
-                return "" + item;
-            else
-                return base.ToString();
-        }
+        public override string ToString() { return Item + ""; }
     }
 }

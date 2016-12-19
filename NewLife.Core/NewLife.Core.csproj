@@ -84,7 +84,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Collections\NullableDictionary.cs" />
-    <Compile Include="Collections\SingleListNode.cs" />
     <Compile Include="Common\CombGuid.cs" />
     <Compile Include="Common\PinYin.cs" />
     <Compile Include="Common\Runtime.cs" />
@@ -120,6 +119,7 @@
     <Compile Include="Net\HttpSession.cs" />
     <Compile Include="Net\INetSession.cs" />
     <Compile Include="Net\IPacket.cs" />
+    <Compile Include="Net\IPacketQueue.cs" />
     <Compile Include="Net\ISocket.cs" />
     <Compile Include="Net\ISocketServer.cs" />
     <Compile Include="Net\ISocketClient.cs" />
@@ -132,7 +132,6 @@
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />
-    <Compile Include="Net\ReceiveQueue.cs" />
     <Compile Include="Net\SerialTransport.cs" />
     <Compile Include="Net\SocketHelper.cs" />
     <Compile Include="Net\Statistics.cs" />

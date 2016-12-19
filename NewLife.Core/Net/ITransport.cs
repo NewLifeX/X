@@ -22,7 +22,7 @@ namespace NewLife.Net
         /// <param name="count">数量</param>
         Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
-        /// <summary>异步发送数据</summary>
+        /// <summary>异步发送数据并等待响应</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
         Task<Byte[]> SendAsync(Byte[] buffer);

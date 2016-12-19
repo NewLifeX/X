@@ -81,6 +81,9 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get { return Server.BufferSize; } set { Server.BufferSize = value; } }
+
+        /// <summary>数据包请求配对队列</summary>
+        public IPacketQueue PacketQueue { get; set; }
         #endregion
 
         #region 构造
@@ -170,7 +173,7 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>异步发送数据</summary>
+        /// <summary>异步发送数据并等待响应</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
         public Task<Byte[]> SendAsync(Byte[] buffer)

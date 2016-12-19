@@ -47,6 +47,7 @@ namespace NewLife.Net
             _Sessions = new SessionCollection(this);
 
             StatSession = new Statistics();
+            PacketQueue = new DefaultPacketQueue();
         }
 
         /// <summary>使用监听口初始化</summary>
@@ -338,6 +339,8 @@ namespace NewLife.Net
                 //us.StatSend.Parent = StatSend;
                 //us.StatReceive.Parent = StatReceive;
                 us.Packet = SessionPacket?.Create();
+                // 所有会话共用一个队列，减少定时器损耗
+                us.PacketQueue = PacketQueue;
 
                 session = us;
                 if (sessions.Add(session))

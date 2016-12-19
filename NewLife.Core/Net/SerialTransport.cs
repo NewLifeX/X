@@ -188,7 +188,7 @@ namespace NewLife.Net
             return true;
         }
 
-        /// <summary>异步发送数据</summary>
+        /// <summary>异步发送数据并等待响应</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
         public virtual async Task<Byte[]> SendAsync(Byte[] buffer)

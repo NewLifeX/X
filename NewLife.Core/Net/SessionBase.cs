@@ -198,31 +198,9 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public abstract Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
-        /// <summary>异步发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
-        {
-            return await SendAsync(buffer, Remote.EndPoint);
-        }
-
         private SocketAsyncEventArgs _seSend;
         private Int32 _Sending;
         private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
-        private static ReceiveQueue _RecvQueue;
-
-        /// <summary>异步发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        public virtual async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
-        {
-            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, Remote.EndPoint)) return null;
-
-            if (_RecvQueue == null) _RecvQueue = new ReceiveQueue();
-
-            return await _RecvQueue.Add(this, remote, buffer, Timeout);
-        }
 
         internal virtual Boolean SendInternal(Byte[] buffer, IPEndPoint remote)
         {
@@ -602,7 +580,7 @@ namespace NewLife.Net
         internal virtual void OnReceive(Stream stream, IPEndPoint remote)
         {
             // 同步匹配
-            _RecvQueue?.Match(this, remote, stream.ReadBytes());
+            PacketQueue?.Match(this, remote, stream.ReadBytes());
         }
 
         /// <summary>数据到达事件</summary>
@@ -617,6 +595,32 @@ namespace NewLife.Net
             if (StatReceive != null) StatReceive.Increment(e.Length);
 
             if (Received != null) Received(sender, e);
+        }
+        #endregion
+
+        #region 数据包处理
+        /// <summary>数据包请求配对队列</summary>
+        public IPacketQueue PacketQueue { get; set; }
+
+        /// <summary>异步发送数据并等待响应</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
+        {
+            return await SendAsync(buffer, Remote.EndPoint);
+        }
+
+        /// <summary>异步发送数据</summary>
+        /// <param name="buffer"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        public virtual async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
+        {
+            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, Remote.EndPoint)) return null;
+
+            if (PacketQueue == null) PacketQueue = new DefaultPacketQueue();
+
+            return await PacketQueue.Add(this, remote, buffer, Timeout);
         }
         #endregion
 

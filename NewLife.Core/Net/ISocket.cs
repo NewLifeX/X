@@ -82,9 +82,6 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小</summary>
         Int32 BufferSize { get; set; }
-
-        /// <summary>粘包处理接口</summary>
-        IPacket Packet { get; set; }
         #endregion
 
         #region 发送
@@ -97,17 +94,6 @@ namespace NewLife.Net
         /// <param name="count">数量</param>
         /// <returns>是否成功</returns>
         Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
-
-        /// <summary>异步发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        Task<Byte[]> SendAsync(Byte[] buffer);
-
-        /// <summary>异步发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote);
         #endregion
 
         #region 接收
@@ -121,6 +107,25 @@ namespace NewLife.Net
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
+        #endregion
+
+        #region 数据包处理
+        /// <summary>粘包处理接口</summary>
+        IPacket Packet { get; set; }
+
+        /// <summary>数据包请求配对队列</summary>
+        IPacketQueue PacketQueue { get; set; }
+
+        /// <summary>异步发送数据并等待响应</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        Task<Byte[]> SendAsync(Byte[] buffer);
+
+        /// <summary>异步发送数据到指定目标并等待响应</summary>
+        /// <param name="buffer"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote);
         #endregion
     }
 
