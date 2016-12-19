@@ -570,7 +570,7 @@ namespace NewLife.Net
             LastTime = DateTime.Now;
             if (StatReceive != null) StatReceive.Increment(e.Length);
 
-            if (Received != null) Received(sender, e);
+            Received?.Invoke(sender, e);
         }
         #endregion
 

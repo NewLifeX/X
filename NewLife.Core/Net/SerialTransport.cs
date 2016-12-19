@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Threading;
@@ -21,8 +22,6 @@ namespace NewLife.Net
     /// st.Received += (s, e) =>
     /// {
     ///     Console.WriteLine("收到 {0}", e.ToHex());
-    ///     // 返回null表示没有数据需要返回给对方
-    ///     return null;
     /// };
     /// // 开始异步操作
     /// st.Open();
@@ -93,6 +92,9 @@ namespace NewLife.Net
                 return _Description;
             }
         }
+
+        /// <summary>粘包处理接口</summary>
+        public IPacket Packet { get; set; }
 
         /// <summary>数据包请求配对队列</summary>
         public IPacketQueue PacketQueue { get; set; }
@@ -218,21 +220,15 @@ namespace NewLife.Net
         {
             var sp = Serial;
 
-            //// 等待1秒，直到有数据为止
-            //var timeout = sp.ReadTimeout;
-            //if (timeout <= 0) timeout = 200;
-            //var end = DateTime.Now.AddMilliseconds(timeout);
-            //while (sp.BytesToRead < FrameSize && sp.IsOpen && end > DateTime.Now) Thread.SpinWait(1);
-
-            if (Timeout <= 0) return;
-            var end = DateTime.Now.AddMilliseconds(Timeout);
+            var ms = 10;
+            var end = DateTime.Now.AddMilliseconds(ms);
             var count = sp.BytesToRead;
             while (sp.IsOpen && end > DateTime.Now)
             {
                 Thread.SpinWait(1);
                 if (count != sp.BytesToRead)
                 {
-                    end = DateTime.Now.AddMilliseconds(Timeout);
+                    end = DateTime.Now.AddMilliseconds(ms);
                     count = sp.BytesToRead;
                 }
             }
@@ -252,9 +248,10 @@ namespace NewLife.Net
                     var buf = new byte[sp.BytesToRead];
 
                     var count = sp.Read(buf, 0, buf.Length);
-                    if (count != buf.Length) buf = buf.ReadBytes(0, count);
+                    //if (count != buf.Length) buf = buf.ReadBytes(0, count);
+                    var ms = new MemoryStream(buf, 0, count, false);
 
-                    OnReceive(buf);
+                    ProcessReceive(ms);
                 }
             }
             catch (Exception ex)
@@ -264,18 +261,41 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>收到数据时触发</summary>
-        /// <param name="buf"></param>
-        protected virtual void OnReceive(Byte[] buf)
+        void ProcessReceive(Stream stream)
         {
-            if (Received != null)
+            try
             {
-                var e = new ReceivedEventArgs(buf);
-                Received(this, e);
+                if (Packet == null)
+                    OnReceive(stream);
+                else
+                {
+                    // 拆包，多个包多次调用处理程序
+                    var msg = Packet.Parse(stream);
+                    while (msg != null)
+                    {
+                        OnReceive(msg);
 
-                //// 数据发回去
-                //if (e.Feedback) Serial.Write(buf, 0, buf.Length);
+                        msg = Packet.Parse(null);
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                if (!ex.IsDisposed()) Log.Error("{0}.OnReceive {1}", PortName, ex.Message);
+            }
+        }
+
+        /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
+        /// <param name="stream"></param>
+        internal virtual void OnReceive(Stream stream)
+        {
+            var buf = stream.ReadBytes();
+
+            // 同步匹配
+            PacketQueue?.Match(this, null, buf);
+
+            // 触发事件
+            Received?.Invoke(this, new ReceivedEventArgs(buf));
         }
 
         /// <summary>数据到达事件，事件里调用<see cref="Receive"/>读取数据</summary>
