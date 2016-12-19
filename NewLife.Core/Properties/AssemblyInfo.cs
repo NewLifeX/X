@@ -30,10 +30,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("6.1.*")]
-[assembly: AssemblyFileVersion("6.1.2016.1208")]
+[assembly: AssemblyVersion("6.2.*")]
+[assembly: AssemblyFileVersion("6.2.2016.1219")]
 
 /*
+ * v6.2.2016.1219   网络层增加数据包队列匹配功能，优先支持请求响应式协议
+ * 
  * v6.1.2016.1208   网络层直接支持粘包处理和超大包收发，粘包接口IPacket默认实现HeaderLengthPacket支持基于长度的粘包拆分
  * 
  * v6.0.2016.0706   合并XAgent和NewLife.IP到核心库
