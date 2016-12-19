@@ -20,6 +20,7 @@ namespace NewLife.Remoting
             ps.Add("tcp", typeof(ApiNetClient));
             ps.Add("udp", typeof(ApiNetClient));
             ps.Add("http", typeof(ApiHttpClient));
+            ps.Add("ws", typeof(ApiHttpClient));
         }
         #endregion
 
@@ -32,15 +33,27 @@ namespace NewLife.Remoting
         #endregion
 
         #region 构造
-        /// <summary>实例化应用接口客户端</summary>
-        public ApiClient() { }
+        ///// <summary>实例化应用接口客户端</summary>
+        //public ApiClient() { }
 
-        /// <summary>智力和应用接口客户端</summary>
+        /// <summary>实例化应用接口客户端</summary>
         /// <param name="uri"></param>
         public ApiClient(NetUri uri)
         {
             Type type = null;
             if (Providers.TryGetValue(uri.Protocol, out type))
+            {
+                var ac = type.CreateInstance() as IApiClient;
+                if (ac != null && ac.Init(uri)) Client = ac;
+            }
+        }
+
+        /// <summary>实例化应用接口客户端</summary>
+        /// <param name="uri"></param>
+        public ApiClient(Uri uri)
+        {
+            Type type = null;
+            if (Providers.TryGetValue("http", out type))
             {
                 var ac = type.CreateInstance() as IApiClient;
                 if (ac != null && ac.Init(uri)) Client = ac;
@@ -90,7 +103,19 @@ namespace NewLife.Remoting
 
             var rs = await Client.SendAsync(data);
 
-            return Encoder.Decode<TResult>(rs);
+            //return Encoder.Decode<TResult>(rs);
+
+            // 解包。指令格式应该属于Encoder解决
+            var dic = Encoder.Decode2(rs);
+            if (dic == null) return default(TResult);
+
+            // 是否成功
+            var success = dic["success"].ToBoolean();
+            var result = dic["result"];
+            if (!success) throw new Exception(result + "");
+
+            // 返回
+            return (TResult)result;
         }
         #endregion
 

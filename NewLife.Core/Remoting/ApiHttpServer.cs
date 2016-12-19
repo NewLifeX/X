@@ -9,6 +9,12 @@ namespace NewLife.Remoting
     class ApiHttpServer : DisposeBase, IApiServer
     {
         #region 属性
+        /// <summary>编码器</summary>
+        public IEncoder Encoder { get; set; }
+
+        /// <summary>处理器</summary>
+        public IApiHandler Handler { get; set; }
+
         /// <summary>监听器</summary>
         public HttpListener Listener { get; set; }
 

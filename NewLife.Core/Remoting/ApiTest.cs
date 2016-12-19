@@ -32,7 +32,7 @@ namespace NewLife.Remoting
             client.Login("admin", "password");
 
             var msg = "NewLifeX";
-            var rs = await client.Invoke<String>("Hello/SayHello", new { msg });
+            var rs = await client.Invoke<String>("Hello/Say", new { msg });
             Console.WriteLine(rs);
 
             Console.ReadKey();
@@ -45,7 +45,7 @@ namespace NewLife.Remoting
         {
             public IApiSession Session { get; set; }
 
-            public String SayHello(String msg)
+            public String Say(String msg)
             {
                 return "收到：" + msg;
             }

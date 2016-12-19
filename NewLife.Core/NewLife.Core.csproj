@@ -165,6 +165,7 @@
     <Compile Include="Reflection\ScriptEngine.cs" />
     <Compile Include="Remoting\IApi.cs" />
     <Compile Include="Remoting\IApiClient.cs" />
+    <Compile Include="Remoting\IApiHandler.cs" />
     <Compile Include="Remoting\IApiServer.cs" />
     <Compile Include="Remoting\IApiSession.cs" />
     <Compile Include="Remoting\ApiClient.cs" />

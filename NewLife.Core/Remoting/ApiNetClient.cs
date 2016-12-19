@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Net;
@@ -20,7 +17,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 方法
-        public Boolean Init(Object config)
+        public virtual Boolean Init(Object config)
         {
             var uri = config as NetUri;
             if (uri == null) return false;
@@ -35,10 +32,9 @@ namespace NewLife.Remoting
         {
             Client.Log = Log;
 #if DEBUG
-            Client.LogSend = true;
-            Client.LogReceive = true;
+            //Client.LogSend = true;
+            //Client.LogReceive = true;
 #endif
-            Client.Received += Client_Received;
             Client.Open();
         }
 
@@ -49,18 +45,7 @@ namespace NewLife.Remoting
 
         public Task<Byte[]> SendAsync(Byte[] data)
         {
-            Client.SendAsync(data);
-
-            _src = new TaskCompletionSource<Byte[]>();
-
-            return _src.Task;
-        }
-
-        TaskCompletionSource<Byte[]> _src;
-
-        private void Client_Received(Object sender, ReceivedEventArgs e)
-        {
-            if (_src != null) _src.SetResult(e.Data);
+            return Client.SendAsync(data);
         }
         #endregion
 

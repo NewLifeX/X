@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace NewLife.Remoting
 {
@@ -15,5 +17,7 @@ namespace NewLife.Remoting
         /// <param name="data"></param>
         /// <returns></returns>
         T Decode<T>(Byte[] data);
+
+        IDictionary<String, Object> Decode2(Byte[] data);
     }
 }

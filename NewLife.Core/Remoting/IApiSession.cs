@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace NewLife.Remoting
 {
-    interface IApiSession
+    /// <summary>Api会话</summary>
+    public interface IApiSession
     {
     }
 }

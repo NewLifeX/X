@@ -118,27 +118,27 @@ namespace Test
 
         static void Test4()
         {
-            //ApiTest.Main();
+            ApiTest.Main();
             //TestService.ServiceMain();
             //HeaderLengthPacket.Test();
             //var svr = new DNSServer();
             //svr.Start();
 
-            var uri = new Uri("http://yun.wslink.cn/Home/About");
-            var http = uri.CreateRemote();
-            http.Send("");
-            var html = http.ReceiveString();
-            Console.WriteLine(html.Length);
+            //var uri = new Uri("http://yun.wslink.cn/Home/About");
+            //var http = uri.CreateRemote();
+            //http.Send("");
+            //var html = http.ReceiveString();
+            //Console.WriteLine(html.Length);
 
-            var client = new WebClientX(true, true);
-            html = client.DownloadString("http://yun.wslink.cn/Home/About");
-            Console.WriteLine(html.Length);
+            //var client = new WebClientX(true, true);
+            //html = client.DownloadString("http://yun.wslink.cn/Home/About");
+            //Console.WriteLine(html.Length);
 
-            uri = new Uri("ws://yun.wslink.cn");
-            http = uri.CreateRemote();
-            http.Send("");
-            html = http.ReceiveString();
-            Console.WriteLine(html.Length);
+            //uri = new Uri("ws://yun.wslink.cn");
+            //http = uri.CreateRemote();
+            //http.Send("");
+            //html = http.ReceiveString();
+            //Console.WriteLine(html.Length);
         }
 
         class TestService : AgentServiceBase<TestService>

@@ -1,47 +1,48 @@
 ﻿using System;
-using System.Threading.Tasks;
-using NewLife.Log;
-using NewLife.Web;
+using NewLife.Net;
 
 namespace NewLife.Remoting
 {
-    class ApiHttpClient : IApiClient
+    class ApiHttpClient : ApiNetClient
     {
-        public WebClientX Client { get; set; }
+        //public WebClientX Client { get; set; }
 
-        public String Remote { get; set; }
+        //public String Remote { get; set; }
 
-        public Boolean Init(Object config)
+        public override Boolean Init(Object config)
         {
             var url = config as String;
             if (url.IsNullOrEmpty()) return false;
 
-            Client = new WebClientX();
+            if (config is NetUri)
+                Client = (config as NetUri).CreateRemote();
+            else if (config is Uri)
+                Client = (config as Uri).CreateRemote();
             Remote = url;
 
             return true;
         }
 
-        public void Open()
-        {
-        }
+        //public void Open()
+        //{
+        //}
 
-        public void Close()
-        {
-        }
+        //public void Close()
+        //{
+        //}
 
-        /// <summary>发送数据</summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public Task<Byte[]> SendAsync(Byte[] data)
-        {
-            return Client.UploadDataTaskAsync(Remote, data);
-        }
+        ///// <summary>发送数据</summary>
+        ///// <param name="data"></param>
+        ///// <returns></returns>
+        //public Task<Byte[]> SendAsync(Byte[] data)
+        //{
+        //    return Client.UploadDataTaskAsync(Remote, data);
+        //}
 
 
-        #region 日志
-        /// <summary>日志</summary>
-        public ILog Log { get; set; } = Logger.Null;
-        #endregion
+        //#region 日志
+        ///// <summary>日志</summary>
+        //public ILog Log { get; set; } = Logger.Null;
+        //#endregion
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NewLife.Net;
 
@@ -9,9 +7,15 @@ namespace NewLife.Remoting
 {
     class ApiNetServer : NetServer<ApiNetSession>, IApiServer
     {
+        /// <summary>编码器</summary>
+        public IEncoder Encoder { get; set; }
+
+        /// <summary>处理器</summary>
+        public IApiHandler Handler { get; set; }
+
         public ApiNetServer()
         {
-            Name = "ApiNet";
+            Name = "Api";
         }
 
         /// <summary>初始化</summary>
@@ -20,13 +24,73 @@ namespace NewLife.Remoting
         public Boolean Init(String config)
         {
             Local = new NetUri(config);
+#if DEBUG
+            //LogSend = true;
+            //LogReceive = true;
+#endif
 
             return true;
         }
     }
 
-    class ApiNetSession : NetSession, IApiSession
+    class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     {
+        protected override void OnReceive(ReceivedEventArgs e)
+        {
+            var enc = Host.Encoder;
+            var dic = enc.Decode2(e.Data);
 
+            Object act = null;
+            Object args = null;
+            if (dic.TryGetValue("action", out act))
+            {
+                dic.TryGetValue("args", out args);
+
+                OnInvoke(act + "", args as IDictionary<String, Object>);
+            }
+            else
+            {
+
+            }
+        }
+
+        /// <summary>处理远程调用</summary>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        protected virtual void OnInvoke(String action, IDictionary<String, Object> args)
+        {
+            var enc = Host.Encoder;
+            Object result = null;
+            var rs = false;
+            try
+            {
+                result = Host.Handler.Execute(this, action, args);
+
+                rs = true;
+            }
+            catch (Exception ex)
+            {
+                result = ex.Message;
+            }
+
+            var buf = enc.Encode(new { success = rs, result });
+
+            Session.Send(buf);
+        }
+
+        /// <summary>调用</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public async Task<TResult> Invoke<TResult>(String action, Object args = null)
+        {
+            var enc = Host.Encoder;
+            var data = enc.Encode(new { action, args });
+
+            var rs = await SendAsync(data);
+
+            return enc.Decode<TResult>(rs);
+        }
     }
 }

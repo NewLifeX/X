@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Log;
@@ -20,7 +21,8 @@ namespace NewLife.Remoting
             ps.Add(NetType.Tcp + "", typeof(ApiNetServer));
             ps.Add(NetType.Udp + "", typeof(ApiNetServer));
             ps.Add(NetType.Unknown + "", typeof(ApiNetServer));
-            ps.Add("http", typeof(ApiHttpServer));
+            ps.Add(NetType.Http + "", typeof(ApiHttpServer));
+            ps.Add("ws", typeof(ApiHttpServer));
         }
         #endregion
 
@@ -95,8 +97,11 @@ namespace NewLife.Remoting
             if (Active) return;
 
             Log.Info("启动{0}，共有服务器{1}个", this.GetType().Name, Servers.Count);
+            var handler = new ApiHandler { Server = this };
             foreach (var item in Servers)
             {
+                if (item.Handler == null) item.Handler = handler;
+                if (item.Encoder == null) item.Encoder = Encoder;
                 item.Log = Log;
                 item.Start();
             }
@@ -162,5 +167,26 @@ namespace NewLife.Remoting
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
         #endregion
+    }
+
+    class ApiHandler : IApiHandler
+    {
+        public ApiServer Server { get; set; }
+
+        /// <summary>执行</summary>
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public Object Execute(IApiSession session, String action, IDictionary<String, Object> args)
+        {
+            var mi = Server.FindService(action);
+            if (mi == null) throw new Exception("无法找到名为[{0}]的服务！".F(action));
+
+            var obj = mi.DeclaringType.CreateInstance() as IApi;
+            obj.Session = session;
+
+            return obj.InvokeWithParams(mi, args as IDictionary);
+        }
     }
 }
