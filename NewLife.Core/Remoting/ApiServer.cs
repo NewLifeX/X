@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Log;
@@ -68,27 +67,37 @@ namespace NewLife.Remoting
         #region 方法
         /// <summary>添加服务器</summary>
         /// <param name="uri"></param>
-        public void Add(NetUri uri)
+        public IApiServer Add(NetUri uri)
         {
             Type type = null;
             if (Providers.TryGetValue(uri.Protocol, out type))
             {
                 var svr = type.CreateInstance() as IApiServer;
-                if (svr.Init(uri.ToString())) Servers.Add(svr);
+                if (svr.Init(uri.ToString()))
+                {
+                    Servers.Add(svr);
+                    return svr;
+                }
             }
+            return null;
         }
 
         /// <summary>添加服务器</summary>
         /// <param name="config"></param>
-        public void Add(String config)
+        public IApiServer Add(String config)
         {
             var protocol = config.Substring(null, "://");
             Type type = null;
             if (Providers.TryGetValue(protocol, out type))
             {
                 var svr = type.CreateInstance() as IApiServer;
-                if (svr.Init(config)) Servers.Add(svr);
+                if (svr.Init(config))
+                {
+                    Servers.Add(svr);
+                    return svr;
+                }
             }
+            return null;
         }
 
         /// <summary>开始服务</summary>
@@ -132,31 +141,32 @@ namespace NewLife.Remoting
 
         #region 服务提供者管理
         /// <summary>可提供服务的方法</summary>
-        public IDictionary<String, MethodInfo> Services { get; } = new Dictionary<String, MethodInfo>();
+        public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>();
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
-        public void Register<TService>()
+        public void Register<TService>() where TService : class, new()
         {
             var type = typeof(TService);
-            var name = type.Name.TrimEnd("Controller");
+            //var name = type.Name.TrimEnd("Controller");
 
             foreach (var mi in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
                 if (mi.IsSpecialName) continue;
                 if (mi.DeclaringType == typeof(Object)) continue;
 
-                var miName = mi.Name;
-                Services["{0}/{1}".F(name, miName)] = mi;
+                var act = new ApiAction(mi);
+
+                Services[act.Name] = act;
             }
         }
 
         /// <summary>查找服务</summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public MethodInfo FindService(String action)
+        public ApiAction FindAction(String action)
         {
-            MethodInfo mi = null;
+            ApiAction mi = null;
             if (Services.TryGetValue(action, out mi)) return mi;
 
             return null;
@@ -167,26 +177,5 @@ namespace NewLife.Remoting
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
         #endregion
-    }
-
-    class ApiHandler : IApiHandler
-    {
-        public ApiServer Server { get; set; }
-
-        /// <summary>执行</summary>
-        /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public Object Execute(IApiSession session, String action, IDictionary<String, Object> args)
-        {
-            var mi = Server.FindService(action);
-            if (mi == null) throw new Exception("无法找到名为[{0}]的服务！".F(action));
-
-            var obj = mi.DeclaringType.CreateInstance() as IApi;
-            obj.Session = session;
-
-            return obj.InvokeWithParams(mi, args as IDictionary);
-        }
     }
 }
