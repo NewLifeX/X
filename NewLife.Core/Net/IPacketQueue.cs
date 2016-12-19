@@ -78,7 +78,7 @@ namespace NewLife.Net
             // 加锁复制以后再遍历，避免线程冲突
             foreach (var qi in qs.ToArray())
             {
-                if (qi.Owner == owner && (qi.Remote == null || remote == null || qi.Remote == remote) && IsMatch(owner, remote, qi.Request, response))
+                if (qi.Owner == owner && (qi.Remote == null || remote == null || qi.Remote + "" == remote + "") && IsMatch(owner, remote, qi.Request, response))
                 {
                     lock (qs)
                     {

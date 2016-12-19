@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -109,6 +110,14 @@ namespace NewLife.Net
             Session.Send(msg, encoding);
 
             return this;
+        }
+
+        /// <summary>异步发送并等待响应</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
+        {
+            return await Session.SendAsync(buffer);
         }
         #endregion
 

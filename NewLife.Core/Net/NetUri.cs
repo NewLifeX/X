@@ -59,7 +59,7 @@ namespace NewLife.Net
                             _Type = NetType.WebSocket;
                         else
                         {
-                            _Type = (NetType)Enum.Parse(typeof(ProtocolType), value, true);
+                            _Type = (NetType)(Int32)Enum.Parse(typeof(ProtocolType), value, true);
                             // 规范化名字
                             _Protocol = _Type.ToString();
                         }
@@ -267,14 +267,6 @@ namespace NewLife.Net
         public static implicit operator NetUri(String value)
         {
             return new NetUri(value);
-        }
-
-        /// <summary>是否相等的地址</summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        public Boolean Equals(NetUri uri)
-        {
-            return Type == uri.Type && Port == uri.Port && Address == uri.Address;
         }
         #endregion
     }
