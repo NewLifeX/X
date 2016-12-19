@@ -51,8 +51,8 @@ namespace NewLife.Net.UPnP
                     //_Udp.Name = "UPnPClient";
                     //_Udp.ProtocolType = ProtocolType.Udp;
                     _Udp.Received += Udp_Received;
-                    //_Udp.Start();
-                    _Udp.ReceiveAsync();
+                    _Udp.Open();
+                    //_Udp.ReceiveAsync();
                 }
                 return _Udp;
             }

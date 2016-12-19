@@ -93,7 +93,7 @@ namespace NewLife.Net.SGIP
 
             //登录完成，开始读取指令
             client.Received += Client_Received;
-            client.ReceiveAsync();
+            client.Open();
 
             Logined = true;
 

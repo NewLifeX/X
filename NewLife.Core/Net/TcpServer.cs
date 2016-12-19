@@ -34,9 +34,9 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        /// <summary>自动开始会话的异步接收，默认true。</summary>
-        /// <remarks>接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</remarks>
-        public Boolean AutoReceiveAsync { get; set; }
+        ///// <summary>自动开始会话的异步接收，默认true。</summary>
+        ///// <remarks>接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</remarks>
+        //public Boolean AutoReceiveAsync { get; set; }
 
         /// <summary>异步处理接收到的数据，默认false。</summary>
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
@@ -78,7 +78,7 @@ namespace NewLife.Net
 
             Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
             SessionTimeout = 30;
-            AutoReceiveAsync = true;
+            //AutoReceiveAsync = true;
             ProcessAsync = true;
 
             MaxAsync = Environment.ProcessorCount * 16 / 10;
@@ -266,10 +266,10 @@ namespace NewLife.Net
 
                 if (StatSession != null) StatSession.Increment(1);
 
-                if (NewSession != null) NewSession(this, new SessionEventArgs { Session = session });
+                NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 
-                // 自动开始异步接收处理
-                if (AutoReceiveAsync) session.ReceiveAsync();
+                //// 自动开始异步接收处理
+                //if (AutoReceiveAsync) session.ReceiveAsync();
             }
         }
         #endregion

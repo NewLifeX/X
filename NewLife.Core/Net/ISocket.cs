@@ -97,13 +97,9 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
-        /// <summary>接收数据</summary>
+        /// <summary>接收数据。阻塞当前线程等待返回</summary>
         /// <returns></returns>
         Byte[] Receive();
-
-        /// <summary>开始异步接收数据</summary>
-        /// <returns>是否成功</returns>
-        Boolean ReceiveAsync();
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;

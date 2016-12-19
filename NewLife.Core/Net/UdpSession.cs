@@ -105,7 +105,8 @@ namespace NewLife.Net
 
         public void Start()
         {
-            Server.ReceiveAsync();
+            //Server.ReceiveAsync();
+            Server.Open();
 
             WriteLog("New {0}", Remote.EndPoint);
         }
@@ -197,32 +198,13 @@ namespace NewLife.Net
 
         private TaskCompletionSource<ReceivedEventArgs> _recv;
 
-        /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        Int32 ITransport.Receive(Byte[] buffer, Int32 offset, Int32 count)
-        {
-            if (count < 0) count = buffer.Length - offset;
+        ///// <summary>开始异步接收数据</summary>
+        //public Boolean ReceiveAsync()
+        //{
+        //    if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            var buf = Receive();
-            if (buffer == null || buffer.Length == 0) return 0;
-
-            if (buf.Length < count) count = buf.Length;
-
-            Buffer.BlockCopy(buf, 0, buffer, offset, count);
-
-            return count;
-        }
-
-        /// <summary>开始异步接收数据</summary>
-        public Boolean ReceiveAsync()
-        {
-            if (Disposed) throw new ObjectDisposedException(GetType().Name);
-
-            return Server.ReceiveAsync();
-        }
+        //    return Server.ReceiveAsync();
+        //}
 
         public event EventHandler<ReceivedEventArgs> Received;
 

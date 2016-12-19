@@ -115,12 +115,12 @@ namespace NewLife.Net.Proxy
                     session.Log = Session.Log;
                     session.OnDisposed += (s, e2) =>
                     {
-                    // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定
-                    RemoteServer = null;
+                        // 这个是必须清空的，是否需要保持会话呢，由OnRemoteDispose决定
+                        RemoteServer = null;
                         OnRemoteDispose(s as ISocketClient);
                     };
                     session.Received += Remote_Received;
-                    session.ReceiveAsync();
+                    session.Open();
 
                     WriteDebugLog("连接远程服务器成功");
 

@@ -73,7 +73,7 @@ namespace NewLife.Net.P2P
                     //server.ReuseAddress = true;
                     server.Received += server_Received;
                     //server.Bind();
-                    server.ReceiveAsync();
+                    server.Open();
                 }
 
                 Server.Start();
@@ -172,7 +172,7 @@ namespace NewLife.Net.P2P
                 //var session = client.CreateSession();
                 var session = client as ISocketSession;
                 session.Received += client_Received;
-                client.ReceiveAsync();
+                client.Open();
             }
         }
 
@@ -208,7 +208,7 @@ namespace NewLife.Net.P2P
             {
                 //client.Connect(ep);
                 client.Received += client_Received2;
-                client.ReceiveAsync();
+                client.Open();
 
                 Client.Send("Hello!");
             }

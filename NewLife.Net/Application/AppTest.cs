@@ -72,7 +72,7 @@ namespace NewLife.Net.Application
             {
                 _are.Reset();
                 client.Received += OnReceived;
-                client.ReceiveAsync();
+                client.Open();
             }
             if (isSendData) client.Send(msg);
 

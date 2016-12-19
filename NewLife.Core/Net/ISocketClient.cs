@@ -33,11 +33,11 @@ namespace NewLife.Net
         event EventHandler Closed;
         #endregion
 
-        #region 异步接收
-        /// <summary>是否异步接收数据</summary>
-        [Obsolete("默认异步，不再支持设置")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        Boolean UseReceiveAsync { get; }
-        #endregion
+        //#region 异步接收
+        ///// <summary>是否异步接收数据</summary>
+        //[Obsolete("默认异步，不再支持设置")]
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //Boolean UseReceiveAsync { get; }
+        //#endregion
     }
 }
