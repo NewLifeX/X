@@ -292,7 +292,7 @@ namespace NewLife.Windows
 
             pt.Disconnected += Port_Disconnected;
             pt.Received += OnReceived;
-            pt.ReceiveAsync();
+            pt.Open();
 
             //pt.EnsureCreate();
 

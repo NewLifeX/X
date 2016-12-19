@@ -93,7 +93,7 @@ namespace NewLife.Net.Modbus
 #else
             transport.Received += (ts, data) => { return Process(data); };
 #endif
-            transport.ReceiveAsync();
+            transport.Open();
 
             WriteLine(GetType().Name + "在" + name + "上监听Host=" + Host);
 

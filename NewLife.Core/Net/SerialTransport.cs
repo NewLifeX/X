@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Win32;
 using NewLife.Log;
 using NewLife.Threading;
-using NewLife;
-using System.Threading.Tasks;
 
 namespace NewLife.Net
 {
@@ -26,7 +25,7 @@ namespace NewLife.Net
     ///     return null;
     /// };
     /// // 开始异步操作
-    /// st.ReceiveAsync();
+    /// st.Open();
     /// 
     /// //var buf = "01080000801A".ToHex();
     /// var buf = "0111C02C".ToHex();
@@ -94,6 +93,9 @@ namespace NewLife.Net
                 return _Description;
             }
         }
+
+        /// <summary>数据包请求配对队列</summary>
+        public IPacketQueue PacketQueue { get; set; }
         #endregion
 
         #region 构造
@@ -153,11 +155,8 @@ namespace NewLife.Net
             if (sp != null)
             {
                 Serial = null;
-                if (sp.IsOpen)
-                {
-                    if (Received != null) sp.DataReceived -= DataReceived;
-                    sp.Close();
-                }
+                if (Received != null) sp.DataReceived -= DataReceived;
+                if (sp.IsOpen) sp.Close();
 
                 OnDisconnect();
             }
@@ -200,64 +199,19 @@ namespace NewLife.Net
             // 发送数据
             Serial.Write(buffer, 0, buffer.Length);
 
-            var tsc = new TaskCompletionSource<Byte[]>();
-
-            // 另外一个线程去同步接收数据
-            ThreadPool.QueueUserWorkItem(s =>
-            {
-                var buf = new Byte[1024];
-                try
-                {
-                    var count = Receive(buf, 0, buf.Length);
-                    tsc.SetResult(buf.ReadBytes(count));
-                }
-                catch (Exception ex)
-                {
-                    tsc.SetException(ex);
-                }
-            });
-
-            return await tsc.Task;
+            return await PacketQueue.Add(this, null, buffer, Timeout);
         }
 
-        /// <summary>从串口中读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
+        /// <summary>接收数据</summary>
         /// <returns></returns>
-        public virtual Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public virtual Byte[] Receive()
         {
-            if (!Open()) return 0;
+            if (!Open()) return null;
 
-            if (count < 0) count = buffer.Length - offset;
+            var task = SendAsync(null);
+            if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
-            // 读取数据
-            var bufstart = offset;
-            var bufend = offset + count;
-            var sp = Serial;
-            lock (sp)
-            {
-                WaitMore();
-
-                try
-                {
-                    var size = sp.BytesToRead;
-                    // 计算还有多少可用空间
-                    if (offset + size > bufend) size = bufend - offset;
-                    var data = new Byte[size];
-                    size = sp.Read(data, 0, data.Length);
-                    if (size > 0)
-                    {
-                        buffer.Write(offset, data, 0, size);
-                        offset += size;
-                    }
-                }
-                catch { }
-            }
-
-            //WriteLog("Read:{0} Expected/True={1}/{2}", buffer.ToHex(bufstart, offset - bufstart), FrameSize, offset - bufstart);
-
-            return offset - bufstart;
+            return task.Result;
         }
 
         void WaitMore()
@@ -286,22 +240,6 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
-        /// <summary>开始监听</summary>
-        public virtual Boolean ReceiveAsync()
-        {
-            if (!Open()) return false;
-
-            //Serial.DataReceived += DataReceived;
-            //Serial.ErrorReceived += Serial_ErrorReceived;
-
-            return true;
-        }
-
-        //void Serial_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
-        //{
-        //    XTrace.WriteLine("串口{0}错误 {1}", PortName, e.EventType);
-        //}
-
         void DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             // 发送者必须保持一定间隔，每个报文不能太大，否则会因为粘包拆包而出错
@@ -526,7 +464,7 @@ namespace NewLife.Net
 
         #region 日志
         /// <summary>日志对象</summary>
-        public ILog Log { get; set; }
+        public ILog Log { get; set; } = Logger.Null;
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>

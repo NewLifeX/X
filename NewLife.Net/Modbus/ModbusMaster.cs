@@ -16,6 +16,7 @@
 
 using System;
 using System.Threading;
+using NewLife.Log;
 
 namespace NewLife.Net.Modbus
 {
@@ -31,50 +32,34 @@ namespace NewLife.Net.Modbus
     /// Assert.IsNotNull(ids, "标识不能为空");
     /// </code>
     /// </example>
-    public class ModbusMaster : IDisposable
+    public class ModbusMaster : DisposeBase
     {
         #region 属性
-        private ITransport _Transport;
         /// <summary>传输接口</summary>
-        public ITransport Transport { get { return _Transport; } set { _Transport = value; } }
+        public ITransport Transport { get; set; }
 
-        private Byte _Host = 1;
         /// <summary>主机地址。用于485编码</summary>
-        public Byte Host { get { return _Host; } set { _Host = value; } }
+        public Byte Host { get; set; } = 1;
 
-        private Boolean _EnableDebug;
         /// <summary>启用调试</summary>
-        public Boolean EnableDebug { get { return _EnableDebug; } set { _EnableDebug = value; } }
+        public Boolean Debug { get; set; }
 
-        private Int32 _Delay;
         /// <summary>发送数据后接收数据前的延迟时间，默认0毫秒</summary>
-        public Int32 Delay { get { return _Delay; } set { _Delay = value; } }
+        public Int32 Delay { get; set; }
         #endregion
 
         #region 构造
-        /// <summary>析构</summary>
-        ~ModbusMaster() { Dispose(false); }
-
-        /// <summary>销毁</summary>
-        public void Dispose() { Dispose(true); }
-
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected virtual void Dispose(Boolean disposing)
+        protected override void OnDispose(Boolean disposing)
         {
-            if (disposing) GC.SuppressFinalize(this);
+            base.OnDispose(disposing);
 
             if (Transport != null) Transport.Dispose();
         }
         #endregion
 
         #region 方法
-#if MF
-        Byte[] buf_receive = new Byte[256];
-#else
-        Byte[] buf_receive = new Byte[1024];
-#endif
-
         /// <summary>处理指令</summary>
         /// <param name="entity">指令实体</param>
         /// <param name="expect">预期返回数据长度</param>
@@ -88,17 +73,7 @@ namespace NewLife.Net.Modbus
             // 发送
             var buf = entity.ToArray();
 
-#if MF && DEBUG
-            var str = "Request :";
-            for (int i = 0; i < buf.Length; i++)
-            {
-                str += " " + buf[i].ToString("X2");
-            }
-            WriteLine(str);
-#endif
-#if !MF
-            if (EnableDebug) WriteLine(entity.Function + " :" + buf.ToHex());
-#endif
+            if (Debug) WriteLine(entity.Function + " :" + buf.ToHex());
 
             // Modbus加锁，防止冲突
             lock (this)
@@ -114,25 +89,15 @@ namespace NewLife.Net.Modbus
                 if (Delay > 0) Thread.Sleep(Delay);
 
                 // 读取
-                var count = Transport.Receive(buf_receive);
-                if (count <= 0) return null;
+                var dat = Transport.Receive();
+                if (dat == null || dat.Length == 0) return null;
 
-#if MF && DEBUG
-            str = "Response:";
-            for (int i = 0; i < count; i++)
-            {
-                str += " " + buf_receive[i].ToString("X2");
-            }
-            WriteLine(str);
-            WriteLine("");
-#endif
-#if !MF
-                if (EnableDebug) WriteLine(new String(' ', entity.Function.ToString().Length) + "=>" + buf_receive.ToHex(0, count));
-#endif
+                if (Debug) WriteLine(new String(' ', entity.Function.ToString().Length) + "=>" + dat.ToHex());
 
-                var rs = new ModbusEntity().Parse(buf_receive, 0, count);
+                var rs = new ModbusEntity().Parse(dat, 0, dat.Length);
                 if (rs == null) return null;
                 if (rs.IsException) throw new ModbusException(rs.Data != null && rs.Data.Length > 0 ? (Errors)rs.Data[0] : (Errors)0);
+
                 return rs;
             }
         }
@@ -448,11 +413,7 @@ namespace NewLife.Net.Modbus
         #region 日志
         void WriteLine(String msg)
         {
-#if MF
-            if (EnableDebug) Microsoft.SPOT.Debug.Print(msg);
-#else
-            if (EnableDebug) NewLife.Log.XTrace.WriteLine(msg);
-#endif
+            if (Debug) XTrace.WriteLine(msg);
         }
         #endregion
     }

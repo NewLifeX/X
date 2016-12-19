@@ -369,36 +369,12 @@ namespace NewLife.Net
         /// <returns></returns>
         public abstract Byte[] Receive();
 
-        /// <summary>读取指定长度的数据，一般是一帧</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        Int32 ITransport.Receive(Byte[] buffer, Int32 offset, Int32 count)
-        {
-            if (count < 0) count = buffer.Length - offset;
-
-            var buf = Receive();
-            if (buffer == null || buffer.Length == 0) return 0;
-
-            if (buf.Length < count) count = buf.Length;
-
-            Buffer.BlockCopy(buf, 0, buffer, offset, count);
-
-            return count;
-        }
-
-        /// <summary>是否异步接收数据</summary>
-        [Obsolete("默认异步，不再支持设置")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Boolean UseReceiveAsync { get; set; }
-
         /// <summary>当前异步接收个数</summary>
         private Int32 _RecvCount;
 
         /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
-        public virtual Boolean ReceiveAsync()
+        protected virtual Boolean ReceiveAsync()
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 

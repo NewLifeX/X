@@ -27,15 +27,16 @@ namespace NewLife.Net
         /// <returns></returns>
         Task<Byte[]> SendAsync(Byte[] buffer);
 
-        /// <summary>读取指定长度的数据</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        ///// <summary>读取指定长度的数据</summary>
+        ///// <param name="buffer">缓冲区</param>
+        ///// <param name="offset">偏移</param>
+        ///// <param name="count">数量</param>
+        ///// <returns></returns>
+        //Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
 
-        /// <summary>开始异步接收，数据将在<see cref="Received"/>中返回</summary>
-        Boolean ReceiveAsync();
+        /// <summary>读取数据</summary>
+        /// <returns></returns>
+        Byte[] Receive();
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
