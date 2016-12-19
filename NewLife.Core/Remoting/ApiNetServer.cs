@@ -38,19 +38,12 @@ namespace NewLife.Remoting
         protected override void OnReceive(ReceivedEventArgs e)
         {
             var enc = Host.Encoder;
-            var dic = enc.Decode2(e.Data);
 
-            Object act = null;
-            Object args = null;
-            if (dic.TryGetValue("action", out act))
+            var act = "";
+            IDictionary<String, Object> args = null;
+            if (enc.Decode(e.Data, out act, out args))
             {
-                dic.TryGetValue("args", out args);
-
-                OnInvoke(act + "", args as IDictionary<String, Object>);
-            }
-            else
-            {
-
+                OnInvoke(act, args);
             }
         }
 
@@ -73,7 +66,7 @@ namespace NewLife.Remoting
                 result = ex.Message;
             }
 
-            var buf = enc.Encode(new { success = rs, result });
+            var buf = enc.Encode(rs, result);
 
             Session.Send(buf);
         }
@@ -86,7 +79,7 @@ namespace NewLife.Remoting
         public async Task<TResult> Invoke<TResult>(String action, Object args = null)
         {
             var enc = Host.Encoder;
-            var data = enc.Encode(new { action, args });
+            var data = enc.Encode(action, args);
 
             var rs = await SendAsync(data);
 

@@ -11,17 +11,13 @@ namespace NewLife.Remoting
         /// <summary>编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        public T Decode<T>(Byte[] data)
+        /// <summary>把对象转换为字节数组</summary>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public Byte[] Encode(String action, Object args)
         {
-            var json = data.ToStr(Encoding);
-
-            XTrace.WriteLine("<={0}", json);
-
-            return json.ToJsonEntity<T>();
-        }
-
-        public Byte[] Encode(Object obj)
-        {
+            var obj = new { action, args };
             var json = obj.ToJson();
 
             XTrace.WriteLine("=>{0}", json);
@@ -29,10 +25,56 @@ namespace NewLife.Remoting
             return json.GetBytes(Encoding);
         }
 
-        public IDictionary<String, Object> Decode2(Byte[] data)
+        /// <summary>把对象转换为字节数组</summary>
+        /// <param name="success"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public Byte[] Encode(Boolean success, Object result)
         {
+            var obj = new { success, result };
+            var json = obj.ToJson();
+
+            XTrace.WriteLine("=>{0}", json);
+
+            return json.GetBytes(Encoding);
+        }
+
+        public T Decode<T>(Byte[] data)
+        {
+            var json = data.ToStr(Encoding);
+
+            XTrace.WriteLine("<={0}", json);
+
+            //return json.ToJsonEntity<T>();
+
             var jp = new JsonParser(data.ToStr(Encoding));
-            return jp.Decode() as IDictionary<String, Object>;
+            var dic = jp.Decode() as IDictionary<String, Object>;
+            if (dic == null) return default(T);
+
+            // 是否成功
+            var success = dic["success"].ToBoolean();
+            var result = dic["result"];
+            if (!success) throw new Exception(result + "");
+
+            // 返回
+            var reader = new JsonReader();
+
+            return (T)reader.ToObject(result, typeof(T));
+        }
+
+        public Boolean Decode(Byte[] data, out String action, out IDictionary<String, Object> args)
+        {
+            action = null;
+            args = null;
+
+            var jp = new JsonParser(data.ToStr(Encoding));
+            var dic = jp.Decode() as IDictionary<String, Object>;
+            if (dic == null) return false;
+
+            action = dic["action"] + "";
+            args = dic["args"] as IDictionary<String, Object>;
+
+            return true;
         }
     }
 }

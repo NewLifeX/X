@@ -16,7 +16,7 @@ namespace NewLife.Remoting
         {
             var svr = new ApiServer(3344);
             svr.Add("http://*:888/");
-            svr.Log = XTrace.Log;
+            //svr.Log = XTrace.Log;
             svr.Register<HelloController>();
             svr.Encoder = new JsonEncoder();
             //svr.Encoder = new ProtocolBuffer();
@@ -24,7 +24,7 @@ namespace NewLife.Remoting
 
 
             var client = new ApiClient("udp://127.0.0.1:3344");
-            client.Log = XTrace.Log;
+            //client.Log = XTrace.Log;
             client.Encoder = new JsonEncoder();
             //client.Encoder = new ProtocolBuffer();
             //client.Compress = new SevenZip();

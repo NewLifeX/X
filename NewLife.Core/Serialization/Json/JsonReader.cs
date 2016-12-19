@@ -32,32 +32,37 @@ namespace NewLife.Serialization
 
         public Object ToObject(String json, Type type)
         {
-            Type typeDef = null;
-            if (type != null && type.IsGenericType) typeDef = type.GetGenericTypeDefinition();
-
             var obj = new JsonParser(json).Decode();
             if (obj == null) return null;
 
-            if (obj is IDictionary)
+            return ToObject(obj, type);
+        }
+
+        public Object ToObject(Object jobj, Type type)
+        {
+            Type typeDef = null;
+            if (type != null && type.IsGenericType) typeDef = type.GetGenericTypeDefinition();
+
+            if (jobj is IDictionary)
             {
                 if (type != null && typeDef == typeof(IDictionary<,>)) // 字典
-                    return RootDictionary(obj, type);
+                    return RootDictionary(jobj, type);
                 else
-                    return Parse(obj as IDictionary<String, Object>, type, null);
+                    return Parse(jobj as IDictionary<String, Object>, type, null);
             }
-            else if (obj is IList<Object>)
+            else if (jobj is IList<Object>)
             {
                 if (type != null && typeDef == typeof(IDictionary<,>)) // 名值格式
-                    return RootDictionary(obj, type);
+                    return RootDictionary(jobj, type);
                 else if (type != null && typeDef == typeof(IList<>)) // 泛型列表
-                    return RootList(obj, type);
+                    return RootList(jobj, type);
                 else
-                    return (obj as IList<Object>).ToArray();
+                    return (jobj as IList<Object>).ToArray();
             }
-            else if (type != null && obj.GetType() != type)
-                return ChangeType(obj, type);
+            else if (type != null && jobj.GetType() != type)
+                return ChangeType(jobj, type);
 
-            return obj;
+            return jobj;
         }
         #endregion
 

@@ -99,23 +99,23 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> Invoke<TResult>(String action, Object args = null)
         {
-            var data = Encoder.Encode(new { action, args });
+            var data = Encoder.Encode(action, args);
 
             var rs = await Client.SendAsync(data);
 
-            //return Encoder.Decode<TResult>(rs);
+            return Encoder.Decode<TResult>(rs);
 
-            // 解包。指令格式应该属于Encoder解决
-            var dic = Encoder.Decode2(rs);
-            if (dic == null) return default(TResult);
+            //// 解包。指令格式应该属于Encoder解决
+            //var dic = Encoder.Decode2(rs);
+            //if (dic == null) return default(TResult);
 
-            // 是否成功
-            var success = dic["success"].ToBoolean();
-            var result = dic["result"];
-            if (!success) throw new Exception(result + "");
+            //// 是否成功
+            //var success = dic["success"].ToBoolean();
+            //var result = dic["result"];
+            //if (!success) throw new Exception(result + "");
 
-            // 返回
-            return (TResult)result;
+            //// 返回
+            //return (TResult)result;
         }
         #endregion
 

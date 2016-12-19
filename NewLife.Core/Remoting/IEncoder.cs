@@ -7,17 +7,29 @@ namespace NewLife.Remoting
     /// <summary>编码器</summary>
     public interface IEncoder
     {
-        /// <summary>把对象转换为字节数组</summary>
-        /// <param name="obj"></param>
+        /// <summary>编码请求</summary>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
-        Byte[] Encode(Object obj);
+        Byte[] Encode(String action, Object args);
 
-        /// <summary>把字节数组转换为对象</summary>
+        /// <summary>编码响应</summary>
+        /// <param name="success"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        Byte[] Encode(Boolean success, Object result);
+
+        /// <summary>解码响应</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
         T Decode<T>(Byte[] data);
 
-        IDictionary<String, Object> Decode2(Byte[] data);
+        /// <summary>解码请求</summary>
+        /// <param name="data"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        Boolean Decode(Byte[] data, out String action, out IDictionary<String, Object> args);
     }
 }
