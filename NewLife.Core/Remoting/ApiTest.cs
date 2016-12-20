@@ -62,9 +62,13 @@ namespace NewLife.Remoting
             [FE(Name = "方法")]
             public string Say(string msg)
             {
-                if (msg == "报错") throw new Exception("出错");
+                if (msg == "报错") throw new Exception("出错，上一次 " + Session["Last"]);
 
-                return "收到：" + msg;
+                Session["Last"] = msg;
+
+                var ss = Session.AllSessions;
+
+                return "收到：{0} 在线：{1}".F(msg, ss.Length);
             }
         }
 

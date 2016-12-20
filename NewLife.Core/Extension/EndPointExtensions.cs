@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 
 
 namespace System
 {
+    /// <summary>网络结点扩展</summary>
     public static class EndPointExtensions
     {
-		/// <summary>
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="endpoint"></param>
@@ -16,7 +16,8 @@ namespace System
         {
             return ((IPEndPoint)endpoint).ToAddress();
         }
-		/// <summary>
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="endpoint"></param>
@@ -25,7 +26,8 @@ namespace System
         {
             return string.Format("{0}:{1}", endpoint.Address, endpoint.Port);
         }
-		/// <summary>
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="address"></param>
@@ -41,7 +43,8 @@ namespace System
             var port = int.Parse(array[1]);
             return new IPEndPoint(ip, port);
         }
-		/// <summary>
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="addresses"></param>

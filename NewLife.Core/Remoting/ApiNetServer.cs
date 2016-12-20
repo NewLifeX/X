@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NewLife.Net;
 
@@ -35,6 +36,15 @@ namespace NewLife.Remoting
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     {
+        /// <summary>正在连接的所有会话，包含自己</summary>
+        public virtual IApiSession[] AllSessions { get { return Host.Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray(); } }
+
+        private Dictionary<String, Object> _items = new Dictionary<string, object>();
+        /// <summary>获取/设置 用户会话数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual Object this[String key] { get { return _items.ContainsKey(key) ? _items[key] : null; } set { _items[key] = value; } }
+
         protected override void OnReceive(ReceivedEventArgs e)
         {
             var enc = Host.Encoder;

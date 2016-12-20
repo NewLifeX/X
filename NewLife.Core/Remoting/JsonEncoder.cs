@@ -46,6 +46,10 @@ namespace NewLife.Remoting
             return json.GetBytes(Encoding);
         }
 
+        /// <summary>解码响应</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public T Decode<T>(byte[] data)
         {
             var json = data.ToStr(Encoding);
@@ -69,6 +73,11 @@ namespace NewLife.Remoting
             return (T)reader.ToObject(result, typeof(T));
         }
 
+        /// <summary>解码请求</summary>
+        /// <param name="data"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public bool Decode(byte[] data, out string action, out IDictionary<string, object> args)
         {
             action = null;
