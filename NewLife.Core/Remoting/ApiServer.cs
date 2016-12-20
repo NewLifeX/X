@@ -12,7 +12,7 @@ namespace NewLife.Remoting
     {
         #region 静态
         /// <summary>协议到提供者类的映射</summary>
-        public static IDictionary<String, Type> Providers { get; } = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+        public static IDictionary<string, Type> Providers { get; } = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
 
         static ApiServer()
         {
@@ -27,7 +27,7 @@ namespace NewLife.Remoting
 
         #region 属性
         /// <summary>是否正在工作</summary>
-        public Boolean Active { get; private set; }
+        public bool Active { get; private set; }
 
         /// <summary>服务器集合</summary>
         public IList<IApiServer> Servers { get; } = new List<IApiServer>();
@@ -42,7 +42,7 @@ namespace NewLife.Remoting
 
         /// <summary>使用指定端口实例化网络服务应用接口提供者</summary>
         /// <param name="port"></param>
-        public ApiServer(Int32 port)
+        public ApiServer(int port)
         {
             Add(new NetUri(NetType.Unknown, "", port));
         }
@@ -56,7 +56,7 @@ namespace NewLife.Remoting
 
         /// <summary>销毁时停止服务</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
 
@@ -69,35 +69,25 @@ namespace NewLife.Remoting
         /// <param name="uri"></param>
         public IApiServer Add(NetUri uri)
         {
-            Type type = null;
-            if (Providers.TryGetValue(uri.Protocol, out type))
-            {
-                var svr = type.CreateInstance() as IApiServer;
-                if (svr.Init(uri.ToString()))
-                {
-                    Servers.Add(svr);
-                    return svr;
-                }
-            }
-            return null;
+            Type type;
+            if (!Providers.TryGetValue(uri.Protocol, out type)) return null;
+            var svr = type.CreateInstance() as IApiServer;
+            if (svr != null && !svr.Init(uri.ToString())) return null;
+            Servers.Add(svr);
+            return svr;
         }
 
         /// <summary>添加服务器</summary>
         /// <param name="config"></param>
-        public IApiServer Add(String config)
+        public IApiServer Add(string config)
         {
             var protocol = config.Substring(null, "://");
-            Type type = null;
-            if (Providers.TryGetValue(protocol, out type))
-            {
-                var svr = type.CreateInstance() as IApiServer;
-                if (svr.Init(config))
-                {
-                    Servers.Add(svr);
-                    return svr;
-                }
-            }
-            return null;
+            Type type;
+            if (!Providers.TryGetValue(protocol, out type)) return null;
+            var svr = type.CreateInstance() as IApiServer;
+            if (svr != null && !svr.Init(config)) return null;
+            Servers.Add(svr);
+            return svr;
         }
 
         /// <summary>开始服务</summary>
@@ -141,7 +131,7 @@ namespace NewLife.Remoting
 
         #region 服务提供者管理
         /// <summary>可提供服务的方法</summary>
-        public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>();
+        public IDictionary<string, ApiAction> Services { get; } = new Dictionary<string, ApiAction>();
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
@@ -153,7 +143,7 @@ namespace NewLife.Remoting
             foreach (var mi in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
                 if (mi.IsSpecialName) continue;
-                if (mi.DeclaringType == typeof(Object)) continue;
+                if (mi.DeclaringType == typeof(object)) continue;
 
                 var act = new ApiAction(mi);
 
@@ -164,12 +154,10 @@ namespace NewLife.Remoting
         /// <summary>查找服务</summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public ApiAction FindAction(String action)
+        public ApiAction FindAction(string action)
         {
-            ApiAction mi = null;
-            if (Services.TryGetValue(action, out mi)) return mi;
-
-            return null;
+            ApiAction mi;
+            return Services.TryGetValue(action, out mi) ? mi : null;
         }
         #endregion
 
