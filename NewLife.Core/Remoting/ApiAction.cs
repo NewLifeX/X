@@ -76,7 +76,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public override String ToString()
         {
-            return "{0}\t{1}".F(Name, Method);
+            return "{0}\t{1}".F(Method.GetDisplayName() ?? Name, Method);
         }
     }
 }

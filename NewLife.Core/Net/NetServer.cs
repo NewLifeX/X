@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -264,7 +265,8 @@ namespace NewLife.Net
         /// <summary>开始服务</summary>
         public void Start()
         {
-            if (Active) throw new InvalidOperationException("服务已经开始！");
+            //if (Active) throw new InvalidOperationException("服务已经开始！");
+            if (Active) return;
 
             OnStart();
 
@@ -310,11 +312,15 @@ namespace NewLife.Net
         /// <summary>停止服务</summary>
         public void Stop()
         {
-            if (!Active) throw new InvalidOperationException("服务没有开始！");
+            //if (!Active) throw new InvalidOperationException("服务没有开始！");
+            //if (!Active) return;
 
-            WriteLog("准备停止监听{0}个服务器", Servers.Count);
+            var ss = Servers.Where(e => !e.Active).ToArray();
+            if (ss == null || ss.Length == 0) return;
 
-            foreach (var item in Servers)
+            WriteLog("准备停止监听{0}个服务器", ss.Length);
+
+            foreach (var item in ss)
             {
                 WriteLog("停止监听 {0}", item);
                 item.Stop();

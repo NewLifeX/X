@@ -37,6 +37,15 @@ namespace NewLife.Remoting
             return true;
         }
 
+        /// <summary>启动中</summary>
+        protected override void OnStart()
+        {
+            //if (Encoder == null) Encoder = new JsonEncoder();
+            if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
+
+            base.OnStart();
+        }
+
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
@@ -57,11 +66,13 @@ namespace NewLife.Remoting
         {
             var enc = Host.Encoder;
 
+            var dic = enc.Decode(e.Data);
+
             var act = "";
-            IDictionary<string, object> args = null;
-            if (enc.Decode(e.Data, out act, out args))
+            Object args = null;
+            if (enc.TryGet(dic, out act, out args))
             {
-                OnInvoke(act, args);
+                OnInvoke(act, args as IDictionary<string, object>);
             }
         }
 
@@ -115,7 +126,9 @@ namespace NewLife.Remoting
 
             var rs = await SendAsync(data);
 
-            return enc.Decode<TResult>(rs);
+            var dic = enc.Decode(rs);
+
+            return enc.Decode<TResult>(dic);
         }
 
         /// <summary>获取服务提供者</summary>

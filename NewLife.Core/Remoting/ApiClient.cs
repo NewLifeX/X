@@ -70,6 +70,8 @@ namespace NewLife.Remoting
         /// <summary>打开客户端</summary>
         public void Open()
         {
+            if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
+
             Client.Log = Log;
             Client.Open();
         }
@@ -99,19 +101,9 @@ namespace NewLife.Remoting
 
             var rs = await Client.SendAsync(data);
 
-            return Encoder.Decode<TResult>(rs);
+            var dic = Encoder.Decode(rs);
 
-            //// 解包。指令格式应该属于Encoder解决
-            //var dic = Encoder.Decode2(rs);
-            //if (dic == null) return default(TResult);
-
-            //// 是否成功
-            //var success = dic["success"].ToBoolean();
-            //var result = dic["result"];
-            //if (!success) throw new Exception(result + "");
-
-            //// 返回
-            //return (TResult)result;
+            return Encoder.Decode<TResult>(dic);
         }
         #endregion
 
