@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace NewLife.Remoting
 {
     /// <summary>Api会话</summary>
-    public interface IApiSession
+    public interface IApiSession : IServiceProvider
     {
         /// <summary>正在连接的所有会话，包含自己</summary>
         IApiSession[] AllSessions { get; }
@@ -19,6 +19,6 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Task<TResult> Invoke<TResult>(string action, object args = null);
+        Task<TResult> InvokeAsync<TResult>(string action, object args = null);
     }
 }

@@ -33,13 +33,13 @@ namespace NewLife.Remoting
             client.Login("admin", "password");
 
             var msg = "NewLifeX";
-            var rs = await client.Invoke<string>("Hello/Say", new { msg });
+            var rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
             Console.WriteLine(rs);
 
             try
             {
                 msg = "报错";
-                rs = await client.Invoke<string>("Hello/Say", new { msg });
+                rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
             }
             catch (Exception ex)
             {

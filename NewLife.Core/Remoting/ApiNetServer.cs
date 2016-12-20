@@ -8,6 +8,9 @@ namespace NewLife.Remoting
 {
     class ApiNetServer : NetServer<ApiNetSession>, IApiServer
     {
+        /// <summary>Api服务器主机</summary>
+        public IServiceProvider Host { get; set; }
+
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
 
@@ -33,18 +36,22 @@ namespace NewLife.Remoting
 
             return true;
         }
+
+        /// <summary>获取服务提供者</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public Object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(ApiServer)) return Host;
+
+            return Host.GetService(serviceType);
+        }
     }
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     {
         /// <summary>正在连接的所有会话，包含自己</summary>
         public virtual IApiSession[] AllSessions { get { return Host.Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray(); } }
-
-        private Dictionary<String, Object> _items = new Dictionary<string, object>();
-        /// <summary>获取/设置 用户会话数据</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public virtual Object this[String key] { get { return _items.ContainsKey(key) ? _items[key] : null; } set { _items[key] = value; } }
 
         protected override void OnReceive(ReceivedEventArgs e)
         {
@@ -101,7 +108,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task<TResult> Invoke<TResult>(string action, object args = null)
+        public async Task<TResult> InvokeAsync<TResult>(string action, object args = null)
         {
             var enc = Host.Encoder;
             var data = enc.Encode(action, args);
@@ -109,6 +116,16 @@ namespace NewLife.Remoting
             var rs = await SendAsync(data);
 
             return enc.Decode<TResult>(rs);
+        }
+
+        /// <summary>获取服务提供者</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public Object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(IApiServer)) return Host;
+
+            return Host.GetService(serviceType);
         }
     }
 }

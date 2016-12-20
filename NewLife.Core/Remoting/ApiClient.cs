@@ -93,7 +93,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task<TResult> Invoke<TResult>(string action, object args = null)
+        public async Task<TResult> InvokeAsync<TResult>(string action, object args = null)
         {
             var data = Encoder.Encode(action, args);
 

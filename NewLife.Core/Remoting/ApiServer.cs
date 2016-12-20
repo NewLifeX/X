@@ -8,7 +8,7 @@ using NewLife.Reflection;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口服务器</summary>
-    public class ApiServer : DisposeBase
+    public class ApiServer : DisposeBase, IServiceProvider
     {
         #region 静态
         /// <summary>协议到提供者类的映射</summary>
@@ -34,6 +34,14 @@ namespace NewLife.Remoting
 
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
+
+        /// <summary>用户会话数据</summary>
+        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
+
+        /// <summary>获取/设置 用户会话数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual Object this[String key] { get { return Items.ContainsKey(key) ? Items[key] : null; } set { Items[key] = value; } }
         #endregion
 
         #region 构造
@@ -71,9 +79,12 @@ namespace NewLife.Remoting
         {
             Type type;
             if (!Providers.TryGetValue(uri.Protocol, out type)) return null;
+
             var svr = type.CreateInstance() as IApiServer;
             if (svr != null && !svr.Init(uri.ToString())) return null;
+
             Servers.Add(svr);
+
             return svr;
         }
 
@@ -84,9 +95,12 @@ namespace NewLife.Remoting
             var protocol = config.Substring(null, "://");
             Type type;
             if (!Providers.TryGetValue(protocol, out type)) return null;
+
             var svr = type.CreateInstance() as IApiServer;
             if (svr != null && !svr.Init(config)) return null;
+
             Servers.Add(svr);
+
             return svr;
         }
 
@@ -101,6 +115,7 @@ namespace NewLife.Remoting
             {
                 if (item.Handler == null) item.Handler = handler;
                 if (item.Encoder == null) item.Encoder = Encoder;
+                item.Host = this;
                 item.Log = Log;
                 item.Start();
             }
@@ -129,7 +144,7 @@ namespace NewLife.Remoting
         }
         #endregion
 
-        #region 服务提供者管理
+        #region 控制器管理
         /// <summary>可提供服务的方法</summary>
         public IDictionary<string, ApiAction> Services { get; } = new Dictionary<string, ApiAction>();
 
@@ -158,6 +173,18 @@ namespace NewLife.Remoting
         {
             ApiAction mi;
             return Services.TryGetValue(action, out mi) ? mi : null;
+        }
+        #endregion
+
+        #region 服务提供者
+        /// <summary>获取服务提供者</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public Object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(ApiServer)) return this;
+
+            return null;
         }
         #endregion
 

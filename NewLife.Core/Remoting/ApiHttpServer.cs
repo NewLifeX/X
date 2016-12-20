@@ -9,6 +9,9 @@ namespace NewLife.Remoting
     class ApiHttpServer : DisposeBase, IApiServer
     {
         #region 属性
+        /// <summary>Api服务器主机</summary>
+        public IServiceProvider Host { get; set; }
+
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
 
@@ -62,6 +65,16 @@ namespace NewLife.Remoting
 
             Listener.Stop();
             Listener = null;
+        }
+
+        /// <summary>获取服务提供者</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public Object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(ApiServer)) return Host;
+
+            return Host.GetService(serviceType);
         }
 
         #region 日志
