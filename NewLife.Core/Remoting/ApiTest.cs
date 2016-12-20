@@ -12,7 +12,7 @@ namespace NewLife.Remoting
     public class ApiTest
     {
         /// <summary>测试主函数</summary>
-        public async static void Main()
+        public static async void Main()
         {
             var svr = new ApiServer(3344);
             svr.Add("http://*:888/");
@@ -23,16 +23,15 @@ namespace NewLife.Remoting
             svr.Start();
 
 
-            var client = new ApiClient("udp://127.0.0.1:3344");
+            var client = new ApiClient("udp://127.0.0.1:3344") { Encoder = new JsonEncoder() };
             //client.Log = XTrace.Log;
-            client.Encoder = new JsonEncoder();
             //client.Encoder = new ProtocolBuffer();
             //client.Compress = new SevenZip();
             client.Open();
             client.Login("admin", "password");
 
-            var msg = "NewLifeX";
-            var rs = await client.Invoke<String>("Hello/Say", new { msg });
+            const string msg = "NewLifeX";
+            var rs = await client.Invoke<string>("Hello/Say", new { msg });
             Console.WriteLine(rs);
 
             Console.ReadKey();
@@ -41,11 +40,11 @@ namespace NewLife.Remoting
             svr.Dispose();
         }
 
-        class HelloController : IApi
+        private class HelloController : IApi
         {
             public IApiSession Session { get; set; }
 
-            public String Say(String msg)
+            public string Say(string msg)
             {
                 return "收到：" + msg;
             }
