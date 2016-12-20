@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 
 namespace System
@@ -12,17 +13,16 @@ namespace System
     public static class Utility
     {
         #region 类型转换
-        private static DefaultConvert _Convert = new DefaultConvert();
         /// <summary>类型转换提供者</summary>
         /// <remarks>重载默认提供者<seealso cref="DefaultConvert"/>并赋值给<see cref="Convert"/>可改变所有类型转换的行为</remarks>
-        public static DefaultConvert Convert { get { return _Convert; } set { _Convert = value; } }
+        public static DefaultConvert Convert { get; set; } = new DefaultConvert();
 
         /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
         /// <remarks>Int16/UInt32/Int64等，可以先转为最常用的Int32后再二次处理</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Int32 ToInt(this Object value, Int32 defaultValue = 0) { return _Convert.ToInt(value, defaultValue); }
+        public static Int32 ToInt(this Object value, Int32 defaultValue = 0) { return Convert.ToInt(value, defaultValue); }
 
 
         /// <summary>转为长整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
@@ -30,52 +30,59 @@ namespace System
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static long ToLong(this Object value, long defaultValue = 0) { return _Convert.ToLong(value, defaultValue); }
+        public static long ToLong(this Object value, long defaultValue = 0) { return Convert.ToLong(value, defaultValue); }
 
         /// <summary>转为浮点数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
         /// <remarks>Single可以先转为最常用的Double后再二次处理</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Double ToDouble(this Object value, Double defaultValue = 0) { return _Convert.ToDouble(value, defaultValue); }
+        public static Double ToDouble(this Object value, Double defaultValue = 0) { return Convert.ToDouble(value, defaultValue); }
 
         /// <summary>转为布尔型，转换失败时返回默认值。支持大小写True/False、0和非零</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Boolean ToBoolean(this Object value, Boolean defaultValue = false) { return _Convert.ToBoolean(value, defaultValue); }
+        public static Boolean ToBoolean(this Object value, Boolean defaultValue = false) { return Convert.ToBoolean(value, defaultValue); }
 
         /// <summary>转为时间日期，转换失败时返回最小时间</summary>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
-        public static DateTime ToDateTime(this Object value) { return _Convert.ToDateTime(value, DateTime.MinValue); }
+        public static DateTime ToDateTime(this Object value) { return Convert.ToDateTime(value, DateTime.MinValue); }
 
         /// <summary>转为时间日期，转换失败时返回默认值</summary>
         /// <remarks><see cref="DateTime.MinValue"/>不是常量无法做默认值</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static DateTime ToDateTime(this Object value, DateTime defaultValue) { return _Convert.ToDateTime(value, defaultValue); }
+        public static DateTime ToDateTime(this Object value, DateTime defaultValue) { return Convert.ToDateTime(value, defaultValue); }
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
-        public static String ToFullString(this DateTime value) { return _Convert.ToFullString(value); }
+        public static String ToFullString(this DateTime value) { return Convert.ToFullString(value); }
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串，支持指定最小时间的字符串</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="emptyValue">字符串空值时（DateTime.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
-        public static String ToFullString(this DateTime value, String emptyValue = null) { return _Convert.ToFullString(value, emptyValue); }
+        public static String ToFullString(this DateTime value, String emptyValue = null) { return Convert.ToFullString(value, emptyValue); }
 
         /// <summary>时间日期转为指定格式字符串</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="format">格式化字符串</param>
         /// <param name="emptyValue">字符串空值时显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
-        public static String ToString(this DateTime value, String format, String emptyValue) { return _Convert.ToString(value, format, emptyValue); }
+        public static String ToString(this DateTime value, String format, String emptyValue) { return Convert.ToString(value, format, emptyValue); }
+        #endregion
+
+        #region 异常处理
+        /// <summary>获取内部真实异常</summary>
+        /// <param name="ex"></param>
+        /// <returns></returns>
+        public static Exception GetTrue(this Exception ex) { return Convert.GetTrue(ex); }
         #endregion
     }
 
@@ -145,7 +152,7 @@ namespace System
             }
             catch { return defaultValue; }
         }
-        
+
         /// <summary>转为浮点数</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -327,6 +334,22 @@ namespace System
             if (format == null || format == "yyyy-MM-dd HH:mm:ss") return ToFullString(value, emptyValue);
 
             return value.ToString(format);
+        }
+
+        /// <summary>获取内部真实异常</summary>
+        /// <param name="ex"></param>
+        /// <returns></returns>
+        public virtual Exception GetTrue(Exception ex)
+        {
+            if (ex == null) return null;
+
+            if (ex is AggregateException)
+                return GetTrue((ex as AggregateException).Flatten().InnerException);
+
+            if (ex is TargetInvocationException)
+                return GetTrue((ex as TargetInvocationException).InnerException);
+
+            return ex;
         }
     }
 }
