@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
 
@@ -27,9 +28,20 @@ namespace NewLife.MessageQueue
             // 还未上消息格式，暂时用Udp替代Tcp，避免粘包问题
             //Remote = new NetUri(ProtocolType.Udp, NetHelper.MyIP(), 2234);
         }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
+
+            Close();
+
+            Client.TryDispose();
+        }
         #endregion
 
-        #region 启动方法
+        #region 打开关闭
         /// <summary>打开</summary>
         public void Open()
         {
@@ -37,6 +49,8 @@ namespace NewLife.MessageQueue
             if (ac == null || ac.Disposed)
             {
                 ac = new ApiClient(Remote);
+                ac.Encoder = new JsonEncoder { Log = Log };
+                ac.Log = Log;
                 ac.Open();
 
                 Client = ac;
@@ -44,20 +58,26 @@ namespace NewLife.MessageQueue
                 //SendPack("Name", Name);
             }
         }
+
+        /// <summary>关闭</summary>
+        public void Close()
+        {
+            Client.Close();
+        }
         #endregion
 
         #region 发布订阅
         /// <summary>发布主题</summary>
         /// <param name="topic"></param>
         /// <returns></returns>
-        public async Task<Boolean> AddTopic(String topic)
+        public async Task<Boolean> CreateTopic(String topic)
         {
             Open();
 
             //SendPack("Public", topic);
-            var rs = await Client.InvokeAsync<Message>("Topic/Add", new { });
+            var rs = await Client.InvokeAsync<Boolean>("Topic/Create", new { topic });
 
-            return rs != null;
+            return rs;
         }
 
         /// <summary>订阅主题</summary>
@@ -69,9 +89,9 @@ namespace NewLife.MessageQueue
 
             //SendPack("Subscribe", topic);
 
-            var rs = await Client.InvokeAsync<Message>("Topic/Subscribe", new { });
+            var rs = await Client.InvokeAsync<Boolean>("Topic/Subscribe", new { topic });
 
-            return rs != null;
+            return rs;
         }
         #endregion
 
@@ -86,9 +106,20 @@ namespace NewLife.MessageQueue
 
             //SendPack("Message", msg + "");
 
-            var rs = await Client.InvokeAsync<Message>("Message/Public", new { });
+            // 对象编码为二进制
+            var buf = Client.Encoder.Encode(msg);
 
-            return rs != null;
+            var m = new Message
+            {
+                Sender = Name,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddSeconds(60),
+                Body = buf
+            };
+
+            var rs = await Client.InvokeAsync<Boolean>("Message/Public", new { msg = m });
+
+            return rs;
         }
 
         /// <summary>接收</summary>
@@ -109,6 +140,11 @@ namespace NewLife.MessageQueue
         //    Client.Send("{0}+{1}".F(act, msg));
         //    Thread.Sleep(200);
         //}
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
         #endregion
     }
 }

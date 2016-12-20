@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
 using NewLife.Remoting;
 
 namespace NewLife.MessageQueue
@@ -12,5 +9,14 @@ namespace NewLife.MessageQueue
     {
         /// <summary>Api接口会话</summary>
         public IApiSession Session { get; set; }
+
+        /// <summary>发布消息</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        [DisplayName("发布消息")]
+        public Boolean Public(Message msg)
+        {
+            return true;
+        }
     }
 }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NewLife.Log;
 
 namespace NewLife.MessageQueue
@@ -13,13 +10,16 @@ namespace NewLife.MessageQueue
         public static async void TestBase()
         {
             var svr = new MQServer();
+            //svr.Server.Log = XTrace.Log;
             svr.Start();
 
             var client = new MQClient();
+            client.Log = XTrace.Log;
             client.Name = "user1";
-            await client.AddTopic("test");
+            await client.CreateTopic("test");
 
             var user = new MQClient();
+            user.Log = XTrace.Log;
             user.Name = "user2";
             user.Received += (s, e) =>
             {
