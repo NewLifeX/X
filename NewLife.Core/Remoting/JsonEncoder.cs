@@ -6,7 +6,10 @@ using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
-    class JsonEncoder : IEncoder
+    /// <summary>
+    /// 
+    /// </summary>
+    public class JsonEncoder : IEncoder
     {
         /// <summary>编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
