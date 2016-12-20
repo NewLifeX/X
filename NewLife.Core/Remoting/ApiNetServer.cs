@@ -17,6 +17,7 @@ namespace NewLife.Remoting
         public ApiNetServer()
         {
             Name = "Api";
+            UseSession = true;
         }
 
         /// <summary>初始化</summary>
