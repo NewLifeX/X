@@ -37,20 +37,22 @@ namespace NewLife.Remoting
             var controller = api.Method.DeclaringType.CreateInstance();
             if (controller is IApi) (controller as IApi).Session = session;
 
-            var ps = args as IDictionary<string, Object>;
+            var ps = args as IDictionary<string, object>;
             var fs = api.Filters;
 
             // 上下文
-            var ctx = new ControllerContext { Controller = controller };
-            ctx.Action = api;
-            ctx.Session = session;
+            var ctx = new ControllerContext
+            {
+                Controller = controller,
+                Action = api,
+                Session = session
+            };
 
             try
             {
                 if (fs.Length > 0)
                 {
-                    var actx = new ActionExecutingContext(ctx);
-                    actx.ActionParameters = ps;
+                    var actx = new ActionExecutingContext(ctx) {ActionParameters = ps};
                     foreach (var filter in fs)
                     {
                         filter.OnActionExecuting(actx);
@@ -64,8 +66,7 @@ namespace NewLife.Remoting
                     // 倒序
                     fs = fs.Reverse().ToArray();
 
-                    var actx = new ActionExecutedContext(ctx);
-                    actx.Result = rs;
+                    var actx = new ActionExecutedContext(ctx) {Result = rs};
                     foreach (var filter in fs)
                     {
                         filter.OnActionExecuted(actx);
@@ -75,11 +76,11 @@ namespace NewLife.Remoting
 
                 return rs;
             }
-            catch (ThreadAbortException) { }
+            //先注释 等大石头处理 :)
+            //catch (ThreadAbortException) { }
             catch (Exception ex)
             {
-                var exctx = new ExceptionContext(ctx);
-                exctx.Exception = ex;
+                var exctx = new ExceptionContext(ctx) {Exception = ex};
 
                 // 如果异常没有被拦截，继续向外抛出
                 if (!exctx.ExceptionHandled) throw;
