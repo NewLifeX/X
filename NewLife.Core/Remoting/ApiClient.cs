@@ -12,7 +12,7 @@ namespace NewLife.Remoting
     {
         #region 静态
         /// <summary>协议到提供者类的映射</summary>
-        public static IDictionary<String, Type> Providers { get; } = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+        public static IDictionary<string, Type> Providers { get; } = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
 
         static ApiClient()
         {
@@ -40,29 +40,25 @@ namespace NewLife.Remoting
         /// <param name="uri"></param>
         public ApiClient(NetUri uri)
         {
-            Type type = null;
-            if (Providers.TryGetValue(uri.Protocol, out type))
-            {
-                var ac = type.CreateInstance() as IApiClient;
-                if (ac != null && ac.Init(uri)) Client = ac;
-            }
+            Type type;
+            if (!Providers.TryGetValue(uri.Protocol, out type)) return;
+            var ac = type.CreateInstance() as IApiClient;
+            if (ac != null && ac.Init(uri)) Client = ac;
         }
 
         /// <summary>实例化应用接口客户端</summary>
         /// <param name="uri"></param>
         public ApiClient(Uri uri)
         {
-            Type type = null;
-            if (Providers.TryGetValue("http", out type))
-            {
-                var ac = type.CreateInstance() as IApiClient;
-                if (ac != null && ac.Init(uri)) Client = ac;
-            }
+            Type type;
+            if (!Providers.TryGetValue("http", out type)) return;
+            var ac = type.CreateInstance() as IApiClient;
+            if (ac != null && ac.Init(uri)) Client = ac;
         }
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
 
@@ -87,7 +83,7 @@ namespace NewLife.Remoting
         /// <summary>登录</summary>
         /// <param name="user"></param>
         /// <param name="pass"></param>
-        public void Login(String user, String pass)
+        public void Login(string user, string pass)
         {
 
         }
@@ -97,7 +93,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task<TResult> Invoke<TResult>(String action, Object args = null)
+        public async Task<TResult> Invoke<TResult>(string action, object args = null)
         {
             var data = Encoder.Encode(action, args);
 
