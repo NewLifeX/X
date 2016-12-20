@@ -10,14 +10,14 @@ namespace NewLife.MessageQueue
     public class MQTest
     {
         /// <summary>基础测试</summary>
-        public static void TestBase()
+        public static async void TestBase()
         {
             var svr = new MQServer();
             svr.Start();
 
             var client = new MQClient();
             client.Name = "user1";
-            client.Public("test");
+            await client.AddTopic("test");
 
             var user = new MQClient();
             user.Name = "user2";
@@ -26,11 +26,11 @@ namespace NewLife.MessageQueue
                 XTrace.WriteLine("user.收到推送 {0}", e.Arg);
             };
             //user.Open();
-            user.Subscribe("test");
+            await user.Subscribe("test");
 
             for (int i = 0; i < 3; i++)
             {
-                client.Send("test", "测试{0}".F(i + 1));
+                await client.Public("test", "测试{0}".F(i + 1));
             }
 
             Console.ReadKey(true);

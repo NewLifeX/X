@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using NewLife.Net;
 using NewLife.Threading;
 
 namespace NewLife.MessageQueue
@@ -12,26 +9,28 @@ namespace NewLife.MessageQueue
     public class Topic
     {
         #region 属性
+        /// <summary>名称</summary>
         public String Name { get; set; }
 
-        //public List<MQSession> Publicers { get; private set; }
+        /// <summary>订阅者</summary>
+        private List<Subscriber> Subscribers { get; } = new List<Subscriber>();
 
-        public List<MQSession> Subscribers { get; private set; }
-
-        public Queue<String> Queue { get; private set; }
+        /// <summary>消息队列</summary>
+        public Queue<Message> Queue { get; } = new Queue<Message>();
         #endregion
 
         #region 构造函数
+        /// <summary>实例化</summary>
         public Topic()
         {
-            //Publicers = new List<MQSession>();
-            Subscribers = new List<MQSession>();
-            Queue = new Queue<String>();
         }
         #endregion
 
         #region 进入队列
-        public Boolean Enqueue(String msg)
+        /// <summary>进入队列</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public Boolean Enqueue(Message msg)
         {
             if (Queue.Count > 10000) return false;
 
@@ -44,6 +43,7 @@ namespace NewLife.MessageQueue
         #endregion
 
         #region 推送消息
+        /// <summary>推送通知</summary>
         private void Notify()
         {
             // 扫描一次，一旦发送有消息，则调用线程池线程处理
@@ -60,16 +60,16 @@ namespace NewLife.MessageQueue
             if (Queue.Count == 0) return;
             if (Subscribers.Count == 0) return;
 
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (Queue.Count > 0)
                 {
                     // 消息出列
-                    var item = Queue.Dequeue();
+                    var msg = Queue.Dequeue();
                     // 向每一个订阅者推送消息
                     foreach (var ss in Subscribers)
                     {
-                        ss.SendMessage(item);
+                        await ss.NoitfyAsync(msg);
                     }
                 }
             });

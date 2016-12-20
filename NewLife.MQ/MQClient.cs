@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Net;
+using NewLife.Remoting;
 
 namespace NewLife.MessageQueue
 {
@@ -20,7 +16,7 @@ namespace NewLife.MessageQueue
         public NetUri Remote { get; set; }
 
         /// <summary>网络客户端</summary>
-        public ISocketClient Client { get; set; }
+        public ApiClient Client { get; set; }
         #endregion
 
         #region 构造函数
@@ -34,15 +30,18 @@ namespace NewLife.MessageQueue
         #endregion
 
         #region 启动方法
+        /// <summary>打开</summary>
         public void Open()
         {
-            if (Client == null || Client.Disposed)
+            var ac = Client;
+            if (ac == null || ac.Disposed)
             {
-                Client = Remote.CreateRemote();
-                Client.Received += Client_Received;
-                Client.Open();
+                ac = new ApiClient(Remote);
+                ac.Open();
 
-                SendPack("Name", Name);
+                Client = ac;
+
+                //SendPack("Name", Name);
             }
         }
         #endregion
@@ -51,25 +50,28 @@ namespace NewLife.MessageQueue
         /// <summary>发布主题</summary>
         /// <param name="topic"></param>
         /// <returns></returns>
-        public Boolean Public(String topic)
+        public async Task<Boolean> AddTopic(String topic)
         {
             Open();
 
-            SendPack("Public", topic);
+            //SendPack("Public", topic);
+            var rs = await Client.InvokeAsync<Message>("Topic/Add", new { });
 
-            return true;
+            return rs != null;
         }
 
         /// <summary>订阅主题</summary>
         /// <param name="topic"></param>
         /// <returns></returns>
-        public Boolean Subscribe(String topic)
+        public async Task<Boolean> Subscribe(String topic)
         {
             Open();
 
-            SendPack("Subscribe", topic);
+            //SendPack("Subscribe", topic);
 
-            return true;
+            var rs = await Client.InvokeAsync<Message>("Topic/Subscribe", new { });
+
+            return rs != null;
         }
         #endregion
 
@@ -78,29 +80,35 @@ namespace NewLife.MessageQueue
         /// <param name="topic"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public Boolean Send(String topic, Object msg)
+        public async Task<Boolean> Public(String topic, Object msg)
         {
             Open();
 
-            SendPack("Message", msg + "");
+            //SendPack("Message", msg + "");
 
-            return true;
+            var rs = await Client.InvokeAsync<Message>("Message/Public", new { });
+
+            return rs != null;
         }
 
-        public EventHandler<EventArgs<String>> Received;
+        /// <summary>接收</summary>
+        public EventHandler<EventArgs<Message>> Received;
 
-        void Client_Received(object sender, ReceivedEventArgs e)
-        {
-            if (Received != null) Received(this, new EventArgs<String>(e.ToStr()));
-        }
+        //void Client_Received(object sender, ReceivedEventArgs e)
+        //{
+        //    Received?.Invoke(this, new EventArgs<String>(e.ToStr()));
+        //}
         #endregion
 
         #region 辅助
-        protected virtual void SendPack(String act, String msg)
-        {
-            Client.Send("{0}+{1}".F(act, msg));
-            Thread.Sleep(200);
-        }
+        ///// <summary>响应</summary>
+        ///// <param name="act"></param>
+        ///// <param name="msg"></param>
+        //protected virtual void SendPack(String act, String msg)
+        //{
+        //    Client.Send("{0}+{1}".F(act, msg));
+        //    Thread.Sleep(200);
+        //}
         #endregion
     }
 }

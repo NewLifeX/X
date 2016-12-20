@@ -33,7 +33,7 @@ namespace CenterServer
             client.Login("admin", "password");
 
             const string msg = "NewLifeX";
-            var rs = await client.Invoke<string>("Demo/Say", new { msg });
+            var rs = await client.InvokeAsync<string>("Demo/Say", new { msg });
             Console.WriteLine(rs);
 
             client.Dispose();
