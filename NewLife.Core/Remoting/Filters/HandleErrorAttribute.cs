@@ -10,7 +10,7 @@
             var ctx = filterContext;
             if (ctx.ExceptionHandled) return;
 
-            ctx.ExceptionHandled = true;
+            //ctx.ExceptionHandled = true;
 
             if (ctx.Result == null) ctx.Result = ctx.Exception;
         }

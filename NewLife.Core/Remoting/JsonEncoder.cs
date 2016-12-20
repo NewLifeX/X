@@ -34,6 +34,10 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public byte[] Encode(bool success, object result)
         {
+            // 不支持序列化异常
+            var ex = result as Exception;
+            if (ex != null) result = ex.GetTrue()?.Message;
+
             var obj = new { success, result };
             var json = obj.ToJson();
 
