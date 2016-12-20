@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Net;
+using NewLife.Queue.Center;
+using NewLife.Remoting;
 
 namespace CenterServer
 {
@@ -12,8 +15,31 @@ namespace CenterServer
         static void Main(string[] args)
         {
             XTrace.UseConsole();
-            new NewLife.Queue.Center.CenterServer().Start();
+            XTrace.Debug = true;
+            Test();
             Console.ReadLine();
         }
+
+        static async void Test()
+        {
+
+            var svr = new NewLife.Queue.Center.CenterServer(3344);
+            svr.Start();
+            var client = new ApiClient("tcp://127.0.0.1:3344") { Encoder = new JsonEncoder() };
+            client.Log = XTrace.Log;
+            //client.Encoder = new ProtocolBuffer();
+            //client.Compress = new SevenZip();
+            client.Open();
+            client.Login("admin", "password");
+
+            const string msg = "NewLifeX";
+            var rs = await client.Invoke<string>("Demo/Say", new { msg });
+            Console.WriteLine(rs);
+
+            client.Dispose();
+            svr.Dispose();
+        }
+
+       
     }
 }

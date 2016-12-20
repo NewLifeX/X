@@ -9,6 +9,7 @@ using NewLife.Queue.Protocols.CenterServers.Requests;
 using NewLife.Remoting;
 using NewLife.Serialization;
 using NewLife.Threading;
+using NewLife.Net;
 
 namespace NewLife.Queue.Center
 {
@@ -23,7 +24,11 @@ namespace NewLife.Queue.Center
             _centerServer = centerServer;
             _clusterDict = new ConcurrentDictionary<string, Cluster>();
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="apiSession"></param>
+        /// <param name="request"></param>
         public void RegisterBroker(IApiSession apiSession, BrokerRegistrationRequest request)
         {
             lock (_lockObj)
@@ -34,27 +39,36 @@ namespace NewLife.Queue.Center
                 Broker broker;
                 if (!brokerGroup.Brokers.TryGetValue(brokerInfo.BrokerName, out broker))
                 {
-                    //var connectionId = apiSession.RemotingEndPoint.ToAddress();
-                    broker = new Broker
+                    var netSession = apiSession as INetSession;
+                    if (netSession != null)
                     {
-                        BrokerInfo = request.BrokerInfo,
-                        TotalSendThroughput = request.TotalSendThroughput,
-                        TotalConsumeThroughput = request.TotalConsumeThroughput,
-                        TotalUnConsumedMessageCount = request.TotalUnConsumedMessageCount,
-                        TopicQueueInfoList = request.TopicQueueInfoList,
-                        TopicConsumeInfoList = request.TopicConsumeInfoList,
-                        ProducerList = request.ProducerList,
-                        ConsumerList = request.ConsumerList,
-                        ApiSession = apiSession,
-                        ConnectionId = "",
-                        LastActiveTime = DateTime.Now,
-                        FirstRegisteredTime = DateTime.Now,
-                        Group = brokerGroup
-                    };
-                    if (brokerGroup.Brokers.TryAdd(brokerInfo.BrokerName, broker))
-                    {
-                        _centerServer.Log.Info("Registered new broker, brokerInfo: {0}", brokerInfo.ToJson());
+                        var connectionId = netSession.Remote.EndPoint.ToAddress();
+                        broker = new Broker
+                        {
+                            BrokerInfo = request.BrokerInfo,
+                            TotalSendThroughput = request.TotalSendThroughput,
+                            TotalConsumeThroughput = request.TotalConsumeThroughput,
+                            TotalUnConsumedMessageCount = request.TotalUnConsumedMessageCount,
+                            TopicQueueInfoList = request.TopicQueueInfoList,
+                            TopicConsumeInfoList = request.TopicConsumeInfoList,
+                            ProducerList = request.ProducerList,
+                            ConsumerList = request.ConsumerList,
+                            ApiSession = apiSession,
+                            ConnectionId = connectionId,
+                            LastActiveTime = DateTime.Now,
+                            FirstRegisteredTime = DateTime.Now,
+                            Group = brokerGroup
+                        };
+                        if (brokerGroup.Brokers.TryAdd(brokerInfo.BrokerName, broker))
+                        {
+                            _centerServer.Log.Info("Registered new broker, brokerInfo: {0}", brokerInfo.ToJson());
+                        }
                     }
+                    else
+                    {
+                        _centerServer.Log.Error("Registered broker Erro, brokerInfo: {0}", brokerInfo.ToJson());
+                    }
+                   
                 }
                 else
                 {

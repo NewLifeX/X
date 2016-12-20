@@ -302,6 +302,7 @@
     <EmbeddedResource Include="Windows\SerialPortList.resx">
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </EmbeddedResource>
+    <Compile Include="Extension\EndPointExtensions.cs" />
     <None Include="X组件.txt" />
     <Content Include="说明.txt" />
     <None Include="UpdateInfo.txt" />

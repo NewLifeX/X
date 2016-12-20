@@ -13,10 +13,12 @@ namespace NewLife.Queue.Center
     /// <summary>
     /// 中心服务器
     /// </summary>
-    public class CenterServer: ApiServer
+    public class CenterServer : ApiServer
     {
         public readonly Setting CurrentCfg = Setting.Current;
         public ClusterManager ClusterManager { get; }
+
+        public string Demo => "My Info";
         /// <summary>
         /// 
         /// </summary>
@@ -28,7 +30,8 @@ namespace NewLife.Queue.Center
             if (CurrentCfg.Debug) Log = XTrace.Log;
             Add(new NetUri(NetType.Unknown, "", port));
             ClusterManager = new ClusterManager(this);
-            Register<BrokerController>();
+            //// Register<BrokerController>();
+             Register<DemoController>();
         }
     }
 }
