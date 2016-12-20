@@ -10,7 +10,7 @@ namespace NewLife.Remoting
         /// <summary>初始化</summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        Boolean Init(Object config);
+        bool Init(object config);
 
         /// <summary>打开</summary>
         void Open();
@@ -21,7 +21,7 @@ namespace NewLife.Remoting
         /// <summary>发送数据</summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        Task<Byte[]> SendAsync(Byte[] data);
+        Task<byte[]> SendAsync(byte[] data);
 
         /// <summary>日志</summary>
         ILog Log { get; set; }

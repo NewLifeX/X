@@ -15,7 +15,7 @@ namespace NewLife.Remoting
         /// <summary>初始化</summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        Boolean Init(String config);
+        bool Init(string config);
 
         /// <summary>开始</summary>
         void Start();

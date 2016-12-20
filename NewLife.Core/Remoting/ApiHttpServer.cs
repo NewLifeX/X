@@ -18,10 +18,10 @@ namespace NewLife.Remoting
         /// <summary>监听器</summary>
         public HttpListener Listener { get; set; }
 
-        private List<String> _prefixes = new List<String>();
+        private readonly List<string> _prefixes = new List<string>();
         #endregion
 
-        protected override void OnDispose(Boolean disposing)
+        protected override void OnDispose(bool disposing)
         {
             base.OnDispose(disposing);
 
@@ -31,7 +31,7 @@ namespace NewLife.Remoting
         /// <summary>初始化</summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public Boolean Init(String config)
+        public bool Init(string config)
         {
             _prefixes.AddRange(config.Split(";"));
 

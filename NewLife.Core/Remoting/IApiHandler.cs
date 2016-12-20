@@ -17,7 +17,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Object Execute(IApiSession session, String action, IDictionary<String, Object> args);
+        object Execute(IApiSession session, String action, IDictionary<String, Object> args);
     }
 
     class ApiHandler : IApiHandler
@@ -29,7 +29,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public Object Execute(IApiSession session, String action, IDictionary<String, Object> args)
+        public Object Execute(IApiSession session, string action, IDictionary<string, object> args)
         {
             var api = Server.FindAction(action);
             if (api == null) throw new Exception("无法找到名为[{0}]的服务！".F(action));
@@ -37,7 +37,7 @@ namespace NewLife.Remoting
             var controller = api.Method.DeclaringType.CreateInstance();
             if (controller is IApi) (controller as IApi).Session = session;
 
-            var ps = args as IDictionary<String, Object>;
+            var ps = args as IDictionary<string, Object>;
             var fs = api.Filters;
 
             // 上下文

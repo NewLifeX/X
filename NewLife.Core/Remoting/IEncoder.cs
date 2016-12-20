@@ -11,25 +11,25 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Byte[] Encode(String action, Object args);
+        byte[] Encode(string action, object args);
 
         /// <summary>编码响应</summary>
         /// <param name="success"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        Byte[] Encode(Boolean success, Object result);
+        byte[] Encode(bool success, object result);
 
         /// <summary>解码响应</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
-        T Decode<T>(Byte[] data);
+        T Decode<T>(byte[] data);
 
         /// <summary>解码请求</summary>
         /// <param name="data"></param>
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Boolean Decode(Byte[] data, out String action, out IDictionary<String, Object> args);
+        bool Decode(byte[] data, out string action, out IDictionary<string, object> args);
     }
 }

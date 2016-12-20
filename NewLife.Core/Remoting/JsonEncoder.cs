@@ -15,7 +15,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public Byte[] Encode(String action, Object args)
+        public byte[] Encode(string action, object args)
         {
             var obj = new { action, args };
             var json = obj.ToJson();
@@ -29,7 +29,7 @@ namespace NewLife.Remoting
         /// <param name="success"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public Byte[] Encode(Boolean success, Object result)
+        public byte[] Encode(bool success, object result)
         {
             var obj = new { success, result };
             var json = obj.ToJson();
@@ -39,7 +39,7 @@ namespace NewLife.Remoting
             return json.GetBytes(Encoding);
         }
 
-        public T Decode<T>(Byte[] data)
+        public T Decode<T>(byte[] data)
         {
             var json = data.ToStr(Encoding);
 
@@ -48,7 +48,7 @@ namespace NewLife.Remoting
             //return json.ToJsonEntity<T>();
 
             var jp = new JsonParser(data.ToStr(Encoding));
-            var dic = jp.Decode() as IDictionary<String, Object>;
+            var dic = jp.Decode() as IDictionary<string, object>;
             if (dic == null) return default(T);
 
             // 是否成功
@@ -62,17 +62,17 @@ namespace NewLife.Remoting
             return (T)reader.ToObject(result, typeof(T));
         }
 
-        public Boolean Decode(Byte[] data, out String action, out IDictionary<String, Object> args)
+        public bool Decode(byte[] data, out string action, out IDictionary<string, object> args)
         {
             action = null;
             args = null;
 
             var jp = new JsonParser(data.ToStr(Encoding));
-            var dic = jp.Decode() as IDictionary<String, Object>;
+            var dic = jp.Decode() as IDictionary<string, object>;
             if (dic == null) return false;
 
             action = dic["action"] + "";
-            args = dic["args"] as IDictionary<String, Object>;
+            args = dic["args"] as IDictionary<string, object>;
 
             return true;
         }

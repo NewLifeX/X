@@ -21,7 +21,7 @@ namespace NewLife.Remoting
         /// <summary>初始化</summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public Boolean Init(String config)
+        public bool Init(string config)
         {
             Local = new NetUri(config);
 #if DEBUG
@@ -40,7 +40,7 @@ namespace NewLife.Remoting
             var enc = Host.Encoder;
 
             var act = "";
-            IDictionary<String, Object> args = null;
+            IDictionary<string, object> args = null;
             if (enc.Decode(e.Data, out act, out args))
             {
                 OnInvoke(act, args);
@@ -50,10 +50,10 @@ namespace NewLife.Remoting
         /// <summary>处理远程调用</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        protected virtual void OnInvoke(String action, IDictionary<String, Object> args)
+        protected virtual void OnInvoke(string action, IDictionary<string, object> args)
         {
             var enc = Host.Encoder;
-            Object result = null;
+            object result = null;
             var rs = false;
             try
             {
@@ -76,7 +76,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task<TResult> Invoke<TResult>(String action, Object args = null)
+        public async Task<TResult> Invoke<TResult>(string action, object args = null)
         {
             var enc = Host.Encoder;
             var data = enc.Encode(action, args);

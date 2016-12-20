@@ -9,15 +9,16 @@ namespace NewLife.Remoting
 
         //public String Remote { get; set; }
 
-        public override Boolean Init(Object config)
+        public override bool Init(object config)
         {
-            var url = config as String;
+            var url = config as string;
             if (url.IsNullOrEmpty()) return false;
 
-            if (config is NetUri)
-                Client = (config as NetUri).CreateRemote();
+            var uri = config as NetUri;
+            if (uri != null)
+                Client = uri.CreateRemote();
             else if (config is Uri)
-                Client = (config as Uri).CreateRemote();
+                Client = ((Uri) config).CreateRemote();
             Remote = url;
 
             return true;

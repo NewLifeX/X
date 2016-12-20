@@ -9,7 +9,7 @@ namespace NewLife.Remoting
     public class ApiAction
     {
         /// <summary>动作名称</summary>
-        public String Name { get; set; }
+        public string Name { get; set; }
 
         /// <summary>方法</summary>
         public MethodInfo Method { get; set; }
@@ -20,10 +20,13 @@ namespace NewLife.Remoting
         /// <summary>实例化</summary>
         public ApiAction(MethodInfo method)
         {
-            var name = method.DeclaringType.Name.TrimEnd("Controller");
-            var miName = method.Name;
+            if (method.DeclaringType != null)
+            {
+                var name = method.DeclaringType.Name.TrimEnd("Controller");
+                var miName = method.Name;
 
-            Name = "{0}/{1}".F(name, miName);
+                Name = "{0}/{1}".F(name, miName);
+            }
             Method = method;
 
             Filters = GetAllFilters(method);
@@ -31,6 +34,7 @@ namespace NewLife.Remoting
 
         private IActionFilter[] GetAllFilters(MethodInfo method)
         {
+            if (method == null) throw new ArgumentNullException(nameof(method));
             var fs = new List<IActionFilter>();
             var atts = method.GetCustomAttributes<ActionFilterAttribute>(true);
             if (atts != null) fs.AddRange(atts);
@@ -40,7 +44,7 @@ namespace NewLife.Remoting
             fs.AddRange(GlobalFilters.Filters);
 
             // 排序
-            var arr = fs.OrderBy(e => e is ActionFilterAttribute ? (e as ActionFilterAttribute).Order : 0).ToArray();
+            var arr = fs.OrderBy(e => (e as ActionFilterAttribute)?.Order ?? 0).ToArray();
 
             return arr;
         }

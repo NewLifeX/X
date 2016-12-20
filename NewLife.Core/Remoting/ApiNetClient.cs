@@ -17,7 +17,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 方法
-        public virtual Boolean Init(Object config)
+        public virtual bool Init(object config)
         {
             var uri = config as NetUri;
             if (uri == null) return false;
@@ -43,7 +43,7 @@ namespace NewLife.Remoting
             Client.Close();
         }
 
-        public Task<Byte[]> SendAsync(Byte[] data)
+        public Task<byte[]> SendAsync(byte[] data)
         {
             return Client.SendAsync(data);
         }
