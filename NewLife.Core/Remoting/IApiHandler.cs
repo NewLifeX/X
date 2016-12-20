@@ -48,45 +48,65 @@ namespace NewLife.Remoting
                 Session = session
             };
 
+            Object rs = null;
+            ExceptionContext etx = null;
             try
             {
+                // 执行动作前的过滤器
                 if (fs.Length > 0)
                 {
-                    var actx = new ActionExecutingContext(ctx) {ActionParameters = ps};
+                    var actx = new ActionExecutingContext(ctx) { ActionParameters = ps };
                     foreach (var filter in fs)
                     {
                         filter.OnActionExecuting(actx);
                     }
                 }
 
-                var rs = controller.InvokeWithParams(api.Method, args as IDictionary);
+                // 执行动作
+                rs = controller.InvokeWithParams(api.Method, args as IDictionary);
+            }
+            catch (ThreadAbortException) { throw; }
+            catch (Exception ex)
+            {
+                // 执行异常过滤器
+                etx = new ExceptionContext(ctx) { Exception = ex, Result = rs };
 
+                foreach (var filter in fs)
+                {
+                    var ef = filter as IExceptionFilter;
+                    if (ef != null) ef.OnException(etx);
+                }
+
+                // 如果异常没有被拦截，继续向外抛出
+                if (!etx.ExceptionHandled) throw;
+
+                return etx.Result;
+            }
+            finally
+            {
+                // 执行动作后的过滤器
                 if (fs.Length > 0)
                 {
                     // 倒序
                     fs = fs.Reverse().ToArray();
 
-                    var actx = new ActionExecutedContext(ctx) {Result = rs};
+                    var atx = new ActionExecutedContext(ctx) { Result = rs };
+                    // 可能发生了异常
+                    if (etx != null)
+                    {
+                        atx.Exception = etx.Exception;
+                        atx.ExceptionHandled = etx.ExceptionHandled;
+                        atx.Result = etx.Result;
+                    }
                     foreach (var filter in fs)
                     {
-                        filter.OnActionExecuted(actx);
+                        filter.OnActionExecuted(atx);
                     }
-                    rs = actx.Result;
+                    rs = atx.Result;
                 }
-
-                return rs;
             }
-            //先注释 等大石头处理 :)
-            //catch (ThreadAbortException) { }
-            catch (Exception ex)
-            {
-                var exctx = new ExceptionContext(ctx) {Exception = ex};
 
-                // 如果异常没有被拦截，继续向外抛出
-                if (!exctx.ExceptionHandled) throw;
-
-                return exctx.Result;
-            }
+            return rs;
         }
     }
 }
