@@ -51,6 +51,7 @@ namespace NewLife.MessageQueue
                 ac = new ApiClient(Remote);
                 ac.Encoder = new JsonEncoder { Log = Log };
                 ac.Log = Log;
+
                 ac.Open();
 
                 Client = ac;
@@ -90,6 +91,8 @@ namespace NewLife.MessageQueue
             //SendPack("Subscribe", topic);
 
             var rs = await Client.InvokeAsync<Boolean>("Topic/Subscribe", new { topic });
+
+            if (rs) Client.Register<ClientController>();
 
             return rs;
         }

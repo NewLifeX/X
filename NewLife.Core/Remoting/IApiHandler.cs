@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Reflection;
@@ -23,7 +22,7 @@ namespace NewLife.Remoting
 
     class ApiHandler : IApiHandler
     {
-        public ApiServer Server { get; set; }
+        public IApiHost Host { get; set; }
 
         /// <summary>执行</summary>
         /// <param name="session"></param>
@@ -32,14 +31,14 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<Object> Execute(IApiSession session, String action, IDictionary<String, Object> args)
         {
-            var api = Server.FindAction(action);
+            var api = Host.Manager.Find(action);
             if (api == null) throw new Exception("无法找到名为[{0}]的服务！".F(action));
 
             var controller = api.Method.DeclaringType.CreateInstance();
             if (controller is IApi) (controller as IApi).Session = session;
 
             var host = session.GetService<IApiServer>();
-            var enc = host.Encoder ?? Server.Encoder;
+            var enc = host.Encoder ?? Host.Encoder;
 
             var fs = api.ActionFilters;
             var ps = GetParams(api.Method, args, enc);

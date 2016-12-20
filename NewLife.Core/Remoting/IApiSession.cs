@@ -6,7 +6,7 @@ namespace NewLife.Remoting
     /// <summary>Api会话</summary>
     public interface IApiSession : IServiceProvider
     {
-        /// <summary>正在连接的所有会话，包含自己</summary>
+        /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] AllSessions { get; }
 
         /// <summary>获取/设置 用户会话数据</summary>

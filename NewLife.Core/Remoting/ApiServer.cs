@@ -8,7 +8,7 @@ using NewLife.Reflection;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口服务器</summary>
-    public class ApiServer : DisposeBase, IServiceProvider
+    public class ApiServer : DisposeBase, IApiHost, IServiceProvider
     {
         #region 静态
         /// <summary>协议到提供者类的映射</summary>
@@ -34,6 +34,9 @@ namespace NewLife.Remoting
 
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
+
+        /// <summary>处理器</summary>
+        public IApiHandler Handler { get; set; }
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
@@ -110,18 +113,18 @@ namespace NewLife.Remoting
             if (Active) return;
 
             Log.Info("启动{0}，共有服务器{1}个", this.GetType().Name, Servers.Count);
-            var handler = new ApiHandler { Server = this };
+            if (Handler == null) Handler = new ApiHandler { Host = this };
             foreach (var item in Servers)
             {
-                if (item.Handler == null) item.Handler = handler;
+                if (item.Handler == null) item.Handler = Handler;
                 if (item.Encoder == null) item.Encoder = Encoder;
-                item.Host = this;
+                item.Provider = this;
                 item.Log = Log;
                 item.Start();
             }
 
-            Log.Info("可用接口{0}个：", Services.Count);
-            foreach (var item in Services)
+            Log.Info("服务端可用接口{0}个：", Manager.Services.Count);
+            foreach (var item in Manager.Services)
             {
                 Log.Info("\t{0}\t{1}", item.Key, item.Value);
             }
@@ -145,34 +148,14 @@ namespace NewLife.Remoting
         #endregion
 
         #region 控制器管理
-        /// <summary>可提供服务的方法</summary>
-        public IDictionary<string, ApiAction> Services { get; } = new Dictionary<string, ApiAction>();
+        /// <summary>接口动作管理器</summary>
+        public IApiManager Manager { get; } = new ApiManager();
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
         public void Register<TService>() where TService : class, new()
         {
-            var type = typeof(TService);
-            //var name = type.Name.TrimEnd("Controller");
-
-            foreach (var mi in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
-            {
-                if (mi.IsSpecialName) continue;
-                if (mi.DeclaringType == typeof(object)) continue;
-
-                var act = new ApiAction(mi);
-
-                Services[act.Name] = act;
-            }
-        }
-
-        /// <summary>查找服务</summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public ApiAction FindAction(string action)
-        {
-            ApiAction mi;
-            return Services.TryGetValue(action, out mi) ? mi : null;
+            Manager.Register<TService>();
         }
         #endregion
 
@@ -182,7 +165,11 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public Object GetService(Type serviceType)
         {
-            if (serviceType == typeof(ApiServer)) return this;
+            if (serviceType == GetType()) return this;
+            if (serviceType == typeof(IApiHost)) return this;
+            if (serviceType == typeof(IApiManager)) return Manager;
+            if (serviceType == typeof(IEncoder) && Encoder != null) return Encoder;
+            if (serviceType == typeof(IApiHandler) && Handler != null) return Handler;
 
             return null;
         }

@@ -11,7 +11,7 @@ namespace System
         /// <returns></returns>
         public static T GetService<T>(this IServiceProvider provider)
         {
-            return (T)provider.GetService(typeof(T));
+            return (T)provider?.GetService(typeof(T));
         }
     }
 }

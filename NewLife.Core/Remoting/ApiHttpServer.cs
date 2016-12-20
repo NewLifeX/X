@@ -10,13 +10,16 @@ namespace NewLife.Remoting
     {
         #region 属性
         /// <summary>Api服务器主机</summary>
-        public IServiceProvider Host { get; set; }
+        public IServiceProvider Provider { get; set; }
 
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
 
         /// <summary>处理器</summary>
         public IApiHandler Handler { get; set; }
+
+        /// <summary>当前服务器所有会话</summary>
+        public IApiSession[] AllSessions { get { return null; } }
 
         /// <summary>监听器</summary>
         public HttpListener Listener { get; set; }
@@ -72,9 +75,9 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public Object GetService(Type serviceType)
         {
-            if (serviceType == typeof(ApiServer)) return Host;
+            if (serviceType == typeof(ApiServer)) return Provider;
 
-            return Host.GetService(serviceType);
+            return Provider?.GetService(serviceType);
         }
 
         #region 日志
