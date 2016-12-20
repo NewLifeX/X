@@ -102,6 +102,14 @@ namespace NewLife.Net
 
         /// <summary>是否输出接收日志。默认false</summary>
         public Boolean LogReceive { get; set; }
+
+        /// <summary>用户会话数据</summary>
+        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
+
+        /// <summary>获取/设置 用户会话数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual Object this[String key] { get { return Items.ContainsKey(key) ? Items[key] : null; } set { Items[key] = value; } }
         #endregion
 
         #region 构造
