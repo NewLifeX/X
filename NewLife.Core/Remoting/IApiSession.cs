@@ -12,7 +12,7 @@ namespace NewLife.Remoting
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        Object this[String key] { get; set; }
+        object this[string key] { get; set; }
 
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>

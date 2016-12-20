@@ -43,6 +43,7 @@
     <Compile Include="Center\CenterServer.cs" />
     <Compile Include="Center\ClusterManager.cs" />
     <Compile Include="Center\Controllers\BrokerController.cs" />
+    <Compile Include="Center\IClusterManager.cs" />
     <Compile Include="Center\Setting.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocols\BatchMessageItemResult.cs" />

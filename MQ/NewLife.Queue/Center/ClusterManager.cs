@@ -13,7 +13,7 @@ using NewLife.Net;
 
 namespace NewLife.Queue.Center
 {
-    public class ClusterManager
+    public class ClusterManager: IClusterManager
     {
         private readonly ConcurrentDictionary<string /*clusterName*/, Cluster> _clusterDict;
         private readonly CenterServer _centerServer;

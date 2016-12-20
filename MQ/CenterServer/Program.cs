@@ -8,7 +8,7 @@ using NewLife.Net;
 using NewLife.Queue.Center;
 using NewLife.Remoting;
 
-namespace CenterServer
+namespace CenterService
 {
     class Program
     {
@@ -23,7 +23,7 @@ namespace CenterServer
         static async void Test()
         {
 
-            var svr = new NewLife.Queue.Center.CenterServer(3344);
+            var svr = new CenterServer(3344);
             svr.Start();
             var client = new ApiClient("tcp://127.0.0.1:3344") { Encoder = new JsonEncoder() };
             client.Log = XTrace.Log;

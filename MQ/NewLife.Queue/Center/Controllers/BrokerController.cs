@@ -36,8 +36,8 @@ namespace NewLife.Queue.Center.Controllers
             var netsession = Session as INetSession;
             if (netsession != null)
             {
-                var server = netsession.Server as NewLife.Queue.Center.CenterServer;
-                return server?.Demo + msg;
+                var server = netsession.Host;
+                return  msg;
             }
             return "不对" + msg;
         }

@@ -7,8 +7,8 @@
     <ProjectGuid>{DB9423BC-4971-47C8-9A6B-BBEB741D0454}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CenterServer</RootNamespace>
-    <AssemblyName>CenterServer</AssemblyName>
+    <RootNamespace>CenterService</RootNamespace>
+    <AssemblyName>CenterService</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
