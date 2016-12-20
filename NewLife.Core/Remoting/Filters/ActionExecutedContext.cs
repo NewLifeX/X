@@ -22,6 +22,16 @@ namespace NewLife.Remoting
 
         /// <summary>拷贝实例化</summary>
         /// <param name="context"></param>
-        public ActionExecutedContext(ControllerContext context) : base(context) { }
+        public ActionExecutedContext(ControllerContext context) : base(context)
+        {
+            // 可能发生了异常
+            var etx = context as ExceptionContext;
+            if (etx != null)
+            {
+                Exception = etx.Exception;
+                ExceptionHandled = etx.ExceptionHandled;
+                Result = etx.Result;
+            }
+        }
     }
 }

@@ -50,28 +50,42 @@ namespace NewLife.Remoting
         /// <summary>处理远程调用</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        protected virtual void OnInvoke(string action, IDictionary<string, object> args)
+        protected virtual async void OnInvoke(string action, IDictionary<string, object> args)
         {
             var enc = Host.Encoder;
             object result = null;
             var rs = false;
             try
             {
-                result = Host.Handler.Execute(this, action, args);
+                result = await Host.Handler.Execute(this, action, args);
 
                 rs = true;
             }
             catch (Exception ex)
             {
-                result = ex.Message;
+                //result = ex.Message;
+                result = ex;
             }
 
             var buf = enc.Encode(rs, result);
 
             Session.Send(buf);
+
+            //var task = Host.Handler.Execute(this, action, args);
+            //if (task == null) return;
+
+            //task.ContinueWith(t =>
+            //{
+            //    var rs = t.IsOK();
+            //    var result = rs ? t.Result : t.Exception;
+
+            //    var buf = Host.Encoder.Encode(rs, result);
+
+            //    Session.Send(buf);
+            //});
         }
 
-        /// <summary>调用</summary>
+        /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
         /// <param name="args"></param>
