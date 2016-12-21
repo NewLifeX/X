@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Reflection;
@@ -22,22 +22,26 @@ namespace NewLife.Remoting
 
     class ApiHandler : IApiHandler
     {
-        public ApiServer Server { get; set; }
+        public IApiHost Host { get; set; }
 
         /// <summary>执行</summary>
         /// <param name="session"></param>
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task<Object> Execute(IApiSession session, string action, IDictionary<string, object> args)
+        public async Task<Object> Execute(IApiSession session, String action, IDictionary<String, Object> args)
         {
-            var api = Server.FindAction(action);
+            var api = Host.Manager.Find(action);
             if (api == null) throw new Exception("无法找到名为[{0}]的服务！".F(action));
 
             var controller = api.Method.DeclaringType.CreateInstance();
             if (controller is IApi) (controller as IApi).Session = session;
 
+            var host = session.GetService<IApiServer>();
+            var enc = host.Encoder ?? Host.Encoder;
+
             var fs = api.ActionFilters;
+            var ps = GetParams(api.Method, args, enc);
 
             // 上下文
             var ctx = new ControllerContext
@@ -52,10 +56,12 @@ namespace NewLife.Remoting
             try
             {
                 // 执行动作前的过滤器
-                OnExecuting(ctx, fs, args);
+                OnExecuting(ctx, fs, ps);
+
+                // 准备好参数
 
                 // 执行动作
-                rs = await Task.Run(() => controller.InvokeWithParams(api.Method, args as IDictionary));
+                rs = await Task.Run(() => controller.InvokeWithParams(api.Method, ps as IDictionary));
             }
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)
@@ -77,7 +83,7 @@ namespace NewLife.Remoting
             return rs;
         }
 
-        protected virtual void OnExecuting(ControllerContext ctx, IActionFilter[] fs, IDictionary<string, object> args)
+        protected virtual void OnExecuting(ControllerContext ctx, IActionFilter[] fs, IDictionary<String, Object> args)
         {
             if (fs.Length == 0) return;
 
@@ -115,6 +121,29 @@ namespace NewLife.Remoting
             }
 
             return etx;
+        }
+
+        private IDictionary<String, Object> GetParams(MethodInfo method, IDictionary<String, Object> args, IEncoder encoder)
+        {
+            // 该方法没有参数，无视外部传入参数
+            var pis = method.GetParameters();
+            if (pis == null || pis.Length < 1) return null;
+
+            var ps = new Dictionary<String, Object>();
+            foreach (var pi in pis)
+            {
+                var name = pi.Name;
+
+                Object v = null;
+                if (args != null && args.ContainsKey(name)) v = args[name];
+
+                if (Type.GetTypeCode(pi.ParameterType) == TypeCode.Object && v is IDictionary<String, Object>)
+                    ps[name] = encoder.Convert(v, pi.ParameterType);
+                else
+                    ps[name] = v.ChangeType(pi.ParameterType);
+            }
+
+            return ps;
         }
     }
 }

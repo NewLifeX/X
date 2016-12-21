@@ -9,11 +9,17 @@ namespace NewLife.Remoting
     class ApiHttpServer : DisposeBase, IApiServer
     {
         #region 属性
+        /// <summary>Api服务器主机</summary>
+        public IServiceProvider Provider { get; set; }
+
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
 
         /// <summary>处理器</summary>
         public IApiHandler Handler { get; set; }
+
+        /// <summary>当前服务器所有会话</summary>
+        public IApiSession[] AllSessions { get { return null; } }
 
         /// <summary>监听器</summary>
         public HttpListener Listener { get; set; }
@@ -62,6 +68,16 @@ namespace NewLife.Remoting
 
             Listener.Stop();
             Listener = null;
+        }
+
+        /// <summary>获取服务提供者</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public Object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(ApiServer)) return Provider;
+
+            return Provider?.GetService(serviceType);
         }
 
         #region 日志

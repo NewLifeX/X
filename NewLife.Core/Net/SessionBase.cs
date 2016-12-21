@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -374,7 +373,7 @@ namespace NewLife.Net
 
         /// <summary>开始监听</summary>
         /// <returns>是否成功</returns>
-        protected virtual Boolean ReceiveAsync()
+        public virtual Boolean ReceiveAsync()
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 

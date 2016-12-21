@@ -7,6 +7,9 @@ namespace NewLife.Remoting
     /// <summary>应用接口客户端接口</summary>
     public interface IApiClient
     {
+        /// <summary>服务提供者</summary>
+        IServiceProvider Provider { get; set; }
+
         /// <summary>初始化</summary>
         /// <param name="config"></param>
         /// <returns></returns>

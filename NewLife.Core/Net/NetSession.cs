@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -36,6 +37,14 @@ namespace NewLife.Net
 
         /// <summary>客户端地址</summary>
         public NetUri Remote { get { return Session == null ? null : Session.Remote; } }
+
+        /// <summary>用户会话数据</summary>
+        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
+
+        /// <summary>获取/设置 用户会话数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual Object this[String key] { get { return Items.ContainsKey(key) ? Items[key] : null; } set { Items[key] = value; } }
         #endregion
 
         #region 方法
@@ -43,6 +52,8 @@ namespace NewLife.Net
         public virtual void Start()
         {
             if (LogSession && Log != null && Log.Enable) WriteLog("新会话 {0}", Session);
+
+            //this["Host"] = (this as INetSession).Host;
 
             var ss = Session;
             if (ss != null)

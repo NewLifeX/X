@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NewLife.Log;
 
 namespace NewLife.MessageQueue
@@ -10,27 +7,30 @@ namespace NewLife.MessageQueue
     public class MQTest
     {
         /// <summary>基础测试</summary>
-        public static void TestBase()
+        public static async void TestBase()
         {
             var svr = new MQServer();
+            //svr.Server.Log = XTrace.Log;
             svr.Start();
 
             var client = new MQClient();
+            client.Log = XTrace.Log;
             client.Name = "user1";
-            client.Public("test");
+            await client.CreateTopic("test");
 
             var user = new MQClient();
+            user.Log = XTrace.Log;
             user.Name = "user2";
             user.Received += (s, e) =>
             {
                 XTrace.WriteLine("user.收到推送 {0}", e.Arg);
             };
             //user.Open();
-            user.Subscribe("test");
+            await user.Subscribe("test");
 
             for (int i = 0; i < 3; i++)
             {
-                client.Send("test", "测试{0}".F(i + 1));
+                await client.Public("test", "测试{0}".F(i + 1));
             }
 
             Console.ReadKey(true);

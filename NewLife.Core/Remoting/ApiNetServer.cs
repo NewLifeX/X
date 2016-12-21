@@ -8,11 +8,17 @@ namespace NewLife.Remoting
 {
     class ApiNetServer : NetServer<ApiNetSession>, IApiServer
     {
+        /// <summary>服务提供者</summary>
+        public IServiceProvider Provider { get; set; }
+
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
 
         /// <summary>处理器</summary>
         public IApiHandler Handler { get; set; }
+
+        /// <summary>当前服务器所有会话</summary>
+        public IApiSession[] AllSessions { get { return Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray(); } }
 
         public ApiNetServer()
         {
@@ -33,28 +39,54 @@ namespace NewLife.Remoting
 
             return true;
         }
+
+        /// <summary>启动中</summary>
+        protected override void OnStart()
+        {
+            //if (Encoder == null) Encoder = new JsonEncoder();
+            if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
+
+            base.OnStart();
+        }
+
+        /// <summary>获取服务提供者</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public Object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(ApiServer)) return Provider;
+            if (serviceType == typeof(IEncoder) && Encoder != null) return Encoder;
+            if (serviceType == typeof(IApiHandler) && Handler != null) return Handler;
+
+            return Provider?.GetService(serviceType);
+        }
     }
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     {
-        /// <summary>正在连接的所有会话，包含自己</summary>
-        public virtual IApiSession[] AllSessions { get { return Host.Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray(); } }
-
-        private Dictionary<String, Object> _items = new Dictionary<string, object>();
-        /// <summary>获取/设置 用户会话数据</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public virtual Object this[String key] { get { return _items.ContainsKey(key) ? _items[key] : null; } set { _items[key] = value; } }
+        /// <summary>所有服务器所有会话，包含自己</summary>
+        public virtual IApiSession[] AllSessions
+        {
+            get
+            {
+                //return Host.Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
+                // 需要收集所有服务器的所有会话
+                var svr = this.GetService<ApiServer>();
+                return svr.Servers.SelectMany(e => e.AllSessions).ToArray();
+            }
+        }
 
         protected override void OnReceive(ReceivedEventArgs e)
         {
             var enc = Host.Encoder;
 
+            var dic = enc.Decode(e.Data);
+
             var act = "";
-            IDictionary<string, object> args = null;
-            if (enc.Decode(e.Data, out act, out args))
+            Object args = null;
+            if (enc.TryGet(dic, out act, out args))
             {
-                OnInvoke(act, args);
+                OnInvoke(act, args as IDictionary<string, object>);
             }
         }
 
@@ -81,19 +113,6 @@ namespace NewLife.Remoting
             var buf = enc.Encode(rs, result);
 
             Session.Send(buf);
-
-            //var task = Host.Handler.Execute(this, action, args);
-            //if (task == null) return;
-
-            //task.ContinueWith(t =>
-            //{
-            //    var rs = t.IsOK();
-            //    var result = rs ? t.Result : t.Exception;
-
-            //    var buf = Host.Encoder.Encode(rs, result);
-
-            //    Session.Send(buf);
-            //});
         }
 
         /// <summary>远程调用</summary>
@@ -101,14 +120,27 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task<TResult> Invoke<TResult>(string action, object args = null)
+        public async Task<TResult> InvokeAsync<TResult>(string action, object args = null)
         {
             var enc = Host.Encoder;
             var data = enc.Encode(action, args);
 
             var rs = await SendAsync(data);
 
-            return enc.Decode<TResult>(rs);
+            var dic = enc.Decode(rs);
+
+            return enc.Decode<TResult>(dic);
+        }
+
+        /// <summary>获取服务提供者</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public Object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(IApiSession)) return this;
+            if (serviceType == typeof(IApiServer)) return Host;
+
+            return Host?.GetService(serviceType);
         }
     }
 }

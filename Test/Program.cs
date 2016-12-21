@@ -118,7 +118,8 @@ namespace Test
 
         static void Test4()
         {
-            ApiTest.Main();
+            //ApiTest.Main();
+            NewLife.MessageQueue.MQTest.TestBase();
             //TestService.ServiceMain();
             //HeaderLengthPacket.Test();
             //var svr = new DNSServer();
