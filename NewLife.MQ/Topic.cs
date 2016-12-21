@@ -38,9 +38,22 @@ namespace NewLife.MessageQueue
 
             var scb = new Subscriber
             {
+                User = user,
                 Session = session
             };
             Subscribers[user] = scb;
+
+            var ds = session as IDisposable2;
+            if (ds != null) ds.OnDisposed += (s, e) => Remove(user);
+
+#if DEBUG
+            var msg = new Message
+            {
+                Sender = user,
+                Body = "上线啦".GetBytes()
+            };
+            Enqueue(msg);
+#endif
 
             return true;
         }
@@ -50,7 +63,18 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         public Boolean Remove(String user)
         {
-            return Subscribers.Remove(user);
+            if (!Subscribers.Remove(user)) return false;
+
+#if DEBUG
+            var msg = new Message
+            {
+                Sender = user,
+                Body = "下线啦".GetBytes()
+            };
+            Enqueue(msg);
+#endif
+
+            return true;
         }
         #endregion
 

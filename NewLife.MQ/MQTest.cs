@@ -45,7 +45,8 @@ namespace NewLife.MessageQueue
         public static async void Main()
         {
             Console.Write("选择模式 客户端=0，服务端=1 ：");
-            var mode = Console.ReadKey().ToInt();
+            var mode = Console.ReadKey().KeyChar.ToString().ToInt();
+            Console.WriteLine();
 
             if (mode == 0)
             {
@@ -84,7 +85,7 @@ namespace NewLife.MessageQueue
             else
             {
                 var svr = new MQServer();
-                //svr.Server.Log = XTrace.Log;
+                svr.Server.Log = XTrace.Log;
                 svr.Start();
             }
         }
