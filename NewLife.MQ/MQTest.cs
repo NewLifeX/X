@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace NewLife.MessageQueue
@@ -42,13 +43,13 @@ namespace NewLife.MessageQueue
         }
 
         /// <summary>分离式</summary>
-        public static async void Main()
+        public static void Main()
         {
-            Console.Write("选择模式 客户端=0，服务端=1 ：");
+            Console.Write("选择模式 客户端=1，服务端=2 ：");
             var mode = Console.ReadKey().KeyChar.ToString().ToInt();
             Console.WriteLine();
 
-            if (mode == 0)
+            if (mode == 1)
             {
                 Console.Write("用户名：");
                 var user = Console.ReadLine();
@@ -62,23 +63,28 @@ namespace NewLife.MessageQueue
                 var client = new MQClient();
                 client.Log = XTrace.Log;
                 client.Name = user;
-                await client.Login();
-                await client.CreateTopic(topic);
 
                 client.Received += (s, e) =>
                 {
                     XTrace.WriteLine("user.收到推送 {0}", e.Arg);
                 };
-                await client.Subscribe(topic);
+
+                Task.Run(async () =>
+                {
+                    await client.Login();
+                    await client.CreateTopic(topic);
+                    await client.Subscribe(topic);
+                }).Wait();
 
                 while (true)
                 {
+                    Console.Write("发布消息：");
                     var str = Console.ReadLine();
                     if (!str.IsNullOrEmpty())
                     {
                         if (str.EqualIgnoreCase("exit", "quit")) break;
 
-                        await client.Public(str);
+                        Task.Run(() => client.Public(str));
                     }
                 }
             }
