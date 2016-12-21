@@ -75,7 +75,8 @@ namespace NewLife.MessageQueue
         {
             Open();
 
-            //SendPack("Public", topic);
+            Log.Info("{0} 创建主题 {1}", Name, topic);
+
             var rs = await Client.InvokeAsync<Boolean>("Topic/Create", new { topic });
 
             return rs;
@@ -88,7 +89,7 @@ namespace NewLife.MessageQueue
         {
             Open();
 
-            //SendPack("Subscribe", topic);
+            Log.Info("{0} 订阅主题 {1}", Name, topic);
 
             var rs = await Client.InvokeAsync<Boolean>("Topic/Subscribe", new { topic });
 
@@ -107,7 +108,7 @@ namespace NewLife.MessageQueue
         {
             Open();
 
-            //SendPack("Message", msg + "");
+            Log.Info("{0} 发布消息 {1}", Name, msg);
 
             // 对象编码为二进制
             var buf = Client.Encoder.Encode(msg);
