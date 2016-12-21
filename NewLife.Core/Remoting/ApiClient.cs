@@ -86,7 +86,7 @@ namespace NewLife.Remoting
             if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
             //if (Handler == null) throw new ArgumentNullException(nameof(Handler), "未指定处理器");
 
-            if (Handler == null) Handler = new ApiHandler();
+            if (Handler == null) Handler = new ApiHandler { Host = this };
 
             //Client.Log = Log;
             Client.Open();

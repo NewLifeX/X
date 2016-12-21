@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NewLife.Remoting;
 using NewLife.Threading;
 
 namespace NewLife.MessageQueue
@@ -13,7 +14,7 @@ namespace NewLife.MessageQueue
         public String Name { get; set; }
 
         /// <summary>订阅者</summary>
-        private List<Subscriber> Subscribers { get; } = new List<Subscriber>();
+        private Dictionary<String, Subscriber> Subscribers { get; } = new Dictionary<String, Subscriber>();
 
         /// <summary>消息队列</summary>
         public Queue<Message> Queue { get; } = new Queue<Message>();
@@ -23,6 +24,33 @@ namespace NewLife.MessageQueue
         /// <summary>实例化</summary>
         public Topic()
         {
+        }
+        #endregion
+
+        #region 订阅管理
+        /// <summary>订阅主题</summary>
+        /// <param name="user"></param>
+        /// <param name="session"></param>
+        /// <returns></returns>
+        public Boolean Add(String user, IApiSession session)
+        {
+            if (Subscribers.ContainsKey(user)) return false;
+
+            var scb = new Subscriber
+            {
+                Session = session
+            };
+            Subscribers[user] = scb;
+
+            return true;
+        }
+
+        /// <summary>取消订阅</summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public Boolean Remove(String user)
+        {
+            return Subscribers.Remove(user);
         }
         #endregion
 
@@ -67,9 +95,10 @@ namespace NewLife.MessageQueue
                     // 消息出列
                     var msg = Queue.Dequeue();
                     // 向每一个订阅者推送消息
-                    foreach (var ss in Subscribers)
+                    foreach (var ss in Subscribers.Values.ToArray())
                     {
-                        await ss.NoitfyAsync(msg);
+                        if (ss.User != msg.Sender)
+                            await ss.NoitfyAsync(msg);
                     }
                 }
             });

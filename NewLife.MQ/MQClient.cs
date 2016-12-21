@@ -122,10 +122,9 @@ namespace NewLife.MessageQueue
 
         #region 收发消息
         /// <summary>发布消息</summary>
-        /// <param name="topic"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public async Task<Boolean> Public(String topic, Object msg)
+        public async Task<Boolean> Public(Object msg)
         {
             Open();
 

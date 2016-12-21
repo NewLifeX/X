@@ -19,6 +19,14 @@ namespace NewLife.MessageQueue
         {
             XTrace.WriteLine("发布消息 {0}", msg);
 
+            var user = Session["user"] as String;
+
+            var tp = Session["Topic"] as Topic;
+            if (tp == null) throw new Exception("未订阅");
+
+            msg.Sender = user;
+            tp.Enqueue(msg);
+
             return true;
         }
     }

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Remoting;
 
@@ -41,7 +38,9 @@ namespace NewLife.MessageQueue
         {
             XTrace.WriteLine("创建主题 {0} @{1}", topic, Session["user"]);
 
-            Check(topic, true);
+            var tp = Check(topic, true);
+
+            Session["Topic"] = tp;
 
             return true;
         }
@@ -56,7 +55,22 @@ namespace NewLife.MessageQueue
 
             var tp = Check(topic, false);
 
+            Sub(tp);
+
             return true;
+        }
+
+        private void Sub(Topic tp)
+        {
+            var user = Session["user"] as String;
+
+            // 退订旧的
+            var old = Session["Topic"] as Topic;
+            if (old != null) old.Remove(user);
+
+            // 订阅新的
+            Session["Topic"] = tp;
+            tp.Add(user, Session);
         }
     }
 }

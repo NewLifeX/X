@@ -38,7 +38,7 @@ namespace NewLife.Remoting
             if (controller is IApi) (controller as IApi).Session = session;
 
             var host = session.GetService<IApiServer>();
-            var enc = host.Encoder ?? Host.Encoder;
+            var enc = host?.Encoder ?? Host.Encoder;
 
             var fs = api.ActionFilters;
             var ps = GetParams(api.Method, args, enc);
