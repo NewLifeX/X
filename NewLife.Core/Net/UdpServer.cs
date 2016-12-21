@@ -21,7 +21,7 @@ namespace NewLife.Net
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
-        public Int32 SessionTimeout { get; set; }
+        public Int32 SessionTimeout { get; set; } = 30;
 
         /// <summary>最后一次同步接收数据得到的远程地址</summary>
         public IPEndPoint LastRemote { get; set; }
@@ -40,7 +40,7 @@ namespace NewLife.Net
         /// <summary>实例化增强UDP</summary>
         public UdpServer()
         {
-            SessionTimeout = 30;
+            //SessionTimeout = 30;
 
             Local = new NetUri(NetType.Udp, IPAddress.Any, 0);
             Remote.Type = NetType.Udp;

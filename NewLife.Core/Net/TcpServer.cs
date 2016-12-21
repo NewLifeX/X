@@ -32,7 +32,7 @@ namespace NewLife.Net
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
-        public Int32 SessionTimeout { get; set; }
+        public Int32 SessionTimeout { get; set; } = 30;
 
         ///// <summary>自动开始会话的异步接收，默认true。</summary>
         ///// <remarks>接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</remarks>
@@ -40,7 +40,7 @@ namespace NewLife.Net
 
         /// <summary>异步处理接收到的数据，默认false。</summary>
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
-        public Boolean ProcessAsync { get; set; }
+        public Boolean ProcessAsync { get; set; } = true;
 
         /// <summary>底层Socket</summary>
         public Socket Client { get; private set; }
@@ -58,13 +58,13 @@ namespace NewLife.Net
         public IPacketFactory SessionPacket { get; set; }
 
         /// <summary>会话统计</summary>
-        public IStatistics StatSession { get; set; }
+        public IStatistics StatSession { get; set; } = new Statistics();
 
         /// <summary>发送统计</summary>
-        public IStatistics StatSend { get; set; }
+        public IStatistics StatSend { get; set; } = new Statistics();
 
         /// <summary>接收统计</summary>
-        public IStatistics StatReceive { get; set; }
+        public IStatistics StatReceive { get; set; } = new Statistics();
 
         /// <summary>数据包请求配对队列</summary>
         public IPacketQueue PacketQueue { get; set; } = new DefaultPacketQueue();
@@ -77,16 +77,16 @@ namespace NewLife.Net
             Name = GetType().Name;
 
             Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
-            SessionTimeout = 30;
+            //SessionTimeout = 30;
             //AutoReceiveAsync = true;
-            ProcessAsync = true;
+            //ProcessAsync = true;
 
             MaxAsync = Environment.ProcessorCount * 16 / 10;
 
             _Sessions = new SessionCollection(this);
-            StatSession = new Statistics();
-            StatSend = new Statistics();
-            StatReceive = new Statistics();
+            //StatSession = new Statistics();
+            //StatSend = new Statistics();
+            //StatReceive = new Statistics();
 
             Log = Logger.Null;
         }

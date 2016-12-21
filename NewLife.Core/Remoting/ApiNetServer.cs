@@ -24,6 +24,7 @@ namespace NewLife.Remoting
         {
             Name = "Api";
             UseSession = true;
+            SessionTimeout = 10 * 60;
         }
 
         /// <summary>初始化</summary>
