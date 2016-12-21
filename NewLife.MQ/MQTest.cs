@@ -62,6 +62,11 @@ namespace NewLife.MessageQueue
                 // 创建MQ客户端
                 var client = new MQClient();
                 client.Log = XTrace.Log;
+                if (user.Contains("@"))
+                {
+                    client.Remote.Host = user.Substring("@");
+                    user = user.Substring(null, "@");
+                }
                 client.Name = user;
 
                 client.Received += (s, e) =>
