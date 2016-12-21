@@ -1,11 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
+using NewLife.Log;
 using NewLife.Remoting;
 
 namespace NewLife.MessageQueue
 {
     /// <summary>消息控制器</summary>
-    public class MessageController:IApi
+    public class MessageController : IApi
     {
         /// <summary>Api接口会话</summary>
         public IApiSession Session { get; set; }
@@ -16,6 +17,8 @@ namespace NewLife.MessageQueue
         [DisplayName("发布消息")]
         public Boolean Public(Message msg)
         {
+            XTrace.WriteLine("发布消息 {0}", msg);
+
             return true;
         }
     }

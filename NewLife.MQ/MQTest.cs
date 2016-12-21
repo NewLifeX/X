@@ -15,18 +15,19 @@ namespace NewLife.MessageQueue
 
             var client = new MQClient();
             client.Log = XTrace.Log;
-            client.Name = "user1";
-            await client.CreateTopic("test");
+            client.Name = "张三";
+            await client.Login();
+            await client.CreateTopic("新生命团队");
 
             var user = new MQClient();
             user.Log = XTrace.Log;
-            user.Name = "user2";
+            user.Name = "李四";
+            await user.Login();
             user.Received += (s, e) =>
             {
                 XTrace.WriteLine("user.收到推送 {0}", e.Arg);
             };
-            //user.Open();
-            await user.Subscribe("test");
+            await user.Subscribe("新生命团队");
 
             for (int i = 0; i < 3; i++)
             {

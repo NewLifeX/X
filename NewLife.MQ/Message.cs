@@ -16,5 +16,12 @@ namespace NewLife.MessageQueue
 
         /// <summary>主体</summary>
         public Byte[] Body { get; set; }
+
+        /// <summary>已重载</summary>
+        /// <returns></returns>
+        public override String ToString()
+        {
+            return "{0}#{1}".F(Sender, Body?.ToStr());
+        }
     }
 }

@@ -15,24 +15,33 @@ namespace NewLife.MessageQueue
         /// <summary>Api接口会话</summary>
         public IApiSession Session { get; set; }
 
+        private Topic Check(String topic, Boolean create)
+        {
+            var host = Session.GetService<ApiServer>();
+            var topics = host["Topics"] as IDictionary<String, Topic>;
+
+            Topic tp = null;
+            if (topics.TryGetValue(topic, out tp)) return tp;
+
+            if (!create) throw new Exception("主题[{0}]不存在".F(topic));
+
+            tp = new Topic();
+            tp.Name = topic;
+
+            topics[topic] = tp;
+
+            return tp;
+        }
+
         /// <summary>创建主题</summary>
         /// <param name="topic"></param>
         /// <returns></returns>
         [DisplayName("创建主题")]
         public Boolean Create(String topic)
         {
-            //var host = Session["Host"] as IApiServer;
-            var host = Session.GetService<ApiServer>();
-            var topics = host["Topics"] as IDictionary<String, Topic>;
+            XTrace.WriteLine("创建主题 {0} @{1}", topic, Session["user"]);
 
-            if (topics.ContainsKey(topic)) throw new Exception("主题[{0}]已存在".F(topic));
-
-            XTrace.WriteLine("创建主题 {0}", topic);
-
-            var tp = new Topic();
-            tp.Name = topic;
-
-            topics[topic] = tp;
+            Check(topic, true);
 
             return true;
         }
@@ -43,7 +52,9 @@ namespace NewLife.MessageQueue
         [DisplayName("订阅主题")]
         public Boolean Subscribe(String topic)
         {
-            XTrace.WriteLine("订阅主题 {0}", topic);
+            XTrace.WriteLine("订阅主题 {0} @{1}", topic, Session["user"]);
+
+            var tp = Check(topic, false);
 
             return true;
         }

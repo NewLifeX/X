@@ -18,6 +18,9 @@ namespace NewLife.MessageQueue
 
         /// <summary>网络客户端</summary>
         public ApiClient Client { get; set; }
+
+        /// <summary>已登录</summary>
+        public Boolean Logined { get; private set; }
         #endregion
 
         #region 构造函数
@@ -52,11 +55,15 @@ namespace NewLife.MessageQueue
                 ac.Encoder = new JsonEncoder();
                 ac.Log = Log;
 
+                var ss = ac.Client as IApiSession;
+                ss["user"] = Name;
+
                 ac.Open();
 
                 Client = ac;
 
-                //SendPack("Name", Name);
+                //// 异步登录
+                //if (!Name.IsNullOrEmpty()) Task.Run(Login);
             }
         }
 
@@ -64,6 +71,20 @@ namespace NewLife.MessageQueue
         public void Close()
         {
             Client.Close();
+        }
+        #endregion
+
+        #region 登录验证
+        /// <summary>登录</summary>
+        /// <returns></returns>
+        public async Task<Boolean> Login()
+        {
+            Open();
+
+            var rs = await Client.InvokeAsync<Boolean>("User/Login", new { user = Name, pass = Name.MD5() });
+            Logined = rs;
+
+            return rs;
         }
         #endregion
 
