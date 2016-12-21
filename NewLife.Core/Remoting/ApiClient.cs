@@ -88,13 +88,17 @@ namespace NewLife.Remoting
 
             if (Handler == null) Handler = new ApiHandler();
 
-            Client.Log = Log;
+            //Client.Log = Log;
             Client.Open();
 
-            Log.Info("客户端可用接口{0}个：", Manager.Services.Count);
-            foreach (var item in Manager.Services)
+            var ms = Manager.Services;
+            if (ms.Count > 0)
             {
-                Log.Info("\t{0}\t{1}", item.Key, item.Value);
+                Log.Info("客户端可用接口{0}个：", ms.Count);
+                foreach (var item in ms)
+                {
+                    Log.Info("\t{0}\t{1}", item.Key, item.Value);
+                }
             }
         }
 

@@ -39,7 +39,7 @@ namespace NewLife.MessageQueue
             if (Server.Active) return;
 
             // 编码器
-            if (Server.Encoder == null) Server.Encoder = new JsonEncoder { Log = Server.Log };
+            if (Server.Encoder == null) Server.Encoder = new JsonEncoder();
 
             // 注册控制器
             Server.Register<TopicController>();

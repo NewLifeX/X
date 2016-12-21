@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Log;
 using NewLife.Remoting;
 
 namespace NewLife.MessageQueue
@@ -26,6 +27,8 @@ namespace NewLife.MessageQueue
 
             if (topics.ContainsKey(topic)) throw new Exception("主题[{0}]已存在".F(topic));
 
+            XTrace.WriteLine("创建主题 {0}", topic);
+
             var tp = new Topic();
             tp.Name = topic;
 
@@ -40,6 +43,8 @@ namespace NewLife.MessageQueue
         [DisplayName("订阅主题")]
         public Boolean Subscribe(String topic)
         {
+            XTrace.WriteLine("订阅主题 {0}", topic);
+
             return true;
         }
     }
