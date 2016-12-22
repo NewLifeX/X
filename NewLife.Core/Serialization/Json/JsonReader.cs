@@ -194,6 +194,8 @@ namespace NewLife.Serialization
                 var pt = pi.PropertyType;
                 if (pt.IsEnum)
                     val = Enum.Parse(pt, v + "");
+                else if (pt == typeof(Object))
+                    val =v;
                 else if (pt == typeof(DateTime))
                     val = CreateDateTime((String)v);
                 else if (pt == typeof(Guid))
