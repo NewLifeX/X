@@ -259,7 +259,6 @@ namespace NewLife.Log
             var show = _ShowErrorMessage && Application.MessageLoop;
             var ex = e.ExceptionObject as Exception;
             var msg = ex == null ? "" : ex.Message;
-            //WriteLine(msg);
             WriteException(ex);
             if (e.IsTerminating)
             {
@@ -268,6 +267,8 @@ namespace NewLife.Log
             }
             else
             {
+                ex = ex.GetTrue();
+                if (ex != null) Log.Error(ex.Message);
                 if (show) MessageBox.Show(msg, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -565,6 +566,6 @@ namespace NewLife.Log
             var asmx = AssemblyX.Create(asm);
             if (asmx != null) WriteLine("{0,-12} v{1,-13} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
         }
-#endregion
+        #endregion
     }
 }
