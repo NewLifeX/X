@@ -291,7 +291,7 @@ namespace NewLife.Net
 
             se.RemoteEndPoint = qi.Remote;
 
-            var count = 1;
+            //var count = 1;
             // 拷贝缓冲区，设置长度
             {
                 var p = 0;
@@ -313,13 +313,13 @@ namespace NewLife.Net
 
                     len = qi.Buffer.Length;
 
-                    count++;
+                    //count++;
                 }
 
                 se.SetBuffer(0, p);
             }
 
-            WriteDebugLog("SendQueue packet={0} Length={1}", count, se.Count);
+            //WriteDebugLog("SendQueue packet={0} Length={1}", count, se.Count);
 
             if (!OnSendAsync(se))
             {

@@ -245,7 +245,7 @@ namespace NewLife.Net
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);
 
-            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex());
+            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
             Received?.Invoke(this, e);
         }

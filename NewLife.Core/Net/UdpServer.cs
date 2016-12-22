@@ -245,7 +245,7 @@ namespace NewLife.Net
             else
             {
                 // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
-                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex());
+                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
             }
 
             if (session != null) RaiseReceive(session, e);
