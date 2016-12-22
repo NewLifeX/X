@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NewLife.Net
 {
@@ -50,6 +51,11 @@ namespace NewLife.Net
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
         INetSession Send(string msg, Encoding encoding = null);
+
+        /// <summary>异步发送并等待响应</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        Task<Byte[]> SendAsync(Byte[] buffer);
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;

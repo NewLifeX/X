@@ -198,6 +198,9 @@ namespace XNet
                 _Server.LogSend = cfg.ShowSend;
                 _Server.LogReceive = cfg.ShowReceive;
 
+                // 加大会话超时时间到1天
+                _Server.SessionTimeout = 24 * 3600;
+
                 _Server.Start();
 
                 "正在监听{0}".F(port).SpeechTip();
@@ -336,11 +339,11 @@ namespace XNet
 
             SaveConfig();
 
-            if (_Client == null)
-            {
-                XTrace.WriteLine("未连接服务端！");
-                return;
-            }
+            //if (_Client == null)
+            //{
+            //    XTrace.WriteLine("未连接服务端！");
+            //    return;
+            //}
 
             var cfg = NetConfig.Current;
 
@@ -348,29 +351,45 @@ namespace XNet
             str = str.Replace("\n", "\r\n");
             var buf = cfg.HexSend ? str.ToHex() : str.GetBytes();
 
-            if (ths <= 1)
-                _Client.SendAsync(buf, count, sleep);
-            else
+            if (_Client != null)
             {
-                // 多线程测试
-                //Task.Factory.StartNew(() =>
-                //{
-                //    for (int i = 0; i < ths; i++)
-                //    {
-                //        var client = _Client.Remote.CreateRemote();
-                //        client.StatSend = _Client.StatSend;
-                //        client.StatReceive = _Client.StatReceive;
-                //        //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
-                //        client.SendAsync(buf, count, sleep);
-                //    }
-                //}).LogException();
-                Parallel.For(0, ths, n =>
+                if (ths <= 1)
                 {
-                    var client = _Client.Remote.CreateRemote();
-                    client.StatSend = _Client.StatSend;
-                    client.StatReceive = _Client.StatReceive;
-                    //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
-                    client.SendAsync(buf, count, sleep);
+                    _Client.SendAsync(buf, count, sleep);
+                }
+                else
+                {
+                    // 多线程测试
+                    //Task.Factory.StartNew(() =>
+                    //{
+                    //    for (int i = 0; i < ths; i++)
+                    //    {
+                    //        var client = _Client.Remote.CreateRemote();
+                    //        client.StatSend = _Client.StatSend;
+                    //        client.StatReceive = _Client.StatReceive;
+                    //        //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
+                    //        client.SendAsync(buf, count, sleep);
+                    //    }
+                    //}).LogException();
+                    Parallel.For(0, ths, n =>
+                    {
+                        var client = _Client.Remote.CreateRemote();
+                        client.StatSend = _Client.StatSend;
+                        client.StatReceive = _Client.StatReceive;
+                        //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
+                        client.SendAsync(buf, count, sleep);
+                    });
+                }
+            }
+            else if (_Server != null)
+            {
+                Task.Run(async () =>
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        var cs = await _Server.SendAllAsync(buf);
+                        XTrace.WriteLine("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
+                    }
                 });
             }
         }

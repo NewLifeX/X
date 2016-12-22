@@ -176,7 +176,10 @@ namespace NewLife.Net
                 if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast) Client.EnableBroadcast = true;
             }
 
-            return await base.SendAsync(buffer, remote);
+            // 这里先发送，基类的SendAsync注定发给Remote而不是remote
+            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, remote)) return null;
+
+            return await base.SendAsync(null, remote);
         }
 
         internal override bool OnSendAsync(SocketAsyncEventArgs se)

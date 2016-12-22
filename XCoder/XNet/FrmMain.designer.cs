@@ -173,19 +173,19 @@
             this.miHexSend,
             this.mi清空2});
             this.menuSend.Name = "menuSend";
-            this.menuSend.Size = new System.Drawing.Size(153, 70);
+            this.menuSend.Size = new System.Drawing.Size(123, 48);
             // 
             // miHexSend
             // 
             this.miHexSend.Name = "miHexSend";
-            this.miHexSend.Size = new System.Drawing.Size(152, 22);
+            this.miHexSend.Size = new System.Drawing.Size(122, 22);
             this.miHexSend.Text = "Hex发送";
             this.miHexSend.Click += new System.EventHandler(this.miHex发送_Click);
             // 
             // mi清空2
             // 
             this.mi清空2.Name = "mi清空2";
-            this.mi清空2.Size = new System.Drawing.Size(152, 22);
+            this.mi清空2.Size = new System.Drawing.Size(122, 22);
             this.mi清空2.Text = "清空";
             this.mi清空2.Click += new System.EventHandler(this.mi清空2_Click);
             // 
@@ -289,6 +289,8 @@
             // cbColor
             // 
             this.cbColor.AutoSize = true;
+            this.cbColor.Checked = true;
+            this.cbColor.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbColor.Location = new System.Drawing.Point(500, 15);
             this.cbColor.Name = "cbColor";
             this.cbColor.Size = new System.Drawing.Size(72, 16);

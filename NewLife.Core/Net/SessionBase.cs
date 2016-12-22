@@ -219,7 +219,7 @@ namespace NewLife.Net
             {
                 tc.Log = Log;
 
-                if (Local.Type == NetType.Udp && Object.Equals(remote.Address, IPAddress.Broadcast)) Client.EnableBroadcast = true;
+                if (Local.Type == NetType.Udp && remote != null && Object.Equals(remote.Address, IPAddress.Broadcast)) Client.EnableBroadcast = true;
 
                 // 同时只允许一个异步发送，其它发送放入队列
 
@@ -595,12 +595,12 @@ namespace NewLife.Net
         async Task<Byte[]> ITransport.SendAsync(byte[] buffer) { return await SendAsync(buffer, null); }
 
         /// <summary>异步发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="remote"></param>
+        /// <param name="buffer">要发送的数据</param>
+        /// <param name="remote">远程地址，用于匹配接收</param>
         /// <returns></returns>
         public virtual async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote = null)
         {
-            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, remote ?? Remote.EndPoint)) return null;
+            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, Remote.EndPoint)) return null;
 
             if (PacketQueue == null) PacketQueue = new DefaultPacketQueue();
 

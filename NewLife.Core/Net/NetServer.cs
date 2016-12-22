@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Model;
 
@@ -86,8 +87,8 @@ namespace NewLife.Net
         /// <summary>粘包处理接口</summary>
         public IPacketFactory SessionPacket { get; set; }
 
-        /// <summary>使用会话集合，允许遍历会话。默认false</summary>
-        public Boolean UseSession { get; set; }
+        /// <summary>使用会话集合，允许遍历会话。默认true</summary>
+        public Boolean UseSession { get; set; } = true;
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
@@ -494,6 +495,25 @@ namespace NewLife.Net
                     return ns;
                 }
             }
+        }
+        #endregion
+
+        #region 群发
+        /// <summary>异步群发</summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public virtual Task<Int32> SendAllAsync(Byte[] buffer)
+        {
+            if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+
+            var ts = new List<Task>();
+            var ss = Sessions.Values.ToArray();
+            foreach (var item in ss)
+            {
+                ts.Add(Task.Run(() => item.Send(buffer)));
+            }
+
+            return Task.WhenAll(ts).ContinueWith(t => ss.Length);
         }
         #endregion
 

@@ -157,31 +157,33 @@ namespace NewLife.Net
         {
             if (Server == null) return null;
 
-            if (buffer != null && buffer.Length > 0 && !Server.SendInternal(buffer, Remote.EndPoint)) return null;
+            //if (buffer != null && buffer.Length > 0 && !Server.SendInternal(buffer, Remote.EndPoint)) return null;
 
-            try
-            {
-                // 通过任务拦截异步接收
-                var tsc = _recv;
-                if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
+            //try
+            //{
+            //    // 通过任务拦截异步接收
+            //    var tsc = _recv;
+            //    if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
 
-                var e = await tsc.Task;
-                return e?.Data;
-            }
-            finally
-            {
-                _recv = null;
-            }
+            //    var e = await tsc.Task;
+            //    return e?.Data;
+            //}
+            //finally
+            //{
+            //    _recv = null;
+            //}
+
+            return await Server.SendAsync(buffer, Remote.EndPoint);
         }
 
         /// <summary>异步发送数据并等待响应</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public Task<Byte[]> SendAsync(Byte[] buffer)
+        public async Task<Byte[]> SendAsync(Byte[] buffer)
         {
             if (Server == null) return null;
 
-            return Server.SendAsync(buffer, Remote.EndPoint);
+            return await Server.SendAsync(buffer, Remote.EndPoint);
         }
         #endregion
 
@@ -190,13 +192,13 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            var task = Server.SendAsync(null, null);
+            var task = SendAsync(null);
             if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
             return task.Result;
         }
 
-        private TaskCompletionSource<ReceivedEventArgs> _recv;
+        //private TaskCompletionSource<ReceivedEventArgs> _recv;
 
         ///// <summary>开始异步接收数据</summary>
         //public Boolean ReceiveAsync()
@@ -237,10 +239,10 @@ namespace NewLife.Net
             e.Stream = stream;
             e.UserState = remote;
 
-            // 同步匹配
-            var task = _recv;
-            _recv = null;
-            task?.SetResult(e);
+            //// 同步匹配
+            //var task = _recv;
+            //_recv = null;
+            //task?.SetResult(e);
 
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);
