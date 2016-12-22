@@ -112,6 +112,7 @@ namespace NewLife.Remoting
             var ac = this.GetService<ApiClient>();
             var enc = ac.Encoder;
 
+            // 这里会导致二次解码，因为解码以后才知道是不是请求
             var dic = enc.Decode(e.Data);
 
             var act = "";

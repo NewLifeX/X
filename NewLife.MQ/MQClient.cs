@@ -54,6 +54,9 @@ namespace NewLife.MessageQueue
                 ac = new ApiClient(Remote);
                 ac.Encoder = new JsonEncoder();
                 ac.Log = Log;
+#if DEBUG
+                ac.Encoder.Log = Log;
+#endif
 
                 var ss = ac.Client as IApiSession;
                 ss["user"] = Name;
@@ -84,7 +87,7 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         public async Task<Boolean> Login()
         {
-            if (!Name.IsNullOrEmpty()) return false;
+            if (Name.IsNullOrEmpty()) return false;
 
             Open();
 
@@ -156,7 +159,7 @@ namespace NewLife.MessageQueue
         }
 
         /// <summary>接收</summary>
-        public EventHandler<EventArgs<Message>> Received;
+        //public EventHandler<EventArgs<Message>> Received;
 
         //void Client_Received(object sender, ReceivedEventArgs e)
         //{

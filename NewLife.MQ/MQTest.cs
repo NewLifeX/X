@@ -26,10 +26,10 @@ namespace NewLife.MessageQueue
             user.Log = XTrace.Log;
             user.Name = "李四";
             await user.Login();
-            user.Received += (s, e) =>
-            {
-                XTrace.WriteLine("user.收到推送 {0}", e.Arg);
-            };
+            //user.Received += (s, e) =>
+            //{
+            //    XTrace.WriteLine("user.收到推送 {0}", e.Arg);
+            //};
             await user.Subscribe("新生命团队");
 
             for (int i = 0; i < 3; i++)
@@ -71,17 +71,18 @@ namespace NewLife.MessageQueue
                 }
                 client.Name = user;
 
-                client.Received += (s, e) =>
-                {
-                    XTrace.WriteLine("user.收到推送 {0}", e.Arg);
-                };
+                //client.Received += (s, e) =>
+                //{
+                //    XTrace.WriteLine("user.收到推送 {0}", e.Arg);
+                //};
 
-                Task.Run(async () =>
+                var task = Task.Run(async () =>
                 {
                     await client.Login();
                     await client.CreateTopic(topic);
                     await client.Subscribe(topic);
-                }).Wait();
+                });
+                task.Wait();
 
                 while (true)
                 {
