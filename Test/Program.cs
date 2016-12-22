@@ -60,6 +60,8 @@ namespace Test
 
                 sw.Stop();
                 Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
+                Thread.Sleep(5000);
+                GC.Collect();
                 ConsoleKeyInfo key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
             }

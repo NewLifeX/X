@@ -316,7 +316,7 @@ namespace NewLife.Net
             //if (!Active) throw new InvalidOperationException("服务没有开始！");
             //if (!Active) return;
 
-            var ss = Servers.Where(e => !e.Active).ToArray();
+            var ss = Servers.Where(e => e.Active).ToArray();
             if (ss == null || ss.Length == 0) return;
 
             WriteLog("准备停止监听{0}个服务器 {1}", ss.Length, reason);

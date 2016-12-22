@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Net;
 
 namespace NewLife.MessageQueue
 {
@@ -98,6 +100,15 @@ namespace NewLife.MessageQueue
                 var svr = new MQServer();
                 svr.Server.Log = XTrace.Log;
                 svr.Start();
+
+                var ns = svr.Server.Servers[0] as NetServer;
+                while (true)
+                {
+                    Console.Title = ns.GetStat();
+                    Thread.Sleep(500);
+                }
+
+                //Console.ReadKey();
             }
         }
     }
