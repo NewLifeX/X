@@ -198,7 +198,7 @@ namespace NewLife.Net.SGIP
                 Logined = false;
             }
 
-            if (Client != null) Client.Close();
+            Client?.Close("注销");
 
             return true;
         }

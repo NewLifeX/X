@@ -378,7 +378,7 @@ namespace NewLife.Net
         #region IServer接口
         void IServer.Start() { Open(); }
 
-        void IServer.Stop() { Close("服务停止"); }
+        void IServer.Stop(String reason) { Close(reason ?? "服务停止"); }
         #endregion
 
         #region 辅助

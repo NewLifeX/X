@@ -27,7 +27,8 @@ namespace NewLife.Remoting
         void Start();
 
         /// <summary>停止</summary>
-        void Stop();
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        void Stop(String reason);
 
         /// <summary>日志</summary>
         ILog Log { get; set; }

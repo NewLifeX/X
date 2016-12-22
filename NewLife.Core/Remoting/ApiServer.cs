@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
     /// <summary>应用接口服务器</summary>
-    public class ApiServer : DisposeBase, IApiHost, IServiceProvider
+    public class ApiServer : DisposeBase, IApiHost, IServiceProvider, IServer
     {
         #region 静态
         /// <summary>协议到提供者类的映射</summary>
@@ -71,7 +72,7 @@ namespace NewLife.Remoting
         {
             base.OnDispose(disposing);
 
-            Stop();
+            Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
 
@@ -133,14 +134,15 @@ namespace NewLife.Remoting
         }
 
         /// <summary>停止服务</summary>
-        public void Stop()
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        public void Stop(String reason)
         {
             if (!Active) return;
 
-            Log.Info("停止{0}", this.GetType().Name);
+            Log.Info("停止{0} {1}", this.GetType().Name, reason);
             foreach (var item in Servers)
             {
-                item.Stop();
+                item.Stop(reason ?? (GetType().Name + "Stop"));
             }
 
             Active = false;

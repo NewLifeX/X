@@ -75,7 +75,7 @@ namespace NewLife.Remoting
         {
             base.OnDispose(disposing);
 
-            Close();
+            Close(GetType().Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
 
@@ -102,10 +102,12 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>关闭客户端</summary>
-        public void Close()
+        /// <summary>关闭</summary>
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        /// <returns>是否成功</returns>
+        public void Close(String reason)
         {
-            Client.Close();
+            Client.Close(reason ?? (GetType().Name + "Close"));
         }
         #endregion
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 
 namespace NewLife.Net
 {
@@ -23,8 +22,9 @@ namespace NewLife.Net
         Boolean Open();
 
         /// <summary>关闭</summary>
+        /// <param name="reason">关闭原因。便于日志分析</param>
         /// <returns>是否成功</returns>
-        Boolean Close(String reason = null);
+        Boolean Close(String reason);
 
         /// <summary>打开后触发。</summary>
         event EventHandler Opened;
@@ -32,12 +32,5 @@ namespace NewLife.Net
         /// <summary>关闭后触发。可实现掉线重连</summary>
         event EventHandler Closed;
         #endregion
-
-        //#region 异步接收
-        ///// <summary>是否异步接收数据</summary>
-        //[Obsolete("默认异步，不再支持设置")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //Boolean UseReceiveAsync { get; }
-        //#endregion
     }
 }

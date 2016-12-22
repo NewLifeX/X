@@ -31,7 +31,7 @@ namespace NewLife.Remoting
         {
             base.OnDispose(disposing);
 
-            Stop();
+            Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
         }
 
         /// <summary>初始化</summary>
@@ -60,11 +60,13 @@ namespace NewLife.Remoting
             Listener = svr;
         }
 
-        public void Stop()
+        /// <summary>关闭</summary>
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        public void Stop(String reason)
         {
             if (Listener == null) return;
 
-            Log.Info("停止{0}", this.GetType().Name);
+            Log.Info("停止{0} {1}", this.GetType().Name, reason);
 
             Listener.Stop();
             Listener = null;

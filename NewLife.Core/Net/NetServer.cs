@@ -156,7 +156,7 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
-            if (Active) Stop();
+            if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
 
             // 释放托管资源
             if (disposing)
@@ -310,7 +310,8 @@ namespace NewLife.Net
         }
 
         /// <summary>停止服务</summary>
-        public void Stop()
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        public void Stop(String reason)
         {
             //if (!Active) throw new InvalidOperationException("服务没有开始！");
             //if (!Active) return;
@@ -318,12 +319,13 @@ namespace NewLife.Net
             var ss = Servers.Where(e => !e.Active).ToArray();
             if (ss == null || ss.Length == 0) return;
 
-            WriteLog("准备停止监听{0}个服务器", ss.Length);
+            WriteLog("准备停止监听{0}个服务器 {1}", ss.Length, reason);
 
+            if (reason.IsNullOrEmpty()) reason = GetType().Name + "Stop";
             foreach (var item in ss)
             {
                 WriteLog("停止监听 {0}", item);
-                item.Stop();
+                item.Stop(reason);
             }
 
             OnStop();
@@ -332,7 +334,7 @@ namespace NewLife.Net
         }
 
         /// <summary>停止时调用的方法</summary>
-        protected virtual void OnStop() { Dispose(); }
+        protected virtual void OnStop() { }
         #endregion
 
         #region 业务

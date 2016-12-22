@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace NewLife.Model
 {
     /// <summary>服务接口。</summary>
@@ -9,6 +11,7 @@ namespace NewLife.Model
         void Start();
 
         /// <summary>停止</summary>
-        void Stop();
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        void Stop(String reason);
     }
 }

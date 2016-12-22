@@ -100,7 +100,7 @@ namespace NewLife.Net
 
             try
             {
-                Close("销毁");
+                Close(GetType().Name + (disposing ? "Dispose" : "GC"));
             }
             catch (Exception ex) { OnError("Dispose", ex); }
         }
@@ -149,8 +149,9 @@ namespace NewLife.Net
         }
 
         /// <summary>关闭</summary>
+        /// <param name="reason">关闭原因。便于日志分析</param>
         /// <returns>是否成功</returns>
-        public virtual Boolean Close(String reason = null)
+        public virtual Boolean Close(String reason)
         {
             if (!Active) return true;
 
@@ -159,7 +160,7 @@ namespace NewLife.Net
             {
                 tc.Log = Log;
 
-                if (OnClose(reason)) Active = false;
+                if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
 
                 _RecvCount = 0;
 
@@ -174,6 +175,7 @@ namespace NewLife.Net
         }
 
         /// <summary>关闭</summary>
+        /// <param name="reason">关闭原因。便于日志分析</param>
         /// <returns></returns>
         protected abstract Boolean OnClose(String reason);
 

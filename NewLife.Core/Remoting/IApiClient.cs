@@ -19,7 +19,8 @@ namespace NewLife.Remoting
         void Open();
 
         /// <summary>关闭</summary>
-        void Close();
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        void Close(String reason);
 
         /// <summary>发送数据</summary>
         /// <param name="data"></param>

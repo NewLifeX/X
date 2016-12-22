@@ -101,7 +101,7 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
-            Stop();
+            if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
 
@@ -140,11 +140,12 @@ namespace NewLife.Net
         }
 
         /// <summary>停止</summary>
-        public virtual void Stop()
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        public virtual void Stop(String reason)
         {
             if (!Active) return;
 
-            WriteLog("Stop {0}", this);
+            WriteLog("Stop {0} {1}", reason, this);
 
             // 关闭的时候会除非一系列异步回调，提前清空Client
             Active = false;

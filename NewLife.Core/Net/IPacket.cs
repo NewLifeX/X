@@ -191,7 +191,7 @@ namespace NewLife.Net
 
             Console.ReadKey(true);
 
-            client.Close();
+            client.Close("结束");
             svr.Dispose();
         }
 #endif

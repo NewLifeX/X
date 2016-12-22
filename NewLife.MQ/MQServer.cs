@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Model;
 using NewLife.Remoting;
 
 namespace NewLife.MessageQueue
 {
     /// <summary>消息队列服务器</summary>
-    public class MQServer : DisposeBase
+    public class MQServer : DisposeBase, IServer
     {
         #region 属性
         /// <summary>接口服务器</summary>
@@ -28,7 +29,7 @@ namespace NewLife.MessageQueue
         {
             base.OnDispose(disposing);
 
-            Stop();
+            Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
 
@@ -53,7 +54,11 @@ namespace NewLife.MessageQueue
         }
 
         /// <summary>停止服务</summary>
-        public void Stop() { Server.Stop(); }
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        public void Stop(String reason)
+        {
+            Server.Stop(reason ?? (GetType().Name + "Stop"));
+        }
         #endregion
     }
 }

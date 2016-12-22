@@ -79,15 +79,16 @@ namespace NewLife.Net.DNS
         }
 
         /// <summary>关闭客户端</summary>
+        /// <param name="reason">关闭原因。便于日志分析</param>
         /// <returns></returns>
-        public Boolean Close()
+        public Boolean Close(String reason)
         {
             var nc = Client;
             if (nc == null || !nc.Active) return true;
 
             nc.Received -= Client_Received;
 
-            return nc.Close();
+            return nc.Close(reason);
         }
         #endregion
 

@@ -6,7 +6,7 @@ using NewLife.Net;
 
 namespace NewLife.Remoting
 {
-    class ApiNetClient : IApiClient, IApiSession, IServiceProvider
+    class ApiNetClient : DisposeBase, IApiClient, IApiSession, IServiceProvider
     {
         #region 属性
         public NetUri Remote { get; set; }
@@ -29,6 +29,14 @@ namespace NewLife.Remoting
         #endregion
 
         #region 构造
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
+
+            Close(GetType().Name + (disposing ? "Dispose" : "GC"));
+        }
         #endregion
 
         #region 方法
@@ -54,9 +62,11 @@ namespace NewLife.Remoting
             Client.Open();
         }
 
-        public void Close()
+        /// <summary>关闭</summary>
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        public void Close(String reason)
         {
-            Client.Close();
+            Client.Close(reason);
             Client.Received -= Client_Received;
         }
         #endregion

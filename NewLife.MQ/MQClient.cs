@@ -38,7 +38,7 @@ namespace NewLife.MessageQueue
         {
             base.OnDispose(disposing);
 
-            Close();
+            Close(GetType().Name + (disposing ? "Dispose" : "GC"));
 
             Client.TryDispose();
         }
@@ -68,9 +68,9 @@ namespace NewLife.MessageQueue
         }
 
         /// <summary>关闭</summary>
-        public void Close()
+        public void Close(String reason)
         {
-            Client.Close();
+            Client.Close(reason ?? (GetType().Name + "Close"));
         }
         #endregion
 

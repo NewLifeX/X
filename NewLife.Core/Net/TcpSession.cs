@@ -113,6 +113,7 @@ namespace NewLife.Net
         }
 
         /// <summary>关闭</summary>
+        /// <param name="reason">关闭原因。便于日志分析</param>
         protected override Boolean OnClose(String reason)
         {
             var client = Client;
