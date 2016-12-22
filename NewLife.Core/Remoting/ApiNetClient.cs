@@ -59,6 +59,7 @@ namespace NewLife.Remoting
             //Client.LogSend = true;
             //Client.LogReceive = true;
 #endif
+            Client.Opened += Client_Opened;
             Client.Open();
         }
 
@@ -66,8 +67,17 @@ namespace NewLife.Remoting
         /// <param name="reason">关闭原因。便于日志分析</param>
         public void Close(String reason)
         {
-            Client.Close(reason);
             Client.Received -= Client_Received;
+            Client.Opened -= Client_Opened;
+            Client.Close(reason);
+        }
+
+        /// <summary>打开后触发。</summary>
+        public event EventHandler Opened;
+
+        private void Client_Opened(Object sender, EventArgs e)
+        {
+            Opened?.Invoke(this, e);
         }
         #endregion
 

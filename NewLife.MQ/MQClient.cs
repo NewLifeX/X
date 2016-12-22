@@ -58,9 +58,14 @@ namespace NewLife.MessageQueue
                 var ss = ac.Client as IApiSession;
                 ss["user"] = Name;
 
-                ac.Open();
+                Logined = false;
 
                 Client = ac;
+
+                // 连接成功后自动登录
+                ac.Opened += (s, e) => Task.Run(Login);
+
+                ac.Open();
 
                 //// 异步登录
                 //if (!Name.IsNullOrEmpty()) Task.Run(Login);
@@ -79,7 +84,11 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         public async Task<Boolean> Login()
         {
+            if (!Name.IsNullOrEmpty()) return false;
+
             Open();
+
+            if (Logined) return true;
 
             var rs = await Client.InvokeAsync<Boolean>("User/Login", new { user = Name, pass = Name.MD5() });
             Logined = rs;

@@ -88,6 +88,8 @@ namespace NewLife.Remoting
 
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
+            Client.Opened += Client_Opened;
+
             //Client.Log = Log;
             Client.Open();
 
@@ -107,7 +109,16 @@ namespace NewLife.Remoting
         /// <returns>是否成功</returns>
         public void Close(String reason)
         {
+            Client.Opened -= Client_Opened;
             Client.Close(reason ?? (GetType().Name + "Close"));
+        }
+
+        /// <summary>打开后触发。</summary>
+        public event EventHandler Opened;
+
+        private void Client_Opened(Object sender, EventArgs e)
+        {
+            Opened?.Invoke(this, e);
         }
         #endregion
 

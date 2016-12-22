@@ -22,6 +22,9 @@ namespace NewLife.Remoting
         /// <param name="reason">关闭原因。便于日志分析</param>
         void Close(String reason);
 
+        /// <summary>打开后触发。</summary>
+        event EventHandler Opened;
+
         /// <summary>发送数据</summary>
         /// <param name="data"></param>
         /// <returns></returns>
