@@ -78,7 +78,7 @@ namespace Test
             //var uri = new Uri("http://yun.wslink.cn/Home/About");
             //var http = uri.CreateRemote();
             //http.Send("");
-            //var html = http.ReceiveString();
+            //var html = http.Rece               iveString();
             //Console.WriteLine(html.Length);
 
             //var client = new WebClientX(true, true);

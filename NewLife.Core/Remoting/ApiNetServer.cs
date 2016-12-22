@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using NewLife.Net;
 
@@ -65,6 +66,7 @@ namespace NewLife.Remoting
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     {
+
         /// <summary>所有服务器所有会话，包含自己</summary>
         public virtual IApiSession[] AllSessions
         {
