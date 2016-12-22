@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife;
@@ -389,6 +390,7 @@ namespace XNet
                     {
                         var cs = await _Server.SendAllAsync(buf);
                         XTrace.WriteLine("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
+                        if (sleep > 0) await Task.Delay(sleep);
                     }
                 });
             }
