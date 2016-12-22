@@ -25,10 +25,10 @@ namespace NewLife.Remoting
         /// <summary>打开后触发。</summary>
         event EventHandler Opened;
 
-        /// <summary>发送数据</summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        Task<byte[]> SendAsync(byte[] data);
+        ///// <summary>发送数据</summary>
+        ///// <param name="data"></param>
+        ///// <returns></returns>
+        //Task<byte[]> SendAsync(byte[] data);
 
         /// <summary>日志</summary>
         ILog Log { get; set; }

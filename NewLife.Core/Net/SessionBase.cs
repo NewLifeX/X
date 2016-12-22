@@ -219,7 +219,7 @@ namespace NewLife.Net
             {
                 tc.Log = Log;
 
-                if (Object.Equals(remote.Address, IPAddress.Broadcast)) Client.EnableBroadcast = true;
+                if (Local.Type == NetType.Udp && Object.Equals(remote.Address, IPAddress.Broadcast)) Client.EnableBroadcast = true;
 
                 // 同时只允许一个异步发送，其它发送放入队列
 
@@ -306,7 +306,7 @@ namespace NewLife.Net
 
                     // 不足最大长度，试试下一个
                     if (!qu.TryPeek(out qi)) break;
-                    if (qi.Remote != remote) break;
+                    if (qi.Remote + "" != remote + "") break;
                     if (p + qi.Buffer.Length > BufferSize) break;
 
                     if (!qu.TryDequeue(out qi)) break;
@@ -584,21 +584,23 @@ namespace NewLife.Net
         /// <summary>数据包请求配对队列</summary>
         public IPacketQueue PacketQueue { get; set; }
 
-        /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
-        {
-            return await SendAsync(buffer, Remote.EndPoint);
-        }
+        ///// <summary>异步发送数据并等待响应</summary>
+        ///// <param name="buffer"></param>
+        ///// <returns></returns>
+        //public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
+        //{
+        //    return await SendAsync(buffer, Remote.EndPoint);
+        //}
+
+        async Task<Byte[]> ITransport.SendAsync(byte[] buffer) { return await SendAsync(buffer, null); }
 
         /// <summary>异步发送数据</summary>
         /// <param name="buffer"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        public virtual async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
+        public virtual async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote = null)
         {
-            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, Remote.EndPoint)) return null;
+            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, remote ?? Remote.EndPoint)) return null;
 
             if (PacketQueue == null) PacketQueue = new DefaultPacketQueue();
 

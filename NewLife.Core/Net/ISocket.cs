@@ -112,16 +112,16 @@ namespace NewLife.Net
         /// <summary>数据包请求配对队列</summary>
         IPacketQueue PacketQueue { get; set; }
 
-        /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        Task<Byte[]> SendAsync(Byte[] buffer);
+        ///// <summary>异步发送数据并等待响应</summary>
+        ///// <param name="buffer"></param>
+        ///// <returns></returns>
+        //Task<Byte[]> SendAsync(Byte[] buffer);
 
         /// <summary>异步发送数据到指定目标并等待响应</summary>
         /// <param name="buffer"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote);
+        Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote = null);
         #endregion
     }
 

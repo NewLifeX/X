@@ -82,10 +82,10 @@ namespace NewLife.Remoting
         #endregion
 
         #region 发送
-        public Task<byte[]> SendAsync(byte[] data)
-        {
-            return Client.SendAsync(data);
-        }
+        //public Task<byte[]> SendAsync(byte[] data)
+        //{
+        //    return Client.SendAsync(data);
+        //}
 
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -98,7 +98,7 @@ namespace NewLife.Remoting
             var enc = ac.Encoder;
             var data = enc.Encode(action, args);
 
-            var rs = await SendAsync(data);
+            var rs = await Client.SendAsync(data);
 
             var dic = enc.Decode(rs);
 
