@@ -70,8 +70,8 @@ namespace Test
         static void Test1()
         {
             //ApiTest.Main();
-            //NewLife.MessageQueue.MQTest.TestBase();
-            NewLife.MessageQueue.MQTest.Main();
+            NewLife.MessageQueue.MQTest.TestBase();
+            //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
             //HeaderLengthPacket.Test();
             //var svr = new DNSServer();

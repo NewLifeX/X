@@ -15,13 +15,20 @@ namespace NewLife.MessageQueue
         public DateTime EndTime { get; set; }
 
         /// <summary>主体</summary>
-        public Byte[] Body { get; set; }
+        public Object Body { get; set; }
 
         /// <summary>已重载</summary>
         /// <returns></returns>
         public override String ToString()
         {
-            return "{0}#{1}".F(Sender, Body?.ToStr());
+            var str = "";
+            var buf = Body as Byte[];
+            if (buf != null)
+                str = buf.ToStr();
+            else
+                str = Body + "";
+
+            return "{0}#{1}".F(Sender, str);
         }
     }
 }

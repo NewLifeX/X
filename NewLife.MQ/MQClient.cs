@@ -55,6 +55,7 @@ namespace NewLife.MessageQueue
                 ac.Encoder = new JsonEncoder();
                 ac.Log = Log;
 #if DEBUG
+                ac.Client.Log = Log;
                 ac.Encoder.Log = Log;
 #endif
 
@@ -83,20 +84,28 @@ namespace NewLife.MessageQueue
         #endregion
 
         #region 登录验证
+        private Boolean _logining;
         /// <summary>登录</summary>
         /// <returns></returns>
         public async Task<Boolean> Login()
         {
             if (Name.IsNullOrEmpty()) return false;
 
-            Open();
+            if (_logining) return true;
+            _logining = true;
 
-            if (Logined) return true;
+            try
+            {
+                Open();
 
-            var rs = await Client.InvokeAsync<Boolean>("User/Login", new { user = Name, pass = Name.MD5() });
-            Logined = rs;
+                if (Logined) return true;
 
-            return rs;
+                var rs = await Client.InvokeAsync<Boolean>("User/Login", new { user = Name, pass = Name.MD5() });
+                Logined = rs;
+
+                return rs;
+            }
+            finally { _logining = false; }
         }
         #endregion
 
@@ -142,15 +151,15 @@ namespace NewLife.MessageQueue
 
             Log.Info("{0} 发布消息 {1}", Name, msg);
 
-            // 对象编码为二进制
-            var buf = Client.Encoder.Encode(msg);
+            //// 对象编码为二进制
+            //var buf = Client.Encoder.Encode(msg);
 
             var m = new Message
             {
                 Sender = Name,
                 StartTime = DateTime.Now,
                 EndTime = DateTime.Now.AddSeconds(60),
-                Body = buf
+                Body = msg
             };
 
             var rs = await Client.InvokeAsync<Boolean>("Message/Public", new { msg = m });

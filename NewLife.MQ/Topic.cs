@@ -50,7 +50,7 @@ namespace NewLife.MessageQueue
             var msg = new Message
             {
                 Sender = user,
-                Body = "上线啦".GetBytes()
+                Body = "上线啦"
             };
             Enqueue(msg);
 #endif
@@ -69,7 +69,7 @@ namespace NewLife.MessageQueue
             var msg = new Message
             {
                 Sender = user,
-                Body = "下线啦".GetBytes()
+                Body = "下线啦"
             };
             Enqueue(msg);
 #endif
