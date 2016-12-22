@@ -30,7 +30,7 @@ namespace NewLife.Remoting
             //client.Encoder = new ProtocolBuffer();
             //client.Compress = new SevenZip();
             client.Open();
-            client.Login("admin", "password");
+            //client.Login("admin", "password");
 
             var msg = "NewLifeX";
             var rs = await client.InvokeAsync<string>("Hello/Say", new demo (msg) {  });

@@ -123,13 +123,13 @@ namespace NewLife.Remoting
         #endregion
 
         #region 远程调用
-        /// <summary>登录</summary>
-        /// <param name="user"></param>
-        /// <param name="pass"></param>
-        public void Login(String user, String pass)
-        {
+        ///// <summary>登录</summary>
+        ///// <param name="user"></param>
+        ///// <param name="pass"></param>
+        //public void Login(String user, String pass)
+        //{
 
-        }
+        //}
 
         /// <summary>调用</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -138,13 +138,18 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(String action, object args = null)
         {
-            var data = Encoder.Encode(action, args);
+            //var data = Encoder.Encode(action, args);
 
-            var rs = await Client.SendAsync(data);
+            //var rs = await Client.SendAsync(data);
 
-            var dic = Encoder.Decode(rs);
+            //var dic = Encoder.Decode(rs);
 
-            return Encoder.Decode<TResult>(dic);
+            //return Encoder.Decode<TResult>(dic);
+
+            var ss = Client as IApiSession;
+            if (ss == null) return default(TResult);
+
+            return await ss.InvokeAsync<TResult>(action, args);
         }
         #endregion
 
