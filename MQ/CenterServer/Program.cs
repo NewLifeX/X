@@ -14,21 +14,21 @@ namespace CenterService
 {
     class Program
     {
+        private static BrokerService svr;
         static void Main(string[] args)
         {
             XTrace.UseConsole();
             XTrace.Debug = true;
+            svr = new BrokerService { ProducerServer = { Log = XTrace.Log } };
             Test();
             System.Threading.Thread.Sleep(1000);
             Client();
             Console.ReadLine();
         }
 
-        static async void Test()
+        static void Test()
         {
-            var svr = new BrokerService { ProducerServer = { Log = XTrace.Log } };
-
-            svr.Start();
+           svr.Start();
         }
 
         static async void Client()
