@@ -59,10 +59,6 @@
       <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NewLife.Queue\NewLife.Queue.csproj">
-      <Project>{f850252f-4048-4a89-b4c4-19c9ee783f00}</Project>
-      <Name>NewLife.Queue</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,6 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -40,8 +42,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Broker\BatchMessageLogRecord.cs" />
     <Compile Include="Broker\BrokerService.cs" />
+    <Compile Include="Broker\BrokerSetting.cs" />
+    <Compile Include="Broker\BufferLogRecord.cs" />
     <Compile Include="Broker\Controllers\ProducerInfoController.cs" />
+    <Compile Include="Broker\DefaultMessageStore.cs" />
+    <Compile Include="Broker\DeleteMessageStrategies\DeleteMessageByCountStrategy.cs" />
+    <Compile Include="Broker\DeleteMessageStrategies\DeleteMessageByTimeStrategy.cs" />
+    <Compile Include="Broker\DeleteMessageStrategies\IDeleteMessageStrategy.cs" />
+    <Compile Include="Broker\Extensions.cs" />
+    <Compile Include="Broker\IMessageStore.cs" />
+    <Compile Include="Broker\MessageLogRecord.cs" />
+    <Compile Include="Broker\Queue.cs" />
+    <Compile Include="Broker\QueueLogRecord.cs" />
     <Compile Include="Center\CenterServer.cs" />
     <Compile Include="Center\ClusterManager.cs" />
     <Compile Include="Center\Controllers\BrokerController.cs" />
@@ -112,8 +126,42 @@
     <Compile Include="Protocols\QueueMessage.cs" />
     <Compile Include="Protocols\RemotingResponse.cs" />
     <Compile Include="Protocols\ResponseCode.cs" />
+    <Compile Include="QueueService.cs" />
+    <Compile Include="Scheduling\IScheduleService.cs" />
+    <Compile Include="Scheduling\LimitedConcurrencyLevelTaskScheduler.cs" />
+    <Compile Include="Scheduling\ScheduleService.cs" />
+    <Compile Include="Scheduling\Worker.cs" />
+    <Compile Include="Storage\Chunk.cs" />
+    <Compile Include="Storage\ChunkFooter.cs" />
+    <Compile Include="Storage\ChunkHeader.cs" />
+    <Compile Include="Storage\ChunkManager.cs" />
+    <Compile Include="Storage\ChunkManagerConfig.cs" />
+    <Compile Include="Storage\ChunkReader.cs" />
+    <Compile Include="Storage\ChunkUtil.cs" />
+    <Compile Include="Storage\ChunkWriter.cs" />
+    <Compile Include="Storage\Exceptions\ChunkBadDataException.cs" />
+    <Compile Include="Storage\Exceptions\ChunkCompleteException.cs" />
+    <Compile Include="Storage\Exceptions\ChunkCreateException.cs" />
+    <Compile Include="Storage\Exceptions\ChunkFileNotExistException.cs" />
+    <Compile Include="Storage\Exceptions\ChunkNotExistException.cs" />
+    <Compile Include="Storage\Exceptions\ChunkReadException.cs" />
+    <Compile Include="Storage\Exceptions\ChunkWriteException.cs" />
+    <Compile Include="Storage\FileNamingStrategies\DefaultFileNamingStrategy.cs" />
+    <Compile Include="Storage\FileNamingStrategies\IFileNamingStrategy.cs" />
+    <Compile Include="Storage\FlushOption.cs" />
+    <Compile Include="Storage\ILogRecord.cs" />
+    <Compile Include="Storage\IStream.cs" />
+    <Compile Include="Storage\ReaderWorkItem.cs" />
+    <Compile Include="Storage\RecordBufferReadResult.cs" />
+    <Compile Include="Storage\RecordWriteResult.cs" />
+    <Compile Include="Storage\WriterWorkItem.cs" />
+    <Compile Include="Utilities\BufferQueue.cs" />
     <Compile Include="Utilities\ByteUtil.cs" />
     <Compile Include="Utilities\Ensure.cs" />
+    <Compile Include="Utilities\Helper.cs" />
+    <Compile Include="Utilities\MessageIdUtil.cs" />
+    <Compile Include="Utilities\ObjectId.cs" />
+    <Compile Include="Utilities\SocketUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\NewLife.Core\NewLife.Core.csproj">

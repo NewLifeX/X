@@ -12,6 +12,13 @@ namespace NewLife.Queue.Broker
     public class BrokerService: DisposeBase
     {
         #region 属性
+
+        public static BrokerService Instance { get; private set; }
+
+        /// <summary>接口服务器</summary>
+        public BrokerSetting Setting { get; private set; }
+
+
         /// <summary>接口服务器</summary>
         public ApiServer ProducerServer { get; private set; }
         /// <summary>
@@ -24,7 +31,10 @@ namespace NewLife.Queue.Broker
         /// <summary>实例化</summary>
         public BrokerService(int port = 2234)
         {
+            Setting = new BrokerSetting();
             ProducerServer = new ApiServer(port);
+            Instance = this;
+           
         }
 
         /// <summary>销毁</summary>
@@ -52,13 +62,14 @@ namespace NewLife.Queue.Broker
             //Server.Register<MessageController>();
 
             // 建立引用
+            ProducerServer["Host"] = this;
             ProducerServer["ProducerInfoDict"] = _producerInfoDict;
 
             ProducerServer.Start();
         }
 
         /// <summary>停止服务</summary>
-        public void Stop() { ProducerServer.Stop(); }
+        public void Stop() { ProducerServer.Stop("停止"); }
         #endregion
     }
 
