@@ -88,7 +88,7 @@ namespace NewLife.Queue.Clients
         /// <summary>关闭</summary>
         public void Close()
         {
-            Client.Close();
+            Client.Close("关闭");
         }
         #endregion
 
