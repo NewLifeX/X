@@ -24,14 +24,14 @@ namespace NewLife.Net
     public class HeaderLengthPacket : IPacket
     {
         #region 属性
-        /// <summary>长度所在位置，默认0</summary>
-        public Int32 Offset { get; set; }
+        /// <summary>长度所在位置，默认2</summary>
+        public Int32 Offset { get; set; } = 2;
 
-        /// <summary>长度占据字节数，1/2/4个字节，默认0表示压缩编码整数</summary>
-        public Int32 Size { get; set; }
+        /// <summary>长度占据字节数，1/2/4个字节，0表示压缩编码整数，默认2</summary>
+        public Int32 Size { get; set; } = 2;
 
-        /// <summary>过期时间，超过该时间后按废弃数据处理，默认3000ms</summary>
-        public Int32 Expire { get; set; } = 3000;
+        /// <summary>过期时间，超过该时间后按废弃数据处理，默认500ms</summary>
+        public Int32 Expire { get; set; } = 500;
 
         private DateTime _last;
         #endregion
@@ -62,10 +62,6 @@ namespace NewLife.Net
             {
                 if (stream != null)
                 {
-                    //Log.XTrace.WriteLine("Parse {0} {1:X2}", stream.Length, stream.ReadByte());
-                    //stream.Seek(-1, SeekOrigin.Current);
-                    //System.Threading.Thread.Sleep(10);
-
                     // 超过该时间后按废弃数据处理
                     var now = DateTime.Now;
                     if (_last.AddMilliseconds(Expire) < now)
@@ -83,7 +79,6 @@ namespace NewLife.Net
                     stream.Position = p2;
                     _ms.Position = p;
                 }
-                //Log.XTrace.WriteLine("Parse _ms={0} {1}", _ms.Position, _ms.Length);
 
                 var len = GetLength(_ms);
                 if (len <= 0) return null;
@@ -201,14 +196,14 @@ namespace NewLife.Net
     public class HeaderLengthPacketFactory : IPacketFactory
     {
         #region 属性
-        /// <summary>长度所在位置，默认0</summary>
-        public Int32 Offset { get; set; }
+        /// <summary>长度所在位置，默认2</summary>
+        public Int32 Offset { get; set; } = 2;
 
-        /// <summary>长度占据字节数，1/2/4个字节，默认0表示压缩编码整数</summary>
-        public Int32 Size { get; set; }
+        /// <summary>长度占据字节数，1/2/4个字节，0表示压缩编码整数，默认2</summary>
+        public Int32 Size { get; set; } = 2;
 
-        /// <summary>过期时间，超过该时间后按废弃数据处理，默认3000ms</summary>
-        public Int32 Expire { get; set; } = 3000;
+        /// <summary>过期时间，超过该时间后按废弃数据处理，默认500ms</summary>
+        public Int32 Expire { get; set; } = 500;
         #endregion
 
         /// <summary>创建粘包处理实例，内含缓冲区，不同会话不能共用</summary>
@@ -242,20 +237,6 @@ namespace NewLife.Net
         public override Int64 Length { get; }
 
         public override Int64 Position { get; set; }
-        //public override Int64 Position
-        //{
-        //    get
-        //    {
-        //        return _s.Position - _offset;
-        //    }
-
-        //    set
-        //    {
-        //        if (value < 0 || value >= Length) throw new ArgumentOutOfRangeException(nameof(value));
-
-        //        _s.Position = value + _offset;
-        //    }
-        //}
         #endregion
 
         #region 构造
