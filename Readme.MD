@@ -3,7 +3,16 @@
 ## 组件各组成部分
 ### 核心库 NewLife.Core
 核心组件，支撑其它所有组件。  
-主要功能包括：网络、安全、多线程、反射、序列化、服务代理、远程过程调用RPC
+主要功能包括：  
++ **[网络库]** 支持企业应用服务十万级并发 Tcp/Udp/Http/WebSocket/IPv6
++ 安全
++ 多线程
++ 反射
++ 序列化
++ 服务代理
++ 远程过程调用RPC
+
+[网络]:/NewLife.Core/Net/Readme.md "使用"
 
 ### Android库 NewLife.Android
 Android版核心库，共用代码，供Xamarin Android开发使用
