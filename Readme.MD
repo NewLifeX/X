@@ -12,7 +12,7 @@
 + 服务代理
 + 远程过程调用RPC
 
-[网络库]:?path=master/NewLife.Core/Net/Readme.md "支持企业应用服务十万级并发"
+[网络库]:/?path=master/NewLife.Core/Net/Readme.md "支持企业应用服务十万级并发"
 
 ### Android库 NewLife.Android
 Android版核心库，共用代码，供Xamarin Android开发使用
