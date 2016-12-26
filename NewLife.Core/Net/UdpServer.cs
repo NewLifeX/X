@@ -118,7 +118,7 @@ namespace NewLife.Net
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns>是否成功</returns>
-        public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        protected override Boolean OnSend(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
@@ -177,7 +177,7 @@ namespace NewLife.Net
             }
 
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
-            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, remote)) return null;
+            if (buffer != null && buffer.Length > 0 && !AddToSendQueue(buffer, remote)) return null;
 
             return await base.SendAsync(null, remote);
         }

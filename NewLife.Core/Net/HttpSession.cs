@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Data;
 
 namespace NewLife.Net
 {
@@ -64,29 +65,47 @@ namespace NewLife.Net
             // 默认80端口
             if (!Active && Remote.Port == 0) Remote.Port = 80;
 
+            // 添加过滤器
+            if (SendFilter == null) SendFilter = new HttpSendFilter { Session = this };
+
             return base.OnOpen();
         }
         #endregion
 
         #region 收发数据
-        /// <summary>发送数据</summary>
-        /// <remarks>
-        /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
-        /// </remarks>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        /// <returns>是否成功</returns>
-        public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-        {
-            buffer = MakeRequest(buffer);
-            return base.Send(buffer, offset, count);
-        }
+        ///// <summary>发送数据</summary>
+        ///// <remarks>
+        ///// 目标地址由<seealso cref="SessionBase.Remote"/>决定
+        ///// </remarks>
+        ///// <param name="buffer">缓冲区</param>
+        ///// <param name="offset">偏移</param>
+        ///// <param name="count">数量</param>
+        ///// <returns>是否成功</returns>
+        //public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        //{
+        //    buffer = MakeRequest(buffer);
+        //    return base.Send(buffer, offset, count);
+        //}
 
-        internal override Boolean SendInternal(Byte[] buffer, IPEndPoint remote)
+        //internal override Boolean SendInternal(Byte[] buffer, IPEndPoint remote)
+        //{
+        //    buffer = MakeRequest(buffer);
+        //    return base.SendInternal(buffer, remote);
+        //}
+
+        class HttpSendFilter : FilterBase
         {
-            buffer = MakeRequest(buffer);
-            return base.SendInternal(buffer, remote);
+            public HttpSession Session { get; set; }
+
+            protected override Boolean OnExecute(FilterContext context)
+            {
+                var pk = context.Packet;
+                var buf = pk.Get();
+                buf = Session.MakeRequest(buf);
+                pk.Set(buf);
+
+                return true;
+            }
         }
 
         private MemoryStream _cache;
