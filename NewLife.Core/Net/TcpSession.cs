@@ -200,17 +200,17 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
-        /// <summary>接收数据</summary>
-        /// <returns>收到的数据。如果没有数据返回0长度数组，如果出错返回null</returns>
-        public override Byte[] Receive()
-        {
-            if (!Open()) return null;
+        ///// <summary>接收数据</summary>
+        ///// <returns>收到的数据。如果没有数据返回0长度数组，如果出错返回null</returns>
+        //public override Byte[] Receive()
+        //{
+        //    if (!Open()) return null;
 
-            var task = SendAsync(null, null);
-            if (Timeout > 0 && !task.Wait(Timeout)) return null;
+        //    var task = SendAsync(null, null);
+        //    if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
-            return task.Result;
-        }
+        //    return task.Result;
+        //}
 
         internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
         {

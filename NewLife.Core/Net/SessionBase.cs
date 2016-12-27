@@ -425,7 +425,17 @@ namespace NewLife.Net
         #region 接收
         /// <summary>接收数据</summary>
         /// <returns></returns>
-        public abstract Byte[] Receive();
+        public virtual Byte[] Receive()
+        {
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
+
+            if (!Open()) return null;
+
+            var task = SendAsync(null, null);
+            if (Timeout > 0 && !task.Wait(Timeout)) return null;
+
+            return task.Result;
+        }
 
         /// <summary>当前异步接收个数</summary>
         private Int32 _RecvCount;
@@ -569,6 +579,9 @@ namespace NewLife.Net
             else
                 ReleaseRecv(se, "!Active || Disposed");
         }
+
+        /// <summary>接收过滤器</summary>
+        public IFilter ReceiveFilter { get; set; }
 
         /// <summary>粘包处理接口</summary>
         public IPacket Packet { get; set; }

@@ -298,7 +298,7 @@ namespace NewLife.Net
             Received?.Invoke(this, new ReceivedEventArgs(buf));
         }
 
-        /// <summary>数据到达事件，事件里调用<see cref="Receive"/>读取数据</summary>
+        /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
         #endregion
 

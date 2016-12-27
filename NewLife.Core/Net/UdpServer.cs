@@ -191,19 +191,19 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
-        /// <summary>接收数据</summary>
-        /// <returns></returns>
-        public override Byte[] Receive()
-        {
-            if (Disposed) throw new ObjectDisposedException(GetType().Name);
+        ///// <summary>接收数据</summary>
+        ///// <returns></returns>
+        //public override Byte[] Receive()
+        //{
+        //    if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            if (!Open()) return null;
+        //    if (!Open()) return null;
 
-            var task = SendAsync(null, null);
-            if (Timeout > 0 && !task.Wait(Timeout)) return null;
+        //    var task = SendAsync(null, null);
+        //    if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
-            return task.Result;
-        }
+        //    return task.Result;
+        //}
 
         /// <summary>处理收到的数据</summary>
         /// <param name="stream"></param>
