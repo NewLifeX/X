@@ -21,7 +21,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.MQ", "NewLife.MQ\Ne
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "NewLife.Core.Core", "NewLife.Core.Core\NewLife.Core.Core.xproj", "{F2D19462-C43F-482A-A3EC-64F6298371E0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MQ", "MQ", "{32891F65-FBA1-42B2-918E-61F3A9623F2A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Others", "Others", "{32891F65-FBA1-42B2-918E-61F3A9623F2A}"
+	ProjectSection(SolutionItems) = preProject
+		Readme.MD = Readme.MD
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

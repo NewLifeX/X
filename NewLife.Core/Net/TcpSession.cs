@@ -156,7 +156,7 @@ namespace NewLife.Net
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns>是否成功</returns>
-        public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        protected override Boolean OnSend(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             if (!Open()) return false;
 

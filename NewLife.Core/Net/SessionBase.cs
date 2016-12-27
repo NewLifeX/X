@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -189,6 +190,9 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
+        /// <summary>发送过滤器</summary>
+        public IFilter SendFilter { get; set; }
+
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
@@ -197,16 +201,64 @@ namespace NewLife.Net
         /// <param name="offset">偏移</param>
         /// <param name="count">数量</param>
         /// <returns>是否成功</returns>
-        public abstract Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        public Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        {
+            if (!Open()) return false;
+
+            // 根据约定，上层必须处理好offset以及越界，这里仅判断count未设置的情况
+            if (count < 0) count = buffer.Length - offset;
+
+            if (SendFilter == null) return OnSend(buffer, offset, count);
+
+            var pk = new Packet(buffer, offset, count);
+            var ctx = new SessionFilterContext
+            {
+                Session = this,
+                Packet = pk
+            };
+            SendFilter.Execute(ctx);
+
+            if (ctx.Packet == null) return false;
+
+            return OnSend(pk.Data, pk.Offset, pk.Count);
+        }
+
+        /// <summary>发送数据</summary>
+        /// <remarks>
+        /// 目标地址由<seealso cref="Remote"/>决定
+        /// </remarks>
+        /// <param name="buffer">缓冲区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">数量</param>
+        /// <returns>是否成功</returns>
+        protected abstract Boolean OnSend(Byte[] buffer, Int32 offset, Int32 count);
 
         private SocketAsyncEventArgs _seSend;
         private Int32 _Sending;
         private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
 
-        internal virtual Boolean SendInternal(Byte[] buffer, IPEndPoint remote)
+        internal Boolean AddToSendQueue(Byte[] buffer, IPEndPoint remote)
         {
             if (!Open()) return false;
 
+            if (SendFilter == null) return OnAddToSendQueue(buffer, remote);
+
+            var pk = new Packet(buffer);
+            var ctx = new SessionFilterContext
+            {
+                Session = this,
+                Packet = pk,
+                Remote = remote
+            };
+            SendFilter.Execute(ctx);
+
+            if (ctx.Packet == null) return false;
+
+            return OnAddToSendQueue(pk.Get(), remote);
+        }
+
+        private Boolean OnAddToSendQueue(Byte[] buffer, IPEndPoint remote)
+        {
             var count = buffer.Length;
 
             if (StatSend != null) StatSend.Increment(count);
@@ -600,7 +652,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote = null)
         {
-            if (buffer != null && buffer.Length > 0 && !SendInternal(buffer, Remote.EndPoint)) return null;
+            if (buffer != null && buffer.Length > 0 && !AddToSendQueue(buffer, Remote.EndPoint)) return null;
 
             if (PacketQueue == null) PacketQueue = new DefaultPacketQueue();
 
@@ -675,5 +727,17 @@ namespace NewLife.Net
             return Local.ToString();
         }
         #endregion
+    }
+
+    class SessionFilterContext : FilterContext
+    {
+        public SessionBase Session { get; set; }
+
+        public IPEndPoint Remote { get; set; }
+
+        //public SessionFilterContext(SessionBase session, IPEndPoint remote, Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        //{
+        //    Session
+        //}
     }
 }

@@ -48,6 +48,9 @@ namespace NewLife.Remoting
             Client = uri.CreateRemote();
             Remote = uri;
 
+            // Udp客户端默认超时时间
+            if (Client is UdpServer) (Client as UdpServer).SessionTimeout = 10 * 60;
+
             return true;
         }
 
