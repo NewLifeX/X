@@ -115,19 +115,11 @@ namespace NewLife.Net
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
         /// </remarks>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
+        /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        protected override Boolean OnSend(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        protected override Boolean OnSend(Packet pk)
         {
-            if (Disposed) throw new ObjectDisposedException(GetType().Name);
-
-            if (!Open()) return false;
-
-            if (count < 0) count = buffer.Length - offset;
-
-            if (StatSend != null) StatSend.Increment(count);
+            if (StatSend != null) StatSend.Increment(pk.Count);
 
             try
             {
@@ -136,16 +128,16 @@ namespace NewLife.Net
                 {
                     if (Client.Connected)
                     {
-                        if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+                        if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
 
-                        sp.Send(buffer, offset, count, SocketFlags.None);
+                        sp.Send(pk.Data, pk.Offset, pk.Count, SocketFlags.None);
                     }
                     else
                     {
                         Client.CheckBroadcast(Remote.Address);
-                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)), Remote.EndPoint);
+                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", pk.Count, pk.ToHex(), Remote.EndPoint);
 
-                        sp.SendTo(buffer, offset, count, SocketFlags.None, Remote.EndPoint);
+                        sp.SendTo(pk.Data, pk.Offset, pk.Count, SocketFlags.None, Remote.EndPoint);
                     }
                 }
 

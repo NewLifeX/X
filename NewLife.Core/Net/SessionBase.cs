@@ -19,26 +19,16 @@ namespace NewLife.Net
         public String Name { get; set; }
 
         /// <summary>本地绑定信息</summary>
-        public NetUri Local { get; set; }
+        public NetUri Local { get; set; } = new NetUri();
 
         /// <summary>端口</summary>
         public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
         /// <summary>远程结点地址</summary>
-        public NetUri Remote { get; set; }
+        public NetUri Remote { get; set; } = new NetUri();
 
-        private int _timeout;
         /// <summary>超时。默认3000ms</summary>
-        public Int32 Timeout
-        {
-            get { return _timeout; }
-            set
-            {
-                _timeout = value;
-                if (Client != null)
-                    Client.ReceiveTimeout = _timeout;
-            }
-        }
+        public Int32 Timeout { get; set; } = 3000;
 
         /// <summary>是否活动</summary>
         public Boolean Active { get; set; }
@@ -50,13 +40,13 @@ namespace NewLife.Net
         public Boolean ThrowException { get; set; }
 
         /// <summary>发送数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
-        public IStatistics StatSend { get; set; }
+        public IStatistics StatSend { get; set; } = new Statistics();
 
         /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
-        public IStatistics StatReceive { get; set; }
+        public IStatistics StatReceive { get; set; } = new Statistics();
 
         /// <summary>通信开始时间</summary>
-        public DateTime StartTime { get; private set; }
+        public DateTime StartTime { get; private set; } = DateTime.Now;
 
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get; protected set; }
@@ -80,15 +70,6 @@ namespace NewLife.Net
         public SessionBase()
         {
             Name = GetType().Name;
-            Local = new NetUri();
-            Remote = new NetUri();
-            Timeout = 3000;
-            StartTime = DateTime.Now;
-
-            StatSend = new Statistics();
-            StatReceive = new Statistics();
-
-            Log = Logger.Null;
         }
 
         /// <summary>销毁</summary>
@@ -203,35 +184,35 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         public Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
             if (!Open()) return false;
 
             // 根据约定，上层必须处理好offset以及越界，这里仅判断count未设置的情况
             if (count < 0) count = buffer.Length - offset;
 
-            if (SendFilter == null) return OnSend(buffer, offset, count);
-
             var pk = new Packet(buffer, offset, count);
+            if (SendFilter == null) return OnSend(pk);
+
             var ctx = new SessionFilterContext
             {
                 Session = this,
                 Packet = pk
             };
             SendFilter.Execute(ctx);
+            pk = ctx.Packet;
 
-            if (ctx.Packet == null) return false;
+            if (pk == null) return false;
 
-            return OnSend(pk.Data, pk.Offset, pk.Count);
+            return OnSend(pk);
         }
 
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
+        /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        protected abstract Boolean OnSend(Byte[] buffer, Int32 offset, Int32 count);
+        protected abstract Boolean OnSend(Packet pk);
 
         private SocketAsyncEventArgs _seSend;
         private Int32 _Sending;
@@ -705,7 +686,7 @@ namespace NewLife.Net
         }
 
         /// <summary>日志对象。禁止设为空对象</summary>
-        public ILog Log { get; set; }
+        public ILog Log { get; set; } = Logger.Null;
 
         /// <summary>是否输出发送日志。默认false</summary>
         public Boolean LogSend { get; set; }

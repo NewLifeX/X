@@ -153,28 +153,22 @@ namespace NewLife.Net
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
         /// </remarks>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
+        /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        protected override Boolean OnSend(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        protected override Boolean OnSend(Packet pk)
         {
-            if (!Open()) return false;
-
-            if (count < 0) count = buffer.Length - offset;
-
-            if (StatSend != null) StatSend.Increment(count);
-            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+            if (StatSend != null) StatSend.Increment(pk.Count);
+            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
 
             try
             {
                 // 修改发送缓冲区
-                if (Client.SendBufferSize < count) Client.SendBufferSize = count;
+                if (Client.SendBufferSize < pk.Count) Client.SendBufferSize = pk.Count;
 
-                if (count == 0)
+                if (pk.Count == 0)
                     Client.Send(new Byte[0]);
                 else
-                    Client.Send(buffer, offset, count, SocketFlags.None);
+                    Client.Send(pk.Data, pk.Offset, pk.Count, SocketFlags.None);
             }
             catch (Exception ex)
             {

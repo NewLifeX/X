@@ -125,7 +125,9 @@ namespace NewLife.Net.Proxy
                         // 分析失败？这个可能不是Http请求头
                         var he = new HttpProxyEventArgs(Request, stream);
                         if (Proxy.RaiseEvent(this, EventKind.OnRequestBody, he)) return;
-                        e.Stream = he.Stream;
+                        //e.Stream = he.Stream;
+                        e.Data = he.Stream.ReadBytes();
+
                         base.OnReceive(e);
 
                         return;
@@ -152,7 +154,8 @@ namespace NewLife.Net.Proxy
                     // 否则，头部已完成，现在就是内容，直接转发
                     var he = new HttpProxyEventArgs(Request, stream);
                     if (Proxy.RaiseEvent(this, EventKind.OnRequestBody, he)) return;
-                    e.Stream = he.Stream;
+                    //e.Stream = he.Stream;
+                    e.Data = he.Stream.ReadBytes();
 
                     base.OnReceive(e);
 
@@ -189,7 +192,8 @@ namespace NewLife.Net.Proxy
                 stream.CopyTo(ms);
                 ms.Position = 0;
 
-                e.Stream = ms;
+                //e.Stream = ms;
+                e.Data = ms.ToArray();
                 #endregion
 
                 base.OnReceive(e);
@@ -371,7 +375,8 @@ namespace NewLife.Net.Proxy
                         {
                             var he = new HttpProxyEventArgs(Response, stream);
                             if (Proxy.RaiseEvent(this, EventKind.OnResponseBody, he)) return;
-                            e.Stream = he.Stream;
+                            //e.Stream = he.Stream;
+                            e.Data = he.Stream.ReadBytes();
 
                             // 如果现在正在缓存之中，那么也罢这些非头部数据一并拷贝到缓存里面
                             if (cacheItem != null)
@@ -412,7 +417,8 @@ namespace NewLife.Net.Proxy
                         var he = new HttpProxyEventArgs(Response, stream);
                         if (Proxy.RaiseEvent(this, EventKind.OnResponseBody, he)) return;
                         base.OnReceiveRemote(e);
-                        e.Stream = he.Stream;
+                        //e.Stream = he.Stream;
+                        e.Data = he.Stream.ReadBytes();
 
                         // 如果现在正在缓存之中，那么也罢这些非头部数据一并拷贝到缓存里面
                         if (cacheItem != null)
@@ -465,7 +471,8 @@ namespace NewLife.Net.Proxy
                     ms.Position = 0;
 
                     //stream = ms;
-                    e.Stream = ms;
+                    //e.Stream = ms;
+                    e.Data = ms.ToArray();
                 }
 
                 if (cacheItem != null)
@@ -630,17 +637,14 @@ namespace NewLife.Net.Proxy
     /// <summary>Http代理事件参数</summary>
     public class HttpProxyEventArgs : EventArgs
     {
-        private HttpHeader _Header;
         /// <summary>头部</summary>
-        public HttpHeader Header { get { return _Header; } set { _Header = value; } }
+        public HttpHeader Header { get; set; }
 
-        private Stream _Stream;
         /// <summary>主体数据流。外部可以更改，如果只是读取，请一定注意保持指针在原来的位置</summary>
-        public Stream Stream { get { return _Stream; } set { _Stream = value; } }
+        public Stream Stream { get; set; }
 
-        private Boolean _Cancel;
         /// <summary>是否取消操作</summary>
-        public Boolean Cancel { get { return _Cancel; } set { _Cancel = value; } }
+        public Boolean Cancel { get; set; }
 
         /// <summary>实例化</summary>
         public HttpProxyEventArgs() { }

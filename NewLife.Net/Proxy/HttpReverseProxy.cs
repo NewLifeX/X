@@ -106,7 +106,8 @@ namespace NewLife.Net.Proxy
                 stream.CopyTo(ms);
                 ms.Position = 0;
 
-                e.Stream = ms;
+                //e.Stream = ms;
+                e.Data = ms.ToArray();
 
                 base.OnReceive(e);
             }
