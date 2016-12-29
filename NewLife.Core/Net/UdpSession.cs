@@ -158,22 +158,6 @@ namespace NewLife.Net
         {
             if (Server == null) return null;
 
-            //if (buffer != null && buffer.Length > 0 && !Server.SendInternal(buffer, Remote.EndPoint)) return null;
-
-            //try
-            //{
-            //    // 通过任务拦截异步接收
-            //    var tsc = _recv;
-            //    if (tsc == null) tsc = _recv = new TaskCompletionSource<ReceivedEventArgs>();
-
-            //    var e = await tsc.Task;
-            //    return e?.Data;
-            //}
-            //finally
-            //{
-            //    _recv = null;
-            //}
-
             return await Server.SendAsync(buffer, Remote.EndPoint);
         }
 

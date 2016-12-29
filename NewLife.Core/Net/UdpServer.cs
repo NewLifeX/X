@@ -160,19 +160,34 @@ namespace NewLife.Net
 
         /// <summary>发送数据包到目的地址</summary>
         /// <param name="buffer"></param>
+        /// <returns></returns>
+        public override async Task<Byte[]> SendAsync(Byte[] buffer)
+        {
+            return await SendAsync(buffer, Remote.EndPoint);
+        }
+
+        /// <summary>发送数据包到目的地址</summary>
+        /// <param name="buffer"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        public override async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
+        public async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
         {
             if (buffer != null && buffer.Length > 0)
             {
-                if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast) Client.EnableBroadcast = true;
+                if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast)
+                {
+                    Client.EnableBroadcast = true;
+                    // 广播匹配任意响应
+                    remote = null;
+                }
             }
 
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
             if (buffer != null && buffer.Length > 0 && !AddToSendQueue(buffer, remote)) return null;
 
-            return await base.SendAsync(null, remote);
+            if (PacketQueue == null) PacketQueue = new DefaultPacketQueue();
+
+            return await PacketQueue.Add(this, remote, buffer, Timeout);
         }
 
         internal override bool OnSendAsync(SocketAsyncEventArgs se)

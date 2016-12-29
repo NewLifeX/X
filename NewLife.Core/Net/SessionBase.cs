@@ -412,7 +412,7 @@ namespace NewLife.Net
 
             if (!Open()) return null;
 
-            var task = SendAsync(null, null);
+            var task = SendAsync(null);
             if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
             return task.Result;
@@ -560,9 +560,6 @@ namespace NewLife.Net
                 ReleaseRecv(se, "!Active || Disposed");
         }
 
-        /// <summary>接收过滤器</summary>
-        public IFilter ReceiveFilter { get; set; }
-
         /// <summary>粘包处理接口</summary>
         public IPacket Packet { get; set; }
 
@@ -637,19 +634,18 @@ namespace NewLife.Net
         //    return await SendAsync(buffer, Remote.EndPoint);
         //}
 
-        async Task<Byte[]> ITransport.SendAsync(byte[] buffer) { return await SendAsync(buffer, null); }
+        async Task<Byte[]> ITransport.SendAsync(byte[] buffer) { return await SendAsync(buffer); }
 
         /// <summary>异步发送数据</summary>
         /// <param name="buffer">要发送的数据</param>
-        /// <param name="remote">远程地址，用于匹配接收</param>
         /// <returns></returns>
-        public virtual async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote = null)
+        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
         {
             if (buffer != null && buffer.Length > 0 && !AddToSendQueue(buffer, Remote.EndPoint)) return null;
 
             if (PacketQueue == null) PacketQueue = new DefaultPacketQueue();
 
-            return await PacketQueue.Add(this, remote, buffer, Timeout);
+            return await PacketQueue.Add(this, Remote.EndPoint, buffer, Timeout);
         }
         #endregion
 
