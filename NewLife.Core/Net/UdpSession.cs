@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -198,16 +199,6 @@ namespace NewLife.Net
             return task.Result;
         }
 
-        //private TaskCompletionSource<ReceivedEventArgs> _recv;
-
-        ///// <summary>开始异步接收数据</summary>
-        //public Boolean ReceiveAsync()
-        //{
-        //    if (Disposed) throw new ObjectDisposedException(GetType().Name);
-
-        //    return Server.ReceiveAsync();
-        //}
-
         public event EventHandler<ReceivedEventArgs> Received;
 
         /// <summary>粘包处理接口</summary>
@@ -217,13 +208,14 @@ namespace NewLife.Net
         {
             var stream = e.Stream;
             var remote = e.UserState as IPEndPoint;
+            var pk = new Packet(e.Data);
 
             if (Packet == null)
-                OnReceive(stream, remote);
+                OnReceive(pk, remote);
             else
             {
                 // 拆包，多个包多次调用处理程序
-                var msg = Packet.Parse(stream);
+                var msg = Packet.Parse(pk);
                 while (msg != null)
                 {
                     OnReceive(msg, remote);
@@ -233,16 +225,12 @@ namespace NewLife.Net
             }
         }
 
-        private void OnReceive(Stream stream, IPEndPoint remote)
+        private void OnReceive(Packet pk, IPEndPoint remote)
         {
             var e = new ReceivedEventArgs();
-            e.Stream = stream;
+            //e.Stream = stream;
+            e.Data = pk.ToArray();
             e.UserState = remote;
-
-            //// 同步匹配
-            //var task = _recv;
-            //_recv = null;
-            //task?.SetResult(e);
 
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);

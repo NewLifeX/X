@@ -254,7 +254,7 @@ namespace NewLife.Net
 
             if (ctx.Packet == null) return false;
 
-            return OnAddToSendQueue(pk.Get(), remote);
+            return OnAddToSendQueue(pk.ToArray(), remote);
         }
 
         private Boolean OnAddToSendQueue(Byte[] buffer, IPEndPoint remote)
@@ -556,20 +556,19 @@ namespace NewLife.Net
 
                 if (Log.Enable && LogReceive) WriteLog("Recv# [{0}]: {1}", se.BytesTransferred, se.Buffer.ToHex(se.Offset, Math.Min(se.BytesTransferred, 32)));
 
+                var pk = new Packet(se.Buffer, se.Offset, se.BytesTransferred);
                 if (ProcessAsync)
                 {
                     // 拷贝走数据，参数要重复利用
-                    var data = se.Buffer.ReadBytes(se.Offset, se.BytesTransferred);
-                    var ms = new MemoryStream(data, false);
+                    pk = pk.Clone();
                     // 根据不信任用户原则，这里另外开线程执行用户逻辑
-                    ThreadPool.UnsafeQueueUserWorkItem(s => ProcessReceive(ms, ep), null);
+                    ThreadPool.UnsafeQueueUserWorkItem(s => ProcessReceive(pk, ep), null);
                 }
                 else
                 {
                     // 同步执行，直接使用数据，不需要拷贝
-                    var ms = new MemoryStream(se.Buffer, se.Offset, se.BytesTransferred, false);
                     // 直接在IO线程调用业务逻辑
-                    ProcessReceive(ms, ep);
+                    ProcessReceive(pk, ep);
                 }
             }
 
@@ -586,16 +585,16 @@ namespace NewLife.Net
         /// <summary>粘包处理接口</summary>
         public IPacket Packet { get; set; }
 
-        void ProcessReceive(Stream stream, IPEndPoint remote)
+        void ProcessReceive(Packet pk, IPEndPoint remote)
         {
             try
             {
                 if (Packet == null)
-                    OnReceive(stream, remote);
+                    OnReceive(pk, remote);
                 else
                 {
                     // 拆包，多个包多次调用处理程序
-                    var msg = Packet.Parse(stream);
+                    var msg = Packet.Parse(pk);
                     while (msg != null)
                     {
                         OnReceive(msg, remote);
@@ -622,12 +621,12 @@ namespace NewLife.Net
         }
 
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
-        /// <param name="stream"></param>
+        /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal virtual void OnReceive(Stream stream, IPEndPoint remote)
+        internal virtual void OnReceive(Packet pk, IPEndPoint remote)
         {
             // 同步匹配
-            PacketQueue?.Match(this, remote, stream.ReadBytes());
+            PacketQueue?.Match(this, remote, pk);
         }
 
         /// <summary>数据到达事件</summary>
@@ -747,10 +746,5 @@ namespace NewLife.Net
         public SessionBase Session { get; set; }
 
         public IPEndPoint Remote { get; set; }
-
-        //public SessionFilterContext(SessionBase session, IPEndPoint remote, Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-        //{
-        //    Session
-        //}
     }
 }

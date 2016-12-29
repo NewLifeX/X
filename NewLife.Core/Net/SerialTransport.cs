@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -249,9 +250,10 @@ namespace NewLife.Net
 
                     var count = sp.Read(buf, 0, buf.Length);
                     //if (count != buf.Length) buf = buf.ReadBytes(0, count);
-                    var ms = new MemoryStream(buf, 0, count, false);
+                    //var ms = new MemoryStream(buf, 0, count, false);
+                    var pk = new Packet(buf, 0, count);
 
-                    ProcessReceive(ms);
+                    ProcessReceive(pk);
                 }
             }
             catch (Exception ex)
@@ -261,16 +263,16 @@ namespace NewLife.Net
             }
         }
 
-        void ProcessReceive(Stream stream)
+        void ProcessReceive(Packet pk)
         {
             try
             {
                 if (Packet == null)
-                    OnReceive(stream);
+                    OnReceive(pk);
                 else
                 {
                     // 拆包，多个包多次调用处理程序
-                    var msg = Packet.Parse(stream);
+                    var msg = Packet.Parse(pk);
                     while (msg != null)
                     {
                         OnReceive(msg);
@@ -286,16 +288,16 @@ namespace NewLife.Net
         }
 
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
-        /// <param name="stream"></param>
-        internal virtual void OnReceive(Stream stream)
+        /// <param name="pk"></param>
+        internal virtual void OnReceive(Packet pk)
         {
-            var buf = stream.ReadBytes();
+            //var buf = pk.ReadBytes();
 
             // 同步匹配
-            PacketQueue?.Match(this, null, buf);
+            PacketQueue?.Match(this, null, pk);
 
             // 触发事件
-            Received?.Invoke(this, new ReceivedEventArgs(buf));
+            Received?.Invoke(this, new ReceivedEventArgs(pk.ToArray()));
         }
 
         /// <summary>数据到达事件</summary>

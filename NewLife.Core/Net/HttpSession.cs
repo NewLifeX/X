@@ -100,7 +100,7 @@ namespace NewLife.Net
             protected override Boolean OnExecute(FilterContext context)
             {
                 var pk = context.Packet;
-                var buf = pk.Get();
+                var buf = pk.ToArray();
                 buf = Session.MakeRequest(buf);
                 pk.Set(buf);
 
@@ -111,11 +111,11 @@ namespace NewLife.Net
         private MemoryStream _cache;
         private DateTime _next;
         /// <summary>处理收到的数据</summary>
-        /// <param name="stream"></param>
+        /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override void OnReceive(Stream stream, IPEndPoint remote)
+        internal override void OnReceive(Packet pk, IPEndPoint remote)
         {
-            if (stream.Length == 0 && DisconnectWhenEmptyData)
+            if (pk.Count == 0 && DisconnectWhenEmptyData)
             {
                 Close("收到空数据");
                 Dispose();
@@ -123,7 +123,7 @@ namespace NewLife.Net
                 return;
             }
 
-            var buffer = stream.ReadBytes();
+            var buffer = pk.ToArray();
             // 是否全新请求
             if (_next < DateTime.Now || _cache == null)
             {
@@ -140,7 +140,8 @@ namespace NewLife.Net
             if (len > 0 && _cache.Length < len) return;
 
             _cache.Position = 0;
-            base.OnReceive(_cache, remote);
+            pk = new Packet(_cache.ReadBytes());
+            base.OnReceive(pk, remote);
 
             _cache = null;
         }

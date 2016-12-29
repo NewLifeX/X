@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using NewLife.Data;
 
 namespace NewLife.Net
 {
@@ -7,9 +8,9 @@ namespace NewLife.Net
     public interface IPacket
     {
         /// <summary>分析数据流，得到一帧数据</summary>
-        /// <param name="stream"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        Stream Parse(Stream stream);
+        Packet Parse(Packet pk);
     }
 
     /// <summary>粘包处理接口工厂</summary>
@@ -40,19 +41,19 @@ namespace NewLife.Net
         private MemoryStream _ms;
 
         /// <summary>分析数据流，得到一帧数据</summary>
-        /// <param name="stream"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        public Stream Parse(Stream stream)
+        public Packet Parse(Packet pk)
         {
             var nodata = _ms == null || _ms.Position < 0 || _ms.Position >= _ms.Length;
 
             // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
             if (nodata)
             {
-                if (stream == null) return null;
+                if (pk == null) return null;
 
-                var len = GetLength(stream);
-                if (len > 0 && stream.Position + len == stream.Length) return stream;
+                var len = GetLength(pk.GetStream());
+                if (len > 0 && len == pk.Count) return pk;
             }
 
             if (_ms == null) _ms = new MemoryStream();
@@ -60,7 +61,7 @@ namespace NewLife.Net
             // 加锁，避免多线程冲突
             lock (_ms)
             {
-                if (stream != null)
+                if (pk != null)
                 {
                     // 超过该时间后按废弃数据处理
                     var now = DateTime.Now;
@@ -73,10 +74,8 @@ namespace NewLife.Net
 
                     // 拷贝数据到最后面
                     var p = _ms.Position;
-                    var p2 = stream.Position;
                     _ms.Position = _ms.Length;
-                    stream.CopyTo(_ms);
-                    stream.Position = p2;
+                    _ms.Write(pk.Data, pk.Offset, pk.Count);
                     _ms.Position = p;
                 }
 
@@ -84,9 +83,12 @@ namespace NewLife.Net
                 if (len <= 0) return null;
 
                 // 长度足够，返回数据帧
-                var rs = Sub(_ms, len);
-                _ms.Seek(len, SeekOrigin.Current);
-                return rs;
+                //var rs = Sub(_ms, len);
+                //_ms.Seek(len, SeekOrigin.Current);
+                //return rs;
+
+                // 拷贝比较容易处理，反正粘包的可能性不是很高
+                return new Packet(_ms.ReadBytes(len));
             }
         }
 
@@ -139,14 +141,14 @@ namespace NewLife.Net
             return len;
         }
 
-        /// <summary>创建子数据流</summary>
-        /// <param name="stream"></param>
-        /// <param name="len"></param>
-        /// <returns></returns>
-        protected virtual Stream Sub(Stream stream, Int32 len)
-        {
-            return new StreamSegment(stream, len);
-        }
+        ///// <summary>创建子数据流</summary>
+        ///// <param name="stream"></param>
+        ///// <param name="len"></param>
+        ///// <returns></returns>
+        //protected virtual Stream Sub(Stream stream, Int32 len)
+        //{
+        //    return new StreamSegment(stream, len);
+        //}
 
 #if DEBUG
         /// <summary>粘包测试</summary>
@@ -219,97 +221,97 @@ namespace NewLife.Net
         }
     }
 
-    /// <summary>数据流包装，表示一个数据流的子数据流</summary>
-    class StreamSegment : Stream
-    {
-        #region 属性
-        /// <summary>主数据流</summary>
-        Stream _s;
-        /// <summary>子数据流在主数据流中的偏移</summary>
-        Int64 _offset;
+    ///// <summary>数据流包装，表示一个数据流的子数据流</summary>
+    //class StreamSegment : Stream
+    //{
+    //    #region 属性
+    //    /// <summary>主数据流</summary>
+    //    Stream _s;
+    //    /// <summary>子数据流在主数据流中的偏移</summary>
+    //    Int64 _offset;
 
-        public override Boolean CanRead => _s.CanRead;
+    //    public override Boolean CanRead => _s.CanRead;
 
-        public override Boolean CanSeek => _s.CanSeek;
+    //    public override Boolean CanSeek => _s.CanSeek;
 
-        public override Boolean CanWrite => _s.CanWrite;
+    //    public override Boolean CanWrite => _s.CanWrite;
 
-        public override Int64 Length { get; }
+    //    public override Int64 Length { get; }
 
-        public override Int64 Position { get; set; }
-        #endregion
+    //    public override Int64 Position { get; set; }
+    //    #endregion
 
-        #region 构造
-        public StreamSegment(Stream stream, Int32 len)
-        {
-            _s = stream;
-            _offset = stream.Position;
-            Length = len;
-        }
-        #endregion
+    //    #region 构造
+    //    public StreamSegment(Stream stream, Int32 len)
+    //    {
+    //        _s = stream;
+    //        _offset = stream.Position;
+    //        Length = len;
+    //    }
+    //    #endregion
 
-        #region 常用方法
-        public override void Flush()
-        {
-            _s.Flush();
-        }
+    //    #region 常用方法
+    //    public override void Flush()
+    //    {
+    //        _s.Flush();
+    //    }
 
-        public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count)
-        {
-            // 读写前后，控制好数据流指针
-            lock (_s)
-            {
-                var p = _s.Position;
-                _s.Position = Position + _offset;
-                try
-                {
-                    var rs = _s.Read(buffer, offset, count);
-                    Position += (_s.Position - p);
-                    return rs;
-                }
-                finally
-                {
-                    _s.Position = p;
-                }
-            }
-        }
+    //    public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count)
+    //    {
+    //        // 读写前后，控制好数据流指针
+    //        lock (_s)
+    //        {
+    //            var p = _s.Position;
+    //            _s.Position = Position + _offset;
+    //            try
+    //            {
+    //                var rs = _s.Read(buffer, offset, count);
+    //                Position += (_s.Position - p);
+    //                return rs;
+    //            }
+    //            finally
+    //            {
+    //                _s.Position = p;
+    //            }
+    //        }
+    //    }
 
-        public override void Write(Byte[] buffer, Int32 offset, Int32 count)
-        {
-            // 读写前后，控制好数据流指针
-            lock (_s)
-            {
-                var p = _s.Position;
-                _s.Position = Position + _offset;
-                try
-                {
-                    _s.Write(buffer, offset, count);
-                    Position += (_s.Position - p);
-                }
-                finally
-                {
-                    _s.Position = p;
-                }
-            }
-        }
+    //    public override void Write(Byte[] buffer, Int32 offset, Int32 count)
+    //    {
+    //        // 读写前后，控制好数据流指针
+    //        lock (_s)
+    //        {
+    //            var p = _s.Position;
+    //            _s.Position = Position + _offset;
+    //            try
+    //            {
+    //                _s.Write(buffer, offset, count);
+    //                Position += (_s.Position - p);
+    //            }
+    //            finally
+    //            {
+    //                _s.Position = p;
+    //            }
+    //        }
+    //    }
 
-        public override Int64 Seek(Int64 offset, SeekOrigin origin)
-        {
-            switch (origin)
-            {
-                case SeekOrigin.Current:
-                    return _s.Seek(offset, origin);
-                case SeekOrigin.Begin:
-                case SeekOrigin.End:
-                default:
-                    return _s.Seek(_offset + offset, origin);
-            }
-        }
+    //    public override Int64 Seek(Int64 offset, SeekOrigin origin)
+    //    {
+    //        switch (origin)
+    //        {
+    //            case SeekOrigin.Current:
+    //                return _s.Seek(offset, origin);
+    //            case SeekOrigin.Begin:
+    //            case SeekOrigin.End:
+    //            default:
+    //                return _s.Seek(_offset + offset, origin);
+    //        }
+    //    }
 
-        public override void SetLength(Int64 value)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-    }
+    //    public override void SetLength(Int64 value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //    #endregion
+    //}
 }

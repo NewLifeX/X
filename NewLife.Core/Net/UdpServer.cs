@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -206,9 +207,9 @@ namespace NewLife.Net
         //}
 
         /// <summary>处理收到的数据</summary>
-        /// <param name="stream"></param>
+        /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override void OnReceive(Stream stream, IPEndPoint remote)
+        internal override void OnReceive(Packet pk, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
@@ -232,11 +233,12 @@ namespace NewLife.Net
 #endif
             LastRemote = remote;
 
-            base.OnReceive(stream, remote);
+            base.OnReceive(pk, remote);
 
             // 分析处理
             var e = new ReceivedEventArgs();
-            e.Stream = stream;
+            //e.Stream = pk;
+            e.Data = pk.ToArray();
             e.UserState = remote;
 
             // 为该连接单独创建一个会话，方便直接通信

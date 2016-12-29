@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -22,7 +23,7 @@ namespace NewLife.Net
         /// <param name="remote">远程</param>
         /// <param name="response">响应的数据</param>
         /// <returns></returns>
-        Boolean Match(Object owner, IPEndPoint remote, Byte[] response);
+        Boolean Match(Object owner, IPEndPoint remote, Packet response);
     }
 
     /// <summary>接收队列。子类可重载以自定义请求响应匹配逻辑</summary>
@@ -70,7 +71,7 @@ namespace NewLife.Net
         /// <param name="remote">远程</param>
         /// <param name="response">响应的数据</param>
         /// <returns></returns>
-        public virtual Boolean Match(Object owner, IPEndPoint remote, Byte[] response)
+        public virtual Boolean Match(Object owner, IPEndPoint remote, Packet response)
         {
             var qs = Items;
             if (qs.Count == 0) return false;
@@ -85,7 +86,7 @@ namespace NewLife.Net
                         qs.Remove(qi);
                     }
 
-                    if (!qi.Source.Task.IsCompleted) qi.Source.SetResult(response);
+                    if (!qi.Source.Task.IsCompleted) qi.Source.SetResult(response.ToArray());
 
                     return true;
                 }
@@ -100,7 +101,7 @@ namespace NewLife.Net
         /// <param name="request">请求的数据</param>
         /// <param name="response">响应的数据</param>
         /// <returns></returns>
-        protected virtual Boolean IsMatch(Object owner, IPEndPoint remote, Byte[] request, Byte[] response)
+        protected virtual Boolean IsMatch(Object owner, IPEndPoint remote, Byte[] request, Packet response)
         {
             return true;
         }

@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using NewLife.Data;
 
 namespace NewLife.Net
 {
@@ -221,11 +222,11 @@ namespace NewLife.Net
         }
 
         /// <summary>处理收到的数据</summary>
-        /// <param name="stream"></param>
+        /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override void OnReceive(Stream stream, IPEndPoint remote)
+        internal override void OnReceive(Packet pk, IPEndPoint remote)
         {
-            if (stream.Length == 0 && DisconnectWhenEmptyData)
+            if (pk.Count== 0 && DisconnectWhenEmptyData)
             {
                 Close("收到空数据");
                 Dispose();
@@ -233,14 +234,14 @@ namespace NewLife.Net
                 return;
             }
 
-            base.OnReceive(stream, remote);
+            base.OnReceive(pk, remote);
 
-            OnReceive(stream);
+            OnReceive(pk);
         }
 
         /// <summary>处理收到的数据</summary>
-        /// <param name="stream"></param>
-        protected virtual void OnReceive(Stream stream)
+        /// <param name="pk"></param>
+        protected virtual void OnReceive(Packet pk)
         {
 #if !__MOBILE__
             // 更新全局远程IP地址
@@ -248,7 +249,8 @@ namespace NewLife.Net
 #endif
             // 分析处理
             var e = new ReceivedEventArgs();
-            e.Stream = stream;
+            //e.Stream = pk;
+            e.Data = pk.ToArray();
             e.UserState = Remote.EndPoint;
 
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));

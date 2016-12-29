@@ -25,6 +25,17 @@ namespace NewLife.Data
         public Packet(Byte[] data, Int32 offset = 0, Int32 count = -1) { Set(data, offset, count); }
         #endregion
 
+        #region 索引
+        /// <summary>获取/设置 指定位置的字节</summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public Byte this[Int32 index]
+        {
+            get { return Data[Offset + index]; }
+            set { Data[Offset + index] = value; }
+        }
+        #endregion
+
         #region 方法
         /// <summary>设置新的数据区</summary>
         /// <param name="data"></param>
@@ -40,8 +51,9 @@ namespace NewLife.Data
         }
 
         /// <summary>返回字节数组。如果是完整数组直接返回，否则截取</summary>
+        /// <remarks>不一定是全新数据，如果需要全新数据请克隆</remarks>
         /// <returns></returns>
-        public virtual Byte[] Get()
+        public virtual Byte[] ToArray()
         {
             if (Offset == 0 && (Count < 0 || Offset + Count == Data.Length)) return Data;
 
@@ -51,6 +63,13 @@ namespace NewLife.Data
         /// <summary>获取封包的数据流形式</summary>
         /// <returns></returns>
         public virtual Stream GetStream() { return new MemoryStream(Data, Offset, Count, false); }
+
+        /// <summary>深度克隆一份数据包，拷贝数据区</summary>
+        /// <returns></returns>
+        public Packet Clone()
+        {
+            return new Packet(Data.ReadBytes(Offset, Count));
+        }
         #endregion
     }
 }
