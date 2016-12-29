@@ -65,6 +65,10 @@ namespace NewLife.Data
         /// <returns></returns>
         public virtual Stream GetStream() { return new MemoryStream(Data, Offset, Count, false); }
 
+        /// <summary>把封包写入到数据流</summary>
+        /// <param name="stream"></param>
+        public void WriteTo(Stream stream) { stream.Write(Data, Offset, Count); }
+
         /// <summary>深度克隆一份数据包，拷贝数据区</summary>
         /// <returns></returns>
         public Packet Clone()

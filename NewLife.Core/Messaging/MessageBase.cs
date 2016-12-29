@@ -9,7 +9,7 @@ using NewLife.Serialization;
 namespace NewLife.Messaging
 {
     /// <summary>消息基类</summary>
-    public abstract class MessageBase : IMessage
+    public abstract class MessageBase : IAccessor
     {
         #region 核心读写方法
         /// <summary>从数据流中读取消息</summary>

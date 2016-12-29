@@ -110,6 +110,7 @@
     <Compile Include="Log\NetworkLog.cs" />
     <Compile Include="Log\TextControlLog.cs" />
     <Compile Include="Log\TimeCost.cs" />
+    <Compile Include="Messaging\DefaultMessage.cs" />
     <Compile Include="Messaging\IMessage.cs">
       <SubType>Code</SubType>
     </Compile>

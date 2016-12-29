@@ -167,7 +167,7 @@ namespace NewLife.MessageQueue
             return rs;
         }
 
-        /// <summary>接收</summary>
+        ///// <summary>接收</summary>
         //public EventHandler<EventArgs<Message>> Received;
 
         //void Client_Received(object sender, ReceivedEventArgs e)

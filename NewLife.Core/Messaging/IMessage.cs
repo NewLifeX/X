@@ -2,43 +2,91 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using NewLife.Data;
+using NewLife.Reflection;
 using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {
-    /// <summary>消息接口</summary>
-    public interface IMessage : IAccessor
+    /// <summary>消息命令</summary>
+    public interface IMessage //: IAccessor
     {
-        ///// <summary>从数据流中读取消息</summary>
-        ///// <param name="stream"></param>
-        ///// <returns>是否成功</returns>
-        //Boolean Read(Stream stream);
+        /// <summary>是否响应</summary>
+        Boolean Reply { get; }
 
-        ///// <summary>把消息写入到数据流中</summary>
-        ///// <param name="stream"></param>
-        //void Write(Stream stream);
+        /// <summary>负载数据</summary>
+        Packet Payload { get; }
+
+        /// <summary>根据请求创建配对的响应消息</summary>
+        /// <returns></returns>
+        IMessage CreateReply();
+
+        /// <summary>从数据包中读取消息</summary>
+        /// <param name="pk"></param>
+        /// <returns>是否成功</returns>
+        Boolean Read(Packet pk);
+
+        /// <summary>把消息写入到数据流中</summary>
+        /// <param name="stream"></param>
+        void Write(Stream stream);
     }
 
-    /// <summary>消息助手</summary>
-    public static class MessageHelper
+    /// <summary>消息命令基类</summary>
+    public abstract class Message : IMessage
     {
-        /// <summary>获取消息的数据流表示。指针位置为0</summary>
-        /// <param name="msg"></param>
+        /// <summary>是否响应</summary>
+        public Boolean Reply { get; protected set; }
+
+        /// <summary>负载数据</summary>
+        public Packet Payload { get; protected set; }
+
+        /// <summary>根据请求创建配对的响应消息</summary>
         /// <returns></returns>
-        public static Stream GetStream(this IMessage msg)
+        public virtual IMessage CreateReply()
         {
-            var ms = new MemoryStream();
-            msg.Write(ms, null);
-            ms.Position = 0;
-            return ms;
+            if (Reply) throw new Exception("不能根据响应消息创建响应消息");
+
+            var msg = GetType().CreateInstance() as Message;
+            msg.Reply = true;
+
+            return msg;
         }
 
-        /// <summary>获取消息的字节数组表示。</summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        public static Byte[] ToArray(this IMessage msg)
+        /// <summary>从数据包中读取消息</summary>
+        /// <param name="pk"></param>
+        /// <returns>是否成功</returns>
+        public virtual Boolean Read(Packet pk)
         {
-            return msg.GetStream().ToArray();
+            Payload = pk;
+
+            return true;
         }
+
+        /// <summary>把消息写入到数据流中</summary>
+        /// <param name="stream"></param>
+        public virtual void Write(Stream stream) { Payload?.WriteTo(stream); }
     }
+
+    ///// <summary>消息助手</summary>
+    //public static class MessageHelper
+    //{
+    //    /// <summary>获取消息的数据流表示。指针位置为0</summary>
+    //    /// <param name="msg"></param>
+    //    /// <returns></returns>
+    //    public static Stream GetStream(this IMessage msg)
+    //    {
+    //        var ms = new MemoryStream();
+    //        msg.Write(ms, null);
+    //        ms.Position = 0;
+    //        return ms;
+    //    }
+
+    //    /// <summary>获取消息的字节数组表示。</summary>
+    //    /// <param name="msg"></param>
+    //    /// <returns></returns>
+    //    public static Byte[] ToArray(this IMessage msg)
+    //    {
+    //        return msg.GetStream().ToArray();
+    //    }
+    //}
 }
