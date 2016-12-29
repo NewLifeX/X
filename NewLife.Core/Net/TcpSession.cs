@@ -248,9 +248,7 @@ namespace NewLife.Net
             NewLife.Web.WebHelper.UserHost = Remote.EndPoint.ToString();
 #endif
             // 分析处理
-            var e = new ReceivedEventArgs();
-            //e.Stream = pk;
-            e.Data = pk.ToArray();
+            var e = new ReceivedEventArgs(pk);
             e.UserState = Remote.EndPoint;
 
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));

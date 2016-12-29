@@ -236,9 +236,7 @@ namespace NewLife.Net
             base.OnReceive(pk, remote);
 
             // 分析处理
-            var e = new ReceivedEventArgs();
-            //e.Stream = pk;
-            e.Data = pk.ToArray();
+            var e = new ReceivedEventArgs(pk);
             e.UserState = remote;
 
             // 为该连接单独创建一个会话，方便直接通信

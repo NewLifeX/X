@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace NewLife.Data
 {
@@ -69,6 +70,32 @@ namespace NewLife.Data
         public Packet Clone()
         {
             return new Packet(Data.ReadBytes(Offset, Count));
+        }
+
+        /// <summary>以字符串表示</summary>
+        /// <param name="encoding">字符串编码，默认URF-8</param>
+        /// <returns></returns>
+        public String ToStr(Encoding encoding = null)
+        {
+            if (Data == null) return null;
+            if (Count == 0) return String.Empty;
+
+            return Data.ToStr(encoding ?? Encoding.UTF8, Offset, Count);
+        }
+
+        /// <summary>以十六进制编码表示</summary>
+        /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
+        /// <param name="separate">分隔符</param>
+        /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
+        /// <returns></returns>
+        public String ToHex(Int32 maxLength = 32, String separate = "-", Int32 groupSize = 0)
+        {
+            if (Data == null) return null;
+            if (Count == 0) return String.Empty;
+
+            var buf = Data;
+            if (Offset > 0 || Count > maxLength) buf = Data.ReadBytes(Offset, Math.Min(Count, maxLength));
+            return buf.ToHex(separate, groupSize, buf.Length);
         }
         #endregion
     }

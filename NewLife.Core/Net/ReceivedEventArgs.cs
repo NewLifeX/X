@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using NewLife.Data;
 
 namespace NewLife.Net
 {
@@ -8,28 +9,21 @@ namespace NewLife.Net
     public class ReceivedEventArgs : EventArgs
     {
         #region 属性
-        private Byte[] _Data;
+        /// <summary>数据包</summary>
+        public Packet Packet { get; set; }
+
         /// <summary>数据</summary>
         public Byte[] Data
         {
-            get
-            {
-                if (_Data == null && Stream != null) _Data = GetData();
-                return _Data;
-            }
-            set
-            {
-                _Data = value;
-                _Stream = new MemoryStream(_Data, false);
-            }
+            get { return Packet.ToArray(); }
+            set { Packet.Set(value); }
         }
 
         /// <summary>数据长度</summary>
-        public Int32 Length { get { return (Int32)Stream.Length; } }
+        public Int32 Length { get { return Packet.Count; } }
 
-        private Stream _Stream;
         /// <summary>数据区对应的一个数据流实例</summary>
-        public Stream Stream { get { return _Stream; } set { _Stream = value; _Data = null; } }
+        public Stream Stream { get { return Packet.GetStream(); } /*set { _Stream = value; _Data = null; }*/ }
 
         /// <summary>用户数据。比如远程地址等</summary>
         public Object UserState { get; set; }
@@ -40,43 +34,18 @@ namespace NewLife.Net
         public ReceivedEventArgs() { }
 
         /// <summary>使用字节数组实例化一个数据事件参数</summary>
-        /// <param name="data"></param>
-        public ReceivedEventArgs(Byte[] data)
+        /// <param name="pk"></param>
+        public ReceivedEventArgs(Packet pk)
         {
-            Data = data;
-            //Length = data.Length;
-            //Stream = new MemoryStream(data, false);
+            Packet = pk;
         }
         #endregion
 
         #region 方法
-        /// <summary>读取数据，不改变数据流指针</summary>
-        /// <returns></returns>
-        public Byte[] GetData()
-        {
-            if (Stream is MemoryStream)
-                return (Stream as MemoryStream).ToArray();
-
-            var ms = Stream;
-            var p = ms.Position;
-            //ms.Position = 0;
-            var data = ms.ReadBytes();
-            ms.Position = p;
-            return data;
-        }
-
         /// <summary>以字符串表示</summary>
         /// <param name="encoding">字符串编码，默认URF-8</param>
         /// <returns></returns>
-        public String ToStr(Encoding encoding = null)
-        {
-            var ms = Stream;
-            if (ms == null || ms.Length <= 0) return String.Empty;
-
-            if (encoding == null) encoding = Encoding.UTF8;
-
-            return Data.ToStr(encoding, 0, Length);
-        }
+        public String ToStr(Encoding encoding = null) { return Packet?.ToStr(encoding); }
 
         /// <summary>以十六进制编码表示</summary>
         /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
@@ -85,10 +54,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public String ToHex(Int32 maxLength = 32, String separate = "-", Int32 groupSize = 0)
         {
-            var ms = Stream;
-            if (ms == null || ms.Length <= 0) return String.Empty;
-
-            return Data.ToHex(separate, groupSize, Math.Min(Length, maxLength));
+            return Packet?.ToHex(maxLength, separate, groupSize);
         }
         #endregion
     }

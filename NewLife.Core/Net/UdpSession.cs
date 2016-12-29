@@ -227,9 +227,7 @@ namespace NewLife.Net
 
         private void OnReceive(Packet pk, IPEndPoint remote)
         {
-            var e = new ReceivedEventArgs();
-            //e.Stream = stream;
-            e.Data = pk.ToArray();
+            var e = new ReceivedEventArgs(pk);
             e.UserState = remote;
 
             LastTime = DateTime.Now;

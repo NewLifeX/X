@@ -18,9 +18,9 @@ namespace NewLife.Net
         protected override void OnReceive(ReceivedEventArgs e)
         {
             var buf = e.Data;
-            if (!_HandeShake && e.Data.StartsWith(_prefix))
+            if (!_HandeShake && buf.StartsWith(_prefix))
             {
-                HandeShake(e.ToStr());
+                HandeShake(buf.ToStr());
 
                 _HandeShake = true;
 

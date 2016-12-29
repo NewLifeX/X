@@ -297,7 +297,7 @@ namespace NewLife.Net
             PacketQueue?.Match(this, null, pk);
 
             // 触发事件
-            Received?.Invoke(this, new ReceivedEventArgs(pk.ToArray()));
+            Received?.Invoke(this, new ReceivedEventArgs(pk));
         }
 
         /// <summary>数据到达事件</summary>
