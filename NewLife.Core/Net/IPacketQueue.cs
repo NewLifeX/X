@@ -29,6 +29,7 @@ namespace NewLife.Net
     {
         private LinkedList<Item> Items = new LinkedList<Item>();
         private TimerX _Timer;
+        private static TimerScheduler _sch = TimerScheduler.Create("Packet");
 
         /// <summary>加入请求队列</summary>
         /// <param name="request">请求的数据</param>
@@ -55,7 +56,7 @@ namespace NewLife.Net
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = new TimerX(Check, null, 1000, 10000);
+                    if (_Timer == null) _Timer = new TimerX(Check, null, 1000, 1000, _sch);
                 }
             }
 

@@ -231,9 +231,11 @@ namespace NewLife.Net
         {
             var svr = new NetServer();
             svr.Port = 777;
-            svr.SessionPacket = new HeaderLengthPacketFactory();
+            svr.SessionPacket = new DefaultPacketFactory { Offset = 0, Size = 0 };
             svr.Log = Log.XTrace.Log;
+            //svr.LogSend = true;
             svr.LogReceive = true;
+            svr.Received += (s, e) => (s as INetSession).Send(e.Packet);
             svr.Start();
 
             // 凑齐10个带有长度的数据帧一起发出
@@ -256,10 +258,14 @@ namespace NewLife.Net
             var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
             //client.Remote.Address = NetHelper.MyIP();
             //client.Remote.Address = System.Net.IPAddress.Parse("1.0.0.13");
+            client.Packet = new DefaultPacket { Offset = 0, Size = 0 };
             client.Log = Log.XTrace.Log;
             client.LogSend = true;
+            //client.LogReceive = true;
             //client.BufferSize = 1500;
-            client.SendAsync(ms.ToArray());
+            client.Received += (s, e) => Log.XTrace.WriteLine("Client {0}", e.Packet.Count);
+            var rs = client.SendAsync(ms.ToArray()).Result;
+            Console.WriteLine("rs={0}", rs.Count);
 
             Console.ReadKey(true);
 

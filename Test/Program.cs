@@ -74,7 +74,7 @@ namespace Test
             //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
-            //HeaderLengthPacket.Test();
+            DefaultPacket.Test();
             //var svr = new DNSServer();
             //svr.Start();
 
@@ -99,10 +99,10 @@ namespace Test
             //html = http.ReceiveString();
             //Console.WriteLine(html.Length);
 
-            var t1 = new TimerX(TestTimer, 1, 100, 1000);
-            var ts = TimerScheduler.Create("Test");
-            var t2 = new TimerX(TestTimer, 2, 300, 777, ts);
-            Console.ReadKey();
+            //var t1 = new TimerX(TestTimer, 1, 100, 1000);
+            //var ts = TimerScheduler.Create("Test");
+            //var t2 = new TimerX(TestTimer, 2, 300, 777, ts);
+            //Console.ReadKey();
         }
 
         static void TestTimer(Object state)

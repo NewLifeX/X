@@ -38,9 +38,9 @@ namespace NewLife.Net
         ///// <remarks>接受连接请求后，自动开始会话的异步接收，默认打开，如果会话需要同步接收数据，需要关闭该选项。</remarks>
         //public Boolean AutoReceiveAsync { get; set; }
 
-        /// <summary>异步处理接收到的数据，默认true。</summary>
+        /// <summary>异步处理接收到的数据，默认false。</summary>
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
-        public Boolean ProcessAsync { get; set; } = true;
+        public Boolean ProcessAsync { get; set; }
 
         /// <summary>底层Socket</summary>
         public Socket Client { get; private set; }
