@@ -184,7 +184,7 @@ namespace NewLife.Net
 
             var pk = new Packet(buffer);
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
-            if (pk.Count > 0 && !AddToSendQueue(pk, remote)) return null;
+            if (pk.Count > 0 && !SendByQueue(pk, remote)) return null;
 
             var rs = await Packet.Add(pk, remote, Timeout);
             return rs.ToArray();

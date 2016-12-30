@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -48,7 +47,7 @@ namespace NewLife.Net
         public DateTime StartTime { get; private set; } = DateTime.Now;
 
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
-        public DateTime LastTime { get; protected set; }
+        public DateTime LastTime { get; internal protected set; }
 
         /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
         public Boolean DynamicPort { get; private set; }
@@ -79,7 +78,7 @@ namespace NewLife.Net
             base.OnDispose(disposing);
 
             var reason = GetType().Name + (disposing ? "Dispose" : "GC");
-            ReleaseSend(reason);
+            _SendQueue.Release(reason);
 
             try
             {
@@ -214,184 +213,18 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         protected abstract Boolean OnSend(Packet pk);
 
-        private SocketAsyncEventArgs _seSend;
-        private Int32 _Sending;
-        private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
-
-        internal Boolean AddToSendQueue(Packet pk, IPEndPoint remote)
+        private SendQueue _SendQueue;
+        /// <summary>以队列发送数据包，自动拆分大包，合并小包</summary>
+        /// <param name="pk"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        internal Boolean SendByQueue(Packet pk, IPEndPoint remote)
         {
-            if (!Open()) return false;
-
-            if (SendFilter == null) return OnAddToSendQueue(pk, remote);
-
-            var ctx = new SessionFilterContext
-            {
-                Session = this,
-                Packet = pk,
-                Remote = remote
-            };
-
-            SendFilter.Execute(ctx);
-
-            pk = ctx.Packet;
-            remote = ctx.Remote;
-
-            if (pk == null) return false;
-
-            return OnAddToSendQueue(pk, remote);
-        }
-
-        private Boolean OnAddToSendQueue(Packet pk, IPEndPoint remote)
-        {
-            if (StatSend != null) StatSend.Increment(pk.Count);
-            if (Log != null && Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", pk.Count, pk.ToHex());
-
-            LastTime = DateTime.Now;
-
-            // 打开UDP广播
-            if (Local.Type == NetType.Udp && remote != null && Object.Equals(remote.Address, IPAddress.Broadcast)) Client.EnableBroadcast = true;
-
-            // 同时只允许一个异步发送，其它发送放入队列
-
-            // 考虑到超长数据包，拆分为多个包
-            if (pk.Count <= BufferSize)
-            {
-                var qi = new QueueItem();
-                qi.Packet = pk;
-                qi.Remote = remote;
-
-                _SendQueue.Enqueue(qi);
-            }
-            else
-            {
-                // 数据包切分，共用数据区，不需要内存拷贝
-                var idx = 0;
-                while (true)
-                {
-                    var remain = pk.Count - idx;
-                    if (remain <= 0) break;
-
-                    var len = Math.Min(remain, BufferSize);
-
-                    var qi = new QueueItem();
-                    qi.Packet = new Packet(pk.Data, pk.Offset + idx, len);
-                    qi.Remote = remote;
-
-                    _SendQueue.Enqueue(qi);
-
-                    idx += len;
-                }
-            }
-
-            CheckSendQueue(false);
-
-            return true;
-        }
-
-        void ReleaseSend(String reason)
-        {
-            _seSend.TryDispose();
-            _seSend = null;
-
-            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放SendSA {0} {1}", 1, reason);
-        }
-
-        void CheckSendQueue(Boolean io)
-        {
-            // 如果已销毁，则停止检查发送队列
-            if (Client == null || Disposed) return;
-
-            var qu = _SendQueue;
-            if (qu.Count == 0) return;
-
-            // 如果没有在发送，就开始发送
-            if (Interlocked.CompareExchange(ref _Sending, 1, 0) != 0) return;
-
-            QueueItem qi = null;
-            if (!qu.TryDequeue(out qi)) return;
-
-            var se = _seSend;
-            if (se == null)
-            {
-                var buf = new Byte[BufferSize];
-                se = _seSend = new SocketAsyncEventArgs();
-                se.SetBuffer(buf, 0, buf.Length);
-                se.Completed += (s, e) => ProcessSend(e);
-
-                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建SendSA {0}", 1);
-            }
-
-            se.RemoteEndPoint = qi.Remote;
-
-            // 拷贝缓冲区，设置长度
-            var p = 0;
-            var remote = qi.Remote;
-
-            // 为了提高吞吐量，减少数据收发次数，尽可能的把发送队列多个数据包合并成为一个大包发出
-            while (true)
-            {
-                var pk = qi.Packet;
-                var len = pk.Count;
-                Buffer.BlockCopy(pk.Data, pk.Offset, se.Buffer, p, len);
-                p += len;
-
-                // 不足最大长度，试试下一个
-                if (!qu.TryPeek(out qi)) break;
-                if (qi.Remote + "" != remote + "") break;
-                if (p + qi.Packet.Count > BufferSize) break;
-
-                if (!qu.TryDequeue(out qi)) break;
-            }
-
-            se.SetBuffer(0, p);
-
-            if (!OnSendAsync(se))
-            {
-                if (io)
-                    ProcessSend(se);
-                else
-                    Task.Factory.StartNew(s => ProcessSend(s as SocketAsyncEventArgs), se);
-            }
+            if (_SendQueue == null) _SendQueue = new SendQueue(this);
+            return _SendQueue.Add(pk, remote);
         }
 
         internal abstract Boolean OnSendAsync(SocketAsyncEventArgs se);
-
-        void ProcessSend(SocketAsyncEventArgs se)
-        {
-            if (!Active)
-            {
-                ReleaseSend("!Active " + se.SocketError);
-
-                return;
-            }
-
-            // 判断成功失败
-            if (se.SocketError != SocketError.Success)
-            {
-                // 未被关闭Socket时，可以继续使用
-                //if (!se.IsNotClosed())
-                {
-                    var ex = se.GetException();
-                    if (ex != null) OnError("SendAsync", ex);
-
-                    ReleaseSend("SocketError " + se.SocketError);
-
-                    //if (se.SocketError == SocketError.ConnectionReset) Dispose();
-                    if (se.SocketError == SocketError.ConnectionReset) Close("SendAsync " + se.SocketError);
-
-                    return;
-                }
-            }
-
-            // 发送新的数据
-            if (Interlocked.CompareExchange(ref _Sending, 0, 1) == 1) CheckSendQueue(true);
-        }
-
-        class QueueItem
-        {
-            public Packet Packet { get; set; }
-            public IPEndPoint Remote { get; set; }
-        }
         #endregion
 
         #region 接收
@@ -622,7 +455,7 @@ namespace NewLife.Net
         public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
         {
             var pk = new Packet(buffer);
-            if (pk.Count > 0 && !AddToSendQueue(pk, Remote.EndPoint)) return null;
+            if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
 
             var rs = await Packet.Add(pk, Remote.EndPoint, Timeout);
             return rs.ToArray();
@@ -636,7 +469,7 @@ namespace NewLife.Net
             if (msg == null) throw new ArgumentNullException(nameof(msg));
 
             var pk = new Packet(msg.ToArray());
-            if (!AddToSendQueue(pk, Remote.EndPoint)) return null;
+            if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
 
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
@@ -658,7 +491,7 @@ namespace NewLife.Net
         /// <summary>触发异常</summary>
         /// <param name="action">动作</param>
         /// <param name="ex">异常</param>
-        protected virtual void OnError(String action, Exception ex)
+        internal protected virtual void OnError(String action, Exception ex)
         {
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex == null ? null : ex.Message);
             Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });

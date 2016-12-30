@@ -137,6 +137,7 @@
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />
+    <Compile Include="Net\SendQueue.cs" />
     <Compile Include="Net\SerialTransport.cs" />
     <Compile Include="Net\SocketHelper.cs" />
     <Compile Include="Net\Statistics.cs" />
