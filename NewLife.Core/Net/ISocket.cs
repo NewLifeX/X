@@ -109,8 +109,8 @@ namespace NewLife.Net
         /// <summary>粘包处理接口</summary>
         IPacket Packet { get; set; }
 
-        /// <summary>数据包请求配对队列</summary>
-        IPacketQueue PacketQueue { get; set; }
+        ///// <summary>数据包请求配对队列</summary>
+        //IPacketQueue PacketQueue { get; set; }
 
         /// <summary>异步发送数据并等待响应</summary>
         /// <param name="buffer"></param>

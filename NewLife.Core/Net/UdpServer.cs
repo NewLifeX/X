@@ -48,7 +48,7 @@ namespace NewLife.Net
             _Sessions = new SessionCollection(this);
 
             StatSession = new Statistics();
-            PacketQueue = new DefaultPacketQueue();
+            //PacketQueue = new DefaultPacketQueue();
         }
 
         /// <summary>使用监听口初始化</summary>
@@ -182,10 +182,12 @@ namespace NewLife.Net
                 }
             }
 
+            var pk = new Packet(buffer);
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
-            if (buffer != null && buffer.Length > 0 && !AddToSendQueue(new Packet(buffer), remote)) return null;
+            if (pk.Count > 0 && !AddToSendQueue(pk, remote)) return null;
 
-            return await PacketQueue.Add(this, remote, buffer, Timeout);
+            var rs = await Packet.Add(pk, remote, Timeout);
+            return rs.ToArray();
         }
 
         internal override bool OnSendAsync(SocketAsyncEventArgs se)
@@ -348,7 +350,7 @@ namespace NewLife.Net
                 //us.StatReceive.Parent = StatReceive;
                 us.Packet = SessionPacket?.Create();
                 // 所有会话共用一个队列，减少定时器损耗
-                us.PacketQueue = PacketQueue;
+                //us.PacketQueue = PacketQueue;
 
                 session = us;
                 if (sessions.Add(session))

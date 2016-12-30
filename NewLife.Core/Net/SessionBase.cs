@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -71,6 +69,7 @@ namespace NewLife.Net
         public SessionBase()
         {
             Name = GetType().Name;
+            LogPrefix = "{0}.".F((Name + "").TrimEnd("Server", "Session", "Client"));
         }
 
         /// <summary>销毁</summary>
@@ -79,11 +78,12 @@ namespace NewLife.Net
         {
             base.OnDispose(disposing);
 
-            ReleaseSend("Dispose");
+            var reason = GetType().Name + (disposing ? "Dispose" : "GC");
+            ReleaseSend(reason);
 
             try
             {
-                Close(GetType().Name + (disposing ? "Dispose" : "GC"));
+                Close(reason);
             }
             catch (Exception ex) { OnError("Dispose", ex); }
         }
@@ -97,6 +97,8 @@ namespace NewLife.Net
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (Active) return true;
+
+            LogPrefix = "{0}.".F((Name + "").TrimEnd("Server", "Session", "Client"));
 
             // 估算完成时间，执行过长时提示
             using (var tc = new TimeCost("{0}.Open".F(GetType().Name), 1500))
@@ -187,9 +189,6 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
             if (!Open()) return false;
-
-            // 根据约定，上层必须处理好offset以及越界，这里仅判断count未设置的情况
-            if (count < 0) count = buffer.Length - offset;
 
             var pk = new Packet(buffer, offset, count);
             if (SendFilter == null) return OnSend(pk);
@@ -593,7 +592,7 @@ namespace NewLife.Net
         internal virtual void OnReceive(Packet pk, IPEndPoint remote)
         {
             // 同步匹配
-            PacketQueue?.Match(this, remote, pk);
+            Packet?.Match(pk, remote);
         }
 
         /// <summary>数据到达事件</summary>
@@ -615,17 +614,6 @@ namespace NewLife.Net
         /// <summary>粘包处理接口</summary>
         public IPacket Packet { get; set; }
 
-        /// <summary>数据包请求配对队列</summary>
-        public IPacketQueue PacketQueue { get; set; }
-
-        ///// <summary>异步发送数据并等待响应</summary>
-        ///// <param name="buffer"></param>
-        ///// <returns></returns>
-        //public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
-        //{
-        //    return await SendAsync(buffer, Remote.EndPoint);
-        //}
-
         async Task<Byte[]> ITransport.SendAsync(byte[] buffer) { return await SendAsync(buffer); }
 
         /// <summary>异步发送数据</summary>
@@ -633,9 +621,11 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
         {
-            if (buffer != null && buffer.Length > 0 && !AddToSendQueue(new Packet(buffer), Remote.EndPoint)) return null;
+            var pk = new Packet(buffer);
+            if (pk.Count > 0 && !AddToSendQueue(pk, Remote.EndPoint)) return null;
 
-            return await PacketQueue.Add(this, Remote.EndPoint, buffer, Timeout);
+            var rs = await Packet.Add(pk, Remote.EndPoint, Timeout);
+            return rs.ToArray();
         }
 
         /// <summary>发送消息并等待响应</summary>
@@ -671,27 +661,13 @@ namespace NewLife.Net
         protected virtual void OnError(String action, Exception ex)
         {
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex == null ? null : ex.Message);
-            if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
+            Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
 
         #region 日志
-        private String _LogPrefix;
-
         /// <summary>日志前缀</summary>
-        public virtual String LogPrefix
-        {
-            get
-            {
-                if (_LogPrefix == null)
-                {
-                    var name = Name == null ? "" : Name.TrimEnd("Server", "Session", "Client");
-                    _LogPrefix = "{0}.".F(name);
-                }
-                return _LogPrefix;
-            }
-            set { _LogPrefix = value; }
-        }
+        public virtual String LogPrefix { get; set; }
 
         /// <summary>日志对象。禁止设为空对象</summary>
         public ILog Log { get; set; } = Logger.Null;
@@ -709,24 +685,12 @@ namespace NewLife.Net
         {
             if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }
-
-        /// <summary>输出调试日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        [Conditional("DEBUG")]
-        public void WriteDebugLog(String format, params Object[] args)
-        {
-            if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
-        }
         #endregion
 
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return Local.ToString();
-        }
+        public override string ToString() { return Local + ""; }
         #endregion
     }
 

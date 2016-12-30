@@ -21,10 +21,10 @@ namespace NewLife.Net
         Task<Packet> Add(Packet request, IPEndPoint remote, Int32 msTimeout);
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
-        /// <param name="remote">远程</param>
         /// <param name="response">响应的数据</param>
+        /// <param name="remote">远程</param>
         /// <returns></returns>
-        Boolean Match(IPEndPoint remote, Packet response);
+        Boolean Match(Packet response, IPEndPoint remote);
 
         /// <summary>分析数据流，得到一帧数据</summary>
         /// <param name="pk"></param>
@@ -68,10 +68,10 @@ namespace NewLife.Net
         public virtual Task<Packet> Add(Packet request, IPEndPoint remote, Int32 msTimeout) { return null; }
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
-        /// <param name="remote">远程</param>
         /// <param name="response">响应的数据</param>
+        /// <param name="remote">远程</param>
         /// <returns></returns>
-        public virtual Boolean Match(IPEndPoint remote, Packet response) { return true; }
+        public virtual Boolean Match(Packet response, IPEndPoint remote) { return true; }
         #endregion
 
         #region 粘包处理

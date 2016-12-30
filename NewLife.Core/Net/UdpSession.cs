@@ -83,8 +83,8 @@ namespace NewLife.Net
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get { return Server.BufferSize; } set { Server.BufferSize = value; } }
 
-        /// <summary>数据包请求配对队列</summary>
-        public IPacketQueue PacketQueue { get; set; }
+        ///// <summary>数据包请求配对队列</summary>
+        //public IPacketQueue PacketQueue { get; set; }
         #endregion
 
         #region 构造

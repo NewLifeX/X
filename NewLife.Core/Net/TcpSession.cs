@@ -230,13 +230,6 @@ namespace NewLife.Net
 
             base.OnReceive(pk, remote);
 
-            OnReceive(pk);
-        }
-
-        /// <summary>处理收到的数据</summary>
-        /// <param name="pk"></param>
-        protected virtual void OnReceive(Packet pk)
-        {
 #if !__MOBILE__
             // 更新全局远程IP地址
             NewLife.Web.WebHelper.UserHost = Remote.EndPoint.ToString();

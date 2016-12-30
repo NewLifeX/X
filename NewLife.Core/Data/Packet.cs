@@ -45,10 +45,19 @@ namespace NewLife.Data
         public virtual void Set(Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
             Data = data;
-            Offset = offset;
 
-            if (count < 0 && data != null) count = data.Length - offset;
-            Count = count;
+            if (data == null)
+            {
+                Offset = 0;
+                count = 0;
+            }
+            else
+            {
+                Offset = offset;
+
+                if (count < 0) count = data.Length - offset;
+                Count = count;
+            }
         }
 
         /// <summary>返回字节数组。如果是完整数组直接返回，否则截取</summary>
