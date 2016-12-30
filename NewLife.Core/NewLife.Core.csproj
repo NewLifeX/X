@@ -117,6 +117,7 @@
     <Compile Include="Messaging\MessageBase.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Messaging\MessageEventArgs.cs" />
     <Compile Include="Model\IFactory.cs" />
     <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Model\ModelExtension.cs" />

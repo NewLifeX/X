@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Messaging;
 using NewLife.Net;
 
 namespace NewLife.Remoting
@@ -36,9 +36,11 @@ namespace NewLife.Remoting
         {
             Local = new NetUri(config);
 #if DEBUG
-            //LogSend = true;
-            //LogReceive = true;
+            LogSend = true;
+            LogReceive = true;
 #endif
+            // 新生命标准网络封包协议
+            SessionPacket = new DefaultPacketFactory();
 
             return true;
         }
@@ -48,6 +50,14 @@ namespace NewLife.Remoting
         {
             //if (Encoder == null) Encoder = new JsonEncoder();
             if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
+
+            //base.EnsureCreateServer();
+
+            //foreach (var item in Servers)
+            //{
+            //    // 新生命标准网络封包协议
+            //    item.SessionPacket = new DefaultPacketFactory();
+            //}
 
             base.OnStart();
         }
@@ -80,43 +90,47 @@ namespace NewLife.Remoting
             }
         }
 
-        protected override void OnReceive(ReceivedEventArgs e)
+        protected override void OnReceive(MessageEventArgs e)
         {
             var enc = Host.Encoder;
 
-            var dic = enc.Decode(e.Packet);
+            var msg = e.Message;
+            var dic = enc.Decode(msg?.Payload);
 
             var act = "";
             Object args = null;
             if (enc.TryGet(dic, out act, out args))
             {
-                OnInvoke(act, args as IDictionary<string, object>);
+                OnInvoke(msg, act, args as IDictionary<string, object>);
             }
         }
 
         /// <summary>处理远程调用</summary>
+        /// <param name="msg"></param>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        protected virtual async void OnInvoke(string action, IDictionary<string, object> args)
+        protected virtual async void OnInvoke(IMessage msg, string action, IDictionary<string, object> args)
         {
             var enc = Host.Encoder;
             object result = null;
-            var rs = false;
+            var rs = msg.CreateReply();
+            var r = false;
             try
             {
                 result = await Host.Handler.Execute(this, action, args);
-
-                rs = true;
+                r = true;
             }
             catch (Exception ex)
             {
-                //result = ex.Message;
+                var msg2 = rs as DefaultMessage;
+                if (msg2 != null) msg2.Error = true;
                 result = ex;
             }
 
-            var buf = enc.Encode(rs, result);
+            rs.Payload = enc.Encode(r, result);
 
-            Session.Send(buf);
+            // 发送响应
+            await Session.SendAsync(rs);
         }
 
         /// <summary>远程调用</summary>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Net;
 
 namespace NewLife.Remoting
@@ -48,6 +49,9 @@ namespace NewLife.Remoting
             Client = uri.CreateRemote();
             Remote = uri;
 
+            // 新生命标准网络封包协议
+            Client.Packet = new DefaultPacket();
+
             // Udp客户端默认超时时间
             if (Client is UdpServer) (Client as UdpServer).SessionTimeout = 10 * 60;
 
@@ -56,11 +60,12 @@ namespace NewLife.Remoting
 
         public void Open()
         {
-            Client.Received += Client_Received;
+            Client.MessageReceived += Client_Received;
             Client.Log = Log;
 #if DEBUG
-            //Client.LogSend = true;
-            //Client.LogReceive = true;
+            Client.LogSend = true;
+            Client.LogReceive = true;
+            Client.Timeout = 60 * 1000;
 #endif
             Client.Opened += Client_Opened;
             Client.Open();
@@ -70,7 +75,7 @@ namespace NewLife.Remoting
         /// <param name="reason">关闭原因。便于日志分析</param>
         public void Close(String reason)
         {
-            Client.Received -= Client_Received;
+            Client.MessageReceived -= Client_Received;
             Client.Opened -= Client_Opened;
             Client.Close(reason);
         }
@@ -85,11 +90,6 @@ namespace NewLife.Remoting
         #endregion
 
         #region 发送
-        //public Task<byte[]> SendAsync(byte[] data)
-        //{
-        //    return Client.SendAsync(data);
-        //}
-
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
@@ -101,55 +101,61 @@ namespace NewLife.Remoting
             var enc = ac.Encoder;
             var data = enc.Encode(action, args);
 
-            var rs = await Client.SendAsync(data);
+            var msg = Client.Packet.CreateMessage(data);
 
-            var dic = enc.Decode(rs);
+            var rs = await Client.SendAsync(msg);
+
+            var dic = enc.Decode(rs?.Payload);
 
             return enc.Decode<TResult>(dic);
         }
         #endregion
 
         #region 异步接收
-        private void Client_Received(Object sender, ReceivedEventArgs e)
+        private void Client_Received(Object sender, MessageEventArgs e)
         {
             var ac = this.GetService<ApiClient>();
             var enc = ac.Encoder;
 
+            var msg = e.Message;
             // 这里会导致二次解码，因为解码以后才知道是不是请求
-            var dic = enc.Decode(e.Packet);
+            var dic = enc.Decode(msg.Payload);
 
             var act = "";
             Object args = null;
             if (enc.TryGet(dic, out act, out args))
             {
-                OnInvoke(act, args as IDictionary<string, object>);
+                OnInvoke(msg, act, args as IDictionary<string, object>);
             }
         }
 
         /// <summary>处理远程调用</summary>
+        /// <param name="msg"></param>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        protected virtual async void OnInvoke(string action, IDictionary<string, object> args)
+        protected virtual async void OnInvoke(IMessage msg, string action, IDictionary<string, object> args)
         {
             var ac = this.GetService<ApiClient>();
             var enc = ac.Encoder;
             object result = null;
-            var rs = false;
+            var rs = msg.CreateReply();
+            var r = false;
             try
             {
                 result = await ac.Handler.Execute(this, action, args);
 
-                rs = true;
+                r = true;
             }
             catch (Exception ex)
             {
-                //result = ex.Message;
+                var msg2 = rs as DefaultMessage;
+                if (msg2 != null) msg2.Error = true;
                 result = ex;
             }
 
-            var buf = enc.Encode(rs, result);
+            rs.Payload = enc.Encode(r, result);
 
-            Client.Send(buf);
+            await Client.SendAsync(rs);
         }
         #endregion
 

@@ -16,59 +16,51 @@ namespace NewLife.Remoting
         {
             var svr = new ApiServer(3344);
             svr.Add("http://*:888/");
-            //svr.Log = XTrace.Log;
+            svr.Log = XTrace.Log;
             svr.Encoder = new JsonEncoder();
             //svr.Encoder = new ProtocolBuffer();
-            GlobalFilters.Add(new FFAttribute { Name = "全局" });
-            GlobalFilters.Add(new FEAttribute { Name = "全局" });
+            //GlobalFilters.Add(new FFAttribute { Name = "全局" });
+            //GlobalFilters.Add(new FEAttribute { Name = "全局" });
             svr.Register<HelloController>();
             svr.Start();
 
 
             var client = new ApiClient("udp://127.0.0.1:3344") { Encoder = new JsonEncoder() };
-            //client.Log = XTrace.Log;
+            client.Log = XTrace.Log;
             //client.Encoder = new ProtocolBuffer();
             //client.Compress = new SevenZip();
             client.Open();
             //client.Login("admin", "password");
 
             var msg = "NewLifeX";
-            var rs = await client.InvokeAsync<string>("Hello/Say", new demo(msg) { });
+            var rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
             Console.WriteLine(rs);
 
             try
             {
-                msg = "报错2";
-                rs = await client.InvokeAsync<string>("Hello/Say", new demo(msg) { });
+                msg = "报错";
+                rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
 
+            Console.WriteLine("完成");
             Console.ReadKey();
 
             client.Dispose();
             svr.Dispose();
         }
 
-        public class demo
-        {
-            public demo(string msg)
-            {
-                messsage = msg;
-            }
-            public string messsage { get; set; }
-        }
-
-        [FF(Name = "类")]
-        [FE(Name = "类")]
+        //[FF(Name = "类")]
+        //[FE(Name = "类")]
         private class HelloController : IApi
         {
             public IApiSession Session { get; set; }
 
-            [FF(Name = "方法")]
-            [FE(Name = "方法")]
+            //[FF(Name = "方法")]
+            //[FE(Name = "方法")]
             public string Say(string msg)
             {
                 if (msg == "报错") throw new Exception("出错，上一次 " + Session["Last"]);

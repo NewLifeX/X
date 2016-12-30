@@ -19,7 +19,7 @@ namespace NewLife.Remoting
         public IApiHandler Handler { get; set; }
 
         /// <summary>当前服务器所有会话</summary>
-        public IApiSession[] AllSessions { get { return null; } }
+        public IApiSession[] AllSessions { get { return new IApiSession[0]; } }
 
         /// <summary>监听器</summary>
         public HttpListener Listener { get; set; }
