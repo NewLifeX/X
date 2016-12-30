@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Configuration;
+using NewLife.Data;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Stun
@@ -405,7 +406,7 @@ namespace NewLife.Net.Stun
 
         StunMessage Query(ISocketClient client, StunMessage request, IPEndPoint remoteEndPoint)
         {
-            Byte[] buffer = null;
+            Packet pk = null;
             try
             {
                 if (client.Local.IsTcp)
@@ -424,12 +425,12 @@ namespace NewLife.Net.Stun
                 client.Remote.EndPoint = remoteEndPoint;
                 client.Send(request.ToArray());
 
-                buffer = client.Receive();
-                if (buffer == null || buffer.Length == 0) return null;
+                pk = client.Receive();
+                if (pk == null || pk.Count == 0) return null;
             }
             catch { return null; }
 
-            var rs = StunMessage.Read(new MemoryStream(buffer));
+            var rs = StunMessage.Read(pk.GetStream());
             //if (rs != null && rs.Type != StunMessageType.BindingResponse) return null;
             if (rs == null) return null;
 

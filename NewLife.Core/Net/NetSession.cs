@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -93,12 +94,10 @@ namespace NewLife.Net
 
         #region 收发
         /// <summary>发送数据</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">位移</param>
-        /// <param name="size">写入字节数</param>
-        public virtual INetSession Send(byte[] buffer, int offset = 0, int size = -1)
+        /// <param name="pk">数据包</param>
+        public virtual INetSession Send(Packet pk)
         {
-            Session.Send(buffer, offset, size);
+            Session.Send(pk);
 
             return this;
         }
@@ -124,11 +123,11 @@ namespace NewLife.Net
         }
 
         /// <summary>异步发送并等待响应</summary>
-        /// <param name="buffer"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
+        public virtual async Task<Packet> SendAsync(Packet pk)
         {
-            return await Session.SendAsync(buffer);
+            return await Session.SendAsync(pk);
         }
         #endregion
 

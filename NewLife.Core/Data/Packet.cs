@@ -111,5 +111,15 @@ namespace NewLife.Data
             return buf.ToHex(separate, groupSize, buf.Length);
         }
         #endregion
+
+        #region 重载运算符
+        /// <summary>重载类型转换，字节数组直接转为Packet对象</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static implicit operator Packet(Byte[] value)
+        {
+            return new Packet(value);
+        }
+        #endregion
     }
 }

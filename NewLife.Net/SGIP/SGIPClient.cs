@@ -84,9 +84,9 @@ namespace NewLife.Net.SGIP
             WriteLog("正在登录……");
 
             var session = client as ISocketSession;
-            session.Send(cmd.GetStream());
-            var data = client.Receive();
-            var resp = SGIPEntity.Read(new MemoryStream(data)) as SGIPResponse;
+            session.Send(cmd.GetStream().ReadBytes());
+            var pk = client.Receive();
+            var resp = SGIPEntity.Read(pk.GetStream()) as SGIPResponse;
 
             if (resp == null) throw new Exception("登录失败！服务器没有响应！");
             if (resp.Result != SGIPErrorCodes.Success) throw new Exception("登录失败！" + resp.Result.GetDescription());
@@ -225,7 +225,7 @@ namespace NewLife.Net.SGIP
 
             try
             {
-                var cmd = SGIPEntity.Read(new MemoryStream(Client.Receive()));
+                var cmd = SGIPEntity.Read(Client.Receive().GetStream());
                 if (cmd == null) throw new Exception("获取命令失败！");
 
                 WriteLog("收包：" + cmd.ToString());
@@ -249,7 +249,7 @@ namespace NewLife.Net.SGIP
             {
                 try
                 {
-                    Client.Send(cmd.GetStream());
+                    Client.Send(cmd.GetStream().ReadBytes());
                 }
                 catch (Exception ex)
                 {

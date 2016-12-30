@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using NewLife.Data;
 
 namespace NewLife.Net.Proxy
 {
@@ -204,7 +205,7 @@ namespace NewLife.Net.Proxy
         {
             try
             {
-                RemoteServer.Send(buffer, offset, size);
+                RemoteServer.Send(new Packet(buffer, offset, size));
             }
             catch { Dispose(); throw; }
 

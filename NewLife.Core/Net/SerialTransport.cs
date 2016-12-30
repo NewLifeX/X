@@ -96,9 +96,6 @@ namespace NewLife.Net
 
         /// <summary>粘包处理接口</summary>
         public IPacket Packet { get; set; }
-
-        /// <summary>数据包请求配对队列</summary>
-        public IPacketQueue PacketQueue { get; set; }
         #endregion
 
         #region 构造
@@ -170,44 +167,42 @@ namespace NewLife.Net
 
         #region 发送
         /// <summary>写入数据</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        public virtual Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        /// <param name="pk">数据包</param>
+        public virtual Boolean Send(Packet pk)
         {
             if (!Open()) return false;
 
-            WriteLog("Send:{0}", BitConverter.ToString(buffer));
-
-            if (count < 0) count = buffer.Length - offset;
+            WriteLog("Send:{0}", pk.ToHex());
 
             var sp = Serial;
             lock (sp)
             {
-                sp.Write(buffer, offset, count);
+                sp.Write(pk.Data, pk.Offset, pk.Count);
             }
 
             return true;
         }
 
         /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="buffer"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
+        public virtual async Task<Packet> SendAsync(Packet pk)
         {
             if (!Open()) return null;
 
-            WriteLog("SendAsync:{0}", BitConverter.ToString(buffer));
+            WriteLog("SendAsync:{0}", pk.ToHex());
 
             // 发送数据
-            Serial.Write(buffer, 0, buffer.Length);
+            Serial.Write(pk.Data, pk.Offset, pk.Count);
 
-            return await PacketQueue.Add(this, null, buffer, Timeout);
+            if (Packet == null) return null;
+
+            return await Packet.Add(pk, null, Timeout);
         }
 
         /// <summary>接收数据</summary>
         /// <returns></returns>
-        public virtual Byte[] Receive()
+        public virtual Packet Receive()
         {
             if (!Open()) return null;
 
@@ -291,10 +286,8 @@ namespace NewLife.Net
         /// <param name="pk"></param>
         internal virtual void OnReceive(Packet pk)
         {
-            //var buf = pk.ReadBytes();
-
             // 同步匹配
-            PacketQueue?.Match(this, null, pk);
+            Packet?.Match(pk, null);
 
             // 触发事件
             Received?.Invoke(this, new ReceivedEventArgs(pk));

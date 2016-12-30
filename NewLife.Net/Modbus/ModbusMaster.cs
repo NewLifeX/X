@@ -89,12 +89,12 @@ namespace NewLife.Net.Modbus
                 if (Delay > 0) Thread.Sleep(Delay);
 
                 // 读取
-                var dat = Transport.Receive();
-                if (dat == null || dat.Length == 0) return null;
+                var pk = Transport.Receive();
+                if (pk == null || pk.Count == 0) return null;
 
-                if (Debug) WriteLine(new String(' ', entity.Function.ToString().Length) + "=>" + dat.ToHex());
+                if (Debug) WriteLine(new String(' ', entity.Function.ToString().Length) + "=>" + pk.ToHex());
 
-                var rs = new ModbusEntity().Parse(dat, 0, dat.Length);
+                var rs = new ModbusEntity().Parse(pk.Data, pk.Offset, pk.Count);
                 if (rs == null) return null;
                 if (rs.IsException) throw new ModbusException(rs.Data != null && rs.Data.Length > 0 ? (Errors)rs.Data[0] : (Errors)0);
 

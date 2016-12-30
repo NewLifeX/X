@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Ports;
 using System.Threading;
+using NewLife.Data;
 using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
@@ -169,11 +170,10 @@ namespace NewLife.Net.Application
             {
                 // 读取数据
                 var data = Read(sp, Host.ReceivedBytesThreshold);
-
-                if (data != null && data.Length > 0)
+                if (data != null && data.Count > 0)
                 {
                     WriteLog("SerialPort=>Net: {0}", data.ToHex());
-                    session.Send(data, 0, data.Length);
+                    session.Send(data);
                 }
             }
         }
@@ -184,7 +184,7 @@ namespace NewLife.Net.Application
         /// <param name="sp"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static Byte[] Read(SerialPort sp, Int32 length = -1)
+        public static Packet Read(SerialPort sp, Int32 length = -1)
         {
             // 读取数据
             var ms = new MemoryStream();

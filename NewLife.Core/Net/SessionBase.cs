@@ -180,16 +180,13 @@ namespace NewLife.Net
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
+        /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        public Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        public Boolean Send(Packet pk)
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
             if (!Open()) return false;
 
-            var pk = new Packet(buffer, offset, count);
             if (SendFilter == null) return OnSend(pk);
 
             var ctx = new SessionFilterContext
@@ -220,7 +217,28 @@ namespace NewLife.Net
         /// <returns></returns>
         internal Boolean SendByQueue(Packet pk, IPEndPoint remote)
         {
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
+            if (!Open()) return false;
+
             if (_SendQueue == null) _SendQueue = new SendQueue(this);
+
+            var filter = SendFilter;
+            if (filter == null) return _SendQueue.Add(pk, remote);
+
+            var ctx = new SessionFilterContext
+            {
+                Session = this,
+                Packet = pk,
+                Remote = remote
+            };
+
+            filter.Execute(ctx);
+
+            pk = ctx.Packet;
+            remote = ctx.Remote;
+
+            if (pk == null) return false;
+
             return _SendQueue.Add(pk, remote);
         }
 
@@ -230,13 +248,13 @@ namespace NewLife.Net
         #region 接收
         /// <summary>接收数据</summary>
         /// <returns></returns>
-        public virtual Byte[] Receive()
+        public virtual Packet Receive()
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (!Open()) return null;
 
-            var task = SendAsync((Byte[])null);
+            var task = SendAsync((Packet)null);
             if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
             return task.Result;
@@ -388,17 +406,18 @@ namespace NewLife.Net
         {
             try
             {
-                if (Packet == null)
+                var pt = Packet;
+                if (pt == null)
                     OnReceive(pk, remote);
                 else
                 {
                     // 拆包，多个包多次调用处理程序
-                    var msg = Packet.Parse(pk);
+                    var msg = pt.Parse(pk);
                     while (msg != null)
                     {
                         OnReceive(msg, remote);
 
-                        msg = Packet.Parse(null);
+                        msg = pt.Parse(null);
                     }
                 }
             }
@@ -447,18 +466,14 @@ namespace NewLife.Net
         /// <summary>粘包处理接口</summary>
         public IPacket Packet { get; set; }
 
-        async Task<Byte[]> ITransport.SendAsync(byte[] buffer) { return await SendAsync(buffer); }
-
         /// <summary>异步发送数据</summary>
-        /// <param name="buffer">要发送的数据</param>
+        /// <param name="pk">要发送的数据</param>
         /// <returns></returns>
-        public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
+        public virtual async Task<Packet> SendAsync(Packet pk)
         {
-            var pk = new Packet(buffer);
             if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
 
-            var rs = await Packet.Add(pk, Remote.EndPoint, Timeout);
-            return rs.ToArray();
+            return await Packet.Add(pk, Remote.EndPoint, Timeout);
         }
 
         /// <summary>发送消息并等待响应</summary>
@@ -473,6 +488,9 @@ namespace NewLife.Net
 
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
+
+            //if (Packet == null) throw new Exception("未指定封包协议Packet！");
+            if (Packet == null) return null;
 
             var rs = await Packet.Add(pk, Remote.EndPoint, Timeout);
             if (rs == null) return null;

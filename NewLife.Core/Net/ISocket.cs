@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -89,17 +89,15 @@ namespace NewLife.Net
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
+        /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        Boolean Send(Packet pk);
         #endregion
 
         #region 接收
         /// <summary>接收数据。阻塞当前线程等待返回</summary>
         /// <returns></returns>
-        Byte[] Receive();
+        Packet Receive();
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
@@ -109,19 +107,10 @@ namespace NewLife.Net
         /// <summary>粘包处理接口</summary>
         IPacket Packet { get; set; }
 
-        ///// <summary>数据包请求配对队列</summary>
-        //IPacketQueue PacketQueue { get; set; }
-
         /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="buffer"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        Task<Byte[]> SendAsync(Byte[] buffer);
-
-        ///// <summary>异步发送数据到指定目标并等待响应</summary>
-        ///// <param name="buffer"></param>
-        ///// <param name="remote"></param>
-        ///// <returns></returns>
-        //Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote = null);
+        Task<Packet> SendAsync(Packet pk);
         #endregion
     }
 
@@ -151,29 +140,18 @@ namespace NewLife.Net
         /// <returns>返回是否成功</returns>
         public static Boolean Send(this ISocketRemote session, Stream stream)
         {
-            // UDP的最大缓冲区
-            var size = 1460L;
-            var remain = stream.Length - stream.Position;
             // 空数据直接发出
+            var remain = stream.Length - stream.Position;
             if (remain == 0) return session.Send(new Byte[0]);
 
-            // TCP可以加大
-            if (remain > size && session.Client.SocketType == SocketType.Stream)
-            {
-                // 至少使用发送缓冲区的大小，默认8k
-                size = session.Client.SendBufferSize;
-                // 超大数据流，缓存加大一千倍
-                while (size < 0x80000000 && remain > size << 10)
-                    size <<= 1;
-            }
-            if (remain < size) size = (Int32)remain;
-            var buffer = new Byte[size];
+            var buffer = new Byte[session.BufferSize];
             while (true)
             {
                 var count = stream.Read(buffer, 0, buffer.Length);
                 if (count <= 0) break;
 
-                if (!session.Send(buffer, 0, count)) return false;
+                var pk = new Packet(buffer, 0, count);
+                if (!session.Send(pk)) return false;
 
                 if (count < buffer.Length) break;
             }
@@ -201,9 +179,10 @@ namespace NewLife.Net
         /// <returns></returns>
         public static Boolean SendAsync(this ISocketRemote session, Byte[] buffer, Int32 times, Int32 msInterval)
         {
+            var pk = new Packet(buffer);
             if (times <= 1)
             {
-                session.SendAsync(buffer);
+                session.SendAsync(pk);
                 return true;
             }
 
@@ -211,28 +190,22 @@ namespace NewLife.Net
             {
                 for (int i = 0; i < times; i++)
                 {
-                    session.SendAsync(buffer);
+                    session.SendAsync(pk);
                 }
                 return true;
             }
 
-            //var src = new TaskCompletionSource<Int32>();
-
             var timer = new TimerX(s =>
             {
-                session.SendAsync(buffer);
-                //session.Send(buffer);
+                session.SendAsync(pk);
 
                 // 如果次数足够，则把定时器周期置空，内部会删除
                 var t = s as TimerX;
                 if (--times <= 0)
                 {
                     t.Period = 0;
-                    //src.SetResult(0);
                 }
             }, null, 0, msInterval);
-
-            //return src.Task;
 
             return true;
         }
@@ -245,11 +218,23 @@ namespace NewLife.Net
         /// <returns></returns>
         public static String ReceiveString(this ISocketRemote session, Encoding encoding = null)
         {
-            var buffer = session.Receive();
-            if (buffer == null || buffer.Length < 1) return null;
+            var pk = session.Receive();
+            if (pk == null || pk.Count == 0) return null;
 
-            if (encoding == null) encoding = Encoding.UTF8;
-            return encoding.GetString(buffer);
+            return pk.ToStr(encoding ?? Encoding.UTF8);
+        }
+        #endregion
+
+        #region 消息包
+        /// <summary>异步发送数据并等待响应</summary>
+        /// <param name="session">会话</param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static async Task<Byte[]> SendAsync(this ISocketRemote session, Byte[] buffer)
+        {
+            var pk = new Packet(buffer);
+            var rs = await session.SendAsync(pk);
+            return rs?.ToArray();
         }
         #endregion
     }

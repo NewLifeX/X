@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NewLife.Data;
 
 namespace NewLife.Net
 {
@@ -8,7 +9,7 @@ namespace NewLife.Net
     public interface ITransport : IDisposable
     {
         /// <summary>超时</summary>
-        int Timeout { get; set; }
+        Int32 Timeout { get; set; }
 
         /// <summary>打开</summary>
         Boolean Open();
@@ -17,26 +18,17 @@ namespace NewLife.Net
         Boolean Close();
 
         /// <summary>写入数据</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">偏移</param>
-        /// <param name="count">数量</param>
-        Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        /// <param name="pk">数据包</param>
+        Boolean Send(Packet pk);
 
         /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="buffer"></param>
+        /// <param name="pk">数据包</param>
         /// <returns></returns>
-        Task<Byte[]> SendAsync(Byte[] buffer);
-
-        ///// <summary>读取指定长度的数据</summary>
-        ///// <param name="buffer">缓冲区</param>
-        ///// <param name="offset">偏移</param>
-        ///// <param name="count">数量</param>
-        ///// <returns></returns>
-        //Int32 Receive(Byte[] buffer, Int32 offset = 0, Int32 count = -1);
+        Task<Packet> SendAsync(Packet pk);
 
         /// <summary>读取数据</summary>
         /// <returns></returns>
-        Byte[] Receive();
+        Packet Receive();
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;

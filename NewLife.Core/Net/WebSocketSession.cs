@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using NewLife.Data;
 
 namespace NewLife.Net
 {
@@ -17,37 +18,30 @@ namespace NewLife.Net
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            var buf = e.Data;
-            if (!_HandeShake && buf.StartsWith(_prefix))
+            var pk = e.Packet;
+            if (!_HandeShake && pk.ToArray().StartsWith(_prefix))
             {
-                HandeShake(buf.ToStr());
+                HandeShake(pk.ToStr());
 
                 _HandeShake = true;
 
                 return;
             }
 
-            buf = ProcessReceive(e.Stream);
-            e.Data = buf;
+            pk = ProcessReceive(pk);
+            e.Packet = pk;
 
-            if (buf != null) base.OnReceive(e);
+            if (pk != null) base.OnReceive(e);
         }
 
         /// <summary>发送数据前需要处理</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="size"></param>
+        /// <param name="pk">数据包</param>
         /// <returns></returns>
-        public override INetSession Send(Byte[] buffer, Int32 offset = 0, Int32 size = -1)
+        public override INetSession Send(Packet pk)
         {
-            if (_HandeShake)
-            {
-                buffer = ProcessSend(buffer, offset, size);
-                offset = 0;
-                size = -1;
-            }
+            if (_HandeShake) pk = ProcessSend(pk);
 
-            return base.Send(buffer, offset, size);
+            return base.Send(pk);
         }
 
         private void HandeShake(String data)
@@ -68,9 +62,11 @@ namespace NewLife.Net
             Send(sb.ToString());
         }
 
-        private Byte[] ProcessReceive(Stream ms)
+        private Packet ProcessReceive(Packet pk)
         {
-            if (ms.Length < 2) return null;
+            if (pk.Count < 2) return null;
+
+            var ms = pk.GetStream();
 
             // 仅处理一个包
             var fin = (ms.ReadByte() & 0x80) == 0x80;
@@ -93,7 +89,10 @@ namespace NewLife.Net
                 // 没有人会传输超大数据
                 len = (Int32)BitConverter.ToUInt64(ms.ReadBytes(8), 0);
 
-            var masks = new byte[4];
+            // 如果mask，剩下的就是数据，避免拷贝，提升性能
+            if (!mask) return new Packet(pk.Data, pk.Offset + (Int32)ms.Position, len);
+
+            var masks = new Byte[4];
             if (mask) masks = ms.ReadBytes(4);
 
             // 读取数据
@@ -110,9 +109,9 @@ namespace NewLife.Net
             return data;
         }
 
-        private byte[] ProcessSend(Byte[] buffer, Int32 offset, Int32 size)
+        private Packet ProcessSend(Packet pk)
         {
-            if (size < 0) size = buffer.Length - offset;
+            var size = pk.Count;
 
             var ms = new MemoryStream();
             ms.WriteByte(0x81);
@@ -127,9 +126,9 @@ namespace NewLife.Net
             else
                 throw new NotSupportedException();
 
-            ms.Write(buffer, offset, size);
+            pk.WriteTo(ms);
 
-            return ms.ToArray();
+            return new Packet(ms.ToArray());
         }
     }
 }

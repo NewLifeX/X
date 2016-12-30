@@ -206,7 +206,7 @@ namespace NewLife.Web
                 Referer = address;
 
                 // 接收数据
-                var buf = http.Receive();
+                var buf = http.Receive()?.ToArray();
 
                 // 如果是重定向
                 switch (http.StatusCode)
@@ -259,13 +259,13 @@ namespace NewLife.Web
             //http.Received += Http_OnDisposed;
 
             // 发送请求
-            var buf = await http.SendAsync(data);
+            var rs = await http.SendAsync(data);
 
             // 修改引用地址
             Referer = address;
 
             // 接收数据
-            return buf;
+            return rs?.ToArray();
         }
 
         /// <summary>下载数据</summary>

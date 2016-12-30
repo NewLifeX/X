@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Data;
 
 namespace NewLife.Net
 {
@@ -37,10 +38,8 @@ namespace NewLife.Net
 
         #region 收发
         /// <summary>发送数据</summary>
-        /// <param name="buffer">缓冲区</param>
-        /// <param name="offset">位移</param>
-        /// <param name="size">写入字节数</param>
-        INetSession Send(byte[] buffer, int offset = 0, int size = -1);
+        /// <param name="pk">数据包</param>
+        INetSession Send(Packet pk);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
@@ -50,12 +49,12 @@ namespace NewLife.Net
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        INetSession Send(string msg, Encoding encoding = null);
+        INetSession Send(String msg, Encoding encoding = null);
 
         /// <summary>异步发送并等待响应</summary>
-        /// <param name="buffer"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        Task<Byte[]> SendAsync(Byte[] buffer);
+        Task<Packet> SendAsync(Packet pk);
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
@@ -65,8 +64,7 @@ namespace NewLife.Net
     /// <summary>会话事件参数</summary>
     public class NetSessionEventArgs : EventArgs
     {
-        private INetSession _Session;
         /// <summary>会话</summary>
-        public INetSession Session { get { return _Session; } set { _Session = value; } }
+        public INetSession Session { get; set; }
     }
 }

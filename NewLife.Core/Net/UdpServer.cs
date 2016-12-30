@@ -159,20 +159,20 @@ namespace NewLife.Net
         }
 
         /// <summary>发送数据包到目的地址</summary>
-        /// <param name="buffer"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        public override async Task<Byte[]> SendAsync(Byte[] buffer)
+        public override async Task<Packet> SendAsync(Packet pk)
         {
-            return await SendAsync(buffer, Remote.EndPoint);
+            return await SendAsync(pk, Remote.EndPoint);
         }
 
         /// <summary>发送数据包到目的地址</summary>
-        /// <param name="buffer"></param>
+        /// <param name="pk"></param>
         /// <param name="remote"></param>
         /// <returns></returns>
-        public async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
+        public async Task<Packet> SendAsync(Packet pk, IPEndPoint remote)
         {
-            if (buffer != null && buffer.Length > 0)
+            if (pk != null && pk.Count > 0)
             {
                 if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast)
                 {
@@ -182,12 +182,13 @@ namespace NewLife.Net
                 }
             }
 
-            var pk = new Packet(buffer);
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
             if (pk.Count > 0 && !SendByQueue(pk, remote)) return null;
 
-            var rs = await Packet.Add(pk, remote, Timeout);
-            return rs.ToArray();
+            //if (Packet == null) throw new Exception("未指定封包协议Packet！");
+            if (Packet == null) return null;
+
+            return await Packet.Add(pk, remote, Timeout);
         }
 
         internal override bool OnSendAsync(SocketAsyncEventArgs se)

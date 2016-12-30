@@ -43,30 +43,6 @@ namespace NewLife.Net
         #region 主要方法
         internal Boolean Add(Packet pk, IPEndPoint remote)
         {
-            if (!Session.Open()) return false;
-
-            var filter = Session.SendFilter;
-            if (filter == null) return OnAdd(pk, remote);
-
-            var ctx = new SessionFilterContext
-            {
-                Session = Session,
-                Packet = pk,
-                Remote = remote
-            };
-
-            filter.Execute(ctx);
-
-            pk = ctx.Packet;
-            remote = ctx.Remote;
-
-            if (pk == null) return false;
-
-            return OnAdd(pk, remote);
-        }
-
-        private Boolean OnAdd(Packet pk, IPEndPoint remote)
-        {
             var ss = Session;
             ss.StatSend.Increment(pk.Count);
             if (ss.LogSend) ss.WriteLog("SendAsync [{0}]: {1}", pk.Count, pk.ToHex());

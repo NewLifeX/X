@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Net;
 
 namespace NewLife.Remoting
@@ -128,9 +129,9 @@ namespace NewLife.Remoting
             var enc = Host.Encoder;
             var data = enc.Encode(action, args);
 
-            var rs = await SendAsync(data);
+            var rs = await SendAsync(new Packet(data));
 
-            var dic = enc.Decode(rs);
+            var dic = enc.Decode(rs?.ToArray());
 
             return enc.Decode<TResult>(dic);
         }

@@ -124,21 +124,18 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
-        public Boolean Send(byte[] buffer, int offset = 0, int count = -1)
+        public Boolean Send(Packet pk)
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            if (count <= 0) count = buffer.Length - offset;
-            if (offset > 0) buffer = buffer.ReadBytes(offset, count);
-
-            if (StatSend != null) StatSend.Increment(count);
-            if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+            if (StatSend != null) StatSend.Increment(pk.Count);
+            if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
 
             LastTime = DateTime.Now;
 
             try
             {
-                Server.Client.SendTo(buffer, 0, count, SocketFlags.None, Remote.EndPoint);
+                Server.Client.SendTo(pk.Data, pk.Offset, pk.Count, SocketFlags.None, Remote.EndPoint);
 
                 return true;
             }
@@ -150,30 +147,19 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>异步发送数据</summary>
-        /// <param name="buffer"></param>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        public async Task<Byte[]> SendAsync(Byte[] buffer, IPEndPoint remote)
-        {
-            if (Server == null) return null;
-
-            return await Server.SendAsync(buffer, Remote.EndPoint);
-        }
-
         /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="buffer"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        public async Task<Byte[]> SendAsync(Byte[] buffer)
+        public async Task<Packet> SendAsync(Packet pk)
         {
             if (Server == null) return null;
 
-            return await Server.SendAsync(buffer, Remote.EndPoint);
+            return await Server.SendAsync(pk, Remote.EndPoint);
         }
         #endregion
 
         #region 接收
-        public byte[] Receive()
+        public Packet Receive()
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
@@ -194,17 +180,18 @@ namespace NewLife.Net
             var remote = e.UserState as IPEndPoint;
             var pk = new Packet(e.Data);
 
-            if (Packet == null)
+            var pt = Packet;
+            if (pt == null)
                 OnReceive(pk, remote);
             else
             {
                 // 拆包，多个包多次调用处理程序
-                var msg = Packet.Parse(pk);
+                var msg = pt.Parse(pk);
                 while (msg != null)
                 {
                     OnReceive(msg, remote);
 
-                    msg = Packet.Parse(null);
+                    msg = pt.Parse(null);
                 }
             }
         }

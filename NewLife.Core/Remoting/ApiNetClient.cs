@@ -103,7 +103,7 @@ namespace NewLife.Remoting
 
             var rs = await Client.SendAsync(data);
 
-            var dic = enc.Decode(rs);
+            var dic = enc.Decode(rs?.ToArray());
 
             return enc.Decode<TResult>(dic);
         }

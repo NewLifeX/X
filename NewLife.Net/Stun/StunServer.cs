@@ -228,7 +228,7 @@ namespace NewLife.Net.Stun
             // 换成另一个
             if (request.ChangePort) session = session2;
 
-            session.Send(rs.GetStream());
+            session.Send(rs.ToArray());
         }
         #endregion
 

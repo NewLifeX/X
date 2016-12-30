@@ -84,8 +84,8 @@ namespace NewLife.Net.Application
                     try
                     {
                         //Console.WriteLine("客户端" + session + " " + session.ReceiveString());
-                        var buf = client.Receive();
-                        Console.WriteLine("客户端{0} 收到 [{1}]: {2}", client, buf.Length, buf.ToStr());
+                        var pk = client.Receive();
+                        Console.WriteLine("客户端{0} 收到 [{1}]: {2}", client, pk.Count, pk.ToStr());
 
                         rs = true;
                     }
