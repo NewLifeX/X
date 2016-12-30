@@ -185,8 +185,7 @@ namespace NewLife.Net
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
             if (pk.Count > 0 && !SendByQueue(pk, remote)) return null;
 
-            //if (Packet == null) throw new Exception("未指定封包协议Packet！");
-            if (Packet == null) return null;
+            if (Packet == null) Packet = new DefaultPacket();
 
             return await Packet.Add(pk, remote, Timeout);
         }

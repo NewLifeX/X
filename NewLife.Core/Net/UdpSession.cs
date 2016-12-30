@@ -180,18 +180,14 @@ namespace NewLife.Net
             var remote = e.UserState as IPEndPoint;
             var pk = new Packet(e.Data);
 
-            var pt = Packet;
-            if (pt == null)
+            if (Packet == null)
                 OnReceive(pk, remote);
             else
             {
                 // 拆包，多个包多次调用处理程序
-                var msg = pt.Parse(pk);
-                while (msg != null)
+                foreach (var msg in Packet.Parse(pk))
                 {
                     OnReceive(msg, remote);
-
-                    msg = pt.Parse(null);
                 }
             }
         }

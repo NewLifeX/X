@@ -12,18 +12,16 @@ namespace NewLife.Net
     public interface IPacketQueue
     {
         /// <summary>加入请求队列</summary>
-        /// <param name="owner">拥有者</param>
-        /// <param name="remote">远程</param>
         /// <param name="request">请求的数据</param>
+        /// <param name="remote">远程</param>
         /// <param name="msTimeout">超时取消时间</param>
-        Task<Byte[]> Add(Object owner, IPEndPoint remote, Byte[] request, Int32 msTimeout);
+        Task<Packet> Add(Packet request, IPEndPoint remote, Int32 msTimeout);
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
-        /// <param name="owner">拥有者</param>
-        /// <param name="remote">远程</param>
         /// <param name="response">响应的数据</param>
+        /// <param name="remote">远程</param>
         /// <returns></returns>
-        Boolean Match(Object owner, IPEndPoint remote, Packet response);
+        Boolean Match(Packet response, IPEndPoint remote);
     }
 
     /// <summary>接收队列。子类可重载以自定义请求响应匹配逻辑</summary>
@@ -33,20 +31,18 @@ namespace NewLife.Net
         private TimerX _Timer;
 
         /// <summary>加入请求队列</summary>
-        /// <param name="owner">拥有者</param>
-        /// <param name="remote">远程</param>
         /// <param name="request">请求的数据</param>
+        /// <param name="remote">远程</param>
         /// <param name="msTimeout">超时取消时间</param>
-        public virtual Task<Byte[]> Add(Object owner, IPEndPoint remote, Byte[] request, Int32 msTimeout)
+        public virtual Task<Packet> Add(Packet request, IPEndPoint remote, Int32 msTimeout)
         {
             var now = DateTime.Now;
 
             var qi = new Item();
-            qi.Owner = owner;
             qi.Request = request;
             qi.Remote = remote;
             qi.EndTime = now.AddMilliseconds(msTimeout);
-            qi.Source = new TaskCompletionSource<Byte[]>();
+            qi.Source = new TaskCompletionSource<Packet>();
 
             // 加锁处理，更安全
             var qs = Items;
@@ -67,11 +63,10 @@ namespace NewLife.Net
         }
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
-        /// <param name="owner">拥有者</param>
-        /// <param name="remote">远程</param>
         /// <param name="response">响应的数据</param>
+        /// <param name="remote">远程</param>
         /// <returns></returns>
-        public virtual Boolean Match(Object owner, IPEndPoint remote, Packet response)
+        public virtual Boolean Match(Packet response, IPEndPoint remote)
         {
             var qs = Items;
             if (qs.Count == 0) return false;
@@ -79,14 +74,14 @@ namespace NewLife.Net
             // 加锁复制以后再遍历，避免线程冲突
             foreach (var qi in qs.ToArray())
             {
-                if (qi.Owner == owner && (qi.Remote == null || remote == null || qi.Remote + "" == remote + "") && IsMatch(owner, remote, qi.Request, response))
+                if ((qi.Remote == null || remote == null || qi.Remote + "" == remote + "") && IsMatch(remote, qi.Request, response))
                 {
                     lock (qs)
                     {
                         qs.Remove(qi);
                     }
 
-                    if (!qi.Source.Task.IsCompleted) qi.Source.SetResult(response.ToArray());
+                    if (!qi.Source.Task.IsCompleted) qi.Source.SetResult(response);
 
                     return true;
                 }
@@ -96,12 +91,11 @@ namespace NewLife.Net
         }
 
         /// <summary>请求和响应是否匹配</summary>
-        /// <param name="owner">拥有者</param>
         /// <param name="remote">远程</param>
         /// <param name="request">请求的数据</param>
         /// <param name="response">响应的数据</param>
         /// <returns></returns>
-        protected virtual Boolean IsMatch(Object owner, IPEndPoint remote, Byte[] request, Packet response)
+        protected virtual Boolean IsMatch(IPEndPoint remote, Packet request, Packet response)
         {
             return true;
         }
@@ -141,11 +135,10 @@ namespace NewLife.Net
 
         class Item
         {
-            public Object Owner { get; set; }
-            public Byte[] Request { get; set; }
+            public Packet Request { get; set; }
             public IPEndPoint Remote { get; set; }
             public DateTime EndTime { get; set; }
-            public TaskCompletionSource<Byte[]> Source { get; set; }
+            public TaskCompletionSource<Packet> Source { get; set; }
         }
     }
 }

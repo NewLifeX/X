@@ -189,12 +189,15 @@ namespace NewLife.Net
         {
             if (!Open()) return null;
 
-            WriteLog("SendAsync:{0}", pk.ToHex());
+            if (pk != null)
+            {
+                WriteLog("SendAsync:{0}", pk.ToHex());
 
-            // 发送数据
-            Serial.Write(pk.Data, pk.Offset, pk.Count);
+                // 发送数据
+                Serial.Write(pk.Data, pk.Offset, pk.Count);
+            }
 
-            if (Packet == null) return null;
+            if (Packet == null) Packet = new DefaultPacket();
 
             return await Packet.Add(pk, null, Timeout);
         }
@@ -266,12 +269,9 @@ namespace NewLife.Net
                 else
                 {
                     // 拆包，多个包多次调用处理程序
-                    var msg = Packet.Parse(pk);
-                    while (msg != null)
+                    foreach (var msg in Packet.Parse(pk))
                     {
                         OnReceive(msg);
-
-                        msg = Packet.Parse(null);
                     }
                 }
             }

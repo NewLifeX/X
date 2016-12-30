@@ -32,7 +32,7 @@ namespace NewLife.Messaging
     }
 
     /// <summary>消息命令基类</summary>
-    public abstract class Message : IMessage
+    public class Message : IMessage
     {
         /// <summary>是否响应</summary>
         public Boolean Reply { get; protected set; }

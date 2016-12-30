@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -11,8 +12,9 @@ namespace NewLife.Net
     public interface IPacket
     {
         /// <summary>创建消息</summary>
+        /// <param name="pk">数据包</param>
         /// <returns></returns>
-        IMessage CreateMessage();
+        IMessage CreateMessage(Packet pk);
 
         /// <summary>加入请求队列</summary>
         /// <param name="request">请求的数据</param>
@@ -29,7 +31,7 @@ namespace NewLife.Net
         /// <summary>分析数据流，得到一帧数据</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        Packet Parse(Packet pk);
+        Packet[] Parse(Packet pk);
     }
 
     /// <summary>粘包处理接口工厂</summary>
@@ -41,11 +43,11 @@ namespace NewLife.Net
     }
 
     /// <summary>头部指明长度的封包格式</summary>
-    public class HeaderLengthPacket : IPacket
+    public class DefaultPacket : IPacket
     {
         #region 属性
-        /// <summary>长度所在位置，默认2</summary>
-        public Int32 Offset { get; set; } = 2;
+        /// <summary>长度所在位置，默认-1表示没有头部</summary>
+        public Int32 Offset { get; set; } = -1;
 
         /// <summary>长度占据字节数，1/2/4个字节，0表示压缩编码整数，默认2</summary>
         public Int32 Size { get; set; } = 2;
@@ -56,22 +58,44 @@ namespace NewLife.Net
         private DateTime _last;
         #endregion
 
+        #region 创建消息
         /// <summary>创建消息</summary>
+        /// <param name="pk">数据包</param>
         /// <returns></returns>
-        public virtual IMessage CreateMessage() { return null; }
+        public virtual IMessage CreateMessage(Packet pk)
+        {
+            // 创建没有头部的消息
+            var msg = new Message();
+            msg.Read(pk);
+
+            return msg;
+        }
+        #endregion
 
         #region 匹配队列
+        /// <summary>数据包匹配队列</summary>
+        public IPacketQueue Queue { get; set; }
+
         /// <summary>加入请求队列</summary>
         /// <param name="request">请求的数据</param>
         /// <param name="remote">远程</param>
         /// <param name="msTimeout">超时取消时间</param>
-        public virtual Task<Packet> Add(Packet request, IPEndPoint remote, Int32 msTimeout) { return null; }
+        public virtual Task<Packet> Add(Packet request, IPEndPoint remote, Int32 msTimeout)
+        {
+            if (Queue == null) Queue = new DefaultPacketQueue();
+
+            return Queue.Add(request, remote, msTimeout);
+        }
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
         /// <param name="response">响应的数据</param>
         /// <param name="remote">远程</param>
         /// <returns></returns>
-        public virtual Boolean Match(Packet response, IPEndPoint remote) { return true; }
+        public virtual Boolean Match(Packet response, IPEndPoint remote)
+        {
+            if (Queue == null) return true;
+            return Queue.Match(response, remote);
+        }
         #endregion
 
         #region 粘包处理
@@ -81,17 +105,35 @@ namespace NewLife.Net
         /// <summary>分析数据流，得到一帧数据</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public Packet Parse(Packet pk)
+        public virtual Packet[] Parse(Packet pk)
         {
+            if (Offset < 0) return new Packet[] { pk };
+
             var nodata = _ms == null || _ms.Position < 0 || _ms.Position >= _ms.Length;
 
+            var list = new List<Packet>();
             // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
             if (nodata)
             {
-                if (pk == null) return null;
+                if (pk == null) return list.ToArray();
 
-                var len = GetLength(pk.GetStream());
-                if (len > 0 && len == pk.Count) return pk;
+                //var ms = pk.GetStream();
+                var idx = 0;
+                while (idx < pk.Count)
+                {
+                    var pk2 = new Packet(pk.Data, pk.Offset + idx, pk.Count - idx);
+                    var len = GetLength(pk2.GetStream());
+                    if (len <= 0 || len > pk2.Count) break;
+
+                    pk2 = new Packet(pk.Data, pk.Offset + idx, len);
+                    list.Add(pk2);
+                    idx += len;
+                }
+                // 如果没有剩余，可以返回
+                if (idx == pk.Count) return list.ToArray();
+
+                // 剩下的
+                pk = new Packet(pk.Data, pk.Offset + idx, pk.Count - idx);
             }
 
             if (_ms == null) _ms = new MemoryStream();
@@ -113,20 +155,21 @@ namespace NewLife.Net
                     // 拷贝数据到最后面
                     var p = _ms.Position;
                     _ms.Position = _ms.Length;
-                    _ms.Write(pk.Data, pk.Offset, pk.Count);
+                    //_ms.Write(pk.Data, pk.Offset, pk.Count);
+                    pk.WriteTo(_ms);
                     _ms.Position = p;
                 }
 
-                var len = GetLength(_ms);
-                if (len <= 0) return null;
+                while (_ms.Position < _ms.Length)
+                {
+                    var len = GetLength(_ms);
+                    if (len <= 0) break;
 
-                // 长度足够，返回数据帧
-                //var rs = Sub(_ms, len);
-                //_ms.Seek(len, SeekOrigin.Current);
-                //return rs;
+                    var pk2 = new Packet(_ms.ReadBytes(len));
+                    list.Add(pk2);
+                }
 
-                // 拷贝比较容易处理，反正粘包的可能性不是很高
-                return new Packet(_ms.ReadBytes(len));
+                return list.ToArray();
             }
         }
 
@@ -135,6 +178,8 @@ namespace NewLife.Net
         /// <returns></returns>
         protected virtual Int32 GetLength(Stream stream)
         {
+            if (Offset < 0) return (Int32)(stream.Length - stream.Position);
+
             var p = stream.Position;
             // 数据不够，连长度都读取不了
             if (p + Offset >= stream.Length) return 0;
@@ -225,11 +270,11 @@ namespace NewLife.Net
     }
 
     /// <summary>头部长度粘包处理工厂</summary>
-    public class HeaderLengthPacketFactory : IPacketFactory
+    public class DefaultPacketFactory : IPacketFactory
     {
         #region 属性
-        /// <summary>长度所在位置，默认2</summary>
-        public Int32 Offset { get; set; } = 2;
+        /// <summary>长度所在位置，默认-1表示没有头部</summary>
+        public Int32 Offset { get; set; } = -1;
 
         /// <summary>长度占据字节数，1/2/4个字节，0表示压缩编码整数，默认2</summary>
         public Int32 Size { get; set; } = 2;
@@ -242,7 +287,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual IPacket Create()
         {
-            return new HeaderLengthPacket
+            return new DefaultPacket
             {
                 Offset = Offset,
                 Size = Size,

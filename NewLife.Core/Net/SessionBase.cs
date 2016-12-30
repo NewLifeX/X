@@ -412,12 +412,9 @@ namespace NewLife.Net
                 else
                 {
                     // 拆包，多个包多次调用处理程序
-                    var msg = pt.Parse(pk);
-                    while (msg != null)
+                    foreach (var msg in Packet.Parse(pk))
                     {
                         OnReceive(msg, remote);
-
-                        msg = pt.Parse(null);
                     }
                 }
             }
@@ -473,7 +470,7 @@ namespace NewLife.Net
         {
             if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
 
-            if (Packet == null) return null;
+            if (Packet == null) Packet = new DefaultPacket();
 
             return await Packet.Add(pk, Remote.EndPoint, Timeout);
         }
@@ -491,16 +488,12 @@ namespace NewLife.Net
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
 
-            //if (Packet == null) throw new Exception("未指定封包协议Packet！");
-            if (Packet == null) return null;
+            if (Packet == null) Packet = new DefaultPacket();
 
             var rs = await Packet.Add(pk, Remote.EndPoint, Timeout);
             if (rs == null) return null;
 
-            var rmsg = Packet.CreateMessage();
-            rmsg.Read(rs);
-
-            return rmsg;
+            return Packet.CreateMessage(rs);
         }
         #endregion
 
