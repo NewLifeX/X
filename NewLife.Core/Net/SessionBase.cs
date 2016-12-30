@@ -219,73 +219,72 @@ namespace NewLife.Net
         private Int32 _Sending;
         private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
 
-        internal Boolean AddToSendQueue(Byte[] buffer, IPEndPoint remote)
+        internal Boolean AddToSendQueue(Packet pk, IPEndPoint remote)
         {
             if (!Open()) return false;
 
-            if (SendFilter == null) return OnAddToSendQueue(buffer, remote);
+            if (SendFilter == null) return OnAddToSendQueue(pk, remote);
 
-            var pk = new Packet(buffer);
             var ctx = new SessionFilterContext
             {
                 Session = this,
                 Packet = pk,
                 Remote = remote
             };
+
             SendFilter.Execute(ctx);
 
-            if (ctx.Packet == null) return false;
+            pk = ctx.Packet;
+            remote = ctx.Remote;
 
-            return OnAddToSendQueue(pk.ToArray(), remote);
+            if (pk == null) return false;
+
+            return OnAddToSendQueue(pk, remote);
         }
 
-        private Boolean OnAddToSendQueue(Byte[] buffer, IPEndPoint remote)
+        private Boolean OnAddToSendQueue(Packet pk, IPEndPoint remote)
         {
-            var count = buffer.Length;
-
-            if (StatSend != null) StatSend.Increment(count);
-            if (Log != null && Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", count, buffer.ToHex(0, Math.Min(count, 32)));
+            if (StatSend != null) StatSend.Increment(pk.Count);
+            if (Log != null && Log.Enable && LogSend) WriteLog("SendAsync [{0}]: {1}", pk.Count, pk.ToHex());
 
             LastTime = DateTime.Now;
 
-            // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.SendAsync".F(GetType().Name), 500))
+            // 打开UDP广播
+            if (Local.Type == NetType.Udp && remote != null && Object.Equals(remote.Address, IPAddress.Broadcast)) Client.EnableBroadcast = true;
+
+            // 同时只允许一个异步发送，其它发送放入队列
+
+            // 考虑到超长数据包，拆分为多个包
+            if (pk.Count <= BufferSize)
             {
-                tc.Log = Log;
+                var qi = new QueueItem();
+                qi.Packet = pk;
+                qi.Remote = remote;
 
-                if (Local.Type == NetType.Udp && remote != null && Object.Equals(remote.Address, IPAddress.Broadcast)) Client.EnableBroadcast = true;
-
-                // 同时只允许一个异步发送，其它发送放入队列
-
-                // 考虑到超长数据包，拆分为多个包
-                if (buffer.Length <= BufferSize)
+                _SendQueue.Enqueue(qi);
+            }
+            else
+            {
+                // 数据包切分，共用数据区，不需要内存拷贝
+                var idx = 0;
+                while (true)
                 {
+                    var remain = pk.Count - idx;
+                    if (remain <= 0) break;
+
+                    var len = Math.Min(remain, BufferSize);
+
                     var qi = new QueueItem();
-                    qi.Buffer = buffer;
+                    qi.Packet = new Packet(pk.Data, pk.Offset + idx, len);
                     qi.Remote = remote;
 
                     _SendQueue.Enqueue(qi);
+
+                    idx += len;
                 }
-                else
-                {
-                    var ms = new MemoryStream(buffer);
-                    while (true)
-                    {
-                        var remain = (Int32)(ms.Length - ms.Position);
-                        if (remain <= 0) break;
-
-                        var len = Math.Min(remain, BufferSize);
-
-                        var qi = new QueueItem();
-                        qi.Buffer = ms.ReadBytes(len);
-                        qi.Remote = remote;
-
-                        _SendQueue.Enqueue(qi);
-                    }
-                }
-
-                CheckSendQueue(false);
             }
+
+            CheckSendQueue(false);
 
             return true;
         }
@@ -325,35 +324,27 @@ namespace NewLife.Net
 
             se.RemoteEndPoint = qi.Remote;
 
-            //var count = 1;
             // 拷贝缓冲区，设置长度
+            var p = 0;
+            var remote = qi.Remote;
+
+            // 为了提高吞吐量，减少数据收发次数，尽可能的把发送队列多个数据包合并成为一个大包发出
+            while (true)
             {
-                var p = 0;
-                var len = qi.Buffer.Length;
-                var remote = qi.Remote;
+                var pk = qi.Packet;
+                var len = pk.Count;
+                Buffer.BlockCopy(pk.Data, pk.Offset, se.Buffer, p, len);
+                p += len;
 
-                // 为了提高吞吐量，减少数据收发次数，尽可能的把发送队列多个数据包合并成为一个大包发出
-                while (true)
-                {
-                    Buffer.BlockCopy(qi.Buffer, 0, se.Buffer, p, len);
-                    p += len;
+                // 不足最大长度，试试下一个
+                if (!qu.TryPeek(out qi)) break;
+                if (qi.Remote + "" != remote + "") break;
+                if (p + qi.Packet.Count > BufferSize) break;
 
-                    // 不足最大长度，试试下一个
-                    if (!qu.TryPeek(out qi)) break;
-                    if (qi.Remote + "" != remote + "") break;
-                    if (p + qi.Buffer.Length > BufferSize) break;
-
-                    if (!qu.TryDequeue(out qi)) break;
-
-                    len = qi.Buffer.Length;
-
-                    //count++;
-                }
-
-                se.SetBuffer(0, p);
+                if (!qu.TryDequeue(out qi)) break;
             }
 
-            //WriteDebugLog("SendQueue packet={0} Length={1}", count, se.Count);
+            se.SetBuffer(0, p);
 
             if (!OnSendAsync(se))
             {
@@ -399,7 +390,7 @@ namespace NewLife.Net
 
         class QueueItem
         {
-            public Byte[] Buffer { get; set; }
+            public Packet Packet { get; set; }
             public IPEndPoint Remote { get; set; }
         }
         #endregion
@@ -642,7 +633,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual async Task<Byte[]> SendAsync(Byte[] buffer)
         {
-            if (buffer != null && buffer.Length > 0 && !AddToSendQueue(buffer, Remote.EndPoint)) return null;
+            if (buffer != null && buffer.Length > 0 && !AddToSendQueue(new Packet(buffer), Remote.EndPoint)) return null;
 
             return await PacketQueue.Add(this, Remote.EndPoint, buffer, Timeout);
         }
@@ -654,13 +645,12 @@ namespace NewLife.Net
         {
             if (msg == null) throw new ArgumentNullException(nameof(msg));
 
-            var buf = msg.ToArray();
-            if (!AddToSendQueue(msg.ToArray(), Remote.EndPoint)) return null;
+            var pk = new Packet(msg.ToArray());
+            if (!AddToSendQueue(pk, Remote.EndPoint)) return null;
 
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
 
-            var pk = new Packet(buf);
             var rs = await Packet.Add(pk, Remote.EndPoint, Timeout);
             if (rs == null) return null;
 

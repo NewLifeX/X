@@ -183,7 +183,7 @@ namespace NewLife.Net
             }
 
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
-            if (buffer != null && buffer.Length > 0 && !AddToSendQueue(buffer, remote)) return null;
+            if (buffer != null && buffer.Length > 0 && !AddToSendQueue(new Packet(buffer), remote)) return null;
 
             return await PacketQueue.Add(this, remote, buffer, Timeout);
         }
