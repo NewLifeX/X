@@ -28,8 +28,6 @@ namespace NewLife.MessageQueue
         public MQClient()
         {
             Remote = new NetUri(NetType.Tcp, NetHelper.MyIP(), 2234);
-            // 还未上消息格式，暂时用Udp替代Tcp，避免粘包问题
-            //Remote = new NetUri(ProtocolType.Udp, NetHelper.MyIP(), 2234);
         }
 
         /// <summary>销毁</summary>
@@ -166,25 +164,6 @@ namespace NewLife.MessageQueue
 
             return rs;
         }
-
-        ///// <summary>接收</summary>
-        //public EventHandler<EventArgs<Message>> Received;
-
-        //void Client_Received(object sender, ReceivedEventArgs e)
-        //{
-        //    Received?.Invoke(this, new EventArgs<String>(e.ToStr()));
-        //}
-        #endregion
-
-        #region 辅助
-        ///// <summary>响应</summary>
-        ///// <param name="act"></param>
-        ///// <param name="msg"></param>
-        //protected virtual void SendPack(String act, String msg)
-        //{
-        //    Client.Send("{0}+{1}".F(act, msg));
-        //    Thread.Sleep(200);
-        //}
         #endregion
 
         #region 日志

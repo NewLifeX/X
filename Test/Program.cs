@@ -35,7 +35,7 @@ namespace Test
     {
         private static void Main(string[] args)
         {
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
 
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
@@ -70,9 +70,9 @@ namespace Test
 
         static void Test1()
         {
-            ApiTest.Main();
+            //ApiTest.Main();
             //NewLife.MessageQueue.MQTest.TestBase();
-            //NewLife.MessageQueue.MQTest.Main();
+            NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
             //PacketProvider.Test();
             //var svr = new DNSServer();

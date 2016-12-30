@@ -143,9 +143,10 @@ namespace NewLife.Remoting
             var enc = Host.Encoder;
             var data = enc.Encode(action, args);
 
-            var rs = await SendAsync(new Packet(data));
+            var msg = Session.Packet.CreateMessage(new Packet(data));
+            var rs = await Session.SendAsync(msg);
 
-            var dic = enc.Decode(rs);
+            var dic = enc.Decode(rs?.Payload);
 
             return enc.Decode<TResult>(dic);
         }
