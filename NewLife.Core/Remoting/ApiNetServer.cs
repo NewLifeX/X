@@ -84,7 +84,7 @@ namespace NewLife.Remoting
         {
             var enc = Host.Encoder;
 
-            var dic = enc.Decode(e.Data);
+            var dic = enc.Decode(e.Packet);
 
             var act = "";
             Object args = null;
@@ -131,7 +131,7 @@ namespace NewLife.Remoting
 
             var rs = await SendAsync(new Packet(data));
 
-            var dic = enc.Decode(rs?.ToArray());
+            var dic = enc.Decode(rs);
 
             return enc.Decode<TResult>(dic);
         }

@@ -103,7 +103,7 @@ namespace NewLife.Remoting
 
             var rs = await Client.SendAsync(data);
 
-            var dic = enc.Decode(rs?.ToArray());
+            var dic = enc.Decode(rs);
 
             return enc.Decode<TResult>(dic);
         }
@@ -116,7 +116,7 @@ namespace NewLife.Remoting
             var enc = ac.Encoder;
 
             // 这里会导致二次解码，因为解码以后才知道是不是请求
-            var dic = enc.Decode(e.Data);
+            var dic = enc.Decode(e.Packet);
 
             var act = "";
             Object args = null;

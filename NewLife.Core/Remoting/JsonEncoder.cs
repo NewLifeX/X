@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Data;
 using NewLife.Serialization;
 
 namespace NewLife.Remoting
@@ -24,11 +25,11 @@ namespace NewLife.Remoting
         }
 
         /// <summary>解码成为字典</summary>
-        /// <param name="data"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        public override IDictionary<String, Object> Decode(Byte[] data)
+        public override IDictionary<String, Object> Decode(Packet pk)
         {
-            var json = data.ToStr(Encoding);
+            var json = pk.ToStr(Encoding);
 
             WriteLog("<={0}", json);
 

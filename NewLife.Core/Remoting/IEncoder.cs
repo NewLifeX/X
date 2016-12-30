@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Data;
 using NewLife.Log;
 
 namespace NewLife.Remoting
@@ -25,9 +26,9 @@ namespace NewLife.Remoting
         Byte[] Encode(Boolean success, Object result);
 
         /// <summary>解码成为字典</summary>
-        /// <param name="data"></param>
+        /// <param name="pk">数据包</param>
         /// <returns></returns>
-        IDictionary<String, Object> Decode(Byte[] data);
+        IDictionary<String, Object> Decode(Packet pk);
 
         /// <summary>解码响应</summary>
         /// <typeparam name="T"></typeparam>
@@ -98,9 +99,9 @@ namespace NewLife.Remoting
         }
 
         /// <summary>解码成为字典</summary>
-        /// <param name="data"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        public abstract IDictionary<String, Object> Decode(Byte[] data);
+        public abstract IDictionary<String, Object> Decode(Packet pk);
 
         /// <summary>解码响应</summary>
         /// <typeparam name="T"></typeparam>

@@ -3,7 +3,6 @@ using System.IO;
 using System.IO.Ports;
 using System.Threading;
 using NewLife.Data;
-using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {

@@ -78,7 +78,7 @@ namespace NewLife.Net
             base.OnDispose(disposing);
 
             var reason = GetType().Name + (disposing ? "Dispose" : "GC");
-            _SendQueue.Release(reason);
+            _SendQueue?.Release(reason);
 
             try
             {
@@ -472,6 +472,8 @@ namespace NewLife.Net
         public virtual async Task<Packet> SendAsync(Packet pk)
         {
             if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
+
+            if (Packet == null) return null;
 
             return await Packet.Add(pk, Remote.EndPoint, Timeout);
         }
