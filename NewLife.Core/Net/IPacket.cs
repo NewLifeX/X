@@ -43,7 +43,7 @@ namespace NewLife.Net
     }
 
     /// <summary>头部指明长度的封包格式</summary>
-    public class DefaultPacket : IPacket
+    public class PacketProvider : IPacket
     {
         #region 属性
         /// <summary>长度所在位置，默认-1表示没有头部</summary>
@@ -84,7 +84,7 @@ namespace NewLife.Net
         {
             if (Queue == null) Queue = new DefaultPacketQueue();
 
-            return Queue.Add(request, remote, msTimeout);
+            return Queue.Add(this, request, remote, msTimeout);
         }
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
@@ -94,7 +94,8 @@ namespace NewLife.Net
         public virtual Boolean Match(Packet response, IPEndPoint remote)
         {
             if (Queue == null) return true;
-            return Queue.Match(response, remote);
+
+            return Queue.Match(this, response, remote);
         }
         #endregion
 
@@ -231,7 +232,7 @@ namespace NewLife.Net
         {
             var svr = new NetServer();
             svr.Port = 777;
-            svr.SessionPacket = new DefaultPacketFactory { Offset = 0, Size = 0 };
+            svr.SessionPacket = new PacketFactory { Offset = 0, Size = 0 };
             svr.Log = Log.XTrace.Log;
             //svr.LogSend = true;
             svr.LogReceive = true;
@@ -258,7 +259,7 @@ namespace NewLife.Net
             var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
             //client.Remote.Address = NetHelper.MyIP();
             //client.Remote.Address = System.Net.IPAddress.Parse("1.0.0.13");
-            client.Packet = new DefaultPacket { Offset = 0, Size = 0 };
+            client.Packet = new PacketProvider { Offset = 0, Size = 0 };
             client.Log = Log.XTrace.Log;
             client.LogSend = true;
             //client.LogReceive = true;
@@ -276,7 +277,7 @@ namespace NewLife.Net
     }
 
     /// <summary>头部长度粘包处理工厂</summary>
-    public class DefaultPacketFactory : IPacketFactory
+    public class PacketFactory : IPacketFactory
     {
         #region 属性
         /// <summary>长度所在位置，默认-1表示没有头部</summary>
@@ -293,7 +294,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual IPacket Create()
         {
-            return new DefaultPacket
+            return new PacketProvider
             {
                 Offset = Offset,
                 Size = Size,

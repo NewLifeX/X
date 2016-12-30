@@ -33,13 +33,13 @@ namespace NewLife.Remoting
             //client.Login("admin", "password");
 
             var msg = "NewLifeX";
-            var rs = await client.InvokeAsync<string>("Hello/Say", new demo (msg) {  });
+            var rs = await client.InvokeAsync<string>("Hello/Say", new demo(msg) { });
             Console.WriteLine(rs);
 
             try
             {
                 msg = "报错2";
-                rs = await client.InvokeAsync<string>("Hello/Say", new demo (msg) {  });
+                rs = await client.InvokeAsync<string>("Hello/Say", new demo(msg) { });
             }
             catch (Exception ex)
             {
@@ -52,7 +52,7 @@ namespace NewLife.Remoting
             svr.Dispose();
         }
 
-       public class demo
+        public class demo
         {
             public demo(string msg)
             {
@@ -60,6 +60,7 @@ namespace NewLife.Remoting
             }
             public string messsage { get; set; }
         }
+
         [FF(Name = "类")]
         [FE(Name = "类")]
         private class HelloController : IApi

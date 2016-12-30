@@ -197,7 +197,7 @@ namespace NewLife.Net
                 Serial.Write(pk.Data, pk.Offset, pk.Count);
             }
 
-            if (Packet == null) Packet = new DefaultPacket();
+            if (Packet == null) Packet = new PacketProvider();
 
             return await Packet.Add(pk, null, Timeout);
         }

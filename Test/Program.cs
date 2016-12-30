@@ -74,7 +74,7 @@ namespace Test
             //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
-            DefaultPacket.Test();
+            PacketProvider.Test();
             //var svr = new DNSServer();
             //svr.Start();
 

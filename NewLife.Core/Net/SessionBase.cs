@@ -470,7 +470,7 @@ namespace NewLife.Net
         {
             if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
 
-            if (Packet == null) Packet = new DefaultPacket();
+            if (Packet == null) Packet = new PacketProvider();
 
             return await Packet.Add(pk, Remote.EndPoint, Timeout);
         }
@@ -488,7 +488,7 @@ namespace NewLife.Net
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
 
-            if (Packet == null) Packet = new DefaultPacket();
+            if (Packet == null) Packet = new PacketProvider();
 
             var rs = await Packet.Add(pk, Remote.EndPoint, Timeout);
             if (rs == null) return null;
