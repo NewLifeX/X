@@ -163,16 +163,17 @@ namespace NewLife.Net
         /// <returns></returns>
         public override async Task<Packet> SendAsync(Packet pk)
         {
-            return await SendAsync(pk, Remote.EndPoint);
+            return await SendAsync(pk, Remote.EndPoint, true);
         }
 
         /// <summary>发送数据包到目的地址</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
+        /// <param name="wait"></param>
         /// <returns></returns>
-        public async Task<Packet> SendAsync(Packet pk, IPEndPoint remote)
+        internal async Task<Packet> SendAsync(Packet pk, IPEndPoint remote, Boolean wait)
         {
-            if (pk != null && pk.Count > 0)
+            if (pk.Count > 0)
             {
                 if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast)
                 {
@@ -184,10 +185,12 @@ namespace NewLife.Net
 
             if (Packet == null) Packet = new PacketProvider();
 
-            var task = Packet.Add(pk, remote, Timeout);
+            var task = !wait ? null : Packet.Add(pk, remote, Timeout);
 
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
             if (pk.Count > 0 && !SendByQueue(pk, remote)) return null;
+
+            if (!wait) return null;
 
             return await task;
         }

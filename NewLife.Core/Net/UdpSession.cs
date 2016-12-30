@@ -155,7 +155,7 @@ namespace NewLife.Net
         {
             if (Server == null) return null;
 
-            return await Server.SendAsync(pk, Remote.EndPoint);
+            return await Server.SendAsync(pk, Remote.EndPoint, true);
         }
 
         /// <summary>发送消息并等待响应</summary>
@@ -166,7 +166,7 @@ namespace NewLife.Net
             if (Server == null) return null;
 
             var pk = new Packet(msg.ToArray());
-            var task = msg.Reply ? null : Server.SendAsync(pk, Remote.EndPoint);
+            var task = Server.SendAsync(pk, Remote.EndPoint, !msg.Reply);
 
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;

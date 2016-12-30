@@ -9,7 +9,7 @@ namespace NewLife.Net
     public interface ISocketClient : ISocketRemote
     {
         #region 属性
-        /// <summary>超时时间</summary>
+        /// <summary>超时。默认3000ms</summary>
         Int32 Timeout { get; set; }
 
         /// <summary>是否活动</summary>
