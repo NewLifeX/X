@@ -15,7 +15,7 @@ namespace NewLife.Messaging
         Boolean Reply { get; }
 
         /// <summary>负载数据</summary>
-        Packet Payload { get; }
+        Packet Payload { get; set; }
 
         /// <summary>根据请求创建配对的响应消息</summary>
         /// <returns></returns>
@@ -35,10 +35,10 @@ namespace NewLife.Messaging
     public class Message : IMessage
     {
         /// <summary>是否响应</summary>
-        public Boolean Reply { get; protected set; }
+        public Boolean Reply { get; set; }
 
         /// <summary>负载数据</summary>
-        public Packet Payload { get; protected set; }
+        public Packet Payload { get; set; }
 
         /// <summary>根据请求创建配对的响应消息</summary>
         /// <returns></returns>

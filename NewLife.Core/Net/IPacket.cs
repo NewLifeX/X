@@ -16,6 +16,11 @@ namespace NewLife.Net
         /// <returns></returns>
         IMessage CreateMessage(Packet pk);
 
+        /// <summary>加载消息</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        IMessage LoadMessage(Packet pk);
+
         /// <summary>加入请求队列</summary>
         /// <param name="request">请求的数据</param>
         /// <param name="remote">远程</param>
@@ -64,6 +69,17 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual IMessage CreateMessage(Packet pk)
         {
+            // 创建没有头部的消息
+            return new Message { Payload = pk };
+        }
+
+        /// <summary>加载消息</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public virtual IMessage LoadMessage(Packet pk)
+        {
+            if (pk == null || pk.Count == 0) return null;
+
             // 创建没有头部的消息
             var msg = new Message();
             msg.Read(pk);
@@ -203,6 +219,12 @@ namespace NewLife.Net
                     break;
                 case 4:
                     len = (Int32)stream.ReadBytes(4).ToUInt32();
+                    break;
+                case -2:
+                    len = stream.ReadBytes(2).ToUInt16(0, false);
+                    break;
+                case -4:
+                    len = (Int32)stream.ReadBytes(4).ToUInt32(0, false);
                     break;
                 default:
                     throw new NotSupportedException();

@@ -494,10 +494,7 @@ namespace NewLife.Net
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
 
-            var rs = await task;
-            if (rs == null) return null;
-
-            return Packet.CreateMessage(rs);
+            return Packet.LoadMessage(await task);
         }
         #endregion
 

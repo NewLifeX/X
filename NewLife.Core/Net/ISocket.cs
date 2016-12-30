@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -111,6 +112,11 @@ namespace NewLife.Net
         /// <param name="pk"></param>
         /// <returns></returns>
         Task<Packet> SendAsync(Packet pk);
+
+        /// <summary>发送消息并等待响应</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        Task<IMessage> SendAsync(IMessage msg);
         #endregion
     }
 

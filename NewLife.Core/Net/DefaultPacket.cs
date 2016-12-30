@@ -12,14 +12,31 @@ namespace NewLife.Net
         public DefaultPacket()
         {
             Offset = 2;
-            Size = 2;
+            Size = -2;
         }
+
+        private Byte _seq;
 
         /// <summary>创建消息</summary>
         /// <param name="pk">数据包</param>
         /// <returns></returns>
         public override IMessage CreateMessage(Packet pk)
         {
+            var msg = new DefaultMessage { Payload = pk };
+            // 序列号避开0
+            if (_seq == 0) _seq++;
+            msg.Sequence = _seq++;
+
+            return msg;
+        }
+
+        /// <summary>加载消息</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public override IMessage LoadMessage(Packet pk)
+        {
+            if (pk == null || pk.Count == 0) return null;
+
             var msg = new DefaultMessage();
             msg.Read(pk);
 

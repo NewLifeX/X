@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 
 namespace NewLife.Net
 {
@@ -156,6 +157,22 @@ namespace NewLife.Net
 
             return await Server.SendAsync(pk, Remote.EndPoint);
         }
+
+        /// <summary>发送消息并等待响应</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public async Task<IMessage> SendAsync(IMessage msg)
+        {
+            if (Server == null) return null;
+
+            var pk = new Packet(msg.ToArray());
+            var task = msg.Reply ? null : Server.SendAsync(pk, Remote.EndPoint);
+
+            // 如果是响应包，直接返回不等待
+            if (msg.Reply) return null;
+
+            return Packet.LoadMessage(await task);
+        }
         #endregion
 
         #region 接收
@@ -163,7 +180,7 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            var task = SendAsync(null);
+            var task = SendAsync((Packet)null);
             if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
             return task.Result;
