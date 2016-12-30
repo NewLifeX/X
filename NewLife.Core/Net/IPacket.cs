@@ -290,15 +290,21 @@ namespace NewLife.Net
         public Int32 Expire { get; set; } = 500;
         #endregion
 
+        /// <summary>服务端多会话共用</summary>
+        private IPacketQueue _queue;
+
         /// <summary>创建粘包处理实例，内含缓冲区，不同会话不能共用</summary>
         /// <returns></returns>
         public virtual IPacket Create()
         {
+            if (_queue == null) _queue = new DefaultPacketQueue();
+
             return new PacketProvider
             {
                 Offset = Offset,
                 Size = Size,
-                Expire = Expire
+                Expire = Expire,
+                Queue = _queue
             };
         }
     }

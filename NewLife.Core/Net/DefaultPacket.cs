@@ -28,7 +28,7 @@ namespace NewLife.Net
     }
 
     /// <summary>标准封包工厂</summary>
-    public class Default : IPacketFactory
+    public class DefaultPacketFactory : IPacketFactory
     {
         /// <summary>服务端多会话共用</summary>
         private IPacketQueue _queue;

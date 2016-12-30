@@ -468,11 +468,13 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual async Task<Packet> SendAsync(Packet pk)
         {
-            if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
-
             if (Packet == null) Packet = new PacketProvider();
 
-            return await Packet.Add(pk, Remote.EndPoint, Timeout);
+            var task = Packet.Add(pk, Remote.EndPoint, Timeout);
+
+            if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
+
+            return await task;
         }
 
         /// <summary>发送消息并等待响应</summary>
@@ -483,14 +485,16 @@ namespace NewLife.Net
             if (msg == null) throw new ArgumentNullException(nameof(msg));
 
             var pk = new Packet(msg.ToArray());
+            if (Packet == null) Packet = new PacketProvider();
+
+            var task = msg.Reply ? null : Packet.Add(pk, Remote.EndPoint, Timeout);
+
             if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
 
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
 
-            if (Packet == null) Packet = new PacketProvider();
-
-            var rs = await Packet.Add(pk, Remote.EndPoint, Timeout);
+            var rs = await task;
             if (rs == null) return null;
 
             return Packet.CreateMessage(rs);

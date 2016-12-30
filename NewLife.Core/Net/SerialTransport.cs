@@ -189,6 +189,10 @@ namespace NewLife.Net
         {
             if (!Open()) return null;
 
+            if (Packet == null) Packet = new PacketProvider();
+
+            var task = Packet.Add(pk, null, Timeout);
+
             if (pk != null)
             {
                 WriteLog("SendAsync:{0}", pk.ToHex());
@@ -197,9 +201,7 @@ namespace NewLife.Net
                 Serial.Write(pk.Data, pk.Offset, pk.Count);
             }
 
-            if (Packet == null) Packet = new PacketProvider();
-
-            return await Packet.Add(pk, null, Timeout);
+            return await task;
         }
 
         /// <summary>接收数据</summary>
