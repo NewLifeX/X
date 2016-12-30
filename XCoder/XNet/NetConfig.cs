@@ -41,59 +41,49 @@ namespace XNet
 
         /// <summary>发送次数</summary>
         [Description("发送次数")]
-        public Int32 SendTimes { get; set; }
+        public Int32 SendTimes { get; set; } = 1;
 
         /// <summary>发送间隔。毫秒</summary>
         [Description("发送间隔。毫秒")]
-        public Int32 SendSleep { get; set; }
+        public Int32 SendSleep { get; set; } = 1000;
 
         /// <summary>发送用户数</summary>
         [Description("发送用户数")]
-        public Int32 SendUsers { get; set; }
+        public Int32 SendUsers { get; set; } = 1;
 
         /// <summary>显示应用日志</summary>
         [Description("显示应用日志")]
-        public Boolean ShowLog { get; set; }
+        public Boolean ShowLog { get; set; } = true;
 
         /// <summary>显示网络日志</summary>
         [Description("显示网络日志")]
-        public Boolean ShowSocketLog { get; set; }
+        public Boolean ShowSocketLog { get; set; } = true;
 
         /// <summary>显示接收字符串</summary>
         [Description("显示接收字符串")]
-        public Boolean ShowReceiveString { get; set; }
+        public Boolean ShowReceiveString { get; set; } = true;
 
         /// <summary>显示发送数据</summary>
         [Description("显示发送数据")]
-        public Boolean ShowSend { get; set; }
+        public Boolean ShowSend { get; set; } = true;
 
         /// <summary>显示接收数据</summary>
         [Description("显示接收数据")]
-        public Boolean ShowReceive { get; set; }
+        public Boolean ShowReceive { get; set; } = true;
 
         /// <summary>显示统计信息</summary>
         [Description("显示统计信息")]
-        public Boolean ShowStat { get; set; }
+        public Boolean ShowStat { get; set; } = true;
 
         /// <summary>日志着色</summary>
         [Description("日志着色")]
-        public Boolean ColorLog { get; set; }
+        public Boolean ColorLog { get; set; } = true;
 
         public NetConfig()
         {
             Encoding = Encoding.Default;
 
             SendContent = "新生命开发团队，学无先后达者为师";
-            SendTimes = 1;
-            SendSleep = 1000;
-            SendUsers = 1;
-
-            ShowLog = true;
-            ShowSocketLog = true;
-            ShowReceiveString = true;
-            ShowSend = true;
-            ShowReceive = true;
-            ShowStat = true;
         }
     }
 }
