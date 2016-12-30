@@ -25,7 +25,7 @@ namespace NewLife.Remoting
             svr.Start();
 
 
-            var client = new ApiClient("udp://127.0.0.1:3344") { Encoder = new JsonEncoder() };
+            var client = new ApiClient("tcp://127.0.0.1:3344") { Encoder = new JsonEncoder() };
             client.Log = XTrace.Log;
             //client.Encoder = new ProtocolBuffer();
             //client.Compress = new SevenZip();
@@ -34,7 +34,7 @@ namespace NewLife.Remoting
 
             var msg = "NewLifeX";
             var rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
-            Console.WriteLine(rs);
+            XTrace.WriteLine(rs);
 
             try
             {
@@ -43,7 +43,7 @@ namespace NewLife.Remoting
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                XTrace.WriteLine(ex.Message);
             }
 
             Console.WriteLine("完成");

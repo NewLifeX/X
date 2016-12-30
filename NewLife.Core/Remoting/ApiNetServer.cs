@@ -36,8 +36,8 @@ namespace NewLife.Remoting
         {
             Local = new NetUri(config);
 #if DEBUG
-            LogSend = true;
-            LogReceive = true;
+            //LogSend = true;
+            //LogReceive = true;
 #endif
             // 新生命标准网络封包协议
             SessionPacket = new DefaultPacketFactory();

@@ -63,9 +63,9 @@ namespace NewLife.Remoting
             Client.MessageReceived += Client_Received;
             Client.Log = Log;
 #if DEBUG
-            Client.LogSend = true;
-            Client.LogReceive = true;
-            Client.Timeout = 60 * 1000;
+            //Client.LogSend = true;
+            //Client.LogReceive = true;
+            //Client.Timeout = 60 * 1000;
 #endif
             Client.Opened += Client_Opened;
             Client.Open();
