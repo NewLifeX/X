@@ -413,7 +413,7 @@ namespace NewLife.Net
 
             if (!Open()) return null;
 
-            var task = SendAsync(null);
+            var task = SendAsync((Byte[])null);
             if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
             return task.Result;
@@ -561,9 +561,6 @@ namespace NewLife.Net
                 ReleaseRecv(se, "!Active || Disposed");
         }
 
-        /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; }
-
         void ProcessReceive(Packet pk, IPEndPoint remote)
         {
             try
@@ -624,6 +621,9 @@ namespace NewLife.Net
         #endregion
 
         #region 数据包处理
+        /// <summary>粘包处理接口</summary>
+        public IPacket Packet { get; set; }
+
         /// <summary>数据包请求配对队列</summary>
         public IPacketQueue PacketQueue { get; set; }
 
@@ -647,12 +647,28 @@ namespace NewLife.Net
             return await PacketQueue.Add(this, Remote.EndPoint, buffer, Timeout);
         }
 
-        //public virtual async Task<IMessage> SendAsync(IMessage msg)
-        //{
-        //    if (msg != null && !AddToSendQueue(msg.ToArray(), Remote.EndPoint)) return null;
+        /// <summary>发送消息并等待响应</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public virtual async Task<IMessage> SendAsync(IMessage msg)
+        {
+            if (msg == null) throw new ArgumentNullException(nameof(msg));
 
-        //    return await PacketQueue.Add(this, Remote.EndPoint, buffer, Timeout);
-        //}
+            var buf = msg.ToArray();
+            if (!AddToSendQueue(msg.ToArray(), Remote.EndPoint)) return null;
+
+            // 如果是响应包，直接返回不等待
+            if (msg.Reply) return null;
+
+            var pk = new Packet(buf);
+            var rs = await Packet.Add(pk, Remote.EndPoint, Timeout);
+            if (rs == null) return null;
+
+            var rmsg = Packet.CreateMessage();
+            rmsg.Read(rs);
+
+            return rmsg;
+        }
         #endregion
 
         #region 异常处理
