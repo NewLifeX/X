@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 
 namespace NewLife.Net
 {
@@ -643,10 +644,15 @@ namespace NewLife.Net
         {
             if (buffer != null && buffer.Length > 0 && !AddToSendQueue(buffer, Remote.EndPoint)) return null;
 
-            if (PacketQueue == null) PacketQueue = new DefaultPacketQueue();
-
             return await PacketQueue.Add(this, Remote.EndPoint, buffer, Timeout);
         }
+
+        //public virtual async Task<IMessage> SendAsync(IMessage msg)
+        //{
+        //    if (msg != null && !AddToSendQueue(msg.ToArray(), Remote.EndPoint)) return null;
+
+        //    return await PacketQueue.Add(this, Remote.EndPoint, buffer, Timeout);
+        //}
         #endregion
 
         #region 异常处理

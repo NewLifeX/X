@@ -67,26 +67,26 @@ namespace NewLife.Messaging
         public virtual void Write(Stream stream) { Payload?.WriteTo(stream); }
     }
 
-    ///// <summary>消息助手</summary>
-    //public static class MessageHelper
-    //{
-    //    /// <summary>获取消息的数据流表示。指针位置为0</summary>
-    //    /// <param name="msg"></param>
-    //    /// <returns></returns>
-    //    public static Stream GetStream(this IMessage msg)
-    //    {
-    //        var ms = new MemoryStream();
-    //        msg.Write(ms, null);
-    //        ms.Position = 0;
-    //        return ms;
-    //    }
+    /// <summary>消息助手</summary>
+    public static class MessageHelper
+    {
+        /// <summary>获取消息的数据流表示。指针位置为0</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public static Stream GetStream(this IMessage msg)
+        {
+            var ms = new MemoryStream();
+            msg.Write(ms);
+            ms.Position = 0;
+            return ms;
+        }
 
-    //    /// <summary>获取消息的字节数组表示。</summary>
-    //    /// <param name="msg"></param>
-    //    /// <returns></returns>
-    //    public static Byte[] ToArray(this IMessage msg)
-    //    {
-    //        return msg.GetStream().ToArray();
-    //    }
-    //}
+        /// <summary>获取消息的字节数组表示。</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public static Byte[] ToArray(this IMessage msg)
+        {
+            return msg.GetStream().ToArray();
+        }
+    }
 }
