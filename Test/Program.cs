@@ -22,6 +22,7 @@ using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Threading;
 using NewLife.Web;
 using NewLife.Xml;
 using XCode.DataAccessLayer;
@@ -49,7 +50,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -83,20 +84,30 @@ namespace Test
             //var html = http.ReceiveString();
             //Console.WriteLine(html.Length);
 
-            var client = new WebClientX(true, true);
-            var html = client.DownloadString("http://yun.wslink.cn/Home/About");
-            Console.WriteLine(html.Length);
-            for (int i = 0; i < 10; i++)
-            {
-                html = client.DownloadString("http://yun.wslink.cn/Home/About");
-                XTrace.WriteLine("" + html?.Length);
-            }
+            //var client = new WebClientX(true, true);
+            //var html = client.DownloadString("http://yun.wslink.cn/Home/About");
+            //Console.WriteLine(html.Length);
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    html = client.DownloadString("http://yun.wslink.cn/Home/About");
+            //    XTrace.WriteLine("" + html?.Length);
+            //}
 
             //uri = new Uri("ws://yun.wslink.cn");
             //http = uri.CreateRemote();
             //http.Send("");
             //html = http.ReceiveString();
             //Console.WriteLine(html.Length);
+
+            var t1 = new TimerX(TestTimer, 1, 100, 1000);
+            var ts = TimerScheduler.Create("Test");
+            var t2 = new TimerX(TestTimer, 2, 300, 777, ts);
+            Console.ReadKey();
+        }
+
+        static void TestTimer(Object state)
+        {
+            XTrace.WriteLine("State={0} Timer={1} Scheduler={2}", state, TimerX.Current, TimerScheduler.Current);
         }
     }
 }
