@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 
 namespace NewLife.Net
 {
@@ -19,7 +19,7 @@ namespace NewLife.Net
 
     /// <summary>网络服务的会话</summary>
     /// <remarks>
-    /// 实际应用可通过重载<see cref="OnReceive"/>实现收到数据时的业务逻辑。
+    /// 实际应用可通过重载OnReceive实现收到数据时的业务逻辑。
     /// </remarks>
     public class NetSession : DisposeBase, INetSession
     {
@@ -60,6 +60,7 @@ namespace NewLife.Net
             if (ss != null)
             {
                 ss.Received += (s, e2) => OnReceive(e2);
+                ss.MessageReceived += (s, e2) => OnReceive(e2);
                 ss.OnDisposed += (s, e2) => Dispose();
                 ss.Error += OnError;
             }
@@ -85,11 +86,21 @@ namespace NewLife.Net
         /// <param name="e"></param>
         protected virtual void OnReceive(ReceivedEventArgs e)
         {
-            if (Received != null) Received(this, e);
+            Received?.Invoke(this, e);
+        }
+
+        /// <summary>收到客户端发来的消息</summary>
+        /// <param name="e"></param>
+        protected virtual void OnReceive(MessageEventArgs e)
+        {
+            MessageReceived?.Invoke(this, e);
         }
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
+
+        /// <summary>消息到达事件</summary>
+        public event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
 
         #region 收发

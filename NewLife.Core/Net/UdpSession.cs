@@ -188,6 +188,9 @@ namespace NewLife.Net
 
         public event EventHandler<ReceivedEventArgs> Received;
 
+        /// <summary>消息到达事件</summary>
+        public event EventHandler<MessageEventArgs> MessageReceived;
+
         /// <summary>粘包处理接口</summary>
         public IPacket Packet { get; set; }
 
@@ -220,6 +223,18 @@ namespace NewLife.Net
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
             Received?.Invoke(this, e);
+
+            if (e.Packet != null && MessageReceived != null)
+            {
+                var msg = Packet.LoadMessage(e.Packet);
+                var me = new MessageEventArgs
+                {
+                    Packet = e.Packet,
+                    UserState = e.UserState,
+                    Message = msg
+                };
+                MessageReceived(this, me);
+            }
         }
         #endregion
 

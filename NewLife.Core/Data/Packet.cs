@@ -101,7 +101,7 @@ namespace NewLife.Data
         /// <param name="separate">分隔符</param>
         /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
         /// <returns></returns>
-        public String ToHex(Int32 maxLength = 32, String separate = "-", Int32 groupSize = 0)
+        public String ToHex(Int32 maxLength = 32, String separate = null, Int32 groupSize = 0)
         {
             if (Data == null) return null;
             if (Count == 0) return String.Empty;

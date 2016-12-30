@@ -456,6 +456,18 @@ namespace NewLife.Net
             if (StatReceive != null) StatReceive.Increment(e.Length);
 
             Received?.Invoke(sender, e);
+
+            if (e.Packet != null && MessageReceived != null)
+            {
+                var msg = Packet.LoadMessage(e.Packet);
+                var me = new MessageEventArgs
+                {
+                    Packet = e.Packet,
+                    UserState = e.UserState,
+                    Message = msg
+                };
+                MessageReceived(sender, me);
+            }
         }
         #endregion
 
@@ -496,6 +508,9 @@ namespace NewLife.Net
 
             return Packet.LoadMessage(await task);
         }
+
+        /// <summary>消息到达事件</summary>
+        public event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
 
         #region 异常处理
