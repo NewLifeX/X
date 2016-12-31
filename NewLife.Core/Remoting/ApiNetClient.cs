@@ -114,10 +114,12 @@ namespace NewLife.Remoting
         #region 异步接收
         private void Client_Received(Object sender, MessageEventArgs e)
         {
+            var msg = e.Message;
+            if (msg.Reply) return;
+
             var ac = this.GetService<ApiClient>();
             var enc = ac.Encoder;
 
-            var msg = e.Message;
             // 这里会导致二次解码，因为解码以后才知道是不是请求
             var dic = enc.Decode(msg.Payload);
 

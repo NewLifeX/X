@@ -218,22 +218,23 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override void OnReceive(Packet pk, IPEndPoint remote)
+        internal override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
-            if (pk.Count== 0 && DisconnectWhenEmptyData)
+            if (pk.Count == 0 && DisconnectWhenEmptyData)
             {
                 Close("收到空数据");
                 Dispose();
 
-                return;
+                return true;
             }
-
-            base.OnReceive(pk, remote);
 
 #if !__MOBILE__
             // 更新全局远程IP地址
             NewLife.Web.WebHelper.UserHost = Remote.EndPoint.ToString();
 #endif
+
+            if (base.OnReceive(pk, remote)) return true;
+
             // 分析处理
             var e = new ReceivedEventArgs(pk);
             e.UserState = Remote.EndPoint;
@@ -241,6 +242,8 @@ namespace NewLife.Net
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
             RaiseReceive(this, e);
+
+            return true;
         }
         #endregion
 

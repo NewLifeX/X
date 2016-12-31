@@ -135,7 +135,6 @@
     <Compile Include="Net\NetHelper.cs" />
     <Compile Include="Net\NetServer.cs" />
     <Compile Include="Net\NetSession.cs" />
-    <Compile Include="Net\PacketStream.cs" />
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />

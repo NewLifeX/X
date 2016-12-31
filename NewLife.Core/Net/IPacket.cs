@@ -109,7 +109,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Boolean Match(Packet response, IPEndPoint remote)
         {
-            if (Queue == null) return true;
+            if (Queue == null) return false;
 
             return Queue.Match(this, response, remote);
         }

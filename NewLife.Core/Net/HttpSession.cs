@@ -113,14 +113,14 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override void OnReceive(Packet pk, IPEndPoint remote)
+        internal override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
             if (pk.Count == 0 && DisconnectWhenEmptyData)
             {
                 Close("收到空数据");
                 Dispose();
 
-                return;
+                return true;
             }
 
             var buffer = pk.ToArray();
@@ -137,13 +137,13 @@ namespace NewLife.Net
 
             // 如果长度不足
             var len = ResponseHeaders[HttpResponseHeader.ContentLength].ToInt();
-            if (len > 0 && _cache.Length < len) return;
+            if (len > 0 && _cache.Length < len) return true;
 
             _cache.Position = 0;
             pk = new Packet(_cache.ReadBytes());
-            base.OnReceive(pk, remote);
-
             _cache = null;
+
+            return base.OnReceive(pk, remote);
         }
         #endregion
 

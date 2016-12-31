@@ -221,20 +221,20 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override void OnReceive(Packet pk, IPEndPoint remote)
+        internal override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
             {
                 if (!Local.Address.IsAny())
                 {
-                    if (remote.Address.Equals(Local.Address)) return;
+                    if (remote.Address.Equals(Local.Address)) return false;
                 }
                 else
                 {
                     foreach (var item in NetHelper.GetIPsWithCache())
                     {
-                        if (remote.Address.Equals(item)) return;
+                        if (remote.Address.Equals(item)) return false;
                     }
                 }
             }
@@ -245,7 +245,7 @@ namespace NewLife.Net
 #endif
             LastRemote = remote;
 
-            base.OnReceive(pk, remote);
+            if (base.OnReceive(pk, remote)) return true;
 
             // 分析处理
             var e = new ReceivedEventArgs(pk);
@@ -264,6 +264,8 @@ namespace NewLife.Net
             }
 
             if (session != null) RaiseReceive(session, e);
+
+            return true;
         }
 
         /// <summary>收到异常时如何处理。Tcp/Udp客户端默认关闭会话，但是Udp服务端不能关闭服务器，仅关闭会话</summary>

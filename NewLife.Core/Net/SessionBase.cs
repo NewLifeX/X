@@ -438,10 +438,13 @@ namespace NewLife.Net
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal virtual void OnReceive(Packet pk, IPEndPoint remote)
+        /// <returns>是否已处理，已处理的数据不再向下传递</returns>
+        internal virtual Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
+            if (Packet == null) return false;
+
             // 同步匹配
-            Packet?.Match(pk, remote);
+            return Packet.Match(pk, remote);
         }
 
         /// <summary>数据到达事件</summary>
