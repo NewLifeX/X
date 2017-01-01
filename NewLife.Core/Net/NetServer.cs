@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -345,6 +346,9 @@ namespace NewLife.Net
         /// <summary>某个会话的数据到达。sender是ISocketSession</summary>
         public event EventHandler<ReceivedEventArgs> Received;
 
+        /// <summary>消息到达事件</summary>
+        public event EventHandler<MessageEventArgs> MessageReceived;
+
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -354,7 +358,7 @@ namespace NewLife.Net
 
             var ns = OnNewSession(session);
 
-            if (NewSession != null) NewSession(sender, new NetSessionEventArgs { Session = ns });
+            NewSession?.Invoke(sender, new NetSessionEventArgs { Session = ns });
         }
 
         private Int32 sessionID = 0;
@@ -379,6 +383,7 @@ namespace NewLife.Net
             if (UseSession) AddSession(ns);
 
             ns.Received += OnReceived;
+            ns.MessageReceived += OnMessageReceived;
             //session.Error += OnError;
 
             // 估算完成时间，执行过长时提示
@@ -402,13 +407,30 @@ namespace NewLife.Net
 
             OnReceive(session, e.Stream);
 
-            if (Received != null) Received(sender, e);
+            Received?.Invoke(sender, e);
         }
 
         /// <summary>收到数据时，最原始的数据处理，但不影响会话内部的数据处理</summary>
         /// <param name="session"></param>
         /// <param name="stream"></param>
         protected virtual void OnReceive(INetSession session, Stream stream) { }
+
+        /// <summary>收到消息时</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void OnMessageReceived(Object sender, MessageEventArgs e)
+        {
+            var session = sender as INetSession;
+
+            OnReceive(session, e.Message);
+
+            MessageReceived?.Invoke(sender, e);
+        }
+
+        /// <summary>收到消息时</summary>
+        /// <param name="session"></param>
+        /// <param name="msg"></param>
+        protected virtual void OnReceive(INetSession session, IMessage msg) { }
 
         /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
         public event EventHandler<ExceptionEventArgs> Error;
@@ -420,7 +442,7 @@ namespace NewLife.Net
         {
             if (Log.Enable) Log.Error("{0} Error {1}", sender, e.Exception);
 
-            if (Error != null) Error(sender, e);
+            Error?.Invoke(sender, e);
         }
         #endregion
 
