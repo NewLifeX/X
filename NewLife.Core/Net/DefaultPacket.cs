@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Net;
 using NewLife.Data;
 using NewLife.Messaging;
@@ -6,6 +7,7 @@ using NewLife.Messaging;
 namespace NewLife.Net
 {
     /// <summary>新生命标准网络封包协议</summary>
+    [DisplayName("标准封包")]
     public class DefaultPacket : PacketProvider
     {
         /// <summary>实例化标准封包</summary>
@@ -45,6 +47,7 @@ namespace NewLife.Net
     }
 
     /// <summary>标准封包工厂</summary>
+    [DisplayName("标准封包")]
     public class DefaultPacketFactory : IPacketFactory
     {
         /// <summary>服务端多会话共用</summary>

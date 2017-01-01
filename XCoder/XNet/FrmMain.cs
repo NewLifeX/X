@@ -401,13 +401,13 @@ namespace XNet
         private void mi清空_Click(object sender, EventArgs e)
         {
             txtReceive.Clear();
-            //spList.ClearReceive();
+            BytesOfReceived = 0;
         }
 
         private void mi清空2_Click(object sender, EventArgs e)
         {
             txtSend.Clear();
-            //spList.ClearSend();
+            BytesOfSent = 0;
         }
 
         private void mi显示应用日志_Click(object sender, EventArgs e)

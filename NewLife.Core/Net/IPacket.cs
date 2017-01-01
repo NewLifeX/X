@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -48,6 +49,7 @@ namespace NewLife.Net
     }
 
     /// <summary>头部指明长度的封包格式</summary>
+    [DisplayName("无头部封包")]
     public class PacketProvider : IPacket
     {
         #region 属性
@@ -299,6 +301,7 @@ namespace NewLife.Net
     }
 
     /// <summary>头部长度粘包处理工厂</summary>
+    [DisplayName("无头部封包")]
     public class PacketFactory : IPacketFactory
     {
         #region 属性
