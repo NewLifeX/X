@@ -224,7 +224,7 @@ namespace NewLife.Net
 
             Received?.Invoke(this, e);
 
-            if (e.Packet != null && MessageReceived != null)
+            if (Packet != null && e.Packet != null && MessageReceived != null)
             {
                 var msg = Packet.LoadMessage(e.Packet);
                 var me = new MessageEventArgs

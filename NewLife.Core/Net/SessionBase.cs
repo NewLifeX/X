@@ -460,7 +460,7 @@ namespace NewLife.Net
 
             Received?.Invoke(sender, e);
 
-            if (e.Packet != null && MessageReceived != null)
+            if (Packet != null && e.Packet != null && MessageReceived != null)
             {
                 var msg = Packet.LoadMessage(e.Packet);
                 var me = new MessageEventArgs
