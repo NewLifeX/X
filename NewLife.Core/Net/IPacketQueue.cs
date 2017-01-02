@@ -31,7 +31,7 @@ namespace NewLife.Net
     {
         private LinkedList<Item> Items = new LinkedList<Item>();
         private TimerX _Timer;
-        private static TimerScheduler _sch = TimerScheduler.Create("Packet");
+        //private static TimerScheduler _sch = TimerScheduler.Create("Packet");
 
         /// <summary>加入请求队列</summary>
         /// <param name="owner">拥有者</param>
@@ -60,7 +60,7 @@ namespace NewLife.Net
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = new TimerX(Check, null, 1000, 1000, _sch);
+                    if (_Timer == null) _Timer = new TimerX(Check, null, 1000, 1000, "Packet");
                 }
             }
 
@@ -115,7 +115,12 @@ namespace NewLife.Net
         void Check(Object state)
         {
             var qs = Items;
-            if (qs.Count == 0) return;
+            if (qs.Count == 0)
+            {
+                _Timer.TryDispose();
+                _Timer = null;
+                return;
+            }
 
             if (Interlocked.CompareExchange(ref _Checking, 1, 0) != 0) return;
 

@@ -70,9 +70,12 @@ namespace Test
 
         static void Test1()
         {
+            TimerScheduler.Debug = true;
             //ApiTest.Main();
-            //NewLife.MessageQueue.MQTest.TestBase();
-            NewLife.MessageQueue.MQTest.Main();
+            NewLife.MessageQueue.MQTest.TestBase();
+            Thread.Sleep(5000);
+            var timer = new TimerX(s => { }, null, 3000, -1, "Packet");
+            //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
             //PacketProvider.Test();
             //var svr = new DNSServer();

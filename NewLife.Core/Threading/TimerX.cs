@@ -33,7 +33,7 @@ namespace NewLife.Threading
         /// <summary>获取/设置 调用次数</summary>
         public Int32 Timers { get; internal set; }
 
-        /// <summary>获取/设置 间隔周期。毫秒，设为0则只调用一次</summary>
+        /// <summary>获取/设置 间隔周期。毫秒，设为0或-1则只调用一次</summary>
         public Int32 Period { get; set; }
 
         /// <summary>获取/设置 异步执行任务。默认false</summary>
@@ -60,11 +60,11 @@ namespace NewLife.Threading
         /// <param name="dueTime">多久之后开始。毫秒</param>
         /// <param name="period">间隔周期。毫秒</param>
         /// <param name="scheduler">调度器</param>
-        public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period, TimerScheduler scheduler = null)
+        public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period, String scheduler = null)
         {
             if (callback == null) throw new ArgumentNullException("callback");
             if (dueTime < 0) throw new ArgumentOutOfRangeException("dueTime");
-            if (period < 0) throw new ArgumentOutOfRangeException("period");
+            //if (period < 0) throw new ArgumentOutOfRangeException("period");
 
             Callback = callback;
             State = state;
@@ -72,7 +72,7 @@ namespace NewLife.Threading
 
             NextTime = DateTime.Now.AddMilliseconds(dueTime);
 
-            Scheduler = scheduler ?? TimerScheduler.Default;
+            Scheduler = scheduler.IsNullOrEmpty() ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
             Scheduler.Add(this);
         }
 
@@ -117,15 +117,5 @@ namespace NewLife.Threading
             return sb.ToString();
         }
         #endregion
-
-        //#region 设置
-        ///// <summary>是否开启调试，输出更多信息</summary>
-        //public static Boolean Debug { get; set; }
-
-        //static void WriteLog(String format, params Object[] args)
-        //{
-        //    if (Debug) XTrace.WriteLine(format, args);
-        //}
-        //#endregion
     }
 }

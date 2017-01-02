@@ -59,7 +59,7 @@ namespace NewLife.Threading
         /// <param name="timer"></param>
         public void Add(TimerX timer)
         {
-            WriteLog("Timer{2}.Add {0}ms {1}", timer.Period, timer, Name);
+            WriteLog("{2} Timer.Add {0}ms {1}", timer.Period, timer, Name);
 
             lock (timers)
             {
@@ -90,7 +90,7 @@ namespace NewLife.Threading
         {
             if (timer == null) return;
 
-            WriteLog("Timer{1}.Remove {0}", timer, Name);
+            WriteLog("{1} Timer.Remove {0}", timer, Name);
 
             lock (timers)
             {
@@ -112,10 +112,25 @@ namespace NewLife.Threading
             Current = this;
             while (true)
             {
+                // 准备好定时器列表
+                TimerX[] arr = null;
+                lock (timers)
+                {
+                    // 如果没有任务，则销毁线程
+                    if (timers.Count == 0 && period == 60000)
+                    {
+                        WriteLog("{0} 没有可用任务，销毁线程", Name);
+                        var th = thread;
+                        thread = null;
+                        th.Abort();
+                        break;
+                    }
+
+                    arr = timers.ToArray();
+                }
+
                 try
                 {
-                    var arr = GetTimers();
-
                     var now = DateTime.Now;
 
                     // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
@@ -137,26 +152,6 @@ namespace NewLife.Threading
 
                 if (waitForTimer == null) waitForTimer = new AutoResetEvent(false);
                 waitForTimer.WaitOne(period, false);
-            }
-        }
-
-        /// <summary>准备好定时器列表</summary>
-        /// <returns></returns>
-        private TimerX[] GetTimers()
-        {
-            if (timers == null || timers.Count < 1)
-            {
-                // 使用事件量来控制线程
-                if (waitForTimer != null) waitForTimer.Close();
-
-                // 没有任务，无线等待
-                waitForTimer = new AutoResetEvent(false);
-                waitForTimer.WaitOne(Timeout.Infinite, false);
-            }
-
-            lock (timers)
-            {
-                return timers.ToArray();
             }
         }
 
