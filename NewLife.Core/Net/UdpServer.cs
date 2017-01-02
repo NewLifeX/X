@@ -188,7 +188,7 @@ namespace NewLife.Net
             var task = !wait ? null : Packet.Add(pk, remote, Timeout);
 
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
-            if (pk.Count > 0 && !SendByQueue(pk, remote)) return null;
+            if (!SendByQueue(pk, remote)) return null;
 
             if (!wait) return null;
 

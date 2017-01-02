@@ -12,7 +12,7 @@ using NewLife.Net;
 namespace NewLife.Web
 {
     /// <summary>扩展的Web客户端</summary>
-    public class WebClientX //: WebClient
+    public class WebClientX : DisposeBase
     {
         #region 属性
         /// <summary>Cookie容器</summary>
@@ -74,6 +74,15 @@ namespace NewLife.Web
                 UserAgent = "Mozilla/5.0 (compatible; MSIE 11.0; Windows NT 6.1; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET4.0C; .NET4.0E; {0})".F(name);
             }
             if (iscompress) AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+        }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
+
+            _client.TryDispose();
         }
         #endregion
 
@@ -199,14 +208,17 @@ namespace NewLife.Web
                 var http = Check(address);
                 http.Method = "GET";
 
+                Log.Info("WebClientX.Get {0}", address);
+
                 // 发送请求
-                http.Send(data);
+                //http.Send(data);
+                var buf = http.SendAsync(data).Result?.ToArray();
 
                 // 修改引用地址
                 Referer = address;
 
                 // 接收数据
-                var buf = http.Receive()?.ToArray();
+                //var buf = http.Receive()?.ToArray();
 
                 // 如果是重定向
                 switch (http.StatusCode)
@@ -256,6 +268,7 @@ namespace NewLife.Web
             var http = Check(address);
             http.Method = "POST";
 
+            Log.Info("WebClientX.PostAsync [{0}] {1}", data?.Length, address);
             //http.Received += Http_OnDisposed;
 
             // 发送请求

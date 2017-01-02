@@ -63,6 +63,7 @@ namespace Test
                 Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
                 //Thread.Sleep(5000);
                 GC.Collect();
+                GC.WaitForPendingFinalizers();
                 ConsoleKeyInfo key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
             }
@@ -70,11 +71,8 @@ namespace Test
 
         static void Test1()
         {
-            TimerScheduler.Debug = true;
             //ApiTest.Main();
-            NewLife.MessageQueue.MQTest.TestBase();
-            Thread.Sleep(5000);
-            var timer = new TimerX(s => { }, null, 3000, -1, "Packet");
+            //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
             //PacketProvider.Test();
@@ -87,14 +85,15 @@ namespace Test
             //var html = http.ReceiveString();
             //Console.WriteLine(html.Length);
 
-            //var client = new WebClientX(true, true);
-            //var html = client.DownloadString("http://yun.wslink.cn/Home/About");
-            //Console.WriteLine(html.Length);
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    html = client.DownloadString("http://yun.wslink.cn/Home/About");
-            //    XTrace.WriteLine("" + html?.Length);
-            //}
+            var client = new WebClientX(true, true);
+            client.Log = XTrace.Log;
+            var html = client.DownloadString("http://yun.wslink.cn/Home/About");
+            Console.WriteLine(html.Length);
+            for (int i = 0; i < 10; i++)
+            {
+                html = client.DownloadString("http://yun.wslink.cn/Home/About");
+                XTrace.WriteLine("" + html?.Length);
+            }
 
             //uri = new Uri("ws://yun.wslink.cn");
             //http = uri.CreateRemote();

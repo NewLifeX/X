@@ -487,7 +487,7 @@ namespace NewLife.Net
 
             var task = Packet.Add(pk, Remote.EndPoint, Timeout);
 
-            if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
+            if (pk != null && !SendByQueue(pk, Remote.EndPoint)) return null;
 
             return await task;
         }
@@ -504,7 +504,7 @@ namespace NewLife.Net
 
             var task = msg.Reply ? null : Packet.Add(pk, Remote.EndPoint, Timeout);
 
-            if (pk.Count > 0 && !SendByQueue(pk, Remote.EndPoint)) return null;
+            if (!SendByQueue(pk, Remote.EndPoint)) return null;
 
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
