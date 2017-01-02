@@ -59,7 +59,7 @@ namespace NewLife.Threading
         /// <param name="timer"></param>
         public void Add(TimerX timer)
         {
-            WriteLog("{2} Timer.Add {0}ms {1}", timer.Period, timer, Name);
+            WriteLog("Timer.Add {0}ms {1}", timer.Period, timer);
 
             lock (timers)
             {
@@ -90,7 +90,7 @@ namespace NewLife.Threading
         {
             if (timer == null) return;
 
-            WriteLog("{1} Timer.Remove {0}", timer, Name);
+            WriteLog("Timer.Remove {0}", timer);
 
             lock (timers)
             {
@@ -119,7 +119,7 @@ namespace NewLife.Threading
                     // 如果没有任务，则销毁线程
                     if (timers.Count == 0 && period == 60000)
                     {
-                        WriteLog("{0} 没有可用任务，销毁线程", Name);
+                        WriteLog("没有可用任务，销毁线程");
                         var th = thread;
                         thread = null;
                         th.Abort();

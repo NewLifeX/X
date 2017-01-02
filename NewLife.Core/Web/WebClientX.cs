@@ -212,7 +212,8 @@ namespace NewLife.Web
 
                 // 发送请求
                 //http.Send(data);
-                var buf = http.SendAsync(data).Result?.ToArray();
+                var task = http.SendAsync(data);
+                var buf = task.Result?.ToArray();
 
                 // 修改引用地址
                 Referer = address;

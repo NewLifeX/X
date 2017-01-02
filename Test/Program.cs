@@ -85,15 +85,17 @@ namespace Test
             //var html = http.ReceiveString();
             //Console.WriteLine(html.Length);
 
-            var client = new WebClientX(true, true);
-            client.Log = XTrace.Log;
-            var html = client.DownloadString("http://yun.wslink.cn/Home/About");
-            Console.WriteLine(html.Length);
-            for (int i = 0; i < 10; i++)
-            {
-                html = client.DownloadString("http://yun.wslink.cn/Home/About");
-                XTrace.WriteLine("" + html?.Length);
-            }
+            //var client = new WebClientX(true, true);
+            //client.Log = XTrace.Log;
+            //var html = client.DownloadString("http://yun.wslink.cn/Home/About");
+            //Console.WriteLine(html.Length);
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    html = client.DownloadString("http://yun.wslink.cn/Home/About");
+            //    XTrace.WriteLine("" + html?.Length);
+            //}
+
+            PluginHelper.LoadPlugin("System.Data.SQLite.SQLiteFactory", null, "System.Data.SQLite.dll", "System.Data.SQLite64Fx40", "http://x.newlifex.com");
 
             //uri = new Uri("ws://yun.wslink.cn");
             //http = uri.CreateRemote();

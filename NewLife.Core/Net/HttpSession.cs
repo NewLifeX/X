@@ -50,6 +50,7 @@ namespace NewLife.Net
             Remote.Port = 80;
 
             //DisconnectWhenEmptyData = false;
+            ProcessAsync = false;
         }
 
         internal HttpSession(ISocketServer server, Socket client)
@@ -137,7 +138,11 @@ namespace NewLife.Net
 
             // 如果长度不足
             var len = ResponseHeaders[HttpResponseHeader.ContentLength].ToInt();
-            if (len > 0 && _cache.Length < len) return true;
+            if (len > 0 && _cache.Length < len)
+            {
+                //WriteLog("{0:n0}/{1:n0} = {2:p}", _cache.Length, len, len == 0 ? 0 : (Double)_cache.Length / len);
+                return true;
+            }
 
             _cache.Position = 0;
             pk = new Packet(_cache.ReadBytes());
