@@ -64,6 +64,15 @@
     <Compile Include="..\newlife.core\configuration\Config.cs">
       <Link>Configuration\Config.cs</Link>
     </Compile>
+    <Compile Include="..\newlife.core\data\IFilter.cs">
+      <Link>Data\IFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\newlife.core\data\Packet.cs">
+      <Link>Data\Packet.cs</Link>
+    </Compile>
+    <Compile Include="..\newlife.core\data\PageParameter.cs">
+      <Link>Data\PageParameter.cs</Link>
+    </Compile>
     <Compile Include="..\newlife.core\event\EventArgs.cs">
       <Link>Event\EventArgs.cs</Link>
     </Compile>
@@ -130,6 +139,15 @@
     <Compile Include="..\newlife.core\log\XTrace.cs">
       <Link>Log\XTrace.cs</Link>
     </Compile>
+    <Compile Include="..\newlife.core\messaging\DefaultMessage.cs">
+      <Link>Messaging\DefaultMessage.cs</Link>
+    </Compile>
+    <Compile Include="..\newlife.core\messaging\IMessage.cs">
+      <Link>Messaging\IMessage.cs</Link>
+    </Compile>
+    <Compile Include="..\newlife.core\messaging\MessageEventArgs.cs">
+      <Link>Messaging\MessageEventArgs.cs</Link>
+    </Compile>
     <Compile Include="..\newlife.core\model\IObjectContainer.cs">
       <Link>Model\IObjectContainer.cs</Link>
     </Compile>
@@ -145,11 +163,20 @@
     <Compile Include="..\newlife.core\model\ObjectContainerHelper.cs">
       <Link>Model\ObjectContainerHelper.cs</Link>
     </Compile>
+    <Compile Include="..\newlife.core\net\DefaultPacket.cs">
+      <Link>Net\DefaultPacket.cs</Link>
+    </Compile>
+    <Compile Include="..\newlife.core\net\HttpSession.cs">
+      <Link>Net\HttpSession.cs</Link>
+    </Compile>
     <Compile Include="..\newlife.core\net\INetSession.cs">
       <Link>Net\INetSession.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Net\IPacket.cs">
       <Link>Net\IPacket.cs</Link>
+    </Compile>
+    <Compile Include="..\newlife.core\net\IPacketQueue.cs">
+      <Link>Net\IPacketQueue.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\net\ISocket.cs">
       <Link>Net\ISocket.cs</Link>
@@ -189,6 +216,9 @@
     </Compile>
     <Compile Include="..\newlife.core\net\ReceivedEventArgs.cs">
       <Link>Net\ReceivedEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\newlife.core\net\SendQueue.cs">
+      <Link>Net\SendQueue.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\net\SessionBase.cs">
       <Link>Net\SessionBase.cs</Link>
@@ -304,17 +334,11 @@
     <Compile Include="..\newlife.core\Setting.cs">
       <Link>Setting.cs</Link>
     </Compile>
-    <Compile Include="..\newlife.core\threading\TaskEx.cs">
-      <Link>Threading\TaskEx.cs</Link>
-    </Compile>
     <Compile Include="..\newlife.core\threading\TaskHelper.cs">
       <Link>Threading\TaskHelper.cs</Link>
     </Compile>
-    <Compile Include="..\newlife.core\threading\ThreadPoolX.cs">
-      <Link>Threading\ThreadPoolX.cs</Link>
-    </Compile>
-    <Compile Include="..\newlife.core\threading\TimerManager.cs">
-      <Link>Threading\TimerManager.cs</Link>
+    <Compile Include="..\newlife.core\threading\TimerScheduler.cs">
+      <Link>Threading\TimerScheduler.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\threading\TimerX.cs">
       <Link>Threading\TimerX.cs</Link>
