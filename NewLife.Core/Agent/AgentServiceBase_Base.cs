@@ -67,6 +67,21 @@ namespace NewLife.Agent
         }
         #endregion
 
+        private static Int32[] _Intervals;
+        /// <summary>间隔数组。默认60秒</summary>
+        public static Int32[] Intervals
+        {
+            get
+            {
+                if (_Intervals != null) return _Intervals;
+
+                //_Intervals = Config.GetConfigSplit<Int32>("XAgent.Interval", null, Config.GetConfigSplit<Int32>("Interval", null, new Int32[] { 60 }));
+                _Intervals = Setting.Current.Intervals.SplitAsInt();
+                return _Intervals;
+            }
+            set { _Intervals = value; }
+        }
+
         #region 日志
         /// <summary>写日志</summary>
         /// <param name="format"></param>

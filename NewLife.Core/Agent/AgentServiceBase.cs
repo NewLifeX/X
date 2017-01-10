@@ -19,14 +19,14 @@ namespace NewLife.Agent
     public abstract class AgentServiceBase<TService> : AgentServiceBase, IAgentService
          where TService : AgentServiceBase<TService>, new()
     {
-        #region 构造
+#region 构造
         static AgentServiceBase()
         {
             if (_Instance == null) _Instance = new TService();
         }
-        #endregion
+#endregion
 
-        #region 静态辅助函数
+#region 静态辅助函数
         /// <summary>服务主函数</summary>
         public static void ServiceMain()
         {
@@ -43,7 +43,7 @@ namespace NewLife.Agent
 
             if (Args.Length > 1)
             {
-                #region 命令
+#region 命令
                 String cmd = Args[1].ToLower();
                 if (cmd == "-s")  //启动服务
                 {
@@ -95,13 +95,13 @@ namespace NewLife.Agent
                     }
                     return;
                 }
-                #endregion
+#endregion
             }
             else
             {
                 Console.Title = service.DisplayName;
 
-                #region 命令行
+#region 命令行
                 XTrace.UseConsole();
 
                 //输出状态
@@ -139,7 +139,7 @@ namespace NewLife.Agent
                                 service.ControlService(true);
                             break;
                         case 4:
-                            #region 单步调试
+#region 单步调试
                             try
                             {
                                 var count = Instance.ThreadCount;
@@ -170,10 +170,10 @@ namespace NewLife.Agent
                             {
                                 Console.WriteLine(ex.ToString());
                             }
-                            #endregion
+#endregion
                             break;
                         case 5:
-                            #region 循环调试
+#region 循环调试
                             try
                             {
                                 Console.WriteLine("正在循环调试……");
@@ -188,18 +188,18 @@ namespace NewLife.Agent
                             {
                                 Console.WriteLine(ex.ToString());
                             }
-                            #endregion
+#endregion
                             break;
                         case 6:
-                            #region 附加服务
+#region 附加服务
                             Console.WriteLine("正在附加服务调试……");
                             service.StartAttachServers();
 
                             Console.WriteLine("任意键结束附加服务调试！");
                             Console.ReadKey(true);
 
-                            service.StopAttachServers("按键");
-                            #endregion
+                            service.StopAttachServers();
+#endregion
                             break;
                         case 7:
                             if (WatchDogs.Length > 0) CheckWatchDog();
@@ -211,7 +211,7 @@ namespace NewLife.Agent
                             break;
                     }
                 }
-                #endregion
+#endregion
             }
         }
 
@@ -325,9 +325,9 @@ namespace NewLife.Agent
 
             Console.ForegroundColor = color;
         }
-        #endregion
+#endregion
 
-        #region 服务控制
+#region 服务控制
         private Thread[] _Threads;
         /// <summary>线程组</summary>
         private Thread[] Threads { get { return _Threads ?? (_Threads = new Thread[ThreadCount]); } set { _Threads = value; } }
@@ -360,7 +360,7 @@ namespace NewLife.Agent
 
             try
             {
-                StopAttachServers("服务停止");
+                StopAttachServers();
             }
             catch (Exception ex)
             {
@@ -423,13 +423,13 @@ namespace NewLife.Agent
             }
         }
 
-        private void StopAttachServers(String reason)
+        private void StopAttachServers()
         {
             if (AttachServers != null)
             {
                 foreach (var item in AttachServers.Values)
                 {
-                    if (item != null) item.Stop(reason);
+                    if (item != null) item.Stop();
                 }
             }
         }
@@ -484,10 +484,10 @@ namespace NewLife.Agent
             if (index < 0 || index >= ThreadCount) throw new ArgumentOutOfRangeException("index");
 
             // 可以通过设置任务的时间间隔小于0来关闭指定任务
-            var ts = Setting.Current.Intervals.SplitAsInt();
-            Int32 time = ts[0];
+            //var ts = Setting.Current.Intervals.SplitAsInt();
+            Int32 time = Intervals[0];//ts[0];
             // 使用专用的时间间隔
-            if (index < ts.Length) time = ts[index];
+            if (index < Intervals.Length) time = Intervals[index];
             if (time < 0) return;
 
             Threads[index] = new Thread(workWaper);
@@ -495,7 +495,7 @@ namespace NewLife.Agent
             String name = "A" + index;
             if (ThreadNames != null && ThreadNames.Length > index && !String.IsNullOrEmpty(ThreadNames[index]))
                 name = ThreadNames[index];
-            Threads[index].Name = name;
+            Threads[index].Name = name; 
             Threads[index].IsBackground = true;
             Threads[index].Priority = ThreadPriority.AboveNormal;
             Threads[index].Start(index);
@@ -550,10 +550,10 @@ namespace NewLife.Agent
                     break;
                 }
 
-                var ts = Setting.Current.Intervals.SplitAsInt();
-                Int32 time = ts[0];
+                //var ts = Setting.Current.Intervals.SplitAsInt();
+                Int32 time = Intervals[0]; //ts[0];
                 //使用专用的时间间隔
-                if (index < ts.Length) time = ts[index];
+                if (index < Intervals.Length) time = Intervals[index];
 
                 //如果有数据库连接错误，则将等待间隔放大十倍
                 //if (hasdberr) time *= 10;
@@ -615,9 +615,9 @@ namespace NewLife.Agent
                 WriteLine(ex.ToString());
             }
         }
-        #endregion
+#endregion
 
-        #region 服务维护线程
+#region 服务维护线程
         /// <summary>服务管理线程</summary>
         private Thread ManagerThread;
 
@@ -848,9 +848,9 @@ namespace NewLife.Agent
 
             //if (File.Exists(filename)) File.Delete(filename);
         }
-        #endregion
+#endregion
 
-        #region 看门狗
+#region 看门狗
         private static String[] _WatchDogs;
         /// <summary>看门狗要保护的服务</summary>
         public static String[] WatchDogs
@@ -888,7 +888,7 @@ namespace NewLife.Agent
                 }
             }
         }
-        #endregion
+#endregion
     }
 }
 #endif
