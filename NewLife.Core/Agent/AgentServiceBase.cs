@@ -198,7 +198,7 @@ namespace NewLife.Agent
                             Console.WriteLine("任意键结束附加服务调试！");
                             Console.ReadKey(true);
 
-                            service.StopAttachServers();
+                            service.StopAttachServers("按键");
 #endregion
                             break;
                         case 7:
@@ -360,7 +360,7 @@ namespace NewLife.Agent
 
             try
             {
-                StopAttachServers();
+                StopAttachServers("服务停止");
             }
             catch (Exception ex)
             {
@@ -423,13 +423,13 @@ namespace NewLife.Agent
             }
         }
 
-        private void StopAttachServers()
+        private void StopAttachServers(String reason)
         {
             if (AttachServers != null)
             {
                 foreach (var item in AttachServers.Values)
                 {
-                    if (item != null) item.Stop();
+                    if (item != null) item.Stop(reason);
                 }
             }
         }
