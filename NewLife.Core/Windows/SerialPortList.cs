@@ -495,9 +495,11 @@ namespace NewLife.Windows
                     _reader.CurrentEncoding != cfg.Encoding)
                     _reader = new StreamReader(_stream, cfg.Encoding);
                 line = _reader.ReadToEnd();
+                // 替换掉无效数据
+                line = line.Replace("\0", null);
             }
 
-            if (ReceivedString != null) ReceivedString(this, new StringEventArgs { Value = line });
+            ReceivedString?.Invoke(this, new StringEventArgs { Value = line });
         }
         #endregion
 
