@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Reflection;
 
@@ -33,6 +36,9 @@ namespace NewLife.Remoting
 
         /// <summary>处理器</summary>
         public IApiHandler Handler { get; set; }
+
+        /// <summary>过滤器</summary>
+        public IList<IFilter> Filters { get; } = new List<IFilter>();
         #endregion
 
         #region 构造
@@ -137,6 +143,27 @@ namespace NewLife.Remoting
             if (ss == null) return default(TResult);
 
             return await ss.InvokeAsync<TResult>(action, args);
+        }
+        #endregion
+
+        #region 过滤器
+        /// <summary>执行过滤器</summary>
+        /// <param name="msg"></param>
+        /// <param name="issend"></param>
+        void IApiHost.ExecuteFilter(IMessage msg, Boolean issend)
+        {
+            var fs = Filters;
+            if (fs.Count == 0) return;
+
+            // 接收时需要倒序
+            if (!issend) fs = fs.Reverse().ToList();
+
+            var ctx = new ApiFilterContext { Packet = msg.Payload, Message = msg, IsSend = issend };
+            foreach (var item in fs)
+            {
+                item.Execute(ctx);
+                //Log.Debug("{0}:{1}", item.GetType().Name, ctx.Packet.ToHex());
+            }
         }
         #endregion
 

@@ -174,6 +174,7 @@
     <Compile Include="Remoting\ApiAttribute.cs" />
     <Compile Include="Remoting\ApiException.cs" />
     <Compile Include="Remoting\Filters\ActionFilterAttribute.cs" />
+    <Compile Include="Remoting\Filters\ApiFilterContext.cs" />
     <Compile Include="Remoting\Filters\ControllerContext.cs" />
     <Compile Include="Remoting\Filters\ExceptionContext.cs" />
     <Compile Include="Remoting\Filters\FilterAttribute.cs" />
@@ -183,6 +184,7 @@
     <Compile Include="Remoting\Filters\ActionExecutingContext.cs" />
     <Compile Include="Remoting\Filters\IActionFilter.cs" />
     <Compile Include="Remoting\Filters\IExceptionFilter.cs" />
+    <Compile Include="Remoting\Filters\DeflateFilter.cs" />
     <Compile Include="Remoting\IApi.cs" />
     <Compile Include="Remoting\IApiClient.cs" />
     <Compile Include="Remoting\IApiHandler.cs" />
@@ -199,6 +201,7 @@
     <Compile Include="Remoting\ApiTest.cs" />
     <Compile Include="Remoting\IEncoder.cs" />
     <Compile Include="Remoting\JsonEncoder.cs" />
+    <Compile Include="Remoting\Filters\RC4Filter.cs" />
     <Compile Include="Security\Certificate.cs" />
     <Compile Include="Security\Crc16.cs" />
     <Compile Include="Security\DSAHelper.cs" />

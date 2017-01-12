@@ -86,7 +86,12 @@ namespace NewLife.Remoting
 
             // Api解码消息得到Action和参数
             var msg = e.Message;
-            var dic = enc.Decode(msg?.Payload);
+
+            // 过滤器
+            var host = this.GetService<IApiHost>();
+            host.ExecuteFilter(msg, false);
+
+            var dic = enc.Decode(msg.Payload);
 
             var act = "";
             Object args = null;
@@ -118,10 +123,17 @@ namespace NewLife.Remoting
                 result = ex;
             }
 
+            // 响应结果编码到消息
+            var pk = enc.Encode(code, result);
+
             // 构造响应消息
             var rs = msg.CreateReply();
             // 响应结果编码到消息
-            rs.Payload = enc.Encode(code, result);
+            rs.Payload = pk;
+
+            // 过滤器
+            var host = this.GetService<IApiHost>();
+            host.ExecuteFilter(rs, true);
 
             // 发送响应
             await Session.SendAsync(rs);
@@ -138,9 +150,18 @@ namespace NewLife.Remoting
             var data = enc.Encode(action, args);
 
             var msg = Session.Packet.CreateMessage(new Packet(data));
-            var rs = await Session.SendAsync(msg);
 
-            var dic = enc.Decode(rs?.Payload);
+            var host = this.GetService<IApiHost>();
+            // 过滤器
+            host.ExecuteFilter(msg, true);
+
+            var rs = await Session.SendAsync(msg);
+            if (rs == null) return default(TResult);
+
+            // 过滤器
+            host.ExecuteFilter(rs, false);
+
+            var dic = enc.Decode(rs.Payload);
 
             return enc.Decode<TResult>(dic);
         }

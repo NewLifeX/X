@@ -96,15 +96,22 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(string action, object args = null)
         {
-            var ac = Provider.GetService<ApiClient>();
-            var enc = ac.Encoder;
+            var host = Provider.GetService<IApiHost>();
+            var enc = host.Encoder;
             var data = enc.Encode(action, args);
 
             var msg = Client.Packet.CreateMessage(data);
 
-            var rs = await Client.SendAsync(msg);
+            // 过滤器
+            host.ExecuteFilter(msg, true);
 
-            var dic = enc.Decode(rs?.Payload);
+            var rs = await Client.SendAsync(msg);
+            if (rs == null) return default(TResult);
+
+            // 过滤器
+            host.ExecuteFilter(rs, false);
+
+            var dic = enc.Decode(rs.Payload);
 
             return enc.Decode<TResult>(dic);
         }
@@ -116,8 +123,11 @@ namespace NewLife.Remoting
             var msg = e.Message;
             if (msg.Reply) return;
 
-            var ac = this.GetService<ApiClient>();
-            var enc = ac.Encoder;
+            var host = this.GetService<IApiHost>();
+            var enc = host.Encoder;
+
+            // 过滤器
+            host.ExecuteFilter(msg, false);
 
             // 这里会导致二次解码，因为解码以后才知道是不是请求
             var dic = enc.Decode(msg.Payload);
@@ -136,12 +146,12 @@ namespace NewLife.Remoting
         /// <param name="args"></param>
         protected virtual async void OnInvoke(IMessage msg, string action, IDictionary<string, object> args)
         {
-            var ac = this.GetService<ApiClient>();
+            var host = this.GetService<IApiHost>();
             object result = null;
             var code = 0;
             try
             {
-                result = await ac.Handler.Execute(this, action, args);
+                result = await host.Handler.Execute(this, action, args);
             }
             catch (Exception ex)
             {
@@ -150,9 +160,24 @@ namespace NewLife.Remoting
                 result = ex;
             }
 
-            var enc = ac.Encoder;
+            // 编码响应数据包
+            var enc = host.Encoder;
+            var pk = enc.Encode(code, result);
+
+            // 封装响应消息
             var rs = msg.CreateReply();
-            rs.Payload = enc.Encode(code, result);
+            rs.Payload = pk;
+
+            // 过滤器
+            host.ExecuteFilter(rs, true);
+            //if (ac.Filters.Count > 0)
+            //{
+            //    var ctx = new ApiFilterContext { Packet = pk, IsSend = true };
+            //    foreach (var item in ac.Filters)
+            //    {
+            //        item.Execute(ctx);
+            //    }
+            //}
 
             await Client.SendAsync(rs);
         }

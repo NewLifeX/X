@@ -15,10 +15,11 @@ namespace NewLife.Remoting
         public static async void Main()
         {
             var svr = new ApiServer(3344);
-            svr.Add("http://*:888/");
+            //svr.Add("http://*:888/");
             svr.Log = XTrace.Log;
             svr.Encoder = new JsonEncoder();
-            //svr.Encoder = new ProtocolBuffer();
+            svr.Filters.Add(new DeflateFilter());
+            svr.Filters.Add(new RC4Filter { Key = "Pass$word".GetBytes() });
             //GlobalFilters.Add(new FFAttribute { Name = "全局" });
             //GlobalFilters.Add(new FEAttribute { Name = "全局" });
             svr.Register<HelloController>();
@@ -27,13 +28,12 @@ namespace NewLife.Remoting
 
             var client = new ApiClient("tcp://127.0.0.1:3344");
             //var client = new ApiClient("udp://127.0.0.1:3344");
-            //var client = new ApiClient(new Uri("http://127.0.0.1:888"));
+            //var client = new ApiClient("http://127.0.0.1:888");
             client.Log = XTrace.Log;
             client.Encoder = new JsonEncoder();
-            //client.Encoder = new ProtocolBuffer();
-            //client.Compress = new SevenZip();
+            client.Filters.Add(new DeflateFilter());
+            client.Filters.Add(new RC4Filter { Key = "Pass$word".GetBytes() });
             client.Open();
-            //client.Login("admin", "password");
 
             var msg = "NewLifeX";
             var rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
