@@ -10,7 +10,7 @@ namespace NewLife.Remoting
     class ApiNetClient : DisposeBase, IApiClient, IApiSession, IServiceProvider
     {
         #region 属性
-        public NetUri Remote { get; set; }
+        //public NetUri Remote { get; set; }
 
         public ISocketClient Client { get; set; }
 
@@ -18,7 +18,7 @@ namespace NewLife.Remoting
         public IServiceProvider Provider { get; set; }
 
         /// <summary>所有服务器所有会话，包含自己</summary>
-        public virtual IApiSession[] AllSessions { get { return new IApiSession[] { this }; } }
+        IApiSession[] IApiSession.AllSessions { get { return new IApiSession[] { this }; } }
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
@@ -47,7 +47,6 @@ namespace NewLife.Remoting
             if (uri == null) return false;
 
             Client = uri.CreateRemote();
-            //Remote = uri;
 
             // 新生命标准网络封包协议
             Client.Packet = new DefaultPacket();
@@ -138,9 +137,7 @@ namespace NewLife.Remoting
         protected virtual async void OnInvoke(IMessage msg, string action, IDictionary<string, object> args)
         {
             var ac = this.GetService<ApiClient>();
-            var enc = ac.Encoder;
             object result = null;
-            var rs = msg.CreateReply();
             var code = 0;
             try
             {
@@ -153,6 +150,8 @@ namespace NewLife.Remoting
                 result = ex;
             }
 
+            var enc = ac.Encoder;
+            var rs = msg.CreateReply();
             rs.Payload = enc.Encode(code, result);
 
             await Client.SendAsync(rs);

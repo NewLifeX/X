@@ -114,7 +114,7 @@ namespace NewLife.Remoting
             // 是否成功
             var code = dic["code"].ToInt();
             var result = dic["result"];
-            if (code != 0) throw new Exception(result + "");
+            if (code != 0) throw new ApiException(code, result + "");
 
             // 返回
             return Convert<T>(result);

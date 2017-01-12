@@ -7,10 +7,9 @@ namespace NewLife.Remoting
     /// <summary>Api会话</summary>
     public interface IApiSession : IServiceProvider
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        NetUri Remote { get; }
+        ///// <summary>远程地址</summary>
+        //NetUri Remote { get; }
+
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] AllSessions { get; }
 

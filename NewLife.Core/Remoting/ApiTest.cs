@@ -44,9 +44,9 @@ namespace NewLife.Remoting
                 msg = "报错";
                 rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
             }
-            catch (Exception ex)
+            catch (ApiException ex)
             {
-                XTrace.WriteLine(ex.Message);
+                XTrace.WriteLine("服务端发送 {0} 错误：{1}", ex.Code, ex.Message);
             }
 
             Console.WriteLine("完成");
