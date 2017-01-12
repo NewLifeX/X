@@ -19,8 +19,8 @@ namespace NewLife.Messaging
         /// <summary>标记位</summary>
         public Byte Flag { get; set; }
 
-        /// <summary>是否有错</summary>
-        public Boolean Error { get; set; }
+        ///// <summary>是否有错</summary>
+        //public Boolean Error { get; set; }
 
         /// <summary>序列号，匹配请求和响应</summary>
         public Byte Sequence { get; set; }
@@ -51,7 +51,7 @@ namespace NewLife.Messaging
 
             Flag = pk[0];
             if ((Flag & 0x80) == 0x80) Reply = true;
-            if ((Flag & 0x40) == 0x40) Error = true;
+            //if ((Flag & 0x40) == 0x40) Error = true;
 
             Sequence = pk[1];
 
@@ -70,7 +70,7 @@ namespace NewLife.Messaging
             // 标记位
             Byte b = Flag;
             if (Reply) b |= 0x80;
-            if (Error) b |= 0x40;
+            //if (Error) b |= 0x40;
             stream.WriteByte(b);
 
             // 序列号

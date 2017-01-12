@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using NewLife.Data;
 using NewLife.Reflection;
-using NewLife.Serialization;
 
 namespace NewLife.Messaging
 {

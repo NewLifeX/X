@@ -47,7 +47,7 @@ namespace NewLife.Remoting
             if (uri == null) return false;
 
             Client = uri.CreateRemote();
-            Remote = uri;
+            //Remote = uri;
 
             // 新生命标准网络封包协议
             Client.Packet = new DefaultPacket();
@@ -141,21 +141,19 @@ namespace NewLife.Remoting
             var enc = ac.Encoder;
             object result = null;
             var rs = msg.CreateReply();
-            var r = false;
+            var code = 0;
             try
             {
                 result = await ac.Handler.Execute(this, action, args);
-
-                r = true;
             }
             catch (Exception ex)
             {
-                var msg2 = rs as DefaultMessage;
-                if (msg2 != null) msg2.Error = true;
+                var aex = ex as ApiException;
+                code = aex != null ? aex.Code : 1;
                 result = ex;
             }
 
-            rs.Payload = enc.Encode(r, result);
+            rs.Payload = enc.Encode(code, result);
 
             await Client.SendAsync(rs);
         }

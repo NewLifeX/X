@@ -25,8 +25,11 @@ namespace NewLife.Remoting
             svr.Start();
 
 
-            var client = new ApiClient("tcp://127.0.0.1:3344") { Encoder = new JsonEncoder() };
+            var client = new ApiClient("tcp://127.0.0.1:3344");
+            //var client = new ApiClient("udp://127.0.0.1:3344");
+            //var client = new ApiClient(new Uri("http://127.0.0.1:888"));
             client.Log = XTrace.Log;
+            client.Encoder = new JsonEncoder();
             //client.Encoder = new ProtocolBuffer();
             //client.Compress = new SevenZip();
             client.Open();

@@ -11,15 +11,14 @@ namespace NewLife.Remoting
 
         public override bool Init(object config)
         {
-            var url = config as string;
-            if (url.IsNullOrEmpty()) return false;
-
             var uri = config as NetUri;
             if (uri != null)
                 Client = uri.CreateRemote();
             else if (config is Uri)
-                Client = ((Uri) config).CreateRemote();
-            Remote = url;
+                Client = ((Uri)config).CreateRemote();
+
+            // 新生命标准网络封包协议
+            Client.Packet = new DefaultPacket();
 
             return true;
         }

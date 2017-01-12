@@ -20,10 +20,10 @@ namespace NewLife.Remoting
         Byte[] Encode(String action, Object args);
 
         /// <summary>编码响应</summary>
-        /// <param name="success"></param>
+        /// <param name="code"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        Byte[] Encode(Boolean success, Object result);
+        Byte[] Encode(Int32 code, Object result);
 
         /// <summary>解码成为字典</summary>
         /// <param name="pk">数据包</param>
@@ -45,10 +45,10 @@ namespace NewLife.Remoting
 
         /// <summary>解码响应</summary>
         /// <param name="dic"></param>
-        /// <param name="success"></param>
+        /// <param name="code"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        Boolean TryGet(IDictionary<String, Object> dic, out Boolean success, out Object result);
+        Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result);
 
         /// <summary>转换为对象</summary>
         /// <typeparam name="T"></typeparam>
@@ -85,16 +85,16 @@ namespace NewLife.Remoting
         }
 
         /// <summary>编码响应</summary>
-        /// <param name="success"></param>
+        /// <param name="code"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public virtual Byte[] Encode(Boolean success, Object result)
+        public virtual Byte[] Encode(Int32 code, Object result)
         {
             // 不支持序列化异常
             var ex = result as Exception;
             if (ex != null) result = ex.GetTrue()?.Message;
 
-            var obj = new { success, result };
+            var obj = new { code, result };
             return Encode(obj);
         }
 
@@ -112,12 +112,11 @@ namespace NewLife.Remoting
             if (dic == null) return default(T);
 
             // 是否成功
-            var success = dic["success"].ToBoolean();
+            var code = dic["code"].ToInt();
             var result = dic["result"];
-            if (!success) throw new Exception(result + "");
+            if (code != 0) throw new Exception(result + "");
 
             // 返回
-
             return Convert<T>(result);
         }
 
@@ -144,22 +143,22 @@ namespace NewLife.Remoting
 
         /// <summary>解码响应</summary>
         /// <param name="dic"></param>
-        /// <param name="success"></param>
+        /// <param name="code"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public virtual Boolean TryGet(IDictionary<String, Object> dic, out Boolean success, out Object result)
+        public virtual Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result)
         {
-            success = false;
+            code = 0;
             result = null;
 
-            Object suc = null;
+            Object cod = null;
             Object obj = null;
-            if (!dic.TryGetValue("success", out suc)) return false;
+            if (!dic.TryGetValue("code", out cod)) return false;
 
             // 参数可能不存在
             dic.TryGetValue("result", out obj);
 
-            success = (Boolean)suc;
+            code = (Int32)cod;
             result = obj;
 
             return true;

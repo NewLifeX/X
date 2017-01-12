@@ -77,13 +77,11 @@ namespace NewLife.Remoting
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     {
-
         /// <summary>所有服务器所有会话，包含自己</summary>
         public virtual IApiSession[] AllSessions
         {
             get
             {
-                //return Host.Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
                 // 需要收集所有服务器的所有会话
                 var svr = this.GetService<ApiServer>();
                 return svr.Servers.SelectMany(e => e.AllSessions).ToArray();
@@ -94,6 +92,7 @@ namespace NewLife.Remoting
         {
             var enc = Host.Encoder;
 
+            // Api解码消息得到Action和参数
             var msg = e.Message;
             var dic = enc.Decode(msg?.Payload);
 
@@ -101,6 +100,7 @@ namespace NewLife.Remoting
             Object args = null;
             if (enc.TryGet(dic, out act, out args))
             {
+                // 处理Action
                 OnInvoke(msg, act, args as IDictionary<string, object>);
             }
         }
@@ -113,21 +113,23 @@ namespace NewLife.Remoting
         {
             var enc = Host.Encoder;
             object result = null;
-            var rs = msg.CreateReply();
-            var r = false;
+            var code = 0;
             try
             {
+                // 查找并执行Action业务逻辑
                 result = await Host.Handler.Execute(this, action, args);
-                r = true;
             }
             catch (Exception ex)
             {
-                var msg2 = rs as DefaultMessage;
-                if (msg2 != null) msg2.Error = true;
+                var aex = ex as ApiException;
+                code = aex != null ? aex.Code : 1;
                 result = ex;
             }
 
-            rs.Payload = enc.Encode(r, result);
+            // 构造响应消息
+            var rs = msg.CreateReply();
+            // 响应结果编码到消息
+            rs.Payload = enc.Encode(code, result);
 
             // 发送响应
             await Session.SendAsync(rs);

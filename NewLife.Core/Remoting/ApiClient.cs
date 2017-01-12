@@ -90,7 +90,10 @@ namespace NewLife.Remoting
 
             Client.Opened += Client_Opened;
 
-            //Client.Log = Log;
+#if DEBUG
+            Client.Log = Log;
+            Encoder.Log = Log;
+#endif
             Client.Open();
 
             var ms = Manager.Services;

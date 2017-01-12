@@ -71,7 +71,7 @@ namespace Test
 
         static void Test1()
         {
-            //ApiTest.Main();
+            ApiTest.Main();
             //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
@@ -95,7 +95,7 @@ namespace Test
             //    XTrace.WriteLine("" + html?.Length);
             //}
 
-            PluginHelper.LoadPlugin("System.Data.SQLite.SQLiteFactory", null, "System.Data.SQLite.dll", "System.Data.SQLite64Fx40", "http://x.newlifex.com");
+            //PluginHelper.LoadPlugin("System.Data.SQLite.SQLiteFactory", null, "System.Data.SQLite.dll", "System.Data.SQLite64Fx40", "http://x.newlifex.com");
 
             //uri = new Uri("ws://yun.wslink.cn");
             //http = uri.CreateRemote();

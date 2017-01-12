@@ -172,6 +172,7 @@
     <Compile Include="Reflection\ScriptEngine.cs" />
     <Compile Include="Remoting\ApiAction.cs" />
     <Compile Include="Remoting\ApiAttribute.cs" />
+    <Compile Include="Remoting\ApiException.cs" />
     <Compile Include="Remoting\Filters\ActionFilterAttribute.cs" />
     <Compile Include="Remoting\Filters\ControllerContext.cs" />
     <Compile Include="Remoting\Filters\ExceptionContext.cs" />
