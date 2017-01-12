@@ -43,12 +43,12 @@ namespace NewLife.Remoting
         /// <returns></returns>
         Boolean TryGet(IDictionary<String, Object> dic, out String action, out Object args);
 
-        /// <summary>解码响应</summary>
-        /// <param name="dic"></param>
-        /// <param name="code"></param>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result);
+        ///// <summary>解码响应</summary>
+        ///// <param name="dic"></param>
+        ///// <param name="code"></param>
+        ///// <param name="result"></param>
+        ///// <returns></returns>
+        //Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result);
 
         /// <summary>转换为对象</summary>
         /// <typeparam name="T"></typeparam>
@@ -141,28 +141,28 @@ namespace NewLife.Remoting
             return true;
         }
 
-        /// <summary>解码响应</summary>
-        /// <param name="dic"></param>
-        /// <param name="code"></param>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        public virtual Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result)
-        {
-            code = 0;
-            result = null;
+        ///// <summary>解码响应</summary>
+        ///// <param name="dic"></param>
+        ///// <param name="code"></param>
+        ///// <param name="result"></param>
+        ///// <returns></returns>
+        //public virtual Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result)
+        //{
+        //    code = 0;
+        //    result = null;
 
-            Object cod = null;
-            Object obj = null;
-            if (!dic.TryGetValue("code", out cod)) return false;
+        //    Object cod = null;
+        //    Object obj = null;
+        //    if (!dic.TryGetValue("code", out cod)) return false;
 
-            // 参数可能不存在
-            dic.TryGetValue("result", out obj);
+        //    // 参数可能不存在
+        //    dic.TryGetValue("result", out obj);
 
-            code = (Int32)cod;
-            result = obj;
+        //    code = (Int32)cod;
+        //    result = obj;
 
-            return true;
-        }
+        //    return true;
+        //}
 
         /// <summary>转换为对象</summary>
         /// <typeparam name="T"></typeparam>

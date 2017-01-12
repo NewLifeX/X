@@ -51,14 +51,6 @@ namespace NewLife.Remoting
             //if (Encoder == null) Encoder = new JsonEncoder();
             if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
 
-            //base.EnsureCreateServer();
-
-            //foreach (var item in Servers)
-            //{
-            //    // 新生命标准网络封包协议
-            //    item.SessionPacket = new DefaultPacketFactory();
-            //}
-
             base.OnStart();
         }
 

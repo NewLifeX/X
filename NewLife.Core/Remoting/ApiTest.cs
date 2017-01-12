@@ -46,7 +46,7 @@ namespace NewLife.Remoting
             }
             catch (ApiException ex)
             {
-                XTrace.WriteLine("服务端发送 {0} 错误：{1}", ex.Code, ex.Message);
+                XTrace.WriteLine("服务端发生 {0} 错误：{1}", ex.Code, ex.Message);
             }
 
             Console.WriteLine("完成");
