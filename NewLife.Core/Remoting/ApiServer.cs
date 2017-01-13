@@ -119,6 +119,9 @@ namespace NewLife.Remoting
         {
             if (Active) return;
 
+#if DEBUG
+            Encoder.Log = Log;
+#endif
             Log.Info("启动{0}，共有服务器{1}个", this.GetType().Name, Servers.Count);
             if (Handler == null) Handler = new ApiHandler { Host = this };
             foreach (var item in Servers)

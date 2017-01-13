@@ -186,12 +186,12 @@ namespace NewLife.Net
         /// <param name="times"></param>
         /// <param name="msInterval"></param>
         /// <returns></returns>
-        public static Boolean SendAsync(this ISocketRemote session, Byte[] buffer, Int32 times, Int32 msInterval)
+        public static Boolean SendMulti(this ISocketRemote session, Byte[] buffer, Int32 times, Int32 msInterval)
         {
             var pk = new Packet(buffer);
             if (times <= 1)
             {
-                session.SendAsync(pk);
+                session.Send(pk);
                 return true;
             }
 
@@ -199,14 +199,14 @@ namespace NewLife.Net
             {
                 for (int i = 0; i < times; i++)
                 {
-                    session.SendAsync(pk);
+                    session.Send(pk);
                 }
                 return true;
             }
 
             var timer = new TimerX(s =>
             {
-                session.SendAsync(pk);
+                session.Send(pk);
 
                 // 如果次数足够，则把定时器周期置空，内部会删除
                 var t = s as TimerX;

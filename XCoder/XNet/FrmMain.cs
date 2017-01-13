@@ -356,7 +356,7 @@ namespace XNet
             {
                 if (ths <= 1)
                 {
-                    _Client.SendAsync(buf, count, sleep);
+                    _Client.SendMulti(buf, count, sleep);
                 }
                 else
                 {
@@ -378,7 +378,7 @@ namespace XNet
                         client.StatSend = _Client.StatSend;
                         client.StatReceive = _Client.StatReceive;
                         //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
-                        client.SendAsync(buf, count, sleep);
+                        client.SendMulti(buf, count, sleep);
                     });
                 }
             }

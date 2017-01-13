@@ -340,7 +340,7 @@ namespace XMessage
             {
                 if (ths <= 1)
                 {
-                    _Client.SendAsync(buf, count, sleep);
+                    _Client.SendMulti(buf, count, sleep);
                 }
                 else
                 {
@@ -349,7 +349,7 @@ namespace XMessage
                         var client = _Client.Remote.CreateRemote();
                         client.StatSend = _Client.StatSend;
                         client.StatReceive = _Client.StatReceive;
-                        client.SendAsync(buf, count, sleep);
+                        client.SendMulti(buf, count, sleep);
                     });
                 }
             }
