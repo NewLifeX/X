@@ -35,7 +35,7 @@ namespace NewLife.Remoting
         /// <summary>远程调用</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        Task<IMessage> InvokeAsync(IMessage msg);
+        Task<IMessage> SendAsync(IMessage msg);
 
         /// <summary>日志</summary>
         ILog Log { get; set; }

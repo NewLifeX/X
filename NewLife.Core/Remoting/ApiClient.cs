@@ -142,80 +142,14 @@ namespace NewLife.Remoting
             if (ss == null) return default(TResult);
 
             return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args);
-            //var enc = Encoder;
-            //var data = enc.Encode(action, args);
-
-            //var msg = ss.CreateMessage(data);
-
-            //// 过滤器
-            //ExecuteFilter(msg, true);
-
-            //var rs = await ss.InvokeAsync(msg);
-            //if (rs == null) return default(TResult);
-
-            //// 过滤器
-            //ExecuteFilter(rs, false);
-
-            //// 特殊返回类型
-            //if (typeof(TResult) == typeof(Packet)) return (TResult)(Object)rs.Payload;
-
-            //var dic = enc.Decode(rs.Payload);
-            //if (typeof(TResult) == typeof(IDictionary<String, Object>)) return (TResult)(Object)dic;
-
-            //return enc.Decode<TResult>(dic);
         }
-
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.InvokeAsync(msg); }
 
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) { return Client?.CreateMessage(pk); }
+        IMessage IApiSession.CreateMessage(Packet pk) { return Client?.CreateMessage(pk); }
 
-        ///// <summary>处理消息</summary>
-        ///// <param name="msg"></param>
-        ///// <returns></returns>
-        //public IMessage Process(IMessage msg)
-        //{
-        //    if (msg.Reply) return null;
-
-        //    var enc = Encoder;
-
-        //    // 过滤器
-        //    ExecuteFilter(msg, false);
-
-        //    // 这里会导致二次解码，因为解码以后才知道是不是请求
-        //    var dic = enc.Decode(msg.Payload);
-
-        //    var action = "";
-        //    Object args = null;
-        //    if (!enc.TryGet(dic, out action, out args)) return null;
-
-        //    object result = null;
-        //    var code = 0;
-        //    try
-        //    {
-        //        result = Handler.Execute(this, action, args as IDictionary<String, Object>).Result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var aex = ex as ApiException;
-        //        code = aex != null ? aex.Code : 1;
-        //        result = ex;
-        //    }
-
-        //    // 编码响应数据包
-        //    var pk = enc.Encode(code, result);
-
-        //    // 封装响应消息
-        //    var rs = msg.CreateReply();
-        //    rs.Payload = pk;
-
-        //    // 过滤器
-        //    ExecuteFilter(rs, true);
-
-        //    return rs;
-        //}
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.SendAsync(msg); }
         #endregion
 
         #region 控制器管理

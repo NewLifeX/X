@@ -80,14 +80,23 @@ namespace NewLife.Remoting
             }
         }
 
+        private IApiHost _ApiHost;
+
+        /// <summary>开始会话处理</summary>
+        public override void Start()
+        {
+            base.Start();
+
+            _ApiHost = this.GetService<IApiHost>();
+        }
+
         protected override void OnReceive(MessageEventArgs e)
         {
             // Api解码消息得到Action和参数
             var msg = e.Message;
             if (msg.Reply) return;
 
-            var host = this.GetService<IApiHost>();
-            var rs = host.Process(this, msg);
+            var rs = _ApiHost.Process(this, msg);
             if (rs != null) Session.SendAsync(rs);
         }
 
@@ -103,26 +112,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(string action, object args = null)
         {
-            var host = this.GetService<IApiHost>();
-            return await ApiHostHelper.InvokeAsync<TResult>(host, this, action, args);
-            //var enc = Host.Encoder;
-            //var data = enc.Encode(action, args);
-
-            //var msg = Session.Packet.CreateMessage(new Packet(data));
-
-            //var host = this.GetService<IApiHost>();
-            //// 过滤器
-            //host.ExecuteFilter(msg, true);
-
-            //var rs = await Session.SendAsync(msg);
-            //if (rs == null) return default(TResult);
-
-            //// 过滤器
-            //host.ExecuteFilter(rs, false);
-
-            //var dic = enc.Decode(rs.Payload);
-
-            //return enc.Decode<TResult>(dic);
+            return await ApiHostHelper.InvokeAsync<TResult>(_ApiHost, this, action, args);
         }
 
         async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Session.SendAsync(msg); }

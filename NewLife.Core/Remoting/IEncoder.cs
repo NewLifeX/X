@@ -30,12 +30,6 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IDictionary<String, Object> Decode(Packet pk);
 
-        /// <summary>解码响应</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dic"></param>
-        /// <returns></returns>
-        T Decode<T>(IDictionary<String, Object> dic);
-
         /// <summary>解码请求</summary>
         /// <param name="dic"></param>
         /// <param name="action"></param>
@@ -43,12 +37,12 @@ namespace NewLife.Remoting
         /// <returns></returns>
         Boolean TryGet(IDictionary<String, Object> dic, out String action, out Object args);
 
-        ///// <summary>解码响应</summary>
-        ///// <param name="dic"></param>
-        ///// <param name="code"></param>
-        ///// <param name="result"></param>
-        ///// <returns></returns>
-        //Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result);
+        /// <summary>解码响应</summary>
+        /// <param name="dic"></param>
+        /// <param name="code"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result);
 
         /// <summary>转换为对象</summary>
         /// <typeparam name="T"></typeparam>
@@ -103,23 +97,6 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public abstract IDictionary<String, Object> Decode(Packet pk);
 
-        /// <summary>解码响应</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dic"></param>
-        /// <returns></returns>
-        public virtual T Decode<T>(IDictionary<String, Object> dic)
-        {
-            if (dic == null) return default(T);
-
-            // 是否成功
-            var code = dic["code"].ToInt();
-            var result = dic["result"];
-            if (code != 0) throw new ApiException(code, result + "");
-
-            // 返回
-            return Convert<T>(result);
-        }
-
         /// <summary>解码请求</summary>
         /// <param name="dic"></param>
         /// <param name="action"></param>
@@ -141,28 +118,26 @@ namespace NewLife.Remoting
             return true;
         }
 
-        ///// <summary>解码响应</summary>
-        ///// <param name="dic"></param>
-        ///// <param name="code"></param>
-        ///// <param name="result"></param>
-        ///// <returns></returns>
-        //public virtual Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result)
-        //{
-        //    code = 0;
-        //    result = null;
+        /// <summary>解码响应</summary>
+        /// <param name="dic"></param>
+        /// <param name="code"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public virtual Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result)
+        {
+            code = 0;
+            result = null;
 
-        //    Object cod = null;
-        //    Object obj = null;
-        //    if (!dic.TryGetValue("code", out cod)) return false;
+            Object cod = null;
+            if (!dic.TryGetValue("code", out cod)) return false;
 
-        //    // 参数可能不存在
-        //    dic.TryGetValue("result", out obj);
+            // 参数可能不存在
+            dic.TryGetValue("result", out result);
 
-        //    code = (Int32)cod;
-        //    result = obj;
+            code = cod.ToInt();
 
-        //    return true;
-        //}
+            return true;
+        }
 
         /// <summary>转换为对象</summary>
         /// <typeparam name="T"></typeparam>

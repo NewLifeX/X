@@ -21,16 +21,16 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IMessage CreateMessage(Packet pk);
 
+        /// <summary>发送消息</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        Task<IMessage> SendAsync(IMessage msg);
+
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
         Task<TResult> InvokeAsync<TResult>(string action, object args = null);
-
-        /// <summary>远程调用</summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        Task<IMessage> SendAsync(IMessage msg);
     }
 }

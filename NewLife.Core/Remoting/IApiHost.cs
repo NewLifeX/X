@@ -21,11 +21,6 @@ namespace NewLife.Remoting
 
         /// <summary>接口动作管理器</summary>
         IApiManager Manager { get; }
-
-        ///// <summary>执行过滤器</summary>
-        ///// <param name="msg"></param>
-        ///// <param name="issend"></param>
-        //void ExecuteFilter(IMessage msg, Boolean issend);
     }
 
     /// <summary>Api主机助手</summary>
@@ -40,18 +35,17 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, object args = null)
         {
-            var ss = session;
-            if (ss == null) return default(TResult);
+            if (session == null) return default(TResult);
 
             var enc = host.Encoder;
             var data = enc.Encode(action, args);
 
-            var msg = ss.CreateMessage(data);
+            var msg = session.CreateMessage(data);
 
             // 过滤器
             host.ExecuteFilter(msg, true);
 
-            var rs = await ss.SendAsync(msg);
+            var rs = await session.SendAsync(msg);
             if (rs == null) return default(TResult);
 
             // 过滤器
@@ -63,7 +57,16 @@ namespace NewLife.Remoting
             var dic = enc.Decode(rs.Payload);
             if (typeof(TResult) == typeof(IDictionary<String, Object>)) return (TResult)(Object)dic;
 
-            return enc.Decode<TResult>(dic);
+            //return enc.Decode<TResult>(dic);
+            var code = 0;
+            Object result = null;
+            enc.TryGet(dic, out code, out result);
+
+            // 是否成功
+            if (code != 0) throw new ApiException(code, result + "");
+
+            // 返回
+            return enc.Convert<TResult>(result);
         }
 
         /// <summary>处理消息</summary>

@@ -46,24 +46,26 @@ namespace NewLife.Remoting
 
         public void Open()
         {
-            Client.MessageReceived += Client_Received;
-            Client.Log = Log;
+            var tc = Client;
+            tc.MessageReceived += Client_Received;
+            tc.Log = Log;
 #if DEBUG
-            //Client.LogSend = true;
-            //Client.LogReceive = true;
-            //Client.Timeout = 60 * 1000;
+            //tc.LogSend = true;
+            //tc.LogReceive = true;
+            //tc.Timeout = 60 * 1000;
 #endif
-            Client.Opened += Client_Opened;
-            Client.Open();
+            tc.Opened += Client_Opened;
+            tc.Open();
         }
 
         /// <summary>关闭</summary>
         /// <param name="reason">关闭原因。便于日志分析</param>
         public void Close(String reason)
         {
-            Client.MessageReceived -= Client_Received;
-            Client.Opened -= Client_Opened;
-            Client.Close(reason);
+            var tc = Client;
+            tc.MessageReceived -= Client_Received;
+            tc.Opened -= Client_Opened;
+            tc.Close(reason);
         }
 
         /// <summary>打开后触发。</summary>
@@ -84,10 +86,7 @@ namespace NewLife.Remoting
         /// <summary>远程调用</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public async Task<IMessage> InvokeAsync(IMessage msg)
-        {
-            return await Client.SendAsync(msg);
-        }
+        public async Task<IMessage> SendAsync(IMessage msg) { return await Client.SendAsync(msg); }
         #endregion
 
         #region 异步接收
