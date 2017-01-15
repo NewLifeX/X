@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 
 namespace NewLife.Remoting
 {
@@ -24,10 +27,15 @@ namespace NewLife.Remoting
         /// <summary>打开后触发。</summary>
         event EventHandler Opened;
 
-        ///// <summary>发送数据</summary>
-        ///// <param name="data"></param>
-        ///// <returns></returns>
-        //Task<byte[]> SendAsync(byte[] data);
+        /// <summary>创建消息</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        IMessage CreateMessage(Packet pk);
+
+        /// <summary>远程调用</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        Task<IMessage> InvokeAsync(IMessage msg);
 
         /// <summary>日志</summary>
         ILog Log { get; set; }

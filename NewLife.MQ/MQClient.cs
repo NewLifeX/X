@@ -49,7 +49,7 @@ namespace NewLife.MessageQueue
             var ac = Client;
             if (ac == null || ac.Disposed)
             {
-                ac = new ApiClient(Remote);
+                ac = new ApiClient(Remote + "");
                 ac.Encoder = new JsonEncoder();
                 ac.Log = Log;
 #if DEBUG

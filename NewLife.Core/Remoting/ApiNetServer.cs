@@ -82,62 +82,19 @@ namespace NewLife.Remoting
 
         protected override void OnReceive(MessageEventArgs e)
         {
-            var enc = Host.Encoder;
-
             // Api解码消息得到Action和参数
             var msg = e.Message;
+            if (msg.Reply) return;
 
-            // 过滤器
             var host = this.GetService<IApiHost>();
-            host.ExecuteFilter(msg, false);
-
-            var dic = enc.Decode(msg.Payload);
-
-            var act = "";
-            Object args = null;
-            if (enc.TryGet(dic, out act, out args))
-            {
-                // 处理Action
-                OnInvoke(msg, act, args as IDictionary<string, object>);
-            }
+            var rs = host.Process(this, msg);
+            if (rs != null) Session.SendAsync(rs);
         }
 
-        /// <summary>处理远程调用</summary>
-        /// <param name="msg"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
-        protected virtual async void OnInvoke(IMessage msg, string action, IDictionary<string, object> args)
-        {
-            var enc = Host.Encoder;
-            object result = null;
-            var code = 0;
-            try
-            {
-                // 查找并执行Action业务逻辑
-                result = await Host.Handler.Execute(this, action, args);
-            }
-            catch (Exception ex)
-            {
-                var aex = ex as ApiException;
-                code = aex != null ? aex.Code : 1;
-                result = ex;
-            }
-
-            // 响应结果编码到消息
-            var pk = enc.Encode(code, result);
-
-            // 构造响应消息
-            var rs = msg.CreateReply();
-            // 响应结果编码到消息
-            rs.Payload = pk;
-
-            // 过滤器
-            var host = this.GetService<IApiHost>();
-            host.ExecuteFilter(rs, true);
-
-            // 发送响应
-            await Session.SendAsync(rs);
-        }
+        /// <summary>创建消息</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public IMessage CreateMessage(Packet pk) { return Session?.Packet?.CreateMessage(pk); }
 
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -146,25 +103,29 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(string action, object args = null)
         {
-            var enc = Host.Encoder;
-            var data = enc.Encode(action, args);
-
-            var msg = Session.Packet.CreateMessage(new Packet(data));
-
             var host = this.GetService<IApiHost>();
-            // 过滤器
-            host.ExecuteFilter(msg, true);
+            return await ApiHostHelper.InvokeAsync<TResult>(host, this, action, args);
+            //var enc = Host.Encoder;
+            //var data = enc.Encode(action, args);
 
-            var rs = await Session.SendAsync(msg);
-            if (rs == null) return default(TResult);
+            //var msg = Session.Packet.CreateMessage(new Packet(data));
 
-            // 过滤器
-            host.ExecuteFilter(rs, false);
+            //var host = this.GetService<IApiHost>();
+            //// 过滤器
+            //host.ExecuteFilter(msg, true);
 
-            var dic = enc.Decode(rs.Payload);
+            //var rs = await Session.SendAsync(msg);
+            //if (rs == null) return default(TResult);
 
-            return enc.Decode<TResult>(dic);
+            //// 过滤器
+            //host.ExecuteFilter(rs, false);
+
+            //var dic = enc.Decode(rs.Payload);
+
+            //return enc.Decode<TResult>(dic);
         }
+
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Session.SendAsync(msg); }
 
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>

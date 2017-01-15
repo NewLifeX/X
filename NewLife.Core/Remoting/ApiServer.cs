@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
@@ -167,26 +166,6 @@ namespace NewLife.Remoting
         public void Register<TService>() where TService : class, new()
         {
             Manager.Register<TService>();
-        }
-        #endregion
-
-        #region 过滤器
-        /// <summary>执行过滤器</summary>
-        /// <param name="msg"></param>
-        /// <param name="issend"></param>
-        void IApiHost.ExecuteFilter(IMessage msg, Boolean issend)
-        {
-            var fs = Filters;
-            if (fs.Count == 0) return;
-
-            // 接收时需要倒序
-            if (!issend) fs = fs.Reverse().ToList();
-
-            var ctx = new ApiFilterContext { Packet = msg.Payload, Message = msg, IsSend = issend };
-            foreach (var item in fs)
-            {
-                item.Execute(ctx);
-            }
         }
         #endregion
 

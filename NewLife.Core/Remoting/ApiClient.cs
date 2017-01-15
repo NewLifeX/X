@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
@@ -11,7 +10,7 @@ using NewLife.Reflection;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口客户端</summary>
-    public class ApiClient : DisposeBase, IApiHost, IServiceProvider
+    public class ApiClient : DisposeBase, IApiHost, IApiSession, IServiceProvider
     {
         #region 静态
         /// <summary>协议到提供者类的映射</summary>
@@ -28,7 +27,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 属性
-        /// <summary>客户端</summary>
+        /// <summary>通信客户端</summary>
         public IApiClient Client { get; set; }
 
         /// <summary>编码器。用于对象与字节数组相互转换</summary>
@@ -39,33 +38,29 @@ namespace NewLife.Remoting
 
         /// <summary>过滤器</summary>
         public IList<IFilter> Filters { get; } = new List<IFilter>();
+
+        /// <summary>所有服务器所有会话，包含自己</summary>
+        IApiSession[] IApiSession.AllSessions { get { return new IApiSession[] { this }; } }
+
+        /// <summary>用户会话数据</summary>
+        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
+
+        /// <summary>获取/设置 用户会话数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual Object this[String key] { get { return Items.ContainsKey(key) ? Items[key] : null; } set { Items[key] = value; } }
         #endregion
 
         #region 构造
-        ///// <summary>实例化应用接口客户端</summary>
-        //public ApiClient() { }
+        /// <summary>实例化应用接口客户端</summary>
+        public ApiClient() { }
 
         /// <summary>实例化应用接口客户端</summary>
-        /// <param name="uri"></param>
-        public ApiClient(NetUri uri)
+        public ApiClient(String uri)
         {
             Type type;
-            if (!Providers.TryGetValue(uri.Protocol, out type)) return;
-
-            var ac = type.CreateInstance() as IApiClient;
-            if (ac != null && ac.Init(uri))
-            {
-                ac.Provider = this;
-                Client = ac;
-            }
-        }
-
-        /// <summary>实例化应用接口客户端</summary>
-        /// <param name="uri"></param>
-        public ApiClient(Uri uri)
-        {
-            Type type;
-            if (!Providers.TryGetValue("http", out type)) return;
+            var nu = new NetUri(uri);
+            if (!Providers.TryGetValue(nu.Protocol, out type)) return;
 
             var ac = type.CreateInstance() as IApiClient;
             if (ac != null && ac.Init(uri))
@@ -89,8 +84,8 @@ namespace NewLife.Remoting
         /// <summary>打开客户端</summary>
         public void Open()
         {
+            if (Client == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
             if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
-            //if (Handler == null) throw new ArgumentNullException(nameof(Handler), "未指定处理器");
 
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
@@ -118,8 +113,12 @@ namespace NewLife.Remoting
         /// <returns>是否成功</returns>
         public void Close(String reason)
         {
-            Client.Opened -= Client_Opened;
-            Client.Close(reason ?? (GetType().Name + "Close"));
+            var tc = Client;
+            if (tc != null)
+            {
+                tc.Opened -= Client_Opened;
+                tc.Close(reason ?? (GetType().Name + "Close"));
+            }
         }
 
         /// <summary>打开后触发。</summary>
@@ -139,32 +138,84 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(String action, object args = null)
         {
-            var ss = Client as IApiSession;
+            var ss = Client;
             if (ss == null) return default(TResult);
 
-            return await ss.InvokeAsync<TResult>(action, args);
+            return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args);
+            //var enc = Encoder;
+            //var data = enc.Encode(action, args);
+
+            //var msg = ss.CreateMessage(data);
+
+            //// 过滤器
+            //ExecuteFilter(msg, true);
+
+            //var rs = await ss.InvokeAsync(msg);
+            //if (rs == null) return default(TResult);
+
+            //// 过滤器
+            //ExecuteFilter(rs, false);
+
+            //// 特殊返回类型
+            //if (typeof(TResult) == typeof(Packet)) return (TResult)(Object)rs.Payload;
+
+            //var dic = enc.Decode(rs.Payload);
+            //if (typeof(TResult) == typeof(IDictionary<String, Object>)) return (TResult)(Object)dic;
+
+            //return enc.Decode<TResult>(dic);
         }
-        #endregion
 
-        #region 过滤器
-        /// <summary>执行过滤器</summary>
-        /// <param name="msg"></param>
-        /// <param name="issend"></param>
-        void IApiHost.ExecuteFilter(IMessage msg, Boolean issend)
-        {
-            var fs = Filters;
-            if (fs.Count == 0) return;
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.InvokeAsync(msg); }
 
-            // 接收时需要倒序
-            if (!issend) fs = fs.Reverse().ToList();
+        /// <summary>创建消息</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public IMessage CreateMessage(Packet pk) { return Client?.CreateMessage(pk); }
 
-            var ctx = new ApiFilterContext { Packet = msg.Payload, Message = msg, IsSend = issend };
-            foreach (var item in fs)
-            {
-                item.Execute(ctx);
-                //Log.Debug("{0}:{1}", item.GetType().Name, ctx.Packet.ToHex());
-            }
-        }
+        ///// <summary>处理消息</summary>
+        ///// <param name="msg"></param>
+        ///// <returns></returns>
+        //public IMessage Process(IMessage msg)
+        //{
+        //    if (msg.Reply) return null;
+
+        //    var enc = Encoder;
+
+        //    // 过滤器
+        //    ExecuteFilter(msg, false);
+
+        //    // 这里会导致二次解码，因为解码以后才知道是不是请求
+        //    var dic = enc.Decode(msg.Payload);
+
+        //    var action = "";
+        //    Object args = null;
+        //    if (!enc.TryGet(dic, out action, out args)) return null;
+
+        //    object result = null;
+        //    var code = 0;
+        //    try
+        //    {
+        //        result = Handler.Execute(this, action, args as IDictionary<String, Object>).Result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var aex = ex as ApiException;
+        //        code = aex != null ? aex.Code : 1;
+        //        result = ex;
+        //    }
+
+        //    // 编码响应数据包
+        //    var pk = enc.Encode(code, result);
+
+        //    // 封装响应消息
+        //    var rs = msg.CreateReply();
+        //    rs.Payload = pk;
+
+        //    // 过滤器
+        //    ExecuteFilter(rs, true);
+
+        //    return rs;
+        //}
         #endregion
 
         #region 控制器管理

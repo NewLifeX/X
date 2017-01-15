@@ -1,32 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
 
 namespace NewLife.Remoting
 {
-    class ApiNetClient : DisposeBase, IApiClient, IApiSession, IServiceProvider
+    class ApiNetClient : DisposeBase, IApiClient, IServiceProvider
     {
         #region 属性
-        //public NetUri Remote { get; set; }
-
         public ISocketClient Client { get; set; }
 
         /// <summary>服务提供者</summary>
         public IServiceProvider Provider { get; set; }
-
-        /// <summary>所有服务器所有会话，包含自己</summary>
-        IApiSession[] IApiSession.AllSessions { get { return new IApiSession[] { this }; } }
-
-        /// <summary>用户会话数据</summary>
-        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
-
-        /// <summary>获取/设置 用户会话数据</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public virtual Object this[String key] { get { return Items.ContainsKey(key) ? Items[key] : null; } set { Items[key] = value; } }
         #endregion
 
         #region 构造
@@ -43,7 +30,7 @@ namespace NewLife.Remoting
         #region 方法
         public virtual bool Init(object config)
         {
-            var uri = config as NetUri;
+            var uri = config is String ? new NetUri(config + "") : config as NetUri;
             if (uri == null) return false;
 
             Client = uri.CreateRemote();
@@ -89,31 +76,17 @@ namespace NewLife.Remoting
         #endregion
 
         #region 发送
-        /// <summary>远程调用</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <summary>创建消息</summary>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        public async Task<TResult> InvokeAsync<TResult>(string action, object args = null)
+        public IMessage CreateMessage(Packet pk) { return Client?.Packet?.CreateMessage(pk); }
+
+        /// <summary>远程调用</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public async Task<IMessage> InvokeAsync(IMessage msg)
         {
-            var host = Provider.GetService<IApiHost>();
-            var enc = host.Encoder;
-            var data = enc.Encode(action, args);
-
-            var msg = Client.Packet.CreateMessage(data);
-
-            // 过滤器
-            host.ExecuteFilter(msg, true);
-
-            var rs = await Client.SendAsync(msg);
-            if (rs == null) return default(TResult);
-
-            // 过滤器
-            host.ExecuteFilter(rs, false);
-
-            var dic = enc.Decode(rs.Payload);
-
-            return enc.Decode<TResult>(dic);
+            return await Client.SendAsync(msg);
         }
         #endregion
 
@@ -123,63 +96,10 @@ namespace NewLife.Remoting
             var msg = e.Message;
             if (msg.Reply) return;
 
-            var host = this.GetService<IApiHost>();
-            var enc = host.Encoder;
+            var host = this.GetService<ApiClient>();
 
-            // 过滤器
-            host.ExecuteFilter(msg, false);
-
-            // 这里会导致二次解码，因为解码以后才知道是不是请求
-            var dic = enc.Decode(msg.Payload);
-
-            var act = "";
-            Object args = null;
-            if (enc.TryGet(dic, out act, out args))
-            {
-                OnInvoke(msg, act, args as IDictionary<string, object>);
-            }
-        }
-
-        /// <summary>处理远程调用</summary>
-        /// <param name="msg"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
-        protected virtual async void OnInvoke(IMessage msg, string action, IDictionary<string, object> args)
-        {
-            var host = this.GetService<IApiHost>();
-            object result = null;
-            var code = 0;
-            try
-            {
-                result = await host.Handler.Execute(this, action, args);
-            }
-            catch (Exception ex)
-            {
-                var aex = ex as ApiException;
-                code = aex != null ? aex.Code : 1;
-                result = ex;
-            }
-
-            // 编码响应数据包
-            var enc = host.Encoder;
-            var pk = enc.Encode(code, result);
-
-            // 封装响应消息
-            var rs = msg.CreateReply();
-            rs.Payload = pk;
-
-            // 过滤器
-            host.ExecuteFilter(rs, true);
-            //if (ac.Filters.Count > 0)
-            //{
-            //    var ctx = new ApiFilterContext { Packet = pk, IsSend = true };
-            //    foreach (var item in ac.Filters)
-            //    {
-            //        item.Execute(ctx);
-            //    }
-            //}
-
-            await Client.SendAsync(rs);
+            var rs = host.Process(this.GetService<IApiSession>(), msg);
+            if (rs != null) Client.SendAsync(rs);
         }
         #endregion
 
@@ -192,6 +112,7 @@ namespace NewLife.Remoting
             if (serviceType == GetType()) return this;
             if (serviceType == typeof(IApiClient)) return this;
             if (serviceType == typeof(IApiSession)) return this;
+            if (serviceType == typeof(ISocketClient)) return Client;
 
             return Provider?.GetService(serviceType);
         }
