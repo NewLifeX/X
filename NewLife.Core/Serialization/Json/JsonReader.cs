@@ -57,7 +57,18 @@ namespace NewLife.Serialization
                 else if (type != null && typeDef == typeof(IList<>)) // 泛型列表
                     return RootList(jobj, type);
                 else
-                    return (jobj as IList<Object>).ToArray();
+                {
+                    var elmType = type.GetElementTypeEx();
+                    //return (jobj as IList<Object>).Select(e => e.ChangeType(elmType)).ToArray();
+                    var src = jobj as IList<Object>;
+                    var arr = Array.CreateInstance(elmType, src.Count);
+                    for (int i = 0; i < src.Count; i++)
+                    {
+                        arr.SetValue(src[i].ChangeType(elmType), i);
+                    }
+
+                    return arr;
+                }
             }
             else if (type != null && jobj.GetType() != type)
                 return ChangeType(jobj, type);
@@ -195,7 +206,7 @@ namespace NewLife.Serialization
                 if (pt.IsEnum)
                     val = Enum.Parse(pt, v + "");
                 else if (pt == typeof(Object))
-                    val =v;
+                    val = v;
                 else if (pt == typeof(DateTime))
                     val = CreateDateTime((String)v);
                 else if (pt == typeof(Guid))
