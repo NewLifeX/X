@@ -31,7 +31,7 @@ namespace NewLife.Remoting
         /// <summary>可提供服务的方法</summary>
         public IDictionary<string, ApiAction> Services { get; } = new Dictionary<string, ApiAction>();
 
-        private void Register(Type type)
+        private void Register(Object controller, Type type)
         {
             foreach (var mi in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
@@ -39,6 +39,7 @@ namespace NewLife.Remoting
                 if (mi.DeclaringType == typeof(object)) continue;
 
                 var act = new ApiAction(mi);
+                act.Controller = controller;
 
                 Services[act.Name] = act;
             }
@@ -48,7 +49,7 @@ namespace NewLife.Remoting
         /// <typeparam name="TService"></typeparam>
         public void Register<TService>() where TService : class, new()
         {
-            Register(typeof(TService));
+            Register(null, typeof(TService));
         }
 
         /// <summary>注册服务</summary>
@@ -69,7 +70,7 @@ namespace NewLife.Remoting
             }
             else
             {
-                Register(type);
+                Register(controller, type);
             }
         }
 
