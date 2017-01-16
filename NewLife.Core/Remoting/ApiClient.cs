@@ -10,6 +10,7 @@ using NewLife.Reflection;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口客户端</summary>
+    [Api(null)]
     public class ApiClient : DisposeBase, IApiHost, IApiSession, IServiceProvider
     {
         #region 静态
@@ -161,6 +162,14 @@ namespace NewLife.Remoting
         public void Register<TService>() where TService : class, new()
         {
             Manager.Register<TService>();
+        }
+
+        /// <summary>注册服务</summary>
+        /// <param name="controller">控制器对象或类型</param>
+        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
+        public void Register(Object controller, String method)
+        {
+            Manager.Register(controller, method);
         }
         #endregion
 

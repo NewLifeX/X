@@ -14,6 +14,10 @@ namespace NewLife.Remoting
         /// <summary>方法</summary>
         public MethodInfo Method { get; set; }
 
+        /// <summary>控制器对象</summary>
+        /// <remarks>如果指定控制器对象，则每次调用前不再实例化对象</remarks>
+        public Object Controller { get; set; }
+
         /// <summary>动作过滤器</summary>
         public IActionFilter[] ActionFilters { get; }
 
@@ -25,10 +29,18 @@ namespace NewLife.Remoting
         {
             if (method.DeclaringType != null)
             {
-                var name = method.DeclaringType.Name.TrimEnd("Controller");
-                var miName = method.Name;
+                var typeName = method.DeclaringType.Name.TrimEnd("Controller");
+                var att = method.DeclaringType.GetCustomAttribute<ApiAttribute>();
+                if (att != null) typeName = att.Name;
 
-                Name = "{0}/{1}".F(name, miName);
+                var miName = method.Name;
+                att = method.GetCustomAttribute<ApiAttribute>();
+                if (att != null) miName = att.Name;
+
+                if (typeName.IsNullOrEmpty())
+                    Name = miName;
+                else
+                    Name = "{0}/{1}".F(typeName, miName);
             }
             Method = method;
 

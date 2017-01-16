@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
 #if DEBUG
     /// <summary>Rpc测试</summary>
+    [Api(null)]
     public class ApiTest
     {
         /// <summary>测试主函数</summary>
@@ -23,6 +26,7 @@ namespace NewLife.Remoting
             //GlobalFilters.Add(new FFAttribute { Name = "全局" });
             //GlobalFilters.Add(new FEAttribute { Name = "全局" });
             svr.Register<HelloController>();
+            svr.Register(typeof(ApiTest), nameof(Login));
             svr.Start();
 
 
@@ -34,6 +38,9 @@ namespace NewLife.Remoting
             client.Filters.Add(new DeflateFilter());
             client.Filters.Add(new RC4Filter { Key = "Pass$word".GetBytes() });
             client.Open();
+
+            var logined = await client.InvokeAsync<Object>("Login", new { user = "Stone", pass = "密码" });
+            XTrace.WriteLine(logined + "");
 
             var msg = "NewLifeX";
             var rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
@@ -54,6 +61,13 @@ namespace NewLife.Remoting
 
             client.Dispose();
             svr.Dispose();
+        }
+
+        private static void Login(String user, String pass)
+        {
+            XTrace.WriteLine("user={0} pass={1}", user, pass);
+
+            //return true;
         }
 
         //[FF(Name = "类")]

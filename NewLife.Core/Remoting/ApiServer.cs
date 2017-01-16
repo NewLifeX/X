@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
@@ -11,6 +9,7 @@ using NewLife.Reflection;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口服务器</summary>
+    [Api(null)]
     public class ApiServer : DisposeBase, IApiHost, IServiceProvider, IServer
     {
         #region 静态
@@ -166,6 +165,14 @@ namespace NewLife.Remoting
         public void Register<TService>() where TService : class, new()
         {
             Manager.Register<TService>();
+        }
+
+        /// <summary>注册服务</summary>
+        /// <param name="controller">控制器对象或类型</param>
+        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
+        public void Register(Object controller, String method)
+        {
+            Manager.Register(controller, method);
         }
         #endregion
 

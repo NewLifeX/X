@@ -65,6 +65,9 @@ namespace NewLife.Remoting
             // 是否成功
             if (code != 0) throw new ApiException(code, result + "");
 
+            if (result == null) return default(TResult);
+            if (typeof(TResult) == typeof(Object)) return (TResult)result;
+
             // 返回
             return enc.Convert<TResult>(result);
         }
