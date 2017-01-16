@@ -34,7 +34,7 @@ namespace NewLife.Remoting
             var api = Host.Manager.Find(action);
             if (api == null) throw new Exception("无法找到名为[{0}]的服务！".F(action));
 
-            var controller = api.Method.DeclaringType.CreateInstance();
+            var controller = api.Controller ?? api.Method.DeclaringType.CreateInstance();
             if (controller is IApi) (controller as IApi).Session = session;
 
             var host = session.GetService<IApiServer>();
@@ -56,12 +56,25 @@ namespace NewLife.Remoting
             try
             {
                 // 执行动作前的过滤器
-                OnExecuting(ctx, fs, ps);
+                var actx = OnExecuting(ctx, fs, ps);
 
                 // 准备好参数
 
                 // 执行动作
-                rs = await Task.Run(() => controller.InvokeWithParams(api.Method, ps as IDictionary));
+                rs = await Task.Run(() =>
+                {
+                    // 当前上下文
+                    ControllerContext.Current = actx;
+                    try
+                    {
+                        var result = controller.InvokeWithParams(api.Method, ps as IDictionary);
+                        return result;
+                    }
+                    finally
+                    {
+                        ControllerContext.Current = null;
+                    }
+                });
             }
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)
@@ -83,15 +96,16 @@ namespace NewLife.Remoting
             return rs;
         }
 
-        protected virtual void OnExecuting(ControllerContext ctx, IActionFilter[] fs, IDictionary<String, Object> args)
+        protected virtual ActionExecutingContext OnExecuting(ControllerContext ctx, IActionFilter[] fs, IDictionary<String, Object> args)
         {
-            if (fs.Length == 0) return;
+            //if (fs.Length == 0) return;
 
             var actx = new ActionExecutingContext(ctx) { ActionParameters = args };
             foreach (var filter in fs)
             {
                 filter.OnActionExecuting(actx);
             }
+            return actx;
         }
 
         protected virtual Object OnExecuted(ControllerContext ctx, ExceptionContext etx, IActionFilter[] fs, Object rs)
