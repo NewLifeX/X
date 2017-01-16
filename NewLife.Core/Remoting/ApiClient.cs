@@ -54,10 +54,13 @@ namespace NewLife.Remoting
 
         #region 构造
         /// <summary>实例化应用接口客户端</summary>
-        public ApiClient() { }
+        public ApiClient()
+        {
+            Register(new ApiController { Host = this }, null);
+        }
 
         /// <summary>实例化应用接口客户端</summary>
-        public ApiClient(String uri)
+        public ApiClient(String uri) : this()
         {
             Type type;
             var nu = new NetUri(uri);

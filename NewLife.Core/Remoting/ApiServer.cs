@@ -54,18 +54,21 @@ namespace NewLife.Remoting
 
         #region 构造
         /// <summary>实例化一个应用接口服务器</summary>
-        public ApiServer() { }
+        public ApiServer()
+        {
+            Register(new ApiController { Host = this }, null);
+        }
 
         /// <summary>使用指定端口实例化网络服务应用接口提供者</summary>
         /// <param name="port"></param>
-        public ApiServer(int port)
+        public ApiServer(int port) : this()
         {
             Add(new NetUri(NetType.Unknown, "", port));
         }
 
         /// <summary>实例化</summary>
         /// <param name="uri"></param>
-        public ApiServer(NetUri uri)
+        public ApiServer(NetUri uri) : this()
         {
             Add(uri);
         }

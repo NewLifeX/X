@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace NewLife.Remoting
 {
@@ -88,7 +89,22 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public override String ToString()
         {
-            return "{0}\t{1}".F(Method.GetDisplayName() ?? Name, Method);
+            //return "{0}\t{1}".F(Method.GetDisplayName() ?? Name, Method);
+
+            var sb = new StringBuilder();
+            sb.AppendFormat("{0} {1}", Method.ReturnType.Name, Name);
+            sb.Append("(");
+
+            var pis = Method.GetParameters();
+            for (int i = 0; i < pis.Length; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                sb.AppendFormat("{0} {1}", pis[i].ParameterType.Name, pis[i].Name);
+            }
+
+            sb.Append(")");
+
+            return sb.ToString();
         }
     }
 }

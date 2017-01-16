@@ -56,6 +56,12 @@ namespace NewLife.Remoting
                 XTrace.WriteLine("服务端发生 {0} 错误：{1}", ex.Code, ex.Message);
             }
 
+            var apis = await client.InvokeAsync<String[]>("Api/All");
+            Console.WriteLine(apis.Join(","));
+
+            var ps = await client.InvokeAsync<String>("Api/Detail", new { api = apis.Join(",") });
+            Console.WriteLine(ps);
+
             Console.WriteLine("完成");
             Console.ReadKey();
 
