@@ -20,6 +20,10 @@ namespace NewLife.Remoting
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
         void Register(Object controller, String method);
 
+        /// <summary>注册服务</summary>
+        /// <param name="method">动作</param>
+        void Register(MethodInfo method);
+
         /// <summary>查找服务</summary>
         /// <param name="action"></param>
         /// <returns></returns>
@@ -72,6 +76,15 @@ namespace NewLife.Remoting
             {
                 Register(controller, type);
             }
+        }
+
+        /// <summary>注册服务</summary>
+        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
+        public void Register(MethodInfo method)
+        {
+            var act = new ApiAction(method);
+
+            Services[act.Name] = act;
         }
 
         /// <summary>查找服务</summary>

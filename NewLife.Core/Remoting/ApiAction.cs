@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NewLife.Remoting
 {
@@ -91,8 +92,21 @@ namespace NewLife.Remoting
         {
             //return "{0}\t{1}".F(Method.GetDisplayName() ?? Name, Method);
 
+            var type = Method.ReturnType;
+            var rtype = type.Name;
+            if (typeof(Task).IsAssignableFrom(type))
+            {
+                if (type.IsGenericType)
+                    rtype = "Void";
+                else
+                {
+                    type = type.GetGenericArguments()[0];
+                    rtype = type.Name;
+                }
+            }
+
             var sb = new StringBuilder();
-            sb.AppendFormat("{0} {1}", Method.ReturnType.Name, Name);
+            sb.AppendFormat("{0} {1}", rtype, Name);
             sb.Append("(");
 
             var pis = Method.GetParameters();

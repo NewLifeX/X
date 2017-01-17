@@ -141,7 +141,7 @@ namespace NewLife.Remoting
             Log.Info("服务端可用接口{0}个：", Manager.Services.Count);
             foreach (var item in Manager.Services)
             {
-                Log.Info("\t{0}\t{1}", item.Key, item.Value);
+                Log.Info("\t{0,-16}{1}", item.Key, item.Value);
             }
 
             Active = true;
