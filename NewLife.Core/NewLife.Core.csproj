@@ -297,6 +297,8 @@
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </EmbeddedResource>
     <Compile Include="Extension\EndPointExtensions.cs" />
+    <None Include="Remoting\ApiServer.cd" />
+    <None Include="Remoting\ApiClient.cd" />
     <None Include="X组件.txt" />
     <Content Include="说明.txt" />
     <None Include="UpdateInfo.txt" />

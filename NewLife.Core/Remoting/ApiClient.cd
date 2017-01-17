@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="NewLife.Remoting.ApiClient" Collapsed="true">
+    <Position X="3.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAhCAMKAAACIAACAAAEAgBBAARAAAAAACBAEQ=</HashCode>
+      <FileName>Remoting\ApiClient.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Client" />
+      <Property Name="Encoder" />
+      <Property Name="Handler" />
+      <Property Name="Manager" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Remoting.ApiAction" Collapsed="true">
+    <Position X="3.5" Y="9" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAAAEIAAkQAQAAAAAAAgAAAAAAAAAAAA=</HashCode>
+      <FileName>Remoting\ApiAction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Remoting.JsonEncoder" Collapsed="true">
+    <Position X="5.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAAAAAAIAAAAAAgAAAAAAAAAAAQAAAAAA=</HashCode>
+      <FileName>Remoting\JsonEncoder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Remoting.EncoderBase" Collapsed="true">
+    <Position X="5.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAAAAAAMAAAAAAAAgAAAAAAAABQAAAAAA=</HashCode>
+      <FileName>Remoting\IEncoder.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="NewLife.Remoting.ApiHttpClient" Collapsed="true">
+    <Position X="2.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAA=</HashCode>
+      <FileName>Remoting\ApiHttpClient.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NewLife.Remoting.ApiNetClient" Collapsed="true">
+    <Position X="2.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAACAEIAAAAAAACAAAEAgAAACAAAACAADAAEQ=</HashCode>
+      <FileName>Remoting\ApiNetClient.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="NewLife.Remoting.IApiClient" Collapsed="true">
+    <Position X="0.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAAAEIAAAAAAAAAAAEAgAAACAAAACAACAAAA=</HashCode>
+      <FileName>Remoting\IApiClient.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="NewLife.Remoting.IEncoder" Collapsed="true">
+    <Position X="6.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAAAAAAIAAAAAAAAgAAAAAAAABQAAAAAA=</HashCode>
+      <FileName>Remoting\IEncoder.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="NewLife.Remoting.IApiHandler" Collapsed="true">
+    <Position X="0.5" Y="5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Remoting\IApiHandler.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="NewLife.Remoting.IApiManager" Collapsed="true">
+    <Position X="3.5" Y="7" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Remoting\IApiManager.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Services" />
+    </ShowAsCollectionAssociation>
+  </Interface>
+  <Interface Name="NewLife.Remoting.IApiSession" Collapsed="true">
+    <Position X="9" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAAAAAAAACAAAAAAAAAAAAACQAAAAAAABAAA=</HashCode>
+      <FileName>Remoting\IApiSession.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="微软雅黑" Size="9" />
+</ClassDiagram>

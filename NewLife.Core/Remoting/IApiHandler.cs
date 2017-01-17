@@ -51,7 +51,16 @@ namespace NewLife.Remoting
             // 复用控制器对象
             if (Host.IsReusable) session["Controller"] = controller;
 
+            // 全局过滤器、控制器特性、Action特性
             var fs = api.ActionFilters;
+            // 控制器实现了过滤器接口
+            if (controller is IActionFilter)
+            {
+                var list = fs.ToList();
+                list.Add(controller as IActionFilter);
+                fs = list.ToArray();
+            }
+
             // 准备好参数
             var ps = GetParams(api.Method, args, enc);
 
@@ -89,8 +98,17 @@ namespace NewLife.Remoting
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)
             {
+                var efs = api.ExceptionFilters;
+                // 控制器实现了异常过滤器接口
+                if (controller is IExceptionFilter)
+                {
+                    var list = efs.ToList();
+                    list.Add(controller as IExceptionFilter);
+                    efs = list.ToArray();
+                }
+
                 // 执行异常过滤器
-                etx = OnException(ctx, ex, api.ExceptionFilters, rs);
+                etx = OnException(ctx, ex, efs, rs);
 
                 // 如果异常没有被拦截，继续向外抛出
                 if (!etx.ExceptionHandled) throw;
