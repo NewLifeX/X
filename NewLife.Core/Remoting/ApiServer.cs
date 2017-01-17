@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
@@ -44,12 +45,15 @@ namespace NewLife.Remoting
         public IList<IFilter> Filters { get; } = new List<IFilter>();
 
         /// <summary>用户会话数据</summary>
-        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
+        public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
 
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual Object this[String key] { get { return Items.ContainsKey(key) ? Items[key] : null; } set { Items[key] = value; } }
+        public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
+
+        /// <summary>是否在会话上复用控制器。复用控制器可确保同一个会话多次请求路由到同一个控制器对象实例</summary>
+        public Boolean IsReusable { get; set; }
         #endregion
 
         #region 构造

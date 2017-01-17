@@ -22,6 +22,7 @@ namespace NewLife.Remoting
 
     class ApiHandler : IApiHandler
     {
+        /// <summary>Api接口主机</summary>
         public IApiHost Host { get; set; }
 
         /// <summary>执行</summary>
@@ -34,13 +35,24 @@ namespace NewLife.Remoting
             var api = Host.Manager.Find(action);
             if (api == null) throw new Exception("无法找到名为[{0}]的服务！".F(action));
 
-            var controller = api.Controller ?? api.Method.DeclaringType.CreateInstance();
-            if (controller is IApi) (controller as IApi).Session = session;
+            // 复用控制器对象
+            var controller = Host.IsReusable ? session["Controller"] : null;
+            if (controller == null)
+            {
+                // 全局共用控制器，或者每次创建对象实例
+                controller = api.Controller ?? api.Method.DeclaringType.CreateInstance();
+                if (controller is IApi) (controller as IApi).Session = session;
+            }
 
-            var host = session.GetService<IApiServer>();
-            var enc = host?.Encoder ?? Host.Encoder;
+            // 服务设置优先于全局主机
+            var svr = session.GetService<IApiServer>();
+            var enc = svr?.Encoder ?? Host.Encoder;
+
+            // 复用控制器对象
+            if (Host.IsReusable) session["Controller"] = controller;
 
             var fs = api.ActionFilters;
+            // 准备好参数
             var ps = GetParams(api.Method, args, enc);
 
             // 上下文
@@ -57,8 +69,6 @@ namespace NewLife.Remoting
             {
                 // 执行动作前的过滤器
                 var actx = OnExecuting(ctx, fs, ps);
-
-                // 准备好参数
 
                 // 执行动作
                 rs = await Task.Run(() =>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
@@ -40,12 +41,12 @@ namespace NewLife.Net
         public NetUri Remote { get { return Session == null ? null : Session.Remote; } }
 
         /// <summary>用户会话数据</summary>
-        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
+        public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
 
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual Object this[String key] { get { return Items.ContainsKey(key) ? Items[key] : null; } set { Items[key] = value; } }
+        public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
         #endregion
 
         #region 方法

@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
@@ -107,12 +108,12 @@ namespace NewLife.Net
         public Boolean LogReceive { get; set; }
 
         /// <summary>用户会话数据</summary>
-        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
+        public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
 
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual Object this[String key] { get { return Items.ContainsKey(key) ? Items[key] : null; } set { Items[key] = value; } }
+        public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
         #endregion
 
         #region 构造
@@ -449,7 +450,7 @@ namespace NewLife.Net
         #region 会话
         private IDictionary<Int32, INetSession> _Sessions;
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
-        public IDictionary<Int32, INetSession> Sessions { get { return _Sessions ?? (_Sessions = new Dictionary<Int32, INetSession>()); } }
+        public IDictionary<Int32, INetSession> Sessions { get { return _Sessions ?? (_Sessions = new NullableDictionary<Int32, INetSession>()); } }
 
         private Int32 _SessionCount;
         /// <summary>会话数</summary>
