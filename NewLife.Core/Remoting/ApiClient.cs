@@ -181,6 +181,9 @@ namespace NewLife.Remoting
         #endregion
 
         #region 服务提供者
+        /// <summary>服务提供者</summary>
+        public IServiceProvider Provider { get; set; }
+
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
@@ -192,7 +195,7 @@ namespace NewLife.Remoting
             if (serviceType == typeof(IEncoder) && Encoder != null) return Encoder;
             if (serviceType == typeof(IApiHandler) && Handler != null) return Handler;
 
-            return null;
+            return Provider?.GetService(serviceType);
         }
         #endregion
 
