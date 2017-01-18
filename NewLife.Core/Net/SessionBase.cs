@@ -104,6 +104,7 @@ namespace NewLife.Net
             {
                 tc.Log = Log;
 
+                _RecvCount = 0;
                 Active = OnOpen();
                 if (!Active) return false;
 
@@ -303,7 +304,7 @@ namespace NewLife.Net
 
             if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", idx, reason);
 
-            Interlocked.Decrement(ref _RecvCount);
+            if (_RecvCount > 0) Interlocked.Decrement(ref _RecvCount);
             se.TryDispose();
         }
 
