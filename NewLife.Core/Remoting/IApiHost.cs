@@ -105,7 +105,7 @@ namespace NewLife.Remoting
             catch (Exception ex)
             {
                 var aex = ex as ApiException;
-                code = aex != null ? aex.Code : 1;
+                code = aex != null ? aex.Code : 500;
                 result = ex;
             }
 

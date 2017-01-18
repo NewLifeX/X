@@ -33,7 +33,7 @@ namespace NewLife.Remoting
         public async Task<Object> Execute(IApiSession session, String action, IDictionary<String, Object> args)
         {
             var api = Host.Manager.Find(action);
-            if (api == null) throw new Exception("无法找到名为[{0}]的服务！".F(action));
+            if (api == null) throw new ApiException(404, "无法找到名为[{0}]的服务！".F(action));
 
             // 复用控制器对象
             var controller = Host.IsReusable ? session["Controller"] : null;
