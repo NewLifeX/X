@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace NewLife.Remoting
@@ -15,24 +14,17 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public String[] All()
         {
-            return Host.Manager.Services.Keys.ToArray();
-        }
-
-        /// <summary>接口详细信息</summary>
-        /// <param name="api"></param>
-        /// <returns></returns>
-        public String Detail(String api)
-        {
-            var sb = new StringBuilder();
-            foreach (var item in api.Split(","))
+            var list = new List<String>();
+            //var sb = new StringBuilder();
+            foreach (var item in Host.Manager.Services)
             {
-                ApiAction act = null;
-                if (!Host.Manager.Services.TryGetValue(item, out act)) return null;
+                var act = item.Value;
 
-                if (sb.Length > 0) sb.Append("#");
+                //if (sb.Length > 0) sb.Append("#");
 
                 var mi = act.Method;
 
+                var sb = new StringBuilder();
                 sb.AppendFormat("{0} {1}", mi.ReturnType.Name, act.Name);
                 sb.Append("(");
 
@@ -47,9 +39,11 @@ namespace NewLife.Remoting
 
                 var des = mi.GetDescription();
                 if (!des.IsNullOrEmpty()) sb.AppendFormat(" {0}", des);
+
+                list.Add(sb.ToString());
             }
 
-            return sb.ToString();
+            return list.ToArray();
         }
     }
 }
