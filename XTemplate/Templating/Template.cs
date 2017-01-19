@@ -853,7 +853,7 @@ namespace XTemplate.Templating
                 foreach (var item in tmp.Templates)
                 {
                     // 输出模版内容，为了调试使用
-                    File.WriteAllText(tempPath.CombinePath(item.Name), item.Content);
+                    File.WriteAllText(tempPath.CombinePath(item.Name).EnsureDirectory(true), item.Content);
                     if (item.Included) continue;
 
                     var name = item.Name.EndsWithIgnoreCase(".cs") ? item.Name : item.ClassName;
