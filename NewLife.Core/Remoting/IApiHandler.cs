@@ -69,7 +69,8 @@ namespace NewLife.Remoting
             {
                 Controller = controller,
                 Action = api,
-                Session = session
+                Session = session,
+                Parameters = args
             };
 
             Object rs = null;
@@ -78,9 +79,10 @@ namespace NewLife.Remoting
             {
                 // 执行动作前的过滤器
                 var actx = OnExecuting(ctx, fs, ps);
+                rs = actx.Result;
 
                 // 执行动作
-                rs = await Task.Run(() =>
+                if (rs == null) rs = await Task.Run(() =>
                 {
                     // 当前上下文
                     ControllerContext.Current = actx;
@@ -113,7 +115,7 @@ namespace NewLife.Remoting
                 // 如果异常没有被拦截，继续向外抛出
                 if (!etx.ExceptionHandled) throw;
 
-                return etx.Result;
+                return rs = etx.Result;
             }
             finally
             {
@@ -124,11 +126,11 @@ namespace NewLife.Remoting
             return rs;
         }
 
-        protected virtual ActionExecutingContext OnExecuting(ControllerContext ctx, IActionFilter[] fs, IDictionary<String, Object> args)
+        protected virtual ActionExecutingContext OnExecuting(ControllerContext ctx, IActionFilter[] fs, IDictionary<String, Object> ps)
         {
             //if (fs.Length == 0) return;
 
-            var actx = new ActionExecutingContext(ctx) { ActionParameters = args };
+            var actx = new ActionExecutingContext(ctx) { ActionParameters = ps };
             foreach (var filter in fs)
             {
                 filter.OnActionExecuting(actx);
