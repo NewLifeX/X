@@ -1,23 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="NewLife.Remoting.ApiServer" Collapsed="true">
-    <Position X="3.5" Y="4.5" Width="1.5" />
+    <Position X="3.5" Y="4" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAIAAAAABCAMCAAACIAAAAAAAAgBBAAhIBAAAAAAAEA=</HashCode>
+      <HashCode>AAIAAAAAACAEAAAAAAAAAAAAAAgAAAAgIBAAAAAAAEA=</HashCode>
       <FileName>Remoting\ApiServer.cs</FileName>
     </TypeIdentifier>
-    <ShowAsAssociation>
-      <Property Name="Encoder" />
-      <Property Name="Handler" />
-      <Property Name="Manager" />
-    </ShowAsAssociation>
     <ShowAsCollectionAssociation>
       <Property Name="Servers" />
     </ShowAsCollectionAssociation>
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="NewLife.Remoting.ApiAction" Collapsed="true">
-    <Position X="3.5" Y="8.5" Width="1.5" />
+    <Position X="0.5" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAQAAAAAEIAAkQAQAAAAAAAgAAAAAAAAAAAA=</HashCode>
       <FileName>Remoting\ApiAction.cs</FileName>
@@ -47,8 +42,21 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" Collapsed="true" />
   </Class>
-  <Interface Name="NewLife.Remoting.IApiServer" Collapsed="true">
+  <Class Name="NewLife.Remoting.ApiHost" Collapsed="true">
     <Position X="3.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABBAAcCAAACoAAAAAEAAABBAABAAAAAAAAAEA=</HashCode>
+      <FileName>Remoting\ApiHost.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Encoder" />
+      <Property Name="Handler" />
+      <Property Name="Manager" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="NewLife.Remoting.IApiServer" Collapsed="true">
+    <Position X="3.5" Y="6" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAACAMAAAAAAAAAAAAAAgAAAABIAACAAABAAA=</HashCode>
       <FileName>Remoting\IApiServer.cs</FileName>
@@ -58,21 +66,21 @@
     </ShowAsCollectionAssociation>
   </Interface>
   <Interface Name="NewLife.Remoting.IEncoder" Collapsed="true">
-    <Position X="6.5" Y="4.5" Width="1.5" />
+    <Position X="3.5" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAABAAAAAAIAAAAAAAAgAAAAAAAABQAAAAAA=</HashCode>
       <FileName>Remoting\IEncoder.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="NewLife.Remoting.IApiHandler" Collapsed="true">
-    <Position X="0.5" Y="4.5" Width="1.5" />
+    <Position X="6.5" Y="2.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Remoting\IApiHandler.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="NewLife.Remoting.IApiManager" Collapsed="true">
-    <Position X="3.5" Y="6.5" Width="1.5" />
+    <Position X="0.5" Y="2.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Remoting\IApiManager.cs</FileName>
@@ -82,7 +90,7 @@
     </ShowAsCollectionAssociation>
   </Interface>
   <Interface Name="NewLife.Remoting.IApiSession" Collapsed="true">
-    <Position X="3.5" Y="0.5" Width="1.5" />
+    <Position X="3.5" Y="8" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABAAAAAAAAAAAAACAAAAAAAAAAAAACQAAAAAAABAAA=</HashCode>
       <FileName>Remoting\IApiSession.cs</FileName>
@@ -91,7 +99,7 @@
   <Interface Name="NewLife.Remoting.IApiHost" Collapsed="true">
     <Position X="9" Y="2.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAABAAIAAAAAIAAAAAAAAAABAABAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAABBAAIAAAAAoAAAAAAAAAABAABAAAAAAAAAAA=</HashCode>
       <FileName>Remoting\IApiHost.cs</FileName>
     </TypeIdentifier>
   </Interface>

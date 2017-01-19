@@ -12,7 +12,7 @@ namespace NewLife.Remoting
 {
     /// <summary>应用接口客户端</summary>
     [Api(null)]
-    public class ApiClient : DisposeBase, IApiHost, IApiSession, IServiceProvider
+    public class ApiClient : ApiHost, IApiSession
     {
         #region 静态
         /// <summary>协议到提供者类的映射</summary>
@@ -32,28 +32,8 @@ namespace NewLife.Remoting
         /// <summary>通信客户端</summary>
         public IApiClient Client { get; set; }
 
-        /// <summary>编码器。用于对象与字节数组相互转换</summary>
-        public IEncoder Encoder { get; set; }
-
-        /// <summary>处理器</summary>
-        public IApiHandler Handler { get; set; }
-
-        /// <summary>过滤器</summary>
-        public IList<IFilter> Filters { get; } = new List<IFilter>();
-
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions { get { return new IApiSession[] { this }; } }
-
-        /// <summary>用户会话数据</summary>
-        public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
-
-        /// <summary>获取/设置 用户会话数据</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
-
-        /// <summary>是否在会话上复用控制器。复用控制器可确保同一个会话多次请求路由到同一个控制器对象实例</summary>
-        public Boolean IsReusable { get; set; } = true;
         #endregion
 
         #region 构造
@@ -160,42 +140,16 @@ namespace NewLife.Remoting
         async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.SendAsync(msg); }
         #endregion
 
-        #region 控制器管理
-        /// <summary>接口动作管理器</summary>
-        public IApiManager Manager { get; } = new ApiManager();
-
-        /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
-        /// <typeparam name="TService"></typeparam>
-        public void Register<TService>() where TService : class, new()
-        {
-            Manager.Register<TService>();
-        }
-
-        /// <summary>注册服务</summary>
-        /// <param name="controller">控制器对象或类型</param>
-        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        public void Register(Object controller, String method)
-        {
-            Manager.Register(controller, method);
-        }
-        #endregion
-
         #region 服务提供者
-        /// <summary>服务提供者</summary>
-        public IServiceProvider Provider { get; set; }
-
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
-        public Object GetService(Type serviceType)
+        public override Object GetService(Type serviceType)
         {
             if (serviceType == GetType()) return this;
-            if (serviceType == typeof(IApiHost)) return this;
-            if (serviceType == typeof(IApiManager)) return Manager;
-            if (serviceType == typeof(IEncoder) && Encoder != null) return Encoder;
-            if (serviceType == typeof(IApiHandler) && Handler != null) return Handler;
+            if (serviceType == typeof(IApiClient)) return this;
 
-            return Provider?.GetService(serviceType);
+            return base.GetService(serviceType);
         }
         #endregion
 

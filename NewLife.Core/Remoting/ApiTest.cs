@@ -57,10 +57,7 @@ namespace NewLife.Remoting
             }
 
             var apis = await client.InvokeAsync<String[]>("Api/All");
-            Console.WriteLine(apis.Join(","));
-
-            var ps = await client.InvokeAsync<String>("Api/Detail", new { api = apis.Join(",") });
-            Console.WriteLine(ps);
+            Console.WriteLine(apis.Join(Environment.NewLine));
 
             Console.WriteLine("完成");
             Console.ReadKey();

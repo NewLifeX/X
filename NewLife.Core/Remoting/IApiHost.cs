@@ -24,6 +24,28 @@ namespace NewLife.Remoting
 
         /// <summary>是否在会话上复用控制器。复用控制器可确保同一个会话多次请求路由到同一个控制器对象实例</summary>
         Boolean IsReusable { get; }
+
+        /// <summary>收到请求</summary>
+        event EventHandler<ApiMessageEventArgs> Received;
+
+        /// <summary>处理消息</summary>
+        /// <param name="session"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        IMessage Process(IApiSession session, IMessage msg);
+    }
+
+    /// <summary>消息事件参数</summary>
+    public class ApiMessageEventArgs : EventArgs
+    {
+        /// <summary>会话</summary>
+        public IApiSession Session { get; internal set; }
+
+        /// <summary>负载数据</summary>
+        public IMessage Message { get; internal set; }
+
+        /// <summary>是否已处理</summary>
+        public Boolean Handled { get; set; }
     }
 
     /// <summary>Api主机助手</summary>
@@ -75,58 +97,11 @@ namespace NewLife.Remoting
             return enc.Convert<TResult>(result);
         }
 
-        /// <summary>处理消息</summary>
-        /// <param name="host"></param>
-        /// <param name="session"></param>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        public static IMessage Process(this IApiHost host, IApiSession session, IMessage msg)
-        {
-            if (msg.Reply) return null;
-
-            var enc = host.Encoder;
-
-            // 过滤器
-            host.ExecuteFilter(msg, false);
-
-            // 这里会导致二次解码，因为解码以后才知道是不是请求
-            var dic = enc.Decode(msg.Payload);
-
-            var action = "";
-            Object args = null;
-            if (!enc.TryGet(dic, out action, out args)) return null;
-
-            object result = null;
-            var code = 0;
-            try
-            {
-                result = host.Handler.Execute(session, action, args as IDictionary<String, Object>).Result;
-            }
-            catch (Exception ex)
-            {
-                var aex = ex as ApiException;
-                code = aex != null ? aex.Code : 500;
-                result = ex;
-            }
-
-            // 编码响应数据包
-            var pk = enc.Encode(code, result);
-
-            // 封装响应消息
-            var rs = msg.CreateReply();
-            rs.Payload = pk;
-
-            // 过滤器
-            host.ExecuteFilter(rs, true);
-
-            return rs;
-        }
-
         /// <summary>执行过滤器</summary>
         /// <param name="host"></param>
         /// <param name="msg"></param>
         /// <param name="issend"></param>
-        static void ExecuteFilter(this IApiHost host, IMessage msg, Boolean issend)
+        internal static void ExecuteFilter(this IApiHost host, IMessage msg, Boolean issend)
         {
             var fs = host.Filters;
             if (fs.Count == 0) return;
