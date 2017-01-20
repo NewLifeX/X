@@ -29,8 +29,8 @@ namespace NewLife.Remoting
                 // 响应消息是否加密由标识位决定
                 if (msg.Reply && (msg.Flag & 0x20) == 0) return true;
 
-                // 加密标记位
-                msg.Flag |= 0x20;
+                //// 加密标记位
+                //msg.Flag |= 0x20;
             }
             else
             {
@@ -46,19 +46,24 @@ namespace NewLife.Remoting
             if (key == null || key.Length == 0) return true;
 
             var pk = ctx.Packet;
-            Encrypt(pk);
+            if (Encrypt(pk, key))
+            {
+                // 加密成功后再设置加密标记位
+                if (ctx.IsSend) msg.Flag |= 0x20;
+            }
 
             return true;
         }
 
         /// <summary>加解密</summary>
         /// <param name="pk"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        protected virtual Boolean Encrypt(Packet pk)
+        protected virtual Boolean Encrypt(Packet pk, Byte[] key)
         {
-            if (Key == null || Key.Length == 0) return false;
+            //if (Key == null || Key.Length == 0) return false;
 
-            var buf = pk.ToArray().RC4(Key);
+            var buf = pk.ToArray().RC4(key);
             pk.Set(buf);
 
             return true;
