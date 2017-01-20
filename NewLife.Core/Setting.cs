@@ -102,7 +102,7 @@ namespace NewLife
                 PluginCache = Path.GetPathRoot(sys).CombinePath("X", "Cache");
             }
 #endif
-            //if (PluginServer.IsNullOrWhiteSpace() || PluginServer.EqualIgnoreCase("http://x.newlifex.com/")) PluginServer = "ftp://ftp.newlifex.com/x/";
+            if (PluginServer.IsNullOrWhiteSpace() || PluginServer.StartsWithIgnoreCase("ftp://")) PluginServer = "http://x.newlifex.com/";
 
             base.OnLoaded();
         }
