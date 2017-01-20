@@ -64,12 +64,12 @@ namespace NewLife.Remoting
             if (msg.Reply) return null;
 
             // 过滤器
-            this.ExecuteFilter(msg, false);
+            this.ExecuteFilter(session, msg, false);
 
             var rs = OnReceive(session, msg);
 
             // 过滤器
-            this.ExecuteFilter(rs, true);
+            this.ExecuteFilter(session, rs, true);
 
             return rs;
         }

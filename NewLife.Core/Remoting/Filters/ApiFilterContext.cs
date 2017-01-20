@@ -7,6 +7,9 @@ namespace NewLife.Remoting
     /// <summary>Api过滤上下文</summary>
     public class ApiFilterContext : FilterContext
     {
+        /// <summary>会话</summary>
+        public IApiSession Session { get; set; }
+
         /// <summary>消息</summary>
         public IMessage Message { get; set; }
 

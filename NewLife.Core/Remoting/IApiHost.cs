@@ -68,13 +68,13 @@ namespace NewLife.Remoting
             var msg = session.CreateMessage(data);
 
             // 过滤器
-            host.ExecuteFilter(msg, true);
+            host.ExecuteFilter(session, msg, true);
 
             var rs = await session.SendAsync(msg);
             if (rs == null) return default(TResult);
 
             // 过滤器
-            host.ExecuteFilter(rs, false);
+            host.ExecuteFilter(session, rs, false);
 
             // 特殊返回类型
             if (typeof(TResult) == typeof(Packet)) return (TResult)(Object)rs.Payload;
@@ -99,9 +99,10 @@ namespace NewLife.Remoting
 
         /// <summary>执行过滤器</summary>
         /// <param name="host"></param>
+        /// <param name="session"></param>
         /// <param name="msg"></param>
         /// <param name="issend"></param>
-        internal static void ExecuteFilter(this IApiHost host, IMessage msg, Boolean issend)
+        internal static void ExecuteFilter(this IApiHost host, IApiSession session, IMessage msg, Boolean issend)
         {
             var fs = host.Filters;
             if (fs.Count == 0) return;
@@ -109,7 +110,7 @@ namespace NewLife.Remoting
             // 接收时需要倒序
             if (!issend) fs = fs.Reverse().ToList();
 
-            var ctx = new ApiFilterContext { Packet = msg.Payload, Message = msg, IsSend = issend };
+            var ctx = new ApiFilterContext { Session = session, Packet = msg.Payload, Message = msg, IsSend = issend };
             foreach (var item in fs)
             {
                 item.Execute(ctx);

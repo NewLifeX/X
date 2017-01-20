@@ -10,7 +10,10 @@ namespace NewLife.Remoting
         /// <summary>密钥</summary>
         public Byte[] Key { get; set; }
 
-        /// <summary>执行压缩或解压缩</summary>
+        /// <summary>动态获取密钥的委托</summary>
+        public Func<FilterContext, Byte[]> GetKey { get; set; }
+
+        /// <summary>执行加解密</summary>
         /// <param name="context"></param>
         /// <returns></returns>
         protected override Boolean OnExecute(FilterContext context)
@@ -23,6 +26,9 @@ namespace NewLife.Remoting
 
             if (ctx.IsSend)
             {
+                // 响应消息是否加密由标识位决定
+                if (msg.Reply && (msg.Flag & 0x20) == 0) return true;
+
                 // 加密标记位
                 msg.Flag |= 0x20;
             }
@@ -31,6 +37,13 @@ namespace NewLife.Remoting
                 // 加密标记位
                 if ((msg.Flag & 0x20) == 0) return true;
             }
+
+            var key = Key;
+
+            // 根据上下文从外部获取密钥
+            var func = GetKey;
+            if (func != null) key = func(context);
+            if (key == null || key.Length == 0) return true;
 
             var pk = ctx.Packet;
             Encrypt(pk);
