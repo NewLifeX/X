@@ -47,3 +47,7 @@ ORM组件，主要亮点：
 新生命开发团队  
 网站：http://www.NewLifeX.com  
 QQ群：1600800  
+
+## 项目源码位置
+国内 https://git.NewLifeX.com/NewLife/X  
+国外 https://github.com/NewLifeX/X  
