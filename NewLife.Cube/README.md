@@ -7,7 +7,7 @@
 ---
 ### 特性
 * 通用权限管理，用户、角色、菜单、权限，支持控制器Action权限控制
-* 支持 *SQLite / Sql Server / Oracle / MySql / SqlCe / Access* 等多种数据库
+* 多数据库，支持 `SQLite / Sql Server / Oracle / MySql / SqlCe / Access` 
 * 免部署，系统自动创建数据库表结构，以及初始化数据，无需人工干涉
 * 强大的视图引擎，支持子项目视图重写父项目相同位置视图，任意覆盖修改默认界面
 
@@ -21,15 +21,15 @@
 ---
 ### 安装
 * 在 *Visual Studio* 中新建MVC5项目
-* 通过 *NuGet* 引用'NewLife.Cube'，或自己编译最新的[X组件](https://git.newlifex.com/NewLife/X)源码
-* 在`Web.config`的`<connectionStrings>`段设置名为'Membership'的连接字符串，用户角色权限菜单等存储在该数据库
-* 系统自动识别数据库类型，默认'\<add name="Membership" connectionString="Data Source=~\App_Data\Membership.db" providerName="Sqlite"/>'
-* 编译项目，项目上点击鼠标右键，'查看'，'在浏览器中查看'，运行魔方平台
-* 系统为'SQLite'/'Oracle'/'MySql'/'SqlCe'数据库自动下载匹配（'x86/x64'）的数据库驱动文件，驱动下载地址可在'Config\Core.config'中修改'PluginServer'
-* 系统自动下载脚本样式表等资源文件，下载地址可在'Config/Cube.config'中修改'PluginServer'
+* 通过 *NuGet* 引用`NewLife.Cube`，或自己编译最新的[X组件](https://git.newlifex.com/NewLife/X)源码
+* 在`Web.config`的`<connectionStrings>`段设置名为`Membership`的连接字符串，用户角色权限菜单等存储在该数据库
+* 系统自动识别数据库类型，默认`\<add name="Membership" connectionString="Data Source=~\App_Data\Membership.db" providerName="Sqlite"/>`
+* 编译项目，项目上点击鼠标右键，`查看`，`在浏览器中查看`，运行魔方平台
+* 系统为`SQLite`/`Oracle`/`MySql`/`SqlCe`数据库自动下载匹配（`x86/x64`）的数据库驱动文件，驱动下载地址可在`Config\Core.config`中修改`PluginServer`
+* 系统自动下载脚本样式表等资源文件，下载地址可在`Config/Cube.config`中修改`PluginServer`
 * 默认登录用户名是`admin`，密码是`admin`
-* 推荐安装 *Visual Studio* 插件 *Razor Generator*，给'.cshtml'文件设置'自定义工具''RazorGenerator'，可以把'.cshtml'编译生成到'DLL'里面
-* 项目发布时只需要拷贝'Bin'、'web.config'、'Global.asax'，以及其它自己添加的资源文件
+* 推荐安装 *Visual Studio* 插件 *Razor Generator*，给`.cshtml`文件设置`自定义工具``RazorGenerator`，可以把`.cshtml`编译生成到`DLL`里面
+* 项目发布时只需要拷贝`Bin`、`web.config`、`Global.asax`，以及其它自己添加的资源文件
 
 ---
 ### 教程
