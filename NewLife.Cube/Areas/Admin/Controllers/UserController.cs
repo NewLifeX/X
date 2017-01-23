@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Web.Mvc;
 using System.Web.Security;
 using NewLife.Web;
 using XCode;
-using XCode.Configuration;
 using XCode.Membership;
 
 namespace NewLife.Cube.Admin.Controllers

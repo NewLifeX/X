@@ -69,7 +69,12 @@ namespace NewLife.Cube
             var user = ManageProvider.User;
             if (user == null)
             {
-                HandleUnauthorizedRequest(filterContext);
+                //HandleUnauthorizedRequest(filterContext);
+                var ctx = filterContext.HttpContext;
+                var rurl = "/Admin/User/Login";
+                if (ctx.Request.Url != null) rurl += "?returnUrl=" + ctx.Request.Url;
+
+                filterContext.HttpContext.Response.Redirect(rurl, true);
                 return;
             }
 
