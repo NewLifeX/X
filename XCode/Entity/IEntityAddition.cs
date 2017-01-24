@@ -42,9 +42,8 @@ namespace XCode
     class EntityAddition : IEntityAddition
     {
         #region 属性
-        private IEntity _Entity;
         /// <summary>实体对象</summary>
-        public IEntity Entity { get { return _Entity; } set { _Entity = value; } }
+        public IEntity Entity { get; set; }
         #endregion
 
         #region 累加
@@ -104,6 +103,9 @@ namespace XCode
             if (_Additions == null) return false;
 
             if (!_Additions.TryGetValue(name, out value)) return false;
+
+            // 如果原始值是0，不使用累加，因为可能原始数据字段是NULL，导致累加失败
+            if (Convert.ToInt64(value) == 0) return false;
 
             // 计算累加数据
             var current = Entity[name];
