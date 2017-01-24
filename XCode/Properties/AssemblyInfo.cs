@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.2.*")]
-[assembly: AssemblyFileVersion("9.2.2016.1201")]
+[assembly: AssemblyVersion("9.3.*")]
+[assembly: AssemblyFileVersion("9.3.2017.0124")]
 
 /*
  * XCode的重大改进
@@ -50,6 +50,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v9.3.2017.0124   废弃一级缓存，因其用处越来越不明显
+ * 
  * v9.2.2016.1201   去掉扩展属性的实体类依赖，降低复杂度以及弱引用内存泄漏风险
  * 
  * v9.1.2016.0921   增加统计字段缓存FieldCache，用于按字段统计日志历史表，加快查询速度

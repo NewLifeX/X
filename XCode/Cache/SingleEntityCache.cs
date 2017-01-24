@@ -255,13 +255,13 @@ namespace XCode.Cache
         public Int32 Total;
 
         /// <summary>命中</summary>
-        public Int32 Shoot;
+        public Int32 Success;
 
-        /// <summary>第一次命中，加锁之前</summary>
-        public Int32 Shoot1;
+        ///// <summary>第一次命中，加锁之前</summary>
+        //public Int32 Shoot1;
 
-        /// <summary>第二次命中，加锁之后</summary>
-        public Int32 Shoot2;
+        ///// <summary>第二次命中，加锁之后</summary>
+        //public Int32 Shoot2;
 
         /// <summary>无效次数，不允许空但是查到对象又为空</summary>
         public Int32 Invalid;
@@ -278,10 +278,10 @@ namespace XCode.Cache
                 var name = "<{0},{1}>({2})".F(typeof(TKey).Name, typeof(TEntity).Name, Entities.Count);
                 sb.AppendFormat("单对象缓存{0,-20}", name);
                 sb.AppendFormat("总次数{0,7:n0}", Total);
-                if (Shoot > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Shoot, (Double)Shoot / Total);
-                // 一级命中和总命中相等时不显示
-                if (Shoot1 > 0 && Shoot1 != Shoot) sb.AppendFormat("，一级命中{0,7:n0}（{1,6:P02}）", Shoot1, (Double)Shoot1 / Total);
-                if (Shoot2 > 0) sb.AppendFormat("，二级命中{0}（{1,6:P02}）", Shoot2, (Double)Shoot2 / Total);
+                if (Success > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Success, (Double)Success / Total);
+                //// 一级命中和总命中相等时不显示
+                //if (Shoot1 > 0 && Shoot1 != Shoot) sb.AppendFormat("，一级命中{0,7:n0}（{1,6:P02}）", Shoot1, (Double)Shoot1 / Total);
+                //if (Shoot2 > 0) sb.AppendFormat("，二级命中{0}（{1,6:P02}）", Shoot2, (Double)Shoot2 / Total);
                 if (Invalid > 0) sb.AppendFormat("，无效次数{0}（{1,6:P02}）", Invalid, (Double)Invalid / Total);
 
                 XTrace.WriteLine(sb.ToString());
@@ -303,14 +303,14 @@ namespace XCode.Cache
             if (key == null) return null;
 
             // 更新统计信息
-            XCache.CheckShowStatics(ref NextShow, ref Total, ShowStatics);
+            CheckShowStatics(ref NextShow, ref Total, ShowStatics);
 
             // 如果找到项，返回
             CacheItem item = null;
             // 如果TryGetValue获取成功，item为空说明同一时间别的线程已做删除操作
             if (dic.TryGetValue(key, out item) && item != null)
             {
-                Interlocked.Increment(ref Shoot1);
+                //Interlocked.Increment(ref Shoot1);
                 // 下面的GetData里会判断过期并处理
                 return GetData(item);
             }
@@ -322,7 +322,7 @@ namespace XCode.Cache
                 // 再次尝试获取
                 if (dic.TryGetValue(key, out item) && item != null)
                 {
-                    Interlocked.Increment(ref Shoot2);
+                    //Interlocked.Increment(ref Shoot2);
                     return GetData(item);
                 }
 
@@ -403,7 +403,7 @@ namespace XCode.Cache
             // 这里不能判断独占缓存，否则将失去自动保存的机会
             if (!item.Expired)
             {
-                Interlocked.Increment(ref Shoot);
+                Interlocked.Increment(ref Success);
                 return item.Entity;
             }
 

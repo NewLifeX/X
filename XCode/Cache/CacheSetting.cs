@@ -16,14 +16,14 @@ namespace XCode.Cache
         [Description("是否独占数据库，独占时将大大加大缓存权重，默认true（Debug时为false）")]
         public Boolean Alone { get; set; }
 
-        /// <summary>一级缓存相对有效期。
-        /// -2	关闭缓存
-        /// -1	非独占数据库，有外部系统操作数据库，使用请求级缓存；
-        ///  0	永久静态缓存；
-        /// >0	静态缓存时间，单位是秒；
-        /// </summary>
-        [Description("一级缓存有效期。-2 关闭缓存；-1 非独占数据库，请求级缓存；0 永久静态缓存；>0 静态缓存时间，单位秒；默认-1")]
-        public Int32 Expiration { get; set; }
+        ///// <summary>一级缓存相对有效期。
+        ///// -2	关闭缓存
+        ///// -1	非独占数据库，有外部系统操作数据库，使用请求级缓存；
+        /////  0	永久静态缓存；
+        ///// >0	静态缓存时间，单位是秒；
+        ///// </summary>
+        //[Description("一级缓存有效期。-2 关闭缓存；-1 非独占数据库，请求级缓存；0 永久静态缓存；>0 静态缓存时间，单位秒；默认-1")]
+        //public Int32 Expiration { get; set; }
 
         ///// <summary>一级缓存维护定时器的检查周期，默认5秒</summary>
         //[Description("一级缓存维护定时器的检查周期，默认5秒")]
@@ -43,7 +43,7 @@ namespace XCode.Cache
         public CacheSetting()
         {
             Alone = true;
-            Expiration = -1;
+            //Expiration = -1;
             //CheckPeriod = 5;
             EntityCacheExpire = 60;
             SingleCacheExpire = 60;
@@ -56,7 +56,7 @@ namespace XCode.Cache
             Alone = Config.GetConfig<Boolean>("XCode.Cache.Alone", !CacheDebug);
 
             //Expiration = Config.GetMutilConfig<Int32>(Alone ? 60 : -1, "XCode.Cache.Expiration", "XCacheExpiration");
-            Expiration = Config.GetMutilConfig<Int32>(-1, "XCode.Cache.Expiration", "XCacheExpiration");
+            //Expiration = Config.GetMutilConfig<Int32>(-1, "XCode.Cache.Expiration", "XCacheExpiration");
             //CheckPeriod = Config.GetMutilConfig<Int32>(5, "XCode.Cache.CheckPeriod", "XCacheCheckPeriod");
 
             EntityCacheExpire = Config.GetConfig<Int32>("XCode.Cache.EntityCacheExpire", 60);

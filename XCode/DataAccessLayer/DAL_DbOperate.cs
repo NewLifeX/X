@@ -12,21 +12,21 @@ namespace XCode.DataAccessLayer
     partial class DAL
     {
         #region 统计属性
-        private Boolean _EnableCache = XCache.Kind != XCache.CacheKinds.关闭缓存;
-        /// <summary>是否启用缓存</summary>
-        /// <remarks>设为false可清空缓存</remarks>
-        public Boolean EnableCache
-        {
-            get { return _EnableCache; }
-            set
-            {
-                _EnableCache = value;
-                if (!_EnableCache) XCache.RemoveAll();
-            }
-        }
+        //private Boolean _EnableCache = XCache.Kind != XCache.CacheKinds.关闭缓存;
+        ///// <summary>是否启用缓存</summary>
+        ///// <remarks>设为false可清空缓存</remarks>
+        //public Boolean EnableCache
+        //{
+        //    get { return _EnableCache; }
+        //    set
+        //    {
+        //        _EnableCache = value;
+        //        if (!_EnableCache) XCache.RemoveAll();
+        //    }
+        //}
 
-        /// <summary>缓存个数</summary>
-        public Int32 CacheCount { get { return XCache.Count; } }
+        ///// <summary>缓存个数</summary>
+        //public Int32 CacheCount { get { return XCache.Count; } }
 
         [ThreadStatic]
         private static Int32 _QueryTimes;
@@ -81,14 +81,14 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
-            var cacheKey = sql + "_" + ConnName;
+            //var cacheKey = sql + "_" + ConnName;
             DataSet ds = null;
-            if (EnableCache && XCache.TryGetItem(cacheKey, out ds)) return ds;
+            //if (EnableCache && XCache.TryGetItem(cacheKey, out ds)) return ds;
 
             Interlocked.Increment(ref _QueryTimes);
             ds = Session.Query(sql);
 
-            if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
+            //if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
 
             return ds;
         }
@@ -117,18 +117,18 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
-            var cacheKey = "";
+            //var cacheKey = "";
             var rs = 0;
-            if (EnableCache)
-            {
-                cacheKey = sb + "_SelectCount" + "_" + ConnName;
-                if (XCache.TryGetItem(cacheKey, out rs)) return rs;
-            }
+            //if (EnableCache)
+            //{
+            //    cacheKey = sb + "_SelectCount" + "_" + ConnName;
+            //    if (XCache.TryGetItem(cacheKey, out rs)) return rs;
+            //}
 
             Interlocked.Increment(ref _QueryTimes);
             rs = (Int32)Session.QueryCount(sb);
 
-            if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
+            //if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
 
             return rs;
         }
@@ -146,8 +146,8 @@ namespace XCode.DataAccessLayer
 
             var rs = Session.Execute(sql);
 
-            // 移除所有和受影响表有关的缓存
-            if (EnableCache) XCache.Remove(tableNames);
+            //// 移除所有和受影响表有关的缓存
+            //if (EnableCache) XCache.Remove(tableNames);
 
             return rs;
         }
@@ -165,8 +165,8 @@ namespace XCode.DataAccessLayer
 
             var rs = Session.InsertAndGetIdentity(sql);
 
-            // 移除所有和受影响表有关的缓存
-            if (EnableCache) XCache.Remove(tableNames);
+            //// 移除所有和受影响表有关的缓存
+            //if (EnableCache) XCache.Remove(tableNames);
 
             return rs;
         }
@@ -186,8 +186,8 @@ namespace XCode.DataAccessLayer
 
             var rs = Session.Execute(sql, type, ps);
 
-            // 移除所有和受影响表有关的缓存
-            if (EnableCache) XCache.Remove(tableNames);
+            //// 移除所有和受影响表有关的缓存
+            //if (EnableCache) XCache.Remove(tableNames);
 
             return rs;
         }
@@ -207,8 +207,8 @@ namespace XCode.DataAccessLayer
 
             var rs = Session.InsertAndGetIdentity(sql, type, ps);
 
-            // 移除所有和受影响表有关的缓存
-            if (EnableCache) XCache.Remove(tableNames);
+            //// 移除所有和受影响表有关的缓存
+            //if (EnableCache) XCache.Remove(tableNames);
 
             return rs;
         }
@@ -222,18 +222,18 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
-            var cacheKey = "";
+            //var cacheKey = "";
             DataSet ds = null;
-            if (EnableCache)
-            {
-                cacheKey = cmd.CommandText + "_" + ConnName;
-                if (XCache.TryGetItem(cacheKey, out ds)) return ds;
-            }
+            //if (EnableCache)
+            //{
+            //    cacheKey = cmd.CommandText + "_" + ConnName;
+            //    if (XCache.TryGetItem(cacheKey, out ds)) return ds;
+            //}
 
             Interlocked.Increment(ref _QueryTimes);
             ds = Session.Query(cmd);
 
-            if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
+            //if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
 
             return ds;
         }
@@ -250,8 +250,8 @@ namespace XCode.DataAccessLayer
             Interlocked.Increment(ref _ExecuteTimes);
             var ret = Session.Execute(cmd);
 
-            // 移除所有和受影响表有关的缓存
-            if (EnableCache) XCache.Remove(tableNames);
+            //// 移除所有和受影响表有关的缓存
+            //if (EnableCache) XCache.Remove(tableNames);
 
             return ret;
         }

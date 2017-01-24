@@ -10,13 +10,11 @@ namespace XCode.Cache
     public abstract class CacheBase<TEntity> : CacheBase where TEntity : Entity<TEntity>, new()
     {
         #region 属性
-        private String _ConnName;
         /// <summary>连接名</summary>
-        public String ConnName { get { return _ConnName; } set { _ConnName = value; } }
+        public String ConnName { get; set; }
 
-        private String _TableName;
         /// <summary>表名</summary>
-        public String TableName { get { return _TableName; } set { _TableName = value; } }
+        public String TableName { get; set; }
         #endregion
 
         /// <summary>调用委托方法前设置连接名和表名，调用后还原</summary>
@@ -58,5 +56,22 @@ namespace XCode.Cache
         /// <summary>是否调试缓存模块</summary>
         public static Boolean Debug { get { return Setting.Current.Cache.CacheDebug; } }
         #endregion
+
+        /// <summary>检查并显示统计信息</summary>
+        /// <param name="next"></param>
+        /// <param name="total"></param>
+        /// <param name="show"></param>
+        internal static void CheckShowStatics(ref DateTime next, ref Int32 total, Action show)
+        {
+            if (next < DateTime.Now)
+            {
+                var isfirst = next == DateTime.MinValue;
+                next = DAL.Debug ? DateTime.Now.AddMinutes(10) : DateTime.Now.AddHours(24);
+
+                if (!isfirst) show();
+            }
+
+            Interlocked.Increment(ref total);
+        }
     }
 }

@@ -871,11 +871,11 @@ namespace XCode
             var rs = Dal.Session.Truncate(TableName);
 
             // 干掉所有缓存
-            if (Dal.EnableCache)
-            {
-                Dal.EnableCache = false;
-                Dal.EnableCache = true;
-            }
+            //if (Dal.EnableCache)
+            //{
+            //    Dal.EnableCache = false;
+            //    Dal.EnableCache = true;
+            //}
             Cache.Clear();
             SingleCache.Clear(null);
             LongCount = 0;
