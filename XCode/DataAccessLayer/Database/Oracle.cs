@@ -339,7 +339,7 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            BeginTransaction();
+            BeginTransaction(IsolationLevel.Serializable);
             try
             {
                 Int64 rs = Execute(sql, type, ps);

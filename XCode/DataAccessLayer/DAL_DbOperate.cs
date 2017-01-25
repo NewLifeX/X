@@ -165,11 +165,21 @@ namespace XCode.DataAccessLayer
 
         #region 事务
         /// <summary>开始事务</summary>
+        /// <remarks>
+        /// Read Uncommitted: 允许读取脏数据，一个事务能看到另一个事务还没有提交的数据。（不会阻止其它操作）
+        /// Read Committed: 确保事务读取的数据都必须是已经提交的数据。它限制了读取中间的，没有提交的，脏的数据。
+        /// 但是它不能确保当事务重新去读取的时候，读的数据跟上次读的数据是一样的，也就是说当事务第一次读取完数据后，
+        /// 该数据是可能被其他事务修改的，当它再去读取的时候，数据可能是不一样的。（数据隐藏，不阻止）
+        /// Repeatable Read: 是一个更高级别的隔离级别，如果事务再去读取同样的数据，先前的数据是没有被修改过的。（阻止其它修改）
+        /// Serializable: 它做出了最有力的保证，除了每次读取的数据是一样的，它还确保每次读取没有新的数据。（阻止其它添删改）
+        /// </remarks>
+        /// <param name="level">事务隔离等级</param>
         /// <returns>剩下的事务计数</returns>
-        public Int32 BeginTransaction()
+        public Int32 BeginTransaction(IsolationLevel level = IsolationLevel.Unspecified)
         {
             CheckBeforeUseDatabase();
-            return Session.BeginTransaction();
+
+            return Session.BeginTransaction(level);
         }
 
         /// <summary>提交事务</summary>

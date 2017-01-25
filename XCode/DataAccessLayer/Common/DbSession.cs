@@ -236,8 +236,17 @@ namespace XCode.DataAccessLayer
         private Dictionary<String, DirtiedEntitySession> _EntitySession = new Dictionary<String, DirtiedEntitySession>();
 
         /// <summary>开始事务</summary>
+        /// <remarks>
+        /// Read Uncommitted: 允许读取脏数据，一个事务能看到另一个事务还没有提交的数据。（不会阻止其它操作）
+        /// Read Committed: 确保事务读取的数据都必须是已经提交的数据。它限制了读取中间的，没有提交的，脏的数据。
+        /// 但是它不能确保当事务重新去读取的时候，读的数据跟上次读的数据是一样的，也就是说当事务第一次读取完数据后，
+        /// 该数据是可能被其他事务修改的，当它再去读取的时候，数据可能是不一样的。（数据隐藏，不阻止）
+        /// Repeatable Read: 是一个更高级别的隔离级别，如果事务再去读取同样的数据，先前的数据是没有被修改过的。（阻止其它修改）
+        /// Serializable: 它做出了最有力的保证，除了每次读取的数据是一样的，它还确保每次读取没有新的数据。（阻止其它添删改）
+        /// </remarks>
+        /// <param name="level">事务隔离等级</param>
         /// <returns>剩下的事务计数</returns>
-        public virtual Int32 BeginTransaction()
+        public virtual Int32 BeginTransaction(IsolationLevel level)
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
@@ -478,22 +487,15 @@ namespace XCode.DataAccessLayer
             if (sql.Contains(" "))
             {
                 var orderBy = DbBase.CheckOrderClause(ref sql);
-                //sql = String.Format("Select Count(*) From {0}", CheckSimpleSQL(sql));
-                //Match m = reg_QueryCount.Match(sql);
                 var ms = reg_QueryCount.Matches(sql);
                 if (ms != null && ms.Count > 0)
-                {
                     sql = String.Format("Select Count(*) From {0}", ms[0].Groups[1].Value);
-                }
                 else
-                {
                     sql = String.Format("Select Count(*) From {0}", DbBase.CheckSimpleSQL(sql));
-                }
             }
             else
                 sql = String.Format("Select Count(*) From {0}", Database.FormatName(sql));
 
-            //return QueryCountInternal(sql);
             return ExecuteScalar<Int64>(sql, type, ps);
         }
 
@@ -625,12 +627,12 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 获取一个DbCommand。
+        /// <summary>获取一个DbCommand。</summary>
+        /// <remark>
         /// 配置了连接，并关联了事务。
         /// 连接已打开。
         /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
-        /// </summary>
+        /// </remark>
         /// <returns></returns>
         public virtual DbCommand CreateCommand()
         {
@@ -642,12 +644,12 @@ namespace XCode.DataAccessLayer
             return cmd;
         }
 
-        /// <summary>
-        /// 获取一个DbCommand。
+        /// <summary>获取一个DbCommand。</summary>
+        /// <remark>
         /// 配置了连接，并关联了事务。
         /// 连接已打开。
         /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
-        /// </summary>
+        /// </remark>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
@@ -762,7 +764,7 @@ namespace XCode.DataAccessLayer
 
                 sw.Stop();
                 // 耗时超过多少秒输出错误日志
-                if (sw.ElapsedMilliseconds > 1000) DAL.WriteLog("耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                if (sw.ElapsedMilliseconds > 1000) DAL.WriteLog("GetSchema耗时 {0:n0}ms", sw.ElapsedMilliseconds);
 
                 return dt;
             }
@@ -896,6 +898,7 @@ namespace XCode.DataAccessLayer
 
             if (_swSql.ElapsedMilliseconds < Setting.Current.TraceSQLTime) return;
 
+            // 同一个SQL只需要报警一次
             if (_trace_sqls.Contains(sql)) return;
             lock (_trace_sqls)
             {

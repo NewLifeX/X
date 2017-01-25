@@ -285,7 +285,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override Int32 Truncate(String tableName)
         {
-            BeginTransaction();
+            BeginTransaction(IsolationLevel.Serializable);
             try
             {
                 var sql = "Delete From {0}".F(Database.FormatName(tableName));

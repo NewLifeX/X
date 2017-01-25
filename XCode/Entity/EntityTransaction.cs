@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using NewLife;
 using XCode.DataAccessLayer;
 
@@ -79,12 +80,13 @@ namespace XCode
         #region 构造
         /// <summary>用数据库会话来实例化一个事务区域</summary>
         /// <param name="session"></param>
-        public EntityTransaction(IDbSession session)
+        /// <param name="level">事务隔离等级</param>
+        public EntityTransaction(IDbSession session, IsolationLevel level = IsolationLevel.Unspecified)
         {
             Session = session;
             if (session != null)
             {
-                session.BeginTransaction();
+                session.BeginTransaction(level);
                 hasStart = true;
             }
         }
