@@ -54,6 +54,7 @@
     <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
       <Link>Properties\AssemblyInfo_.cs</Link>
     </Compile>
+    <Compile Include="Setting.cs" />
     <Compile Include="Tags\TagTemplate.cs" />
     <Compile Include="Templating\Directive.cs" />
     <Compile Include="Templating\Template2.cs">
@@ -72,9 +73,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="说明.txt" />

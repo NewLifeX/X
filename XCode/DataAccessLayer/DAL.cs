@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.Code;
 using XCode.Exceptions;
-using System.ComponentModel;
-using NewLife;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace XCode.DataAccessLayer
 {
@@ -22,7 +22,6 @@ namespace XCode.DataAccessLayer
     /// 每一个数据库链接字符串，对应唯一的一个DAL实例。
     /// 数据库链接字符串可以写在配置文件中，然后在Create时指定名字；
     /// 也可以直接把链接字符串作为AddConnStr的参数传入。
-    /// 每一个数据库操作都必须指定表名以用于管理缓存，空表名或*将匹配所有缓存
     /// </remarks>
     public partial class DAL
     {
@@ -36,24 +35,8 @@ namespace XCode.DataAccessLayer
             //if (!ConnStrs.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
             if (!ConnStrs.ContainsKey(connName))
             {
-                var set = Setting.Current;
-                var dbpath = set.SQLiteDbPath;
-                if (dbpath.IsNullOrEmpty())
-                {
-                    dbpath = ".";
-                    if (Runtime.IsWeb)
-                    {
-                        if (!Environment.CurrentDirectory.Contains("iisexpress") ||
-                            !Environment.CurrentDirectory.Contains("Web"))
-                            dbpath = "..\\Data";
-                        else
-                            dbpath = "~\\App_Data";
-                    }
-                    set.SQLiteDbPath = dbpath;
-                    set.Save();
-                }
-                var connstr = "Data Source=" + dbpath.CombinePath(connName + ".db");
-                WriteLog("自动为[{0}]设置连接字符串：{1}", connName, connstr);
+                var connstr = "Data Source=" + Setting.Current.SQLiteDbPath.CombinePath(connName + ".db");
+                WriteLog("自动为[{0}]设置SQLite连接字符串：{1}", connName, connstr);
                 AddConnStr(connName, connstr, null, "SQLite");
             }
 
@@ -69,7 +52,7 @@ namespace XCode.DataAccessLayer
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
         public static DAL Create(String connName)
         {
-            if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
+            if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException(nameof(connName));
 
             // 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的ConnStr属性
             DAL dal = null;

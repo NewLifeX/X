@@ -43,7 +43,7 @@ namespace XCode.Cache
         /// <summary>实例化实体缓存</summary>
         public EntityCache()
         {
-            Expire = Setting.Current.Cache.EntityCacheExpire;
+            Expire = Setting.Current.EntityCacheExpire;
         }
         #endregion
 

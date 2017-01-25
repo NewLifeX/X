@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Xml;
 
@@ -33,31 +32,23 @@ namespace NewLife
 
         /// <summary>临时目录</summary>
         [Description("临时目录")]
-        public String TempPath { get; set; }
+        public String TempPath { get; set; } = "XTemp";
 
-        /// <summary>扩展插件存放目录</summary>
-        [Description("扩展插件存放目录")]
-        public String PluginPath { get; set; }
+        /// <summary>插件目录</summary>
+        [Description("插件目录")]
+        public String PluginPath { get; set; } = "Plugins";
 
-        /// <summary>扩展插件服务器。将从该网页上根据关键字分析链接并下载插件</summary>
-        [Description("扩展插件服务器。将从该网页上根据关键字分析链接并下载插件")]
-        public String PluginServer { get; set; }
+        /// <summary>插件服务器。将从该网页上根据关键字分析链接并下载插件</summary>
+        [Description("插件服务器。将从该网页上根据关键字分析链接并下载插件")]
+        public String PluginServer { get; set; } = "http://x.newlifex.com/";
 
-        /// <summary>下载扩展插件的缓存目录。默认位于系统盘的X\Cache</summary>
-        [Description("下载扩展插件的缓存目录。默认位于系统盘的X\\Cache")]
+        /// <summary>插件缓存目录。默认位于系统盘的X\Cache</summary>
+        [Description("插件缓存目录。默认位于系统盘的X\\Cache")]
         public String PluginCache { get; set; }
 
         /// <summary>网络调试</summary>
         [Description("网络调试")]
         public Boolean NetDebug { get; set; }
-
-        ///// <summary>多线程调试</summary>
-        //[Description("多线程调试")]
-        //public Boolean ThreadDebug { get; set; }
-
-        ///// <summary>网页压缩文件</summary>
-        //[Description("网页压缩文件")]
-        //public String WebCompressFiles { get; set; }
 
         /// <summary>语音提示。默认true</summary>
         [Description("语音提示。默认true")]
@@ -68,26 +59,11 @@ namespace NewLife
         /// <summary>实例化</summary>
         public Setting()
         {
-            //Debug = true;
-            //SpeechTip = true;
         }
 
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {
-            Debug = Config.GetConfig<Boolean>("NewLife.Debug", false);
-            NetDebug = Config.GetConfig<Boolean>("NewLife.Net.Debug", false);
-            LogLevel = Config.GetConfig<LogLevel>("NewLife.LogLevel", Debug ? LogLevel.Debug : LogLevel.Info);
-
-            LogPath = Config.GetConfig<String>("NewLife.LogPath", Runtime.IsWeb ? "../Log" : "Log");
-            TempPath = Config.GetConfig<String>("NewLife.TempPath", "XTemp");
-            NetworkLog = "";
-            PluginServer = "http://x.newlifex.com/";
-            //PluginServer = "ftp://ftp.newlifex.com/x/";
-            //PluginPath = Runtime.IsWeb ? "Bin" : "Plugins";
-            PluginPath = "Plugins";
-            //ThreadDebug = Config.GetMutilConfig<Boolean>(false, "NewLife.Thread.Debug", "ThreadPoolDebug");
-            //WebCompressFiles = Config.GetMutilConfig<String>(".aspx,.axd,.js,.css", "NewLife.Web.CompressFiles", "NewLife.CommonEntity.CompressFiles");
         }
 
         /// <summary>加载完成后</summary>

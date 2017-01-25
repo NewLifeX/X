@@ -70,7 +70,6 @@
     <Compile Include="Attributes\MapAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
     <Compile Include="Attributes\BindRelationAttribute.cs" />
-    <Compile Include="Cache\CacheSetting.cs" />
     <Compile Include="Code\CodeDomHelper.cs" />
     <Compile Include="Configuration\FieldExtension.cs" />
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">

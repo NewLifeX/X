@@ -68,7 +68,7 @@ namespace XCode.Cache
         /// <summary>实例化一个实体缓存</summary>
         public SingleEntityCache()
         {
-            Expire = Setting.Current.Cache.SingleCacheExpire;
+            Expire = Setting.Current.SingleCacheExpire;
             MaxEntity = 10000;
             AutoSave = true;
 
@@ -77,7 +77,7 @@ namespace XCode.Cache
             FindKeyMethod = key => Entity<TEntity>.FindByKey(key);
 
             SlaveKeyIgnoreCase = false;
-            HoldCache = Setting.Current.Cache.Alone;
+            HoldCache = Setting.Current.Alone;
 
             // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
             _Timer = new TimerX(CheckExpire, null, Expire * 1000, Expire * 1000);

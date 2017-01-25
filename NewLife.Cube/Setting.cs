@@ -18,27 +18,22 @@ namespace NewLife.Cube
 
         /// <summary>显示运行时间</summary>
         [Description("显示运行时间")]
-        public Boolean ShowRunTime { get; set; }
+        public Boolean ShowRunTime { get; set; } = true;
 
         /// <summary>扩展插件服务器。将从该网页上根据关键字分析链接并下载插件</summary>
         [Description("扩展插件服务器。将从该网页上根据关键字分析链接并下载插件")]
-        public String PluginServer { get; set; }
+        public String PluginServer { get; set; } = "http://x.newlifex.com/";
         #endregion
 
         #region 方法
         /// <summary>实例化</summary>
         public Setting()
         {
-            Debug = false;
-            ShowRunTime = true;
-            PluginServer = "http://x.newlifex.com/";
         }
 
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {
-            Debug = Config.GetConfig<Boolean>("NewLife.Cube.Debug", false);
-            ShowRunTime = Config.GetConfig<Boolean>("NewLife.Cube.ShowRunTime", XTrace.Debug);
         }
         #endregion
     }

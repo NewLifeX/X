@@ -54,7 +54,7 @@ namespace XCode.Cache
     {
         #region 设置
         /// <summary>是否调试缓存模块</summary>
-        public static Boolean Debug { get { return Setting.Current.Cache.CacheDebug; } }
+        public static Boolean Debug { get { return Setting.Current.CacheDebug; } }
         #endregion
 
         /// <summary>检查并显示统计信息</summary>

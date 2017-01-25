@@ -16,15 +16,15 @@ namespace XCode
         #region 属性
         /// <summary>是否启用调试。默认启用</summary>
         [Description("调试")]
-        public Boolean Debug { get; set; }
+        public Boolean Debug { get; set; } = true;
 
         /// <summary>是否输出SQL语句，默认启用</summary>
         [Description("输出SQL。是否输出SQL语句，默认启用")]
-        public Boolean ShowSQL { get; set; }
+        public Boolean ShowSQL { get; set; } = true;
 
         /// <summary>设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录</summary>
         [Description("SQL目录。设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录")]
-        public String SQLPath { get; set; }
+        public String SQLPath { get; set; } = "";
 
         /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认500毫秒</summary>
         [Description("SQL执行时间。跟踪SQL执行时间，大于该阀值将输出日志，默认500毫秒")]
@@ -40,7 +40,7 @@ namespace XCode
 
         /// <summary>实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭</summary>
         [Description("数据初始化。实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭")]
-        public Boolean InitData { get; set; }
+        public Boolean InitData { get; set; } = true;
 
         /// <summary>事务调试。打开时输出事务回滚日志，默认关闭</summary>
         [Description("事务调试。打开时输出事务回滚日志，默认关闭")]
@@ -50,17 +50,25 @@ namespace XCode
         [Description("SQLite默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
         public String SQLiteDbPath { get; set; }
 
-        /// <summary>缓存</summary>
-        [Description("缓存")]
-        public CacheSetting Cache { get; set; }
+        /// <summary>缓存调试</summary>
+        [Description("缓存调试")]
+        public Boolean CacheDebug { get; set; }
+
+        /// <summary>独占数据库。独占时将大大加大缓存权重，默认true</summary>
+        [Description("独占数据库。独占时将大大加大缓存权重，默认true")]
+        public Boolean Alone { get; set; } = true;
+
+        /// <summary>实体缓存过期。默认60秒</summary>
+        [Description("实体缓存过期。默认60秒")]
+        public Int32 EntityCacheExpire { get; set; } = 60;
+
+        /// <summary>单对象缓存过期。默认60秒</summary>
+        [Description("单对象缓存过期。默认60秒")]
+        public Int32 SingleCacheExpire { get; set; } = 60;
 
         /// <summary>反向工程</summary>
         [Description("反向工程")]
         public NegativeSetting Negative { get; set; }
-
-        ///// <summary>模型</summary>
-        //[Description("模型")]
-        //public ModelSetting Model { get; set; }
 
         /// <summary>Oracle设置</summary>
         [Description("Oracle设置")]
@@ -71,28 +79,15 @@ namespace XCode
         /// <summary>实例化设置</summary>
         public Setting()
         {
-            Debug = true;
-            ShowSQL = true;
-            SQLPath = "";
             ConnMaps = "Conn2#Conn,Table3@Table";
-            InitData = true;
 
-            Cache = new CacheSetting();
             Negative = new NegativeSetting();
-            //Model = new ModelSetting();
             Oracle = new OracleSetting();
         }
 
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {
-            Debug = Config.GetConfig<Boolean>("XCode.Debug", true);
-            ShowSQL = Config.GetConfig<Boolean>("XCode.ShowSQL", Debug);
-            SQLPath = Config.GetConfig<String>("XCode.SQLPath");
-            ConnMaps = Config.GetConfig<String>("XCode.ConnMaps");
-            TraceSQLTime = Config.GetConfig<Int32>("XCode.TraceSQLTime");
-
-            Cache.Init();
             Negative.Init();
         }
 
@@ -125,18 +120,16 @@ namespace XCode
         #region 属性
         /// <summary>是否限制只能访问拥有者的信息，默认true</summary>
         [Description("是否限制只能访问拥有者的信息，默认true")]
-        public Boolean UseOwner { get; set; }
+        public Boolean UseOwner { get; set; } = true;
 
         /// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true</summary>
         [Description("是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true")]
-        public Boolean IgnoreCase { get; set; }
+        public Boolean IgnoreCase { get; set; } = true;
         #endregion
 
         /// <summary>初始化</summary>
         public OracleSetting()
         {
-            UseOwner = true;
-            IgnoreCase = true;
         }
     }
 }

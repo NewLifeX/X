@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using NewLife.Collections;
-using NewLife.Configuration;
 using NewLife.Log;
 
 namespace XTemplate.Templating
@@ -38,7 +34,7 @@ namespace XTemplate.Templating
             {
                 name = name.Replace(item, '_');
             }
-            name = name.Replace(Path.VolumeSeparatorChar, '_'); 
+            name = name.Replace(Path.VolumeSeparatorChar, '_');
             name = name.Replace(Path.DirectorySeparatorChar, '_');
             name = name.Replace(Path.AltDirectorySeparatorChar, '_');
             name = name.Replace(Path.PathSeparator, '_');
@@ -55,20 +51,8 @@ namespace XTemplate.Templating
         #endregion
 
         #region 调试
-        private static Boolean? _Debug;
         /// <summary>是否调试</summary>
-        public static Boolean Debug
-        {
-            get
-            {
-                if (_Debug != null) return _Debug.Value;
-
-                _Debug = Config.GetConfig<Boolean>("XTemplate.Debug", false);
-
-                return _Debug.Value;
-            }
-            set { _Debug = value; }
-        }
+        public static Boolean Debug { get; set; } = Setting.Current.Debug;
 
         /// <summary>输出日志</summary>
         /// <param name="msg"></param>
@@ -87,13 +71,8 @@ namespace XTemplate.Templating
         #endregion
 
         #region 配置
-        private static String _BaseClassName;
         /// <summary>默认基类名称</summary>
-        public static String BaseClassName
-        {
-            get { return _BaseClassName ?? (_BaseClassName = Config.GetConfig<String>("XTemplate.BaseClassName", String.Empty)); }
-            set { _BaseClassName = value; }
-        }
+        public static String BaseClassName { get; set; } = Setting.Current.BaseClassName;
 
         private static List<String> _References;
         /// <summary>标准程序集引用</summary>
@@ -109,7 +88,7 @@ namespace XTemplate.Templating
                 var names = new List<String>();
 
                 // 加入配置的程序集
-                var ss = Config.GetConfigSplit<String>("XTemplate.References", null);
+                var ss = Setting.Current.References.Split(",", ";");
                 if (ss != null && ss.Length > 0)
                 {
                     foreach (var item in ss)
@@ -156,7 +135,7 @@ namespace XTemplate.Templating
                 _Imports = list;
 
                 // 加入配置的命名空间
-                var ss = Config.GetConfigSplit<String>("XTemplate.Imports", null);
+                var ss = Setting.Current.Imports.Split(",", ";");
                 if (ss != null && ss.Length > 0) list.AddRange(ss);
 
                 // 常用命名空间
