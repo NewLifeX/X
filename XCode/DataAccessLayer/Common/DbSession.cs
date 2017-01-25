@@ -107,12 +107,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 打开/关闭
-        /// <summary>是否自动关闭。
-        /// 启用事务后，该设置无效。
-        /// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
-        /// </summary>
-        public Boolean IsAutoClose { get; set; } = true;
-
         /// <summary>连接是否已经打开</summary>
         public Boolean Opened { get { return _Conn != null && _Conn.State != ConnectionState.Closed; } }
 
@@ -170,7 +164,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public void AutoClose()
         {
-            if (IsAutoClose && Trans == null && Opened) Close();
+            if (Trans == null && Opened) Close();
         }
 
         /// <summary>数据库名</summary>
@@ -306,7 +300,7 @@ namespace XCode.DataAccessLayer
             {
                 Trans = null;
                 _EntitySession.Clear();
-                if (IsAutoClose) { Close(); }
+                Close();
             }
 
             return TransactionCount;
@@ -351,7 +345,7 @@ namespace XCode.DataAccessLayer
             {
                 tr = null;
                 _EntitySession.Clear();
-                if (IsAutoClose) { Close(); }
+                Close();
             }
 
             return TransactionCount;
