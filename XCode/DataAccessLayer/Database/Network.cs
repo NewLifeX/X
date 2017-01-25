@@ -24,17 +24,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new NetworkSession();
-        }
+        protected override IDbSession OnCreateSession() { return new NetworkSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData()
-        {
-            return new NetworkMetaData();
-        }
+        protected override IMetaData OnCreateMetaData() { return new NetworkMetaData(); }
         #endregion
 
         #region 网络操作
@@ -57,6 +51,10 @@ namespace XCode.DataAccessLayer
     /// <summary>网络数据库会话</summary>
     class NetworkSession : DbSession
     {
+        #region 构造函数
+        public NetworkSession(IDatabase db) : base(db) { }
+        #endregion
+
         #region 重载
         ///// <summary>
         ///// 查询记录集

@@ -45,17 +45,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new PostgreSQLSession();
-        }
+        protected override IDbSession OnCreateSession() { return new PostgreSQLSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData()
-        {
-            return new PostgreSQLMetaData();
-        }
+        protected override IMetaData OnCreateMetaData() { return new PostgreSQLMetaData(); }
 
         public override bool Support(string providerName)
         {
@@ -190,6 +184,10 @@ namespace XCode.DataAccessLayer
     /// <summary>PostgreSQL数据库</summary>
     internal class PostgreSQLSession : RemoteDbSession
     {
+        #region 构造函数
+        public PostgreSQLSession(IDatabase db) : base(db) { }
+        #endregion
+
         #region 基本方法 查询/执行
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>

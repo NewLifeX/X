@@ -22,6 +22,9 @@ namespace XCode
 
         /// <summary>已格式化的表名，带有中括号等</summary>
         String FormatedTableName { get; }
+
+        /// <summary>数据操作层</summary>
+        DAL Dal { get; }
         #endregion
 
         #region 数据初始化

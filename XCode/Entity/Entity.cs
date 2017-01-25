@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Xml;
@@ -586,8 +587,8 @@ namespace XCode
 
             if (list.Count > 1 && DAL.Debug)
             {
-                DAL.WriteDebugLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", whereClause);
-                NewLife.Log.XTrace.DebugStack(5);
+                DAL.WriteLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", whereClause);
+                XTrace.DebugStack(5);
             }
             return list[0];
         }

@@ -12,22 +12,6 @@ namespace XCode.DataAccessLayer
     partial class DAL
     {
         #region 统计属性
-        //private Boolean _EnableCache = XCache.Kind != XCache.CacheKinds.关闭缓存;
-        ///// <summary>是否启用缓存</summary>
-        ///// <remarks>设为false可清空缓存</remarks>
-        //public Boolean EnableCache
-        //{
-        //    get { return _EnableCache; }
-        //    set
-        //    {
-        //        _EnableCache = value;
-        //        if (!_EnableCache) XCache.RemoveAll();
-        //    }
-        //}
-
-        ///// <summary>缓存个数</summary>
-        //public Int32 CacheCount { get { return XCache.Count; } }
-
         [ThreadStatic]
         private static Int32 _QueryTimes;
         /// <summary>查询次数</summary>
@@ -40,34 +24,13 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 使用缓存后的数据操作方法
-        //private DictionaryCache<String, SelectBuilder> _PageSplitCache2;
         /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
-        /// <remarks>
-        /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
-        /// 所以在这里做缓存。
-        /// </remarks>
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
         public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
-            //var cacheKey = String.Format("{0}_{1}_{2}_{3}", builder, startRowIndex, maximumRows, ConnName);
-
-            //// 一个项目可能同时采用多种数据库，分页缓存不能采用静态
-            //if (_PageSplitCache2 == null)
-            //{
-            //    _PageSplitCache2 = new DictionaryCache<String, SelectBuilder>(StringComparer.OrdinalIgnoreCase);
-
-            //    // Access、SqlCe和SqlServer2000在处理DoubleTop时，最后一页可能导致数据不对，故不能长时间缓存其分页语句
-            //    var dt = DbType;
-            //    if (dt == DatabaseType.Access || dt == DatabaseType.SqlCe || dt == DatabaseType.SqlServer && Db.ServerVersion.StartsWith("08"))
-            //    {
-            //        _PageSplitCache2.Expire = 60;
-            //    }
-            //}
-            //return _PageSplitCache2.GetItem(cacheKey, builder, startRowIndex, maximumRows, (k, b, s, m) => Db.PageSplit(b, s, m));
-
             //2016年7月2日 HUIYUE 取消分页SQL缓存，此部分缓存提升性能不多，但有可能会造成分页数据不准确，感觉得不偿失
             return Db.PageSplit(builder, startRowIndex, maximumRows);
         }
@@ -81,16 +44,8 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
-            //var cacheKey = sql + "_" + ConnName;
-            DataSet ds = null;
-            //if (EnableCache && XCache.TryGetItem(cacheKey, out ds)) return ds;
-
             Interlocked.Increment(ref _QueryTimes);
-            ds = Session.Query(sql);
-
-            //if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
-
-            return ds;
+            return Session.Query(sql);
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -117,20 +72,8 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
-            //var cacheKey = "";
-            var rs = 0;
-            //if (EnableCache)
-            //{
-            //    cacheKey = sb + "_SelectCount" + "_" + ConnName;
-            //    if (XCache.TryGetItem(cacheKey, out rs)) return rs;
-            //}
-
             Interlocked.Increment(ref _QueryTimes);
-            rs = (Int32)Session.QueryCount(sb);
-
-            //if (EnableCache) XCache.Add(cacheKey, rs, tableNames);
-
-            return rs;
+            return (Int32)Session.QueryCount(sb);
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
@@ -144,12 +87,7 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            var rs = Session.Execute(sql);
-
-            //// 移除所有和受影响表有关的缓存
-            //if (EnableCache) XCache.Remove(tableNames);
-
-            return rs;
+            return Session.Execute(sql);
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -163,12 +101,7 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            var rs = Session.InsertAndGetIdentity(sql);
-
-            //// 移除所有和受影响表有关的缓存
-            //if (EnableCache) XCache.Remove(tableNames);
-
-            return rs;
+            return Session.InsertAndGetIdentity(sql);
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
@@ -184,12 +117,7 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            var rs = Session.Execute(sql, type, ps);
-
-            //// 移除所有和受影响表有关的缓存
-            //if (EnableCache) XCache.Remove(tableNames);
-
-            return rs;
+            return Session.Execute(sql, type, ps);
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -205,12 +133,7 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            var rs = Session.InsertAndGetIdentity(sql, type, ps);
-
-            //// 移除所有和受影响表有关的缓存
-            //if (EnableCache) XCache.Remove(tableNames);
-
-            return rs;
+            return Session.InsertAndGetIdentity(sql, type, ps);
         }
 
         /// <summary>执行CMD，返回记录集</summary>
@@ -222,20 +145,8 @@ namespace XCode.DataAccessLayer
         {
             CheckBeforeUseDatabase();
 
-            //var cacheKey = "";
-            DataSet ds = null;
-            //if (EnableCache)
-            //{
-            //    cacheKey = cmd.CommandText + "_" + ConnName;
-            //    if (XCache.TryGetItem(cacheKey, out ds)) return ds;
-            //}
-
             Interlocked.Increment(ref _QueryTimes);
-            ds = Session.Query(cmd);
-
-            //if (EnableCache) XCache.Add(cacheKey, ds, tableNames);
-
-            return ds;
+            return Session.Query(cmd);
         }
 
         /// <summary>执行CMD，返回受影响的行数</summary>
@@ -248,12 +159,7 @@ namespace XCode.DataAccessLayer
             CheckBeforeUseDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
-            var ret = Session.Execute(cmd);
-
-            //// 移除所有和受影响表有关的缓存
-            //if (EnableCache) XCache.Remove(tableNames);
-
-            return ret;
+            return Session.Execute(cmd);
         }
         #endregion
 

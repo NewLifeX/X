@@ -81,7 +81,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new SqlServerSession(); }
+        protected override IDbSession OnCreateSession() { return new SqlServerSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
@@ -269,6 +269,10 @@ namespace XCode.DataAccessLayer
     /// <summary>SqlServer数据库</summary>
     internal class SqlServerSession : RemoteDbSession
     {
+        #region 构造函数
+        public SqlServerSession(IDatabase db) : base(db) { }
+        #endregion
+
         #region 查询
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>

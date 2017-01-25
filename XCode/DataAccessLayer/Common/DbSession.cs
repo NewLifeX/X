@@ -21,6 +21,12 @@ namespace XCode.DataAccessLayer
     abstract partial class DbSession : DisposeBase, IDbSession
     {
         #region 构造函数
+        protected DbSession(IDatabase db)
+        {
+            Database = db;
+            ShowSQL = db.ShowSQL;
+        }
+
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
         /// <param name="disposing"></param>
         protected override void OnDispose(bool disposing)
@@ -51,7 +57,7 @@ namespace XCode.DataAccessLayer
 
         #region 属性
         /// <summary>数据库</summary>
-        public IDatabase Database { get; set; }
+        public IDatabase Database { get; }
 
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
         private DatabaseType DbType { get { return Database.DbType; } }
@@ -787,24 +793,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region Sql日志输出
-        private Boolean? _ShowSQL;
         /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
-        public Boolean ShowSQL
-        {
-            get
-            {
-                if (_ShowSQL == null) return Database.ShowSQL;
-                return _ShowSQL.Value;
-            }
-            set
-            {
-                // 如果设定值跟Database.ShowSQL相同，则直接使用Database.ShowSQL
-                if (value == Database.ShowSQL)
-                    _ShowSQL = null;
-                else
-                    _ShowSQL = value;
-            }
-        }
+        public Boolean ShowSQL { get; set; }
 
         static ILog logger;
 
@@ -854,11 +844,12 @@ namespace XCode.DataAccessLayer
                 if (list != null) list.Add(sql);
             }
 
-            if (String.IsNullOrEmpty(DAL.SQLPath))
+            var sqlpath = Setting.Current.SQLPath;
+            if (String.IsNullOrEmpty(sqlpath))
                 WriteLog(sql);
             else
             {
-                if (logger == null) logger = TextFileLog.Create(DAL.SQLPath);
+                if (logger == null) logger = TextFileLog.Create(sqlpath);
                 logger.Info(sql);
             }
         }

@@ -38,10 +38,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new DistributedDbSession();
-        }
+        protected override IDbSession OnCreateSession() { return new DistributedDbSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
@@ -92,7 +89,7 @@ namespace XCode.DataAccessLayer
                     list.Add(new Server(name, 0));
             }
             // 按权重降序
-            list.Sort(delegate(Server item1, Server item2) { return -1 * item1.Weight.CompareTo(item2.Weight); });
+            list.Sort(delegate (Server item1, Server item2) { return -1 * item1.Weight.CompareTo(item2.Weight); });
             WriteServers = list.ToArray();
             #endregion
 
@@ -113,7 +110,7 @@ namespace XCode.DataAccessLayer
                     list.Add(new Server(name, 1));
             }
             // 按权重降序
-            list.Sort(delegate(Server item1, Server item2) { return -1 * item1.Weight.CompareTo(item2.Weight); });
+            list.Sort(delegate (Server item1, Server item2) { return -1 * item1.Weight.CompareTo(item2.Weight); });
             ReadServers = list.ToArray();
             #endregion
         }
@@ -210,7 +207,9 @@ namespace XCode.DataAccessLayer
 
     class DistributedDbSession : DbSession
     {
-
+        #region 构造函数
+        public DistributedDbSession(IDatabase db) : base(db) { }
+        #endregion
     }
 
     class DistributedDbMetaData : DbMetaData

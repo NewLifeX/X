@@ -42,7 +42,7 @@ namespace XCode
             Type type = GetEntityType(typeName);
             if (type == null)
             {
-                DAL.WriteDebugLog("创建实体操作接口时无法找到{0}类！", typeName);
+                DAL.WriteLog("创建实体操作接口时无法找到{0}类！", typeName);
                 return null;
             }
 

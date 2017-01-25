@@ -64,7 +64,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new AccessSession(); }
+        protected override IDbSession OnCreateSession() { return new AccessSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
@@ -179,6 +179,10 @@ namespace XCode.DataAccessLayer
     /// <summary>Access数据库</summary>
     internal class AccessSession : FileDbSession
     {
+        #region 构造函数
+        public AccessSession(IDatabase db) : base(db) { }
+        #endregion
+
         #region 方法
         /// <summary>打开。已重写，为了建立数据库</summary>
         public override void Open()

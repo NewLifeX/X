@@ -58,17 +58,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new FirebirdSession();
-        }
+        protected override IDbSession OnCreateSession() { return new FirebirdSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData()
-        {
-            return new FirebirdMetaData();
-        }
+        protected override IMetaData OnCreateMetaData() { return new FirebirdMetaData(); }
         #endregion
 
         #region 分页
@@ -204,6 +198,10 @@ namespace XCode.DataAccessLayer
     /// <summary>Firebird数据库</summary>
     internal class FirebirdSession : FileDbSession
     {
+        #region 构造函数
+        public FirebirdSession(IDatabase db) : base(db) { }
+        #endregion
+
         #region 基本方法 查询/执行
         static Regex reg_SEQ = new Regex(@"\bGEN_ID\((\w+)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -278,7 +276,7 @@ namespace XCode.DataAccessLayer
             //parameters.Add("Database", @"c:\database.fdb");
             //FbConnection.CreateDatabase(parameters);
 
-            DAL.WriteDebugLog("创建数据库：{0}", FileName);
+            DAL.WriteLog("创建数据库：{0}", FileName);
 
             var conn = Database.Factory.CreateConnection();
             //var method = Reflect.GetMethodEx(conn.GetType(), "CreateDatabase", typeof(String));

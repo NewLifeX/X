@@ -62,6 +62,10 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 构造函数
+        protected FileDbSession(IDatabase db) : base(db) { }
+        #endregion
+
         #region 方法
         private static List<String> hasChecked = new List<string>();
 
@@ -141,7 +145,7 @@ namespace XCode.DataAccessLayer
 
             if (!File.Exists(FileName))
             {
-                DAL.WriteDebugLog("创建数据库：{0}", FileName);
+                DAL.WriteLog("创建数据库：{0}", FileName);
 
                 File.Create(FileName).Dispose();
             }

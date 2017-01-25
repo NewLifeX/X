@@ -114,17 +114,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new OracleSession();
-        }
+        protected override IDbSession OnCreateSession() { return new OracleSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData()
-        {
-            return new OracleMeta();
-        }
+        protected override IMetaData OnCreateMetaData() { return new OracleMeta(); }
 
         public override bool Support(string providerName)
         {
@@ -313,6 +307,10 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable(name))) Environment.SetEnvironmentVariable(name, "SIMPLIFIED CHINESE_CHINA.ZHS16GBK");
         }
 
+        #region 构造函数
+        public OracleSession(IDatabase db) : base(db) { }
+        #endregion
+
         #region 基本方法 查询/执行
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
@@ -430,6 +428,7 @@ namespace XCode.DataAccessLayer
 
             return GetTables(rows);
         }
+
         protected override void FixTable(IDataTable table, DataRow dr)
         {
             base.FixTable(table, dr);
@@ -482,7 +481,7 @@ namespace XCode.DataAccessLayer
                 {
                     field.Identity = true;
                     exists = true;
-                    break;  
+                    break;
                 }
             }
             if (!exists)

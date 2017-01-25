@@ -428,7 +428,7 @@ namespace XCode.DataAccessLayer
                             if (TryGetDataRowValue<String>(item, _.ColumnName, out dcname) &&
                                 !String.IsNullOrEmpty(dcname) && !ns.Contains(dcname)) ns.Add(dcname);
                         }
-                        if (ns.Count < 1) DAL.WriteDebugLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
+                        if (ns.Count < 1) DAL.WriteLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
                         di.Columns = ns.ToArray();
                     }
                 }

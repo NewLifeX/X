@@ -62,17 +62,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new MySqlSession();
-        }
+        protected override IDbSession OnCreateSession() { return new MySqlSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData()
-        {
-            return new MySqlMetaData();
-        }
+        protected override IMetaData OnCreateMetaData() { return new MySqlMetaData(); }
 
         public override bool Support(string providerName)
         {
@@ -220,6 +214,10 @@ namespace XCode.DataAccessLayer
     /// <summary>MySql数据库</summary>
     internal class MySqlSession : RemoteDbSession
     {
+        #region 构造函数
+        public MySqlSession(IDatabase db) : base(db) { }
+        #endregion
+
         #region 快速查询单表记录数
         ///// <summary>快速查询单表记录数，大数据量时，稍有偏差。</summary>
         ///// <param name="tableName"></param>

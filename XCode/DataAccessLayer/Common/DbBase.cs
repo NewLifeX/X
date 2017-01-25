@@ -209,10 +209,6 @@ namespace XCode.DataAccessLayer
 
                 session = OnCreateSession();
 
-                // 减少一步类型转换
-                var dbSession = session as DbSession;
-                if (dbSession != null) dbSession.Database = this;
-
                 checkConnStr();
                 session.ConnectionString = ConnectionString;
 
@@ -729,24 +725,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region Sql日志输出
-        private Boolean? _ShowSQL;
         /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
-        public Boolean ShowSQL
-        {
-            get
-            {
-                if (_ShowSQL == null) return DAL.ShowSQL;
-                return _ShowSQL.Value;
-            }
-            set
-            {
-                // 如果设定值跟DAL.ShowSQL相同，则直接使用DAL.ShowSQL
-                if (value == DAL.ShowSQL)
-                    _ShowSQL = null;
-                else
-                    _ShowSQL = value;
-            }
-        }
+        public Boolean ShowSQL { get; set; } = Setting.Current.ShowSQL;
         #endregion
     }
 }

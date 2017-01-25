@@ -456,13 +456,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IEntityOperate CreateOperate(String tableName)
         {
-            var asm = Assembly;
-            if (asm == null) return null;
-            var type = asm.GetType(tableName);
-            if (type == null)
-                return null;
-            else
-                return EntityFactory.CreateOperate(type);
+            var type = Assembly?.GetType(tableName);
+            if (type == null) return null;
+
+            return EntityFactory.CreateOperate(type);
         }
         #endregion
     }

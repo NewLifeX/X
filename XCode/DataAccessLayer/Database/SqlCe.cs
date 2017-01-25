@@ -110,17 +110,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession()
-        {
-            return new SqlCeSession();
-        }
+        protected override IDbSession OnCreateSession() { return new SqlCeSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData()
-        {
-            return new SqlCeMetaData();
-        }
+        protected override IMetaData OnCreateMetaData() { return new SqlCeMetaData(); }
         #endregion
 
         #region 数据库特性
@@ -163,12 +157,16 @@ namespace XCode.DataAccessLayer
     /// <summary>SqlCe会话</summary>
     class SqlCeSession : FileDbSession
     {
+        #region 构造函数
+        public SqlCeSession(IDatabase db) : base(db) { }
+        #endregion
+
         protected override void CreateDatabase()
         {
             if (String.IsNullOrEmpty(FileName) || File.Exists(FileName)) return;
 
             //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "SqlCe.sdf", FileName, true);
-            DAL.WriteDebugLog("创建数据库：{0}", FileName);
+            DAL.WriteLog("创建数据库：{0}", FileName);
 
             var sce = SqlCeEngine.Create(ConnectionString);
             if (sce != null) sce.CreateDatabase().Dispose();
@@ -436,11 +434,11 @@ namespace XCode.DataAccessLayer
     public static class SqlCeHelper
     {
         static Dictionary<int, SQLCEVersion> versionDictionary = new Dictionary<int, SQLCEVersion>
-        { 
+        {
             { 0x73616261, SQLCEVersion.SQLCE20 },
-            { 0x002dd714, SQLCEVersion.SQLCE30 }, 
-            { 0x00357b9d, SQLCEVersion.SQLCE35 }, 
-            { 0x003d0900, SQLCEVersion.SQLCE40 } 
+            { 0x002dd714, SQLCEVersion.SQLCE30 },
+            { 0x00357b9d, SQLCEVersion.SQLCE35 },
+            { 0x003d0900, SQLCEVersion.SQLCE40 }
         };
 
         /// <summary>检查给定SqlCe文件的版本</summary>

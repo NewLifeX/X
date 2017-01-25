@@ -127,7 +127,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new SQLiteSession(); }
+        protected override IDbSession OnCreateSession() { return new SQLiteSession(this); }
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
@@ -234,6 +234,10 @@ namespace XCode.DataAccessLayer
     /// <summary>SQLite数据库</summary>
     internal class SQLiteSession : FileDbSession
     {
+        #region 构造函数
+        public SQLiteSession(IDatabase db) : base(db) { }
+        #endregion
+
         #region 方法
         public override void Open()
         {

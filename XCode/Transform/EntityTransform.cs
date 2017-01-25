@@ -158,8 +158,9 @@ namespace XCode.Transform
                 if (AllowInsertIdentity) eop.AllowInsertIdentity = true;
 
                 // 关闭SQL日志
-                var oldShowSql = DAL.ShowSQL;
-                DAL.ShowSQL = ShowSQL;
+                var ss = session.Dal.Session;
+                var oldShowSql = ss.ShowSQL;
+                ss.ShowSQL = ShowSQL;
 
                 var total = 0;
                 var index = 0;
@@ -196,7 +197,7 @@ namespace XCode.Transform
 
                     total += rs;
                 }
-                DAL.ShowSQL = oldShowSql;
+                ss.ShowSQL = oldShowSql;
 
                 // 关闭插入自增
                 if (AllowInsertIdentity) eop.AllowInsertIdentity = oldII;
