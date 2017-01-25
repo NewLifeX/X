@@ -113,55 +113,52 @@ namespace XCode.DataAccessLayer
         /// <summary>打开</summary>
         public virtual void Open()
         {
-            if (DAL.Debug && ThreadID != Thread.CurrentThread.ManagedThreadId) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！");
+            var tid = Thread.CurrentThread.ManagedThreadId;
+            if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
 
-            if (Conn != null && Conn.State == ConnectionState.Closed)
+            var conn = Conn;
+            if (conn != null && conn.State == ConnectionState.Closed)
             {
-#if DEBUG
                 try
                 {
-                    Conn.Open();
+                    conn.Open();
                 }
                 catch (DbException)
                 {
-                    DAL.WriteLog("导致Open错误的连接字符串：{0}", Conn.ConnectionString);
+                    DAL.WriteLog("Open错误：{0}", conn.ConnectionString);
                     throw;
                 }
-#else
-                Conn.Open();
-#endif
             }
         }
 
         /// <summary>异步打开</summary>
-        public virtual Task OpenAsync()
+        public virtual async Task OpenAsync()
         {
-            if (DAL.Debug && ThreadID != Thread.CurrentThread.ManagedThreadId) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！");
+            var tid = Thread.CurrentThread.ManagedThreadId;
+            if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
 
-            if (Conn != null && Conn.State == ConnectionState.Closed)
-                return Conn.OpenAsync();
-            else
-                return null;
+            var conn = Conn;
+            if (conn == null || conn.State != ConnectionState.Closed) return;
+
+            await conn.OpenAsync();
         }
 
         /// <summary>关闭</summary>
         public virtual void Close()
         {
-            if (_Conn != null)
+            var conn = _Conn;
+            if (conn != null)
             {
-                try { if (Conn.State != ConnectionState.Closed) Conn.Close(); }
+                try { if (conn.State != ConnectionState.Closed) conn.Close(); }
                 catch (ObjectDisposedException) { }
                 catch (Exception ex)
                 {
-                    WriteLog("执行" + DbType.ToString() + "的Close时出错：" + ex.ToString());
+                    WriteLog("{0}.Close出错：{1}", DbType, ex);
                 }
             }
         }
 
-        /// <summary>自动关闭。
-        /// 启用事务后，不关闭连接。
-        /// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
-        /// </summary>
+        /// <summary>自动关闭。启用事务后，不关闭连接。</summary>
         public void AutoClose()
         {
             if (Trans == null && Opened) Close();
@@ -170,10 +167,7 @@ namespace XCode.DataAccessLayer
         /// <summary>数据库名</summary>
         public String DatabaseName
         {
-            get
-            {
-                return Conn == null ? null : Conn.Database;
-            }
+            get { return Conn?.Database; }
             set
             {
                 if (DatabaseName == value) return;
@@ -252,8 +246,7 @@ namespace XCode.DataAccessLayer
                 TransactionCount = 0;
                 _EntitySession.Clear();
             }
-            TransactionCount++;
-            if (TransactionCount > 1) return TransactionCount;
+            if (TransactionCount > 0) return ++TransactionCount;
 
             try
             {
@@ -275,12 +268,15 @@ namespace XCode.DataAccessLayer
             TransactionCount--;
             if (TransactionCount > 0) return TransactionCount;
 
-            if (Trans == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
+            var trans = Trans;
+            if (trans == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
+            Trans = null;
+
             try
             {
-                if (Trans.Connection != null)
+                if (trans.Connection != null)
                 {
-                    Trans.Commit();
+                    trans.Commit();
 
                     foreach (var item in _EntitySession)
                     {
@@ -298,12 +294,11 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                Trans = null;
                 _EntitySession.Clear();
                 Close();
             }
 
-            return TransactionCount;
+            return 0;
         }
 
         /// <summary>回滚事务</summary>
@@ -343,12 +338,11 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                tr = null;
                 _EntitySession.Clear();
                 Close();
             }
 
-            return TransactionCount;
+            return 0;
         }
 
         /// <summary>添加脏实体会话</summary>
