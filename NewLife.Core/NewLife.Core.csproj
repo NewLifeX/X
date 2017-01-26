@@ -280,6 +280,7 @@
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Net\SerialPortConfig.cs" />
     <Compile Include="Windows\ControlHelper.cs" />
+    <EmbeddedResource Include="Windows\MySpeech.cs" />
     <Compile Include="Windows\SerialPortList.cs">
       <SubType>UserControl</SubType>
     </Compile>

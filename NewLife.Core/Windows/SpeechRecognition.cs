@@ -2,8 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-//using System.Speech.Recognition;
+using NewLife.IO;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Reflection;
 
 namespace NewLife.Windows
@@ -12,8 +13,7 @@ namespace NewLife.Windows
     public class SpeechRecognition : DisposeBase
     {
         #region 属性
-        //private SpeechRecognitionEngine _rg;
-        private Object _rg;
+        private ISpeech _speech;
 
         private IDictionary<String, Action> _dic;
 
@@ -36,7 +36,7 @@ namespace NewLife.Windows
         {
             base.OnDispose(disposing);
 
-            if (_rg != null) _rg.TryDispose();
+            _speech.TryDispose();
         }
         #endregion
 
@@ -69,30 +69,32 @@ namespace NewLife.Windows
         #region 方法
         Boolean Init()
         {
-            if (_rg != null) return true;
+            if (_speech != null) return true;
 
-            //var sr = new SpeechRecognitionEngine();
-
-            Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
-            var type = "SpeechRecognitionEngine".GetTypeEx(true);
-            var sr = type.CreateInstance();
+            _speech = ObjectContainer.Current.Resolve<ISpeech>();
+            if (_speech != null) return true;
 
             try
             {
-                //sr.SetInputToDefaultAudioDevice();
-                //sr.SpeechRecognized += _rg_SpeechRecognized;
-                ////_rg.RecognizeAsync(RecognizeMode.Multiple);
+                Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
 
-                sr.Invoke("SetInputToDefaultAudioDevice");
-                sr.Invoke("add_SpeechRecognized", new EventHandler(_rg_SpeechRecognized));
+                var code = Assembly.GetExecutingAssembly().GetFileResource("MySpeech.cs").ToStr();
+                var sc = ScriptEngine.Create(code, false);
+                sc.Compile();
 
-                _rg = sr;
+                _speech = sc.Type.CreateInstance() as ISpeech;
+                if (_speech == null) return false;
+
+                if (!_speech.Init()) return false;
+
+                _speech.SpeechRecognized += _rg_SpeechRecognized;
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-                sr.TryDispose();
+                XTrace.WriteException(ex);
+                _speech.TryDispose();
                 return false;
             }
         }
@@ -117,6 +119,11 @@ namespace NewLife.Windows
             {
                 if (!Init()) return;
 
+                var list = new List<String>();
+                list.Add(_Name);
+                list.AddRange(_dic.Keys);
+                _speech.SetChoices(list);
+
                 //var gc = _rg.Grammars.Count;
                 ////_rg.RecognizeAsyncCancel();
                 //_rg.UnloadAllGrammars();
@@ -137,36 +144,52 @@ namespace NewLife.Windows
                 //// 首次启动
                 //if (gc == 0) _rg.RecognizeAsync(RecognizeMode.Multiple);
 
-                var gc = (Int32)_rg.GetValue("Grammars").GetValue("Count");
-                _rg.Invoke("UnloadAllGrammars");
+                //var gc = (Int32)_rg.GetValue("Grammars").GetValue("Count");
+                //_rg.Invoke("UnloadAllGrammars");
 
-                var cs = "Choices".GetTypeEx().CreateInstance() as IList;
-                cs.Add(_Name);
-                cs.Add(_dic.Keys.ToArray());
+                //var cs = "Choices".GetTypeEx().CreateInstance() as IList;
+                //cs.Add(_Name);
+                //cs.Add(_dic.Keys.ToArray());
 
-                var gb = "GrammarBuilder".GetTypeEx().CreateInstance();
-                gb.Invoke("Append", cs);
+                //var gb = "GrammarBuilder".GetTypeEx().CreateInstance();
+                //gb.Invoke("Append", cs);
 
-                var gr = "Grammar".GetTypeEx().CreateInstance(gb);
+                //var gr = "Grammar".GetTypeEx().CreateInstance(gb);
 
-                _rg.Invoke("LoadGrammarAsync", gr);
+                //_rg.Invoke("LoadGrammarAsync", gr);
 
-                // 首次启动
-                if (gc == 0) _rg.Invoke("RecognizeAsync", "RecognizeMode".GetTypeEx().GetFieldEx("Multiple"));
+                //// 首次启动
+                //if (gc == 0) _rg.Invoke("RecognizeAsync", "RecognizeMode".GetTypeEx().GetFieldEx("Multiple"));
             }
         }
 
-        //void _rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        void _rg_SpeechRecognized(object sender, EventArgs e)
-        {
-            //var rs = e.Result;
-            var rs = e.GetValue("Result");
-            if (rs == null) return;
+        //        private const String _code = @"
+        //using System.Speech.Recognition;
+        //class MySpeech
+        //{
+        //    public EventHandler SpeechRecognized;
 
-            var conf = (Double)rs.GetValue("Confidence");
+        //    public void _rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        //    {
+        //        SpeechRecognized(sender, e);
+        //    }
+        //    public static EventHandler<SpeechRecognizedEventArgs> Wrap(EventHandler handler)
+        //    {
+        //        var my = new MySpeech();
+        //        my.SpeechRecognized = handler;
+
+        //        return new EventHandler<SpeechRecognizedEventArgs>(my._rg_SpeechRecognized);
+        //    }
+        //    public static void Main() { }
+        //}";
+
+        //void _rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        void _rg_SpeechRecognized(object sender, RecognitionEventArgs e)
+        {
+            var conf = e.Confidence;
             if (conf < 0.5) return;
 
-            var txt = (String)rs.GetValue("Text");
+            var txt = e.Text;
 
             // 语音识别前，必须先识别前缀名称，然后几秒内识别关键字
             if (_Tip.AddSeconds(3) < DateTime.Now)
@@ -188,5 +211,39 @@ namespace NewLife.Windows
             }
         }
         #endregion
+    }
+
+    /// <summary>语音接口</summary>
+    public interface ISpeech
+    {
+        /// <summary>语音识别事件</summary>
+        event EventHandler<RecognitionEventArgs> SpeechRecognized;
+
+        /// <summary>初始化</summary>
+        /// <returns></returns>
+        Boolean Init();
+
+        /// <summary>设置识别短语</summary>
+        /// <param name="phrases"></param>
+        void SetChoices(IEnumerable<String> phrases);
+    }
+
+    /// <summary>识别事件参数</summary>
+    public class RecognitionEventArgs : EventArgs
+    {
+        /// <summary>获取识别器分配的值，此值表示与给定输入匹配的可能性</summary>
+        public Single Confidence { get; }
+
+        /// <summary>获取语音识别器从识别的输入生成的规范化文本</summary>
+        public String Text { get; }
+
+        /// <summary>实例化</summary>
+        /// <param name="conf"></param>
+        /// <param name="text"></param>
+        public RecognitionEventArgs(Single conf, String text)
+        {
+            Confidence = conf;
+            Text = text;
+        }
     }
 }
