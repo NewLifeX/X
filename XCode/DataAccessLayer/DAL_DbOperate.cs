@@ -1,11 +1,8 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Threading;
-using NewLife.Collections;
-using XCode.Cache;
 
 namespace XCode.DataAccessLayer
 {
@@ -23,7 +20,7 @@ namespace XCode.DataAccessLayer
         public static Int32 ExecuteTimes { get { return _ExecuteTimes; } }
         #endregion
 
-        #region 使用缓存后的数据操作方法
+        #region 数据操作方法
         /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -37,10 +34,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
-        /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
         [DebuggerHidden]
-        public DataSet Select(String sql, params String[] tableNames)
+        public DataSet Select(String sql)
         {
             CheckBeforeUseDatabase();
 
@@ -52,23 +48,21 @@ namespace XCode.DataAccessLayer
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
         [DebuggerHidden]
-        public DataSet Select(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows, params String[] tableNames)
+        public DataSet Select(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             builder = PageSplit(builder, startRowIndex, maximumRows);
             if (builder == null) return null;
 
-            return Select(builder.ToString(), tableNames);
+            return Select(builder.ToString());
         }
 
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sb">查询生成器</param>
-        /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
         [DebuggerHidden]
-        public Int32 SelectCount(SelectBuilder sb, params String[] tableNames)
+        public Int32 SelectCount(SelectBuilder sb)
         {
             CheckBeforeUseDatabase();
 
@@ -78,10 +72,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
         /// <param name="sql">SQL语句</param>
-        /// <param name="tableNames">受影响的表的表名</param>
         /// <returns></returns>
         [DebuggerHidden]
-        public Int32 Execute(String sql, params String[] tableNames)
+        public Int32 Execute(String sql)
         {
             CheckBeforeUseDatabase();
 
@@ -92,10 +85,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql"></param>
-        /// <param name="tableNames">受影响的表的表名</param>
         /// <returns>新增行的自动编号</returns>
         [DebuggerHidden]
-        public Int64 InsertAndGetIdentity(String sql, params String[] tableNames)
+        public Int64 InsertAndGetIdentity(String sql)
         {
             CheckBeforeUseDatabase();
 
@@ -108,10 +100,9 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
-        /// <param name="tableNames">受影响的表的表名</param>
         /// <returns></returns>
         [DebuggerHidden]
-        public Int32 Execute(String sql, CommandType type, DbParameter[] ps, params String[] tableNames)
+        public Int32 Execute(String sql, CommandType type, DbParameter[] ps)
         {
             CheckBeforeUseDatabase();
 
@@ -124,10 +115,9 @@ namespace XCode.DataAccessLayer
         /// <param name="sql"></param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
-        /// <param name="tableNames">受影响的表的表名</param>
         /// <returns>新增行的自动编号</returns>
         [DebuggerHidden]
-        public Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps, params String[] tableNames)
+        public Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps)
         {
             CheckBeforeUseDatabase();
 
@@ -138,10 +128,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>执行CMD，返回记录集</summary>
         /// <param name="cmd">CMD</param>
-        /// <param name="tableNames">所依赖的表的表名</param>
         /// <returns></returns>
         [DebuggerHidden]
-        public DataSet Select(DbCommand cmd, String[] tableNames)
+        public DataSet Select(DbCommand cmd)
         {
             CheckBeforeUseDatabase();
 
@@ -151,10 +140,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>执行CMD，返回受影响的行数</summary>
         /// <param name="cmd"></param>
-        /// <param name="tableNames"></param>
         /// <returns></returns>
         [DebuggerHidden]
-        public Int32 Execute(DbCommand cmd, String[] tableNames)
+        public Int32 Execute(DbCommand cmd)
         {
             CheckBeforeUseDatabase();
 

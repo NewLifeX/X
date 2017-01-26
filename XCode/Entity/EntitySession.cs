@@ -434,7 +434,7 @@ namespace XCode
                     sb.Table = FormatedTableName;
 
                     WaitForInitData();
-                    m = Dal.SelectCount(sb, TableName);
+                    m = Dal.SelectCount(sb);
                 }
                 else
                 {
@@ -454,7 +454,7 @@ namespace XCode
                             var builder = new SelectBuilder();
                             builder.Table = FormatedTableName;
                             builder.OrderBy = Table.Identity.Desc();
-                            var ds = Dal.Select(builder, 0, 1, TableName);
+                            var ds = Dal.Select(builder, 0, 1);
                             if (ds.Tables[0].Rows.Count > 0)
                                 max = Convert.ToInt64(ds.Tables[0].Rows[0][Table.Identity.ColumnName]);
                         }
@@ -626,7 +626,7 @@ namespace XCode
             InitData();
 
             //builder.Table = FormatedTableName;
-            return Dal.Select(builder, startRowIndex, maximumRows, TableName);
+            return Dal.Select(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>查询</summary>
@@ -637,7 +637,7 @@ namespace XCode
         {
             InitData();
 
-            return Dal.Select(sql, TableName);
+            return Dal.Select(sql);
         }
 
         /// <summary>查询记录数</summary>
@@ -648,7 +648,7 @@ namespace XCode
             InitData();
 
             //builder.Table = FormatedTableName;
-            return Dal.SelectCount(builder, new String[] { TableName });
+            return Dal.SelectCount(builder);
         }
 
         /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
@@ -673,7 +673,7 @@ namespace XCode
         {
             InitData();
 
-            var rs = Dal.Execute(sql, TableName);
+            var rs = Dal.Execute(sql);
             //executeCount++;
             DataChange("Execute");
 
@@ -687,7 +687,7 @@ namespace XCode
         {
             InitData();
 
-            var rs = Dal.Execute(sql, TableName);
+            var rs = Dal.Execute(sql);
 
             DataChange("TRUNCATE TABLE");
 
@@ -701,7 +701,7 @@ namespace XCode
         {
             InitData();
 
-            Int64 rs = Dal.InsertAndGetIdentity(sql, TableName);
+            Int64 rs = Dal.InsertAndGetIdentity(sql);
             //executeCount++;
             DataChange("InsertAndGetIdentity");
             return rs;
@@ -716,7 +716,7 @@ namespace XCode
         {
             InitData();
 
-            Int32 rs = Dal.Execute(sql, type, ps, TableName);
+            Int32 rs = Dal.Execute(sql, type, ps);
             //executeCount++;
             DataChange("Execute " + type);
             return rs;
@@ -731,7 +731,7 @@ namespace XCode
         {
             InitData();
 
-            Int64 rs = Dal.InsertAndGetIdentity(sql, type, ps, TableName);
+            Int64 rs = Dal.InsertAndGetIdentity(sql, type, ps);
             //executeCount++;
             DataChange("InsertAndGetIdentity " + type);
             return rs;
