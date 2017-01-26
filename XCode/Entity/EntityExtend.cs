@@ -60,6 +60,29 @@ namespace XCode
             }
         }
 
+        /// <summary>设置扩展属性项</summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public virtual Boolean Set(String key, Object value)
+        {
+            if (value == null) return Remove(key);
+
+            var exp = Expire;
+            var items = Items;
+
+            lock (items)
+            {
+                CacheItem item;
+                if (!items.TryGetValue(key, out item)) items[key] = item = new CacheItem(value, exp);
+
+                item.ExpiredTime = DateTime.Now.AddSeconds(exp);
+                item.Value = value;
+
+                return true;
+            }
+        }
+
         #region 缓存项
         /// <summary>缓存项</summary>
         class CacheItem
