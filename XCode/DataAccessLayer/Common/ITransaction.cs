@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NewLife;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -52,10 +48,18 @@ namespace XCode.DataAccessLayer
         #region 构造
         public Transaction(DbConnection conn, IsolationLevel level)
         {
-            Level = level;
+            Log = Setting.Current.TransactionDebug ? XTrace.Log : Logger.Null;
 
-            Trans = conn.BeginTransaction(level);
+            using (var ct = new TimeCost("BeginTransaction", 1000))
+            {
+                ct.Log = Log;
+                Trans = conn.BeginTransaction(level);
+            }
+
             Count = 1;
+
+            Level = Trans.IsolationLevel;
+            Log.Debug("Transaction.Begin {0}", Level);
         }
         #endregion
 
@@ -73,6 +77,7 @@ namespace XCode.DataAccessLayer
 
             if (Count == 0)
             {
+                Log.Debug("Transaction.Commit {0}", Level);
                 Trans.Commit();
 
                 Completed?.Invoke(this, new TransactionEventArgs { Success = true });
@@ -87,6 +92,7 @@ namespace XCode.DataAccessLayer
 
             if (Count == 0)
             {
+                Log.Debug("Transaction.Rollback {0}", Level);
                 Trans.Rollback();
 
                 Completed?.Invoke(this, new TransactionEventArgs { Success = false });
@@ -94,6 +100,11 @@ namespace XCode.DataAccessLayer
 
             return this;
         }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; }
         #endregion
     }
 }

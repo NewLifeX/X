@@ -102,6 +102,8 @@ namespace XCode.DataAccessLayer
 
             // 默认超时时间
             if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";
+
+            DAL.WriteDebugLog(builder.ToString());
         }
         #endregion
 

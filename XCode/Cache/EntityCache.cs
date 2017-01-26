@@ -84,7 +84,8 @@ namespace XCode.Cache
                 {
                     if (_task == null)
                     {
-                        _task = UpdateCacheAsync();
+                        var reason = Times == 0 ? "第一次" : Expire + "秒过期";
+                        _task = UpdateCacheAsync(reason);
                         _task.ContinueWith(t => { _task = null; });
                     }
                 }
@@ -95,7 +96,7 @@ namespace XCode.Cache
         #endregion
 
         #region 缓存操作
-        Task UpdateCacheAsync()
+        Task UpdateCacheAsync(String reason)
         {
             // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
             // 设置时间放在获取缓存之前，让其它线程不要空等
@@ -104,20 +105,20 @@ namespace XCode.Cache
 
             if (Debug) DAL.WriteLog("{0}", XTrace.GetCaller(3, 16));
 
-            return Task.Factory.StartNew(FillWaper, Times);
+            return Task.Factory.StartNew(FillWaper, reason);
         }
 
         private void FillWaper(Object state)
         {
             if (Debug)
             {
-                var reason = Times == 1 ? "第一次" : Expire + "秒过期";
+                var reason = state + "";
                 DAL.WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), reason, Times);
             }
 
             _Entities = Invoke<Object, EntityList<TEntity>>(s => FillListMethod(), null);
 
-            if (Debug) DAL.WriteLog("完成{0}（第{1}次）", ToString(), Times);
+            if (Debug) DAL.WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
         }
 
         /// <summary>清除缓存</summary>
@@ -129,7 +130,7 @@ namespace XCode.Cache
 
                 // 使用异步时，马上打开异步查询更新数据
                 if (_Entities.Count > 0)
-                    UpdateCacheAsync();
+                    UpdateCacheAsync("清空 " + reason);
                 else
                     // 修改为最小，确保过期
                     ExpiredTime = DateTime.MinValue;

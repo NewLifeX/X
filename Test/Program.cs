@@ -50,7 +50,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -112,6 +112,56 @@ namespace Test
         static void TestTimer(Object state)
         {
             XTrace.WriteLine("State={0} Timer={1} Scheduler={2}", state, TimerX.Current, TimerScheduler.Current);
+        }
+
+        static void Test2()
+        {
+            //var file = @"Data\Membership.db";
+            //if (File.Exists(file)) File.Delete(file);
+
+            XCode.Setting.Current.TransactionDebug = true;
+
+            XTrace.WriteLine(Role.Meta.Count + "");
+            XTrace.WriteLine(Log.Meta.Count + "");
+            Console.Clear();
+
+            Task.Run(() => TestTask(1));
+            Thread.Sleep(1000);
+            Task.Run(() => TestTask(2));
+        }
+
+        static void TestTask(Int32 tid)
+        {
+            try
+            {
+                XTrace.WriteLine("TestTask {0} Start", tid);
+                using (var tran = Role.Meta.CreateTrans())
+                {
+                    var role = new Role();
+                    role.Name = "R" + DateTime.Now.Millisecond;
+                    role.Save();
+                    XTrace.WriteLine("role.ID={0}", role.ID);
+
+                    Thread.Sleep(3000);
+
+                    role = new Role();
+                    role.Name = "R" + DateTime.Now.Millisecond;
+                    role.Save();
+                    XTrace.WriteLine("role.ID={0}", role.ID);
+
+                    Thread.Sleep(3000);
+
+                    if (tid == 2) tran.Commit();
+                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+            finally
+            {
+                XTrace.WriteLine("TestTask {0} End", tid);
+            }
         }
     }
 }

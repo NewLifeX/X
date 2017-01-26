@@ -281,8 +281,11 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                if (tr.Count == 0) Trans = null;
-                Close();
+                if (tr.Count == 0)
+                {
+                    Trans = null;
+                    AutoClose();
+                }
             }
 
             return tr.Count;
@@ -308,8 +311,11 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                if (tr.Count == 0) Trans = null;
-                Close();
+                if (tr.Count == 0)
+                {
+                    Trans = null;
+                    AutoClose();
+                }
             }
 
             return tr.Count;
