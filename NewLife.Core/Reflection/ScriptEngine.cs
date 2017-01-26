@@ -51,27 +51,26 @@ namespace NewLife.Reflection
     public class ScriptEngine
     {
         #region 属性
-        private String _Code;
         /// <summary>代码</summary>
-        public String Code { get { return _Code; } private set { _Code = value; } }
+        public String Code { get; private set; }
 
-        private Boolean _IsExpression;
         /// <summary>是否表达式</summary>
-        public Boolean IsExpression { get { return _IsExpression; } set { _IsExpression = value; } }
+        public Boolean IsExpression { get; set; }
 
-        private IDictionary<String, Type> _Parameters;
         /// <summary>参数集合。编译后就不可修改。</summary>
-        public IDictionary<String, Type> Parameters { get { return _Parameters ?? (_Parameters = new Dictionary<String, Type>()); } }
+        public IDictionary<String, Type> Parameters { get; } = new Dictionary<String, Type>();
 
-        private String _FinalCode;
         /// <summary>最终代码</summary>
-        public String FinalCode { get { if (_FinalCode == null && !String.IsNullOrEmpty(Code)) GenerateCode(); return _FinalCode; } private set { _FinalCode = value; } }
+        public String FinalCode { get; private set; }
 
-        private MethodInfo _Method;
-        /// <summary>根据代码编译出来可供直接调用的方法</summary>
-        public MethodInfo Method { get { return _Method; } private set { _Method = value; } }
+        /// <summary>编译得到的类型</summary>
+        public Type Type { get; private set; }
 
-        private StringCollection _NameSpaces = new StringCollection{
+        /// <summary>根据代码编译出来可供直接调用的入口方法，Eval/Main</summary>
+        public MethodInfo Method { get; private set; }
+
+        /// <summary>命名空间集合</summary>
+        public StringCollection NameSpaces { get; set; } = new StringCollection{
             "System",
             "System.Collections",
             "System.Diagnostics",
@@ -79,20 +78,15 @@ namespace NewLife.Reflection
             "System.Text",
             "System.Linq",
             "System.IO"};
-        /// <summary>命名空间集合</summary>
-        public StringCollection NameSpaces { get { return _NameSpaces; } set { _NameSpaces = value; } }
 
-        private StringCollection _ReferencedAssemblies = new StringCollection();
         /// <summary>引用程序集集合</summary>
-        public StringCollection ReferencedAssemblies { get { return _ReferencedAssemblies; } set { _ReferencedAssemblies = value; } }
+        public StringCollection ReferencedAssemblies { get; set; } = new StringCollection();
 
-        private ILog _Log;
         /// <summary>日志</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        public ILog Log { get; set; }
 
-        private String _WorkingDirectory;
         /// <summary>工作目录。执行时，将会作为环境变量的当前目录和PathHelper目录，执行后还原</summary>
-        public String WorkingDirectory { get { return _WorkingDirectory; } set { _WorkingDirectory = value; } }
+        public String WorkingDirectory { get; set; }
         #endregion
 
         #region 创建
@@ -252,7 +246,7 @@ namespace NewLife.Reflection
             }
             //else if (!code.Contains("static void Main("))
             // 这里也许用正则判断会更好一些
-            else if (!code.Contains(" Main("))
+            else if (!code.Contains(" Main(") && !code.Contains(" class "))
             {
                 // 单行才考虑加分号，多行可能有 #line 指令开头
                 if (!code.Contains(Environment.NewLine))
@@ -321,9 +315,9 @@ namespace NewLife.Reflection
 
                     try
                     {
-                        var type = rs.CompiledAssembly.GetTypes()[0];
+                        Type = rs.CompiledAssembly.GetTypes()[0];
                         var name = IsExpression ? "Eval" : "Main";
-                        Method = type.GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                        Method = Type.GetMethod(name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                     }
                     catch (ReflectionTypeLoadException ex)
                     {
