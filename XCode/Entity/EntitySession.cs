@@ -579,9 +579,9 @@ namespace XCode
         /// <param name="reason">原因</param>
         public void ClearCache(String reason)
         {
-            if (_cache != null && _cache.Using) { _cache.Clear(reason); }
+            if (_cache != null && _cache.Using) _cache.Clear(reason);
 
-            if (_singleCache != null && _singleCache.Using) { _singleCache.Clear(reason); }
+            if (_singleCache != null && _singleCache.Using) _singleCache.Clear(reason);
 
             Int64 n = _Count;
             if (n < 0L) { return; }

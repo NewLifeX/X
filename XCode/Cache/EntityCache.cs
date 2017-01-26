@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
-using NewLife.Threading;
 using XCode.DataAccessLayer;
 
 namespace XCode.Cache
@@ -96,6 +95,7 @@ namespace XCode.Cache
         #endregion
 
         #region 缓存操作
+        Task _updatetask;
         Task UpdateCacheAsync(String reason)
         {
             // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
@@ -105,7 +105,15 @@ namespace XCode.Cache
 
             //if (Debug) DAL.WriteLog("{0}", XTrace.GetCaller(3, 16));
 
-            return Task.Factory.StartNew(FillWaper, reason);
+            // 同时只允许一个异步更新
+            if (_updatetask == null)
+            {
+                var task = Task.Factory.StartNew(FillWaper, reason);
+                _updatetask = task;
+                task.ContinueWith(t => _updatetask = null);
+            }
+
+            return _updatetask;
         }
 
         private void FillWaper(Object state)
@@ -126,14 +134,14 @@ namespace XCode.Cache
         {
             lock (this)
             {
-                if (_Entities.Count > 0 && Debug) DAL.WriteLog("清空{0} 原因：{1}", ToString(), reason);
+                //if (_Entities.Count > 0 && Debug) DAL.WriteLog("清空{0} 原因：{1}", ToString(), reason);
 
                 // 使用异步时，马上打开异步查询更新数据
-                if (_Entities.Count > 0)
-                    UpdateCacheAsync("清空 " + reason);
-                else
-                    // 修改为最小，确保过期
-                    ExpiredTime = DateTime.MinValue;
+                //if (_Entities.Count > 0)
+                UpdateCacheAsync("清空 " + reason);
+                //else
+                //    // 修改为最小，确保过期
+                //    ExpiredTime = DateTime.MinValue;
 
                 // 清空后，表示不使用缓存
                 Using = false;
