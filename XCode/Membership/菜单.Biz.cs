@@ -214,6 +214,7 @@ namespace XCode.Membership
             entity.DisplayName = displayName;
             entity.Url = url;
             entity.ParentID = this.ID;
+            entity.Parent = this as TEntity;
 
             entity.Visible = ID == 0 || displayName != null;
 

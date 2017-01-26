@@ -8,6 +8,7 @@ using System.Web.WebPages;
 using NewLife.Cube.Precompiled;
 using NewLife.Log;
 using NewLife.Reflection;
+using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -152,20 +153,25 @@ namespace NewLife.Cube
             var mf = ManageProvider.Menu;
             if (mf == null) return;
 
-            XTrace.WriteLine("初始化[{0}]的菜单体系", AreaName);
-            mf.ScanController(AreaName, GetType().Assembly, GetType().Namespace + ".Controllers");
-
-            // 更新区域名称为友好中文名
-            var menu = mf.Root.FindByPath(AreaName);
-            if (menu != null && menu.DisplayName.IsNullOrEmpty())
+            using (var tran = (mf as IEntityOperate).CreateTrans())
             {
-                var dis = GetType().GetDisplayName();
-                var des = GetType().GetDescription();
+                XTrace.WriteLine("初始化[{0}]的菜单体系", AreaName);
+                mf.ScanController(AreaName, GetType().Assembly, GetType().Namespace + ".Controllers");
 
-                if (!dis.IsNullOrEmpty()) menu.DisplayName = dis;
-                if (!des.IsNullOrEmpty()) menu.Remark = des;
+                // 更新区域名称为友好中文名
+                var menu = mf.Root.FindByPath(AreaName);
+                if (menu != null && menu.DisplayName.IsNullOrEmpty())
+                {
+                    var dis = GetType().GetDisplayName();
+                    var des = GetType().GetDescription();
 
-                menu.Save();
+                    if (!dis.IsNullOrEmpty()) menu.DisplayName = dis;
+                    if (!des.IsNullOrEmpty()) menu.Remark = des;
+
+                    menu.Save();
+                }
+
+                tran.Commit();
             }
         }
 

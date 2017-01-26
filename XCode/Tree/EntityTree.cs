@@ -53,7 +53,7 @@ namespace XCode
         public virtual EntityList<TEntity> Childs
         {
             get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("Childs", e => FindChilds()) : FindChilds(); }
-            set { Extends.Remove("Childs"); }
+            set { Extends.Set("Childs", value); }
         }
 
         /// <summary>子节点</summary>
@@ -64,7 +64,7 @@ namespace XCode
         public virtual TEntity Parent
         {
             get { return Setting.EnableCaching ? Extends.Get<TEntity>("Parent", e => FindParent()) : FindParent(); }
-            set { Extends.Remove("Parent"); }
+            set { Extends.Set("Parent", value); }
         }
 
         /// <summary>父节点</summary>
@@ -84,7 +84,7 @@ namespace XCode
         public virtual EntityList<TEntity> AllChilds
         {
             get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this)) : FindAllChilds(this); }
-            set { Extends.Remove("AllChilds"); }
+            set { Extends.Set("AllChilds", value); }
         }
 
         /// <summary>子孙节点，包含自己</summary>
@@ -92,7 +92,7 @@ namespace XCode
         public virtual EntityList<TEntity> MyAllChilds
         {
             get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("MyAllChilds", e => FindAllChilds(this, true)) : FindAllChilds(this, true); }
-            set { Extends.Remove("MyAllChilds"); }
+            set { Extends.Set("MyAllChilds", value); }
         }
 
         /// <summary>父节点集合</summary>
@@ -100,7 +100,7 @@ namespace XCode
         public virtual EntityList<TEntity> AllParents
         {
             get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("AllParents", e => FindAllParents(this)) : FindAllParents(this); }
-            set { Extends.Remove("AllParents"); }
+            set { Extends.Set("AllParents", value); }
         }
 
         /// <summary>深度</summary>
@@ -680,16 +680,16 @@ namespace XCode
                 //if (!Meta.Cache.Entities.Exists(KeyName, pkey) && FindCount(KeyName, pkey) <= 0) throw new XException("无效上级[" + pkey + "]！");
 
                 // 先查缓存再查数据库
-                var parent = FindByKeyWithCache(pkey);
-                if (parent == null) parent = Find(Setting.Key, pkey);
-                if (parent == null) throw new XException("无效上级[" + pkey + "]！");
+                //var parent = FindByKeyWithCache(pkey);
+                //if (parent == null) parent = Find(Setting.Key, pkey);
+                //if (parent == null) throw new XException("无效上级[" + pkey + "]！");
 
                 // 检查最大深度
-                var maxdeepth = Setting.MaxDeepth;
-                if (maxdeepth > 0)
-                {
-                    if (parent.Deepth >= maxdeepth) throw new XException("已达到最大深度" + maxdeepth + "层！");
-                }
+                //var maxdeepth = Setting.MaxDeepth;
+                //if (maxdeepth > 0)
+                //{
+                //    if (parent.Deepth >= maxdeepth) throw new XException("已达到最大深度" + maxdeepth + "层！");
+                //}
             }
 
             // 死循环检查
