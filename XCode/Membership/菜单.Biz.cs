@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -805,8 +806,11 @@ namespace XCode.Membership
                 // 如果新增了菜单，需要检查权限
                 if (list.Count > 0)
                 {
-                    var eop = ManageProvider.GetFactory<IRole>();
-                    eop.EntityType.Invoke("CheckRole");
+                    Task.Run(() =>
+                    {
+                        var eop = ManageProvider.GetFactory<IRole>();
+                        eop.EntityType.Invoke("CheckRole");
+                    });
                 }
 
                 return list;

@@ -175,7 +175,7 @@ namespace XCode.DataAccessLayer
         /// </remarks>
         /// <param name="level">事务隔离等级</param>
         /// <returns>剩下的事务计数</returns>
-        public Int32 BeginTransaction(IsolationLevel level = IsolationLevel.Unspecified)
+        public Int32 BeginTransaction(IsolationLevel level = IsolationLevel.ReadCommitted)
         {
             CheckBeforeUseDatabase();
 

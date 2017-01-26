@@ -103,7 +103,7 @@ namespace XCode.Cache
             ExpiredTime = DateTime.Now.AddSeconds(Expire);
             Times++;
 
-            if (Debug) DAL.WriteLog("{0}", XTrace.GetCaller(3, 16));
+            //if (Debug) DAL.WriteLog("{0}", XTrace.GetCaller(3, 16));
 
             return Task.Factory.StartNew(FillWaper, reason);
         }

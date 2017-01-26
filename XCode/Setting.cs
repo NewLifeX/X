@@ -42,8 +42,8 @@ namespace XCode
         [Description("数据初始化。实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭")]
         public Boolean InitData { get; set; } = true;
 
-        /// <summary>事务调试。打开时输出事务回滚日志，默认关闭</summary>
-        [Description("事务调试。打开时输出事务回滚日志，默认关闭")]
+        /// <summary>事务调试。默认关闭</summary>
+        [Description("事务调试。默认关闭")]
         public Boolean TransactionDebug { get; set; }
 
         /// <summary>SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录</summary>

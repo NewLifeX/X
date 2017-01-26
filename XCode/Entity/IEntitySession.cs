@@ -128,9 +128,6 @@ namespace XCode
         #endregion
 
         #region 事务保护
-        ///// <summary>事务计数</summary>
-        //Int32 TransCount { get; }
-
         /// <summary>开始事务</summary>
         /// <returns>剩下的事务计数</returns>
         Int32 BeginTrans();
@@ -142,9 +139,6 @@ namespace XCode
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
         Int32 Rollback();
-
-        ///// <summary>是否在事务保护中</summary>
-        //internal Boolean UsingTrans { get { return TransCount > 0; } }
         #endregion
 
         #region 参数化

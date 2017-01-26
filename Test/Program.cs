@@ -116,9 +116,6 @@ namespace Test
 
         static void Test2()
         {
-            //var file = @"Data\Membership.db";
-            //if (File.Exists(file)) File.Delete(file);
-
             XCode.Setting.Current.TransactionDebug = true;
 
             XTrace.WriteLine(Role.Meta.Count + "");

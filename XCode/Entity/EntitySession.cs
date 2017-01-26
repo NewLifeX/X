@@ -167,14 +167,19 @@ namespace XCode
                 var init = Setting.Current.InitData;
                 if (init)
                 {
+                    BeginTrans();
                     try
                     {
                         var entity = Operate.Default as EntityBase;
                         if (entity != null) entity.InitData();
+
+                        Commit();
                     }
                     catch (Exception ex)
                     {
                         if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+
+                        Rollback();
                     }
                 }
 

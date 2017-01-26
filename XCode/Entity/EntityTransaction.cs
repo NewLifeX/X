@@ -81,7 +81,7 @@ namespace XCode
         /// <summary>用数据库会话来实例化一个事务区域</summary>
         /// <param name="session"></param>
         /// <param name="level">事务隔离等级</param>
-        public EntityTransaction(IDbSession session, IsolationLevel level = IsolationLevel.Unspecified)
+        public EntityTransaction(IDbSession session, IsolationLevel level = IsolationLevel.ReadCommitted)
         {
             Session = session;
             if (session != null)
