@@ -458,7 +458,7 @@ namespace NewLife.Log
         /// </summary>
         public static void DebugStack()
         {
-            var msg = GetCaller(2, 0, Environment.NewLine);
+            var msg = GetCaller(2, 16, Environment.NewLine);
             WriteLine("调用堆栈：" + Environment.NewLine + msg);
         }
 
