@@ -50,23 +50,22 @@ namespace XCode
     public class EntitySession<TEntity> : IEntitySession where TEntity : Entity<TEntity>, new()
     {
         #region 属性
-        private String _ConnName;
         /// <summary>连接名</summary>
-        public String ConnName { get { return _ConnName; } private set { _ConnName = value; _Key = null; } }
+        public String ConnName { get; }
 
-        private String _TableName;
         /// <summary>表名</summary>
-        public String TableName { get { return _TableName; } private set { _TableName = value; _Key = null; } }
+        public String TableName { get; }
 
-        private String _Key;
         /// <summary>用于标识会话的键值</summary>
-        public String Key { get { return _Key ?? (_Key = String.Format("{0}$$${1}", ConnName, TableName)); } }
+        public String Key { get; }
         #endregion
 
         #region 构造
-        private EntitySession()
+        private EntitySession(String connName, String tableName)
         {
-            //Queue = new EntityQueue { Session = this };
+            ConnName = connName;
+            TableName = tableName;
+            Key = $"{connName}###{tableName}";
         }
 
         private static DictionaryCache<String, EntitySession<TEntity>> _es = new DictionaryCache<string, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
@@ -80,8 +79,8 @@ namespace XCode
             if (String.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName");
 
             // 字符串连接有较大性能损耗
-            var key = connName + "$$$" + tableName;
-            return _es.GetItem(key, k => new EntitySession<TEntity> { ConnName = connName, TableName = tableName });
+            var key = connName + "###" + tableName;
+            return _es.GetItem(key, k => new EntitySession<TEntity>(connName, tableName));
         }
         #endregion
 
@@ -165,7 +164,6 @@ namespace XCode
                 //if (DAL.Debug) DAL.WriteLog("初始化{0}数据，调用栈：{1}", name, XTrace.GetCaller());
                 //if (DAL.Debug) DAL.WriteLog("初始化{0}数据", name);
 
-                //var init = Config.GetConfig<Boolean>("XCode.InitData", true);
                 var init = Setting.Current.InitData;
                 if (init)
                 {
@@ -668,30 +666,12 @@ namespace XCode
         /// <returns>影响的结果</returns>
         public Int32 Execute(String sql)
         {
-            //InitData();
-
-            //Int32 rs = Dal.Execute(sql, TableName);
-            //executeCount++;
-            //DataChange("Execute");
-            //return rs;
-            return Execute(true, false, sql);
-        }
-
-        /// <summary>执行</summary>
-        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
-        /// <param name="isUpdateMode">是否执行更新实体操作</param>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>影响的结果</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Int32 Execute(Boolean forceClearCache, Boolean isUpdateMode, String sql)
-        {
             InitData();
 
-            Int32 rs = Dal.Execute(sql, TableName);
-            _ExecuteCount++;
-            if (forceClearCache) { _DirectExecuteSQLCount++; }
-            if (isUpdateMode) { _UpdateCount++; }
-            DataChange("Execute", forceClearCache, isUpdateMode);
+            var rs = Dal.Execute(sql, TableName);
+            //executeCount++;
+            DataChange("Execute");
+
             return rs;
         }
 
@@ -702,21 +682,10 @@ namespace XCode
         {
             InitData();
 
-            Int32 rs;
-            if (Dal.DbType == DatabaseType.SQLite)
-            {
-                rs = Dal.Execute(String.Format("Delete From {0}", FormatedTableName), TableName);
-                Dal.Execute("VACUUM", TableName);
-                Dal.Execute(String.Format("update sqlite_sequence set seq=0 where name={0}", FormatedTableName), TableName);
-                return rs;
-            }
-            else
-            {
-                rs = Dal.Execute(sql, TableName);
-            }
+            var rs = Dal.Execute(sql, TableName);
 
-            ClearCache("TRUNCATE TABLE");
-            _OnDataChange?.Invoke(ThisType);
+            DataChange("TRUNCATE TABLE");
+
             return rs;
         }
 
@@ -725,28 +694,11 @@ namespace XCode
         /// <returns>新增行的自动编号</returns>
         public Int64 InsertAndGetIdentity(String sql)
         {
-            //InitData();
-
-            //Int64 rs = Dal.InsertAndGetIdentity(sql, TableName);
-            //executeCount++;
-            //DataChange("InsertAndGetIdentity");
-            //return rs;
-            return InsertAndGetIdentity(true, sql);
-        }
-
-        /// <summary>执行插入语句并返回新增行的自动编号</summary>
-        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>新增行的自动编号</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Int64 InsertAndGetIdentity(Boolean forceClearCache, String sql)
-        {
             InitData();
 
             Int64 rs = Dal.InsertAndGetIdentity(sql, TableName);
-            _ExecuteCount++;
-            if (forceClearCache) { _DirectExecuteSQLCount++; }
-            DataChange("InsertAndGetIdentity", forceClearCache, false);
+            //executeCount++;
+            DataChange("InsertAndGetIdentity");
             return rs;
         }
 
@@ -757,32 +709,11 @@ namespace XCode
         /// <returns>影响的结果</returns>
         public Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            //InitData();
-
-            //Int32 rs = Dal.Execute(sql, type, ps, TableName);
-            //executeCount++;
-            //DataChange("Execute " + type);
-            //return rs;
-            return Execute(true, false, sql, type, ps);
-        }
-
-        /// <summary>执行</summary>
-        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
-        /// <param name="isUpdateMode">是否执行更新实体操作</param>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="type">命令类型，默认SQL文本</param>
-        /// <param name="ps">命令参数</param>
-        /// <returns>影响的结果</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Int32 Execute(Boolean forceClearCache, Boolean isUpdateMode, String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
-        {
             InitData();
 
             Int32 rs = Dal.Execute(sql, type, ps, TableName);
-            _ExecuteCount++;
-            if (forceClearCache) { _DirectExecuteSQLCount++; }
-            if (isUpdateMode) { _UpdateCount++; }
-            DataChange("Execute " + type, forceClearCache, isUpdateMode);
+            //executeCount++;
+            DataChange("Execute " + type);
             return rs;
         }
 
@@ -793,53 +724,22 @@ namespace XCode
         /// <returns>新增行的自动编号</returns>
         public Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            //InitData();
-
-            //Int64 rs = Dal.InsertAndGetIdentity(sql, type, ps, TableName);
-            //executeCount++;
-            //DataChange("InsertAndGetIdentity " + type);
-            //return rs;
-            return InsertAndGetIdentity(true, sql, type, ps);
-        }
-
-        /// <summary>执行插入语句并返回新增行的自动编号</summary>
-        /// <param name="forceClearCache">是否跨越实体操作，直接执行SQL语句</param>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="type">命令类型，默认SQL文本</param>
-        /// <param name="ps">命令参数</param>
-        /// <returns>新增行的自动编号</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Int64 InsertAndGetIdentity(Boolean forceClearCache, String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
-        {
             InitData();
 
             Int64 rs = Dal.InsertAndGetIdentity(sql, type, ps, TableName);
-            _ExecuteCount++;
-            if (forceClearCache) { _DirectExecuteSQLCount++; }
-            DataChange("InsertAndGetIdentity " + type, forceClearCache, false);
+            //executeCount++;
+            DataChange("InsertAndGetIdentity " + type);
             return rs;
         }
 
-        private void DataChange(String reason, Boolean forceClearCache, Boolean isUpdateMode)
+        private void DataChange(String reason)
         {
             // 还在事务保护里面，不更新缓存，最后提交或者回滚的时候再更新
             // 一般事务保护用于批量更新数据，频繁删除缓存将会打来巨大的性能损耗
             // 2012-07-17 当前实体类开启的事务保护，必须由当前类结束，否则可能导致缓存数据的错乱
-            if (_TransCount > 0) { return; }
+            if (_Tran != null) return;
 
-            DataChange(reason, forceClearCache, isUpdateMode, false);
-        }
-
-        private void DataChange(String reason, Boolean forceClearCache, Boolean isUpdateMode, Boolean isTransRoolback)
-        {
-            if (!forceClearCache)
-            {
-                ClearCache(String.Format("{0}（F{1}-U{2}）", reason, forceClearCache ? 1 : 0, isUpdateMode ? 1 : 0), isUpdateMode, isTransRoolback);
-            }
-            else
-            {
-                ForceClearCache(String.Format("{0}（F{1}-U{2}）", reason, forceClearCache ? 1 : 0, isUpdateMode ? 1 : 0), isUpdateMode);
-            }
+            ClearCache(reason);
 
             _OnDataChange?.Invoke(ThisType);
         }
@@ -871,11 +771,6 @@ namespace XCode
             var rs = Dal.Session.Truncate(TableName);
 
             // 干掉所有缓存
-            //if (Dal.EnableCache)
-            //{
-            //    Dal.EnableCache = false;
-            //    Dal.EnableCache = true;
-            //}
             Cache.Clear();
             SingleCache.Clear(null);
             LongCount = 0;
@@ -888,18 +783,7 @@ namespace XCode
         #endregion
 
         #region 事务保护
-        /// <summary>事务计数</summary>
-        [ThreadStatic]
-        private static Int32 _TransCount;
-        /// <summary>实体操作次数</summary>
-        [ThreadStatic]
-        private static Int32 _ExecuteCount = 0;
-        /// <summary>实体更新操作次数</summary>
-        [ThreadStatic]
-        private static Int32 _UpdateCount = 0;
-        /// <summary>直接执行SQL语句次数</summary>
-        [ThreadStatic]
-        private static Int32 _DirectExecuteSQLCount = 0;
+        private ITransaction _Tran;
 
         /// <summary>开始事务</summary>
         /// <returns>剩下的事务计数</returns>
@@ -918,92 +802,34 @@ namespace XCode
              */
             InitData();
 
-            // 可能存在多层事务，这里不能把这个清零
-            //executeCount = 0;
+            var count = Dal.BeginTransaction();
 
-            _ExecuteCount = 0;
-            _UpdateCount = 0;
-            _DirectExecuteSQLCount = 0;
+            var tr = _Tran = (Dal.Session as DbSession).Trans;
+            tr.Completed += (s, e) =>
+            {
+                _Tran = null;
+                if (e.Success)
+                    DataChange("修改数据后提交事务");
+                else
+                    DataChange("修改数据后回滚事务");
+            };
 
-            return _TransCount = Dal.BeginTransaction();
+            return count;
         }
 
         /// <summary>提交事务</summary>
         /// <returns>剩下的事务计数</returns>
         public virtual Int32 Commit()
         {
-            //TransCount = Dal.Commit();
-            //// 提交事务时更新数据，虽然不是绝对准确，但没有更好的办法
-            //// 即使提交了事务，但只要事务内没有执行更新数据的操作，也不更新
-            //// 2012-06-13 测试证明，修改数据后，提交事务后会更新缓存等数据
-            //if (TransCount <= 0 && executeCount > 0)
-            //{
-            //    DataChange("修改数据后提交事务");
-            //    // 回滚到顶层才更新数据
-            //    executeCount = 0;
-            //}
-            //return TransCount;
-            if (_ExecuteCount > 0)
-            {
-                Dal.AddDirtiedEntitySession(Key, this, _ExecuteCount, _UpdateCount, _DirectExecuteSQLCount);
-
-                _ExecuteCount = 0;
-                _UpdateCount = 0;
-                _DirectExecuteSQLCount = 0;
-            }
-            _TransCount = Dal.Commit();
-            return _TransCount;
+            return Dal.Commit();
         }
 
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
         public virtual Int32 Rollback()
         {
-            //TransCount = Dal.Rollback();
-            //// 回滚的时候貌似不需要更新缓存
-            ////if (TransCount <= 0 && executeCount > 0) DataChange();
-            //if (TransCount <= 0 && executeCount > 0)
-            //{
-            //    // 因为在事务保护中添加或删除实体时直接操作了实体缓存，所以需要更新
-            //    DataChange("修改数据后回滚事务");
-            //    executeCount = 0;
-            //}
-            //return TransCount;
-            if (_ExecuteCount > 0)
-            {
-                Dal.AddDirtiedEntitySession(Key, this, _ExecuteCount, _UpdateCount, _DirectExecuteSQLCount);
-
-                //// 因为在事务保护中添加或删除实体时直接操作了实体缓存，所以需要更新
-                //DataChange("修改数据后回滚事务", _DirectExecuteSQLCount > 0, _UpdateCount > 0, true);
-                _ExecuteCount = 0;
-                _UpdateCount = 0;
-                _DirectExecuteSQLCount = 0;
-            }
-            _TransCount = Dal.Rollback();
-            return _TransCount;
+            return Dal.Rollback();
         }
-
-        /// <summary>触发脏实体会话提交事务后的缓存更新操作</summary>
-        /// <param name="updateCount">实体更新操作次数</param>
-        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void RaiseCommitDataChange(Int32 updateCount, Int32 directExecuteSQLCount)
-        {
-            DataChange("修改数据后提交事务", directExecuteSQLCount > 0, updateCount > 0, false);
-        }
-
-        /// <summary>触发脏实体会话回滚事务后的缓存更新操作</summary>
-        /// <param name="updateCount">实体更新操作次数</param>
-        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void RaiseRoolbackDataChange(Int32 updateCount, Int32 directExecuteSQLCount)
-        {
-            DataChange("修改数据后回滚事务", directExecuteSQLCount > 0, updateCount > 0, true);
-        }
-
-        /// <summary>是否在事务保护中</summary>
-        //internal Boolean UsingTrans { get { return _TransCount > 1;/*因为Insert上面一定有一层缓存，这里减去1*/ } }
-        internal Boolean UsingTrans { get { return _TransCount > 0; } }
         #endregion
 
         #region 参数化
@@ -1031,15 +857,19 @@ namespace XCode
             e.MarkDb(true); // 确保在没有使用实体缓存和单对象缓存的情况下，标记来自数据库
 
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (HoldCache || UsingTrans)
+            var func = new Action(() =>
             {
                 if (_cache != null) _cache.Update(e);
 
                 // 自动加入单对象缓存
                 if (_singleCache != null && _singleCache.Using) _singleCache.Add(e);
-            }
 
-            if (_Count >= 0) Interlocked.Increment(ref _Count);
+                if (_Count >= 0) Interlocked.Increment(ref _Count);
+            });
+            if (_Tran == null)
+                func();
+            else
+                _Tran.Completed += (s, se) => { if (se.Success) func(); };
 
             return rs;
         }
@@ -1055,13 +885,17 @@ namespace XCode
             e.MarkDb(true); // 确保在没有使用实体缓存和单对象缓存的情况下，标记来自数据库
 
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (HoldCache || UsingTrans)
+            var func = new Action(() =>
             {
                 if (_cache != null) _cache.Update(e);
 
                 // 自动加入单对象缓存
                 if (_singleCache != null && _singleCache.Using) _singleCache.Add(e);
-            }
+            });
+            if (_Tran == null)
+                func();
+            else
+                _Tran.Completed += (s, se) => { if (se.Success) func(); };
 
             return rs;
         }
@@ -1074,7 +908,7 @@ namespace XCode
             var rs = persistence.Delete(entity);
 
             // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            if (HoldCache || UsingTrans)
+            var func = new Action(() =>
             {
                 if (_cache != null)
                 {
@@ -1087,9 +921,13 @@ namespace XCode
                 }
                 // 自动加入单对象缓存
                 if (_singleCache != null) _singleCache.Remove(entity as TEntity, false);
-            }
 
-            if (_Count >= 0) { Interlocked.Decrement(ref _Count); }
+                if (_Count >= 0) { Interlocked.Decrement(ref _Count); }
+            });
+            if (_Tran == null)
+                func();
+            else
+                _Tran.Completed += (s, se) => { if (se.Success) func(); };
 
             return rs;
         }

@@ -290,6 +290,7 @@ namespace XCode.DataAccessLayer
             {
                 var sql = "Delete From {0}".F(Database.FormatName(tableName));
                 var rs = Execute(sql);
+                rs += Execute("VACUUM");
                 rs += Execute("Update sqlite_sequence Set seq=0 where name='{0}'".F(Database.FormatName(tableName)));
 
                 Commit();

@@ -228,12 +228,7 @@ namespace XCode.DataAccessLayer
 
         #region 事务
         /// <summary>数据库事务</summary>
-        protected DbTransaction Trans { get; set; }
-
-        /// <summary>事务计数。当且仅当事务计数等于1时，才提交或回滚。</summary>
-        private Int32 TransactionCount = 0;
-        /// <summary>脏实体会话</summary>
-        private Dictionary<String, DirtiedEntitySession> _EntitySession = new Dictionary<String, DirtiedEntitySession>();
+        public ITransaction Trans { get; private set; }
 
         /// <summary>开始事务</summary>
         /// <remarks>
@@ -250,19 +245,18 @@ namespace XCode.DataAccessLayer
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
-            if (TransactionCount <= 0)
-            {
-                TransactionCount = 0;
-                _EntitySession.Clear();
-            }
-            if (TransactionCount > 0) return ++TransactionCount;
+            var tr = Trans;
+            if (tr != null) return tr.Begin().Count;
 
             try
             {
                 if (!Opened) Open();
-                Trans = Conn.BeginTransaction();
-                TransactionCount = 1;
-                return TransactionCount;
+
+                tr = new Transaction(Conn, level);
+
+                Trans = tr;
+
+                return tr.Count;
             }
             catch (DbException ex)
             {
@@ -274,28 +268,12 @@ namespace XCode.DataAccessLayer
         /// <returns>剩下的事务计数</returns>
         public Int32 Commit()
         {
-            TransactionCount--;
-            if (TransactionCount > 0) return TransactionCount;
-
-            var trans = Trans;
-            if (trans == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
-            Trans = null;
+            var tr = Trans;
+            if (tr == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
 
             try
             {
-                if (trans.Connection != null)
-                {
-                    trans.Commit();
-
-                    foreach (var item in _EntitySession)
-                    {
-                        var dirtiedSession = item.Value;
-                        if (dirtiedSession.ExecuteCount > 0)
-                        {
-                            dirtiedSession.Session.RaiseCommitDataChange(dirtiedSession.UpdateCount, dirtiedSession.DirectExecuteSQLCount);
-                        }
-                    }
-                }
+                tr.Commit();
             }
             catch (DbException ex)
             {
@@ -303,11 +281,11 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                _EntitySession.Clear();
+                if (tr.Count == 0) Trans = null;
                 Close();
             }
 
-            return 0;
+            return tr.Count;
         }
 
         /// <summary>回滚事务</summary>
@@ -315,31 +293,14 @@ namespace XCode.DataAccessLayer
         /// <returns>剩下的事务计数</returns>
         public Int32 Rollback(Boolean ignoreException = true)
         {
-            // 这里要小心，在多层事务中，如果内层回滚，而最外层提交，则内层的回滚会变成提交
-            TransactionCount--;
-            if (TransactionCount > 0) return TransactionCount;
-
             var tr = Trans;
             if (tr == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
-            Trans = null;
 
             // 输出事务日志
             if (Setting.Current.TransactionDebug) XTrace.DebugStack();
             try
             {
-                if (tr.Connection != null)
-                {
-                    tr.Rollback();
-
-                    foreach (var item in _EntitySession)
-                    {
-                        var dirtiedSession = item.Value;
-                        if (dirtiedSession.ExecuteCount > 0)
-                        {
-                            dirtiedSession.Session.RaiseRoolbackDataChange(dirtiedSession.UpdateCount, dirtiedSession.DirectExecuteSQLCount);
-                        }
-                    }
-                }
+                tr.Rollback();
             }
             catch (DbException ex)
             {
@@ -347,51 +308,11 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                _EntitySession.Clear();
+                if (tr.Count == 0) Trans = null;
                 Close();
             }
 
-            return 0;
-        }
-
-        /// <summary>添加脏实体会话</summary>
-        /// <param name="key">实体会话关键字</param>
-        /// <param name="entitySession">事务嵌套处理中，事务真正提交或回滚之前，进行了子事务提交的实体会话</param>
-        /// <param name="executeCount">实体操作次数</param>
-        /// <param name="updateCount">实体更新操作次数</param>
-        /// <param name="directExecuteSQLCount">直接执行SQL语句次数</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void AddDirtiedEntitySession(String key, IEntitySession entitySession, Int32 executeCount, Int32 updateCount, Int32 directExecuteSQLCount)
-        {
-            DirtiedEntitySession oldsession;
-            if (_EntitySession.TryGetValue(key, out oldsession))
-            {
-                oldsession.ExecuteCount += executeCount;
-                oldsession.UpdateCount += updateCount;
-                oldsession.DirectExecuteSQLCount += directExecuteSQLCount;
-            }
-            else
-            {
-                _EntitySession.Add(key, new DirtiedEntitySession(entitySession, executeCount, updateCount, directExecuteSQLCount));
-            }
-        }
-
-        /// <summary>移除脏实体会话</summary>
-        /// <param name="key">实体会话关键字</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void RemoveDirtiedEntitySession(String key)
-        {
-            _EntitySession.Remove(key);
-        }
-
-        /// <summary>获取脏实体会话</summary>
-        /// <param name="key">实体会话关键字</param>
-        /// <param name="session">脏实体会话</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Boolean TryGetDirtiedEntitySession(String key, out DirtiedEntitySession session)
-        {
-            return _EntitySession.TryGetValue(key, out session);
+            return tr.Count;
         }
         #endregion
 
@@ -419,7 +340,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (!Opened) Open();
                     cmd.Connection = Conn;
-                    if (Trans != null) cmd.Transaction = Trans;
+                    if (Trans != null) cmd.Transaction = Trans.Trans;
                     da.SelectCommand = cmd;
 
                     var ds = new DataSet();
@@ -454,7 +375,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (!Opened) await OpenAsync();
                     cmd.Connection = Conn;
-                    if (Trans != null) cmd.Transaction = Trans;
+                    if (Trans != null) cmd.Transaction = Trans.Trans;
                     da.SelectCommand = cmd;
 
                     var ds = new DataSet();
@@ -533,7 +454,7 @@ namespace XCode.DataAccessLayer
             {
                 if (!Opened) Open();
                 cmd.Connection = Conn;
-                if (Trans != null) cmd.Transaction = Trans;
+                if (Trans != null) cmd.Transaction = Trans.Trans;
 
                 BeginTrace();
                 return cmd.ExecuteNonQuery();
@@ -562,7 +483,7 @@ namespace XCode.DataAccessLayer
             {
                 if (!Opened) await OpenAsync();
                 cmd.Connection = Conn;
-                if (Trans != null) cmd.Transaction = Trans;
+                if (Trans != null) cmd.Transaction = Trans.Trans;
 
                 BeginTrace();
                 return await cmd.ExecuteNonQueryAsync();
@@ -639,7 +560,7 @@ namespace XCode.DataAccessLayer
             var cmd = Factory.CreateCommand();
             if (!Opened) Open();
             cmd.Connection = Conn;
-            if (Trans != null) cmd.Transaction = Trans;
+            if (Trans != null) cmd.Transaction = Trans.Trans;
 
             return cmd;
         }
@@ -702,7 +623,7 @@ namespace XCode.DataAccessLayer
         {
             QueryTimes++;
             // 如果启用了事务保护，这里要新开一个连接，否则MSSQL里面报错，SQLite不报错，其它数据库未测试
-            var isTrans = TransactionCount > 0;
+            var isTrans = Trans != null;
 
             DbConnection conn = null;
             if (isTrans)
