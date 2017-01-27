@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -31,7 +32,6 @@ namespace NewLife.Net
     {
         private LinkedList<Item> Items = new LinkedList<Item>();
         private TimerX _Timer;
-        //private static TimerScheduler _sch = TimerScheduler.Create("Packet");
 
         /// <summary>加入请求队列</summary>
         /// <param name="owner">拥有者</param>
@@ -78,7 +78,8 @@ namespace NewLife.Net
             if (qs.Count == 0) return false;
 
             // 加锁复制以后再遍历，避免线程冲突
-            foreach (var qi in qs.ToArray())
+            var arr = qs.ToArray();
+            foreach (var qi in arr)
             {
                 if (qi.Owner == owner &&
                     (qi.Remote == null || remote == null || qi.Remote + "" == remote + "") &&
@@ -94,6 +95,9 @@ namespace NewLife.Net
                     return true;
                 }
             }
+
+            if (Setting.Current.NetDebug)
+                XTrace.WriteLine("PacketQueue.CheckMatch 失败 [{0}] remote={1} Items={2}", response.Count, remote, arr.Length);
 
             return false;
         }

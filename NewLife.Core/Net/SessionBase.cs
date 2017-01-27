@@ -376,7 +376,7 @@ namespace NewLife.Net
             }
             else
             {
-                var ep = se.RemoteEndPoint as IPEndPoint;
+                var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
 
                 if (Log.Enable && LogReceive) WriteLog("Recv# [{0}]: {1}", se.BytesTransferred, se.Buffer.ToHex(se.Offset, Math.Min(se.BytesTransferred, 32)));
 
@@ -490,7 +490,7 @@ namespace NewLife.Net
 
             if (pk != null && !SendByQueue(pk, Remote.EndPoint)) return null;
 
-            return await task;
+            return await task.ConfigureAwait(false);
         }
 
         /// <summary>发送消息并等待响应</summary>
@@ -510,7 +510,7 @@ namespace NewLife.Net
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
 
-            return Packet.LoadMessage(await task);
+            return Packet.LoadMessage(await task.ConfigureAwait(false));
         }
 
         /// <summary>消息到达事件</summary>
