@@ -155,7 +155,7 @@ namespace NewLife.Net
         {
             if (Server == null) return null;
 
-            return await Server.SendAsync(pk, Remote.EndPoint, true);
+            return await Server.SendAsync(pk, Remote.EndPoint, true).ConfigureAwait(false);
         }
 
         /// <summary>发送消息并等待响应</summary>
@@ -171,7 +171,7 @@ namespace NewLife.Net
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
 
-            return Packet.LoadMessage(await task);
+            return Packet.LoadMessage(await task.ConfigureAwait(false));
         }
         #endregion
 

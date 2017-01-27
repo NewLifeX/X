@@ -203,7 +203,7 @@ namespace NewLife.Web
             Log.Info("WebClientX.PostAsync [{0}] {1}", data?.Length, address);
 
             // 发送请求
-            var rs = await http.SendAsync(data);
+            var rs = await http.SendAsync(data).ConfigureAwait(false);
 
             // 修改引用地址
             Referer = address;
@@ -249,7 +249,7 @@ namespace NewLife.Web
         /// <param name="data"></param>
         public virtual async Task<Byte[]> UploadDataTaskAsync(String address, Byte[] data)
         {
-            return await PostAsync(address, data);
+            return await PostAsync(address, data).ConfigureAwait(false);
         }
         #endregion
 

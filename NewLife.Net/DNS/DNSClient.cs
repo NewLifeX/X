@@ -123,7 +123,7 @@ namespace NewLife.Net.DNS
 
             Total++;
 
-            return await tcs.Task;
+            return await tcs.Task.ConfigureAwait(false);
         }
         #endregion
 

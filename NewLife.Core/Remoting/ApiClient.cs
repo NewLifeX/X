@@ -129,7 +129,7 @@ namespace NewLife.Remoting
             var ss = Client;
             if (ss == null) return default(TResult);
 
-            return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args);
+            return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args).ConfigureAwait(false);
         }
 
         /// <summary>创建消息</summary>
@@ -137,7 +137,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IMessage IApiSession.CreateMessage(Packet pk) { return Client?.CreateMessage(pk); }
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.SendAsync(msg); }
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.SendAsync(msg).ConfigureAwait(false); }
         #endregion
 
         #region 服务提供者

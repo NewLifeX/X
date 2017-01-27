@@ -112,10 +112,10 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(string action, object args = null)
         {
-            return await ApiHostHelper.InvokeAsync<TResult>(_ApiHost, this, action, args);
+            return await ApiHostHelper.InvokeAsync<TResult>(_ApiHost, this, action, args).ConfigureAwait(false);
         }
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Session.SendAsync(msg); }
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Session.SendAsync(msg).ConfigureAwait(false); }
 
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>
