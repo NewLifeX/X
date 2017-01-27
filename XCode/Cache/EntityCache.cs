@@ -118,15 +118,11 @@ namespace XCode.Cache
 
         private void FillWaper(Object state)
         {
-            if (Debug)
-            {
-                var reason = state + "";
-                DAL.WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), reason, Times);
-            }
+            WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), state + "", Times);
 
             _Entities = Invoke<Object, EntityList<TEntity>>(s => FillListMethod(), null);
 
-            if (Debug) DAL.WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
+            WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
         }
 
         /// <summary>清除缓存</summary>

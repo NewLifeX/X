@@ -56,7 +56,7 @@ namespace XCode.Cache
 
         /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
         /// <remarks>独占模式也需要用到定时器，否则无法自动保存</remarks>
-        public Boolean HoldCache { get; set; }
+        public Boolean HoldCache { get { return Setting.Current.Alone; } }
 
         /// <summary>是否在使用缓存</summary>
         public Boolean Using { get; set; }
@@ -75,9 +75,6 @@ namespace XCode.Cache
             var fi = Entity<TEntity>.Meta.Unique;
             if (fi != null) GetKeyMethod = entity => (TKey)entity[Entity<TEntity>.Meta.Unique.Name];
             FindKeyMethod = key => Entity<TEntity>.FindByKey(key);
-
-            SlaveKeyIgnoreCase = false;
-            HoldCache = Setting.Current.Alone;
 
             // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
             _Timer = new TimerX(CheckExpire, null, Expire * 1000, Expire * 1000);
@@ -110,17 +107,11 @@ namespace XCode.Cache
             // 独占缓存不删除缓存，仅判断自动保存
             if (hold && !AutoSave) return;
 
+            var es = Entities;
+            if (es.Count == 0) return;
+
             // 加锁后把缓存集合拷贝到数组中，避免后面遍历的时候出现多线程冲突
-            CacheItem[] cs = null;
-            if (Entities.Count <= 0) return;
-            lock (Entities)
-            {
-                if (Entities.Count <= 0) return;
-
-                cs = new CacheItem[Entities.Count];
-                Entities.Values.CopyTo(cs, 0);
-            }
-
+            var cs = es.Values.ToArray();
             if (cs == null || cs.Length < 0) return;
 
             var list = new List<CacheItem>();
@@ -154,26 +145,28 @@ namespace XCode.Cache
             // 从缓存中删除，必须加锁
             if (list.Count > 0)
             {
-                lock (Entities)
+                lock (es)
                 {
                     foreach (var item in list)
                     {
-                        if (Entities.ContainsKey(item.Key))
+                        if (es.ContainsKey(item.Key))
                         {
-                            Entities.Remove(item.Key);
-                            if (Debug) DAL.WriteLog("定时检查，删除超时Key={0}", item.Key);
+                            es.Remove(item.Key);
+                            WriteLog("定时检查，删除超时Key={0}", item.Key);
                         }
                     }
 
                     //Using = Entities.Count > 0;
                 }
-                if (SlaveEntities.Count > 0)
+
+                var ses = SlaveEntities;
+                if (ses.Count > 0)
                 {
-                    lock (SlaveEntities)
+                    lock (ses)
                     {
                         foreach (var item in list)
                         {
-                            if (!item.SlaveKey.IsNullOrWhiteSpace()) SlaveEntities.Remove(item.SlaveKey);
+                            if (!item.SlaveKey.IsNullOrWhiteSpace()) ses.Remove(item.SlaveKey);
                         }
                     }
                 }
@@ -196,9 +189,8 @@ namespace XCode.Cache
             /// <summary>实体</summary>
             public TEntity Entity;
 
-            private DateTime _ExpireTime;
             /// <summary>缓存过期时间</summary>
-            public DateTime ExpireTime { get { return _ExpireTime; } set { _ExpireTime = value; NextSave = value; } }
+            public DateTime ExpireTime { get; set; }
 
             /// <summary>下一次保存的时间</summary>
             public DateTime NextSave;
@@ -213,6 +205,7 @@ namespace XCode.Cache
 
                 Entity = entity;
                 ExpireTime = DateTime.Now.AddSeconds(sc.Expire);
+                NextSave = ExpireTime;
             }
         }
         #endregion
@@ -233,17 +226,12 @@ namespace XCode.Cache
                 {
                     Dictionary<String, CacheItem> dic;
                     if (SlaveKeyIgnoreCase)
-                    {
                         dic = new Dictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
-                    }
                     else
-                    {
                         dic = new Dictionary<String, CacheItem>();
-                    }
-                    if (Interlocked.CompareExchange<Dictionary<String, CacheItem>>(ref _SlaveEntities, dic, null) != null)
-                    {
+
+                    if (Interlocked.CompareExchange(ref _SlaveEntities, dic, null) != null)
                         dic = null;
-                    }
                 }
                 return _SlaveEntities;
             }
@@ -256,15 +244,6 @@ namespace XCode.Cache
 
         /// <summary>命中</summary>
         public Int32 Success;
-
-        ///// <summary>第一次命中，加锁之前</summary>
-        //public Int32 Shoot1;
-
-        ///// <summary>第二次命中，加锁之后</summary>
-        //public Int32 Shoot2;
-
-        /// <summary>无效次数，不允许空但是查到对象又为空</summary>
-        public Int32 Invalid;
 
         /// <summary>下一次显示时间</summary>
         public DateTime NextShow;
@@ -279,10 +258,6 @@ namespace XCode.Cache
                 sb.AppendFormat("单对象缓存{0,-20}", name);
                 sb.AppendFormat("总次数{0,7:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Success, (Double)Success / Total);
-                //// 一级命中和总命中相等时不显示
-                //if (Shoot1 > 0 && Shoot1 != Shoot) sb.AppendFormat("，一级命中{0,7:n0}（{1,6:P02}）", Shoot1, (Double)Shoot1 / Total);
-                //if (Shoot2 > 0) sb.AppendFormat("，二级命中{0}（{1,6:P02}）", Shoot2, (Double)Shoot2 / Total);
-                if (Invalid > 0) sb.AppendFormat("，无效次数{0}（{1,6:P02}）", Invalid, (Double)Invalid / Total);
 
                 XTrace.WriteLine(sb.ToString());
             }
@@ -308,23 +283,14 @@ namespace XCode.Cache
             // 如果找到项，返回
             CacheItem item = null;
             // 如果TryGetValue获取成功，item为空说明同一时间别的线程已做删除操作
-            if (dic.TryGetValue(key, out item) && item != null)
-            {
-                //Interlocked.Increment(ref Shoot1);
-                // 下面的GetData里会判断过期并处理
-                return GetData(item);
-            }
+            if (dic.TryGetValue(key, out item) && item != null) return GetData(item);
 
             ClearUp();
 
             lock (_SyncRoot)
             {
                 // 再次尝试获取
-                if (dic.TryGetValue(key, out item) && item != null)
-                {
-                    //Interlocked.Increment(ref Shoot2);
-                    return GetData(item);
-                }
+                if (dic.TryGetValue(key, out item) && item != null) return GetData(item);
 
                 // 开始更新数据，然后加入缓存
                 TEntity entity = null;
@@ -333,9 +299,7 @@ namespace XCode.Cache
                 else
                     entity = Invoke(FindSlaveKeyMethod, key + "");
 
-                if (entity == null && !AllowNull)
-                    Interlocked.Increment(ref Invalid);
-                else
+                if (entity != null || AllowNull)
                     TryAdd(entity);
 
                 return entity;
@@ -350,7 +314,7 @@ namespace XCode.Cache
             if (!Using)
             {
                 Using = true;
-                if (Debug) DAL.WriteLog("单对象缓存首次使用 {0} {1}", typeof(TEntity).FullName, XTrace.GetCaller(1, 16));
+                WriteLog("单对象缓存首次使用 {0} {1}", typeof(TEntity).FullName, XTrace.GetCaller(1, 16));
             }
 
             var item = new CacheItem { sc = this };
@@ -417,8 +381,6 @@ namespace XCode.Cache
             var entity = Invoke(FindKeyMethod, item.Key);
             if (entity != null || AllowNull)
                 item.SetEntity(entity);
-            else
-                Interlocked.Increment(ref Invalid);
 
             return entity;
         }
@@ -455,7 +417,7 @@ namespace XCode.Cache
             CacheItem item = null;
             if (!Entities.TryGetValue(keyFirst, out item)) return null;
 
-            if (Debug) DAL.WriteLog("单实体缓存{0}超过最大数量限制{1}，准备移除第一项{2}", typeof(TEntity).FullName, MaxEntity, keyFirst);
+            WriteLog("单实体缓存{0}超过最大数量限制{1}，准备移除第一项{2}", typeof(TEntity).FullName, MaxEntity, keyFirst);
 
             Entities.Remove(keyFirst);
 
@@ -477,7 +439,7 @@ namespace XCode.Cache
                 {
                     var rs = e.Entity.Update();
 
-                    if (Debug && rs > 0) DAL.WriteLog("单对象缓存AutoSave {0}/{1} {2}", Entity<TEntity>.Meta.TableName, Entity<TEntity>.Meta.ConnName, reason);
+                    if (rs > 0) WriteLog("单对象缓存AutoSave {0}/{1} {2}", Entity<TEntity>.Meta.TableName, Entity<TEntity>.Meta.ConnName, reason);
 
                     return null;
                 }, item);
@@ -626,7 +588,7 @@ namespace XCode.Cache
         /// <param name="reason">清除缓存原因</param>
         public void Clear(String reason = null)
         {
-            if (Debug) DAL.WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
+            WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
 
             if (AutoSave)
             {
@@ -709,7 +671,6 @@ namespace XCode.Cache
             this.MaxEntity = ec.MaxEntity;
             this.AutoSave = ec.AutoSave;
             this.AllowNull = ec.AllowNull;
-            this.HoldCache = ec.HoldCache;
 
             //this.GetKeyMethod = ec.GetKeyMethod;
             //this.FindKeyMethod = ec.FindKeyMethod;

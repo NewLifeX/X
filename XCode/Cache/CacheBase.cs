@@ -57,6 +57,11 @@ namespace XCode.Cache
         public static Boolean Debug { get { return Setting.Current.CacheDebug; } }
         #endregion
 
+        internal static void WriteLog(String format, params Object[] args)
+        {
+            if (Debug) DAL.WriteLog(format, args);
+        }
+
         /// <summary>检查并显示统计信息</summary>
         /// <param name="next"></param>
         /// <param name="total"></param>

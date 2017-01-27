@@ -599,18 +599,9 @@ namespace XCode
 
         String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }
 
-        private Boolean _HoldCache = Setting.Current.Alone;
         /// <summary>在数据修改时保持缓存，直到数据过期，独占数据库时默认打开，否则默认关闭</summary>
         /// <remarks>实体缓存和单对象缓存能够自动维护更新数据，保持缓存数据最新，在普通CURD中足够使用</remarks>
-        public Boolean HoldCache
-        {
-            get { return _HoldCache; }
-            set
-            {
-                _HoldCache = value;
-                SingleCache.HoldCache = value;
-            }
-        }
+        public Boolean HoldCache { get { return Setting.Current.Alone; } }
         #endregion
 
         #region 数据库操作

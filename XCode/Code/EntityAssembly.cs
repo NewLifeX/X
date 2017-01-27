@@ -490,21 +490,8 @@ namespace XCode.Code
         #endregion
 
         #region 调试
-        private static Boolean? _Debug;
         /// <summary>是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用</summary>
-        public static Boolean Debug
-        {
-            get
-            {
-                if (_Debug != null) return _Debug.Value;
-
-                //_Debug = Config.GetConfig<Boolean>("XCode.Code.Debug", false);
-                _Debug = Setting.Current.CodeDebug;
-
-                return _Debug.Value;
-            }
-            set { _Debug = value; }
-        }
+        public static Boolean Debug { get { return Setting.Current.CodeDebug; } }
         #endregion
 
         #region 辅助函数
@@ -517,8 +504,7 @@ namespace XCode.Code
     /// <summary>实体类事件参数</summary>
     public class EntityClassEventArgs : CancelEventArgs
     {
-        private EntityClass _Class;
         /// <summary>实体类</summary>
-        public EntityClass Class { get { return _Class; } set { _Class = value; } }
+        public EntityClass Class { get; set; }
     }
 }
