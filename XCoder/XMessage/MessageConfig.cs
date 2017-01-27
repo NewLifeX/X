@@ -12,15 +12,15 @@ namespace XMessage
     {
         /// <summary>地址</summary>
         [Description("地址")]
-        public String Address { get; set; }
+        public String Address { get; set; } = "";
 
         /// <summary>文本编码</summary>
         [XmlIgnore]
-        public Encoding Encoding { get; set; }
+        public Encoding Encoding { get; set; } = Encoding.Default;
 
         /// <summary>编码</summary>
         [Description("编码 gb2312/us-ascii/utf-8")]
-        public String WebEncoding { get { return Encoding.WebName; } set { Encoding = Encoding.GetEncoding(value); } }
+        public String WebEncoding { get { return Encoding?.WebName; } set { Encoding = Encoding.GetEncoding(value); } }
 
         /// <summary>十六进制显示</summary>
         [Description("十六进制显示")]
@@ -32,7 +32,7 @@ namespace XMessage
 
         /// <summary>发送内容</summary>
         [Description("发送内容")]
-        public String SendContent { get; set; }
+        public String SendContent { get; set; } = "新生命开发团队，学无先后达者为师";
 
         /// <summary>发送次数</summary>
         [Description("发送次数")]
@@ -76,9 +76,6 @@ namespace XMessage
 
         public MessageConfig()
         {
-            Encoding = Encoding.Default;
-
-            SendContent = "新生命开发团队，学无先后达者为师";
         }
     }
 }

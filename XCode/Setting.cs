@@ -32,7 +32,7 @@ namespace XCode
 
         /// <summary>连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去</summary>
         [Description("连接映射。连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
-        public String ConnMaps { get; set; }
+        public String ConnMaps { get; set; } = "";
 
         /// <summary>是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用</summary>
         [Description("代码调试。是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
@@ -48,7 +48,7 @@ namespace XCode
 
         /// <summary>SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录</summary>
         [Description("SQLite默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
-        public String SQLiteDbPath { get; set; }
+        public String SQLiteDbPath { get; set; } = "";
 
         /// <summary>缓存调试</summary>
         [Description("缓存调试")]
@@ -79,8 +79,6 @@ namespace XCode
         /// <summary>实例化设置</summary>
         public Setting()
         {
-            ConnMaps = "Conn2#Conn,Table3@Table";
-
             Negative = new NegativeSetting();
             Oracle = new OracleSetting();
         }
@@ -88,6 +86,8 @@ namespace XCode
         /// <summary>新建时调用</summary>
         protected override void OnNew()
         {
+            ConnMaps = "Conn2#Conn,Table3@Table";
+
             Negative.Init();
         }
 

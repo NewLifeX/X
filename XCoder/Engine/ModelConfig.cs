@@ -11,18 +11,9 @@ namespace XCoder
     public class ModelConfig : XmlConfig<ModelConfig>
     {
         #region 属性
-        private String _ConnName;
         /// <summary>链接名</summary>
         [DisplayName("链接名")]
-        public String ConnName
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_ConnName)) _ConnName = "ConnName";
-                return _ConnName;
-            }
-            set { _ConnName = value; }
-        }
+        public String ConnName { get; set; } = "ConnName";
 
         //private String _Prefix;
         ///// <summary>前缀</summary>
@@ -38,10 +29,9 @@ namespace XCoder
             set { _NameSpace = value; }
         }
 
-        private String _TemplateName;
         /// <summary>模板名</summary>
         [DisplayName("模板名")]
-        public String TemplateName { get { return _TemplateName; } set { _TemplateName = value; } }
+        public String TemplateName { get; set; }
 
         private String _OutputPath;
         /// <summary>输出目录</summary>
@@ -52,10 +42,9 @@ namespace XCoder
             set { _OutputPath = value; }
         }
 
-        private Boolean _Override = true;
         /// <summary>是否覆盖目标文件</summary>
         [DisplayName("是否覆盖目标文件")]
-        public Boolean Override { get { return _Override; } set { _Override = value; } }
+        public Boolean Override { get; set; } = true;
 
         private String _EntityConnName;
         /// <summary>实体链接名</summary>
@@ -79,10 +68,9 @@ namespace XCoder
             set { _BaseClass = value; }
         }
 
-        private Boolean _RenderGenEntity;
         /// <summary>生成泛型实体类</summary>
         [DisplayName("生成泛型实体类")]
-        public Boolean RenderGenEntity { get { return _RenderGenEntity; } set { _RenderGenEntity = value; } }
+        public Boolean RenderGenEntity { get; set; }
 
         //private Boolean _NeedFix = true;
         ///// <summary>是否需要修正。默认true，将根据配置删除前缀、自动化大小写和完善注释等</summary>
@@ -112,43 +100,30 @@ namespace XCoder
         //    set { _AutoFixWord = value; }
         //}
 
-        private Boolean _UseCNFileName;
         /// <summary>使用中文文件名</summary>
         [DisplayName("使用中文文件名")]
-        public Boolean UseCNFileName { get { return _UseCNFileName; } set { _UseCNFileName = value; } }
+        public Boolean UseCNFileName { get; set; }
 
         //private Boolean _UseID;
         ///// <summary>强制使用ID</summary>
         //[DisplayName("强制使用ID")]
         //public Boolean UseID { get { return _UseID; } set { _UseID = value; } }
 
-        private Boolean _UseHeadTemplate;
         /// <summary>使用头部模版</summary>
         [DisplayName("使用头部模版")]
-        public Boolean UseHeadTemplate
-        {
-            get { return _UseHeadTemplate; }
-            set { _UseHeadTemplate = value; }
-        }
+        public Boolean UseHeadTemplate { get; set; }
 
-        private String _HeadTemplate;
         /// <summary>头部模版</summary>
         [DisplayName("头部模版")]
-        public String HeadTemplate
-        {
-            get { return _HeadTemplate; }
-            set { _HeadTemplate = value; }
-        }
+        public String HeadTemplate { get; set; }
 
-        private Boolean _Debug;
         /// <summary>调试</summary>
         [DisplayName("调试")]
-        public Boolean Debug { get { return _Debug; } set { _Debug = value; } }
+        public Boolean Debug { get; set; }
 
-        private SerializableDictionary<String, String> _Items;
         /// <summary> 字典属性</summary>
         [DisplayName("数据字典")]
-        public SerializableDictionary<String, String> Items { get { return _Items ?? (_Items = new SerializableDictionary<string, string>()); } set { _Items = value; } }
+        public SerializableDictionary<String, String> Items { get; set; } = new SerializableDictionary<String, String>();
         #endregion
 
         #region 加载/保存

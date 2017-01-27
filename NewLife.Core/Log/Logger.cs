@@ -97,9 +97,8 @@ namespace NewLife.Log
         #endregion
 
         #region 属性
-        private Boolean _Enable = true;
         /// <summary>是否启用日志。默认true</summary>
-        public virtual Boolean Enable { get { return _Enable; } set { _Enable = value; } }
+        public virtual Boolean Enable { get; set; } = true;
 
         private LogLevel? _Level;
         /// <summary>日志等级，只输出大于等于该级别的日志，默认Info，打开NewLife.Debug时默认为最低的Debug</summary>

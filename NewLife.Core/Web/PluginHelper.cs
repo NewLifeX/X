@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -37,6 +36,7 @@ namespace NewLife.Web
                 client.Log = XTrace.Log;
                 var dir = Path.GetDirectoryName(file);
                 var file2 = client.DownloadLinkAndExtract(url, linkName, dir);
+                client.TryDispose();
             }
             if (!File.Exists(file))
             {
@@ -46,12 +46,6 @@ namespace NewLife.Web
 
             type = typeName.GetTypeEx(true);
             return type;
-
-            //var assembly = Assembly.LoadFrom(file);
-            //if (assembly == null) return null;
-
-            //type = assembly.GetType(typeName);
-            //if (type == null) type = AssemblyX.Create(assembly).GetType(typeName);
         }
     }
 }

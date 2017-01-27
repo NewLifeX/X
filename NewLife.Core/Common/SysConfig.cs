@@ -19,58 +19,59 @@ namespace NewLife.Common
         /// <summary>系统名称</summary>
         [DisplayName("系统名称")]
         [Description("用于标识系统的英文名")]
-        public String Name { get; set; }
+        public String Name { get; set; } = "";
 
         /// <summary>系统版本</summary>
         [DisplayName("系统版本")]
-        public String Version { get; set; }
+        public String Version { get; set; } = "";
 
         /// <summary>显示名称</summary>
         [DisplayName("显示名称")]
         [Description("用户可见的名称")]
-        public String DisplayName { get; set; }
+        public String DisplayName { get; set; } = "";
 
         /// <summary>公司</summary>
         [DisplayName("公司")]
-        public String Company { get; set; }
+        public String Company { get; set; } = "";
 
         /// <summary>地址</summary>
         [DisplayName("地址")]
-        public String Address { get; set; }
+        public String Address { get; set; } = "";
 
         /// <summary>电话</summary>
         [DisplayName("电话")]
-        public String Tel { get; set; }
+        public String Tel { get; set; } = "";
 
         /// <summary>传真</summary>
         [DisplayName("传真")]
-        public String Fax { get; set; }
+        public String Fax { get; set; } = "";
 
         /// <summary>电子邮件</summary>
         [DisplayName("电子邮件")]
-        public String EMail { get; set; }
+        public String EMail { get; set; } = "";
 
         /// <summary>开发者模式</summary>
         [DisplayName("开发者模式")]
-        public Boolean Develop { get; set; }
+        public Boolean Develop { get; set; } = true;
 
         /// <summary>启用</summary>
         [DisplayName("启用")]
-        public Boolean Enable { get; set; }
+        public Boolean Enable { get; set; } = true;
 
         /// <summary>安装时间</summary>
         [DisplayName("安装时间")]
-        public DateTime InstallTime { get; set; }
+        public DateTime InstallTime { get; set; } = DateTime.Now;
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
         public SysConfig()
         {
-            Develop = true;
-            Enable = true;
-            InstallTime = DateTime.Now;
+        }
 
+        /// <summary>新建配置</summary>
+        protected override void OnNew()
+        {
             var asmx = SysAssembly;
 
             Name = asmx != null ? asmx.Name : "NewLife.Cube";

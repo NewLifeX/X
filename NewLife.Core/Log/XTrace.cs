@@ -317,49 +317,14 @@ namespace NewLife.Log
         #endregion
 
         #region 属性
-        private static Boolean? _Debug;
-        /// <summary>是否调试。如果代码指定了值，则只会使用代码指定的值，否则每次都读取配置。</summary>
-        public static Boolean Debug
-        {
-            get
-            {
-                if (_Debug != null) return _Debug.Value;
+        /// <summary>是否调试。</summary>
+        public static Boolean Debug { get; set; } = Setting.Current.Debug;
 
-                try
-                {
-                    return Setting.Current.Debug;
-                }
-                catch { return false; }
-            }
-            set { _Debug = value; }
-        }
-
-        private static String _LogPath;
         /// <summary>文本日志目录</summary>
-        public static String LogPath
-        {
-            get
-            {
-                if (_LogPath == null) _LogPath = Setting.Current.LogPath;
-                return _LogPath;
-            }
-            set { _LogPath = value; }
-        }
+        public static String LogPath { get; set; } = Setting.Current.LogPath;
 
-        private static String _TempPath;
         /// <summary>临时目录</summary>
-        public static String TempPath
-        {
-            get
-            {
-                if (_TempPath == null) _TempPath = Setting.Current.TempPath.GetFullPath();
-                return _TempPath;
-            }
-            set
-            {
-                _TempPath = value.GetFullPath();
-            }
-        }
+        public static String TempPath { get; set; } = Setting.Current.LogPath;
         #endregion
 
         #region Dump

@@ -10,48 +10,45 @@ namespace NewLife.Net.Stress
     [XmlConfigFile("TcpStress.xml")]
     public class TcpStressConfig : XmlConfig<TcpStressConfig>
     {
-        private String _Address;
         /// <summary>测试地址</summary>
         [Description("测试地址")]
-        public String Address { get { return _Address; } set { _Address = value; } }
+        public String Address { get; set; } = "";
 
-        private Int32 _Port = 80;
         /// <summary>测试端口</summary>
         [Description("测试端口")]
-        public Int32 Port { get { return _Port; } set { _Port = value; } }
+        public Int32 Port { get; set; } = 80;
 
-        private Int32 _Connections = 10000;
         /// <summary>连接数</summary>
         [Description("连接数")]
-        public Int32 Connections { get { return _Connections; } set { _Connections = value; } }
+        public Int32 Connections { get; set; } = 10000;
 
-        private Int32 _Interval = 0;
         /// <summary>连接间隔，单位毫秒</summary>
         [Description("连接间隔，单位毫秒")]
-        public Int32 Interval { get { return _Interval; } set { _Interval = value; } }
+        public Int32 Interval { get; set; }
 
-        private String _Data = "我是大石头！";
         /// <summary>发送的数据，十六进制数据使用0x开头</summary>
         [Description("发送的数据")]
-        public String Data { get { return _Data; } set { _Data = value; } }
+        public String Data { get; set; } = "我是大石头！";
 
-        private Boolean _UseLength;
         /// <summary>使用前缀长度</summary>
         [Description("使用前缀长度")]
-        public Boolean UseLength { get { return _UseLength; } set { _UseLength = value; } }
+        public Boolean UseLength { get; set; }
 
-        private Int32 _SendInterval = 1000;
         /// <summary>发送数据间隔，单位毫秒</summary>
         [Description("发送数据间隔，单位毫秒")]
-        public Int32 SendInterval { get { return _SendInterval; } set { _SendInterval = value; } }
+        public Int32 SendInterval { get; set; } = 1000;
 
-        private Int32 _Times = 100;
         /// <summary>每个连接发送数据次数</summary>
         [Description("每个连接发送数据次数")]
-        public Int32 Times { get { return _Times; } set { _Times = value; } }
+        public Int32 Times { get; set; } = 100;
 
         /// <summary>实例化</summary>
         public TcpStressConfig()
+        {
+        }
+
+        /// <summary>新建配置</summary>
+        protected override void OnNew()
         {
             Address = NetHelper.MyIP().ToString();
         }

@@ -27,8 +27,8 @@ namespace NewLife.Web
         /// <summary>引用页面</summary>
         public String Referer { get; set; }
 
-        /// <summary>超时，毫秒</summary>
-        public Int32 Timeout { get; set; }
+        /// <summary>超时，默认3000毫秒</summary>
+        public Int32 Timeout { get; set; } = 3000;
 
         /// <summary>自动解压缩模式。</summary>
         public DecompressionMethods AutomaticDecompression { get; set; }
@@ -36,7 +36,7 @@ namespace NewLife.Web
         /// <summary>User-Agent 标头，指定有关客户端代理的信息</summary>
         public String UserAgent { get; set; }
 
-        /// <summary>编码</summary>
+        /// <summary>编码。网络时代，绝大部分使用utf8编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
         private HttpSession _client;
@@ -46,8 +46,6 @@ namespace NewLife.Web
         /// <summary>实例化</summary>
         public WebClientX()
         {
-            //// 网络时代，绝大部分使用utf8编码
-            //Encoding = Encoding.UTF8;
         }
 
         /// <summary>初始化常用的东西</summary>
@@ -86,74 +84,6 @@ namespace NewLife.Web
         }
         #endregion
 
-        #region 重载设置属性
-        ///// <summary>重写获取请求</summary>
-        ///// <param name="address"></param>
-        ///// <returns></returns>
-        //protected override WebRequest GetWebRequest(Uri address)
-        //{
-        //    var request = base.GetWebRequest(address);
-
-        //    var hr = request as HttpWebRequest;
-        //    if (hr != null)
-        //    {
-        //        hr.CookieContainer = Cookie;
-        //        hr.AutomaticDecompression = AutomaticDecompression;
-
-        //        if (!String.IsNullOrEmpty(Accept)) hr.Accept = Accept;
-        //        if (!String.IsNullOrEmpty(AcceptLanguage)) hr.Headers[HttpRequestHeader.AcceptLanguage] = AcceptLanguage;
-        //        if (!String.IsNullOrEmpty(UserAgent)) hr.UserAgent = UserAgent;
-        //        if (!String.IsNullOrEmpty(Accept)) hr.Accept = Accept;
-        //    }
-
-        //    var fr = request as FtpWebRequest;
-        //    if (fr != null)
-        //    {
-        //        // 特殊支持获取字符串
-        //        if (fr.Method == WebRequestMethods.Ftp.DownloadFile)
-        //        {
-        //            // 斜杠结尾，或者://后面没有任何斜杠，则认为是目录
-        //            var path = address.PathAndQuery;
-        //            if (path.IsNullOrEmpty() || path.EndsWith("/"))
-        //                fr.Method = WebRequestMethods.Ftp.ListDirectory;
-        //            // 不能列出明细，那样子不好分割名称
-        //            //fr.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
-        //        }
-        //    }
-
-        //    if (Timeout > 0) request.Timeout = Timeout;
-
-        //    return request;
-        //}
-
-        ///// <summary>重写获取响应</summary>
-        ///// <param name="request"></param>
-        ///// <returns></returns>
-        //protected override WebResponse GetWebResponse(WebRequest request)
-        //{
-        //    var response = base.GetWebResponse(request);
-        //    var http = response as HttpWebResponse;
-        //    if (http != null)
-        //    {
-        //        Cookie.Add(http.Cookies);
-        //        if (!String.IsNullOrEmpty(http.CharacterSet)) Encoding = Encoding.GetEncoding(http.CharacterSet);
-        //    }
-
-        //    var fr = response as FtpWebResponse;
-        //    if (fr != null)
-        //    {
-        //        if (Log != null && Log.Enable)
-        //        {
-        //            Log.Info(fr.BannerMessage);
-        //            Log.Info(fr.StatusDescription);
-        //            Log.Info(fr.WelcomeMessage);
-        //        }
-        //    }
-
-        //    return response;
-        //}
-        #endregion
-
         #region 核心方法
         /// <summary>创建客户端会话</summary>
         /// <param name="uri"></param>
@@ -185,7 +115,6 @@ namespace NewLife.Web
             if (_client == null)
                 _client = Create(uri);
             // 远程主机不同，需要重新建立
-            //else if (!_client.Remote.Host.EqualIgnoreCase(uri.Host))
             else if (_client.Remote + "" != uri + "")
             {
                 _client.Dispose();
@@ -203,6 +132,8 @@ namespace NewLife.Web
         /// <returns></returns>
         protected virtual Byte[] Get(String address, Byte[] data)
         {
+            var time = Timeout;
+            if (time <= 0) time = 3000;
             while (true)
             {
                 var http = Check(address);
@@ -211,15 +142,15 @@ namespace NewLife.Web
                 Log.Info("WebClientX.Get {0}", address);
 
                 // 发送请求
-                //http.Send(data);
                 var task = http.SendAsync(data);
+                if (!task.Wait(time)) return null;
+
                 var buf = task.Result?.ToArray();
+                //var pk = await http.SendAsync(data);
+                //var buf = pk.ToArray();
 
                 // 修改引用地址
                 Referer = address;
-
-                // 接收数据
-                //var buf = http.Receive()?.ToArray();
 
                 // 如果是重定向
                 switch (http.StatusCode)
@@ -270,7 +201,6 @@ namespace NewLife.Web
             http.Method = "POST";
 
             Log.Info("WebClientX.PostAsync [{0}] {1}", data?.Length, address);
-            //http.Received += Http_OnDisposed;
 
             // 发送请求
             var rs = await http.SendAsync(data);
@@ -307,7 +237,11 @@ namespace NewLife.Web
         public virtual void DownloadFile(String address, String fileName)
         {
             var buf = DownloadData(address);
-            if (buf?.Length > 0) File.WriteAllBytes(fileName, buf);
+            if (buf?.Length > 0)
+            {
+                fileName.EnsureDirectory(true);
+                File.WriteAllBytes(fileName, buf);
+            }
         }
 
         /// <summary>异步上传数据</summary>

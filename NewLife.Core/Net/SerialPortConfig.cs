@@ -61,6 +61,6 @@ namespace NewLife.Net
 
         /// <summary>扩展数据</summary>
         [Description("扩展数据")]
-        public String Extend { get; set; }
+        public String Extend { get; set; } = "";
     }
 }

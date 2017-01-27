@@ -13,7 +13,7 @@ namespace XNet
     {
         /// <summary>目的地址</summary>
         [Description("目的地址")]
-        public String Address { get; set; }
+        public String Address { get; set; } = "";
 
         /// <summary>端口</summary>
         [Description("端口")]
@@ -21,7 +21,7 @@ namespace XNet
 
         /// <summary>文本编码</summary>
         [XmlIgnore]
-        public Encoding Encoding { get; set; }
+        public Encoding Encoding { get; set; } = Encoding.Default;
 
         /// <summary>编码</summary>
         [Description("编码 gb2312/us-ascii/utf-8")]
@@ -37,7 +37,7 @@ namespace XNet
 
         /// <summary>发送内容</summary>
         [Description("发送内容")]
-        public String SendContent { get; set; }
+        public String SendContent { get; set; } = "新生命开发团队，学无先后达者为师";
 
         /// <summary>发送次数</summary>
         [Description("发送次数")]
@@ -81,9 +81,6 @@ namespace XNet
 
         public NetConfig()
         {
-            Encoding = Encoding.Default;
-
-            SendContent = "新生命开发团队，学无先后达者为师";
         }
     }
 }
