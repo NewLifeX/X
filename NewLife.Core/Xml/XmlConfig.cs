@@ -21,14 +21,16 @@ namespace NewLife.Xml
     public class XmlConfig<TConfig> where TConfig : XmlConfig<TConfig>, new()
     {
         #region 静态
+        private static Boolean _loading;
         private static TConfig _Current;
         /// <summary>当前实例。通过置空可以使其重新加载。</summary>
         public static TConfig Current
         {
             get
             {
-                var dcf = _.ConfigFile;
+                if (_loading) return _Current ?? new TConfig();
 
+                var dcf = _.ConfigFile;
                 if (dcf == null) return new TConfig();
 
                 // 这里要小心，避免_Current的null判断完成后，_Current被别人置空，而导致这里返回null
@@ -199,6 +201,7 @@ namespace NewLife.Xml
             filename = filename.GetFullPath();
             if (!File.Exists(filename)) return null;
 
+            _loading = true;
             try
             {
                 //var config = filename.ToXmlFileEntity<TConfig>();
@@ -229,6 +232,10 @@ namespace NewLife.Xml
                 XTrace.WriteException(ex);
                 return null;
             }
+            finally
+            {
+                _loading = false;
+            }
         }
         #endregion
 
@@ -251,11 +258,11 @@ namespace NewLife.Xml
                 var flag = File.Exists(cfi);
                 if (!flag) return;
 
-               
-                    var xml1 = File.ReadAllText(cfi).Trim();
-                    var xml2 = config.ToXml(null, "", "", true, true).Trim();
-                    flag = xml1 == xml2;
-            
+
+                var xml1 = File.ReadAllText(cfi).Trim();
+                var xml2 = config.ToXml(null, "", "", true, true).Trim();
+                flag = xml1 == xml2;
+
                 if (!flag)
                 {
                     // 异步处理，避免加载日志路径配置时死循环
