@@ -211,8 +211,6 @@ namespace XCode.Cache
         #endregion
 
         #region 单对象缓存
-        private Object _SyncRoot = new Object();
-
         /// <summary>单对象缓存</summary>
         private Dictionary<TKey, CacheItem> Entities = new Dictionary<TKey, CacheItem>();
 
@@ -287,7 +285,7 @@ namespace XCode.Cache
 
             ClearUp();
 
-            lock (_SyncRoot)
+            lock (dic)
             {
                 // 再次尝试获取
                 if (dic.TryGetValue(key, out item) && item != null) return GetData(item);
@@ -523,16 +521,17 @@ namespace XCode.Cache
         /// <returns></returns>
         Boolean Add(TKey key, TEntity entity)
         {
+            var es = Entities;
             // 如果找到项，返回
             CacheItem item = null;
-            if (Entities.TryGetValue(key, out item) && item != null && !item.Expired) return false;
+            if (es.TryGetValue(key, out item) && item != null && !item.Expired) return false;
 
             // 加锁
-            lock (_SyncRoot)
+            lock (es)
             {
                 // 如果已存在并且过期，则复制
                 // TryGetValue获取成功，Item为空说明同一时间另外线程做了删除操作
-                if (Entities.TryGetValue(key, out item) && item != null)
+                if (es.TryGetValue(key, out item) && item != null)
                 {
                     if (!item.Expired) return false;
 
@@ -590,21 +589,22 @@ namespace XCode.Cache
         {
             WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
 
+            var es = Entities;
             if (AutoSave)
             {
                 // 加锁处理自动保存
-                lock (Entities)
+                lock (es)
                 {
-                    foreach (var key in Entities)
+                    foreach (var key in es)
                     {
                         AutoUpdate(key.Value, "清空缓存 " + reason);
                     }
                 }
             }
 
-            lock (Entities)
+            lock (es)
             {
-                Entities.Clear();
+                es.Clear();
             }
             lock (SlaveEntities)
             {
