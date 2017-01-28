@@ -230,7 +230,7 @@ namespace XCode.Cache
         public override String ToString()
         {
             var type = GetType();
-            return "{0}<{1}>".F(type.GetDisplayName() ?? type.Name, typeof(TEntity).FullName);
+            return "{0}<{1}>".F(type.GetDisplayName() ?? type.Name, typeof(TEntity).Name);
         }
         #endregion
     }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
 using NewLife.Log;
 
 namespace XCode.DataAccessLayer
@@ -70,9 +69,9 @@ namespace XCode.DataAccessLayer
 
         public event EventHandler<TransactionEventArgs> Completed;
 
-        private static Int32 _gid = 1;
+        private static Int32 _gid;
         /// <summary>事务唯一编号</summary>
-        private Int32 ID { get; set; } = _gid++;
+        private Int32 ID { get; set; }
 
         IDbSession _Session;
         #endregion
@@ -111,6 +110,7 @@ namespace XCode.DataAccessLayer
             _Tran = ss.Conn.BeginTransaction(Level);
 
             Level = _Tran.IsolationLevel;
+            ID = ++_gid;
             Log.Debug("Tran.Begin {0} {1}", ID, Level);
 
             return _Tran;
@@ -120,7 +120,7 @@ namespace XCode.DataAccessLayer
         #region 方法
         public ITransaction Begin()
         {
-            Debug.Assert(Count >= 1, "Tran.Begin {0}".F(ID));
+            if (Count <= 0) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]不能重新开始");
 
             Count++;
 
@@ -129,7 +129,7 @@ namespace XCode.DataAccessLayer
 
         public ITransaction Commit()
         {
-            Debug.Assert(Count >= 1, "Tran.Commit {0}".F(ID));
+            if (Count <= 0) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]未开始或已结束");
 
             Count--;
 
@@ -140,7 +140,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (tr != null)
                     {
-                        Log.Debug("Tran.Commit {0} {1}", ID, Level);
+                        Log.Debug("Tran.Commit {0} {1} Executes={2}", ID, Level, Executes);
 
                         tr.Commit();
                     }
@@ -157,7 +157,7 @@ namespace XCode.DataAccessLayer
 
         public ITransaction Rollback()
         {
-            Debug.Assert(Count >= 1, "Tran.Rollback {0}".F(ID));
+            if (Count <= 0) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]未开始或已结束");
 
             Count--;
 
@@ -168,7 +168,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (tr != null)
                     {
-                        Log.Debug("Tran.Rollback {0} {1}", ID, Level);
+                        Log.Debug("Tran.Rollback {0} {1} Executes={2}", ID, Level, Executes);
 
                         tr.Rollback();
                     }
