@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using NewLife.Log;
 
 namespace XCode.DataAccessLayer
@@ -15,72 +16,102 @@ namespace XCode.DataAccessLayer
         Int32 Count { get; }
 
         /// <summary>数据库事务</summary>
-        DbTransaction Trans { get; }
+        DbTransaction Tran { get; }
 
-        //void Add(Action<Boolean> callback);
+        /// <summary>事务完成事件</summary>
         event EventHandler<TransactionEventArgs> Completed;
 
+        /// <summary>增加事务计数</summary>
+        /// <returns></returns>
         ITransaction Begin();
 
+        /// <summary>提交事务</summary>
+        /// <returns></returns>
         ITransaction Commit();
 
+        /// <summary>回滚事务</summary>
+        /// <returns></returns>
         ITransaction Rollback();
     }
 
+    /// <summary>事务完成事件参数</summary>
     class TransactionEventArgs : EventArgs
     {
+        /// <summary>事务是否成功</summary>
         public Boolean Success { get; set; }
     }
 
     class Transaction : ITransaction
     {
         #region 属性
-        public IsolationLevel Level { get; }
+        public IsolationLevel Level { get; private set; }
 
         public Int32 Count { get; set; }
 
         /// <summary>数据库事务</summary>
-        public DbTransaction Trans { get; }
+        public DbTransaction Tran { get; private set; }
 
         public event EventHandler<TransactionEventArgs> Completed;
+
+        private static Int32 _gid = 1;
+        /// <summary>事务唯一编号</summary>
+        private Int32 ID { get; set; } = _gid++;
+
+        DbConnection _Conn;
         #endregion
 
         #region 构造
         public Transaction(DbConnection conn, IsolationLevel level)
         {
+            _Conn = conn;
+            Level = level;
+
             Log = Setting.Current.TransactionDebug ? XTrace.Log : Logger.Null;
 
-            using (var ct = new TimeCost("BeginTransaction", 1000))
-            {
-                ct.Log = Log;
-                Trans = conn.BeginTransaction(level);
-            }
-
-            Count = 1;
-
-            Level = Trans.IsolationLevel;
-            Log.Debug("Transaction.Begin {0}", Level);
+            Begin();
         }
         #endregion
 
         #region 方法
         public ITransaction Begin()
         {
+            Debug.Assert(Count >= 0, "Tran{0}.Begin".F(ID));
+
             Count++;
+
+            if (Count == 1)
+            {
+                using (var ct = new TimeCost("Tran{0}.Begin".F(ID), 1000))
+                {
+                    ct.Log = Log;
+                    Tran = _Conn.BeginTransaction(Level);
+                }
+
+                Level = Tran.IsolationLevel;
+                Log.Debug("Tran{0}.Begin {1}", ID, Level);
+            }
 
             return this;
         }
 
         public ITransaction Commit()
         {
+            Debug.Assert(Count >= 1, "Tran{0}.Commit".F(ID));
+
             Count--;
 
             if (Count == 0)
             {
-                Log.Debug("Transaction.Commit {0}", Level);
-                Trans.Commit();
+                Log.Debug("Tran{0}.Commit {1}", ID, Level);
 
-                Completed?.Invoke(this, new TransactionEventArgs { Success = true });
+                try
+                {
+                    Tran.Commit();
+                }
+                finally
+                {
+                    Completed?.Invoke(this, new TransactionEventArgs { Success = true });
+                }
             }
 
             return this;
@@ -88,14 +119,22 @@ namespace XCode.DataAccessLayer
 
         public ITransaction Rollback()
         {
+            Debug.Assert(Count >= 1, "Tran{0}.Rollback".F(ID));
+
             Count--;
 
             if (Count == 0)
             {
-                Log.Debug("Transaction.Rollback {0}", Level);
-                Trans.Rollback();
+                Log.Debug("Tran{0}.Rollback {1}", ID, Level);
 
-                Completed?.Invoke(this, new TransactionEventArgs { Success = false });
+                try
+                {
+                    Tran.Rollback();
+                }
+                finally
+                {
+                    Completed?.Invoke(this, new TransactionEventArgs { Success = false });
+                }
             }
 
             return this;

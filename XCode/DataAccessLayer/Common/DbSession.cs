@@ -253,6 +253,7 @@ namespace XCode.DataAccessLayer
                 if (!Opened) Open();
 
                 tr = new Transaction(Conn, level);
+                tr.Completed += (s, e) => { Trans = null; AutoClose(); };
 
                 Trans = tr;
 
@@ -279,14 +280,6 @@ namespace XCode.DataAccessLayer
             {
                 throw OnException(ex);
             }
-            finally
-            {
-                if (tr.Count == 0)
-                {
-                    Trans = null;
-                    AutoClose();
-                }
-            }
 
             return tr.Count;
         }
@@ -308,14 +301,6 @@ namespace XCode.DataAccessLayer
             catch (DbException ex)
             {
                 if (!ignoreException) throw OnException(ex);
-            }
-            finally
-            {
-                if (tr.Count == 0)
-                {
-                    Trans = null;
-                    AutoClose();
-                }
             }
 
             return tr.Count;
@@ -346,7 +331,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (!Opened) Open();
                     cmd.Connection = Conn;
-                    if (Trans != null) cmd.Transaction = Trans.Trans;
+                    if (Trans != null) cmd.Transaction = Trans.Tran;
                     da.SelectCommand = cmd;
 
                     var ds = new DataSet();
@@ -381,7 +366,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (!Opened) await OpenAsync();
                     cmd.Connection = Conn;
-                    if (Trans != null) cmd.Transaction = Trans.Trans;
+                    if (Trans != null) cmd.Transaction = Trans.Tran;
                     da.SelectCommand = cmd;
 
                     var ds = new DataSet();
@@ -460,7 +445,7 @@ namespace XCode.DataAccessLayer
             {
                 if (!Opened) Open();
                 cmd.Connection = Conn;
-                if (Trans != null) cmd.Transaction = Trans.Trans;
+                if (Trans != null) cmd.Transaction = Trans.Tran;
 
                 BeginTrace();
                 return cmd.ExecuteNonQuery();
@@ -489,7 +474,7 @@ namespace XCode.DataAccessLayer
             {
                 if (!Opened) await OpenAsync();
                 cmd.Connection = Conn;
-                if (Trans != null) cmd.Transaction = Trans.Trans;
+                if (Trans != null) cmd.Transaction = Trans.Tran;
 
                 BeginTrace();
                 return await cmd.ExecuteNonQueryAsync();
@@ -566,7 +551,7 @@ namespace XCode.DataAccessLayer
             var cmd = Factory.CreateCommand();
             if (!Opened) Open();
             cmd.Connection = Conn;
-            if (Trans != null) cmd.Transaction = Trans.Trans;
+            if (Trans != null) cmd.Transaction = Trans.Tran;
 
             return cmd;
         }
