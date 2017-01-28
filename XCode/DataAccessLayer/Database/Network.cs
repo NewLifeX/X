@@ -132,12 +132,12 @@ namespace XCode.DataAccessLayer
         //    return base.InsertAndGetIdentity(sql);
         //}
 
-        /// <summary>不支持</summary>
-        /// <returns></returns>
-        public override DbCommand CreateCommand()
-        {
-            throw new NotSupportedException();
-        }
+        ///// <summary>不支持</summary>
+        ///// <returns></returns>
+        //public override DbCommand CreateCommand()
+        //{
+        //    throw new NotSupportedException();
+        //}
 
         /// <summary>返回数据源的架构信息</summary>
         /// <param name="collectionName">指定要返回的架构的名称。</param>

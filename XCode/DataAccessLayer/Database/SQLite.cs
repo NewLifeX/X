@@ -277,7 +277,8 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            return ExecuteScalar<Int64>(sql + ";Select last_insert_rowid() newid", type, ps);
+            sql += ";Select last_insert_rowid() newid";
+            return ExecuteScalar<Int64>(CreateCommand(sql, type, ps));
         }
         #endregion
 

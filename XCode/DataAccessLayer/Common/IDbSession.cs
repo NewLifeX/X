@@ -149,15 +149,6 @@ namespace XCode.DataAccessLayer
         /// 连接已打开。
         /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
         /// </summary>
-        /// <returns></returns>
-        DbCommand CreateCommand();
-
-        /// <summary>
-        /// 获取一个DbCommand。
-        /// 配置了连接，并关联了事务。
-        /// 连接已打开。
-        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
-        /// </summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>

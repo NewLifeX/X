@@ -800,14 +800,17 @@ namespace XCode
 
             var count = Dal.BeginTransaction();
 
-            var tr = _Tran = (Dal.Session as DbSession).Trans;
+            var tr = _Tran = (Dal.Session as DbSession).Transaction;
             tr.Completed += (s, e) =>
             {
                 _Tran = null;
-                if (e.Success)
-                    DataChange("修改数据后提交事务");
-                else
-                    DataChange("修改数据后回滚事务");
+                if (e.Executes > 0)
+                {
+                    if (e.Success)
+                        DataChange($"修改数据{e.Executes}次后提交事务");
+                    else
+                        DataChange($"修改数据{e.Executes}次后回滚事务");
+                }
             };
 
             return count;

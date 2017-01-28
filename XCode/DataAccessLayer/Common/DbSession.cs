@@ -38,7 +38,7 @@ namespace XCode.DataAccessLayer
                 // 注意，没有Commit的数据，在这里将会被回滚
                 //if (Trans != null) Rollback();
                 // 在嵌套事务中，Rollback只能减少嵌套层数，而_Trans.Rollback能让事务马上回滚
-                if (Trans != null && Opened) Trans.Rollback();
+                if (Transaction != null && Opened) Transaction.Rollback();
                 if (_Conn != null) Close();
                 if (_Conn != null)
                 {
@@ -161,7 +161,7 @@ namespace XCode.DataAccessLayer
         /// <summary>自动关闭。启用事务后，不关闭连接。</summary>
         public void AutoClose()
         {
-            if (Trans == null && Opened) Close();
+            if (Transaction == null && Opened) Close();
         }
 
         /// <summary>数据库名</summary>
@@ -205,7 +205,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual XDbException OnException(Exception ex)
         {
-            if (Trans == null && Opened) Close(); // 强制关闭数据库
+            if (Transaction == null && Opened) Close(); // 强制关闭数据库
             if (ex != null)
                 return new XDbSessionException(this, ex);
             else
@@ -218,7 +218,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual XSqlException OnException(Exception ex, String sql)
         {
-            if (Trans == null && Opened) Close(); // 强制关闭数据库
+            if (Transaction == null && Opened) Close(); // 强制关闭数据库
             if (ex != null)
                 return new XSqlException(sql, this, ex);
             else
@@ -228,7 +228,7 @@ namespace XCode.DataAccessLayer
 
         #region 事务
         /// <summary>数据库事务</summary>
-        public ITransaction Trans { get; private set; }
+        public ITransaction Transaction { get; private set; }
 
         /// <summary>开始事务</summary>
         /// <remarks>
@@ -245,17 +245,18 @@ namespace XCode.DataAccessLayer
         {
             if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
 
-            var tr = Trans;
+            var tr = Transaction;
             if (tr != null) return tr.Begin().Count;
 
             try
             {
-                if (!Opened) Open();
+                //if (!Opened) Open();
 
-                tr = new Transaction(Conn, level);
-                tr.Completed += (s, e) => { Trans = null; AutoClose(); };
+                tr = new Transaction(this, level);
+                // 事务可能并没有真正开启，也就不会触发Completed事件
+                tr.Completed += (s, e) => { Transaction = null; AutoClose(); };
 
-                Trans = tr;
+                Transaction = tr;
 
                 return tr.Count;
             }
@@ -269,7 +270,7 @@ namespace XCode.DataAccessLayer
         /// <returns>剩下的事务计数</returns>
         public Int32 Commit()
         {
-            var tr = Trans;
+            var tr = Transaction;
             if (tr == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
 
             try
@@ -280,6 +281,15 @@ namespace XCode.DataAccessLayer
             {
                 throw OnException(ex);
             }
+            finally
+            {
+                // 事务可能并没有真正开启，也就不会触发Completed事件
+                if (tr.Count == 0)
+                {
+                    Transaction = null;
+                    AutoClose();
+                }
+            }
 
             return tr.Count;
         }
@@ -289,7 +299,7 @@ namespace XCode.DataAccessLayer
         /// <returns>剩下的事务计数</returns>
         public Int32 Rollback(Boolean ignoreException = true)
         {
-            var tr = Trans;
+            var tr = Transaction;
             if (tr == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
 
             //// 输出事务日志
@@ -301,6 +311,15 @@ namespace XCode.DataAccessLayer
             catch (DbException ex)
             {
                 if (!ignoreException) throw OnException(ex);
+            }
+            finally
+            {
+                // 事务可能并没有真正开启，也就不会触发Completed事件
+                if (tr.Count == 0)
+                {
+                    Transaction = null;
+                    AutoClose();
+                }
             }
 
             return tr.Count;
@@ -315,7 +334,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DataSet Query(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            return Query(CreateCommand(sql, type, ps));
+            return Query(OnCreateCommand(sql, type, ps));
         }
 
         /// <summary>执行DbCommand，返回记录集</summary>
@@ -323,6 +342,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DataSet Query(DbCommand cmd)
         {
+            cmd.Transaction = Transaction?.Check(false);
             QueryTimes++;
             WriteSQL(cmd);
             using (var da = Factory.CreateDataAdapter())
@@ -331,7 +351,6 @@ namespace XCode.DataAccessLayer
                 {
                     if (!Opened) Open();
                     cmd.Connection = Conn;
-                    if (Trans != null) cmd.Transaction = Trans.Tran;
                     da.SelectCommand = cmd;
 
                     var ds = new DataSet();
@@ -358,6 +377,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual async Task<DataSet> QueryAsync(DbCommand cmd)
         {
+            cmd.Transaction = Transaction?.Check(false);
             QueryTimes++;
             WriteSQL(cmd);
             using (var da = Factory.CreateDataAdapter())
@@ -366,7 +386,6 @@ namespace XCode.DataAccessLayer
                 {
                     if (!Opened) await OpenAsync();
                     cmd.Connection = Conn;
-                    if (Trans != null) cmd.Transaction = Trans.Tran;
                     da.SelectCommand = cmd;
 
                     var ds = new DataSet();
@@ -431,7 +450,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            return Execute(CreateCommand(sql, type, ps));
+            return Execute(OnCreateCommand(sql, type, ps));
         }
 
         /// <summary>执行DbCommand，返回受影响的行数</summary>
@@ -439,13 +458,13 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Int32 Execute(DbCommand cmd)
         {
+            cmd.Transaction = Transaction?.Check(true);
             ExecuteTimes++;
             WriteSQL(cmd);
             try
             {
                 if (!Opened) Open();
                 cmd.Connection = Conn;
-                if (Trans != null) cmd.Transaction = Trans.Tran;
 
                 BeginTrace();
                 return cmd.ExecuteNonQuery();
@@ -468,13 +487,13 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual async Task<Int32> ExecuteAsync(DbCommand cmd)
         {
+            cmd.Transaction = Transaction?.Check(true);
             ExecuteTimes++;
             WriteSQL(cmd);
             try
             {
                 if (!Opened) await OpenAsync();
                 cmd.Connection = Conn;
-                if (Trans != null) cmd.Transaction = Trans.Tran;
 
                 BeginTrace();
                 return await cmd.ExecuteNonQueryAsync();
@@ -510,7 +529,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            return ExecuteScalar<T>(CreateCommand(sql, type, ps));
+            var cmd = OnCreateCommand(sql, type, ps);
+            cmd.Transaction = Transaction?.Check(false);
+            return ExecuteScalar<T>(cmd);
         }
 
         protected virtual T ExecuteScalar<T>(DbCommand cmd)
@@ -545,30 +566,29 @@ namespace XCode.DataAccessLayer
         /// 连接已打开。
         /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
         /// </remark>
-        /// <returns></returns>
-        public virtual DbCommand CreateCommand()
-        {
-            var cmd = Factory.CreateCommand();
-            if (!Opened) Open();
-            cmd.Connection = Conn;
-            if (Trans != null) cmd.Transaction = Trans.Tran;
-
-            return cmd;
-        }
-
-        /// <summary>获取一个DbCommand。</summary>
-        /// <remark>
-        /// 配置了连接，并关联了事务。
-        /// 连接已打开。
-        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
-        /// </remark>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
         public virtual DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
-            var cmd = CreateCommand();
+            var cmd = OnCreateCommand(sql, type, ps);
+            cmd.Transaction = Transaction?.Check(true);
+            return cmd;
+        }
+
+        /// <summary>获取一个DbCommand。</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        protected DbCommand OnCreateCommand(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        {
+            var cmd = Factory?.CreateCommand();
+            if (cmd == null) return null;
+
+            if (!Opened) Open();
+            cmd.Connection = Conn;
 
             cmd.CommandType = type;
             cmd.CommandText = sql;
@@ -614,7 +634,7 @@ namespace XCode.DataAccessLayer
         {
             QueryTimes++;
             // 如果启用了事务保护，这里要新开一个连接，否则MSSQL里面报错，SQLite不报错，其它数据库未测试
-            var isTrans = Trans != null;
+            var isTrans = Transaction != null;
 
             DbConnection conn = null;
             if (isTrans)

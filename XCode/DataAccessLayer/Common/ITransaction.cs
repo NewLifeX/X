@@ -15,11 +15,19 @@ namespace XCode.DataAccessLayer
         /// <summary>事务计数。当且仅当事务计数等于1时，才提交或回滚。</summary>
         Int32 Count { get; }
 
+        /// <summary>执行次数。其决定是否更新缓存</summary>
+        Int32 Executes { get; }
+
         /// <summary>数据库事务</summary>
         DbTransaction Tran { get; }
 
         /// <summary>事务完成事件</summary>
         event EventHandler<TransactionEventArgs> Completed;
+
+        /// <summary>获取事务</summary>
+        /// <param name="execute">是否执行增删改</param>
+        /// <returns></returns>
+        DbTransaction Check(Boolean execute);
 
         /// <summary>增加事务计数</summary>
         /// <returns></returns>
@@ -38,7 +46,16 @@ namespace XCode.DataAccessLayer
     class TransactionEventArgs : EventArgs
     {
         /// <summary>事务是否成功</summary>
-        public Boolean Success { get; set; }
+        public Boolean Success { get; }
+
+        /// <summary>执行次数。其决定是否更新缓存</summary>
+        public Int32 Executes { get; }
+
+        public TransactionEventArgs(Boolean success, Int32 executes)
+        {
+            Success = success;
+            Executes = executes;
+        }
     }
 
     class Transaction : ITransaction
@@ -48,8 +65,8 @@ namespace XCode.DataAccessLayer
 
         public Int32 Count { get; set; }
 
-        /// <summary>数据库事务</summary>
-        public DbTransaction Tran { get; private set; }
+        /// <summary>执行次数。其决定是否更新缓存</summary>
+        public Int32 Executes { get; set; }
 
         public event EventHandler<TransactionEventArgs> Completed;
 
@@ -57,60 +74,81 @@ namespace XCode.DataAccessLayer
         /// <summary>事务唯一编号</summary>
         private Int32 ID { get; set; } = _gid++;
 
-        DbConnection _Conn;
+        IDbSession _Session;
         #endregion
 
         #region 构造
-        public Transaction(DbConnection conn, IsolationLevel level)
+        public Transaction(IDbSession session, IsolationLevel level)
         {
-            _Conn = conn;
+            _Session = session;
             Level = level;
+            Count = 1;
 
             Log = Setting.Current.TransactionDebug ? XTrace.Log : Logger.Null;
+        }
+        #endregion
 
-            Begin();
+        #region 延迟打开事务
+        private DbTransaction _Tran;
+        /// <summary>数据库事务。首次使用打开事务</summary>
+        public DbTransaction Tran { get { return _Tran; } }
+
+        /// <summary>获取事务</summary>
+        /// <param name="execute">是否执行增删改</param>
+        /// <returns></returns>
+        public DbTransaction Check(Boolean execute)
+        {
+            // 不要为查询打开事务
+            if (!execute) return _Tran;
+
+            Executes++;
+
+            if (_Tran != null) return _Tran;
+
+            var ss = _Session;
+            if (!ss.Opened) ss.Open();
+
+            _Tran = ss.Conn.BeginTransaction(Level);
+
+            Level = _Tran.IsolationLevel;
+            Log.Debug("Tran.Begin {0} {1}", ID, Level);
+
+            return _Tran;
         }
         #endregion
 
         #region 方法
         public ITransaction Begin()
         {
-            Debug.Assert(Count >= 0, "Tran{0}.Begin".F(ID));
+            Debug.Assert(Count >= 1, "Tran.Begin {0}".F(ID));
 
             Count++;
-
-            if (Count == 1)
-            {
-                using (var ct = new TimeCost("Tran{0}.Begin".F(ID), 1000))
-                {
-                    ct.Log = Log;
-                    Tran = _Conn.BeginTransaction(Level);
-                }
-
-                Level = Tran.IsolationLevel;
-                Log.Debug("Tran{0}.Begin {1}", ID, Level);
-            }
 
             return this;
         }
 
         public ITransaction Commit()
         {
-            Debug.Assert(Count >= 1, "Tran{0}.Commit".F(ID));
+            Debug.Assert(Count >= 1, "Tran.Commit {0}".F(ID));
 
             Count--;
 
             if (Count == 0)
             {
-                Log.Debug("Tran{0}.Commit {1}", ID, Level);
-
+                var tr = _Tran;
                 try
                 {
-                    Tran.Commit();
+                    if (tr != null)
+                    {
+                        Log.Debug("Tran.Commit {0} {1}", ID, Level);
+
+                        tr.Commit();
+                    }
                 }
                 finally
                 {
-                    Completed?.Invoke(this, new TransactionEventArgs { Success = true });
+                    _Tran = null;
+                    Completed?.Invoke(this, new TransactionEventArgs(true, Executes));
                 }
             }
 
@@ -119,21 +157,26 @@ namespace XCode.DataAccessLayer
 
         public ITransaction Rollback()
         {
-            Debug.Assert(Count >= 1, "Tran{0}.Rollback".F(ID));
+            Debug.Assert(Count >= 1, "Tran.Rollback {0}".F(ID));
 
             Count--;
 
             if (Count == 0)
             {
-                Log.Debug("Tran{0}.Rollback {1}", ID, Level);
-
+                var tr = _Tran;
                 try
                 {
-                    Tran.Rollback();
+                    if (tr != null)
+                    {
+                        Log.Debug("Tran.Rollback {0} {1}", ID, Level);
+
+                        tr.Rollback();
+                    }
                 }
                 finally
                 {
-                    Completed?.Invoke(this, new TransactionEventArgs { Success = false });
+                    _Tran = null;
+                    Completed?.Invoke(this, new TransactionEventArgs(false, Executes));
                 }
             }
 
