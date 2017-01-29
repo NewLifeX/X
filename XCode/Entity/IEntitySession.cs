@@ -119,9 +119,8 @@ namespace XCode
         Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
 
         /// <summary>执行Truncate语句</summary>
-        /// <param name="sql">SQL语句</param>
         /// <returns>影响的结果</returns>
-        Int32 Truncate(String sql);
+        Int32 Truncate();
 
         /// <summary>数据改变后触发。参数指定触发该事件的实体类</summary>
         event Action<Type> OnDataChange;

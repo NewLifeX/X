@@ -350,15 +350,6 @@ namespace XCode
 
             return Delete(entityType, op.MakeCondition(names, values, "And"));
         }
-
-        /// <summary>清除当前实体所在数据表所有数据，并重置标识列为该列的种子。</summary>
-        /// <returns></returns>
-        public Int32 Truncate(Type entityType)
-        {
-            var op = EntityFactory.CreateOperate(entityType);
-            var session = op.Session;
-            return session.Truncate(String.Format("TRUNCATE TABLE {0}", session.FormatedTableName));
-        }
         #endregion
 
         #region 获取语句
