@@ -14,6 +14,9 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public static T[] ToArray<T>(this ICollection<T> collection, Int32 index = 0)
         {
+            if (collection == null) return null;
+
+            if (collection.Count == 0) return new T[0];
             lock (collection)
             {
                 var arr = new T[collection.Count - index];

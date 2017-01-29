@@ -698,13 +698,13 @@ namespace XCode
             tr.Completed += (s, e) =>
             {
                 _Tran = null;
-                if (e.Executes > 0)
-                {
-                    if (e.Success)
-                        DataChange($"修改数据{e.Executes}次后提交事务");
-                    else
-                        DataChange($"修改数据{e.Executes}次后回滚事务");
-                }
+                //if (e.Executes > 0)
+                //{
+                //    if (e.Success)
+                //        DataChange($"修改数据{e.Executes}次后提交事务");
+                //    else
+                //        DataChange($"修改数据{e.Executes}次后回滚事务");
+                //}
             };
 
             return count;
@@ -746,23 +746,31 @@ namespace XCode
         {
             var rs = persistence.Insert(entity);
 
+            // 标记来自数据库
             var e = entity as TEntity;
-            e.MarkDb(true); // 确保在没有使用实体缓存和单对象缓存的情况下，标记来自数据库
+            e.MarkDb(true);
 
-            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            var func = new Action(() =>
+            // 加入实体缓存
+            var ec = _cache;
+            if (ec != null) ec.Add(e);
+
+            // 加入单对象缓存
+            var sc = _singleCache;
+            if (sc != null && sc.Using) sc.Add(e);
+
+            // 增加计数
+            if (_Count >= 0) Interlocked.Increment(ref _Count);
+
+            // 事务回滚时执行逆向操作
+            if (_Tran != null) _Tran.Completed += (s, se) =>
             {
-                if (_cache != null) _cache.Update(e);
-
-                // 自动加入单对象缓存
-                if (_singleCache != null && _singleCache.Using) _singleCache.Add(e);
-
-                if (_Count >= 0) Interlocked.Increment(ref _Count);
-            });
-            if (_Tran == null)
-                func();
-            else
-                _Tran.Completed += (s, se) => { if (se.Success) func(); };
+                if (!se.Success && se.Executes > 0)
+                {
+                    if (ec != null) ec.Remove(e);
+                    if (sc != null && sc.Using) sc.Remove(e, false);
+                    if (_Count >= 0) Interlocked.Decrement(ref _Count);
+                }
+            };
 
             return rs;
         }
@@ -774,21 +782,35 @@ namespace XCode
         {
             var rs = persistence.Update(entity);
 
+            // 标记来自数据库
             var e = entity as TEntity;
-            e.MarkDb(true); // 确保在没有使用实体缓存和单对象缓存的情况下，标记来自数据库
+            e.MarkDb(true);
 
-            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            var func = new Action(() =>
+            // 更新缓存
+            TEntity old = null;
+            var ec = _cache;
+            if (ec != null) old = ec.Update(e);
+
+            // 自动加入单对象缓存
+            var sc = _singleCache;
+            if (sc != null && sc.Using) sc.Add(e);
+
+            // 事务回滚时执行逆向操作
+            if (_Tran != null) _Tran.Completed += (s, se) =>
             {
-                if (_cache != null) _cache.Update(e);
-
-                // 自动加入单对象缓存
-                if (_singleCache != null && _singleCache.Using) _singleCache.Add(e);
-            });
-            if (_Tran == null)
-                func();
-            else
-                _Tran.Completed += (s, se) => { if (se.Success) func(); };
+                if (!se.Success && se.Executes > 0)
+                {
+                    // 如果存在替换，则换回来；
+                    //!!! 如果先后是同一个对象，那就没有办法回滚回去了
+                    if (ec != null && old != e)
+                    {
+                        ec.Remove(e);
+                        if (old != null) ec.Add(old);
+                    }
+                    // 干掉缓存项，让它重新获取
+                    if (sc != null && sc.Using) sc.Remove(e, false);
+                }
+            };
 
             return rs;
         }
@@ -800,27 +822,30 @@ namespace XCode
         {
             var rs = persistence.Delete(entity);
 
-            // 如果当前在事务中，并使用了缓存，则尝试更新缓存
-            var func = new Action(() =>
-            {
-                if (_cache != null)
-                {
-                    var fi = Operate.Unique;
-                    if (fi != null)
-                    {
-                        var v = entity[fi.Name];
-                        Cache.Entities.RemoveAll(e => Object.Equals(e[fi.Name], v));
-                    }
-                }
-                // 自动加入单对象缓存
-                if (_singleCache != null) _singleCache.Remove(entity as TEntity, false);
+            var e = entity as TEntity;
 
-                if (_Count >= 0) { Interlocked.Decrement(ref _Count); }
-            });
-            if (_Tran == null)
-                func();
-            else
-                _Tran.Completed += (s, se) => { if (se.Success) func(); };
+            // 从实体缓存删除
+            TEntity old = null;
+            var ec = _cache;
+            if (ec != null) old = ec.Remove(e);
+
+            // 从单对象缓存删除
+            var sc = _singleCache;
+            if (sc != null) sc.Remove(e, false);
+
+            // 减少计数
+            if (_Count > 0) Interlocked.Decrement(ref _Count);
+
+            // 事务回滚时执行逆向操作
+            if (_Tran != null) _Tran.Completed += (s, se) =>
+            {
+                if (!se.Success && se.Executes > 0)
+                {
+                    if (ec != null && old != null) ec.Add(old);
+                    if (sc != null && sc.Using) sc.Add(entity);
+                    Interlocked.Increment(ref _Count);
+                }
+            };
 
             return rs;
         }

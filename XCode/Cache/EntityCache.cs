@@ -145,27 +145,45 @@ namespace XCode.Cache
         }
 
         private IEntityOperate Operate = Entity<TEntity>.Meta.Factory;
-        internal void Update(TEntity entity)
+        internal void Add(TEntity entity)
         {
             if (!Using) return;
 
-            // 尽管用了事务保护，但是仍然可能有别的地方导致实体缓存更新，这点务必要注意
-            var fi = Operate.Unique;
-            var e = fi != null ? _Entities.Find(fi.Name, entity[fi.Name]) : null;
-            if (e != null)
+            var es = _Entities;
+            lock (es)
             {
-                //if (e != entity) e.CopyFrom(entity);
-                // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
-                lock (_Entities)
-                {
-                    _Entities.Remove(e);
-                }
+                es.Add(entity);
+            }
+        }
+
+        internal TEntity Remove(TEntity entity)
+        {
+            if (!Using) return null;
+
+            var es = _Entities;
+            var fi = Operate.Unique;
+            var e = fi != null ? es.Find(fi.Name, entity[fi.Name]) : null;
+            if (e == null) return null;
+
+            //if (e != entity) e.CopyFrom(entity);
+            // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
+            lock (es)
+            {
+                es.Remove(e);
             }
 
-            lock (_Entities)
-            {
-                _Entities.Add(entity);
-            }
+            return e;
+        }
+
+        internal TEntity Update(TEntity entity)
+        {
+            if (!Using) return null;
+
+            var rs = Remove(entity);
+
+            Add(entity);
+
+            return rs;
         }
         #endregion
 
@@ -185,8 +203,9 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                //sb.AppendFormat("实体缓存<{0,-20}>", typeof(TEntity).Name);
-                sb.Append(ToString());
+                var type = GetType();
+                sb.AppendFormat("{0}<{1,-20}>", type.GetDisplayName() ?? type.Name, typeof(TEntity).Name);
+                //sb.Append(ToString());
                 sb.AppendFormat(" 总次数{0,7:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Success, (Double)Success / Total);
 

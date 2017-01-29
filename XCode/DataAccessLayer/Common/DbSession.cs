@@ -237,10 +237,7 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                //if (!Opened) Open();
-
                 tr = new Transaction(this, level);
-                // 事务可能并没有真正开启，也就不会触发Completed事件
                 tr.Completed += (s, e) => { Transaction = null; AutoClose(); };
 
                 Transaction = tr;
@@ -268,15 +265,6 @@ namespace XCode.DataAccessLayer
             {
                 throw OnException(ex);
             }
-            finally
-            {
-                // 事务可能并没有真正开启，也就不会触发Completed事件
-                if (tr.Count == 0)
-                {
-                    Transaction = null;
-                    AutoClose();
-                }
-            }
 
             return tr.Count;
         }
@@ -298,15 +286,6 @@ namespace XCode.DataAccessLayer
             catch (DbException ex)
             {
                 if (!ignoreException) throw OnException(ex);
-            }
-            finally
-            {
-                // 事务可能并没有真正开启，也就不会触发Completed事件
-                if (tr.Count == 0)
-                {
-                    Transaction = null;
-                    AutoClose();
-                }
             }
 
             return tr.Count;
