@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
@@ -129,18 +128,6 @@ namespace XCode.DataAccessLayer
                     throw;
                 }
             }
-        }
-
-        /// <summary>异步打开</summary>
-        public virtual async Task OpenAsync()
-        {
-            var tid = Thread.CurrentThread.ManagedThreadId;
-            if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
-
-            var conn = Conn;
-            if (conn == null || conn.State != ConnectionState.Closed) return;
-
-            await conn.OpenAsync();
         }
 
         /// <summary>关闭</summary>
@@ -372,41 +359,6 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>异步执行DbCommand，返回记录集</summary>
-        /// <param name="cmd">DbCommand</param>
-        /// <returns></returns>
-        public virtual async Task<DataSet> QueryAsync(DbCommand cmd)
-        {
-            cmd.Transaction = Transaction?.Check(false);
-            QueryTimes++;
-            WriteSQL(cmd);
-            using (var da = Factory.CreateDataAdapter())
-            {
-                try
-                {
-                    if (!Opened) await OpenAsync();
-                    cmd.Connection = Conn;
-                    da.SelectCommand = cmd;
-
-                    var ds = new DataSet();
-                    BeginTrace();
-                    da.Fill(ds);
-                    return ds;
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd.CommandText);
-                }
-                finally
-                {
-                    EndTrace(cmd.CommandText);
-
-                    AutoClose();
-                    cmd.Parameters.Clear();
-                }
-            }
-        }
-
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
@@ -468,35 +420,6 @@ namespace XCode.DataAccessLayer
 
                 BeginTrace();
                 return cmd.ExecuteNonQuery();
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd.CommandText);
-            }
-            finally
-            {
-                EndTrace(cmd.CommandText);
-
-                AutoClose();
-                cmd.Parameters.Clear();
-            }
-        }
-
-        /// <summary>执行DbCommand，返回受影响的行数</summary>
-        /// <param name="cmd">DbCommand</param>
-        /// <returns></returns>
-        public virtual async Task<Int32> ExecuteAsync(DbCommand cmd)
-        {
-            cmd.Transaction = Transaction?.Check(true);
-            ExecuteTimes++;
-            WriteSQL(cmd);
-            try
-            {
-                if (!Opened) await OpenAsync();
-                cmd.Connection = Conn;
-
-                BeginTrace();
-                return await cmd.ExecuteNonQueryAsync();
             }
             catch (DbException ex)
             {
