@@ -61,7 +61,7 @@ namespace XCode
 
         /// <summary>清除缓存</summary>
         /// <param name="reason">原因</param>
-        void ClearCache(String reason = null);
+        void ClearCache(String reason);
         #endregion
 
         #region 数据库操作

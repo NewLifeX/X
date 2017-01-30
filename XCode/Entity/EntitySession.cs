@@ -34,6 +34,21 @@ using XCode.Model;
  *      CheckModel
  *      WaitForInitData
  *
+ * 缓存流程：
+ * Insert/Update/Delete
+ *      IEntityPersistence.Insert/Update/Delete
+ *          Execute
+ *              DataChange <= Tran!=null
+ *                  ClearCache <= !HoldCache
+ *                  OnDataChange
+ *      更新缓存
+ *      Tran.Completed
+ *          Tran = null
+ *          Success
+ *              DataChange
+ *          else
+ *              回滚缓存
+ * 
  * 缓存更新规则如下：
  * 1、直接执行SQL语句进行新增、编辑、删除操作，强制清空实体缓存、单对象缓存
  * 2、无论独占模式或非独占模式，使用实体对象或实体列表进行的对象操作，不再主动清空缓存。
@@ -498,9 +513,11 @@ namespace XCode
         /// <param name="reason">原因</param>
         public void ClearCache(String reason)
         {
-            if (_cache != null && _cache.Using) _cache.Clear(reason);
+            var ec = _cache;
+            if (ec != null && ec.Using) ec.Clear(reason);
 
-            if (_singleCache != null && _singleCache.Using) _singleCache.Clear(reason);
+            var sc = _singleCache;
+            if (sc != null && sc.Using) sc.Clear(reason);
 
             Int64 n = _Count;
             if (n < 0L) return;
@@ -624,12 +641,9 @@ namespace XCode
 
         private void DataChange(String reason)
         {
-            // 还在事务保护里面，不更新缓存，最后提交或者回滚的时候再更新
-            // 一般事务保护用于批量更新数据，频繁删除缓存将会打来巨大的性能损耗
-            // 2012-07-17 当前实体类开启的事务保护，必须由当前类结束，否则可能导致缓存数据的错乱
             if (_Tran != null) return;
 
-            ClearCache(reason);
+            if (!HoldCache) ClearCache(reason);
 
             _OnDataChange?.Invoke(ThisType);
         }
@@ -661,8 +675,8 @@ namespace XCode
             var rs = Dal.Session.Truncate(TableName);
 
             // 干掉所有缓存
-            Cache.Clear();
-            SingleCache.Clear(null);
+            _cache?.Clear("Truncate");
+            _singleCache?.Clear("Truncate");
             LongCount = 0;
 
             // 重新初始化
@@ -698,13 +712,13 @@ namespace XCode
             tr.Completed += (s, e) =>
             {
                 _Tran = null;
-                //if (e.Executes > 0)
-                //{
-                //    if (e.Success)
-                //        DataChange($"修改数据{e.Executes}次后提交事务");
-                //    else
-                //        DataChange($"修改数据{e.Executes}次后回滚事务");
-                //}
+                if (e.Executes > 0)
+                {
+                    if (e.Success)
+                        DataChange($"修改数据{e.Executes}次后提交事务");
+                    else
+                        DataChange($"修改数据{e.Executes}次后回滚事务");
+                }
             };
 
             return count;

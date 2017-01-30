@@ -36,7 +36,7 @@ namespace XCode.Cache
         EntityList<IEntity> FindAll(Predicate<IEntity> match);
 
         /// <summary>清除缓存</summary>
-        void Clear(String reason = null);
+        void Clear(String reason);
     }
 
     /// <summary>单对象缓存接口</summary>
