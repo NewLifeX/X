@@ -461,12 +461,9 @@ namespace XCode.Cache
             if (AutoSave)
             {
                 // 加锁处理自动保存
-                lock (es)
+                foreach (var key in es.ToArray())
                 {
-                    foreach (var key in es)
-                    {
-                        AutoUpdate(key.Value, "清空缓存 " + reason);
-                    }
+                    AutoUpdate(key.Value, "清空缓存 " + reason);
                 }
             }
 
