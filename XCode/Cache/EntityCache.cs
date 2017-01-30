@@ -19,7 +19,7 @@ namespace XCode.Cache
     {
         #region 基础属性
         /// <summary>缓存过期时间</summary>
-        DateTime ExpiredTime { get; set; }
+        DateTime ExpiredTime { get; set; } = DateTime.Now;
 
         /// <summary>缓存更新次数</summary>
         private Int64 Times { get; set; }
@@ -71,8 +71,8 @@ namespace XCode.Cache
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
 
-            var sec = (Int32)(DateTime.Now - ExpiredTime).TotalSeconds;
-            if (sec <= 0)
+            var sec = (Int64)(DateTime.Now - ExpiredTime).TotalSeconds;
+            if (sec < 0)
             {
                 Interlocked.Increment(ref Success);
                 return;
