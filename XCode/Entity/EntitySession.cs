@@ -776,7 +776,8 @@ namespace XCode
             if (_Count >= 0) Interlocked.Increment(ref _Count);
 
             // 事务回滚时执行逆向操作
-            if (_Tran != null) _Tran.Completed += (s, se) =>
+            var tr = _Tran;
+            if (tr != null) tr.Completed += (s, se) =>
             {
                 if (!se.Success && se.Executes > 0)
                 {
@@ -810,7 +811,8 @@ namespace XCode
             if (sc != null && sc.Using) sc.Add(e);
 
             // 事务回滚时执行逆向操作
-            if (_Tran != null) _Tran.Completed += (s, se) =>
+            var tr = _Tran;
+            if (tr != null) tr.Completed += (s, se) =>
             {
                 if (!se.Success && se.Executes > 0)
                 {
@@ -851,7 +853,8 @@ namespace XCode
             if (_Count > 0) Interlocked.Decrement(ref _Count);
 
             // 事务回滚时执行逆向操作
-            if (_Tran != null) _Tran.Completed += (s, se) =>
+            var tr = _Tran;
+            if (tr != null) tr.Completed += (s, se) =>
             {
                 if (!se.Success && se.Executes > 0)
                 {

@@ -35,7 +35,6 @@ namespace XCode.DataAccessLayer
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        [DebuggerHidden]
         public DataSet Select(String sql)
         {
             CheckBeforeUseDatabase();
@@ -49,7 +48,6 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        [DebuggerHidden]
         public DataSet Select(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             builder = PageSplit(builder, startRowIndex, maximumRows);
@@ -61,7 +59,6 @@ namespace XCode.DataAccessLayer
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sb">查询生成器</param>
         /// <returns></returns>
-        [DebuggerHidden]
         public Int32 SelectCount(SelectBuilder sb)
         {
             CheckBeforeUseDatabase();
@@ -73,7 +70,6 @@ namespace XCode.DataAccessLayer
         /// <summary>执行SQL语句，返回受影响的行数</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        [DebuggerHidden]
         public Int32 Execute(String sql)
         {
             CheckBeforeUseDatabase();
@@ -86,7 +82,6 @@ namespace XCode.DataAccessLayer
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql"></param>
         /// <returns>新增行的自动编号</returns>
-        [DebuggerHidden]
         public Int64 InsertAndGetIdentity(String sql)
         {
             CheckBeforeUseDatabase();
@@ -101,7 +96,6 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        [DebuggerHidden]
         public Int32 Execute(String sql, CommandType type, DbParameter[] ps)
         {
             CheckBeforeUseDatabase();
@@ -116,7 +110,6 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        [DebuggerHidden]
         public Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps)
         {
             CheckBeforeUseDatabase();
@@ -129,7 +122,6 @@ namespace XCode.DataAccessLayer
         /// <summary>执行CMD，返回记录集</summary>
         /// <param name="cmd">CMD</param>
         /// <returns></returns>
-        [DebuggerHidden]
         public DataSet Select(DbCommand cmd)
         {
             CheckBeforeUseDatabase();
@@ -141,7 +133,6 @@ namespace XCode.DataAccessLayer
         /// <summary>执行CMD，返回受影响的行数</summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        [DebuggerHidden]
         public Int32 Execute(DbCommand cmd)
         {
             CheckBeforeUseDatabase();
