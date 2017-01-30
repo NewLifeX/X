@@ -34,9 +34,6 @@ namespace XCode.Cache
         /// <summary>是否等待第一次查询。如果不等待，第一次返回空集合。默认true</summary>
         public Boolean WaitFirst { get; set; } = true;
 
-        /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开</summary>
-        public Boolean HoldCache { get { return Setting.Current.Alone; } }
-
         /// <summary>是否在使用缓存，在不触发缓存动作的情况下检查是否有使用缓存</summary>
         internal Boolean Using { get; private set; }
         #endregion
@@ -135,12 +132,9 @@ namespace XCode.Cache
             {
                 //if (_Entities.Count > 0 && Debug) DAL.WriteLog("清空{0} 原因：{1}", ToString(), reason);
 
-                // 如果不是超级缓存，马上打开异步查询更新数据
-                if (!HoldCache)
-                    UpdateCacheAsync("清空 " + reason);
-                //else
-                //    // 修改为最小，确保过期
-                //    ExpiredTime = DateTime.MinValue;
+                //UpdateCacheAsync("清空 " + reason);
+                // 修改为最小，确保过期
+                ExpiredTime = DateTime.MinValue;
 
                 // 清空后，表示不使用缓存
                 Using = false;

@@ -54,10 +54,6 @@ namespace XCode
         [Description("缓存调试")]
         public Boolean CacheDebug { get; set; }
 
-        /// <summary>独占数据库。独占时将大大加大缓存权重，默认true</summary>
-        [Description("独占数据库。独占时将大大加大缓存权重，默认true")]
-        public Boolean Alone { get; set; } = true;
-
         /// <summary>实体缓存过期。默认60秒</summary>
         [Description("实体缓存过期。默认60秒")]
         public Int32 EntityCacheExpire { get; set; } = 60;

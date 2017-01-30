@@ -54,9 +54,6 @@ namespace XCode.Cache
         /// <summary>允许缓存空对象，默认false</summary>
         Boolean AllowNull { get; set; }
 
-        /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开，否则默认关闭</summary>
-        Boolean HoldCache { get; }
-
         /// <summary>是否在使用缓存</summary>
         Boolean Using { get; }
 

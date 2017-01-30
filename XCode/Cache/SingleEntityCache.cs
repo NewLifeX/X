@@ -54,10 +54,6 @@ namespace XCode.Cache
         /// <summary>初始化缓存的方法，默认为空</summary>
         public Action InitializeMethod { get; set; }
 
-        /// <summary>在数据修改时保持缓存，不再过期，独占数据库时默认打开</summary>
-        /// <remarks>独占模式也需要用到定时器，否则无法自动保存</remarks>
-        public Boolean HoldCache { get { return Setting.Current.Alone; } }
-
         /// <summary>是否在使用缓存</summary>
         public Boolean Using { get; set; }
         #endregion
@@ -100,10 +96,6 @@ namespace XCode.Cache
         /// <summary>定期检查实体，如果过期，则触发保存</summary>
         void CheckExpire(Object state)
         {
-            var hold = HoldCache;
-            // 独占缓存不删除缓存，仅判断自动保存
-            if (hold && !AutoSave) return;
-
             var es = Entities;
             if (es.Count == 0) return;
 
@@ -131,13 +123,11 @@ namespace XCode.Cache
                             }
                             catch { }
                         }
-                        if (!hold) item.Entity = null;
+                        item.Entity = null;
                     }
-                    if (!hold) list.Add(item);
+                    list.Add(item);
                 }
             }
-            // 独占缓存不删除缓存
-            if (hold) return;
 
             // 从缓存中删除，必须加锁
             if (list.Count > 0)
@@ -369,9 +359,6 @@ namespace XCode.Cache
             // 自动保存
             AutoUpdate(item, "获取缓存过期");
 
-            // 判断别的线程是否已更新
-            if (HoldCache) return item.Entity;
-
             // 更新过期缓存，在原连接名表名里面获取
             var entity = Invoke(FindKeyMethod, item.Key);
             if (entity != null || AllowNull)
@@ -545,16 +532,13 @@ namespace XCode.Cache
                 }
             }
 
-            if (!HoldCache)
+            lock (es)
             {
-                lock (es)
-                {
-                    es.Clear();
-                }
-                lock (SlaveEntities)
-                {
-                    SlaveEntities.Clear();
-                }
+                es.Clear();
+            }
+            lock (SlaveEntities)
+            {
+                SlaveEntities.Clear();
             }
 
             Using = false;
