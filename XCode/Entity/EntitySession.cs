@@ -513,8 +513,7 @@ namespace XCode
         /// <param name="reason">原因</param>
         public void ClearCache(String reason)
         {
-            var ec = _cache;
-            if (ec != null && ec.Using) ec.Clear(reason);
+            _cache?.Clear(reason);
 
             var sc = _singleCache;
             if (sc != null && sc.Using) sc.Clear(reason);

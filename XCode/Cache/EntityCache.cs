@@ -10,7 +10,6 @@ namespace XCode.Cache
 {
     /// <summary>实体缓存</summary>
     /// <remarks>
-    /// 关于异步缓存，非常有用！
     /// 第一次读取缓存的时候，同步从数据库读取，这样子手上有一份数据。
     /// 以后更新，都开异步线程去读取，而当前马上返回，让大家继续用着旧数据，这么做性能非常好。
     /// </remarks>
@@ -42,7 +41,9 @@ namespace XCode.Cache
         /// <summary>实例化实体缓存</summary>
         public EntityCache()
         {
-            Expire = Setting.Current.EntityCacheExpire;
+            var exp = Setting.Current.EntityCacheExpire;
+            if (exp <= 0) exp = 60;
+            Expire = exp;
         }
         #endregion
 
@@ -70,7 +71,8 @@ namespace XCode.Cache
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
 
-            if (ExpiredTime > DateTime.Now)
+            var sec = (Int32)(DateTime.Now - ExpiredTime).TotalSeconds;
+            if (sec <= 0)
             {
                 Interlocked.Increment(ref Success);
                 return;
@@ -83,7 +85,7 @@ namespace XCode.Cache
                 {
                     if (_task == null)
                     {
-                        var reason = Times == 0 ? "第一次" : Expire + "秒过期";
+                        var reason = Times == 0 ? "第一次" : "过期{0:n0}秒".F(sec);
                         _task = UpdateCacheAsync(reason);
                         _task.ContinueWith(t => { _task = null; });
                     }
@@ -95,7 +97,6 @@ namespace XCode.Cache
         #endregion
 
         #region 缓存操作
-        Task _updatetask;
         Task UpdateCacheAsync(String reason)
         {
             // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
@@ -103,17 +104,7 @@ namespace XCode.Cache
             ExpiredTime = DateTime.Now.AddSeconds(Expire);
             Times++;
 
-            //if (Debug) DAL.WriteLog("{0}", XTrace.GetCaller(3, 16));
-
-            // 同时只允许一个异步更新
-            if (_updatetask == null)
-            {
-                var task = Task.Factory.StartNew(FillWaper, reason);
-                _updatetask = task;
-                task.ContinueWith(t => _updatetask = null);
-            }
-
-            return _updatetask;
+            return Task.Factory.StartNew(FillWaper, reason);
         }
 
         private void FillWaper(Object state)
@@ -128,16 +119,12 @@ namespace XCode.Cache
         /// <summary>清除缓存</summary>
         public void Clear(String reason)
         {
+            if (!Using) return;
+
             lock (this)
             {
-                //if (_Entities.Count > 0 && Debug) DAL.WriteLog("清空{0} 原因：{1}", ToString(), reason);
-
-                //UpdateCacheAsync("清空 " + reason);
-                // 修改为最小，确保过期
-                ExpiredTime = DateTime.MinValue;
-
-                // 清空后，表示不使用缓存
-                Using = false;
+                // 直接执行异步更新，明明白白，确保任何情况下数据最新，并且不影响其它任务的性能
+                UpdateCacheAsync(reason);
             }
         }
 
