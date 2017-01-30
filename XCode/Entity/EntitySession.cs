@@ -515,8 +515,7 @@ namespace XCode
         {
             _cache?.Clear(reason);
 
-            var sc = _singleCache;
-            if (sc != null && sc.Using) sc.Clear(reason);
+            _singleCache?.Clear(reason);
 
             Int64 n = _Count;
             if (n < 0L) return;
@@ -764,8 +763,7 @@ namespace XCode
             if (ec != null) ec.Add(e);
 
             // 加入单对象缓存
-            var sc = _singleCache;
-            if (sc != null && sc.Using) sc.Add(e);
+            _singleCache?.Add(e);
 
             // 增加计数
             if (_Count >= 0) Interlocked.Increment(ref _Count);
@@ -777,7 +775,7 @@ namespace XCode
                 if (!se.Success && se.Executes > 0)
                 {
                     if (ec != null) ec.Remove(e);
-                    if (sc != null && sc.Using) sc.Remove(e, false);
+                    _singleCache?.Remove(e, false);
                     if (_Count >= 0) Interlocked.Decrement(ref _Count);
                 }
             };
@@ -802,8 +800,7 @@ namespace XCode
             if (ec != null) old = ec.Update(e);
 
             // 自动加入单对象缓存
-            var sc = _singleCache;
-            if (sc != null && sc.Using) sc.Add(e);
+            _singleCache?.Add(e);
 
             // 事务回滚时执行逆向操作
             var tr = _Tran;
@@ -819,7 +816,7 @@ namespace XCode
                         if (old != null) ec.Add(old);
                     }
                     // 干掉缓存项，让它重新获取
-                    if (sc != null && sc.Using) sc.Remove(e, false);
+                    _singleCache?.Remove(e, false);
                 }
             };
 
@@ -841,8 +838,7 @@ namespace XCode
             if (ec != null) old = ec.Remove(e);
 
             // 从单对象缓存删除
-            var sc = _singleCache;
-            if (sc != null) sc.Remove(e, false);
+            _singleCache?.Remove(e, false);
 
             // 减少计数
             if (_Count > 0) Interlocked.Decrement(ref _Count);
@@ -854,7 +850,7 @@ namespace XCode
                 if (!se.Success && se.Executes > 0)
                 {
                     if (ec != null && old != null) ec.Add(old);
-                    if (sc != null && sc.Using) sc.Add(entity);
+                    _singleCache?.Add(entity);
                     Interlocked.Increment(ref _Count);
                 }
             };

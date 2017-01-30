@@ -67,14 +67,6 @@ namespace XCode.Cache
         /// <returns></returns>
         IEntity GetItemWithSlaveKey(String slaveKey);
 
-        /// <summary>初始化单对象缓存，服务端启动时预载入实体记录集</summary>
-        /// <remarks>注意事项：
-        /// <para>调用方式：TEntity.Meta.Factory.Session.SingleCache.Initialize()，不要使用TEntity.Meta.Session.SingleCache.Initialize()；
-        /// 因为Factory的调用会联级触发静态构造函数，确保单对象缓存设置成功</para>
-        /// <para>服务端启动时，如果使用异步方式初始化单对象缓存，请将同一数据模型（ConnName）下的实体类型放在同一异步方法内执行，否则实体类型的架构检查抛异常</para>
-        /// </remarks>
-        void Initialize();
-
         /// <summary>是否包含指定主键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -86,12 +78,6 @@ namespace XCode.Cache
         Boolean ContainsSlaveKey(String key);
 
         /// <summary>向单对象缓存添加项</summary>
-        /// <param name="key"></param>
-        /// <param name="value">实体对象</param>
-        /// <returns></returns>
-        Boolean Add(Object key, IEntity value);
-
-        /// <summary>向单对象缓存添加项</summary>
         /// <param name="value">实体对象</param>
         /// <returns></returns>
         Boolean Add(IEntity value);
@@ -100,11 +86,6 @@ namespace XCode.Cache
         /// <param name="entity"></param>
         /// <param name="save">是否自动保存实体对象</param>
         void Remove(IEntity entity, Boolean save);
-
-        /// <summary>移除指定项</summary>
-        /// <param name="key">键值</param>
-        /// <param name="save">是否自动保存实体对象</param>
-        void RemoveKey(Object key, Boolean save = true);
 
         /// <summary>清除所有数据</summary>
         /// <param name="reason">清除缓存原因</param>

@@ -24,5 +24,43 @@ namespace System.Collections.Generic
                 return arr;
             }
         }
+
+        /// <summary>集合转为数组</summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="collection"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public static TKey[] ToKeyArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0)
+        {
+            if (collection == null) return null;
+
+            if (collection.Count == 0) return new TKey[0];
+            lock (collection)
+            {
+                var arr = new TKey[collection.Count - index];
+                collection.Keys.CopyTo(arr, index);
+                return arr;
+            }
+        }
+
+        /// <summary>集合转为数组</summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="collection"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public static TValue[] ToValueArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0)
+        {
+            if (collection == null) return null;
+
+            if (collection.Count == 0) return new TValue[0];
+            lock (collection)
+            {
+                var arr = new TValue[collection.Count - index];
+                collection.Values.CopyTo(arr, index);
+                return arr;
+            }
+        }
     }
 }
