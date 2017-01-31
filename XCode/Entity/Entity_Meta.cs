@@ -145,9 +145,7 @@ namespace XCode
             //[EditorBrowsable(EditorBrowsableState.Never)]
             public static EntityCache<TEntity> Cache { get { return Session.Cache; } }
 
-            /// <summary>单对象实体缓存。
-            /// 建议自定义查询数据方法，并从二级缓存中获取实体数据，以抵消因初次填充而带来的消耗。
-            /// </summary>
+            /// <summary>单对象实体缓存。</summary>
             //[Obsolete("=>Session")]
             //[EditorBrowsable(EditorBrowsableState.Never)]
             public static ISingleEntityCache<Object, TEntity> SingleCache { get { return Session.SingleCache; } }
@@ -156,11 +154,6 @@ namespace XCode
             //[Obsolete("=>Session")]
             //[EditorBrowsable(EditorBrowsableState.Never)]
             public static Int32 Count { get { return (Int32)Session.LongCount; } }
-
-            ///// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //public static Int64 LongCount { get { return Session.LongCount; } }
             #endregion
 
             #region 分表分库

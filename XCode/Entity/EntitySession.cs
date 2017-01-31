@@ -39,7 +39,7 @@ using XCode.Model;
  *      IEntityPersistence.Insert/Update/Delete
  *          Execute
  *              DataChange <= Tran!=null
- *                  ClearCache <= !HoldCache
+ *                  ClearCache
  *                  OnDataChange
  *      更新缓存
  *      Tran.Completed
