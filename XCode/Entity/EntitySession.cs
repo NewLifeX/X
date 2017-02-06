@@ -635,7 +635,13 @@ namespace XCode
 
         private void DataChange(String reason)
         {
-            if (GetTran() != null) return;
+            var tr = GetTran();
+            if (tr != null)
+            {
+                // 附加当前对象
+                if (!tr.Attachs.Contains(this)) tr.Attachs.Add(this);
+                return;
+            }
 
             ClearCache(reason);
 
@@ -705,8 +711,11 @@ namespace XCode
             var tr = GetTran();
             tr.Completed += (s, e) =>
             {
-                if (e.Executes > 0)
+                var tr2 = s as ITransaction;
+                // 通过附加对象确保提交事务时每个实体会话仅清空一次缓存
+                if (e.Executes > 0 && tr2.Attachs.Contains(this))
                 {
+                    tr2.Attachs.Remove(this);
                     if (e.Success)
                         DataChange($"修改数据{e.Executes}次后提交事务");
                     else

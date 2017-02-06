@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using NewLife.Log;
@@ -19,6 +21,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>数据库事务</summary>
         DbTransaction Tran { get; }
+
+        /// <summary>事务依赖对象</summary>
+        IList<Object> Attachs { get; }
 
         /// <summary>事务完成事件</summary>
         event EventHandler<TransactionEventArgs> Completed;
@@ -66,6 +71,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>执行次数。其决定是否更新缓存</summary>
         public Int32 Executes { get; set; }
+
+        /// <summary>事务依赖对象</summary>
+        public IList<Object> Attachs { get; } = new List<Object>();
 
         public event EventHandler<TransactionEventArgs> Completed;
 
