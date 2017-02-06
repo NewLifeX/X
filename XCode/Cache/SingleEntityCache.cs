@@ -185,10 +185,10 @@ namespace XCode.Cache
 
             public CacheItem(SingleEntityCache<TKey, TEntity> sc) { Cache = sc; }
 
-            public void SetEntity(TEntity entity)
+            public void SetEntity(TEntity entity, Boolean checkSave = true)
             {
                 // 如果原来有对象，则需要自动保存
-                if (Entity != null && Entity != entity) Cache.AutoUpdate(this, "设置新的缓存对象");
+                if (checkSave && Entity != null && Entity != entity) Cache.AutoUpdate(this, "设置新的缓存对象");
 
                 Entity = entity;
                 ExpireTime = DateTime.Now.AddSeconds(Cache.Expire);
@@ -263,7 +263,7 @@ namespace XCode.Cache
             // 如果找到项，返回
             CacheItem item = null;
             // 如果TryGetValue获取成功，item为空说明同一时间别的线程已做删除操作
-            if (dic.TryGetValue(key, out item) && item != null) return GetData(item);
+            if (dic.TryGetValue(key, out item) && item != null && !item.Expired) return GetData(item);
             lock (dic)
             {
                 // 再次尝试获取
@@ -341,10 +341,11 @@ namespace XCode.Cache
             Interlocked.Increment(ref Success);
 
             // 异步更新缓存
+            var tid = Thread.CurrentThread.ManagedThreadId;
             if (item.Expired) Task.Run(() =>
             {
                 // 自动保存
-                AutoUpdate(item, "获取缓存过期");
+                AutoUpdate(item, "获取缓存过期 <= {0}".F(tid));
 
                 // 先修改过期时间
                 item.ExpireTime = DateTime.Now.AddSeconds(Expire);
@@ -352,7 +353,7 @@ namespace XCode.Cache
                 // 更新过期缓存，在原连接名表名里面获取
                 var entity = Invoke(FindKeyMethod, item.Key);
                 if (entity != null || AllowNull)
-                    item.SetEntity(entity);
+                    item.SetEntity(entity, false);
                 else // 数据库查不到，说明该数据可能已经被删除
                     Entities.Remove(item.Key);
             });
