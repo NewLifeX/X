@@ -26,7 +26,7 @@ namespace XCode
         /// <param name="func">获取值的委托，该委托以键作为参数</param>
         /// <returns></returns>
         [DebuggerHidden]
-        public virtual T Get<T>(String key, Func<String, Object> func)
+        public virtual T Get<T>(String key, Func<String, T> func)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 

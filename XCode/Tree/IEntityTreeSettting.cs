@@ -25,9 +25,6 @@ namespace XCode
         /// <summary>文本键名</summary>
         String Text { get; set; }
 
-        /// <summary>是否缓存Childs、AllChilds、Parent等</summary>
-        Boolean EnableCaching { get; set; }
-
         /// <summary>是否大排序，较大排序值在前面</summary>
         Boolean BigSort { get; set; }
 
@@ -120,17 +117,11 @@ namespace XCode
             set { _Text = value; }
         }
 
-        private Boolean _EnableCaching = true;
-        /// <summary>是否缓存Childs、AllChilds、Parent等</summary>
-        public virtual Boolean EnableCaching { get { return _EnableCaching; } set { _EnableCaching = value; } }
-
-        private Boolean _BigSort = true;
         /// <summary>是否大排序，较大排序值在前面</summary>
-        public virtual Boolean BigSort { get { return _BigSort; } set { _BigSort = value; } }
+        public virtual Boolean BigSort { get; set; } = true;
 
-        private Int32 _MaxDeepth;
         /// <summary>允许的最大深度。默认0，不限制</summary>
-        public virtual Int32 MaxDeepth { get { return _MaxDeepth; } set { _MaxDeepth = value; } }
+        public virtual Int32 MaxDeepth { get; set; }
         #endregion
     }
 }

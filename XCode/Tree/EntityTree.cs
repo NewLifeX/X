@@ -52,8 +52,8 @@ namespace XCode
         /// <summary>子节点</summary>
         public virtual EntityList<TEntity> Childs
         {
-            get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("Childs", e => FindChilds()) : FindChilds(); }
-            set { Extends.Set("Childs", value); }
+            get { return Extends.Get(nameof(Childs), e => FindChilds()); }
+            set { Extends.Set(nameof(Childs), value); }
         }
 
         /// <summary>子节点</summary>
@@ -63,8 +63,8 @@ namespace XCode
         [XmlIgnore, ScriptIgnore]
         public virtual TEntity Parent
         {
-            get { return Setting.EnableCaching ? Extends.Get<TEntity>("Parent", e => FindParent()) : FindParent(); }
-            set { Extends.Set("Parent", value); }
+            get { return Extends.Get(nameof(Parent), e => FindParent()); }
+            set { Extends.Set(nameof(Parent), value); }
         }
 
         /// <summary>父节点</summary>
@@ -83,24 +83,24 @@ namespace XCode
         [XmlIgnore, ScriptIgnore]
         public virtual EntityList<TEntity> AllChilds
         {
-            get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("AllChilds", e => FindAllChilds(this)) : FindAllChilds(this); }
-            set { Extends.Set("AllChilds", value); }
+            get { return Extends.Get(nameof(AllChilds), e => FindAllChilds(this)); }
+            set { Extends.Set(nameof(AllChilds), value); }
         }
 
         /// <summary>子孙节点，包含自己</summary>
         [XmlIgnore, ScriptIgnore]
         public virtual EntityList<TEntity> MyAllChilds
         {
-            get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("MyAllChilds", e => FindAllChilds(this, true)) : FindAllChilds(this, true); }
-            set { Extends.Set("MyAllChilds", value); }
+            get { return Extends.Get(nameof(MyAllChilds), e => FindAllChilds(this, true)); }
+            set { Extends.Set(nameof(MyAllChilds), value); }
         }
 
         /// <summary>父节点集合</summary>
         [XmlIgnore, ScriptIgnore]
         public virtual EntityList<TEntity> AllParents
         {
-            get { return Setting.EnableCaching ? Extends.Get<EntityList<TEntity>>("AllParents", e => FindAllParents(this)) : FindAllParents(this); }
-            set { Extends.Set("AllParents", value); }
+            get { return Extends.Get(nameof(AllParents), e => FindAllParents(this)); }
+            set { Extends.Set(nameof(AllParents), value); }
         }
 
         /// <summary>深度</summary>
