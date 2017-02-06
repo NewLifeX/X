@@ -288,10 +288,10 @@ namespace XCode.Cache
         /// <returns></returns>
         private Boolean TryAdd(TEntity entity)
         {
-            if (!Using)
+            //if (!Using)
             {
                 Using = true;
-                WriteLog("单对象缓存首次使用 {0} {1}", typeof(TEntity).FullName, XTrace.GetCaller(1, 16));
+                //WriteLog("单对象缓存首次使用 {0} {1}", typeof(TEntity).FullName, XTrace.GetCaller(1, 16));
             }
 
             var item = new CacheItem(this);
@@ -457,14 +457,7 @@ namespace XCode.Cache
             WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
 
             var es = Entities;
-            if (AutoSave)
-            {
-                // 加锁处理自动保存
-                foreach (var key in es.ToArray())
-                {
-                    AutoUpdate(key.Value, "清空缓存 " + reason);
-                }
-            }
+            var vs = AutoSave ? es.ToValueArray() : null;
 
             lock (es)
             {
@@ -476,6 +469,21 @@ namespace XCode.Cache
             }
 
             Using = false;
+
+            // 先清空列表，再保存过期对象，避免保存对象时再次触发清空事件
+            if (vs != null)
+            {
+                // 打开事务
+                using (var tran = Entity<TEntity>.Meta.CreateTrans())
+                {
+                    // 加锁处理自动保存
+                    foreach (var key in vs)
+                    {
+                        AutoUpdate(key, "清空缓存 " + reason);
+                    }
+                    tran.Commit();
+                }
+            }
         }
         #endregion
 

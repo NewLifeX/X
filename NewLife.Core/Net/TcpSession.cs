@@ -230,7 +230,7 @@ namespace NewLife.Net
 
 #if !__MOBILE__
             // 更新全局远程IP地址
-            NewLife.Web.WebHelper.UserHost = Remote.EndPoint.ToString();
+            NewLife.Web.WebHelper.UserHost = Remote.EndPoint?.Address + "";
 #endif
 
             if (base.OnReceive(pk, remote)) return true;

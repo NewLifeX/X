@@ -118,9 +118,9 @@ namespace NewLife.Web
                         if (String.IsNullOrEmpty(str)) str = Request.UserHostName;
                         if (String.IsNullOrEmpty(str)) str = Request.UserHostAddress;
 
-                        // 加上浏览器端口
-                        var port = Request.ServerVariables["REMOTE_PORT"];
-                        if (!port.IsNullOrEmpty()) str += ":" + port;
+                        //// 加上浏览器端口
+                        //var port = Request.ServerVariables["REMOTE_PORT"];
+                        //if (!port.IsNullOrEmpty()) str += ":" + port;
 
                         HttpContext.Current.Items["UserHostAddress"] = str;
 
@@ -306,18 +306,11 @@ namespace NewLife.Web
             return count;
         }
 
-        //public static Int32 GetInt(String name, Int32 defaultValue = 0) { return Request[name].ToInt(defaultValue); }
-
-        //public static Boolean GetBoolean(String name, Boolean defaultValue = false) { return Request[name].ToBoolean(defaultValue); }
-
-        //public static DateTime GetDateTime(String name) { return Request[name].ToDateTime(); }
-
         /// <summary>获取整型参数</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
         public static Int32 RequestInt(String name) { return Request[name].ToInt(); }
-
-
+        
         /// <summary>获取长整型参数</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
@@ -337,63 +330,6 @@ namespace NewLife.Web
         /// <param name="name">名称</param>
         /// <returns></returns>
         public static Double RequestDouble(String name) { return Request[name].ToDouble(); }
-
-        ///// <summary>字符转换为数字</summary>
-        ///// <param name="val"></param>
-        ///// <returns></returns>
-        //public static Int32 ConvertInt(String val)
-        //{
-        //    Int32 r = 0;
-        //    if (String.IsNullOrEmpty(val)) return r;
-        //    Int32.TryParse(val, out r);
-        //    return r;
-        //}
-
-        ///// <summary>字符转换为布尔</summary>
-        ///// <param name="val"></param>
-        ///// <returns></returns>
-        //public static bool ConvertBool(String val)
-        //{
-        //    bool r = false;
-        //    if (String.IsNullOrEmpty(val)) return r;
-
-        //    val = val.Trim();
-
-        //    //if (val.EqualIC("True") || "1".Equals(val))
-        //    //{
-        //    //    return true;
-        //    //}
-        //    //else if (val.EqualIC("False") || "0".Equals(val))
-        //    //{
-        //    //    return false;
-        //    //}
-        //    if (val.EqualIgnoreCase("True", "1")) return true;
-        //    if (val.EqualIgnoreCase("False", "0")) return false;
-
-        //    return r;
-        //}
-
-        ///// <summary>字符转换为时间</summary>
-        ///// <param name="val"></param>
-        ///// <returns></returns>
-        //public static DateTime ConvertDateTime(String val)
-        //{
-        //    DateTime r = DateTime.MinValue;
-        //    if (String.IsNullOrEmpty(val)) return r;
-        //    DateTime.TryParse(val, out r);
-        //    return r;
-        //}
-
-        ///// <summary>字符转换</summary>
-        ///// <param name="val"></param>
-        ///// <returns></returns>
-        //public static Double ConvertDouble(String val)
-        //{
-        //    Double r = 0;
-        //    if (String.IsNullOrEmpty(val)) return r;
-        //    Double.TryParse(val, out r);
-        //    return r;
-        //}
         #endregion
 
         #region Http响应
