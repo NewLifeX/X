@@ -10,7 +10,7 @@ namespace XCode.Cache
 {
     /// <summary>统计字段缓存</summary>
     /// <typeparam name="TEntity"></typeparam>
-    [DisplayName("统计字段缓存")]
+    [DisplayName("统计字段")]
     public class FieldCache<TEntity> : EntityCache<TEntity> where TEntity : Entity<TEntity>, new()
     {
         private FieldItem _field;

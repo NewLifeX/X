@@ -66,7 +66,7 @@ namespace XCode.Cache
         void CheckCache()
         {
             // 更新统计信息
-            CheckShowStatics(ref NextShow, ref Total, ShowStatics);
+            CheckShowStatics(ref Total, ShowStatics);
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
@@ -177,9 +177,6 @@ namespace XCode.Cache
 
         /// <summary>命中</summary>
         public Int32 Success;
-
-        /// <summary>下一次显示时间</summary>
-        public DateTime NextShow;
 
         /// <summary>显示统计信息</summary>
         public void ShowStatics()

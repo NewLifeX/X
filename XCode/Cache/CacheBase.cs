@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using NewLife;
 using NewLife.Reflection;
+using NewLife.Threading;
 using XCode.DataAccessLayer;
 
 namespace XCode.Cache
@@ -63,20 +65,47 @@ namespace XCode.Cache
         }
 
         /// <summary>检查并显示统计信息</summary>
-        /// <param name="next"></param>
         /// <param name="total"></param>
         /// <param name="show"></param>
-        internal static void CheckShowStatics(ref DateTime next, ref Int32 total, Action show)
+        internal static void CheckShowStatics(ref Int32 total, Action show)
         {
-            if (next < DateTime.Now)
-            {
-                var isfirst = next == DateTime.MinValue;
-                next = DAL.Debug ? DateTime.Now.AddMinutes(10) : DateTime.Now.AddHours(24);
+            Interlocked.Increment(ref total);
 
-                if (!isfirst) show();
+            NextShow = true;
+
+            // 加入列表
+            if (total < 10)
+            {
+                lock (_dic)
+                {
+                    if (!_dic.ContainsKey(show.Target)) _dic[show.Target] = show;
+                }
             }
 
-            Interlocked.Increment(ref total);
+            // 启动定时器
+            if (_timer == null)
+            {
+                var ms = 60 * 60 * 1000;
+                if (DAL.Debug) ms = 10 * 60 * 1000;
+                if (Debug) ms = 1 * 60 * 1000;
+                _timer = new TimerX(Check, null, 10000, ms);
+            }
+        }
+
+        private static TimerX _timer;
+        private static Dictionary<Object, Action> _dic = new Dictionary<Object, Action>();
+        private static Boolean NextShow;
+
+        private static void Check(Object state)
+        {
+            if (!NextShow) return;
+
+            NextShow = false;
+
+            foreach (var item in _dic.ToValueArray())
+            {
+                item();
+            }
         }
     }
 }

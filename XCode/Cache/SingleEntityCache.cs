@@ -230,9 +230,6 @@ namespace XCode.Cache
         /// <summary>命中</summary>
         public Int32 Success;
 
-        /// <summary>下一次显示时间</summary>
-        public DateTime NextShow;
-
         /// <summary>显示统计信息</summary>
         public void ShowStatics()
         {
@@ -261,7 +258,7 @@ namespace XCode.Cache
             if (key == null) return null;
 
             // 更新统计信息
-            CheckShowStatics(ref NextShow, ref Total, ShowStatics);
+            CheckShowStatics(ref Total, ShowStatics);
 
             // 如果找到项，返回
             CacheItem item = null;
@@ -455,6 +452,8 @@ namespace XCode.Cache
         /// <param name="reason">清除缓存原因</param>
         public void Clear(String reason)
         {
+            if (!Using) return;
+
             WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
 
             var es = Entities;
