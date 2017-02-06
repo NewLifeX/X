@@ -353,6 +353,8 @@ namespace XCode.Cache
                 var entity = Invoke(FindKeyMethod, item.Key);
                 if (entity != null || AllowNull)
                     item.SetEntity(entity);
+                else // 数据库查不到，说明该数据可能已经被删除
+                    Entities.Remove(item.Key);
             });
 
             return item.Entity;
@@ -368,8 +370,8 @@ namespace XCode.Cache
                 item.NextSave = DateTime.Now.AddSeconds(Expire);
                 Invoke<CacheItem, Object>(e =>
                 {
+                    WriteLog("单对象缓存AutoSave {0}/{1} {2}", Entity<TEntity>.Meta.TableName, Entity<TEntity>.Meta.ConnName, reason);
                     var rs = e.Entity.Update();
-                    if (rs > 0) WriteLog("单对象缓存AutoSave {0}/{1} {2}", Entity<TEntity>.Meta.TableName, Entity<TEntity>.Meta.ConnName, reason);
 
                     return null;
                 }, item);
@@ -457,21 +459,18 @@ namespace XCode.Cache
             WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
 
             var es = Entities;
-            var vs = AutoSave ? es.ToValueArray() : null;
+            var vs = es.ToValueArray();
 
-            lock (es)
+            // 不要清空单对象缓存，而是设为过期
+            foreach (var item in vs)
             {
-                es.Clear();
-            }
-            lock (SlaveEntities)
-            {
-                SlaveEntities.Clear();
+                item.ExpireTime = DateTime.MinValue;
             }
 
             Using = false;
 
             // 先清空列表，再保存过期对象，避免保存对象时再次触发清空事件
-            if (vs != null)
+            if (AutoSave && vs != null)
             {
                 // 打开事务
                 using (var tran = Entity<TEntity>.Meta.CreateTrans())
