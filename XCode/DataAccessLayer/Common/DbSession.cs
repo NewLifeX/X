@@ -37,7 +37,7 @@ namespace XCode.DataAccessLayer
                 // 注意，没有Commit的数据，在这里将会被回滚
                 //if (Trans != null) Rollback();
                 // 在嵌套事务中，Rollback只能减少嵌套层数，而_Trans.Rollback能让事务马上回滚
-                if (Transaction != null && Opened) Transaction.Rollback();
+                if (Opened) Transaction?.Rollback();
                 if (_Conn != null) Close();
                 if (_Conn != null)
                 {

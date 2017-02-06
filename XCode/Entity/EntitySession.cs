@@ -635,7 +635,7 @@ namespace XCode
 
         private void DataChange(String reason)
         {
-            if (_Tran != null) return;
+            if (GetTran() != null) return;
 
             ClearCache(reason);
 
@@ -681,7 +681,7 @@ namespace XCode
         #endregion
 
         #region 事务保护
-        private ITransaction _Tran;
+        private ITransaction GetTran() => (Dal.Session as DbSession).Transaction;
 
         /// <summary>开始事务</summary>
         /// <returns>剩下的事务计数</returns>
@@ -702,10 +702,9 @@ namespace XCode
 
             var count = Dal.BeginTransaction();
 
-            var tr = _Tran = (Dal.Session as DbSession).Transaction;
+            var tr = GetTran();
             tr.Completed += (s, e) =>
             {
-                _Tran = null;
                 if (e.Executes > 0)
                 {
                     if (e.Success)
@@ -769,7 +768,7 @@ namespace XCode
             if (_Count >= 0) Interlocked.Increment(ref _Count);
 
             // 事务回滚时执行逆向操作
-            var tr = _Tran;
+            var tr = GetTran();
             if (tr != null) tr.Completed += (s, se) =>
             {
                 if (!se.Success && se.Executes > 0)
@@ -803,7 +802,7 @@ namespace XCode
             _singleCache?.Add(e);
 
             // 事务回滚时执行逆向操作
-            var tr = _Tran;
+            var tr = GetTran();
             if (tr != null) tr.Completed += (s, se) =>
             {
                 if (!se.Success && se.Executes > 0)
@@ -844,7 +843,7 @@ namespace XCode
             if (_Count > 0) Interlocked.Decrement(ref _Count);
 
             // 事务回滚时执行逆向操作
-            var tr = _Tran;
+            var tr = GetTran();
             if (tr != null) tr.Completed += (s, se) =>
             {
                 if (!se.Success && se.Executes > 0)
