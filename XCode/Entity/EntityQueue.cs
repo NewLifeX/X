@@ -13,7 +13,11 @@ namespace XCode
     public class EntityQueue
     {
         #region 属性
+        /// <summary>需要近实时保存的实体队列</summary>
         private ICollection<IEntity> Entities { get; set; }
+
+        /// <summary>需要延迟保存的实体队列</summary>
+        private IDictionary<IEntity, DateTime> DelayEntities { get; } = new Dictionary<IEntity, DateTime>();
 
         /// <summary>调试开关，默认false</summary>
         public Boolean Debug { get; set; }
@@ -42,24 +46,46 @@ namespace XCode
 
         #region 方法
         /// <summary>添加实体对象进入队列</summary>
-        /// <param name="entity"></param>
-        /// <returns>返回是否添加城南公馆，实体对象已存在于队列中则返回false</returns>
-        public Boolean Add(IEntity entity)
+        /// <param name="entity">实体对象</param>
+        /// <param name="msDelay">延迟保存的时间</param>
+        /// <returns>返回是否添加成功，实体对象已存在于队列中则返回false</returns>
+        public Boolean Add(IEntity entity, Int32 msDelay)
         {
-            // 避免重复加入队列
-            var list = Entities;
-            if (list.Contains(entity)) return false;
-
-            lock (this)
+            if (msDelay <= 0)
             {
-                // 放到锁里面，避免重入
-                if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period);
-
-                list = Entities;
                 // 避免重复加入队列
-                if (list.Contains(entity)) return false;
+                var es = Entities;
+                if (es.Contains(entity)) return false;
 
-                list.Add(entity);
+                lock (this)
+                {
+                    es = Entities;
+                    // 避免重复加入队列
+                    if (es.Contains(entity)) return false;
+
+                    es.Add(entity);
+                }
+            }
+            else
+            {
+                var dic = DelayEntities;
+                if (dic.ContainsKey(entity)) return false;
+
+                lock (dic)
+                {
+                    if (dic.ContainsKey(entity)) return false;
+
+                    dic[entity] = DateTime.Now.AddMilliseconds(msDelay);
+                }
+            }
+
+            // 放到锁里面，避免重入
+            if (_Timer == null)
+            {
+                lock (this)
+                {
+                    if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period, "EQ");
+                }
             }
 
             return true;
@@ -67,26 +93,50 @@ namespace XCode
 
         private void Work(Object state)
         {
-            if (_Running) return;
+            //if (_Running) return;
 
-            var list = Entities;
-            if (list.Count == 0) return;
-
-            lock (this)
+            var list = new List<IEntity>();
+            // 检查是否有延迟保存
+            var dic = DelayEntities;
+            if (dic.Count > 0)
             {
-                // 为了速度，不拷贝，直接创建一个新的集合
-                list = Entities;
-                if (list.Count == 0) return;
-
-                Entities = new HashSet<IEntity>();
+                lock (dic)
+                {
+                    var now = DateTime.Now;
+                    foreach (var item in dic)
+                    {
+                        if (item.Value < now) list.Add(item.Key);
+                    }
+                    // 从列表删除过期
+                    foreach (var item in list)
+                    {
+                        dic.Remove(item);
+                    }
+                }
             }
-            if (list.Count == 0) return;
 
-            _Running = true;
-            Task.Factory.StartNew(Process, list).LogException();
+            // 检查是否有近实时保存
+            var es = Entities;
+            if (es.Count > 0)
+            {
+                lock (this)
+                {
+                    // 为了速度，不拷贝，直接创建一个新的集合
+                    es = Entities;
+                    if (es.Count > 0)
+                    {
+                        Entities = new HashSet<IEntity>();
+                        list.AddRange(es);
+                    }
+                }
+            }
+
+            //_Running = true;
+            //Task.Factory.StartNew(Process, list).LogException();
+            if (list.Count > 0) Process(list);
         }
 
-        private Boolean _Running;
+        //private Boolean _Running;
         private void Process(Object state)
         {
             var list = state as ICollection<IEntity>;
@@ -120,7 +170,7 @@ namespace XCode
             }
             finally
             {
-                _Running = false;
+                //_Running = false;
             }
 
             // 根据繁忙程度动态调节

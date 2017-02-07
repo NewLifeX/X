@@ -55,8 +55,9 @@ namespace XCode
         public abstract Int32 SaveWithoutValid();
 
         /// <summary>异步保存。实现延迟保存，大事务保存。主要面向日志表和频繁更新的在线记录表</summary>
+        /// <param name="msDelay">延迟保存的时间。默认0ms近实时保存</param>
         /// <returns>是否成功加入异步队列</returns>
-        public abstract Boolean SaveAsync();
+        public abstract Boolean SaveAsync(Int32 msDelay = 0);
         #endregion
 
         #region 获取/设置 字段值

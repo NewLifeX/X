@@ -275,11 +275,12 @@ namespace XCode
         }
 
         /// <summary>异步保存。实现延迟保存，大事务保存。主要面向日志表和频繁更新的在线记录表</summary>
+        /// <param name="msDelay">延迟保存的时间。默认0ms近实时保存</param>
         /// <remarks>
         /// 调用平均耗时190.86ns，IPModule占38.89%，TimeModule占16.31%，UserModule占7.20%，Valid占14.36%
         /// </remarks>
         /// <returns>是否成功加入异步队列，实体对象已存在于队列中则返回false</returns>
-        public override Boolean SaveAsync()
+        public override Boolean SaveAsync(Int32 msDelay = 0)
         {
             var isnew = false;
 
@@ -300,7 +301,7 @@ namespace XCode
 
             if (!HasDirty) return false;
 
-            return Meta.Session.Dal.Queue.Add(this);
+            return Meta.Session.Dal.Queue.Add(this, msDelay);
         }
 
         [NonSerialized]

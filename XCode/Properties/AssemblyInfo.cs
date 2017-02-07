@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.3.*")]
-[assembly: AssemblyFileVersion("9.3.2017.0124")]
+[assembly: AssemblyVersion("9.4.*")]
+[assembly: AssemblyFileVersion("9.4.2017.0207")]
 
 /*
  * XCode的重大改进
@@ -50,6 +50,9 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v9.4.2017.0207   废弃单对象缓存的自动保存
+ *                  异步保存SaveAsync支持指定延迟时间
+ * 
  * v9.3.2017.0124   废弃一级缓存，因其用处越来越不明显
  * 
  * v9.2.2016.1201   去掉扩展属性的实体类依赖，降低复杂度以及弱引用内存泄漏风险

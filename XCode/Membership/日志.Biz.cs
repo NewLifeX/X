@@ -239,7 +239,8 @@ namespace XCode.Membership
         Int32 Save();
 
         /// <summary>异步保存</summary>
+        /// <param name="msDelay">延迟保存的时间。默认0ms近实时保存</param>
         /// <returns></returns>
-        Boolean SaveAsync();
+        Boolean SaveAsync(Int32 msDelay = 0);
     }
 }
