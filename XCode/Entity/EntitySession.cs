@@ -783,7 +783,7 @@ namespace XCode
                 if (!se.Success && se.Executes > 0)
                 {
                     if (ec != null) ec.Remove(e);
-                    _singleCache?.Remove(e, false);
+                    _singleCache?.Remove(e);
                     if (_Count >= 0) Interlocked.Decrement(ref _Count);
                 }
             };
@@ -824,7 +824,7 @@ namespace XCode
                         if (old != null) ec.Add(old);
                     }
                     // 干掉缓存项，让它重新获取
-                    _singleCache?.Remove(e, false);
+                    _singleCache?.Remove(e);
                 }
             };
 
@@ -846,7 +846,7 @@ namespace XCode
             if (ec != null) old = ec.Remove(e);
 
             // 从单对象缓存删除
-            _singleCache?.Remove(e, false);
+            _singleCache?.Remove(e);
 
             // 减少计数
             if (_Count > 0) Interlocked.Decrement(ref _Count);

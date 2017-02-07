@@ -48,12 +48,6 @@ namespace XCode.Cache
         /// <summary>最大实体数。默认10000</summary>
         Int32 MaxEntity { get; set; }
 
-        /// <summary>缓存到期时自动保存，默认true</summary>
-        Boolean AutoSave { get; set; }
-
-        /// <summary>允许缓存空对象，默认false</summary>
-        Boolean AllowNull { get; set; }
-
         /// <summary>是否在使用缓存</summary>
         Boolean Using { get; }
 
@@ -84,8 +78,7 @@ namespace XCode.Cache
 
         /// <summary>移除指定项</summary>
         /// <param name="entity"></param>
-        /// <param name="save">是否自动保存实体对象</param>
-        void Remove(IEntity entity, Boolean save);
+        void Remove(IEntity entity);
 
         /// <summary>清除所有数据</summary>
         /// <param name="reason">清除缓存原因</param>
@@ -107,5 +100,14 @@ namespace XCode.Cache
 
         /// <summary>查找数据的方法</summary>
         Func<TKey, TEntity> FindKeyMethod { get; set; }
+
+        /// <summary>从键是否区分大小写</summary>
+        Boolean SlaveKeyIgnoreCase { get; set; }
+
+        /// <summary>根据从键查找数据的方法</summary>
+        Func<String, TEntity> FindSlaveKeyMethod { get; set; }
+
+        /// <summary>获取缓存从键的方法，默认为空</summary>
+        Func<TEntity, String> GetSlaveKeyMethod { get; set; }
     }
 }
