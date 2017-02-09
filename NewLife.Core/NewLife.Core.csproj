@@ -167,6 +167,7 @@
     <Compile Include="Model\IObjectContainer.cs" />
     <Compile Include="Model\ObjectContainer.cs" />
     <Compile Include="Model\IServer.cs" />
+    <Compile Include="Reflection\DynamicInternal.cs" />
     <Compile Include="Reflection\DynamicXml.cs" />
     <Compile Include="Reflection\IReflect.cs" />
     <Compile Include="Reflection\PEImage.cs" />
