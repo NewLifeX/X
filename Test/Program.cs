@@ -95,7 +95,7 @@ namespace Test
             //    XTrace.WriteLine("" + html?.Length);
             //}
 
-            PluginHelper.LoadPlugin("System.Data.SQLite.SQLiteFactory", null, "System.Data.SQLite.dll", "System.Data.SQLite64Fx40", "http://x.newlifex.com");
+            //PluginHelper.LoadPlugin("System.Data.SQLite.SQLiteFactory", null, "System.Data.SQLite.dll", "System.Data.SQLite64Fx40", "http://x.newlifex.com");
 
             //uri = new Uri("ws://yun.wslink.cn");
             //http = uri.CreateRemote();
@@ -107,6 +107,8 @@ namespace Test
             //var ts = TimerScheduler.Create("Test");
             //var t2 = new TimerX(TestTimer, 2, 300, 777, ts);
             //Console.ReadKey();
+
+            DynamicXml.Test();
         }
 
         static void TestTimer(Object state)
