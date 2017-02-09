@@ -71,7 +71,7 @@ namespace Test
 
         static void Test1()
         {
-            //ApiTest.Main();
+            ApiTest.Main();
             //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
@@ -108,7 +108,7 @@ namespace Test
             //var t2 = new TimerX(TestTimer, 2, 300, 777, ts);
             //Console.ReadKey();
 
-            DynamicXml.Test();
+            //DynamicXml.Test();
         }
 
         static void TestTimer(Object state)
