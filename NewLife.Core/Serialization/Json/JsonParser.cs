@@ -135,7 +135,12 @@ namespace NewLife.Serialization
                     return ParseNumber();
 
                 case Token.String:
-                    return ParseString();
+                    var str = ParseString();
+                    // 有可能是字符串或时间日期
+                    var str2 = str.Substring("/Date(", ")/");
+                    if (str2.IsNullOrEmpty()) return str;
+
+                    return new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(str2));
 
                 case Token.Curly_Open:
                     return ParseObject();

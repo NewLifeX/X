@@ -143,24 +143,27 @@ namespace NewLife.Serialization
             var dt = dateTime;
             if (UseUTCDateTime) dt = dateTime.ToUniversalTime();
 
-            _Builder.Append('\"');
-            _Builder.Append(dt.Year.ToString("0000", NumberFormatInfo.InvariantInfo));
-            _Builder.Append('-');
-            _Builder.Append(dt.Month.ToString("00", NumberFormatInfo.InvariantInfo));
-            _Builder.Append('-');
-            _Builder.Append(dt.Day.ToString("00", NumberFormatInfo.InvariantInfo));
-            if (UseUTCDateTime)
-                _Builder.Append('T');
-            else
-                _Builder.Append(' ');
-            _Builder.Append(dt.Hour.ToString("00", NumberFormatInfo.InvariantInfo));
-            _Builder.Append(':');
-            _Builder.Append(dt.Minute.ToString("00", NumberFormatInfo.InvariantInfo));
-            _Builder.Append(':');
-            _Builder.Append(dt.Second.ToString("00", NumberFormatInfo.InvariantInfo));
-            if (UseUTCDateTime) _Builder.Append('Z');
+            var ms = (Int64)(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
+            _Builder.AppendFormat("\"\\/Date({0})\\/\"", ms);
 
-            _Builder.Append('\"');
+            //_Builder.Append('\"');
+            //_Builder.Append(dt.Year.ToString("0000", NumberFormatInfo.InvariantInfo));
+            //_Builder.Append('-');
+            //_Builder.Append(dt.Month.ToString("00", NumberFormatInfo.InvariantInfo));
+            //_Builder.Append('-');
+            //_Builder.Append(dt.Day.ToString("00", NumberFormatInfo.InvariantInfo));
+            //if (UseUTCDateTime)
+            //    _Builder.Append('T');
+            //else
+            //    _Builder.Append(' ');
+            //_Builder.Append(dt.Hour.ToString("00", NumberFormatInfo.InvariantInfo));
+            //_Builder.Append(':');
+            //_Builder.Append(dt.Minute.ToString("00", NumberFormatInfo.InvariantInfo));
+            //_Builder.Append(':');
+            //_Builder.Append(dt.Second.ToString("00", NumberFormatInfo.InvariantInfo));
+            //if (UseUTCDateTime) _Builder.Append('Z');
+
+            //_Builder.Append('\"');
         }
 
         Int32 _depth = 0;

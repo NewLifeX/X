@@ -71,7 +71,7 @@ namespace Test
 
         static void Test1()
         {
-            ApiTest.Main();
+            //ApiTest.Main();
             //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
@@ -109,6 +109,19 @@ namespace Test
             //Console.ReadKey();
 
             //DynamicXml.Test();
+
+            var obj = new A{ Name = "Stone", Time = DateTime.Now };
+            var json = obj.ToJson();
+            var dic = new JsonParser(json).Decode();
+            Console.WriteLine(dic);
+            var a = json.ToJsonEntity<A>();
+            Console.WriteLine(a);
+        }
+
+        class A
+        {
+            public String Name { get; set; }
+            public DateTime Time { get; set; }
         }
 
         static void TestTimer(Object state)
