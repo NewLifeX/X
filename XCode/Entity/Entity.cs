@@ -209,10 +209,7 @@ namespace XCode
                     {
                         entity.Dirtys[item] = true;
                     }
-                    foreach (var item in Extends)
-                    {
-                        entity.Extends[item.Key] = item.Value;
-                    }
+                    Extends.CopyTo(entity.Extends);
 
                     return entity.DoAction(OnDelete, null);
                 }
@@ -1434,25 +1431,17 @@ namespace XCode
         /// <returns></returns>
         public virtual TEntity CloneEntity(Boolean setDirty = false)
         {
-            //var obj = CreateInstance();
             var obj = Meta.Factory.Create() as TEntity;
             foreach (var fi in Meta.Fields)
             {
-                //obj[fi.Name] = this[fi.Name];
                 if (setDirty)
                     obj.SetItem(fi.Name, this[fi.Name]);
                 else
                     obj[fi.Name] = this[fi.Name];
             }
 
-            var exts = Extends;
-            if (exts != null && exts.Count > 0)
-            {
-                foreach (var item in exts.Keys)
-                {
-                    obj.Extends[item] = exts[item];
-                }
-            }
+            Extends.CopyTo(obj.Extends);
+
             return obj;
         }
 

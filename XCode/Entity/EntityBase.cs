@@ -167,16 +167,8 @@ namespace XCode
                 n++;
             }
             // 赋值扩展数据
-            if (entity.Extends != null)
-            {
-                foreach (var item in entity.Extends)
-                {
-                    src.Extends[item.Key] = item.Value;
-                    if (setDirty) Dirtys[item.Key] = true;
+            entity.Extends.CopyTo(src.Extends);
 
-                    n++;
-                }
-            }
             return n;
         }
         #endregion
@@ -226,9 +218,6 @@ namespace XCode
         //[NonSerialized]
         [XmlIgnore, ScriptIgnore]
         public EntityExtend Extends { get { return _Extends ?? (_Extends = new EntityExtend()); } set { _Extends = value; } }
-
-        /// <summary>扩展属性</summary>
-        IDictionary<String, Object> IEntity.Extends { get { return Extends; } }
         #endregion
 
         #region 累加

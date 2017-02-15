@@ -13,7 +13,7 @@ namespace XCode
         IDictionary<String, Boolean> Dirtys { get; }
 
         /// <summary>扩展属性</summary>
-        IDictionary<String, Object> Extends { get; }
+        EntityExtend Extends { get; }
         #endregion
 
         #region 空主键
