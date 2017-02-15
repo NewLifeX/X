@@ -12,8 +12,9 @@ namespace NewLife.Remoting
         IDictionary<string, ApiAction> Services { get; }
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
+        /// <param name="requireApi">是否要求Api特性</param>
         /// <typeparam name="TService"></typeparam>
-        void Register<TService>() where TService : class, new();
+        void Register<TService>(Boolean requireApi = false) where TService : class, new();
 
         /// <summary>注册服务</summary>
         /// <param name="controller">控制器对象或类型</param>
@@ -35,14 +36,15 @@ namespace NewLife.Remoting
         /// <summary>可提供服务的方法</summary>
         public IDictionary<string, ApiAction> Services { get; } = new Dictionary<string, ApiAction>();
 
-        private void Register(Object controller, Type type)
+        private void Register(Object controller, Type type, Boolean requireApi)
         {
             foreach (var mi in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
                 if (mi.IsSpecialName) continue;
                 if (mi.DeclaringType == typeof(object)) continue;
+                if (requireApi && mi.GetCustomAttribute<ApiAttribute>() == null) continue;
 
-                var act = new ApiAction(mi);
+                var act = new ApiAction(mi, type);
                 act.Controller = controller;
 
                 Services[act.Name] = act;
@@ -51,9 +53,10 @@ namespace NewLife.Remoting
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
-        public void Register<TService>() where TService : class, new()
+        /// <param name="requireApi">是否要求Api特性</param>
+        public void Register<TService>(Boolean requireApi = false) where TService : class, new()
         {
-            Register(null, typeof(TService));
+            Register(null, typeof(TService), requireApi);
         }
 
         /// <summary>注册服务</summary>
@@ -68,13 +71,13 @@ namespace NewLife.Remoting
             if (!method.IsNullOrEmpty())
             {
                 var mi = type.GetMethodEx(method);
-                var act = new ApiAction(mi);
+                var act = new ApiAction(mi, type);
 
                 Services[act.Name] = act;
             }
             else
             {
-                Register(controller, type);
+                Register(controller, type, false);
             }
         }
 
@@ -82,7 +85,7 @@ namespace NewLife.Remoting
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
         public void Register(MethodInfo method)
         {
-            var act = new ApiAction(method);
+            var act = new ApiAction(method, null);
 
             Services[act.Name] = act;
         }

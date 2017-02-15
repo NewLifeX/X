@@ -11,7 +11,10 @@ namespace NewLife.Remoting
     public class ApiAction
     {
         /// <summary>动作名称</summary>
-        public string Name { get; set; }
+        public String Name { get; set; }
+
+        /// <summary>动作所在类型</summary>
+        public Type Type { get; set; }
 
         /// <summary>方法</summary>
         public MethodInfo Method { get; set; }
@@ -27,12 +30,13 @@ namespace NewLife.Remoting
         public IExceptionFilter[] ExceptionFilters { get; }
 
         /// <summary>实例化</summary>
-        public ApiAction(MethodInfo method)
+        public ApiAction(MethodInfo method, Type type)
         {
-            if (method.DeclaringType != null)
+            if (type == null) type = method.DeclaringType;
+            if (type != null)
             {
-                var typeName = method.DeclaringType.Name.TrimEnd("Controller");
-                var att = method.DeclaringType.GetCustomAttribute<ApiAttribute>();
+                var typeName = type.Name.TrimEnd("Controller");
+                var att = type.GetCustomAttribute<ApiAttribute>();
                 if (att != null) typeName = att.Name;
 
                 var miName = method.Name;
@@ -44,6 +48,8 @@ namespace NewLife.Remoting
                 else
                     Name = "{0}/{1}".F(typeName, miName);
             }
+            // 必须同时记录类型和方法，因为有些方法位于继承的不同层次，那样会导致实例化的对象不一致
+            Type = type;
             Method = method;
 
             ActionFilters = GetAllFilters(method);
