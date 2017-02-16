@@ -38,7 +38,10 @@ namespace NewLife.Remoting
 
         private void Register(Object controller, Type type, Boolean requireApi)
         {
-            foreach (var mi in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
+            var flag = BindingFlags.Public | BindingFlags.Instance;
+            // 如果要求Api特性，则还需要遍历私有方法和静态方法
+            if (requireApi) flag |= BindingFlags.NonPublic | BindingFlags.Static;
+            foreach (var mi in type.GetMethods(flag))
             {
                 if (mi.IsSpecialName) continue;
                 if (mi.DeclaringType == typeof(object)) continue;
