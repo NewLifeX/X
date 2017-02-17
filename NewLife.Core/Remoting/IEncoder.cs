@@ -8,10 +8,10 @@ namespace NewLife.Remoting
     /// <summary>编码器</summary>
     public interface IEncoder
     {
-        /// <summary>编码对象</summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        Byte[] Encode(Object obj);
+        ///// <summary>编码对象</summary>
+        ///// <param name="obj"></param>
+        ///// <returns></returns>
+        //Byte[] Encode(Object obj);
 
         /// <summary>编码请求</summary>
         /// <param name="action"></param>
@@ -66,7 +66,7 @@ namespace NewLife.Remoting
         /// <summary>编码对象</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public abstract Byte[] Encode(Object obj);
+        protected abstract Byte[] Encode(Object obj);
 
         /// <summary>编码请求</summary>
         /// <param name="action"></param>

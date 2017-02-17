@@ -15,7 +15,7 @@ namespace NewLife.Remoting
         /// <summary>编码对象</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override Byte[] Encode(Object obj)
+        protected override Byte[] Encode(Object obj)
         {
             var json = obj.ToJson();
 
