@@ -50,7 +50,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -178,16 +178,22 @@ namespace Test
 
         static void Test3()
         {
-            var timer = new TimerX(s =>
-            {
-                XTrace.WriteLine("Hello");
-            }, null, 1000, 1000);
+            //var timer = new TimerX(s =>
+            //{
+            //    XTrace.WriteLine("同步Hello");
+            //}, null, 1000, 5000);
 
-            var timer2 = new TimerX(s =>
+            //var timer2 = new TimerX(s =>
+            //{
+            //    XTrace.WriteLine("异步早上好");
+            //}, null, 2000, 5000, "AA");
+            //timer2.Async = true;
+
+            var timer3 = new TimerX(s =>
             {
-                XTrace.WriteLine("早上好");
-            }, null, 1000, 1000, "AA");
-            timer2.Async = true;
+                XTrace.WriteLine("定时吃饭");
+                Thread.Sleep(234);
+            }, null, DateTime.Now.Date, 5000, "EAT");
         }
     }
 }

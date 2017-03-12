@@ -180,14 +180,17 @@ namespace NewLife.Threading
             }
 
             var ts = timer.NextTime - now;
-            var d = (Int32)ts.TotalMilliseconds;
+            //var d = (Int64)ts.TotalMilliseconds;
+            //var d = Math.Ceiling(ts.TotalMilliseconds);
+            var d = ts.TotalMilliseconds;
             if (d > 0)
             {
                 // 缩小间隔，便于快速调用
-                if (d < period) period = d;
+                if (d < period) period = (Int32)d;
 
                 return false;
             }
+            //XTrace.WriteLine("d={0}", ts.TotalMilliseconds);
 
             return true;
         }
@@ -231,7 +234,10 @@ namespace NewLife.Threading
                 var p = timer.Period;
 
                 timer.Timers++;
-                timer.NextTime = DateTime.Now.AddMilliseconds(p);
+                if (timer.Absolutely)
+                    timer.NextTime = timer.NextTime.AddMilliseconds(p);
+                else
+                    timer.NextTime = DateTime.Now.AddMilliseconds(p);
                 timer.Calling = false;
 
                 // 清理一次性定时器
