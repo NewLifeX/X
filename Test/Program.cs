@@ -50,7 +50,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -110,7 +110,7 @@ namespace Test
 
             //DynamicXml.Test();
 
-            var obj = new A{ Name = "Stone", Time = DateTime.Now };
+            var obj = new A { Name = "Stone", Time = DateTime.Now };
             var json = obj.ToJson();
             var dic = new JsonParser(json).Decode();
             Console.WriteLine(dic);
@@ -174,6 +174,20 @@ namespace Test
             {
                 XTrace.WriteLine("TestTask {0} End", tid);
             }
+        }
+
+        static void Test3()
+        {
+            var timer = new TimerX(s =>
+            {
+                XTrace.WriteLine("Hello");
+            }, null, 1000, 1000);
+
+            var timer2 = new TimerX(s =>
+            {
+                XTrace.WriteLine("早上好");
+            }, null, 1000, 1000, "AA");
+            timer2.Async = true;
         }
     }
 }

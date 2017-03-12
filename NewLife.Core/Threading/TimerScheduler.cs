@@ -75,12 +75,7 @@ namespace NewLife.Threading
                     thread.Start();
                 }
 
-                var e = waitForTimer;
-                if (e != null)
-                {
-                    var swh = e.SafeWaitHandle;
-                    if (swh != null && !swh.IsClosed) e.Set();
-                }
+                Wake();
             }
         }
 
@@ -104,6 +99,17 @@ namespace NewLife.Threading
 
         private AutoResetEvent waitForTimer;
         private Int32 period = 10;
+
+        /// <summary>唤醒处理</summary>
+        private void Wake()
+        {
+            var e = waitForTimer;
+            if (e != null)
+            {
+                var swh = e.SafeWaitHandle;
+                if (swh != null && !swh.IsClosed) e.Set();
+            }
+        }
 
         /// <summary>调度主程序</summary>
         /// <param name="state"></param>
@@ -142,7 +148,9 @@ namespace NewLife.Threading
                             if (!timer.Async)
                                 ProcessItem(timer);
                             else
-                                Task.Factory.StartNew(() => ProcessItem(timer));
+                                //Task.Factory.StartNew(() => ProcessItem(timer));
+                                // 不需要上下文流动
+                                ThreadPool.UnsafeQueueUserWorkItem(ProcessItem, timer);
                         }
                     }
                 }
@@ -185,10 +193,14 @@ namespace NewLife.Threading
         }
 
         /// <summary>处理每一个定时器</summary>
-        /// <param name="timer"></param>
-        private void ProcessItem(TimerX timer)
+        /// <param name="state"></param>
+        private void ProcessItem(Object state)
         {
+            var timer = state as TimerX;
             TimerX.Current = timer;
+
+            // 控制日志显示
+            WriteLogEventArgs.CurrentThreadName = Name == "Default" ? "T" : Name;
 
             var sw = new Stopwatch();
             sw.Start();
@@ -213,7 +225,7 @@ namespace NewLife.Threading
                 else
                     timer.Cost = (timer.Cost + d) / 2;
 
-                if (d > 500 && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms", timer, d);
+                if (d > 500 && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms，建议使用异步任务Async=true", timer, d);
 
                 // 再次读取周期，因为任何函数可能会修改
                 var p = timer.Period;
@@ -229,6 +241,12 @@ namespace NewLife.Threading
                     period = p;
 
                 TimerX.Current = null;
+
+                // 控制日志显示
+                WriteLogEventArgs.CurrentThreadName = null;
+
+                // 调度线程可能在等待，需要唤醒
+                //Wake();
             }
         }
 
