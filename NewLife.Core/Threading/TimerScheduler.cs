@@ -246,7 +246,7 @@ namespace NewLife.Threading
                 WriteLogEventArgs.CurrentThreadName = null;
 
                 // 调度线程可能在等待，需要唤醒
-                //Wake();
+                Wake();
             }
         }
 
