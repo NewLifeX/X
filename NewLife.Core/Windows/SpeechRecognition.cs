@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using NewLife.IO;
+﻿using NewLife.IO;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace NewLife.Windows
 {
@@ -18,10 +17,13 @@ namespace NewLife.Windows
         private IDictionary<String, Action> _dic;
 
         /// <summary>系统名称。用于引导前缀</summary>
-        private String _Name = "丁丁";
+        public String Name { get; set; } = "丁丁";
 
         /// <summary>最后一次进入引导前缀的时间。</summary>
         private DateTime _Tip;
+
+        /// <summary>是否可用</summary>
+        public Boolean Enable { get { return _speech != null; } }
         #endregion
 
         #region 构造
@@ -32,7 +34,7 @@ namespace NewLife.Windows
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -41,28 +43,14 @@ namespace NewLife.Windows
         #endregion
 
         #region 静态
-        private static SpeechRecognition _instance = new SpeechRecognition();
-
-        /// <summary>系统名称。用于引导前缀</summary>
-        public static String Name { get { return _instance._Name; } set { _instance._Name = value; } }
-
-        /// <summary>注册要语音识别的关键字到委托</summary>
-        /// <param name="text"></param>
-        /// <param name="callback"></param>
-        public static void Register(String text, Action callback)
-        {
-            if (_instance == null) _instance = new SpeechRecognition();
-
-            _instance.RegisterInternal(text, callback);
-        }
+        /// <summary>当前实例</summary>
+        public static SpeechRecognition Current { get; } = new SpeechRecognition();
 
         /// <summary>获取已注册的所有键值</summary>
         /// <returns></returns>
-        public static String[] GetAllKeys()
+        public String[] GetAllKeys()
         {
-            if (_instance == null) _instance = new SpeechRecognition();
-
-            return _instance._dic.Keys.ToArray();
+            return _dic.Keys.ToArray();
         }
         #endregion
 
@@ -99,7 +87,10 @@ namespace NewLife.Windows
             }
         }
 
-        void RegisterInternal(String text, Action callback)
+        /// <summary>注册要语音识别的关键字到委托</summary>
+        /// <param name="text"></param>
+        /// <param name="callback"></param>
+        public SpeechRecognition Register(String text, Action callback)
         {
             var flag = _dic.ContainsKey(text);
 
@@ -111,80 +102,29 @@ namespace NewLife.Windows
             }
             else if (flag)
                 _dic.Remove(text);
+
+            return this;
         }
 
         void Change()
         {
+            if (_speech == null) return;
+
             lock (this)
             {
                 if (!Init()) return;
 
-                var list = new List<String>();
-                list.Add(_Name);
+                var list = new List<String>
+                {
+                    Name
+                };
                 list.AddRange(_dic.Keys);
                 _speech.SetChoices(list);
-
-                //var gc = _rg.Grammars.Count;
-                ////_rg.RecognizeAsyncCancel();
-                //_rg.UnloadAllGrammars();
-
-                //var cs = new Choices();
-                //cs.Add(_Name);
-                //cs.Add(_dic.Keys.ToArray());
-
-                //var gb = new GrammarBuilder();
-                //gb.Append(cs);
-
-                //var gr = new Grammar(gb);
-
-                //// 不能加载自然语法，否则关键字识别率大大下降
-                ////_rg.LoadGrammarAsync(new DictationGrammar());
-                //_rg.LoadGrammarAsync(gr);
-
-                //// 首次启动
-                //if (gc == 0) _rg.RecognizeAsync(RecognizeMode.Multiple);
-
-                //var gc = (Int32)_rg.GetValue("Grammars").GetValue("Count");
-                //_rg.Invoke("UnloadAllGrammars");
-
-                //var cs = "Choices".GetTypeEx().CreateInstance() as IList;
-                //cs.Add(_Name);
-                //cs.Add(_dic.Keys.ToArray());
-
-                //var gb = "GrammarBuilder".GetTypeEx().CreateInstance();
-                //gb.Invoke("Append", cs);
-
-                //var gr = "Grammar".GetTypeEx().CreateInstance(gb);
-
-                //_rg.Invoke("LoadGrammarAsync", gr);
-
-                //// 首次启动
-                //if (gc == 0) _rg.Invoke("RecognizeAsync", "RecognizeMode".GetTypeEx().GetFieldEx("Multiple"));
             }
         }
 
-        //        private const String _code = @"
-        //using System.Speech.Recognition;
-        //class MySpeech
-        //{
-        //    public EventHandler SpeechRecognized;
-
-        //    public void _rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        //    {
-        //        SpeechRecognized(sender, e);
-        //    }
-        //    public static EventHandler<SpeechRecognizedEventArgs> Wrap(EventHandler handler)
-        //    {
-        //        var my = new MySpeech();
-        //        my.SpeechRecognized = handler;
-
-        //        return new EventHandler<SpeechRecognizedEventArgs>(my._rg_SpeechRecognized);
-        //    }
-        //    public static void Main() { }
-        //}";
-
         //void _rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        void _rg_SpeechRecognized(object sender, RecognitionEventArgs e)
+        void _rg_SpeechRecognized(Object sender, RecognitionEventArgs e)
         {
             var conf = e.Confidence;
             if (conf < 0.5) return;
@@ -195,7 +135,7 @@ namespace NewLife.Windows
             if (_Tip.AddSeconds(3) < DateTime.Now)
             {
                 // 此时只识别前缀
-                if (txt != _Name) return;
+                if (txt != Name) return;
 
                 XTrace.WriteLine("语音识别：{0} {1}", txt, conf);
 
@@ -206,8 +146,7 @@ namespace NewLife.Windows
             {
                 XTrace.WriteLine("语音识别：{0} {1}", txt, conf);
 
-                Action func = null;
-                if (_dic.TryGetValue(txt, out func)) func();
+                if (_dic.TryGetValue(txt, out var func)) func();
             }
         }
         #endregion
