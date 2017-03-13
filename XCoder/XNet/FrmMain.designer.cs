@@ -64,6 +64,9 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
+            this.查看Tcp参数ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.设置最大TcpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gbReceive.SuspendLayout();
             this.menuReceive.SuspendLayout();
             this.menuSend.SuspendLayout();
@@ -109,9 +112,12 @@
             this.mi显示接收字符串,
             this.mi显示发送数据,
             this.mi显示接收数据,
-            this.mi显示统计信息});
+            this.mi显示统计信息,
+            this.toolStripMenuItem4,
+            this.查看Tcp参数ToolStripMenuItem,
+            this.设置最大TcpToolStripMenuItem});
             this.menuReceive.Name = "menuSend";
-            this.menuReceive.Size = new System.Drawing.Size(161, 164);
+            this.menuReceive.Size = new System.Drawing.Size(161, 236);
             // 
             // toolStripMenuItem1
             // 
@@ -428,6 +434,25 @@
             this.label7.TabIndex = 15;
             this.label7.Text = "次数：";
             // 
+            // toolStripMenuItem4
+            // 
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(157, 6);
+            // 
+            // 查看Tcp参数ToolStripMenuItem
+            // 
+            this.查看Tcp参数ToolStripMenuItem.Name = "查看Tcp参数ToolStripMenuItem";
+            this.查看Tcp参数ToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.查看Tcp参数ToolStripMenuItem.Text = "查看Tcp参数";
+            this.查看Tcp参数ToolStripMenuItem.Click += new System.EventHandler(this.查看Tcp参数ToolStripMenuItem_Click);
+            // 
+            // 设置最大TcpToolStripMenuItem
+            // 
+            this.设置最大TcpToolStripMenuItem.Name = "设置最大TcpToolStripMenuItem";
+            this.设置最大TcpToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.设置最大TcpToolStripMenuItem.Text = "设置最大Tcp";
+            this.设置最大TcpToolStripMenuItem.Click += new System.EventHandler(this.设置最大TcpToolStripMenuItem_Click);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -495,6 +520,9 @@
         private System.Windows.Forms.ToolStripMenuItem mi显示网络日志;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.ToolStripMenuItem miHexSend;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
+        private System.Windows.Forms.ToolStripMenuItem 查看Tcp参数ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 设置最大TcpToolStripMenuItem;
     }
 }
 

@@ -533,5 +533,15 @@ namespace XNet
                 return _ns = list.ToArray();
             }
         }
+
+        private void 查看Tcp参数ToolStripMenuItem_Click(Object sender, EventArgs e)
+        {
+            NetHelper.ShowTcpParameters();
+        }
+
+        private void 设置最大TcpToolStripMenuItem_Click(Object sender, EventArgs e)
+        {
+            NetHelper.SetTcpMax();
+        }
     }
 }
