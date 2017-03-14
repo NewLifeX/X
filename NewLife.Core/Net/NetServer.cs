@@ -568,14 +568,18 @@ namespace NewLife.Net
             {
                 case AddressFamily.InterNetwork:
                 case AddressFamily.InterNetworkV6:
-                    var svr = new TServer();
-                    svr.Local.Address = address.GetRightAny(family);
-                    svr.Port = port;
-                    //svr.AddressFamily = family;
+                    var addr= address.GetRightAny(family);
+                    if (addr != null)
+                    {
+                        var svr = new TServer();
+                        svr.Local.Address = addr;
+                        svr.Port = port;
+                        //svr.AddressFamily = family;
 
-                    // 协议端口不能是已经被占用
-                    //if (!NetHelper.IsUsed(svr.Local.ProtocolType, svr.Local.Address, svr.Port)) list.Add(svr);
-                    if (!svr.Local.CheckPort()) list.Add(svr);
+                        // 协议端口不能是已经被占用
+                        //if (!NetHelper.IsUsed(svr.Local.ProtocolType, svr.Local.Address, svr.Port)) list.Add(svr);
+                        if (!svr.Local.CheckPort()) list.Add(svr);
+                    }
                     break;
                 default:
                     // 其它情况表示同时支持IPv4和IPv6

@@ -74,17 +74,20 @@ namespace System
         /// <returns></returns>
         public static IPAddress GetRightAny(this IPAddress address, AddressFamily family)
         {
+            if (address.AddressFamily == family) return address;
+
             switch (family)
             {
                 case AddressFamily.InterNetwork:
                     if (address == IPAddress.IPv6Any) return IPAddress.Any;
-                    return address;
+                    break;
                 case AddressFamily.InterNetworkV6:
                     if (address == IPAddress.Any) return IPAddress.IPv6Any;
-                    return address;
+                    break;
                 default:
-                    return address;
+                    break;
             }
+            return null;
         }
 
         /// <summary>是否Any地址，同时处理IPv4和IPv6</summary>
