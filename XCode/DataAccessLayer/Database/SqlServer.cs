@@ -26,6 +26,9 @@ namespace XCode.DataAccessLayer
         /// <summary>是否SQL2005及以上</summary>
         public Boolean IsSQL2005 { get { return Version.Major > 8; } }
 
+        /// <summary>是否SQL2012及以上</summary>
+        public Boolean IsSQL2012 { get { return Version.Major > 11; } }
+
         private Version _Version;
         /// <summary>是否SQL2005及以上</summary>
         public Version Version
@@ -115,14 +118,28 @@ namespace XCode.DataAccessLayer
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0 && maximumRows < 1) return sql;
 
-            // 指定了起始行，并且是SQL2005及以上版本，使用RowNumber算法
-            if (startRowIndex > 0 && IsSQL2005)
+            if (startRowIndex > 0)
             {
-                //return PageSplitRowNumber(sql, startRowIndex, maximumRows, keyColumn);
-                SelectBuilder builder = new SelectBuilder();
-                builder.Parse(sql);
-                return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005).ToString();
+                // 指定了起始行，并且是SQL2005及以上版本，使用MS SQL 2012特有的分页算法
+                if (IsSQL2012)
+                {
+                    // var str = $"select * from spt_values where type = 'p' order by {keyColumn} offset {startRowIndex} rows fetch next {maximumRows} rows only; ";
+                    SelectBuilder builder = new SelectBuilder();
+                    builder.Parse(sql);
+                    return MSPageSplit.PageSplit_Sql2012(builder, startRowIndex, maximumRows);
+                }
+
+                // 指定了起始行，并且是SQL2005及以上版本，使用RowNumber算法
+                if (IsSQL2005)
+                {
+                    //return PageSplitRowNumber(sql, startRowIndex, maximumRows, keyColumn);
+                    SelectBuilder builder = new SelectBuilder();
+                    builder.Parse(sql);
+                    return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005).ToString();
+                }
+
             }
+
 
             // 如果没有Order By，直接调用基类方法
             // 先用字符串判断，命中率高，这样可以提高处理效率

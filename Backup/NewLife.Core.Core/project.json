@@ -1,0 +1,86 @@
+{
+  "version": "1.0.0-*",
+  "dependencies": {
+    "Microsoft.AspNetCore.Http.Abstractions": "1.0.0-rc2-final",
+    "Microsoft.Win32.Registry": "4.0.0-rc2-24027",
+    "NETStandard.Library": "1.6.0",
+    "System.Collections.Specialized": "4.0.1-rc2-24027",
+    "System.Diagnostics.Process": "4.1.0-rc2-24027",
+    "System.Runtime.Serialization.Primitives": "4.1.1-rc2-24027",
+    "System.Threading.Thread": "4.0.0-rc2-24027",
+    "System.Threading.ThreadPool": "4.0.10-rc2-24027",
+    "System.Xml.XmlDocument": "4.0.1-rc2-24027",
+    "System.Xml.XmlSerializer": "4.0.11-rc2-24027"
+  },
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": "dnxcore50"
+    }
+  },
+  "buildOptions": {
+    "outputName": "NewLife.Core",
+    "xmlDoc": true,
+    "define": [ "__CORE__" ],
+    "compile": {
+      "include": [
+        "../NewLife.Core/Properties/*.cs",
+        "../NewLife.Core/Applications/*.cs",
+        "../NewLife.Core/Collections/*.cs",
+        "../NewLife.Core/Common/*.cs",
+        "../NewLife.Core/Compression/*.cs",
+        "../NewLife.Core/Configuration/*.cs",
+        "../NewLife.Core/Data/*.cs",
+        "../NewLife.Core/Event/*.cs",
+        "../NewLife.Core/Exceptions/*.cs",
+        "../NewLife.Core/Extension/*.cs",
+        "../NewLife.Core/IO/*.cs",
+        "../NewLife.Core/Log/*.cs",
+        "../NewLife.Core/Messaging/*.cs",
+        "../NewLife.Core/Model/*.cs",
+        "../NewLife.Core/Net/*.cs",
+        "../NewLife.Core/Reflection/AssemblyX.cs",
+        "../NewLife.Core/Reflection/AttributeX.cs",
+        "../NewLife.Core/Reflection/IIndexAccessor.cs",
+        "../NewLife.Core/Reflection/IReflect.cs",
+        "../NewLife.Core/Reflection/Reflect.cs",
+        "../NewLife.Core/Remoting/*.cs",
+        "../NewLife.Core/Security/*.cs",
+        "../NewLife.Core/Serialization/*.cs",
+        "../NewLife.Core/Threading/TaskHelper.cs",
+        "../NewLife.Core/Threading/TimerX.cs",
+        "../NewLife.Core/Web/*.cs",
+        "../NewLife.Core/Xml/*.cs",
+        "../NewLife.Core/Setting.cs"
+      ],
+      "exclude": [
+        "../NewLife.Core/Agent/Interactive.cs",
+        "../NewLife.Core/Common/CombGuid.cs",
+        "../NewLife.Core/Common/HardInfo.cs",
+        "../NewLife.Core/Configuration/Config.cs",
+        "../NewLife.Core/Extension/SpeakProvider.cs",
+        "../NewLife.Core/Log/TextControlLog.cs",
+        "../NewLife.Core/Net/SerialTransport.cs",
+        "../NewLife.Core/Net/SerialPortConfig.cs",
+        "../NewLife.Core/Net/Upgrade.cs",
+        "../NewLife.Core/IO/FileSource.cs",
+        "../NewLife.Core/Remoting/ApiHttpClient.cs",
+        "../NewLife.Core/Remoting/ApiHttpServer.cs",
+        "../NewLife.Core/Security/AsnKeyBuilder.cs",
+        "../NewLife.Core/Security/AsnKeyParser.cs",
+        "../NewLife.Core/Security/BerDecodeError.cs",
+        "../NewLife.Core/Security/BigInteger.cs",
+        "../NewLife.Core/Security/Certificate.cs",
+        "../NewLife.Core/Security/RSAHelper.cs",
+        "../NewLife.Core/Serialization/Json/BigInteger.cs",
+        "../NewLife.Core/Serialization/Json/SimpleJsonUtil.cs",
+        "../NewLife.Core/Web/Modules/*.cs",
+        "../NewLife.Core/Web/ControlHelper.cs",
+        "../NewLife.Core/Web/WebHelper.cs",
+        "../NewLife.Core/Web/WebClientX.cs",
+        "../NewLife.Core/Web/*.cs",
+        "../NewLife.Core/Windows/*.cs",
+        "../NewLife.Core/Xml/ExtendData.cs"
+      ]
+    }
+  }
+}
