@@ -62,6 +62,10 @@ namespace XCode
         [Description("单对象缓存过期。默认60秒")]
         public Int32 SingleCacheExpire { get; set; } = 60;
 
+        /// <summary>扩展属性过期。默认10秒</summary>
+        [Description("扩展属性过期。默认10秒")]
+        public Int32 ExtendExpire { get; set; } = 10;
+
         /// <summary>反向工程</summary>
         [Description("反向工程")]
         public NegativeSetting Negative { get; set; }

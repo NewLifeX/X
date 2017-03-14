@@ -40,9 +40,10 @@ namespace XCode.DataAccessLayer
             if (builder.Keys == null || builder.Keys.Length < 1) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
 
             //ms sql 2012 分页算法的写法
-            //var str = $"select * from {builder.Table} where type = 'p' order by {builder.OrderBy} offset {startRowIndex} rows fetch next {maximumRows} rows only; ";
+            //var str = $"select * from {builder.Table} where type = 'p' order by {builder.OrderBy} offset {startRowIndex} rows fetch next {maximumRows} rows only";
             builder.Column = "*";
-            builder.AppendWhereAnd($"type='p' offset {startRowIndex} rows fetch next {maximumRows} rows only;");
+            builder.AppendWhereAnd($"type='p'");
+            // todo ordrby后面还需要添加 offset {startRowIndex} rows fetch next {maximumRows} rows only，但是未找到地方
             return builder;
         }
 

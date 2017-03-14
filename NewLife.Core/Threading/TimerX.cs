@@ -39,6 +39,9 @@ namespace NewLife.Threading
         /// <summary>获取/设置 异步执行任务。默认false</summary>
         public Boolean Async { get; set; }
 
+        /// <summary>获取/设置 绝对精确时间执行。默认false</summary>
+        public Boolean Absolutely { get; set; }
+
         /// <summary>调用中</summary>
         public Boolean Calling { get; internal set; }
 
@@ -62,8 +65,8 @@ namespace NewLife.Threading
         /// <param name="scheduler">调度器</param>
         public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period, String scheduler = null)
         {
-            if (callback == null) throw new ArgumentNullException("callback");
-            if (dueTime < 0) throw new ArgumentOutOfRangeException("dueTime");
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+            if (dueTime < 0) throw new ArgumentOutOfRangeException(nameof(dueTime));
             //if (period < 0) throw new ArgumentOutOfRangeException("period");
 
             Callback = callback;
@@ -71,6 +74,40 @@ namespace NewLife.Threading
             Period = period;
 
             NextTime = DateTime.Now.AddMilliseconds(dueTime);
+
+            Scheduler = scheduler.IsNullOrEmpty() ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
+            Scheduler.Add(this);
+        }
+
+        /// <summary>实例化一个绝对定时器</summary>
+        /// <param name="callback">委托</param>
+        /// <param name="state">用户数据</param>
+        /// <param name="startTime">绝对开始时间</param>
+        /// <param name="period">间隔周期。毫秒</param>
+        /// <param name="scheduler">调度器</param>
+        public TimerX(WaitCallback callback, Object state, DateTime startTime, Int32 period, String scheduler = null)
+        {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+            if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
+            //if (period < 0) throw new ArgumentOutOfRangeException("period");
+
+            Callback = callback;
+            State = state;
+            Period = period;
+            Absolutely = true;
+
+            var now = DateTime.Now;
+            var next = startTime;
+            if (period % 1000 == 0)
+            {
+                var s = period / 1000;
+                while (next < now) next = next.AddSeconds(s);
+            }
+            else
+            {
+                while (next < now) next = next.AddMilliseconds(period);
+            }
+            NextTime = next;
 
             Scheduler = scheduler.IsNullOrEmpty() ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
             Scheduler.Add(this);

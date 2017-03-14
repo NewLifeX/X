@@ -90,7 +90,7 @@ namespace NewLife.Log
 #if !__CORE__
             IsPool = thread.IsThreadPoolThread;
 #endif
-            ThreadName = thread.Name;
+            ThreadName = CurrentThreadName ?? thread.Name;
 
             var tid = Task.CurrentId;
             TaskID = tid != null ? tid.Value : -1;
@@ -117,6 +117,13 @@ namespace NewLife.Log
 
             return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPool ? (IsWeb ? 'W' : 'Y') : 'N', name, Message);
         }
-#endregion
+        #endregion
+
+        #region 日志线程名
+        [ThreadStatic]
+        private static String _threadName;
+        /// <summary>设置当前线程输出日志时的线程名</summary>
+        public static String CurrentThreadName { get { return _threadName; } set { _threadName = value; } }
+        #endregion
     }
 }

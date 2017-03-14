@@ -50,7 +50,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -71,7 +71,7 @@ namespace Test
 
         static void Test1()
         {
-            ApiTest.Main();
+            //ApiTest.Main();
             //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
@@ -109,6 +109,19 @@ namespace Test
             //Console.ReadKey();
 
             //DynamicXml.Test();
+
+            var obj = new A { Name = "Stone", Time = DateTime.Now };
+            var json = obj.ToJson();
+            var dic = new JsonParser(json).Decode();
+            Console.WriteLine(dic);
+            var a = json.ToJsonEntity<A>();
+            Console.WriteLine(a);
+        }
+
+        class A
+        {
+            public String Name { get; set; }
+            public DateTime Time { get; set; }
         }
 
         static void TestTimer(Object state)
@@ -161,6 +174,26 @@ namespace Test
             {
                 XTrace.WriteLine("TestTask {0} End", tid);
             }
+        }
+
+        static void Test3()
+        {
+            //var timer = new TimerX(s =>
+            //{
+            //    XTrace.WriteLine("同步Hello");
+            //}, null, 1000, 5000);
+
+            //var timer2 = new TimerX(s =>
+            //{
+            //    XTrace.WriteLine("异步早上好");
+            //}, null, 2000, 5000, "AA");
+            //timer2.Async = true;
+
+            var timer3 = new TimerX(s =>
+            {
+                XTrace.WriteLine("定时吃饭");
+                Thread.Sleep(234);
+            }, null, DateTime.Now.Date, 5000, "EAT");
         }
     }
 }

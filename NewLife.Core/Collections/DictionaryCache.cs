@@ -28,7 +28,7 @@ namespace NewLife.Collections
         public Boolean AutoDispose { get; set; }
 
         /// <summary>是否缓存默认值，有时候委托返回默认值不希望被缓存，而是下一次尽快进行再次计算。默认true</summary>
-        public Boolean CacheDefault { get; set; }
+        public Boolean CacheDefault { get; set; } = true;
 
         /// <summary>延迟加锁，字典没有数据时，先计算结果再加锁加入字典，避免大量不同键的插入操作形成排队影响性能。默认false</summary>
         [Obsolete("不再支持延迟加锁")]
@@ -42,7 +42,6 @@ namespace NewLife.Collections
         public DictionaryCache()
         {
             Items = new Dictionary<TKey, CacheItem>();
-            CacheDefault = true;
         }
 
         /// <summary>实例化一个字典缓存</summary>
@@ -50,7 +49,6 @@ namespace NewLife.Collections
         public DictionaryCache(IEqualityComparer<TKey> comparer)
         {
             Items = new Dictionary<TKey, CacheItem>(comparer);
-            CacheDefault = true;
         }
 
         /// <summary>销毁资源</summary>
@@ -170,6 +168,39 @@ namespace NewLife.Collections
                 StartTimer();
 
                 return value;
+            }
+        }
+
+        /// <summary>移除指定缓存项</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual Boolean Remove(TKey key)
+        {
+            lock (Items)
+            {
+                return Items.Remove(key);
+            }
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>缓存项</summary>
+        public Int32 Count { get { return Items.Count; } }
+
+        /// <summary>是否包含指定键</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Boolean ContainsKey(TKey key) { return Items.ContainsKey(key); }
+
+        /// <summary>赋值到目标缓存</summary>
+        /// <param name="cache"></param>
+        public void CopyTo(DictionaryCache<TKey, TValue> cache)
+        {
+            if (Items.Count == 0) return;
+
+            foreach (var item in Items)
+            {
+                cache[item.Key] = item.Value.Value;
             }
         }
         #endregion

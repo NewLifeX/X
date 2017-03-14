@@ -1,0 +1,3 @@
+[submodule "Doc"]
+	path = Doc
+	url = https://git.newlifex.com/NewLife/XDoc

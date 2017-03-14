@@ -25,3 +25,4 @@ bld/
 *.nuspec
 *.nupkg
 /NewLife.Core.Core/project.lock.json
+/Backup

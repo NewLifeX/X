@@ -93,7 +93,7 @@ namespace NewLife.Serialization
                 return Enum.Parse(type, value + "");
 
             else if (type == typeof(DateTime))
-                return CreateDateTime((String)value);
+                return CreateDateTime(value);
 
             if (type.IsGenericType && type.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
             {
@@ -208,7 +208,7 @@ namespace NewLife.Serialization
                 else if (pt == typeof(Object))
                     val = v;
                 else if (pt == typeof(DateTime))
-                    val = CreateDateTime((String)v);
+                    val = CreateDateTime(v);
                 else if (pt == typeof(Guid))
                     val = new Guid((String)v);
                 else if (pt == typeof(Byte[]))
@@ -281,8 +281,22 @@ namespace NewLife.Serialization
             return num;
         }
 
-        private DateTime CreateDateTime(String value)
+        private DateTime CreateDateTime(Object value)
         {
+            if (value is DateTime) return (DateTime)value;
+
+            if (value is Int64 || value is Int32)
+            {
+                var num = Convert.ToInt64(value);
+                var dt = new DateTime(1970, 1, 1);
+                if (num > 100 * 365 * 24 * 3600L)
+                    return dt.AddMilliseconds(num);
+                else
+                    return dt.AddSeconds(num);
+            }
+
+            var str = (String)value;
+
             bool utc = false;
 
             Int32 year;
@@ -293,16 +307,16 @@ namespace NewLife.Serialization
             Int32 sec;
             Int32 ms = 0;
 
-            year = CreateInteger(value, 0, 4);
-            month = CreateInteger(value, 5, 2);
-            day = CreateInteger(value, 8, 2);
-            hour = CreateInteger(value, 11, 2);
-            min = CreateInteger(value, 14, 2);
-            sec = CreateInteger(value, 17, 2);
-            if (value.Length > 21 && value[19] == '.')
-                ms = CreateInteger(value, 20, 3);
+            year = CreateInteger(str, 0, 4);
+            month = CreateInteger(str, 5, 2);
+            day = CreateInteger(str, 8, 2);
+            hour = CreateInteger(str, 11, 2);
+            min = CreateInteger(str, 14, 2);
+            sec = CreateInteger(str, 17, 2);
+            if (str.Length > 21 && str[19] == '.')
+                ms = CreateInteger(str, 20, 3);
 
-            if (value[value.Length - 1] == 'Z') utc = true;
+            if (str[str.Length - 1] == 'Z') utc = true;
 
             if (!UseUTCDateTime && !utc)
                 return new DateTime(year, month, day, hour, min, sec, ms);

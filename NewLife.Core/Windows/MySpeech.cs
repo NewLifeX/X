@@ -31,12 +31,16 @@ namespace NewLife.Windows
 
                 return true;
             }
+#if DEBUG
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
 
                 return false;
             }
+#else
+            catch { return false; }
+#endif
         }
 
         public void SetChoices(IEnumerable<String> phrases)
@@ -61,13 +65,13 @@ namespace NewLife.Windows
             if (gc == 0) _rg.RecognizeAsync(RecognizeMode.Multiple);
         }
 
-        void _rg_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        void _rg_SpeechRecognized(Object sender, SpeechRecognizedEventArgs e)
         {
             if (e.Result == null) return;
 
             var ev = new RecognitionEventArgs(e.Result.Confidence, e.Result.Text);
 
-            SpeechRecognized?.Invoke(sender, ev);
+            if (SpeechRecognized != null) SpeechRecognized.Invoke(sender, ev);
         }
 
         public static void Main() { }

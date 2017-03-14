@@ -75,12 +75,15 @@ namespace XNet
             // 语音识别
             Task.Factory.StartNew(() =>
             {
-                SpeechRecognition.Register("打开", () => this.Invoke(Connect));
-                SpeechRecognition.Register("关闭", () => this.Invoke(Disconnect));
-                SpeechRecognition.Register("退出", () => Application.Exit());
-                SpeechRecognition.Register("发送", () => this.Invoke(() => btnSend_Click(null, null)));
+                var sp = SpeechRecognition.Current;
+                if (!sp.Enable) return;
 
-                XTrace.WriteLine("语音识别前缀：{0} 可用命令：{1}", SpeechRecognition.Name, SpeechRecognition.GetAllKeys().Join());
+                sp.Register("打开", () => this.Invoke(Connect))
+                .Register("关闭", () => this.Invoke(Disconnect))
+                .Register("退出", () => Application.Exit())
+                .Register("发送", () => this.Invoke(() => btnSend_Click(null, null)));
+
+                XTrace.WriteLine("语音识别前缀：{0} 可用命令：{1}", sp.Name, sp.GetAllKeys().Join());
             });
         }
         #endregion

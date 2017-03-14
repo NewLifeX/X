@@ -40,7 +40,7 @@ namespace NewLife.Remoting
             if (controller == null)
             {
                 // 全局共用控制器，或者每次创建对象实例
-                controller = api.Controller ?? api.Method.DeclaringType.CreateInstance();
+                controller = api.Controller ?? api.Type.CreateInstance();
                 if (controller is IApi) (controller as IApi).Session = session;
             }
 
