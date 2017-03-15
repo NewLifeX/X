@@ -1,7 +1,8 @@
 ﻿@using NewLife.Common;
 @{
     var User = ViewBag.User as IUser;
-    var Config = ViewBag.Config as SysConfig;
+    var cfg = ViewBag.Config as SysConfig;
+    var name = cfg?.DisplayName;
 }
 <!-- #section:basics/navbar.layout -->
 <div id="navbar" class="navbar navbar-default">
@@ -27,7 +28,7 @@
             <a href="#" class="navbar-brand">
                 <small>
                     @*<i class="fa fa-leaf"></i>*@
-                    @Config.DisplayName
+                    @name
                 </small>
             </a>
         </div>
