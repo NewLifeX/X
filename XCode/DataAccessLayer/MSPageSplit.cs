@@ -7,45 +7,45 @@ namespace XCode.DataAccessLayer
     /// <summary>MS系列数据库分页算法</summary>
     public static class MSPageSplit
     {
-        /// <summary>分页算法</summary>
-        /// <remarks>
-        /// builder里面必须含有排序，否则就要通过key指定主键，否则大部分算法不能使用，会导致逻辑数据排序不正确。
-        /// 其实，一般数据都是按照聚集索引排序，而聚集索引刚好也就是主键。
-        /// 所以，只要设置的Key顺序跟主键顺序一致，就没有问题。
-        /// 如果，Key指定了跟主键不一致的顺序，那么查询语句一定要指定同样的排序。
-        /// </remarks>
-        /// <param name="builder"></param>
-        /// <param name="startRowIndex"></param>
-        /// <param name="maximumRows"></param>
-        /// <param name="queryCountCallback">查询总记录数的委托，近供DoubleTop使用</param>
-        /// <returns></returns>
-        public static SelectBuilder PageSplit_Sql2012(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Func<SelectBuilder, Int64> queryCountCallback = null)
-        {
-            // 从第一行开始，不需要分页
-            // 2012.11.08 注释掉首页使用SELECT TOP的方式，此方式在对有重复数据出现的字段排序时，
-            // 与Row_Number()的规则不一致，导致出现第一、二页排序出现重复记录。
-            // 具体可百度一下【结合TOP N和Row_Number()分页因Order by排序规则不同引起的bug】
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                {
-                    return builder;
-                }
-                else if (builder.KeyIsOrderBy)
-                {
-                    return builder.Clone().Top(maximumRows);
-                }
-            }
+        ///// <summary>分页算法</summary>
+        ///// <remarks>
+        ///// builder里面必须含有排序，否则就要通过key指定主键，否则大部分算法不能使用，会导致逻辑数据排序不正确。
+        ///// 其实，一般数据都是按照聚集索引排序，而聚集索引刚好也就是主键。
+        ///// 所以，只要设置的Key顺序跟主键顺序一致，就没有问题。
+        ///// 如果，Key指定了跟主键不一致的顺序，那么查询语句一定要指定同样的排序。
+        ///// </remarks>
+        ///// <param name="builder"></param>
+        ///// <param name="startRowIndex"></param>
+        ///// <param name="maximumRows"></param>
+        ///// <param name="queryCountCallback">查询总记录数的委托，近供DoubleTop使用</param>
+        ///// <returns></returns>
+        //public static SelectBuilder PageSplit_Sql2012(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Func<SelectBuilder, Int64> queryCountCallback = null)
+        //{
+        //    // 从第一行开始，不需要分页
+        //    // 2012.11.08 注释掉首页使用SELECT TOP的方式，此方式在对有重复数据出现的字段排序时，
+        //    // 与Row_Number()的规则不一致，导致出现第一、二页排序出现重复记录。
+        //    // 具体可百度一下【结合TOP N和Row_Number()分页因Order by排序规则不同引起的bug】
+        //    if (startRowIndex <= 0)
+        //    {
+        //        if (maximumRows < 1)
+        //        {
+        //            return builder;
+        //        }
+        //        else if (builder.KeyIsOrderBy)
+        //        {
+        //            return builder.Clone().Top(maximumRows);
+        //        }
+        //    }
 
-            if (builder.Keys == null || builder.Keys.Length < 1) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
+        //    if (builder.Keys == null || builder.Keys.Length < 1) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
 
-            //ms sql 2012 分页算法的写法
-            //var str = $"select * from {builder.Table} where type = 'p' order by {builder.OrderBy} offset {startRowIndex} rows fetch next {maximumRows} rows only";
-            builder.Column = "*";
-            builder.AppendWhereAnd($"type='p'");
-            // todo ordrby后面还需要添加 offset {startRowIndex} rows fetch next {maximumRows} rows only，但是未找到地方
-            return builder;
-        }
+        //    //ms sql 2012 分页算法的写法
+        //    //var str = $"select * from {builder.Table} where type = 'p' order by {builder.OrderBy} offset {startRowIndex} rows fetch next {maximumRows} rows only";
+        //    builder.Column = "*";
+        //    builder.AppendWhereAnd($"type='p'");
+        //    // todo ordrby后面还需要添加 offset {startRowIndex} rows fetch next {maximumRows} rows only，但是未找到地方
+        //    return builder;
+        //}
 
         /// <summary>分页算法</summary>
         /// <remarks>

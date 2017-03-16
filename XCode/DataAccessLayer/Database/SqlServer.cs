@@ -123,10 +123,25 @@ namespace XCode.DataAccessLayer
                 // 指定了起始行，并且是SQL2005及以上版本，使用MS SQL 2012特有的分页算法
                 if (IsSQL2012)
                 {
-                    // var str = $"select * from spt_values where type = 'p' order by {keyColumn} offset {startRowIndex} rows fetch next {maximumRows} rows only; ";
-                    SelectBuilder builder = new SelectBuilder();
-                    builder.Parse(sql);
-                    return MSPageSplit.PageSplit_Sql2012(builder, startRowIndex, maximumRows);
+                    // var str = $"select * from spt_values where type = 'p' order by {keyColumn} offset {startRowIndex} rows fetch next {maximumRows} rows only";
+                    //SelectBuilder builder = new SelectBuilder();
+                    //builder.Parse(sql);
+                    //return MSPageSplit.PageSplit_Sql2012(builder, startRowIndex, maximumRows);
+                    // 从第一行开始，不需要分页
+                    if (startRowIndex <= 0)
+                    {
+                        if (maximumRows < 1)
+                            return sql;
+                        else
+                        {
+                            var sql_ = FormatSqlserver2012SQL(sql);
+                            return $"{sql_} offset 1 rows fetch next {maximumRows} rows only ";
+                        }
+                    }
+                    if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
+
+                    var sql__ = FormatSqlserver2012SQL(sql);
+                    return $"{sql__} offset {startRowIndex} rows fetch next {maximumRows} rows only ";
                 }
 
                 // 指定了起始行，并且是SQL2005及以上版本，使用RowNumber算法
@@ -193,6 +208,34 @@ namespace XCode.DataAccessLayer
             else
                 sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1} {4}) {4}", maximumRows, sql, keyColumn, startRowIndex, orderBy);
             return sql;
+        }
+
+        /// <summary>
+        /// 格式化SQL SERVER 2012分页前半部分SQL语句
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        private string FormatSqlserver2012SQL(string sql)
+        {
+            SelectBuilder builder = new SelectBuilder();
+            builder.Parse(sql);
+            var sb = new StringBuilder();
+            sb.Append("Select ");
+            sb.Append(builder.ColumnOrDefault);
+            sb.Append(" From ");
+            sb.Append(builder.Table);
+            if (!String.IsNullOrEmpty(builder.Where))
+            {
+                sb.Append(" Where  type='p' and " + builder.Where);
+            }
+            else
+            {
+                sb.Append(" Where  type='p' ");
+            }
+            if (!String.IsNullOrEmpty(builder.GroupBy)) sb.Append(" Group By " + builder.GroupBy);
+            if (!String.IsNullOrEmpty(builder.Having)) sb.Append(" Having " + builder.Having);
+            if (!String.IsNullOrEmpty(builder.OrderBy)) sb.Append(" Order By " + builder.OrderBy);
+            return sb.ToString();
         }
 
         public override SelectBuilder PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows)
