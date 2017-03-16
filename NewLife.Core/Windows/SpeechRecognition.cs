@@ -146,7 +146,8 @@ namespace NewLife.Windows
             {
                 XTrace.WriteLine("语音识别：{0} {1}", txt, conf);
 
-                if (_dic.TryGetValue(txt, out var func)) func();
+                Action func = null;
+                if (_dic.TryGetValue(txt, out func)) func();
             }
         }
         #endregion

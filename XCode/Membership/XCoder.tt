@@ -12,7 +12,7 @@
 
 	//var company = "XCode";
 	var name = "Membership";
-	//var dir = "$(实体分类)";
+	var dir = "$(实体分类)";
 
 	// 自动寻找模型文件，并从中获取公司名和链接名
 	//var mdl = GetModelFile(ref company, ref name);
@@ -35,6 +35,7 @@
 	WriteLine("参数：" + arg);
 
 	var dic = new Dictionary<String, Object>();
+	dic["Debug"] = true;
 	dic["NameSpace"] = "XCode.Membership";// 命名空间
 	dic["EntityConnName"] = name;	// 连接名
 	

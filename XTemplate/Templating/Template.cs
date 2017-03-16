@@ -542,7 +542,7 @@ namespace XTemplate.Templating
             else
                 typeDec.BaseTypes.Add(new CodeTypeReference(typeof(TemplateBase)));
 
-            if (!String.IsNullOrEmpty(ti.Name)) typeDec.LinePragma = new CodeLinePragma(ti.Name, 1);
+            if (lineNumbers && !String.IsNullOrEmpty(ti.Name)) typeDec.LinePragma = new CodeLinePragma(ti.Name, 1);
 
             // Render方法
             CreateRenderMethod(ti.Blocks, lineNumbers, typeDec);
@@ -841,7 +841,7 @@ namespace XTemplate.Templating
                 //var sb = new StringBuilder();
 
                 #region 调试状态，把生成的类文件和最终dll输出到XTemp目录下
-                var tempPath = XTrace.TempPath;
+                var tempPath = XTrace.TempPath.GetFullPath().EnsureDirectory(false);
                 //if (!String.IsNullOrEmpty(outputAssembly)) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
                 if (!String.IsNullOrEmpty(outputAssembly) && !outputAssembly.EqualIgnoreCase(".dll")) tempPath = Path.Combine(tempPath, Path.GetFileNameWithoutExtension(outputAssembly));
 

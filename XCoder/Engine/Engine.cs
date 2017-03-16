@@ -114,6 +114,12 @@ namespace XCoder
 
         public String[] Render(IDataTable table)
         {
+            // 检查表格完整性
+            foreach (var dc in table.Columns)
+            {
+                if (dc.DataType == null) throw new ArgumentException("{0}.DataType数据类型错误".F(dc.Name), dc.Name);
+            }
+
             var data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             //data["Config"] = Config;
             data["Tables"] = Tables;
@@ -221,7 +227,7 @@ namespace XCoder
             if (tempName.StartsWith("*")) tempName = tempName.Substring(1);
             tt.AssemblyName = tempName;
             #endregion
-            
+
             #region 输出目录预处理
             var outpath = Config.OutputPath;
             // 使用正则替换处理 命名空间处已经定义
