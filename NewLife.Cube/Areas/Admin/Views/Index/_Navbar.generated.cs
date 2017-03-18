@@ -58,7 +58,7 @@ namespace ASP
   
     var User = ViewBag.User as IUser;
     var cfg = ViewBag.Config as SysConfig;
-    var name = cfg?.DisplayName;
+    var name = cfg == null ? "" : cfg.DisplayName;
 
             
             #line default
@@ -152,16 +152,16 @@ WriteLiteral(">\r\n                    <a");
 
 WriteLiteral(" data-toggle=\"dropdown\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 15130), Tuple.Create("\"", 15163)
-, Tuple.Create(Tuple.Create("", 15137), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
-, 15137), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 16040), Tuple.Create("\"", 16073)
+, Tuple.Create(Tuple.Create("", 16047), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
+, 16047), false)
             
             #line 297 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-, Tuple.Create(Tuple.Create("", 15155), Tuple.Create<System.Object, System.Int32>(User.ID
+, Tuple.Create(Tuple.Create("", 16065), Tuple.Create<System.Object, System.Int32>(User.ID
             
             #line default
             #line hidden
-, 15155), false)
+, 16065), false)
 );
 
 WriteLiteral(" class=\"dropdown-toggle\"");
@@ -200,9 +200,9 @@ WriteLiteral(" class=\"user-menu dropdown-menu-right dropdown-menu dropdown-yell
 
 WriteLiteral(">\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 15800), Tuple.Create("\"", 15809)
-, Tuple.Create(Tuple.Create("", 15807), Tuple.Create<System.Object, System.Int32>(Href("~/")
-, 15807), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 16710), Tuple.Create("\"", 16719)
+, Tuple.Create(Tuple.Create("", 16717), Tuple.Create<System.Object, System.Int32>(Href("~/")
+, 16717), false)
 );
 
 WriteLiteral(" target=\"_blank\"");
@@ -230,9 +230,9 @@ WriteLiteral("></i>\r\n                                网站首页\r\n         
             #line hidden
 WriteLiteral("                            <li>\r\n                                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 16189), Tuple.Create("\"", 16207)
-, Tuple.Create(Tuple.Create("", 16196), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/Sys")
-, 16196), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 17099), Tuple.Create("\"", 17117)
+, Tuple.Create(Tuple.Create("", 17106), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/Sys")
+, 17106), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -253,16 +253,16 @@ WriteLiteral("></i>\r\n                                    设置\r\n           
             #line hidden
 WriteLiteral("\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 16499), Tuple.Create("\"", 16532)
-, Tuple.Create(Tuple.Create("", 16506), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
-, 16506), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 17409), Tuple.Create("\"", 17442)
+, Tuple.Create(Tuple.Create("", 17416), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
+, 17416), false)
             
             #line 326 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-, Tuple.Create(Tuple.Create("", 16524), Tuple.Create<System.Object, System.Int32>(User.ID
+, Tuple.Create(Tuple.Create("", 17434), Tuple.Create<System.Object, System.Int32>(User.ID
             
             #line default
             #line hidden
-, 16524), false)
+, 17434), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -278,9 +278,9 @@ WriteLiteral(" class=\"divider\"");
 
 WriteLiteral("></li>\r\n\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 16837), Tuple.Create("\"", 16863)
-, Tuple.Create(Tuple.Create("", 16844), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
-, 16844), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 17747), Tuple.Create("\"", 17773)
+, Tuple.Create(Tuple.Create("", 17754), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
+, 17754), false)
 );
 
 WriteLiteral(">\r\n                                <i");
