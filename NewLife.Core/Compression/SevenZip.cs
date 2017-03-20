@@ -20,10 +20,10 @@ namespace NewLife.Compression
             #region 附近文件
             if (p.IsNullOrEmpty())
             {
-                var f = "7z/7z.exe".GetFullPath();
+                var f = "../7z/7z.exe".GetFullPath();
                 if (File.Exists(f)) p = f;
 
-                f = "../7z/7z.exe".GetFullPath();
+                f = "7z/7z.exe".GetFullPath();
                 if (File.Exists(f)) p = f;
             }
             #endregion
@@ -43,7 +43,7 @@ namespace NewLife.Compression
             #endregion
 
             #region X组件缓存
-            var cache = Environment.SystemDirectory.CombinePath("../X/7z").GetFullPath();
+            var cache = Environment.SystemDirectory.CombinePath(@"..\..\X\7z").GetFullPath();
             if (p.IsNullOrEmpty())
             {
                 var f = cache.CombinePath("7z.exe");

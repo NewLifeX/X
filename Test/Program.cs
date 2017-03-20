@@ -178,10 +178,10 @@ namespace Test
 
         static void Test3()
         {
-            var d = "Log2".GetFullPath();
-            d.AsDirectory().Compress("cfg.7z");
+            var d = ".".GetFullPath();
+            d.AsDirectory().Compress(d.AsDirectory().Name + ".7z");
 
-            "cfg.7z".AsFile().Extract("cfg");
+            //"cfg.7z".AsFile().Extract("cfg");
         }
     }
 }
