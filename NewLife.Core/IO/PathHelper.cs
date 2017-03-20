@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using System.Text;
 using NewLife.IO;
+using NewLife.Compression;
 
 namespace System.IO
 {
@@ -262,31 +263,38 @@ namespace System.IO
 
             //ZipFile.ExtractToDirectory(fi.FullName, destDir);
 
-            using (var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null))
+            if (fi.Name.EndsWithIgnoreCase(".zip"))
             {
-                var di = Directory.CreateDirectory(destDir);
-                string fullName = di.FullName;
-                foreach (var current in zip.Entries)
+                using (var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null))
                 {
-                    string fullPath = Path.GetFullPath(Path.Combine(fullName, current.FullName));
-                    if (!fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
+                    var di = Directory.CreateDirectory(destDir);
+                    string fullName = di.FullName;
+                    foreach (var current in zip.Entries)
                     {
-                        throw new IOException("IO_ExtractingResultsInOutside");
-                    }
-                    if (Path.GetFileName(fullPath).Length == 0)
-                    {
-                        if (current.Length != 0L)
+                        string fullPath = Path.GetFullPath(Path.Combine(fullName, current.FullName));
+                        if (!fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
                         {
-                            throw new IOException("IO_DirectoryNameWithData");
+                            throw new IOException("IO_ExtractingResultsInOutside");
                         }
-                        Directory.CreateDirectory(fullPath);
-                    }
-                    else
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
-                        current.ExtractToFile(fullPath, overwrite);
+                        if (Path.GetFileName(fullPath).Length == 0)
+                        {
+                            if (current.Length != 0L)
+                            {
+                                throw new IOException("IO_DirectoryNameWithData");
+                            }
+                            Directory.CreateDirectory(fullPath);
+                        }
+                        else
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                            current.ExtractToFile(fullPath, overwrite);
+                        }
                     }
                 }
+            }
+            else
+            {
+                new SevenZip().Extract(fi.FullName, destDir);
             }
         }
 
@@ -298,9 +306,17 @@ namespace System.IO
             if (destFile.IsNullOrEmpty()) destFile = fi.Name + ".zip";
 
             if (File.Exists(destFile)) File.Delete(destFile);
-            using (var zf = ZipFile.Open(destFile, ZipArchiveMode.Create))
+
+            if (destFile.EndsWithIgnoreCase(".zip"))
             {
-                zf.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
+                using (var zf = ZipFile.Open(destFile, ZipArchiveMode.Create))
+                {
+                    zf.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
+                }
+            }
+            else
+            {
+                new SevenZip().Compress(fi.FullName, destFile);
             }
         }
 #endif
@@ -403,7 +419,11 @@ namespace System.IO
             if (destFile.IsNullOrEmpty()) destFile = di.Name + ".zip";
 
             if (File.Exists(destFile)) File.Delete(destFile);
-            ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
+
+            if (destFile.EndsWithIgnoreCase(".zip"))
+                ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
+            else
+                new SevenZip().Compress(di.FullName, destFile);
         }
 #endif
         #endregion

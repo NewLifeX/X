@@ -1,46 +1,128 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.Win32;
+using NewLife.Log;
+using NewLife.Web;
 
 namespace NewLife.Compression
 {
     /// <summary>7Zip</summary>
     public class SevenZip
     {
-        #region winrar压缩       
+        #region  基础
+        private static String _7z = null;
+
+        static SevenZip()
+        {
+            var p = "";
+
+            #region 附近文件
+            if (p.IsNullOrEmpty())
+            {
+                var f = "7z/7z.exe".GetFullPath();
+                if (File.Exists(f)) p = f;
+
+                f = "../7z/7z.exe".GetFullPath();
+                if (File.Exists(f)) p = f;
+            }
+            #endregion
+
+            #region 注册表
+            if (p.IsNullOrEmpty())
+            {
+                var reg = Registry.LocalMachine.OpenSubKey("Software\\7-Zip");
+                if (reg == null) reg = Registry.LocalMachine.OpenSubKey("Software\\Wow6432Node\\7-Zip");
+                if (reg != null)
+                {
+                    var d = reg.GetValue("Path") + "";
+                    var f = d.CombinePath("7z.exe");
+                    if (File.Exists(f)) p = f;
+                }
+            }
+            #endregion
+
+            #region X组件缓存
+            var cache = Environment.SystemDirectory.CombinePath("../X/7z").GetFullPath();
+            if (p.IsNullOrEmpty())
+            {
+                var f = cache.CombinePath("7z.exe");
+                if (File.Exists(f)) p = f;
+            }
+            #endregion
+
+            #region 自动下载
+            if (p.IsNullOrEmpty())
+            {
+                XTrace.WriteLine("准备下载7z扩展包");
+
+                var url = "http://x.newlifex.com/";
+                var client = new WebClientX(true, true)
+                {
+                    Log = XTrace.Log
+                };
+                var dir = cache;
+                var file = client.DownloadLinkAndExtract(url, "7z", dir);
+                if (Directory.Exists(p))
+                {
+                    var f = cache.CombinePath("7z.exe");
+                    if (File.Exists(f)) p = f;
+                }
+            }
+            #endregion
+
+            if (!p.IsNullOrEmpty()) _7z = p.GetFullPath();
+            #region DEBUG
+            XTrace.WriteLine("7Z目录 {0}", _7z);
+            #endregion
+        }
+
+        /// <summary>实例化</summary>
+        public SevenZip()
+        {
+#if DEBUG
+            Log = XTrace.Log;
+#endif
+        }
         #endregion
 
-        #region 7z压缩        
+        #region 压缩/解压缩        
         /// <summary>压缩文件</summary>
-        /// <param name="fileName"></param>
-        /// <param name="dest"></param>
+        /// <param name="path"></param>
+        /// <param name="destFile"></param>
         /// <returns></returns>
-        public static Boolean Compress(List<String> fileName, String dest)
+        public Boolean Compress(String path, String destFile)
         {
-            for (Int32 i = 0; i < fileName.Count; i++)
-            {
-                var args = " a -r \"" + dest + "\" \"" + fileName[i].ToString().Trim() + "\"";
-                if (!Process(args)) return false;
-            }
-            return true;
+            if (Directory.Exists(path)) path = path.GetFullPath().EnsureEnd("\\") + "*";
+
+            return Run("a \"{0}\" \"{1}\" -mx9 -ssw".F(destFile, path));
         }
 
         /// <summary>解压缩文件</summary>
         /// <param name="file"></param>
-        /// <param name="dest"></param>
+        /// <param name="destDir"></param>
+        /// <param name="overwrite">是否覆盖目标同名文件</param>
         /// <returns></returns>
-        public static Boolean Extract(String file, String dest)
+        public Boolean Extract(String file, String destDir, Boolean overwrite = false)
         {
-            var arguments = " x -y \"" + file + "\" -o\"" + dest + "\"";
-            return Process(arguments);
+            destDir.EnsureDirectory(false);
+
+            var args = "x \"{0}\" -o\"{1}\" -y -r".F(file, destDir);
+            if (overwrite)
+                args += " -aoa";
+            else
+                args += " -aos";
+
+            return Run(args);
         }
 
-        private static Boolean Process(String args)
+        private Boolean Run(String args)
         {
+            WriteLog("{0} {1}", _7z, args);
+
             var p = new Process();
             p.StartInfo.WindowStyle = ProcessWindowStyle.Minimized; // 隐藏窗口            
-            p.StartInfo.FileName = "7z.exe".GetFullPath();
+            p.StartInfo.FileName = _7z;
             p.StartInfo.CreateNoWindow = false;
             p.StartInfo.Arguments = args;
             p.Start();
@@ -54,6 +136,19 @@ namespace NewLife.Compression
                 if (rs != 0 && rs != 1) return false;
             }
             return true;
+        }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(format, args);
         }
         #endregion
     }

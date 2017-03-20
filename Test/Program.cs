@@ -178,22 +178,10 @@ namespace Test
 
         static void Test3()
         {
-            //var timer = new TimerX(s =>
-            //{
-            //    XTrace.WriteLine("同步Hello");
-            //}, null, 1000, 5000);
+            var d = "Log2".GetFullPath();
+            d.AsDirectory().Compress("cfg.7z");
 
-            //var timer2 = new TimerX(s =>
-            //{
-            //    XTrace.WriteLine("异步早上好");
-            //}, null, 2000, 5000, "AA");
-            //timer2.Async = true;
-
-            var timer3 = new TimerX(s =>
-            {
-                XTrace.WriteLine("定时吃饭");
-                Thread.Sleep(234);
-            }, null, DateTime.Now.Date, 5000, "EAT");
+            "cfg.7z".AsFile().Extract("cfg");
         }
     }
 }
