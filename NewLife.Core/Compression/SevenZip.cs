@@ -63,9 +63,9 @@ namespace NewLife.Compression
                 };
                 var dir = cache;
                 var file = client.DownloadLinkAndExtract(url, "7z", dir);
-                if (Directory.Exists(p))
+                if (Directory.Exists(dir))
                 {
-                    var f = cache.CombinePath("7z.exe");
+                    var f = dir.CombinePath("7z.exe");
                     if (File.Exists(f)) p = f;
                 }
             }
