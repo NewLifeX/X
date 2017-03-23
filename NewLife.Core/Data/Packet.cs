@@ -106,9 +106,10 @@ namespace NewLife.Data
             if (Data == null) return null;
             if (Count == 0) return String.Empty;
 
+            var len = Math.Min(Count, maxLength);
             var buf = Data;
-            if (Offset > 0 || Count > maxLength) buf = Data.ReadBytes(Offset, Math.Min(Count, maxLength));
-            return buf.ToHex(separate, groupSize, buf.Length);
+            if (Offset > 0) buf = Data.ReadBytes(Offset, len);
+            return buf.ToHex(separate, groupSize, len);
         }
         #endregion
 

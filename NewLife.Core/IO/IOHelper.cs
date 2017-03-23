@@ -1102,7 +1102,7 @@ namespace System
             var count = data.Length;
             if (maxLength > 0 && maxLength < count) count = maxLength;
 
-            if (groupSize == 0)
+            if (groupSize == 0 && count == data.Length)
             {
                 // 没有分隔符
                 if (String.IsNullOrEmpty(separate)) return data.ToHex();
