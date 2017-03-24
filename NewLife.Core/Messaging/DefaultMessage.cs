@@ -12,6 +12,15 @@ namespace NewLife.Messaging
     /// 1个字节序列号，用于请求响应包配对；
     /// 2个字节数据长度N，大端，指示后续负载数据长度（不包含头部4个字节），解决粘包问题；
     /// N个字节负载数据，数据内容完全由业务决定，最大长度65535=64k。
+    /// 如：
+    /// Open => OK
+    /// 01-01-00-04-"Open" => 81-01-00-02-"OK"
+    /// 
+    /// 针对纯字符串场景，采用8字符HEX编码头部。
+    /// 首字符0表示请求，8表示响应
+    /// 如：
+    /// Open => OK
+    /// 01010004 Open => 81010002 OK
     /// </remarks>
     public class DefaultMessage : Message
     {
@@ -24,6 +33,9 @@ namespace NewLife.Messaging
 
         /// <summary>序列号，匹配请求和响应</summary>
         public Byte Sequence { get; set; }
+
+        /// <summary>对方使用纯字符串，不具备二进制编码能力</summary>
+        private Boolean _IsChar;
         #endregion
 
         #region 方法
@@ -49,16 +61,29 @@ namespace NewLife.Messaging
         {
             if (pk.Count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足4字节");
 
-            Flag = pk[0];
+            var size = 4;
+            var buf = pk.Data.ReadBytes(pk.Offset, size);
+
+            // 检查纯字符串以字符0或8开头，所以二进制消息不许用0x30和0x38开头
+            if (buf[0] == '0' || buf[0] == '8')
+            {
+                _IsChar = true;
+                size = 8;
+                if (pk.Count < size) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足{0}字节".F(size));
+
+                buf = pk.Data.ReadBytes(pk.Offset, size).ToStr().ToHex();
+            }
+
+            Flag = buf[0];
             if ((Flag & 0x80) == 0x80) Reply = true;
             //if ((Flag & 0x40) == 0x40) Error = true;
 
-            Sequence = pk[1];
+            Sequence = buf[1];
 
-            var len = (pk[2] << 8) | pk[3];
-            if (4 + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度{0}不足{1}字节".F(pk.Count, 4 + len));
+            var len = (buf[2] << 8) | buf[3];
+            if (size + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度{0}不足{1}字节".F(pk.Count, size + len));
 
-            Payload = new Packet(pk.Data, pk.Offset + 4, len);
+            Payload = new Packet(pk.Data, pk.Offset + size, len);
 
             return true;
         }
