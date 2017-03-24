@@ -194,6 +194,7 @@ namespace NewLife.Net
             // 这个可能是一个Uri，去掉尾部
             p = uri.IndexOf('/');
             if (p < 0) p = uri.IndexOf('\\');
+            if (p < 0) p = uri.IndexOf('?');
             if (p >= 0) uri = uri.Substring(0, p);
 
             // 分析端口
