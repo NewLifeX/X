@@ -68,7 +68,7 @@ namespace NewLife.Net.Dhcp
             //var rnd = new Random();
             TransID = Rand.Next();
             if (_Mac == null || _Mac.Length == 0)
-                _Mac = HardInfo.Current.Macs.Replace(":", null).ToHex();
+                _Mac = NetHelper.GetMacs().FirstOrDefault();
             if (_Mac == null || _Mac.Length == 0)
                 _Mac = Rand.NextBytes(6);
         }

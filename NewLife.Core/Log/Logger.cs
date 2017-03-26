@@ -225,12 +225,7 @@ namespace NewLife.Log
 #endif
 #else
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Runtime.OSName, Environment.UserName, Environment.MachineName);
-            try
-            {
-                var hi = NewLife.Common.HardInfo.Current;
-                sb.AppendFormat("#CPU: {0}\r\n", hi.Processors);
-            }
-            catch { }
+            sb.AppendFormat("#CPU: {0}\r\n", Environment.ProcessorCount);
             sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", Runtime.AvailableMemory, Runtime.PhysicalMemory);
 #endif
 
