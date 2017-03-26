@@ -18,7 +18,7 @@ namespace NewLife.Remoting
         Boolean Init(Object config);
 
         /// <summary>打开</summary>
-        void Open();
+        Boolean Open();
 
         /// <summary>关闭</summary>
         /// <param name="reason">关闭原因。便于日志分析</param>

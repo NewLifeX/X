@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
@@ -29,6 +28,12 @@ namespace NewLife.Remoting
         #endregion
 
         #region 属性
+        /// <summary>名称</summary>
+        public String Name { get; set; }
+
+        /// <summary>是否已打开</summary>
+        public Boolean Active { get; set; }
+
         /// <summary>通信客户端</summary>
         public IApiClient Client { get; set; }
 
@@ -40,22 +45,16 @@ namespace NewLife.Remoting
         /// <summary>实例化应用接口客户端</summary>
         public ApiClient()
         {
+            var type = GetType();
+            Name = type.GetDisplayName() ?? type.Name.TrimEnd("Client");
+
             Register(new ApiController { Host = this }, null);
         }
 
         /// <summary>实例化应用接口客户端</summary>
         public ApiClient(String uri) : this()
         {
-            Type type;
-            var nu = new NetUri(uri);
-            if (!Providers.TryGetValue(nu.Protocol, out type)) return;
-
-            var ac = type.CreateInstance() as IApiClient;
-            if (ac != null && ac.Init(uri))
-            {
-                ac.Provider = this;
-                Client = ac;
-            }
+            SetRemote(uri);
         }
 
         /// <summary>销毁</summary>
@@ -64,27 +63,29 @@ namespace NewLife.Remoting
         {
             base.OnDispose(disposing);
 
-            Close(GetType().Name + (disposing ? "Dispose" : "GC"));
+            Close(Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
 
         #region 打开关闭
         /// <summary>打开客户端</summary>
-        public void Open()
+        public virtual Boolean Open()
         {
+            if (Active) return true;
+
             if (Client == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
             //if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
 
             if (Encoder == null) Encoder = new JsonEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
-            Client.Opened += Client_Opened;
-
 #if DEBUG
             Client.Log = Log;
             Encoder.Log = Log;
 #endif
-            Client.Open();
+
+            Client.Opened += Client_Opened;
+            if (!Client.Open()) return false;
 
             var ms = Manager.Services;
             if (ms.Count > 0)
@@ -95,19 +96,25 @@ namespace NewLife.Remoting
                     Log.Info("\t{0,-16}{1}", item.Key, item.Value);
                 }
             }
+
+            return Active = true;
         }
 
         /// <summary>关闭</summary>
         /// <param name="reason">关闭原因。便于日志分析</param>
         /// <returns>是否成功</returns>
-        public void Close(String reason)
+        public virtual void Close(String reason)
         {
+            if (!Active) return;
+
             var tc = Client;
             if (tc != null)
             {
                 tc.Opened -= Client_Opened;
                 tc.Close(reason ?? (GetType().Name + "Close"));
             }
+
+            Active = false;
         }
 
         /// <summary>打开后触发。</summary>
@@ -116,6 +123,25 @@ namespace NewLife.Remoting
         private void Client_Opened(Object sender, EventArgs e)
         {
             Opened?.Invoke(this, e);
+        }
+
+        /// <summary>设置远程地址</summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public Boolean SetRemote(String uri)
+        {
+            Type type;
+            var nu = new NetUri(uri);
+            if (!Providers.TryGetValue(nu.Protocol, out type)) return false;
+
+            var ac = type.CreateInstance() as IApiClient;
+            if (ac != null && ac.Init(uri))
+            {
+                ac.Provider = this;
+                Client = ac;
+            }
+
+            return true;
         }
         #endregion
 
@@ -157,6 +183,18 @@ namespace NewLife.Remoting
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(Name + " " + format, args);
+        }
+
+        /// <summary>已重载。返回具有本类特征的字符串</summary>
+        /// <returns>String</returns>
+        public override string ToString() { return Name; }
         #endregion
     }
 }

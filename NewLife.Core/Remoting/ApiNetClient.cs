@@ -44,7 +44,7 @@ namespace NewLife.Remoting
             return true;
         }
 
-        public void Open()
+        public Boolean Open()
         {
             var tc = Client;
             tc.MessageReceived += Client_Received;
@@ -55,7 +55,7 @@ namespace NewLife.Remoting
             //tc.Timeout = 60 * 1000;
 #endif
             tc.Opened += Client_Opened;
-            tc.Open();
+            return tc.Open();
         }
 
         /// <summary>关闭</summary>
