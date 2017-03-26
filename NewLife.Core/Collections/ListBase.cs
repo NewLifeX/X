@@ -18,10 +18,10 @@ namespace NewLife.Collections
         }
 
         /// <summary>列表元素个数</summary>
-        public virtual int Count { get { return InnerList.Count; } }
+        public virtual Int32 Count { get { return InnerList.Count; } }
 
         /// <summary>是否固定大小</summary>
-        public virtual bool IsFixedSize
+        public virtual Boolean IsFixedSize
         {
             get
             {
@@ -30,7 +30,7 @@ namespace NewLife.Collections
         }
 
         /// <summary>是否只读</summary>
-        public virtual bool IsReadOnly
+        public virtual Boolean IsReadOnly
         {
             get
             {
@@ -41,7 +41,7 @@ namespace NewLife.Collections
         /// <summary>获取或设置指定索引处的元素。</summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public virtual T this[int index] { get { return InnerList[index]; } set { InnerList[index] = value; } }
+        public virtual T this[Int32 index] { get { return InnerList[index]; } set { InnerList[index] = value; } }
         #endregion
 
         #region 构造
@@ -64,7 +64,7 @@ namespace NewLife.Collections
         /// <summary>清空</summary>
         public virtual void Clear()
         {
-            for (int i = Count - 1; i >= 0; i--)
+            for (var i = Count - 1; i >= 0; i--)
             {
                 RemoveAt(i);
             }
@@ -73,7 +73,7 @@ namespace NewLife.Collections
         /// <summary>是否包含指定元素</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public virtual bool Contains(T value)
+        public virtual Boolean Contains(T value)
         {
             return (IndexOf(value) != -1);
         }
@@ -81,9 +81,9 @@ namespace NewLife.Collections
         /// <summary>把元素复制到一个数组里面</summary>
         /// <param name="array"></param>
         /// <param name="index"></param>
-        public virtual void CopyTo(T[] array, int index)
+        public virtual void CopyTo(T[] array, Int32 index)
         {
-            for (int i = 0; i < Count; i++)
+            for (var i = 0; i < Count; i++)
             {
                 array[index + i] = this[i];
             }
@@ -104,7 +104,7 @@ namespace NewLife.Collections
         /// <summary>确定列表中特定项的索引。</summary>
         /// <param name="value">要在列表中定位的对象。</param>
         /// <returns></returns>
-        public virtual int IndexOf(T value)
+        public virtual Int32 IndexOf(T value)
         {
             //for (int i = 0; i < this.Count; i++)
             //{
@@ -120,12 +120,12 @@ namespace NewLife.Collections
         /// <summary>将一个项插入指定索引处的列表。</summary>
         /// <param name="index"></param>
         /// <param name="value">数值</param>
-        public virtual void Insert(int index, T value)
+        public virtual void Insert(Int32 index, T value)
         {
             InnerList.Insert(index, value);
         }
 
-        private static bool IsCompatibleType(object value)
+        private static Boolean IsCompatibleType(Object value)
         {
             if (((value != null) || typeof(T).IsValueType) && !(value is T))
             {
@@ -137,9 +137,9 @@ namespace NewLife.Collections
         /// <summary>从列表中移除指定对象</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public virtual bool Remove(T value)
+        public virtual Boolean Remove(T value)
         {
-            int index = IndexOf(value);
+            var index = IndexOf(value);
             if (index >= 0)
             {
                 RemoveAt(index);
@@ -150,22 +150,22 @@ namespace NewLife.Collections
 
         /// <summary>移除指定索引处的列表项。</summary>
         /// <param name="index"></param>
-        public virtual void RemoveAt(int index)
+        public virtual void RemoveAt(Int32 index)
         {
             InnerList.RemoveAt(index);
         }
         #endregion
 
         #region ICollection接口
-        void ICollection.CopyTo(Array array, int index)
+        void ICollection.CopyTo(Array array, Int32 index)
         {
-            for (int i = 0; i < Count; i++)
+            for (var i = 0; i < Count; i++)
             {
                 array.SetValue(this[i], index);
             }
         }
 
-        bool ICollection.IsSynchronized
+        Boolean ICollection.IsSynchronized
         {
             get
             {
@@ -173,7 +173,7 @@ namespace NewLife.Collections
             }
         }
 
-        object ICollection.SyncRoot
+        Object ICollection.SyncRoot
         {
             get
             {
@@ -187,7 +187,7 @@ namespace NewLife.Collections
         {
             //return new IListEnumerator<T>(this);
 
-            foreach (T item in InnerList)
+            foreach (var item in InnerList)
             {
                 yield return item;
             }
@@ -201,7 +201,7 @@ namespace NewLife.Collections
         #endregion
 
         #region IList接口
-        int IList.Add(object value)
+        Int32 IList.Add(Object value)
         {
             if (!IsCompatibleType(value)) throw new ArgumentException();
 
@@ -214,35 +214,35 @@ namespace NewLife.Collections
             Clear();
         }
 
-        bool IList.Contains(object value)
+        Boolean IList.Contains(Object value)
         {
             if (!IsCompatibleType(value)) return false;
 
             return Contains((T)value);
         }
 
-        int IList.IndexOf(object value)
+        Int32 IList.IndexOf(Object value)
         {
             if (!IsCompatibleType(value)) return -1;
 
             return IndexOf((T)value);
         }
 
-        void IList.Insert(int index, object value)
+        void IList.Insert(Int32 index, Object value)
         {
             if (!IsCompatibleType(value)) throw new ArgumentException();
 
             Insert(index, (T)value);
         }
 
-        void IList.Remove(object value)
+        void IList.Remove(Object value)
         {
             if (!IsCompatibleType(value)) throw new ArgumentException();
 
             Remove((T)value);
         }
 
-        object IList.this[int index]
+        Object IList.this[Int32 index]
         {
             get
             {

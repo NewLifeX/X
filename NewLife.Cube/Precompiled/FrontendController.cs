@@ -16,7 +16,7 @@ namespace NewLife.Cube.Precompiled
         /// <returns></returns>
         public ActionResult Default()
         {
-            string actionName = (RouteData.Values["viewName"] ?? "Default").ToString();
+            var actionName = (RouteData.Values["viewName"] ?? "Default").ToString();
             return View(actionName);
         }
     }

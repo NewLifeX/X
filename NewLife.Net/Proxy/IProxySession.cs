@@ -33,7 +33,7 @@ namespace NewLife.Net.Proxy
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        IProxySession SendRemote(byte[] buffer, int offset = 0, int size = -1);
+        IProxySession SendRemote(Byte[] buffer, Int32 offset = 0, Int32 size = -1);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
@@ -43,7 +43,7 @@ namespace NewLife.Net.Proxy
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        IProxySession SendRemote(string msg, Encoding encoding = null);
+        IProxySession SendRemote(String msg, Encoding encoding = null);
         #endregion
     }
 }

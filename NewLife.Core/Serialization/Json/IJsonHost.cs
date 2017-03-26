@@ -74,11 +74,11 @@ namespace NewLife.Serialization
         {
             var sb = new StringBuilder();
 
-            bool escaping = false;
-            bool inQuotes = false;
-            int indentation = 0;
+            var escaping = false;
+            var inQuotes = false;
+            var indentation = 0;
 
-            foreach (char ch in json)
+            foreach (var ch in json)
             {
                 if (escaping)
                 {
@@ -153,7 +153,7 @@ namespace NewLife.Serialization
         //    }
         //}
 
-        private bool CheckScriptIgnoreAttribute(MemberInfo memberInfo)
+        private Boolean CheckScriptIgnoreAttribute(MemberInfo memberInfo)
         {
 #if !__MOBILE__
             if (memberInfo.IsDefined(typeof(ScriptIgnoreAttribute), true)) return true;
@@ -320,12 +320,12 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
 
         #region IJsonHost 成员
 
-        public string Write(object value, bool indented = false)
+        public String Write(Object value, Boolean indented = false)
         {
             return new JsonWriter().ToJson(value, indented);
         }
 
-        public object Read(string json, Type type)
+        public Object Read(String json, Type type)
         {
             return new JsonReader().ToObject(json, type);
         }

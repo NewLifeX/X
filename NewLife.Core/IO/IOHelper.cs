@@ -216,7 +216,7 @@ namespace System
             if (bufferSize <= 0) bufferSize = 1024;
             var buffer = new Byte[bufferSize];
 
-            Int32 total = 0;
+            var total = 0;
             while (true)
             {
                 var count = bufferSize;
@@ -551,14 +551,14 @@ namespace System
             data = data.ReadBytes(offset, 8);
             if (isLittleEndian)
             {
-                int num1 = data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18;
-                int num2 = data[4] | data[5] << 8 | data[6] << 0x10 | data[7] << 0x18;
+                var num1 = data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18;
+                var num2 = data[4] | data[5] << 8 | data[6] << 0x10 | data[7] << 0x18;
                 return (UInt32)num1 | (UInt64)num2 << 0x20;
             }
             else
             {
-                int num3 = data[0] << 0x18 | data[1] << 0x10 | data[2] << 8 | data[3];
-                int num4 = data[4] << 0x18 | data[5] << 0x10 | data[6] << 8 | data[7];
+                var num3 = data[0] << 0x18 | data[1] << 0x10 | data[2] << 8 | data[3];
+                var num4 = data[4] << 0x18 | data[5] << 0x10 | data[6] << 8 | data[7];
                 return (UInt32)num4 | (UInt64)num3 << 0x20;
             }
         }
@@ -598,7 +598,7 @@ namespace System
         {
             if (isLittleEndian)
             {
-                for (int i = 0; i < 4; i++)
+                for (var i = 0; i < 4; i++)
                 {
                     data[offset++] = (Byte)n;
                     n >>= 8;
@@ -606,7 +606,7 @@ namespace System
             }
             else
             {
-                for (int i = 4 - 1; i >= 0; i--)
+                for (var i = 4 - 1; i >= 0; i--)
                 {
                     data[offset + i] = (Byte)n;
                     n >>= 8;
@@ -626,7 +626,7 @@ namespace System
         {
             if (isLittleEndian)
             {
-                for (int i = 0; i < 8; i++)
+                for (var i = 0; i < 8; i++)
                 {
                     data[offset++] = (Byte)n;
                     n >>= 8;
@@ -634,7 +634,7 @@ namespace System
             }
             else
             {
-                for (int i = 8 - 1; i >= 0; i--)
+                for (var i = 8 - 1; i >= 0; i--)
                 {
                     data[offset + i] = (Byte)n;
                     n >>= 8;
@@ -712,7 +712,7 @@ namespace System
         public static Int32 ReadEncodedInt(this Stream stream)
         {
             Byte b;
-            Int32 rs = 0;
+            var rs = 0;
             Byte n = 0;
             while (true)
             {
@@ -790,16 +790,16 @@ namespace System
         {
             var list = new List<Byte>();
 
-            Int32 count = 1;
-            UInt64 num = (UInt64)value;
+            var count = 1;
+            var num = (UInt64)value;
             while (num >= 0x80)
             {
-                list.Add((byte)(num | 0x80));
+                list.Add((Byte)(num | 0x80));
                 num = num >> 7;
 
                 count++;
             }
-            list.Add((byte)num);
+            list.Add((Byte)num);
 
             stream.Write(list.ToArray(), 0, list.Count);
 
@@ -823,7 +823,7 @@ namespace System
 
             for (Int64 i = 0; i < length;)
             {
-                Int32 c = stream.ReadByte();
+                var c = stream.ReadByte();
                 if (c == -1) return -1;
 
                 p++;
@@ -839,9 +839,9 @@ namespace System
                     //i = 0; // 只要有一个不匹配，马上清零
                     // 不能直接清零，那样会导致数据丢失，需要逐位探测，窗口一个个字节滑动
                     // 上一次匹配的其实就是j=0那个，所以这里从j=1开始
-                    Int64 n = i;
+                    var n = i;
                     i = 0;
-                    for (int j = 1; j < n; j++)
+                    for (var j = 1; j < n; j++)
                     {
                         // 在字节数组前(j,n)里面找自己(0,n-j)
                         if (CompareTo(buffer, j, n, buffer, 0, n - j) == 0)
@@ -881,7 +881,7 @@ namespace System
 
             // 已匹配字节数
             Int64 win = 0;
-            for (Int64 i = start; i + length - win <= count; i++)
+            for (var i = start; i + length - win <= count; i++)
             {
                 if (source[i] == buffer[offset + win])
                 {
@@ -925,9 +925,9 @@ namespace System
             if (length <= 0 || length > buffer.Length - offset) length = buffer.Length - offset;
 
             // 逐字节比较
-            for (int i = 0; i < count && i < length; i++)
+            for (var i = 0; i < count && i < length; i++)
             {
-                Int32 rs = source[start + i].CompareTo(buffer[offset + i]);
+                var rs = source[start + i].CompareTo(buffer[offset + i]);
                 if (rs != 0) return i > 0 ? i : 1;
             }
 
@@ -969,7 +969,7 @@ namespace System
         public static Boolean StartsWith(this Stream source, Byte[] buffer)
         {
             var p = 0;
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 var b = source.ReadByte();
                 if (b == -1) { source.Seek(-p, SeekOrigin.Current); return false; }
@@ -1004,7 +1004,7 @@ namespace System
         {
             if (source.Length < buffer.Length) return false;
 
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 if (source[i] != buffer[i]) return false;
             }
@@ -1020,7 +1020,7 @@ namespace System
             if (source.Length < buffer.Length) return false;
 
             var p = source.Length - buffer.Length;
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 if (source[p + i] != buffer[i]) return false;
             }
@@ -1078,9 +1078,9 @@ namespace System
             // 上面的方法要替换-，效率太低
             var cs = new Char[count * 2];
             // 两个索引一起用，避免乘除带来的性能损耗
-            for (int i = 0, j = 0; i < count; i++, j += 2)
+            for (Int32 i = 0, j = 0; i < count; i++, j += 2)
             {
-                Byte b = data[offset + i];
+                var b = data[offset + i];
                 cs[j] = GetHexValue(b / 0x10);
                 cs[j + 1] = GetHexValue(b % 0x10);
             }
@@ -1122,7 +1122,7 @@ namespace System
                 if (!String.IsNullOrEmpty(separate)) len -= g * separate.Length;
             }
             var sb = new StringBuilder(len);
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (sb.Length > 0)
                 {
@@ -1132,7 +1132,7 @@ namespace System
                         sb.Append(separate);
                 }
 
-                Byte b = data[i];
+                var b = data[i];
                 sb.Append(GetHexValue(b / 0x10));
                 sb.Append(GetHexValue(b % 0x10));
             }
@@ -1140,12 +1140,12 @@ namespace System
             return sb.ToString();
         }
 
-        private static char GetHexValue(int i)
+        private static Char GetHexValue(Int32 i)
         {
             if (i < 10)
-                return (char)(i + 0x30);
+                return (Char)(i + 0x30);
             else
-                return (char)(i - 10 + 0x41);
+                return (Char)(i - 10 + 0x41);
         }
 
         /// <summary>解密</summary>
@@ -1170,7 +1170,7 @@ namespace System
             if (length <= 0) length = data.Length - startIndex;
 
             var bts = new Byte[length / 2];
-            for (int i = 0; i < bts.Length; i++)
+            for (var i = 0; i < bts.Length; i++)
             {
                 bts[i] = Byte.Parse(data.Substring(startIndex + 2 * i, 2), NumberStyles.HexNumber);
             }

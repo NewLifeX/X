@@ -32,7 +32,7 @@ namespace NewLife.MessageQueue
             //};
             await user.Subscribe("新生命团队");
 
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
                 await client.Public("测试{0}".F(i + 1));
             }

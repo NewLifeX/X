@@ -11,11 +11,11 @@ namespace NewLife.Cube.Precompiled
     /// <summary>视图文件</summary>
     public class ViewFile : VirtualFile
     {
-        private string path;
+        private String path;
 
         /// <summary>实例化视图文件</summary>
         /// <param name="virtualPath"></param>
-        public ViewFile(string virtualPath)
+        public ViewFile(String virtualPath)
             : base(virtualPath)
         {
             path = virtualPath;

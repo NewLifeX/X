@@ -67,7 +67,7 @@ namespace System
         {
             if (value != null)
             {
-                for (int i = 0; i < value.Length; i++)
+                for (var i = 0; i < value.Length; i++)
                 {
                     if (!Char.IsWhiteSpace(value[i])) return false;
                 }
@@ -212,7 +212,7 @@ namespace System
             if (String.IsNullOrEmpty(value)) return value;
 
             // 特殊处理时间格式化。这些年，无数项目实施因为时间格式问题让人发狂
-            for (int i = 0; i < args.Length; i++)
+            for (var i = 0; i < args.Length; i++)
             {
                 if (args[i] is DateTime)
                 {
@@ -263,7 +263,7 @@ namespace System
             if (String.IsNullOrEmpty(str)) return str;
             if (starts == null || starts.Length < 1 || String.IsNullOrEmpty(starts[0])) return str;
 
-            for (int i = 0; i < starts.Length; i++)
+            for (var i = 0; i < starts.Length; i++)
             {
                 if (str.StartsWith(starts[i], StringComparison.OrdinalIgnoreCase))
                 {
@@ -286,7 +286,7 @@ namespace System
             if (String.IsNullOrEmpty(str)) return str;
             if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
 
-            for (int i = 0; i < ends.Length; i++)
+            for (var i = 0; i < ends.Length; i++)
             {
                 if (str.EndsWith(ends[i], StringComparison.OrdinalIgnoreCase))
                 {
@@ -412,7 +412,7 @@ namespace System
             if (String.IsNullOrEmpty(str)) return str;
             if (starts == null || starts.Length < 1 || String.IsNullOrEmpty(starts[0])) return str;
 
-            for (int i = 0; i < starts.Length; i++)
+            for (var i = 0; i < starts.Length; i++)
             {
                 var p = str.IndexOf(starts[i]);
                 if (p >= 0)
@@ -433,7 +433,7 @@ namespace System
             if (String.IsNullOrEmpty(str)) return str;
             if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
 
-            for (int i = 0; i < ends.Length; i++)
+            for (var i = 0; i < ends.Length; i++)
             {
                 var p = str.LastIndexOf(ends[i]);
                 if (p >= 0)
@@ -458,11 +458,11 @@ namespace System
         {
             if (IsNullOrWhiteSpace(key)) return new String[0];
 
-            String[] keys = key.Split(new char[] { ' ', '　' }, StringSplitOptions.RemoveEmptyEntries);
+            var keys = key.Split(new Char[] { ' ', '　' }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (String item in keys)
+            foreach (var item in keys)
             {
-                int maxDist = (item.Length - 1) / 2;
+                var maxDist = (item.Length - 1) / 2;
 
                 var q = from str in words
                         where item.Length <= str.Length
@@ -492,12 +492,12 @@ namespace System
         /// <param name="str1"></param>
         /// <param name="str2"></param>
         /// <returns></returns>
-        public static int LevenshteinDistance(String str1, String str2)
+        public static Int32 LevenshteinDistance(String str1, String str2)
         {
-            int n = str1.Length;
-            int m = str2.Length;
-            int[,] C = new int[n + 1, m + 1];
-            int i, j, x, y, z;
+            var n = str1.Length;
+            var m = str2.Length;
+            var C = new Int32[n + 1, m + 1];
+            Int32 i, j, x, y, z;
             for (i = 0; i <= n; i++)
                 C[i, 0] = i;
             for (i = 1; i <= m; i++)
@@ -529,8 +529,8 @@ namespace System
         {
             if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return new String[0];
 
-            String[] keys = key
-                                .Split(new char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
+            var keys = key
+                                .Split(new Char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
                                 .OrderBy(s => s.Length)
                                 .ToArray();
 
@@ -555,18 +555,18 @@ namespace System
         /// <param name="word"></param>
         /// <param name="keys">多个关键字。长度必须大于0，必须按照字符串长度升序排列。</param>
         /// <returns></returns>
-        public static int LCSDistance(String word, String[] keys)
+        public static Int32 LCSDistance(String word, String[] keys)
         {
-            int sLength = word.Length;
-            int result = sLength;
-            bool[] flags = new bool[sLength];
-            int[,] C = new int[sLength + 1, keys[keys.Length - 1].Length + 1];
+            var sLength = word.Length;
+            var result = sLength;
+            var flags = new Boolean[sLength];
+            var C = new Int32[sLength + 1, keys[keys.Length - 1].Length + 1];
             //int[,] C = new int[sLength + 1, words.Select(s => s.Length).Max() + 1];
-            foreach (String key in keys)
+            foreach (var key in keys)
             {
-                int wLength = key.Length;
-                int first = 0, last = 0;
-                int i = 0, j = 0, LCS_L;
+                var wLength = key.Length;
+                Int32 first = 0, last = 0;
+                Int32 i = 0, j = 0, LCS_L;
                 //foreach 速度会有所提升，还可以加剪枝
                 for (i = 0; i < sLength; i++)
                     for (j = 0; j < wLength; j++)

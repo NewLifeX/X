@@ -15,7 +15,7 @@ namespace NewLife.Net.Modbus
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return "Modbus Error " + Error;
         }

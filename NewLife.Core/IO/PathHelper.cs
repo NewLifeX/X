@@ -268,10 +268,10 @@ namespace System.IO
                 using (var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null))
                 {
                     var di = Directory.CreateDirectory(destDir);
-                    string fullName = di.FullName;
+                    var fullName = di.FullName;
                     foreach (var current in zip.Entries)
                     {
-                        string fullPath = Path.GetFullPath(Path.Combine(fullName, current.FullName));
+                        var fullPath = Path.GetFullPath(Path.Combine(fullName, current.FullName));
                         if (!fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
                         {
                             throw new IOException("IO_ExtractingResultsInOutside");

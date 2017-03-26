@@ -275,7 +275,7 @@ namespace NewLife.Net
             if (_RecvCount >= MaxAsync) return false;
 
             // 按照最大并发创建异步委托
-            for (int i = _RecvCount; i < MaxAsync; i++)
+            for (var i = _RecvCount; i < MaxAsync; i++)
             {
                 if (Interlocked.Increment(ref _RecvCount) > MaxAsync)
                 {
@@ -556,7 +556,7 @@ namespace NewLife.Net
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return Local + ""; }
+        public override String ToString() { return Local + ""; }
         #endregion
     }
 

@@ -45,7 +45,7 @@ namespace NewLife.Net.DNS
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return String.Format("{0} {1} {2}", Type, Preference, Host);
         }

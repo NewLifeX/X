@@ -6,7 +6,7 @@ namespace NewLife.Reflection
 {
     class OrcasNamer
     {
-        public static string GetName(MemberInfo member)
+        public static String GetName(MemberInfo member)
         {
             using (TextWriter writer = new StringWriter())
             {
@@ -31,7 +31,7 @@ namespace NewLife.Reflection
                         break;
                     case MemberTypes.Constructor:
                         writer.Write("M:");
-                        ConstructorInfo ctor = member as ConstructorInfo;
+                        var ctor = member as ConstructorInfo;
                         if (!ctor.IsStatic)
                             WriteConstructor(ctor, writer);
                         else
@@ -92,7 +92,7 @@ namespace NewLife.Reflection
 
         private static void WriteMethod(MethodInfo method, TextWriter writer)
         {
-            string name = method.Name;
+            var name = method.Name;
             WriteType(method.DeclaringType, writer);
 
             //MethodInfo eiiMethod = null;
@@ -130,7 +130,7 @@ namespace NewLife.Reflection
             }
             if (method.IsGenericMethod)
             {
-                Type[] genericParameters = method.GetGenericArguments();
+                var genericParameters = method.GetGenericArguments();
                 if (genericParameters != null)
                 {
                     writer.Write("``{0}", genericParameters.Length);
@@ -205,7 +205,7 @@ namespace NewLife.Reflection
         {
             if (parameters == null || parameters.Length == 0) return;
             writer.Write("(");
-            for (int i = 0; i < parameters.Length; i++)
+            for (var i = 0; i < parameters.Length; i++)
             {
                 if (i > 0) writer.Write(",");
                 WriteType(parameters[i].ParameterType, writer);
@@ -221,7 +221,7 @@ namespace NewLife.Reflection
                 writer.Write("[");
                 if (type.GetArrayRank() > 1)
                 {
-                    for (int i = 0; i < type.GetArrayRank(); i++)
+                    for (var i = 0; i < type.GetArrayRank(); i++)
                     {
                         if (i > 0) writer.Write(",");
                         writer.Write("0:");
@@ -266,7 +266,7 @@ namespace NewLife.Reflection
                 else
                 {
                     // namespace
-                    Type declaringType = type.DeclaringType;
+                    var declaringType = type.DeclaringType;
                     if (declaringType != null)
                     {
                         // names of nested types begin with outer type name
@@ -285,7 +285,7 @@ namespace NewLife.Reflection
                     }
                     // name
                     //writer.Write(type.GetUnmangledNameWithoutTypeParameters());
-                    String typeName = type.Name;
+                    var typeName = type.Name;
                     if (typeName.Contains("`"))
                         writer.Write(typeName.Substring(0, typeName.IndexOf("`")));
                     else
@@ -296,7 +296,7 @@ namespace NewLife.Reflection
                         if (type.IsGenericTypeDefinition)
                         {
                             // number of parameters
-                            Type[] parameters = type.GetGenericArguments();
+                            var parameters = type.GetGenericArguments();
                             if (parameters != null)
                             {
                                 writer.Write("`{0}", parameters.Length);
@@ -305,11 +305,11 @@ namespace NewLife.Reflection
                         else
                         {
                             // arguments
-                            Type[] arguments = type.GetGenericArguments();
+                            var arguments = type.GetGenericArguments();
                             if (arguments != null && arguments.Length > 0)
                             {
                                 writer.Write("{");
-                                for (int i = 0; i < arguments.Length; i++)
+                                for (var i = 0; i < arguments.Length; i++)
                                 {
                                     //TypeNode argument = arguments[i];
                                     if (i > 0) writer.Write(",");

@@ -19,7 +19,7 @@ namespace NewLife.Net.DNS
             Accessor = new DNSNameAccessor();
         }
 
-        public override bool Write(object value, Type type)
+        public override Boolean Write(Object value, Type type)
         {
             _binary.Host = Host;
 
@@ -43,7 +43,7 @@ namespace NewLife.Net.DNS
             return false;
         }
 
-        public override bool TryRead(Type type, ref object value)
+        public override Boolean TryRead(Type type, ref Object value)
         {
             _binary.Host = Host;
 

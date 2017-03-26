@@ -98,15 +98,15 @@ namespace NewLife.Extension
             }
         }
 
-        private object synth;
+        private Object synth;
         void EnsureSynth()
         {
             if (synth == null)
             {
                 try
                 {
-                    synth = _type.CreateInstance(new object[0]);
-                    synth.Invoke("SetOutputToDefaultAudioDevice", new object[0]);
+                    synth = _type.CreateInstance(new Object[0]);
+                    synth.Invoke("SetOutputToDefaultAudioDevice", new Object[0]);
                 }
                 catch (Exception ex)
                 {

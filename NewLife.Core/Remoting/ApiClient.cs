@@ -60,7 +60,7 @@ namespace NewLife.Remoting
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -124,7 +124,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task<TResult> InvokeAsync<TResult>(String action, object args = null)
+        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
         {
             var ss = Client;
             if (ss == null) return default(TResult);

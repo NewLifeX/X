@@ -41,7 +41,7 @@ namespace NewLife.Windows
         }
 
         TimerX _timer;
-        private void SerialPortList_Load(object sender, EventArgs e)
+        private void SerialPortList_Load(Object sender, EventArgs e)
         {
             LoadInfo();
 
@@ -55,7 +55,7 @@ namespace NewLife.Windows
             }
         }
 
-        void frm_FormClosing(object sender, FormClosingEventArgs e)
+        void frm_FormClosing(Object sender, FormClosingEventArgs e)
         {
             SaveInfo();
 
@@ -176,7 +176,7 @@ namespace NewLife.Windows
         /// <summary>右键菜单</summary>
         public ContextMenuStrip Menu { get { return contextMenuStrip1; } }
 
-        void On数据位Click(object sender, EventArgs e)
+        void On数据位Click(Object sender, EventArgs e)
         {
             SelectMenu(sender);
 
@@ -185,7 +185,7 @@ namespace NewLife.Windows
             cfg.DataBits = (Int32)mi.Tag;
         }
 
-        void On停止位Click(object sender, EventArgs e)
+        void On停止位Click(Object sender, EventArgs e)
         {
             SelectMenu(sender);
 
@@ -194,7 +194,7 @@ namespace NewLife.Windows
             cfg.StopBits = (StopBits)mi.Tag;
         }
 
-        void On校验Click(object sender, EventArgs e)
+        void On校验Click(Object sender, EventArgs e)
         {
             SelectMenu(sender);
 
@@ -203,7 +203,7 @@ namespace NewLife.Windows
             cfg.Parity = (Parity)mi.Tag;
         }
 
-        void On编码Click(object sender, EventArgs e)
+        void On编码Click(Object sender, EventArgs e)
         {
             // 不要选其它
             var mi = sender as ToolStripMenuItem;
@@ -219,7 +219,7 @@ namespace NewLife.Windows
             cfg.WebEncoding = mi.Name;
         }
 
-        private void mi字符串编码_Click(object sender, EventArgs e)
+        private void mi字符串编码_Click(Object sender, EventArgs e)
         {
             var cfg = SerialPortConfig.Current;
             //cfg.HexShow = miHEX编码接收.Checked = !mi字符串编码.Checked;
@@ -229,21 +229,21 @@ namespace NewLife.Windows
             contextMenuStrip1.Hide();
         }
 
-        private void miHex自动换行_Click(object sender, EventArgs e)
+        private void miHex自动换行_Click(Object sender, EventArgs e)
         {
             var cfg = SerialPortConfig.Current;
             //cfg.HexNewLine = ti.Tag.ToBoolean();
             cfg.HexNewLine = SelectMenu(sender) == 1;
         }
 
-        private void miHEX编码发送_Click(object sender, EventArgs e)
+        private void miHEX编码发送_Click(Object sender, EventArgs e)
         {
             var cfg = SerialPortConfig.Current;
             miHEX编码发送.Checked = !miHEX编码发送.Checked;
             cfg.HexSend = miHEX编码发送.Checked;
         }
 
-        private void miDTR_Click(object sender, EventArgs e)
+        private void miDTR_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             mi.Checked = !mi.Checked;
@@ -311,7 +311,7 @@ namespace NewLife.Windows
             Enabled = false;
         }
 
-        void Port_Disconnected(object sender, EventArgs e)
+        void Port_Disconnected(Object sender, EventArgs e)
         {
             Disconnect();
         }
@@ -373,7 +373,7 @@ namespace NewLife.Windows
             if (mi == null) return -1;
 
             var idx = -1;
-            for (int i = 0; i < ms.Length; i++)
+            for (var i = 0; i < ms.Length; i++)
             {
                 if (ms[i] == mi)
                 {

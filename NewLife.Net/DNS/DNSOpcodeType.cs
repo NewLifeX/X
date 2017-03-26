@@ -6,7 +6,7 @@ namespace NewLife.Net.DNS
     /// The Query Types (OPCODE) that specifies kind of query in a message.
     /// (RFC 1035 4.1.1 and 1002 4.2.1.1)
     /// </summary>
-    public enum DNSOpcodeType : byte
+    public enum DNSOpcodeType : Byte
     {
         /// <summary>A standard query (QUERY); used for NetBIOS, too</summary>
         Query = 0,

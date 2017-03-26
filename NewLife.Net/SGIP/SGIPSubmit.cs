@@ -117,7 +117,7 @@ namespace NewLife.Net.SGIP
  }
 
     /// <summary>代收费标志，0：应收；1：实收</summary>
-    public enum SubmitAgentFlags : byte
+    public enum SubmitAgentFlags : Byte
     {
         /// <summary>0：应收</summary>
         SouldIncome = 0,
@@ -126,7 +126,7 @@ namespace NewLife.Net.SGIP
     }
 
     /// <summary>状态报告标记</summary>
-    public enum SubmitReportFlags : byte
+    public enum SubmitReportFlags : Byte
     {
         /// <summary>0-该条消息只有最后出错时要返回状态报告</summary>
         ErrorReport = 0,
@@ -139,7 +139,7 @@ namespace NewLife.Net.SGIP
     }
 
     /// <summary>引起MT消息的原因</summary>
-    public enum SubmitMorelatetoMTFlags : byte
+    public enum SubmitMorelatetoMTFlags : Byte
     {
         /// <summary>0-MO点播引起的第一条MT消息；</summary>
         VoteFirst = 0,
@@ -152,7 +152,7 @@ namespace NewLife.Net.SGIP
     }
 
     /// <summary>计费类别定义</summary>
-    public enum FeeTypes : byte
+    public enum FeeTypes : Byte
     {
         /// <summary>0	“短消息类型”为“发送”，对“计费用户号码”不计信息费，此类话单仅用于核减SP对称的信道费</summary>
         FreeSend = 0,

@@ -2,7 +2,7 @@
 namespace NewLife.Net.Modbus
 {
     /// <summary>错误代码</summary>
-    public enum Errors : byte
+    public enum Errors : System.Byte
     {
         /// <summary>错误的功能代码</summary>
         FunctionCode = 1,

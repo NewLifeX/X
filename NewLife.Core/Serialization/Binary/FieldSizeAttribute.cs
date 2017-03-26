@@ -50,10 +50,10 @@ namespace NewLife.Serialization
 
             // 考虑ReferenceName可能是圆点分隔的多重结构
             MemberInfo mi = null;
-            Type type = member.DeclaringType;
+            var type = member.DeclaringType;
             value = target;
             var ss = ReferenceName.Split(".");
-            for (int i = 0; i < ss.Length; i++)
+            for (var i = 0; i < ss.Length; i++)
             {
                 var pi = type.GetPropertyEx(ss[i]);
                 if (pi != null)
@@ -100,7 +100,7 @@ namespace NewLife.Serialization
             if (value == null) return;
 
             // 尝试计算大小
-            Int32 size = 0;
+            var size = 0;
             if (value is String)
             {
                 if (encoding == null) encoding = Encoding.UTF8;

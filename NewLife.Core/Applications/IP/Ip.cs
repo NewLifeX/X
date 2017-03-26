@@ -11,7 +11,7 @@ namespace NewLife.IP
     /// <summary>IP搜索</summary>
     public static class Ip
     {
-        private static object lockHelper = new object();
+        private static Object lockHelper = new Object();
         private static Zip zip;
 
         /// <summary>数据文件</summary>
@@ -126,11 +126,11 @@ namespace NewLife.IP
             }
         }
 
-        static uint IPToUInt32(String IpValue)
+        static UInt32 IPToUInt32(String IpValue)
         {
             var ss = IpValue.Split('.');
             var buf = new Byte[4];
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
                 var n = 0;
                 if (i < ss.Length && Int32.TryParse(ss[i], out n))
@@ -144,7 +144,7 @@ namespace NewLife.IP
 
     class MyIpProvider : NetHelper.IpProvider
     {
-        public string GetAddress(IPAddress addr)
+        public String GetAddress(IPAddress addr)
         {
             return Ip.GetAddress(addr);
         }

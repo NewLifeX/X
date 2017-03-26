@@ -711,7 +711,7 @@ namespace NewLife.Reflection
         #region 重载
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (!String.IsNullOrEmpty(Title))
                 return Title;

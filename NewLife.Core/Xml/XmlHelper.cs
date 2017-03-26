@@ -334,7 +334,7 @@ namespace NewLife.Xml
 
             if (elmType != null && elmType.Name.EqualIgnoreCase(node.ChildNodes[0].Name))
             {
-                for (int i = 0; i < node.ChildNodes.Count; i++)
+                for (var i = 0; i < node.ChildNodes.Count; i++)
                 {
                     rs |= node.ChildNodes[i].AttachCommitInternal(elmType);
                 }
@@ -342,7 +342,7 @@ namespace NewLife.Xml
             }
             #endregion
 
-            for (int i = 0; i < node.ChildNodes.Count; i++)
+            for (var i = 0; i < node.ChildNodes.Count; i++)
             {
                 var curNode = node.ChildNodes[i];
 

@@ -407,15 +407,15 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static ILGenerator CreateLocalsForByRefParams(this ILGenerator IL, MethodBase method)
         {
-            Int32 firstParamIndex = method.IsStatic ? 0 : 1;
-            Int32 refParams = 0;
-            ParameterInfo[] ps = method.GetParameters();
-            for (Int32 i = 0; i < ps.Length; i++)
+            var firstParamIndex = method.IsStatic ? 0 : 1;
+            var refParams = 0;
+            var ps = method.GetParameters();
+            for (var i = 0; i < ps.Length; i++)
             {
                 // 处理引用类型参数
                 if (!ps[i].ParameterType.IsByRef) continue;
 
-                Type type = ps[i].ParameterType.GetElementType();
+                var type = ps[i].ParameterType.GetElementType();
                 IL.DeclareLocal(type);
                 // 处理输出类型
                 if (ps[i].IsOut)
@@ -438,10 +438,10 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static ILGenerator AssignByRefParamsToArray(this ILGenerator IL, MethodBase method)
         {
-            Int32 firstParamIndex = method.IsStatic ? 0 : 1;
-            Int32 refParam = 0;
-            ParameterInfo[] ps = method.GetParameters();
-            for (Int32 i = 0; i < ps.Length; i++)
+            var firstParamIndex = method.IsStatic ? 0 : 1;
+            var refParam = 0;
+            var ps = method.GetParameters();
+            for (var i = 0; i < ps.Length; i++)
             {
                 // 处理引用类型参数
                 if (!ps[i].ParameterType.IsByRef) continue;
@@ -462,10 +462,10 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static ILGenerator PushParamsOrLocalsToStack(this ILGenerator IL, MethodBase method)
         {
-            Int32 firstParamIndex = method.IsStatic ? 0 : 1;
-            Int32 refParam = 0;
-            ParameterInfo[] ps = method.GetParameters();
-            for (Int32 i = 0; i < ps.Length; i++)
+            var firstParamIndex = method.IsStatic ? 0 : 1;
+            var refParam = 0;
+            var ps = method.GetParameters();
+            for (var i = 0; i < ps.Length; i++)
             {
                 if (ps[i].ParameterType.IsByRef)
                 {
@@ -490,8 +490,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static ILGenerator PushParams(this ILGenerator IL, Int32 paramIndex, MethodBase method)
         {
-            ParameterInfo[] ps = method.GetParameters();
-            for (Int32 i = 0; i < ps.Length; i++)
+            var ps = method.GetParameters();
+            for (var i = 0; i < ps.Length; i++)
             {
                 IL.Ldarg(paramIndex)
                     .Ldc_I4(i)
@@ -511,7 +511,7 @@ namespace NewLife.Reflection
         {
             if (paramTypes == null || paramTypes.Length < 1) return IL;
 
-            for (int i = 0; i < paramTypes.Length; i++)
+            for (var i = 0; i < paramTypes.Length; i++)
             {
                 IL.Ldarg(paramIndex)
                     .Ldc_I4(i)

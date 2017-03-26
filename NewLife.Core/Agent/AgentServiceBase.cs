@@ -44,7 +44,7 @@ namespace NewLife.Agent
             if (Args.Length > 1)
             {
 #region 命令
-                String cmd = Args[1].ToLower();
+                var cmd = Args[1].ToLower();
                 if (cmd == "-s")  //启动服务
                 {
                     var ServicesToRun = new ServiceBase[] { service };
@@ -89,7 +89,7 @@ namespace NewLife.Agent
                 else if (cmd == "-step") //单步执行任务
                 {
                     var service2 = new TService();
-                    for (int i = 0; i < service2.ThreadCount; i++)
+                    for (var i = 0; i < service2.ThreadCount; i++)
                     {
                         service2.Work(i);
                     }
@@ -143,11 +143,11 @@ namespace NewLife.Agent
                             try
                             {
                                 var count = Instance.ThreadCount;
-                                Int32 n = 0;
+                                var n = 0;
                                 if (count > 1)
                                 {
                                     Console.Write("请输入要调试的任务（任务数：{0}）：", count);
-                                    ConsoleKeyInfo k = Console.ReadKey();
+                                    var k = Console.ReadKey();
                                     Console.WriteLine();
                                     n = k.KeyChar - '0';
                                 }
@@ -155,7 +155,7 @@ namespace NewLife.Agent
                                 Console.WriteLine("正在单步调试……");
                                 if (n < 0 || n > count - 1)
                                 {
-                                    for (int i = 0; i < count; i++)
+                                    for (var i = 0; i < count; i++)
                                     {
                                         service.Work(i);
                                     }
@@ -334,11 +334,11 @@ namespace NewLife.Agent
 
         private Dictionary<String, IServer> _AttachServers;
         /// <summary>附加服务</summary>
-        public Dictionary<String, IServer> AttachServers { get { return _AttachServers ?? (_AttachServers = new Dictionary<string, IServer>()); } /*set { _AttachServers = value; }*/ }
+        public Dictionary<String, IServer> AttachServers { get { return _AttachServers ?? (_AttachServers = new Dictionary<String, IServer>()); } /*set { _AttachServers = value; }*/ }
 
         /// <summary>服务启动事件</summary>
         /// <param name="args"></param>
-        protected override void OnStart(string[] args)
+        protected override void OnStart(String[] args)
         {
             StartWork();
 
@@ -436,7 +436,7 @@ namespace NewLife.Agent
 
         /// <summary>销毁资源</summary>
         /// <param name="disposing"></param>
-        protected override void Dispose(bool disposing)
+        protected override void Dispose(Boolean disposing)
         {
             if (AttachServers != null)
             {
@@ -460,7 +460,7 @@ namespace NewLife.Agent
 
             try
             {
-                for (int i = 0; i < ThreadCount; i++)
+                for (var i = 0; i < ThreadCount; i++)
                 {
                     StartWork(i);
                 }
@@ -485,14 +485,14 @@ namespace NewLife.Agent
 
             // 可以通过设置任务的时间间隔小于0来关闭指定任务
             //var ts = Setting.Current.Intervals.SplitAsInt();
-            Int32 time = Intervals[0];//ts[0];
+            var time = Intervals[0];//ts[0];
             // 使用专用的时间间隔
             if (index < Intervals.Length) time = Intervals[index];
             if (time < 0) return;
 
             Threads[index] = new Thread(workWaper);
             //String name = "XAgent_" + index;
-            String name = "A" + index;
+            var name = "A" + index;
             if (ThreadNames != null && ThreadNames.Length > index && !String.IsNullOrEmpty(ThreadNames[index]))
                 name = ThreadNames[index];
             Threads[index].Name = name; 
@@ -505,14 +505,14 @@ namespace NewLife.Agent
         /// <param name="data">线程序号</param>
         private void workWaper(Object data)
         {
-            Int32 index = (Int32)data;
+            var index = (Int32)data;
 
             // 旧异常
             Exception oldEx = null;
 
             while (true)
             {
-                Boolean isContinute = false;
+                var isContinute = false;
                 Active[index] = DateTime.Now;
 
                 try
@@ -551,7 +551,7 @@ namespace NewLife.Agent
                 }
 
                 //var ts = Setting.Current.Intervals.SplitAsInt();
-                Int32 time = Intervals[0]; //ts[0];
+                var time = Intervals[0]; //ts[0];
                 //使用专用的时间间隔
                 if (index < Intervals.Length) time = Intervals[index];
 
@@ -690,7 +690,7 @@ namespace NewLife.Agent
                 if (_Active == null)
                 {
                     _Active = new DateTime[ThreadCount];
-                    for (int i = 0; i < ThreadCount; i++)
+                    for (var i = 0; i < ThreadCount; i++)
                     {
                         _Active[i] = DateTime.Now;
                     }
@@ -706,7 +706,7 @@ namespace NewLife.Agent
             if (Threads == null || Threads.Length < 1) return;
 
             //检查已经停止了的工作线程
-            for (int i = 0; i < ThreadCount; i++)
+            for (var i = 0; i < ThreadCount; i++)
             {
                 if (Threads[i] != null && !Threads[i].IsAlive)
                 {
@@ -720,7 +720,7 @@ namespace NewLife.Agent
             var max = Setting.Current.MaxActive;
             if (max <= 0) return;
 
-            for (int i = 0; i < ThreadCount; i++)
+            for (var i = 0; i < ThreadCount; i++)
             {
                 var ts = DateTime.Now - Active[i];
                 if (ts.TotalSeconds > max)
@@ -743,7 +743,7 @@ namespace NewLife.Agent
             if (max <= 0) return false;
 
             var p = Process.GetCurrentProcess();
-            long cur = p.WorkingSet64 + p.PrivateMemorySize64;
+            var cur = p.WorkingSet64 + p.PrivateMemorySize64;
             cur = cur / 1024 / 1024;
             if (cur > max)
             {
@@ -809,7 +809,7 @@ namespace NewLife.Agent
             WriteLine("重启服务！");
 
             //在临时目录生成重启服务的批处理文件
-            String filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "重启.bat");
+            var filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "重启.bat");
             if (File.Exists(filename)) File.Delete(filename);
 
             File.AppendAllText(filename, "net stop " + ServiceName);
@@ -820,10 +820,10 @@ namespace NewLife.Agent
 
             //准备重启服务，等待所有工作线程返回
             IsShutdowning = true;
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
-                Boolean b = false;
-                foreach (Thread item in Threads)
+                var b = false;
+                foreach (var item in Threads)
                 {
                     if (item.IsAlive)
                     {

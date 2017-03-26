@@ -5,7 +5,7 @@ using System.Text;
 namespace NewLife.Net.MQTT
 {
     /// <summary>消息类型</summary>
-    public enum MqttType : byte
+    public enum MqttType : Byte
     {
         /// <summary>保留</summary>
         Reserved = 0,

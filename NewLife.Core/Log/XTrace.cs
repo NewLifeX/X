@@ -89,7 +89,7 @@ namespace NewLife.Log
         }
 #endif
 
-        private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        private static void TaskScheduler_UnobservedTaskException(Object sender, UnobservedTaskExceptionEventArgs e)
         {
             if (!e.Observed)
             {
@@ -102,7 +102,7 @@ namespace NewLife.Log
             }
         }
 
-        static Object _lock = new object();
+        static Object _lock = new Object();
         static Int32 _initing = 0;
 
         /// <summary>
@@ -254,7 +254,7 @@ namespace NewLife.Log
             Application.ThreadException += Application_ThreadException;
         }
 
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
         {
             var show = _ShowErrorMessage && Application.MessageLoop;
             var ex = e.ExceptionObject as Exception;
@@ -273,7 +273,7 @@ namespace NewLife.Log
             }
         }
 
-        static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        static void Application_ThreadException(Object sender, ThreadExceptionEventArgs e)
         {
             WriteException(e.Exception);
 
@@ -362,7 +362,7 @@ namespace NewLife.Log
             }
 
             [DllImport("kernel32.dll")]
-            private static extern uint GetCurrentThreadId();
+            private static extern UInt32 GetCurrentThreadId();
 
             public static Boolean TryDump(String dmpPath, MiniDumpType dmpType)
             {
@@ -429,7 +429,7 @@ namespace NewLife.Log
 
         /// <summary>堆栈调试。</summary>
         /// <param name="maxNum">最大捕获堆栈方法数</param>
-        public static void DebugStack(int maxNum)
+        public static void DebugStack(Int32 maxNum)
         {
             var msg = GetCaller(2, maxNum, Environment.NewLine);
             WriteLine("调用堆栈：" + Environment.NewLine + msg);
@@ -438,7 +438,7 @@ namespace NewLife.Log
         /// <summary>堆栈调试</summary>
         /// <param name="start">开始方法数，0是DebugStack的直接调用者</param>
         /// <param name="maxNum">最大捕获堆栈方法数</param>
-        public static void DebugStack(int start, int maxNum)
+        public static void DebugStack(Int32 start, Int32 maxNum)
         {
             // 至少跳过当前这个
             if (start < 1) start = 1;
@@ -451,7 +451,7 @@ namespace NewLife.Log
         /// <param name="maxNum">最大层数</param>
         /// <param name="split">分割符号，默认左箭头加上换行</param>
         /// <returns></returns>
-        public static String GetCaller(int start = 1, int maxNum = 0, String split = null)
+        public static String GetCaller(Int32 start = 1, Int32 maxNum = 0, String split = null)
         {
             // 至少跳过当前这个
             if (start < 1) start = 1;
@@ -463,10 +463,10 @@ namespace NewLife.Log
             var asm = Assembly.GetEntryAssembly();
             var entry = asm == null ? null : asm.EntryPoint;
 
-            int count = st.FrameCount;
+            var count = st.FrameCount;
             var sb = new StringBuilder(count * 20);
             //if (maxNum > 0 && maxNum < count) count = maxNum;
-            for (int i = 0; i < count && maxNum > 0; i++)
+            for (var i = 0; i < count && maxNum > 0; i++)
             {
                 var sf = st.GetFrame(i);
                 var method = sf.GetMethod();

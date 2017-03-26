@@ -24,7 +24,7 @@ namespace System
         {
             if (length <= 0 || position >= 16) return value;
 
-            Int32 mask = (2 << (length - 1)) - 1;
+            var mask = (2 << (length - 1)) - 1;
 
             value &= (UInt16)~(mask << position);
             value |= (UInt16)((bits & mask) << position);
@@ -41,7 +41,7 @@ namespace System
         {
             if (position >= 8) return value;
 
-            Int32 mask = (2 << (1 - 1)) - 1;
+            var mask = (2 << (1 - 1)) - 1;
 
             value &= (Byte)~(mask << position);
             value |= (Byte)(((flag ? (Byte)1 : (Byte)0) & mask) << position);
@@ -67,7 +67,7 @@ namespace System
         {
             if (length <= 0 || position >= 16) return 0;
 
-            Int32 mask = (2 << (length - 1)) - 1;
+            var mask = (2 << (length - 1)) - 1;
 
             return (UInt16)((value >> position) & mask);
         }
@@ -80,7 +80,7 @@ namespace System
         {
             if (position >= 8) return false;
 
-            Int32 mask = (2 << (1 - 1)) - 1;
+            var mask = (2 << (1 - 1)) - 1;
 
             return ((Byte)((value >> position) & mask)) == 1;
         }

@@ -60,9 +60,9 @@ namespace NewLife.Net.DNS
             var keys = new List<Int32>();
             var values = new List<String>();
 
-            Int64 start = stream.Position;
-            Int64 p = start;
-            Int32 n = 0;
+            var start = stream.Position;
+            var p = start;
+            var n = 0;
             var sb = new StringBuilder();
             while (true)
             {
@@ -84,7 +84,7 @@ namespace NewLife.Net.DNS
                     str = this[(n - 0xC0) * 256 + n2];
 
                     // 之前的每个加上str
-                    for (int i = 0; i < values.Count; i++) values[i] += "." + str;
+                    for (var i = 0; i < values.Count; i++) values[i] += "." + str;
 
                     // 局部引用，前面还有一段本地读出来的，这样子，整个就形成了一个新的字符串
                     if (sb.Length > 0)
@@ -98,11 +98,11 @@ namespace NewLife.Net.DNS
                     break;
                 }
 
-                Byte[] buffer = stream.ReadBytes(n);
+                var buffer = stream.ReadBytes(n);
                 str = Encoding.UTF8.GetString(buffer);
 
                 // 之前的每个加上str
-                for (int i = 0; i < values.Count; i++) values[i] += "." + str;
+                for (var i = 0; i < values.Count; i++) values[i] += "." + str;
 
                 // 加入当前项。因为引用项马上就要跳出了，不会做二次引用，所以不加
                 if (!values.Contains(str))
@@ -115,7 +115,7 @@ namespace NewLife.Net.DNS
 
                 p = stream.Position;
             }
-            for (int i = 0; i < keys.Count; i++)
+            for (var i = 0; i < keys.Count; i++)
             {
                 if (!Values.Contains(values[i]))
                 {
@@ -134,15 +134,15 @@ namespace NewLife.Net.DNS
             var values = new List<String>();
 
             var start = stream.Position;
-            Int32 p = 0;
-            Boolean isRef = false;
-            String[] ss = ("" + value).Split(".");
-            for (int i = 0; i < ss.Length; i++)
+            var p = 0;
+            var isRef = false;
+            var ss = ("" + value).Split(".");
+            for (var i = 0; i < ss.Length; i++)
             {
                 isRef = false;
 
                 // 如果已存在，则写引用
-                String name = String.Join(".", ss, i, ss.Length - i);
+                var name = String.Join(".", ss, i, ss.Length - i);
                 if (Values.Contains(name))
                 {
                     //stream.WriteByte(0xC0);
@@ -150,14 +150,14 @@ namespace NewLife.Net.DNS
 
                     // 偏移量的标准公式是：(Cn-C0)*256+偏移
                     // 相对位置，注意超长位移（大于0xFF）
-                    Int32 abp = this[name];
-                    Int32 ab = abp / 0xFF;
+                    var abp = this[name];
+                    var ab = abp / 0xFF;
                     abp = abp & 0xFF;
                     stream.WriteByte((Byte)(0xC0 + ab));
                     stream.WriteByte((Byte)abp);
 
                     // 之前的每个加上str
-                    for (int j = 0; j < values.Count; j++) values[j] += "." + name;
+                    for (var j = 0; j < values.Count; j++) values[j] += "." + name;
 
                     // 使用引用的必然是最后一个
                     isRef = true;
@@ -168,12 +168,12 @@ namespace NewLife.Net.DNS
                 // 否则，先写长度，后存入引用
                 p = (Int32)(stream.Position - start);
 
-                Byte[] buffer = Encoding.UTF8.GetBytes(ss[i]);
+                var buffer = Encoding.UTF8.GetBytes(ss[i]);
                 stream.WriteByte((Byte)buffer.Length);
                 stream.Write(buffer, 0, buffer.Length);
 
                 // 之前的每个加上str
-                for (int j = 0; j < values.Count; j++) values[j] += "." + ss[i];
+                for (var j = 0; j < values.Count; j++) values[j] += "." + ss[i];
 
                 // 加入当前项
                 keys.Add((Int32)(offset + p));
@@ -181,7 +181,7 @@ namespace NewLife.Net.DNS
             }
             if (!isRef) stream.WriteByte((Byte)0);
 
-            for (int i = 0; i < keys.Count; i++)
+            for (var i = 0; i < keys.Count; i++)
             {
                 Keys.Add(keys[i]);
                 Values.Add(values[i]);

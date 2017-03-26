@@ -44,7 +44,7 @@ namespace NewLife.Net.DNS
         }
 
         /// <summary>Broadcast Flag</summary>
-        public bool Broadcast
+        public Boolean Broadcast
         {
             get { return _D2.GetBit(4); }
             set { _D2.SetBit(4, value); }
@@ -78,7 +78,7 @@ namespace NewLife.Net.DNS
 
         #region 枚举
         [Flags]
-        enum D1 : byte
+        enum D1 : Byte
         {
             RecursionDesired = 1,
 

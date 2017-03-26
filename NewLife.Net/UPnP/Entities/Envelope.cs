@@ -57,9 +57,9 @@ namespace NewLife.Net.UPnP
             /// <param name="reader"></param>
             public void ReadXml(XmlReader reader)
             {
-                String prefix = reader.Prefix;
+                var prefix = reader.Prefix;
 
-                String xml = reader.ReadInnerXml();
+                var xml = reader.ReadInnerXml();
                 if (xml.StartsWith("<Fault") || xml.StartsWith("<" + prefix + ":Fault"))
                     Fault = xml;
                 else
@@ -79,15 +79,15 @@ namespace NewLife.Net.UPnP
             {
                 if (String.IsNullOrEmpty(Fault)) return null;
 
-                XmlDocument doc = new XmlDocument();
+                var doc = new XmlDocument();
                 doc.LoadXml(Fault);
 
-                String msg = "UPnP Error";
+                var msg = "UPnP Error";
 
                 //XmlNamespaceManager mgr = new XmlNamespaceManager(doc.NameTable);
                 //mgr.AddNamespace(doc.DocumentElement.Prefix, doc.DocumentElement.NamespaceURI);
                 //XmlNode node = doc.SelectSingleNode("//errordescription", mgr);
-                XmlNode node = doc.SelectSingleNode("/*/*/*/*[last()]");
+                var node = doc.SelectSingleNode("/*/*/*/*[last()]");
                 if (node != null) msg = node.InnerText;
 
                 throw new XException(msg);

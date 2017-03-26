@@ -32,7 +32,7 @@ namespace NewLife.Remoting
         /// <summary>初始化</summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public bool Init(string config)
+        public Boolean Init(String config)
         {
             Local = new NetUri(config);
 #if DEBUG
@@ -110,7 +110,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task<TResult> InvokeAsync<TResult>(string action, object args = null)
+        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
         {
             return await ApiHostHelper.InvokeAsync<TResult>(_ApiHost, this, action, args).ConfigureAwait(false);
         }

@@ -34,7 +34,7 @@ namespace NewLife.Net.SGIP
     }
 
     /// <summary>Bind操作，登录类型。</summary>
-    public enum LoginTypes : byte
+    public enum LoginTypes : Byte
     {
         /// <summary>1：SP向SMG建立的连接，用于发送命令</summary>
         SpToSmg = 1,

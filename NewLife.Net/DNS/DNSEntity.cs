@@ -165,7 +165,7 @@ namespace NewLife.Net.DNS
         /// <summary>创建序列化器</summary>
         /// <param name="isRead"></param>
         /// <returns></returns>
-        protected override IFormatterX CreateFormatter(bool isRead)
+        protected override IFormatterX CreateFormatter(Boolean isRead)
         {
             var fm = base.CreateFormatter(isRead);
             fm.Encoding = Encoding.UTF8;
@@ -227,7 +227,7 @@ namespace NewLife.Net.DNS
         /// <summary>已重载。</summary>
         /// <returns></returns>
         [DebuggerHidden]
-        public override string ToString()
+        public override String ToString()
         {
             var rs = Questions;
             if (!Header.Response)

@@ -170,7 +170,7 @@ namespace NewLife.Serialization
 
             _builder.Length = 0;
 
-            Int32 runIndex = -1;
+            var runIndex = -1;
 
             while (index < _json.Length)
             {
@@ -239,12 +239,12 @@ namespace NewLife.Serialization
 
                     case 'u':
                         {
-                            Int32 remainingLength = _json.Length - index;
+                            var remainingLength = _json.Length - index;
                             if (remainingLength < 4) break;
 
                             // 分析32位十六进制数字
-                            uint codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
-                            _builder.Append((char)codePoint);
+                            var codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
+                            _builder.Append((Char)codePoint);
 
                             index += 4;
                         }
@@ -255,24 +255,24 @@ namespace NewLife.Serialization
             throw new Exception("已到达字符串结尾");
         }
 
-        private uint ParseSingleChar(char c1, uint multipliyer)
+        private UInt32 ParseSingleChar(Char c1, UInt32 multipliyer)
         {
-            uint p1 = 0;
+            UInt32 p1 = 0;
             if (c1 >= '0' && c1 <= '9')
-                p1 = (uint)(c1 - '0') * multipliyer;
+                p1 = (UInt32)(c1 - '0') * multipliyer;
             else if (c1 >= 'A' && c1 <= 'F')
-                p1 = (uint)((c1 - 'A') + 10) * multipliyer;
+                p1 = (UInt32)((c1 - 'A') + 10) * multipliyer;
             else if (c1 >= 'a' && c1 <= 'f')
-                p1 = (uint)((c1 - 'a') + 10) * multipliyer;
+                p1 = (UInt32)((c1 - 'a') + 10) * multipliyer;
             return p1;
         }
 
-        private uint ParseUnicode(char c1, char c2, char c3, char c4)
+        private UInt32 ParseUnicode(Char c1, Char c2, Char c3, Char c4)
         {
-            uint p1 = ParseSingleChar(c1, 0x1000);
-            uint p2 = ParseSingleChar(c2, 0x100);
-            uint p3 = ParseSingleChar(c3, 0x10);
-            uint p4 = ParseSingleChar(c4, 1);
+            var p1 = ParseSingleChar(c1, 0x1000);
+            var p2 = ParseSingleChar(c2, 0x100);
+            var p3 = ParseSingleChar(c3, 0x10);
+            var p4 = ParseSingleChar(c4, 1);
 
             return p1 + p2 + p3 + p4;
         }
@@ -280,8 +280,8 @@ namespace NewLife.Serialization
         private Int64 CreateLong(String s)
         {
             Int64 num = 0;
-            bool neg = false;
-            foreach (char cc in s)
+            var neg = false;
+            foreach (var cc in s)
             {
                 if (cc == '-')
                     neg = true;
@@ -303,7 +303,7 @@ namespace NewLife.Serialization
 
             // 需要回滚1个位置，因为第一个数字也是Toekn，可能被跳过了
             var startIndex = index - 1;
-            bool dec = false;
+            var dec = false;
             do
             {
                 if (index == _json.Length)
@@ -451,10 +451,10 @@ namespace NewLife.Serialization
         static Int64 CreateLong(out Int64 num, String s, Int32 index, Int32 count)
         {
             num = 0;
-            bool neg = false;
-            for (Int32 x = 0; x < count; x++, index++)
+            var neg = false;
+            for (var x = 0; x < count; x++, index++)
             {
-                char cc = s[index];
+                var cc = s[index];
 
                 if (cc == '-')
                     neg = true;

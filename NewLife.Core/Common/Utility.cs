@@ -30,7 +30,7 @@ namespace System
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static long ToLong(this Object value, long defaultValue = 0) { return Convert.ToLong(value, defaultValue); }
+        public static Int64 ToLong(this Object value, Int64 defaultValue = 0) { return Convert.ToLong(value, defaultValue); }
 
         /// <summary>转为浮点数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
         /// <remarks>Single可以先转为最常用的Double后再二次处理</remarks>
@@ -143,7 +143,7 @@ namespace System
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public virtual long ToLong(Object value, long defaultValue)
+        public virtual Int64 ToLong(Object value, Int64 defaultValue)
         {
             //暂时不做处理  先处理异常转换
             try
@@ -281,15 +281,15 @@ namespace System
         String ToDBC(String str)
         {
             var ch = str.ToCharArray();
-            for (int i = 0; i < ch.Length; i++)
+            for (var i = 0; i < ch.Length; i++)
             {
                 // 全角空格
                 if (ch[i] == 0x3000)
-                    ch[i] = (char)0x20;
+                    ch[i] = (Char)0x20;
                 else if (ch[i] > 0xFF00 && ch[i] < 0xFF5F)
-                    ch[i] = (char)(ch[i] - 0xFEE0);
+                    ch[i] = (Char)(ch[i] - 0xFEE0);
             }
-            return new string(ch);
+            return new String(ch);
         }
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>

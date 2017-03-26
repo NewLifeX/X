@@ -125,7 +125,7 @@ namespace NewLife
         #region 辅助
         /// <summary>已重载</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (Method == null) return base.ToString();
 

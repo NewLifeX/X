@@ -31,7 +31,7 @@ namespace NewLife.Web
         public Int64 Speed { get { return _Speed; } set { _Speed = value; } }
 
         /// <summary>是否启用浏览器缓存 默认禁用</summary>
-        public bool BrowserCache { get; set; }
+        public Boolean BrowserCache { get; set; }
 
         private TimeSpan _browserCacheMaxAge = new TimeSpan(30, 0, 0, 0);
         /// <summary>浏览器最大缓存时间 默认30天。通过Cache-Control头控制max-age，直接使用浏览器缓存，不会发出Http请求，对F5无效</summary>
@@ -134,23 +134,23 @@ namespace NewLife.Web
             var stream = Stream;
 
             // 速度
-            long speed = Speed;
+            var speed = Speed;
             // 包大小
-            int pack = 1024000;
+            var pack = 1024000;
             // 计算睡眠时间
-            int sleep = speed > 0 ? (int)Math.Floor(1000 * (double)pack / speed) + 1 : 0;
+            var sleep = speed > 0 ? (Int32)Math.Floor(1000 * (Double)pack / speed) + 1 : 0;
 
             // 输出Accept-Ranges，表示支持断点
             Response.AddHeader("Accept-Ranges", "bytes");
             Response.Buffer = false;
-            long fileLength = stream.Length;
-            long startBytes = 0;
+            var fileLength = stream.Length;
+            Int64 startBytes = 0;
 
             // 如果请求里面指定范围，表示需要断点
             if (Request.Headers["Range"] != null)
             {
                 Response.StatusCode = 206;
-                string[] range = Request.Headers["Range"].Split(new char[] { '=', '-' });
+                var range = Request.Headers["Range"].Split(new Char[] { '=', '-' });
                 startBytes = Convert.ToInt64(range[1]);
             }
             // 计算真正的长度
@@ -182,15 +182,15 @@ namespace NewLife.Web
             }
 
             //stream.Seek(startBytes, SeekOrigin.Begin);
-            int maxCount = (int)Math.Floor((fileLength - startBytes) / (double)pack) + 1;
+            var maxCount = (Int32)Math.Floor((fileLength - startBytes) / (Double)pack) + 1;
             // 如果不足一个包，则缩小缓冲区，避免浪费内存
             if (pack > stream.Length) pack = (Int32)stream.Length;
             var buffer = new Byte[pack];
-            for (int i = 0; i < maxCount; i++)
+            for (var i = 0; i < maxCount; i++)
             {
                 if (!Response.IsClientConnected) break;
 
-                Int32 count = stream.Read(buffer, 0, buffer.Length);
+                var count = stream.Read(buffer, 0, buffer.Length);
                 if (count == pack)
                     Response.BinaryWrite(buffer);
                 else

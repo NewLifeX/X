@@ -226,7 +226,7 @@ namespace System.Threading.Tasks
             return tcs.Task;
         }
 
-        private static bool TrySetFromTask<TResult>(this TaskCompletionSource<TResult> tcs, Task source)
+        private static Boolean TrySetFromTask<TResult>(this TaskCompletionSource<TResult> tcs, Task source)
         {
             if (source.Status == TaskStatus.Canceled) return tcs.TrySetCanceled();
 

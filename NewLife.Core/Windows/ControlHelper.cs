@@ -317,10 +317,10 @@ namespace System.Windows.Forms
         }
 
         [DllImport("user32.dll")]
-        static extern int SendMessage(IntPtr hwnd, int wMsg, int wParam, int lParam);
-        private const int SB_TOP = 6;
-        private const int SB_BOTTOM = 7;
-        private const int WM_VSCROLL = 0x115;
+        static extern Int32 SendMessage(IntPtr hwnd, Int32 wMsg, Int32 wParam, Int32 lParam);
+        private const Int32 SB_TOP = 6;
+        private const Int32 SB_BOTTOM = 7;
+        private const Int32 WM_VSCROLL = 0x115;
         #endregion
 
         #region 设置控件样式
@@ -388,9 +388,9 @@ namespace System.Windows.Forms
             return start;
         }
 
-        static void ChangeColor(RichTextBox rtb, Int32 start, string text, Color color)
+        static void ChangeColor(RichTextBox rtb, Int32 start, String text, Color color)
         {
-            int s = start;
+            var s = start;
             //while ((-1 + text.Length - 1) != (s = text.Length - 1 + rtx.Find(text, s, -1, RichTextBoxFinds.WholeWord)))
             while (true)
             {
@@ -495,7 +495,7 @@ namespace System.Windows.Forms
                 else
                 {
                     // 遍历匹配组，注意0号代表整体
-                    for (int i = 1; i < item.Groups.Count; i++)
+                    for (var i = 1; i < item.Groups.Count; i++)
                     {
                         rtb.Select(item.Groups[i].Index, item.Groups[i].Length);
                         rtb.SelectionColor = colors[i - 1];

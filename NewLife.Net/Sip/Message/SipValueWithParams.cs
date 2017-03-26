@@ -9,7 +9,7 @@ namespace NewLife.Net.Sip.Message
         #region 属性
         private Dictionary<String, String> _Parameters;
         /// <summary>参数集合</summary>
-        public IDictionary<String, String> Parameters { get { return _Parameters ?? (_Parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)); } }
+        public IDictionary<String, String> Parameters { get { return _Parameters ?? (_Parameters = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase)); } }
         #endregion
     }
 }

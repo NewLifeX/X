@@ -18,7 +18,7 @@ namespace NewLife.Security
         /// </remarks>
         /// <param name="keySize">密钥长度，默认1024位强密钥</param>
         /// <returns></returns>
-        public static String[] GenerateKey(int keySize = 2048)
+        public static String[] GenerateKey(Int32 keySize = 2048)
         {
             var rsa = new RSACryptoServiceProvider(keySize);
 

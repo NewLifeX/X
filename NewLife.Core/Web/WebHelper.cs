@@ -80,12 +80,12 @@ namespace NewLife.Web
 
             if (control is TextBox)
             {
-                TextBox box = control as TextBox;
+                var box = control as TextBox;
                 if (!String.IsNullOrEmpty(box.Text)) return true;
             }
             else if (control is ListControl)
             {
-                ListControl box = control as ListControl;
+                var box = control as ListControl;
                 if (!String.IsNullOrEmpty(box.Text)) return true;
             }
             else
@@ -165,7 +165,7 @@ namespace NewLife.Web
             //var Response = HttpContext.Current.Response;
 
             //去掉所有列的排序
-            foreach (DataControlField item in gv.Columns)
+            foreach (var item in gv.Columns)
             {
                 if (item is DataControlField) (item as DataControlField).SortExpression = null;
             }
@@ -314,12 +314,12 @@ namespace NewLife.Web
         /// <summary>获取长整型参数</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static long RequestLong(String name) { return Request[name].ToLong(); }
+        public static Int64 RequestLong(String name) { return Request[name].ToLong(); }
 
         /// <summary>接收布尔值</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static bool RequestBool(String name) { return Request[name].ToBoolean(); }
+        public static Boolean RequestBool(String name) { return Request[name].ToBoolean(); }
 
         /// <summary>接收时间</summary>
         /// <param name="name">名称</param>
@@ -367,7 +367,7 @@ namespace NewLife.Web
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
         /// <param name="expires">过期时间，单位秒</param>
-        public static void WriteCookie(String name, String value, int expires)
+        public static void WriteCookie(String name, String value, Int32 expires)
         {
             var cookie = Request.Cookies[name];
             if (cookie == null) cookie = new HttpCookie(name);

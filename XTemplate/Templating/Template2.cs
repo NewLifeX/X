@@ -17,7 +17,7 @@ namespace XTemplate.Templating
         {
             if (String.IsNullOrEmpty(str)) return null;
 
-            MD5 md5 = MD5.Create();
+            var md5 = MD5.Create();
             return BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(str))).Replace("-", null);
         }
 
@@ -27,7 +27,7 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public static String GetClassName(String fileName)
         {
-            String name = fileName;
+            var name = fileName;
             //if (name.Contains(".")) name = name.Substring(0, name.LastIndexOf("."));
             //name = name.Replace(@"\", "_").Replace(@"/", "_").Replace(".", "_").Replace("-", "_");
             foreach (var item in _Filter)
@@ -43,7 +43,7 @@ namespace XTemplate.Templating
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return String.Format("{0} [{1}]", AssemblyName ?? NameSpace, Templates.Count);
             //return base.ToString();
@@ -108,7 +108,7 @@ namespace XTemplate.Templating
                     {
                         if (String.IsNullOrEmpty(item.Location)) continue;
 
-                        String name = Path.GetFileName(item.Location);
+                        var name = Path.GetFileName(item.Location);
                         if (!String.IsNullOrEmpty(name)) name = name.ToLower();
                         if (names.Contains(name)) continue;
                         names.Add(name);
@@ -186,7 +186,7 @@ namespace XTemplate.Templating
                         // 遍历所有公开类，导入它们的所有命名空间
                         foreach (var type in asm.GetTypes())
                         {
-                            String name = type.Namespace;
+                            var name = type.Namespace;
                             if (String.IsNullOrEmpty(name)) continue;
                             //if (!name.StartsWith("XCode") && !name.StartsWith("NewLife")) continue;
                             if (!list.Contains(name)) list.Add(name);

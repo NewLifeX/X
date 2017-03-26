@@ -23,8 +23,8 @@ namespace NewLife.Net.Sdp
         {
             if (String.IsNullOrEmpty(value)) throw new ArgumentNullException("value");
 
-            Int32 p = value.IndexOf("=");
-            Int32 p2 = value.IndexOf(":", p);
+            var p = value.IndexOf("=");
+            var p2 = value.IndexOf(":", p);
 
             var entity = new SdpAttribute();
             if (p2 > 0)
@@ -40,7 +40,7 @@ namespace NewLife.Net.Sdp
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (String.IsNullOrEmpty(Value))
                 return String.Format("a={0}", Name);

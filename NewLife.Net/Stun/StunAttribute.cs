@@ -83,7 +83,7 @@ namespace NewLife.Net.Stun
             if (Data == null || Data.Length < 1) return default(T);
 
             Object value = null;
-            Type t = typeof(T);
+            var t = typeof(T);
             if (t == typeof(IPEndPoint))
                 value = EndPoint;
             else if (t == typeof(String))
@@ -97,7 +97,7 @@ namespace NewLife.Net.Stun
         public void SetValue<T>(T value)
         {
             Object v = value;
-            Type t = typeof(T);
+            var t = typeof(T);
             if (t == typeof(IPEndPoint))
                 EndPoint = (IPEndPoint)v;
             else if (t == typeof(String))
@@ -133,7 +133,7 @@ namespace NewLife.Net.Stun
             var port = BitConverter.ToUInt16(arr, 0);
 
             // Address
-            Byte[] ip = new Byte[4];
+            var ip = new Byte[4];
             //data.CopyTo(ip, 4);
             Array.Copy(data, 4, ip, 0, ip.Length);
 
@@ -179,7 +179,7 @@ namespace NewLife.Net.Stun
         #endregion
 
         #region 辅助
-        public override string ToString()
+        public override String ToString()
         {
             switch (Type)
             {
@@ -216,7 +216,7 @@ namespace NewLife.Net.Stun
     }
 
     /// <summary>属性类型</summary>
-    enum AttributeType : ushort
+    enum AttributeType : UInt16
     {
         MappedAddress = 0x0001,
         ResponseAddress = 0x0002,

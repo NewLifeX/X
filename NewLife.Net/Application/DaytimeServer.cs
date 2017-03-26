@@ -22,7 +22,7 @@ namespace NewLife.Net.Application
         {
             WriteLog("Daytime {0}", session.Remote);
 
-            Byte[] buffer = Encoding.ASCII.GetBytes(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff"));
+            var buffer = Encoding.ASCII.GetBytes(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff"));
             //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
             //session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
             session.Send(buffer);

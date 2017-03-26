@@ -16,7 +16,7 @@ namespace System
         {
             if (value.GetType() != flag.GetType()) throw new ArgumentException("flag", "枚举标识判断必须是相同的类型！");
 
-            UInt64 num = Convert.ToUInt64(flag);
+            var num = Convert.ToUInt64(flag);
             return (Convert.ToUInt64(value) & num) == num;
         }
 
@@ -30,8 +30,8 @@ namespace System
         {
             if (!(source is T)) throw new ArgumentException("source", "枚举标识判断必须是相同的类型！");
 
-            UInt64 s = Convert.ToUInt64(source);
-            UInt64 f = Convert.ToUInt64(flag);
+            var s = Convert.ToUInt64(source);
+            var f = Convert.ToUInt64(flag);
 
             if (value)
             {
@@ -88,9 +88,9 @@ namespace System
                 // 这里的快速访问方法会报错
                 //FieldInfoX fix = FieldInfoX.Create(item);
                 //PermissionFlags value = (PermissionFlags)fix.GetValue(null);
-                Int32 value = Convert.ToInt32(item.GetValue(null));
+                var value = Convert.ToInt32(item.GetValue(null));
 
-                String des = item.Name;
+                var des = item.Name;
 
                 //var dna = AttributeX.GetCustomAttribute<DisplayNameAttribute>(item, false);
                 var dna = item.GetCustomAttribute<DisplayNameAttribute>(false);

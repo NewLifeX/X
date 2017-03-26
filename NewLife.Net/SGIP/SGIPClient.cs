@@ -72,7 +72,7 @@ namespace NewLife.Net.SGIP
             }
             catch (Exception ex)
             {
-                String str = IP + ":" + Port.ToString();
+                var str = IP + ":" + Port.ToString();
                 throw new NetException("连接网关服务器" + str + "出错，请确定网络是否畅通！" + ex.Message, ex);
             }
 
@@ -102,7 +102,7 @@ namespace NewLife.Net.SGIP
             return true;
         }
 
-        void Client_Received(object sender, ReceivedEventArgs e)
+        void Client_Received(Object sender, ReceivedEventArgs e)
         {
         }
         #endregion
@@ -118,7 +118,7 @@ namespace NewLife.Net.SGIP
             if (!target.StartsWith("86")) target = "86" + target;
 
             var cmd = new SGIPSubmit();
-            String id = SystemID;
+            var id = SystemID;
             if (id.Length > 4) id = SystemID.Substring(4);
             cmd.SPNumber = SPNumber + id + "4888";
             cmd.ChargeNumber = new String('0', 21);

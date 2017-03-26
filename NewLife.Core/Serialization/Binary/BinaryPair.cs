@@ -245,7 +245,7 @@ namespace NewLife.Serialization
             if (list == null || list.Count == 0) return true;
 
             // 循环写入数据
-            for (int i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 WritePair(i + "", list[i]);
             }
@@ -263,7 +263,7 @@ namespace NewLife.Serialization
             var list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
 
             var ds = ReadPair();
-            for (int i = 0; i < ds.Count; i++)
+            for (var i = 0; i < ds.Count; i++)
             {
                 Object v = null;
                 if (TryReadPair(ds, i + "", elmType, ref v)) list.Add(v);
@@ -340,7 +340,7 @@ namespace NewLife.Serialization
             Host.Hosts.Push(value);
 
             // 获取成员
-            for (int i = 0; i < ms.Count; i++)
+            for (var i = 0; i < ms.Count; i++)
             {
                 var member = ms[i];
 

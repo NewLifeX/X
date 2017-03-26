@@ -128,7 +128,7 @@ namespace NewLife.Net.Dhcp
         /// <param name="stream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override bool Read(Stream stream, Object context)
+        public override Boolean Read(Stream stream, Object context)
         {
             if (!base.Read(stream, context)) return false;
 
@@ -176,7 +176,7 @@ namespace NewLife.Net.Dhcp
         /// <summary>使用字段大小</summary>
         /// <param name="isRead"></param>
         /// <returns></returns>
-        protected override IFormatterX CreateFormatter(bool isRead)
+        protected override IFormatterX CreateFormatter(Boolean isRead)
         {
             var fm = base.CreateFormatter(isRead) as Binary;
             fm.UseFieldSize = true;
@@ -191,7 +191,7 @@ namespace NewLife.Net.Dhcp
         /// <param name="pi"></param>
         /// <param name="len"></param>
         /// <param name="sb"></param>
-        protected override void GetMember(PropertyInfo pi, int len, StringBuilder sb)
+        protected override void GetMember(PropertyInfo pi, Int32 len, StringBuilder sb)
         {
             if (pi.Name == "Options")
             {
@@ -210,7 +210,7 @@ namespace NewLife.Net.Dhcp
         /// <summary>获取用于输出的成员值</summary>
         /// <param name="pi"></param>
         /// <returns></returns>
-        protected override object GetMemberValue(PropertyInfo pi)
+        protected override Object GetMemberValue(PropertyInfo pi)
         {
             var v = base.GetMemberValue(pi);
             var type = pi.PropertyType;

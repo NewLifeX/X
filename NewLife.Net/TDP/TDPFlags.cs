@@ -4,7 +4,7 @@ namespace NewLife.Net.TDP
 {
     /// <summary>TDP标记</summary>
     [Flags]
-    public enum TDPFlags : byte
+    public enum TDPFlags : Byte
     {
         /// <summary>发端完成发送任务。</summary>
         FIN = 1,

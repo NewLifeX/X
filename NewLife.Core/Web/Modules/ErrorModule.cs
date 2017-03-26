@@ -56,7 +56,7 @@ namespace NewLife.Web
         /// <summary>错误处理方法</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnError(object sender, EventArgs e)
+        protected virtual void OnError(Object sender, EventArgs e)
         {
             var Server = HttpContext.Current.Server;
             var Request = HttpContext.Current.Request;

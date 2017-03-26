@@ -92,19 +92,26 @@ namespace NewLife.Messaging
         /// <param name="stream"></param>
         public override void Write(Stream stream)
         {
+            var ms = stream;
+            if (_IsChar) ms = new MemoryStream();
+
             // 标记位
-            Byte b = Flag;
+            var b = Flag;
             if (Reply) b |= 0x80;
             //if (Error) b |= 0x40;
-            stream.WriteByte(b);
+            ms.WriteByte(b);
 
             // 序列号
-            stream.WriteByte(Sequence);
+            ms.WriteByte(Sequence);
 
             // 2字节长度，大端
             var len = 0;
             if (Payload != null) len = Payload.Count;
-            stream.Write(((UInt16)len).GetBytes(false));
+            //ms.Write(((UInt16)len).GetBytes(false));
+            ms.WriteByte((Byte)(len >> 8));
+            ms.WriteByte((Byte)(len & 0xFF));
+
+            if (_IsChar) stream.Write(ms.ToArray());
 
             Payload?.WriteTo(stream);
         }

@@ -160,7 +160,7 @@ namespace NewLife.Net.DNS
 
             // 获取结果
             var dic = new Dictionary<DNSClient, DNSEntity>();
-            for (int i = 0; i < cs.Length; i++)
+            for (var i = 0; i < cs.Length; i++)
             {
                 var task = ts[i];
                 if (task.IsOK() && task.Result != null) dic.Add(cs[i], task.Result);

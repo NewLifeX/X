@@ -34,7 +34,7 @@ namespace NewLife.Remoting
             WriteLog("<={0}", json);
 
             var jp = new JsonParser(json);
-            var dic = jp.Decode() as IDictionary<string, object>;
+            var dic = jp.Decode() as IDictionary<String, Object>;
 
             return dic;
         }

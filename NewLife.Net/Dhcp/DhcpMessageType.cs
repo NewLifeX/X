@@ -3,7 +3,7 @@
 namespace NewLife.Net.Dhcp
 {
     /// <summary>DHCP消息类型</summary>
-    public enum DhcpMessageType : byte
+    public enum DhcpMessageType : System.Byte
     {
         /// <summary>发现</summary>
         [Description("发现")]

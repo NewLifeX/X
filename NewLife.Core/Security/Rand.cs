@@ -83,7 +83,7 @@ namespace NewLife.Security
         public static String NextString(Int32 length)
         {
             var sb = new StringBuilder();
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var ch = (Char)Next((Int32)' ', 0x7F);
                 sb.Append(ch);

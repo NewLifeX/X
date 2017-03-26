@@ -80,7 +80,7 @@ namespace NewLife.Net.Application
             {
                 // 不断的发送数据，直到连接断开为止
                 //while (!hasError)
-                for (int i = 0; i < 64 && !hasError; i++)
+                for (var i = 0; i < 64 && !hasError; i++)
                 {
                     try
                     {
@@ -103,15 +103,15 @@ namespace NewLife.Net.Application
 
         void Send(ISocketSession session)
         {
-            Int32 startIndex = Index++;
+            var startIndex = Index++;
             if (Index >= Length) Index = 0;
 
-            Byte[] buffer = new Byte[Length];
+            var buffer = new Byte[Length];
 
             // 产生数据
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
-                Int32 p = startIndex + i;
+                var p = startIndex + i;
                 if (p >= buffer.Length) p -= buffer.Length;
                 buffer[p] = (Byte)(i + 32);
             }

@@ -236,7 +236,7 @@ namespace NewLife.Net
         #endregion
 
         #region 异步接收
-        void DataReceived(object sender, SerialDataReceivedEventArgs e)
+        void DataReceived(Object sender, SerialDataReceivedEventArgs e)
         {
             // 发送者必须保持一定间隔，每个报文不能太大，否则会因为粘包拆包而出错
             try
@@ -245,7 +245,7 @@ namespace NewLife.Net
                 WaitMore();
                 if (sp.BytesToRead > 0)
                 {
-                    var buf = new byte[sp.BytesToRead];
+                    var buf = new Byte[sp.BytesToRead];
 
                     var count = sp.Read(buf, 0, buf.Length);
                     //if (count != buf.Length) buf = buf.ReadBytes(0, count);
@@ -492,7 +492,7 @@ namespace NewLife.Net
 
         /// <summary>已重载</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (!String.IsNullOrEmpty(PortName))
                 return PortName;

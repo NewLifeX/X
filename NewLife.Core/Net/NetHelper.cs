@@ -30,11 +30,11 @@ namespace System
         public static void SetTcpKeepAlive(this Socket socket, Boolean iskeepalive, Int32 starttime = 10000, Int32 interval = 10000)
         {
             if (socket == null || !socket.Connected) return;
-            uint dummy = 0;
-            byte[] inOptionValues = new byte[Marshal.SizeOf(dummy) * 3];
-            BitConverter.GetBytes((uint)(iskeepalive ? 1 : 0)).CopyTo(inOptionValues, 0);
-            BitConverter.GetBytes((uint)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
-            BitConverter.GetBytes((uint)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
+            UInt32 dummy = 0;
+            var inOptionValues = new Byte[Marshal.SizeOf(dummy) * 3];
+            BitConverter.GetBytes((UInt32)(iskeepalive ? 1 : 0)).CopyTo(inOptionValues, 0);
+            BitConverter.GetBytes((UInt32)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
+            BitConverter.GetBytes((UInt32)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
         }
 
@@ -355,7 +355,7 @@ namespace System
 #if !__MOBILE__
         static private ManagementObjectCollection GetInstances()
         {
-            ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
+            var mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
             return mc.GetInstances();
         }
 
@@ -370,12 +370,12 @@ namespace System
 
             foreach (ManagementObject mo in moc)
             {
-                if (!(bool)mo["IPEnabled"]) continue;
+                if (!(Boolean)mo["IPEnabled"]) continue;
 
                 // 设置IP和掩码
                 var inPar = mo.GetMethodParameters("EnableStatic");
-                inPar["IPAddress"] = new string[] { ip };
-                inPar["SubnetMask"] = new string[] { mask };
+                inPar["IPAddress"] = new String[] { ip };
+                inPar["SubnetMask"] = new String[] { mask };
                 var outPar = mo.InvokeMethod("EnableStatic", inPar, null);
             }
 
@@ -394,11 +394,11 @@ namespace System
 
             foreach (ManagementObject mo in moc)
             {
-                if (!(bool)mo["IPEnabled"]) continue;
+                if (!(Boolean)mo["IPEnabled"]) continue;
 
                 // 设置网关 
                 var inPar = mo.GetMethodParameters("SetGateways");
-                inPar["DefaultIPGateway"] = new string[] { address };
+                inPar["DefaultIPGateway"] = new String[] { address };
                 var outPar = mo.InvokeMethod("SetGateways", inPar, null);
             }
 
@@ -415,7 +415,7 @@ namespace System
 
             foreach (ManagementObject mo in moc)
             {
-                if (!(bool)mo["IPEnabled"]) continue;
+                if (!(Boolean)mo["IPEnabled"]) continue;
 
                 mo.InvokeMethod("SetDNSServerSearchOrder", null);
                 // 开启DHCP
@@ -442,17 +442,17 @@ namespace System
         {
             mac = mac.Replace("-", null).Replace(":", null);
             var buffer = new Byte[mac.Length / 2];
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 buffer[i] = Byte.Parse(mac.Substring(i * 2, 2), NumberStyles.HexNumber);
             }
 
             var bts = new Byte[6 + 16 * buffer.Length];
-            for (int i = 0; i < 6; i++)
+            for (var i = 0; i < 6; i++)
             {
                 bts[i] = 0xFF;
             }
-            for (int i = 6, k = 0; i < bts.Length; i++, k++)
+            for (Int32 i = 6, k = 0; i < bts.Length; i++, k++)
             {
                 if (k >= buffer.Length) k = 0;
 
@@ -468,7 +468,7 @@ namespace System
 
         #region MAC获取/ARP协议
         [DllImport("Iphlpapi.dll")]
-        private static extern int SendARP(UInt32 destip, UInt32 srcip, Byte[] mac, ref Int32 length);
+        private static extern Int32 SendARP(UInt32 destip, UInt32 srcip, Byte[] mac, ref Int32 length);
 
         /// <summary>根据IP地址获取MAC地址</summary>
         /// <param name="ip"></param>

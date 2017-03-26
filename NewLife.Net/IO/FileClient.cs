@@ -16,7 +16,7 @@ namespace NewLife.Net.IO
         #region 构造
         /// <summary>销毁客户端</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -68,7 +68,7 @@ namespace NewLife.Net.IO
         /// <param name="directoryName"></param>
         public void SendDirectory(String directoryName)
         {
-            foreach (String item in Directory.GetFiles(directoryName, "*.*", SearchOption.AllDirectories))
+            foreach (var item in Directory.GetFiles(directoryName, "*.*", SearchOption.AllDirectories))
             {
                 SendFile(item, directoryName);
             }

@@ -37,7 +37,7 @@ namespace NewLife.Log
 
         /// <summary>析构</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             Stop();
 

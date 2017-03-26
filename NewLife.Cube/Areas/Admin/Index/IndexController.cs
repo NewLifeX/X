@@ -46,7 +46,7 @@ namespace NewLife.Cube.Admin.Controllers
             ViewBag.User = ManageProvider.User;
             ViewBag.Config = SysConfig.Current;
 
-            String name = Request.ServerVariables["Server_SoftWare"];
+            var name = Request.ServerVariables["Server_SoftWare"];
             if (String.IsNullOrEmpty(name)) name = Process.GetCurrentProcess().ProcessName;
 
             // 检测集成管道，低版本.Net不支持，请使用者根据情况自行注释
@@ -70,7 +70,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>菜单不可见</summary>
         /// <param name="menu"></param>
         /// <returns></returns>
-        protected override IDictionary<MethodInfo, int> ScanActionMenu(IMenu menu)
+        protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
         {
             if (menu.Visible)
             {

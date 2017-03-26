@@ -103,7 +103,7 @@ namespace NewLife.Common
                 {
                     //if (String.IsNullOrEmpty(_Volume)) _Volume = GetInfo("Win32_DiskDrive", "Model");
                     //磁盘序列号不够明显，故使用驱动器序列号代替
-                    String id = AppDomain.CurrentDomain.BaseDirectory.Substring(0, 2);
+                    var id = AppDomain.CurrentDomain.BaseDirectory.Substring(0, 2);
                     if (_Volume == null) _Volume = GetInfo("Win32_LogicalDisk Where DeviceID=\"" + id + "\"", "VolumeSerialNumber");
                     return _Volume;
                 }
@@ -120,17 +120,17 @@ namespace NewLife.Common
                     var cimobject = new ManagementClass("Win32_NetworkAdapterConfiguration");
                     var moc = cimobject.GetInstances();
                     var bbs = new List<String>();
-                    foreach (ManagementObject mo in moc)
+                    foreach (var mo in moc)
                     {
                         if (mo != null &&
                             mo.Properties != null &&
                             mo.Properties["MacAddress"] != null &&
                             mo.Properties["MacAddress"].Value != null &&
                             mo.Properties["IPEnabled"] != null &&
-                            (bool)mo.Properties["IPEnabled"].Value)
+                            (Boolean)mo.Properties["IPEnabled"].Value)
                         {
                             //bbs.Add(mo.Properties["MacAddress"].Value.ToString());
-                            String s = mo.Properties["MacAddress"].Value.ToString();
+                            var s = mo.Properties["MacAddress"].Value.ToString();
                             if (!bbs.Contains(s)) bbs.Add(s);
                         }
                     }
@@ -157,19 +157,19 @@ namespace NewLife.Common
                     var cimobject = new ManagementClass("Win32_NetworkAdapterConfiguration");
                     var moc = cimobject.GetInstances();
                     var bbs = new List<String>();
-                    foreach (ManagementObject mo in moc)
+                    foreach (var mo in moc)
                     {
                         if (mo != null &&
                             mo.Properties != null &&
                             mo.Properties["IPAddress"] != null &&
                             mo.Properties["IPAddress"].Value != null &&
                             mo.Properties["IPEnabled"] != null &&
-                            (bool)mo.Properties["IPEnabled"].Value)
+                            (Boolean)mo.Properties["IPEnabled"].Value)
                         {
-                            String[] ss = (String[])mo.Properties["IPAddress"].Value;
+                            var ss = (String[])mo.Properties["IPAddress"].Value;
                             if (ss != null)
                             {
-                                foreach (String s in ss)
+                                foreach (var s in ss)
                                     if (!bbs.Contains(s)) bbs.Add(s);
                             }
                             //bbs.Add(mo.Properties["IPAddress"].Value.ToString());
@@ -262,9 +262,9 @@ namespace NewLife.Common
             set { _OSVersion = value; }
         }
 
-        private long _Memory;
+        private Int64 _Memory;
         /// <summary>内存</summary>
-        public long Memory
+        public Int64 Memory
         {
             get { return _Memory; }
             set { _Memory = value; }
@@ -378,7 +378,7 @@ namespace NewLife.Common
                 var wql = String.Format("Select {0} From {1}", property, path);
                 var cimobject = new ManagementObjectSearcher(wql);
                 var moc = cimobject.Get();
-                foreach (ManagementObject mo in moc)
+                foreach (var mo in moc)
                 {
                     if (mo != null &&
                         mo.Properties != null &&

@@ -201,7 +201,7 @@ namespace NewLife.Net.Http
                     _last = null;
                 }
 
-                Int32 p = line.IndexOf(":");
+                var p = line.IndexOf(":");
                 if (p < 0) throw new NetException("无法处理的头部名值对！{0}", line);
                 Headers[line.Substring(0, p).Trim()] = line.Substring(p + 1).Trim();
             }
@@ -257,7 +257,7 @@ namespace NewLife.Net.Http
 
         /// <summary>已重载。以文本形式呈现整个头部</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (!IsResponse)
                 return String.Format("{0} {1} {2}", Method, RawUrl, Version);
@@ -267,9 +267,9 @@ namespace NewLife.Net.Http
 
         /// <summary>文本形式</summary>
         /// <returns></returns>
-        public string ToText()
+        public String ToText()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             if (!IsResponse)
                 sb.AppendFormat("{0} {1} {2}", Method, Url, Version);
             else

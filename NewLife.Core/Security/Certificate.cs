@@ -44,7 +44,7 @@ namespace NewLife.Security
                 if (!String.IsNullOrEmpty(insecurePassword))
                 {
                     password = new SecureString();
-                    foreach (char ch in insecurePassword)
+                    foreach (var ch in insecurePassword)
                     {
                         password.AppendChar(ch);
                     }
@@ -206,17 +206,17 @@ namespace NewLife.Security
 
         private static SystemTime ToSystemTime(DateTime dateTime)
         {
-            long fileTime = dateTime.ToFileTime();
+            var fileTime = dateTime.ToFileTime();
             SystemTime systemTime;
             Check(NativeMethods.FileTimeToSystemTime(ref fileTime, out systemTime));
             return systemTime;
         }
 
-        private static void Check(bool nativeCallSucceeded)
+        private static void Check(Boolean nativeCallSucceeded)
         {
             if (!nativeCallSucceeded)
             {
-                int error = Marshal.GetHRForLastWin32Error();
+                var error = Marshal.GetHRForLastWin32Error();
                 Marshal.ThrowExceptionForHR(error);
             }
         }
@@ -224,23 +224,23 @@ namespace NewLife.Security
         [StructLayout(LayoutKind.Sequential)]
         private struct SystemTime
         {
-            public short Year;
-            public short Month;
-            public short DayOfWeek;
-            public short Day;
-            public short Hour;
-            public short Minute;
-            public short Second;
-            public short Milliseconds;
+            public Int16 Year;
+            public Int16 Month;
+            public Int16 DayOfWeek;
+            public Int16 Day;
+            public Int16 Hour;
+            public Int16 Minute;
+            public Int16 Second;
+            public Int16 Milliseconds;
         }
 
         [StructLayout(LayoutKind.Sequential)]
         private struct CryptoApiBlob
         {
-            public int DataLength;
+            public Int32 DataLength;
             public IntPtr Data;
 
-            public CryptoApiBlob(int dataLength, IntPtr data)
+            public CryptoApiBlob(Int32 dataLength, IntPtr data)
             {
                 DataLength = dataLength;
                 Data = data;
@@ -254,65 +254,65 @@ namespace NewLife.Security
             public String ContainerName;
             [MarshalAs(UnmanagedType.LPWStr)]
             public String ProviderName;
-            public int ProviderType;
-            public int Flags;
-            public int ProviderParameterCount;
+            public Int32 ProviderType;
+            public Int32 Flags;
+            public Int32 ProviderParameterCount;
             public IntPtr ProviderParameters; // PCRYPT_KEY_PROV_PARAM
-            public int KeySpec;
+            public Int32 KeySpec;
         }
 
         private static class NativeMethods
         {
             [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool FileTimeToSystemTime(
-                [In] ref long fileTime,
+            public static extern Boolean FileTimeToSystemTime(
+                [In] ref Int64 fileTime,
                 out SystemTime systemTime);
 
             [DllImport("AdvApi32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CryptAcquireContextW(
+            public static extern Boolean CryptAcquireContextW(
                 out IntPtr providerContext,
                 [MarshalAs(UnmanagedType.LPWStr)] String container,
                 [MarshalAs(UnmanagedType.LPWStr)] String provider,
-                int providerType,
-                int flags);
+                Int32 providerType,
+                Int32 flags);
 
             [DllImport("AdvApi32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CryptReleaseContext(
+            public static extern Boolean CryptReleaseContext(
                 IntPtr providerContext,
-                int flags);
+                Int32 flags);
 
             [DllImport("AdvApi32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CryptGenKey(
+            public static extern Boolean CryptGenKey(
                 IntPtr providerContext,
-                int algorithmId,
-                int flags,
+                Int32 algorithmId,
+                Int32 flags,
                 out IntPtr cryptKeyHandle);
 
             [DllImport("AdvApi32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CryptDestroyKey(
+            public static extern Boolean CryptDestroyKey(
                 IntPtr cryptKeyHandle);
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CertStrToNameW(
-                int certificateEncodingType,
+            public static extern Boolean CertStrToNameW(
+                Int32 certificateEncodingType,
                 IntPtr x500,
-                int strType,
+                Int32 strType,
                 IntPtr reserved,
                 [MarshalAs(UnmanagedType.LPArray)] [Out] Byte[] encoded,
-                ref int encodedLength,
+                ref Int32 encodedLength,
                 out IntPtr errorString);
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             public static extern IntPtr CertCreateSelfSignCertificate(
                 IntPtr providerHandle,
                 [In] ref CryptoApiBlob subjectIssuerBlob,
-                int flags,
+                Int32 flags,
                 [In] ref CryptKeyProviderInformation keyProviderInformation,
                 IntPtr signatureAlgorithm,
                 [In] ref SystemTime startTime,
@@ -321,47 +321,47 @@ namespace NewLife.Security
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CertFreeCertificateContext(
+            public static extern Boolean CertFreeCertificateContext(
                 IntPtr certificateContext);
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             public static extern IntPtr CertOpenStore(
                 [MarshalAs(UnmanagedType.LPStr)] String storeProvider,
-                int messageAndCertificateEncodingType,
+                Int32 messageAndCertificateEncodingType,
                 IntPtr cryptProvHandle,
-                int flags,
+                Int32 flags,
                 IntPtr parameters);
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CertCloseStore(
+            public static extern Boolean CertCloseStore(
                 IntPtr certificateStoreHandle,
-                int flags);
+                Int32 flags);
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CertAddCertificateContextToStore(
+            public static extern Boolean CertAddCertificateContextToStore(
                 IntPtr certificateStoreHandle,
                 IntPtr certificateContext,
-                int addDisposition,
+                Int32 addDisposition,
                 out IntPtr storeContextPtr);
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool CertSetCertificateContextProperty(
+            public static extern Boolean CertSetCertificateContextProperty(
                 IntPtr certificateContext,
-                int propertyId,
-                int flags,
+                Int32 propertyId,
+                Int32 flags,
                 [In] ref CryptKeyProviderInformation data);
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool PFXExportCertStoreEx(
+            public static extern Boolean PFXExportCertStoreEx(
                 IntPtr certificateStoreHandle,
                 ref CryptoApiBlob pfxBlob,
                 IntPtr password,
                 IntPtr reserved,
-                int flags);
+                Int32 flags);
         }
     }
 }

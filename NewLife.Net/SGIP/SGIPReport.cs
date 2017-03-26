@@ -49,7 +49,7 @@ namespace NewLife.Net.SGIP
     }
 
     /// <summary>Report命令类型</summary>
-    public enum SGIPReportTypes : byte
+    public enum SGIPReportTypes : Byte
     {
         /// <summary>0：对先前一条Submit命令的状态报告</summary>
         Submit = 0,
@@ -58,7 +58,7 @@ namespace NewLife.Net.SGIP
     }
 
     /// <summary>该命令所涉及的短消息的当前执行状态</summary>
-    public enum SGIPReportStates : byte
+    public enum SGIPReportStates : Byte
     {
         /// <summary>0：发送成功</summary>
         Success = 0,

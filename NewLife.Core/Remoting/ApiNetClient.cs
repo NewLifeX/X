@@ -28,7 +28,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 方法
-        public virtual bool Init(object config)
+        public virtual Boolean Init(Object config)
         {
             var uri = config is String ? new NetUri(config + "") : config as NetUri;
             if (uri == null) return false;

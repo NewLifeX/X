@@ -88,7 +88,7 @@ namespace NewLife.Net.Proxy
                 var r = entity.Referer;
                 if (!String.IsNullOrEmpty(r))
                 {
-                    Uri ri = new Uri(r, UriKind.RelativeOrAbsolute);
+                    var ri = new Uri(r, UriKind.RelativeOrAbsolute);
                     if (ri.IsAbsoluteUri && ri.Authority == RawHost)
                     {
                         r = r.Replace(RawHost, host);

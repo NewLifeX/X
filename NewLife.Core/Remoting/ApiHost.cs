@@ -115,7 +115,7 @@ namespace NewLife.Remoting
             Object args = null;
             if (!enc.TryGet(dic, out action, out args)) return null;
 
-            object result = null;
+            Object result = null;
             var code = 0;
             try
             {

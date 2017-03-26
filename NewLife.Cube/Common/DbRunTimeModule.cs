@@ -54,8 +54,8 @@ namespace NewLife.Cube
 
             if (!Context.Items.Contains(_QueryTimes) || !Context.Items.Contains(_ExecuteTimes)) throw new XException("设计错误！需要在web.config中配置{0}", typeof(DbRunTimeModule).FullName);
 
-            Int32 StartQueryTimes = (Int32)Context.Items[_QueryTimes];
-            Int32 StartExecuteTimes = (Int32)Context.Items[_ExecuteTimes];
+            var StartQueryTimes = (Int32)Context.Items[_QueryTimes];
+            var StartExecuteTimes = (Int32)Context.Items[_ExecuteTimes];
 
             var inf = String.Format(DbRunTimeFormat, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
 

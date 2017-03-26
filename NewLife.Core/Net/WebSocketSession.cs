@@ -74,7 +74,7 @@ namespace NewLife.Net
 
             var len = ms.ReadByte();
 
-            bool mask = (len & 0x80) == 0x80;
+            var mask = (len & 0x80) == 0x80;
 
             /*
              * 数据长度
@@ -102,7 +102,7 @@ namespace NewLife.Net
             {
                 for (var i = 0; i < len; i++)
                 {
-                    data[i] = (byte)(data[i] ^ masks[i % 4]);
+                    data[i] = (Byte)(data[i] ^ masks[i % 4]);
                 }
             }
 

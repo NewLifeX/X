@@ -227,7 +227,7 @@ namespace NewLife.Net.Modbus
 
             // 元素存放于m字节n位
             var m = n = 0;
-            for (int i = 0; i < flags.Length; i++)
+            for (var i = 0; i < flags.Length; i++)
             {
                 if (flags[i]) buf[5 + m] |= (Byte)(1 << n);
 
@@ -302,7 +302,7 @@ namespace NewLife.Net.Modbus
             if (1 + count > rs.Data.Length) count = (UInt16)(rs.Data.Length - 1);
 
             var ds = new UInt16[count / 2];
-            for (int i = 0; i < ds.Length; i++)
+            for (var i = 0; i < ds.Length; i++)
             {
                 ds[i] = rs.Data.ReadUInt16(1 + i * 2);
             }
@@ -352,7 +352,7 @@ namespace NewLife.Net.Modbus
             // 字节计数
             buf[4] = (Byte)(vals.Length * 2);
 
-            for (int i = 0; i < vals.Length; i++)
+            for (var i = 0; i < vals.Length; i++)
             {
                 buf.WriteUInt16(5 + i * 2, vals[i]);
             }

@@ -89,7 +89,7 @@ namespace NewLife.Agent
         /// <param name="cmd"></param>
         protected static void RunSC(String cmd)
         {
-            String path = Environment.SystemDirectory;
+            var path = Environment.SystemDirectory;
             path = Path.Combine(path, @"sc.exe");
             if (!File.Exists(path)) path = "sc.exe";
             if (!File.Exists(path)) return;

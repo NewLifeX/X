@@ -35,7 +35,7 @@ namespace NewLife.Net.Sdp
         /// <summary>分析</summary>
         /// <param name="value">Origin value.</param>
         /// <returns>Returns parsed SDP Origin.</returns>
-        public static SdpOrigin Parse(string value)
+        public static SdpOrigin Parse(String value)
         {
             if (value == null) throw new ArgumentNullException("value");
 
@@ -48,7 +48,7 @@ namespace NewLife.Net.Sdp
 
             value = value.Substring(2);
 
-            string[] values = value.Split(' ');
+            var values = value.Split(' ');
             if (values.Length != 6) throw new NetException("Invalid SDP Origin('o=') value '" + value + "'.");
 
             var so = new SdpOrigin();
@@ -63,7 +63,7 @@ namespace NewLife.Net.Sdp
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return "o=" + UserName + " " + SessionID + " " + SessionVersion + " " + NetType + " " + AddressType + " " + UnicastAddress + "\r\n";
         }

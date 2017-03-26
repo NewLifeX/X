@@ -9,7 +9,7 @@ namespace NewLife.Remoting
     public interface IApiManager
     {
         /// <summary>可提供服务的方法</summary>
-        IDictionary<string, ApiAction> Services { get; }
+        IDictionary<String, ApiAction> Services { get; }
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <param name="requireApi">是否要求Api特性</param>
@@ -28,13 +28,13 @@ namespace NewLife.Remoting
         /// <summary>查找服务</summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        ApiAction Find(string action);
+        ApiAction Find(String action);
     }
 
     class ApiManager : IApiManager
     {
         /// <summary>可提供服务的方法</summary>
-        public IDictionary<string, ApiAction> Services { get; } = new Dictionary<string, ApiAction>();
+        public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>();
 
         private void Register(Object controller, Type type, Boolean requireApi)
         {
@@ -44,7 +44,7 @@ namespace NewLife.Remoting
             foreach (var mi in type.GetMethods(flag))
             {
                 if (mi.IsSpecialName) continue;
-                if (mi.DeclaringType == typeof(object)) continue;
+                if (mi.DeclaringType == typeof(Object)) continue;
                 if (requireApi && mi.GetCustomAttribute<ApiAttribute>() == null) continue;
 
                 var act = new ApiAction(mi, type);
@@ -96,7 +96,7 @@ namespace NewLife.Remoting
         /// <summary>查找服务</summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public ApiAction Find(string action)
+        public ApiAction Find(String action)
         {
             ApiAction mi;
             return Services.TryGetValue(action, out mi) ? mi : null;

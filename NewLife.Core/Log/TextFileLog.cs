@@ -44,7 +44,7 @@ namespace NewLife.Log
         {
             if (String.IsNullOrEmpty(path)) return Create(path);
 
-            String key = path.ToLower();
+            var key = path.ToLower();
             return cache.GetItem(key, k => new TextFileLog(path, true));
         }
 
@@ -92,7 +92,7 @@ namespace NewLife.Log
         /// <summary>初始化日志记录文件</summary>
         private void InitLog()
         {
-            String path = LogPath.EnsureDirectory(false);
+            var path = LogPath.EnsureDirectory(false);
 
             StreamWriter writer = null;
             var logfile = LogFile;
@@ -110,7 +110,7 @@ namespace NewLife.Log
             if (writer == null)
             {
                 logfile = Path.Combine(path, DateTime.Now.ToString("yyyy_MM_dd") + ".log");
-                int i = 0;
+                var i = 0;
                 while (i < 10)
                 {
                     try
@@ -170,7 +170,7 @@ namespace NewLife.Log
 
         #region 异步写日志
         private Timer _Timer;
-        private object Log_Lock = new object();
+        private Object Log_Lock = new Object();
 
         /// <summary>使用线程池线程异步执行日志写入动作</summary>
         /// <param name="e"></param>
@@ -252,7 +252,7 @@ namespace NewLife.Log
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (!String.IsNullOrEmpty(LogFile))
                 return String.Format("{0} {1}", GetType().Name, LogFile);

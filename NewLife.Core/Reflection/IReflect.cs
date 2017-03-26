@@ -431,7 +431,7 @@ namespace NewLife.Reflection
             if (pis == null || pis.Length < 1) return Invoke(target, method, null);
 
             var ps = new Object[pis.Length];
-            for (int i = 0; i < pis.Length; i++)
+            for (var i = 0; i < pis.Length; i++)
             {
                 Object v = null;
                 if (parameters != null && parameters.Contains(pis[i].Name)) v = parameters[pis[i].Name];

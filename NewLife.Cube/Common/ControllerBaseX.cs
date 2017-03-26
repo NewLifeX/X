@@ -63,7 +63,7 @@ namespace NewLife.Cube
                         {
                             // 附加的独立Action菜单，遍历所有权限位
                             var n = 1;
-                            for (int i = 0; i < 8; i++)
+                            for (var i = 0; i < 8; i++)
                             {
                                 var v = (PermissionFlags)n;
                                 if (att.Permission.Has(v)) node.Permissions[n] = v.GetDescription();

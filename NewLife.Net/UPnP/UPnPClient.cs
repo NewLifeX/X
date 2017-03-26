@@ -71,7 +71,7 @@ namespace NewLife.Net.UPnP
         #region 构造
         /// <summary>释放资源</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -129,7 +129,7 @@ namespace NewLife.Net.UPnP
         }
 
         //List<String> process = new List<String>();
-        void Udp_Received(object sender, ReceivedEventArgs e)
+        void Udp_Received(Object sender, ReceivedEventArgs e)
         {
             var content = e.Stream.ToStr();
             if (String.IsNullOrEmpty(content)) return;
@@ -141,11 +141,11 @@ namespace NewLife.Net.UPnP
             WriteLog("发现UPnP设备：{0}", remote);
 
             //分析数据并反序列化
-            String sp = "LOCATION:";
-            Int32 p = content.IndexOf(sp);
+            var sp = "LOCATION:";
+            var p = content.IndexOf(sp);
             if (p <= 0) return;
 
-            String url = content.Substring(p + sp.Length);
+            var url = content.Substring(p + sp.Length);
             p = url.IndexOf(Environment.NewLine);
             if (p <= 0) return;
 
@@ -156,11 +156,11 @@ namespace NewLife.Net.UPnP
             try
             {
                 //下载IGD.XML
-                WebClient client = new WebClient();
-                String xml = client.DownloadString(url);
+                var client = new WebClient();
+                var xml = client.DownloadString(url);
                 if (xml != null) xml = xml.Trim();
 
-                Uri uri = new Uri(url);
+                var uri = new Uri(url);
                 if (CacheGateway) File.WriteAllText(GetCacheFile(uri.Host), xml);
 
                 AddGateway(uri.Host, xml, false);
@@ -191,7 +191,7 @@ namespace NewLife.Net.UPnP
             }
             //}
 
-            if (OnNewDevice != null) OnNewDevice(this, new EventArgs<InternetGatewayDevice, bool>(device, isCache));
+            if (OnNewDevice != null) OnNewDevice(this, new EventArgs<InternetGatewayDevice, Boolean>(device, isCache));
         }
 
         /// <summary>发现新设备时触发。参数（设备，是否来自缓存）</summary>
@@ -202,16 +202,16 @@ namespace NewLife.Net.UPnP
         /// <summary>检查缓存的网关</summary>
         void CheckCacheGateway()
         {
-            String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XTrace.TempPath);
+            var p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XTrace.TempPath);
             p = Path.Combine(p, "UPnP");
             if (!Directory.Exists(p)) return;
 
-            String[] ss = Directory.GetFiles(p, cacheKey + "*.xml", SearchOption.TopDirectoryOnly);
+            var ss = Directory.GetFiles(p, cacheKey + "*.xml", SearchOption.TopDirectoryOnly);
             if (ss == null || ss.Length < 1) return;
 
-            foreach (String item in ss)
+            foreach (var item in ss)
             {
-                String ip = Path.GetFileNameWithoutExtension(item).Substring(cacheKey.Length).Trim(new Char[] { '_' });
+                var ip = Path.GetFileNameWithoutExtension(item).Substring(cacheKey.Length).Trim(new Char[] { '_' });
 
                 AddGateway(ip, File.ReadAllText(item), true);
             }

@@ -58,7 +58,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, object args = null)
+        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args = null)
         {
             if (session == null) return default(TResult);
 

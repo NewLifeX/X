@@ -25,7 +25,7 @@ namespace NewLife.Net.DNS
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return String.Format("{0} {1}", Type, Name); }
+        public override String ToString() { return String.Format("{0} {1}", Type, Name); }
         #endregion
     }
 
@@ -78,12 +78,12 @@ namespace NewLife.Net.DNS
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return String.Format("{0} {1}", Type, Text ?? Name); }
+        public override String ToString() { return String.Format("{0} {1}", Type, Text ?? Name); }
         #endregion
 
         #region IMemberAccessor 成员
 
-        bool IMemberAccessor.Read(IFormatterX fm, MemberInfo member)
+        Boolean IMemberAccessor.Read(IFormatterX fm, MemberInfo member)
         {
             if (member.Name == "_Type")
             {

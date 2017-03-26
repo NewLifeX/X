@@ -8,7 +8,7 @@ namespace NewLife.Remoting
     public static class GlobalFilters
     {
         /// <summary>过滤器类型集合</summary>
-        private static List<object> Filters { get; } = new List<Object>();
+        private static List<Object> Filters { get; } = new List<Object>();
 
         ///// <summary>添加过滤器</summary>
         ///// <typeparam name="T"></typeparam>

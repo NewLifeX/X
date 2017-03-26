@@ -59,7 +59,7 @@ namespace NewLife.Net
         /// <summary>已重载。日志加上前缀</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        void WriteLog(string format, params object[] args);
+        void WriteLog(String format, params Object[] args);
         #endregion
 
         #region 事件
@@ -197,7 +197,7 @@ namespace NewLife.Net
 
             if (msInterval < 10)
             {
-                for (int i = 0; i < times; i++)
+                for (var i = 0; i < times; i++)
                 {
                     session.Send(pk);
                 }

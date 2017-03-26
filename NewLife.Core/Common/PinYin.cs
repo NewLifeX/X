@@ -14,7 +14,7 @@ namespace NewLife.Common
     public class PinYin
     {
         #region 数组信息
-        private static int[] pyValue = new int[]
+        private static Int32[] pyValue = new Int32[]
         {
             -20319, -20317, -20304, -20295, -20292, -20283, -20265, -20257, -20242,
             -20230, -20051, -20036, -20032, -20026, -20002, -19990, -19986, -19982,
@@ -62,7 +62,7 @@ namespace NewLife.Common
             -10307, -10296, -10281, -10274, -10270, -10262, -10260, -10256, -10254
         };
 
-        private static string[] pyName = new string[]
+        private static String[] pyName = new String[]
         {
              "A", "Ai", "An", "Ang", "Ao", "Ba", "Bai", "Ban", "Bang", "Bao", "Bei",
              "Ben", "Beng", "Bi", "Bian", "Biao", "Bie", "Bin", "Bing", "Bo", "Bu",
@@ -506,11 +506,11 @@ namespace NewLife.Common
 
         #region 变量定义
         // GB2312-80 标准规范中第一个汉字的机内码.即"啊"的机内码
-        private const int firstChCode = -20319;
+        private const Int32 firstChCode = -20319;
         // GB2312-80 标准规范中最后一个汉字的机内码.即"齄"的机内码
-        private const int lastChCode = -2050;
+        private const Int32 lastChCode = -2050;
         // GB2312-80 标准规范中最后一个一级汉字的机内码.即"座"的机内码
-        private const int lastOfOneLevelChCode = -10247;
+        private const Int32 lastOfOneLevelChCode = -10247;
         // 配置中文字符
         //static Regex regex = new Regex("[\u4e00-\u9fa5]$");
         #endregion
@@ -574,16 +574,16 @@ namespace NewLife.Common
             if (chr <= lastOfOneLevelChCode)
             {
                 // 将一级汉字分为12块,每块33个汉字.
-                for (int aPos = 11; aPos >= 0; aPos--)
+                for (var aPos = 11; aPos >= 0; aPos--)
                 {
-                    int aboutPos = aPos * 33;
+                    var aboutPos = aPos * 33;
                     // 从最后的块开始扫描,如果机内码大于块的第一个机内码,说明在此块中
                     if (chr >= pyValue[aboutPos])
                     {
                         // Console.WriteLine("存在于第 " + aPos.ToString() + " 块,此块的第一个机内码是: " + pyValue[aPos * 33].ToString());
                         // 遍历块中的每个音节机内码,从最后的音节机内码开始扫描,
                         // 如果音节内码小于机内码,则取此音节
-                        for (int i = aboutPos + 32; i >= aboutPos; i--)
+                        for (var i = aboutPos + 32; i >= aboutPos; i--)
                         {
                             if (pyValue[i] <= chr)
                             {

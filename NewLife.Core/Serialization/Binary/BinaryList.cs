@@ -19,7 +19,7 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public override bool Write(object value, Type type)
+        public override Boolean Write(Object value, Type type)
         {
             if (!typeof(IList).IsAssignableFrom(type)) return false;
 
@@ -46,7 +46,7 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public override bool TryRead(Type type, ref object value)
+        public override Boolean TryRead(Type type, ref Object value)
         {
             if (!typeof(IList).IsAssignableFrom(type)) return false;
 
@@ -69,7 +69,7 @@ namespace NewLife.Serialization
             var list = value as IList;
             // 如果是数组，则需要先加起来，再
             //if (value is Array) list = typeof(IList<>).MakeGenericType(value.GetType().GetElementTypeEx()).CreateInstance() as IList;
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 Object obj = null;
                 if (!Host.TryRead(elmType, ref obj)) return false;

@@ -15,11 +15,11 @@ namespace NewLife.Cube.Precompiled
         /// <summary>路径是否存在</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public static bool IsExistByVirtualPath(string virtualPath)
+        public static Boolean IsExistByVirtualPath(String virtualPath)
         {
             if (virtualPath.StartsWith("~/"))
                 virtualPath = virtualPath.Substring(1); var assembly = Assembly.LoadFrom(HttpContext.Current.Server.MapPath("~/bin") + "\\Falafel.Resources.dll");
-            string result = string.Empty;
+            var result = string.Empty;
             virtualPath = "Falafel.Resources" + virtualPath.Replace('/', '.'); if (virtualPath.EndsWith("/"))
             {
                 result = assembly.GetManifestResourceNames().First();
@@ -33,7 +33,7 @@ namespace NewLife.Cube.Precompiled
         /// <summary>根据路径获取页面模版</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public static string GetByVirtualPath(string virtualPath)
+        public static String GetByVirtualPath(String virtualPath)
         {
             if (virtualPath.StartsWith("~/"))
                 virtualPath = virtualPath.Substring(1);

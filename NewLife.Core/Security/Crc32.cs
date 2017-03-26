@@ -32,20 +32,20 @@ namespace NewLife.Security
     /// </remarks>
     public sealed class Crc32 //: HashAlgorithm
     {
-        const uint CrcSeed = 0xFFFFFFFF;
+        const UInt32 CrcSeed = 0xFFFFFFFF;
 
         #region 数据表
         /// <summary>校验表</summary>
-        public readonly static uint[] Table;
+        public readonly static UInt32[] Table;
 
         static Crc32()
         {
-            Table = new uint[256];
-            const uint kPoly = 0xEDB88320;
-            for (uint i = 0; i < 256; i++)
+            Table = new UInt32[256];
+            const UInt32 kPoly = 0xEDB88320;
+            for (UInt32 i = 0; i < 256; i++)
             {
-                uint r = i;
-                for (int j = 0; j < 8; j++)
+                var r = i;
+                for (var j = 0; j < 8; j++)
                     if ((r & 1) != 0)
                         r = (r >> 1) ^ kPoly;
                     else
@@ -61,7 +61,7 @@ namespace NewLife.Security
         //}
 
         /// <summary>校验值</summary>
-        uint crc = CrcSeed;
+        UInt32 crc = CrcSeed;
         /// <summary>校验值</summary>
         public UInt32 Value { get { return crc ^ CrcSeed; } set { crc = value ^ CrcSeed; } }
 
@@ -72,7 +72,7 @@ namespace NewLife.Security
         /// <param name = "value">
         /// the byte is taken as the lower 8 bits of value
         /// </param>
-        public Crc32 Update(int value)
+        public Crc32 Update(Int32 value)
         {
             crc = Table[(crc ^ value) & 0xFF] ^ (crc >> 8);
 
@@ -89,7 +89,7 @@ namespace NewLife.Security
         /// <param name = "count">
         /// The number of data bytes to update the CRC with.
         /// </param>
-        public Crc32 Update(byte[] buffer, int offset = 0, int count = -1)
+        public Crc32 Update(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             if (buffer == null) throw new ArgumentNullException("buffer");
             //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");

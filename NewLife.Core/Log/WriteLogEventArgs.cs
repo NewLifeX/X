@@ -104,7 +104,7 @@ namespace NewLife.Log
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (Exception != null) Message += Exception.ToString();
 

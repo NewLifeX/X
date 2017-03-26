@@ -55,7 +55,7 @@ namespace NewLife.Net.Stress
         #region 构造
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -113,10 +113,10 @@ namespace NewLife.Net.Stress
 
             try
             {
-                Int32 wt = 0;
-                Int32 cpt = 0;
+                var wt = 0;
+                var cpt = 0;
                 ThreadPool.GetAvailableThreads(out wt, out cpt);
-                Int32 threads = Process.GetCurrentProcess().Threads.Count;
+                var threads = Process.GetCurrentProcess().Threads.Count;
 
                 var color = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -164,7 +164,7 @@ namespace NewLife.Net.Stress
             var interval = cfg.Interval;
 
             XTrace.WriteLine("开始建立连接……");
-            for (int i = 0; i < cs.Length; i++)
+            for (var i = 0; i < cs.Length; i++)
             {
                 try
                 {
@@ -192,7 +192,7 @@ namespace NewLife.Net.Stress
             if (_buffer != null && _buffer.Length > 0)
             {
                 XTrace.WriteLine("开始发送数据……");
-                for (int i = 0; i < cs.Length; i++)
+                for (var i = 0; i < cs.Length; i++)
                 {
                     cs[i].StartSend();
                 }
@@ -211,7 +211,7 @@ namespace NewLife.Net.Stress
             if (cs != null)
             {
                 XTrace.WriteLine("正在关闭连接……");
-                for (int i = 0; i < cs.Length; i++)
+                for (var i = 0; i < cs.Length; i++)
                 {
                     if (cs[i] != null)
                     {

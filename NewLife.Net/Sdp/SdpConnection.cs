@@ -33,7 +33,7 @@ namespace NewLife.Net.Sdp
 
             value = value.Substring(2);
 
-            string[] values = value.Split(' ');
+            var values = value.Split(' ');
             if (values.Length != 3) throw new NetException("Invalid SDP Connection('c=') value '" + value + "'.");
 
             var entity = new SdpConnection();
@@ -46,7 +46,7 @@ namespace NewLife.Net.Sdp
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return "c=" + NetType + " " + AddressType + " " + Address + "\r\n";
         }

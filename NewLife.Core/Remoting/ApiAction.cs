@@ -116,7 +116,7 @@ namespace NewLife.Remoting
             sb.Append("(");
 
             var pis = Method.GetParameters();
-            for (int i = 0; i < pis.Length; i++)
+            for (var i = 0; i < pis.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
                 sb.AppendFormat("{0} {1}", pis[i].ParameterType.Name, pis[i].Name);

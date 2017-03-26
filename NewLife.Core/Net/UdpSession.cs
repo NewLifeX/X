@@ -46,7 +46,7 @@ namespace NewLife.Net
         /// <summary>远程地址</summary>
         public NetUri Remote { get; set; }
 
-        private int _timeout;
+        private Int32 _timeout;
         /// <summary>超时。默认3000ms</summary>
         public Int32 Timeout
         {
@@ -113,7 +113,7 @@ namespace NewLife.Net
             WriteLog("New {0}", Remote.EndPoint);
         }
 
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -255,7 +255,7 @@ namespace NewLife.Net
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (Remote != null && !Remote.EndPoint.IsAny())
                 return String.Format("{0}=>{1}", Local, Remote.EndPoint);
@@ -265,9 +265,9 @@ namespace NewLife.Net
         #endregion
 
         #region ITransport接口
-        bool ITransport.Open() { return true; }
+        Boolean ITransport.Open() { return true; }
 
-        bool ITransport.Close() { return true; }
+        Boolean ITransport.Close() { return true; }
         #endregion
 
         #region 日志

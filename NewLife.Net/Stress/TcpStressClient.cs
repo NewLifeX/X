@@ -36,7 +36,7 @@ namespace NewLife.Net.Stress
         #endregion
 
         #region 构造
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -57,7 +57,7 @@ namespace NewLife.Net.Stress
             if (!socket.ConnectAsync(e)) OnConnected(this, e);
         }
 
-        private void OnConnected(object sender, SocketAsyncEventArgs e)
+        private void OnConnected(Object sender, SocketAsyncEventArgs e)
         {
             e.Completed -= OnConnected;
 
@@ -125,7 +125,7 @@ namespace NewLife.Net.Stress
             if (!socket.ReceiveAsync(e)) OnReceived(this, e);
         }
 
-        void OnReceived(object sender, SocketAsyncEventArgs e)
+        void OnReceived(Object sender, SocketAsyncEventArgs e)
         {
             if (e.SocketError != SocketError.Success || e.BytesTransferred <= 0)
             {
@@ -133,7 +133,7 @@ namespace NewLife.Net.Stress
                 return;
             }
 
-            if (Received != null) Received(this, new EventArgs<int>(e.BytesTransferred));
+            if (Received != null) Received(this, new EventArgs<Int32>(e.BytesTransferred));
 
             if (!socket.ReceiveAsync(e)) OnReceived(this, e);
         }

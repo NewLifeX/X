@@ -7,10 +7,10 @@ namespace NewLife.Remoting
     public class ApiAttribute : Attribute
     {
         /// <summary>名称</summary>
-        public string Name { get; set; }
+        public String Name { get; set; }
 
         /// <summary>实例化</summary>
         /// <param name="name"></param>
-        public ApiAttribute(string name) { Name = name; }
+        public ApiAttribute(String name) { Name = name; }
     }
 }

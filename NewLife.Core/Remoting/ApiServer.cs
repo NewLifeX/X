@@ -13,7 +13,7 @@ namespace NewLife.Remoting
     {
         #region 静态
         /// <summary>协议到提供者类的映射</summary>
-        public static IDictionary<string, Type> Providers { get; } = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        public static IDictionary<String, Type> Providers { get; } = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
 
         static ApiServer()
         {
@@ -43,7 +43,7 @@ namespace NewLife.Remoting
 
         /// <summary>使用指定端口实例化网络服务应用接口提供者</summary>
         /// <param name="port"></param>
-        public ApiServer(int port) : this()
+        public ApiServer(Int32 port) : this()
         {
             Add(new NetUri(NetType.Unknown, "", port));
         }
@@ -57,7 +57,7 @@ namespace NewLife.Remoting
 
         /// <summary>销毁时停止服务</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -83,7 +83,7 @@ namespace NewLife.Remoting
 
         /// <summary>添加服务器</summary>
         /// <param name="config"></param>
-        public IApiServer Add(string config)
+        public IApiServer Add(String config)
         {
             var protocol = config.Substring(null, "://");
             Type type;

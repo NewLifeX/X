@@ -34,7 +34,7 @@ namespace Test
 {
     public class Program
     {
-        private static void Main(string[] args)
+        private static void Main(String[] args)
         {
             //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
 
@@ -45,7 +45,7 @@ namespace Test
 #endif
             while (true)
             {
-                Stopwatch sw = new Stopwatch();
+                var sw = new Stopwatch();
                 sw.Start();
 #if !DEBUG
                 try
@@ -65,7 +65,7 @@ namespace Test
                 //Thread.Sleep(5000);
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
-                ConsoleKeyInfo key = Console.ReadKey(true);
+                var key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
             }
         }
@@ -190,11 +190,11 @@ namespace Test
             var count = Rand.Next(10, 100);
             XTrace.WriteLine("正在生成{0}个大文件……", count);
             var total = 0;
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 var sb = new StringBuilder();
                 var lines = Rand.Next(100, 10000);
-                for (int k = 0; k < lines; k++)
+                for (var k = 0; k < lines; k++)
                 {
                     if (Rand.Next(4) > 0)
                         sb.AppendLine("学无先后达者为师！");

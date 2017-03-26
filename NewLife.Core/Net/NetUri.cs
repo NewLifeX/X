@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 namespace NewLife.Net
 {
     /// <summary>协议类型</summary>
-    public enum NetType : byte
+    public enum NetType : Byte
     {
         /// <summary>未知协议</summary>
         Unknown = 0,
@@ -202,7 +202,7 @@ namespace NewLife.Net
             if (p >= 0)
             {
                 var pt = uri.Substring(p + 1);
-                Int32 port = 0;
+                var port = 0;
                 if (Int32.TryParse(pt, out port))
                 {
                     Port = port;
@@ -242,7 +242,7 @@ namespace NewLife.Net
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             var p = Protocol;
             switch (Type)

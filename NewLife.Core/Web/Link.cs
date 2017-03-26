@@ -206,7 +206,7 @@ namespace NewLife.Web
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             //return base.ToString();
             //return "{0} {1} {2} {3}".F(Name, RawUrl, Version, Time);

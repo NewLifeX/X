@@ -14,10 +14,10 @@ namespace NewLife.Net.DNS
         private UInt16 _flags = 0;
 
         /// <summary></summary>
-        public bool G { get { return BitHelper.GetBit(_flags, 15); } }
+        public Boolean G { get { return BitHelper.GetBit(_flags, 15); } }
 
         /// <summary></summary>
-        public ushort ONT { get { return BitHelper.GetBits(_flags, 13, 2); } }
+        public UInt16 ONT { get { return BitHelper.GetBits(_flags, 13, 2); } }
 
         [FieldSize("_Length", -2)]
         private IPAddress _Address;

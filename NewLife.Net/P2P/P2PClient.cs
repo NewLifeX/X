@@ -82,7 +82,7 @@ namespace NewLife.Net.P2P
             }
         }
 
-        void server_Received(object sender, ReceivedEventArgs e)
+        void server_Received(Object sender, ReceivedEventArgs e)
         {
             var session = sender as ISocketSession;
 
@@ -97,7 +97,7 @@ namespace NewLife.Net.P2P
 
                 IPAddress address = null;
                 if (!IPAddress.TryParse(ss[0], out address)) return;
-                Int32 port = 0;
+                var port = 0;
                 if (!Int32.TryParse(ss[1], out port)) return;
                 var ep = new IPEndPoint(address, port);
                 ParterAddress = ep;
@@ -128,7 +128,7 @@ namespace NewLife.Net.P2P
                     while (true)
                     {
                         Console.Write("请输入要说的话：");
-                        String line = Console.ReadLine();
+                        var line = Console.ReadLine();
                         if (String.IsNullOrEmpty(line)) continue;
                         if (line == "exit") break;
 
@@ -143,7 +143,7 @@ namespace NewLife.Net.P2P
             }
         }
 
-        void server_Accepted(object sender, SessionEventArgs e)
+        void server_Accepted(Object sender, SessionEventArgs e)
         {
             var session = e.Session as ISocketSession;
             WriteLog("连接到来：{0}", session.Remote);
@@ -176,7 +176,7 @@ namespace NewLife.Net.P2P
             }
         }
 
-        void client_Received(object sender, ReceivedEventArgs e)
+        void client_Received(Object sender, ReceivedEventArgs e)
         {
             //WriteLog("数据到来：{0} {1}", e.RemoteIPEndPoint, e.GetString());
 
@@ -186,7 +186,7 @@ namespace NewLife.Net.P2P
 
             IPAddress address = null;
             if (!IPAddress.TryParse(ss[0], out address)) return;
-            Int32 port = 0;
+            var port = 0;
             if (!Int32.TryParse(ss[1], out port)) return;
             var ep = new IPEndPoint(address, port);
             ParterAddress = ep;
@@ -218,7 +218,7 @@ namespace NewLife.Net.P2P
             }
         }
 
-        void client_Received2(object sender, ReceivedEventArgs e)
+        void client_Received2(Object sender, ReceivedEventArgs e)
         {
             var session = sender as ISocketSession;
             WriteLog("数据到来2：{0} {1}", session.Remote, e.Stream.ToStr());

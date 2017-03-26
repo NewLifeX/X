@@ -91,16 +91,16 @@ namespace NewLife.Common
                 idc.ParseBirthdayAndSex18(card);
 
                 //校验码验证  GB11643-1999标准
-                String[] arrVarifyCode = ("1,0,x,9,8,7,6,5,4,3,2").Split(',');
-                Int32[] Wi = new Int32[] { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 };
-                char[] Ai = card.Remove(17).ToCharArray();
-                int sum = 0;
-                for (int i = 0; i < 17; i++)
+                var arrVarifyCode = ("1,0,x,9,8,7,6,5,4,3,2").Split(',');
+                var Wi = new Int32[] { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 };
+                var Ai = card.Remove(17).ToCharArray();
+                var sum = 0;
+                for (var i = 0; i < 17; i++)
                 {
                     sum += Wi[i] * (Ai[i] - '0');
                 }
 
-                int y = -1;
+                var y = -1;
                 Math.DivRem(sum, 11, out y);
                 if (arrVarifyCode[y] != card.Substring(17, 1).ToLower())
                     throw new XException("验证码校验失败！");
@@ -115,10 +115,10 @@ namespace NewLife.Common
 
         private static String ParseArea(String area)
         {
-            Int32 n = 0;
+            var n = 0;
             if (!Int32.TryParse(area, out n)) throw new XException("非法地区编码！");
 
-            String str = area.Substring(0, 2);
+            var str = area.Substring(0, 2);
             if (!Int32.TryParse(str, out n)) throw new XException("非法省份编码！");
 
             if (!ads.Contains(n)) throw new XException("没有找到该省份！");
@@ -130,22 +130,22 @@ namespace NewLife.Common
         #region 分析生日、性别
         private void ParseBirthdayAndSex15(String card)
         {
-            String str = card.Substring(6, 2);
-            Int32 n = Int32.Parse(str);
+            var str = card.Substring(6, 2);
+            var n = Int32.Parse(str);
 
             if (n < 20)
                 n = 20;
             else
                 n = 19;
 
-            String birth = n.ToString() + card.Substring(6, 6).Insert(2, "-").Insert(5, "-");
-            DateTime d = DateTime.MinValue;
+            var birth = n.ToString() + card.Substring(6, 6).Insert(2, "-").Insert(5, "-");
+            var d = DateTime.MinValue;
             if (!DateTime.TryParse(birth, out d)) throw new XException("生日不正确！");
             Birthday = d;
 
             //最后一位是性别
             n = Convert.ToInt32(card.Substring(card.Length - 1, 1));
-            Boolean man = n % 2 != 0;
+            var man = n % 2 != 0;
 
             if (man)
                 Sex = SexType.Man;
@@ -155,14 +155,14 @@ namespace NewLife.Common
 
         private void ParseBirthdayAndSex18(String card)
         {
-            String birth = card.Substring(6, 8).Insert(4, "-").Insert(7, "-");
-            DateTime d = DateTime.MinValue;
+            var birth = card.Substring(6, 8).Insert(4, "-").Insert(7, "-");
+            var d = DateTime.MinValue;
             if (!DateTime.TryParse(birth, out d)) throw new XException("生日不正确！");
             Birthday = d;
 
             //倒数第二位是性别
-            Int32 n = Convert.ToInt32(card.Substring(card.Length - 2, 1));
-            Boolean man = n % 2 != 0;
+            var n = Convert.ToInt32(card.Substring(card.Length - 2, 1));
+            var man = n % 2 != 0;
 
             if (man)
                 Sex = SexType.Man;

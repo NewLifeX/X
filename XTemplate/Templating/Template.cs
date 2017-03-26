@@ -81,7 +81,7 @@ namespace XTemplate.Templating
             {
                 if (_Assembly == null && !String.IsNullOrEmpty(AssemblyName))
                 {
-                    String file = AssemblyName;
+                    var file = AssemblyName;
                     if (!Path.IsPathRooted(file)) file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
                     if (!File.Exists(file)) file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.Combine("Bin", AssemblyName));
                     if (File.Exists(file)) _Assembly = Assembly.LoadFile(file);
@@ -113,12 +113,12 @@ namespace XTemplate.Templating
                 {
                     if (!String.IsNullOrEmpty(AssemblyName))
                     {
-                        String name = Path.GetFileNameWithoutExtension(AssemblyName);
+                        var name = Path.GetFileNameWithoutExtension(AssemblyName);
                         _NameSpace = name;
                     }
                     else
                     {
-                        String namespaceName = GetType().Namespace;
+                        var namespaceName = GetType().Namespace;
                         namespaceName += "s";
 
                         _NameSpace = namespaceName;
@@ -134,7 +134,7 @@ namespace XTemplate.Templating
         #endregion
 
         #region 创建
-        private static DictionaryCache<String, Template> cache = new DictionaryCache<string, Template>();
+        private static DictionaryCache<String, Template> cache = new DictionaryCache<String, Template>();
         /// <summary>根据名称和模版创建模版实例，带缓存，避免重复编译</summary>
         /// <param name="name">名称</param>
         /// <param name="templates">模版</param>
@@ -143,7 +143,7 @@ namespace XTemplate.Templating
         {
             if (templates == null || templates.Length < 1) throw new ArgumentNullException("templates");
 
-            var dic = new Dictionary<string, string>();
+            var dic = new Dictionary<String, String>();
 
             var prefix = !String.IsNullOrEmpty(name) ? name : "Class";
 
@@ -153,7 +153,7 @@ namespace XTemplate.Templating
             }
             else
             {
-                for (int i = 0; i < templates.Length; i++)
+                for (var i = 0; i < templates.Length; i++)
                 {
                     dic.Add(prefix + (i + 1), templates[i]);
                 }
@@ -195,7 +195,7 @@ namespace XTemplate.Templating
 
         /// <summary>释放提供者</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -277,7 +277,7 @@ namespace XTemplate.Templating
 
             if (Status >= TemplateStatus.Process) return;
 
-            for (int i = 0; i < Templates.Count; i++)
+            for (var i = 0; i < Templates.Count; i++)
             {
                 Process(Templates[i]);
             }
@@ -383,7 +383,7 @@ namespace XTemplate.Templating
 
             var directives = new String[] { "template", "assembly", "import", "include", "var" };
 
-            for (Int32 i = 0; i < item.Blocks.Count; i++)
+            for (var i = 0; i < item.Blocks.Count; i++)
             {
                 var block = item.Blocks[i];
                 if (block.Type != BlockType.Directive) continue;
@@ -422,7 +422,7 @@ namespace XTemplate.Templating
             #region 包含include
             if (directive.Name.EqualIgnoreCase("include"))
             {
-                String name = directive.GetParameter("name");
+                var name = directive.GetParameter("name");
                 // 可能采用了相对路径
                 if (!File.Exists(name)) name = Path.Combine(Path.GetDirectoryName(item.Name), name);
 
@@ -456,7 +456,7 @@ namespace XTemplate.Templating
 
             if (directive.Name.EqualIgnoreCase("assembly"))
             {
-                String name = directive.GetParameter("name");
+                var name = directive.GetParameter("name");
                 if (!AssemblyReferences.Contains(name)) AssemblyReferences.Add(name);
             }
             else if (directive.Name.EqualIgnoreCase("import"))
@@ -803,7 +803,7 @@ namespace XTemplate.Templating
                 if (sb.Length > 0) sb.AppendLine();
                 sb.Append(item.Source);
             }
-            String key = Hash(sb.ToString());
+            var key = Hash(sb.ToString());
 
             Assembly assembly = null;
             if (asmCache.TryGetValue(key, out assembly)) return assembly;
@@ -858,7 +858,7 @@ namespace XTemplate.Templating
 
                     var name = item.Name.EndsWithIgnoreCase(".cs") ? item.Name : item.ClassName;
                     // 猜测后缀
-                    Int32 p = name.LastIndexOf("_");
+                    var p = name.LastIndexOf("_");
                     if (p > 0 && name.Length - p <= 5)
                         name = name.Substring(0, p) + "." + name.Substring(p + 1, name.Length - p - 1);
                     else if (!name.EndsWithIgnoreCase(".cs"))
@@ -908,7 +908,7 @@ namespace XTemplate.Templating
 
                     if (!error.IsWarning)
                     {
-                        String msg = error.ToString();
+                        var msg = error.ToString();
                         if (sb.Length < 1)
                         {
                             String code = null;
@@ -1131,7 +1131,7 @@ namespace XTemplate.Templating
         /// <param name="sender"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        private static Assembly currentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private static Assembly currentDomain_AssemblyResolve(Object sender, ResolveEventArgs args)
         {
             var name = args.Name;
             if (name.IsNullOrWhiteSpace()) return null;

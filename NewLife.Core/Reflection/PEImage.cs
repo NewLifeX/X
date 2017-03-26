@@ -133,7 +133,7 @@ namespace NewLife.Reflection
 
             // pe32 = 0x10b     pe64 = 0x20b
             // Magic				2
-            bool pe64 = reader.ReadUInt16() == 0x20b;
+            var pe64 = reader.ReadUInt16() == 0x20b;
 
             //						pe32 || pe64
 
@@ -230,12 +230,12 @@ namespace NewLife.Reflection
             stream.Seek(8, SeekOrigin.Current);
         }
 
-        void ReadSections(BinaryReader reader, ushort count)
+        void ReadSections(BinaryReader reader, UInt16 count)
         {
             var stream = reader.BaseStream;
             var sections = new Section[count];
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 var section = new Section();
 
@@ -352,11 +352,11 @@ namespace NewLife.Reflection
         struct DataDirectory
         {
             public readonly RVA VirtualAddress;
-            public readonly uint Size;
+            public readonly RVA Size;
 
-            public bool IsZero { get { return VirtualAddress == 0 && Size == 0; } }
+            public Boolean IsZero { get { return VirtualAddress == 0 && Size == 0; } }
 
-            public DataDirectory(RVA rva, uint size)
+            public DataDirectory(RVA rva, RVA size)
             {
                 VirtualAddress = rva;
                 Size = size;
@@ -367,11 +367,11 @@ namespace NewLife.Reflection
 
         sealed class Section
         {
-            public string Name;
+            public String Name;
             public RVA VirtualAddress;
             //public uint VirtualSize;
-            public uint SizeOfRawData;
-            public uint PointerToRawData;
+            public RVA SizeOfRawData;
+            public RVA PointerToRawData;
             //public byte[] Data;
         }
         #endregion

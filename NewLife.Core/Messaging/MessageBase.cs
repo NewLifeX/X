@@ -74,7 +74,7 @@ namespace NewLife.Messaging
         #region 辅助
         /// <summary>输出消息实体</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             var sb = new StringBuilder();
             foreach (var pi in GetType().GetProperties(true))

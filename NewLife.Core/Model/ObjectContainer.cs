@@ -159,7 +159,7 @@ namespace NewLife.Model
             #endregion
 
             #region 方法
-            public override string ToString()
+            public override String ToString()
             {
                 return String.Format("[{0},{1}]", Identity, ImplementType != null ? ImplementType.Name : null);
             }
@@ -439,7 +439,7 @@ namespace NewLife.Model
                         map.TypeName = item.Value;
                         break;
                     case "priority":
-                        Int32 n = 0;
+                        var n = 0;
                         if (Int32.TryParse(item.Value, out n)) map.Priority = n;
                         break;
                     default:
@@ -453,7 +453,7 @@ namespace NewLife.Model
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return String.Format("{0}[Count={1}]", GetType().Name, Stores.Count); }
+        public override String ToString() { return String.Format("{0}[Count={1}]", GetType().Name, Stores.Count); }
         #endregion
     }
 }

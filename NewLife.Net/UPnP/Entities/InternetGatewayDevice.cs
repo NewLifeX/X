@@ -85,16 +85,16 @@ namespace NewLife.Net.UPnP
 
             if (String.IsNullOrEmpty(URLBase)) return;
 
-            Uri uri = new Uri(URLBase);
+            var uri = new Uri(URLBase);
             ServerHost = uri.Host;
             ServerPort = uri.Port;
         }
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
-            Device d = device;
+            var d = device;
             if (d != null)
                 return String.Format("{0} {1}", d, ServerHost);
             else
@@ -167,13 +167,13 @@ namespace NewLife.Net.UPnP
         /// <returns></returns>
         public PortMappingEntry GetMapByPortAndProtocol(String remoteHost, Int32 externalPort, String protocol)
         {
-            PortMappingEntry entity = new PortMappingEntry();
+            var entity = new PortMappingEntry();
             entity.Name = "GetSpecificPortMappingEntry";
             entity.RemoteHost = remoteHost;
             entity.ExternalPort = externalPort;
             entity.Protocol = protocol;
 
-            PortMappingEntry response = Request<PortMappingEntry>(entity);
+            var response = Request<PortMappingEntry>(entity);
             return response;
         }
 
@@ -182,11 +182,11 @@ namespace NewLife.Net.UPnP
         /// <returns></returns>
         public PortMappingEntry GetMapByIndex(Int32 index)
         {
-            PortMappingEntryRequest entity = new PortMappingEntryRequest();
+            var entity = new PortMappingEntryRequest();
             entity.Name = "GetGenericPortMappingEntry";
             entity.NewPortMappingIndex = index;
 
-            PortMappingEntry response = Request<PortMappingEntry>(entity);
+            var response = Request<PortMappingEntry>(entity);
             return response;
         }
 
@@ -194,7 +194,7 @@ namespace NewLife.Net.UPnP
         /// <returns></returns>
         public IEnumerable<PortMappingEntry> GetMapByIndexAll()
         {
-            Int32 n = 0;
+            var n = 0;
             while (true)
             {
                 PortMappingEntry item;
@@ -220,15 +220,15 @@ namespace NewLife.Net.UPnP
         {
             if (device == null || action == null) return null;
 
-            Service service = device.GetWANIPService();
+            var service = device.GetWANIPService();
             if (service == null) return null;
 
-            Uri uri = new Uri(String.Format("http://{0}:{1}{2}", ServerHost, ServerPort, service.controlURL));
+            var uri = new Uri(String.Format("http://{0}:{1}{2}", ServerHost, ServerPort, service.controlURL));
 
-            String xml = action.ToSoap(service.serviceType);
+            var xml = action.ToSoap(service.serviceType);
             xml = SOAPRequest(uri, service.serviceType + "#" + action.Name, xml);
 
-            TResponse response = UPnPAction<TResponse>.FromXml(xml);
+            var response = UPnPAction<TResponse>.FromXml(xml);
 
             return response;
         }
@@ -260,7 +260,7 @@ namespace NewLife.Net.UPnP
         static String SOAPRequest(Uri uri, String action, String xml)
         {
             //String body = String.Format(SOAP_BODY, xml);
-            String header = String.Format(SOAP_HEADER, uri.PathAndQuery, uri.Host + ":" + uri.Port, action, Encoding.UTF8.GetByteCount(xml));
+            var header = String.Format(SOAP_HEADER, uri.PathAndQuery, uri.Host + ":" + uri.Port, action, Encoding.UTF8.GetByteCount(xml));
 
             var client = new TcpSession();
             var session = client as ISocketSession;
@@ -271,10 +271,10 @@ namespace NewLife.Net.UPnP
                 client.Remote.Port = uri.Port;
                 session.Send(header + xml);
 
-                String response = session.ReceiveString();
+                var response = session.ReceiveString();
                 if (String.IsNullOrEmpty(response)) return null;
 
-                Int32 p = response.IndexOf("\r\n\r\n");
+                var p = response.IndexOf("\r\n\r\n");
                 if (p < 0) return null;
 
                 response = response.Substring(p).Trim();

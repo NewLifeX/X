@@ -191,7 +191,7 @@ namespace NewLife.Net
             return true;
         }
 
-        internal override bool OnSendAsync(SocketAsyncEventArgs se) { return Client.SendAsync(se); }
+        internal override Boolean OnSendAsync(SocketAsyncEventArgs se) { return Client.SendAsync(se); }
         #endregion
 
         #region 接收
@@ -207,7 +207,7 @@ namespace NewLife.Net
         //    return task.Result;
         //}
 
-        internal override bool OnReceiveAsync(SocketAsyncEventArgs se)
+        internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
         {
             var client = Client;
             if (client == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
@@ -281,7 +281,7 @@ namespace NewLife.Net
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (Remote != null && !Remote.EndPoint.IsAny())
             {

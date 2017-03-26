@@ -74,7 +74,7 @@ namespace NewLife.Configuration
                 var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return false;
 
-                for (int i = 0; i < names.Length; i++)
+                for (var i = 0; i < names.Length; i++)
                 {
                     if (TryGetConfig<T>(names[i], out value)) return true;
                 }
@@ -143,7 +143,7 @@ namespace NewLife.Configuration
                 var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return false;
 
-                String str = nvs[name];
+                var str = nvs[name];
                 if (String.IsNullOrEmpty(str)) return false;
 
                 var code = Type.GetTypeCode(type);
@@ -154,7 +154,7 @@ namespace NewLife.Configuration
                     value = Convert.ToInt32(str);
                 else if (code == TypeCode.Boolean)
                 {
-                    Boolean b = false;
+                    var b = false;
                     if (str.EqualIgnoreCase("1", Boolean.TrueString))
                         value = true;
                     else if (str.EqualIgnoreCase("0", Boolean.FalseString))
@@ -221,15 +221,15 @@ namespace NewLife.Configuration
                 var nvs = AppSettings;
                 if (nvs == null || nvs.Count < 1) return defaultValue;
 
-                String str = GetConfig<String>(name);
+                var str = GetConfig<String>(name);
                 if (String.IsNullOrEmpty(str)) return defaultValue;
 
-                String[] sps = String.IsNullOrEmpty(split) ? new String[] { ",", ";" } : new String[] { split };
-                String[] ss = str.Split(sps, StringSplitOptions.RemoveEmptyEntries);
+                var sps = String.IsNullOrEmpty(split) ? new String[] { ",", ";" } : new String[] { split };
+                var ss = str.Split(sps, StringSplitOptions.RemoveEmptyEntries);
                 if (ss == null || ss.Length < 1) return defaultValue;
 
-                T[] arr = new T[ss.Length];
-                for (int i = 0; i < ss.Length; i++)
+                var arr = new T[ss.Length];
+                for (var i = 0; i < ss.Length; i++)
                 {
                     str = ss[i].Trim();
                     if (String.IsNullOrEmpty(str)) continue;
@@ -269,9 +269,9 @@ namespace NewLife.Configuration
         }
 
         /// <summary>判断appSettings中是否有此项</summary>
-        private static bool AppSettingsKeyExists(string strKey, System.Configuration.Configuration config)
+        private static Boolean AppSettingsKeyExists(String strKey, System.Configuration.Configuration config)
         {
-            foreach (string str in config.AppSettings.Settings.AllKeys)
+            foreach (String str in config.AppSettings.Settings.AllKeys)
             {
                 if (str == strKey) return true;
             }

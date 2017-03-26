@@ -64,12 +64,12 @@ namespace NewLife.Net.Sdp
         /// <summary>分析</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static SdpMediaDescription Parse(string value)
+        public static SdpMediaDescription Parse(String value)
         {
             var media = new SdpMediaDescription();
 
             // m=<media> <port>/<number of ports> <proto> <fmt> ...
-            Int32 p = value.IndexOf("=");
+            var p = value.IndexOf("=");
             value = value.Substring(p + 1);
             var vs = value.Split(" ");
 
@@ -84,7 +84,7 @@ namespace NewLife.Net.Sdp
             var word = vs[1];
             if (word.IndexOf('/') > -1)
             {
-                string[] words = word.Split('/');
+                var words = word.Split('/');
                 media.Port = Convert.ToInt32(words[0]);
                 media.NumberOfPorts = Convert.ToInt32(words[1]);
             }
@@ -100,7 +100,7 @@ namespace NewLife.Net.Sdp
             media.Protocol = vs[2];
 
             //--- <fmt> ----------------------------------------------------------------
-            for (int i = 3; i < vs.Length; i++)
+            for (var i = 3; i < vs.Length; i++)
             {
                 media.MediaFormats.Add(vs[i]);
             }
@@ -110,7 +110,7 @@ namespace NewLife.Net.Sdp
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             /*
                            m=  (media name and transport address)
@@ -123,7 +123,7 @@ namespace NewLife.Net.Sdp
 
             // m=<media> <port>/<number of ports> <proto> <fmt> ...
 
-            StringBuilder retVal = new StringBuilder();
+            var retVal = new StringBuilder();
             if (NumberOfPorts > 1)
             {
                 retVal.Append("m=" + MediaType + " " + Port + "/" + NumberOfPorts + " " + Protocol);
@@ -132,7 +132,7 @@ namespace NewLife.Net.Sdp
             {
                 retVal.Append("m=" + MediaType + " " + Port + " " + Protocol);
             }
-            foreach (string mediaFormat in MediaFormats)
+            foreach (var mediaFormat in MediaFormats)
             {
                 retVal.Append(" " + mediaFormat);
             }

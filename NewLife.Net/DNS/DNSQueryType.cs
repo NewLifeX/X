@@ -2,7 +2,7 @@
 namespace NewLife.Net.DNS
 {
     /// <summary>查询的资源记录类型</summary>
-    public enum DNSQueryType : ushort
+    public enum DNSQueryType : System.UInt16
     {
         /// <summary>指定计算机 IP 地址。</summary>
         A = 0x01,
@@ -78,7 +78,7 @@ namespace NewLife.Net.DNS
     }
 
     /// <summary>指定信息的协议组</summary>
-    public enum DNSQueryClass : ushort
+    public enum DNSQueryClass : System.UInt16
     {
         /// <summary>指定 Internet 类别。</summary>
         IN = 0x01,

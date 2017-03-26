@@ -90,7 +90,7 @@ namespace NewLife.Security
         /// <param name = "count">
         /// The number of data bytes to update the CRC with.
         /// </param>
-        public Crc16 Update(byte[] buffer, int offset = 0, int count = -1)
+        public Crc16 Update(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             if (buffer == null) throw new ArgumentNullException("buffer");
             //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
@@ -103,7 +103,7 @@ namespace NewLife.Security
             //}
             //crc16 = (UInt16)((crc16 << 8) ^ CrcTable[((crc16 >> 8) ^ pcrc[i])]);
             crc ^= crc;
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 crc = (UInt16)((crc << 8) ^ CrcTable[(crc >> 8 ^ buffer[offset + i]) & 0xFF]);
             }
@@ -129,7 +129,7 @@ namespace NewLife.Security
                 //crc = CrcTable[(crc ^ b) & 0xFF] ^ (crc >> 8);
                 //crc = (UInt16)((crc << 8) ^ CrcTable[(crc ^ b) & 0xFF]);
                 crc ^= (Byte)b;
-                for (int i = 0; i < 8; i++)
+                for (var i = 0; i < 8; i++)
                 {
                     if ((crc & 0x0001) != 0)
                         crc = (UInt16)((crc >> 1) ^ 0xa001);

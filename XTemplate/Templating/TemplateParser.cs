@@ -21,7 +21,7 @@ namespace XTemplate.Templating
             {
                 if (match.Success && match.Value != null)
                 {
-                    Int32 length = (Int32)Math.Floor((double)match.Value.Length / 2.0);
+                    var length = (Int32)Math.Floor((Double)match.Value.Length / 2.0);
                     return match.Value.Substring(0, length);
                 }
                 return String.Empty;
@@ -56,12 +56,12 @@ namespace XTemplate.Templating
         {
             //if (content == null) throw new ArgumentNullException("content");
 
-            List<Block> blocks = new List<Block>();
+            var blocks = new List<Block>();
             if (String.IsNullOrEmpty(content)) return blocks;
 
             foreach (Match match in templateParsingRegex.Matches(content))
             {
-                Block item = new Block();
+                var item = new Block();
                 Group group = null;
                 if ((group = match.Groups["text"]).Success)
                     item.Type = BlockType.Text;
@@ -83,7 +83,7 @@ namespace XTemplate.Templating
             }
             InsertPosition(blocks);
 
-            foreach (Block block in blocks)
+            foreach (var block in blocks)
             {
                 if (unescapedTagFindingRegex.Match(block.Text).Success) throw new TemplateException(block, "不可识别的标记！可能有未编码的字符，比如\\<#。");
             }
@@ -97,9 +97,9 @@ namespace XTemplate.Templating
         /// <param name="blocks"></param>
         private static void InsertPosition(List<Block> blocks)
         {
-            Int32 i = 1;
-            Int32 j = 1;
-            foreach (Block block in blocks)
+            var i = 1;
+            var j = 1;
+            foreach (var block in blocks)
             {
                 // 类成员以<#!开始，指令以<#@开始，表达式以<#=开始，所以它们的列数加3
                 if (block.Type == BlockType.Member ||
@@ -117,7 +117,7 @@ namespace XTemplate.Templating
                 block.StartColumn = j;
 
                 // 计算换行
-                MatchCollection matchs = newlineFindingRegex.Matches(block.Text);
+                var matchs = newlineFindingRegex.Matches(block.Text);
                 i += matchs.Count;
                 if (matchs.Count > 0)
                 {
@@ -142,9 +142,9 @@ namespace XTemplate.Templating
         /// <param name="blocks"></param>
         private static void StripEscapeCharacters(List<Block> blocks)
         {
-            for (Int32 i = 0; i < blocks.Count; i++)
+            for (var i = 0; i < blocks.Count; i++)
             {
-                Block block = blocks[i];
+                var block = blocks[i];
                 block.Text = escapeFindingRegex.Replace(block.Text, escapeReplacingEvaluator);
                 if (i != (blocks.Count - 1))
                 {
@@ -232,10 +232,10 @@ namespace XTemplate.Templating
         /// <returns></returns>
         private static Boolean ValidateDirectiveString(Block block)
         {
-            Match match = nameValidatingRegex.Match(block.Text);
+            var match = nameValidatingRegex.Match(block.Text);
             if (!match.Success) return false;
 
-            Int32 length = match.Length;
+            var length = match.Length;
             var matchs = paramValueValidatingRegex.Matches(block.Text);
             if (matchs.Count == 0) return false;
 
@@ -265,14 +265,14 @@ namespace XTemplate.Templating
         /// <param name="blocks"></param>
         internal static void StripExtraNewlines(List<Block> blocks)
         {
-            for (Int32 i = 0; i < blocks.Count; i++)
+            for (var i = 0; i < blocks.Count; i++)
             {
-                Block block = blocks[i];
+                var block = blocks[i];
                 if (block.Type != BlockType.Text) continue;
 
                 if (i > 0)
                 {
-                    Block last = blocks[i - 1];
+                    var last = blocks[i - 1];
                     if (last.Type != BlockType.Expression && last.Type != BlockType.Text)
                     {
                         // 占位符块，不是第一块，前一块又不是表达式和占位符时，忽略一个换行
@@ -286,7 +286,7 @@ namespace XTemplate.Templating
                 }
                 if (i < blocks.Count - 1)
                 {
-                    Block next = blocks[i + 1];
+                    var next = blocks[i + 1];
                     if (next.Type != BlockType.Expression && next.Type != BlockType.Text)
                     {
                         // 占位符块，不是最后一块，下一块又不是表达式和占位符时，忽略一个换行
@@ -294,7 +294,7 @@ namespace XTemplate.Templating
                     }
                 }
             }
-            Predicate<Block> match = delegate(Block b)
+            Predicate<Block> match = delegate (Block b)
             {
                 // 类成员代码块可能需要空的结束符
                 if (b.Type == BlockType.Member) return false;

@@ -18,7 +18,7 @@ namespace NewLife.Net.Http
         {
             get
             {
-                if (_Items == null) _Items = new DictionaryCache<string, HttpCacheItem>(StringComparer.OrdinalIgnoreCase) { Expire = Expriod };
+                if (_Items == null) _Items = new DictionaryCache<String, HttpCacheItem>(StringComparer.OrdinalIgnoreCase) { Expire = Expriod };
                 return _Items;
             }
             set { _Items = value; }
@@ -48,7 +48,7 @@ namespace NewLife.Net.Http
 
         public HttpCacheItem Add(HttpHeader request, HttpHeader response)
         {
-            String url = request.RawUrl;
+            var url = request.RawUrl;
             var item = new HttpCacheItem() { Url = url, Request = request, Response = response };
             item.Stream = response.GetStream();
             //lock (Items)

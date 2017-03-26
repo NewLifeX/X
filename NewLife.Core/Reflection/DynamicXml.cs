@@ -31,7 +31,7 @@ namespace NewLife.Reflection
         /// <param name="binder"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public override bool TrySetMember(SetMemberBinder binder, Object value)
+        public override Boolean TrySetMember(SetMemberBinder binder, Object value)
         {
             var setNode = Node.Element(binder.Name);
             if (setNode != null)
@@ -50,7 +50,7 @@ namespace NewLife.Reflection
         /// <param name="binder"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public override bool TryGetMember(GetMemberBinder binder, out Object result)
+        public override Boolean TryGetMember(GetMemberBinder binder, out Object result)
         {
             result = null;
             var getNode = Node.Element(binder.Name);

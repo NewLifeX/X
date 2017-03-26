@@ -209,7 +209,7 @@ namespace NewLife.Net.Stun
                 var rto = socket.ReceiveTimeout;
 
                 // 如果原端口没有启用地址重用，则关闭它
-                Object value = socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
+                var value = socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress);
                 if (!Convert.ToBoolean(value)) socket.Close();
 
                 //var sk = NetService.Container.Resolve<ISocketClient>(socket.ProtocolType);

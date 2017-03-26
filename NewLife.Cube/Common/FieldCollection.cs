@@ -109,7 +109,7 @@ namespace NewLife.Cube
 
         void NoPass()
         {
-            for (int i = Count - 1; i >= 0; i--)
+            for (var i = Count - 1; i >= 0; i--)
             {
                 var fi = this[i];
                 if (fi.IsDataObjectField && fi.Type == typeof(String))
@@ -125,7 +125,7 @@ namespace NewLife.Cube
 
         void ProcessIP()
         {
-            for (int i = Count - 1; i >= 0; i--)
+            for (var i = Count - 1; i >= 0; i--)
             {
                 if (this[i].Name.EndsWithIgnoreCase("IP", "Uri"))
                 {
@@ -157,7 +157,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         public FieldCollection AddField(String oriName, String newName)
         {
-            for (int i = 0; i < Count; i++)
+            for (var i = 0; i < Count; i++)
             {
                 if (this[i].Name.EqualIgnoreCase(oriName))
                 {

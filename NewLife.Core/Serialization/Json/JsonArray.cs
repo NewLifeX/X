@@ -66,7 +66,7 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public override bool Write(object value, Type type)
+        public override Boolean Write(Object value, Type type)
         {
             if (!typeof(IList).IsAssignableFrom(type)) return false;
 
@@ -90,7 +90,7 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public override bool TryRead(Type type, ref object value)
+        public override Boolean TryRead(Type type, ref Object value)
         {
             if (!typeof(IList).IsAssignableFrom(type)) return false;
 

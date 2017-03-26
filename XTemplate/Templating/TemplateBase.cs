@@ -41,10 +41,10 @@ namespace XTemplate.Templating
         /// <returns></returns>
         public String RemoveIndent()
         {
-            String str = "";
+            var str = "";
             if (indentLengths.Count > 0)
             {
-                Int32 num = indentLengths[indentLengths.Count - 1];
+                var num = indentLengths[indentLengths.Count - 1];
                 indentLengths.RemoveAt(indentLengths.Count - 1);
                 if (num > 0)
                 {
@@ -200,7 +200,7 @@ namespace XTemplate.Templating
         /// <returns></returns>
         protected T GetData<T>(String name)
         {
-            Object obj = GetData(name);
+            var obj = GetData(name);
             if (obj == null) return default(T);
 
             return obj.ChangeType<T>();

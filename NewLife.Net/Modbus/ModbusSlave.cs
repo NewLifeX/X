@@ -62,7 +62,7 @@ namespace NewLife.Net.Modbus
             if (disposing) GC.SuppressFinalize(this);
 
             //if (Transport != null) Transport.Dispose();
-            for (int i = 0; i < Transports.Length; i++)
+            for (var i = 0; i < Transports.Length; i++)
             {
                 if (Transports[i] != null) Transports[i].Dispose();
             }
@@ -77,7 +77,7 @@ namespace NewLife.Net.Modbus
             if (transport == null) throw new ArgumentNullException("transport");
 
             // 找到一个空位，放入数组
-            for (int i = 0; i < Transports.Length; i++)
+            for (var i = 0; i < Transports.Length; i++)
             {
                 if (Transports[i] == null)
                 {
@@ -358,7 +358,7 @@ namespace NewLife.Net.Modbus
 
             // 元素存放于m字节n位
             Int32 m = 0, n = 0;
-            for (int i = 0; i < size; i++)
+            for (var i = 0; i < size; i++)
             {
                 // 数据位于5+m字节的n位
                 var flag = ((data[5 + m] >> n) & 0x01) == 0x01;
@@ -485,7 +485,7 @@ namespace NewLife.Net.Modbus
             //store.Write(addr, val);
             var count = 0;
             // 支持多字连续写入
-            for (int i = 2; i + 1 < data.Length; i += 2, count++)
+            for (var i = 2; i + 1 < data.Length; i += 2, count++)
             {
                 store.Write(addr + count, data.ReadUInt16(i));
             }
@@ -523,7 +523,7 @@ namespace NewLife.Net.Modbus
             WriteLine("WriteMultipleRegisters(0x" + addr.ToString("X2") + ", 0x" + size.ToString("X2") + ")");
 #endif
 
-            for (int i = 0; i < size; i++)
+            for (var i = 0; i < size; i++)
             {
                 store.Write(addr + i, data.ReadUInt16(5 + i * 2));
             }

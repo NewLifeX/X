@@ -2,7 +2,7 @@
 namespace NewLife.Log
 {
     /// <summary>日志等级</summary>
-    public enum LogLevel : byte
+    public enum LogLevel : System.Byte
     {
         /// <summary>打开所有日志记录</summary>
         All = 0,

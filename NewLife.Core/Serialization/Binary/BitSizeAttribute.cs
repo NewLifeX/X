@@ -58,7 +58,7 @@ namespace NewLife.Serialization
         Int32 GetMask()
         {
             var v = 0;
-            for (int i = 0; i < Size; i++)
+            for (var i = 0; i < Size; i++)
             {
                 v <<= 1;
                 v++;

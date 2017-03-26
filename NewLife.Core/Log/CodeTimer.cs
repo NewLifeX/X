@@ -47,7 +47,7 @@ namespace NewLife.Log
 #if !__MOBILE__
             var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Int32 left = Console.CursorLeft;
+            var left = Console.CursorLeft;
 #endif
             if (needTimeOne) timer.TimeOne();
             timer.Time();
@@ -89,7 +89,7 @@ namespace NewLife.Log
 
         static void Write(String name, Int32 max)
         {
-            Int32 len = Encoding.Default.GetByteCount(name);
+            var len = Encoding.Default.GetByteCount(name);
             if (len < max) Console.Write(new String(' ', max - len));
             Console.Write(name);
         }
@@ -98,16 +98,16 @@ namespace NewLife.Log
         #region PInvoke
         [DllImport("kernel32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool QueryThreadCycleTime(IntPtr threadHandle, ref ulong cycleTime);
+        static extern Boolean QueryThreadCycleTime(IntPtr threadHandle, ref UInt64 cycleTime);
 
         [DllImport("kernel32.dll")]
         static extern IntPtr GetCurrentThread();
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool GetThreadTimes(IntPtr hThread, out long lpCreationTime, out long lpExitTime, out long lpKernelTime, out long lpUserTime);
+        static extern Boolean GetThreadTimes(IntPtr hThread, out Int64 lpCreationTime, out Int64 lpExitTime, out Int64 lpKernelTime, out Int64 lpUserTime);
 
         static Boolean supportCycle = true;
-        private static ulong GetCycleCount()
+        private static UInt64 GetCycleCount()
         {
             //if (Environment.Version.Major < 6) return 0;
 
@@ -115,7 +115,7 @@ namespace NewLife.Log
 
             try
             {
-                ulong cycleCount = 0;
+                UInt64 cycleCount = 0;
                 QueryThreadCycleTime(GetCurrentThread(), ref cycleCount);
                 return cycleCount;
             }
@@ -126,19 +126,19 @@ namespace NewLife.Log
             }
         }
 
-        private static long GetCurrentThreadTimes()
+        private static Int64 GetCurrentThreadTimes()
         {
-            long l;
-            long kernelTime, userTimer;
+            Int64 l;
+            Int64 kernelTime, userTimer;
             GetThreadTimes(GetCurrentThread(), out l, out l, out kernelTime, out userTimer);
             return kernelTime + userTimer;
         }
         #endregion
 
         #region 私有字段
-        ulong cpuCycles = 0;
-        long threadTime = 0;
-        int[] gen;
+        UInt64 cpuCycles = 0;
+        Int64 threadTime = 0;
+        Int32[] gen;
         #endregion
 
         #region 属性
@@ -155,7 +155,7 @@ namespace NewLife.Log
         public Int32 Index { get; set; }
 
         /// <summary>CPU周期</summary>
-        public long CpuCycles { get; set; }
+        public Int64 CpuCycles { get; set; }
 
         /// <summary>线程时间，单位是100ns，除以10000转为ms</summary>
         public Int64 ThreadTime { get; set; }
@@ -211,7 +211,7 @@ namespace NewLife.Log
             GC.Collect(GC.MaxGeneration);
 
             gen = new Int32[GC.MaxGeneration + 1];
-            for (Int32 i = 0; i <= GC.MaxGeneration; i++)
+            for (var i = 0; i <= GC.MaxGeneration; i++)
             {
                 gen[i] = GC.CollectionCount(i);
             }
@@ -231,7 +231,7 @@ namespace NewLife.Log
                 Init();
             }
 
-            for (Int32 i = 0; i < Times; i++)
+            for (var i = 0; i < Times; i++)
             {
                 Index = i;
 
@@ -243,7 +243,7 @@ namespace NewLife.Log
                 Finish();
             }
 
-            CpuCycles = (long)(GetCycleCount() - cpuCycles);
+            CpuCycles = (Int64)(GetCycleCount() - cpuCycles);
             ThreadTime = GetCurrentThreadTimes() - threadTime;
 
             watch.Stop();
@@ -251,9 +251,9 @@ namespace NewLife.Log
 
             // 统计GC代数
             var list = new List<Int32>();
-            for (Int32 i = 0; i <= GC.MaxGeneration; i++)
+            for (var i = 0; i <= GC.MaxGeneration; i++)
             {
-                int count = GC.CollectionCount(i) - gen[i];
+                var count = GC.CollectionCount(i) - gen[i];
                 list.Add(count);
             }
             Gen = list.ToArray();
@@ -262,7 +262,7 @@ namespace NewLife.Log
         /// <summary>执行一次迭代，预热所有方法</summary>
         public void TimeOne()
         {
-            Int32 n = Times;
+            var n = Times;
 
             try
             {
@@ -311,10 +311,10 @@ namespace NewLife.Log
         void Progress(Object state)
         {
 #if !__MOBILE__
-            Int32 left = Console.CursorLeft;
+            var left = Console.CursorLeft;
 
             // 设置光标不可见
-            Boolean cursorVisible = Console.CursorVisible;
+            var cursorVisible = Console.CursorVisible;
             Console.CursorVisible = false;
 #endif
             var sw = new Stopwatch();
@@ -323,14 +323,14 @@ namespace NewLife.Log
             {
                 try
                 {
-                    Int32 i = Index;
+                    var i = Index;
                     if (i >= Times) break;
 
                     if (i > 0 && sw.Elapsed.TotalMilliseconds > 10)
                     {
-                        Double d = (Double)i / Times;
-                        Double ms = sw.Elapsed.TotalMilliseconds;
-                        TimeSpan ts = new TimeSpan(0, 0, 0, 0, (Int32)(ms * Times / i));
+                        var d = (Double)i / Times;
+                        var ms = sw.Elapsed.TotalMilliseconds;
+                        var ts = new TimeSpan(0, 0, 0, 0, (Int32)(ms * Times / i));
                         Console.Write("{0,7:n0}ms {1:p} Total=>{2}", ms, d, ts);
 #if !__MOBILE__
                         Console.CursorLeft = left;
@@ -353,7 +353,7 @@ namespace NewLife.Log
         #region 重载
         /// <summary>已重载。输出依次分别是：执行时间、CPU线程时间、时钟周期、GC代数</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             var ms = Elapsed.TotalMilliseconds;
             if (msBase == 0) msBase = ms;

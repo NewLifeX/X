@@ -165,7 +165,7 @@ namespace NewLife.Reflection
             var types = ps.GetTypeArray();
 
             var dic = se.Parameters;
-            for (int i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 dic.Add(names[i], types[i]);
             }
@@ -185,14 +185,14 @@ namespace NewLife.Reflection
             if (se != null && se.Method != null) return se.Invoke(parameters);
 
             var names = new String[parameters.Length];
-            for (int i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 names[i] = "p" + i;
             }
             var types = parameters.GetTypeArray();
 
             var dic = se.Parameters;
-            for (int i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 dic.Add(names[i], types[i]);
             }
@@ -506,7 +506,7 @@ namespace NewLife.Reflection
             if (Log != null) Log.Info(format, args);
         }
 
-        static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        static Assembly CurrentDomain_AssemblyResolve(Object sender, ResolveEventArgs args)
         {
             var name = args.Name;
             if (String.IsNullOrEmpty(name)) return null;

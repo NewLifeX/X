@@ -373,7 +373,7 @@ namespace NewLife.Reflection
             if (args == null) return Type.EmptyTypes;
 
             var typeArray = new Type[args.Length];
-            for (int i = 0; i < typeArray.Length; i++)
+            for (var i = 0; i < typeArray.Length; i++)
             {
                 if (args[i] == null)
                     typeArray[i] = typeof(Object);

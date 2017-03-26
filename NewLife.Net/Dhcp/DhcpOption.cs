@@ -8,7 +8,7 @@ using NewLife.Serialization;
 namespace NewLife.Net.Dhcp
 {
     /// <summary>DHCP选项类型</summary>
-    public enum DhcpOptions : byte
+    public enum DhcpOptions : Byte
     {
         /// <summary></summary>
         Mask = 1,
@@ -175,7 +175,7 @@ namespace NewLife.Net.Dhcp
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return Option + " " + ToStr();
         }

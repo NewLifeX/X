@@ -35,7 +35,7 @@ namespace NewLife.Net.Dhcp
         #region 构造
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -84,7 +84,7 @@ namespace NewLife.Net.Dhcp
             }
         }
 
-        void Client_Received(object sender, ReceivedEventArgs e)
+        void Client_Received(Object sender, ReceivedEventArgs e)
         {
             var dhcp = new DhcpEntity();
             dhcp.Read(e.Stream, null);

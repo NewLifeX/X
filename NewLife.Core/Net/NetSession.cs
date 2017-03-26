@@ -69,7 +69,7 @@ namespace NewLife.Net
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             if (LogSession && Log != null && Log.Enable) WriteLog("会话结束 {0}", Session);
 
@@ -127,7 +127,7 @@ namespace NewLife.Net
         /// <summary>发送字符串</summary>
         /// <param name="msg"></param>
         /// <param name="encoding"></param>
-        public virtual INetSession Send(string msg, Encoding encoding = null)
+        public virtual INetSession Send(String msg, Encoding encoding = null)
         {
             Session.Send(msg, encoding);
 
@@ -147,7 +147,7 @@ namespace NewLife.Net
         /// <summary>错误处理</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected virtual void OnError(object sender, ExceptionEventArgs e) { }
+        protected virtual void OnError(Object sender, ExceptionEventArgs e) { }
         #endregion
 
         #region 日志
@@ -194,7 +194,7 @@ namespace NewLife.Net
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             var host = (this as INetSession).Host;
             return String.Format("{0}[{1}] {2}", host == null ? "" : host.Name, ID, Session);

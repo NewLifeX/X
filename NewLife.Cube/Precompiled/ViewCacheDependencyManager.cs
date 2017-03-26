@@ -9,9 +9,9 @@ namespace NewLife.Cube.Precompiled
     /// <summary>视图缓存依赖管理</summary>
     public class ViewCacheDependencyManager
     {
-        private static Dictionary<string, ViewCacheDependency> dependencies = new Dictionary<string, ViewCacheDependency>();
+        private static Dictionary<String, ViewCacheDependency> dependencies = new Dictionary<String, ViewCacheDependency>();
         private static volatile ViewCacheDependencyManager instance;
-        private static object syncRoot = new Object();
+        private static Object syncRoot = new Object();
         private ViewCacheDependencyManager() { }
 
         /// <summary>实例</summary>
@@ -36,7 +36,7 @@ namespace NewLife.Cube.Precompiled
         /// <summary>获取缓存依赖</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public CacheDependency Get(string virtualPath)
+        public CacheDependency Get(String virtualPath)
         {
             if (!dependencies.ContainsKey(virtualPath))
                 dependencies.Add(virtualPath, new ViewCacheDependency(virtualPath));
@@ -46,7 +46,7 @@ namespace NewLife.Cube.Precompiled
 
         /// <summary>验证</summary>
         /// <param name="virtualPath"></param>
-        public void Invalidate(string virtualPath)
+        public void Invalidate(String virtualPath)
         {
             if (dependencies.ContainsKey(virtualPath))
             {

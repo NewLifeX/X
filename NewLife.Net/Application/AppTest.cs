@@ -48,7 +48,7 @@ namespace NewLife.Net.Application
         }
 
         static AutoResetEvent _are = new AutoResetEvent(true);
-        static void OnReceived(object sender, ReceivedEventArgs e)
+        static void OnReceived(Object sender, ReceivedEventArgs e)
         {
             var session = sender as ISocketSession;
             Console.WriteLine("客户端{0} 收到 [{1}]: {2}", session, e.Stream.Length, e.Stream.ToStr());
@@ -56,7 +56,7 @@ namespace NewLife.Net.Application
             _are.Set();
         }
 
-        static void OnError(object sender, ExceptionEventArgs e)
+        static void OnError(Object sender, ExceptionEventArgs e)
         {
             Console.WriteLine("客户端{0}错误 {1}", sender, e.Exception);
         }
@@ -65,7 +65,7 @@ namespace NewLife.Net.Application
         {
             Console.WriteLine();
 
-            String msg = String.Format("{0}Test_{1}_{2}!", name, uri.Type, isAsync ? "异步" : "同步");
+            var msg = String.Format("{0}Test_{1}_{2}!", name, uri.Type, isAsync ? "异步" : "同步");
             var client = uri.CreateRemote();
             client.Error += OnError;
             if (isAsync && isReceiveData)
@@ -142,7 +142,7 @@ namespace NewLife.Net.Application
 
         static void StartDaytimeServer(Int32 port)
         {
-            IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
+            var ep = new IPEndPoint(IPAddress.Loopback, port);
 
             TestSends("Daytime", ep, true);
 
@@ -153,7 +153,7 @@ namespace NewLife.Net.Application
 
         static void StartTimeServer(Int32 port)
         {
-            IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
+            var ep = new IPEndPoint(IPAddress.Loopback, port);
 
             TestSends("Time", ep, true);
 
@@ -164,7 +164,7 @@ namespace NewLife.Net.Application
 
         static void StartDiscardServer(Int32 port)
         {
-            IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
+            var ep = new IPEndPoint(IPAddress.Loopback, port);
 
             TestSends("Discard", ep, true, false);
 
@@ -175,7 +175,7 @@ namespace NewLife.Net.Application
 
         static void StartChargenServer(Int32 port)
         {
-            IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
+            var ep = new IPEndPoint(IPAddress.Loopback, port);
 
             TestSends("Chargen", ep, true);
 
@@ -210,7 +210,7 @@ namespace NewLife.Net.Application
         static NetServer server = null;
         static void TestServer()
         {
-            Int32 port = ReadInt("请输入监听端口：", 1, 65535);
+            var port = ReadInt("请输入监听端口：", 1, 65535);
 
             // 扩大事件池
             //NetEventArgs.Pool.Max = 200000;
@@ -221,7 +221,7 @@ namespace NewLife.Net.Application
             server.UseSession = true;
             server.Received += server_Received;
             // 最大不活跃时间设为10分钟
-            foreach (TcpServer item in server.Servers)
+            foreach (var item in server.Servers)
             {
                 item.SessionTimeout = 10 * 60;
             }
@@ -236,7 +236,7 @@ namespace NewLife.Net.Application
             server.Dispose();
         }
 
-        static void server_Received(object sender, ReceivedEventArgs e)
+        static void server_Received(Object sender, ReceivedEventArgs e)
         {
             OnReceive(sender as ISocketSession, e.Stream);
         }
@@ -273,10 +273,10 @@ namespace NewLife.Net.Application
             {
                 try
                 {
-                    Int32 wt = 0;
-                    Int32 cpt = 0;
+                    var wt = 0;
+                    var cpt = 0;
                     ThreadPool.GetAvailableThreads(out wt, out cpt);
-                    Int32 threads = Process.GetCurrentProcess().Threads.Count;
+                    var threads = Process.GetCurrentProcess().Threads.Count;
 
                     var color = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
@@ -320,7 +320,7 @@ namespace NewLife.Net.Application
             var time = 10;
 
             var threads = new Thread[threadcount];
-            for (int i = 0; i < threadcount; i++)
+            for (var i = 0; i < threadcount; i++)
             {
                 var th = new Thread(ClientProcess);
                 th.IsBackground = true;
@@ -342,11 +342,11 @@ namespace NewLife.Net.Application
             var msg = String.Format("Hi I am {0}!", p.ID);
 
             var clients = new ISocketClient[p.Count];
-            for (int k = 0; k < 100; k++)
+            for (var k = 0; k < 100; k++)
             {
                 Console.WriteLine("第{1}轮处理：{0}", p.ID, k + 1);
 
-                for (int i = 0; i < p.Count; i++)
+                for (var i = 0; i < p.Count; i++)
                 {
                     try
                     {
@@ -383,7 +383,7 @@ namespace NewLife.Net.Application
             else if (title[title.Length - 1] != '：')
                 title += "：";
 
-            Int32 n = 0;
+            var n = 0;
             while (n < min || n > max)
             {
                 Console.Write(title);

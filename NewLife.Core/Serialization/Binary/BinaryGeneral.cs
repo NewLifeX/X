@@ -219,7 +219,7 @@ namespace NewLife.Serialization
         #region 有符号整数
         /// <summary>将 2 字节有符号整数写入当前流，并将流的位置提升 2 个字节。</summary>
         /// <param name="value">要写入的 2 字节有符号整数。</param>
-        public virtual void Write(short value)
+        public virtual void Write(Int16 value)
         {
             if (Host.EncodeInt)
                 WriteEncoded(value);
@@ -239,7 +239,7 @@ namespace NewLife.Serialization
 
         /// <summary>将 8 字节有符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节有符号整数。</param>
-        public virtual void Write(long value)
+        public virtual void Write(Int64 value)
         {
             if (Host.EncodeInt)
                 WriteEncoded(value);
@@ -264,34 +264,34 @@ namespace NewLife.Serialization
         /// <summary>将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。</summary>
         /// <param name="value">要写入的 2 字节无符号整数。</param>
         //[CLSCompliant(false)]
-        public virtual void Write(ushort value) { Write((Int16)value); }
+        public virtual void Write(UInt16 value) { Write((Int16)value); }
 
         /// <summary>将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节无符号整数。</param>
         //[CLSCompliant(false)]
-        public virtual void Write(uint value) { Write((Int32)value); }
+        public virtual void Write(UInt32 value) { Write((Int32)value); }
 
         /// <summary>将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节无符号整数。</param>
         //[CLSCompliant(false)]
-        public virtual void Write(ulong value) { Write((Int64)value); }
+        public virtual void Write(UInt64 value) { Write((Int64)value); }
         #endregion
 
         #region 浮点数
         /// <summary>将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节浮点值。</param>
-        public virtual void Write(float value) { Write(BitConverter.GetBytes(value), -1); }
+        public virtual void Write(Single value) { Write(BitConverter.GetBytes(value), -1); }
 
         /// <summary>将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节浮点值。</param>
-        public virtual void Write(double value) { Write(BitConverter.GetBytes(value), -1); }
+        public virtual void Write(Double value) { Write(BitConverter.GetBytes(value), -1); }
 
         /// <summary>将一个十进制值写入当前流，并将流位置提升十六个字节。</summary>
         /// <param name="value">要写入的十进制值。</param>
         protected virtual void Write(Decimal value)
         {
-            Int32[] data = Decimal.GetBits(value);
-            for (Int32 i = 0; i < data.Length; i++)
+            var data = Decimal.GetBits(value);
+            for (var i = 0; i < data.Length; i++)
             {
                 Write(data[i]);
             }
@@ -401,7 +401,7 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
         /// <returns></returns>
-        public virtual short ReadInt16()
+        public virtual Int16 ReadInt16()
         {
             if (Host.EncodeInt)
                 return ReadEncodedInt16();
@@ -421,7 +421,7 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。</summary>
         /// <returns></returns>
-        public virtual long ReadInt64()
+        public virtual Int64 ReadInt64()
         {
             if (Host.EncodeInt)
                 return ReadEncodedInt64();
@@ -434,27 +434,27 @@ namespace NewLife.Serialization
         /// <summary>使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。</summary>
         /// <returns></returns>
         //[CLSCompliant(false)]
-        public virtual ushort ReadUInt16() { return (UInt16)ReadInt16(); }
+        public virtual UInt16 ReadUInt16() { return (UInt16)ReadInt16(); }
 
         /// <summary>从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>
         //[CLSCompliant(false)]
-        public virtual uint ReadUInt32() { return (UInt32)ReadInt32(); }
+        public virtual UInt32 ReadUInt32() { return (UInt32)ReadInt32(); }
 
         /// <summary>从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。</summary>
         /// <returns></returns>
         //[CLSCompliant(false)]
-        public virtual ulong ReadUInt64() { return (UInt64)ReadInt64(); }
+        public virtual UInt64 ReadUInt64() { return (UInt64)ReadInt64(); }
         #endregion
 
         #region 浮点数
         /// <summary>从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>
-        public virtual float ReadSingle() { return BitConverter.ToSingle(ReadBytes(4), 0); }
+        public virtual Single ReadSingle() { return BitConverter.ToSingle(ReadBytes(4), 0); }
 
         /// <summary>从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。</summary>
         /// <returns></returns>
-        public virtual double ReadDouble() { return BitConverter.ToDouble(ReadBytes(8), 0); }
+        public virtual Double ReadDouble() { return BitConverter.ToDouble(ReadBytes(8), 0); }
         #endregion
 
         #region 字符串
@@ -464,10 +464,10 @@ namespace NewLife.Serialization
 
         /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>
         /// <returns></returns>
-        public virtual string ReadString()
+        public virtual String ReadString()
         {
             // 先读长度
-            Int32 n = Host.ReadSize();
+            var n = Host.ReadSize();
             if (n < 0) return null;
             if (n == 0) return String.Empty;
 
@@ -482,8 +482,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual Decimal ReadDecimal()
         {
-            Int32[] data = new Int32[4];
-            for (Int32 i = 0; i < data.Length; i++)
+            var data = new Int32[4];
+            for (var i = 0; i < data.Length; i++)
             {
                 data[i] = ReadInt32();
             }
@@ -533,7 +533,7 @@ namespace NewLife.Serialization
         public Int32 ReadEncodedInt32()
         {
             Byte b;
-            Int32 rs = 0;
+            var rs = 0;
             Byte n = 0;
             while (true)
             {
@@ -581,8 +581,8 @@ namespace NewLife.Serialization
         {
             var list = new List<Byte>();
 
-            Int32 count = 1;
-            UInt16 num = (UInt16)value;
+            var count = 1;
+            var num = (UInt16)value;
             while (num >= 0x80)
             {
                 list.Add((Byte)(num | 0x80));
@@ -607,8 +607,8 @@ namespace NewLife.Serialization
         {
             var list = new List<Byte>();
 
-            Int32 count = 1;
-            UInt32 num = (UInt32)value;
+            var count = 1;
+            var num = (UInt32)value;
             while (num >= 0x80)
             {
                 list.Add((Byte)(num | 0x80));
@@ -633,8 +633,8 @@ namespace NewLife.Serialization
         {
             var list = new List<Byte>();
 
-            Int32 count = 1;
-            UInt64 num = (UInt64)value;
+            var count = 1;
+            var num = (UInt64)value;
             while (num >= 0x80)
             {
                 list.Add((Byte)(num | 0x80));

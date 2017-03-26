@@ -112,7 +112,7 @@ namespace NewLife.Net.UPnP
         #region 方法
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             //return String.Format("{0} {1}", friendlyName, manufacturer);
             return friendlyName;
@@ -138,7 +138,7 @@ namespace NewLife.Net.UPnP
 
             foreach (var item in device.deviceList)
             {
-                Service service = GetService(item, serviceType);
+                var service = GetService(item, serviceType);
                 if (service != null) return service;
             }
 

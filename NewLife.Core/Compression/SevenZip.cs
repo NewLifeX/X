@@ -128,7 +128,7 @@ namespace NewLife.Compression
             p.Start();
             p.WaitForExit();
 
-            Int32 rs = 0;
+            var rs = 0;
             if (p.HasExited)
             {
                 rs = p.ExitCode;

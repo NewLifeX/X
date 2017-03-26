@@ -136,7 +136,7 @@ namespace NewLife.Serialization
             var ac = value as IMemberAccessor;
 
             // 获取成员
-            for (int i = 0; i < ms.Count; i++)
+            for (var i = 0; i < ms.Count; i++)
             {
                 var member = ms[i];
                 if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;

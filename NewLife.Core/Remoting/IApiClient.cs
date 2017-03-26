@@ -15,7 +15,7 @@ namespace NewLife.Remoting
         /// <summary>初始化</summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        bool Init(object config);
+        Boolean Init(Object config);
 
         /// <summary>打开</summary>
         void Open();

@@ -16,7 +16,7 @@ namespace NewLife.Collections
         /// <summary>实例化一个并行哈希集合</summary>
         public ConcurrentHashSet()
         {
-            _dic = new ConcurrentDictionary<T, byte>();
+            _dic = new ConcurrentDictionary<T, Byte>();
         }
 
         /// <summary>是否空集合</summary>

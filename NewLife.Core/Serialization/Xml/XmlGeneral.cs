@@ -105,7 +105,7 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public override bool TryRead(Type type, ref object value)
+        public override Boolean TryRead(Type type, ref Object value)
         {
             if (type == null)
             {

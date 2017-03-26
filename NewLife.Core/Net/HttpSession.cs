@@ -214,7 +214,7 @@ namespace NewLife.Net
             // 分析响应头
             var rs = ResponseHeaders;
             rs.Clear();
-            for (int i = 1; i < headers.Length; i++)
+            for (var i = 1; i < headers.Length; i++)
             {
                 line = headers[i];
                 p = line.IndexOf(':');

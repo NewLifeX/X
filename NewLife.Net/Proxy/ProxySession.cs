@@ -49,7 +49,7 @@ namespace NewLife.Net.Proxy
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -151,7 +151,7 @@ namespace NewLife.Net.Proxy
         /// <param name="client"></param>
         protected virtual void OnRemoteDispose(ISocketClient client) { Dispose(); }
 
-        void Remote_Received(object sender, ReceivedEventArgs e)
+        void Remote_Received(Object sender, ReceivedEventArgs e)
         {
             if (Disposed) return;
 
@@ -201,7 +201,7 @@ namespace NewLife.Net.Proxy
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">位移</param>
         /// <param name="size">写入字节数</param>
-        public virtual IProxySession SendRemote(byte[] buffer, int offset = 0, int size = -1)
+        public virtual IProxySession SendRemote(Byte[] buffer, Int32 offset = 0, Int32 size = -1)
         {
             try
             {
@@ -251,7 +251,7 @@ namespace NewLife.Net.Proxy
         /// <summary></summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override void OnError(object sender, ExceptionEventArgs e)
+        protected override void OnError(Object sender, ExceptionEventArgs e)
         {
             if (e.Exception != null) Dispose();
         }
@@ -295,7 +295,7 @@ namespace NewLife.Net.Proxy
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return base.ToString() + "=>" + RemoteServerUri; }
+        public override String ToString() { return base.ToString() + "=>" + RemoteServerUri; }
         #endregion
     }
 }

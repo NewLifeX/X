@@ -27,7 +27,7 @@ namespace NewLife.Net.IO
         /// <summary>附加服务器</summary>
         /// <param name="server"></param>
         /// <returns></returns>
-        public override bool AttachServer(ISocketServer server)
+        public override Boolean AttachServer(ISocketServer server)
         {
             // 接收文件需要顺序
             if (server is TcpServer)
@@ -100,7 +100,7 @@ namespace NewLife.Net.IO
 
         /// <summary>销毁会话</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 

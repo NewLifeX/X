@@ -62,7 +62,7 @@ namespace NewLife.Serialization
                     //return (jobj as IList<Object>).Select(e => e.ChangeType(elmType)).ToArray();
                     var src = jobj as IList<Object>;
                     var arr = Array.CreateInstance(elmType, src.Count);
-                    for (int i = 0; i < src.Count; i++)
+                    for (var i = 0; i < src.Count; i++)
                     {
                         arr.SetValue(src[i].ChangeType(elmType), i);
                     }
@@ -175,7 +175,7 @@ namespace NewLife.Serialization
 
             if (obj == null) obj = type.CreateInstance();
 
-            Int32 circount = 0;
+            var circount = 0;
             if (_circobj.TryGetValue(obj, out circount) == false)
             {
                 circount = _circobj.Count + 1;
@@ -260,11 +260,11 @@ namespace NewLife.Serialization
 
         private Int32 CreateInteger(String str, Int32 index, Int32 count)
         {
-            Int32 num = 0;
-            bool neg = false;
-            for (Int32 x = 0; x < count; x++, index++)
+            var num = 0;
+            var neg = false;
+            for (var x = 0; x < count; x++, index++)
             {
-                char cc = str[index];
+                var cc = str[index];
 
                 if (cc == '-')
                     neg = true;
@@ -297,7 +297,7 @@ namespace NewLife.Serialization
 
             var str = (String)value;
 
-            bool utc = false;
+            var utc = false;
 
             Int32 year;
             Int32 month;
@@ -305,7 +305,7 @@ namespace NewLife.Serialization
             Int32 hour;
             Int32 min;
             Int32 sec;
-            Int32 ms = 0;
+            var ms = 0;
 
             year = CreateInteger(str, 0, 4);
             month = CreateInteger(str, 5, 2);
@@ -329,9 +329,9 @@ namespace NewLife.Serialization
             if (elmType == null) elmType = typeof(Object);
 
             var arr = Array.CreateInstance(elmType, list.Count);
-            for (Int32 i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
-                Object ob = list[i];
+                var ob = list[i];
                 if (ob == null)
                 {
                     continue;
@@ -350,7 +350,7 @@ namespace NewLife.Serialization
         private Object CreateGenericList(IList<Object> list, Type type, Type elmType)
         {
             var rs = type.CreateInstance() as IList;
-            foreach (Object ob in list)
+            foreach (var ob in list)
             {
                 if (ob is IDictionary)
                     rs.Add(Parse((IDictionary<String, Object>)ob, elmType, null));
@@ -419,8 +419,8 @@ namespace NewLife.Serialization
 
             foreach (IDictionary<String, Object> values in list)
             {
-                Object key = values["k"];
-                Object val = values["v"];
+                var key = values["k"];
+                var val = values["v"];
 
                 if (key is IDictionary<String, Object>)
                     key = Parse((IDictionary<String, Object>)key, tkey, null);

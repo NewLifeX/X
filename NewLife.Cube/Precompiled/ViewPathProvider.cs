@@ -13,7 +13,7 @@ namespace NewLife.Cube.Precompiled
         /// <summary>文件是否存在</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public override bool FileExists(string virtualPath)
+        public override Boolean FileExists(String virtualPath)
         {
             return Pages.IsExistByVirtualPath(virtualPath) || base.FileExists(virtualPath);
         }
@@ -21,7 +21,7 @@ namespace NewLife.Cube.Precompiled
         /// <summary>获取视图文件</summary>
         /// <param name="virtualPath"></param>
         /// <returns></returns>
-        public override VirtualFile GetFile(string virtualPath)
+        public override VirtualFile GetFile(String virtualPath)
         {
             if (Pages.IsExistByVirtualPath(virtualPath))
             {
@@ -35,7 +35,7 @@ namespace NewLife.Cube.Precompiled
         /// <param name="virtualPathDependencies"></param>
         /// <param name="utcStart"></param>
         /// <returns></returns>
-        public override CacheDependency GetCacheDependency(string virtualPath, System.Collections.IEnumerable virtualPathDependencies, DateTime utcStart)
+        public override CacheDependency GetCacheDependency(String virtualPath, System.Collections.IEnumerable virtualPathDependencies, DateTime utcStart)
         {
             if (Pages.IsExistByVirtualPath(virtualPath))
                 return ViewCacheDependencyManager.Instance.Get(virtualPath);

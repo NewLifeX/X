@@ -6,16 +6,16 @@ namespace NewLife.Remoting
     public class ActionExecutedContext : ControllerContext
     {
         /// <summary>获取或设置一个值，该值指示此 <see cref="ActionExecutedContext"/> 对象已被取消。</summary>
-        public virtual bool Canceled { get; set; }
+        public virtual Boolean Canceled { get; set; }
 
         /// <summary>获取或设置在操作方法的执行过程中发生的异常（如果有）。</summary>
         public virtual Exception Exception { get; set; }
 
         /// <summary>获取或设置一个值，该值指示是否处理异常。</summary>
-        public bool ExceptionHandled { get; set; }
+        public Boolean ExceptionHandled { get; set; }
 
         /// <summary>获取或设置由操作方法返回的结果。</summary>
-        public object Result { get; set; }
+        public Object Result { get; set; }
 
         /// <summary>实例化</summary>
         public ActionExecutedContext() { }

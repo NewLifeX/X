@@ -145,7 +145,7 @@ namespace NewLife.IO
         static Encoding DetectASCII(Byte[] data)
         {
             // 如果所有字节都小于128，则可以使用ASCII编码
-            for (int i = 0; i < data.Length; i++)
+            for (var i = 0; i < data.Length; i++)
             {
                 if (data[i] >= 128) return null;
             }
@@ -199,7 +199,7 @@ namespace NewLife.IO
             // character counts.
 
             Int64 pos = 0;
-            int skipUTF8Bytes = 0;
+            var skipUTF8Bytes = 0;
 
             while (pos < data.Length)
             {
@@ -219,7 +219,7 @@ namespace NewLife.IO
                 // 类似UTF-8的可疑序列
                 if (skipUTF8Bytes == 0)
                 {
-                    int len = DetectSuspiciousUTF8SequenceLength(data, pos);
+                    var len = DetectSuspiciousUTF8SequenceLength(data, pos);
                     if (len > 0)
                     {
                         suspiciousUTF8SequenceCount++;
@@ -250,7 +250,7 @@ namespace NewLife.IO
 
             // UTF-8
             // 使用正则检测，参考http://www.w3.org/International/questions/qa-forms-utf-8
-            string potentiallyMangledString = Encoding.ASCII.GetString(data);
+            var potentiallyMangledString = Encoding.ASCII.GetString(data);
             var reg = new Regex(@"\A("
                 + @"[\x09\x0A\x0D\x20-\x7E]"            // ASCII
                 + @"|[\xC2-\xDF][\x80-\xBF]"            // 不太长的2字节
@@ -327,7 +327,7 @@ namespace NewLife.IO
         /// <param name="buf"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        private static int DetectSuspiciousUTF8SequenceLength(Byte[] buf, Int64 pos)
+        private static Int32 DetectSuspiciousUTF8SequenceLength(Byte[] buf, Int64 pos)
         {
             if (buf.Length > pos + 1)
             {

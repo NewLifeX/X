@@ -5,7 +5,7 @@ namespace NewLife.Remoting
 {
     class ApiHttpClient : ApiNetClient
     {
-        public override bool Init(object config)
+        public override Boolean Init(Object config)
         {
             var uri = config as NetUri;
             if (uri != null)

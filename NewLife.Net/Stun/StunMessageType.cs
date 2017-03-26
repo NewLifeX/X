@@ -2,7 +2,7 @@
 namespace NewLife.Net.Stun
 {
     /// <summary>STUN消息类型</summary>
-    public enum StunMessageType : ushort
+    public enum StunMessageType : System.UInt16
     {
         /// <summary>绑定请求</summary>
         BindingRequest = 0x0001,

@@ -488,11 +488,11 @@ namespace NewLife.Net.Proxy
                 base.OnReceiveRemote(e);
             }
 
-            static readonly HashSet<String> cacheSuffix = new HashSet<string>(
+            static readonly HashSet<String> cacheSuffix = new HashSet<String>(
                 new String[] { ".htm", ".html", ".js", ".css", ".jpg", ".png", ".gif", ".swf" },
                 StringComparer.OrdinalIgnoreCase);
 
-            static readonly HashSet<String> cacheContentType = new HashSet<string>(
+            static readonly HashSet<String> cacheContentType = new HashSet<String>(
                 new String[] { "text/css", "application/javascript", "text/javascript", "application/x-javascript", "image/jpeg", "image/png", "image/gif" },
                 StringComparer.OrdinalIgnoreCase);
 
@@ -554,7 +554,7 @@ namespace NewLife.Net.Proxy
         #region 浏览器代理
         struct Struct_INTERNET_PROXY_INFO
         {
-            public int dwAccessType;
+            public Int32 dwAccessType;
             public IntPtr proxy;
             public IntPtr proxyBypass;
         }
@@ -566,7 +566,7 @@ namespace NewLife.Net.Proxy
         /// <param name="lpdwBufferLength"></param>
         /// <returns></returns>
         [DllImport("wininet.dll", SetLastError = true)]
-        private static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int lpdwBufferLength);
+        private static extern Boolean InternetSetOption(IntPtr hInternet, Int32 dwOption, IntPtr lpBuffer, Int32 lpdwBufferLength);
 
         /// <summary>获取IE代理设置</summary>
         public static String GetIEProxy()
@@ -586,13 +586,13 @@ namespace NewLife.Net.Proxy
         /// <summary>设置IE代理。传入空地址取消代理设置</summary>
         /// <param name="proxy">地址与端口以冒号分开</param>
         /// <param name="proxyOverride">代理是否跳过本地地址</param>
-        public static void SetIEProxy(string proxy, Boolean proxyOverride = true)
+        public static void SetIEProxy(String proxy, Boolean proxyOverride = true)
         {
-            const int INTERNET_OPTION_PROXY = 38;
-            const int INTERNET_OPEN_TYPE_PROXY = 3;
-            const int INTERNET_OPEN_TYPE_DIRECT = 1;
+            const Int32 INTERNET_OPTION_PROXY = 38;
+            const Int32 INTERNET_OPEN_TYPE_PROXY = 3;
+            const Int32 INTERNET_OPEN_TYPE_DIRECT = 1;
 
-            Boolean isCancel = String.IsNullOrEmpty(proxy);
+            var isCancel = String.IsNullOrEmpty(proxy);
 
             Struct_INTERNET_PROXY_INFO info;
 
@@ -602,12 +602,12 @@ namespace NewLife.Net.Proxy
             info.proxyBypass = Marshal.StringToHGlobalAnsi("local");
 
             // 分配内存
-            IntPtr ptr = Marshal.AllocCoTaskMem(Marshal.SizeOf(info));
+            var ptr = Marshal.AllocCoTaskMem(Marshal.SizeOf(info));
 
             // 获取结构体指针
             Marshal.StructureToPtr(info, ptr, true);
 
-            RegistryKey key = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);
+            var key = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);
             if (!isCancel)
             {
                 key.SetValue("ProxyServer", proxy);
@@ -625,8 +625,8 @@ namespace NewLife.Net.Proxy
             {
                 InternetSetOption(IntPtr.Zero, INTERNET_OPTION_PROXY, ptr, Marshal.SizeOf(info));
 
-                const int INTERNET_OPTION_REFRESH = 0x000025;
-                const int INTERNET_OPTION_SETTINGS_CHANGED = 0x000027;
+                const Int32 INTERNET_OPTION_REFRESH = 0x000025;
+                const Int32 INTERNET_OPTION_SETTINGS_CHANGED = 0x000027;
                 InternetSetOption(IntPtr.Zero, INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);
                 InternetSetOption(IntPtr.Zero, INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);
             }

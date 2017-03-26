@@ -194,8 +194,8 @@ namespace NewLife.Net.Stun
 
             // 找另一个
             ISocketSession session2 = null;
-            Int32 anotherPort = 0;
-            for (int i = 0; i < Servers.Count; i++)
+            var anotherPort = 0;
+            for (var i = 0; i < Servers.Count; i++)
             {
                 var server = Servers[i];
                 if (server.Local.Type == session.Local.Type && server.Local.Port != session.Local.Port)

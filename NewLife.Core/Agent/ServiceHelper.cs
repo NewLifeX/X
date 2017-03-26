@@ -160,7 +160,7 @@ namespace NewLife.Agent
                 try
                 {
                     //尝试访问一下才知道是否已安装
-                    Boolean b = control.CanShutdown;
+                    var b = control.CanShutdown;
                     return true;
                 }
                 catch { return false; }
@@ -180,7 +180,7 @@ namespace NewLife.Agent
                 try
                 {
                     //尝试访问一下才知道是否已安装
-                    Boolean b = control.CanShutdown;
+                    var b = control.CanShutdown;
                 }
                 catch { return false; }
 

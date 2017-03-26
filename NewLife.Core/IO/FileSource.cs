@@ -71,7 +71,7 @@ namespace NewLife.IO
             if (asm == null) asm = Assembly.GetCallingAssembly();
 
             // 找到符合条件的资源
-            String[] names = asm.GetManifestResourceNames();
+            var names = asm.GetManifestResourceNames();
             if (names == null || names.Length < 1) return;
             IEnumerable<String> ns = null;
             if (prefix.IsNullOrWhiteSpace())
@@ -83,7 +83,7 @@ namespace NewLife.IO
 
             if (!Path.IsPathRooted(dest))
             {
-                String str = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
+                var str = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
                 dest = Path.Combine(str, dest);
             }
 

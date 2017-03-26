@@ -33,7 +33,7 @@ namespace NewLife.Net.SGIP
         /// <summary>实例化</summary>
         public SGIPEntity()
         {
-            DateSequence = (uint)(DateTime.Now.Month * 100000000 +
+            DateSequence = (UInt32)(DateTime.Now.Month * 100000000 +
         DateTime.Now.Day * 1000000 +
         DateTime.Now.Hour * 10000 +
         DateTime.Now.Minute * 100 +
@@ -135,7 +135,7 @@ namespace NewLife.Net.SGIP
     }
 
     /// <summary>指令枚举</summary>
-    public enum SGIPCommands : uint
+    public enum SGIPCommands : UInt32
     {
         /// <summary>绑定</summary>
         Bind = 0x1,
@@ -186,7 +186,7 @@ namespace NewLife.Net.SGIP
     }
 
     /// <summary>错误代码</summary>
-    public enum SGIPErrorCodes : byte
+    public enum SGIPErrorCodes : Byte
     {
         /// <summary>无错误，命令正确接收</summary>
         [Description("无错误，命令正确接收")]

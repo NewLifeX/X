@@ -162,7 +162,7 @@ namespace NewLife
             else
             {
                 m_value = new Byte[_SizeOfGuid];
-                for (Int32 i = 0; i < _SizeOfGuid; i++)
+                for (var i = 0; i < _SizeOfGuid; i++)
                 {
                     m_value[_GuidComparisonOrders[i]] = value[i];
                 }
@@ -304,7 +304,7 @@ namespace NewLife
             }
             else
             {
-                for (Int32 i = 0; i < _SizeOfGuid; i++)
+                for (var i = 0; i < _SizeOfGuid; i++)
                 {
                     ret[i] = m_value[_GuidComparisonOrders[i]];
                 }
@@ -817,7 +817,7 @@ namespace NewLife
         private static CombGuidComparison Compare(CombGuid x, CombGuid y)
         {
             // Swap to the correct order to be compared
-            for (Int32 i = 0; i < _SizeOfGuid; i++)
+            for (var i = 0; i < _SizeOfGuid; i++)
             {
                 Byte b1, b2;
 
@@ -1183,7 +1183,7 @@ namespace NewLife
                 if (hasHyphen && !ParseChar('-')) { return false; }
 
                 var _d = new Byte[8];
-                for (Int32 i = 0; i < _d.Length; i++)
+                for (var i = 0; i < _d.Length; i++)
                 {
                     UInt64 dd;
                     if (!ParseHex(2, hasHyphen, out dd)) { return false; }
@@ -1218,7 +1218,7 @@ namespace NewLife
             {
                 res = 0;
 
-                for (Int32 i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     if (Eof) { return !((i + 1 != length)); }
 

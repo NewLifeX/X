@@ -71,7 +71,7 @@ namespace NewLife.Serialization
 
             var dic = value as IDictionary;
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 Object key = null;
                 Object val = null;

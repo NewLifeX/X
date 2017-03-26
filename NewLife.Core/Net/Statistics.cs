@@ -99,7 +99,7 @@ namespace NewLife.Net
 
         /// <summary>已重载。输出统计信息</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return "{0:n0}/{1:n0}/{2:n0}/{3:n0}".F(Speed, Max, Times, Total);
         }

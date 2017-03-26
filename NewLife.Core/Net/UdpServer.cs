@@ -195,7 +195,7 @@ namespace NewLife.Net
             return await task.ConfigureAwait(false);
         }
 
-        internal override bool OnSendAsync(SocketAsyncEventArgs se)
+        internal override Boolean OnSendAsync(SocketAsyncEventArgs se)
         {
             if (se.RemoteEndPoint == null) se.RemoteEndPoint = Remote.EndPoint;
 
@@ -401,7 +401,7 @@ namespace NewLife.Net
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             var ss = Sessions;
             if (ss != null && ss.Count > 0)
@@ -425,10 +425,10 @@ namespace NewLife.Net
             Int64 total = 0;
 
             var size = 1472;
-            Byte[] buffer = new Byte[size];
+            var buffer = new Byte[size];
             while (true)
             {
-                Int32 n = stream.Read(buffer, 0, buffer.Length);
+                var n = stream.Read(buffer, 0, buffer.Length);
                 if (n <= 0) break;
 
                 udp.Send(buffer, n, remoteEP);

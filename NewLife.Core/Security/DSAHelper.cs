@@ -10,7 +10,7 @@ namespace NewLife.Security
         /// <summary>产生非对称密钥对</summary>
         /// <param name="keySize">密钥长度，默认1024位强密钥</param>
         /// <returns></returns>
-        public static String[] GenerateKey(int keySize = 1024)
+        public static String[] GenerateKey(Int32 keySize = 1024)
         {
             var dsa = new DSACryptoServiceProvider(keySize);
 

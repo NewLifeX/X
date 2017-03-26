@@ -6,11 +6,11 @@ namespace NewLife.IP
 {
     class Zip : IDisposable
     {
-        uint Index_Set;
-        uint Index_End;
-        uint Index_Count;
-        uint Search_Index_Set;
-        uint Search_Index_End;
+        UInt32 Index_Set;
+        UInt32 Index_End;
+        UInt32 Index_Count;
+        UInt32 Search_Index_Set;
+        UInt32 Search_Index_End;
         IndexInfo Search_Set;
         IndexInfo Search_Mid;
         IndexInfo Search_End;
@@ -89,10 +89,10 @@ namespace NewLife.IP
             return ReadAddressInfoAtOffset(Search_Set.Offset);
         }
 
-        String ReadAddressInfoAtOffset(uint Offset)
+        String ReadAddressInfoAtOffset(UInt32 Offset)
         {
             _Stream.Position = Offset + 4;
-            Byte tag = GetTag();
+            var tag = GetTag();
             String addr;
             String area;
             if (tag == 1)
@@ -101,7 +101,7 @@ namespace NewLife.IP
                 tag = GetTag();
                 if (tag == 2)
                 {
-                    uint offset = GetOffset();
+                    var offset = GetOffset();
                     area = ReadArea();
                     _Stream.Position = offset;
                     addr = ReadString();
@@ -117,7 +117,7 @@ namespace NewLife.IP
             {
                 if (tag == 2)
                 {
-                    uint offset = GetOffset();
+                    var offset = GetOffset();
                     area = ReadArea();
                     _Stream.Position = offset;
                     addr = ReadString();
@@ -132,7 +132,7 @@ namespace NewLife.IP
             return (addr + " " + area).Trim();
         }
 
-        uint GetOffset()
+        UInt32 GetOffset()
         {
             return BitConverter.ToUInt32(new Byte[]
                 {
@@ -145,7 +145,7 @@ namespace NewLife.IP
 
         String ReadArea()
         {
-            Byte tag = GetTag();
+            var tag = GetTag();
             if (tag == 1 || tag == 2)
                 _Stream.Position = GetOffset();
             else
@@ -174,7 +174,7 @@ namespace NewLife.IP
             return (Byte)_Stream.ReadByte();
         }
 
-        IndexInfo IndexInfoAtPos(uint Index_Pos)
+        IndexInfo IndexInfoAtPos(UInt32 Index_Pos)
         {
             var inf = new IndexInfo();
             _Stream.Position = Index_Set + 7u * Index_Pos;
@@ -185,9 +185,9 @@ namespace NewLife.IP
             return inf;
         }
 
-        uint GetUInt32()
+        UInt32 GetUInt32()
         {
-            Byte[] array = new Byte[4];
+            var array = new Byte[4];
             _Stream.Read(array, 0, 4);
             return BitConverter.ToUInt32(array, 0);
         }
@@ -196,9 +196,9 @@ namespace NewLife.IP
         /// <summary>索引结构</summary>
         class IndexInfo
         {
-            public uint IpSet;
-            public uint IpEnd;
-            public uint Offset;
+            public UInt32 IpSet;
+            public UInt32 IpEnd;
+            public UInt32 Offset;
         }
     }
 }

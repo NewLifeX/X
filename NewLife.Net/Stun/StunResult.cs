@@ -20,7 +20,7 @@ namespace NewLife.Net.Stun
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override System.String ToString()
         {
             return string.Format("{0} {1}", Type, Public);
         }

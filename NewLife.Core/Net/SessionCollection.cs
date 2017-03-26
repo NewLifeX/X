@@ -30,7 +30,7 @@ namespace NewLife.Net
             ClearPeriod = 1000;
         }
 
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -169,9 +169,9 @@ namespace NewLife.Net
         #region 成员
         public void Clear() { _dic.Clear(); }
 
-        public int Count { get { return _dic.Count; } }
+        public Int32 Count { get { return _dic.Count; } }
 
-        public bool IsReadOnly { get { return (_dic as IDictionary<Int32, ISocketSession>).IsReadOnly; } }
+        public Boolean IsReadOnly { get { return (_dic as IDictionary<Int32, ISocketSession>).IsReadOnly; } }
 
         public IEnumerator<ISocketSession> GetEnumerator() { return _dic.Values.GetEnumerator() as IEnumerator<ISocketSession>; }
 
@@ -182,11 +182,11 @@ namespace NewLife.Net
 
         void IDictionary<String, ISocketSession>.Add(String key, ISocketSession value) { Add(value); }
 
-        bool IDictionary<String, ISocketSession>.ContainsKey(String key) { return _dic.ContainsKey(key); }
+        Boolean IDictionary<String, ISocketSession>.ContainsKey(String key) { return _dic.ContainsKey(key); }
 
         ICollection<String> IDictionary<String, ISocketSession>.Keys { get { return _dic.Keys; } }
 
-        bool IDictionary<String, ISocketSession>.Remove(String key)
+        Boolean IDictionary<String, ISocketSession>.Remove(String key)
         {
             ISocketSession session;
             if (!_dic.TryGetValue(key, out session)) return false;
@@ -197,7 +197,7 @@ namespace NewLife.Net
             return _dic.Remove(key);
         }
 
-        bool IDictionary<String, ISocketSession>.TryGetValue(String key, out ISocketSession value) { return _dic.TryGetValue(key, out value); }
+        Boolean IDictionary<String, ISocketSession>.TryGetValue(String key, out ISocketSession value) { return _dic.TryGetValue(key, out value); }
 
         ICollection<ISocketSession> IDictionary<String, ISocketSession>.Values { get { return _dic.Values; } }
 
@@ -212,11 +212,11 @@ namespace NewLife.Net
             throw new XException("不支持！请使用Add(ISocketSession session)方法！");
         }
 
-        bool ICollection<KeyValuePair<String, ISocketSession>>.Contains(KeyValuePair<String, ISocketSession> item) { throw new NotImplementedException(); }
+        Boolean ICollection<KeyValuePair<String, ISocketSession>>.Contains(KeyValuePair<String, ISocketSession> item) { throw new NotImplementedException(); }
 
-        void ICollection<KeyValuePair<String, ISocketSession>>.CopyTo(KeyValuePair<String, ISocketSession>[] array, int arrayIndex) { throw new NotImplementedException(); }
+        void ICollection<KeyValuePair<String, ISocketSession>>.CopyTo(KeyValuePair<String, ISocketSession>[] array, Int32 arrayIndex) { throw new NotImplementedException(); }
 
-        bool ICollection<KeyValuePair<String, ISocketSession>>.Remove(KeyValuePair<String, ISocketSession> item) { throw new XException("不支持！请直接销毁会话对象！"); }
+        Boolean ICollection<KeyValuePair<String, ISocketSession>>.Remove(KeyValuePair<String, ISocketSession> item) { throw new XException("不支持！请直接销毁会话对象！"); }
 
         #endregion
 

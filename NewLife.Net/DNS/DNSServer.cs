@@ -68,7 +68,7 @@ namespace NewLife.Net.DNS
             var list = new HashSet<String>(ps.Select(p => p.ToString()), StringComparer.OrdinalIgnoreCase);
             //ps.Clear();
 
-            for (int i = ss.Length - 1; i >= 0; i--)
+            for (var i = ss.Length - 1; i >= 0; i--)
             {
                 try
                 {
@@ -130,7 +130,7 @@ namespace NewLife.Net.DNS
             _Clients = null;
         }
 
-        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<string, DNSEntity>() { Expire = 600, Asynchronous = true, CacheDefault = false };
+        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<String, DNSEntity>() { Expire = 600, Asynchronous = true, CacheDefault = false };
 
         /// <summary>接收处理</summary>
         /// <param name="session"></param>

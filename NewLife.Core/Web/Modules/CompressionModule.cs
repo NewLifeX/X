@@ -26,10 +26,10 @@ namespace NewLife.Web
         public String WebCompressFiles { get; set; } = ".aspx,.axd,.js,.css";
 
         #region Compression
-        private const string GZIP = "gzip";
-        private const string DEFLATE = "deflate";
+        private const String GZIP = "gzip";
+        private const String DEFLATE = "deflate";
 
-        void CompressContent(object sender, EventArgs e)
+        void CompressContent(Object sender, EventArgs e)
         {
             var app = sender as HttpApplication;
             if (!(app.Context.CurrentHandler is System.Web.UI.Page) || app.Request["HTTP_X_MICROSOFTAJAX"] != null) return;
@@ -40,7 +40,7 @@ namespace NewLife.Web
             // .net 2.0没有HeadersWritten
 
             //压缩
-            String url = app.Request.Url.OriginalString.ToLower();
+            var url = app.Request.Url.OriginalString.ToLower();
             if (CanCompress(url))
             {
                 //是否支持压缩协议
@@ -73,14 +73,14 @@ namespace NewLife.Web
         }
 
         /// <summary>检查请求头，确认客户端是否支持压缩编码</summary>
-        private static bool IsEncodingAccepted(string encoding)
+        private static Boolean IsEncodingAccepted(String encoding)
         {
             return HttpContext.Current.Request.Headers["Accept-encoding"] != null && HttpContext.Current.Request.Headers["Accept-encoding"].Contains(encoding);
         }
 
         /// <summary>添加压缩编码到响应头</summary>
         /// <param name="encoding"></param>
-        private static void SetEncoding(string encoding)
+        private static void SetEncoding(String encoding)
         {
             HttpContext.Current.Response.AppendHeader("Content-encoding", encoding);
         }

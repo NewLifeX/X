@@ -83,14 +83,14 @@ namespace NewLife.Net.Stun
 
         T GetAtt<T>(AttributeType type, Int32 position = 0)
         {
-            StunAttribute att = GetAtt(type, false);
+            var att = GetAtt(type, false);
             if (att == null) return default(T);
 
             Object v = null;
             switch (type)
             {
                 case AttributeType.ChangeRequest:
-                    Int32 d = att.Int;
+                    var d = att.Int;
                     if (position == 0)
                         v = (d & 4) != 0;
                     else
@@ -98,7 +98,7 @@ namespace NewLife.Net.Stun
                     return (T)v;
                 case AttributeType.ErrorCode:
                     var data = att.Data;
-                    Type t = typeof(T);
+                    var t = typeof(T);
                     if (t == typeof(Int32))
                         v = (data[2] & 0x7) * 100 + (data[3] & 0xFF);
                     else if (t == typeof(String))
@@ -116,8 +116,8 @@ namespace NewLife.Net.Stun
             switch (type)
             {
                 case AttributeType.ChangeRequest:
-                    Int32 d = att.Int;
-                    Boolean b = (Boolean)(Object)value;
+                    var d = att.Int;
+                    var b = (Boolean)(Object)value;
                     if (position == 0)
                     {
                         if (b)
@@ -136,7 +136,7 @@ namespace NewLife.Net.Stun
                     break;
                 case AttributeType.ErrorCode:
                     var data = att.Data;
-                    Type t = typeof(T);
+                    var t = typeof(T);
                     if (t == typeof(Int32))
                     {
                         if (data == null)
@@ -145,7 +145,7 @@ namespace NewLife.Net.Stun
                             att.Data = data;
                             data[3] = 4;
                         }
-                        data[4] = (Byte)Math.Floor((double)((Int32)(Object)value / 100));
+                        data[4] = (Byte)Math.Floor((Double)((Int32)(Object)value / 100));
                         data[5] = (Byte)((Int32)(Object)value & 0xFF);
                     }
                     else if (t == typeof(String))
@@ -306,7 +306,7 @@ namespace NewLife.Net.Stun
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             var tname = Type.ToString().TrimStart("Binding");
             if (Atts.Count == 0) return tname;

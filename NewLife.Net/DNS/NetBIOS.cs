@@ -11,7 +11,7 @@ namespace NewLife.Net.DNS
         /// <summary>查询名称</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public IPAddress QueryName(string name)
+        public IPAddress QueryName(String name)
         {
             //DnsRequest request = new DnsRequest(new Question(EncodeName(name), DnsType.NB, DnsClass.IN));
             var request = new DNSEntity();
@@ -34,7 +34,7 @@ namespace NewLife.Net.DNS
         /// <param name="name">名称</param>
         /// <param name="address"></param>
         /// <returns></returns>
-        public bool Register(string name, IPAddress address)
+        public Boolean Register(String name, IPAddress address)
         {
             //DnsRequest request = new DnsRequest(new Question(EncodeName(name), DnsType.NB, DnsClass.IN));
             var request = new DNSEntity();
@@ -57,20 +57,20 @@ namespace NewLife.Net.DNS
             return true;
         }
 
-        static string EncodeName(string domain)
+        static String EncodeName(String domain)
         {
             var sb = new StringBuilder();
 
             domain = domain.PadRight(16, ' ');
             //foreach (char c in domain + "                ".Substring(0, 16 - domain.Length))
-            foreach (char c in domain)
+            foreach (var c in domain)
             {
-                byte b = (byte)c;
-                char x = (char)((byte)'A' + (((byte)c & 0xF0) >> 4));
+                var b = (Byte)c;
+                var x = (Char)((Byte)'A' + (((Byte)c & 0xF0) >> 4));
 
                 sb.Append(x);
 
-                x = (char)((byte)'A' + ((byte)c & 0x0F));
+                x = (Char)((Byte)'A' + ((Byte)c & 0x0F));
 
                 sb.Append(x);
             }
@@ -80,14 +80,14 @@ namespace NewLife.Net.DNS
 
         DNSEntity Invoke(DNSEntity request) { return Invoke(request, true); }
 
-        private static readonly int _maxRetryAttemps = 2;
-        internal DNSEntity Invoke(DNSEntity request, bool isQuery)
+        private static readonly Int32 _maxRetryAttemps = 2;
+        internal DNSEntity Invoke(DNSEntity request, Boolean isQuery)
         {
-            int attempts = 0;
+            var attempts = 0;
 
             while (attempts <= _maxRetryAttemps)
             {
-                byte[] bytes = request.GetStream(false).ReadBytes();
+                var bytes = request.GetStream(false).ReadBytes();
 
                 if (bytes.Length > 512)
                     throw new ArgumentException("RFC 1035 2.3.4 states that the maximum size of a UDP datagram is 512 octets (bytes).");
@@ -108,12 +108,12 @@ namespace NewLife.Net.DNS
                     // Messages carried by UDP are restricted to 512 bytes (not counting the IP
                     // or UDP headers).  Longer messages are truncated and the TC bit is set in
                     // the header. (RFC 1035 4.2.1)
-                    byte[] responseMessage = new byte[512];
+                    var responseMessage = new Byte[512];
 
                     //int numBytes = socket.Receive(responseMessage);
 
-                    EndPoint ep = (EndPoint)new IPEndPoint(new IPAddress(4294967295), 137);
-                    int numBytes = socket.ReceiveFrom(responseMessage, ref ep);
+                    var ep = (EndPoint)new IPEndPoint(new IPAddress(4294967295), 137);
+                    var numBytes = socket.ReceiveFrom(responseMessage, ref ep);
 
                     if (numBytes == 0 || numBytes > 512)
                         throw new Exception("RFC 1035 2.3.4 states that the maximum size of a UDP datagram is 512 octets (bytes).");

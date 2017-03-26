@@ -58,11 +58,11 @@ namespace NewLife.Serialization
                 _Builder.Append((obj + "").ToLower());
 
             else if (
-                obj is Int32 || obj is Int64 || obj is double ||
-                obj is decimal || obj is float ||
-                obj is Byte || obj is short ||
-                obj is sbyte || obj is ushort ||
-                obj is uint || obj is ulong
+                obj is Int32 || obj is Int64 || obj is Double ||
+                obj is Decimal || obj is Single ||
+                obj is Byte || obj is Int16 ||
+                obj is SByte || obj is UInt16 ||
+                obj is UInt32 || obj is UInt64
             )
                 _Builder.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
 
@@ -170,7 +170,7 @@ namespace NewLife.Serialization
         private Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
         private void WriteObject(Object obj)
         {
-            Int32 i = 0;
+            var i = 0;
             if (!_cirobj.TryGetValue(obj, out i)) _cirobj.Add(obj, _cirobj.Count + 1);
 
             _Builder.Append('{');
@@ -302,8 +302,8 @@ namespace NewLife.Serialization
         {
             _Builder.Append('\"');
 
-            Int32 idx = -1;
-            Int32 len = str.Length;
+            var idx = -1;
+            var len = str.Length;
             for (var index = 0; index < len; ++index)
             {
                 var c = str[index];

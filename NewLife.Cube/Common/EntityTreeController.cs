@@ -78,7 +78,7 @@ namespace NewLife.Cube
 
         /// <summary>要导出Json的对象</summary>
         /// <returns></returns>
-        protected override object OnExportJson()
+        protected override Object OnExportJson()
         {
             return EntityTree<TEntity>.Root.Childs;
         }

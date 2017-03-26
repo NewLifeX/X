@@ -11,7 +11,7 @@ namespace NewLife.Cube.Precompiled
     {
         /// <summary>实例化缓存依赖</summary>
         /// <param name="virtualPath"></param>
-        public ViewCacheDependency(string virtualPath)
+        public ViewCacheDependency(String virtualPath)
         {
             base.SetUtcLastModified(DateTime.UtcNow);
         }

@@ -19,7 +19,7 @@ namespace NewLife.Net.Sdp
         /// <summary>分析</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static SdpTime Parse(string value)
+        public static SdpTime Parse(String value)
         {
             if (value == null) throw new ArgumentNullException("value");
 
@@ -29,7 +29,7 @@ namespace NewLife.Net.Sdp
 
             value = value.Substring(2);
 
-            string[] values = value.Split(' ');
+            var values = value.Split(' ');
             if (values.Length != 2) throw new NetException("Invalid SDP Time('t=') value '" + value + "'.");
 
             var entity = new SdpTime();
@@ -40,7 +40,7 @@ namespace NewLife.Net.Sdp
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return "t=" + StartTime + " " + StopTime + "\r\n";
         }

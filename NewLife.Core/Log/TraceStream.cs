@@ -59,7 +59,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count)
         {
-            Int32 n = BaseStream.Read(buffer, offset, count);
+            var n = BaseStream.Read(buffer, offset, count);
 
             RaiseAction("Read", buffer, offset, count, n);
 
@@ -70,7 +70,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public override Int32 ReadByte()
         {
-            Int32 n = BaseStream.ReadByte();
+            var n = BaseStream.ReadByte();
 
             RaiseAction("ReadByte", n);
 
@@ -300,8 +300,8 @@ namespace NewLife.Log
             Console.Write("\t");
 
             Byte[] buffer = null;
-            Int32 offset = 0;
-            Int32 count = 0;
+            var offset = 0;
+            var count = 0;
             if (e.Arg2.Length > 1)
             {
                 if (e.Arg2[0] is Byte[]) buffer = (Byte[])e.Arg2[0];
@@ -311,7 +311,7 @@ namespace NewLife.Log
 
             if (e.Arg2.Length == 1)
             {
-                Int32 n = Convert.ToInt32(e.Arg2[0]);
+                var n = Convert.ToInt32(e.Arg2[0]);
                 // 大于10才显示十进制
                 if (n >= 10)
                     Console.Write("{0:X2} ({0})", n);
@@ -322,7 +322,7 @@ namespace NewLife.Log
             {
                 if (count == 1)
                 {
-                    Int32 n = Convert.ToInt32(buffer[0]);
+                    var n = Convert.ToInt32(buffer[0]);
                     // 大于10才显示十进制
                     if (n >= 10)
                         Console.Write("{0:X2} ({0})", n);
@@ -394,8 +394,8 @@ namespace NewLife.Log
             sb.AppendFormat("\t");
 
             Byte[] buffer = null;
-            Int32 offset = 0;
-            Int32 count = 0;
+            var offset = 0;
+            var count = 0;
             if (e.Arg2.Length > 1)
             {
                 if (e.Arg2[0] is Byte[]) buffer = (Byte[])e.Arg2[0];
@@ -405,7 +405,7 @@ namespace NewLife.Log
 
             if (e.Arg2.Length == 1)
             {
-                Int32 n = Convert.ToInt32(e.Arg2[0]);
+                var n = Convert.ToInt32(e.Arg2[0]);
                 // 大于10才显示十进制
                 if (n >= 10)
                     sb.AppendFormat("{0:X2} ({0})", n);
@@ -416,7 +416,7 @@ namespace NewLife.Log
             {
                 if (count == 1)
                 {
-                    Int32 n = Convert.ToInt32(buffer[0]);
+                    var n = Convert.ToInt32(buffer[0]);
                     // 大于10才显示十进制
                     if (n >= 10)
                         sb.AppendFormat("{0:X2} ({0})", n);

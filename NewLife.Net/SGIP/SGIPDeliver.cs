@@ -49,7 +49,7 @@ namespace NewLife.Net.SGIP
 }
 
     /// <summary>短消息的编码格式。</summary>
-    public enum SGIPMessageCodings : byte
+    public enum SGIPMessageCodings : Byte
     {
         /// <summary>0：纯ASCII字符串</summary>
         Ascii = 0,

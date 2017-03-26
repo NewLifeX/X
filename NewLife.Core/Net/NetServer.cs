@@ -155,7 +155,7 @@ namespace NewLife.Net
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -240,7 +240,7 @@ namespace NewLife.Net
         public virtual Int32 AddServer(IPAddress address, Int32 port, NetType protocol = NetType.Unknown, AddressFamily family = AddressFamily.Unspecified)
         {
             var list = CreateServer(address, port, protocol, family);
-            Int32 count = 0;
+            var count = 0;
             foreach (var item in list)
             {
                 AttachServer(item);
@@ -652,7 +652,7 @@ namespace NewLife.Net
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             var servers = Servers;
             if (servers == null || servers.Count < 1) return Name;

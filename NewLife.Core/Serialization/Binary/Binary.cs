@@ -187,7 +187,7 @@ namespace NewLife.Serialization
             var arr = new Byte[16];
             var k = 0;
 
-            Int32 count = 1;
+            var count = 1;
             var num = (UInt32)value;
             while (num >= 0x80)
             {
@@ -196,7 +196,7 @@ namespace NewLife.Serialization
 
                 count++;
             }
-            arr[k++] = (byte)num;
+            arr[k++] = (Byte)num;
 
             Write(arr, 0, k);
 
@@ -351,7 +351,7 @@ namespace NewLife.Serialization
         public Int32 ReadEncodedInt32()
         {
             Byte b;
-            Int32 rs = 0;
+            var rs = 0;
             Byte n = 0;
             while (true)
             {

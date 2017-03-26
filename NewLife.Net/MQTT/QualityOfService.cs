@@ -5,7 +5,7 @@ using System.Text;
 namespace NewLife.Net.MQTT
 {
     /// <summary>服务质量</summary>
-    public enum QualityOfService : byte
+    public enum QualityOfService : Byte
     {
         /// <summary>至多一次 	发完即丢弃</summary>
         Q0 = 0,

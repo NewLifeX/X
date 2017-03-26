@@ -32,7 +32,7 @@ namespace NewLife
 #if __MOBILE__ || __CORE__
                 _IsConsole = false;
 #else
-                IntPtr ip = Win32Native.GetStdHandle(-11);
+                var ip = Win32Native.GetStdHandle(-11);
                 if (ip == IntPtr.Zero || ip == INVALID_HANDLE_VALUE)
                     _IsConsole = false;
                 else
@@ -300,7 +300,7 @@ namespace NewLife
         /// <returns></returns>
         public static Boolean SetProcessWorkingSetSize(Int32 pid, Int32 min, Int32 max)
         {
-            Process p = pid <= 0 ? Process.GetCurrentProcess() : Process.GetProcessById(pid);
+            var p = pid <= 0 ? Process.GetCurrentProcess() : Process.GetProcessById(pid);
             return Win32Native.SetProcessWorkingSetSize(p.Handle, min, max);
         }
 
@@ -372,7 +372,7 @@ namespace NewLife
 #else
     /// <summary>标识系统上的程序组</summary>
     [Flags]
-    enum OSSuites : ushort
+    enum OSSuites : UInt16
     {
         //None = 0,
         SmallBusiness = 0x00000001,
@@ -392,7 +392,7 @@ namespace NewLife
     }
 
     /// <summary>标识系统类型</summary>
-    enum OSProductType : byte
+    enum OSProductType : Byte
     {
         /// <summary>工作站</summary>
         [Description("工作站")]
@@ -410,50 +410,50 @@ namespace NewLife
     class Win32Native
     {
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern IntPtr GetStdHandle(int nStdHandle);
+        internal static extern IntPtr GetStdHandle(Int32 nStdHandle);
 
         [SecurityCritical]
-        internal static bool DoesWin32MethodExist(string moduleName, string methodName)
+        internal static Boolean DoesWin32MethodExist(String moduleName, String methodName)
         {
-            IntPtr moduleHandle = GetModuleHandle(moduleName);
+            var moduleHandle = GetModuleHandle(moduleName);
             if (moduleHandle == IntPtr.Zero) return false;
             return GetProcAddress(moduleHandle, methodName) != IntPtr.Zero;
         }
 
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail), DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr GetModuleHandle(string moduleName);
+        private static extern IntPtr GetModuleHandle(String moduleName);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        private static extern IntPtr GetProcAddress(IntPtr hModule, string methodName);
+        private static extern IntPtr GetProcAddress(IntPtr hModule, String methodName);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern IntPtr GetCurrentProcess();
 
         [return: MarshalAs(UnmanagedType.Bool)]
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool IsWow64Process([In] IntPtr hSourceProcessHandle, [MarshalAs(UnmanagedType.Bool)] out bool isWow64);
+        internal static extern Boolean IsWow64Process([In] IntPtr hSourceProcessHandle, [MarshalAs(UnmanagedType.Bool)] out Boolean isWow64);
 
         [DllImport("kernel32.dll")]
-        internal static extern bool SetProcessWorkingSetSize(IntPtr proc, int min, int max);
+        internal static extern Boolean SetProcessWorkingSetSize(IntPtr proc, Int32 min, Int32 max);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        internal static extern bool GetVersionEx([In, Out] OSVersionInfoEx ver);
+        internal static extern Boolean GetVersionEx([In, Out] OSVersionInfoEx ver);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         internal class OSVersionInfoEx
         {
-            public int OSVersionInfoSize;
-            public int MajorVersion;        // 系统主版本号
-            public int MinorVersion;        // 系统次版本号
-            public int BuildNumber;         // 系统构建号
-            public int PlatformId;          // 系统支持的平台
+            public Int32 OSVersionInfoSize;
+            public Int32 MajorVersion;        // 系统主版本号
+            public Int32 MinorVersion;        // 系统次版本号
+            public Int32 BuildNumber;         // 系统构建号
+            public Int32 PlatformId;          // 系统支持的平台
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-            public string CSDVersion;       // 系统补丁包的名称
-            public ushort ServicePackMajor; // 系统补丁包的主版本
-            public ushort ServicePackMinor; // 系统补丁包的次版本
+            public String CSDVersion;       // 系统补丁包的名称
+            public UInt16 ServicePackMajor; // 系统补丁包的主版本
+            public UInt16 ServicePackMinor; // 系统补丁包的次版本
             public OSSuites SuiteMask;         // 标识系统上的程序组
             public OSProductType ProductType;        // 标识系统类型
-            public byte Reserved;           // 保留
+            public Byte Reserved;           // 保留
             public OSVersionInfoEx()
             {
                 OSVersionInfoSize = Marshal.SizeOf(this);
@@ -461,29 +461,29 @@ namespace NewLife
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern int GetSystemMetrics(int nIndex);
+        public static extern Int32 GetSystemMetrics(Int32 nIndex);
 
         public struct MEMORYSTATUSEX
         {
-            internal uint dwLength;
-            internal uint dwMemoryLoad;
-            internal ulong ullTotalPhys;
-            internal ulong ullAvailPhys;
-            internal ulong ullTotalPageFile;
-            internal ulong ullAvailPageFile;
-            internal ulong ullTotalVirtual;
-            internal ulong ullAvailVirtual;
-            internal ulong ullAvailExtendedVirtual;
+            internal UInt32 dwLength;
+            internal UInt32 dwMemoryLoad;
+            internal UInt64 ullTotalPhys;
+            internal UInt64 ullAvailPhys;
+            internal UInt64 ullTotalPageFile;
+            internal UInt64 ullAvailPageFile;
+            internal UInt64 ullTotalVirtual;
+            internal UInt64 ullAvailVirtual;
+            internal UInt64 ullAvailExtendedVirtual;
             internal void Init()
             {
-                dwLength = checked((uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX)));
+                dwLength = checked((UInt32)Marshal.SizeOf(typeof(MEMORYSTATUSEX)));
             }
         }
 
         [SecurityCritical]
         [DllImport("Kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
+        public static extern Boolean GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
     }
 #endif
 }

@@ -19,7 +19,7 @@ namespace NewLife.Net.UPnP
             var doc = new XmlDocument();
             doc.LoadXml(xml);
 
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
 
             //TypeX tx = TypeX.Create(typeof(TEntity));
             foreach (var item in typeof(TEntity).GetProperties(true))

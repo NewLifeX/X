@@ -14,7 +14,7 @@ namespace NewLife.Remoting
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        object this[string key] { get; set; }
+        Object this[String key] { get; set; }
 
         /// <summary>创建消息。低级接口，由框架使用</summary>
         /// <param name="pk"></param>
@@ -31,6 +31,6 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Task<TResult> InvokeAsync<TResult>(string action, object args = null);
+        Task<TResult> InvokeAsync<TResult>(String action, Object args = null);
     }
 }

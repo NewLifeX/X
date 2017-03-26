@@ -22,7 +22,7 @@ namespace NewLife.Web
             context.PostReleaseRequestState += new EventHandler(WriteRunTime);
         }
 
-        void OnBeginRequest(object sender, EventArgs e)
+        void OnBeginRequest(Object sender, EventArgs e)
         {
             OnInit();
         }
@@ -51,7 +51,7 @@ namespace NewLife.Web
         {
             get
             {
-                Object obj = Context.Items["IsWriteRunTime"];
+                var obj = Context.Items["IsWriteRunTime"];
                 return (obj is Boolean) ? (Boolean)obj : XTrace.Debug;
             }
             set { Context.Items["IsWriteRunTime"] = value; }
@@ -62,7 +62,7 @@ namespace NewLife.Web
         {
             get
             {
-                Object obj = Context.Items["HasWrite"];
+                var obj = Context.Items["HasWrite"];
                 return (obj is Boolean) ? (Boolean)obj : false;
             }
             set { Context.Items["HasWrite"] = value; }
@@ -73,7 +73,7 @@ namespace NewLife.Web
         public static String RunTimeFormat { get { return _RunTimeFormat; } set { _RunTimeFormat = value; } }
 
         /// <summary>输出运行时间</summary>
-        void WriteRunTime(object sender, EventArgs e)
+        void WriteRunTime(Object sender, EventArgs e)
         {
             if (!IsWriteRunTime) return;
 
@@ -86,14 +86,14 @@ namespace NewLife.Web
             HasWrite = true;
 
             // 只处理Page页面
-            Page page = Context.Handler as Page;
+            var page = Context.Handler as Page;
             if (page == null) return;
 
-            String str = Render();
+            var str = Render();
             if (String.IsNullOrEmpty(str)) return;
 
             // 尝试找到页面，并在页面上写上信息
-            Literal lt = page.FindControl("RunTime") as Literal;
+            var lt = page.FindControl("RunTime") as Literal;
             if (lt != null)
                 lt.Text = str;
             else
@@ -104,7 +104,7 @@ namespace NewLife.Web
         /// <returns></returns>
         protected virtual String Render()
         {
-            TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
+            var ts = DateTime.Now - HttpContext.Current.Timestamp;
 
             return String.Format(RunTimeFormat, ts.TotalMilliseconds);
         }
