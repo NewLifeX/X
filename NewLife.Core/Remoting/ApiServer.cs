@@ -27,6 +27,9 @@ namespace NewLife.Remoting
         #endregion
 
         #region 属性
+        /// <summary>名称</summary>
+        public String Name { get; set; }
+
         /// <summary>是否正在工作</summary>
         public Boolean Active { get; private set; }
 
@@ -38,6 +41,9 @@ namespace NewLife.Remoting
         /// <summary>实例化一个应用接口服务器</summary>
         public ApiServer()
         {
+            var type = GetType();
+            Name = type.GetDisplayName() ?? type.Name.TrimEnd("Server");
+
             Register(new ApiController { Host = this }, null);
         }
 
@@ -98,7 +104,7 @@ namespace NewLife.Remoting
         }
 
         /// <summary>开始服务</summary>
-        public void Start()
+        public virtual void Start()
         {
             if (Active) return;
 
@@ -130,7 +136,7 @@ namespace NewLife.Remoting
 
         /// <summary>停止服务</summary>
         /// <param name="reason">关闭原因。便于日志分析</param>
-        public void Stop(String reason)
+        public virtual void Stop(String reason)
         {
             if (!Active) return;
 
@@ -161,6 +167,18 @@ namespace NewLife.Remoting
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(Name + " " + format, args);
+        }
+
+        /// <summary>已重载。返回具有本类特征的字符串</summary>
+        /// <returns>String</returns>
+        public override string ToString() { return Name; }
         #endregion
     }
 }
