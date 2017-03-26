@@ -7,7 +7,7 @@ using NewLife.Messaging;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口客户端接口</summary>
-    public interface IApiClient
+    public interface IApiClient : IServiceProvider
     {
         /// <summary>服务提供者</summary>
         IServiceProvider Provider { get; set; }

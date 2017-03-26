@@ -105,8 +105,11 @@ namespace NewLife.Remoting
 #if DEBUG
             Encoder.Log = Log;
 #endif
-            Log.Info("启动{0}，共有服务器{1}个", this.GetType().Name, Servers.Count);
+            if (Encoder == null) Encoder = new JsonEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
+
+            Log.Info("启动{0}，共有服务器{1}个 编码：{2} 处理器：{3}", GetType().Name, Servers.Count, Encoder, Handler);
+
             foreach (var item in Servers)
             {
                 if (item.Handler == null) item.Handler = Handler;

@@ -73,8 +73,9 @@ namespace NewLife.Remoting
         public void Open()
         {
             if (Client == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
-            if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
+            //if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
 
+            if (Encoder == null) Encoder = new JsonEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
             Client.Opened += Client_Opened;
@@ -147,7 +148,7 @@ namespace NewLife.Remoting
         public override Object GetService(Type serviceType)
         {
             if (serviceType == GetType()) return this;
-            if (serviceType == typeof(IApiClient)) return this;
+            if (serviceType == typeof(IApiClient)) return Client;
 
             return base.GetService(serviceType);
         }
