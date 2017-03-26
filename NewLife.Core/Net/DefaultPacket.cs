@@ -14,7 +14,7 @@ namespace NewLife.Net
         public DefaultPacket()
         {
             Offset = 2;
-            Size = -2;
+            Size = 2;
         }
 
         private Byte _seq;

@@ -10,17 +10,17 @@ namespace NewLife.Messaging
     /// 标准网络封包协议：1 Flag + 1 Sequence + 2 Length + N Payload
     /// 1个字节标识位，标识请求、响应、错误、加密、压缩等；
     /// 1个字节序列号，用于请求响应包配对；
-    /// 2个字节数据长度N，大端，指示后续负载数据长度（不包含头部4个字节），解决粘包问题；
+    /// 2个字节数据长度N，小端，指示后续负载数据长度（不包含头部4个字节），解决粘包问题；
     /// N个字节负载数据，数据内容完全由业务决定，最大长度65535=64k。
     /// 如：
     /// Open => OK
-    /// 01-01-00-04-"Open" => 81-01-00-02-"OK"
+    /// 01-01-04-00-"Open" => 81-01-02-00-"OK"
     /// 
     /// 针对纯字符串场景，采用8字符HEX编码头部。
     /// 首字符0表示请求，8表示响应
     /// 如：
     /// Open => OK
-    /// 01010004 Open => 81010002 OK
+    /// 01010400 Open => 81010200 OK
     /// </remarks>
     public class DefaultMessage : Message
     {
@@ -80,7 +80,7 @@ namespace NewLife.Messaging
 
             Sequence = buf[1];
 
-            var len = (buf[2] << 8) | buf[3];
+            var len = (buf[3] << 8) | buf[2];
             if (size + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度{0}不足{1}字节".F(pk.Count, size + len));
 
             Payload = new Packet(pk.Data, pk.Offset + size, len);
@@ -107,9 +107,8 @@ namespace NewLife.Messaging
             // 2字节长度，大端
             var len = 0;
             if (Payload != null) len = Payload.Count;
-            //ms.Write(((UInt16)len).GetBytes(false));
-            ms.WriteByte((Byte)(len >> 8));
             ms.WriteByte((Byte)(len & 0xFF));
+            ms.WriteByte((Byte)(len >> 8));
 
             if (_IsChar) stream.Write(ms.ToArray());
 
