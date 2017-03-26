@@ -153,11 +153,19 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
         {
+            if (!OnInvoke(action, args)) throw new ApiException(0, "无权调用" + action);
+
             var ss = Client;
             if (ss == null) return default(TResult);
 
             return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args).ConfigureAwait(false);
         }
+
+        /// <summary>调用前触发，可用于判断是否有权调用指定动作</summary>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        protected virtual Boolean OnInvoke(String action, Object args) { return true; }
 
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
