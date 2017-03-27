@@ -10,9 +10,6 @@ namespace NewLife.MessageQueue
         /// <summary>Api接口会话</summary>
         public IApiSession Session { get; set; }
 
-        /// <summary>当前上下文</summary>
-        public ControllerContext Context { get; set; }
-
         /// <summary>登录</summary>
         /// <param name="user"></param>
         /// <param name="pass"></param>
