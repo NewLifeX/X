@@ -178,7 +178,7 @@ namespace NewLife.Remoting
 
         /// <summary>已重载。返回具有本类特征的字符串</summary>
         /// <returns>String</returns>
-        public override string ToString() { return Name; }
+        public override String ToString() { return Name; }
         #endregion
     }
 }
