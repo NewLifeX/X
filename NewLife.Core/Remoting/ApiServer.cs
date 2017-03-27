@@ -108,9 +108,6 @@ namespace NewLife.Remoting
         {
             if (Active) return;
 
-#if DEBUG
-            Encoder.Log = Log;
-#endif
             if (Encoder == null) Encoder = new JsonEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
