@@ -12,6 +12,9 @@ namespace NewLife.MessageQueue
         /// <summary>Api接口会话</summary>
         public IApiSession Session { get; set; }
 
+        /// <summary>当前上下文</summary>
+        public ControllerContext Context { get; set; }
+
         private Topic Check(String topic, Boolean create)
         {
             var host = Session.GetService<ApiServer>();

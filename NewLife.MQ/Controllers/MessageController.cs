@@ -11,6 +11,9 @@ namespace NewLife.MessageQueue
         /// <summary>Api接口会话</summary>
         public IApiSession Session { get; set; }
 
+        /// <summary>当前上下文</summary>
+        public ControllerContext Context { get; set; }
+
         /// <summary>发布消息</summary>
         /// <param name="msg"></param>
         /// <returns></returns>

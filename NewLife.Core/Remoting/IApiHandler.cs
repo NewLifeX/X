@@ -37,11 +37,12 @@ namespace NewLife.Remoting
 
             // 复用控制器对象
             var controller = Host.IsReusable ? session["Controller"] : null;
+            var iapi = controller as IApi;
             if (controller == null)
             {
                 // 全局共用控制器，或者每次创建对象实例
                 controller = api.Controller ?? api.Type.CreateInstance();
-                if (controller is IApi) (controller as IApi).Session = session;
+                if (iapi != null) iapi.Session = session;
             }
 
             // 服务设置优先于全局主机
@@ -85,7 +86,7 @@ namespace NewLife.Remoting
                 if (rs == null) rs = await Task.Run(() =>
                 {
                     // 当前上下文
-                    ControllerContext.Current = actx;
+                    if (iapi != null) iapi.Context = actx;
                     try
                     {
                         var result = controller.InvokeWithParams(api.Method, ps as IDictionary);
@@ -93,7 +94,7 @@ namespace NewLife.Remoting
                     }
                     finally
                     {
-                        ControllerContext.Current = null;
+                        if (iapi != null) iapi.Context = null;
                     }
                 });
             }

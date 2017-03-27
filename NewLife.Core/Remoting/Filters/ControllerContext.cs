@@ -31,10 +31,5 @@ namespace NewLife.Remoting
             Session = context.Session;
             Parameters = context.Parameters;
         }
-
-        [ThreadStatic]
-        private static ControllerContext _Current;
-        /// <summary>当前线程上下文</summary>
-        public static ControllerContext Current { get { return _Current; } set { _Current = value; } }
     }
 }
