@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Messaging;
 
 namespace NewLife.Remoting
@@ -10,6 +11,9 @@ namespace NewLife.Remoting
     public abstract class ApiHost : DisposeBase, IApiHost, IServiceProvider
     {
         #region 属性
+        /// <summary>名称</summary>
+        public String Name { get; set; }
+
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
 
@@ -151,6 +155,23 @@ namespace NewLife.Remoting
 
             return Provider?.GetService(serviceType);
         }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(Name + " " + format, args);
+        }
+
+        /// <summary>已重载。返回具有本类特征的字符串</summary>
+        /// <returns>String</returns>
+        public override String ToString() { return Name; }
         #endregion
     }
 }

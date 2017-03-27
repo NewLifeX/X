@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -36,20 +37,19 @@ namespace NewLife.Remoting
             if (api == null) throw new ApiException(404, "无法找到名为[{0}]的服务！".F(action));
 
             // 复用控制器对象
-            var controller = Host.IsReusable ? session["Controller"] : null;
-            if (controller == null)
-            {
-                // 全局共用控制器，或者每次创建对象实例
-                controller = api.Controller ?? api.Type.CreateInstance();
-                if (controller is IApi) (controller as IApi).Session = session;
-            }
+            var ts = session["Controller"] as IDictionary<Type, Object>;
+            if (Host.IsReusable && ts == null) session["Controller"] = ts = new NullableDictionary<Type, Object>();
+
+            // 全局共用控制器，或者每次创建对象实例
+            var controller = api.Controller ?? ts[api.Type] ?? api.Type.CreateInstance();
+            if (controller is IApi) (controller as IApi).Session = session;
+
+            // 复用控制器对象
+            if (Host.IsReusable) ts[api.Type] = controller;
 
             // 服务设置优先于全局主机
             var svr = session.GetService<IApiServer>();
             var enc = svr?.Encoder ?? Host.Encoder;
-
-            // 复用控制器对象
-            if (Host.IsReusable) session["Controller"] = controller;
 
             // 全局过滤器、控制器特性、Action特性
             var fs = api.ActionFilters;
@@ -111,6 +111,8 @@ namespace NewLife.Remoting
 
                 // 执行异常过滤器
                 etx = OnException(ctx, ex, efs, rs);
+
+                Host.WriteLog("执行{0}出错！{1}", action, ex.Message);
 
                 // 如果异常没有被拦截，继续向外抛出
                 if (!etx.ExceptionHandled) throw;

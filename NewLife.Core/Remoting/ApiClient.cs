@@ -28,9 +28,6 @@ namespace NewLife.Remoting
         #endregion
 
         #region 属性
-        /// <summary>名称</summary>
-        public String Name { get; set; }
-
         /// <summary>是否已打开</summary>
         public Boolean Active { get; set; }
 
@@ -180,23 +177,6 @@ namespace NewLife.Remoting
 
             return base.GetService(serviceType);
         }
-        #endregion
-
-        #region 日志
-        /// <summary>日志</summary>
-        public ILog Log { get; set; } = Logger.Null;
-
-        /// <summary>写日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(Name + " " + format, args);
-        }
-
-        /// <summary>已重载。返回具有本类特征的字符串</summary>
-        /// <returns>String</returns>
-        public override String ToString() { return Name; }
         #endregion
     }
 }

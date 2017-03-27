@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Messaging;
 
 namespace NewLife.Remoting
@@ -33,6 +34,14 @@ namespace NewLife.Remoting
         /// <param name="msg"></param>
         /// <returns></returns>
         IMessage Process(IApiSession session, IMessage msg);
+
+        /// <summary>日志</summary>
+        ILog Log { get; set; }
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        void WriteLog(String format, params Object[] args);
     }
 
     /// <summary>消息事件参数</summary>
