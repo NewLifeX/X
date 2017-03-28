@@ -104,7 +104,7 @@ namespace NewLife.Messaging
             // 序列号
             ms.WriteByte(Sequence);
 
-            // 2字节长度，大端
+            // 2字节长度，小端字节序
             var len = 0;
             if (Payload != null) len = Payload.Count;
             ms.WriteByte((Byte)(len & 0xFF));
