@@ -16,6 +16,11 @@ namespace NewLife.Collections
         /// <param name="comparer"></param>
         public NullableDictionary(IEqualityComparer<TKey> comparer) : base(comparer) { }
 
+        /// <summary>实例化一个可空字典</summary>
+        /// <param name="dic"></param>
+        /// <param name="comparer"></param>
+        public NullableDictionary(IDictionary<TKey, TValue> dic, IEqualityComparer<TKey> comparer) : base(dic, comparer) { }
+
         /// <summary>获取或设置与指定的属性是否有脏数据。</summary>
         /// <param name="item"></param>
         /// <returns></returns>

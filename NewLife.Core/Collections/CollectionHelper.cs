@@ -1,4 +1,5 @@
-﻿using NewLife.Reflection;
+﻿using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace System.Collections.Generic
 {
@@ -105,6 +106,21 @@ namespace System.Collections.Generic
             }
 
             return dic;
+        }
+
+        /// <summary>转为可空字典</summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="collection"></param>
+        /// <param name="comparer"></param>
+        /// <returns></returns>
+        public static IDictionary<TKey, TValue> ToNullable<TKey, TValue>(this IDictionary<TKey, TValue> collection, IEqualityComparer<TKey> comparer = null)
+        {
+            if (collection == null) return null;
+
+            if (collection is NullableDictionary<TKey, TValue>) return collection as NullableDictionary<TKey, TValue>;
+
+            return new NullableDictionary<TKey, TValue>(collection, comparer);
         }
     }
 }
