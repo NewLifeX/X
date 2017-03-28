@@ -613,6 +613,22 @@ namespace XCode.DataAccessLayer
 
         //    return true;
         //}
+
+        /////// <summary>字段片段</summary>
+        /////// <param name="field">字段</param>
+        /////// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
+        /////// <returns></returns>
+        ////public override String FieldClause(IDataColumn field, Boolean onlyDefine)
+        ////{
+        ////    //chenqi 2017-3-28
+        ////    //增加处理decimal类型精度和小数位数处理
+        ////    if (!String.IsNullOrEmpty(field.RawType) && field.RawType.Contains("decimal"))
+        ////    {
+        ////        field.RawType = $"decimal({field.Precision},{field.Scale})";
+        ////    }
+
+        ////    return base.FieldClause(field, onlyDefine);
+        ////}
         #endregion
 
         #region 表和字段备注

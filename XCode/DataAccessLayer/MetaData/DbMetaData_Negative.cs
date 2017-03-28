@@ -404,6 +404,14 @@ namespace XCode.DataAccessLayer
                     (entityDb != null && dbColumn.Length > entityDb.LongTextLength || dbColumn.Length <= 0)) isChanged = false;
             }
 
+            //chenqi 2017-3-28
+            //增加处理decimal类型的精度和小数位数
+            if (!isChanged && Type.GetTypeCode(entityColumn.DataType) == TypeCode.Decimal &&
+                entityColumn.Scale != dbColumn.Scale)
+            {
+                isChanged = true;
+            }
+
             return isChanged;
         }
 

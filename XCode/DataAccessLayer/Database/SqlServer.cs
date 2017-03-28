@@ -478,6 +478,8 @@ namespace XCode.DataAccessLayer
                 field.PrimaryKey = GetDataRowValue<Boolean>(dr2, "主键");
                 field.NumOfByte = GetDataRowValue<Int32>(dr2, "占用字节数");
                 field.Description = GetDataRowValue<String>(dr2, "字段说明");
+                field.Precision = GetDataRowValue<int>(dr2, "精度");
+                field.Scale = GetDataRowValue<int>(dr2, "小数位数");
             }
 
             // 整理默认值
@@ -560,6 +562,15 @@ namespace XCode.DataAccessLayer
                     field.RawType = field.RawType.Replace("char(-1)", "char(MAX)");
                 else
                     field.RawType = field.RawType.Replace("char(-1)", "char(" + (Int32.MaxValue / 2) + ")");
+            }
+
+            //chenqi 2017-3-28
+            //增加处理decimal类型精度和小数位数处理
+            //此处只针对Sql server进行处理
+            //严格来说，应该修改的地方是
+            if (!String.IsNullOrEmpty(field.RawType) && field.RawType.Contains("decimal"))
+            {
+                field.RawType = $"decimal({field.Precision},{field.Scale})";
             }
 
             return base.FieldClause(field, onlyDefine);
@@ -906,7 +917,7 @@ namespace XCode.DataAccessLayer
                     sql += ";" + Environment.NewLine + pk;
                 }
             }
-
+            
             // 需要提前删除相关默认值
             if (oldfield.Default != null)
             {

@@ -26,3 +26,4 @@ bld/
 *.nupkg
 /NewLife.Core.Core/project.lock.json
 /Backup
+/ConsoleApp1
