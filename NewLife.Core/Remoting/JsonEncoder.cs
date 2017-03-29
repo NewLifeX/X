@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Serialization;
 
 namespace NewLife.Remoting
@@ -32,11 +34,18 @@ namespace NewLife.Remoting
             var json = pk.ToStr(Encoding);
 
             WriteLog("<={0}", json);
+            if (json.IsNullOrWhiteSpace()) return new NullableDictionary<String, Object>();
 
             var jp = new JsonParser(json);
-            var dic = jp.Decode() as IDictionary<String, Object>;
-
-            return dic;
+            try
+            {
+                return jp.Decode() as IDictionary<String, Object>;
+            }
+            catch (Exception)
+            {
+                if (XTrace.Debug) XTrace.WriteLine("Json解码错误！" + json);
+                throw;
+            }
         }
 
         /// <summary>转换为目标类型</summary>

@@ -17,9 +17,16 @@ namespace NewLife.Remoting
         void Register<TService>(Boolean requireApi = false) where TService : class, new();
 
         /// <summary>注册服务</summary>
-        /// <param name="controller">控制器对象或类型</param>
+        /// <param name="controller">控制器对象</param>
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        void Register(Object controller, String method);
+        /// <param name="requireApi">是否要求Api特性</param>
+        void Register(Object controller, String method, Boolean requireApi);
+
+        /// <summary>注册服务</summary>
+        /// <param name="type">控制器类型</param>
+        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
+        /// <param name="requireApi">是否要求Api特性</param>
+        void Register(Type type, String method, Boolean requireApi);
 
         /// <summary>注册服务</summary>
         /// <param name="method">动作</param>
@@ -63,9 +70,10 @@ namespace NewLife.Remoting
         }
 
         /// <summary>注册服务</summary>
-        /// <param name="controller">控制器对象或类型</param>
+        /// <param name="controller">控制器对象</param>
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        public void Register(Object controller, String method)
+        /// <param name="requireApi">是否要求Api特性</param>
+        public void Register(Object controller, String method, Boolean requireApi)
         {
             if (controller == null) throw new ArgumentNullException(nameof(controller));
 
@@ -80,7 +88,28 @@ namespace NewLife.Remoting
             }
             else
             {
-                Register(controller, type, false);
+                Register(controller, type, requireApi);
+            }
+        }
+
+        /// <summary>注册服务</summary>
+        /// <param name="type">控制器类型</param>
+        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
+        /// <param name="requireApi">是否要求Api特性</param>
+        public void Register(Type type, String method, Boolean requireApi)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            if (!method.IsNullOrEmpty())
+            {
+                var mi = type.GetMethodEx(method);
+                var act = new ApiAction(mi, type);
+
+                Services[act.Name] = act;
+            }
+            else
+            {
+                Register(null, type, requireApi);
             }
         }
 

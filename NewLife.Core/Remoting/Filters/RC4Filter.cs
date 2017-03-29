@@ -26,6 +26,9 @@ namespace NewLife.Remoting
 
             if (ctx.IsSend)
             {
+                // 清空标记位
+                msg.Flag = (Byte)(msg.Flag & ~0x20);
+
                 // 响应消息是否加密由标识位决定
                 if (msg.Reply && (msg.Flag & 0x20) == 0) return true;
 

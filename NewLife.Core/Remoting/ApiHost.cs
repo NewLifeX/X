@@ -47,12 +47,53 @@ namespace NewLife.Remoting
         }
 
         /// <summary>注册服务</summary>
-        /// <param name="controller">控制器对象或类型</param>
+        /// <param name="controller">控制器对象</param>
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
         public void Register(Object controller, String method)
         {
-            Manager.Register(controller, method);
+            Manager.Register(controller, method, false);
         }
+
+        /// <summary>注册服务</summary>
+        /// <param name="type">控制器类型</param>
+        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
+        public void Register(Type type, String method)
+        {
+            Manager.Register(type, method, false);
+        }
+        #endregion
+
+        #region 加密&压缩
+        /// <summary>是否加密，默认true</summary>
+        public Boolean Encrypted { get; set; } = true;
+
+        /// <summary>是否压缩，默认true</summary>
+        public Boolean Compressed { get; set; } = true;
+
+        /// <summary>设置过滤器</summary>
+        protected virtual void SetFilter()
+        {
+            // 压缩（>=64 Byte）
+            if (Compressed)
+            {
+                var def = new DeflateFilter();
+                def.MinSize = 64;
+                Filters.Add(def);
+            }
+
+            // 加密
+            if (Encrypted)
+            {
+                var rc4 = new RC4Filter();
+                //rc4.GetKey = ctx => Key;
+                rc4.GetKey = GetKeyFunc();
+                Filters.Add(rc4);
+            }
+        }
+
+        /// <summary>获取通信密钥的委托</summary>
+        /// <returns></returns>
+        protected abstract Func<FilterContext, Byte[]> GetKeyFunc();
         #endregion
 
         #region 请求处理

@@ -70,7 +70,7 @@ namespace System.Collections.Generic
             var dic = target as IDictionary<String, Object>;
             if (dic != null) return dic;
 
-            dic = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+            dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
             if (target != null)
             {
                 // 修正字符串字典的支持问题
@@ -95,14 +95,20 @@ namespace System.Collections.Generic
         }
 
         /// <summary>合并字典参数</summary>
-        /// <param name="dic"></param>
-        /// <param name="target"></param>
+        /// <param name="dic">字典</param>
+        /// <param name="target">目标对象</param>
+        /// <param name="overwrite">是否覆盖同名参数</param>
+        /// <param name="excludes">排除项</param>
         /// <returns></returns>
-        public static IDictionary<String, Object> Merge(this IDictionary<String, Object> dic, Object target)
+        public static IDictionary<String, Object> Merge(this IDictionary<String, Object> dic, Object target, Boolean overwrite = true, String[] excludes = null)
         {
+            var exs = excludes != null ? new HashSet<String>(StringComparer.OrdinalIgnoreCase) : null;
             foreach (var item in target.ToDictionary())
             {
-                dic[item.Key] = item.Value;
+                if (exs == null || !exs.Contains(item.Key))
+                {
+                    if (overwrite || !dic.ContainsKey(item.Key)) dic[item.Key] = item.Value;
+                }
             }
 
             return dic;

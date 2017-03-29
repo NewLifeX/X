@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Data;
 using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
@@ -7,7 +8,6 @@ using NewLife.Reflection;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口服务器</summary>
-    [Api(null)]
     public class ApiServer : ApiHost, IServer
     {
         #region 静态
@@ -67,7 +67,7 @@ namespace NewLife.Remoting
         }
         #endregion
 
-        #region 方法
+        #region 启动停止
         /// <summary>添加服务器</summary>
         /// <param name="uri"></param>
         public IApiServer Add(NetUri uri)
@@ -107,6 +107,9 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
+            // 设置过滤器
+            SetFilter();
+
             Log.Info("启动{0}，共有服务器{1}个 编码：{2} 处理器：{3}", GetType().Name, Servers.Count, Encoder, Handler);
 
             foreach (var item in Servers)
@@ -140,6 +143,24 @@ namespace NewLife.Remoting
             }
 
             Active = false;
+        }
+        #endregion
+
+        #region 加密&压缩
+        /// <summary>获取通信密钥的委托</summary>
+        /// <returns></returns>
+        protected override Func<FilterContext, Byte[]> GetKeyFunc()
+        {
+            // 从Session里面拿Key
+            return ctx =>
+            {
+                var actx = ctx as ApiFilterContext;
+                var ss = actx?.Session;
+                if (ss == null) return null;
+
+                return ss["Key"] as Byte[];
+            }
+;
         }
         #endregion
 

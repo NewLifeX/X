@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NewLife.Security
 {
@@ -21,7 +19,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] Encrypt(Byte[] data, Byte[] pass)
         {
-            if (data == null || data.Length == 0 || pass == null || pass.Length == 0) return null;
+            if (data == null || data.Length == 0) return new Byte[0];
+            if (pass == null || pass.Length == 0) return data;
 
             var output = new Byte[data.Length];
             var i = 0;

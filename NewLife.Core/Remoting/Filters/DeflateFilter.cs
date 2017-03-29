@@ -26,6 +26,9 @@ namespace NewLife.Remoting
             var pk = ctx.Packet;
             if (ctx.IsSend)
             {
+                // 清空标记位
+                msg.Flag = (Byte)(msg.Flag & ~0x10);
+              
                 // 太小的数据包不压缩
                 if (pk.Count < MinSize) return true;
 
