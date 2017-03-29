@@ -26,7 +26,7 @@ namespace NewLife.Messaging
     {
         #region 属性
         /// <summary>标记位</summary>
-        public Byte Flag { get; set; }
+        public Byte Flag { get; set; } = 1;
 
         ///// <summary>是否有错</summary>
         //public Boolean Error { get; set; }
