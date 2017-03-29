@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
