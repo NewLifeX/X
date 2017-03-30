@@ -153,8 +153,8 @@ namespace NewLife.Remoting
         #endregion
 
         #region 远程调用
-        /// <summary>控制器前缀</summary>
-        public String Controller { get; set; }
+        ///// <summary>控制器前缀</summary>
+        //public String Controller { get; set; }
 
         /// <summary>调用</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -166,9 +166,9 @@ namespace NewLife.Remoting
             var ss = Client;
             if (ss == null) return default(TResult);
 
-            if (!Logined && action != "Login") await LoginAsync();
+            if (!Logined && action != LoginAction) await LoginAsync();
 
-            if (Controller != null && !action.Contains("/")) action = Controller + "/" + action;
+            //if (Controller != null && !action.Contains("/")) action = Controller + "/" + action;
 
             try
             {
@@ -196,8 +196,8 @@ namespace NewLife.Remoting
         /// <summary>是否已登录</summary>
         public Boolean Logined { get; protected set; }
 
-        ///// <summary>登录动作名</summary>
-        //public String LoginAction { get; set; } = "Login";
+        /// <summary>登录动作名</summary>
+        public String LoginAction { get; set; } = "Login";
 
         /// <summary>异步登录</summary>
         public virtual async Task<Object> LoginAsync()
@@ -239,7 +239,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual async Task<Object> OnLogin(Object args)
         {
-            return await InvokeAsync<Object>("Login", args);
+            return await InvokeAsync<Object>(LoginAction, args);
         }
         #endregion
 
@@ -250,6 +250,9 @@ namespace NewLife.Remoting
         /// <summary>服务端与客户端的时间差</summary>
         public TimeSpan Span { get; private set; }
 
+        /// <summary>心跳动作名</summary>
+        public String PingAction { get; set; } = "Ping";
+
         /// <summary>发送心跳</summary>
         /// <param name="args"></param>
         /// <returns>是否收到成功响应</returns>
@@ -258,7 +261,7 @@ namespace NewLife.Remoting
             var dic = args.ToDictionary();
             if (!dic.ContainsKey("Time")) dic["Time"] = DateTime.Now;
 
-            var rs = await InvokeAsync<Object>("Ping", dic);
+            var rs = await InvokeAsync<Object>(PingAction, dic);
             dic = rs.ToDictionary();
 
             // 加权计算延迟
