@@ -76,7 +76,6 @@
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataAccessLayer\Model\NullableDictionary.cs" />
     <Compile Include="Entity\EntityExtend.cs" />
     <Compile Include="Entity\EntityQueue.cs" />
     <Compile Include="Entity\IEntityAddition.cs" />

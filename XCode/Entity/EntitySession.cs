@@ -230,20 +230,21 @@ namespace XCode
                     table.TableName = TableName;
                 }
 
-                var set = new NegativeSetting
-                {
-                    CheckOnly = Setting.Current.Negative.CheckOnly,
-                    NoDelete = Setting.Current.Negative.NoDelete
-                };
+                //var set = new NegativeSetting
+                //{
+                //    CheckOnly = Setting.Current.Negative.CheckOnly,
+                //    NoDelete = Setting.Current.Negative.NoDelete
+                //};
 
-                // 对于分库操作，强制检查架构，但不删除数据
-                if (Default != this)
-                {
-                    set.CheckOnly = false;
-                    set.NoDelete = true;
-                }
+                //// 对于分库操作，强制检查架构，但不删除数据
+                //if (Default != this)
+                //{
+                //    set.CheckOnly = false;
+                //    set.NoDelete = true;
+                //}
 
-                Dal.SetTables(set, table);
+                //Dal.SetTables(set, table);
+                Dal.SetTables(null, table);
             }
             finally
             {

@@ -389,22 +389,13 @@ namespace XCode.DataAccessLayer
                 {
                     // 移除所有已初始化的
                     list.RemoveAll(dt => CheckAndAdd(dt.TableName));
-                    //// 全都标为已初始化的
-                    //foreach (var item in list)
-                    //{
-                    //    if (!HasCheckTables.Contains(item.TableName)) HasCheckTables.Add(item.TableName);
-                    //}
 
                     // 过滤掉被排除的表名
-                    if (NegativeExclude.Count > 0)
-                    {
-                        for (int i = list.Count - 1; i >= 0; i--)
-                        {
-                            if (NegativeExclude.Contains(list[i].TableName)) list.RemoveAt(i);
-                        }
-                    }
+                    list.RemoveAll(dt => NegativeExclude.Contains(dt.TableName));
+
                     // 过滤掉视图
                     list.RemoveAll(dt => dt.IsView);
+
                     if (list != null && list.Count > 0)
                     {
                         WriteLog(ConnName + "待检查表架构的实体个数：" + list.Count);
@@ -432,8 +423,6 @@ namespace XCode.DataAccessLayer
                 set.CheckOnly = Setting.Current.Negative.CheckOnly;
                 set.NoDelete = Setting.Current.Negative.NoDelete;
             }
-            //if (set.CheckOnly && DAL.Debug) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
-            //if (set.NoDelete && DAL.Debug) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
             Db.CreateMetaData().SetTables(set, tables);
         }
         #endregion
