@@ -204,6 +204,9 @@ namespace NewLife.Remoting
         {
             var args = OnPreLogin();
 
+            // 登录前清空密钥
+            if (Logined) Key = null;
+
             var rs = await OnLogin(args);
 
             // 从响应中解析通信密钥
