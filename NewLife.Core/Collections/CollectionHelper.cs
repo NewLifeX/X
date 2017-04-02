@@ -15,11 +15,16 @@ namespace System.Collections.Generic
         {
             if (collection == null) return null;
 
-            if (collection.Count == 0) return new T[0];
+            var count = collection.Count;
+            if (count == 0) return new T[0];
             lock (collection)
             {
-                var arr = new T[collection.Count - index];
+                count = collection.Count;
+                if (count == 0) return new T[0];
+
+                var arr = new T[count - index];
                 collection.CopyTo(arr, index);
+
                 return arr;
             }
         }
