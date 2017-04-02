@@ -40,6 +40,9 @@
             this.mi显示发送数据 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi显示接收数据 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi显示统计信息 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
+            this.查看Tcp参数ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.设置最大TcpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miHexSend = new System.Windows.Forms.ToolStripMenuItem();
             this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
@@ -48,13 +51,11 @@
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.label1 = new System.Windows.Forms.Label();
-            this.lbAddr = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
+            this.lbLocal = new System.Windows.Forms.Label();
             this.cbMode = new System.Windows.Forms.ComboBox();
-            this.cbAddr = new System.Windows.Forms.ComboBox();
+            this.cbLocal = new System.Windows.Forms.ComboBox();
             this.numPort = new System.Windows.Forms.NumericUpDown();
             this.pnlSetting = new System.Windows.Forms.Panel();
-            this.cbColor = new System.Windows.Forms.CheckBox();
             this.gbSend = new System.Windows.Forms.GroupBox();
             this.numThreads = new System.Windows.Forms.NumericUpDown();
             this.numSleep = new System.Windows.Forms.NumericUpDown();
@@ -64,9 +65,9 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
-            this.查看Tcp参数ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.设置最大TcpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi日志着色 = new System.Windows.Forms.ToolStripMenuItem();
+            this.cbRemote = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.gbReceive.SuspendLayout();
             this.menuReceive.SuspendLayout();
             this.menuSend.SuspendLayout();
@@ -106,6 +107,7 @@
             // 
             this.menuReceive.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
+            this.mi日志着色,
             this.toolStripMenuItem3,
             this.mi显示应用日志,
             this.mi显示网络日志,
@@ -173,6 +175,25 @@
             this.mi显示统计信息.Text = "显示统计信息";
             this.mi显示统计信息.Click += new System.EventHandler(this.mi显示统计信息_Click);
             // 
+            // toolStripMenuItem4
+            // 
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(157, 6);
+            // 
+            // 查看Tcp参数ToolStripMenuItem
+            // 
+            this.查看Tcp参数ToolStripMenuItem.Name = "查看Tcp参数ToolStripMenuItem";
+            this.查看Tcp参数ToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.查看Tcp参数ToolStripMenuItem.Text = "查看Tcp参数";
+            this.查看Tcp参数ToolStripMenuItem.Click += new System.EventHandler(this.查看Tcp参数ToolStripMenuItem_Click);
+            // 
+            // 设置最大TcpToolStripMenuItem
+            // 
+            this.设置最大TcpToolStripMenuItem.Name = "设置最大TcpToolStripMenuItem";
+            this.设置最大TcpToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.设置最大TcpToolStripMenuItem.Text = "设置最大Tcp";
+            this.设置最大TcpToolStripMenuItem.Click += new System.EventHandler(this.设置最大TcpToolStripMenuItem_Click);
+            // 
             // menuSend
             // 
             this.menuSend.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -214,51 +235,43 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(7, 7);
+            this.label1.Location = new System.Drawing.Point(5, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 12);
+            this.label1.Size = new System.Drawing.Size(29, 12);
             this.label1.TabIndex = 6;
-            this.label1.Text = "模式：";
+            this.label1.Text = "模式";
             // 
-            // lbAddr
+            // lbLocal
             // 
-            this.lbAddr.AutoSize = true;
-            this.lbAddr.Location = new System.Drawing.Point(147, 7);
-            this.lbAddr.Name = "lbAddr";
-            this.lbAddr.Size = new System.Drawing.Size(41, 12);
-            this.lbAddr.TabIndex = 7;
-            this.lbAddr.Text = "地址：";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(359, 7);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(41, 12);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "端口：";
+            this.lbLocal.AutoSize = true;
+            this.lbLocal.Location = new System.Drawing.Point(141, 9);
+            this.lbLocal.Name = "lbLocal";
+            this.lbLocal.Size = new System.Drawing.Size(29, 12);
+            this.lbLocal.TabIndex = 7;
+            this.lbLocal.Text = "本地";
             // 
             // cbMode
             // 
             this.cbMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbMode.FormattingEnabled = true;
-            this.cbMode.Location = new System.Drawing.Point(48, 3);
+            this.cbMode.Location = new System.Drawing.Point(41, 5);
             this.cbMode.Name = "cbMode";
             this.cbMode.Size = new System.Drawing.Size(93, 20);
             this.cbMode.TabIndex = 9;
             this.cbMode.SelectedIndexChanged += new System.EventHandler(this.cbMode_SelectedIndexChanged);
             // 
-            // cbAddr
+            // cbLocal
             // 
-            this.cbAddr.FormattingEnabled = true;
-            this.cbAddr.Location = new System.Drawing.Point(184, 3);
-            this.cbAddr.Name = "cbAddr";
-            this.cbAddr.Size = new System.Drawing.Size(169, 20);
-            this.cbAddr.TabIndex = 10;
+            this.cbLocal.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbLocal.FormattingEnabled = true;
+            this.cbLocal.Location = new System.Drawing.Point(177, 5);
+            this.cbLocal.Name = "cbLocal";
+            this.cbLocal.Size = new System.Drawing.Size(116, 20);
+            this.cbLocal.TabIndex = 10;
             // 
             // numPort
             // 
-            this.numPort.Location = new System.Drawing.Point(403, 3);
+            this.numPort.Location = new System.Drawing.Point(512, 5);
             this.numPort.Maximum = new decimal(new int[] {
             65535,
             0,
@@ -270,39 +283,29 @@
             0,
             0});
             this.numPort.Name = "numPort";
-            this.numPort.Size = new System.Drawing.Size(61, 21);
+            this.numPort.Size = new System.Drawing.Size(51, 21);
             this.numPort.TabIndex = 11;
             this.numPort.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.toolTip1.SetToolTip(this.numPort, "端口");
             this.numPort.Value = new decimal(new int[] {
-            80,
+            8080,
             0,
             0,
             0});
             // 
             // pnlSetting
             // 
+            this.pnlSetting.Controls.Add(this.cbRemote);
+            this.pnlSetting.Controls.Add(this.label4);
             this.pnlSetting.Controls.Add(this.numPort);
-            this.pnlSetting.Controls.Add(this.cbAddr);
-            this.pnlSetting.Controls.Add(this.label3);
+            this.pnlSetting.Controls.Add(this.cbLocal);
             this.pnlSetting.Controls.Add(this.label1);
-            this.pnlSetting.Controls.Add(this.lbAddr);
+            this.pnlSetting.Controls.Add(this.lbLocal);
             this.pnlSetting.Controls.Add(this.cbMode);
             this.pnlSetting.Location = new System.Drawing.Point(9, 8);
             this.pnlSetting.Name = "pnlSetting";
-            this.pnlSetting.Size = new System.Drawing.Size(471, 31);
+            this.pnlSetting.Size = new System.Drawing.Size(572, 31);
             this.pnlSetting.TabIndex = 13;
-            // 
-            // cbColor
-            // 
-            this.cbColor.AutoSize = true;
-            this.cbColor.Checked = true;
-            this.cbColor.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbColor.Location = new System.Drawing.Point(500, 15);
-            this.cbColor.Name = "cbColor";
-            this.cbColor.Size = new System.Drawing.Size(72, 16);
-            this.cbColor.TabIndex = 14;
-            this.cbColor.Text = "日志着色";
-            this.cbColor.UseVisualStyleBackColor = true;
             // 
             // gbSend
             // 
@@ -434,24 +437,29 @@
             this.label7.TabIndex = 15;
             this.label7.Text = "次数：";
             // 
-            // toolStripMenuItem4
+            // mi日志着色
             // 
-            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(157, 6);
+            this.mi日志着色.Name = "mi日志着色";
+            this.mi日志着色.Size = new System.Drawing.Size(160, 22);
+            this.mi日志着色.Text = "日志着色";
+            this.mi日志着色.Click += new System.EventHandler(this.mi日志着色_Click);
             // 
-            // 查看Tcp参数ToolStripMenuItem
+            // cbRemote
             // 
-            this.查看Tcp参数ToolStripMenuItem.Name = "查看Tcp参数ToolStripMenuItem";
-            this.查看Tcp参数ToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
-            this.查看Tcp参数ToolStripMenuItem.Text = "查看Tcp参数";
-            this.查看Tcp参数ToolStripMenuItem.Click += new System.EventHandler(this.查看Tcp参数ToolStripMenuItem_Click);
+            this.cbRemote.FormattingEnabled = true;
+            this.cbRemote.Location = new System.Drawing.Point(336, 5);
+            this.cbRemote.Name = "cbRemote";
+            this.cbRemote.Size = new System.Drawing.Size(169, 20);
+            this.cbRemote.TabIndex = 17;
             // 
-            // 设置最大TcpToolStripMenuItem
+            // label4
             // 
-            this.设置最大TcpToolStripMenuItem.Name = "设置最大TcpToolStripMenuItem";
-            this.设置最大TcpToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
-            this.设置最大TcpToolStripMenuItem.Text = "设置最大Tcp";
-            this.设置最大TcpToolStripMenuItem.Click += new System.EventHandler(this.设置最大TcpToolStripMenuItem_Click);
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(300, 9);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(29, 12);
+            this.label4.TabIndex = 16;
+            this.label4.Text = "远程";
             // 
             // FrmMain
             // 
@@ -459,7 +467,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(667, 379);
             this.Controls.Add(this.gbSend);
-            this.Controls.Add(this.cbColor);
             this.Controls.Add(this.pnlSetting);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.gbReceive);
@@ -479,7 +486,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -494,16 +500,14 @@
         private System.Windows.Forms.FontDialog fontDialog1;
         private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label lbAddr;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label lbLocal;
         private System.Windows.Forms.ComboBox cbMode;
-        private System.Windows.Forms.ComboBox cbAddr;
+        private System.Windows.Forms.ComboBox cbLocal;
         private System.Windows.Forms.NumericUpDown numPort;
         private System.Windows.Forms.Panel pnlSetting;
         private System.Windows.Forms.ContextMenuStrip menuReceive;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
-        private System.Windows.Forms.CheckBox cbColor;
         private System.Windows.Forms.GroupBox gbSend;
         private System.Windows.Forms.NumericUpDown numSleep;
         private System.Windows.Forms.RichTextBox txtSend;
@@ -523,6 +527,9 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem 查看Tcp参数ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 设置最大TcpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mi日志着色;
+        private System.Windows.Forms.ComboBox cbRemote;
+        private System.Windows.Forms.Label label4;
     }
 }
 

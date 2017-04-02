@@ -11,8 +11,16 @@ namespace XNet
     [XmlConfigFile("Config\\Net.config")]
     public class NetConfig : XmlConfig<NetConfig>
     {
-        /// <summary>目的地址</summary>
-        [Description("目的地址")]
+        /// <summary>模式</summary>
+        [Description("模式")]
+        public Int32 Mode { get; set; } = 1;
+
+        /// <summary>本地地址</summary>
+        [Description("本地地址")]
+        public String Local { get; set; }
+
+        /// <summary>远程地址</summary>
+        [Description("远程地址")]
         public String Address { get; set; } = "";
 
         /// <summary>端口</summary>

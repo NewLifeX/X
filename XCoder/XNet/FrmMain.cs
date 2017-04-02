@@ -49,7 +49,8 @@ namespace XNet
 
             _task.ContinueWith(t =>
             {
-                var list = EnumHelper.GetDescriptions<WorkModes>().Select(kv => kv.Value).ToList();
+                var dic = EnumHelper.GetDescriptions<WorkModes>();
+                var list = dic.Select(kv => kv.Value).ToList();
                 foreach (var item in t.Result)
                 {
                     list.Add(item.Name);
@@ -57,15 +58,14 @@ namespace XNet
                 this.Invoke(() =>
                 {
                     cbMode.DataSource = list;
-                    //cbMode.SelectedIndex = 0;
+
+                    var cfg = NetConfig.Current;
+                    if (cfg.Mode > 0 && dic.ContainsKey((WorkModes)cfg.Mode))
+                        cbMode.SelectedItem = dic[(WorkModes)cfg.Mode];
+                    else
+                        cbMode.SelectedIndex = 0; System.Net.Sockets.TcpClient
                 });
             });
-
-            cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
-            cbAddr.DataSource = GetIPs();
-
-            var cfg = NetConfig.Current;
-            if (cfg.Port > 0) numPort.Value = cfg.Port;
 
             // 加载保存的颜色
             UIConfig.Apply(txtReceive);
@@ -104,7 +104,17 @@ namespace XNet
             numMutilSend.Value = cfg.SendTimes;
             numSleep.Value = cfg.SendSleep;
             numThreads.Value = cfg.SendUsers;
-            cbColor.Checked = cfg.ColorLog;
+            mi日志着色.Checked = cfg.ColorLog;
+
+            cbLocal.DataSource = GetIPs();
+            if (!cfg.Local.IsNullOrEmpty())
+                cbLocal.SelectedItem = cfg.Local;
+            else
+                cbLocal.SelectedIndex = 0;
+
+            // 历史地址列表
+            if (!cfg.Address.IsNullOrEmpty()) cbRemote.DataSource = cfg.Address.Split(";");
+            if (cfg.Port > 0) numPort.Value = cfg.Port;
         }
 
         void SaveConfig()
@@ -122,7 +132,16 @@ namespace XNet
             cfg.SendTimes = (Int32)numMutilSend.Value;
             cfg.SendSleep = (Int32)numSleep.Value;
             cfg.SendUsers = (Int32)numThreads.Value;
-            cfg.ColorLog = cbColor.Checked;
+            cfg.ColorLog = mi日志着色.Checked;
+
+            cfg.Local = cbLocal.Text;
+
+            var addrs = (cfg.Address + "").Split(";").Distinct().ToList();
+            if (!addrs.Contains(cbRemote.Text)) addrs.Insert(0, cbRemote.Text);
+            while (addrs.Count > 10) addrs.RemoveAt(addrs.Count - 1);
+            cfg.Address = addrs.Join(";");
+
+            cfg.Port = (Int32)numPort.Value;
 
             cfg.Save();
         }
@@ -134,12 +153,14 @@ namespace XNet
             _Server = null;
             _Client = null;
 
+            var mode = GetMode();
+            var local = cbLocal.Text;
+            var remote = cbRemote.Text;
             var port = (Int32)numPort.Value;
 
             var cfg = NetConfig.Current;
-            cfg.Port = port;
+            cfg.Mode = (Byte)mode;
 
-            var mode = GetMode();
             switch (mode)
             {
                 case WorkModes.UDP_TCP:
@@ -154,16 +175,10 @@ namespace XNet
                     _Server.ProtocolType = NetType.Tcp;
                     break;
                 case WorkModes.TCP_Client:
-                    var tcp = new TcpSession();
-                    _Client = tcp;
-
-                    cfg.Address = cbAddr.Text;
+                    _Client = new TcpSession();
                     break;
                 case WorkModes.UDP_Client:
-                    var udp = new UdpServer();
-                    _Client = udp;
-
-                    cfg.Address = cbAddr.Text;
+                    _Client = new UdpServer();
                     break;
                 default:
                     if ((Int32)mode > 0)
@@ -179,9 +194,10 @@ namespace XNet
             if (_Client != null)
             {
                 _Client.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
+                if (!local.Contains("所有本地")) _Client.Local.Host = local;
                 _Client.Received += OnReceived;
                 _Client.Remote.Port = port;
-                _Client.Remote.Host = cbAddr.Text;
+                _Client.Remote.Host = remote;
 
                 _Client.LogSend = cfg.ShowSend;
                 _Client.LogReceive = cfg.ShowReceive;
@@ -196,7 +212,7 @@ namespace XNet
                 _Server.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
                 _Server.SocketLog = cfg.ShowSocketLog ? XTrace.Log : Logger.Null;
                 _Server.Port = port;
-                if (!cbAddr.Text.Contains("所有本地")) _Server.Local.Host = cbAddr.Text;
+                if (!local.Contains("所有本地")) _Server.Local.Host = local;
                 _Server.Received += OnReceived;
 
                 _Server.LogSend = cfg.ShowSend;
@@ -319,7 +335,8 @@ namespace XNet
                     lastSend = tcount;
                 }
 
-                if (cbColor.Checked) txtReceive.ColourDefault(_pColor);
+                var cfg = NetConfig.Current;
+                if (cfg.ColorLog) txtReceive.ColourDefault(_pColor);
                 _pColor = txtReceive.TextLength;
             }
         }
@@ -454,6 +471,22 @@ namespace XNet
             var mi = sender as ToolStripMenuItem;
             NetConfig.Current.HexSend = mi.Checked = !mi.Checked;
         }
+
+        private void 查看Tcp参数ToolStripMenuItem_Click(Object sender, EventArgs e)
+        {
+            NetHelper.ShowTcpParameters();
+        }
+
+        private void 设置最大TcpToolStripMenuItem_Click(Object sender, EventArgs e)
+        {
+            NetHelper.SetTcpMax();
+        }
+
+        private void mi日志着色_Click(Object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            mi.Checked = !mi.Checked;
+        }
         #endregion
 
         private void cbMode_SelectedIndexChanged(object sender, EventArgs e)
@@ -465,21 +498,21 @@ namespace XNet
             {
                 case WorkModes.TCP_Client:
                 case WorkModes.UDP_Client:
-                    cbAddr.DropDownStyle = ComboBoxStyle.DropDown;
-                    cbAddr.DataSource = null;
-                    cbAddr.Items.Clear();
-                    cbAddr.Text = NetConfig.Current.Address;
+                    //cbRemote.DropDownStyle = ComboBoxStyle.DropDown;
+                    //cbRemote.DataSource = null;
+                    //cbRemote.Items.Clear();
+                    //cbRemote.Text = NetConfig.Current.Address;
                     break;
                 default:
                 case WorkModes.UDP_TCP:
                 case WorkModes.UDP_Server:
                 case WorkModes.TCP_Server:
-                    cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
-                    cbAddr.DataSource = GetIPs();
+                    //cbLocal.DropDownStyle = ComboBoxStyle.DropDownList;
+                    //cbLocal.DataSource = GetIPs();
                     break;
                 case (WorkModes)0xFF:
-                    cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
-                    cbAddr.DataSource = GetIPs();
+                    //cbLocal.DropDownStyle = ComboBoxStyle.DropDownList;
+                    //cbLocal.DataSource = GetIPs();
 
                     // 端口
                     var ns = GetNetServers().Where(n => n.Name == cbMode.Text).FirstOrDefault();
@@ -532,16 +565,6 @@ namespace XNet
 
                 return _ns = list.ToArray();
             }
-        }
-
-        private void 查看Tcp参数ToolStripMenuItem_Click(Object sender, EventArgs e)
-        {
-            NetHelper.ShowTcpParameters();
-        }
-
-        private void 设置最大TcpToolStripMenuItem_Click(Object sender, EventArgs e)
-        {
-            NetHelper.SetTcpMax();
         }
     }
 }
