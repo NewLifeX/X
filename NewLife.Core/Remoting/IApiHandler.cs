@@ -100,6 +100,9 @@ namespace NewLife.Remoting
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)
             {
+                // 过滤得到内层异常
+                ex = ex.GetTrue();
+
                 var efs = api.ExceptionFilters;
                 // 控制器实现了异常过滤器接口
                 if (controller is IExceptionFilter)
