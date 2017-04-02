@@ -77,7 +77,7 @@ namespace NewLife.Remoting
             if (Compressed)
             {
                 var def = new DeflateFilter();
-                def.MinSize = 64;
+                //def.MinSize = 64;
                 Filters.Add(def);
             }
 

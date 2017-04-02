@@ -5,8 +5,12 @@ using NewLife.Messaging;
 namespace NewLife.Remoting
 {
     /// <summary>RC4加解密过滤器</summary>
+    /// <remarks>响应包是否加密，取决于请求包</remarks>
     public class RC4Filter : FilterBase
     {
+        /// <summary>标识。默认0x20</summary>
+        public Byte Flag { get; set; } = 0x20;
+
         /// <summary>密钥</summary>
         public Byte[] Key { get; set; }
 
@@ -26,19 +30,16 @@ namespace NewLife.Remoting
 
             if (ctx.IsSend)
             {
-                // 清空标记位
-                msg.Flag = (Byte)(msg.Flag & ~0x20);
-
                 // 响应消息是否加密由标识位决定
-                if (msg.Reply && (msg.Flag & 0x20) == 0) return true;
+                if (msg.Reply && (msg.Flag & Flag) == 0) return true;
 
-                //// 加密标记位
-                //msg.Flag |= 0x20;
+                // 清空标记位
+                msg.Flag = (Byte)(msg.Flag & ~Flag);
             }
             else
             {
                 // 加密标记位
-                if ((msg.Flag & 0x20) == 0) return true;
+                if ((msg.Flag & Flag) == 0) return true;
             }
 
             var key = Key;
@@ -52,7 +53,7 @@ namespace NewLife.Remoting
             if (Encrypt(pk, key))
             {
                 // 加密成功后再设置加密标记位
-                if (ctx.IsSend) msg.Flag |= 0x20;
+                if (ctx.IsSend) msg.Flag |= Flag;
             }
 
             return true;
