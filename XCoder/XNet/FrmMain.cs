@@ -63,7 +63,7 @@ namespace XNet
                     if (cfg.Mode > 0 && dic.ContainsKey((WorkModes)cfg.Mode))
                         cbMode.SelectedItem = dic[(WorkModes)cfg.Mode];
                     else
-                        cbMode.SelectedIndex = 0; System.Net.Sockets.TcpClient
+                        cbMode.SelectedIndex = 0;
                 });
             });
 
