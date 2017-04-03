@@ -202,7 +202,7 @@ namespace XNet
                 _Client.LogSend = cfg.ShowSend;
                 _Client.LogReceive = cfg.ShowReceive;
 
-                _Client.Open();
+                if (!_Client.Open()) return;
 
                 "已连接服务器".SpeechTip();
             }
@@ -218,8 +218,8 @@ namespace XNet
                 _Server.LogSend = cfg.ShowSend;
                 _Server.LogReceive = cfg.ShowReceive;
 
-                // 加大会话超时时间到1天
-                _Server.SessionTimeout = 24 * 3600;
+                //// 加大会话超时时间到1天
+                //_Server.SessionTimeout = 24 * 3600;
 
                 _Server.Start();
 
