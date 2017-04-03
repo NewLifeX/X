@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -15,17 +14,14 @@ namespace NewLife.Net
         public Int32 ID { get; internal set; }
 
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
-        public Boolean DisconnectWhenEmptyData { get; set; }
-
-        ///// <summary>会话数据流，供用户程序使用。可用于解决Tcp粘包的问题。</summary>
-        //public Stream Stream { get; set; }
+        public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
         ISocketServer _Server;
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
         ISocketServer ISocketSession.Server { get { return _Server; } }
 
         /// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
-        public Int32 AutoReconnect { get; set; }
+        public Int32 AutoReconnect { get; set; } = 3;
         #endregion
 
         #region 构造
@@ -33,11 +29,8 @@ namespace NewLife.Net
         public TcpSession()
         {
             Name = GetType().Name;
-            Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
-            Remote = new NetUri(NetType.Tcp, IPAddress.Any, 0);
-
-            DisconnectWhenEmptyData = true;
-            AutoReconnect = 3;
+            Local.Type = NetType.Tcp;
+            Remote.Type = NetType.Tcp;
         }
 
         /// <summary>使用监听口初始化</summary>
@@ -142,7 +135,6 @@ namespace NewLife.Net
                     return false;
                 }
             }
-            //Stream = null;
 
             return true;
         }
@@ -195,18 +187,6 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
-        ///// <summary>接收数据</summary>
-        ///// <returns>收到的数据。如果没有数据返回0长度数组，如果出错返回null</returns>
-        //public override Byte[] Receive()
-        //{
-        //    if (!Open()) return null;
-
-        //    var task = SendAsync(null, null);
-        //    if (Timeout > 0 && !task.Wait(Timeout)) return null;
-
-        //    return task.Result;
-        //}
-
         internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
         {
             var client = Client;
@@ -215,6 +195,7 @@ namespace NewLife.Net
             return client.ReceiveAsync(se);
         }
 
+        private Int32 _empty;
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
@@ -222,11 +203,15 @@ namespace NewLife.Net
         {
             if (pk.Count == 0 && DisconnectWhenEmptyData)
             {
+                // 连续多次空数据，则断开
+                if (++_empty < 3) return true;
+
                 Close("收到空数据");
                 Dispose();
 
                 return true;
             }
+            _empty = 0;
 
 #if !__MOBILE__
             // 更新全局远程IP地址

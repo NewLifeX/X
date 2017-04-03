@@ -41,14 +41,11 @@ namespace NewLife.Net
         /// <summary>实例化增强UDP</summary>
         public UdpServer()
         {
-            //SessionTimeout = 30;
-
-            Local = new NetUri(NetType.Udp, IPAddress.Any, 0);
+            Local.Type = NetType.Udp;
             Remote.Type = NetType.Udp;
             _Sessions = new SessionCollection(this);
 
             StatSession = new Statistics();
-            //PacketQueue = new DefaultPacketQueue();
         }
 
         /// <summary>使用监听口初始化</summary>
@@ -204,20 +201,6 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
-        ///// <summary>接收数据</summary>
-        ///// <returns></returns>
-        //public override Byte[] Receive()
-        //{
-        //    if (Disposed) throw new ObjectDisposedException(GetType().Name);
-
-        //    if (!Open()) return null;
-
-        //    var task = SendAsync(null, null);
-        //    if (Timeout > 0 && !task.Wait(Timeout)) return null;
-
-        //    return task.Result;
-        //}
-
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
@@ -356,8 +339,6 @@ namespace NewLife.Net
                 //us.StatSend.Parent = StatSend;
                 //us.StatReceive.Parent = StatReceive;
                 us.Packet = SessionPacket?.Create();
-                // 所有会话共用一个队列，减少定时器损耗
-                //us.PacketQueue = PacketQueue;
 
                 session = us;
                 if (sessions.Add(session))
