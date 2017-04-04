@@ -31,6 +31,10 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public override IDictionary<String, Object> Decode(Packet pk)
         {
+            if (pk.Count <= 2) return new NullableDictionary<String, Object>();
+
+            if (pk[0] != '{') throw new Exception("非法Json字符串");
+
             var json = pk.ToStr(Encoding);
 
             WriteLog("<={0}", json);
@@ -41,7 +45,7 @@ namespace NewLife.Remoting
             {
                 return jp.Decode() as IDictionary<String, Object>;
             }
-            catch (Exception)
+            catch
             {
                 if (XTrace.Debug) XTrace.WriteLine("Json解码错误！" + json);
                 throw;
