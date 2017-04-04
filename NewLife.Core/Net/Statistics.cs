@@ -7,11 +7,11 @@ namespace NewLife.Net
     /// <summary>统计</summary>
     public class Statistics : IStatistics
     {
-        /// <summary>是否启用统计</summary>
-        public Boolean Enable { get; set; }
+        /// <summary>启用统计</summary>
+        public Boolean Enable { get; set; } = true;
 
-        /// <summary>统计周期，单位秒</summary>
-        public Int32 Period { get; set; }
+        /// <summary>统计周期，默认30秒</summary>
+        public Int32 Period { get; set; } = 30;
 
         /// <summary>首次统计时间</summary>
         public DateTime First { get; private set; }
@@ -42,7 +42,7 @@ namespace NewLife.Net
                 // 即使超过周期，也继续计算速度，保持平滑
                 if (ts.TotalSeconds < 1) return 0;
 
-                return (Int32)(0.5 + (Double)_PeriodTimes / ts.TotalSeconds);
+                return (Int32)(0.5 + _PeriodTimes / ts.TotalSeconds);
             }
         }
 
@@ -51,15 +51,12 @@ namespace NewLife.Net
 
         static Statistics()
         {
-            XTrace.WriteLine("统计信息格式：速度/最高速度/总次数/总数值");
+            //XTrace.WriteLine("统计信息格式：速度/最高速度/总次数/总数值");
+            XTrace.WriteLine("统计信息格式：速度/最高速度/总次数");
         }
 
         /// <summary>实例化一个统计对象</summary>
-        public Statistics()
-        {
-            Enable = true;
-            Period = 30;
-        }
+        public Statistics() { }
 
         private DateTime _Cur;
         private DateTime _Next;
@@ -69,7 +66,8 @@ namespace NewLife.Net
         /// <param name="n"></param>
         public void Increment(Int32 n = 1)
         {
-            if (Parent != null && Parent != this) Parent.Increment(n);
+            var p = Parent;
+            if (p != null && p != this) p.Increment(n);
             if (!Enable) return;
 
             // 累加总次数和总数值
@@ -93,15 +91,16 @@ namespace NewLife.Net
             Interlocked.Increment(ref _PeriodTimes);
 
             // 更新最大速度
-            var p = Speed;
-            if (p > Max) Max = p;
+            var sp = Speed;
+            if (sp > Max) Max = sp;
         }
 
         /// <summary>已重载。输出统计信息</summary>
         /// <returns></returns>
         public override String ToString()
         {
-            return "{0:n0}/{1:n0}/{2:n0}/{3:n0}".F(Speed, Max, Times, Total);
+            //return "{0:n0}/{1:n0}/{2:n0}/{3:n0}".F(Speed, Max, Times, Total);
+            return "{0:n0}/{1:n0}/{2:n0}".F(Speed, Max, Times);
         }
     }
 }

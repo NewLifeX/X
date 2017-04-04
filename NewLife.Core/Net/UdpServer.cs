@@ -116,7 +116,7 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         protected override Boolean OnSend(Packet pk)
         {
-            if (StatSend != null) StatSend.Increment(pk.Count);
+            StatSend?.Increment(pk.Count);
 
             try
             {
@@ -228,6 +228,7 @@ namespace NewLife.Net
 #endif
             LastRemote = remote;
 
+            StatReceive?.Increment(pk.Count);
             if (base.OnReceive(pk, remote)) return true;
 
             // 分析处理

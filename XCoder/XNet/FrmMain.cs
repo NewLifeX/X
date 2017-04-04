@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife;
@@ -361,12 +360,6 @@ namespace XNet
 
             SaveConfig();
 
-            //if (_Client == null)
-            //{
-            //    XTrace.WriteLine("未连接服务端！");
-            //    return;
-            //}
-
             var cfg = NetConfig.Current;
 
             // 处理换行
@@ -382,23 +375,11 @@ namespace XNet
                 else
                 {
                     // 多线程测试
-                    //Task.Factory.StartNew(() =>
-                    //{
-                    //    for (int i = 0; i < ths; i++)
-                    //    {
-                    //        var client = _Client.Remote.CreateRemote();
-                    //        client.StatSend = _Client.StatSend;
-                    //        client.StatReceive = _Client.StatReceive;
-                    //        //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
-                    //        client.SendAsync(buf, count, sleep);
-                    //    }
-                    //}).LogException();
                     Parallel.For(0, ths, n =>
                     {
                         var client = _Client.Remote.CreateRemote();
                         client.StatSend = _Client.StatSend;
                         client.StatReceive = _Client.StatReceive;
-                        //client.SendAsync(buf, count, sleep).ContinueWith(t => client.Dispose());
                         client.SendMulti(buf, count, sleep);
                     });
                 }
@@ -496,28 +477,19 @@ namespace XNet
         private void cbMode_SelectedIndexChanged(object sender, EventArgs e)
         {
             var mode = GetMode();
-            if ((Int32)mode == 0) return;
+            if (mode == 0) return;
 
             switch (mode)
             {
                 case WorkModes.TCP_Client:
                 case WorkModes.UDP_Client:
-                    //cbRemote.DropDownStyle = ComboBoxStyle.DropDown;
-                    //cbRemote.DataSource = null;
-                    //cbRemote.Items.Clear();
-                    //cbRemote.Text = NetConfig.Current.Address;
                     break;
                 default:
                 case WorkModes.UDP_TCP:
                 case WorkModes.UDP_Server:
                 case WorkModes.TCP_Server:
-                    //cbLocal.DropDownStyle = ComboBoxStyle.DropDownList;
-                    //cbLocal.DataSource = GetIPs();
                     break;
                 case (WorkModes)0xFF:
-                    //cbLocal.DropDownStyle = ComboBoxStyle.DropDownList;
-                    //cbLocal.DataSource = GetIPs();
-
                     // 端口
                     var ns = GetNetServers().Where(n => n.Name == cbMode.Text).FirstOrDefault();
                     if (ns != null && ns.Port > 0) numPort.Value = ns.Port;
@@ -529,12 +501,12 @@ namespace XNet
         WorkModes GetMode()
         {
             var mode = cbMode.Text;
-            if (String.IsNullOrEmpty(mode)) return (WorkModes)0;
+            if (String.IsNullOrEmpty(mode)) return 0;
 
             var list = EnumHelper.GetDescriptions<WorkModes>().Where(kv => kv.Value == mode).ToList();
             if (list.Count == 0) return (WorkModes)0xFF;
 
-            return (WorkModes)list[0].Key;
+            return list[0].Key;
         }
 
         static String[] GetIPs()

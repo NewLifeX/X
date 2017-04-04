@@ -602,7 +602,7 @@ namespace NewLife.Net
         public String GetStat()
         {
             var sb = new StringBuilder();
-            if (SessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
+            if (MaxSessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
             if (StatSend.Total > 0) sb.AppendFormat("发送：{0} ", StatSend);
             if (StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", StatReceive);
             if (StatSession.Total > 0) sb.AppendFormat("会话：{0} ", StatSession);

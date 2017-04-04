@@ -37,10 +37,10 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
-        /// <summary>发送数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        /// <summary>发送数据包统计信息</summary>
         public IStatistics StatSend { get; set; } = new Statistics();
 
-        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
+        /// <summary>接收数据包统计信息</summary>
         public IStatistics StatReceive { get; set; } = new Statistics();
 
         /// <summary>通信开始时间</summary>
@@ -457,7 +457,6 @@ namespace NewLife.Net
         protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
         {
             LastTime = DateTime.Now;
-            if (StatReceive != null) StatReceive.Increment(e.Length);
 
             Received?.Invoke(sender, e);
 

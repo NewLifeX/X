@@ -149,7 +149,7 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         protected override Boolean OnSend(Packet pk)
         {
-            if (StatSend != null) StatSend.Increment(pk.Count);
+            StatSend?.Increment(pk.Count);
             if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
 
             try
@@ -218,6 +218,7 @@ namespace NewLife.Net
             NewLife.Web.WebHelper.UserHost = Remote.EndPoint?.Address + "";
 #endif
 
+            StatReceive?.Increment(pk.Count);
             if (base.OnReceive(pk, remote)) return true;
 
             // 分析处理

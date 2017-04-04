@@ -126,7 +126,7 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            if (StatSend != null) StatSend.Increment(pk.Count);
+            StatSend?.Increment(pk.Count);
             if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
 
             LastTime = DateTime.Now;
