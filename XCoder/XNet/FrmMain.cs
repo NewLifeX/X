@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -406,10 +407,13 @@ namespace XNet
             {
                 Task.Run(async () =>
                 {
-                    for (int i = 0; i < count; i++)
+                    XTrace.WriteLine("准备向[{0}]个客户端发送[{1}]次[{2}]的数据", _Server.SessionCount, count, buf.Length);
+                    for (int i = 0; i < count && _Server != null; i++)
                     {
+                        var sw = Stopwatch.StartNew();
                         var cs = await _Server.SendAllAsync(buf);
-                        XTrace.WriteLine("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
+                        sw.Stop();
+                        XTrace.WriteLine("{3}/{4} 已向[{0}]个客户端发送[{1}]数据 {2:n0}ms", cs, buf.Length, sw.ElapsedMilliseconds, i + 1, count);
                         if (sleep > 0) await Task.Delay(sleep);
                     }
                 });

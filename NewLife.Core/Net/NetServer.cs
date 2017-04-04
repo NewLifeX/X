@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -448,9 +449,9 @@ namespace NewLife.Net
         #endregion
 
         #region 会话
-        private IDictionary<Int32, INetSession> _Sessions;
+        private IDictionary<Int32, INetSession> _Sessions = new ConcurrentDictionary<Int32, INetSession>();
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
-        public IDictionary<Int32, INetSession> Sessions { get { return _Sessions ?? (_Sessions = new NullableDictionary<Int32, INetSession>()); } }
+        public IDictionary<Int32, INetSession> Sessions { get { return _Sessions; } }
 
         private Int32 _SessionCount;
         /// <summary>会话数</summary>
@@ -468,20 +469,22 @@ namespace NewLife.Net
             {
                 tc.Log = Log;
 
-                var dic = Sessions;
-                lock (dic)
+                //var dic = Sessions;
+                //lock (dic)
+                //{
+                if (session.Host == null) session.Host = this;
+                session.OnDisposed += (s, e) =>
                 {
-                    if (session.Host == null) session.Host = this;
-                    session.OnDisposed += (s, e) =>
-                    {
-                        var dic2 = Sessions;
-                        lock (dic2)
-                        {
-                            dic2.Remove((s as INetSession).ID);
-                        }
-                    };
-                    dic[session.ID] = session;
-                }
+                    //var dic2 = Sessions;
+                    //lock (dic2)
+                    //{
+                    //    dic2.Remove((s as INetSession).ID);
+                    //}
+                    var id = (s as INetSession).ID;
+                    if (id > 0) Sessions.Remove(id);
+                };
+                Sessions[session.ID] = session;
+                //}
             }
         }
 
@@ -510,13 +513,13 @@ namespace NewLife.Net
             {
                 tc.Log = Log;
 
-                var dic = Sessions;
-                lock (dic)
-                {
-                    INetSession ns = null;
-                    if (!dic.TryGetValue(sessionid, out ns)) return null;
-                    return ns;
-                }
+                //var dic = Sessions;
+                //lock (dic)
+                //{
+                INetSession ns = null;
+                if (!Sessions.TryGetValue(sessionid, out ns)) return null;
+                return ns;
+                //}
             }
         }
         #endregion
@@ -530,13 +533,12 @@ namespace NewLife.Net
             if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
 
             var ts = new List<Task>();
-            var ss = Sessions.Values.ToArray();
-            foreach (var item in ss)
+            foreach (var item in Sessions)
             {
-                ts.Add(Task.Run(() => item.Send(buffer)));
+                ts.Add(Task.Run(() => item.Value.Send(buffer)));
             }
 
-            return Task.WhenAll(ts).ContinueWith(t => ss.Length);
+            return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
         #endregion
 
@@ -568,7 +570,7 @@ namespace NewLife.Net
             {
                 case AddressFamily.InterNetwork:
                 case AddressFamily.InterNetworkV6:
-                    var addr= address.GetRightAny(family);
+                    var addr = address.GetRightAny(family);
                     if (addr != null)
                     {
                         var svr = new TServer();
@@ -694,10 +696,7 @@ namespace NewLife.Net
         {
             if (id <= 0) return null;
 
-            INetSession ns = null;
-            if (!Sessions.TryGetValue(id, out ns)) return null;
-
-            return ns as TSession;
+            return base.GetSession(id) as TSession;
         }
     }
 }
