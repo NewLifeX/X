@@ -41,7 +41,9 @@ namespace NewLife.Remoting
             if (Host.IsReusable && ts == null) session["Controller"] = ts = new NullableDictionary<Type, Object>();
 
             // 全局共用控制器，或者每次创建对象实例
-            var controller = api.Controller ?? ts[api.Type] ?? api.Type.CreateInstance();
+            var controller = api.Controller;
+            if (controller == null && ts != null) controller = ts[api.Type];
+            if (controller == null) controller = api.Type.CreateInstance();
             if (controller is IApi) (controller as IApi).Session = session;
 
             // 复用控制器对象

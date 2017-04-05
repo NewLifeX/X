@@ -110,7 +110,9 @@ namespace NewLife.Remoting
             // 设置过滤器
             SetFilter();
 
-            Log.Info("启动{0}，共有服务器{1}个 编码：{2} 处理器：{3}", GetType().Name, Servers.Count, Encoder, Handler);
+            Log.Info("启动{0}，共有服务器{1}个", GetType().Name, Servers.Count);
+            Log.Info("编码：{0}", Encoder);
+            Log.Info("处理：{0}", Handler);
 
             foreach (var item in Servers)
             {
@@ -159,8 +161,7 @@ namespace NewLife.Remoting
                 if (ss == null) return null;
 
                 return ss["Key"] as Byte[];
-            }
-;
+            };
         }
         #endregion
 

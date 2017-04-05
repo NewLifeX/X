@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -43,7 +44,10 @@ namespace NewLife.Remoting
         /// <typeparam name="TService"></typeparam>
         public void Register<TService>() where TService : class, new()
         {
-            Manager.Register<TService>();
+            if (typeof(TService).GetCustomAttribute<ApiAttribute>() == null)
+                Manager.Register<TService>(false);
+            else
+                Manager.Register<TService>(true);
         }
 
         /// <summary>注册服务</summary>
