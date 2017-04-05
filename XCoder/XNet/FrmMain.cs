@@ -375,12 +375,34 @@ namespace XNet
                 else
                 {
                     // 多线程测试
-                    Parallel.For(0, ths, n =>
+                    //Parallel.For(0, ths, n =>
+                    //{
+                    //    var client = _Client.Remote.CreateRemote();
+                    //    client.StatSend = _Client.StatSend;
+                    //    client.StatReceive = _Client.StatReceive;
+                    //    client.SendMulti(buf, count, sleep);
+                    //});
+                    var any = _Client.Local.Address.IsAny();
+                    var list = new List<ISocketClient>();
+                    for (int i = 0; i < ths; i++)
                     {
                         var client = _Client.Remote.CreateRemote();
+                        if (!any) client.Local.EndPoint = new IPEndPoint(_Client.Local.Address, 2000 + i);
                         client.StatSend = _Client.StatSend;
                         client.StatReceive = _Client.StatReceive;
+                        //client.SendMulti(buf, count, sleep);
+
+                        list.Add(client);
+                    }
+                    Parallel.For(0, ths, n =>
+                    {
+                        var client = list[n];
                         client.SendMulti(buf, count, sleep);
+                        //try
+                        //{
+                        //    client.Open();
+                        //}
+                        //catch { }
                     });
                 }
             }
