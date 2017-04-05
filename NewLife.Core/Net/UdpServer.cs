@@ -22,7 +22,7 @@ namespace NewLife.Net
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
-        public Int32 SessionTimeout { get; set; } = 30;
+        public Int32 SessionTimeout { get; set; } 
 
         /// <summary>最后一次同步接收数据得到的远程地址</summary>
         public IPEndPoint LastRemote { get; set; }
@@ -46,6 +46,8 @@ namespace NewLife.Net
             _Sessions = new SessionCollection(this);
 
             StatSession = new Statistics();
+
+            SessionTimeout = Setting.Current.SessionTimeout;
         }
 
         /// <summary>使用监听口初始化</summary>

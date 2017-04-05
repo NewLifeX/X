@@ -54,7 +54,7 @@ namespace NewLife.Net
 
             AutoStart = true;
             UpdatePath = "Update";
-            Server = Setting.Current.PluginServer;
+            Server = NewLife.Setting.Current.PluginServer;
 
             TempPath = XTrace.TempPath;
             Links = new Link[0];

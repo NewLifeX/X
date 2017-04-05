@@ -60,7 +60,7 @@ namespace NewLife.Net
         public Boolean ProcessAsync { get; set; } = true;
 
         /// <summary>缓冲区大小。默认8k</summary>
-        public Int32 BufferSize { get; set; } = 8 * 1024;
+        public Int32 BufferSize { get; set; }
         #endregion
 
         #region 构造
@@ -69,6 +69,8 @@ namespace NewLife.Net
         {
             Name = GetType().Name;
             LogPrefix = "{0}.".F((Name + "").TrimEnd("Server", "Session", "Client"));
+
+            BufferSize = Setting.Current.BufferSize;
         }
 
         /// <summary>销毁</summary>

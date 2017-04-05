@@ -20,7 +20,7 @@ namespace NewLife.Net.Sockets
         /// <summary>实例化</summary>
         public Netbase()
         {
-            if (Setting.Current.NetDebug) Log = XTrace.Log;
+            if (Setting.Current.Debug) Log = XTrace.Log;
         }
         #endregion
 

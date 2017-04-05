@@ -132,7 +132,7 @@ namespace NewLife.Net
             StatSend = new Statistics();
             StatReceive = new Statistics();
 
-            if (Setting.Current.NetDebug) Log = XTrace.Log;
+            if (Setting.Current.Debug) Log = XTrace.Log;
         }
 
         /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>

@@ -32,7 +32,7 @@ namespace NewLife.Net
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
-        public Int32 SessionTimeout { get; set; } = 30;
+        public Int32 SessionTimeout { get; set; }
 
         /// <summary>异步处理接收到的数据，默认false。</summary>
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
@@ -73,6 +73,8 @@ namespace NewLife.Net
             //SessionTimeout = 30;
             //AutoReceiveAsync = true;
             //ProcessAsync = true;
+
+            SessionTimeout = Setting.Current.SessionTimeout;
 
             MaxAsync = Environment.ProcessorCount * 16 / 10;
 

@@ -46,9 +46,9 @@ namespace NewLife
         [Description("插件缓存目录。默认位于系统盘的X\\Cache")]
         public String PluginCache { get; set; } = "";
 
-        /// <summary>网络调试</summary>
-        [Description("网络调试")]
-        public Boolean NetDebug { get; set; }
+        ///// <summary>网络调试</summary>
+        //[Description("网络调试")]
+        //public Boolean NetDebug { get; set; }
 
         /// <summary>语音提示。默认true</summary>
         [Description("语音提示。默认true")]
