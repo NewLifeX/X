@@ -250,7 +250,7 @@ namespace NewLife.Remoting
             return rs;
         }
 
-        /// <summary>预登录，可继承修改登录参数构造方式</summary>
+        /// <summary>预登录，默认MD5哈希密码，可继承修改登录参数构造方式</summary>
         /// <returns></returns>
         protected virtual Object OnPreLogin()
         {

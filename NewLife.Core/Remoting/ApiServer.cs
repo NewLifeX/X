@@ -107,6 +107,10 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
+#if DEBUG
+            Encoder.Log = Log;
+#endif
+
             // 设置过滤器
             SetFilter();
 

@@ -52,13 +52,21 @@ namespace NewLife.Remoting
             return dic;
         }
 
-        /// <summary>检查登录，返回要发给客户端的对象</summary>
+        /// <summary>检查登录，默认检查密码MD5散列，可继承修改</summary>
         /// <param name="user"></param>
         /// <param name="pass"></param>
-        /// <returns></returns>
-        protected virtual Object CheckLogin(String user, String pass) { return null; }
+        /// <returns>返回要发给客户端的对象</returns>
+        protected virtual Object CheckLogin(String user, String pass)
+        {
+            var _TruePass = user;
 
-        /// <summary>生成密钥，可继承并加密返回密钥</summary>
+            if (pass != _TruePass.MD5()) throw Error(0x01, "密码错误！");
+            Session["_TruePass"] = _TruePass;
+
+            return new { Name = user };
+        }
+
+        /// <summary>生成密钥，默认密码加密密钥，可继承修改</summary>
         /// <returns></returns>
         protected virtual Byte[] GenerateKey()
         {
@@ -67,6 +75,9 @@ namespace NewLife.Remoting
             Session["Key"] = key;
 
             WriteLog("生成密钥 {0}", key.ToHex());
+
+            var tp = Session["_TruePass"] + "";
+            if (!tp.IsNullOrEmpty()) key = key.RC4(tp.GetBytes());
 
             return key;
         }

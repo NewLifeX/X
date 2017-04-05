@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NewLife.Data;
 using NewLife.Log;
-using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -33,7 +28,7 @@ namespace NewLife.Remoting
             //svr.Encoder = new JsonEncoder();
             //GlobalFilters.Add(new FFAttribute { Name = "全局" });
             //GlobalFilters.Add(new FEAttribute { Name = "全局" });
-            svr.Register<MySession>();
+            svr.Register<ApiSession>();
             svr.Register<HelloController>();
             svr.Start();
 
@@ -47,14 +42,12 @@ namespace NewLife.Remoting
             //var client = new ApiClient("http://127.0.0.1:888");
             client.Log = XTrace.Log;
             //client.Encoder = new JsonEncoder();
-            //client.Filters.Add(new DeflateFilter());
-            //client.Filters.Add(new RC4Filter { Key = "Pass$word".GetBytes() });
             client.UserName = "Stone";
             client.Password = "Stone";
             client.Open();
 
-            //var logined = await client.LoginAsync();
-            //XTrace.WriteLine(logined + "");
+            var logined = await client.LoginAsync();
+            XTrace.WriteLine(logined + "");
 
             var msg = "NewLifeX";
             var rs = await client.InvokeAsync<String>("Hello/Say", new { msg });
@@ -75,28 +68,6 @@ namespace NewLife.Remoting
 
             Console.WriteLine("完成");
             Console.ReadKey();
-        }
-
-        private class MySession : ApiSession
-        {
-            private String _TruePass;
-
-            protected override Object CheckLogin(String user, String pass)
-            {
-                _TruePass = user;
-
-                if (pass != _TruePass.MD5()) throw Error(0x01, "密码错误！");
-
-                return new { Name = user };
-            }
-
-            protected override Byte[] GenerateKey()
-            {
-                var key = base.GenerateKey();
-                key = key.RC4(_TruePass.GetBytes());
-
-                return key;
-            }
         }
 
         //[FF(Name = "类")]
