@@ -158,14 +158,7 @@ namespace NewLife.Remoting
         protected override Func<FilterContext, Byte[]> GetKeyFunc()
         {
             // 从Session里面拿Key
-            return ctx =>
-            {
-                var actx = ctx as ApiFilterContext;
-                var ss = actx?.Session;
-                if (ss == null) return null;
-
-                return ss["Key"] as Byte[];
-            };
+            return ApiSession.GetKey;
         }
         #endregion
 

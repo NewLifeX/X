@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Net;
 using NewLife.Security;
 
@@ -8,11 +10,36 @@ namespace NewLife.Remoting
 {
     /// <summary>Api会话</summary>
     [Api(null)]
-    public class ApiSession : IApi
+    public class ApiSession : DisposeBase, IApi
     {
         #region 属性
         /// <summary>会话</summary>
         public IApiSession Session { get; set; }
+        #endregion
+
+        #region 构造
+        /// <summary>销毁时，从集合里面删除令牌</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
+
+            Session.TryDispose();
+        }
+        #endregion
+
+        #region 主要方法
+        /// <summary>为加解密过滤器提供会话密钥</summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        internal static Byte[] GetKey(FilterContext context)
+        {
+            var ctx = context as ApiFilterContext;
+            var ss = ctx?.Session;
+            if (ss == null) return null;
+
+            return ss["Key"] as Byte[];
+        }
         #endregion
 
         #region 异常处理
@@ -53,8 +80,8 @@ namespace NewLife.Remoting
         }
 
         /// <summary>检查登录，默认检查密码MD5散列，可继承修改</summary>
-        /// <param name="user"></param>
-        /// <param name="pass"></param>
+        /// <param name="user">用户名</param>
+        /// <param name="pass">密码</param>
         /// <returns>返回要发给客户端的对象</returns>
         protected virtual Object CheckLogin(String user, String pass)
         {
@@ -96,6 +123,24 @@ namespace NewLife.Remoting
             dic["ServerTime"] = DateTime.Now;
 
             return dic;
+        }
+        #endregion
+
+        #region 远程调用
+        /// <summary>远程调用</summary>
+        /// <example>
+        /// <code>
+        /// client.InvokeAsync("GetDeviceCount");
+        /// var rs = client.InvokeAsync("GetDeviceInfo", 2, 5, 9);
+        /// var di = rs.Result[0].Value;
+        /// </code>
+        /// </example>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
+        {
+            return await Session.InvokeAsync<TResult>(action, args);
         }
         #endregion
 
