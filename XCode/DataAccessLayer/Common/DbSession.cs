@@ -28,7 +28,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -634,7 +634,7 @@ namespace XCode.DataAccessLayer
                 var sb = new StringBuilder(64);
                 sb.Append(sql);
                 sb.Append("[");
-                for (int i = 0; i < ps.Length; i++)
+                for (Int32 i = 0; i < ps.Length; i++)
                 {
                     if (i > 0) sb.Append(", ");
                     var v = ps[i].Value;
@@ -689,7 +689,7 @@ namespace XCode.DataAccessLayer
                 var cps = cmd.Parameters;
                 ps = new DbParameter[cps.Count];
                 //cmd.Parameters.CopyTo(ps, 0);
-                for (int i = 0; i < ps.Length; i++)
+                for (Int32 i = 0; i < ps.Length; i++)
                 {
                     ps[i] = cps[i];
                 }

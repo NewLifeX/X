@@ -55,7 +55,7 @@ namespace XCode
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (Builder == null || Builder.Length <= 0) return null;
 

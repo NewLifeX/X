@@ -36,7 +36,7 @@ namespace XNet
             Icon = IcoHelper.GetIcon("网络");
         }
 
-        private void FrmMain_Load(object sender, EventArgs e)
+        private void FrmMain_Load(Object sender, EventArgs e)
         {
             txtReceive.UseWinFormControl();
 
@@ -280,7 +280,7 @@ namespace XNet
             }
         }
 
-        private void btnConnect_Click(object sender, EventArgs e)
+        private void btnConnect_Click(Object sender, EventArgs e)
         {
             SaveConfig();
 
@@ -318,7 +318,7 @@ namespace XNet
         Int32 BytesOfSent = 0;
         Int32 lastReceive = 0;
         Int32 lastSend = 0;
-        private void timer1_Tick(object sender, EventArgs e)
+        private void timer1_Tick(Object sender, EventArgs e)
         {
             //if (!pnlSetting.Enabled)
             {
@@ -341,7 +341,7 @@ namespace XNet
             }
         }
 
-        private void btnSend_Click(object sender, EventArgs e)
+        private void btnSend_Click(Object sender, EventArgs e)
         {
             var str = txtSend.Text;
             if (String.IsNullOrEmpty(str))
@@ -389,7 +389,7 @@ namespace XNet
                 Task.Run(async () =>
                 {
                     XTrace.WriteLine("准备向[{0}]个客户端发送[{1}]次[{2}]的数据", _Server.SessionCount, count, buf.Length);
-                    for (int i = 0; i < count && _Server != null; i++)
+                    for (Int32 i = 0; i < count && _Server != null; i++)
                     {
                         var sw = Stopwatch.StartNew();
                         var cs = await _Server.SendAllAsync(buf);
@@ -403,49 +403,49 @@ namespace XNet
         #endregion
 
         #region 右键菜单
-        private void mi清空_Click(object sender, EventArgs e)
+        private void mi清空_Click(Object sender, EventArgs e)
         {
             txtReceive.Clear();
             BytesOfReceived = 0;
         }
 
-        private void mi清空2_Click(object sender, EventArgs e)
+        private void mi清空2_Click(Object sender, EventArgs e)
         {
             txtSend.Clear();
             BytesOfSent = 0;
         }
 
-        private void mi显示应用日志_Click(object sender, EventArgs e)
+        private void mi显示应用日志_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             mi.Checked = !mi.Checked;
         }
 
-        private void mi显示网络日志_Click(object sender, EventArgs e)
+        private void mi显示网络日志_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             mi.Checked = !mi.Checked;
         }
 
-        private void mi显示发送数据_Click(object sender, EventArgs e)
+        private void mi显示发送数据_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             mi.Checked = !mi.Checked;
         }
 
-        private void mi显示接收数据_Click(object sender, EventArgs e)
+        private void mi显示接收数据_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             mi.Checked = !mi.Checked;
         }
 
-        private void mi显示统计信息_Click(object sender, EventArgs e)
+        private void mi显示统计信息_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             NetConfig.Current.ShowStat = mi.Checked = !mi.Checked;
         }
 
-        private void mi显示接收字符串_Click(object sender, EventArgs e)
+        private void mi显示接收字符串_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             NetConfig.Current.ShowReceiveString = mi.Checked = !mi.Checked;
@@ -474,7 +474,7 @@ namespace XNet
         }
         #endregion
 
-        private void cbMode_SelectedIndexChanged(object sender, EventArgs e)
+        private void cbMode_SelectedIndexChanged(Object sender, EventArgs e)
         {
             var mode = GetMode();
             if (mode == 0) return;

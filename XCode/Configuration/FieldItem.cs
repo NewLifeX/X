@@ -225,7 +225,7 @@ namespace XCode.Configuration
         #region 方法
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             // 为了保持兼容旧的_.Name等代码，必须只能返回字段名
             return ColumnName;
@@ -291,12 +291,12 @@ namespace XCode.Configuration
         /// <summary>等于</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Expression Equal(object value) { return CreateFieldExpression(this, "=", value); }
+        public Expression Equal(Object value) { return CreateFieldExpression(this, "=", value); }
 
         /// <summary>不等于</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Expression NotEqual(object value) { return CreateFieldExpression(this, "<>", value); }
+        public Expression NotEqual(Object value) { return CreateFieldExpression(this, "<>", value); }
 
         Expression CreateLike(String value) { return CreateFormatExpression("{0} Like {1}", Factory.FormatValue(this, value)); }
 
@@ -581,12 +581,12 @@ namespace XCode.Configuration
 
         /// <summary>重写一下</summary>
         /// <returns></returns>
-        public override int GetHashCode() { return base.GetHashCode(); }
+        public override Int32 GetHashCode() { return base.GetHashCode(); }
 
         /// <summary>重写一下</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override bool Equals(object obj) { return base.Equals(obj); }
+        public override Boolean Equals(Object obj) { return base.Equals(obj); }
 
         #region 类型转换
         /// <summary>类型转换</summary>

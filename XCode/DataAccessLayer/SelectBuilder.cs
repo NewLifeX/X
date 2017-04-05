@@ -68,7 +68,7 @@ namespace XCode.DataAccessLayer
 
                 // 把排序反过来
                 Boolean[] isdescs = new Boolean[_Keys.Length];
-                for (int i = 0; i < isdescs.Length; i++)
+                for (Int32 i = 0; i < isdescs.Length; i++)
                 {
                     if (_IsDescs != null && _IsDescs.Length > i)
                         isdescs[i] = !_IsDescs[i];
@@ -426,7 +426,7 @@ $";
             String[] keys = new String[ss.Length];
             isdescs = new Boolean[ss.Length];
 
-            for (int i = 0; i < ss.Length; i++)
+            for (Int32 i = 0; i < ss.Length; i++)
             {
                 String[] ss2 = ss[i].Trim().Split(' ');
                 // 拆分名称和排序，不知道是否存在多余一个空格的情况
@@ -450,7 +450,7 @@ $";
             if (keys.Length == 1) return isdescs != null && isdescs.Length > 0 && isdescs[0] ? keys[0] + " Desc" : keys[0];
 
             var sb = new StringBuilder();
-            for (int i = 0; i < keys.Length; i++)
+            for (Int32 i = 0; i < keys.Length; i++)
             {
                 if (sb.Length > 0) sb.Append(", ");
 

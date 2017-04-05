@@ -21,7 +21,7 @@ namespace XCom
             Icon = IcoHelper.GetIcon("串口");
         }
 
-        private void FrmMain_Load(object sender, EventArgs e)
+        private void FrmMain_Load(Object sender, EventArgs e)
         {
             txtReceive.SetDefaultStyle(12);
             txtSend.SetDefaultStyle(12);
@@ -92,7 +92,7 @@ namespace XCom
             btnConnect.Text = "打开";
         }
 
-        private void btnConnect_Click(object sender, EventArgs e)
+        private void btnConnect_Click(Object sender, EventArgs e)
         {
             var btn = sender as Button;
             if (btn.Text == "打开")
@@ -116,7 +116,7 @@ namespace XCom
         Int32 _pColor = 0;
         Int32 lastReceive = 0;
         Int32 lastSend = 0;
-        private void timer1_Tick(object sender, EventArgs e)
+        private void timer1_Tick(Object sender, EventArgs e)
         {
             var sp = spList.Port;
             if (sp != null)
@@ -147,7 +147,7 @@ namespace XCom
             }
         }
 
-        private void btnSend_Click(object sender, EventArgs e)
+        private void btnSend_Click(Object sender, EventArgs e)
         {
             var str = txtSend.Text;
             if (String.IsNullOrEmpty(str))
@@ -174,7 +174,7 @@ namespace XCom
 
             Task.Factory.StartNew(() =>
             {
-                for (int i = 0; i < count; i++)
+                for (Int32 i = 0; i < count; i++)
                 {
                     spList.Send(str);
 
@@ -185,13 +185,13 @@ namespace XCom
         #endregion
 
         #region 右键菜单
-        private void mi清空_Click(object sender, EventArgs e)
+        private void mi清空_Click(Object sender, EventArgs e)
         {
             txtReceive.Clear();
             spList.ClearReceive();
         }
 
-        private void mi清空2_Click(object sender, EventArgs e)
+        private void mi清空2_Click(Object sender, EventArgs e)
         {
             txtSend.Clear();
             spList.ClearSend();

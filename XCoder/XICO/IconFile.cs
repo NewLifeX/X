@@ -221,21 +221,21 @@ namespace XICO
         public class IconItem
         {
             #region 属性
-            private byte _Width = 16;
+            private Byte _Width = 16;
             /// <summary>图像宽度，以象素为单位。一个字节</summary>
-            public byte Width { get { return _Width; } set { _Width = value; } }
+            public Byte Width { get { return _Width; } set { _Width = value; } }
 
-            private byte _Height = 16;
+            private Byte _Height = 16;
             /// <summary>图像高度，以象素为单位。一个字节</summary>
-            public byte Height { get { return _Height; } set { _Height = value; } }
+            public Byte Height { get { return _Height; } set { _Height = value; } }
 
-            private byte _ColorCount = 0;
+            private Byte _ColorCount = 0;
             /// <summary>图像中的颜色数（如果是>=8bpp的位图则为0）</summary>
-            public byte ColorCount { get { return _ColorCount; } set { _ColorCount = value; } }
+            public Byte ColorCount { get { return _ColorCount; } set { _ColorCount = value; } }
 
-            private byte _Reserved = 0;        //4 
+            private Byte _Reserved = 0;        //4 
             /// <summary>保留字必须是0</summary>
-            public byte Reserved { get { return _Reserved; } set { _Reserved = value; } }
+            public Byte Reserved { get { return _Reserved; } set { _Reserved = value; } }
 
             private UInt16 _Planes = 1;
             /// <summary>为目标设备说明位面数，其值将总是被设为1</summary>
@@ -253,9 +253,9 @@ namespace XICO
             /// <summary>起点偏移位置。</summary>
             public UInt32 Offset { get { return _Offset; } set { _Offset = value; } }
 
-            private byte[] _Data;
+            private Byte[] _Data;
             /// <summary>图形数据</summary>
-            public byte[] Data { get { return _Data; } set { _Data = value; } }
+            public Byte[] Data { get { return _Data; } set { _Data = value; } }
             #endregion
 
             #region 构造
@@ -377,7 +377,7 @@ namespace XICO
             public Bitmap IconBmp { get { return _IconBitMap; } set { _IconBitMap = value; } }
             #endregion
 
-            public BitmapInfo(byte[] data)
+            public BitmapInfo(Byte[] data)
             {
                 var reader = new BinaryReader(new MemoryStream(data));
 
@@ -402,17 +402,17 @@ namespace XICO
 
                 for (Int32 i = 0; i != count; i++)
                 {
-                    byte Blue = reader.ReadByte();
-                    byte Green = reader.ReadByte();
-                    byte Red = reader.ReadByte();
-                    byte Reserved = reader.ReadByte();
+                    Byte Blue = reader.ReadByte();
+                    Byte Green = reader.ReadByte();
+                    Byte Red = reader.ReadByte();
+                    Byte Reserved = reader.ReadByte();
                     ColorTable.Add(Color.FromArgb((Int32)Reserved, (Int32)Red, (Int32)Green, (Int32)Blue));
                 }
 
                 Int32 Size = (Int32)(biBitCount * biWidth) / 8;       // 象素的大小*象素数 /字节数              
-                if ((double)Size < biBitCount * biWidth / 8) Size++;       //如果是 宽19*4（16色）/8 =9.5 就+1;
+                if ((Double)Size < biBitCount * biWidth / 8) Size++;       //如果是 宽19*4（16色）/8 =9.5 就+1;
                 if (Size < 4) Size = 4;
-                byte[] WidthByte = new byte[Size];
+                Byte[] WidthByte = new Byte[Size];
 
                 _IconBitMap = new Bitmap((Int32)biWidth, (Int32)(biHeight / 2));
                 for (Int32 i = (Int32)(biHeight / 2); i != 0; i--)
@@ -428,9 +428,9 @@ namespace XICO
 
                 //取掩码
                 Int32 MaskSize = (Int32)(biWidth / 8);
-                if ((double)MaskSize < biWidth / 8) MaskSize++;       //如果是 宽19*4（16色）/8 =9.5 就+1;
+                if ((Double)MaskSize < biWidth / 8) MaskSize++;       //如果是 宽19*4（16色）/8 =9.5 就+1;
                 if (MaskSize < 4) MaskSize = 4;
-                byte[] MashByte = new byte[MaskSize];
+                Byte[] MashByte = new Byte[MaskSize];
                 for (Int32 i = (Int32)(biHeight / 2); i != 0; i--)
                 {
                     //for (Int32 z = 0; z != MaskSize; z++)
@@ -462,7 +462,7 @@ namespace XICO
                 }
             }
 
-            private void IconSet(Bitmap IconImage, Int32 RowIndex, byte[] ImageByte)
+            private void IconSet(Bitmap IconImage, Int32 RowIndex, Byte[] ImageByte)
             {
                 Int32 idx = 0;
                 switch (biBitCount)
@@ -471,7 +471,7 @@ namespace XICO
                         #region 一次读8位 绘制8个点
                         for (Int32 i = 0; i != ImageByte.Length; i++)
                         {
-                            var MyArray = new BitArray(new byte[] { ImageByte[i] });
+                            var MyArray = new BitArray(new Byte[] { ImageByte[i] });
 
                             if (idx >= IconImage.Width) return;
                             IconImage.SetPixel(idx, RowIndex, ColorTable[GetBitNumb(MyArray[7])]);
@@ -551,7 +551,7 @@ namespace XICO
                 }
             }
 
-            private void IconMask(Bitmap IconImage, Int32 RowIndex, byte[] MaskByte)
+            private void IconMask(Bitmap IconImage, Int32 RowIndex, Byte[] MaskByte)
             {
                 var Set = new BitArray(MaskByte);
                 Int32 idx = 0;
@@ -565,7 +565,7 @@ namespace XICO
                 }
             }
 
-            private Int32 GetBitNumb(bool BitArray) { return BitArray ? 1 : 0; }
+            private Int32 GetBitNumb(Boolean BitArray) { return BitArray ? 1 : 0; }
         }
     }
 }

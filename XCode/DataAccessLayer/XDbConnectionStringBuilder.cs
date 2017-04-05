@@ -137,7 +137,7 @@ namespace XCode.DataAccessLayer
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return ConnectionString; }
+        public override String ToString() { return ConnectionString; }
         #endregion
     }
 }

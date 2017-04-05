@@ -56,7 +56,7 @@ namespace XCode.Membership
 
         /// <summary>删除时写日志</summary>
         /// <returns></returns>
-        public override int Delete()
+        public override Int32 Delete()
         {
             LogProvider.Provider.WriteLog("删除", this);
 

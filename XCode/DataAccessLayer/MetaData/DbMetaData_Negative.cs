@@ -243,7 +243,7 @@ namespace XCode.DataAccessLayer
 
             #region 删除列
             var sbDelete = new StringBuilder();
-            for (int i = dbtable.Columns.Count - 1; i >= 0; i--)
+            for (Int32 i = dbtable.Columns.Count - 1; i >= 0; i--)
             {
                 var item = dbtable.Columns[i];
                 if (!entitydic.ContainsKey(item.ColumnName.ToLower()))
@@ -325,7 +325,7 @@ namespace XCode.DataAccessLayer
             #region 删除索引
             if (dbtable.Indexes != null)
             {
-                for (int i = dbtable.Indexes.Count - 1; i >= 0; i--)
+                for (Int32 i = dbtable.Indexes.Count - 1; i >= 0; i--)
                 {
                     var item = dbtable.Indexes[i];
                     // 计算的索引不需要删除
@@ -1009,7 +1009,7 @@ namespace XCode.DataAccessLayer
 
             sb.Append(FormatName(index.Name));
             sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
-            for (int i = 0; i < index.Columns.Length; i++)
+            for (Int32 i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(FormatName(index.Columns[i]));

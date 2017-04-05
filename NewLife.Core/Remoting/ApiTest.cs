@@ -57,13 +57,13 @@ namespace NewLife.Remoting
             //XTrace.WriteLine(logined + "");
 
             var msg = "NewLifeX";
-            var rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
+            var rs = await client.InvokeAsync<String>("Hello/Say", new { msg });
             XTrace.WriteLine(rs);
 
             try
             {
                 msg = "报错";
-                rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
+                rs = await client.InvokeAsync<String>("Hello/Say", new { msg });
             }
             catch (ApiException ex)
             {
@@ -107,7 +107,7 @@ namespace NewLife.Remoting
 
             //[FF(Name = "方法")]
             //[FE(Name = "方法")]
-            public string Say(string msg)
+            public String Say(String msg)
             {
                 if (msg == "报错") throw new Exception("出错，上一次 " + Session["Last"]);
 

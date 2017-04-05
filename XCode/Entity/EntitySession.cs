@@ -83,7 +83,7 @@ namespace XCode
             Key = connName + "###" + tableName;
         }
 
-        private static DictionaryCache<String, EntitySession<TEntity>> _es = new DictionaryCache<string, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
+        private static DictionaryCache<String, EntitySession<TEntity>> _es = new DictionaryCache<String, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建指定表名连接名的会话</summary>
         /// <param name="connName"></param>
         /// <param name="tableName"></param>

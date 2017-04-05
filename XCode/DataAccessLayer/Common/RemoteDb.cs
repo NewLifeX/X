@@ -39,7 +39,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override string DefaultConnectionString
+        protected override String DefaultConnectionString
         {
             get
             {
@@ -80,7 +80,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 架构
-        public override DataTable GetSchema(string collectionName, string[] restrictionValues)
+        public override DataTable GetSchema(String collectionName, String[] restrictionValues)
         {
             try
             {
@@ -142,7 +142,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 架构定义
-        public override object SetSchema(DDLSchema schema, params object[] values)
+        public override Object SetSchema(DDLSchema schema, params Object[] values)
         {
             var session = Database.CreateSession();
             var databaseName = session.DatabaseName;

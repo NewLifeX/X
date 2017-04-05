@@ -82,7 +82,7 @@ namespace XCode.Membership
         /// <summary>初始化。检查是否匹配</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public override bool Init(Type entityType)
+        public override Boolean Init(Type entityType)
         {
             var fs = GetFieldNames(entityType);
             if (fs.Contains(__.CreateTime)) return true;
@@ -127,7 +127,7 @@ namespace XCode.Membership
         /// <summary>初始化。检查是否匹配</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public override bool Init(Type entityType)
+        public override Boolean Init(Type entityType)
         {
             var fs = GetFieldNames(entityType);
             if (fs.Contains(__.CreateIP)) return true;

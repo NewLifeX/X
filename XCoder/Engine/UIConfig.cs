@@ -133,7 +133,7 @@ namespace XCoder
             return ui;
         }
 
-        static ToolStripItem Find(ToolStripItemCollection items, String key, bool searchAllChildren)
+        static ToolStripItem Find(ToolStripItemCollection items, String key, Boolean searchAllChildren)
         {
             var tis = items.Find(key, searchAllChildren);
             if (tis != null && tis.Length > 0) return tis[0];
@@ -158,7 +158,7 @@ namespace XCoder
             return null;
         }
 
-        static void mi字体_Click(object sender, EventArgs e)
+        static void mi字体_Click(Object sender, EventArgs e)
         {
             var ti = sender as ToolStripItem;
             var txt = (ti.Owner as ContextMenuStrip).SourceControl as TextBoxBase;
@@ -174,7 +174,7 @@ namespace XCoder
             ui.Save();
         }
 
-        static void mi前景色_Click(object sender, EventArgs e)
+        static void mi前景色_Click(Object sender, EventArgs e)
         {
             var ti = sender as ToolStripItem;
             var txt = (ti.Owner as ContextMenuStrip).SourceControl as TextBoxBase;
@@ -190,7 +190,7 @@ namespace XCoder
             ui.Save();
         }
 
-        static void mi背景色_Click(object sender, EventArgs e)
+        static void mi背景色_Click(Object sender, EventArgs e)
         {
             // ((System.Windows.Forms.ContextMenuStrip)(((System.Windows.Forms.ToolStripItem)(sender)).Owner)).SourceControl
             var ti = sender as ToolStripItem;

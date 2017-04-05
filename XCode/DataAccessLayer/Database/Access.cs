@@ -41,7 +41,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override string DefaultConnectionString
+        protected override String DefaultConnectionString
         {
             get
             {
@@ -70,7 +70,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() { return new AccessMetaData(); }
 
-        public override bool Support(string providerName)
+        public override Boolean Support(String providerName)
         {
             providerName = providerName.ToLower();
             if (providerName.Contains("microsoft.jet.oledb")) return true;
@@ -106,7 +106,7 @@ namespace XCode.DataAccessLayer
         /// <summary>长文本长度</summary>
         public override Int32 LongTextLength { get { return 255; } }
 
-        public override string FormatName(string name)
+        public override String FormatName(String name)
         {
             if (!String.IsNullOrEmpty(name) && name.Contains("$"))
                 return FormatKeyWord(name);
@@ -141,7 +141,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public override string FormatValue(IDataColumn field, object value)
+        public override String FormatValue(IDataColumn field, Object value)
         {
             if (field != null && field.DataType == typeof(Boolean) || value != null && value.GetType() == typeof(Boolean))
             {
@@ -155,7 +155,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 分页
-        public override SelectBuilder PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows)
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, false, b => CreateSession().QueryCount(b));
         }
@@ -362,7 +362,7 @@ namespace XCode.DataAccessLayer
         //    if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b)) index.PrimaryKey = b;
         //}
 
-        protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
+        protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             String str = base.GetFieldConstraints(field, onlyDefine);
 
@@ -375,7 +375,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="onlyDefine">仅仅定义</param>
         /// <returns></returns>
-        protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
+        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
         {
             // Access不能通过DDL来操作默认值
             return null;
@@ -462,7 +462,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程创建表
-        protected override void CreateTable(StringBuilder sb, IDataTable table, bool onlySql)
+        protected override void CreateTable(StringBuilder sb, IDataTable table, Boolean onlySql)
         {
             base.CreateTable(sb, table, onlySql);
 
@@ -496,7 +496,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        public override string CreateTableSQL(IDataTable table)
+        public override String CreateTableSQL(IDataTable table)
         {
             var sql = base.CreateTableSQL(table);
 
@@ -521,7 +521,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override string CreateIndexSQL(IDataIndex index)
+        public override String CreateIndexSQL(IDataIndex index)
         {
             String sql = base.CreateIndexSQL(index);
             if (String.IsNullOrEmpty(sql) || !index.PrimaryKey) return sql;
@@ -618,7 +618,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据类型
-        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
+        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 0) return drs;
@@ -656,7 +656,7 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        protected override string GetFieldType(IDataColumn field)
+        protected override String GetFieldType(IDataColumn field)
         {
             String typeName = base.GetFieldType(field);
 

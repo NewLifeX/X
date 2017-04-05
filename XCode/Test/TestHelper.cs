@@ -36,7 +36,7 @@ namespace XCode.Test
             Byte[] buffer = new Byte[_.Guid2.Length / 2];
             rnd.NextBytes(buffer);
             entity.DisplayName = BitConverter.ToString(buffer).Replace("-", null);
-            entity.EntityTest2 = (float)Math.PI;
+            entity.EntityTest2 = (Single)Math.PI;
             if (String.IsNullOrEmpty(Meta.Session.Dal.Db.DateTimeNow))
             {
                 entity.StartDate = DateTime.Now;

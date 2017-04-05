@@ -90,7 +90,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() { return new SqlServerMetaData(); }
 
-        public override bool Support(string providerName)
+        public override Boolean Support(String providerName)
         {
             providerName = providerName.ToLower();
             if (providerName.Contains("system.data.sqlclient")) return true;
@@ -215,7 +215,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        private string FormatSqlserver2012SQL(string sql)
+        private String FormatSqlserver2012SQL(String sql)
         {
             SelectBuilder builder = new SelectBuilder();
             builder.Parse(sql);
@@ -238,7 +238,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public override SelectBuilder PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows)
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005, b => CreateSession().QueryCount(b));
         }
@@ -290,7 +290,7 @@ namespace XCode.DataAccessLayer
         /// <summary>系统数据库名</summary>
         public override String SystemDatabaseName { get { return "master"; } }
 
-        public override string FormatValue(IDataColumn field, object value)
+        public override String FormatValue(IDataColumn field, Object value)
         {
             TypeCode code = Type.GetTypeCode(field.DataType);
             Boolean isNullable = field.Nullable;
@@ -337,7 +337,7 @@ namespace XCode.DataAccessLayer
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public override Int64 QueryCountFast(string tableName)
+        public override Int64 QueryCountFast(String tableName)
         {
             tableName = tableName.Trim().Trim('[', ']').Trim();
 
@@ -390,7 +390,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
             return ExecuteScalar<Int64>(CreateCommand(sql, type, ps));
@@ -478,8 +478,8 @@ namespace XCode.DataAccessLayer
                 field.PrimaryKey = GetDataRowValue<Boolean>(dr2, "主键");
                 field.NumOfByte = GetDataRowValue<Int32>(dr2, "占用字节数");
                 field.Description = GetDataRowValue<String>(dr2, "字段说明");
-                field.Precision = GetDataRowValue<int>(dr2, "精度");
-                field.Scale = GetDataRowValue<int>(dr2, "小数位数");
+                field.Precision = GetDataRowValue<Int32>(dr2, "精度");
+                field.Scale = GetDataRowValue<Int32>(dr2, "小数位数");
             }
 
             // 整理默认值
@@ -535,7 +535,7 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
-        public override string CreateTableSQL(IDataTable table)
+        public override String CreateTableSQL(IDataTable table)
         {
             String sql = base.CreateTableSQL(table);
 
@@ -554,7 +554,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override string FieldClause(IDataColumn field, bool onlyDefine)
+        public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
             if (!String.IsNullOrEmpty(field.RawType) && field.RawType.Contains("char(-1)"))
             {
@@ -576,7 +576,7 @@ namespace XCode.DataAccessLayer
             return base.FieldClause(field, onlyDefine);
         }
 
-        protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
+        protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             // 非定义时（修改字段），主键字段没有约束
             if (!onlyDefine && field.PrimaryKey) return null;
@@ -589,7 +589,7 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        protected override string GetFormatParam(IDataColumn field, DataRow dr)
+        protected override String GetFormatParam(IDataColumn field, DataRow dr)
         {
             String str = base.GetFormatParam(field, dr);
             if (String.IsNullOrEmpty(str)) return str;
@@ -599,14 +599,14 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        protected override string GetFormatParamItem(IDataColumn field, DataRow dr, string item)
+        protected override String GetFormatParamItem(IDataColumn field, DataRow dr, String item)
         {
             String pi = base.GetFormatParamItem(field, dr, item);
             if (field.DataType == typeof(String) && pi == "-1" && IsSQL2005) return "MAX";
             return pi;
         }
 
-        protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
+        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
         {
             if (!onlyDefine) return null;
 
@@ -733,7 +733,7 @@ namespace XCode.DataAccessLayer
         //    return base.SetSchema(schema, values);
         //}
 
-        public override string CreateDatabaseSQL(string dbname, string file)
+        public override String CreateDatabaseSQL(String dbname, String file)
         {
             String dataPath = (Database as SqlServer).DataPath;
 
@@ -775,7 +775,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public override string DatabaseExistSQL(string dbname)
+        public override String DatabaseExistSQL(String dbname)
         {
             return String.Format("SELECT * FROM sysdatabases WHERE name = N'{0}'", dbname);
         }
@@ -783,13 +783,13 @@ namespace XCode.DataAccessLayer
         /// <summary>使用数据架构确定数据库是否存在，因为使用系统视图可能没有权限</summary>
         /// <param name="dbname"></param>
         /// <returns></returns>
-        protected override Boolean DatabaseExist(string dbname)
+        protected override Boolean DatabaseExist(String dbname)
         {
             var dt = GetSchema(_.Databases, new String[] { dbname });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        protected override Boolean DropDatabase(string databaseName)
+        protected override Boolean DropDatabase(String databaseName)
         {
             //return base.DropDatabase(databaseName);
 
@@ -818,7 +818,7 @@ namespace XCode.DataAccessLayer
             return session.Execute(String.Format("Drop Database {0}", FormatName(databaseName))) > 0;
         }
 
-        public override string TableExistSQL(String tableName)
+        public override String TableExistSQL(String tableName)
         {
             if (IsSQL2005)
                 return String.Format("select * from sysobjects where xtype='U' and name='{0}'", tableName);
@@ -835,7 +835,7 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        protected override string RenameTable(string tableName, string tempTableName)
+        protected override String RenameTable(String tableName, String tempTableName)
         {
             if (Version.Major >= 8)
                 return String.Format("EXECUTE sp_rename N'{0}', N'{1}', 'OBJECT' ", tableName, tempTableName);
@@ -843,7 +843,7 @@ namespace XCode.DataAccessLayer
                 return base.RenameTable(tableName, tempTableName);
         }
 
-        protected override string ReBuildTable(IDataTable entitytable, IDataTable dbtable)
+        protected override String ReBuildTable(IDataTable entitytable, IDataTable dbtable)
         {
             //return String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", base.ReBuildTable(entitytable, dbtable), Database.FormatName(entitytable.TableName));
             var sql = base.ReBuildTable(entitytable, dbtable);
@@ -858,7 +858,7 @@ namespace XCode.DataAccessLayer
             //list.Insert(1, String.Format("SET IDENTITY_INSERT {0} ON", tableName));
             //list.Insert(list.Count - 1, String.Format("SET IDENTITY_INSERT {0} OFF", tableName));
             //return String.Join("; " + Environment.NewLine, list.ToArray());
-            for (int i = 0; i < ss.Length; i++)
+            for (Int32 i = 0; i < ss.Length; i++)
             {
                 if (ss[i].StartsWithIgnoreCase("Insert Into"))
                 {
@@ -869,22 +869,22 @@ namespace XCode.DataAccessLayer
             return String.Join("; " + Environment.NewLine, ss);
         }
 
-        public override string AddTableDescriptionSQL(IDataTable table)
+        public override String AddTableDescriptionSQL(IDataTable table)
         {
             return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, table.Description, level0type);
         }
 
-        public override string DropTableDescriptionSQL(IDataTable table)
+        public override String DropTableDescriptionSQL(IDataTable table)
         {
             return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{1}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, level0type);
         }
 
-        public override string AddColumnSQL(IDataColumn field)
+        public override String AddColumnSQL(IDataColumn field)
         {
             return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true));
         }
 
-        public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
             // 创建为自增，重建表
             if (field.Identity && !oldfield.Identity)
@@ -958,12 +958,12 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override string DropIndexSQL(IDataIndex index)
+        public override String DropIndexSQL(IDataIndex index)
         {
             return String.Format("Drop Index {1}.{0}", FormatName(index.Name), FormatName(index.Table.TableName));
         }
 
-        public override string DropColumnSQL(IDataColumn field)
+        public override String DropColumnSQL(IDataColumn field)
         {
             //删除默认值
             String sql = DropDefaultSQL(field);
@@ -977,18 +977,18 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override string AddColumnDescriptionSQL(IDataColumn field)
+        public override String AddColumnDescriptionSQL(IDataColumn field)
         {
             String sql = String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{3}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", field.Table.TableName, field.Description, field.ColumnName, level0type);
             return sql;
         }
 
-        public override string DropColumnDescriptionSQL(IDataColumn field)
+        public override String DropColumnDescriptionSQL(IDataColumn field)
         {
             return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.TableName, field.ColumnName, level0type);
         }
 
-        public override string AddDefaultSQL(IDataColumn field)
+        public override String AddDefaultSQL(IDataColumn field)
         {
             var sql = DropDefaultSQL(field);
             if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
@@ -1000,7 +1000,7 @@ namespace XCode.DataAccessLayer
                 return sql + ";" + Environment.NewLine + sql2;
         }
 
-        string AddDefaultSQLWithNoCheck(IDataColumn field)
+        String AddDefaultSQLWithNoCheck(IDataColumn field)
         {
             var tc = Type.GetTypeCode(field.DataType);
 
@@ -1023,7 +1023,7 @@ namespace XCode.DataAccessLayer
                 return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
         }
 
-        public override string DropDefaultSQL(IDataColumn field)
+        public override String DropDefaultSQL(IDataColumn field)
         {
             //if (String.IsNullOrEmpty(field.Default)) return String.Empty;
             // 默认值有可能是空字符串

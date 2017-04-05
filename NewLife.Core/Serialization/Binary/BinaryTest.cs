@@ -25,7 +25,7 @@ namespace NewLife.Serialization
             Console.Clear();
 
             var ks = new String[] { "普通", "高级", "名值普通", "名值高级" };
-            for (int i = 0; i < 4; i++)
+            for (Int32 i = 0; i < 4; i++)
             {
                 var ext = i == 1 || i == 3;
                 var unm = i == 2 || i == 3;
@@ -108,21 +108,21 @@ namespace NewLife.Serialization
             {
                 var n = Rand.Next(2, 10);
                 obj.Points = new Double[n];
-                for (int i = 0; i < n; i++)
+                for (Int32 i = 0; i < n; i++)
                 {
                     obj.Points[i] = (Double)Rand.Next() / 10000;
                 }
 
                 obj.Items = new List<String>();
                 n = Rand.Next(2, 10);
-                for (int i = 0; i < n; i++)
+                for (Int32 i = 0; i < n; i++)
                 {
                     obj.Items.Add(Rand.NextString(32));
                 }
 
                 obj.Container = new Dictionary<String, String>();
                 n = Rand.Next(2, 10);
-                for (int i = 0; i < n; i++)
+                for (Int32 i = 0; i < n; i++)
                 {
                     obj.Container.Add("元素" + (i + 1), Rand.NextString(32));
                 }

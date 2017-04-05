@@ -172,7 +172,7 @@ namespace XCode.DataAccessLayer
 
             // 把排序反过来
             var isdescs2 = new Boolean[keys.Length];
-            for (int i = 0; i < keys.Length; i++)
+            for (Int32 i = 0; i < keys.Length; i++)
             {
                 if (isdescs != null && isdescs.Length > i)
                     isdescs2[i] = !isdescs[i];

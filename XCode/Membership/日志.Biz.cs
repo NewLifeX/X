@@ -27,7 +27,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。记录当前管理员</summary>
         /// <param name="isNew"></param>
-        public override void Valid(bool isNew)
+        public override void Valid(Boolean isNew)
         {
             base.Valid(isNew);
 
@@ -53,14 +53,14 @@ namespace XCode.Membership
 
         /// <summary></summary>
         /// <returns></returns>
-        protected override int OnUpdate()
+        protected override Int32 OnUpdate()
         {
             throw new Exception("禁止修改日志！");
         }
 
         /// <summary></summary>
         /// <returns></returns>
-        protected override int OnDelete()
+        protected override Int32 OnDelete()
         {
             throw new Exception("禁止删除日志！");
         }
@@ -213,7 +213,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName ?? CreateUserName, CreateTime, Remark);
         }

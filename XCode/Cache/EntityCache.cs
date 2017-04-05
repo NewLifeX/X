@@ -202,13 +202,13 @@ namespace XCode.Cache
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
-        public IEntity Find(string name, object value) { return Entities.Find(name, value); }
+        public IEntity Find(String name, Object value) { return Entities.Find(name, value); }
 
         /// <summary>根据指定项查找</summary>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
-        public EntityList<IEntity> FindAll(string name, object value) { return new EntityList<IEntity>(Entities.FindAll(name, value)); }
+        public EntityList<IEntity> FindAll(String name, Object value) { return new EntityList<IEntity>(Entities.FindAll(name, value)); }
 
         /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
         /// <param name="match">条件</param>

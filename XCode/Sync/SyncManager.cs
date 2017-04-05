@@ -89,7 +89,7 @@ namespace XCode.Sync
                 // 采用降序应该可以解决问题
                 if (rs != null && rs.Length > 0)
                 {
-                    for (int i = arr.Length - 1; i >= 0; i--)
+                    for (Int32 i = arr.Length - 1; i >= 0; i--)
                     {
                         if (rs[i] != null) arr[i].ChangeKey(rs[i].Key);
                     }
@@ -119,7 +119,7 @@ namespace XCode.Sync
 
                 // 准备要删除的主键
                 var keys = new Object[arr.Length];
-                for (int i = 0; i < arr.Length; i++)
+                for (Int32 i = 0; i < arr.Length; i++)
                 {
                     keys[i] = arr[i].Key;
                 }
@@ -129,7 +129,7 @@ namespace XCode.Sync
                 // 删除本地
                 if (rs != null && rs.Length > 0)
                 {
-                    for (int i = 0; i < arr.Length; i++)
+                    for (Int32 i = 0; i < arr.Length; i++)
                     {
                         if (rs[i]) arr[i].Delete();
                     }
@@ -206,7 +206,7 @@ namespace XCode.Sync
 
                 // 准备要删除的主键
                 var keys = new Object[arr.Length];
-                for (int i = 0; i < arr.Length; i++)
+                for (Int32 i = 0; i < arr.Length; i++)
                 {
                     keys[i] = arr[i].Key;
                 }
@@ -216,7 +216,7 @@ namespace XCode.Sync
                 // 删除本地
                 if (rs != null && rs.Length > 0)
                 {
-                    for (int i = 0; i < arr.Length; i++)
+                    for (Int32 i = 0; i < arr.Length; i++)
                     {
                         if (!rs[i]) arr[i].Delete();
                     }
@@ -236,7 +236,7 @@ namespace XCode.Sync
         ISyncMasterEntity[] Convert(ISyncSlaveEntity[] arr)
         {
             var rs = new ISyncMasterEntity[arr.Length];
-            for (int i = 0; i < arr.Length; i++)
+            for (Int32 i = 0; i < arr.Length; i++)
             {
                 rs[i] = Convert(arr[i]);
             }
@@ -246,7 +246,7 @@ namespace XCode.Sync
         ISyncSlaveEntity[] Convert(ISyncMasterEntity[] arr)
         {
             var rs = new ISyncSlaveEntity[arr.Length];
-            for (int i = 0; i < arr.Length; i++)
+            for (Int32 i = 0; i < arr.Length; i++)
             {
                 rs[i] = Convert(arr[i]);
             }

@@ -40,7 +40,7 @@ namespace XMessage
             Icon = IcoHelper.GetIcon("消息");
         }
 
-        private void FrmMain_Load(object sender, EventArgs e)
+        private void FrmMain_Load(Object sender, EventArgs e)
         {
             txtReceive.UseWinFormControl();
 
@@ -250,7 +250,7 @@ namespace XMessage
             }
         }
 
-        private void btnConnect_Click(object sender, EventArgs e)
+        private void btnConnect_Click(Object sender, EventArgs e)
         {
             SaveConfig();
 
@@ -288,7 +288,7 @@ namespace XMessage
         Int32 BytesOfSent = 0;
         Int32 lastReceive = 0;
         Int32 lastSend = 0;
-        private void timer1_Tick(object sender, EventArgs e)
+        private void timer1_Tick(Object sender, EventArgs e)
         {
             //if (!pnlSetting.Enabled)
             {
@@ -310,7 +310,7 @@ namespace XMessage
             }
         }
 
-        private void btnSend_Click(object sender, EventArgs e)
+        private void btnSend_Click(Object sender, EventArgs e)
         {
             var str = txtSend.Text;
             if (String.IsNullOrEmpty(str))
@@ -360,7 +360,7 @@ namespace XMessage
             {
                 Task.Run(async () =>
                 {
-                    for (int i = 0; i < count; i++)
+                    for (Int32 i = 0; i < count; i++)
                     {
                         var cs = await _Server.SendAllAsync(buf);
                         XTrace.WriteLine("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
@@ -372,49 +372,49 @@ namespace XMessage
         #endregion
 
         #region 右键菜单
-        private void mi清空_Click(object sender, EventArgs e)
+        private void mi清空_Click(Object sender, EventArgs e)
         {
             txtReceive.Clear();
             BytesOfReceived = 0;
         }
 
-        private void mi清空2_Click(object sender, EventArgs e)
+        private void mi清空2_Click(Object sender, EventArgs e)
         {
             txtSend.Clear();
             BytesOfSent = 0;
         }
 
-        private void mi显示应用日志_Click(object sender, EventArgs e)
+        private void mi显示应用日志_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             mi.Checked = !mi.Checked;
         }
 
-        private void mi显示网络日志_Click(object sender, EventArgs e)
+        private void mi显示网络日志_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             mi.Checked = !mi.Checked;
         }
 
-        private void mi显示发送数据_Click(object sender, EventArgs e)
+        private void mi显示发送数据_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             mi.Checked = !mi.Checked;
         }
 
-        private void mi显示接收数据_Click(object sender, EventArgs e)
+        private void mi显示接收数据_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             mi.Checked = !mi.Checked;
         }
 
-        private void mi显示统计信息_Click(object sender, EventArgs e)
+        private void mi显示统计信息_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             MessageConfig.Current.ShowStat = mi.Checked = !mi.Checked;
         }
 
-        private void mi显示接收字符串_Click(object sender, EventArgs e)
+        private void mi显示接收字符串_Click(Object sender, EventArgs e)
         {
             var mi = sender as ToolStripMenuItem;
             MessageConfig.Current.ShowReceiveString = mi.Checked = !mi.Checked;

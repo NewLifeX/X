@@ -71,7 +71,7 @@ namespace XCode.DataAccessLayer
         #region ICloneable 成员
         /// <summary>克隆</summary>
         /// <returns></returns>
-        object ICloneable.Clone() { return Clone(Table); }
+        Object ICloneable.Clone() { return Clone(Table); }
 
         /// <summary>克隆</summary>
         /// <param name="table"></param>
@@ -88,7 +88,7 @@ namespace XCode.DataAccessLayer
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (Columns != null && Columns.Length > 0)
                 return String.Format("{0}=>{1} {2}", Name, String.Join(",", Columns), Unique ? "U" : "");

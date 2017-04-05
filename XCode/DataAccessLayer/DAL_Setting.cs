@@ -58,7 +58,7 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return Db.ToString(); }
+        public override String ToString() { return Db.ToString(); }
 
         /// <summary>建立数据表对象</summary>
         /// <returns></returns>

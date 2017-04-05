@@ -35,12 +35,12 @@ namespace XCoder
             return frm;
         }
 
-        private void FrmQuery_Load(object sender, EventArgs e)
+        private void FrmQuery_Load(Object sender, EventArgs e)
         {
         }
         #endregion
 
-        private void btnQuery_Click(object sender, EventArgs e)
+        private void btnQuery_Click(Object sender, EventArgs e)
         {
             var sql = txtSQL.Text;
             if (sql.IsNullOrWhiteSpace()) return;
@@ -75,7 +75,7 @@ namespace XCoder
             }).LogException();
         }
 
-        private void btnExecute_Click(object sender, EventArgs e)
+        private void btnExecute_Click(Object sender, EventArgs e)
         {
             var sql = txtSQL.Text;
             if (sql.IsNullOrWhiteSpace()) return;

@@ -120,7 +120,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() { return new OracleMeta(); }
 
-        public override bool Support(string providerName)
+        public override Boolean Support(String providerName)
         {
             providerName = providerName.ToLower();
             if (providerName.Contains("oracleclient")) return true;
@@ -184,7 +184,7 @@ namespace XCode.DataAccessLayer
 
         #region 数据库特性
         /// <summary>当前时间函数</summary>
-        public override string DateTimeNow { get { return "sysdate"; } }
+        public override String DateTimeNow { get { return "sysdate"; } }
 
         /// <summary>获取Guid的函数</summary>
         public override String NewGuid { get { return "sys_guid()"; } }
@@ -198,7 +198,7 @@ namespace XCode.DataAccessLayer
         //    return String.Format("To_Date('{0}', 'YYYY-MM-DD HH24:MI:SS')", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
         //}
 
-        public override string FormatValue(IDataColumn field, object value)
+        public override String FormatValue(IDataColumn field, Object value)
         {
             TypeCode code = Type.GetTypeCode(field.DataType);
             Boolean isNullable = field.Nullable;
@@ -222,7 +222,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public override string FormatIdentity(IDataColumn field, Object value)
+        public override String FormatIdentity(IDataColumn field, Object value)
         {
             return String.Format("SEQ_{0}.nextval", field.Table.TableName);
         }
@@ -237,7 +237,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 关键字
-        protected override string ReservedWordsStr
+        protected override String ReservedWordsStr
         {
             get { return "Sort,Level,ALL,ALTER,AND,ANY,AS,ASC,BETWEEN,BY,CHAR,CHECK,CLUSTER,COMPRESS,CONNECT,CREATE,DATE,DECIMAL,DEFAULT,DELETE,DESC,DISTINCT,DROP,ELSE,EXCLUSIVE,EXISTS,FLOAT,FOR,FROM,GRANT,GROUP,HAVING,IDENTIFIED,IN,INDEX,INSERT,INTEGER,INTERSECT,INTO,IS,LIKE,LOCK,LONG,MINUS,MODE,NOCOMPRESS,NOT,NOWAIT,NULL,NUMBER,OF,ON,OPTION,OR,ORDER,PCTFREE,PRIOR,PUBLIC,RAW,RENAME,RESOURCE,REVOKE,SELECT,SET,SHARE,SIZE,SMALLINT,START,SYNONYM,TABLE,THEN,TO,TRIGGER,UNION,UNIQUE,UPDATE,VALUES,VARCHAR,VARCHAR2,VIEW,WHERE,WITH"; }
         }
@@ -265,7 +265,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号</summary>
         static Boolean _IgnoreCase = Setting.Current.Oracle.IgnoreCase;
 
-        public override string FormatName(string name)
+        public override String FormatName(String name)
         {
             if (_IgnoreCase)
                 return base.FormatName(name);
@@ -315,7 +315,7 @@ namespace XCode.DataAccessLayer
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public override Int64 QueryCountFast(string tableName)
+        public override Int64 QueryCountFast(String tableName)
         {
             if (String.IsNullOrEmpty(tableName)) return 0;
 
@@ -648,7 +648,7 @@ namespace XCode.DataAccessLayer
 
             String where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
             DataRow[] drs = dtColumnDefault.Select(where);
-            string result = null;
+            String result = null;
             if (drs == null || drs.Length == 0) return null;
 
             result = Convert.ToString(drs[0]["DATA_DEFAULT"]);  //如果默认值中最后一个字符是  \n ,则排除掉
@@ -700,7 +700,7 @@ namespace XCode.DataAccessLayer
             if (TryGetDataRowValue<Int32>(drColumn, "LENGTH", out len) && len > 0) field.NumOfByte = len;
         }
 
-        protected override string GetFieldType(IDataColumn field)
+        protected override String GetFieldType(IDataColumn field)
         {
             Int32 precision = field.Precision;
             Int32 scale = field.Scale;
@@ -741,7 +741,7 @@ namespace XCode.DataAccessLayer
             return base.GetFieldType(field);
         }
 
-        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
+        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
             DataRow[] drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 1)
@@ -788,7 +788,7 @@ namespace XCode.DataAccessLayer
         }
 
         #region 架构定义
-        public override object SetSchema(DDLSchema schema, params object[] values)
+        public override Object SetSchema(DDLSchema schema, params Object[] values)
         {
             IDbSession session = Database.CreateSession();
 
@@ -806,12 +806,12 @@ namespace XCode.DataAccessLayer
             return base.SetSchema(schema, values);
         }
 
-        public override string DatabaseExistSQL(string dbname)
+        public override String DatabaseExistSQL(String dbname)
         {
             return String.Empty;
         }
 
-        protected override string GetFieldConstraints(IDataColumn field, bool onlyDefine)
+        protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             // 有默认值时直接返回，待会在默认值里面加约束
             // 因为Oracle的声明是先有默认值再有约束的
@@ -825,14 +825,14 @@ namespace XCode.DataAccessLayer
                 return " NOT NULL";
         }
 
-        protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
+        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
         {
             if (String.IsNullOrEmpty(field.Default)) return null;
 
             return base.GetFieldDefault(field, onlyDefine) + base.GetFieldConstraints(field, onlyDefine);
         }
 
-        public override string CreateTableSQL(IDataTable table)
+        public override String CreateTableSQL(IDataTable table)
         {
             var Fields = new List<IDataColumn>(table.Columns);
             Fields.OrderBy(dc => dc.ID);
@@ -855,7 +855,7 @@ namespace XCode.DataAccessLayer
                 sb.AppendLine(",");
                 sb.Append("\t");
                 sb.AppendFormat("constraint pk_{0} primary key (", table.TableName);
-                for (int i = 0; i < pks.Length; i++)
+                for (Int32 i = 0; i < pks.Length; i++)
                 {
                     if (i > 0) sb.Append(",");
                     sb.Append(FormatName(pks[i].ColumnName));
@@ -876,7 +876,7 @@ namespace XCode.DataAccessLayer
             return sql + ";" + Environment.NewLine + sqlSeq;
         }
 
-        public override string DropTableSQL(String tableName)
+        public override String DropTableSQL(String tableName)
         {
             String sql = base.DropTableSQL(tableName);
             if (String.IsNullOrEmpty(sql)) return sql;
@@ -909,28 +909,28 @@ namespace XCode.DataAccessLayer
                 return String.Format("Alter Table {2}.{0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName, Owner);
         }
 
-        public override string AddTableDescriptionSQL(IDataTable table)
+        public override String AddTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}'", table.Description, table.Name);
 
             return String.Format("Comment On Table {0} is '{1}'", FormatName(table.TableName), table.Description);
         }
 
-        public override string DropTableDescriptionSQL(IDataTable table)
+        public override String DropTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}'", table.Name);
 
             return String.Format("Comment On Table {0} is ''", FormatName(table.TableName));
         }
 
-        public override string AddColumnDescriptionSQL(IDataColumn field)
+        public override String AddColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}' AND COLUMN_NAME='{2}'", field.Description, field.Table.Name, field.Name);
 
             return String.Format("Comment On Column {0}.{1} is '{2}'", FormatName(field.Table.TableName), FormatName(field.ColumnName), field.Description);
         }
 
-        public override string DropColumnDescriptionSQL(IDataColumn field)
+        public override String DropColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}' AND COLUMN_NAME='{1}'", field.Table.Name, field.Name);
 

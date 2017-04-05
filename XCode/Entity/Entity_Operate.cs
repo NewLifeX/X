@@ -133,8 +133,8 @@ namespace XCode
                 }
             }
 
-            private static void DoAction(Action<IEntityList> action, string whereClause, string orderClause, string selects, int batchSize,
-                int maxCount)
+            private static void DoAction(Action<IEntityList> action, String whereClause, String orderClause, String selects, Int32 batchSize,
+                Int32 maxCount)
             {
                 var count = Entity<TEntity>.FindCount(whereClause, orderClause, selects, 0, 0);
                 var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
@@ -293,7 +293,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>总行数</returns>
-            public virtual Int32 FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows)
+            public virtual Int32 FindCountByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
             {
                 return Entity<TEntity>.FindCountByName(name, value, orderClause, startRowIndex, maximumRows);
             }

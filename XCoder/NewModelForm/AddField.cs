@@ -20,7 +20,7 @@ namespace XCoder
         //是否添加，默认是添加数据
         private Boolean IsNew = true ;
 
-        public AddField(IDataColumn dc,bool isNew)
+        public AddField(IDataColumn dc, Boolean isNew)
         {
             InitializeComponent();
             IsNew = isNew;
@@ -86,14 +86,14 @@ namespace XCoder
             DataColumn.ColumnName = DataColumn.Name;
         }
 
-        public static BaseForm CreateForm(IDataColumn column, bool isNew)
+        public static BaseForm CreateForm(IDataColumn column, Boolean isNew)
         {
             AddField frm = new AddField(column, isNew);
             frm.Dock = DockStyle.Fill;
             return WinFormHelper.CreateForm(frm, "编辑字段信息");
         }      
 
-        private void combRawType_SelectedIndexChanged(object sender, EventArgs e)
+        private void combRawType_SelectedIndexChanged(Object sender, EventArgs e)
         {        
             if (combRawType.SelectedIndex == 3) 
             {
@@ -117,20 +117,20 @@ namespace XCoder
             }
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(Object sender, EventArgs e)
         {
             SaveValue();
             ParentForm.DialogResult = DialogResult.OK;
             ParentForm.Close();
         }
 
-        private void btnCancle_Click(object sender, EventArgs e)
+        private void btnCancle_Click(Object sender, EventArgs e)
         {
             ParentForm.DialogResult = DialogResult.Cancel ;
             ParentForm.Close();
         }
 
-        private void txtLength_TextChanged(object sender, EventArgs e)
+        private void txtLength_TextChanged(Object sender, EventArgs e)
         {
             if (combRawType.SelectedIndex == 3)
             {
@@ -138,7 +138,7 @@ namespace XCoder
             }
         }
 
-        private void txtLength_KeyPress(object sender, KeyPressEventArgs e)
+        private void txtLength_KeyPress(Object sender, KeyPressEventArgs e)
         {
             WinFormHelper.SetControlOnlyZS(sender, e);
         }

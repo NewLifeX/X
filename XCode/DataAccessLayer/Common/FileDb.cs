@@ -9,7 +9,7 @@ namespace XCode.DataAccessLayer
     abstract class FileDbBase : DbBase
     {
         #region 属性
-        protected override string DefaultConnectionString
+        protected override String DefaultConnectionString
         {
             get
             {
@@ -67,7 +67,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        private static List<String> hasChecked = new List<string>();
+        private static List<String> hasChecked = new List<String>();
 
         /// <summary>已重载。打开数据库连接前创建数据库</summary>
         public override void Open()
@@ -115,7 +115,7 @@ namespace XCode.DataAccessLayer
         /// <param name="schema"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public override object SetSchema(DDLSchema schema, object[] values)
+        public override Object SetSchema(DDLSchema schema, Object[] values)
         {
             //Object obj = null;
             switch (schema)

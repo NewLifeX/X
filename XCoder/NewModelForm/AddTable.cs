@@ -64,7 +64,7 @@ namespace XCoder
             return WinFormHelper.CreateForm(frm , "添加表");
         }
 
-        private void toolAddColumns_Click(object sender, EventArgs e)
+        private void toolAddColumns_Click(Object sender, EventArgs e)
         {
             IDataColumn dc = CurrentTable.CreateColumn();
             //CurrentTable.Columns.Add(dc);
@@ -79,7 +79,7 @@ namespace XCoder
             }
         }
 
-        private void toolEidtColumn_Click(object sender, EventArgs e)
+        private void toolEidtColumn_Click(Object sender, EventArgs e)
         {
 
             DataGridViewRow row = dgvColumns.Rows[dgvColumns.CurrentCell.RowIndex ];
@@ -90,7 +90,7 @@ namespace XCoder
             BandingDGV();
         }      
 
-        private void toolStripButton1_Click(object sender, EventArgs e)
+        private void toolStripButton1_Click(Object sender, EventArgs e)
         {
             if (MessageBox.Show("是否需要保存数据?", "提示", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
@@ -102,7 +102,7 @@ namespace XCoder
             }          
         }
 
-        private void toolSave_Click(object sender, EventArgs e)
+        private void toolSave_Click(Object sender, EventArgs e)
         {
             CurrentTable.TableName = txtTableName.Text.Trim();
             CurrentTable.Description = txtTableRemark.Text.Trim();
@@ -111,7 +111,7 @@ namespace XCoder
             BandingDGV();      
         }
 
-        private void toolDelete_Click(object sender, EventArgs e)
+        private void toolDelete_Click(Object sender, EventArgs e)
         {
             CurrentTable.Columns.RemoveAt(dgvColumns.CurrentCell.RowIndex);
             BandingDGV();

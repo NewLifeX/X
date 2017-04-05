@@ -412,7 +412,7 @@ namespace XCode.DataAccessLayer
                 {
                     var ss = v.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                     // 去除前后空格，因为手工修改xml的时候，可能在逗号后加上空格
-                    for (int i = 0; i < ss.Length; i++)
+                    for (Int32 i = 0; i < ss.Length; i++)
                     {
                         ss[i] = ss[i].Trim();
                     }
@@ -625,7 +625,7 @@ namespace XCode.DataAccessLayer
             //if (resetColumnID) src.Columns.ForEach((it, i) => it.ID = i + 1);
             if (resetColumnID)
             {
-                for (int i = 0; i < src.Columns.Count; i++)
+                for (Int32 i = 0; i < src.Columns.Count; i++)
                 {
                     src.Columns[i].ID = i + 1;
                 }

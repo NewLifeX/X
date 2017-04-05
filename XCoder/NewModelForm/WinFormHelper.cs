@@ -14,7 +14,7 @@ namespace XCoder
         /// </summary>
         /// <param name="cl">控件</param>
         /// <param name="titleText">标题文本</param>        
-        public static BaseForm CreateForm(Control cl, string titleText = "")
+        public static BaseForm CreateForm(Control cl, String titleText = "")
         {
             BaseForm tf = new BaseForm();
             tf.Size = new Size(cl.Width + 15, cl.Size.Height + 40);
@@ -31,9 +31,9 @@ namespace XCoder
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public static void SetControlOnlyValue(object sender, KeyPressEventArgs e)
+        public static void SetControlOnlyValue(Object sender, KeyPressEventArgs e)
         {
-            e.Handled = !(Char.IsNumber(e.KeyChar) || e.KeyChar == (char)8 || e.KeyChar == '.' || e.KeyChar == '-');
+            e.Handled = !(Char.IsNumber(e.KeyChar) || e.KeyChar == (Char)8 || e.KeyChar == '.' || e.KeyChar == '-');
             if (!e.Handled)
                 (sender as TextBox).Tag = (sender as TextBox).Text;//记录最后一次正确输入
         }
@@ -42,9 +42,9 @@ namespace XCoder
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public static void SetControlOnlyZS(object sender, KeyPressEventArgs e)
+        public static void SetControlOnlyZS(Object sender, KeyPressEventArgs e)
         {
-            e.Handled = !(Char.IsNumber(e.KeyChar) || e.KeyChar == (char)8 || e.KeyChar == '.');
+            e.Handled = !(Char.IsNumber(e.KeyChar) || e.KeyChar == (Char)8 || e.KeyChar == '.');
             if (!e.Handled)
                 (sender as TextBox).Tag = (sender as TextBox).Text;//记录最后一次正确输入
         }
@@ -55,7 +55,7 @@ namespace XCoder
     public class BindComboxEnumType<T>
     {
         /// <summary>类型的名字</summary>
-        public string Name { get; set; }
+        public String Name { get; set; }
 
         /// <summary>类型</summary>
         public T Type { get; set; }
@@ -99,15 +99,15 @@ namespace XCoder
     public class PrimitiveType
     {
         /// <summary>原始类型名称</summary>
-        public string  Name { get; set; }
+        public String Name { get; set; }
         /// <summary>类型长度</summary>
-        public int Length { get; set; }
+        public Int32 Length { get; set; }
         /// <summary>字节数/summary>
-        public int NumOfByte { get; set; }
+        public Int32 NumOfByte { get; set; }
         /// <summary>精度</summary>
-        public int Precision { get; set; }
+        public Int32 Precision { get; set; }
         /// <summary>数据类型</summary>
-        public string DataType { get; set; }
+        public String DataType { get; set; }
 
         public static List<PrimitiveType> TypeList ;
 

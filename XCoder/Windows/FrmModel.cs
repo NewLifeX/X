@@ -38,7 +38,7 @@ namespace XCoder
             return frm;
         }
 
-        private void FrmModel_Load(object sender, EventArgs e)
+        private void FrmModel_Load(Object sender, EventArgs e)
         {
             SetTables(Tables, 0);
             SetDbTypes();
@@ -54,7 +54,7 @@ namespace XCoder
             return cb.SelectedItem as IDataTable;
         }
 
-        private void cbTables_SelectedIndexChanged(object sender, EventArgs e)
+        private void cbTables_SelectedIndexChanged(Object sender, EventArgs e)
         {
             IDataTable table = GetSelectedTable();
             if (table == null) return;
@@ -67,7 +67,7 @@ namespace XCoder
             dgvRelation.DataSource = table.Relations;
         }
 
-        private void gv_RowEnter(object sender, DataGridViewCellEventArgs e)
+        private void gv_RowEnter(Object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
 
@@ -98,7 +98,7 @@ namespace XCoder
         #endregion
 
         #region 添加
-        private void btnAddTable_Click(object sender, EventArgs e)
+        private void btnAddTable_Click(Object sender, EventArgs e)
         {
             if (Tables == null || Tables.Count < 1) return;
 
@@ -116,7 +116,7 @@ namespace XCoder
             SetTables(Tables, Tables.Count - 1);
         }
 
-        private void btnAddColumn_Click(object sender, EventArgs e)
+        private void btnAddColumn_Click(Object sender, EventArgs e)
         {
             IDataTable table = GetSelectedTable();
             if (table == null) return;
@@ -132,7 +132,7 @@ namespace XCoder
             pgColumn.SelectedObject = dc;
         }
 
-        private void btnAddIndex_Click(object sender, EventArgs e)
+        private void btnAddIndex_Click(Object sender, EventArgs e)
         {
             IDataTable table = GetSelectedTable();
             if (table == null) return;
@@ -145,7 +145,7 @@ namespace XCoder
             pgColumn.SelectedObject = di;
         }
 
-        private void btnAddRelation_Click(object sender, EventArgs e)
+        private void btnAddRelation_Click(Object sender, EventArgs e)
         {
             IDataTable table = GetSelectedTable();
             if (table == null) return;
@@ -166,7 +166,7 @@ namespace XCoder
             cbConn.Update();
         }
 
-        private void btnCreateTableSQL_Click(object sender, EventArgs e)
+        private void btnCreateTableSQL_Click(Object sender, EventArgs e)
         {
             if (cbConn.SelectedItem == null) return;
 
@@ -229,7 +229,7 @@ namespace XCoder
             return sb.ToString();
         }
 
-        private void btnCreateDbSQL_Click(object sender, EventArgs e)
+        private void btnCreateDbSQL_Click(Object sender, EventArgs e)
         {
             if (cbConn.SelectedItem == null) return;
 
@@ -254,7 +254,7 @@ namespace XCoder
             }
         }
 
-        private void btnCreateDb_Click(object sender, EventArgs e)
+        private void btnCreateDb_Click(Object sender, EventArgs e)
         {
             if (cbConn.SelectedItem == null) return;
 

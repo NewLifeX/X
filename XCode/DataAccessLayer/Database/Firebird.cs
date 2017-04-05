@@ -72,7 +72,7 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">主键列。用于not in分页</param>
         /// <returns></returns>
-        public override string PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
+        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
@@ -172,13 +172,13 @@ namespace XCode.DataAccessLayer
         //}
 
         /// <summary>长文本长度</summary>
-        public override int LongTextLength { get { return 32767; } }
+        public override Int32 LongTextLength { get { return 32767; } }
 
         /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public override string FormatIdentity(IDataColumn field, Object value)
+        public override String FormatIdentity(IDataColumn field, Object value)
         {
             //return String.Format("GEN_ID(GEN_{0}, 1)", field.Table.TableName);
             return String.Format("next value for SEQ_{0}", field.Table.TableName);
@@ -209,7 +209,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             BeginTransaction(IsolationLevel.Serializable);
             try
@@ -249,7 +249,7 @@ namespace XCode.DataAccessLayer
             return GetTables(rows);
         }
 
-        protected override string GetFieldType(IDataColumn field)
+        protected override String GetFieldType(IDataColumn field)
         {
             if (field.DataType == typeof(Boolean)) return "smallint";
 
@@ -281,7 +281,7 @@ namespace XCode.DataAccessLayer
             Reflect.Invoke(null, method, Database.ConnectionString);
         }
 
-        public override string CreateDatabaseSQL(string dbname, string file)
+        public override String CreateDatabaseSQL(String dbname, String file)
         {
             return String.Empty;
         }
@@ -291,7 +291,7 @@ namespace XCode.DataAccessLayer
         //    return String.Format("Drop Database If Exists {0}", FormatKeyWord(dbname));
         //}
 
-        protected override string GetFieldConstraints(IDataColumn field, bool onlyDefine)
+        protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             if (field.Nullable)
                 return "";
@@ -299,7 +299,7 @@ namespace XCode.DataAccessLayer
                 return " not null";
         }
 
-        public override string CreateTableSQL(IDataTable table)
+        public override String CreateTableSQL(IDataTable table)
         {
             String sql = base.CreateTableSQL(table);
             if (String.IsNullOrEmpty(sql)) return sql;
@@ -313,7 +313,7 @@ namespace XCode.DataAccessLayer
             return sql + ";" + Environment.NewLine + sqlSeq;
         }
 
-        public override string DropTableSQL(String tableName)
+        public override String DropTableSQL(String tableName)
         {
             String sql = base.DropTableSQL(tableName);
             if (String.IsNullOrEmpty(sql)) return sql;

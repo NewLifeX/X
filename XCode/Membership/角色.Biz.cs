@@ -171,7 +171,7 @@ namespace XCode.Membership
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         /// <param name="isNew">是否新数据</param>
-        public override void Valid(bool isNew)
+        public override void Valid(Boolean isNew)
         {
             if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, _.Name.DisplayName + "不能为空！");
 
@@ -182,7 +182,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override int Delete()
+        public override Int32 Delete()
         {
             var entity = this;
             var name = entity.Name;
@@ -213,7 +213,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override int Save()
+        public override Int32 Save()
         {
             // 先处理一次，否则可能因为别的字段没有修改而没有脏数据
             SavePermission();
@@ -232,7 +232,7 @@ namespace XCode.Membership
 
         /// <summary>如果Permission被修改，则重新加载</summary>
         /// <param name="fieldName"></param>
-        protected override void OnPropertyChanged(string fieldName)
+        protected override void OnPropertyChanged(String fieldName)
         {
             base.OnPropertyChanged(fieldName);
 
@@ -434,7 +434,7 @@ namespace XCode.Membership
         /// <param name="e"></param>
         /// <param name="role"></param>
         /// <param name="isfull"></param>
-        public static void RowDataBound(object sender, GridViewRowEventArgs e, IRole role, Boolean isfull)
+        public static void RowDataBound(Object sender, GridViewRowEventArgs e, IRole role, Boolean isfull)
         {
             if (e.Row == null) return;
 
@@ -480,7 +480,7 @@ namespace XCode.Membership
         /// <param name="role"></param>
         /// <param name="resname">当前页权限名称</param>
         /// <returns></returns>
-        public static Boolean CheckedChanged(object sender, EventArgs e, IRole role, String resname)
+        public static Boolean CheckedChanged(Object sender, EventArgs e, IRole role, String resname)
         {
             var cb = sender as CheckBox;
             if (cb == null) return false;
@@ -544,7 +544,7 @@ namespace XCode.Membership
         /// <param name="role"></param>
         /// <param name="resname">当前页权限名称</param>
         /// <returns></returns>
-        public static Boolean SelectedIndexChanged(object sender, EventArgs e, IRole role, String resname)
+        public static Boolean SelectedIndexChanged(Object sender, EventArgs e, IRole role, String resname)
         {
             var cb = sender as CheckBoxList;
 

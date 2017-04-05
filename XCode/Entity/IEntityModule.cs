@@ -89,15 +89,15 @@ namespace XCode
 
         void ICollection<IEntityModule>.Clear() { Modules.Clear(); }
 
-        bool ICollection<IEntityModule>.Contains(IEntityModule item) { return Modules.Contains(item); }
+        Boolean ICollection<IEntityModule>.Contains(IEntityModule item) { return Modules.Contains(item); }
 
-        void ICollection<IEntityModule>.CopyTo(IEntityModule[] array, int arrayIndex) { Modules.CopyTo(array, arrayIndex); }
+        void ICollection<IEntityModule>.CopyTo(IEntityModule[] array, Int32 arrayIndex) { Modules.CopyTo(array, arrayIndex); }
 
-        int ICollection<IEntityModule>.Count { get { return Modules.Count; } }
+        Int32 ICollection<IEntityModule>.Count { get { return Modules.Count; } }
 
-        bool ICollection<IEntityModule>.IsReadOnly { get { return (Modules as ICollection<IEntityModule>).IsReadOnly; } }
+        Boolean ICollection<IEntityModule>.IsReadOnly { get { return (Modules as ICollection<IEntityModule>).IsReadOnly; } }
 
-        bool ICollection<IEntityModule>.Remove(IEntityModule item) { return Modules.Remove(item); }
+        Boolean ICollection<IEntityModule>.Remove(IEntityModule item) { return Modules.Remove(item); }
         #endregion
 
         #region IEnumerable<IEntityModule> 成员
@@ -127,7 +127,7 @@ namespace XCode
         /// <param name="entity"></param>
         /// <param name="isNew"></param>
         /// <returns></returns>
-        public virtual Boolean Valid(IEntity entity, bool isNew) { return true; }
+        public virtual Boolean Valid(IEntity entity, Boolean isNew) { return true; }
         #endregion
 
         #region 辅助

@@ -75,7 +75,7 @@ namespace XCode
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return String.Format("EntityList<{0}>[Count={1}]", typeof(T).Name, Count);
         }
@@ -197,7 +197,7 @@ namespace XCode
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
             var ts = new Boolean[values.Length];
             var vs = new Int64[values.Length];
-            for (int i = 0; i < values.Length; i++)
+            for (Int32 i = 0; i < values.Length; i++)
             {
                 field = Factory.Table.FindByName(names[i]);
                 if (field != null)
@@ -216,13 +216,13 @@ namespace XCode
             }
 
             var list = new EntityList<T>();
-            for (int k = 0; k < Count; k++)
+            for (Int32 k = 0; k < Count; k++)
             {
                 var item = this[k];
                 if (item == null) continue;
 
                 var b = true;
-                for (int i = 0; i < names.Length; i++)
+                for (Int32 i = 0; i < names.Length; i++)
                 {
                     var iv = item[names[i]];
                     if (!Object.Equals(iv, values[i]) &&
@@ -420,9 +420,9 @@ namespace XCode
             return count;
         }
 
-        private int DoAction(Func<T, int> func, int count)
+        private Int32 DoAction(Func<T, Int32> func, Int32 count)
         {
-            for (int i = 0; i < Count; i++)
+            for (Int32 i = 0; i < Count; i++)
             {
                 count += func(this[i]);
             }
@@ -463,7 +463,7 @@ namespace XCode
             if (Count < 1) return list;
 
             var type = typeof(TResult);
-            for (int i = 0; i < Count; i++)
+            for (Int32 i = 0; i < Count; i++)
             {
                 var item = this[i];
                 if (item == null) continue;
@@ -499,7 +499,7 @@ namespace XCode
             if (Count < 1) return null;
 
             var sb = new StringBuilder(Count * 10);
-            for (int i = 0; i < Count; i++)
+            for (Int32 i = 0; i < Count; i++)
             {
                 if (sb.Length > 0) sb.Append(separator);
                 sb.Append("" + this[i]);
@@ -548,7 +548,7 @@ namespace XCode
         {
             if (Count < 1) return this;
 
-            for (int i = 0; i < names.Length; i++)
+            for (Int32 i = 0; i < names.Length; i++)
             {
                 var name = names[i];
                 var isDesc = isDescs[i];
@@ -560,7 +560,7 @@ namespace XCode
             Sort((item1, item2) =>
             {
                 // 逐层对比
-                for (int i = 0; i < names.Length; i++)
+                for (Int32 i = 0; i < names.Length; i++)
                 {
                     String name = names[i];
                     Boolean isDesc = isDescs[i];
@@ -619,7 +619,7 @@ namespace XCode
             // 要先排序
             Sort(sortKey, true);
 
-            for (int i = 0; i < Count; i++)
+            for (Int32 i = 0; i < Count; i++)
             {
                 Int32 s = Count - i;
                 // 当前项，排序增加。原来比较实体相等有问题，也许新旧实体类不对应，现在改为比较主键值
@@ -649,7 +649,7 @@ namespace XCode
             // 要先排序
             Sort(sortKey, true);
 
-            for (int i = 0; i < Count; i++)
+            for (Int32 i = 0; i < Count; i++)
             {
                 Int32 s = Count - i;
                 // 当前项，排序减少
@@ -786,7 +786,7 @@ namespace XCode
             // 判断是否有数据，即使没有数据，也需要创建一个空格DataTable
             if (Count > 0)
             {
-                for (int i = 0; i < Count; i++)
+                for (Int32 i = 0; i < Count; i++)
                 {
                     var entity = this[i];
                     var dr = dt.NewRow();
@@ -809,7 +809,7 @@ namespace XCode
             return dt;
         }
 
-        void dt_TableNewRow(object sender, DataTableNewRowEventArgs e)
+        void dt_TableNewRow(Object sender, DataTableNewRowEventArgs e)
         {
             var entity = Factory.FindByKeyForEdit(null);
             var dr = e.Row;
@@ -819,7 +819,7 @@ namespace XCode
             }
         }
 
-        void dt_RowChanging(object sender, DataRowChangeEventArgs e)
+        void dt_RowChanging(Object sender, DataRowChangeEventArgs e)
         {
             var entity = Factory.Create();
             var dr = e.Row;
@@ -840,7 +840,7 @@ namespace XCode
             }
         }
 
-        void dt_RowDeleting(object sender, DataRowChangeEventArgs e)
+        void dt_RowDeleting(Object sender, DataRowChangeEventArgs e)
         {
             var entity = Factory.Create();
             var dr = e.Row;
@@ -927,7 +927,7 @@ namespace XCode
         #endregion
 
         #region IListSource接口
-        bool IListSource.ContainsListCollection { get { return Count > 0; } }
+        Boolean IListSource.ContainsListCollection { get { return Count > 0; } }
 
         IList IListSource.GetList()
         {
@@ -980,7 +980,7 @@ namespace XCode
         #endregion
 
         #region IList<IEntity> 成员
-        private static bool IsCompatibleObject(IEntity value)
+        private static Boolean IsCompatibleObject(IEntity value)
         {
             if (!(value is T) && value != null || typeof(T).IsValueType) return false;
             return true;
@@ -991,19 +991,19 @@ namespace XCode
             if (!IsCompatibleObject(value)) throw new ArgumentException(String.Format("期待{0}类型的参数！", typeof(T).Name), "value");
         }
 
-        int IList<IEntity>.IndexOf(IEntity item)
+        Int32 IList<IEntity>.IndexOf(IEntity item)
         {
             if (!IsCompatibleObject(item)) return -1;
             return IndexOf((T)item);
         }
 
-        void IList<IEntity>.Insert(int index, IEntity item)
+        void IList<IEntity>.Insert(Int32 index, IEntity item)
         {
             VerifyValueType(item);
             Insert(index, (T)item);
         }
 
-        IEntity IList<IEntity>.this[int index] { get { return this[index]; } set { VerifyValueType(value); this[index] = (T)value; } }
+        IEntity IList<IEntity>.this[Int32 index] { get { return this[index]; } set { VerifyValueType(value); this[index] = (T)value; } }
         #endregion
 
         #region ICollection<IEntity> 成员
@@ -1014,29 +1014,29 @@ namespace XCode
             Add((T)item);
         }
 
-        bool ICollection<IEntity>.Contains(IEntity item)
+        Boolean ICollection<IEntity>.Contains(IEntity item)
         {
             if (!IsCompatibleObject(item)) return false;
 
             return Contains((T)item);
         }
 
-        void ICollection<IEntity>.CopyTo(IEntity[] array, int arrayIndex)
+        void ICollection<IEntity>.CopyTo(IEntity[] array, Int32 arrayIndex)
         {
             if (array == null || array.Length == 0) return;
 
             VerifyValueType(array[0]);
             var arr = new T[array.Length];
             CopyTo(arr, arrayIndex);
-            for (int i = arrayIndex; i < array.Length; i++)
+            for (Int32 i = arrayIndex; i < array.Length; i++)
             {
                 array[i] = arr[i];
             }
         }
 
-        bool ICollection<IEntity>.IsReadOnly { get { return (this as ICollection<T>).IsReadOnly; } }
+        Boolean ICollection<IEntity>.IsReadOnly { get { return (this as ICollection<T>).IsReadOnly; } }
 
-        bool ICollection<IEntity>.Remove(IEntity item)
+        Boolean ICollection<IEntity>.Remove(IEntity item)
         {
             if (!IsCompatibleObject(item)) return false;
 
@@ -1045,7 +1045,7 @@ namespace XCode
         #endregion
 
         #region IEnumerable<IEntity> 成员
-        IEnumerator<IEntity> IEnumerable<IEntity>.GetEnumerator() { for (int i = 0; i < Count; i++) yield return this[i]; }
+        IEnumerator<IEntity> IEnumerable<IEntity>.GetEnumerator() { for (Int32 i = 0; i < Count; i++) yield return this[i]; }
         #endregion
 
         #region 克隆接口
@@ -1054,7 +1054,7 @@ namespace XCode
         /// <returns></returns>
         public EntityList<T> Clone() { return new EntityList<T>(this); }
 
-        object ICloneable.Clone() { return Clone(); }
+        Object ICloneable.Clone() { return Clone(); }
         #endregion
     }
 }

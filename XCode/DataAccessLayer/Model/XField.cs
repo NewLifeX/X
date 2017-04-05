@@ -183,7 +183,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (!String.IsNullOrEmpty(DisplayName) && DisplayName != Name)
                 return String.Format("ID={0} Name={1} FieldType={2} RawType={3} DisplayName={4}", ID, ColumnName, FieldType, RawType, DisplayName);
@@ -195,7 +195,7 @@ namespace XCode.DataAccessLayer
         #region ICloneable 成员
         /// <summary>克隆</summary>
         /// <returns></returns>
-        object ICloneable.Clone()
+        Object ICloneable.Clone()
         {
             return Clone(Table);
         }

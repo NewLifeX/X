@@ -65,7 +65,7 @@ namespace XCoder
         static void StartWithParameter(String[] args)
         {
             var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            for (int i = 2; i < args.Length - 1; i++)
+            for (Int32 i = 2; i < args.Length - 1; i++)
             {
                 switch (args[i].ToLower())
                 {

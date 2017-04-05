@@ -88,7 +88,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override string DefaultConnectionString
+        protected override String DefaultConnectionString
         {
             get
             {
@@ -147,7 +147,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 分页
-        public override SelectBuilder PageSplit(SelectBuilder builder, int startRowIndex, int maximumRows)
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, false, b => CreateSession().QueryCount(b));
         }
@@ -177,7 +177,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             BeginTransaction(IsolationLevel.Serializable);
             try
@@ -198,7 +198,7 @@ namespace XCode.DataAccessLayer
         /// <param name="collectionName">指定要返回的架构的名称。</param>
         /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
         /// <returns></returns>
-        public override DataTable GetSchema(string collectionName, string[] restrictionValues)
+        public override DataTable GetSchema(String collectionName, String[] restrictionValues)
         {
             //sqlce3.5 不支持GetSchema
             if (SqlCe.SqlCeProviderVersion < SQLCEVersion.SQLCE40 && collectionName.EqualIgnoreCase(DbMetaDataCollectionNames.MetaDataCollections))
@@ -272,7 +272,7 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
-        public override string CreateTableSQL(IDataTable table)
+        public override String CreateTableSQL(IDataTable table)
         {
             var sql = base.CreateTableSQL(table);
 
@@ -293,7 +293,7 @@ namespace XCode.DataAccessLayer
             //sb.Remove(sb.Length - 1, 1);
 
             // sb.Remove涉及内存复制
-            for (int i = 0; i < pks.Length; i++)
+            for (Int32 i = 0; i < pks.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(FormatName(pks[i].ColumnName));
@@ -306,7 +306,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
+        protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             // 非定义时（修改字段），主键字段没有约束
             if (!onlyDefine && field.PrimaryKey) return null;
@@ -334,7 +334,7 @@ namespace XCode.DataAccessLayer
             return src;
         }
 
-        private string DBTypeToDotNetDataType(string DBType)
+        private String DBTypeToDotNetDataType(String DBType)
         {
             switch (DBType)
             {
@@ -428,7 +428,7 @@ namespace XCode.DataAccessLayer
     /// <summary>SqlCe辅助类</summary>
     public static class SqlCeHelper
     {
-        static Dictionary<int, SQLCEVersion> versionDictionary = new Dictionary<int, SQLCEVersion>
+        static Dictionary<Int32, SQLCEVersion> versionDictionary = new Dictionary<Int32, SQLCEVersion>
         {
             { 0x73616261, SQLCEVersion.SQLCE20 },
             { 0x002dd714, SQLCEVersion.SQLCE30 },
@@ -439,9 +439,9 @@ namespace XCode.DataAccessLayer
         /// <summary>检查给定SqlCe文件的版本</summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public static SQLCEVersion DetermineVersion(string fileName)
+        public static SQLCEVersion DetermineVersion(String fileName)
         {
-            int versionLONGWORD = 0;
+            Int32 versionLONGWORD = 0;
 
             using (var fs = new FileStream(fileName, FileMode.Open))
             {
@@ -460,7 +460,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>检测SqlServerCe3.5是否安装</summary>
         /// <returns></returns>
-        public static bool IsV35Installed()
+        public static Boolean IsV35Installed()
         {
             try
             {
@@ -487,7 +487,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>检测SqlServerCe4是否安装</summary>
         /// <returns></returns>
-        public static bool IsV40Installed()
+        public static Boolean IsV40Installed()
         {
             try
             {

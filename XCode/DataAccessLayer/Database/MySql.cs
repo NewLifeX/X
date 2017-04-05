@@ -68,7 +68,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() { return new MySqlMetaData(); }
 
-        public override bool Support(string providerName)
+        public override Boolean Support(String providerName)
         {
             providerName = providerName.ToLower();
             if (providerName.Contains("mysql.data.mysqlclient")) return true;
@@ -85,7 +85,7 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">主键列。用于not in分页</param>
         /// <returns></returns>
-        public override string PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
+        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
@@ -141,7 +141,7 @@ namespace XCode.DataAccessLayer
         /// <summary>获取Guid的函数</summary>
         public override String NewGuid { get { return "uuid()"; } }
 
-        protected override string ReservedWordsStr
+        protected override String ReservedWordsStr
         {
             get
             {
@@ -175,7 +175,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public override string FormatValue(IDataColumn field, object value)
+        public override String FormatValue(IDataColumn field, Object value)
         {
             var code = Type.GetTypeCode(field.DataType);
             if (code == TypeCode.String)
@@ -196,7 +196,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>长文本长度</summary>
-        public override int LongTextLength { get { return 255; } }
+        public override Int32 LongTextLength { get { return 255; } }
 
         internal protected override String ParamPrefix { get { return "?"; } }
 
@@ -277,7 +277,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             sql += ";Select LAST_INSERT_ID()";
             return ExecuteScalar<Int64>(CreateCommand(sql, type, ps));
@@ -297,7 +297,7 @@ namespace XCode.DataAccessLayer
             base.FixTable(table, dr);
         }
 
-        protected override bool IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
+        protected override Boolean IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
         {
             return base.IsColumnChanged(entityColumn, dbColumn, entityDb);
         }
@@ -338,7 +338,7 @@ namespace XCode.DataAccessLayer
             base.FixField(field, dr);
         }
 
-        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
+        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
             // MySql没有ntext，映射到text
             if (typeName.EqualIgnoreCase("ntext")) typeName = "text";
@@ -438,14 +438,14 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        protected override string GetFieldType(IDataColumn field)
+        protected override String GetFieldType(IDataColumn field)
         {
             if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
 
             return base.GetFieldType(field);
         }
 
-        public override string FieldClause(IDataColumn field, bool onlyDefine)
+        public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
             String sql = base.FieldClause(field, onlyDefine);
             // 加上注释
@@ -453,7 +453,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
+        protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             String str = null;
             if (!field.Nullable) str = " NOT NULL";
@@ -463,7 +463,7 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        protected override string GetFieldDefault(IDataColumn field, bool onlyDefine)
+        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
         {
             if (String.IsNullOrEmpty(field.Default)) return null;
 
@@ -513,7 +513,7 @@ namespace XCode.DataAccessLayer
         //    return base.SetSchema(schema, values);
         //}
 
-        protected override bool DatabaseExist(string databaseName)
+        protected override Boolean DatabaseExist(String databaseName)
         {
             //return base.DatabaseExist(databaseName);
 
@@ -527,7 +527,7 @@ namespace XCode.DataAccessLayer
         //    return String.Format("Create Database Binary {0}", FormatKeyWord(dbname));
         //}
 
-        public override string DropDatabaseSQL(string dbname)
+        public override String DropDatabaseSQL(String dbname)
         {
             return String.Format("Drop Database If Exists {0}", FormatName(dbname));
         }
@@ -572,19 +572,19 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public override string AddTableDescriptionSQL(IDataTable table)
+        public override String AddTableDescriptionSQL(IDataTable table)
         {
             if (String.IsNullOrEmpty(table.Description)) return null;
 
             return String.Format("Alter Table {0} Comment '{1}'", FormatName(table.TableName), table.Description);
         }
 
-        public override string AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
             return String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
         }
 
-        public override string AddColumnDescriptionSQL(IDataColumn field)
+        public override String AddColumnDescriptionSQL(IDataColumn field)
         {
             // 返回String.Empty表示已经在别的SQL中处理
             return String.Empty;
@@ -596,7 +596,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助函数
-        protected override string GetFormatParam(IDataColumn field, DataRow dr)
+        protected override String GetFormatParam(IDataColumn field, DataRow dr)
         {
             String str = base.GetFormatParam(field, dr);
             if (String.IsNullOrEmpty(str)) return str;

@@ -22,7 +22,7 @@ namespace XCoder
             Icon = Source.GetIcon();
         }
 
-        private void FrmMDI_Shown(object sender, EventArgs e)
+        private void FrmMDI_Shown(Object sender, EventArgs e)
         {
             var set = XConfig.Current;
             if (set.Width > 0 || set.Height > 0)
@@ -103,17 +103,17 @@ namespace XCoder
         #endregion
 
         #region 菜单控制
-        private void ShowNewForm(object sender, EventArgs e) { }
+        private void ShowNewForm(Object sender, EventArgs e) { }
 
-        private void CascadeToolStripMenuItem_Click(object sender, EventArgs e) { LayoutMdi(MdiLayout.Cascade); }
+        private void CascadeToolStripMenuItem_Click(Object sender, EventArgs e) { LayoutMdi(MdiLayout.Cascade); }
 
-        private void TileVerticalToolStripMenuItem_Click(object sender, EventArgs e) { LayoutMdi(MdiLayout.TileVertical); }
+        private void TileVerticalToolStripMenuItem_Click(Object sender, EventArgs e) { LayoutMdi(MdiLayout.TileVertical); }
 
-        private void TileHorizontalToolStripMenuItem_Click(object sender, EventArgs e) { LayoutMdi(MdiLayout.TileHorizontal); }
+        private void TileHorizontalToolStripMenuItem_Click(Object sender, EventArgs e) { LayoutMdi(MdiLayout.TileHorizontal); }
 
-        private void ArrangeIconsToolStripMenuItem_Click(object sender, EventArgs e) { LayoutMdi(MdiLayout.ArrangeIcons); }
+        private void ArrangeIconsToolStripMenuItem_Click(Object sender, EventArgs e) { LayoutMdi(MdiLayout.ArrangeIcons); }
 
-        private void CloseAllToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CloseAllToolStripMenuItem_Click(Object sender, EventArgs e)
         {
             foreach (var childForm in MdiChildren)
             {
@@ -122,7 +122,7 @@ namespace XCoder
         }
         #endregion
 
-        private void FrmMDI_FormClosing(object sender, FormClosingEventArgs e)
+        private void FrmMDI_FormClosing(Object sender, FormClosingEventArgs e)
         {
             var set = XConfig.Current;
             var area = Screen.PrimaryScreen.WorkingArea;
@@ -136,7 +136,7 @@ namespace XCoder
             }
         }
 
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        private void aboutToolStripMenuItem_Click(Object sender, EventArgs e)
         {
             Process.Start("http://www.NewLifeX.com");
         }

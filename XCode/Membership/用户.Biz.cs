@@ -74,7 +74,7 @@ namespace XCode.Membership
 
         /// <summary>验证</summary>
         /// <param name="isNew"></param>
-        public override void Valid(bool isNew)
+        public override void Valid(Boolean isNew)
         {
             base.Valid(isNew);
 
@@ -100,7 +100,7 @@ namespace XCode.Membership
 
         /// <summary>删除用户</summary>
         /// <returns></returns>
-        protected override int OnDelete()
+        protected override Int32 OnDelete()
         {
             if (Meta.Count <= 1) throw new Exception("必须保留至少一个可用账号！");
 
@@ -337,7 +337,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。显示友好名字</summary>
         /// <returns></returns>
-        public override string ToString() { return FriendName; }
+        public override String ToString() { return FriendName; }
         #endregion
 
         #region 业务
@@ -389,7 +389,7 @@ namespace XCode.Membership
                     var p = password;
                     if (!String.IsNullOrEmpty(p))
                     {
-                        for (int i = 0; i < hashTimes; i++)
+                        for (Int32 i = 0; i < hashTimes; i++)
                         {
                             p = p.MD5();
                         }
@@ -399,7 +399,7 @@ namespace XCode.Membership
                 else
                 {
                     var p = user.Password;
-                    for (int i = 0; i > hashTimes; i--)
+                    for (Int32 i = 0; i > hashTimes; i--)
                     {
                         p = p.MD5();
                     }
@@ -413,7 +413,7 @@ namespace XCode.Membership
                     var p = password;
                     if (!String.IsNullOrEmpty(p))
                     {
-                        for (int i = 0; i < hashTimes; i++)
+                        for (Int32 i = 0; i < hashTimes; i++)
                         {
                             p = p.MD5();
                         }
@@ -558,10 +558,10 @@ namespace XCode.Membership
 
         #region IManageUser 成员
         /// <summary>编号</summary>
-        object IManageUser.Uid { get { return ID; } }
+        Object IManageUser.Uid { get { return ID; } }
 
         /// <summary>密码</summary>
-        string IManageUser.Password { get { return Password; } set { Password = value; } }
+        String IManageUser.Password { get { return Password; } set { Password = value; } }
 
         /// <summary>是否管理员</summary>
         Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }

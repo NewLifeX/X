@@ -38,7 +38,7 @@ namespace XCode
         /// <summary>已重载。</summary>
         /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
         /// <returns></returns>
-        public override string GetString(Boolean needBracket = false)
+        public override String GetString(Boolean needBracket = false)
         {
             if (Builder == null || Builder.Length <= 0) return null;
 

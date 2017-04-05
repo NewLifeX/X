@@ -217,7 +217,7 @@ namespace XCode.DataAccessLayer
                 sb.Append("_");
                 sb.Append(di.Table.TableName);
             }
-            for (int i = 0; i < di.Columns.Length; i++)
+            for (Int32 i = 0; i < di.Columns.Length; i++)
             {
                 sb.Append("_");
                 sb.Append(di.Columns[i]);

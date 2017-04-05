@@ -228,7 +228,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (String.IsNullOrEmpty(DisplayName))
                 return Name;
@@ -256,7 +256,7 @@ namespace XCode.DataAccessLayer
         #region ICloneable 成员
         /// <summary>克隆</summary>
         /// <returns></returns>
-        object ICloneable.Clone() { return Clone(); }
+        Object ICloneable.Clone() { return Clone(); }
 
         /// <summary>克隆</summary>
         /// <returns></returns>

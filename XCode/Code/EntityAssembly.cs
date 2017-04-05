@@ -267,7 +267,7 @@ namespace XCode.Code
                     else
                     {
                         var name = tb.Name;
-                        for (int i = 2; i < Int32.MaxValue; i++)
+                        for (Int32 i = 2; i < Int32.MaxValue; i++)
                         {
                             name = tb.Name + i;
                             if (!list.Contains(name))
@@ -497,7 +497,7 @@ namespace XCode.Code
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return Name; }
+        public override String ToString() { return Name; }
         #endregion
     }
 

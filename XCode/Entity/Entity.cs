@@ -354,7 +354,7 @@ namespace XCode
             {
                 var sb = new StringBuilder();
                 String name = null;
-                for (int i = 0; i < names.Length; i++)
+                for (Int32 i = 0; i < names.Length; i++)
                 {
                     if (sb.Length > 0) sb.Append("，");
 
@@ -382,7 +382,7 @@ namespace XCode
             // 根据指定键查找所有符合的数据，然后比对。
             // 当然，也可以通过指定键和主键配合，找到拥有指定键，但是不是当前主键的数据，只查记录数。
             Object[] values = new Object[names.Length];
-            for (int i = 0; i < names.Length; i++)
+            for (Int32 i = 0; i < names.Length; i++)
             {
                 values[i] = this[names[i]];
             }
@@ -505,8 +505,8 @@ namespace XCode
             }
         }
 
-        private static void DoAction(Action<EntityList<TEntity>> action, string whereClause, string orderClause, string selects, int batchSize,
-            int maxCount)
+        private static void DoAction(Action<EntityList<TEntity>> action, String whereClause, String orderClause, String selects, Int32 batchSize,
+            Int32 maxCount)
         {
             var count = FindCount(whereClause, orderClause, selects, 0, 0);
             var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
@@ -1005,7 +1005,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
-        public static Int32 FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows)
+        public static Int32 FindCountByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
         {
             if (String.IsNullOrEmpty(name))
                 return FindCount(null, null, null, 0, 0);
@@ -1105,7 +1105,7 @@ namespace XCode
 
             var ks = keys.Split(" ");
 
-            for (int i = 0; i < ks.Length; i++)
+            for (Int32 i = 0; i < ks.Length; i++)
             {
                 if (!ks[i].IsNullOrWhiteSpace()) exp &= func(ks[i].Trim(), fields);
             }
@@ -1454,7 +1454,7 @@ namespace XCode
         #region 其它
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             // 优先主字段作为实体对象的字符串显示
             if (Meta.Master != null && Meta.Master != Meta.Unique) return this[Meta.Master.Name] + "";
@@ -1568,7 +1568,7 @@ namespace XCode
         /// <param name="fieldName"></param>
         /// <param name="newValue"></param>
         /// <returns></returns>
-        protected override bool OnPropertyChanging(string fieldName, object newValue)
+        protected override Boolean OnPropertyChanging(String fieldName, Object newValue)
         {
             // 如果返回true，表示不相同，基类已经设置了脏数据
             if (base.OnPropertyChanging(fieldName, newValue)) return true;

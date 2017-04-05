@@ -30,7 +30,7 @@ namespace XCoder
             {
                 if (_FileTemplates == null)
                 {
-                    var list = new List<string>();
+                    var list = new List<String>();
 
                     var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, TemplatePath);
                     if (Directory.Exists(dir))
@@ -120,7 +120,7 @@ namespace XCoder
                 if (dc.DataType == null) throw new ArgumentException("{0}.DataType数据类型错误".F(dc.Name), dc.Name);
             }
 
-            var data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            var data = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
             //data["Config"] = Config;
             data["Tables"] = Tables;
             data["Table"] = table;
@@ -161,7 +161,7 @@ namespace XCoder
             // 声明模版引擎
             //Template tt = new Template();
             Template.Debug = Config.Debug;
-            var templates = new Dictionary<string, string>();
+            var templates = new Dictionary<String, String>();
             // 每一个模版的编码，用于作为输出文件的编码
             var encs = new List<Encoding>();
 

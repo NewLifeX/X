@@ -101,13 +101,13 @@ namespace XCode
             return atts;
         }
 
-        string ICustomTypeDescriptor.GetClassName()
+        String ICustomTypeDescriptor.GetClassName()
         {
             //return TypeDescriptor.GetClassName(this, true);
             return this.GetType().FullName;
         }
 
-        string ICustomTypeDescriptor.GetComponentName()
+        String ICustomTypeDescriptor.GetComponentName()
         {
             return TypeDescriptor.GetComponentName(this, true);
         }
@@ -127,7 +127,7 @@ namespace XCode
             return TypeDescriptor.GetDefaultProperty(this, true);
         }
 
-        object ICustomTypeDescriptor.GetEditor(Type editorBaseType)
+        Object ICustomTypeDescriptor.GetEditor(Type editorBaseType)
         {
             return TypeDescriptor.GetEditor(this, editorBaseType, true);
         }
@@ -152,7 +152,7 @@ namespace XCode
             return Fix(this.GetType(), TypeDescriptor.GetProperties(this, true));
         }
 
-        object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd)
+        Object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd)
         {
             return this;
         }
@@ -164,7 +164,7 @@ namespace XCode
             var factory = EntityFactory.CreateOperate(type);
 
             // 准备字段集合
-            var dic = new Dictionary<string, FieldItem>(StringComparer.OrdinalIgnoreCase);
+            var dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in factory.Fields)
             {
                 dic.Add(item.Name, item);

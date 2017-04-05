@@ -407,7 +407,7 @@ namespace XCode.DataAccessLayer
                 IDataIndex di = table.CreateIndex();
                 di.Name = name;
 
-                if (TryGetDataRowValue<string>(dr, _.ColumnName, out name) && !String.IsNullOrEmpty(name))
+                if (TryGetDataRowValue<String>(dr, _.ColumnName, out name) && !String.IsNullOrEmpty(name))
                     di.Columns = name.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                 else if (_indexColumns != null)
                 {
@@ -421,7 +421,7 @@ namespace XCode.DataAccessLayer
                     DataRow[] dics = _indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.TableName, _.IndexName, di.Name), orderby);
                     if (dics != null && dics.Length > 0)
                     {
-                        List<String> ns = new List<string>();
+                        List<String> ns = new List<String>();
                         foreach (DataRow item in dics)
                         {
                             String dcname = null;
@@ -695,7 +695,7 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder();
             sb.Append("(");
             var pms = ps.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < pms.Length; i++)
+            for (Int32 i = 0; i < pms.Length; i++)
             {
                 if (sb.Length > 1) sb.Append(",");
                 sb.Append(GetFormatParamItem(field, dr, pms[i]));

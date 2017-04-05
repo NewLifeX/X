@@ -50,7 +50,7 @@ namespace XCode.DataAccessLayer
         #region ICloneable 成员
         /// <summary>克隆</summary>
         /// <returns></returns>
-        object ICloneable.Clone()
+        Object ICloneable.Clone()
         {
             return Clone(Table);
         }
@@ -70,7 +70,7 @@ namespace XCode.DataAccessLayer
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return String.Format("{0}=>{1}.{2} {3}", Column, RelationTable, RelationColumn, Unique ? "U" : "");
         }

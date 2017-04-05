@@ -265,7 +265,7 @@ namespace NewLife.Net
 
             // 凑齐10个带有长度的数据帧一起发出
             var ms = new MemoryStream();
-            for (int i = 0; i < 5; i++)
+            for (Int32 i = 0; i < 5; i++)
             {
                 var size = i < 4 ? Security.Rand.Next(1400) : Security.Rand.Next(2000, 30000);
                 var str = Security.Rand.NextString(size);

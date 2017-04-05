@@ -26,7 +26,7 @@ namespace XCode.Web
 
         /// <summary>输出</summary>
         /// <returns></returns>
-        protected override string Render()
+        protected override String Render()
         {
             TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
 

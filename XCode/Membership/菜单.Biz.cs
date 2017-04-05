@@ -58,7 +58,7 @@ namespace XCode.Membership
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         /// <param name="isNew">是否新数据</param>
-        public override void Valid(bool isNew)
+        public override void Valid(Boolean isNew)
         {
             if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, _.Name.DisplayName + "不能为空！");
 
@@ -69,13 +69,13 @@ namespace XCode.Membership
 
         /// <summary>已重载。调用Save时写日志，而调用Insert和Update时不写日志</summary>
         /// <returns></returns>
-        public override int Save()
+        public override Int32 Save()
         {
             // 先处理一次，否则可能因为别的字段没有修改而没有脏数据
             SavePermission();
 
             // 更改日志保存顺序，先保存才能获取到id
-            string action = "添加";
+            String action = "添加";
             var isNew = IsNullKey;
             if (!isNew)
             {
@@ -88,7 +88,7 @@ namespace XCode.Membership
                 LogProvider.Provider.WriteLog(action, this);
             }
 
-            int result = base.Save();
+            Int32 result = base.Save();
 
             if (isNew) LogProvider.Provider.WriteLog(action, this);
 
@@ -97,7 +97,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override int Delete()
+        public override Int32 Delete()
         {
             LogProvider.Provider.WriteLog("删除", this);
 
@@ -115,7 +115,7 @@ namespace XCode.Membership
 
         /// <summary>如果Permission被修改，则重新加载</summary>
         /// <param name="fieldName"></param>
-        protected override void OnPropertyChanged(string fieldName)
+        protected override void OnPropertyChanged(String fieldName)
         {
             base.OnPropertyChanged(fieldName);
 
@@ -432,7 +432,7 @@ namespace XCode.Membership
             //获取层级
             var ss = dirPath.Split("\\");
             var sb = new StringBuilder();
-            for (int i = 0; i < ss.Length; i++)
+            for (Int32 i = 0; i < ss.Length; i++)
             {
                 sb.Append("../");
             }
@@ -443,7 +443,7 @@ namespace XCode.Membership
         }
 
         /// <summary>非业务的目录列表</summary>
-        static HashSet<String> _NotBizDirs = new HashSet<string>(
+        static HashSet<String> _NotBizDirs = new HashSet<String>(
             new String[] {
                 "Frame", "Asc", "Ascx", "images", "js", "css", "scripts" ,
                 "Bin","App_Code","App_Data","Config","Log"
@@ -581,7 +581,7 @@ namespace XCode.Membership
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             var path = GetFullPath(true, "\\", e => e.FriendName);
             if (!String.IsNullOrEmpty(path))
@@ -597,7 +597,7 @@ namespace XCode.Membership
         /// <param name="separator">分隔符</param>
         /// <param name="func">回调</param>
         /// <returns></returns>
-        string IMenu.GetFullPath(bool includeSelf, string separator, Func<IMenu, string> func)
+        String IMenu.GetFullPath(Boolean includeSelf, String separator, Func<IMenu, String> func)
         {
             Func<TEntity, String> d = null;
             if (func != null) d = item => func(item);
@@ -646,7 +646,7 @@ namespace XCode.Membership
                         if (ss[0] == "~") max++;
 
                         // 寻找当前所属菜单，路径倒序，从最长Url路径查起
-                        for (int i = max; i > 0 && menu == null; i--)
+                        for (Int32 i = max; i > 0 && menu == null; i--)
                         {
                             var url = ss.Take(i).Join("/");
                             menu = FindByUrl(url);
@@ -797,7 +797,7 @@ namespace XCode.Membership
                 // 所有都是新增菜单才排序
                 if (ms.All(m => m.Sort == 0)) ms = ms.OrderByDescending(m => m.Name).ToList();
 
-                for (int i = 0; i < ms.Count; i++)
+                for (Int32 i = 0; i < ms.Count; i++)
                 {
                     ms[i].Sort = i;
                     ms[i].Save();

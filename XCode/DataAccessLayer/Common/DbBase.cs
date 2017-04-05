@@ -40,7 +40,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -300,7 +300,7 @@ namespace XCode.DataAccessLayer
         }
 
         [DllImport("kernel32.dll")]
-        static extern int SetDllDirectory(String pathName);
+        static extern Int32 SetDllDirectory(String pathName);
         #endregion
 
         #region 分页
@@ -691,7 +691,7 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             return String.Format("[{0}] {1} {2}", ConnName, DbType, ServerVersion);
         }

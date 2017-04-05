@@ -222,7 +222,7 @@ namespace XCode
 
             var ks = keys.Split(" ");
 
-            for (int i = 0; i < ks.Length; i++)
+            for (Int32 i = 0; i < ks.Length; i++)
             {
                 if (!ks[i].IsNullOrWhiteSpace()) exp &= field.Contains(ks[i].Trim());
             }
@@ -241,7 +241,7 @@ namespace XCode
 
             var ks = keys.Split(" ");
 
-            for (int i = 0; i < ks.Length; i++)
+            for (Int32 i = 0; i < ks.Length; i++)
             {
                 if (!ks[i].IsNullOrWhiteSpace()) exp |= field.Contains(ks[i].Trim());
             }

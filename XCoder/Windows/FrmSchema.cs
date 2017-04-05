@@ -39,7 +39,7 @@ namespace XCoder
             return frm;
         }
 
-        private void FrmSchema_Load(object sender, EventArgs e)
+        private void FrmSchema_Load(Object sender, EventArgs e)
         {
             Task.Factory.StartNew(() =>
             {
@@ -81,7 +81,7 @@ namespace XCoder
         }
         #endregion
 
-        private void cbTables_SelectedIndexChanged(object sender, EventArgs e)
+        private void cbTables_SelectedIndexChanged(Object sender, EventArgs e)
         {
             ComboBox cb = sender as ComboBox;
             if (cb == null) return;

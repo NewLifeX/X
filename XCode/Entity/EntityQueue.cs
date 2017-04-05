@@ -200,7 +200,7 @@ namespace XCode
                 var k = 0;
                 foreach (var item in list)
                 {
-                    Completed(this, new EventArgs<IEntity, int>(item, rs[k++]));
+                    Completed(this, new EventArgs<IEntity, Int32>(item, rs[k++]));
                 }
             }
         }

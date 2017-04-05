@@ -345,7 +345,7 @@ namespace XCode.Configuration
                 {
                     // 反序入栈，因为属性可能是顺序的，这里先反序，待会出来再反一次
                     // 没有数据属性的
-                    for (int i = list.Count - 1; i >= 0; i--)
+                    for (Int32 i = list.Count - 1; i >= 0; i--)
                     {
                         var item = list[i];
                         if (item.DeclaringType == t && !item.IsDataObjectField)
@@ -421,7 +421,7 @@ namespace XCode.Configuration
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString()
+        public override String ToString()
         {
             if (String.IsNullOrEmpty(Description))
                 return TableName;

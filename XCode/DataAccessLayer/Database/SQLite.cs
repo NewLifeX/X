@@ -63,7 +63,7 @@ namespace XCode.DataAccessLayer
 
         static readonly String MemoryDatabase = ":memory:";
 
-        protected override string OnResolveFile(string file)
+        protected override String OnResolveFile(String file)
         {
             if (String.IsNullOrEmpty(file) || file.EqualIgnoreCase(MemoryDatabase)) return MemoryDatabase;
 
@@ -108,7 +108,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构造
-        protected override void OnDispose(bool disposing)
+        protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
@@ -143,7 +143,7 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">主键列。用于not in分页</param>
         /// <returns></returns>
-        public override string PageSplit(string sql, Int32 startRowIndex, Int32 maximumRows, string keyColumn)
+        public override String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
@@ -212,7 +212,7 @@ namespace XCode.DataAccessLayer
             //return keyWord;
         }
 
-        public override string FormatValue(IDataColumn field, object value)
+        public override String FormatValue(IDataColumn field, Object value)
         {
             if (field.DataType == typeof(Byte[]))
             {
@@ -275,7 +275,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(string sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
         {
             sql += ";Select last_insert_rowid() newid";
             return ExecuteScalar<Int64>(CreateCommand(sql, type, ps));
@@ -365,7 +365,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override string GetFieldType(IDataColumn field)
+        protected override String GetFieldType(IDataColumn field)
         {
             var typeName = base.GetFieldType(field);
 
@@ -375,7 +375,7 @@ namespace XCode.DataAccessLayer
             return typeName;
         }
 
-        protected override DataRow[] FindDataType(IDataColumn field, string typeName, bool? isLong)
+        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
             var drs = base.FindDataType(field, typeName, isLong);
             if (drs == null || drs.Length < 1)
@@ -397,7 +397,7 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        protected override string GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
+        protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             String str = null;
 
@@ -503,7 +503,7 @@ namespace XCode.DataAccessLayer
             }
 
             sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
-            for (int i = 0; i < index.Columns.Length; i++)
+            for (Int32 i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(FormatName(index.Columns[i]));
@@ -524,12 +524,12 @@ namespace XCode.DataAccessLayer
         /// <summary>删除索引方法</summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public override string DropIndexSQL(IDataIndex index)
+        public override String DropIndexSQL(IDataIndex index)
         {
             return String.Format("Drop Index {0}", FormatName(index.Name));
         }
 
-        protected override string CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
+        protected override String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
         {
             foreach (var item in entitytable.Columns)
             {
@@ -632,35 +632,35 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 表和字段备注
-        public override string AddTableDescriptionSQL(IDataTable table)
+        public override String AddTableDescriptionSQL(IDataTable table)
         {
             // 返回Empty，告诉反向工程，该数据库类型不支持该功能，请不要输出日志
             return String.Empty;
         }
 
-        public override string DropTableDescriptionSQL(IDataTable table)
+        public override String DropTableDescriptionSQL(IDataTable table)
         {
             return String.Empty;
         }
 
-        public override string AddColumnDescriptionSQL(IDataColumn field)
+        public override String AddColumnDescriptionSQL(IDataColumn field)
         {
             return String.Empty;
         }
 
-        public override string DropColumnDescriptionSQL(IDataColumn field)
+        public override String DropColumnDescriptionSQL(IDataColumn field)
         {
             return String.Empty;
         }
         #endregion
 
         #region 默认值
-        public override string AddDefaultSQL(IDataColumn field)
+        public override String AddDefaultSQL(IDataColumn field)
         {
             return String.Empty;
         }
 
-        public override string DropDefaultSQL(IDataColumn field)
+        public override String DropDefaultSQL(IDataColumn field)
         {
             return String.Empty;
         }
@@ -684,7 +684,7 @@ namespace XCode.DataAccessLayer
             base.CheckTable(entitytable, dbtable, setting);
         }
 
-        public override string CompactDatabaseSQL() { return "VACUUM"; }
+        public override String CompactDatabaseSQL() { return "VACUUM"; }
         #endregion
     }
 }

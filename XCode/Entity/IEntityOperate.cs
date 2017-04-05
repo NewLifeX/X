@@ -219,7 +219,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
-        Int32 FindCountByName(String name, Object value, String orderClause, int startRowIndex, int maximumRows);
+        Int32 FindCountByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 导入导出XML/Json

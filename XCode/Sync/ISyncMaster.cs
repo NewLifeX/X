@@ -127,7 +127,7 @@ namespace XCode.Sync
             if (Facotry.Default is ISyncMasterEntity)
             {
                 var rs = new ISyncMasterEntity[list.Count];
-                for (int i = 0; i < list.Count; i++)
+                for (Int32 i = 0; i < list.Count; i++)
                 {
                     rs[i] = list[i] as ISyncMasterEntity;
                 }
@@ -137,7 +137,7 @@ namespace XCode.Sync
             else
             {
                 var rs = new ISyncMasterEntity[list.Count];
-                for (int i = 0; i < list.Count; i++)
+                for (Int32 i = 0; i < list.Count; i++)
                 {
                     rs[i] = new SyncMasterEntity(this, list[i]);
                 }
@@ -163,7 +163,7 @@ namespace XCode.Sync
             if (list == null) return null;
             if (list.Length < 1) return new ISyncMasterEntity[0];
 
-            for (int i = 0; i < list.Length; i++)
+            for (Int32 i = 0; i < list.Length; i++)
             {
                 var item = list[i];
                 if (item != null)
@@ -209,7 +209,7 @@ namespace XCode.Sync
             if (keys.Length < 1) return new Boolean[0];
 
             var rs = new Boolean[keys.Length];
-            for (int i = 0; i < keys.Length; i++)
+            for (Int32 i = 0; i < keys.Length; i++)
             {
                 var entity = Facotry.FindByKey(keys[i]);
                 if (entity != null)
@@ -231,7 +231,7 @@ namespace XCode.Sync
             if (keys.Length < 1) return new Boolean[0];
 
             var rs = new Boolean[keys.Length];
-            for (int i = 0; i < keys.Length; i++)
+            for (Int32 i = 0; i < keys.Length; i++)
             {
                 var entity = Facotry.FindByKey(keys[i]);
                 if (entity != null) rs[i] = true;

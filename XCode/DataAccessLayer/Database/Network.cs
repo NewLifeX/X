@@ -97,7 +97,7 @@ namespace XCode.DataAccessLayer
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public override Int64 QueryCountFast(string tableName)
+        public override Int64 QueryCountFast(String tableName)
         {
             return base.QueryCountFast(tableName);
         }
@@ -117,7 +117,7 @@ namespace XCode.DataAccessLayer
         /// <summary>执行DbCommand，返回受影响的行数</summary>
         /// <param name="cmd">DbCommand</param>
         /// <returns></returns>
-        public override int Execute(DbCommand cmd)
+        public override Int32 Execute(DbCommand cmd)
         {
             throw new NotSupportedException();
         }
@@ -143,7 +143,7 @@ namespace XCode.DataAccessLayer
         /// <param name="collectionName">指定要返回的架构的名称。</param>
         /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
         /// <returns></returns>
-        public override DataTable GetSchema(string collectionName, string[] restrictionValues)
+        public override DataTable GetSchema(String collectionName, String[] restrictionValues)
         {
             return base.GetSchema(collectionName, restrictionValues);
         }

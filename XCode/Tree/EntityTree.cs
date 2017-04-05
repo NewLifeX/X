@@ -343,7 +343,7 @@ namespace XCode
                 if (childs == null || childs.Count < 1) continue;
 
                 // 反向入队
-                for (int i = childs.Count - 1; i >= 0; i--)
+                for (Int32 i = childs.Count - 1; i >= 0; i--)
                 {
                     // 已计算到结果的，不再处理
                     if (list.Contains(childs[i])) continue;

@@ -32,7 +32,7 @@ namespace XCoder
             return WinFormHelper.CreateForm(frm, "添加模型");
         }
 
-        private void toolAddTable_Click(object sender, EventArgs e)
+        private void toolAddTable_Click(Object sender, EventArgs e)
         {
             //为了触发XCodeService的静态构造函数
             var temp = ModelResolver.Current;
@@ -52,7 +52,7 @@ namespace XCoder
             dgvTables.DataSource = Tables;
         }
 
-        private void toolEidtTable_Click(object sender, EventArgs e)
+        private void toolEidtTable_Click(Object sender, EventArgs e)
         {
             DataGridViewRow row = dgvTables.Rows[dgvTables.CurrentCell.RowIndex];
             if (row == null) return;
@@ -60,7 +60,7 @@ namespace XCoder
             AddTable.CreateForm((IDataTable)row.DataBoundItem).ShowDialog();
         }
 
-        private void toolClose_Click(object sender, EventArgs e)
+        private void toolClose_Click(Object sender, EventArgs e)
         {
             if (MessageBox.Show("是否需要保存?", "提示", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
@@ -73,7 +73,7 @@ namespace XCoder
         }
 
         //保存模型
-        private void toolStripButton1_Click(object sender, EventArgs e)
+        private void toolStripButton1_Click(Object sender, EventArgs e)
         {
             if (Tables == null || Tables.Count < 1)
             {
@@ -95,7 +95,7 @@ namespace XCoder
             }
         }
 
-        private void toolDeleteTable_Click(object sender, EventArgs e)
+        private void toolDeleteTable_Click(Object sender, EventArgs e)
         {
             Tables.RemoveAt(dgvTables.CurrentCell.RowIndex);
 

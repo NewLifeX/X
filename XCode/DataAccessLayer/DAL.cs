@@ -109,7 +109,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        static object lockObj = new object();
+        static Object lockObj = new Object();
 
         /// <summary>添加连接字符串</summary>
         /// <param name="connName">连接名</param>

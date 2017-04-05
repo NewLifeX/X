@@ -24,7 +24,7 @@ namespace XICO
             Icon = IcoHelper.GetIcon("图标");
         }
 
-        private void FrmMain_Shown(object sender, EventArgs e)
+        private void FrmMain_Shown(Object sender, EventArgs e)
         {
             sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -39,7 +39,7 @@ namespace XICO
         #endregion
 
         #region 水印
-        private void label3_Click(object sender, EventArgs e)
+        private void label3_Click(Object sender, EventArgs e)
         {
             fontDialog1.Font = (Font)lbFont.Tag;
             if (fontDialog1.ShowDialog() != DialogResult.OK) return;
@@ -51,7 +51,7 @@ namespace XICO
             MakeWater();
         }
 
-        private void label4_Click(object sender, EventArgs e)
+        private void label4_Click(Object sender, EventArgs e)
         {
             colorDialog1.Color = lbFont.ForeColor;
             if (colorDialog1.ShowDialog() != DialogResult.OK) return;
@@ -62,11 +62,11 @@ namespace XICO
             MakeWater();
         }
 
-        private void btnWater_Click(object sender, EventArgs e)
+        private void btnWater_Click(Object sender, EventArgs e)
         {
         }
 
-        private void txt_TextChanged(object sender, EventArgs e)
+        private void txt_TextChanged(Object sender, EventArgs e)
         {
             //var str = txt.Text;
             //if (String.IsNullOrEmpty(str)) str = "字体样板";
@@ -75,7 +75,7 @@ namespace XICO
             MakeWater();
         }
 
-        private void numX_ValueChanged(object sender, EventArgs e)
+        private void numX_ValueChanged(Object sender, EventArgs e)
         {
             MakeWater();
         }
@@ -109,7 +109,7 @@ namespace XICO
             return bmp;
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(Object sender, EventArgs e)
         {
             var bmp = MakeWater(true);
 
@@ -123,7 +123,7 @@ namespace XICO
         #endregion
 
         #region 图标
-        private void btnMakeICO_Click(object sender, EventArgs e)
+        private void btnMakeICO_Click(Object sender, EventArgs e)
         {
             var list = new List<Int32>();
             foreach (var item in groupBox2.Controls)
@@ -153,7 +153,7 @@ namespace XICO
         #endregion
 
         #region 图片加载
-        private void picSrc_DragDrop(object sender, DragEventArgs e)
+        private void picSrc_DragDrop(Object sender, DragEventArgs e)
         {
             var fs = (String[])e.Data.GetData(DataFormats.FileDrop);
             if (fs != null && fs.Length > 0)
@@ -182,7 +182,7 @@ namespace XICO
             }
         }
 
-        private void picSrc_DragEnter(object sender, DragEventArgs e)
+        private void picSrc_DragEnter(Object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 e.Effect = DragDropEffects.Link;

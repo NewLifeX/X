@@ -24,7 +24,7 @@ namespace XCode
                 Exp = exp;
             }
 
-            public override string ToString()
+            public override String ToString()
             {
                 return (IsAnd ? "And " : "Or ") + Exp;
             }
@@ -95,7 +95,7 @@ namespace XCode
 
             var hasOr = false;
             // 优先计算And，所有And作为一个整体表达式进入内层，处理完以后当前层要么全是And，要么全是Or
-            for (int i = 0; i < exps.Count; i++)
+            for (Int32 i = 0; i < exps.Count; i++)
             {
                 sub.Add(exps[i]);
                 // 如果下一个是Or，或者已经是最后一个，则合并sub到list
@@ -127,7 +127,7 @@ namespace XCode
 
             // 开始计算
             var sb = new StringBuilder();
-            for (int i = 0; i < list.Count; i++)
+            for (Int32 i = 0; i < list.Count; i++)
             {
                 var item = list[i];
                 var exp = item.Exp;

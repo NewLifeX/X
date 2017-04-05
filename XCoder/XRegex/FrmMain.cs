@@ -25,14 +25,14 @@ namespace NewLife.XRegex
             FileResource.CheckTemplate();
         }
 
-        private void FrmMain_Shown(object sender, EventArgs e)
+        private void FrmMain_Shown(Object sender, EventArgs e)
         {
             //Text += " V" + FileVersion;
 
             GetOption();
         }
 
-        private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
+        private void FrmMain_FormClosing(Object sender, FormClosingEventArgs e)
         {
             // 关闭前保存正则和内容
             Save(txtPattern.Text, "Pattern");
@@ -71,7 +71,7 @@ namespace NewLife.XRegex
                         list.Sort();
 
                         // 删除最后的
-                        for (int i = list.Count - 1; i >= 10; i--)
+                        for (Int32 i = list.Count - 1; i >= 10; i--)
                         {
                             File.Delete(list[i]);
                         }
@@ -90,7 +90,7 @@ namespace NewLife.XRegex
         #endregion
 
         #region 正则匹配
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        private void radioButton1_CheckedChanged(Object sender, EventArgs e)
         {
             RadioButton rb = sender as RadioButton;
             if (rb.Checked)
@@ -163,7 +163,7 @@ namespace NewLife.XRegex
             //    return;
             //}
             Boolean b = false;
-            for (int i = 0; i < timeout / 100; i++)
+            for (Int32 i = 0; i < timeout / 100; i++)
             {
                 if (e.WaitOne(100))
                 {
@@ -181,7 +181,7 @@ namespace NewLife.XRegex
             return isSuccess;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(Object sender, EventArgs e)
         {
             if (String.IsNullOrEmpty(txtPattern.Text)) return;
             String content = txtContent.Text;
@@ -214,7 +214,7 @@ namespace NewLife.XRegex
 
             lbStatus.Text = String.Format("成功{0} {1} 项！", !isReplace ? "匹配" : "替换", count);
 
-            int i = 1;
+            Int32 i = 1;
             foreach (Match match in ms)
             {
                 var item = lvMatch.Items.Add(i.ToString());
@@ -227,7 +227,7 @@ namespace NewLife.XRegex
             if (isReplace) txtContent.Text = content;
         }
 
-        private void button5_Click(object sender, EventArgs e)
+        private void button5_Click(Object sender, EventArgs e)
         {
             if (String.IsNullOrEmpty(txtPattern.Text)) return;
             String replacement = rtReplace.Text;
@@ -267,7 +267,7 @@ namespace NewLife.XRegex
         #endregion
 
         #region 选择匹配项
-        private void lvMatch_SelectedIndexChanged(object sender, EventArgs e)
+        private void lvMatch_SelectedIndexChanged(Object sender, EventArgs e)
         {
             if (lvMatch.SelectedItems == null || lvMatch.SelectedItems.Count < 1) return;
 
@@ -286,7 +286,7 @@ namespace NewLife.XRegex
             lvCapture.Items.Clear();
 
             var reg = lvMatch.Tag as Regex;
-            for (int i = 0; i < m.Groups.Count; i++)
+            for (Int32 i = 0; i < m.Groups.Count; i++)
             {
                 var g = m.Groups[i];
                 var item = lvGroup.Items.Add(i.ToString());
@@ -297,7 +297,7 @@ namespace NewLife.XRegex
             }
         }
 
-        private void lvGroup_SelectedIndexChanged(object sender, EventArgs e)
+        private void lvGroup_SelectedIndexChanged(Object sender, EventArgs e)
         {
             if (lvGroup.SelectedItems == null || lvGroup.SelectedItems.Count < 1) return;
 
@@ -314,7 +314,7 @@ namespace NewLife.XRegex
             lvCapture.Tag = g;
             lvCapture.Items.Clear();
 
-            for (int i = 0; i < g.Captures.Count; i++)
+            for (Int32 i = 0; i < g.Captures.Count; i++)
             {
                 var c = g.Captures[i];
                 var item = lvCapture.Items.Add(i.ToString());
@@ -324,7 +324,7 @@ namespace NewLife.XRegex
             }
         }
 
-        private void lvCapture_SelectedIndexChanged(object sender, EventArgs e)
+        private void lvCapture_SelectedIndexChanged(Object sender, EventArgs e)
         {
             if (lvCapture.SelectedItems == null || lvCapture.SelectedItems.Count < 1) return;
 
@@ -374,18 +374,18 @@ namespace NewLife.XRegex
         #endregion
 
         #region 菜单
-        private void ptMenu_Opening(object sender, CancelEventArgs e)
+        private void ptMenu_Opening(Object sender, CancelEventArgs e)
         {
-            for (int i = ptMenu.Items.Count - 1; i >= 1; i--)
+            for (Int32 i = ptMenu.Items.Count - 1; i >= 1; i--)
             {
                 ptMenu.Items.RemoveAt(i);
             }
             LoadMenuTree(ptMenu.Items, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Pattern"));
         }
 
-        private void txtMenu_Opening(object sender, CancelEventArgs e)
+        private void txtMenu_Opening(Object sender, CancelEventArgs e)
         {
-            for (int i = txtMenu.Items.Count - 1; i >= 1; i--)
+            for (Int32 i = txtMenu.Items.Count - 1; i >= 1; i--)
             {
                 txtMenu.Items.RemoveAt(i);
             }
@@ -434,7 +434,7 @@ namespace NewLife.XRegex
             }
         }
 
-        private void MenuItem_Click(object sender, EventArgs e)
+        private void MenuItem_Click(Object sender, EventArgs e)
         {
             ToolStripMenuItem menu = sender as ToolStripMenuItem;
             if (menu == null) return;
@@ -465,7 +465,7 @@ namespace NewLife.XRegex
         #endregion
 
         #region 打开目录
-        private void button4_Click(object sender, EventArgs e)
+        private void button4_Click(Object sender, EventArgs e)
         {
             Button btn = sender as Button;
             GetFolder(btn);
@@ -517,7 +517,7 @@ namespace NewLife.XRegex
         #endregion
 
         #region 正则选项
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        private void checkBox1_CheckedChanged(Object sender, EventArgs e)
         {
             var chk = sender as CheckBox;
             if (chk == null) return;

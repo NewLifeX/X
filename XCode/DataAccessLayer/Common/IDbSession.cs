@@ -37,7 +37,7 @@ namespace XCode.DataAccessLayer
 
         #region 打开/关闭
         /// <summary>连接是否已经打开</summary>
-        bool Opened { get; }
+        Boolean Opened { get; }
 
         /// <summary>打开</summary>
         void Open();
@@ -168,7 +168,7 @@ namespace XCode.DataAccessLayer
         /// <param name="collectionName">指定要返回的架构的名称。</param>
         /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
         /// <returns></returns>
-        DataTable GetSchema(string collectionName, string[] restrictionValues);
+        DataTable GetSchema(String collectionName, String[] restrictionValues);
         #endregion
     }
 }

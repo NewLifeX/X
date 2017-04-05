@@ -27,7 +27,7 @@ namespace XCode
         /// <summary>已重载。新增元素时，触发事件改变</summary>
         /// <param name="index"></param>
         /// <param name="value">数值</param>
-        public override void Insert(int index, T value)
+        public override void Insert(Int32 index, T value)
         {
             base.Insert(index, value);
 
@@ -36,7 +36,7 @@ namespace XCode
 
         /// <summary>已重载。从列表中删除项时，同时从数据库中删除实体</summary>
         /// <param name="index"></param>
-        public override void RemoveAt(int index)
+        public override void RemoveAt(Int32 index)
         {
             T entity = this[index];
             entity.Delete();
@@ -58,7 +58,7 @@ namespace XCode
             return EntityBase.Fix(type, pdc);
         }
 
-        string ITypedList.GetListName(PropertyDescriptor[] listAccessors) { return null; }
+        String ITypedList.GetListName(PropertyDescriptor[] listAccessors) { return null; }
         #endregion
 
         #region IBindingList接口
@@ -133,7 +133,7 @@ namespace XCode
         #region 方法
         void IBindingList.AddIndex(PropertyDescriptor property) { }
 
-        object IBindingList.AddNew()
+        Object IBindingList.AddNew()
         {
             T entity = (T)Factory.Create();
             base.Add(entity);
@@ -155,7 +155,7 @@ namespace XCode
             OnListChanged(ResetEventArgs);
         }
 
-        int IBindingList.Find(PropertyDescriptor property, object key)
+        Int32 IBindingList.Find(PropertyDescriptor property, Object key)
         {
             var list = InnerList as EntityList<T>;
             if (list == null || list.Count < 1) return -1;
@@ -206,7 +206,7 @@ namespace XCode
             var list = InnerList as EntityList<T>;
             if (list == null || list.Count < 1) return;
 
-            var ns = new List<string>();
+            var ns = new List<String>();
             var ds = new List<Boolean>();
             foreach (ListSortDescription item in sorts)
             {
@@ -221,8 +221,8 @@ namespace XCode
             OnListChanged(ResetEventArgs);
         }
 
-        string _Filter;
-        string IBindingListView.Filter { get { return _Filter; } set { _Filter = value; } }
+        String _Filter;
+        String IBindingListView.Filter { get { return _Filter; } set { _Filter = value; } }
 
         void IBindingListView.RemoveFilter() { _Filter = ""; }
 
@@ -241,14 +241,14 @@ namespace XCode
         #endregion
 
         #region ICancelAddNew 成员
-        void ICancelAddNew.CancelNew(int itemIndex)
+        void ICancelAddNew.CancelNew(Int32 itemIndex)
         {
             if (itemIndex < 0 || itemIndex >= Count) return;
 
             RemoveAt(itemIndex);
         }
 
-        void ICancelAddNew.EndNew(int itemIndex)
+        void ICancelAddNew.EndNew(Int32 itemIndex)
         {
             if (itemIndex < 0 || itemIndex >= Count) return;
 

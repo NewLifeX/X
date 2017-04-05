@@ -323,7 +323,7 @@ namespace XCode.Code
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override string ToString() { return Name; }
+        public override String ToString() { return Name; }
         #endregion
     }
 }
