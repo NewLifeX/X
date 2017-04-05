@@ -20,13 +20,13 @@ namespace NewLife.Remoting
             var svr = new ApiServer(3344);
             //svr.Add("http://*:888/");
             svr.Log = XTrace.Log;
-            svr.Encoder = new JsonEncoder();
-            svr.Filters.Add(new DeflateFilter());
-            svr.Filters.Add(new RC4Filter { Key = "Pass$word".GetBytes() });
+            //svr.Encoder = new JsonEncoder();
+            //svr.Filters.Add(new DeflateFilter());
+            //svr.Filters.Add(new RC4Filter { Key = "Pass$word".GetBytes() });
             //GlobalFilters.Add(new FFAttribute { Name = "全局" });
             //GlobalFilters.Add(new FEAttribute { Name = "全局" });
+            svr.Register<MySession>();
             svr.Register<HelloController>();
-            svr.Register(typeof(ApiTest), nameof(Login));
             svr.Start();
 
 
@@ -34,13 +34,15 @@ namespace NewLife.Remoting
             //var client = new ApiClient("udp://127.0.0.1:3344");
             //var client = new ApiClient("http://127.0.0.1:888");
             client.Log = XTrace.Log;
-            client.Encoder = new JsonEncoder();
-            client.Filters.Add(new DeflateFilter());
-            client.Filters.Add(new RC4Filter { Key = "Pass$word".GetBytes() });
+            //client.Encoder = new JsonEncoder();
+            //client.Filters.Add(new DeflateFilter());
+            //client.Filters.Add(new RC4Filter { Key = "Pass$word".GetBytes() });
+            client.UserName = "Stone";
+            client.Password = "Stone";
             client.Open();
 
-            var logined = await client.InvokeAsync<Object>("Login", new { user = "Stone", pass = "密码" });
-            XTrace.WriteLine(logined + "");
+            //var logined = await client.LoginAsync();
+            //XTrace.WriteLine(logined + "");
 
             var msg = "NewLifeX";
             var rs = await client.InvokeAsync<string>("Hello/Say", new { msg });
@@ -66,11 +68,26 @@ namespace NewLife.Remoting
             svr.Dispose();
         }
 
-        private static void Login(String user, String pass)
+        private class MySession : ApiSession
         {
-            XTrace.WriteLine("user={0} pass={1}", user, pass);
+            private String _TruePass;
 
-            //return true;
+            protected override Object CheckLogin(String user, String pass)
+            {
+                _TruePass = user;
+
+                if (pass != _TruePass.MD5()) throw Error(0x01, "密码错误！");
+
+                return new { Name = user };
+            }
+
+            protected override Byte[] GenerateKey()
+            {
+                var key = base.GenerateKey();
+                key = key.RC4(_TruePass.GetBytes());
+
+                return key;
+            }
         }
 
         //[FF(Name = "类")]

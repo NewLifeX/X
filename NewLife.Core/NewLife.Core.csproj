@@ -180,6 +180,7 @@
     <Compile Include="Remoting\ApiException.cs" />
     <Compile Include="Remoting\ApiHost.cs" />
     <Compile Include="Remoting\Controllers\ApiController.cs" />
+    <Compile Include="Remoting\Controllers\ApiSession.cs" />
     <Compile Include="Remoting\Filters\ActionFilterAttribute.cs" />
     <Compile Include="Remoting\Filters\ApiFilterContext.cs" />
     <Compile Include="Remoting\Filters\ControllerContext.cs" />

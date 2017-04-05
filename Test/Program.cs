@@ -51,7 +51,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -72,7 +72,7 @@ namespace Test
 
         static void Test1()
         {
-            //ApiTest.Main();
+            ApiTest.Main();
             //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();
             //TestService.ServiceMain();
@@ -111,12 +111,12 @@ namespace Test
 
             //DynamicXml.Test();
 
-            var obj = new A { Name = "Stone", Time = DateTime.Now };
-            var json = obj.ToJson();
-            var dic = new JsonParser(json).Decode();
-            Console.WriteLine(dic);
-            var a = json.ToJsonEntity<A>();
-            Console.WriteLine(a);
+            //var obj = new A { Name = "Stone", Time = DateTime.Now };
+            //var json = obj.ToJson();
+            //var dic = new JsonParser(json).Decode();
+            //Console.WriteLine(dic);
+            //var a = json.ToJsonEntity<A>();
+            //Console.WriteLine(a);
         }
 
         class A
