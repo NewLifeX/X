@@ -168,14 +168,15 @@ namespace NewLife.Remoting
 
             if (!Logined && action != LoginAction) await LoginAsync();
 
-            //if (Controller != null && !action.Contains("/")) action = Controller + "/" + action;
-
             try
             {
                 return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args).ConfigureAwait(false);
             }
             // 截断任务取消异常，避免过长
-            catch (TaskCanceledException) { throw new TaskCanceledException(action + "超时取消"); }
+            catch (TaskCanceledException)
+            {
+                throw new TaskCanceledException(action + "超时取消");
+            }
         }
 
         /// <summary>创建消息</summary>
@@ -199,8 +200,32 @@ namespace NewLife.Remoting
         /// <summary>登录动作名</summary>
         public String LoginAction { get; set; } = "Login";
 
+        private Task<Object> _login;
+
         /// <summary>异步登录</summary>
         public virtual async Task<Object> LoginAsync()
+        {
+            // 同时只能发起一个登录请求
+            var task = _login;
+            if (task != null) return await task;
+
+            lock (LoginAction)
+            {
+                task = _login;
+                if (task == null) _login = task = OnLoginAsync();
+            }
+
+            try
+            {
+                return await task;
+            }
+            finally
+            {
+                _login = null;
+            }
+        }
+
+        private async Task<Object> OnLoginAsync()
         {
             var args = OnPreLogin();
 
@@ -215,6 +240,7 @@ namespace NewLife.Remoting
                 var dic = rs.ToDictionary();
                 //!!! 使用密码解密通信密钥
                 Key = (dic["Key"] + "").ToHex().RC4(Password.GetBytes());
+                //Key = (dic["Key"] + "").ToHex();
 
                 WriteLog("密匙:{0}", Key.ToHex());
             }
