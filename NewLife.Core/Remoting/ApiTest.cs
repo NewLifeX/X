@@ -15,21 +15,33 @@ namespace NewLife.Remoting
     public class ApiTest
     {
         /// <summary>测试主函数</summary>
-        public static async void Main()
+        public static void Main()
+        {
+            Console.WriteLine("模式（1服务端、2客户端）");
+            var cki = Console.ReadKey(false);
+            if (cki.KeyChar == '1')
+                TestServer();
+            else if (cki.KeyChar == '2')
+                TestClient();
+        }
+
+        private static void TestServer()
         {
             var svr = new ApiServer(3344);
             //svr.Add("http://*:888/");
             svr.Log = XTrace.Log;
             //svr.Encoder = new JsonEncoder();
-            //svr.Filters.Add(new DeflateFilter());
-            //svr.Filters.Add(new RC4Filter { Key = "Pass$word".GetBytes() });
             //GlobalFilters.Add(new FFAttribute { Name = "全局" });
             //GlobalFilters.Add(new FEAttribute { Name = "全局" });
             svr.Register<MySession>();
             svr.Register<HelloController>();
             svr.Start();
 
+            Console.ReadKey();
+        }
 
+        private static async void TestClient()
+        {
             var client = new ApiClient("tcp://127.0.0.1:3344");
             //var client = new ApiClient("udp://127.0.0.1:3344");
             //var client = new ApiClient("http://127.0.0.1:888");
@@ -63,9 +75,6 @@ namespace NewLife.Remoting
 
             Console.WriteLine("完成");
             Console.ReadKey();
-
-            client.Dispose();
-            svr.Dispose();
         }
 
         private class MySession : ApiSession
