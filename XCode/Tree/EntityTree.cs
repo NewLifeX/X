@@ -12,6 +12,7 @@ namespace XCode
 {
     /// <summary>主键为整型的实体树基类</summary>
     /// <typeparam name="TEntity"></typeparam>
+    [Serializable]
     public class EntityTree<TEntity> : EntityTree<Int32, TEntity> where TEntity : EntityTree<TEntity>, new()
     { }
 
@@ -25,6 +26,7 @@ namespace XCode
     /// </remarks>
     /// <typeparam name="TKey">主键类型</typeparam>
     /// <typeparam name="TEntity">实体类型</typeparam>
+    [Serializable]
     public abstract partial class EntityTree<TKey, TEntity> : Entity<TEntity>, IEntityTree where TEntity : EntityTree<TKey, TEntity>, new()
     {
         #region 静态构造
