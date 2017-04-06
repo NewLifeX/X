@@ -121,7 +121,7 @@ namespace NewLife.Web
                 _client = Create(uri);
             }
 
-            _client.Uri = address;
+            _client.Url = new Uri(address);
 
             return _client;
         }

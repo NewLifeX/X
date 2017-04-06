@@ -21,7 +21,7 @@ namespace NewLife.Net
         public String Method { get; set; } = "GET";
 
         /// <summary>资源路径</summary>
-        public String Uri { get; set; } = "/";
+        public Uri Url { get; set; }
 
         /// <summary>用户代理</summary>
         public String UserAgent { get; set; }
@@ -53,9 +53,10 @@ namespace NewLife.Net
             ProcessAsync = false;
         }
 
-        internal HttpSession(ISocketServer server, Socket client)
-            : base(server, client)
+        internal HttpSession(ISocketServer server, Socket client) : base(server, client)
         {
+            // 添加过滤器
+            if (SendFilter == null) SendFilter = new HttpResponseFilter { Session = this };
         }
         #endregion
 
@@ -67,48 +68,13 @@ namespace NewLife.Net
             if (!Active && Remote.Port == 0) Remote.Port = 80;
 
             // 添加过滤器
-            if (SendFilter == null) SendFilter = new HttpSendFilter { Session = this };
+            if (SendFilter == null) SendFilter = new HttpRequestFilter { Session = this };
 
             return base.OnOpen();
         }
         #endregion
 
         #region 收发数据
-        ///// <summary>发送数据</summary>
-        ///// <remarks>
-        ///// 目标地址由<seealso cref="SessionBase.Remote"/>决定
-        ///// </remarks>
-        ///// <param name="buffer">缓冲区</param>
-        ///// <param name="offset">偏移</param>
-        ///// <param name="count">数量</param>
-        ///// <returns>是否成功</returns>
-        //public override Boolean Send(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-        //{
-        //    buffer = MakeRequest(buffer);
-        //    return base.Send(buffer, offset, count);
-        //}
-
-        //internal override Boolean SendInternal(Byte[] buffer, IPEndPoint remote)
-        //{
-        //    buffer = MakeRequest(buffer);
-        //    return base.SendInternal(buffer, remote);
-        //}
-
-        class HttpSendFilter : FilterBase
-        {
-            public HttpSession Session { get; set; }
-
-            protected override Boolean OnExecute(FilterContext context)
-            {
-                var pk = context.Packet;
-                var buf = pk.ToArray();
-                buf = Session.MakeRequest(buf);
-                pk.Set(buf);
-
-                return true;
-            }
-        }
-
         private MemoryStream _cache;
         private DateTime _next;
         /// <summary>处理收到的数据</summary>
@@ -124,20 +90,24 @@ namespace NewLife.Net
                 return true;
             }
 
-            var buffer = pk.ToArray();
+            var client = _Server == null;
+            // 客户端收到响应，服务端收到请求
+            var rs = client ?  ResponseHeaders: Headers;
+
             // 是否全新请求
             if (_next < DateTime.Now || _cache == null)
             {
-                buffer = ParseResponse(buffer);
+                // 分析头部
+                ParseHeader(pk, client);
 
                 _cache = new MemoryStream();
             }
 
-            _cache.Write(buffer);
-            _next = DateTime.Now.AddSeconds(3);
+            if (pk.Count > 0) pk.WriteTo(_cache);
+            _next = DateTime.Now.AddSeconds(15);
 
             // 如果长度不足
-            var len = ResponseHeaders[HttpResponseHeader.ContentLength].ToInt();
+            var len = rs["Content-Length"].ToInt();
             if (len > 0 && _cache.Length < len)
             {
                 //WriteLog("{0:n0}/{1:n0} = {2:p}", _cache.Length, len, len == 0 ? 0 : (Double)_cache.Length / len);
@@ -148,27 +118,85 @@ namespace NewLife.Net
             pk = new Packet(_cache.ReadBytes());
             _cache = null;
 
-            return base.OnReceive(pk, remote);
+            return OnRequest(pk, remote);
+        }
+
+        /// <summary>收到请求</summary>
+        /// <param name="pk"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        protected virtual Boolean OnRequest(Packet pk, IPEndPoint remote)
+        {
+            StatusCode = HttpStatusCode.OK;
+
+            if (pk.Count > 0) return base.OnReceive(pk, remote);
+
+            // 请求内容为空
+            var html = "请求 {0} 内容为空！".F(Url);
+            Send(new Packet(html.GetBytes()));
+
+            return true;
+        }
+        #endregion
+
+        #region Http客户端
+        class HttpRequestFilter : FilterBase
+        {
+            public HttpSession Session { get; set; }
+
+            protected override Boolean OnExecute(FilterContext context)
+            {
+                var pk = context.Packet;
+                var header = Session.MakeRequest(pk);
+
+                // 合并
+                var ms = new MemoryStream();
+                ms.Write(header.GetBytes());
+                if (pk.Count > 0) pk.WriteTo(ms);
+                pk.Set(ms.ToArray());
+
+                return true;
+            }
+        }
+        #endregion
+
+        #region Http服务端
+        class HttpResponseFilter : FilterBase
+        {
+            public HttpSession Session { get; set; }
+
+            protected override Boolean OnExecute(FilterContext context)
+            {
+                var pk = context.Packet;
+                var header = Session.MakeResponse(pk);
+
+                // 合并
+                var ms = new MemoryStream();
+                ms.Write(header.GetBytes());
+                if (pk.Count > 0) pk.WriteTo(ms);
+                pk.Set(ms.ToArray());
+
+                return true;
+            }
         }
         #endregion
 
         #region Http封包解包
-        private Byte[] MakeRequest(Byte[] buffer)
+        private String MakeRequest(Packet pk)
         {
             // 分解主机和资源
             var host = Remote.Host;
-            var url = Uri;
+            var url = Url;
+            if (url == null) url = new Uri("/");
 
-            if (url.StartsWithIgnoreCase("http"))
+            if (url.Scheme.EqualIgnoreCase("http"))
             {
-                var uri = new Uri(url);
-                host = uri.Host;
-                url = uri.PathAndQuery;
+                host = url.Host;
             }
 
-            // 构建请求头部
+            // 构建头部
             var sb = new StringBuilder();
-            sb.AppendFormat("{0} {1} HTTP/1.1\r\n", Method, url);
+            sb.AppendFormat("{0} {1} HTTP/1.1\r\n", Method, url.PathAndQuery);
             sb.AppendFormat("Host:{0}\r\n", host);
 
             if (Compressed) sb.AppendLine("Accept-Encoding:gzip, deflate");
@@ -176,7 +204,7 @@ namespace NewLife.Net
             if (!UserAgent.IsNullOrEmpty()) sb.AppendFormat("User-Agent:{0}\r\n", UserAgent);
 
             // 内容长度
-            if (buffer?.Length > 0) sb.AppendFormat("Content-Length:{0}\r\n", buffer.Length);
+            if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
 
             foreach (var item in Headers.AllKeys)
             {
@@ -185,35 +213,45 @@ namespace NewLife.Net
 
             sb.AppendLine();
 
-            var header = sb.ToString().GetBytes();
-
-            // 如果没有负载，直接返回
-            if (buffer == null || buffer.Length == 0) return header;
-
-            var ms = new MemoryStream();
-            ms.Write(header);
-            ms.Write(buffer);
-
-            return ms.ToArray();
+            return sb.ToString();
         }
 
-        private Byte[] ParseResponse(Byte[] buffer)
+        private String MakeResponse(Packet pk)
         {
-            var p = (Int32)buffer.IndexOf("\r\n\r\n".GetBytes());
-            if (p < 0) return buffer;
+            // 构建头部
+            var sb = new StringBuilder();
+            sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)StatusCode, StatusCode);
+
+            // 内容长度
+            if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
+
+            foreach (var item in ResponseHeaders.AllKeys)
+            {
+                sb.AppendFormat("{0}:{1}\r\n", item, ResponseHeaders[item]);
+            }
+
+            sb.AppendLine();
+
+            return sb.ToString();
+        }
+
+        private WebHeaderCollection ParseHeader(Packet pk, Boolean client)
+        {
+            // 客户端收到响应，服务端收到请求
+            var rs = client ? ResponseHeaders : Headers;
+
+            var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
+            if (p < 0) return rs;
 
             // 截取
-            var headers = buffer.ReadBytes(0, p).ToStr().Split("\r\n");
-            buffer = buffer.ReadBytes(p + 4);
+            var headers = pk.Data.ReadBytes(pk.Offset, p).ToStr().Split("\r\n");
+            // 重构
+            p += 4;
+            pk.Set(pk.Data, pk.Offset + p, pk.Count - p);
 
-            // 分析响应码
-            var line = headers[0];
-            var code = line.Substring(" ", " ").ToInt();
-            if (code > 0) StatusCode = (HttpStatusCode)code;
-
-            // 分析响应头
-            var rs = ResponseHeaders;
+            // 分析头部
             rs.Clear();
+            var line = headers[0];
             for (var i = 1; i < headers.Length; i++)
             {
                 line = headers[i];
@@ -221,7 +259,32 @@ namespace NewLife.Net
                 if (p > 0) rs.Set(line.Substring(0, p), line.Substring(p + 1));
             }
 
-            return buffer;
+            line = headers[0];
+            var ss = line.Split(" ");
+            // 分析请求方法 GET / HTTP/1.1
+            if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
+            {
+                Method = ss[0];
+
+                // 构造资源路径
+                var host = rs[HttpRequestHeader.Host];
+                var uri = "{0}://{1}".F(IsSSL ? "https" : "http", host);
+                if (host.IsNullOrEmpty() || !host.Contains(":"))
+                {
+                    var port = Local.Port;
+                    if (IsSSL && port != 443 || !IsSSL && port != 80) uri += ":" + port;
+                }
+                uri += ss[1];
+                Url = new Uri(uri);
+            }
+            else
+            {
+                // 分析响应码
+                var code = ss[1].ToInt();
+                if (code > 0) StatusCode = (HttpStatusCode)code;
+            }
+
+            return rs;
         }
         #endregion
     }

@@ -1,90 +1,44 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using NewLife.Log;
+using NewLife.Net;
 
 namespace NewLife.Remoting
 {
-    class ApiHttpServer : DisposeBase, IApiServer
+    class ApiHttpServer : ApiNetServer
     {
         #region 属性
-        /// <summary>Api服务器主机</summary>
-        public IServiceProvider Provider { get; set; }
-
-        /// <summary>编码器</summary>
-        public IEncoder Encoder { get; set; }
-
-        /// <summary>处理器</summary>
-        public IApiHandler Handler { get; set; }
-
-        /// <summary>当前服务器所有会话</summary>
-        public IApiSession[] AllSessions { get { return new IApiSession[0]; } }
-
-        /// <summary>监听器</summary>
-        public HttpListener Listener { get; set; }
-
-        private readonly List<String> _prefixes = new List<String>();
+        private String RawUrl;
         #endregion
 
-        protected override void OnDispose(Boolean disposing)
+        public ApiHttpServer()
         {
-            base.OnDispose(disposing);
+            Name = "Http";
 
-            Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
+            ProtocolType = NetType.Http;
         }
 
         /// <summary>初始化</summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public Boolean Init(String config)
+        public override Boolean Init(String config)
         {
-            _prefixes.AddRange(config.Split(";"));
+            RawUrl = config;
+
+            if (!base.Init(config)) return false;
+
+            // Http不能使用封包协议
+            SessionPacket = null;
 
             return true;
-        }
-
-        public void Start()
-        {
-            if (Listener != null) return;
-
-            Log.Info("启动{0}，监听 {1}", this.GetType().Name, _prefixes.Join(";"));
-
-            var svr = new HttpListener();
-            foreach (var item in _prefixes)
-            {
-                svr.Prefixes.Add(item.EnsureEnd("/"));
-            }
-            svr.Start();
-
-            Listener = svr;
-        }
-
-        /// <summary>关闭</summary>
-        /// <param name="reason">关闭原因。便于日志分析</param>
-        public void Stop(String reason)
-        {
-            if (Listener == null) return;
-
-            Log.Info("停止{0} {1}", this.GetType().Name, reason);
-
-            Listener.Stop();
-            Listener = null;
         }
 
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
-        public Object GetService(Type serviceType)
+        public override Object GetService(Type serviceType)
         {
-            if (serviceType == typeof(ApiServer)) return Provider;
+            if (serviceType == typeof(ApiHttpServer)) return Provider;
 
-            return Provider?.GetService(serviceType);
+            return base.GetService(serviceType);
         }
-
-        #region 日志
-        /// <summary>日志</summary>
-        public ILog Log { get; set; } = Logger.Null;
-        #endregion
     }
 }

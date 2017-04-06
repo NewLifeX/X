@@ -692,28 +692,10 @@ namespace System
         {
             if (uri == null) throw new ArgumentNullException(nameof(uri));
 
-            //var remote = new NetUri(NetType.Http, uri.Host, uri.Port);
             var http = new HttpSession();
-            http.Uri = uri.ToString();
-            http.Remote = new NetUri(http.Uri);
+            http.Url = uri;
+            http.Remote = new NetUri(uri + "");
 
-            //switch (uri.Scheme.ToLower())
-            //{
-            //    case "https":
-            //        http.IsSSL = true;
-            //        break;
-            //    case "ws":
-            //        http.IsWebSocket = true;
-            //        remote.Type = NetType.WebSocket;
-            //        break;
-            //    case "wss":
-            //        http.IsWebSocket = true;
-            //        http.IsSSL = true;
-            //        remote.Type = NetType.WebSocket;
-            //        break;
-            //    default:
-            //        throw new NotSupportedException("不支持{0}协议".F(uri.Scheme));
-            //}
             return http;
         }
 

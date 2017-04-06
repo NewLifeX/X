@@ -32,9 +32,11 @@ namespace NewLife.Remoting
         /// <summary>初始化</summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public Boolean Init(String config)
+        public virtual Boolean Init(String config)
         {
             Local = new NetUri(config);
+            // 如果主机为空，监听所有端口
+            if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
 #if DEBUG
             //LogSend = true;
             //LogReceive = true;
@@ -57,7 +59,7 @@ namespace NewLife.Remoting
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
-        public Object GetService(Type serviceType)
+        public virtual Object GetService(Type serviceType)
         {
             if (serviceType == typeof(ApiServer)) return Provider;
             if (serviceType == typeof(IEncoder) && Encoder != null) return Encoder;

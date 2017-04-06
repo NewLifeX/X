@@ -13,7 +13,7 @@ namespace NewLife.Remoting
         public static void Main()
         {
             Console.WriteLine("模式（1服务端、2客户端）");
-            var cki = Console.ReadKey(false);
+            var cki = Console.ReadKey(true);
             if (cki.KeyChar == '1')
                 TestServer();
             else if (cki.KeyChar == '2')
@@ -23,7 +23,7 @@ namespace NewLife.Remoting
         private static void TestServer()
         {
             var svr = new ApiServer(3344);
-            //svr.Add("http://*:888/");
+            svr.Add("http://*:888/");
             svr.Log = XTrace.Log;
             //svr.Encoder = new JsonEncoder();
             //GlobalFilters.Add(new FFAttribute { Name = "全局" });
@@ -37,9 +37,10 @@ namespace NewLife.Remoting
 
         private static async void TestClient()
         {
-            var client = new ApiClient("tcp://127.0.0.1:3344");
+            //var client = new ApiClient("tcp://127.0.0.1:3344");
             //var client = new ApiClient("udp://127.0.0.1:3344");
-            //var client = new ApiClient("http://127.0.0.1:888");
+            var client = new ApiClient("http://127.0.0.1:3344");
+            //var client = new ApiClient("ws://127.0.0.1:3344");
             client.Log = XTrace.Log;
             //client.Encoder = new JsonEncoder();
             client.UserName = "Stone";

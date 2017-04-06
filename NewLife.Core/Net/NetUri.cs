@@ -223,6 +223,7 @@ namespace NewLife.Net
         public static IPAddress ParseAddress(String hostname)
         {
             if (String.IsNullOrEmpty(hostname)) return null;
+            if (hostname == "*") return null;
 
             try
             {

@@ -295,8 +295,7 @@ namespace NewLife.Net
 
             foreach (var item in Servers)
             {
-                if (item.Port > 0) WriteLog("开始监听 {0}", item);
-                //item.Log = Log;
+                //if (item.Port > 0) WriteLog("开始监听 {0}", item);
                 item.Start();
 
                 // 如果是随机端口，反写回来，并且修改其它服务器的端口
@@ -551,16 +550,30 @@ namespace NewLife.Net
         /// <returns></returns>
         protected static ISocketServer[] CreateServer(IPAddress address, Int32 port, NetType protocol, AddressFamily family)
         {
-            if (protocol == NetType.Tcp) return CreateServer<TcpServer>(address, port, family);
-            if (protocol == NetType.Udp) return CreateServer<UdpServer>(address, port, family);
+            switch (protocol)
+            {
+                case NetType.Tcp:
+                    return CreateServer<TcpServer>(address, port, family);
+                case NetType.Http:
+                case NetType.WebSocket:
+                    var ss = CreateServer<TcpServer>(address, port, family);
+                    foreach (TcpServer item in ss)
+                    {
+                        item.EnableHttp = true;
+                    }
+                    return ss;
+                case NetType.Udp:
+                    return CreateServer<UdpServer>(address, port, family);
+                case NetType.Unknown:
+                default:
+                    var list = new List<ISocketServer>();
 
-            var list = new List<ISocketServer>();
+                    // 其它未知协议，同时用Tcp和Udp
+                    list.AddRange(CreateServer<TcpServer>(address, port, family));
+                    list.AddRange(CreateServer<UdpServer>(address, port, family));
 
-            // 其它未知协议，同时用Tcp和Udp
-            list.AddRange(CreateServer<TcpServer>(address, port, family));
-            list.AddRange(CreateServer<UdpServer>(address, port, family));
-
-            return list.ToArray();
+                    return list.ToArray();
+            }
         }
 
         static ISocketServer[] CreateServer<TServer>(IPAddress address, Int32 port, AddressFamily family) where TServer : ISocketServer, new()

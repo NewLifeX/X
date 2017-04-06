@@ -16,7 +16,7 @@ namespace NewLife.Net
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
-        ISocketServer _Server;
+        internal ISocketServer _Server;
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
         ISocketServer ISocketSession.Server { get { return _Server; } }
 
@@ -229,7 +229,7 @@ namespace NewLife.Net
 
             RaiseReceive(this, e);
 
-            return true;
+            return false;
         }
         #endregion
 

@@ -50,6 +50,9 @@ namespace NewLife.Net
         /// <summary>最大并行数。默认CPU*1.6</summary>
         public Int32 MaxAsync { get; set; }
 
+        /// <summary>启用Http，数据处理时截去请求响应头，默认false</summary>
+        public Boolean EnableHttp { get; set; }
+
         /// <summary>粘包处理接口</summary>
         public IPacketFactory SessionPacket { get; set; }
 
@@ -281,7 +284,7 @@ namespace NewLife.Net
         /// <returns></returns>
         protected virtual TcpSession CreateSession(Socket client)
         {
-            var session = new TcpSession(this, client);
+            var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
             // 服务端不支持掉线重连
             session.AutoReconnect = 0;
             session.Log = Log;
