@@ -116,29 +116,15 @@ namespace NewLife.Net
                 pk = new Packet(_cache.ReadBytes());
                 _cache = null;
 
-                OnRequest(pk, remote);
+                if (client)
+                    base.OnReceive(pk, remote);
+                else
+                    OnRequest(pk, remote);
             }
             catch (Exception ex)
             {
                 if (!ex.IsDisposed()) OnError("OnReceive", ex);
             }
-        }
-
-        /// <summary>收到请求</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        protected virtual Boolean OnRequest(Packet pk, IPEndPoint remote)
-        {
-            StatusCode = HttpStatusCode.OK;
-
-            if (pk.Count > 0) return base.OnReceive(pk, remote);
-
-            // 请求内容为空
-            var html = "请求 {0} 内容为空！".F(Url);
-            Send(new Packet(html.GetBytes()));
-
-            return true;
         }
         #endregion
 
@@ -181,6 +167,23 @@ namespace NewLife.Net
 
                 return true;
             }
+        }
+
+        /// <summary>收到请求</summary>
+        /// <param name="pk"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        protected virtual Boolean OnRequest(Packet pk, IPEndPoint remote)
+        {
+            StatusCode = HttpStatusCode.OK;
+
+            if (pk.Count > 0) return base.OnReceive(pk, remote);
+
+            // 请求内容为空
+            var html = "请求 {0} 内容为空！".F(Url);
+            Send(new Packet(html.GetBytes()));
+
+            return true;
         }
         #endregion
 

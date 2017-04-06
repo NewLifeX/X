@@ -23,12 +23,7 @@ namespace NewLife.Remoting
         {
             RawUrl = config;
 
-            if (!base.Init(config)) return false;
-
-            //// Http不能使用封包协议
-            //SessionPacket = null;
-
-            return true;
+            return base.Init(config);
         }
 
         /// <summary>获取服务提供者</summary>
