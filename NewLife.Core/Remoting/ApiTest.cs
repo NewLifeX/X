@@ -39,8 +39,8 @@ namespace NewLife.Remoting
         {
             //var client = new ApiClient("tcp://127.0.0.1:3344");
             //var client = new ApiClient("udp://127.0.0.1:3344");
-            var client = new ApiClient("http://127.0.0.1:3344");
-            //var client = new ApiClient("ws://127.0.0.1:3344");
+            var client = new ApiClient("http://127.0.0.1:888");
+            //var client = new ApiClient("ws://127.0.0.1:888");
             client.Log = XTrace.Log;
             //client.Encoder = new JsonEncoder();
             client.UserName = "Stone";

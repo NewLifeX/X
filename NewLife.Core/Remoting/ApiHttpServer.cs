@@ -25,8 +25,8 @@ namespace NewLife.Remoting
 
             if (!base.Init(config)) return false;
 
-            // Http不能使用封包协议
-            SessionPacket = null;
+            //// Http不能使用封包协议
+            //SessionPacket = null;
 
             return true;
         }

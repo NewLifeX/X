@@ -12,6 +12,8 @@ namespace NewLife.Remoting
                 Client = uri.CreateRemote();
             else if (config is Uri)
                 Client = ((Uri)config).CreateRemote();
+            else if (config is String)
+                Client = new Uri(config + "").CreateRemote();
 
             // 新生命标准网络封包协议
             Client.Packet = new DefaultPacket();

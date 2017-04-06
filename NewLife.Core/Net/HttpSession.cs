@@ -80,45 +80,48 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        internal override void ProcessReceive(Packet pk, IPEndPoint remote)
         {
             if (pk.Count == 0 && DisconnectWhenEmptyData)
             {
                 Close("收到空数据");
                 Dispose();
 
-                return true;
+                return;
             }
 
-            var client = _Server == null;
-            // 客户端收到响应，服务端收到请求
-            var rs = client ?  ResponseHeaders: Headers;
-
-            // 是否全新请求
-            if (_next < DateTime.Now || _cache == null)
+            try
             {
-                // 分析头部
-                ParseHeader(pk, client);
+                var client = _Server == null;
+                // 客户端收到响应，服务端收到请求
+                var rs = client ? ResponseHeaders : Headers;
 
-                _cache = new MemoryStream();
+                // 是否全新请求
+                if (_next < DateTime.Now || _cache == null)
+                {
+                    // 分析头部
+                    ParseHeader(pk, client);
+
+                    _cache = new MemoryStream();
+                }
+
+                if (pk.Count > 0) pk.WriteTo(_cache);
+                _next = DateTime.Now.AddSeconds(15);
+
+                // 如果长度不足
+                var len = rs["Content-Length"].ToInt();
+                if (len > 0 && _cache.Length < len) return;
+
+                _cache.Position = 0;
+                pk = new Packet(_cache.ReadBytes());
+                _cache = null;
+
+                OnRequest(pk, remote);
             }
-
-            if (pk.Count > 0) pk.WriteTo(_cache);
-            _next = DateTime.Now.AddSeconds(15);
-
-            // 如果长度不足
-            var len = rs["Content-Length"].ToInt();
-            if (len > 0 && _cache.Length < len)
+            catch (Exception ex)
             {
-                //WriteLog("{0:n0}/{1:n0} = {2:p}", _cache.Length, len, len == 0 ? 0 : (Double)_cache.Length / len);
-                return true;
+                if (!ex.IsDisposed()) OnError("OnReceive", ex);
             }
-
-            _cache.Position = 0;
-            pk = new Packet(_cache.ReadBytes());
-            _cache = null;
-
-            return OnRequest(pk, remote);
         }
 
         /// <summary>收到请求</summary>

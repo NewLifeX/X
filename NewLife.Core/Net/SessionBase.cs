@@ -405,7 +405,10 @@ namespace NewLife.Net
                 ReleaseRecv(se, "!Active || Disposed");
         }
 
-        void ProcessReceive(Packet pk, IPEndPoint remote)
+        /// <summary>接收预处理，粘包拆包</summary>
+        /// <param name="pk"></param>
+        /// <param name="remote"></param>
+        internal virtual void ProcessReceive(Packet pk, IPEndPoint remote)
         {
             try
             {
