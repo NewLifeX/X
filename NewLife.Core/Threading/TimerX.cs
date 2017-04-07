@@ -120,6 +120,17 @@ namespace NewLife.Threading
         }
         #endregion
 
+        #region 方法
+        /// <summary>设置下一次运行时间</summary>
+        /// <param name="ms"></param>
+        public void SetNext(Int32 ms)
+        {
+            NextTime = DateTime.Now.AddMilliseconds(ms);
+
+            Scheduler.Wake();
+        }
+        #endregion
+
         #region 静态方法
         /// <summary>延迟执行一个委托</summary>
         /// <param name="callback"></param>

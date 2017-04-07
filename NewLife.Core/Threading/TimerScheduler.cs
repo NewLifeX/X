@@ -103,7 +103,7 @@ namespace NewLife.Threading
         private Int32 period = 10;
 
         /// <summary>唤醒处理</summary>
-        private void Wake()
+        public void Wake()
         {
             var e = waitForTimer;
             if (e != null)
