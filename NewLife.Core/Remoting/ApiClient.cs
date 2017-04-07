@@ -247,6 +247,9 @@ namespace NewLife.Remoting
 
             Logined = true;
 
+            // 尽快开始一次心跳
+            Timer.SetNext(1000);
+
             return rs;
         }
 

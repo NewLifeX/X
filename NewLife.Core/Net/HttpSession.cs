@@ -106,7 +106,7 @@ namespace NewLife.Net
                 }
 
                 if (pk.Count > 0) pk.WriteTo(_cache);
-                _next = DateTime.Now.AddSeconds(15);
+                _next = DateTime.Now.AddSeconds(1);
 
                 // 如果长度不足
                 var len = rs["Content-Length"].ToInt();
@@ -143,6 +143,9 @@ namespace NewLife.Net
                 ms.Write(header.GetBytes());
                 if (pk.Count > 0) pk.WriteTo(ms);
                 pk.Set(ms.ToArray());
+#if DEBUG
+                Session.WriteLog(pk.ToStr());
+#endif
 
                 return true;
             }

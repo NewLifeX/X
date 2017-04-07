@@ -125,7 +125,6 @@
     <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
-    <Compile Include="Net\HttpPacket.cs" />
     <Compile Include="Net\DefaultPacket.cs" />
     <Compile Include="Net\HttpSession.cs" />
     <Compile Include="Net\INetSession.cs" />

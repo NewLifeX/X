@@ -26,7 +26,8 @@ namespace NewLife.Remoting
             if (!base.Init(config)) return false;
 
             // Http封包协议
-            SessionPacket = new HttpPacketFactory();
+            //SessionPacket = new HttpPacketFactory();
+            SessionPacket = new PacketFactory { Offset = -1 };
 
             return true;
         }
