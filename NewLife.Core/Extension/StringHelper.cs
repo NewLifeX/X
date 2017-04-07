@@ -372,7 +372,7 @@ namespace System
         //{
         //    if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
 
-        //    var encoding = Encoding.Default;
+        //    var encoding = Encoding.UTF8;
 
         //    var buf = encoding.GetBytes(str);
         //    if (buf.Length < maxLength) return str;

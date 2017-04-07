@@ -10,7 +10,7 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
-#if NET4
+#if NET4 || __CORE__
         /// <summary>获取自定义属性</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <param name="member"></param>
@@ -41,7 +41,9 @@ namespace System
 
             return avs[0];
         }
+#endif
 
+#if NET4
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
         private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
 

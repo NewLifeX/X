@@ -103,7 +103,7 @@ namespace NewLife.Reflection
             {
                 try
                 {
-#if !__IOS__
+#if !__IOS__ && !__CORE__
                     return Asm == null || Asm is _AssemblyBuilder || Asm.IsDynamic ? null : Asm.Location;
 #else
                     return Asm == null || Asm.IsDynamic ? null : Asm.Location;
@@ -130,7 +130,7 @@ namespace NewLife.Reflection
 
         static AssemblyX()
         {
-#if !__MOBILE__
+#if !__MOBILE__ && !__CORE__
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) => Assembly.ReflectionOnlyLoad(args.Name);
 #endif
         }
@@ -292,6 +292,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
+#if !__CORE__
         /// <summary>查找插件</summary>
         /// <typeparam name="TPlugin"></typeparam>
         /// <returns></returns>
@@ -497,9 +498,11 @@ namespace NewLife.Reflection
 
             return null;
         }
+#endif
         #endregion
 
         #region 静态加载
+#if !__CORE__
         /// <summary>获取指定程序域所有程序集</summary>
         /// <param name="domain"></param>
         /// <returns></returns>
@@ -531,7 +534,7 @@ namespace NewLife.Reflection
 
                     var basedir = AppDomain.CurrentDomain.BaseDirectory;
                     set.Add(basedir);
-#if !__MOBILE__
+#if !__MOBILE__ && !__CORE__
                     if (HttpRuntime.AppDomainId != null) set.Add(HttpRuntime.BinDirectory);
                     var plugin = Setting.Current.GetPluginPath();
                     if (!set.Contains(plugin)) set.Add(plugin);
@@ -706,6 +709,7 @@ namespace NewLife.Reflection
             }
             return list;
         }
+#endif
         #endregion
 
         #region 重载

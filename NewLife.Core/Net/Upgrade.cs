@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+#if !__CORE__
 using System.Windows.Forms;
+#endif
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -266,7 +268,7 @@ namespace NewLife.Net
             sb.AppendLine();
             sb.AppendLine("exit");
 
-            File.WriteAllText(updatebat, sb.ToString(), Encoding.Default);
+            File.WriteAllText(updatebat, sb.ToString(), Encoding.UTF8);
         }
         #endregion
 

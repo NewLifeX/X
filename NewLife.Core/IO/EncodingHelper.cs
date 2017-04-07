@@ -86,7 +86,7 @@ namespace NewLife.IO
                 // 用户界面选择语言编码
                 Encoding.GetEncoding(CultureInfo.CurrentUICulture.TextInfo.ANSICodePage),
                 // 本地默认编码
-                Encoding.Default
+                Encoding.UTF8
             };
             encs = encs.Where(s => s != null).GroupBy(s => s.CodePage).Select(s => s.First()).ToArray();
 
@@ -155,7 +155,7 @@ namespace NewLife.IO
 
         static Boolean IsMatch(Byte[] data, Encoding encoding)
         {
-            if (encoding == null) encoding = Encoding.Default;
+            if (encoding == null) encoding = Encoding.UTF8;
 
             try
             {

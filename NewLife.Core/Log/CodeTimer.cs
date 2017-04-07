@@ -37,7 +37,7 @@ namespace NewLife.Log
         /// <param name="needTimeOne">是否需要预热</param>
         public static void TimeLine(String title, Int32 times, Action<Int32> action, Boolean needTimeOne = true)
         {
-            var n = Encoding.Default.GetByteCount(title);
+            var n = Encoding.UTF8.GetByteCount(title);
             Console.Write("{0}{1}：", n >= 16 ? "" : new String(' ', 16 - n), title);
 
             var timer = new CodeTimer();
@@ -89,7 +89,7 @@ namespace NewLife.Log
 
         static void Write(String name, Int32 max)
         {
-            var len = Encoding.Default.GetByteCount(name);
+            var len = Encoding.UTF8.GetByteCount(name);
             if (len < max) Console.Write(new String(' ', max - len));
             Console.Write(name);
         }

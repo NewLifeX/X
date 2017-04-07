@@ -4,13 +4,11 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using System.Text;
-#if !__CORE__
 using System.Web;
+#if !__CORE__
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
-#else
-using Microsoft.AspNetCore.Http;
 #endif
 using NewLife.Collections;
 using NewLife.Reflection;
@@ -151,7 +149,7 @@ namespace NewLife.Web
         /// <param name="max"></param>
         public static void ExportExcel(GridView gv, String filename, Int32 max)
         {
-            ExportExcel(gv, filename, max, Encoding.Default);
+            ExportExcel(gv, filename, max, Encoding.UTF8);
         }
 
         /// <summary>导出Excel</summary>
@@ -334,7 +332,7 @@ namespace NewLife.Web
 
         #region Http响应
         /// <summary>Http响应</summary>
-        public static HttpResponse Response { get { return HttpContext.Current != null ? HttpContext.Current.Response : null; } }
+        public static HttpResponse Response { get { return HttpContext.Current?.Response; } }
         #endregion
 
         #region Cookie

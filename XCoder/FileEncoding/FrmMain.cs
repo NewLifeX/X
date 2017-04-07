@@ -19,7 +19,7 @@ namespace XCoder.FileEncoding
         {
             txtSuffix.Text = "*.cs;*.aspx";
             var encs = new String[] { "UTF-8", "UTF-8 NoBOM", "ASNI", "Unicode", "Default" };
-            //var encs = new Encoding[] { Encoding.UTF8, new UTF8Encoding(false), Encoding.ASCII, Encoding.Default };
+            //var encs = new Encoding[] { Encoding.UTF8, new UTF8Encoding(false), Encoding.ASCII, Encoding.UTF8 };
             ddlEncodes.DataSource = encs;
             ddlEncodes.Text = "UTF-8";
             //cmb_tag.Text = "UTF-8";
@@ -53,7 +53,7 @@ namespace XCoder.FileEncoding
                 return;
 
 
-            var enc = Encoding.Default;
+            var enc = Encoding.UTF8;
             switch (ddlEncodes.Text)
             {
                 case "UTF-8": enc = Encoding.UTF8; break;
@@ -111,7 +111,7 @@ namespace XCoder.FileEncoding
             // "UTF-8", "ASNI", "Unicode", "Default" 
             var e = ddlEncodes.Text;
 
-            var result = Encoding.Default;
+            var result = Encoding.UTF8;
             switch (e)
             {
                 case "UTF-8": result = Encoding.UTF8; break;
@@ -155,13 +155,13 @@ namespace XCoder.FileEncoding
     public class EncodePelaceHelper
     {
         /// <summary>
-        /// 取得一个文本文件的编码方式。如果无法在文件头部找到有效的前导符，Encoding.Default将被返回。
+        /// 取得一个文本文件的编码方式。如果无法在文件头部找到有效的前导符，Encoding.UTF8将被返回。
         /// </summary>
         /// <param name="fileName">文件名</param>
         /// 
         public static Encoding GetEncoding(String fileName)
         {
-            return GetEncoding(fileName, Encoding.Default);
+            return GetEncoding(fileName, Encoding.UTF8);
         }
 
         /// <summary>取得一个文本文件的编码方式。</summary>
@@ -185,7 +185,7 @@ namespace XCoder.FileEncoding
         ///// 
         //public static Encoding GetEncoding(FileStream stream)
         //{
-        //    return GetEncoding(stream, Encoding.Default);
+        //    return GetEncoding(stream, Encoding.UTF8);
         //}
 
         ///// <summary>

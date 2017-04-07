@@ -29,7 +29,7 @@ namespace System
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
-                stream.Close();
+                //stream.Close();
             }
 
             return outStream;
@@ -47,7 +47,7 @@ namespace System
             using (var stream = new DeflateStream(inStream, CompressionMode.Decompress, true))
             {
                 stream.CopyTo(outStream);
-                stream.Close();
+                //stream.Close();
             }
 
             return outStream;
@@ -90,7 +90,7 @@ namespace System
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
-                stream.Close();
+                //stream.Close();
             }
 
             return outStream;
@@ -108,7 +108,7 @@ namespace System
             using (var stream = new GZipStream(inStream, CompressionMode.Decompress, true))
             {
                 stream.CopyTo(outStream);
-                stream.Close();
+                //stream.Close();
             }
 
             return outStream;
@@ -1194,7 +1194,11 @@ namespace System
             else if (offset + count > data.Length)
                 count = data.Length - offset;
 
+#if __CORE__
+            return Convert.ToBase64String(data, offset, count);
+#else
             return Convert.ToBase64String(data, offset, count, lineBreak ? Base64FormattingOptions.InsertLineBreaks : Base64FormattingOptions.None);
+#endif
         }
 
         /// <summary>Base64字符串转为字节数组</summary>
@@ -1206,6 +1210,6 @@ namespace System
 
             return Convert.FromBase64String(data);
         }
-        #endregion
+#endregion
     }
 }

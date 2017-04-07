@@ -22,10 +22,10 @@ namespace NewLife.IP
             var ns = new String[] { "qqwry.dat", "qqwry.gz", "ip.gz", "ip.gz.config", "ipdata.config" };
             foreach (var item in ns)
             {
-                var fs = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, item, SearchOption.AllDirectories);
-                if (fs != null && fs.Length > 0)
+                var fi = ".".AsDirectory().GetAllFiles(item, true).FirstOrDefault();
+                if (fi != null)
                 {
-                    DbFile = Path.GetFullPath(fs[0]);
+                    DbFile = fi.FullName;
                     break;
                 }
             }

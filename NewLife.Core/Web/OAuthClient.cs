@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 #if __CORE__
-using Microsoft.AspNetCore.Http;
 #else
 using System.Web;
 #endif
@@ -14,7 +13,7 @@ namespace NewLife.Web
     /// <summary>OAuth 2.0</summary>
     public class OAuthClient
     {
-#region 属性
+        #region 属性
         /// <summary>应用Key</summary>
         public String Key { get; set; }
 
@@ -26,9 +25,9 @@ namespace NewLife.Web
 
         /// <summary>访问令牌地址</summary>
         public String AccessUrl { get; set; }
-#endregion
+        #endregion
 
-#region 返回参数
+        #region 返回参数
         /// <summary>授权码</summary>
         public String Code { get; private set; }
 
@@ -40,9 +39,9 @@ namespace NewLife.Web
 
         /// <summary>过期时间</summary>
         public DateTime Expire { get; private set; }
-#endregion
+        #endregion
 
-#region QQ专属
+        #region QQ专属
         /// <summary>设置为QQ专属地址</summary>
         public void SetQQ()
         {
@@ -50,9 +49,9 @@ namespace NewLife.Web
             AuthUrl = url + "authorize?response_type=code&client_id={key}&state={state}&redirect_uri={redirect}";
             AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
         }
-#endregion
+        #endregion
 
-#region 跳转验证
+        #region 跳转验证
         private String _redirect;
         private String _state;
 
@@ -91,9 +90,9 @@ namespace NewLife.Web
 
             return html;
         }
-#endregion
+        #endregion
 
-#region 辅助
+        #region 辅助
         String GetUrl(String url)
         {
             url = url
@@ -106,6 +105,6 @@ namespace NewLife.Web
 
             return url;
         }
-#endregion
+        #endregion
     }
 }

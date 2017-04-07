@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Reflection;
 using System.Text;
+#if !__MOBILE__ && !__CORE__
 using System.Web.Script.Serialization;
+#endif
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -138,24 +140,12 @@ namespace NewLife.Serialization
         }
     }
 
+#if !__MOBILE__ && !__CORE__
     class JsonDefault : IJsonHost
     {
-        //static JsonDefault()
-        //{
-        //    // 用XmlIgnore特性作为忽略属性的方法
-        //    var src = typeof(JavaScriptSerializer).GetMethodEx("CheckScriptIgnoreAttribute");
-        //    var dst = typeof(JsonDefault).GetMethodEx("CheckScriptIgnoreAttribute");
-        //    if (src != null && dst != null)
-        //    {
-        //        //new JavaScriptSerializer().Invoke(src, src);
-        //        //new JsonDefault().CheckScriptIgnoreAttribute(dst);
-        //        ApiHook.ReplaceMethod(src, dst);
-        //    }
-        //}
-
         private Boolean CheckScriptIgnoreAttribute(MemberInfo memberInfo)
         {
-#if !__MOBILE__
+#if !__MOBILE__ && !__CORE__
             if (memberInfo.IsDefined(typeof(ScriptIgnoreAttribute), true)) return true;
 #endif
             if (memberInfo.IsDefined(typeof(XmlIgnoreAttribute), true)) return true;
@@ -164,7 +154,6 @@ namespace NewLife.Serialization
         }
 
         #region IJsonHost 成员
-#if !__MOBILE__
         public String Write(Object value, Boolean indented)
         {
             var json = new JavaScriptSerializer().Serialize(value);
@@ -179,73 +168,6 @@ namespace NewLife.Serialization
             // 如果有必要，可以实现JavaScriptTypeResolver，然后借助Type.GetTypeEx得到更强的反射类型能力
             return new JavaScriptSerializer().Deserialize(json, type);
         }
-#endif
-        //static String Process(String inputText)
-        //{
-        //    bool escaped = false;
-        //    bool inquotes = false;
-        //    int column = 0;
-        //    int indentation = 0;
-        //    var indentations = new Stack<int>();
-        //    int TABBING = 8;
-        //    var sb = new StringBuilder();
-        //    foreach (char x in inputText)
-        //    {
-        //        sb.Append(x);
-        //        column++;
-        //        if (escaped)
-        //        {
-        //            escaped = false;
-        //        }
-        //        else
-        //        {
-        //            if (x == '\\')
-        //            {
-        //                escaped = true;
-        //            }
-        //            else if (x == '\"')
-        //            {
-        //                inquotes = !inquotes;
-        //            }
-        //            else if (!inquotes)
-        //            {
-        //                if (x == ',')
-        //                {
-        //                    // if we see a comma, go to next line, and indent to the same depth
-        //                    sb.Append("\r\n");
-        //                    column = 0;
-        //                    for (int i = 0; i < indentation; i++)
-        //                    {
-        //                        sb.Append(" ");
-        //                        column++;
-        //                    }
-        //                }
-        //                else if (x == '[' || x == '{')
-        //                {
-        //                    // if we open a bracket or brace, indent further (push on stack)
-        //                    indentations.Push(indentation);
-        //                    indentation = column;
-        //                }
-        //                else if (x == ']' || x == '}')
-        //                {
-        //                    // if we close a bracket or brace, undo one level of indent (pop)
-        //                    indentation = indentations.Pop();
-        //                }
-        //                else if (x == ':')
-        //                {
-        //                    // if we see a colon, add spaces until we get to the next
-        //                    // tab stop, but without using tab characters!
-        //                    while ((column % TABBING) != 0)
-        //                    {
-        //                        sb.Append(' ');
-        //                        column++;
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return sb.ToString();
-        //}
         #endregion
     }
 
@@ -314,6 +236,7 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
         }
         #endregion
     }
+#endif
 
     class FastJson : IJsonHost
     {

@@ -106,7 +106,7 @@ namespace NewLife.Serialization
         {
             Stream = new MemoryStream();
             Hosts = new Stack<Object>();
-            Encoding = Encoding.Default;
+            Encoding = Encoding.UTF8;
             UseProperty = true;
         }
         #endregion

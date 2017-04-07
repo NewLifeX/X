@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -44,7 +43,7 @@ namespace NewLife.Model
 
         #region 构造函数
         /// <summary>初始化一个对象容器实例，自动从配置文件中加载注册</summary>
-        public ObjectContainer() { LoadConfig(); }
+        public ObjectContainer() { }
         #endregion
 
         #region 对象字典
@@ -385,36 +384,6 @@ namespace NewLife.Model
         #endregion
 
         #region Xml配置文件注册
-        const String CONFIG_PREFIX = "NewLife.ObjectContainer_";
-        /// <summary>加载配置</summary>
-        protected virtual void LoadConfig()
-        {
-            var nvs = Config.GetConfigByPrefix(CONFIG_PREFIX);
-            if (nvs == null || nvs.Count < 1) return;
-
-            foreach (var item in nvs)
-            {
-                if (item.Value.IsNullOrWhiteSpace()) continue;
-
-                var name = item.Key;
-                if (name.IsNullOrWhiteSpace()) continue;
-
-                var type = name.GetTypeEx(true);
-                if (type == null)
-                {
-                    XTrace.WriteLine("未找到对象容器配置{0}中的类型{1}！", item.Key, name);
-                    continue;
-                }
-
-                var map = GetConfig(item.Value);
-                if (map == null) continue;
-
-                if (XTrace.Debug) XTrace.WriteLine("为{0}配置注册{1}，标识Identity={2}，优先级Priority={3}！", type.FullName, map.TypeName, map.Identity, map.Priority);
-
-                Register(type, null, null, map.TypeName, map.Identity, map.Priority);
-            }
-        }
-
         static Map GetConfig(String str)
         {
             // 如果不含=，表示整个str就是类型Type

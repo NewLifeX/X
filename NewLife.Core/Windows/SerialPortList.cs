@@ -89,9 +89,9 @@ namespace NewLife.Windows
             SetMenuItem(mi停止位, cfg.StopBits);
             SetMenuItem(mi校验, cfg.Parity);
 
-            //cbEncoding.DataSource = new String[] { Encoding.Default.WebName, Encoding.ASCII.WebName, Encoding.UTF8.WebName };
+            //cbEncoding.DataSource = new String[] { Encoding.UTF8.WebName, Encoding.ASCII.WebName, Encoding.UTF8.WebName };
             // 添加编码子菜单
-            var encs = new Encoding[] { Encoding.Default, Encoding.ASCII, Encoding.UTF8, Encoding.Unicode, Encoding.BigEndianUnicode, Encoding.UTF32 };
+            var encs = new Encoding[] { Encoding.UTF8, Encoding.ASCII, Encoding.UTF8, Encoding.Unicode, Encoding.BigEndianUnicode, Encoding.UTF32 };
             var list = new List<Encoding>(encs);
             // 暂时不用这么多编码
             //list.AddRange(Encoding.GetEncodings().Select(e => e.GetEncoding()).Where(e => !encs.Contains(e)));

@@ -159,7 +159,6 @@ namespace NewLife.Log
                 try
                 {
                     if (writer == null) return;
-                    writer.Close();
                     writer.Dispose();
                     LogWriter = null;
                 }

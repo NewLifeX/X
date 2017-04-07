@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DocumentationFile>..\..\Bin4\XCode.XML</DocumentationFile>
+    <DocumentationFile>..\..\Bin\XCode.XML</DocumentationFile>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
@@ -25,7 +25,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>..\..\Bin4\XCode.XML</DocumentationFile>
+    <DocumentationFile>..\..\Bin\XCode.XML</DocumentationFile>
     <Optimize>true</Optimize>
     <WarningLevel>2</WarningLevel>
     <DebugType>pdbonly</DebugType>

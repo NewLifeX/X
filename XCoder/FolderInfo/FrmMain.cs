@@ -108,7 +108,7 @@ namespace XCoder.FolderInfo
 
         Int32 StrLen(String str)
         {
-            return Encoding.Default.GetBytes(str).Length;
+            return Encoding.UTF8.GetBytes(str).Length;
         }
         #endregion
 

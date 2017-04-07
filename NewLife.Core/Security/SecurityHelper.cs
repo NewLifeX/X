@@ -27,7 +27,7 @@ namespace System
         /// <returns></returns>
         public static String MD5(this String data, Encoding encoding = null)
         {
-            if (encoding == null) encoding = Encoding.Default;
+            if (encoding == null) encoding = Encoding.UTF8;
 
             var buf = MD5(encoding.GetBytes(data + ""));
             return buf.ToHex();
@@ -39,7 +39,7 @@ namespace System
         /// <returns></returns>
         public static String MD5_16(this String data, Encoding encoding = null)
         {
-            if (encoding == null) encoding = Encoding.Default;
+            if (encoding == null) encoding = Encoding.UTF8;
 
             var buf = MD5(encoding.GetBytes(data + ""));
             return buf.ToHex(0, 16);

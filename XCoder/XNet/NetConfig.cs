@@ -29,7 +29,7 @@ namespace XNet
 
         /// <summary>文本编码</summary>
         [XmlIgnore]
-        public Encoding Encoding { get; set; } = Encoding.Default;
+        public Encoding Encoding { get; set; } = Encoding.UTF8;
 
         /// <summary>编码</summary>
         [Description("编码 gb2312/us-ascii/utf-8")]

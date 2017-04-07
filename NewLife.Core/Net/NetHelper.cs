@@ -1,19 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using Microsoft.Win32;
 using NewLife.Collections;
-using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
 #if !__MOBILE__ && !__CORE__
+using Microsoft.Win32;
 using System.Management;
+using System.Security.AccessControl;
+using NewLife.Log;
 #endif
 
 namespace System
@@ -352,7 +351,7 @@ namespace System
         #endregion
 
         #region 设置适配器信息
-#if !__MOBILE__
+#if !__MOBILE__ && !__CORE__
         static private ManagementObjectCollection GetInstances()
         {
             var mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
@@ -461,8 +460,9 @@ namespace System
 
             var client = new UdpClient();
             client.EnableBroadcast = true;
-            client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
-            client.Close();
+            //client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+            //client.Close();
+            client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
         }
         #endregion
 
@@ -556,7 +556,7 @@ namespace System
         #endregion
 
         #region Tcp参数
-#if !__MOBILE__
+#if !__MOBILE__ && !__CORE__
         /// <summary>设置最大Tcp连接数</summary>
         public static void SetTcpMax()
         {
