@@ -68,11 +68,11 @@ namespace NewLife.Remoting
         #endregion
 
         #region 加密&压缩
-        /// <summary>是否加密，默认true</summary>
-        public Boolean Encrypted { get; set; } = true;
+        /// <summary>是否加密，默认false</summary>
+        public Boolean Encrypted { get; set; }
 
-        /// <summary>是否压缩，默认true</summary>
-        public Boolean Compressed { get; set; } = true;
+        /// <summary>是否压缩，默认false</summary>
+        public Boolean Compressed { get; set; }
 
         /// <summary>设置过滤器</summary>
         protected virtual void SetFilter()
@@ -89,7 +89,6 @@ namespace NewLife.Remoting
             if (Encrypted)
             {
                 var rc4 = new RC4Filter();
-                //rc4.GetKey = ctx => Key;
                 rc4.GetKey = GetKeyFunc();
                 Filters.Add(rc4);
             }

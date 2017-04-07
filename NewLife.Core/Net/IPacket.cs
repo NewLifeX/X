@@ -194,7 +194,7 @@ namespace NewLife.Net
 
         /// <summary>从数据流中获取整帧数据长度</summary>
         /// <param name="stream"></param>
-        /// <returns></returns>
+        /// <returns>数据帧长度（包含头部长度位）</returns>
         protected virtual Int32 GetLength(Stream stream)
         {
             if (Offset < 0) return (Int32)(stream.Length - stream.Position);

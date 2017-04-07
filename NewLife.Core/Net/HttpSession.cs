@@ -164,6 +164,9 @@ namespace NewLife.Net
                 ms.Write(header.GetBytes());
                 if (pk.Count > 0) pk.WriteTo(ms);
                 pk.Set(ms.ToArray());
+#if DEBUG
+                Session.WriteLog(pk.ToStr());
+#endif
 
                 return true;
             }
@@ -190,6 +193,8 @@ namespace NewLife.Net
         #region Http封包解包
         private String MakeRequest(Packet pk)
         {
+            if (pk?.Count > 0) Method = "POST";
+
             // 分解主机和资源
             var host = Remote.Host;
             var url = Url;
@@ -197,7 +202,17 @@ namespace NewLife.Net
 
             if (url.Scheme.EqualIgnoreCase("http"))
             {
-                host = url.Host;
+                if (url.Port == 80)
+                    host = url.Host;
+                else
+                    host = "{0}:{1}".F(url.Host, url.Port);
+            }
+            else if (url.Scheme.EqualIgnoreCase("https"))
+            {
+                if (url.Port == 443)
+                    host = url.Host;
+                else
+                    host = "{0}:{1}".F(url.Host, url.Port);
             }
 
             // 构建头部
@@ -248,6 +263,10 @@ namespace NewLife.Net
 
             var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
             if (p < 0) return rs;
+
+#if DEBUG
+            WriteLog(pk.ToStr());
+#endif
 
             // 截取
             var headers = pk.Data.ReadBytes(pk.Offset, p).ToStr().Split("\r\n");
