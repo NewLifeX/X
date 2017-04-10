@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.IO.Compression;
 using System.Text;
 using NewLife.IO;
+#if !__MOBILE__
+using System.IO.Compression;
 using NewLife.Compression;
+#endif
 
 namespace System.IO
 {

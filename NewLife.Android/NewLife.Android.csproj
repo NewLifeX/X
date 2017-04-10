@@ -52,6 +52,9 @@
     <Compile Include="..\NewLife.Core\Collections\CollectionHelper.cs">
       <Link>Collections\CollectionHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Collections\ConcurrentHashSet.cs">
+      <Link>Collections\ConcurrentHashSet.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs">
       <Link>Collections\DictionaryCache.cs</Link>
     </Compile>
@@ -90,6 +93,12 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Extension\BitHelper.cs">
       <Link>Extension\BitHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Extension\ConcurrentDictionaryExtensions.cs">
+      <Link>Extension\ConcurrentDictionaryExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Extension\EndPointExtensions.cs">
+      <Link>Extension\EndPointExtensions.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Extension\EnumHelper.cs">
       <Link>Extension\EnumHelper.cs</Link>
@@ -154,8 +163,14 @@
     <Compile Include="..\NewLife.Core\Messaging\MessageEventArgs.cs">
       <Link>Messaging\MessageEventArgs.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Model\IFactory.cs">
+      <Link>Model\IFactory.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Model\IObjectContainer.cs">
       <Link>Model\IObjectContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\IPlugin.cs">
+      <Link>Model\IPlugin.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Model\IServer.cs">
       <Link>Model\IServer.cs</Link>
@@ -217,9 +232,6 @@
     <Compile Include="..\NewLife.Core\Net\NetUri.cs">
       <Link>Net\NetUri.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Net\PacketStream.cs">
-      <Link>Net\PacketStream.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Net\ReceivedEventArgs.cs">
       <Link>Net\ReceivedEventArgs.cs</Link>
     </Compile>
@@ -231,6 +243,9 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Net\SessionCollection.cs">
       <Link>Net\SessionCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\Setting.cs">
+      <Link>Net\Setting.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Net\SocketHelper.cs">
       <Link>Net\SocketHelper.cs</Link>

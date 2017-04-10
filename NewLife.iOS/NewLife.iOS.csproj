@@ -39,12 +39,14 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\" />
     <Folder Include="Resources\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\newlife.core\collections\CollectionHelper.cs">
       <Link>Collections\CollectionHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Collections\ConcurrentHashSet.cs">
+      <Link>Collections\ConcurrentHashSet.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\collections\DictionaryCache.cs">
       <Link>Collections\DictionaryCache.cs</Link>
@@ -84,6 +86,12 @@
     </Compile>
     <Compile Include="..\newlife.core\extension\BitHelper.cs">
       <Link>Extension\BitHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Extension\ConcurrentDictionaryExtensions.cs">
+      <Link>Extension\ConcurrentDictionaryExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Extension\EndPointExtensions.cs">
+      <Link>Extension\EndPointExtensions.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\extension\EnumHelper.cs">
       <Link>Extension\EnumHelper.cs</Link>
@@ -211,9 +219,6 @@
     <Compile Include="..\newlife.core\net\NetUri.cs">
       <Link>Net\NetUri.cs</Link>
     </Compile>
-    <Compile Include="..\newlife.core\net\PacketStream.cs">
-      <Link>Net\PacketStream.cs</Link>
-    </Compile>
     <Compile Include="..\newlife.core\net\ReceivedEventArgs.cs">
       <Link>Net\ReceivedEventArgs.cs</Link>
     </Compile>
@@ -225,6 +230,9 @@
     </Compile>
     <Compile Include="..\newlife.core\net\SessionCollection.cs">
       <Link>Net\SessionCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\Setting.cs">
+      <Link>Net\Setting.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\net\SocketHelper.cs">
       <Link>Net\SocketHelper.cs</Link>
