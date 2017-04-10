@@ -409,22 +409,14 @@ namespace NewLife.Web
         {
             var file = "";
             var cachedir = Setting.Current.PluginCache;
+            // 下载
             try
             {
                 file = DownloadLink(url, name, cachedir);
-
-                if (!file.IsNullOrEmpty())
-                {
-                    Log.Info("解压缩到 {0}", destdir);
-                    //ZipFile.ExtractToDirectory(file, destdir);
-                    file.AsFile().Extract(destdir, overwrite);
-
-                    return file;
-                }
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                Log.Error(ex?.GetTrue()?.ToString());
 
                 // 这个时候出现异常，删除zip
                 if (!file.IsNullOrEmpty() && File.Exists(file))
@@ -435,11 +427,42 @@ namespace NewLife.Web
                     }
                     catch { }
                 }
+            }
+
+            // 如果下载失败，尝试缓存
+            if (file.IsNullOrEmpty())
+            {
                 try
                 {
                     var fi = CheckCache(name, cachedir);
+                    file = fi?.FullName;
                 }
                 catch { }
+            }
+            if (file.IsNullOrEmpty()) return null;
+
+            // 解压缩
+            try
+            {
+                Log.Info("解压缩到 {0}", destdir);
+                //ZipFile.ExtractToDirectory(file, destdir);
+                file.AsFile().Extract(destdir, overwrite);
+
+                return file;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex?.GetTrue()?.ToString());
+
+                // 这个时候出现异常，删除zip
+                if (!file.IsNullOrEmpty() && File.Exists(file))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch { }
+                }
             }
 
             return null;
