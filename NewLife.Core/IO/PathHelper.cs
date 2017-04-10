@@ -301,7 +301,11 @@ namespace System.IO
                         else
                         {
                             Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
-                            current.ExtractToFile(fullPath, overwrite);
+                            try
+                            {
+                                current.ExtractToFile(fullPath, overwrite);
+                            }
+                            catch { }
                         }
                     }
                 }
