@@ -288,23 +288,23 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override Int32 Truncate(String tableName)
         {
-            BeginTransaction(IsolationLevel.Serializable);
-            try
-            {
-                var sql = "Delete From {0}".F(Database.FormatName(tableName));
-                var rs = Execute(sql);
-                rs += Execute("VACUUM");
-                rs += Execute("Update sqlite_sequence Set seq=0 where name='{0}'".F(Database.FormatName(tableName)));
+            //BeginTransaction(IsolationLevel.Serializable);
+            //try
+            //{
+            var sql = "Delete From {0}".F(Database.FormatName(tableName));
+            var rs = Execute(sql);
+            rs += Execute("VACUUM");
+            rs += Execute("Update sqlite_sequence Set seq=0 where name='{0}'".F(Database.FormatName(tableName)));
 
-                Commit();
+            //Commit();
 
-                return rs;
-            }
-            catch
-            {
-                Rollback();
-                throw;
-            }
+            return rs;
+            //}
+            //catch
+            //{
+            //    Rollback();
+            //    throw;
+            //}
         }
         #endregion
     }
