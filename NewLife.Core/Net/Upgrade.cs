@@ -220,9 +220,9 @@ namespace NewLife.Net
             var sb = new StringBuilder();
 
             // 等待一定时间后，干掉当前进程
-            sb.AppendFormat("{0}\\ping -n 2 127.0.0.1 >nul", Environment.SystemDirectory);
+            sb.AppendFormat("ping -n 2 127.0.0.1 >nul");
             sb.AppendLine();
-            sb.AppendFormat("{0}\\taskkill /F /PID {1}", Environment.SystemDirectory, Process.GetCurrentProcess().Id);
+            sb.AppendFormat("taskkill /F /PID {0}", Process.GetCurrentProcess().Id);
             sb.AppendLine();
 
             // 备份配置文件
@@ -264,7 +264,7 @@ namespace NewLife.Net
             sb.AppendLine();
 #endif
 
-            sb.AppendFormat("{0}\\ping -n 3 127.0.0.1 >nul", Environment.SystemDirectory);
+            sb.AppendFormat("ping -n 3 127.0.0.1 >nul");
             sb.AppendLine();
             sb.AppendLine("exit");
 

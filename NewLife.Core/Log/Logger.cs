@@ -178,6 +178,7 @@ namespace NewLife.Log
             catch { }
             if (!String.IsNullOrEmpty(fileName)) sb.AppendFormat("#FileName: {0}\r\n", fileName);
 
+#if !__CORE__
             // 应用域目录
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             sb.AppendFormat("#BaseDirectory: {0}\r\n", baseDir);
@@ -201,6 +202,7 @@ namespace NewLife.Log
                     sb.AppendFormat("#CommandLine: {0}\r\n", line);
                 }
             }
+#endif
 
 #if __MOBILE__
 #if __ANDROID__
@@ -213,7 +215,10 @@ namespace NewLife.Log
 #else
             sb.AppendFormat("#ApplicationType: {0}\r\n", Runtime.IsWeb ? "Web" : (Runtime.IsConsole ? "Console" : "WinForm"));
 #endif
+
+#if !__CORE__
             sb.AppendFormat("#CLR: {0}\r\n", System.Environment.Version);
+#endif
 
 #if __MOBILE__
 #if __ANDROID__
@@ -224,10 +229,12 @@ namespace NewLife.Log
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", "Mobile", "", "");
 #endif
 #else
+#if !__CORE__
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Runtime.OSName, Environment.UserName, Environment.MachineName);
-            sb.AppendFormat("#CPU: {0}\r\n", Environment.ProcessorCount);
             sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", Runtime.AvailableMemory, Runtime.PhysicalMemory);
 #endif
+#endif
+            sb.AppendFormat("#CPU: {0}\r\n", Environment.ProcessorCount);
 
             sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
             sb.AppendFormat("#字段: 时间 线程ID 线程池Y网页W普通N 线程名 消息内容\r\n");
@@ -235,6 +242,6 @@ namespace NewLife.Log
 
             return sb.ToString();
         }
-        #endregion
+#endregion
     }
 }

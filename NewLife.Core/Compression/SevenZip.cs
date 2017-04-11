@@ -29,6 +29,7 @@ namespace NewLife.Compression
             #endregion
 
             #region 注册表
+#if !__CORE__
             if (p.IsNullOrEmpty())
             {
                 var reg = Registry.LocalMachine.OpenSubKey("Software\\7-Zip");
@@ -40,10 +41,15 @@ namespace NewLife.Compression
                     if (File.Exists(f)) p = f;
                 }
             }
+#endif
             #endregion
 
             #region X组件缓存
+#if !__CORE__
             var cache = Environment.SystemDirectory.CombinePath(@"..\..\X\7z").GetFullPath();
+#else
+            var cache = Path.GetPathRoot(".".GetFullPath()).CombinePath(@"\X\7z").GetFullPath();
+#endif
             if (p.IsNullOrEmpty())
             {
                 var f = cache.CombinePath("7z.exe");
@@ -120,22 +126,25 @@ namespace NewLife.Compression
         {
             WriteLog("{0} {1}", _7z, args);
 
-            var p = new Process();
-            p.StartInfo.WindowStyle = ProcessWindowStyle.Minimized; // 隐藏窗口            
-            p.StartInfo.FileName = _7z;
-            p.StartInfo.CreateNoWindow = false;
-            p.StartInfo.Arguments = args;
-            p.Start();
-            p.WaitForExit();
+            //var p = new Process();
+            //p.StartInfo.WindowStyle = ProcessWindowStyle.Minimized; // 隐藏窗口            
+            //p.StartInfo.FileName = _7z;
+            //p.StartInfo.CreateNoWindow = false;
+            //p.StartInfo.Arguments = args;
+            //p.Start();
+            //p.WaitForExit();
 
-            var rs = 0;
-            if (p.HasExited)
-            {
-                rs = p.ExitCode;
-                p.Close();
-                if (rs != 0 && rs != 1) return false;
-            }
-            return true;
+            //var rs = 0;
+            //if (p.HasExited)
+            //{
+            //    rs = p.ExitCode;
+            //    p.Close();
+            //    if (rs != 0 && rs != 1) return false;
+            //}
+            //return true;
+
+            var rs = _7z.Run(args, 5000);
+            return rs == 0;
         }
         #endregion
 

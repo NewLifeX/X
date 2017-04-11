@@ -184,8 +184,6 @@
     <Compile Include="..\NewLife.Core\Web\Pager.cs" Link="Web\Pager.cs" />
     <Compile Include="..\NewLife.Core\Web\PluginHelper.cs" Link="Web\PluginHelper.cs" />
     <Compile Include="..\NewLife.Core\Web\WebClientX.cs" Link="Web\WebClientX.cs" />
-    <EmbeddedResource Include="..\NewLife.Core\Windows\MySpeech.cs" Link="Windows\MySpeech.cs" />
-    <Compile Include="..\NewLife.Core\Windows\SpeechRecognition.cs" Link="Windows\SpeechRecognition.cs" />
     <Compile Include="..\NewLife.Core\Xml\SerializableDictionary.cs" Link="Xml\SerializableDictionary.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfig.cs" Link="Xml\XmlConfig.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs" Link="Xml\XmlConfigFileAttribute.cs" />
