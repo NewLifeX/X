@@ -4,7 +4,6 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using NewLife;
@@ -288,23 +287,27 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override Int32 Truncate(String tableName)
         {
-            //BeginTransaction(IsolationLevel.Serializable);
-            //try
-            //{
-            var sql = "Delete From {0}".F(Database.FormatName(tableName));
-            var rs = Execute(sql);
-            rs += Execute("VACUUM");
-            rs += Execute("Update sqlite_sequence Set seq=0 where name='{0}'".F(Database.FormatName(tableName)));
+            // 先删除数据再收缩
+            var rs = 0;
+            BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                var sql = "Delete From {0}".F(Database.FormatName(tableName));
+                rs = Execute(sql);
+                rs += Execute("Update sqlite_sequence Set seq=0 where name='{0}'".F(Database.FormatName(tableName)));
 
-            //Commit();
+                Commit();
+            }
+            catch
+            {
+                Rollback();
+                throw;
+            }
+
+            rs += Execute("PRAGMA auto_vacuum = 1");
+            rs += Execute("VACUUM");
 
             return rs;
-            //}
-            //catch
-            //{
-            //    Rollback();
-            //    throw;
-            //}
         }
         #endregion
     }
