@@ -293,7 +293,7 @@ namespace NewLife.Web
         {
             // 一定时间之内，不再重复下载
             var cacheTime = DateTime.Now.AddDays(-1);
-            var cachedir = Setting.Current.PluginCache;
+            var cachedir = Setting.Current.GetPluginCache();
             var names = name.Split(",", ";");
 
             var file = "";
@@ -408,7 +408,8 @@ namespace NewLife.Web
         public String DownloadLinkAndExtract(String url, String name, String destdir, Boolean overwrite = false)
         {
             var file = "";
-            var cachedir = Setting.Current.PluginCache;
+            var cachedir = Setting.Current.GetPluginCache();
+
             // 下载
             try
             {

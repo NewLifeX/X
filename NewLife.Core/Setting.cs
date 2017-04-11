@@ -99,6 +99,40 @@ namespace NewLife
             //else
             return PluginPath.GetBasePath();
         }
+
+        /// <summary>获取插件缓存目录</summary>
+        /// <returns></returns>
+        public String GetPluginCache()
+        {
+            var cachedir = PluginCache;
+
+#if !__MOBILE__
+            // 确保缓存目录可用
+            for (int i = 0; i < 2; i++)
+            {
+                try
+                {
+                    cachedir.EnsureDirectory();
+                    break;
+                }
+                catch
+                {
+                    if (i == 0)
+                    {
+                        var sys = Environment.SystemDirectory;
+                        if (sys.IsNullOrEmpty()) sys = "/";
+                        cachedir = Path.GetPathRoot(sys).CombinePath("X", "Cache");
+                    }
+                    else
+                        cachedir = "..\\Cache".GetFullPath();
+
+                    PluginCache = cachedir;
+                }
+            }
+#endif
+
+            return cachedir;
+        }
         #endregion
     }
 }
