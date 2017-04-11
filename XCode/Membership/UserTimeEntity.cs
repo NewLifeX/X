@@ -155,6 +155,10 @@ namespace XCode.Membership
             var ip = WebHelper.UserHost;
             if (!ip.IsNullOrEmpty())
             {
+                // 如果不是IPv6，去掉后面端口
+                if (ip.Contains("://")) ip = ip.Substring("://", null);
+                if (ip.Contains(":") && !ip.Contains("::")) ip = ip.Substring(null, ":");
+
                 var fs = GetFieldNames(entity.GetType());
 
                 if (isNew)
