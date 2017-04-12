@@ -43,9 +43,10 @@ namespace NewLife.Net
         #region 主要方法
         internal Boolean Add(Packet pk, IPEndPoint remote)
         {
+            var count = pk.Total;
             var ss = Session;
-            ss.StatSend.Increment(pk.Count);
-            if (ss.LogSend) ss.WriteLog("SendAsync [{0}]: {1}", pk.Count, pk.ToHex());
+            ss.StatSend.Increment(count);
+            if (ss.LogSend) ss.WriteLog("SendAsync [{0}]: {1}", count, pk.ToHex());
 
             ss.LastTime = DateTime.Now;
 
@@ -55,7 +56,7 @@ namespace NewLife.Net
             // 同时只允许一个异步发送，其它发送放入队列
 
             // 考虑到超长数据包，拆分为多个包
-            if (pk.Count <= BufferSize)
+            if (count <= BufferSize)
             {
                 var qi = new QueueItem();
                 qi.Packet = pk;
@@ -69,13 +70,14 @@ namespace NewLife.Net
                 var idx = 0;
                 while (true)
                 {
-                    var remain = pk.Count - idx;
+                    var remain = count - idx;
                     if (remain <= 0) break;
 
                     var len = Math.Min(remain, BufferSize);
 
                     var qi = new QueueItem();
-                    qi.Packet = new Packet(pk.Data, pk.Offset + idx, len);
+                    //qi.Packet = new Packet(pk.Data, pk.Offset + idx, len);
+                    qi.Packet = new Packet(pk.ReadBytes(idx, len));
                     qi.Remote = remote;
 
                     _SendQueue.Enqueue(qi);
@@ -132,8 +134,11 @@ namespace NewLife.Net
             while (true)
             {
                 var pk = qi.Packet;
-                var len = pk.Count;
-                Buffer.BlockCopy(pk.Data, pk.Offset, se.Buffer, p, len);
+                var len = pk.Total;
+                if (pk.Next == null)
+                    Buffer.BlockCopy(pk.Data, pk.Offset, se.Buffer, p, len);
+                else
+                    Buffer.BlockCopy(pk.ToArray(), 0, se.Buffer, p, len);
                 p += len;
 
                 // 不足最大长度，试试下一个

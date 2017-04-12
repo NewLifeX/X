@@ -162,7 +162,7 @@ namespace NewLife.Net
         {
             if (Server == null) return null;
 
-            var pk = new Packet(msg.ToArray());
+            var pk = msg.ToPacket();
             var task = Server.SendAsync(pk, Remote.EndPoint, !msg.Reply);
 
             // 如果是响应包，直接返回不等待

@@ -76,8 +76,8 @@ namespace NewLife.Data
             if (Next == null) Data.ReadBytes(Offset, Count);
 
             // 链式包输出
-            var ms = new MemoryStream(Data, Offset, Count);
-            Next.WriteTo(ms);
+            var ms = new MemoryStream();
+            WriteTo(ms);
 
             return ms.ToArray();
         }

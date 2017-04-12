@@ -149,18 +149,22 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         protected override Boolean OnSend(Packet pk)
         {
-            StatSend?.Increment(pk.Count);
-            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
+            var count = pk.Total;
+
+            StatSend?.Increment(count);
+            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
             try
             {
                 // 修改发送缓冲区
-                if (Client.SendBufferSize < pk.Count) Client.SendBufferSize = pk.Count;
+                if (Client.SendBufferSize < count) Client.SendBufferSize = count;
 
-                if (pk.Count == 0)
+                if (count == 0)
                     Client.Send(new Byte[0]);
+                else if (pk.Next == null)
+                    Client.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                 else
-                    Client.Send(pk.Data, pk.Offset, pk.Count, SocketFlags.None);
+                    Client.Send(pk.ToArray(), 0, count, SocketFlags.None);
             }
             catch (Exception ex)
             {

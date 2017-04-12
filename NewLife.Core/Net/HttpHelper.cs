@@ -17,7 +17,7 @@ namespace NewLife.Net
         /// <param name="headers"></param>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public static String MakeRequest(String method, Uri uri, IDictionary<String, Object> headers, Packet pk)
+        public static Packet MakeRequest(String method, Uri uri, IDictionary<String, Object> headers, Packet pk)
         {
             if (method.IsNullOrEmpty()) method = pk?.Count > 0 ? "POST" : "GET";
 
@@ -59,7 +59,10 @@ namespace NewLife.Net
 
             sb.AppendLine();
 
-            return sb.ToString();
+            //return sb.ToString();
+            var rs = new Packet(sb.ToString().GetBytes());
+            rs.Next = pk;
+            return rs;
         }
 
         /// <summary>创建响应包</summary>
@@ -67,7 +70,7 @@ namespace NewLife.Net
         /// <param name="headers"></param>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public static String MakeResponse(HttpStatusCode code, IDictionary<String, Object> headers, Packet pk)
+        public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object> headers, Packet pk)
         {
             // 构建头部
             var sb = new StringBuilder();
@@ -83,7 +86,10 @@ namespace NewLife.Net
 
             sb.AppendLine();
 
-            return sb.ToString();
+            //return sb.ToString();
+            var rs = new Packet(sb.ToString().GetBytes());
+            rs.Next = pk;
+            return rs;
         }
 
         /// <summary>分析头部</summary>
@@ -102,7 +108,7 @@ namespace NewLife.Net
 #endif
 
             // 截取
-            var lines = pk.Data.ReadBytes(pk.Offset, p).ToStr().Split("\r\n");
+            var lines = pk.ReadBytes(0, p).ToStr().Split("\r\n");
             // 重构
             p += 4;
             pk.Set(pk.Data, pk.Offset + p, pk.Count - p);

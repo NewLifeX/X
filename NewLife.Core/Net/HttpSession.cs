@@ -150,13 +150,12 @@ namespace NewLife.Net
             {
                 var pk = context.Packet;
                 var ss = Session;
-                var header = HttpHelper.MakeRequest(ss.Method, ss.Url, ss.Headers, pk);
+                if (ss.Compressed) ss.Headers["Accept-Encoding"] = "gzip, deflate";
+                if (ss.KeepAlive) ss.Headers["Connection"] = "keep-alive";
+                if (!ss.UserAgent.IsNullOrEmpty()) ss.Headers["User-Agent"] = ss.UserAgent;
+                pk = HttpHelper.MakeRequest(ss.Method, ss.Url, ss.Headers, pk);
 
-                // 合并
-                var ms = new MemoryStream();
-                ms.Write(header.GetBytes());
-                if (pk.Count > 0) pk.WriteTo(ms);
-                pk.Set(ms.ToArray());
+                context.Packet = pk;
 #if DEBUG
                 Session.WriteLog(pk.ToStr());
 #endif
@@ -175,13 +174,9 @@ namespace NewLife.Net
             {
                 var pk = context.Packet;
                 var ss = Session;
-                var header = HttpHelper.MakeResponse(ss.StatusCode, ss.ResponseHeaders, pk);
+                pk = HttpHelper.MakeResponse(ss.StatusCode, ss.ResponseHeaders, pk);
 
-                // 合并
-                var ms = new MemoryStream();
-                ms.Write(header.GetBytes());
-                if (pk.Count > 0) pk.WriteTo(ms);
-                pk.Set(ms.ToArray());
+                context.Packet = pk;
 #if DEBUG
                 Session.WriteLog(pk.ToStr());
 #endif

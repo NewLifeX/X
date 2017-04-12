@@ -62,7 +62,7 @@ namespace NewLife.Messaging
             if (pk.Count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足4字节");
 
             var size = 4;
-            var buf = pk.Data.ReadBytes(pk.Offset, size);
+            var buf = pk.ReadBytes(0, size);
 
             // 检查纯字符串以字符0或8开头，所以二进制消息不许用0x30和0x38开头
             if (buf[0] == '0' || buf[0] == '8')
@@ -71,7 +71,7 @@ namespace NewLife.Messaging
                 size = 8;
                 if (pk.Count < size) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足{0}字节".F(size));
 
-                buf = pk.Data.ReadBytes(pk.Offset, size).ToStr().ToHex();
+                buf = pk.ReadBytes(0, size).ToStr().ToHex();
             }
 
             Flag = buf[0];
@@ -88,31 +88,31 @@ namespace NewLife.Messaging
             return true;
         }
 
-        /// <summary>把消息写入到数据流中</summary>
-        /// <param name="stream"></param>
-        public override void Write(Stream stream)
+        /// <summary>把消息转为封包</summary>
+        /// <returns></returns>
+        public override Packet ToPacket()
         {
-            var ms = stream;
-            if (_IsChar) ms = new MemoryStream();
+            var buf = new Byte[4];
 
             // 标记位
             var b = Flag;
             if (Reply) b |= 0x80;
             //if (Error) b |= 0x40;
-            ms.WriteByte(b);
+            buf[0] = b;
 
             // 序列号
-            ms.WriteByte(Sequence);
+            buf[1] = Sequence;
 
             // 2字节长度，小端字节序
             var len = 0;
             if (Payload != null) len = Payload.Count;
-            ms.WriteByte((Byte)(len & 0xFF));
-            ms.WriteByte((Byte)(len >> 8));
+            buf[2] = (Byte)(len & 0xFF);
+            buf[3] = (Byte)(len >> 8);
 
-            if (_IsChar) stream.Write(ms.ToArray());
+            var rs = new Packet(buf);
+            rs.Next = Payload;
 
-            Payload?.WriteTo(stream);
+            return rs;
         }
         #endregion
     }

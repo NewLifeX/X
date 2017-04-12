@@ -19,7 +19,7 @@ namespace NewLife.Net
         protected override void OnReceive(ReceivedEventArgs e)
         {
             var pk = e.Packet;
-            if (!_HandeShake && pk.ToArray().StartsWith(_prefix))
+            if (!_HandeShake && pk.ReadBytes(0, _prefix.Length).StartsWith(_prefix))
             {
                 HandeShake(pk.ToStr());
 

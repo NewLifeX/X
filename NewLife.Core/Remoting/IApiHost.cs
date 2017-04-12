@@ -131,6 +131,7 @@ namespace NewLife.Remoting
                 item.Execute(ctx);
                 //Log.Debug("{0}:{1}", item.GetType().Name, ctx.Packet.ToHex());
             }
+            msg.Payload = ctx.Packet;
         }
     }
 }

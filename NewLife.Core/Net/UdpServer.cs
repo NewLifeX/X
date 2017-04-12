@@ -22,7 +22,7 @@ namespace NewLife.Net
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
-        public Int32 SessionTimeout { get; set; } 
+        public Int32 SessionTimeout { get; set; }
 
         /// <summary>最后一次同步接收数据得到的远程地址</summary>
         public IPEndPoint LastRemote { get; set; }
@@ -118,7 +118,9 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         protected override Boolean OnSend(Packet pk)
         {
-            StatSend?.Increment(pk.Count);
+            var count = pk.Total;
+
+            StatSend?.Increment(count);
 
             try
             {
@@ -127,16 +129,22 @@ namespace NewLife.Net
                 {
                     if (Client.Connected)
                     {
-                        if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
+                        if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
-                        sp.Send(pk.Data, pk.Offset, pk.Count, SocketFlags.None);
+                        if (pk.Next == null)
+                            sp.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                        else
+                            sp.Send(pk.ToArray(), 0, count, SocketFlags.None);
                     }
                     else
                     {
                         Client.CheckBroadcast(Remote.Address);
-                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", pk.Count, pk.ToHex(), Remote.EndPoint);
+                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(), Remote.EndPoint);
 
-                        sp.SendTo(pk.Data, pk.Offset, pk.Count, SocketFlags.None, Remote.EndPoint);
+                        if (pk.Next == null)
+                            sp.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, Remote.EndPoint);
+                        else
+                            sp.SendTo(pk.ToArray(), 0, count, SocketFlags.None, Remote.EndPoint);
                     }
                 }
 

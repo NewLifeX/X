@@ -504,7 +504,7 @@ namespace NewLife.Net
         {
             if (msg == null) throw new ArgumentNullException(nameof(msg));
 
-            var pk = new Packet(msg.ToArray());
+            var pk = msg.ToPacket();
             if (Packet == null) Packet = new PacketProvider();
 
             var task = msg.Reply ? null : Packet.Add(pk, Remote.EndPoint, Timeout);
