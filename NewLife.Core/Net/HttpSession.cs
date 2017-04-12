@@ -95,7 +95,7 @@ namespace NewLife.Net
             {
                 var client = _Server == null;
                 // 客户端收到响应，服务端收到请求
-                IDictionary<String, Object> rs = null;
+                var rs = client ? ResponseHeaders : Headers;
 
                 // 是否全新请求
                 if (_next < DateTime.Now || _cache == null)
@@ -115,19 +115,25 @@ namespace NewLife.Net
                         Url = rs["Url"] as Uri;
                     }
 
-                    _cache = new MemoryStream();
+                    if (pk.Count > 0) _cache = new MemoryStream();
                 }
 
-                if (pk.Count > 0) pk.WriteTo(_cache);
-                _next = DateTime.Now.AddSeconds(1);
+                if (pk.Count > 0)
+                {
+                    pk.WriteTo(_cache);
+                    _next = DateTime.Now.AddSeconds(1);
+                }
 
                 // 如果长度不足
                 var len = rs["Content-Length"].ToInt();
-                if (len > 0 && _cache.Length < len) return;
+                if (len > 0 && (_cache == null || _cache.Length < len)) return;
 
-                _cache.Position = 0;
-                pk = new Packet(_cache.ReadBytes());
-                _cache = null;
+                if (_cache != null)
+                {
+                    _cache.Position = 0;
+                    pk = new Packet(_cache.ReadBytes());
+                    _cache = null;
+                }
 
                 if (client)
                     base.OnReceive(pk, remote);
@@ -157,7 +163,7 @@ namespace NewLife.Net
 
                 context.Packet = pk;
 #if DEBUG
-                Session.WriteLog(pk.ToStr());
+                //Session.WriteLog(pk.ToStr());
 #endif
 
                 return true;
@@ -178,7 +184,7 @@ namespace NewLife.Net
 
                 context.Packet = pk;
 #if DEBUG
-                Session.WriteLog(pk.ToStr());
+                //Session.WriteLog(pk.ToStr());
 #endif
 
                 return true;
