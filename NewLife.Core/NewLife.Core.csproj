@@ -156,7 +156,6 @@
     <Compile Include="Net\Upgrade.cs" />
     <Compile Include="Net\SessionBase.cs" />
     <Compile Include="Net\ISocketSession.cs" />
-    <Compile Include="Net\WebSocketSession.cs" />
     <Compile Include="Properties\AssemblyInfo_.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\StringHelper.cs" />

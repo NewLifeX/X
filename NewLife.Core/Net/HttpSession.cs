@@ -180,6 +180,9 @@ namespace NewLife.Net
             {
                 var pk = context.Packet;
                 var ss = Session;
+
+                if (ss.IsWebSocket) pk = HttpHelper.MakeWS(pk);
+
                 pk = HttpHelper.MakeResponse(ss.StatusCode, ss.ResponseHeaders, pk);
 
                 context.Packet = pk;
@@ -199,11 +202,41 @@ namespace NewLife.Net
         {
             StatusCode = HttpStatusCode.OK;
 
+            // WebSocket
+            if (CheckWebSocket(ref pk, remote)) return true;
+
             if (pk.Count > 0) return base.OnReceive(pk, remote);
 
             // 请求内容为空
             var html = "请求 {0} 内容为空！".F(Url);
             Send(new Packet(html.GetBytes()));
+
+            return true;
+        }
+        #endregion
+
+        #region WebSocket
+        /// <summary>检查WebSocket</summary>
+        /// <param name="pk"></param>
+        /// <param name="remote"></param>
+        /// <returns></returns>
+        protected virtual Boolean CheckWebSocket(ref Packet pk, IPEndPoint remote)
+        {
+            if (!IsWebSocket)
+            {
+                var key = Headers["Sec-WebSocket-Key"] + "";
+                if (key.IsNullOrEmpty()) return false;
+
+                IsWebSocket = true;
+                DisconnectWhenEmptyData = false;
+
+                pk = HttpHelper.HandeShake(key);
+                if (pk != null) Send(pk);
+            }
+            else
+            {
+                pk = HttpHelper.ParseWS(pk);
+            }
 
             return true;
         }
