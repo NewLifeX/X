@@ -101,9 +101,9 @@ namespace NewLife.Web
 
             if (AutomaticDecompression != DecompressionMethods.None) http.Compressed = true;
 
-            if (!String.IsNullOrEmpty(Accept)) http.Headers[HttpRequestHeader.Accept] = Accept;
-            if (!String.IsNullOrEmpty(AcceptLanguage)) http.Headers[HttpRequestHeader.AcceptLanguage] = AcceptLanguage;
-            if (!String.IsNullOrEmpty(Referer)) http.Headers[HttpRequestHeader.Referer] = Referer;
+            if (!String.IsNullOrEmpty(Accept)) http.Headers[HttpRequestHeader.Accept + ""] = Accept;
+            if (!String.IsNullOrEmpty(AcceptLanguage)) http.Headers[HttpRequestHeader.AcceptLanguage + ""] = AcceptLanguage;
+            if (!String.IsNullOrEmpty(Referer)) http.Headers[HttpRequestHeader.Referer + ""] = Referer;
 
             return http;
         }
@@ -158,7 +158,7 @@ namespace NewLife.Web
                     case HttpStatusCode.MovedPermanently:
                     case HttpStatusCode.Redirect:
                     case HttpStatusCode.RedirectMethod:
-                        var url = http.ResponseHeaders[HttpResponseHeader.Location];
+                        var url = http.ResponseHeaders[HttpResponseHeader.Location + ""] + "";
                         if (!url.IsNullOrEmpty())
                         {
                             address = url;
@@ -173,7 +173,7 @@ namespace NewLife.Web
                 // 解压缩
                 if (buf != null)
                 {
-                    var enc = http.ResponseHeaders[HttpResponseHeader.ContentEncoding];
+                    var enc = http.ResponseHeaders[HttpResponseHeader.ContentEncoding + ""] + "";
                     if (enc.EqualIgnoreCase("gzip"))
                     {
                         var ms = new MemoryStream(buf);

@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using NewLife.Collections;
 using NewLife.Data;
 
 namespace NewLife.Net
@@ -18,7 +19,7 @@ namespace NewLife.Net
         public Boolean IsSSL { get; set; }
 
         /// <summary>Http方法</summary>
-        public String Method { get; set; } = "GET";
+        public String Method { get; set; }
 
         /// <summary>资源路径</summary>
         public Uri Url { get; set; }
@@ -33,13 +34,13 @@ namespace NewLife.Net
         public Boolean KeepAlive { get; set; }
 
         /// <summary>头部集合</summary>
-        public WebHeaderCollection Headers { get; set; } = new WebHeaderCollection();
+        public IDictionary<String, Object> Headers { get; set; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>状态码</summary>
         public HttpStatusCode StatusCode { get; set; }
 
         /// <summary>响应头</summary>
-        public WebHeaderCollection ResponseHeaders { get; } = new WebHeaderCollection();
+        public IDictionary<String, Object> ResponseHeaders { get; set; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
         #endregion
 
         #region 构造
@@ -94,13 +95,25 @@ namespace NewLife.Net
             {
                 var client = _Server == null;
                 // 客户端收到响应，服务端收到请求
-                var rs = client ? ResponseHeaders : Headers;
+                IDictionary<String, Object> rs = null;
 
                 // 是否全新请求
                 if (_next < DateTime.Now || _cache == null)
                 {
                     // 分析头部
-                    ParseHeader(pk, client);
+                    //ParseHeader(pk, client);
+                    rs = HttpHelper.ParseHeader(pk);
+                    if (client)
+                    {
+                        ResponseHeaders = rs;
+                        StatusCode = (HttpStatusCode)rs["StatusCode"];
+                    }
+                    else
+                    {
+                        Headers = rs;
+                        Method = rs["Method"] as String;
+                        Url = rs["Url"] as Uri;
+                    }
 
                     _cache = new MemoryStream();
                 }
@@ -136,7 +149,8 @@ namespace NewLife.Net
             protected override Boolean OnExecute(FilterContext context)
             {
                 var pk = context.Packet;
-                var header = Session.MakeRequest(pk);
+                var ss = Session;
+                var header = HttpHelper.MakeRequest(ss.Method, ss.Url, ss.Headers, pk);
 
                 // 合并
                 var ms = new MemoryStream();
@@ -160,7 +174,8 @@ namespace NewLife.Net
             protected override Boolean OnExecute(FilterContext context)
             {
                 var pk = context.Packet;
-                var header = Session.MakeResponse(pk);
+                var ss = Session;
+                var header = HttpHelper.MakeResponse(ss.StatusCode, ss.ResponseHeaders, pk);
 
                 // 合并
                 var ms = new MemoryStream();
@@ -190,129 +205,6 @@ namespace NewLife.Net
             Send(new Packet(html.GetBytes()));
 
             return true;
-        }
-        #endregion
-
-        #region Http封包解包
-        private String MakeRequest(Packet pk)
-        {
-            if (pk?.Count > 0) Method = "POST";
-
-            // 分解主机和资源
-            var host = Remote.Host;
-            var url = Url;
-            if (url == null) url = new Uri("/");
-
-            if (url.Scheme.EqualIgnoreCase("http"))
-            {
-                if (url.Port == 80)
-                    host = url.Host;
-                else
-                    host = "{0}:{1}".F(url.Host, url.Port);
-            }
-            else if (url.Scheme.EqualIgnoreCase("https"))
-            {
-                if (url.Port == 443)
-                    host = url.Host;
-                else
-                    host = "{0}:{1}".F(url.Host, url.Port);
-            }
-
-            // 构建头部
-            var sb = new StringBuilder();
-            sb.AppendFormat("{0} {1} HTTP/1.1\r\n", Method, url.PathAndQuery);
-            sb.AppendFormat("Host:{0}\r\n", host);
-
-            if (Compressed) sb.AppendLine("Accept-Encoding:gzip, deflate");
-            if (KeepAlive) sb.AppendLine("Connection:keep-alive");
-            if (!UserAgent.IsNullOrEmpty()) sb.AppendFormat("User-Agent:{0}\r\n", UserAgent);
-
-            // 内容长度
-            if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
-
-            foreach (var item in Headers.AllKeys)
-            {
-                sb.AppendFormat("{0}:{1}\r\n", item, Headers[item]);
-            }
-
-            sb.AppendLine();
-
-            return sb.ToString();
-        }
-
-        private String MakeResponse(Packet pk)
-        {
-            // 构建头部
-            var sb = new StringBuilder();
-            sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)StatusCode, StatusCode);
-
-            // 内容长度
-            if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
-
-            foreach (var item in ResponseHeaders.AllKeys)
-            {
-                sb.AppendFormat("{0}:{1}\r\n", item, ResponseHeaders[item]);
-            }
-
-            sb.AppendLine();
-
-            return sb.ToString();
-        }
-
-        private WebHeaderCollection ParseHeader(Packet pk, Boolean client)
-        {
-            // 客户端收到响应，服务端收到请求
-            var rs = client ? ResponseHeaders : Headers;
-
-            var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
-            if (p < 0) return rs;
-
-#if DEBUG
-            WriteLog(pk.ToStr());
-#endif
-
-            // 截取
-            var headers = pk.Data.ReadBytes(pk.Offset, p).ToStr().Split("\r\n");
-            // 重构
-            p += 4;
-            pk.Set(pk.Data, pk.Offset + p, pk.Count - p);
-
-            // 分析头部
-            rs.Clear();
-            var line = headers[0];
-            for (var i = 1; i < headers.Length; i++)
-            {
-                line = headers[i];
-                p = line.IndexOf(':');
-                if (p > 0) rs.Set(line.Substring(0, p), line.Substring(p + 1));
-            }
-
-            line = headers[0];
-            var ss = line.Split(" ");
-            // 分析请求方法 GET / HTTP/1.1
-            if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
-            {
-                Method = ss[0];
-
-                // 构造资源路径
-                var host = rs[HttpRequestHeader.Host];
-                var uri = "{0}://{1}".F(IsSSL ? "https" : "http", host);
-                if (host.IsNullOrEmpty() || !host.Contains(":"))
-                {
-                    var port = Local.Port;
-                    if (IsSSL && port != 443 || !IsSSL && port != 80) uri += ":" + port;
-                }
-                uri += ss[1];
-                Url = new Uri(uri);
-            }
-            else
-            {
-                // 分析响应码
-                var code = ss[1].ToInt();
-                if (code > 0) StatusCode = (HttpStatusCode)code;
-            }
-
-            return rs;
         }
         #endregion
     }
