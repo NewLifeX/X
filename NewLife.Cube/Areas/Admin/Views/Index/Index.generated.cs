@@ -154,28 +154,17 @@ WriteAttribute("href", Tuple.Create(" href=\"", 1012), Tuple.Create("\"", 1056)
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteLiteral(" />\r\n\r\n    <!--[if lte IE 9]>\r\n        <link");
+WriteLiteral(@" />
 
-WriteLiteral(" rel=\"stylesheet\"");
-
-WriteAttribute("href", Tuple.Create(" href=\"", 1135), Tuple.Create("\"", 1177)
-, Tuple.Create(Tuple.Create("", 1142), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/css/ace-part2.min.css")
-, 1142), false)
-);
-
-WriteLiteral(" class=\"ace-main-stylesheet\"");
-
-WriteLiteral(" />\r\n    <![endif]-->\r\n    <!--[if lte IE 9]>\r\n        <link");
-
-WriteLiteral(" rel=\"stylesheet\"");
-
-WriteAttribute("href", Tuple.Create(" href=\"", 1283), Tuple.Create("\"", 1322)
-, Tuple.Create(Tuple.Create("", 1290), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/css/ace-ie.min.css")
-, 1290), false)
-);
-
-WriteLiteral(" />\r\n    <![endif]-->\r\n    <!-- inline styles related to this page -->\r\n    <!-- " +
-"自定义样式 -->\r\n    <link");
+    <!--[if lte IE 9]>
+        <link rel=""stylesheet"" href=""~/Content/ace/css/ace-part2.min.css"" class=""ace-main-stylesheet"" />
+    <![endif]-->
+    <!--[if lte IE 9]>
+        <link rel=""stylesheet"" href=""~/Content/ace/css/ace-ie.min.css"" />
+    <![endif]-->
+    <!-- inline styles related to this page -->
+    <!-- 自定义样式 -->
+    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
@@ -193,22 +182,15 @@ WriteAttribute("src", Tuple.Create(" src=\"", 1534), Tuple.Create("\"", 1573)
 , 1540), false)
 );
 
-WriteLiteral("></script>\r\n\r\n    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements" +
-" and media queries -->\r\n    <!--[if lte IE 8]>\r\n    <script");
+WriteLiteral(@"></script>
 
-WriteAttribute("src", Tuple.Create(" src=\"", 1714), Tuple.Create("\"", 1749)
-, Tuple.Create(Tuple.Create("", 1720), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
-, 1720), false)
-);
-
-WriteLiteral("></script>\r\n    <script");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 1773), Tuple.Create("\"", 1806)
-, Tuple.Create(Tuple.Create("", 1779), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
-, 1779), false)
-);
-
-WriteLiteral("></script>\r\n    <![endif]-->\r\n    <!-- JQuery作为一等公民，页面内部随时可能使用 -->\r\n    <script");
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+    <!--[if lte IE 8]>
+    <script src=""~/Content/js/html5shiv.min.js""></script>
+    <script src=""~/Content/js/respond.min.js""></script>
+    <![endif]-->
+    <!-- JQuery作为一等公民，页面内部随时可能使用 -->
+    <script");
 
 WriteAttribute("src", Tuple.Create(" src=\"", 1886), Tuple.Create("\"", 1924)
 , Tuple.Create(Tuple.Create("", 1892), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
@@ -272,6 +254,10 @@ WriteLiteral(">\r\n                    <button");
 
 WriteLiteral(" class=\"btn btn-success\"");
 
+WriteLiteral(" onclick=\"$(\'#main\').attr(\'src\', \'/Admin/Index/Main\');\"");
+
+WriteLiteral(" title=\"服务器信息\"");
+
 WriteLiteral(">\r\n                        <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-signal\"");
@@ -279,6 +265,10 @@ WriteLiteral(" class=\"ace-icon fa fa-signal\"");
 WriteLiteral("></i>\r\n                    </button>\r\n\r\n                    <button");
 
 WriteLiteral(" class=\"btn btn-info\"");
+
+WriteLiteral(" onclick=\"$(\'#main\').attr(\'src\', \'/Admin/Log\');\"");
+
+WriteLiteral(" title=\"系统日志\"");
 
 WriteLiteral(">\r\n                        <i");
 
@@ -289,6 +279,10 @@ WriteLiteral("></i>\r\n                    </button>\r\n\r\n                    
 
 WriteLiteral(" class=\"btn btn-warning\"");
 
+WriteLiteral(" onclick=\"$(\'#main\').attr(\'src\', \'/Admin/Menu\');\"");
+
+WriteLiteral(" title=\"系统菜单\"");
+
 WriteLiteral(">\r\n                        <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-users\"");
@@ -296,6 +290,10 @@ WriteLiteral(" class=\"ace-icon fa fa-users\"");
 WriteLiteral("></i>\r\n                    </button>\r\n\r\n                    <button");
 
 WriteLiteral(" class=\"btn btn-danger\"");
+
+WriteLiteral(" onclick=\"$(\'#main\').attr(\'src\', \'/Admin/Sys\');\"");
+
+WriteLiteral(" title=\"系统设置\"");
 
 WriteLiteral(">\r\n                        <i");
 
@@ -636,14 +634,14 @@ WriteLiteral(" id=\"main\"");
 
 WriteLiteral(" name=\"main\"");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 10452), Tuple.Create("\"", 10471)
+WriteAttribute("src", Tuple.Create(" src=\"", 10705), Tuple.Create("\"", 10724)
             
             #line 208 "..\..\Areas\Admin\Views\Index\Index.cshtml"
-                                              , Tuple.Create(Tuple.Create("", 10458), Tuple.Create<System.Object, System.Int32>(ViewBag.Main
+                                              , Tuple.Create(Tuple.Create("", 10711), Tuple.Create<System.Object, System.Int32>(ViewBag.Main
             
             #line default
             #line hidden
-, 10458), false)
+, 10711), false)
 );
 
 WriteLiteral("></iframe>\r\n                </div>\r\n                <!-- /.page-content -->\r\n    " +
@@ -714,83 +712,88 @@ WriteLiteral(" class=\"ace-icon fa fa-angle-double-up icon-only bigger-110\"");
 WriteLiteral("></i>\r\n        </a>\r\n    </div>\r\n    <!-- /.main-container -->\r\n    <!-- basic sc" +
 "ripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12044), Tuple.Create("\"", 12089)
-, Tuple.Create(Tuple.Create("", 12050), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 12050), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12297), Tuple.Create("\"", 12342)
+, Tuple.Create(Tuple.Create("", 12303), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 12303), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12113), Tuple.Create("\"", 12155)
-, Tuple.Create(Tuple.Create("", 12119), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
-, 12119), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12366), Tuple.Create("\"", 12408)
+, Tuple.Create(Tuple.Create("", 12372), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
+, 12372), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12179), Tuple.Create("\"", 12226)
-, Tuple.Create(Tuple.Create("", 12185), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
-, 12185), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12432), Tuple.Create("\"", 12479)
+, Tuple.Create(Tuple.Create("", 12438), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
+, 12438), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- ace scripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12278), Tuple.Create("\"", 12320)
-, Tuple.Create(Tuple.Create("", 12284), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
-, 12284), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12531), Tuple.Create("\"", 12573)
+, Tuple.Create(Tuple.Create("", 12537), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
+, 12537), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12344), Tuple.Create("\"", 12377)
-, Tuple.Create(Tuple.Create("", 12350), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
-, 12350), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12597), Tuple.Create("\"", 12630)
+, Tuple.Create(Tuple.Create("", 12603), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
+, 12603), false)
 );
 
 WriteLiteral("></script>\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12420), Tuple.Create("\"", 12469)
-, Tuple.Create(Tuple.Create("", 12426), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
-, 12426), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12673), Tuple.Create("\"", 12722)
+, Tuple.Create(Tuple.Create("", 12679), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
+, 12679), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12493), Tuple.Create("\"", 12542)
-, Tuple.Create(Tuple.Create("", 12499), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
-, 12499), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 12746), Tuple.Create("\"", 12795)
+, Tuple.Create(Tuple.Create("", 12752), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
+, 12752), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <script");
 
 WriteLiteral(" type=\"text/javascript\"");
 
-WriteLiteral(">\r\n        $(function () {\r\n            var $frmContent = $(\'#main\');\r\n          " +
-"  function fixFrmContentSize() {\r\n                var offset = $frmContent.offse" +
-"t();\r\n                var top = offset.top;\r\n                var height = docume" +
-"nt.documentElement.clientHeight;\r\n                $frmContent.height(height - to" +
-"p);\r\n            }\r\n            fixFrmContentSize();\r\n            $(window).resi" +
-"ze(fixFrmContentSize);\r\n\r\n            //增加iframe被嵌套的检测2015-6-4 景裔增加\r\n           " +
-" if (window != top) {\r\n                top.location.href = location.href;\r\n     " +
-"       }\r\n\r\n            //菜单active样式\r\n            $(\".nav-list\").children(\"li\")." +
-"click(function () {\r\n                var $this = $(this);\r\n                $this" +
-".siblings(\"li\").each(function () {\r\n                    var $item = $(this);\r\n  " +
+WriteLiteral(">\r\n                $(function () {\r\n                    var $frmContent = $(\'#mai" +
+"n\');\r\n                    function fixFrmContentSize() {\r\n                      " +
+"  var offset = $frmContent.offset();\r\n                        var top = offset.t" +
+"op;\r\n                        var height = document.documentElement.clientHeight;" +
+"\r\n                        $frmContent.height(height - top);\r\n                   " +
+" }\r\n                    fixFrmContentSize();\r\n                    $(window).resi" +
+"ze(fixFrmContentSize);\r\n\r\n                    //增加iframe被嵌套的检测2015-6-4 景裔增加\r\n   " +
+"                 if (window != top) {\r\n                        top.location.href" +
+" = location.href;\r\n                    }\r\n\r\n                    //菜单active样式\r\n  " +
+"                  $(\".nav-list\").children(\"li\").click(function () {\r\n           " +
+"             var $this = $(this);\r\n                        $this.siblings(\"li\")." +
+"each(function () {\r\n                            var $item = $(this);\r\n          " +
 "                  if ($item.attr(\"class\") == \"open\") {\r\n                        " +
-"$item.removeClass(\"open\");\r\n                        $item.children(\".submenu\").h" +
-"ide();\r\n                    }\r\n                });\r\n                $this.addCla" +
-"ss(\'open\');\r\n            });\r\n\r\n            $(\".submenu li\").click(function () {" +
-"\r\n                var $this = $(this);\r\n                //兄弟节点去焦\r\n              " +
-"  $this.siblings(\"li\").removeClass(\"active\");\r\n                $this.addClass(\'a" +
-"ctive\');\r\n                //父节点获取焦点\r\n                var $parent = $this.parent(" +
-").parent();\r\n                $parent.addClass(\"active\");\r\n                $paren" +
-"t.siblings(\"li\").each(function () {\r\n                    var $item = $(this);\r\n " +
-"                   $item.removeClass(\"open\").removeClass(\"active\");\r\n           " +
-"         $item.children(\".submenu\").hide();\r\n                    if ($item.child" +
-"ren(\".submenu\").length != 0) {\r\n                        $item.children(\".submenu" +
-"\").children(\"li\").removeClass(\"active\");\r\n                    }\r\n               " +
-" });\r\n            });\r\n        });\r\n\r\n    </script>\r\n</body>\r\n</html>");
+"        $item.removeClass(\"open\");\r\n                                $item.childr" +
+"en(\".submenu\").hide();\r\n                            }\r\n                        }" +
+");\r\n                        $this.addClass(\'open\');\r\n                    });\r\n\r\n" +
+"                    $(\".submenu li\").click(function () {\r\n                      " +
+"  var $this = $(this);\r\n                        //兄弟节点去焦\r\n                      " +
+"  $this.siblings(\"li\").removeClass(\"active\");\r\n                        $this.add" +
+"Class(\'active\');\r\n                        //父节点获取焦点\r\n                        var" +
+" $parent = $this.parent().parent();\r\n                        $parent.addClass(\"a" +
+"ctive\");\r\n                        $parent.siblings(\"li\").each(function () {\r\n   " +
+"                         var $item = $(this);\r\n                            $item" +
+".removeClass(\"open\").removeClass(\"active\");\r\n                            $item.c" +
+"hildren(\".submenu\").hide();\r\n                            if ($item.children(\".su" +
+"bmenu\").length != 0) {\r\n                                $item.children(\".submenu" +
+"\").children(\"li\").removeClass(\"active\");\r\n                            }\r\n       " +
+"                 });\r\n                    });\r\n                });\r\n\r\n    </scri" +
+"pt>\r\n</body>\r\n</html>");
 
         }
     }
