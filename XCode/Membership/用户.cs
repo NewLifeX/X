@@ -67,28 +67,28 @@ namespace XCode.Membership
             set { if (OnPropertyChanging(__.DisplayName, value)) { _DisplayName = value; OnPropertyChanged(__.DisplayName); } }
         }
 
-        private Int32 _Sex;
-        /// <summary>性别。未知、男、女</summary>
-        [DisplayName("性别")]
-        [Description("性别。未知、男、女")]
-        [DataObjectField(false, false, true, 10)]
-        [BindColumn(5, "Sex", "性别。未知、男、女", null, "int", 10, 0, false)]
-        public virtual Int32 Sex
-        {
-            get { return _Sex; }
-            set { if (OnPropertyChanging(__.Sex, value)) { _Sex = value; OnPropertyChanged(__.Sex); } }
-        }
-
         private String _Mail;
         /// <summary>邮件</summary>
         [DisplayName("邮件")]
         [Description("邮件")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(6, "Mail", "邮件", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(5, "Mail", "邮件", null, "nvarchar(50)", 0, 0, true)]
         public virtual String Mail
         {
             get { return _Mail; }
             set { if (OnPropertyChanging(__.Mail, value)) { _Mail = value; OnPropertyChanged(__.Mail); } }
+        }
+
+        private Int32 _Sex;
+        /// <summary>性别。未知、男、女</summary>
+        [DisplayName("性别")]
+        [Description("性别。未知、男、女")]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn(6, "Sex", "性别。未知、男、女", null, "int", 10, 0, false)]
+        public virtual Int32 Sex
+        {
+            get { return _Sex; }
+            set { if (OnPropertyChanging(__.Sex, value)) { _Sex = value; OnPropertyChanged(__.Sex); } }
         }
 
         private String _Phone;
