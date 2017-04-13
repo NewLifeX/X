@@ -242,6 +242,12 @@ namespace NewLife.Cube
                 if (!atts.ContainsKey("type")) atts.Add("type", "tel");
                 txt = Html.TextBox(name, value, atts);
             }
+            else if (name.EqualIgnoreCase("MobilePhone", "CellularPhone"))
+            {
+                ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-phone\"></i></span>";
+                if (!atts.ContainsKey("type")) atts.Add("type", "tel");
+                txt = Html.TextBox(name, value, atts);
+            }
             else if (name.EqualIgnoreCase("email", "mail"))
             {
                 ico = "<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-envelope\"></i></span>";
