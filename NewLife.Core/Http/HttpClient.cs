@@ -18,29 +18,11 @@ namespace NewLife.Http
         /// <summary>资源路径</summary>
         public Uri Url { get; set; }
 
-        /// <summary>是否WebSocket</summary>
-        public Boolean IsWebSocket { get; set; }
+        /// <summary>请求</summary>
+        public HttpRequest Request { get; set; } = new HttpRequest();
 
-        /// <summary>是否启用SSL</summary>
-        public Boolean IsSSL { get; set; }
-
-        /// <summary>用户代理</summary>
-        public String UserAgent { get; set; }
-
-        /// <summary>是否压缩</summary>
-        public Boolean Compressed { get; set; }
-
-        /// <summary>保持连接</summary>
-        public Boolean KeepAlive { get; set; }
-
-        /// <summary>状态码</summary>
-        public HttpStatusCode StatusCode { get; set; }
-
-        /// <summary>头部集合</summary>
-        public IDictionary<String, Object> Headers { get; set; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>响应头</summary>
-        public IDictionary<String, Object> Response { get; set; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>响应</summary>
+        public HttpResponse Response { get; set; }
         #endregion
 
         #region 构造
@@ -63,15 +45,13 @@ namespace NewLife.Http
             if (!Active && Remote.Port == 0) Remote.Port = 80;
 
             // 添加过滤器
-            if (SendFilter == null) SendFilter = new HttpRequestFilter { Session = this };
+            if (SendFilter == null) SendFilter = new HttpRequestFilter { Client = this };
 
             return base.OnOpen();
         }
         #endregion
 
         #region 收发数据
-        private MemoryStream _cache;
-        private DateTime _next;
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
@@ -85,50 +65,35 @@ namespace NewLife.Http
                 return;
             }
 
+            /*
+             * 解析流程：
+             *  首次访问或过期，创建请求对象
+             *      判断头部是否完整
+             *          --判断主体是否完整
+             *              触发新的请求
+             *          --加入缓存
+             *      加入缓存
+             *  触发收到数据
+             */
+
             try
             {
-                var client = _Server == null;
-                // 客户端收到响应，服务端收到请求
-                var rs = client ? Response : Headers;
+                var header = Response;
 
                 // 是否全新请求
-                if (_next < DateTime.Now || _cache == null)
+                if (header == null || !header.IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
                 {
+                    Response = new HttpResponse { Expire = DateTime.Now.AddSeconds(5) };
+                    header = Response;
+
                     // 分析头部
-                    rs = HttpHelper.ParseHeader(pk);
-                    if (client)
-                    {
-                        Response = rs;
-                        StatusCode = (HttpStatusCode)rs["StatusCode"];
-                    }
-                    else
-                    {
-                        Headers = rs;
-                        Method = rs["Method"] as String;
-                        Url = rs["Url"] as Uri;
-                    }
-
-                    if (pk.Count > 0) _cache = new MemoryStream();
+                    header.Parse(pk);
                 }
 
-                if (pk.Count > 0)
-                {
-                    pk.WriteTo(_cache);
-                    _next = DateTime.Now.AddSeconds(1);
-                }
+                // 增加主体长度
+                header.BodyLength += pk.Count;
 
-                // 如果长度不足
-                var len = rs["Content-Length"].ToInt();
-                if (len > 0 && (_cache == null || _cache.Length < len)) return;
-
-                if (_cache != null)
-                {
-                    _cache.Position = 0;
-                    pk = new Packet(_cache.ReadBytes());
-                    _cache = null;
-                }
-
-                base.OnReceive(pk, remote);
+                OnReceive(pk, remote);
             }
             catch (Exception ex)
             {
@@ -140,16 +105,18 @@ namespace NewLife.Http
         #region Http客户端
         class HttpRequestFilter : FilterBase
         {
-            public HttpClient Session { get; set; }
+            public HttpClient Client { get; set; }
 
             protected override Boolean OnExecute(FilterContext context)
             {
                 var pk = context.Packet;
-                var ss = Session;
-                if (ss.Compressed) ss.Headers["Accept-Encoding"] = "gzip, deflate";
-                if (ss.KeepAlive) ss.Headers["Connection"] = "keep-alive";
-                if (!ss.UserAgent.IsNullOrEmpty()) ss.Headers["User-Agent"] = ss.UserAgent;
-                pk = HttpHelper.MakeRequest(ss.Method, ss.Url, ss.Headers, pk);
+                //var rq = Client.Request;
+                //if (rq.Compressed) rq["Accept-Encoding"] = "gzip, deflate";
+                //if (rq.KeepAlive) rq["Connection"] = "keep-alive";
+                //if (!rq.UserAgent.IsNullOrEmpty()) rq["User-Agent"] = rq.UserAgent;
+                //pk = HttpHelper.MakeRequest(ss.Method, ss.Url, ss.Headers, pk);
+
+                pk = Client.Request.Build(pk);
 
                 context.Packet = pk;
 #if DEBUG

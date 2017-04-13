@@ -22,7 +22,7 @@ namespace XNet
     {
         NetServer _Server;
         ISocketClient _Client;
-        static Task<NetServer[]> _task;
+        static Task<Dictionary<String, Type>> _task;
 
         #region 窗体
         static FrmMain()
@@ -52,9 +52,10 @@ namespace XNet
             {
                 var dic = EnumHelper.GetDescriptions<WorkModes>();
                 var list = dic.Select(kv => kv.Value).ToList();
+                //var ds = dic.ToDictionary(s => s.Value, s => s.Value);
                 foreach (var item in t.Result)
                 {
-                    list.Add(item.Name);
+                    list.Add(item.Key);
                 }
                 this.Invoke(() =>
                 {
@@ -184,7 +185,7 @@ namespace XNet
                 default:
                     if ((Int32)mode > 0)
                     {
-                        var ns = GetNetServers().Where(n => n.Name == cbMode.Text).FirstOrDefault();
+                        var ns = GetServer(cbMode.Text);
                         if (ns == null) throw new XException("未识别服务[{0}]", mode);
 
                         _Server = ns.GetType().CreateInstance() as NetServer;
@@ -515,7 +516,7 @@ namespace XNet
                     break;
                 case (WorkModes)0xFF:
                     // 端口
-                    var ns = GetNetServers().Where(n => n.Name == cbMode.Text).FirstOrDefault();
+                    var ns = GetServer(cbMode.Text);
                     if (ns != null && ns.Port > 0) numPort.Value = ns.Port;
 
                     break;
@@ -543,8 +544,8 @@ namespace XNet
             return list.ToArray();
         }
 
-        static NetServer[] _ns;
-        static NetServer[] GetNetServers()
+        static Dictionary<String, Type> _ns;
+        static Dictionary<String, Type> GetNetServers()
         {
             if (_ns != null) return _ns;
 
@@ -552,19 +553,27 @@ namespace XNet
             {
                 if (_ns != null) return _ns;
 
-                var list = new List<NetServer>();
+                var dic = new Dictionary<String, Type>();
                 foreach (var item in typeof(NetServer).GetAllSubclasses(true))
                 {
                     try
                     {
                         var ns = item.CreateInstance() as NetServer;
-                        if (ns != null) list.Add(ns);
+                        if (ns != null) dic.Add(item.GetDisplayName() ?? ns.Name, item);
                     }
                     catch { }
                 }
 
-                return _ns = list.ToArray();
+                return _ns = dic;
             }
+        }
+
+        static NetServer GetServer(String name)
+        {
+            Type t = null;
+            if (!GetNetServers().TryGetValue(name, out t)) return null;
+
+            return t.CreateInstance() as NetServer;
         }
     }
 }

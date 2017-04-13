@@ -678,9 +678,14 @@ namespace System
                 case NetType.Udp:
                     return new UdpServer { Remote = remote };
                 case NetType.Http:
-                    return new HttpClient { Remote = remote, IsSSL = remote.Protocol.EqualIgnoreCase("https") };
+                    var http = new HttpClient { Remote = remote };
+                    http.Request.IsSSL = remote.Protocol.EqualIgnoreCase("https");
+                    return http;
                 case NetType.WebSocket:
-                    return new HttpClient { Remote = remote, IsSSL = remote.Protocol.EqualIgnoreCase("wss"), IsWebSocket = true };
+                    var ws = new HttpClient { Remote = remote };
+                    ws.Request.IsSSL = remote.Protocol.EqualIgnoreCase("https");
+                    ws.Request.IsWebSocket = true;
+                    return ws;
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(remote.Type));
             }

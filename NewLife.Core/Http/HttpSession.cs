@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Net;
 
@@ -13,26 +10,11 @@ namespace NewLife.Http
     public class HttpSession : TcpSession
     {
         #region 属性
-        /// <summary>Http方法</summary>
-        public String Method { get; set; }
+        /// <summary>请求</summary>
+        public HttpRequest Request { get; set; }
 
-        /// <summary>资源路径</summary>
-        public Uri Url { get; set; }
-
-        /// <summary>是否WebSocket</summary>
-        public Boolean IsWebSocket { get; set; }
-
-        /// <summary>是否启用SSL</summary>
-        public Boolean IsSSL { get; set; }
-
-        /// <summary>状态码</summary>
-        public HttpStatusCode StatusCode { get; set; }
-
-        /// <summary>头部集合</summary>
-        public IDictionary<String, Object> Headers { get; set; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>响应头</summary>
-        public IDictionary<String, Object> Response { get; set; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>响应</summary>
+        public HttpResponse Response { get; set; }
         #endregion
 
         #region 构造
@@ -50,8 +32,6 @@ namespace NewLife.Http
         #endregion
 
         #region 收发数据
-        private MemoryStream _cache;
-        private DateTime _next;
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
@@ -65,50 +45,51 @@ namespace NewLife.Http
                 return;
             }
 
+            /*
+             * 解析流程：
+             *  首次访问或过期，创建请求对象
+             *      判断头部是否完整
+             *          --判断主体是否完整
+             *              触发新的请求
+             *          --加入缓存
+             *      加入缓存
+             *  触发收到数据
+             */
+
             try
             {
-                var client = _Server == null;
-                // 客户端收到响应，服务端收到请求
-                var rs = client ? Response : Headers;
+                var header = Request;
 
                 // 是否全新请求
-                if (_next < DateTime.Now || _cache == null)
+                if (header == null || !header.IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
                 {
+                    Request = new HttpRequest { Expire = DateTime.Now.AddSeconds(5) };
+                    Response = new HttpResponse();
+                    header = Request;
+
                     // 分析头部
-                    rs = HttpHelper.ParseHeader(pk);
-                    if (client)
-                    {
-                        Response = rs;
-                        StatusCode = (HttpStatusCode)rs["StatusCode"];
-                    }
-                    else
-                    {
-                        Headers = rs;
-                        Method = rs["Method"] as String;
-                        Url = rs["Url"] as Uri;
-                    }
-
-                    if (pk.Count > 0) _cache = new MemoryStream();
+                    header.Parse(pk);
+#if DEBUG
+                    WriteLog(" 请求 {0}", header.Url);
+#endif
                 }
 
-                if (pk.Count > 0)
-                {
-                    pk.WriteTo(_cache);
-                    _next = DateTime.Now.AddSeconds(1);
-                }
+                // 增加主体长度
+                header.BodyLength += pk.Count;
 
-                // 如果长度不足
-                var len = rs["Content-Length"].ToInt();
-                if (len > 0 && (_cache == null || _cache.Length < len)) return;
+                // WebSocket
+                if (CheckWebSocket(ref pk, remote)) return;
 
-                if (_cache != null)
-                {
-                    _cache.Position = 0;
-                    pk = new Packet(_cache.ReadBytes());
-                    _cache = null;
-                }
+                OnReceive(pk, remote);
 
-                base.OnReceive(pk, remote);
+                // 如果还有响应，说明还没发出
+                var rs = Response;
+                if (rs == null) return;
+
+                // 请求内容为空
+                //var html = "请求 {0} 内容未处理！".F(Request.Url);
+                var html = "{0} {1} {2}".F(Request.Method, Request.Url, DateTime.Now);
+                Send(new Packet(html.GetBytes()));
             }
             catch (Exception ex)
             {
@@ -127,9 +108,11 @@ namespace NewLife.Http
                 var pk = context.Packet;
                 var ss = Session;
 
-                if (ss.IsWebSocket) pk = HttpHelper.MakeWS(pk);
+                if (ss.Request.IsWebSocket) pk = HttpHelper.MakeWS(pk);
 
-                pk = HttpHelper.MakeResponse(ss.StatusCode, ss.Response, pk);
+                //pk = HttpHelper.MakeResponse(ss.StatusCode, ss.Response, pk);
+                pk = ss.Response.Build(pk);
+                ss.Response = null;
 
                 context.Packet = pk;
 #if DEBUG
@@ -138,26 +121,6 @@ namespace NewLife.Http
 
                 return true;
             }
-        }
-
-        /// <summary>收到请求</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
-        {
-            StatusCode = HttpStatusCode.OK;
-
-            // WebSocket
-            if (CheckWebSocket(ref pk, remote)) return true;
-
-            if (pk.Count > 0) return base.OnReceive(pk, remote);
-
-            // 请求内容为空
-            var html = "请求 {0} 内容为空！".F(Url);
-            Send(new Packet(html.GetBytes()));
-
-            return true;
         }
         #endregion
 
@@ -168,12 +131,12 @@ namespace NewLife.Http
         /// <returns></returns>
         protected virtual Boolean CheckWebSocket(ref Packet pk, IPEndPoint remote)
         {
-            if (!IsWebSocket)
+            if (!Request.IsWebSocket)
             {
-                var key = Headers["Sec-WebSocket-Key"] + "";
+                var key = Request["Sec-WebSocket-Key"];
                 if (key.IsNullOrEmpty()) return false;
 
-                IsWebSocket = true;
+                Request.IsWebSocket = true;
                 DisconnectWhenEmptyData = false;
 
                 pk = HttpHelper.HandeShake(key);

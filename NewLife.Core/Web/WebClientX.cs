@@ -98,13 +98,18 @@ namespace NewLife.Web
             //    http.LogSend = true;
             //    http.LogReceive = true;
             //}
-            http.UserAgent = UserAgent;
 
-            if (AutomaticDecompression != DecompressionMethods.None) http.Compressed = true;
+            var req = http.Request;
+            req.UserAgent = UserAgent;
 
-            if (!String.IsNullOrEmpty(Accept)) http.Headers[HttpRequestHeader.Accept + ""] = Accept;
-            if (!String.IsNullOrEmpty(AcceptLanguage)) http.Headers[HttpRequestHeader.AcceptLanguage + ""] = AcceptLanguage;
-            if (!String.IsNullOrEmpty(Referer)) http.Headers[HttpRequestHeader.Referer + ""] = Referer;
+            if (AutomaticDecompression != DecompressionMethods.None) req.Compressed = true;
+
+            //if (!String.IsNullOrEmpty(Accept)) req.Headers[HttpRequestHeader.Accept + ""] = Accept;
+            //if (!String.IsNullOrEmpty(AcceptLanguage)) req.Headers[HttpRequestHeader.AcceptLanguage + ""] = AcceptLanguage;
+            //if (!String.IsNullOrEmpty(Referer)) req.Headers[HttpRequestHeader.Referer + ""] = Referer;
+            req.Accept = Accept;
+            req.AcceptLanguage = AcceptLanguage;
+            req.Referer = Referer;
 
             return http;
         }
@@ -154,7 +159,7 @@ namespace NewLife.Web
                 Referer = address;
 
                 // 如果是重定向
-                switch (http.StatusCode)
+                switch (http.Response.StatusCode)
                 {
                     case HttpStatusCode.MovedPermanently:
                     case HttpStatusCode.Redirect:
