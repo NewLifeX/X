@@ -17,7 +17,7 @@ namespace NewLife.Remoting
 
             // Http封包协议
             //Client.Packet = new HttpPacket();
-            Client.Packet = new PacketProvider { Offset = -1 };
+            //Client.Packet = new PacketProvider { Offset = -1 };
 
             return true;
         }

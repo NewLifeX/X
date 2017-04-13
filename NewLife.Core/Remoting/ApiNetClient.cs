@@ -81,7 +81,7 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) { return Client?.Packet?.CreateMessage(pk); }
+        public IMessage CreateMessage(Packet pk) { return Client?.Packet?.CreateMessage(pk)?? new Message { Payload = pk }; }
 
         /// <summary>远程调用</summary>
         /// <param name="msg"></param>
