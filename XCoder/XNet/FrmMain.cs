@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
@@ -365,12 +366,13 @@ namespace XNet
             // 处理换行
             str = str.Replace("\n", "\r\n");
             var buf = cfg.HexSend ? str.ToHex() : str.GetBytes();
+            var pk = new Packet(buf);
 
             if (_Client != null)
             {
                 if (ths <= 1)
                 {
-                    _Client.SendMulti(buf, count, sleep);
+                    _Client.SendMulti(pk, count, sleep);
                 }
                 else
                 {
@@ -397,7 +399,7 @@ namespace XNet
                     Parallel.For(0, ths, n =>
                     {
                         var client = list[n];
-                        client.SendMulti(buf, count, sleep);
+                        client.SendMulti(pk, count, sleep);
                         //try
                         //{
                         //    client.Open();

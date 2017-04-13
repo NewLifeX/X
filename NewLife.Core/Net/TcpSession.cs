@@ -203,7 +203,7 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
             if (pk.Count == 0 && DisconnectWhenEmptyData)
             {

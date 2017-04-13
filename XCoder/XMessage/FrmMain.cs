@@ -337,13 +337,14 @@ namespace XMessage
 
             // 构造消息
             var msg = _Packet.CreateMessage(buf);
-            buf = msg.ToArray();
+            //buf = msg.ToArray();
+            var pk = msg.ToPacket();
 
             if (_Client != null)
             {
                 if (ths <= 1)
                 {
-                    _Client.SendMulti(buf, count, sleep);
+                    _Client.SendMulti(pk, count, sleep);
                 }
                 else
                 {
@@ -352,7 +353,7 @@ namespace XMessage
                         var client = _Client.Remote.CreateRemote();
                         client.StatSend = _Client.StatSend;
                         client.StatReceive = _Client.StatReceive;
-                        client.SendMulti(buf, count, sleep);
+                        client.SendMulti(pk, count, sleep);
                     });
                 }
             }

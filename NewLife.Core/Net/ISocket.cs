@@ -182,13 +182,12 @@ namespace NewLife.Net
 
         /// <summary>异步多次发送数据</summary>
         /// <param name="session">会话</param>
-        /// <param name="buffer"></param>
+        /// <param name="pk"></param>
         /// <param name="times"></param>
         /// <param name="msInterval"></param>
         /// <returns></returns>
-        public static Boolean SendMulti(this ISocketRemote session, Byte[] buffer, Int32 times, Int32 msInterval)
+        public static Boolean SendMulti(this ISocketRemote session, Packet pk, Int32 times, Int32 msInterval)
         {
-            var pk = new Packet(buffer);
             if (times <= 1)
             {
                 session.Send(pk);

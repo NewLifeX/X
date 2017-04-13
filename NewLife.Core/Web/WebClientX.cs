@@ -6,6 +6,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
 
@@ -39,7 +40,7 @@ namespace NewLife.Web
         /// <summary>编码。网络时代，绝大部分使用utf8编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        private HttpSession _client;
+        private HttpClient _client;
         #endregion
 
         #region 构造
@@ -88,9 +89,9 @@ namespace NewLife.Web
         /// <summary>创建客户端会话</summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        protected virtual HttpSession Create(NetUri uri)
+        protected virtual HttpClient Create(NetUri uri)
         {
-            var http = uri.CreateRemote() as HttpSession;
+            var http = uri.CreateRemote() as HttpClient;
             http.Log = Log;
             //if (XTrace.Debug)
             //{
@@ -108,7 +109,7 @@ namespace NewLife.Web
             return http;
         }
 
-        private HttpSession Check(String address)
+        private HttpClient Check(String address)
         {
             var uri = new NetUri(address);
 
@@ -158,7 +159,7 @@ namespace NewLife.Web
                     case HttpStatusCode.MovedPermanently:
                     case HttpStatusCode.Redirect:
                     case HttpStatusCode.RedirectMethod:
-                        var url = http.ResponseHeaders[HttpResponseHeader.Location + ""] + "";
+                        var url = http.Response[HttpResponseHeader.Location + ""] + "";
                         if (!url.IsNullOrEmpty())
                         {
                             address = url;
@@ -173,7 +174,7 @@ namespace NewLife.Web
                 // 解压缩
                 if (buf != null)
                 {
-                    var enc = http.ResponseHeaders[HttpResponseHeader.ContentEncoding + ""] + "";
+                    var enc = http.Response[HttpResponseHeader.ContentEncoding + ""] + "";
                     if (enc.EqualIgnoreCase("gzip"))
                     {
                         var ms = new MemoryStream(buf);

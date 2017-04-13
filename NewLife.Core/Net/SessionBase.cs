@@ -445,7 +445,7 @@ namespace NewLife.Net
         /// <param name="pk"></param>
         /// <param name="remote"></param>
         /// <returns>是否已处理，已处理的数据不再向下传递</returns>
-        internal virtual Boolean OnReceive(Packet pk, IPEndPoint remote)
+        protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
             if (Packet == null) return false;
 

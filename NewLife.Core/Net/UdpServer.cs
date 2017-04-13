@@ -214,7 +214,7 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)

@@ -7,7 +7,7 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
 
-namespace NewLife.Net
+namespace NewLife.Http
 {
     /// <summary>Http帮助类</summary>
     public static class HttpHelper

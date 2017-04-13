@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using NewLife.Collections;
 using NewLife.Model;
 using NewLife.Net;
+using NewLife.Http;
 #if !__MOBILE__ && !__CORE__
 using Microsoft.Win32;
 using System.Management;
@@ -657,7 +658,7 @@ namespace System
                 case NetType.Udp:
                     return new UdpServer { Local = local };
                 case NetType.Http:
-                    return new HttpSession { Local = local };
+                    return new HttpClient { Local = local };
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(local.Type));
             }
@@ -677,9 +678,9 @@ namespace System
                 case NetType.Udp:
                     return new UdpServer { Remote = remote };
                 case NetType.Http:
-                    return new HttpSession { Remote = remote, IsSSL = remote.Protocol.EqualIgnoreCase("https") };
+                    return new HttpClient { Remote = remote, IsSSL = remote.Protocol.EqualIgnoreCase("https") };
                 case NetType.WebSocket:
-                    return new HttpSession { Remote = remote, IsSSL = remote.Protocol.EqualIgnoreCase("wss"), IsWebSocket = true };
+                    return new HttpClient { Remote = remote, IsSSL = remote.Protocol.EqualIgnoreCase("wss"), IsWebSocket = true };
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(remote.Type));
             }
@@ -692,7 +693,7 @@ namespace System
         {
             if (uri == null) throw new ArgumentNullException(nameof(uri));
 
-            var http = new HttpSession();
+            var http = new HttpClient();
             http.Url = uri;
             http.Remote = new NetUri(uri + "");
 

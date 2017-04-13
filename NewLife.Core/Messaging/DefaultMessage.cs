@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -15,12 +14,6 @@ namespace NewLife.Messaging
     /// 如：
     /// Open => OK
     /// 01-01-04-00-"Open" => 81-01-02-00-"OK"
-    /// 
-    /// 针对纯字符串场景，采用8字符HEX编码头部。
-    /// 首字符0表示请求，8表示响应
-    /// 如：
-    /// Open => OK
-    /// 01010400 Open => 81010200 OK
     /// </remarks>
     public class DefaultMessage : Message
     {
@@ -33,9 +26,6 @@ namespace NewLife.Messaging
 
         /// <summary>序列号，匹配请求和响应</summary>
         public Byte Sequence { get; set; }
-
-        /// <summary>对方使用纯字符串，不具备二进制编码能力</summary>
-        private Boolean _IsChar;
         #endregion
 
         #region 方法
@@ -63,16 +53,6 @@ namespace NewLife.Messaging
 
             var size = 4;
             var buf = pk.ReadBytes(0, size);
-
-            // 检查纯字符串以字符0或8开头，所以二进制消息不许用0x30和0x38开头
-            if (buf[0] == '0' || buf[0] == '8')
-            {
-                _IsChar = true;
-                size = 8;
-                if (pk.Count < size) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足{0}字节".F(size));
-
-                buf = pk.ReadBytes(0, size).ToStr().ToHex();
-            }
 
             Flag = buf[0];
             if ((Flag & 0x80) == 0x80) Reply = true;
