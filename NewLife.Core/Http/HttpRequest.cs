@@ -13,8 +13,8 @@ namespace NewLife.Http
         /// <summary>资源路径</summary>
         public Uri Url { get; set; }
 
-        /// <summary>是否WebSocket</summary>
-        public Boolean IsWebSocket { get; set; }
+        ///// <summary>是否WebSocket</summary>
+        //public Boolean IsWebSocket { get; set; }
 
         /// <summary>是否启用SSL</summary>
         public Boolean IsSSL { get; set; }

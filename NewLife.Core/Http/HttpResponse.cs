@@ -8,8 +8,8 @@ namespace NewLife.Http
     public class HttpResponse : HttpBase
     {
         #region 属性
-        /// <summary>是否WebSocket</summary>
-        public Boolean IsWebSocket { get; set; }
+        ///// <summary>是否WebSocket</summary>
+        //public Boolean IsWebSocket { get; set; }
 
         /// <summary>是否启用SSL</summary>
         public Boolean IsSSL { get; set; }

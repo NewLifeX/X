@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 
 namespace NewLife.Http
 {
@@ -9,8 +11,8 @@ namespace NewLife.Http
     public abstract class HttpBase
     {
         #region 属性
-        ///// <summary>是否WebSocket</summary>
-        //public Boolean IsWebSocket { get; set; }
+        /// <summary>是否WebSocket</summary>
+        public Boolean IsWebSocket { get; set; }
 
         ///// <summary>是否启用SSL</summary>
         //public Boolean IsSSL { get; set; }
@@ -37,7 +39,7 @@ namespace NewLife.Http
         /// <summary>主体长度</summary>
         internal Int32 BodyLength { get; set; }
 
-        internal Boolean Parse(Packet pk)
+        internal Boolean ParseHeader(Packet pk)
         {
             var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
             if (p < 0) return false;
@@ -75,6 +77,25 @@ namespace NewLife.Http
         /// <summary>分析第一行</summary>
         /// <param name="firstLine"></param>
         protected abstract void OnParse(String firstLine);
+
+        private MemoryStream _cache;
+        internal Boolean ParseBody(ref Packet pk)
+        {
+            if (IsWebSocket) return true;
+
+            BodyLength += pk.Count;
+            //XTrace.WriteLine("{0}/{1}/{2}", pk.Count, BodyLength, ContentLength);
+
+            if (_cache == null) _cache = new MemoryStream();
+            pk.WriteTo(_cache);
+
+            if (!IsCompleted) return false;
+
+            pk = _cache.ToArray();
+            _cache = null;
+
+            return true;
+        }
         #endregion
 
         #region 读写

@@ -127,7 +127,7 @@ namespace NewLife.Web
                 _client = Create(uri);
             }
 
-            _client.Url = new Uri(address);
+            _client.Request.Url = new Uri(address);
 
             return _client;
         }
@@ -143,7 +143,7 @@ namespace NewLife.Web
             while (true)
             {
                 var http = Check(address);
-                http.Method = "GET";
+                http.Request.Method = "GET";
 
                 Log.Info("WebClientX.Get {0}", address);
 
@@ -204,7 +204,7 @@ namespace NewLife.Web
         protected virtual async Task<Byte[]> PostAsync(String address, Byte[] data)
         {
             var http = Check(address);
-            http.Method = "POST";
+            http.Request.Method = "POST";
 
             Log.Info("WebClientX.PostAsync [{0}] {1}", data?.Length, address);
 

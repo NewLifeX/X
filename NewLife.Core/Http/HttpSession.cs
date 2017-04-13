@@ -68,9 +68,9 @@ namespace NewLife.Http
                     header = Request;
 
                     // 分析头部
-                    header.Parse(pk);
+                    header.ParseHeader(pk);
 #if DEBUG
-                    WriteLog(" 请求 {0}", header.Url);
+                    WriteLog(" {0} {1}", header.Method, header.Url);
 #endif
                 }
 
@@ -79,6 +79,8 @@ namespace NewLife.Http
 
                 // WebSocket
                 if (CheckWebSocket(ref pk, remote)) return;
+
+                if (!header.ParseBody(ref pk)) return;
 
                 OnReceive(pk, remote);
 

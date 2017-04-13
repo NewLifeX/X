@@ -12,11 +12,11 @@ namespace NewLife.Http
     public class HttpClient : TcpSession
     {
         #region 属性
-        /// <summary>Http方法</summary>
-        public String Method { get; set; }
+        ///// <summary>Http方法</summary>
+        //public String Method { get; set; }
 
-        /// <summary>资源路径</summary>
-        public Uri Url { get; set; }
+        ///// <summary>资源路径</summary>
+        //public Uri Url { get; set; }
 
         /// <summary>请求</summary>
         public HttpRequest Request { get; set; } = new HttpRequest();
@@ -43,6 +43,11 @@ namespace NewLife.Http
         {
             // 默认80端口
             if (!Active && Remote.Port == 0) Remote.Port = 80;
+
+            if (Remote.Address.IsAny()) Remote = new NetUri(Request.Url + "");
+
+            //Request.Method = Method;
+            //Request.Url = Url;
 
             // 添加过滤器
             if (SendFilter == null) SendFilter = new HttpRequestFilter { Client = this };
@@ -87,13 +92,13 @@ namespace NewLife.Http
                     header = Response;
 
                     // 分析头部
-                    header.Parse(pk);
+                    header.ParseHeader(pk);
+#if DEBUG
+                    WriteLog(" {0} {1} {2}", (Int32)header.StatusCode, header.StatusCode, header.ContentLength);
+#endif
                 }
 
-                // 增加主体长度
-                header.BodyLength += pk.Count;
-
-                OnReceive(pk, remote);
+                if (header.ParseBody(ref pk)) OnReceive(pk, remote);
             }
             catch (Exception ex)
             {

@@ -699,7 +699,7 @@ namespace System
             if (uri == null) throw new ArgumentNullException(nameof(uri));
 
             var http = new HttpClient();
-            http.Url = uri;
+            http.Request.Url = uri;
             http.Remote = new NetUri(uri + "");
 
             return http;
