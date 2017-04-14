@@ -154,7 +154,7 @@ namespace NewLife.Remoting
                 if (ts == null) session["Controller"] = ts = new NullableDictionary<Type, Object>();
 
                 controller = ts[api.Type];
-                if (controller != null) controller = ts[api.Type] = api.Type.CreateInstance();
+                if (controller == null) controller = ts[api.Type] = api.Type.CreateInstance();
 
                 return controller;
             }

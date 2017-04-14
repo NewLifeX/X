@@ -210,6 +210,9 @@ namespace NewLife.Remoting
         /// <summary>登录动作名</summary>
         public String LoginAction { get; set; } = "Login";
 
+        /// <summary>登录完成事件</summary>
+        public EventHandler<EventArgs<Object>> OnLogined;
+
         private Task<Object> _login;
 
         /// <summary>异步登录</summary>
@@ -256,6 +259,8 @@ namespace NewLife.Remoting
             }
 
             Logined = true;
+
+            OnLogined?.Invoke(this, new EventArgs<Object>(rs));
 
             // 尽快开始一次心跳
             Timer.SetNext(1000);
