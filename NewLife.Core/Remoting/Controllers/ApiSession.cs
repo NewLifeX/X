@@ -9,7 +9,7 @@ using NewLife.Security;
 namespace NewLife.Remoting
 {
     /// <summary>Api会话</summary>
-    [Api(null)]
+    [Api(null, true)]
     public class ApiSession : DisposeBase, IApi
     {
         #region 属性

@@ -33,21 +33,14 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<Object> Execute(IApiSession session, String action, IDictionary<String, Object> args)
         {
-            var api = Host.Manager.Find(action);
+            var api = session.FindAction(action);
             if (api == null) throw new ApiException(404, "无法找到名为[{0}]的服务！".F(action));
 
-            // 复用控制器对象
-            var ts = session["Controller"] as IDictionary<Type, Object>;
-            if (Host.IsReusable && ts == null) session["Controller"] = ts = new NullableDictionary<Type, Object>();
-
             // 全局共用控制器，或者每次创建对象实例
-            var controller = api.Controller;
-            if (controller == null && ts != null) controller = ts[api.Type];
-            if (controller == null) controller = api.Type.CreateInstance();
-            if (controller is IApi) (controller as IApi).Session = session;
+            var controller = session.CreateController(api);
+            if (api == null) throw new ApiException(404, "无法创建名为[{0}]的服务！".F(api.Name));
 
-            // 复用控制器对象
-            if (Host.IsReusable) ts[api.Type] = controller;
+            if (controller is IApi) (controller as IApi).Session = session;
 
             // 服务设置优先于全局主机
             var svr = session.GetService<IApiServer>();

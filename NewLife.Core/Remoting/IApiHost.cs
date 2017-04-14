@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -23,8 +26,8 @@ namespace NewLife.Remoting
         /// <summary>接口动作管理器</summary>
         IApiManager Manager { get; }
 
-        /// <summary>是否在会话上复用控制器。复用控制器可确保同一个会话多次请求路由到同一个控制器对象实例</summary>
-        Boolean IsReusable { get; }
+        ///// <summary>是否在会话上复用控制器。复用控制器可确保同一个会话多次请求路由到同一个控制器对象实例</summary>
+        //Boolean IsReusable { get; }
 
         /// <summary>是否加密</summary>
         Boolean Encrypted { get; set; }
@@ -132,6 +135,33 @@ namespace NewLife.Remoting
                 //Log.Debug("{0}:{1}", item.GetType().Name, ctx.Packet.ToHex());
             }
             msg.Payload = ctx.Packet;
+        }
+
+        /// <summary>创建控制器实例</summary>
+        /// <param name="host"></param>
+        /// <param name="session"></param>
+        /// <param name="api"></param>
+        /// <returns></returns>
+        public static Object CreateController(this IApiHost host, IApiSession session, ApiAction api)
+        {
+            var controller = api.Controller;
+            if (controller != null) return controller;
+
+            var att = api.Type?.GetCustomAttribute<ApiAttribute>(true);
+            if (att != null && att.IsReusable)
+            {
+                var ts = session["Controller"] as IDictionary<Type, Object>;
+                if (ts == null) session["Controller"] = ts = new NullableDictionary<Type, Object>();
+
+                controller = ts[api.Type];
+                if (controller != null) controller = ts[api.Type] = api.Type.CreateInstance();
+
+                return controller;
+            }
+
+            controller = api.Type.CreateInstance();
+
+            return controller;
         }
     }
 }

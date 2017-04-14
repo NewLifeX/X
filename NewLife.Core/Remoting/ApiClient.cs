@@ -150,6 +150,16 @@ namespace NewLife.Remoting
 
             return true;
         }
+
+        /// <summary>查找Api动作</summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public virtual ApiAction FindAction(String action) { return Manager.Find(action); }
+
+        /// <summary>创建控制器实例</summary>
+        /// <param name="api"></param>
+        /// <returns></returns>
+        public virtual Object CreateController(ApiAction api) { return this.CreateController(this, api); }
         #endregion
 
         #region 远程调用

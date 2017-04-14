@@ -16,6 +16,16 @@ namespace NewLife.Remoting
         /// <returns></returns>
         Object this[String key] { get; set; }
 
+        /// <summary>查找Api动作</summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        ApiAction FindAction(String action);
+
+        /// <summary>创建控制器实例</summary>
+        /// <param name="api"></param>
+        /// <returns></returns>
+        Object CreateController(ApiAction api);
+
         /// <summary>创建消息。低级接口，由框架使用</summary>
         /// <param name="pk"></param>
         /// <returns></returns>

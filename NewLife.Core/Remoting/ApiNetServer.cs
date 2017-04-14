@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -92,6 +93,16 @@ namespace NewLife.Remoting
             _ApiHost = this.GetService<IApiHost>();
         }
 
+        /// <summary>查找Api动作</summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public virtual ApiAction FindAction(String action) { return _ApiHost.Manager.Find(action); }
+
+        /// <summary>创建控制器实例</summary>
+        /// <param name="api"></param>
+        /// <returns></returns>
+        public virtual Object CreateController(ApiAction api) { return _ApiHost.CreateController(this, api); }
+
         protected override void OnReceive(MessageEventArgs e)
         {
             // Api解码消息得到Action和参数
@@ -105,7 +116,7 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) { return Session?.Packet?.CreateMessage(pk)?? new Message { Payload = pk }; }
+        public IMessage CreateMessage(Packet pk) { return Session?.Packet?.CreateMessage(pk) ?? new Message { Payload = pk }; }
 
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
