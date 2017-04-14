@@ -182,6 +182,21 @@ namespace NewLife.Remoting
             {
                 return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args).ConfigureAwait(false);
             }
+            catch (ApiException ex)
+            {
+                // 重新登录后再次调用
+                if (ex.Code == 401)
+                {
+                    Logined = false;
+                    if (action != LoginAction)
+                    {
+                        await LoginAsync();
+                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args).ConfigureAwait(false);
+                    }
+                }
+
+                throw;
+            }
             // 截断任务取消异常，避免过长
             catch (TaskCanceledException)
             {
