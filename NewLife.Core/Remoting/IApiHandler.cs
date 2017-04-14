@@ -38,9 +38,16 @@ namespace NewLife.Remoting
 
             // 全局共用控制器，或者每次创建对象实例
             var controller = session.CreateController(api);
-            if (api == null) throw new ApiException(404, "无法创建名为[{0}]的服务！".F(api.Name));
+            if (controller == null) throw new ApiException(403, "无法创建名为[{0}]的服务！".F(api.Name));
 
             if (controller is IApi) (controller as IApi).Session = session;
+
+            // 检查登录授权
+            if (controller.GetType().GetCustomAttribute<AllowAnonymousAttribute>() == null &&
+                api.Method.GetCustomAttribute<AllowAnonymousAttribute>() == null)
+            {
+                if (session["Session"] == null) throw new ApiException(401, "未登录！");
+            }
 
             // 服务设置优先于全局主机
             var svr = session.GetService<IApiServer>();

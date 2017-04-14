@@ -329,7 +329,7 @@ namespace NewLife.Remoting
             {
                 // 保存时间差，这样子以后只需要拿本地当前时间加上时间差，即可得到服务器时间
                 Span = DateTime.Now - obj.ToDateTime();
-                WriteLog("时间差：{0}ms", (Int32)Span.TotalMilliseconds);
+                //WriteLog("时间差：{0}ms", (Int32)Span.TotalMilliseconds);
             }
 
             return rs;

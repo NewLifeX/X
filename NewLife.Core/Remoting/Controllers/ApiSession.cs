@@ -56,6 +56,7 @@ namespace NewLife.Remoting
         /// <param name="pass">密码</param>
         /// <returns></returns>
         [Api("Login")]
+        [AllowAnonymous]
         protected virtual Object OnLogin(String user, String pass)
         {
             if (user.IsNullOrEmpty()) throw Error(3, "用户名不能为空");
@@ -72,6 +73,9 @@ namespace NewLife.Remoting
 
             // 用户名保存到会话
             Session["Name"] = user;
+
+            // 登录会话
+            Session["Session"] = this;
 
             // 生成密钥
             if (!dic.ContainsKey("Key")) dic["Key"] = GenerateKey().ToHex();

@@ -171,6 +171,7 @@ namespace NewLife.Remoting
             }
             catch (Exception ex)
             {
+                ex = ex.GetTrue();
                 var aex = ex as ApiException;
                 code = aex != null ? aex.Code : 500;
                 result = ex;

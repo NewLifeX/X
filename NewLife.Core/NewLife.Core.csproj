@@ -182,6 +182,7 @@
     <Compile Include="Reflection\Reflect.cs" />
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\ScriptEngine.cs" />
+    <Compile Include="Remoting\AllowAnonymousAttribute.cs" />
     <Compile Include="Remoting\ApiAction.cs" />
     <Compile Include="Remoting\ApiAttribute.cs" />
     <Compile Include="Remoting\ApiException.cs" />
