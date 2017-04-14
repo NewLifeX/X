@@ -143,8 +143,9 @@ namespace NewLife.Serialization
             var dt = dateTime;
             if (UseUTCDateTime) dt = dateTime.ToUniversalTime();
 
-            var ms = (Int64)(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
-            _Builder.AppendFormat("\"\\/Date({0})\\/\"", ms);
+            //var ms = (Int64)(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
+            //_Builder.AppendFormat("\"\\/Date({0})\\/\"", ms);
+            _Builder.AppendFormat("\"{0}\"", dateTime.ToFullString());
 
             //_Builder.Append('\"');
             //_Builder.Append(dt.Year.ToString("0000", NumberFormatInfo.InvariantInfo));
