@@ -90,7 +90,7 @@ namespace NewLife.Data
         {
             if (offset == 0 && count < 0) return ToArray();
 
-            if (Next == null) return Data.ReadBytes(Offset + offset, count < 0 ? Count : count);
+            if (Next == null) return Data.ReadBytes(Offset + offset, count < 0 || count > Count ? Count : count);
 
             // 当前包足够长
             if (count >= 0 && offset + count <= Count) return Data.ReadBytes(Offset + offset, count);
