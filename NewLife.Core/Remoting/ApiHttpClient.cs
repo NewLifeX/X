@@ -18,6 +18,10 @@ namespace NewLife.Remoting
             // Http封包协议
             //Client.Packet = new HttpPacket();
             //Client.Packet = new PacketProvider { Offset = -1 };
+            //Client.Packet = null;
+
+            // 网络非法断开时，自动恢复
+            Client.OnDisposed += (s, e) => { if (Active) { Init(config); Open(); } };
 
             return true;
         }

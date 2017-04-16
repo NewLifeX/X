@@ -10,6 +10,9 @@ namespace NewLife.Remoting
     class ApiNetClient : DisposeBase, IApiClient, IServiceProvider
     {
         #region 属性
+        /// <summary>是否已打开</summary>
+        public Boolean Active { get; set; }
+
         public ISocketClient Client { get; set; }
 
         /// <summary>服务提供者</summary>
@@ -41,6 +44,9 @@ namespace NewLife.Remoting
             // Udp客户端默认超时时间
             if (Client is UdpServer) (Client as UdpServer).SessionTimeout = 10 * 60;
 
+            // 网络非法断开时，自动恢复
+            Client.OnDisposed += (s, e) => { if (Active) { Init(config); Open(); } };
+
             return true;
         }
 
@@ -55,13 +61,16 @@ namespace NewLife.Remoting
             //tc.Timeout = 60 * 1000;
 #endif
             tc.Opened += Client_Opened;
-            return tc.Open();
+
+            return Active = tc.Open();
         }
 
         /// <summary>关闭</summary>
         /// <param name="reason">关闭原因。便于日志分析</param>
         public void Close(String reason)
         {
+            Active = false;
+
             var tc = Client;
             tc.MessageReceived -= Client_Received;
             tc.Opened -= Client_Opened;
@@ -81,7 +90,7 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) { return Client?.Packet?.CreateMessage(pk)?? new Message { Payload = pk }; }
+        public IMessage CreateMessage(Packet pk) { return Client?.Packet?.CreateMessage(pk) ?? new Message { Payload = pk }; }
 
         /// <summary>远程调用</summary>
         /// <param name="msg"></param>
