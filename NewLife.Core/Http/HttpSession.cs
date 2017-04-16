@@ -35,16 +35,8 @@ namespace NewLife.Http
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal override void ProcessReceive(Packet pk, IPEndPoint remote)
+        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
-            if (pk.Count == 0 && DisconnectWhenEmptyData)
-            {
-                Close("收到空数据");
-                Dispose();
-
-                return;
-            }
-
             /*
              * 解析流程：
              *  首次访问或过期，创建请求对象
@@ -56,47 +48,42 @@ namespace NewLife.Http
              *  触发收到数据
              */
 
-            try
+            var header = Request;
+
+            // 是否全新请求
+            if (header == null || !header.IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
             {
-                var header = Request;
+                Request = new HttpRequest { Expire = DateTime.Now.AddSeconds(5) };
+                Response = new HttpResponse();
+                header = Request;
 
-                // 是否全新请求
-                if (header == null || !header.IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
-                {
-                    Request = new HttpRequest { Expire = DateTime.Now.AddSeconds(5) };
-                    Response = new HttpResponse();
-                    header = Request;
-
-                    // 分析头部
-                    header.ParseHeader(pk);
+                // 分析头部
+                header.ParseHeader(pk);
 #if DEBUG
-                    WriteLog(" {0} {1}", header.Method, header.Url);
+                WriteLog(" {0} {1}", header.Method, header.Url);
 #endif
-                }
-
-                // 增加主体长度
-                header.BodyLength += pk.Count;
-
-                // WebSocket
-                if (CheckWebSocket(ref pk, remote)) return;
-
-                if (!header.ParseBody(ref pk)) return;
-
-                OnReceive(pk, remote);
-
-                // 如果还有响应，说明还没发出
-                var rs = Response;
-                if (rs == null) return;
-
-                // 请求内容为空
-                //var html = "请求 {0} 内容未处理！".F(Request.Url);
-                var html = "{0} {1} {2}".F(Request.Method, Request.Url, DateTime.Now);
-                Send(new Packet(html.GetBytes()));
             }
-            catch (Exception ex)
-            {
-                if (!ex.IsDisposed()) OnError("OnReceive", ex);
-            }
+
+            // 增加主体长度
+            header.BodyLength += pk.Count;
+
+            // WebSocket
+            if (CheckWebSocket(ref pk, remote)) return true;
+
+            if (!header.ParseBody(ref pk)) return true;
+
+            base.OnReceive(pk, remote);
+
+            // 如果还有响应，说明还没发出
+            var rs = Response;
+            if (rs == null) return true;
+
+            // 请求内容为空
+            //var html = "请求 {0} 内容未处理！".F(Request.Url);
+            var html = "{0} {1} {2}".F(Request.Method, Request.Url, DateTime.Now);
+            Send(new Packet(html.GetBytes()));
+
+            return true;
         }
         #endregion
 

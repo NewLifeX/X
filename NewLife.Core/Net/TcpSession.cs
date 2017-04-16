@@ -200,23 +200,30 @@ namespace NewLife.Net
         }
 
         private Int32 _empty;
+        internal override void ProcessReceive(Packet pk, IPEndPoint remote)
+        {
+            if (pk.Count == 0)
+            {
+                // 连续多次空数据，则断开
+                if ((DisconnectWhenEmptyData || _empty++ > 3))
+                {
+                    Close("收到空数据");
+                    Dispose();
+
+                    return;
+                }
+            }
+            else
+                _empty = 0;
+
+            base.ProcessReceive(pk, remote);
+        }
+
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
         protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
-            if (pk.Count == 0 && DisconnectWhenEmptyData)
-            {
-                // 连续多次空数据，则断开
-                if (++_empty < 3) return true;
-
-                Close("收到空数据");
-                Dispose();
-
-                return true;
-            }
-            _empty = 0;
-
 #if !__MOBILE__
             // 更新全局远程IP地址
             NewLife.Web.WebHelper.UserHost = Remote.EndPoint?.Address + "";
