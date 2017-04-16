@@ -1,9 +1,9 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title></title>
-	<meta charset="utf-8" />
+    <meta charset="utf-8" />
 </head>
 <body>
     <div>
@@ -14,37 +14,55 @@
 </body>
 </html>
 <script type="text/javascript">
-        var wsServer = 'ws://localhost:888/api/WS';
+    var uri = 'ws://127.0.0.1:80/api/WS';
+    var client;
 
-        var websocket = new WebSocket(wsServer);
-        websocket.onopen = function (evt) {
+    function createRemote(uri) {
+        var ws = new WebSocket(uri);
+        ws.onopen = function (evt) {
             writeLog("已经建立连接");
         };
-        websocket.onclose = function (evt) {
+        ws.onclose = function (evt) {
             writeLog("已经关闭连接");
         };
-        websocket.onmessage = function (evt) {
+        ws.onmessage = function (evt) {
             evt.stopPropagation()
             evt.preventDefault()
             writeLog(evt.data);
         };
-        websocket.onerror = function (evt) {
+        ws.onerror = function (evt) {
             writeLog(evt.message);
         };
-        function sendMsg() {
-            if (websocket.readyState == websocket.OPEN) {
-                msg = document.getElementById("msg").value;
-                websocket.send(msg);
-                writeLog("发送成功!");
-            } else {
-                writeLog("连接失败!");
-            }
-        }
 
-        function writeLog(message) {
-            var pre = document.createElement("p");
-            pre.style.wordWrap = "break-word";
-            pre.innerHTML += message;
-            output.appendChild(pre);
-        }
+        // 等到创建完成
+        var exp = new Date().getTime() + 5000;
+        //while (ws.readyState != WebSocket.OPEN && exp > new Date().getTime());
+
+        return ws;
+    }
+    function getSocket() {
+        var ws = client;
+        if (ws && ws.readyState == WebSocket.OPEN) return ws;
+
+        return websocket = createRemote(uri);
+    }
+    function sendMsg() {
+        var ws = getSocket();
+        //if (ws.readyState == WebSocket.OPEN) {
+        msg = document.getElementById("msg").value;
+        ws.send(msg);
+        writeLog("发送成功!");
+        /*} else {
+            writeLog("发送失败!" + ws.readyState);
+        }*/
+    }
+
+    function writeLog(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML += message;
+        output.appendChild(pre);
+    }
+
+    client = createRemote(uri);
 </script>
