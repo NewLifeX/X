@@ -97,10 +97,10 @@ namespace NewLife.Http
                 var pk = context.Packet;
                 var ss = Session;
 
-                if (ss.Request.IsWebSocket) pk = HttpHelper.MakeWS(pk);
-
-                //pk = HttpHelper.MakeResponse(ss.StatusCode, ss.Response, pk);
-                pk = ss.Response.Build(pk);
+                if (ss.Request.IsWebSocket)
+                    pk = HttpHelper.MakeWS(pk);
+                else
+                    pk = ss.Response.Build(pk);
                 ss.Response = null;
 
                 context.Packet = pk;
@@ -125,15 +125,19 @@ namespace NewLife.Http
                 var key = Request["Sec-WebSocket-Key"];
                 if (key.IsNullOrEmpty()) return false;
 
+                //pk = HttpHelper.HandeShake(key);
+                //if (pk != null) Send(pk);
+                HttpHelper.HandeShake(key, Response);
+                Send(null);
+
                 Request.IsWebSocket = true;
                 DisconnectWhenEmptyData = false;
-
-                pk = HttpHelper.HandeShake(key);
-                if (pk != null) Send(pk);
             }
             else
             {
                 pk = HttpHelper.ParseWS(pk);
+
+                return base.OnReceive(pk, remote);
             }
 
             return true;

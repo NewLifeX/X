@@ -158,21 +158,27 @@ namespace NewLife.Http
         #region WebSocket
         /// <summary>握手</summary>
         /// <param name="key"></param>
-        public static Packet HandeShake(String key)
+        /// <param name="response"></param>
+        public static void HandeShake(String key, HttpResponse response)
         {
-            if (key.IsNullOrEmpty()) return null;
+            if (key.IsNullOrEmpty()) return;
 
             var buf = SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes());
             key = buf.ToBase64();
 
-            var sb = new StringBuilder();
-            sb.AppendLine("HTTP/1.1 101 Switching Protocols");
-            sb.AppendLine("Upgrade: websocket");
-            sb.AppendLine("Connection: Upgrade");
-            sb.AppendLine("Sec-WebSocket-Accept: " + key);
-            sb.AppendLine();
+            //var sb = new StringBuilder();
+            //sb.AppendLine("HTTP/1.1 101 Switching Protocols");
+            //sb.AppendLine("Upgrade: websocket");
+            //sb.AppendLine("Connection: Upgrade");
+            //sb.AppendLine("Sec-WebSocket-Accept: " + key);
+            //sb.AppendLine();
 
-            return sb.ToString().GetBytes();
+            //return sb.ToString().GetBytes();
+
+            response.StatusCode = HttpStatusCode.SwitchingProtocols;
+            response.Headers["Upgrade"] = "websocket";
+            response.Headers["Connection"] = "Upgrade";
+            response.Headers["Sec-WebSocket-Accept"] = key;
         }
 
         /// <summary>分析WS数据包</summary>
