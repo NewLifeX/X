@@ -27,35 +27,32 @@ var ApiClient = (function (uri) {
 
         // 打开连接
         Open: function (callback) {
-            var ws = this.Socket;
+            var self = this;
+
+            var ws = self.Socket;
             if (ws && ws.readyState === WebSocket.OPEN) return true;
 
-            console.log('Open ' + this.Uri);
+            console.log('Open ' + self.Uri);
 
-            ws = new WebSocket(this.Uri);
+            ws = new WebSocket(self.Uri);
             ws.onopen = function (evt) {
                 console.log("已经建立连接");
 
+                ws.onclose = function (evt) {
+                    console.log("已经关闭连接");
+                };
+                ws.onmessage = self.onMessage;
+                ws.onerror = function (evt) {
+                    console.log(evt.message);
+                };
+
+                self.Socket = ws;
+
                 if (callback) callback();
 
-                // 异步登录
-                if (this.UserName) setTimeout(this.Login, 100);
+                // 异步登录。注意this作用域
+                if (self.UserName) setTimeout(function () { self.Login(); }, 100);
             };
-
-            // 等到创建完成
-            /*var exp = new Date().getTime() + 5000;
-            while (ws.readyState != WebSocket.OPEN) {
-                if (exp <= new Date().getTime()) return false;
-            }*/
-            ws.onclose = function (evt) {
-                console.log("已经关闭连接");
-            };
-            ws.onmessage = this.onMessage;
-            ws.onerror = function (evt) {
-                console.log(evt.message);
-            };
-
-            this.Socket = ws;
 
             return true;
         },
@@ -70,7 +67,7 @@ var ApiClient = (function (uri) {
         },
 
         // 注册动作到指定函数
-        requestCallbacks: new Array(),
+        requestCallbacks: [],
         Register: function (action, callback) {
             this.requestCallbacks[action] = callback;
         },
@@ -116,8 +113,7 @@ var ApiClient = (function (uri) {
 
         // 调用动作，并在收到响应时调用回调函数
         Invoke: function (action, args, callback) {
-            var msg = { action: action, args: args };
-            //console.log('Invoke ' + msg);
+            var msg = { action, args };
 
             this.responseCallback = callback;
             this.Send(JSON.stringify(msg));
@@ -126,12 +122,9 @@ var ApiClient = (function (uri) {
         // 登录
         _timer: 0,
         Login: function (callback) {
-            var user = this.UserName;
-            var pass = this.PassWord;
             var args = { user: this.UserName, pass: this.PassWord };
             console.log('Login ' + args);
 
-            //this.Invoke('Login');
             this.Invoke('Login', args, function (msg) {
                 if (callback) callback(msg);
 
