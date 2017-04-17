@@ -240,7 +240,7 @@ namespace NewLife.Net
 
             RaiseReceive(this, e);
 
-            return false;
+            return true;
         }
         #endregion
 

@@ -17,17 +17,25 @@
 <script type="text/javascript">
     var uri = 'ws://127.0.0.1:80/api/WS';
     var client = new ApiClient(uri);
-    //client.Open();
+    client.UserName = 'admin';
+    client.PassWord = 'test';
+    client.Open();
 
     function sendMsg() {
         //if (ws.readyState == WebSocket.OPEN) {
         msg = document.getElementById("msg").value;
-        client.Send(msg);
+        //client.Send(msg);
+        client.Invoke('Say', { msg: msg });
         writeLog("发送成功!");
         /*} else {
             writeLog("发送失败!" + ws.readyState);
         }*/
     }
+
+    function OnSay(msg) {
+        writeLog(msg.Result);
+    }
+    client.Register('Say', OnSay);
 
     function writeLog(message) {
         var pre = document.createElement("p");
