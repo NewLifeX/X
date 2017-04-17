@@ -13,44 +13,16 @@
     <div id="output"></div>
 </body>
 </html>
+<script type="text/javascript" src="Scripts/ApiClient.js"></script>
 <script type="text/javascript">
     var uri = 'ws://127.0.0.1:80/api/WS';
-    var client;
+    var client = new ApiClient(uri);
+    //client.Open();
 
-    function createRemote(uri) {
-        var ws = new WebSocket(uri);
-        ws.onopen = function (evt) {
-            writeLog("已经建立连接");
-        };
-        ws.onclose = function (evt) {
-            writeLog("已经关闭连接");
-        };
-        ws.onmessage = function (evt) {
-            evt.stopPropagation()
-            evt.preventDefault()
-            writeLog(evt.data);
-        };
-        ws.onerror = function (evt) {
-            writeLog(evt.message);
-        };
-
-        // 等到创建完成
-        var exp = new Date().getTime() + 5000;
-        //while (ws.readyState != WebSocket.OPEN && exp > new Date().getTime());
-
-        return ws;
-    }
-    function getSocket() {
-        var ws = client;
-        if (ws && ws.readyState == WebSocket.OPEN) return ws;
-
-        return websocket = createRemote(uri);
-    }
     function sendMsg() {
-        var ws = getSocket();
         //if (ws.readyState == WebSocket.OPEN) {
         msg = document.getElementById("msg").value;
-        ws.send(msg);
+        client.Send(msg);
         writeLog("发送成功!");
         /*} else {
             writeLog("发送失败!" + ws.readyState);
@@ -63,6 +35,4 @@
         pre.innerHTML += message;
         output.appendChild(pre);
     }
-
-    client = createRemote(uri);
 </script>

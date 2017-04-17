@@ -384,6 +384,7 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </Content>
+    <Content Include="Scripts\ApiClient.js" />
     <Content Include="ws.html" />
     <Content Include="Areas\Admin\Views\File\Index.cshtml">
       <Generator>RazorGenerator</Generator>
