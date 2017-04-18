@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket</title>
+    <script src="Scripts/WebSocketX.js"></script>
+</head>
+<body>
+
+    <a href="javascript:;" onclick="createFolder('http://www.baidu.com')">查看</a>
+    <script type="text/javascript">
+    function createFolder (argument) {
+        console.log(argument);
+    }
+    </script>
+
+
+    <div id="output"></div>
+
+    <script>
+if (window.WebSocket){
+    log("此浏览器支持WebSocket的！");
+} else {
+    log("This browser does not support WebSocket.");
+}
+var socket = new ws('ws://127.0.0.1:3001'),
+    str = "测试数据";
+socket.onconnecting = function(evn){
+    console.log("socket:onconnecting:",evn);
+    sendMsg("wcj");
+
+}
+socket.onopen = function(evn){
+    console.log("socket:onopen:",evn);
+    log('发了个消息！"'+str+'"');
+    sendMsg(str);
+
+}
+socket.onclose = function(evn){
+    console.log("socket.onclose:",evn);
+    log('WebSocket 被你关闭了！，您老人家再也没有办法建立连接了?');
+
+}
+socket.onmessage = function(evn){
+    console.log("socket:onmessage:",evn);
+    log('收到消息！"'+evn.data+'"');
+    // socket.close()
+
+}
+function sendMsg (str) {
+    console.log("socket:sendMsg:",socket);
+    socket.invoke("Login",str,function() {
+        
+    });
+}
+
+function log(s,e) {
+    var output = document.getElementById("output"),
+        p = document.createElement("p");
+    p.style.wordWrap = "break-word";
+    p.style.padding="10px";
+    p.style.background="#eee";
+    p.textContent = "LOG : "+s;
+    output.appendChild(p);
+    // console.log("LOG : "+s, e);
+}
+    </script>
+
+
+</body>
+</html>
+
