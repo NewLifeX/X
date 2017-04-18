@@ -651,7 +651,14 @@ namespace System
         /// <param name="value"></param>
         public static void SpeechTip(this String value)
         {
-            if (Setting.Current.SpeechTip) SpeakAsync(value);
+            if (Setting.Current.SpeechTip)
+            {
+                try
+                {
+                    SpeakAsync(value);
+                }
+                catch { }
+            }
         }
 #endif
         #endregion
@@ -710,6 +717,6 @@ namespace System
 
             return p.ExitCode;
         }
-#endregion
+        #endregion
     }
 }
