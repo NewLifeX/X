@@ -162,6 +162,8 @@ namespace NewLife.Remoting
             var action = "";
             Object args = null;
             if (!enc.TryGet(dic, out action, out args)) return null;
+            // 不允许参数字典为空
+            if (args == null) args = new Dictionary<String, Object>();
 
             Object result = null;
             var code = 0;
