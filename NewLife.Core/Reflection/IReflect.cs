@@ -499,8 +499,10 @@ namespace NewLife.Reflection
 
                 foreach (var pi in type.GetProperties())
                 {
-                    if (excludes != null && excludes.Contains(pi.Name)) continue;
                     if (!pi.CanWrite) continue;
+                    if (excludes != null && excludes.Contains(pi.Name)) continue;
+                    if (pi.GetIndexParameters().Length > 0) continue;
+                    if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
                     var pi2 = stype.GetProperty(pi.Name);
                     if (pi2 != null && pi2.CanRead) SetValue(target, pi, GetValue(src, pi2));
@@ -512,8 +514,10 @@ namespace NewLife.Reflection
             var dic = new Dictionary<String, Object>();
             foreach (var pi in src.GetType().GetProperties())
             {
-                if (excludes != null && excludes.Contains(pi.Name)) continue;
                 if (!pi.CanRead) continue;
+                if (excludes != null && excludes.Contains(pi.Name)) continue;
+                if (pi.GetIndexParameters().Length > 0) continue;
+                if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
                 dic[pi.Name] = GetValue(src, pi);
             }
@@ -532,6 +536,8 @@ namespace NewLife.Reflection
             foreach (var pi in target.GetType().GetProperties())
             {
                 if (!pi.CanWrite) continue;
+                if (pi.GetIndexParameters().Length > 0) continue;
+                if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
                 Object obj = null;
                 if (dic.TryGetValue(pi.Name, out obj))
@@ -681,7 +687,7 @@ namespace NewLife.Reflection
                 {
                     if (type.FullName == baseType.FullName &&
                         type.AssemblyQualifiedName == baseType.AssemblyQualifiedName)
-                        return true;                    
+                        return true;
                     type = type.BaseType;
                 }
             }

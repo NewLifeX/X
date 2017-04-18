@@ -236,6 +236,8 @@ namespace NewLife.Http
         /// <returns></returns>
         public static Packet MakeWS(Packet pk)
         {
+            if (pk == null) return null;
+
             var size = pk.Count;
 
             var ms = new MemoryStream();

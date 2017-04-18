@@ -1,4 +1,6 @@
-﻿using NewLife.Collections;
+﻿using System.Reflection;
+using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace System.Collections.Generic
@@ -91,6 +93,9 @@ namespace System.Collections.Generic
                 {
                     foreach (var pi in target.GetType().GetProperties())
                     {
+                        if (pi.GetIndexParameters().Length > 0) continue;
+                        if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
+
                         dic[pi.Name] = target.GetValue(pi);
                     }
                 }
