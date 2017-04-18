@@ -30,10 +30,12 @@ var ApiClient = (function (uri) {
             var self = this;
 
             var ws = self.Socket;
+            // 如果已打开，直接返回
             if (ws && ws.readyState === WebSocket.OPEN) return true;
 
             console.log('Open ' + self.Uri);
 
+            // 建立连接完成后，设置其它参数
             ws = new WebSocket(self.Uri);
             ws.onopen = function (evt) {
                 console.log("已经建立连接");
@@ -44,6 +46,8 @@ var ApiClient = (function (uri) {
                 ws.onmessage = self.onMessage;
                 ws.onerror = function (evt) {
                     console.log(evt.message);
+
+                    self.Socket = null;
                 };
 
                 self.Socket = ws;
@@ -55,6 +59,15 @@ var ApiClient = (function (uri) {
             };
 
             return true;
+        },
+
+        // 关闭
+        Close: function () {
+            var self = this;
+
+            if (self._timer > 0) clearInterval(self._timer);
+
+            self.Socket = null;
         },
 
         // 获取Socket
@@ -69,6 +82,7 @@ var ApiClient = (function (uri) {
         // 注册动作到指定函数
         requestCallbacks: [],
         Register: function (action, callback) {
+            this.requestCallbacks.push(action);
             this.requestCallbacks[action] = callback;
         },
 
@@ -98,13 +112,15 @@ var ApiClient = (function (uri) {
 
         // 发送数据
         Send: function (data) {
+            var self = this;
+
             console.log('Send ' + data);
 
-            var ws = this.getSocket();
+            var ws = self.getSocket();
             if (ws) return ws.send(data);
 
-            this.Open(function () {
-                var ws = this.getSocket();
+            self.Open(function () {
+                var ws = self.getSocket();
                 if (ws) return ws.send(data);
             });
 
@@ -113,23 +129,30 @@ var ApiClient = (function (uri) {
 
         // 调用动作，并在收到响应时调用回调函数
         Invoke: function (action, args, callback) {
-            var msg = { action, args };
+            var msg = { action: action, args: args };
 
+            // 设定响应拦截委托
             this.responseCallback = callback;
+
+            // 发出json字符串
             this.Send(JSON.stringify(msg));
         },
 
         // 登录
         _timer: 0,
         Login: function (callback) {
-            var args = { user: this.UserName, pass: this.PassWord };
-            console.log('Login ' + args);
+            var self = this;
 
-            this.Invoke('Login', args, function (msg) {
+            // 构造调用参数
+            var args = { user: self.UserName, pass: self.PassWord };
+            //console.log('Login ' + args);
+
+            // 发送请求
+            self.Invoke('Login', args, function (msg) {
                 if (callback) callback(msg);
 
                 // 定时心跳
-                if (!this._timer) this._timer = setInterval(this.Ping, 30000);
+                if (msg.Code == 0 && !self._timer) self._timer = setInterval(function () { self.Ping(); }, 30000);
             });
         },
 
