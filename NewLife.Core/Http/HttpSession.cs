@@ -21,7 +21,9 @@ namespace NewLife.Http
         internal HttpSession(ISocketServer server, Socket client) : base(server, client)
         {
             Name = GetType().Name;
-            Remote.Port = 80;
+            //Remote.Port = 80;
+            Remote.Type = server.Local.Type;
+            Remote.EndPoint = client.RemoteEndPoint as IPEndPoint;
 
             //DisconnectWhenEmptyData = false;
             ProcessAsync = false;
@@ -37,6 +39,8 @@ namespace NewLife.Http
         /// <param name="remote"></param>
         protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
+            if (pk == null || pk.Count == 0) return true;
+
             /*
              * 解析流程：
              *  首次访问或过期，创建请求对象

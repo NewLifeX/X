@@ -224,6 +224,8 @@ namespace NewLife.Net
         /// <param name="remote"></param>
         protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
+            if (pk == null || pk.Count == 0) return true;
+
 #if !__MOBILE__
             // 更新全局远程IP地址
             NewLife.Web.WebHelper.UserHost = Remote.EndPoint?.Address + "";
