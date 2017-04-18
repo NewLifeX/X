@@ -43,7 +43,9 @@ var ApiClient = (function (uri) {
                 ws.onclose = function (evt) {
                     console.log("已经关闭连接");
                 };
-                ws.onmessage = self.onMessage;
+                ws.onmessage = function (evt) {
+                    self.onMessage(evt);
+                };
                 ws.onerror = function (evt) {
                     console.log(evt.message);
 
@@ -80,9 +82,8 @@ var ApiClient = (function (uri) {
         },
 
         // 注册动作到指定函数
-        requestCallbacks: [],
+        requestCallbacks: {},
         Register: function (action, callback) {
-            this.requestCallbacks.push(action);
             this.requestCallbacks[action] = callback;
         },
 
@@ -98,16 +99,38 @@ var ApiClient = (function (uri) {
             var msg = JSON.parse(evt.data);
             if (msg) {
                 if (msg.action) {
-                    if (this.requestCallbacks) {
-                        var callback = this.requestCallbacks[msg.action];
-                        if (callback) callback(msg.args);
-                    }
+                    this.Process(msg);
                 } else if (msg.code) {
                     if (this.responseCallback) this.responseCallback(msg);
                 }
                 return;
             }
             if (this.OnReceive) this.OnReceive(evt.data);
+        },
+
+        // 处理收到的请求
+        Process: function (msg) {
+            if (this.requestCallbacks) {
+                var callback = this.requestCallbacks[msg.action];
+                if (callback) {
+                    var code = 0;
+                    var result = null;
+                    try {
+                        result = callback(msg.args);
+                    } catch (e) {
+                        code = -1;
+                        result = e + '';
+                    }
+
+                    // 发出响应
+                    if (code != 0 || result != null) {
+                        var msg = { code: code, result: result };
+
+                        // 发出json字符串
+                        this.Send(JSON.stringify(msg));
+                    }
+                }
+            }
         },
 
         // 发送数据

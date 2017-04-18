@@ -33,7 +33,9 @@
     }
 
     function OnSay(msg) {
-        writeLog(msg.Result);
+        writeLog(msg);
+
+        return "OK!";
     }
     client.Register('Say', OnSay);
 
