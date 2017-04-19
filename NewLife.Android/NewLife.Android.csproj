@@ -106,6 +106,27 @@
     <Compile Include="..\NewLife.Core\Extension\StringHelper.cs">
       <Link>Extension\StringHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Http\HttpBase.cs">
+      <Link>Http\HttpBase.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Http\HttpClient.cs">
+      <Link>Http\HttpClient.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Http\HttpHelper.cs">
+      <Link>Http\HttpHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Http\HttpRequest.cs">
+      <Link>Http\HttpRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Http\HttpResponse.cs">
+      <Link>Http\HttpResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Http\HttpServer.cs">
+      <Link>Http\HttpServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Http\HttpSession.cs">
+      <Link>Http\HttpSession.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\IO\EncodingHelper.cs">
       <Link>IO\EncodingHelper.cs</Link>
     </Compile>
@@ -186,9 +207,6 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Net\DefaultPacket.cs">
       <Link>Net\DefaultPacket.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Net\HttpSession.cs">
-      <Link>Net\HttpSession.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Net\INetSession.cs">
       <Link>Net\INetSession.cs</Link>

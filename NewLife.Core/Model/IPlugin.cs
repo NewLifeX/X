@@ -4,9 +4,6 @@ using System.Linq;
 using System.Reflection;
 using NewLife.Log;
 using NewLife.Reflection;
-#if __MOBILE__
-using System.Reflection;
-#endif
 
 namespace NewLife.Model
 {

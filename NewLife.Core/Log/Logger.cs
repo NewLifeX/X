@@ -234,7 +234,7 @@ namespace NewLife.Log
             sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", Runtime.AvailableMemory, Runtime.PhysicalMemory);
 #endif
 #endif
-            sb.AppendFormat("#CPU: {0}\r\n", Environment.ProcessorCount);
+            sb.AppendFormat("#CPU: {0}\r\n", System.Environment.ProcessorCount);
 
             sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
             sb.AppendFormat("#字段: 时间 线程ID 线程池Y网页W普通N 线程名 消息内容\r\n");
