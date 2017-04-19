@@ -30,8 +30,8 @@ namespace NewLife.Agent
         /// <summary>服务主函数</summary>
         public static void ServiceMain()
         {
-            //提升进程优先级
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
+            // 降低进程优先级，提升稳定性
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
 
             var service = Instance as TService;
 
