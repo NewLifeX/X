@@ -206,6 +206,9 @@ namespace NewLife.Remoting
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
 
+        /// <summary>编码器日志</summary>
+        public ILog EncoderLog { get; set; } = Logger.Null;
+
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>

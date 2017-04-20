@@ -47,7 +47,7 @@ namespace NewLife.Remoting
         /// <param name="port"></param>
         public ApiServer(Int32 port) : this()
         {
-            Add(new NetUri(NetType.Unknown, "", port));
+            Add(port);
         }
 
         /// <summary>实例化</summary>
@@ -69,6 +69,13 @@ namespace NewLife.Remoting
 
         #region 启动停止
         /// <summary>添加服务器</summary>
+        /// <param name="port"></param>
+        public IApiServer Add(Int32 port)
+        {
+            return Add(new NetUri(NetType.Unknown, "", port));
+        }
+
+        /// <summary>添加服务器</summary>
         /// <param name="uri"></param>
         public IApiServer Add(NetUri uri)
         {
@@ -76,7 +83,13 @@ namespace NewLife.Remoting
             if (!Providers.TryGetValue(uri.Protocol, out type)) return null;
 
             var svr = type.CreateInstance() as IApiServer;
-            if (svr != null && !svr.Init(uri.ToString())) return null;
+            if (svr != null)
+            {
+                svr.Provider = this;
+                svr.Log = Log;
+
+                if (!svr.Init(uri.ToString())) return null;
+            }
 
             Servers.Add(svr);
 
@@ -92,7 +105,13 @@ namespace NewLife.Remoting
             if (!Providers.TryGetValue(protocol, out type)) return null;
 
             var svr = type.CreateInstance() as IApiServer;
-            if (svr != null && !svr.Init(config)) return null;
+            if (svr != null)
+            {
+                svr.Provider = this;
+                svr.Log = Log;
+
+                if (!svr.Init(config)) return null;
+            }
 
             Servers.Add(svr);
 
@@ -107,9 +126,7 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
-#if DEBUG
-            Encoder.Log = Log;
-#endif
+            Encoder.Log = EncoderLog;
 
             // 设置过滤器
             SetFilter();

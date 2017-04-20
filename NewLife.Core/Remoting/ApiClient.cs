@@ -75,14 +75,13 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
-#if DEBUG
-            Client.Log = Log;
-            Encoder.Log = Log;
-#endif
+            Encoder.Log = EncoderLog;
 
             // 设置过滤器
             SetFilter();
 
+            Client.Provider = this;
+            Client.Log = Log;
             Client.Opened += Client_Opened;
             if (!Client.Open()) return false;
 
@@ -140,12 +139,16 @@ namespace NewLife.Remoting
             if (!Providers.TryGetValue(nu.Protocol, out type)) return false;
 
             var ac = type.CreateInstance() as IApiClient;
-            if (ac != null && ac.Init(uri))
+            if (ac != null)
             {
                 ac.Provider = this;
+                ac.Log = Log;
 
-                Client.TryDispose();
-                Client = ac;
+                if (ac.Init(uri))
+                {
+                    Client.TryDispose();
+                    Client = ac;
+                }
             }
 
             return true;
@@ -163,9 +166,6 @@ namespace NewLife.Remoting
         #endregion
 
         #region 远程调用
-        ///// <summary>控制器前缀</summary>
-        //public String Controller { get; set; }
-
         /// <summary>调用</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
