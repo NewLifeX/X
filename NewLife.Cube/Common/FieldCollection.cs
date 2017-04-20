@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using NewLife.Reflection;
 using XCode;
 using XCode.Configuration;
-using XCode.Membership;
 
 namespace NewLife.Cube
 {
@@ -175,7 +173,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         public FieldCollection RemoveField(String name)
         {
-            RemoveAll(e => e.Name.EqualIgnoreCase(name));
+            RemoveAll(e => e.Name.EqualIgnoreCase(name) || e.ColumnName.EqualIgnoreCase(name));
 
             return this;
         }
