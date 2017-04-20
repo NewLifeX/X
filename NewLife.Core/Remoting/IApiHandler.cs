@@ -63,6 +63,12 @@ namespace NewLife.Remoting
                 fs = list.ToArray();
             }
 
+            // 不允许参数字典为空
+            if (args == null)
+                args = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+            else
+                args = args.ToNullable(StringComparer.OrdinalIgnoreCase);
+
             // 准备好参数
             var ps = GetParams(api.Method, args, enc);
 
