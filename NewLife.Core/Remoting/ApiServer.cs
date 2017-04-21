@@ -29,6 +29,9 @@ namespace NewLife.Remoting
         /// <summary>是否正在工作</summary>
         public Boolean Active { get; private set; }
 
+        /// <summary>是否默认匿名访问</summary>
+        public Boolean Anonymous { get; set; }
+
         /// <summary>服务器集合</summary>
         public IList<IApiServer> Servers { get; } = new List<IApiServer>();
         #endregion

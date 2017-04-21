@@ -31,9 +31,6 @@ namespace NewLife.Remoting
         /// <param name="key"></param>
         /// <returns></returns>
         public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
-
-        ///// <summary>是否在会话上复用控制器。复用控制器可确保同一个会话多次请求路由到同一个控制器对象实例</summary>
-        //public Boolean IsReusable { get; set; }
         #endregion
 
         #region 控制器管理

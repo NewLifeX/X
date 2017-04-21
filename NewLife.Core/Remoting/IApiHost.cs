@@ -26,8 +26,8 @@ namespace NewLife.Remoting
         /// <summary>接口动作管理器</summary>
         IApiManager Manager { get; }
 
-        ///// <summary>是否在会话上复用控制器。复用控制器可确保同一个会话多次请求路由到同一个控制器对象实例</summary>
-        //Boolean IsReusable { get; }
+        ///// <summary>是否默认匿名访问</summary>
+        //Boolean Anonymous { get; set; }
 
         /// <summary>是否加密</summary>
         Boolean Encrypted { get; set; }
