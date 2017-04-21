@@ -52,9 +52,9 @@ namespace NewLife.Serialization
             }
             else if (jobj is IList<Object>)
             {
-                if (type != null && typeDef == typeof(IDictionary<,>)) // 名值格式
+                if (type != null && typeDef == typeof(Dictionary<,>)) // 名值格式
                     return RootDictionary(jobj, type);
-                else if (type != null && typeDef == typeof(IList<>)) // 泛型列表
+                else if (type != null && typeDef == typeof(List<>)) // 泛型列表
                     return RootList(jobj, type);
                 else
                 {
@@ -64,7 +64,10 @@ namespace NewLife.Serialization
                     var arr = Array.CreateInstance(elmType, src.Count);
                     for (var i = 0; i < src.Count; i++)
                     {
-                        arr.SetValue(src[i].ChangeType(elmType), i);
+                        if (Type.GetTypeCode(elmType) != TypeCode.Object)
+                            arr.SetValue(src[i].ChangeType(elmType), i);
+                        else
+                            arr.SetValue(ToObject(src[i], elmType), i);
                     }
 
                     return arr;
