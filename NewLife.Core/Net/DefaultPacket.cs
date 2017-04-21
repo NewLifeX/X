@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Net;
+using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
 
@@ -44,6 +45,17 @@ namespace NewLife.Net
 
             return msg;
         }
+
+        /// <summary>加入请求队列</summary>
+        /// <param name="request">请求的数据</param>
+        /// <param name="remote">远程</param>
+        /// <param name="msTimeout">超时取消时间</param>
+        public override Task<Packet> Add(Packet request, IPEndPoint remote, Int32 msTimeout)
+        {
+            if (Queue == null) Queue = new MyQueue();
+
+            return Queue.Add(this, request, remote, msTimeout);
+        }
     }
 
     /// <summary>标准封包工厂</summary>
@@ -61,24 +73,24 @@ namespace NewLife.Net
 
             return new DefaultPacket { Queue = _queue };
         }
+    }
 
-        class MyQueue : DefaultPacketQueue
+    class MyQueue : DefaultPacketQueue
+    {
+        /// <summary>请求和响应是否匹配</summary>
+        /// <param name="owner">拥有者</param>
+        /// <param name="remote">远程</param>
+        /// <param name="request">请求的数据</param>
+        /// <param name="response">响应的数据</param>
+        /// <returns></returns>
+        protected override Boolean IsMatch(Object owner, IPEndPoint remote, Packet request, Packet response)
         {
-            /// <summary>请求和响应是否匹配</summary>
-            /// <param name="owner">拥有者</param>
-            /// <param name="remote">远程</param>
-            /// <param name="request">请求的数据</param>
-            /// <param name="response">响应的数据</param>
-            /// <returns></returns>
-            protected override Boolean IsMatch(Object owner, IPEndPoint remote, Packet request, Packet response)
-            {
-                if (request.Count < 4 || response.Count < 4) return false;
+            if (request.Count < 4 || response.Count < 4) return false;
 
-                // 序号相等
-                if (request[1] != response[1]) return false;
+            // 序号相等
+            if (request[1] != response[1]) return false;
 
-                return true;
-            }
+            return true;
         }
     }
 }
