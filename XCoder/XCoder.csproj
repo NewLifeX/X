@@ -116,6 +116,13 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="XICO\IconFile.cs" />
+    <Compile Include="XApi\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XApi\FrmMain.designer.cs">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="XApi\ApiConfig.cs" />
     <Compile Include="XMessage\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -316,6 +323,9 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="XICO\FrmMain.resx">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="XApi\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="XMessage\FrmMain.resx">
