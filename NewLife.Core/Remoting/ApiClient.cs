@@ -280,7 +280,7 @@ namespace NewLife.Remoting
             OnLogined?.Invoke(this, new EventArgs<Object>(rs));
 
             // 尽快开始一次心跳
-            Timer.SetNext(1000);
+            Timer?.SetNext(1000);
 
             return rs;
         }
