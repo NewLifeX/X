@@ -11,6 +11,7 @@ using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Remoting;
+using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Windows;
 using XCoder;
@@ -24,9 +25,7 @@ namespace XApi
         ApiClient _Client;
 
         #region 窗体
-        static FrmMain()
-        {
-        }
+        static FrmMain() { }
 
         public FrmMain()
         {
@@ -80,12 +79,8 @@ namespace XApi
         {
             var cfg = ApiConfig.Current;
             mi显示应用日志.Checked = cfg.ShowLog;
-            mi显示网络日志.Checked = cfg.ShowSocketLog;
-            mi显示接收字符串.Checked = cfg.ShowReceiveString;
-            mi显示发送数据.Checked = cfg.ShowSend;
-            mi显示接收数据.Checked = cfg.ShowReceive;
+            mi显示编码日志.Checked = cfg.ShowEncoderLog;
             mi显示统计信息.Checked = cfg.ShowStat;
-            miHexSend.Checked = cfg.HexSend;
 
             txtSend.Text = cfg.SendContent;
             numMutilSend.Value = cfg.SendTimes;
@@ -98,12 +93,8 @@ namespace XApi
         {
             var cfg = ApiConfig.Current;
             cfg.ShowLog = mi显示应用日志.Checked;
-            cfg.ShowSocketLog = mi显示网络日志.Checked;
-            cfg.ShowReceiveString = mi显示接收字符串.Checked;
-            cfg.ShowSend = mi显示发送数据.Checked;
-            cfg.ShowReceive = mi显示接收数据.Checked;
+            cfg.ShowEncoderLog = mi显示编码日志.Checked;
             cfg.ShowStat = mi显示统计信息.Checked;
-            cfg.HexSend = miHexSend.Checked;
 
             cfg.SendContent = txtSend.Text;
             cfg.SendTimes = (Int32)numMutilSend.Value;
@@ -130,6 +121,7 @@ namespace XApi
                 case "服务端":
                     var svr = new ApiServer(uri);
                     svr.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
+                    svr.EncoderLog = cfg.ShowEncoderLog ? XTrace.Log : Logger.Null;
 
                     svr.Start();
 
@@ -140,29 +132,16 @@ namespace XApi
                 case "客户端":
                     var client = new ApiClient(uri + "");
                     client.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
+                    client.EncoderLog = cfg.ShowEncoderLog ? XTrace.Log : Logger.Null;
 
                     // 连接成功后拉取Api列表
-                    client.Opened += async (s, e) =>
-                     {
-                         var apis = await client.InvokeAsync<String[]>("Api/All");
-                         if (apis != null) this.Invoke(() =>
-                         {
-                             cbAction.Items.Clear();
-                             foreach (var item in apis)
-                             {
-                                 cbAction.Items.Add(item);
-                             }
-                             cbAction.SelectedIndex = 0;
-                             cbAction.Visible = true;
-                         });
-                     };
+                    client.Opened += (s, e) => GetApiAll();
 
+                    _Client = client;
                     client.Open();
 
                     "已连接服务器".SpeechTip();
-
-                    _Client = client;
-
+                    
                     break;
                 default:
                     return;
@@ -185,6 +164,21 @@ namespace XApi
             _timer = new TimerX(ShowStat, null, 5000, 5000);
 
             BizLog = TextFileLog.Create("ApiLog");
+        }
+
+        async void GetApiAll()
+        {
+            var apis = await _Client.InvokeAsync<String[]>("Api/All");
+            if (apis != null) this.Invoke(() =>
+            {
+                cbAction.Items.Clear();
+                foreach (var item in apis)
+                {
+                    cbAction.Items.Add(item);
+                }
+                cbAction.SelectedIndex = 0;
+                cbAction.Visible = true;
+            });
         }
 
         void Disconnect()
@@ -245,25 +239,6 @@ namespace XApi
         /// <summary>业务日志输出</summary>
         ILog BizLog;
 
-        void OnReceived(Object sender, MessageEventArgs e)
-        {
-            var session = sender as ISocketSession;
-            if (session == null)
-            {
-                var ns = sender as INetSession;
-                if (ns == null) return;
-                session = ns.Session;
-            }
-
-            if (ApiConfig.Current.ShowReceiveString)
-            {
-                var line = e.Message.Payload.ToStr();
-                XTrace.WriteLine(line);
-
-                if (BizLog != null) BizLog.Info(line);
-            }
-        }
-
         Int32 _pColor = 0;
         Int32 BytesOfReceived = 0;
         Int32 BytesOfSent = 0;
@@ -292,7 +267,7 @@ namespace XApi
             }
         }
 
-        private void btnSend_Click(Object sender, EventArgs e)
+        private async void btnSend_Click(Object sender, EventArgs e)
         {
             var str = txtSend.Text;
             if (String.IsNullOrEmpty(str))
@@ -315,19 +290,18 @@ namespace XApi
 
             // 处理换行
             str = str.Replace("\n", "\r\n");
-            //var buf = cfg.HexSend ? str.ToHex() : str.GetBytes();
 
             var act = cbAction.SelectedItem + "";
             act = act.Substring(" ", "(");
 
             // 构造消息
-            var args = str;
+            var args = new JsonParser(str).Decode();
 
             if (_Client != null)
             {
                 if (ths <= 1)
                 {
-                    _Client.InvokeAsync<Object>(act, args);
+                    await _Client.InvokeAsync<Object>(act, args);
                 }
                 //else
                 //{
@@ -366,48 +340,6 @@ namespace XApi
         {
             txtSend.Clear();
             BytesOfSent = 0;
-        }
-
-        private void mi显示应用日志_Click(Object sender, EventArgs e)
-        {
-            var mi = sender as ToolStripMenuItem;
-            mi.Checked = !mi.Checked;
-        }
-
-        private void mi显示网络日志_Click(Object sender, EventArgs e)
-        {
-            var mi = sender as ToolStripMenuItem;
-            mi.Checked = !mi.Checked;
-        }
-
-        private void mi显示发送数据_Click(Object sender, EventArgs e)
-        {
-            var mi = sender as ToolStripMenuItem;
-            mi.Checked = !mi.Checked;
-        }
-
-        private void mi显示接收数据_Click(Object sender, EventArgs e)
-        {
-            var mi = sender as ToolStripMenuItem;
-            mi.Checked = !mi.Checked;
-        }
-
-        private void mi显示统计信息_Click(Object sender, EventArgs e)
-        {
-            var mi = sender as ToolStripMenuItem;
-            ApiConfig.Current.ShowStat = mi.Checked = !mi.Checked;
-        }
-
-        private void mi显示接收字符串_Click(Object sender, EventArgs e)
-        {
-            var mi = sender as ToolStripMenuItem;
-            ApiConfig.Current.ShowReceiveString = mi.Checked = !mi.Checked;
-        }
-
-        private void miHex发送_Click(Object sender, EventArgs e)
-        {
-            var mi = sender as ToolStripMenuItem;
-            ApiConfig.Current.HexSend = mi.Checked = !mi.Checked;
         }
 
         private void miCheck_Click(Object sender, EventArgs e)

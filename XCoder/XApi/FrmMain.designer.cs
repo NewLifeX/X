@@ -36,13 +36,9 @@
             this.mi日志着色 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.mi显示应用日志 = new System.Windows.Forms.ToolStripMenuItem();
-            this.mi显示网络日志 = new System.Windows.Forms.ToolStripMenuItem();
-            this.mi显示接收字符串 = new System.Windows.Forms.ToolStripMenuItem();
-            this.mi显示发送数据 = new System.Windows.Forms.ToolStripMenuItem();
-            this.mi显示接收数据 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi显示编码日志 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi显示统计信息 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.miHexSend = new System.Windows.Forms.ToolStripMenuItem();
             this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
             this.btnConnect = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
@@ -104,89 +100,57 @@
             this.mi日志着色,
             this.toolStripMenuItem3,
             this.mi显示应用日志,
-            this.mi显示网络日志,
-            this.mi显示接收字符串,
-            this.mi显示发送数据,
-            this.mi显示接收数据,
+            this.mi显示编码日志,
             this.mi显示统计信息});
             this.menuReceive.Name = "menuSend";
-            this.menuReceive.Size = new System.Drawing.Size(161, 186);
+            this.menuReceive.Size = new System.Drawing.Size(149, 120);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(160, 22);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
             this.toolStripMenuItem1.Text = "清空";
             this.toolStripMenuItem1.Click += new System.EventHandler(this.mi清空_Click);
             // 
             // mi日志着色
             // 
             this.mi日志着色.Name = "mi日志着色";
-            this.mi日志着色.Size = new System.Drawing.Size(160, 22);
+            this.mi日志着色.Size = new System.Drawing.Size(152, 22);
             this.mi日志着色.Text = "日志着色";
             this.mi日志着色.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(157, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(149, 6);
             // 
             // mi显示应用日志
             // 
             this.mi显示应用日志.Name = "mi显示应用日志";
-            this.mi显示应用日志.Size = new System.Drawing.Size(160, 22);
+            this.mi显示应用日志.Size = new System.Drawing.Size(152, 22);
             this.mi显示应用日志.Text = "显示应用日志";
-            this.mi显示应用日志.Click += new System.EventHandler(this.mi显示应用日志_Click);
+            this.mi显示应用日志.Click += new System.EventHandler(this.miCheck_Click);
             // 
-            // mi显示网络日志
+            // mi显示编码日志
             // 
-            this.mi显示网络日志.Name = "mi显示网络日志";
-            this.mi显示网络日志.Size = new System.Drawing.Size(160, 22);
-            this.mi显示网络日志.Text = "显示网络日志";
-            this.mi显示网络日志.Click += new System.EventHandler(this.mi显示网络日志_Click);
-            // 
-            // mi显示接收字符串
-            // 
-            this.mi显示接收字符串.Name = "mi显示接收字符串";
-            this.mi显示接收字符串.Size = new System.Drawing.Size(160, 22);
-            this.mi显示接收字符串.Text = "显示接收字符串";
-            this.mi显示接收字符串.Click += new System.EventHandler(this.mi显示接收字符串_Click);
-            // 
-            // mi显示发送数据
-            // 
-            this.mi显示发送数据.Name = "mi显示发送数据";
-            this.mi显示发送数据.Size = new System.Drawing.Size(160, 22);
-            this.mi显示发送数据.Text = "显示发送数据";
-            this.mi显示发送数据.Click += new System.EventHandler(this.mi显示发送数据_Click);
-            // 
-            // mi显示接收数据
-            // 
-            this.mi显示接收数据.Name = "mi显示接收数据";
-            this.mi显示接收数据.Size = new System.Drawing.Size(160, 22);
-            this.mi显示接收数据.Text = "显示接收数据";
-            this.mi显示接收数据.Click += new System.EventHandler(this.mi显示接收数据_Click);
+            this.mi显示编码日志.Name = "mi显示编码日志";
+            this.mi显示编码日志.Size = new System.Drawing.Size(152, 22);
+            this.mi显示编码日志.Text = "显示编码日志";
+            this.mi显示编码日志.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // mi显示统计信息
             // 
             this.mi显示统计信息.Name = "mi显示统计信息";
-            this.mi显示统计信息.Size = new System.Drawing.Size(160, 22);
+            this.mi显示统计信息.Size = new System.Drawing.Size(152, 22);
             this.mi显示统计信息.Text = "显示统计信息";
-            this.mi显示统计信息.Click += new System.EventHandler(this.mi显示统计信息_Click);
+            this.mi显示统计信息.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // menuSend
             // 
             this.menuSend.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miHexSend,
             this.mi清空2});
             this.menuSend.Name = "menuSend";
-            this.menuSend.Size = new System.Drawing.Size(123, 48);
-            // 
-            // miHexSend
-            // 
-            this.miHexSend.Name = "miHexSend";
-            this.miHexSend.Size = new System.Drawing.Size(122, 22);
-            this.miHexSend.Text = "Hex发送";
-            this.miHexSend.Click += new System.EventHandler(this.miHex发送_Click);
+            this.menuSend.Size = new System.Drawing.Size(153, 48);
             // 
             // mi清空2
             // 
@@ -456,15 +420,11 @@
         private System.Windows.Forms.NumericUpDown numMutilSend;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.ToolStripMenuItem mi显示发送数据;
-        private System.Windows.Forms.ToolStripMenuItem mi显示接收数据;
         private System.Windows.Forms.ToolStripMenuItem mi显示统计信息;
         private System.Windows.Forms.NumericUpDown numThreads;
-        private System.Windows.Forms.ToolStripMenuItem mi显示接收字符串;
         private System.Windows.Forms.ToolStripMenuItem mi显示应用日志;
-        private System.Windows.Forms.ToolStripMenuItem mi显示网络日志;
+        private System.Windows.Forms.ToolStripMenuItem mi显示编码日志;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.ToolStripMenuItem miHexSend;
         private System.Windows.Forms.ComboBox cbAction;
         private System.Windows.Forms.ToolStripMenuItem mi日志着色;
     }

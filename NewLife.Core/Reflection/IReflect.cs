@@ -403,10 +403,18 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Object CreateInstance(Type type, params Object[] parameters)
         {
-            if (parameters == null || parameters.Length == 0)
-                return Activator.CreateInstance(type, true);
-            else
-                return Activator.CreateInstance(type, parameters);
+            try
+            {
+                if (parameters == null || parameters.Length == 0)
+                    return Activator.CreateInstance(type, true);
+                else
+                    return Activator.CreateInstance(type, parameters);
+            }
+            catch (Exception ex)
+            {
+                //throw new Exception("创建对象失败 type={0} parameters={1}".F(type.FullName, parameters.Join()), ex);
+                throw new Exception("创建对象失败 type={0} parameters={1} {2}".F(type.FullName, parameters.Join(), ex.GetTrue()?.Message));
+            }
         }
 
         /// <summary>反射调用指定对象的方法</summary>
