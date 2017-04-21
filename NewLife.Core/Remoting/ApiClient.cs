@@ -176,7 +176,8 @@ namespace NewLife.Remoting
             var ss = Client;
             if (ss == null) return default(TResult);
 
-            if (!Logined && action != LoginAction) await LoginAsync();
+            // 未登录且设置了用户名，并且当前不是登录，则异步登录
+            if (!Logined && !UserName.IsNullOrEmpty() && action != LoginAction) await LoginAsync();
 
             try
             {
@@ -188,7 +189,8 @@ namespace NewLife.Remoting
                 if (ex.Code == 401)
                 {
                     Logined = false;
-                    if (action != LoginAction)
+                    // 如果当前不是登录，且设置了用户名，尝试自动登录
+                    if (action != LoginAction && !UserName.IsNullOrEmpty())
                     {
                         await LoginAsync();
                         return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args).ConfigureAwait(false);

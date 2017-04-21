@@ -10,6 +10,7 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Reflection;
+using NewLife.Remoting;
 using NewLife.Threading;
 using NewLife.Windows;
 using XCoder;
@@ -19,24 +20,19 @@ namespace XApi
     [DisplayName("Api调试")]
     public partial class FrmMain : Form
     {
-        NetServer _Server;
-        ISocketClient _Client;
-        IPacket _Packet;
-
-        static Task<Type[]> _packets;
+        ApiServer _Server;
+        ApiClient _Client;
 
         #region 窗体
         static FrmMain()
         {
-            //_packets = Task.Run(() => typeof(IPacket).GetAllSubclasses(true).ToArray());
-            _packets = Task.Run(() => typeof(IPacketFactory).GetAllSubclasses(true).ToArray());
         }
 
         public FrmMain()
         {
             InitializeComponent();
 
-            Icon = IcoHelper.GetIcon("消息");
+            Icon = IcoHelper.GetIcon("Api");
         }
 
         private void FrmMain_Load(Object sender, EventArgs e)
@@ -57,13 +53,6 @@ namespace XApi
                 //cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
                 cbAddr.DataSource = cfg.Address.Split(";");
             }
-
-            // 加载封包协议
-            foreach (var item in _packets.Result)
-            {
-                cbPacket.Items.Add(item.GetDisplayName() ?? item.Name);
-            }
-            cbPacket.SelectedIndex = 0;
 
             // 加载保存的颜色
             UIConfig.Apply(txtReceive);
@@ -133,54 +122,47 @@ namespace XApi
             _Client = null;
 
             var uri = new NetUri(cbAddr.Text);
-            // 网络封包
-            var idx = cbPacket.SelectedIndex;
-            var fact = idx < 0 ? null : _packets.Result[idx].CreateInstance() as IPacketFactory;
-            _Packet = fact.Create();
 
             var cfg = ApiConfig.Current;
 
             switch (cbMode.Text)
             {
                 case "服务端":
-                    var svr = new NetServer();
+                    var svr = new ApiServer(uri);
                     svr.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
-                    svr.SocketLog = cfg.ShowSocketLog ? XTrace.Log : Logger.Null;
-                    svr.Port = uri.Port;
-                    if (uri.IsTcp || uri.IsUdp) svr.ProtocolType = uri.Type;
-                    svr.MessageReceived += OnReceived;
-
-                    svr.LogSend = cfg.ShowSend;
-                    svr.LogReceive = cfg.ShowReceive;
-
-                    // 加大会话超时时间到1天
-                    svr.SessionTimeout = 24 * 3600;
-
-                    svr.SessionPacket = fact;
 
                     svr.Start();
 
-                    "正在监听{0}".F(svr.Port).SpeechTip();
+                    "正在监听{0}".F(uri.Port).SpeechTip();
 
-                    if (uri.Port == 0) uri.Port = svr.Port;
                     _Server = svr;
                     break;
                 case "客户端":
-                    var client = uri.CreateRemote();
+                    var client = new ApiClient(uri + "");
                     client.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
-                    client.MessageReceived += OnReceived;
 
-                    client.LogSend = cfg.ShowSend;
-                    client.LogReceive = cfg.ShowReceive;
-
-                    client.Packet = _Packet;
+                    // 连接成功后拉取Api列表
+                    client.Opened += async (s, e) =>
+                     {
+                         var apis = await client.InvokeAsync<String[]>("Api/All");
+                         if (apis != null) this.Invoke(() =>
+                         {
+                             cbAction.Items.Clear();
+                             foreach (var item in apis)
+                             {
+                                 cbAction.Items.Add(item);
+                             }
+                             cbAction.SelectedIndex = 0;
+                             cbAction.Visible = true;
+                         });
+                     };
 
                     client.Open();
 
                     "已连接服务器".SpeechTip();
 
-                    if (uri.Port == 0) uri.Port = client.Port;
                     _Client = client;
+
                     break;
                 default:
                     return;
@@ -202,7 +184,7 @@ namespace XApi
 
             _timer = new TimerX(ShowStat, null, 5000, 5000);
 
-            BizLog = TextFileLog.Create("MessageLog");
+            BizLog = TextFileLog.Create("ApiLog");
         }
 
         void Disconnect()
@@ -216,7 +198,7 @@ namespace XApi
             }
             if (_Server != null)
             {
-                "停止监听{0}".F(_Server.Port).SpeechTip();
+                "停止服务".SpeechTip();
                 _Server.Dispose();
                 _Server = null;
             }
@@ -238,9 +220,9 @@ namespace XApi
 
             var msg = "";
             if (_Client != null)
-                msg = _Client.GetStat();
+                msg = _Client.Client.GetService<ISocketClient>()?.GetStat();
             else if (_Server != null)
-                msg = _Server.GetStat();
+                msg = (_Server.Servers[0] as NetServer)?.GetStat();
 
             if (!msg.IsNullOrEmpty() && msg != _lastStat)
             {
@@ -333,42 +315,43 @@ namespace XApi
 
             // 处理换行
             str = str.Replace("\n", "\r\n");
-            var buf = cfg.HexSend ? str.ToHex() : str.GetBytes();
+            //var buf = cfg.HexSend ? str.ToHex() : str.GetBytes();
+
+            var act = cbAction.SelectedItem + "";
+            act = act.Substring(" ", "(");
 
             // 构造消息
-            var msg = _Packet.CreateMessage(buf);
-            //buf = msg.ToArray();
-            var pk = msg.ToPacket();
+            var args = str;
 
             if (_Client != null)
             {
                 if (ths <= 1)
                 {
-                    _Client.SendMulti(pk, count, sleep);
+                    _Client.InvokeAsync<Object>(act, args);
                 }
-                else
-                {
-                    Parallel.For(0, ths, n =>
-                    {
-                        var client = _Client.Remote.CreateRemote();
-                        client.StatSend = _Client.StatSend;
-                        client.StatReceive = _Client.StatReceive;
-                        client.SendMulti(pk, count, sleep);
-                    });
-                }
+                //else
+                //{
+                //    Parallel.For(0, ths, n =>
+                //    {
+                //        var client = _Client.Remote.CreateRemote();
+                //        client.StatSend = _Client.StatSend;
+                //        client.StatReceive = _Client.StatReceive;
+                //        client.SendMulti(pk, count, sleep);
+                //    });
+                //}
             }
-            else if (_Server != null)
-            {
-                Task.Run(async () =>
-                {
-                    for (Int32 i = 0; i < count; i++)
-                    {
-                        var cs = await _Server.SendAllAsync(buf);
-                        XTrace.WriteLine("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
-                        if (sleep > 0) await Task.Delay(sleep);
-                    }
-                });
-            }
+            //else if (_Server != null)
+            //{
+            //    Task.Run(async () =>
+            //    {
+            //        for (Int32 i = 0; i < count; i++)
+            //        {
+            //            var cs = await _Server.SendAllAsync(buf);
+            //            XTrace.WriteLine("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
+            //            if (sleep > 0) await Task.Delay(sleep);
+            //        }
+            //    });
+            //}
         }
         #endregion
 
