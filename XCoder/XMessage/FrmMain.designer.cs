@@ -52,7 +52,8 @@
             this.cbMode = new System.Windows.Forms.ComboBox();
             this.cbAddr = new System.Windows.Forms.ComboBox();
             this.pnlSetting = new System.Windows.Forms.Panel();
-            this.cbColor = new System.Windows.Forms.CheckBox();
+            this.cbPacket = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.gbSend = new System.Windows.Forms.GroupBox();
             this.numThreads = new System.Windows.Forms.NumericUpDown();
             this.numSleep = new System.Windows.Forms.NumericUpDown();
@@ -62,8 +63,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.label3 = new System.Windows.Forms.Label();
-            this.cbPacket = new System.Windows.Forms.ComboBox();
+            this.mi日志着色 = new System.Windows.Forms.ToolStripMenuItem();
             this.gbReceive.SuspendLayout();
             this.menuReceive.SuspendLayout();
             this.menuSend.SuspendLayout();
@@ -102,6 +102,7 @@
             // 
             this.menuReceive.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
+            this.mi日志着色,
             this.toolStripMenuItem3,
             this.mi显示应用日志,
             this.mi显示网络日志,
@@ -110,7 +111,7 @@
             this.mi显示接收数据,
             this.mi显示统计信息});
             this.menuReceive.Name = "menuSend";
-            this.menuReceive.Size = new System.Drawing.Size(161, 164);
+            this.menuReceive.Size = new System.Drawing.Size(161, 208);
             // 
             // toolStripMenuItem1
             // 
@@ -255,17 +256,23 @@
             this.pnlSetting.Size = new System.Drawing.Size(471, 31);
             this.pnlSetting.TabIndex = 13;
             // 
-            // cbColor
+            // cbPacket
             // 
-            this.cbColor.AutoSize = true;
-            this.cbColor.Checked = true;
-            this.cbColor.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbColor.Location = new System.Drawing.Point(500, 15);
-            this.cbColor.Name = "cbColor";
-            this.cbColor.Size = new System.Drawing.Size(72, 16);
-            this.cbColor.TabIndex = 14;
-            this.cbColor.Text = "日志着色";
-            this.cbColor.UseVisualStyleBackColor = true;
+            this.cbPacket.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbPacket.FormattingEnabled = true;
+            this.cbPacket.Location = new System.Drawing.Point(375, 3);
+            this.cbPacket.Name = "cbPacket";
+            this.cbPacket.Size = new System.Drawing.Size(93, 20);
+            this.cbPacket.TabIndex = 12;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(339, 7);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(41, 12);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "封包：";
             // 
             // gbSend
             // 
@@ -397,23 +404,12 @@
             this.label7.TabIndex = 15;
             this.label7.Text = "次数：";
             // 
-            // label3
+            // mi日志着色
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(339, 7);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(41, 12);
-            this.label3.TabIndex = 11;
-            this.label3.Text = "封包：";
-            // 
-            // cbPacket
-            // 
-            this.cbPacket.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbPacket.FormattingEnabled = true;
-            this.cbPacket.Location = new System.Drawing.Point(375, 3);
-            this.cbPacket.Name = "cbPacket";
-            this.cbPacket.Size = new System.Drawing.Size(93, 20);
-            this.cbPacket.TabIndex = 12;
+            this.mi日志着色.Name = "mi日志着色";
+            this.mi日志着色.Size = new System.Drawing.Size(160, 22);
+            this.mi日志着色.Text = "日志着色";
+            this.mi日志着色.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // FrmMain
             // 
@@ -421,7 +417,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(667, 379);
             this.Controls.Add(this.gbSend);
-            this.Controls.Add(this.cbColor);
             this.Controls.Add(this.pnlSetting);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.gbReceive);
@@ -440,7 +435,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -462,7 +456,6 @@
         private System.Windows.Forms.ContextMenuStrip menuReceive;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
-        private System.Windows.Forms.CheckBox cbColor;
         private System.Windows.Forms.GroupBox gbSend;
         private System.Windows.Forms.NumericUpDown numSleep;
         private System.Windows.Forms.RichTextBox txtSend;
@@ -481,6 +474,7 @@
         private System.Windows.Forms.ToolStripMenuItem miHexSend;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ComboBox cbPacket;
+        private System.Windows.Forms.ToolStripMenuItem mi日志着色;
     }
 }
 

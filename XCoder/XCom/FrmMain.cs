@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -35,7 +36,6 @@ namespace XCom
 
             // 添加清空
             menu.Items.Insert(0, new ToolStripSeparator());
-            //var ti = menu.Items.Add("清空");
             var ti = new ToolStripMenuItem("清空");
             menu.Items.Insert(0, ti);
             ti.Click += mi清空_Click;
@@ -43,7 +43,11 @@ namespace XCom
             // 加载保存的颜色
             UIConfig.Apply(txtReceive);
 
-            cbColor.Checked = XConfig.Current.ColorLog;
+            ti = new ToolStripMenuItem("日志着色");
+            ti.Name = "日志着色";
+            menu.Items.Insert(2, ti);
+            ti.Click += miCheck_Click;
+            ti.Checked = XConfig.Current.ColorLog;
         }
         #endregion
 
@@ -73,8 +77,11 @@ namespace XCom
 
             BizLog = TextFileLog.Create("SerialLog");
 
+            var menu = txtReceive.ContextMenuStrip;
+            var mi = menu.Items.Find("日志着色", false).FirstOrDefault() as ToolStripMenuItem;
+
             var cfg = XConfig.Current;
-            cfg.ColorLog = cbColor.Checked;
+            cfg.ColorLog = mi.Checked;
             cfg.Save();
         }
 
@@ -141,8 +148,8 @@ namespace XCom
                     lastSend = tcount;
                 }
 
-                //ChangeColor();
-                if (cbColor.Checked) txtReceive.ColourDefault(_pColor);
+                var set = XConfig.Current;
+                if (set.ColorLog) txtReceive.ColourDefault(_pColor);
                 _pColor = txtReceive.TextLength;
             }
         }
@@ -195,6 +202,12 @@ namespace XCom
         {
             txtSend.Clear();
             spList.ClearSend();
+        }
+
+        private void miCheck_Click(Object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            mi.Checked = !mi.Checked;
         }
         #endregion
     }

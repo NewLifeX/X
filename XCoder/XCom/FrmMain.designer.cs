@@ -45,7 +45,6 @@
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.spList = new NewLife.Windows.SerialPortList();
-            this.cbColor = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
             this.gbReceive.SuspendLayout();
             this.gbSend.SuspendLayout();
@@ -217,22 +216,11 @@
             this.spList.TabIndex = 6;
             this.spList.ReceivedString += new System.EventHandler<NewLife.Windows.StringEventArgs>(this.OnReceived);
             // 
-            // cbColor
-            // 
-            this.cbColor.AutoSize = true;
-            this.cbColor.Location = new System.Drawing.Point(423, 14);
-            this.cbColor.Name = "cbColor";
-            this.cbColor.Size = new System.Drawing.Size(72, 16);
-            this.cbColor.TabIndex = 7;
-            this.cbColor.Text = "日志着色";
-            this.cbColor.UseVisualStyleBackColor = true;
-            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(565, 386);
-            this.Controls.Add(this.cbColor);
             this.Controls.Add(this.spList);
             this.Controls.Add(this.gbSend);
             this.Controls.Add(this.btnConnect);
@@ -248,7 +236,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).EndInit();
             this.menuSend.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -270,7 +257,6 @@
         private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.NumericUpDown numSleep;
-        private System.Windows.Forms.CheckBox cbColor;
     }
 }
 

@@ -103,7 +103,7 @@ namespace XMessage
             numMutilSend.Value = cfg.SendTimes;
             numSleep.Value = cfg.SendSleep;
             numThreads.Value = cfg.SendUsers;
-            cbColor.Checked = cfg.ColorLog;
+            mi日志着色.Checked = cfg.ColorLog;
         }
 
         void SaveConfig()
@@ -121,7 +121,7 @@ namespace XMessage
             cfg.SendTimes = (Int32)numMutilSend.Value;
             cfg.SendSleep = (Int32)numSleep.Value;
             cfg.SendUsers = (Int32)numThreads.Value;
-            cfg.ColorLog = cbColor.Checked;
+            cfg.ColorLog = mi日志着色.Checked;
 
             cfg.Save();
         }
@@ -305,7 +305,8 @@ namespace XMessage
                     lastSend = tcount;
                 }
 
-                if (cbColor.Checked) txtReceive.ColourDefault(_pColor);
+                var set = MessageConfig.Current;
+                if (set.ColorLog) txtReceive.ColourDefault(_pColor);
                 _pColor = txtReceive.TextLength;
             }
         }
@@ -425,6 +426,12 @@ namespace XMessage
         {
             var mi = sender as ToolStripMenuItem;
             MessageConfig.Current.HexSend = mi.Checked = !mi.Checked;
+        }
+
+        private void miCheck_Click(Object sender, EventArgs e)
+        {
+            var mi = sender as ToolStripMenuItem;
+            mi.Checked = !mi.Checked;
         }
         #endregion
     }
