@@ -126,6 +126,10 @@ namespace NewLife.Remoting
 
         private void Client_Opened(Object sender, EventArgs e)
         {
+            // 每次打开连接，先清空通信密钥
+            Key = null;
+            Logined = false;
+
             Opened?.Invoke(this, e);
         }
 
