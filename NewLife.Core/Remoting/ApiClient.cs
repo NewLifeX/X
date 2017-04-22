@@ -91,7 +91,7 @@ namespace NewLife.Remoting
                 Log.Info("客户端可用接口{0}个：", ms.Count);
                 foreach (var item in ms)
                 {
-                    Log.Info("\t{0,-16}{1}", item.Key, item.Value);
+                    Log.Info("\t{0,-16}\t{1}", item.Key, item.Value);
                 }
             }
 
