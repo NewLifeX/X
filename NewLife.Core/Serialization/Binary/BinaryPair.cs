@@ -187,7 +187,7 @@ namespace NewLife.Serialization
         #region 字典名值对
         private Boolean WriteDictionary(Object value, Type type)
         {
-            if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
+            if (!type.As<IDictionary>()) return false;
 
             var dic = value as IDictionary;
 
@@ -205,7 +205,7 @@ namespace NewLife.Serialization
 
         private Boolean TryReadDictionary(Type type, ref Object value)
         {
-            if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
+            if (!type.As<IDictionary>()) return false;
 
             // 子元素类型
             var gs = type.GetGenericArguments();
@@ -239,7 +239,7 @@ namespace NewLife.Serialization
         #region 数组名值对
         private Boolean WriteArray(Object value, Type type)
         {
-            if (!typeof(IList).IsAssignableFrom(type)) return false;
+            if (!type.As<IList>()) return false;
 
             var list = value as IList;
             if (list == null || list.Count == 0) return true;
@@ -255,7 +255,7 @@ namespace NewLife.Serialization
 
         private Boolean TryReadArray(Type type, ref Object value)
         {
-            if (!typeof(IList).IsAssignableFrom(type)) return false;
+            if (!type.As<IList>()) return false;
 
             // 子元素类型
             var elmType = type.GetElementTypeEx();
@@ -324,7 +324,7 @@ namespace NewLife.Serialization
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
             // 不支持基类不是Object的特殊类型
             //if (type.BaseType != typeof(Object)) return false;
-            if (!typeof(Object).IsAssignableFrom(type)) return false;
+            if (!type.As<Object>()) return false;
 
             var ims = Host.IgnoreMembers;
 

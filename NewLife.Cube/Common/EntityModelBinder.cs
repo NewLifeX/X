@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Web.Mvc;
 using NewLife.Log;
+using NewLife.Reflection;
 using XCode;
 
 namespace NewLife.Cube
@@ -16,7 +17,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         protected override Object CreateModel(ControllerContext controllerContext, ModelBindingContext bindingContext, Type modelType)
         {
-            if (typeof(IEntity).IsAssignableFrom(modelType))
+            if (modelType.As<IEntity>())
             {
                 var fact = EntityFactory.CreateOperate(modelType);
                 if (fact != null)
@@ -54,7 +55,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         public IModelBinder GetBinder(Type modelType)
         {
-            if (typeof(IEntity).IsAssignableFrom(modelType)) return new EntityModelBinder();
+            if (modelType.As<IEntity>()) return new EntityModelBinder();
 
             return null;
         }

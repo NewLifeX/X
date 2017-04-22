@@ -329,7 +329,7 @@ namespace NewLife.Xml
             Type elmType = null;
             if (type.HasElementType)
                 elmType = type.GetElementType();
-            else if (typeof(IEnumerable).IsAssignableFrom(type) && type.IsGenericType && type.GetGenericArguments().Length == 1)
+            else if (type.IsGenericType && type.GetGenericArguments().Length == 1 && type.As<IEnumerable>())
                 elmType = type.GetGenericArguments()[0];
 
             if (elmType != null && elmType.Name.EqualIgnoreCase(node.ChildNodes[0].Name))

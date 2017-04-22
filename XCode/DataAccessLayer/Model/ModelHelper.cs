@@ -218,7 +218,7 @@ namespace XCode.DataAccessLayer
             settings.IgnoreComments = true;
 
             var reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
-            while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return null; }
+            while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read()) return null; }
             reader.ReadStartElement();
 
             var list = new List<IDataTable>();
@@ -246,7 +246,7 @@ namespace XCode.DataAccessLayer
                     reader.ReadEndElement();
                 }
                 else
-                {   
+                {
                     // 这里必须处理，否则加载特殊Xml文件时将会导致死循环
                     reader.Read();
                 }
@@ -535,7 +535,8 @@ namespace XCode.DataAccessLayer
                 }
                 else if (code == TypeCode.Object)
                 {
-                    if (pi.PropertyType.IsArray || typeof(IEnumerable).IsAssignableFrom(pi.PropertyType) || obj is IEnumerable)
+                    var ptype = pi.PropertyType;
+                    if (ptype.IsArray || ptype.As<IEnumerable>() || obj is IEnumerable)
                     {
                         var sb = new StringBuilder();
                         var arr = obj as IEnumerable;

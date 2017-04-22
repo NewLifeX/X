@@ -152,9 +152,7 @@ namespace NewLife.Model
         {
             if (serviceType == typeof(PluginManager)) return this;
 
-            if (Provider != null) Provider.GetService(serviceType);
-
-            return null;
+            return Provider?.GetService(serviceType);
         }
         #endregion
     }

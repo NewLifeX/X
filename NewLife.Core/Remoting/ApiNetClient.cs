@@ -4,6 +4,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -55,11 +56,6 @@ namespace NewLife.Remoting
             var tc = Client;
             tc.MessageReceived += Client_Received;
             tc.Log = Log;
-#if DEBUG
-            //tc.LogSend = true;
-            //tc.LogReceive = true;
-            //tc.Timeout = 60 * 1000;
-#endif
             tc.Opened += Client_Opened;
 
             return Active = tc.Open();
@@ -117,9 +113,10 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public Object GetService(Type serviceType)
         {
-            if (serviceType == GetType()) return this;
+            // 服务类是否当前类的基类
+            if (GetType().As(serviceType)) return this;
+
             if (serviceType == typeof(IApiClient)) return this;
-            if (serviceType == typeof(IApiSession)) return this;
             if (serviceType == typeof(ISocketClient)) return Client;
 
             return Provider?.GetService(serviceType);

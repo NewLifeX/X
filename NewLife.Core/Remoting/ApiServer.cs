@@ -188,8 +188,9 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public override Object GetService(Type serviceType)
         {
-            if (serviceType == GetType()) return this;
-            if (serviceType == typeof(ApiServer)) return this;
+            // 服务类是否当前类的基类
+            if (GetType().As(serviceType)) return this;
+
             if (serviceType == typeof(IServer)) return this;
 
             return base.GetService(serviceType);

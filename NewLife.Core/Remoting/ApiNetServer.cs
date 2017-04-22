@@ -62,6 +62,9 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual Object GetService(Type serviceType)
         {
+            // 服务类是否当前类的基类
+            if (GetType().As(serviceType)) return this;
+
             if (serviceType == typeof(ApiServer)) return Provider;
             if (serviceType == typeof(IEncoder) && Encoder != null) return Encoder;
             if (serviceType == typeof(IApiHandler) && Handler != null) return Handler;
@@ -135,6 +138,9 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public Object GetService(Type serviceType)
         {
+            // 服务类是否当前类的基类
+            if (GetType().As(serviceType)) return this;
+
             if (serviceType == typeof(IApiSession)) return this;
             if (serviceType == typeof(IApiServer)) return Host;
 

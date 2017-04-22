@@ -149,11 +149,11 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
-        /// <summary>是否子类</summary>
+        /// <summary>是否能够转为指定基类</summary>
         /// <param name="type"></param>
         /// <param name="baseType"></param>
         /// <returns></returns>
-        Boolean IsSubOf(Type type, Type baseType);
+        Boolean As(Type type, Type baseType);
 
         /// <summary>在指定程序集中查找指定基类或接口的所有子类实现</summary>
         /// <param name="asm">指定程序集</param>
@@ -577,7 +577,7 @@ namespace NewLife.Reflection
         {
             if (type.HasElementType) return type.GetElementType();
 
-            if (typeof(IEnumerable).IsAssignableFrom(type))
+            if (type.As<IEnumerable>())
             {
                 // 如果实现了IEnumerable<>接口，那么取泛型参数
                 foreach (var item in type.GetInterfaces())
@@ -598,11 +598,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Object ChangeType(Object value, Type conversionType)
         {
-            //return Convert.ChangeType(value, conversionType);
-
             Type vtype = null;
             if (value != null) vtype = value.GetType();
-            //if (vtype == conversionType || conversionType.IsAssignableFrom(vtype)) return value;
             if (vtype == conversionType) return value;
 
             if (conversionType.IsEnum)
@@ -621,7 +618,7 @@ namespace NewLife.Reflection
                 {
                     value = str.TrimStart(new Char[] { '$', '￥' });
                 }
-                else if (typeof(Type).IsAssignableFrom(conversionType))
+                else if (conversionType.As<Type>())
                 {
                     return GetType((String)value, true);
                 }
@@ -679,10 +676,10 @@ namespace NewLife.Reflection
         /// <param name="type"></param>
         /// <param name="baseType"></param>
         /// <returns></returns>
-        public Boolean IsSubOf(Type type, Type baseType)
+        public Boolean As(Type type, Type baseType)
         {
             if (type == null) return false;
-            if (type == baseType) return false;
+            if (type == baseType) return true;
 
             if (baseType.IsAssignableFrom(type)) return true;
 

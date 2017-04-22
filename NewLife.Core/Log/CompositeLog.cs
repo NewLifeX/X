@@ -36,7 +36,7 @@ namespace NewLife.Log
         /// <summary>删除日志提供者</summary>
         /// <param name="log"></param>
         /// <returns></returns>
-        public CompositeLog Remove(ILog log) { if (Logs.Contains(log))Logs.Remove(log); return this; }
+        public CompositeLog Remove(ILog log) { if (Logs.Contains(log)) Logs.Remove(log); return this; }
 
         /// <summary>写日志</summary>
         /// <param name="level"></param>
@@ -76,16 +76,6 @@ namespace NewLife.Log
 
             return null;
         }
-
-        //public ILog Get(Type type)
-        //{
-        //    foreach (var item in Logs)
-        //    {
-        //        if (item != null && type.IsAssignableFrom(item.GetType())) return item;
-        //    }
-
-        //    return null;
-        //}
 
         /// <summary>已重载。</summary>
         /// <returns></returns>

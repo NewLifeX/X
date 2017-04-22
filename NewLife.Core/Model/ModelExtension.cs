@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Reflection;
 
 namespace System
 {
@@ -11,7 +12,12 @@ namespace System
         /// <returns></returns>
         public static T GetService<T>(this IServiceProvider provider)
         {
-            return (T)provider?.GetService(typeof(T));
+            if (provider == null) return default(T);
+
+            // 服务类是否当前类的基类
+            if (provider.GetType().As<T>()) return (T)provider;
+
+            return (T)provider.GetService(typeof(T));
         }
     }
 

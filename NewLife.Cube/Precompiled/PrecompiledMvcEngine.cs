@@ -8,6 +8,7 @@ using System.Web.Compilation;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.WebPages;
+using NewLife.Reflection;
 
 namespace NewLife.Cube.Precompiled
 {
@@ -48,45 +49,39 @@ namespace NewLife.Cube.Precompiled
             _assemblyLastWriteTime = new Lazy<DateTime>(() => assembly.GetLastWriteTimeUtc(DateTime.MaxValue));
             _baseVirtualPath = NormalizeBaseVirtualPath(baseVirtualPath);
             AreaViewLocationFormats = new String[]
-			{
-				"~/Areas/{2}/Views/{1}/{0}.cshtml",
-				"~/Areas/{2}/Views/Shared/{0}.cshtml"
-			};
+            {
+                "~/Areas/{2}/Views/{1}/{0}.cshtml",
+                "~/Areas/{2}/Views/Shared/{0}.cshtml"
+            };
             AreaMasterLocationFormats = new String[]
-			{
-				"~/Areas/{2}/Views/{1}/{0}.cshtml",
-				"~/Areas/{2}/Views/Shared/{0}.cshtml"
-			};
+            {
+                "~/Areas/{2}/Views/{1}/{0}.cshtml",
+                "~/Areas/{2}/Views/Shared/{0}.cshtml"
+            };
             AreaPartialViewLocationFormats = new String[]
-			{
-				"~/Areas/{2}/Views/{1}/{0}.cshtml",
-				"~/Areas/{2}/Views/Shared/{0}.cshtml"
-			};
+            {
+                "~/Areas/{2}/Views/{1}/{0}.cshtml",
+                "~/Areas/{2}/Views/Shared/{0}.cshtml"
+            };
             ViewLocationFormats = new String[]
-			{
-				"~/Views/{1}/{0}.cshtml",
-				"~/Views/Shared/{0}.cshtml"
-			};
+            {
+                "~/Views/{1}/{0}.cshtml",
+                "~/Views/Shared/{0}.cshtml"
+            };
             MasterLocationFormats = new String[]
-			{
-				"~/Views/{1}/{0}.cshtml",
-				"~/Views/Shared/{0}.cshtml"
-			};
+            {
+                "~/Views/{1}/{0}.cshtml",
+                "~/Views/Shared/{0}.cshtml"
+            };
             PartialViewLocationFormats = new String[]
-			{
-				"~/Views/{1}/{0}.cshtml",
-				"~/Views/Shared/{0}.cshtml"
-			};
+            {
+                "~/Views/{1}/{0}.cshtml",
+                "~/Views/Shared/{0}.cshtml"
+            };
             FileExtensions = new String[]
-			{
-				"cshtml"
-			};
-            //_mappings = (
-            //    from type in assembly.GetTypes()
-            //    where typeof(WebPageRenderingBase).IsAssignableFrom(type)
-            //    let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault()
-            //    where pageVirtualPath != null
-            //    select new KeyValuePair<String, Type>(CombineVirtualPaths(_baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary(t => t.Key, t => t.Value, StringComparer.OrdinalIgnoreCase);
+            {
+                "cshtml"
+            };
             _mappings = GetTypeMappings(assembly, _baseVirtualPath);
             ViewLocationCache = new PrecompiledViewLocationCache(assembly.FullName, ViewLocationCache);
             //_viewPageActivator = (viewPageActivator ?? (DependencyResolver.Current.GetService<IViewPageActivator>() ?? DefaultViewPageActivator.Current));
@@ -229,7 +224,7 @@ namespace NewLife.Cube.Precompiled
         {
             return (
                 from type in asm.GetTypes()
-                where typeof(WebPageRenderingBase).IsAssignableFrom(type)
+                where type.As<WebPageRenderingBase>()
                 let pageVirtualPath = type.GetCustomAttributes(false).OfType<PageVirtualPathAttribute>().FirstOrDefault()
                 where pageVirtualPath != null
                 select new KeyValuePair<String, Type>(CombineVirtualPaths(baseVirtualPath, pageVirtualPath.VirtualPath), type)).ToDictionary(t => t.Key, t => t.Value, StringComparer.OrdinalIgnoreCase);

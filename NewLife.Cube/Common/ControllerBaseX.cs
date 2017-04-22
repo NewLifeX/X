@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Web.Mvc;
 using NewLife.Log;
+using NewLife.Reflection;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -24,7 +25,7 @@ namespace NewLife.Cube
             {
                 if (method.IsStatic || !method.IsPublic) continue;
 
-                if (!typeof(ActionResult).IsAssignableFrom(method.ReturnType)) continue;
+                if (!method.ReturnType.As<ActionResult>()) continue;
 
                 if (method.GetCustomAttribute<HttpPostAttribute>() != null) continue;
                 if (method.GetCustomAttribute<AllowAnonymousAttribute>() != null) continue;

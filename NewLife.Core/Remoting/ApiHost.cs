@@ -5,6 +5,7 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -192,8 +193,9 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual Object GetService(Type serviceType)
         {
-            if (serviceType == GetType()) return this;
-            if (serviceType == typeof(ApiHost)) return this;
+            // 服务类是否当前类的基类
+            if (GetType().As(serviceType)) return this;
+
             if (serviceType == typeof(IApiHost)) return this;
             if (serviceType == typeof(IApiManager)) return Manager;
             if (serviceType == typeof(IEncoder) && Encoder != null) return Encoder;

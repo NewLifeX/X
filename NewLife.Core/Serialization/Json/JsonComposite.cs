@@ -123,7 +123,7 @@ namespace NewLife.Serialization
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
             // 不支持基类不是Object的特殊类型
             //if (type.BaseType != typeof(Object)) return false;
-            if (!typeof(Object).IsAssignableFrom(type)) return false;
+            if (!type.As<Object>()) return false;
 
             var ms = GetMembers(type);
             WriteLog("JsonRead类{0} 共有成员{1}个", type.Name, ms.Count);

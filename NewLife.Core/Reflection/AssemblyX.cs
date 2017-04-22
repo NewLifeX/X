@@ -317,8 +317,7 @@ namespace NewLife.Reflection
                 foreach (var item in Types)
                 {
                     if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
-                    //if (baseType != item && baseType.IsAssignableFrom(item)) list.Add(item);
-                    if (item.IsSubOf(baseType)) list.Add(item);
+                    if (item != baseType && item.As(baseType)) list.Add(item);
                 }
                 if (list.Count <= 0) list = null;
 

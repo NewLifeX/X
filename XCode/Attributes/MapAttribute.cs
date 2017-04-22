@@ -37,7 +37,7 @@ namespace XCode
             Name = name;
 
             // 区分实体类和提供者
-            if (typeof(MapProvider).IsAssignableFrom(type))
+            if (type.As<MapProvider>())
                 Provider = Activator.CreateInstance(type) as MapProvider;
             else
             {

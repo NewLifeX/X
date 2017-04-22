@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using NewLife.Log;
+using NewLife.Net;
 
 namespace NewLife.Remoting
 {
@@ -25,11 +26,17 @@ namespace NewLife.Remoting
             var svr = new ApiServer(3344);
             svr.Add("http://*:888/");
             svr.Log = XTrace.Log;
+            svr.EncoderLog = XTrace.Log;
             //svr.Encoder = new JsonEncoder();
             //GlobalFilters.Add(new FFAttribute { Name = "全局" });
             //GlobalFilters.Add(new FEAttribute { Name = "全局" });
             svr.Register<ApiSession>();
             svr.Register<HelloController>();
+
+            var ns = svr.Servers[0].GetService<NetServer>();
+            ns.LogSend = true;
+            ns.LogReceive = true;
+
             svr.Start();
 
             Console.ReadKey();
@@ -37,14 +44,20 @@ namespace NewLife.Remoting
 
         private static async void TestClient()
         {
-            //var client = new ApiClient("tcp://127.0.0.1:3344");
+            var client = new ApiClient("tcp://127.0.0.1:3344");
             //var client = new ApiClient("udp://127.0.0.1:3344");
-            var client = new ApiClient("http://127.0.0.1:888");
+            //var client = new ApiClient("http://127.0.0.1:888");
             //var client = new ApiClient("ws://127.0.0.1:888");
             client.Log = XTrace.Log;
+            client.EncoderLog = XTrace.Log;
             //client.Encoder = new JsonEncoder();
             client.UserName = "Stone";
             client.Password = "Stone";
+
+            var sc = client.Client.GetService<ISocketClient>();
+            sc.LogSend = true;
+            sc.LogReceive = true;
+
             client.Open();
 
             var logined = await client.LoginAsync();

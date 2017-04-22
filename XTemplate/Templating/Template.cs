@@ -1067,7 +1067,7 @@ namespace XTemplate.Templating
                     var n = 0;
                     foreach (var type in ts)
                     {
-                        if (!typeof(TemplateBase).IsAssignableFrom(type)) continue;
+                        if (!type.As<TemplateBase>()) continue;
 
                         className = type.FullName;
                         if (n++ > 1) break;

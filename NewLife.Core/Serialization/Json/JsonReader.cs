@@ -218,11 +218,11 @@ namespace NewLife.Serialization
                     val = Convert.FromBase64String((String)v);
                 else if (pt.IsArray)
                     val = CreateArray((IList<Object>)v, pt, pt.GetElementTypeEx());
-                else if (typeof(IList).IsAssignableFrom(pt))
+                else if (pt.As<IList>())
                     val = CreateGenericList((IList<Object>)v, pt, pt.GetElementTypeEx());
                 else if (pt.IsGenericType && typeof(Dictionary<,>).IsAssignableFrom(pt.GetGenericTypeDefinition()))
                     val = CreateStringKeyDictionary(vdic, pt, pt.GetGenericArguments());
-                else if (typeof(IDictionary).IsAssignableFrom(pt))
+                else if (pt.As<IDictionary>())
                     val = CreateDictionary((IList<Object>)v, pt, pt.GetGenericArguments());
                 else if (pt == typeof(NameValueCollection))
                     val = CreateNV(vdic);

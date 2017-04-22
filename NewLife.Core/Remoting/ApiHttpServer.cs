@@ -1,5 +1,6 @@
 ﻿using System;
 using NewLife.Net;
+using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -32,14 +33,17 @@ namespace NewLife.Remoting
             return true;
         }
 
-        /// <summary>获取服务提供者</summary>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
-        public override Object GetService(Type serviceType)
-        {
-            if (serviceType == typeof(ApiHttpServer)) return Provider;
+        ///// <summary>获取服务提供者</summary>
+        ///// <param name="serviceType"></param>
+        ///// <returns></returns>
+        //public override Object GetService(Type serviceType)
+        //{
+        //    // 服务类是否当前类的基类
+        //    if (GetType().As(serviceType)) return this;
 
-            return base.GetService(serviceType);
-        }
+        //    if (serviceType == typeof(ApiHttpServer)) return Provider;
+
+        //    return base.GetService(serviceType);
+        //}
     }
 }

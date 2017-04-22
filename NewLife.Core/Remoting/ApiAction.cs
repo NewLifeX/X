@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -100,7 +101,7 @@ namespace NewLife.Remoting
 
             var type = Method.ReturnType;
             var rtype = type.Name;
-            if (typeof(Task).IsAssignableFrom(type))
+            if (type.As<Task>())
             {
                 if (type.IsGenericType)
                     rtype = "Void";

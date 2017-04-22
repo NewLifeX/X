@@ -21,7 +21,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean Write(Object value, Type type)
         {
-            if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
+            if (!type.As<IDictionary>()) return false;
 
             var dic = value as IDictionary;
 
@@ -50,7 +50,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean TryRead(Type type, ref Object value)
         {
-            if (!typeof(IDictionary).IsAssignableFrom(type)) return false;
+            if (!type.As<IDictionary>()) return false;
 
             // 子元素类型
             var gs = type.GetGenericArguments();

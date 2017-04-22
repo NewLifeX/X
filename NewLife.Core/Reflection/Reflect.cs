@@ -413,25 +413,34 @@ namespace NewLife.Reflection
         {
             return Type.GetTypeCode(type);
         }
+
+        ///// <summary>是否能够转为指定基类</summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="type"></param>
+        ///// <returns></returns>
+        //public static Boolean As<T>(this Type type)
+        //{
+        //    return type != null && typeof(T).IsAssignableFrom(type);
+        //}
         #endregion
 
         #region 插件
-        /// <summary>是否子类</summary>
+        /// <summary>是否能够转为指定基类</summary>
         /// <param name="type"></param>
         /// <param name="baseType"></param>
         /// <returns></returns>
-        public static Boolean IsSubOf(this Type type, Type baseType)
+        public static Boolean As(this Type type, Type baseType)
         {
-            return Provider.IsSubOf(type, baseType);
+            return Provider.As(type, baseType);
         }
 
-        /// <summary>是否子类</summary>
+        /// <summary>是否能够转为指定基类</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static Boolean IsSubOf<T>(this Type type)
+        public static Boolean As<T>(this Type type)
         {
-            return Provider.IsSubOf(type, typeof(T));
+            return Provider.As(type, typeof(T));
         }
 
         /// <summary>在指定程序集中查找指定基类的子类</summary>

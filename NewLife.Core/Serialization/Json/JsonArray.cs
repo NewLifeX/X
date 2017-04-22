@@ -68,7 +68,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean Write(Object value, Type type)
         {
-            if (!typeof(IList).IsAssignableFrom(type)) return false;
+            if (!type.As<IList>()) return false;
 
             var list = value as IList;
 
@@ -92,7 +92,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean TryRead(Type type, ref Object value)
         {
-            if (!typeof(IList).IsAssignableFrom(type)) return false;
+            if (!type.As<IList>()) return false;
 
             // 先读取
             if (!Host.Read("[")) return false;
@@ -110,7 +110,7 @@ namespace NewLife.Serialization
             }
 
             // 数组的创建比较特别
-            if (typeof(Array).IsAssignableFrom(type))
+            if (type.As<Array>())
             {
                 value = Array.CreateInstance(type.GetElementTypeEx(), list.Count);
                 list.CopyTo((Array)value, 0);
