@@ -13,8 +13,8 @@ namespace NewLife.Remoting
         /// <summary>标识。默认0x10</summary>
         public Byte Flag { get; set; } = 0x10;
 
-        ///// <summary>使用压缩的最小长度。默认64字节</summary>
-        //public Int32 MinSize { get; set; } = 64;
+        /// <summary>使用压缩的最小长度。默认64字节</summary>
+        public Int32 MinSize { get; set; } = 64;
 
         /// <summary>执行压缩或解压缩</summary>
         /// <param name="context"></param>
@@ -30,14 +30,14 @@ namespace NewLife.Remoting
             var pk = ctx.Packet;
             if (ctx.IsSend)
             {
-                // 响应消息是否加密由标识位决定
-                if (msg.Reply && (msg.Flag & Flag) == 0) return true;
+                //// 响应消息是否加密由标识位决定
+                //if (msg.Reply && (msg.Flag & Flag) == 0) return true;
 
                 // 清空标记位
                 msg.Flag = (Byte)(msg.Flag & ~Flag);
-              
-                //// 太小的数据包不压缩
-                //if (pk.Count < MinSize) return true;
+
+                // 太小的数据包不压缩
+                if (pk.Total < MinSize) return true;
 
                 // 压缩标记位
                 msg.Flag |= Flag;
