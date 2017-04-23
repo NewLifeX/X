@@ -78,14 +78,27 @@ namespace NewLife.Security
         }
 
         /// <summary>返回指定长度随机字符串</summary>
-        /// <param name="length"></param>
+        /// <param name="length">长度</param>
+        /// <param name="symbol">是否包含符号</param>
         /// <returns></returns>
-        public static String NextString(Int32 length)
+        public static String NextString(Int32 length, Boolean symbol = false)
         {
             var sb = new StringBuilder();
             for (var i = 0; i < length; i++)
             {
-                var ch = (Char)Next((Int32)' ', 0x7F);
+                var ch = ' ';
+                if (symbol)
+                    ch = (Char)Next((Int32)' ', 0x7F);
+                else
+                {
+                    var n = Next(0, 10 + 26 + 26);
+                    if (n < 10)
+                        ch = (Char)('0' + n);
+                    else if (n < 10 + 26)
+                        ch = (Char)('A' + n - 10);
+                    else
+                        ch = (Char)('a' + n - 10 - 26);
+                }
                 sb.Append(ch);
             }
 
