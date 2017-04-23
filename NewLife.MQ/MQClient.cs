@@ -57,8 +57,7 @@ namespace NewLife.MessageQueue
                 ac.Encoder.Log = Log;
 #endif
 
-                var ss = ac.Client as IApiSession;
-                ss["user"] = Name;
+                ac["user"] = Name;
 
                 Logined = false;
 

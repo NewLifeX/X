@@ -72,13 +72,7 @@ namespace Test
 
         static void Test1()
         {
-            for (int i = 0; i < 1000; i++)
-            {
-                var str = Rand.NextString(8);
-                Console.WriteLine(str);
-
-                Thread.Sleep(500);
-            }
+            NewLife.MessageQueue.MQTest.Main();
             //ApiTest.Main();
             //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();

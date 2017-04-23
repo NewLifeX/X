@@ -100,6 +100,7 @@ namespace NewLife.MessageQueue
             {
                 var svr = new MQServer();
                 svr.Server.Log = XTrace.Log;
+                svr.Server.Anonymous = true;
                 svr.Start();
 
                 var ns = svr.Server.Servers[0] as NetServer;
