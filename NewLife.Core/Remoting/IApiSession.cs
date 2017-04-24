@@ -8,6 +8,12 @@ namespace NewLife.Remoting
     /// <summary>Api会话</summary>
     public interface IApiSession : IServiceProvider
     {
+        /// <summary>用户对象。一般用于共享用户信息对象</summary>
+        Object UserState { get; set; }
+
+        /// <summary>主机</summary>
+        IApiHost Host { get; }
+
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] AllSessions { get; }
 

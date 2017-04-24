@@ -33,7 +33,7 @@ namespace NewLife.Remoting
             svr.Register<ApiSession>();
             svr.Register<HelloController>();
 
-            var ns = svr.Servers[0].GetService<NetServer>();
+            var ns = svr.Servers[0] as NetServer;
             ns.LogSend = true;
             ns.LogReceive = true;
 

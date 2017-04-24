@@ -100,9 +100,10 @@ namespace NewLife.Remoting
             var msg = e.Message;
             if (msg.Reply) return;
 
-            var host = this.GetService<IApiHost>();
+            //var host = this.GetService<IApiHost>();
+            var host = Provider as IApiHost;
 
-            var rs = host.Process(this.GetService<IApiSession>(), msg);
+            var rs = host.Process(host as IApiSession, msg);
             if (rs != null) Client.SendAsync(rs);
         }
         #endregion

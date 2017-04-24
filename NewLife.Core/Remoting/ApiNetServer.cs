@@ -75,36 +75,42 @@ namespace NewLife.Remoting
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     {
+        /// <summary>用户对象。一般用于共享用户信息对象</summary>
+        public Object UserState { get; set; }
+
+        private IApiHost _Host;
+        /// <summary>主机</summary>
+        IApiHost IApiSession.Host { get { return _Host; } }
+
         /// <summary>所有服务器所有会话，包含自己</summary>
         public virtual IApiSession[] AllSessions
         {
             get
             {
                 // 需要收集所有服务器的所有会话
-                var svr = this.GetService<ApiServer>();
+                var svr = _Host as ApiServer;
                 return svr.Servers.SelectMany(e => e.AllSessions).ToArray();
             }
         }
-
-        private IApiHost _ApiHost;
 
         /// <summary>开始会话处理</summary>
         public override void Start()
         {
             base.Start();
 
-            _ApiHost = this.GetService<IApiHost>();
+            //_Host = this.GetService<IApiHost>();
+            _Host = Host.Provider as ApiServer;
         }
 
         /// <summary>查找Api动作</summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public virtual ApiAction FindAction(String action) { return _ApiHost.Manager.Find(action); }
+        public virtual ApiAction FindAction(String action) { return _Host.Manager.Find(action); }
 
         /// <summary>创建控制器实例</summary>
         /// <param name="api"></param>
         /// <returns></returns>
-        public virtual Object CreateController(ApiAction api) { return _ApiHost.CreateController(this, api); }
+        public virtual Object CreateController(ApiAction api) { return _Host.CreateController(this, api); }
 
         protected override void OnReceive(MessageEventArgs e)
         {
@@ -112,7 +118,7 @@ namespace NewLife.Remoting
             var msg = e.Message;
             if (msg.Reply) return;
 
-            var rs = _ApiHost.Process(this, msg);
+            var rs = _Host.Process(this, msg);
             if (rs != null) Session.SendAsync(rs);
         }
 
@@ -128,7 +134,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
         {
-            return await ApiHostHelper.InvokeAsync<TResult>(_ApiHost, this, action, args).ConfigureAwait(false);
+            return await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args).ConfigureAwait(false);
         }
 
         async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Session.SendAsync(msg).ConfigureAwait(false); }

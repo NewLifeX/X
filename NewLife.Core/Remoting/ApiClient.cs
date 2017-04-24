@@ -33,6 +33,12 @@ namespace NewLife.Remoting
         /// <summary>通信客户端</summary>
         public IApiClient Client { get; set; }
 
+        /// <summary>主机</summary>
+        IApiHost IApiSession.Host { get { return this; } }
+
+        /// <summary>用户对象。一般用于共享用户信息对象</summary>
+        public Object UserState { get; set; }
+
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions { get { return new IApiSession[] { this }; } }
         #endregion
