@@ -14,6 +14,9 @@ namespace NewLife.MessageQueue
         /// <summary>过期时间</summary>
         public DateTime EndTime { get; set; }
 
+        /// <summary>标签</summary>
+        public String Tag { get; set; }
+
         /// <summary>主体</summary>
         public Object Body { get; set; }
 

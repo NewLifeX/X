@@ -43,8 +43,8 @@ namespace NewLife.MessageQueue
         #endregion
 
         #region 打开关闭
-        /// <summary>打开</summary>
-        public void Open()
+        /// <summary>确保创建客户端</summary>
+        public void EnsureCreate()
         {
             var ac = Client;
             if (ac == null || ac.Disposed)
@@ -54,22 +54,24 @@ namespace NewLife.MessageQueue
                 ac.Log = Log;
 #if DEBUG
                 ac.Client.Log = Log;
-                ac.Encoder.Log = Log;
+                ac.EncoderLog = Log;
 #endif
 
                 ac["user"] = Name;
 
+                Client = ac;
+            }
+        }
+
+        /// <summary>打开</summary>
+        public void Open()
+        {
+            var ac = Client;
+            if (ac != null && !ac.Disposed)
+            {
                 Logined = false;
 
-                Client = ac;
-
-                // 连接成功后自动登录
-                ac.Opened += (s, e) => Task.Run(Login);
-
-                ac.Open();
-
-                //// 异步登录
-                //if (!Name.IsNullOrEmpty()) Task.Run(Login);
+                ac?.Open();
             }
         }
 
@@ -80,46 +82,20 @@ namespace NewLife.MessageQueue
         }
         #endregion
 
-        #region 登录验证
-        private Boolean _logining;
-        /// <summary>登录</summary>
-        /// <returns></returns>
-        public async Task<Boolean> Login()
-        {
-            if (Name.IsNullOrEmpty()) return false;
-
-            if (_logining) return true;
-            _logining = true;
-
-            try
-            {
-                Open();
-
-                if (Logined) return true;
-
-                var rs = await Client.InvokeAsync<Boolean>("User/Login", new { user = Name, pass = Name.MD5() });
-                Logined = rs;
-
-                return rs;
-            }
-            finally { _logining = false; }
-        }
-        #endregion
-
         #region 发布订阅
-        /// <summary>发布主题</summary>
-        /// <param name="topic"></param>
-        /// <returns></returns>
-        public async Task<Boolean> CreateTopic(String topic)
-        {
-            Open();
+        ///// <summary>发布主题</summary>
+        ///// <param name="topic"></param>
+        ///// <returns></returns>
+        //public async Task<Boolean> CreateTopic(String topic)
+        //{
+        //    Open();
 
-            Log.Info("{0} 创建主题 {1}", Name, topic);
+        //    Log.Info("{0} 创建主题 {1}", Name, topic);
 
-            var rs = await Client.InvokeAsync<Boolean>("Topic/Create", new { topic });
+        //    var rs = await Client.InvokeAsync<Boolean>("Topic/Create", new { topic });
 
-            return rs;
-        }
+        //    return rs;
+        //}
 
         /// <summary>订阅主题</summary>
         /// <param name="topic"></param>
@@ -147,9 +123,6 @@ namespace NewLife.MessageQueue
             Open();
 
             Log.Info("{0} 发布消息 {1}", Name, msg);
-
-            //// 对象编码为二进制
-            //var buf = Client.Encoder.Encode(msg);
 
             var m = new Message
             {

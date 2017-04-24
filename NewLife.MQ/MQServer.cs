@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Model;
+using NewLife.Reflection;
 using NewLife.Remoting;
 
 namespace NewLife.MessageQueue
 {
     /// <summary>消息队列服务器</summary>
-    public class MQServer : DisposeBase, IServer
+    public class MQServer : DisposeBase, IServer, IServiceProvider
     {
         #region 属性
         /// <summary>接口服务器</summary>
@@ -20,7 +21,11 @@ namespace NewLife.MessageQueue
         /// <summary>实例化</summary>
         public MQServer(Int32 port = 2234)
         {
-            Server = new ApiServer(2234);
+            if (port > 0)
+            {
+                Server = new ApiServer(port);
+                Server.Register<MQSession>();
+            }
         }
 
         /// <summary>销毁</summary>
@@ -39,22 +44,12 @@ namespace NewLife.MessageQueue
         {
             if (Server.Active) return;
 
-            // 编码器
-            if (Server.Encoder == null)
-            {
-                Server.Encoder = new JsonEncoder();
-#if DEBUG
-                Server.Encoder.Log = Server.Log;
-#endif
-            }
+            if (Server.Provider == null) Server.Provider = this;
 
             // 注册控制器
-            Server.Register<UserController>();
+            //Server.Register<UserController>();
             Server.Register<TopicController>();
             Server.Register<MessageController>();
-
-            // 建立引用
-            Server["Topics"] = Topics;
 
             Server.Start();
         }
@@ -64,6 +59,22 @@ namespace NewLife.MessageQueue
         public void Stop(String reason)
         {
             Server.Stop(reason ?? (GetType().Name + "Stop"));
+        }
+        #endregion
+
+        #region 服务提供者
+        /// <summary>服务提供者</summary>
+        public IServiceProvider Provider { get; set; }
+
+        /// <summary>获取服务提供者</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public virtual Object GetService(Type serviceType)
+        {
+            // 服务类是否当前类的基类
+            if (GetType().As(serviceType)) return this;
+
+            return Provider?.GetService(serviceType);
         }
         #endregion
     }

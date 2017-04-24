@@ -56,10 +56,10 @@
     <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
       <Link>Properties\AssemblyInfo_.cs</Link>
     </Compile>
-    <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\ClientController.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Controllers\MessageController.cs" />
+    <Compile Include="MQSession.cs" />
     <Compile Include="MQTest.cs" />
     <Compile Include="MQClient.cs" />
     <Compile Include="MQServer.cs" />

@@ -19,13 +19,13 @@ namespace NewLife.MessageQueue
             var client = new MQClient();
             client.Log = XTrace.Log;
             client.Name = "张三";
-            await client.Login();
-            await client.CreateTopic("新生命团队");
+            client.Open();
 
             var user = new MQClient();
             user.Log = XTrace.Log;
             user.Name = "李四";
-            await user.Login();
+            user.Open();
+
             //user.Received += (s, e) =>
             //{
             //    XTrace.WriteLine("user.收到推送 {0}", e.Arg);
@@ -70,6 +70,10 @@ namespace NewLife.MessageQueue
                     user = user.Substring(null, "@");
                 }
                 client.Name = user;
+                client.EnsureCreate();
+                client.Client.UserName = "test";
+                client.Client.Password = "test";
+                client.Open();
 
                 //client.Received += (s, e) =>
                 //{
@@ -78,8 +82,6 @@ namespace NewLife.MessageQueue
 
                 var task = Task.Run(async () =>
                 {
-                    await client.Login();
-                    await client.CreateTopic(topic);
                     await client.Subscribe(topic);
                 });
                 task.Wait();
@@ -100,7 +102,7 @@ namespace NewLife.MessageQueue
             {
                 var svr = new MQServer();
                 svr.Server.Log = XTrace.Log;
-                svr.Server.Anonymous = true;
+                //svr.Server.Anonymous = true;
                 svr.Start();
 
                 var ns = svr.Server.Servers[0] as NetServer;
