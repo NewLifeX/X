@@ -59,6 +59,9 @@ namespace NewLife.MessageQueue
             Send(msg);
 #endif
 
+            // 可能是第一个订阅者，赶紧消费积累下来的消息
+            Notify();
+
             return true;
         }
 

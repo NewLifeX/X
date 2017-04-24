@@ -8,6 +8,11 @@ namespace NewLife.MessageQueue
     /// <summary>消息队列主机</summary>
     public class MQHost : DisposeBase
     {
+        #region 静态单一实例
+        /// <summary>默认实例</summary>
+        public static MQHost Instance { get; } = new MQHost();
+        #endregion
+
         #region 属性
         /// <summary>名称</summary>
         public String Name { get; set; }
@@ -87,7 +92,7 @@ namespace NewLife.MessageQueue
         /// <param name="msg">消息</param>
         public Int32 Send(Message msg)
         {
-            var tp = Get(msg.Topic, false);
+            var tp = Get(msg.Topic, true);
             if (tp == null) throw new ArgumentNullException(nameof(msg.Topic), "找不到主题");
 
             return tp.Send(msg);

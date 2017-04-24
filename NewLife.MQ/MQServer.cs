@@ -13,8 +13,8 @@ namespace NewLife.MessageQueue
         /// <summary>接口服务器</summary>
         public ApiServer Server { get; private set; }
 
-        /// <summary>主体集合</summary>
-        public IDictionary<String, Topic> Topics { get; } = new Dictionary<String, Topic>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>消息队列主机</summary>
+        public MQHost Host { get; set; }
         #endregion
 
         #region 构造
@@ -24,8 +24,8 @@ namespace NewLife.MessageQueue
             if (port > 0)
             {
                 Server = new ApiServer(port);
-                    Server.Register<MQSession>();
-    }
+                Server.Register<MQSession>();
+            }
         }
 
         /// <summary>销毁</summary>
@@ -38,7 +38,7 @@ namespace NewLife.MessageQueue
         }
         #endregion
 
-        #region 主要方法
+        #region 开始停止
         /// <summary>开始服务</summary>
         public void Start()
         {
@@ -48,8 +48,8 @@ namespace NewLife.MessageQueue
 
             // 注册控制器
             //Server.Register<UserController>();
-            Server.Register<TopicController>();
-            Server.Register<MessageController>();
+            //Server.Register<TopicController>();
+            //Server.Register<MessageController>();
 
             Server.Start();
         }
@@ -60,6 +60,10 @@ namespace NewLife.MessageQueue
         {
             Server.Stop(reason ?? (GetType().Name + "Stop"));
         }
+        #endregion
+
+        #region 业务方法
+
         #endregion
 
         #region 服务提供者

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Xml.Serialization;
 
 namespace NewLife.MessageQueue
 {
@@ -6,15 +7,18 @@ namespace NewLife.MessageQueue
     public class Message
     {
         /// <summary>主题</summary>
+        [XmlIgnore]
         public String Topic { get; set; }
 
         /// <summary>发送者</summary>
         public String Sender { get; set; }
 
         /// <summary>开始时间</summary>
+        [XmlIgnore]
         public DateTime StartTime { get; set; }
 
         /// <summary>过期时间</summary>
+        [XmlIgnore]
         public DateTime EndTime { get; set; }
 
         /// <summary>标签</summary>

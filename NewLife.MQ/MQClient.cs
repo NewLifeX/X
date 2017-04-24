@@ -108,7 +108,7 @@ namespace NewLife.MessageQueue
 
             var rs = await Client.InvokeAsync<Boolean>("Topic/Subscribe", new { topic });
 
-            if (rs) Client.Register<ClientController>();
+            //if (rs) Client.Register<ClientController>();
 
             return rs;
         }
