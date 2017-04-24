@@ -83,7 +83,7 @@ namespace NewLife.MessageQueue
             if (tp == null) throw new Exception("未订阅");
 
             msg.Sender = user;
-            tp.SendOneway(msg);
+            tp.Send(msg);
 
             return true;
         }

@@ -15,9 +15,9 @@ namespace NewLife.MessageQueue
         public ICollection<String> Tags { get; }
 
         /// <summary>消费委托。需要考虑订阅者销毁了而没有取消注册</summary>
-        public Func<Message, Boolean> OnMessage { get; }
+        public Func<Message, Task> OnMessage { get; }
 
-        public Subscriber(String user, String tag = null, Func<Message, Boolean> onMessage = null)
+        public Subscriber(String user, String tag = null, Func<Message, Task> onMessage = null)
         {
             User = user;
             if (!tag.IsNullOrEmpty()) Tags = new HashSet<String>(tag.Split("||", ",", ";"));
@@ -46,9 +46,9 @@ namespace NewLife.MessageQueue
         /// <summary>发送消息给订阅者</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public Boolean NoitfyAsync(Message msg)
+        public async Task NoitfyAsync(Message msg)
         {
-            return OnMessage(msg);
+            await Task.Run(() => OnMessage(msg));
         }
     }
 }

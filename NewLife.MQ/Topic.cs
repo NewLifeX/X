@@ -36,7 +36,7 @@ namespace NewLife.MessageQueue
         /// <param name="tag">标签。消费者用于在主题队列内部过滤消息</param>
         /// <param name="onMessage">消费消息的回调函数</param>
         /// <returns></returns>
-        public Boolean Add(String user, String tag, Func<Message, Boolean> onMessage)
+        public Boolean Add(String user, String tag, Func<Message, Task> onMessage)
         {
             if (Subscribers.ContainsKey(user)) return false;
             //Subscriber scb = null;
@@ -56,7 +56,7 @@ namespace NewLife.MessageQueue
                 Tag = "Online",
                 Content = "上线啦"
             };
-            SendOneway(msg);
+            Send(msg);
 #endif
 
             return true;
@@ -76,7 +76,7 @@ namespace NewLife.MessageQueue
                 Tag = "Offline",
                 Content = "下线啦"
             };
-            SendOneway(msg);
+            Send(msg);
 #endif
 
             return true;
@@ -87,7 +87,7 @@ namespace NewLife.MessageQueue
         /// <summary>进入队列</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public Int32 SendOneway(Message msg)
+        public Int32 Send(Message msg)
         {
             if (Queue.Count > 10000) return -1;
 
@@ -97,14 +97,6 @@ namespace NewLife.MessageQueue
 
             return Subscribers.Count;
         }
-
-        /// <summary>不经队列直接分发</summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        public async Task<Int32> SendAsync(Message msg)
-        {
-            return Dispatch(msg);
-        }
         #endregion
 
         #region 推送消息
@@ -113,40 +105,45 @@ namespace NewLife.MessageQueue
         {
             // 扫描一次，一旦发送有消息，则调用线程池线程处理
             if (_Timer == null)
-                _Timer = new TimerX(Push, null, 0, 5000, Host?.Name);
+                _Timer = new TimerX(Push, null, 0, 5000, Host?.Name) { Async = true };
             else
                 _Timer.SetNext(-1);
         }
 
         private TimerX _Timer;
 
-        private void Push(Object state)
+        private async void Push(Object state)
         {
             if (Queue.Count == 0) return;
-            if (Subscribers.Count == 0) return;
+
+            var ss = Subscribers.ToValueArray();
+            if (ss.Length == 0) return;
 
             while (Queue.Count > 0)
             {
                 // 消息出列
                 var msg = Queue.Dequeue();
                 // 向每一个订阅者推送消息
-                Dispatch(msg);
+                try
+                {
+                    await Dispatch(msg, ss);
+                }
+                catch { }
             }
         }
 
-        private Int32 Dispatch(Message msg)
+        private async Task<Int32> Dispatch(Message msg, Subscriber[] ss)
         {
-            var n = 0;
+            var ts = new List<Task>();
             // 向每一个订阅者推送消息
-            foreach (var item in Subscribers.Values)
+            foreach (var item in ss)
             {
-                if (item.IsMatch(msg))
-                {
-                    item.NoitfyAsync(msg);
-                    n++;
-                }
+                if (item.IsMatch(msg)) ts.Add(item.NoitfyAsync(msg));
             }
-            return n;
+            // 一起等待
+            await Task.WhenAll(ts);
+
+            return ts.Count;
         }
         #endregion
     }

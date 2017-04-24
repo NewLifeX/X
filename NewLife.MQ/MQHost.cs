@@ -48,7 +48,7 @@ namespace NewLife.MessageQueue
         /// <param name="onMessage">消费消息的回调函数</param>
         /// <returns></returns>
         [DisplayName("订阅主题")]
-        public void Subscribe(String user, String topic, String tag, Func<Message, Boolean> onMessage)
+        public void Subscribe(String user, String topic, String tag, Func<Message, Task> onMessage)
         {
             if (user.IsNullOrEmpty()) throw new ArgumentNullException(nameof(user));
             if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
@@ -83,24 +83,22 @@ namespace NewLife.MessageQueue
         #endregion
 
         #region 发布管理
-        /// <summary>可靠异步发布</summary>
+        /// <summary>单向发送。不需要反馈</summary>
         /// <param name="msg">消息</param>
-        /// <returns></returns>
-        public async Task<Int32> SendAsync(Message msg)
+        public Int32 Send(Message msg)
         {
             var tp = Get(msg.Topic, false);
             if (tp == null) throw new ArgumentNullException(nameof(msg.Topic), "找不到主题");
 
-            return await tp.SendAsync(msg);
+            return tp.Send(msg);
         }
 
-        /// <summary>可靠异步发布</summary>
+        /// <summary>单向发送。不需要反馈</summary>
         /// <param name="user">生产者</param>
         /// <param name="topic">主题</param>
         /// <param name="tag">标签</param>
         /// <param name="content">内容</param>
-        /// <returns></returns>
-        public async Task<Int32> SendAsync(String user, String topic, String tag, Object content)
+        public Int32 Send(String user, String topic, String tag, Object content)
         {
             var msg = new Message
             {
@@ -110,35 +108,7 @@ namespace NewLife.MessageQueue
                 Content = content
             };
 
-            return await SendAsync(msg);
-        }
-
-        /// <summary>单向发送。不需要反馈</summary>
-        /// <param name="msg">消息</param>
-        public Int32 SendOneway(Message msg)
-        {
-            var tp = Get(msg.Topic, false);
-            if (tp == null) throw new ArgumentNullException(nameof(msg.Topic), "找不到主题");
-
-            return tp.SendOneway(msg);
-        }
-
-        /// <summary>单向发送。不需要反馈</summary>
-        /// <param name="user">生产者</param>
-        /// <param name="topic">主题</param>
-        /// <param name="tag">标签</param>
-        /// <param name="content">内容</param>
-        public Int32 SendOneway(String user, String topic, String tag, Object content)
-        {
-            var msg = new Message
-            {
-                Topic = topic,
-                Sender = user,
-                Tag = tag,
-                Content = content
-            };
-
-            return SendOneway(msg);
+            return Send(msg);
         }
         #endregion
     }
