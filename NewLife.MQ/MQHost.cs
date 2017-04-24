@@ -8,7 +8,20 @@ namespace NewLife.MessageQueue
     /// <summary>消息队列主机</summary>
     public class MQHost : DisposeBase
     {
-        #region 主体
+        #region 属性
+        /// <summary>名称</summary>
+        public String Name { get; set; }
+        #endregion
+
+        #region 构造函数
+        /// <summary>实例化一个消息队列主机</summary>
+        public MQHost()
+        {
+            Name = GetType().Name.TrimEnd("Host");
+        }
+        #endregion
+
+        #region 主题
         /// <summary>主题集合</summary>
         private ConcurrentDictionary<String, Topic> Topics { get; } = new ConcurrentDictionary<String, Topic>(StringComparer.OrdinalIgnoreCase);
 
@@ -18,10 +31,11 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         private Topic Get(String topic, Boolean create)
         {
-            if (create) return Topics.GetOrAdd(topic, s => new Topic { Name = topic });
+            if (create) return Topics.GetOrAdd(topic, s => new Topic { Name = topic, Host = this });
 
             Topic tp = null;
             Topics.TryGetValue(topic, out tp);
+
             return tp;
         }
         #endregion
@@ -48,9 +62,23 @@ namespace NewLife.MessageQueue
         /// <param name="user">订阅者</param>
         /// <param name="topic">主题。沟通生产者消费者之间的桥梁</param>
         [DisplayName("取消订阅")]
-        public void Unsubscribe(String user, String topic)
+        public void Unsubscribe(String user, String topic = null)
         {
+            if (user.IsNullOrEmpty()) throw new ArgumentNullException(nameof(user));
 
+            if (!topic.IsNullOrEmpty())
+            {
+                var tp = Get(topic, false);
+                tp.Remove(user);
+            }
+            // 取消当前用户的所有订阅
+            else
+            {
+                foreach (var item in Topics.Values)
+                {
+                    item.Remove(user);
+                }
+            }
         }
         #endregion
 
@@ -58,12 +86,12 @@ namespace NewLife.MessageQueue
         /// <summary>可靠异步发布</summary>
         /// <param name="msg">消息</param>
         /// <returns></returns>
-        public async Task SendAsync(Message msg)
+        public async Task<Int32> SendAsync(Message msg)
         {
             var tp = Get(msg.Topic, false);
             if (tp == null) throw new ArgumentNullException(nameof(msg.Topic), "找不到主题");
 
-            tp.Enqueue(msg);
+            return await tp.SendAsync(msg);
         }
 
         /// <summary>可靠异步发布</summary>
@@ -72,7 +100,7 @@ namespace NewLife.MessageQueue
         /// <param name="tag">标签</param>
         /// <param name="content">内容</param>
         /// <returns></returns>
-        public async Task SendAsync(String user, String topic, String tag, Object content)
+        public async Task<Int32> SendAsync(String user, String topic, String tag, Object content)
         {
             var msg = new Message
             {
@@ -82,17 +110,17 @@ namespace NewLife.MessageQueue
                 Content = content
             };
 
-            await SendAsync(msg);
+            return await SendAsync(msg);
         }
 
         /// <summary>单向发送。不需要反馈</summary>
         /// <param name="msg">消息</param>
-        public void SendOneway(Message msg)
+        public Int32 SendOneway(Message msg)
         {
             var tp = Get(msg.Topic, false);
             if (tp == null) throw new ArgumentNullException(nameof(msg.Topic), "找不到主题");
 
-            tp.Enqueue(msg);
+            return tp.SendOneway(msg);
         }
 
         /// <summary>单向发送。不需要反馈</summary>
@@ -100,7 +128,7 @@ namespace NewLife.MessageQueue
         /// <param name="topic">主题</param>
         /// <param name="tag">标签</param>
         /// <param name="content">内容</param>
-        public void SendOneway(String user, String topic, String tag, Object content)
+        public Int32 SendOneway(String user, String topic, String tag, Object content)
         {
             var msg = new Message
             {
@@ -110,7 +138,7 @@ namespace NewLife.MessageQueue
                 Content = content
             };
 
-            SendOneway(msg);
+            return SendOneway(msg);
         }
         #endregion
     }

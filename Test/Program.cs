@@ -72,7 +72,7 @@ namespace Test
 
         static void Test1()
         {
-            NewLife.MessageQueue.MQTest.Main();
+            NewLife.MessageQueue.MQTest.Main2();
             //ApiTest.Main();
             //NewLife.MessageQueue.MQTest.TestBase();
             //NewLife.MessageQueue.MQTest.Main();

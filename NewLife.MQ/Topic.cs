@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NewLife.Threading;
 
 namespace NewLife.MessageQueue
@@ -11,6 +12,9 @@ namespace NewLife.MessageQueue
         #region 属性
         /// <summary>名称</summary>
         public String Name { get; set; }
+
+        /// <summary>主机</summary>
+        public MQHost Host { get; set; }
 
         /// <summary>订阅者</summary>
         private ConcurrentDictionary<String, Subscriber> Subscribers { get; } = new ConcurrentDictionary<String, Subscriber>();
@@ -52,7 +56,7 @@ namespace NewLife.MessageQueue
                 Tag = "Online",
                 Content = "上线啦"
             };
-            Enqueue(msg);
+            SendOneway(msg);
 #endif
 
             return true;
@@ -72,7 +76,7 @@ namespace NewLife.MessageQueue
                 Tag = "Offline",
                 Content = "下线啦"
             };
-            Enqueue(msg);
+            SendOneway(msg);
 #endif
 
             return true;
@@ -83,15 +87,23 @@ namespace NewLife.MessageQueue
         /// <summary>进入队列</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public Boolean Enqueue(Message msg)
+        public Int32 SendOneway(Message msg)
         {
-            if (Queue.Count > 10000) return false;
+            if (Queue.Count > 10000) return -1;
 
             Queue.Enqueue(msg);
 
             Notify();
 
-            return true;
+            return Subscribers.Count;
+        }
+
+        /// <summary>不经队列直接分发</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public async Task<Int32> SendAsync(Message msg)
+        {
+            return Dispatch(msg);
         }
         #endregion
 
@@ -101,7 +113,7 @@ namespace NewLife.MessageQueue
         {
             // 扫描一次，一旦发送有消息，则调用线程池线程处理
             if (_Timer == null)
-                _Timer = new TimerX(Push, null, 0, 5000);
+                _Timer = new TimerX(Push, null, 0, 5000, Host?.Name);
             else
                 _Timer.SetNext(-1);
         }
@@ -113,20 +125,28 @@ namespace NewLife.MessageQueue
             if (Queue.Count == 0) return;
             if (Subscribers.Count == 0) return;
 
-            //Task.Factory.StartNew(async () =>
-            //{
-            //    while (Queue.Count > 0)
-            //    {
-            //        // 消息出列
-            //        var msg = Queue.Dequeue();
-            //        // 向每一个订阅者推送消息
-            //        foreach (var ss in Subscribers.Values.ToArray())
-            //        {
-            //            if (ss.User != msg.Sender)
-            //                await ss.NoitfyAsync(msg);
-            //        }
-            //    }
-            //});
+            while (Queue.Count > 0)
+            {
+                // 消息出列
+                var msg = Queue.Dequeue();
+                // 向每一个订阅者推送消息
+                Dispatch(msg);
+            }
+        }
+
+        private Int32 Dispatch(Message msg)
+        {
+            var n = 0;
+            // 向每一个订阅者推送消息
+            foreach (var item in Subscribers.Values)
+            {
+                if (item.IsMatch(msg))
+                {
+                    item.NoitfyAsync(msg);
+                    n++;
+                }
+            }
+            return n;
         }
         #endregion
     }

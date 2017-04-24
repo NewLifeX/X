@@ -17,10 +17,11 @@ namespace NewLife.MessageQueue
         /// <summary>消费委托。需要考虑订阅者销毁了而没有取消注册</summary>
         public Func<Message, Boolean> OnMessage { get; }
 
-        public Subscriber(String user, String tag = null, Func<Message, Boolean> OnMessage = null)
+        public Subscriber(String user, String tag = null, Func<Message, Boolean> onMessage = null)
         {
             User = user;
             if (!tag.IsNullOrEmpty()) Tags = new HashSet<String>(tag.Split("||", ",", ";"));
+            OnMessage = onMessage;
         }
 
         /// <summary>增加标签</summary>
