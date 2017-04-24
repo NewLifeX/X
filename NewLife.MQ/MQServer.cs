@@ -24,8 +24,8 @@ namespace NewLife.MessageQueue
             if (port > 0)
             {
                 Server = new ApiServer(port);
-                Server.Register<MQSession>();
-            }
+                    Server.Register<MQSession>();
+    }
         }
 
         /// <summary>销毁</summary>

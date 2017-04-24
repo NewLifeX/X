@@ -64,7 +64,7 @@ namespace NewLife.MessageQueue
 
             // 订阅新的
             Session["Topic"] = tp;
-            tp.Add(user, Session);
+            //tp.Add(user, Session);
 
             return true;
         }

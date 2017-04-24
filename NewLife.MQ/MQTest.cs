@@ -115,5 +115,11 @@ namespace NewLife.MessageQueue
                 //Console.ReadKey();
             }
         }
+
+        /// <summary>进程型消息队列</summary>
+        public static void Main2()
+        {
+            var host = new MQHost();
+        }
     }
 }

@@ -59,6 +59,7 @@
     <Compile Include="Controllers\ClientController.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Controllers\MessageController.cs" />
+    <Compile Include="MQHost.cs" />
     <Compile Include="MQSession.cs" />
     <Compile Include="MQTest.cs" />
     <Compile Include="MQClient.cs" />

@@ -129,7 +129,7 @@ namespace NewLife.MessageQueue
                 Sender = Name,
                 StartTime = DateTime.Now,
                 EndTime = DateTime.Now.AddSeconds(60),
-                Body = msg
+                Content = msg
             };
 
             var rs = await Client.InvokeAsync<Boolean>("Message/Public", new { msg = m });

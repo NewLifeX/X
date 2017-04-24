@@ -5,6 +5,9 @@ namespace NewLife.MessageQueue
     /// <summary>消息</summary>
     public class Message
     {
+        /// <summary>主题</summary>
+        public String Topic { get; set; }
+
         /// <summary>发送者</summary>
         public String Sender { get; set; }
 
@@ -18,20 +21,20 @@ namespace NewLife.MessageQueue
         public String Tag { get; set; }
 
         /// <summary>主体</summary>
-        public Object Body { get; set; }
+        public Object Content { get; set; }
 
         /// <summary>已重载</summary>
         /// <returns></returns>
         public override String ToString()
         {
-            var str = "";
-            var buf = Body as Byte[];
-            if (buf != null)
-                str = buf.ToStr();
-            else
-                str = Body + "";
+            //var str = "";
+            //var buf = Content as Byte[];
+            //if (buf != null)
+            //    str = buf.ToStr();
+            //else
+            //    str = Content + "";
 
-            return "{0}#{1}".F(Sender, str);
+            return "{0}#{1}".F(Sender, Topic);
         }
     }
 }
