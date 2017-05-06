@@ -49,16 +49,6 @@ namespace NewLife.MessageQueue
             var scb = new Subscriber(user, tag, onMessage);
             Subscribers[user] = scb;
 
-#if DEBUG
-            var msg = new Message
-            {
-                Sender = user,
-                Tag = "Online",
-                Content = "上线啦"
-            };
-            Send(msg);
-#endif
-
             // 可能是第一个订阅者，赶紧消费积累下来的消息
             Notify();
 
@@ -71,16 +61,6 @@ namespace NewLife.MessageQueue
         public Boolean Remove(String user)
         {
             if (!Subscribers.Remove(user)) return false;
-
-#if DEBUG
-            var msg = new Message
-            {
-                Sender = user,
-                Tag = "Offline",
-                Content = "下线啦"
-            };
-            Send(msg);
-#endif
 
             return true;
         }

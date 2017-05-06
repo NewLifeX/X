@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using NewLife.Log;
 
 namespace NewLife.MessageQueue
 {
@@ -16,6 +17,12 @@ namespace NewLife.MessageQueue
         #region 属性
         /// <summary>名称</summary>
         public String Name { get; set; }
+
+        /// <summary>上线下线提示</summary>
+        public Boolean Tip { get; set; }
+
+        ///// <summary>统计</summary>
+        //public IStatistics Stat { get; } = new Statistics();
         #endregion
 
         #region 构造函数
@@ -59,8 +66,15 @@ namespace NewLife.MessageQueue
             if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
             if (onMessage == null) throw new ArgumentNullException(nameof(onMessage));
 
+            WriteLog("{0}订阅（{1}, {2}）", user, topic, tag);
+
             var tp = Get(topic, true);
-            tp.Add(user, tag, onMessage);
+            if (tp != null)
+            {
+                var rs = tp.Add(user, tag, onMessage);
+                // 提示其它订阅者
+                if (rs && Tip) Send(user, topic, "Subscribe", "订阅主题");
+            }
         }
 
         /// <summary>取消订阅</summary>
@@ -73,15 +87,26 @@ namespace NewLife.MessageQueue
 
             if (!topic.IsNullOrEmpty())
             {
+                WriteLog("取消订阅（{0}, {1}）", user, topic);
+
                 var tp = Get(topic, false);
-                tp.Remove(user);
+                if (tp != null)
+                {
+                    var rs = tp.Remove(user);
+                    // 提示其它订阅者
+                    if (rs && Tip) Send(user, topic, "Unsubscribe", "取消订阅");
+                }
             }
             // 取消当前用户的所有订阅
             else
             {
+                WriteLog("{0}取消所有{1}个订阅", user, Topics.Count);
+
                 foreach (var item in Topics.Values)
                 {
-                    item.Remove(user);
+                    var rs = item.Remove(user);
+                    // 提示其它订阅者
+                    if (rs && Tip) Send(user, topic, "Unsubscribe", "取消订阅");
                 }
             }
         }
@@ -114,6 +139,19 @@ namespace NewLife.MessageQueue
             };
 
             return Send(msg);
+        }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(format, args);
         }
         #endregion
     }

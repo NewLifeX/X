@@ -122,6 +122,8 @@ namespace NewLife.MessageQueue
         public static async Task Main2()
         {
             var host = new MQHost();
+            host.Log = XTrace.Log;
+            host.Tip = true;
 
             host.Subscribe("aaa", "ttt", null, async m =>
             {
