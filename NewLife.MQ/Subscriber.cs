@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NewLife.Remoting;
 
 namespace NewLife.MessageQueue
 {
     /// <summary>订阅者</summary>
-    class Subscriber
+    public class Subscriber
     {
         /// <summary>用户</summary>
-        public String User { get; }
+        public Object User { get; }
 
         /// <summary>标签</summary>
         public ICollection<String> Tags { get; }
@@ -17,7 +16,11 @@ namespace NewLife.MessageQueue
         /// <summary>消费委托。需要考虑订阅者销毁了而没有取消注册</summary>
         public Func<Message, Task> OnMessage { get; }
 
-        public Subscriber(String user, String tag = null, Func<Message, Task> onMessage = null)
+        /// <summary>实例化</summary>
+        /// <param name="user"></param>
+        /// <param name="tag"></param>
+        /// <param name="onMessage"></param>
+        public Subscriber(Object user, String tag, Func<Message, Task> onMessage)
         {
             User = user;
             if (!tag.IsNullOrEmpty()) Tags = new HashSet<String>(tag.Split("||", ",", ";"));
