@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Reflection;
 
@@ -34,11 +35,10 @@ namespace XCode
         #region 属性
         private Type _EntityType;
         /// <summary>实体类型</summary>
-        public Type EntityType { get { return _EntityType; } set { _EntityType = value; } }
+        public Type EntityType { get; set; }
 
-        private List<IEntityModule> _Modules = new List<IEntityModule>();
         /// <summary>模块集合</summary>
-        public List<IEntityModule> Modules { get { return _Modules; } set { _Modules = value; } }
+        public List<IEntityModule> Modules { get; set; } = new List<IEntityModule>();
         #endregion
 
         #region 构造
@@ -46,12 +46,18 @@ namespace XCode
         {
             EntityType = entityType;
 
-            // 扫描添加
-            foreach (var item in typeof(IEntityModule).GetAllSubclasses(true))
+            // 异步扫描添加，避免阻塞
+            var task = Task.Run(() =>
             {
-                var module = item.CreateInstance() as IEntityModule;
-                Add(module);
-            }
+                foreach (var item in typeof(IEntityModule).GetAllSubclasses(true))
+                {
+                    var module = item.CreateInstance() as IEntityModule;
+                    Add(module);
+                }
+            });
+
+            // 略微等一下
+            task.Wait(100);
         }
         #endregion
 
