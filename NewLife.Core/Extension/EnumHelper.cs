@@ -50,6 +50,8 @@ namespace System
         /// <returns></returns>
         public static String GetDescription(this Enum value)
         {
+            if (value == null) return null;
+
             var type = value.GetType();
             var item = type.GetField(value.ToString(), BindingFlags.Public | BindingFlags.Static);
 
