@@ -68,7 +68,7 @@ namespace NewLife.MessageQueue
         /// <param name="userState">订阅者</param>
         /// <returns></returns>
         [DisplayName("订阅主题")]
-        public Topic Subscribe(String user, String topic, String tag, Func<Message, Task> onMessage, Object userState = null)
+        public Topic Subscribe(String user, String topic, String tag, Func<Subscriber, Message, Task> onMessage, Object userState = null)
         {
             if (user.IsNullOrEmpty()) throw new ArgumentNullException(nameof(user));
             if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));

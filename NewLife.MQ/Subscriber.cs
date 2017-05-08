@@ -7,6 +7,9 @@ namespace NewLife.MessageQueue
     /// <summary>订阅者</summary>
     public class Subscriber
     {
+        /// <summary>主机</summary>
+        public Consumer Host { get; internal set; }
+
         /// <summary>用户</summary>
         public Object User { get; }
 
@@ -14,13 +17,13 @@ namespace NewLife.MessageQueue
         public ICollection<String> Tags { get; }
 
         /// <summary>消费委托。需要考虑订阅者销毁了而没有取消注册</summary>
-        public Func<Message, Task> OnMessage { get; }
+        public Func<Subscriber, Message, Task> OnMessage { get; }
 
         /// <summary>实例化</summary>
         /// <param name="user"></param>
         /// <param name="tag"></param>
         /// <param name="onMessage"></param>
-        public Subscriber(Object user, String tag, Func<Message, Task> onMessage)
+        public Subscriber(Object user, String tag, Func<Subscriber, Message, Task> onMessage)
         {
             User = user;
             if (!tag.IsNullOrEmpty()) Tags = new HashSet<String>(tag.Split("||", ",", ";"));
@@ -51,7 +54,7 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         public async Task NoitfyAsync(Message msg)
         {
-            await Task.Run(() => OnMessage(msg));
+            await Task.Run(() => OnMessage(this, msg));
         }
     }
 }

@@ -18,7 +18,7 @@ namespace NewLife.MessageQueue
         public String Name { get; }
 
         /// <summary>主机</summary>
-        public MQHost Host { get; }
+        public MQHost Host { get; internal set; }
 
         /// <summary>广播消费模式，消息推送给集群（相同User）内所有客户端</summary>
         public Boolean Broadcast { get; set; }
@@ -46,16 +46,18 @@ namespace NewLife.MessageQueue
         /// <param name="onMessage">消费消息的回调函数</param>
         /// <param name="userState">订阅者</param>
         /// <returns></returns>
-        public Boolean Add(String user, String tag, Func<Message, Task> onMessage, Object userState)
+        public Boolean Add(String user, String tag, Func<Subscriber, Message, Task> onMessage, Object userState)
         {
             //if (Subscribers.ContainsKey(user)) return false;
-            Consumer cs = null;
-            if (!Consumers.TryGetValue(user, out cs))
-            {
-                // 新增消费者集群
-                cs = new Consumer(user);
-                Consumers[user] = cs;
-            }
+            //Consumer cs = null;
+            //if (!Consumers.TryGetValue(user, out cs))
+            //{
+            //    // 新增消费者集群
+            //    cs = new Consumer(user);
+            //    Consumers[user] = cs;
+            //}
+            // 新增消费者集群
+            var cs = Consumers.GetOrAdd(user, e => new Consumer(e) { Host = this });
 
             cs.Add(userState, tag, onMessage);
 
@@ -139,7 +141,7 @@ namespace NewLife.MessageQueue
             // 向每一个订阅者推送消息
             foreach (var item in ss)
             {
-                if (item.IsMatch(msg)) ts.Add(item.NoitfyAsync(msg));
+                ts.Add(item.Dispatch(msg));
             }
             // 一起等待
             await Task.WhenAll(ts);

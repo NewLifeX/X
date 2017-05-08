@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NewLife.Log;
 
@@ -11,6 +9,9 @@ namespace NewLife.MessageQueue
     /// <summary>消费者。相同标识的多个订阅者，构成消费者集群</summary>
     public class Consumer
     {
+        /// <summary>主机</summary>
+        public Topic Host { get; internal set; }
+
         /// <summary>用户</summary>
         public String User { get; }
 
@@ -30,11 +31,13 @@ namespace NewLife.MessageQueue
         /// <param name="tag">标签。消费者用于在主题队列内部过滤消息</param>
         /// <param name="onMessage">消费消息的回调函数</param>
         /// <returns></returns>
-        public Boolean Add(Object user, String tag, Func<Message, Task> onMessage)
+        public Boolean Add(Object user, String tag, Func<Subscriber, Message, Task> onMessage)
         {
+            if (user == null) user = "";
             if (Subscribers.ContainsKey(user)) return false;
 
             var scb = new Subscriber(user, tag, onMessage);
+            scb.Host = this;
             Subscribers[user] = scb;
 
             // 自动删除
@@ -49,18 +52,34 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         public Boolean Remove(Object user)
         {
+            if (user == null) user = "";
             if (!Subscribers.Remove(user)) return false;
 
             return true;
         }
         #endregion
 
+        private Int32 _next = 0;
         internal async Task<Boolean> Dispatch(Message msg)
         {
-            // 向每一个订阅者推送消息
-            foreach (var item in Subscribers.ToValueArray())
+            // 向其中一个订阅者推送消息
+            var ss = Subscribers.ToValueArray();
+            for (int i = 0; i < ss.Length; i++)
             {
-                if (item.IsMatch(msg)) return await item.NoitfyAsync(msg);
+                var idx = _next + i;
+                if (idx >= ss.Length) idx = 0;
+
+                var item = ss[idx];
+                if (item.IsMatch(msg))
+                {
+                    try
+                    {
+                        await item.NoitfyAsync(msg);
+                        _next = idx + 1;
+                        return true;
+                    }
+                    catch { }
+                }
             }
 
             return false;

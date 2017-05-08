@@ -125,23 +125,10 @@ namespace NewLife.MessageQueue
             host.Log = XTrace.Log;
             host.Tip = true;
 
-            host.Subscribe("aaa", "ttt", null, async m =>
-            {
-                await Task.Delay(Rand.Next(200));
-                XTrace.WriteLine("{0}=>aaa [{1}]: {2}", m.Sender, m.Tag, m.Content);
-            });
-
-            host.Subscribe("bbb", "ttt", "t1||t2", async m =>
-            {
-                await Task.Delay(Rand.Next(200));
-                XTrace.WriteLine("{0}=>bbb [{1}]: {2}", m.Sender, m.Tag, m.Content);
-            });
-
-            host.Subscribe("ccc", "ttt", "t1||t3", async m =>
-            {
-                await Task.Delay(Rand.Next(200));
-                XTrace.WriteLine("{0}=>ccc [{1}]: {2}", m.Sender, m.Tag, m.Content);
-            });
+            host.Subscribe("aaa", "ttt", null, OnMessage);
+            host.Subscribe("bbb", "ttt", "t1||t2", OnMessage);
+            host.Subscribe("ccc", "ttt", "t1||t3", OnMessage, 111);
+            host.Subscribe("ccc", "ttt", "t1||t3", OnMessage, 222);
 
             var tags = "t1,t2,t3,t4".Split(",");
             for (int i = 0; i < 1000; i++)
@@ -150,6 +137,12 @@ namespace NewLife.MessageQueue
                 host.Send("大石头", "ttt", tags[Rand.Next(tags.Length)], Rand.NextString(16));
                 Thread.Sleep(1000);
             }
+        }
+
+        static async Task OnMessage(Subscriber sb, Message m)
+        {
+            await Task.Delay(Rand.Next(200));
+            XTrace.WriteLine("{0}=>{3} [{1}]: {2} {4}", m.Sender, m.Tag, m.Content, sb.Host.User, sb.User);
         }
     }
 #endif
