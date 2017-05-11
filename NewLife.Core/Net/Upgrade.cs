@@ -198,7 +198,9 @@ namespace NewLife.Net
             WriteLog("设置已更新标记 {0}", file);
             File.CreateText(file).Close();
 
+#if !__CORE__
             Application.Exit();
+#endif
 
             return true;
         }
@@ -251,6 +253,7 @@ namespace NewLife.Net
                 }
             }
 
+#if !__CORE__
             // 启动
             if (AutoStart)
             {
@@ -258,6 +261,7 @@ namespace NewLife.Net
                 sb.AppendFormat("start /D \"{0}\" /I {1}", Path.GetDirectoryName(bin), bin);
                 sb.AppendLine();
             }
+#endif
 
 #if !DEBUG
             sb.AppendFormat("del \"{0}\" /f/q", updatebat);

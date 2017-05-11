@@ -69,6 +69,7 @@ namespace NewLife.Common
         {
         }
 
+#if !__CORE__
         /// <summary>新建配置</summary>
         protected override void OnNew()
         {
@@ -94,6 +95,7 @@ namespace NewLife.Common
                     .Where(e => e.Title == null || !(e.Title.Contains("新生命") && (e.Title.Contains("库") || e.Title.Contains("框架") || e.Title.Contains("SQLite"))))
                     .OrderByDescending(e => e.Compile).FirstOrDefault();
         }
+#endif
         #endregion
     }
 }

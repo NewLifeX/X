@@ -292,7 +292,6 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
-#if !__CORE__
         /// <summary>查找插件</summary>
         /// <typeparam name="TPlugin"></typeparam>
         /// <returns></returns>
@@ -497,11 +496,9 @@ namespace NewLife.Reflection
 
             return null;
         }
-#endif
         #endregion
 
         #region 静态加载
-#if !__CORE__
         /// <summary>获取指定程序域所有程序集</summary>
         /// <param name="domain"></param>
         /// <returns></returns>
@@ -632,7 +629,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Assembly ReflectionOnlyLoadFrom(String file, Version ver = null)
         {
-#if !__MOBILE__
+#if !__MOBILE__ && !__CORE__
             // 仅加载.Net文件，并且小于等于当前版本
             var pe = PEImage.Read(file);
             if (pe == null || !pe.IsNet) return null;
@@ -708,7 +705,6 @@ namespace NewLife.Reflection
             }
             return list;
         }
-#endif
         #endregion
 
         #region 重载

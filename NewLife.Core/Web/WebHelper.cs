@@ -19,15 +19,18 @@ namespace NewLife.Web
     public static class WebHelper
     {
         #region 辅助
+#if !__CORE__
         /// <summary>输出脚本</summary>
         /// <param name="script"></param>
         public static void WriteScript(String script)
         {
             Js.WriteScript(script, true);
         }
+#endif
         #endregion
 
         #region 弹出信息
+#if !__CORE__
         /// <summary>弹出页面提示</summary>
         /// <param name="msg"></param>
         public static void Alert(String msg)
@@ -63,9 +66,11 @@ namespace NewLife.Web
         {
             Js.Alert(msg).Close().End();
         }
+#endif
         #endregion
 
         #region 输入检查
+#if !__CORE__
         /// <summary>检查控件值是否为空，若为空，显示错误信息，并聚焦到控件上</summary>
         /// <param name="control">要检查的控件</param>
         /// <param name="errmsg">错误信息。若为空，将使用ToolTip</param>
@@ -93,6 +98,7 @@ namespace NewLife.Web
             if (!String.IsNullOrEmpty(errmsg)) Alert(errmsg);
             return false;
         }
+#endif
         #endregion
 
         #region 用户主机
@@ -103,6 +109,7 @@ namespace NewLife.Web
         {
             get
             {
+#if !__CORE__
                 if (HttpContext.Current != null)
                 {
                     var str = (String)HttpContext.Current.Items["UserHostAddress"];
@@ -125,23 +132,29 @@ namespace NewLife.Web
                         return str;
                     }
                 }
+#endif
 
                 return _UserHost;
             }
             set
             {
                 _UserHost = value;
+#if !__CORE__
                 if (HttpContext.Current != null)
                 {
                     HttpContext.Current.Items["UserHostAddress"] = value;
                 }
+#endif
             }
         }
 
+#if !__CORE__
         /// <summary>页面文件名</summary>
         public static String PageName { get { return Path.GetFileName(Request.FilePath); } }
+#endif
         #endregion
 
+#if !__CORE__
         #region 导出Excel
         /// <summary>导出Excel</summary>
         /// <param name="gv"></param>
@@ -247,9 +260,10 @@ namespace NewLife.Web
                 var dic = HttpContext.Current.Items["Params"] as IDictionary<String, String>;
                 if (dic != null) return dic;
 
+                var nvss = new NameValueCollection[] { Request.QueryString, Request.Form };
+
                 // 这里必须用可空字典，否则直接通过索引查不到数据时会抛出异常
                 dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-                var nvss = new NameValueCollection[] { Request.QueryString, Request.Form };
                 foreach (var nvs in nvss)
                 {
                     foreach (var item in nvs.AllKeys)
@@ -308,7 +322,7 @@ namespace NewLife.Web
         /// <param name="name">名称</param>
         /// <returns></returns>
         public static Int32 RequestInt(String name) { return Request[name].ToInt(); }
-        
+
         /// <summary>获取长整型参数</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
@@ -400,6 +414,7 @@ namespace NewLife.Web
             return cookies[name][key] + "";
         }
         #endregion
+#endif
 
         #region Url扩展
         /// <summary>追加Url参数，不为空时加与符号</summary>

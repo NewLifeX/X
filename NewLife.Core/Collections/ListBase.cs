@@ -127,11 +127,13 @@ namespace NewLife.Collections
 
         private static Boolean IsCompatibleType(Object value)
         {
-            if (((value != null) || typeof(T).IsValueType) && !(value is T))
-            {
-                return false;
-            }
-            return true;
+            return value == null || typeof(T).IsByRef && (value is T);
+
+            //if (((value != null) || !typeof(T).IsByRef) && !(value is T))
+            //{
+            //    return false;
+            //}
+            //return true;
         }
 
         /// <summary>从列表中移除指定对象</summary>

@@ -116,6 +116,7 @@ namespace System.Threading.Tasks
         #endregion
 
         #region 数据流异步
+#if !__CORE__
         /// <summary>异步读取数据流</summary>
         /// <param name="stream"></param>
         /// <param name="buffer"></param>
@@ -156,6 +157,7 @@ namespace System.Threading.Tasks
         {
             return Task.Factory.FromAsync<Byte[], Int32, Int32>(stream.BeginWrite, stream.EndWrite, buffer, offset, count, null);
         }
+#endif
         #endregion
 
         #region 任务转换

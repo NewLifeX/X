@@ -10,20 +10,20 @@ namespace System
     public static class AttributeX
     {
         #region 静态方法
-#if NET4 || __CORE__
+#if NET4
         /// <summary>获取自定义属性</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <param name="member"></param>
         /// <param name="inherit"></param>
         /// <returns></returns>
-        public static TAttribute GetCustomAttribute<TAttribute>(this MemberInfo member, Boolean inherit = true)
+        public static TAttribute GetCustomAttribute<TAttribute>(this MemberInfo member, Boolean inherit = true) where TAttribute : Attribute
         {
-            var atts = member.GetCustomAttributes<TAttribute>(false);
+            var atts = member.GetCustomAttributes<TAttribute>(false)?.ToArray();
             if (atts != null && atts.Length > 0) return atts[0];
 
             if (inherit)
             {
-                atts = member.GetCustomAttributes<TAttribute>(inherit);
+                atts = member.GetCustomAttributes<TAttribute>(inherit)?.ToArray();
                 if (atts != null && atts.Length > 0) return atts[0];
             }
 

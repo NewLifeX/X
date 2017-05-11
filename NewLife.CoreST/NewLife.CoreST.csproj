@@ -1,16 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>新生命X组件核心库</Description>
+    <FileVersion>6.3.2017.0511</FileVersion>
+    <AssemblyVersion>6.3.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE;RELEASE;NETSTANDARD1_4;__CORE__</DefineConstants>
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <OutputPath>..\..\Bin</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.CoreST.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD1_4;__CORE__</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <OutputPath>..\..\Bin</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.CoreST.xml</DocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Stub\NonSerializedAttribute.cs" />
+    <Compile Remove="Stub\SerializableAttribute.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\NewLife.Core\Applications\IP\Ip.cs" Link="Applications\IP\Ip.cs" />
@@ -24,7 +36,6 @@
     <Compile Include="..\NewLife.Core\Common\IdentityCard.cs" Link="Common\IdentityCard.cs" />
     <Compile Include="..\NewLife.Core\Common\PinYin.cs" Link="Common\PinYin.cs" />
     <Compile Include="..\NewLife.Core\Common\Runtime.cs" Link="Common\Runtime.cs" />
-    <Compile Include="..\NewLife.Core\Common\SysConfig.cs" Link="Common\SysConfig.cs" />
     <Compile Include="..\NewLife.Core\Common\Utility.cs" Link="Common\Utility.cs" />
     <Compile Include="..\NewLife.Core\Compression\SevenZip.cs" Link="Compression\SevenZip.cs" />
     <Compile Include="..\NewLife.Core\Compression\ZipConstants.cs" Link="Compression\ZipConstants.cs" />
@@ -43,6 +54,13 @@
     <Compile Include="..\NewLife.Core\Extension\EnumHelper.cs" Link="Extension\EnumHelper.cs" />
     <Compile Include="..\NewLife.Core\Extension\SpeakProvider.cs" Link="Extension\SpeakProvider.cs" />
     <Compile Include="..\NewLife.Core\Extension\StringHelper.cs" Link="Extension\StringHelper.cs" />
+    <Compile Include="..\NewLife.Core\Http\HttpBase.cs" Link="Http\HttpBase.cs" />
+    <Compile Include="..\NewLife.Core\Http\HttpClient.cs" Link="Http\HttpClient.cs" />
+    <Compile Include="..\NewLife.Core\Http\HttpHelper.cs" Link="Http\HttpHelper.cs" />
+    <Compile Include="..\NewLife.Core\Http\HttpRequest.cs" Link="Http\HttpRequest.cs" />
+    <Compile Include="..\NewLife.Core\Http\HttpResponse.cs" Link="Http\HttpResponse.cs" />
+    <Compile Include="..\NewLife.Core\Http\HttpServer.cs" Link="Http\HttpServer.cs" />
+    <Compile Include="..\NewLife.Core\Http\HttpSession.cs" Link="Http\HttpSession.cs" />
     <Compile Include="..\NewLife.Core\IO\EncodingHelper.cs" Link="IO\EncodingHelper.cs" />
     <Compile Include="..\NewLife.Core\IO\IOHelper.cs" Link="IO\IOHelper.cs" />
     <Compile Include="..\NewLife.Core\IO\PathHelper.cs" Link="IO\PathHelper.cs" />
@@ -71,7 +89,6 @@
     <Compile Include="..\NewLife.Core\Model\ObjectContainer.cs" Link="Model\ObjectContainer.cs" />
     <Compile Include="..\NewLife.Core\Model\ObjectContainerHelper.cs" Link="Model\ObjectContainerHelper.cs" />
     <Compile Include="..\NewLife.Core\Net\DefaultPacket.cs" Link="Net\DefaultPacket.cs" />
-    <Compile Include="..\NewLife.Core\Net\HttpSession.cs" Link="Net\HttpSession.cs" />
     <Compile Include="..\NewLife.Core\Net\INetSession.cs" Link="Net\INetSession.cs" />
     <Compile Include="..\NewLife.Core\Net\IPacket.cs" Link="Net\IPacket.cs" />
     <Compile Include="..\NewLife.Core\Net\IPacketQueue.cs" Link="Net\IPacketQueue.cs" />
@@ -106,6 +123,7 @@
     <Compile Include="..\NewLife.Core\Reflection\IReflect.cs" Link="Reflection\IReflect.cs" />
     <Compile Include="..\NewLife.Core\Reflection\OrcasNamer.cs" Link="Reflection\OrcasNamer.cs" />
     <Compile Include="..\NewLife.Core\Reflection\Reflect.cs" Link="Reflection\Reflect.cs" />
+    <Compile Include="..\NewLife.Core\Remoting\AllowAnonymousAttribute.cs" Link="Remoting\AllowAnonymousAttribute.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiAction.cs" Link="Remoting\ApiAction.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiAttribute.cs" Link="Remoting\ApiAttribute.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiClient.cs" Link="Remoting\ApiClient.cs" />
@@ -184,6 +202,7 @@
     <Compile Include="..\NewLife.Core\Web\Pager.cs" Link="Web\Pager.cs" />
     <Compile Include="..\NewLife.Core\Web\PluginHelper.cs" Link="Web\PluginHelper.cs" />
     <Compile Include="..\NewLife.Core\Web\WebClientX.cs" Link="Web\WebClientX.cs" />
+    <Compile Include="..\NewLife.Core\Web\WebHelper.cs" Link="Web\WebHelper.cs" />
     <Compile Include="..\NewLife.Core\Xml\SerializableDictionary.cs" Link="Xml\SerializableDictionary.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfig.cs" Link="Xml\XmlConfig.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs" Link="Xml\XmlConfigFileAttribute.cs" />
@@ -205,6 +224,10 @@
     <Folder Include="Log\" />
     <Folder Include="Messaging\" />
     <Folder Include="Model\" />
+    <Folder Include="Net\" />
+    <Folder Include="Remoting\" />
+    <Folder Include="Remoting\Controllers\" />
+    <Folder Include="Remoting\Filters\" />
     <Folder Include="Properties\" />
     <Folder Include="Reflection\IL\" />
     <Folder Include="Reflection\快速反射\" />
@@ -213,10 +236,12 @@
     <Folder Include="Serialization\Interface\" />
     <Folder Include="Serialization\Json\" />
     <Folder Include="Serialization\Xml\" />
+    <Folder Include="Stub\" />
     <Folder Include="Threading\" />
     <Folder Include="Web\Modules\" />
     <Folder Include="Windows\" />
     <Folder Include="Xml\" />
+    <Folder Include="Http\" />
   </ItemGroup>
 
   <ItemGroup>

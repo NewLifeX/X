@@ -605,9 +605,11 @@ namespace NewLife.Common
             //}
             #endregion 中文字符处理
 
+#if !__CORE__
             // 调用微软类库
             var ss = GetPinYinByMS(ch);
             if (ss != null && ss.Length > 0) return ss[0];
+#endif
 
             return String.Empty;
         }
@@ -617,10 +619,12 @@ namespace NewLife.Common
         /// <returns></returns>
         public static String[] GetMulti(Char ch)
         {
-            // 多音节优先使用微软库
+#if !__CORE__
+           // 多音节优先使用微软库
             var ss = GetPinYinByMS(ch);
             // 去掉最后的音调
             if (ss != null) return ss.Select(e => e.Substring(0, e.Length - 1)).ToArray();
+#endif
 
             return new String[] { Get(ch) };
         }
@@ -643,6 +647,7 @@ namespace NewLife.Common
             return sb.ToString();
         }
 
+#if !__CORE__
         static Boolean _inited = false;
         static Type _type;
         /// <summary>从微软拼音库获取拼音，包括音调</summary>
@@ -650,7 +655,6 @@ namespace NewLife.Common
         /// <returns></returns>
         public static String[] GetPinYinByMS(Char chr)
         {
-#if !__CORE__
             if (_type == null)
             {
                 if (_inited) return null;
@@ -660,7 +664,6 @@ namespace NewLife.Common
                 _type = PluginHelper.LoadPlugin("ChineseChar", "微软拼音库", "ChnCharInfo.dll", "PinYin", url);
                 if (_type == null) XTrace.WriteLine("未找到微软拼音库ChineseChar类");
             }
-#endif
             if (_type == null) return null;
 
             var list = _type.CreateInstance(chr).GetValue("Pinyins", false) as IList<String>;
@@ -668,5 +671,6 @@ namespace NewLife.Common
 
             return list.Where(e => !String.IsNullOrEmpty(e)).ToArray();
         }
+#endif
     }
 }

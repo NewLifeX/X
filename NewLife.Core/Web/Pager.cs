@@ -30,9 +30,14 @@ namespace NewLife.Web
         #endregion
 
         #region 扩展属性
+#if !__CORE__
         private IDictionary<String, String> _Params;
         /// <summary>参数集合</summary>
         public IDictionary<String, String> Params { get { return _Params ?? (_Params = WebHelper.Params); } set { _Params = value; } }
+#else
+        /// <summary>参数集合</summary>
+        public IDictionary<String, String> Params { get; set; } = new NewLife.Collections.NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+#endif
 
         private String _PageUrlTemplate = "<a href=\"{链接}\">{名称}</a>";
         /// <summary>分页链接模版。内部将会替换{链接}和{名称}</summary>

@@ -172,7 +172,7 @@ namespace NewLife.Log
                 fileName = process.StartInfo.FileName;
 #if !__MOBILE__
                 // MonoAndroid无法识别MainModule，致命异常
-                if (fileName.IsNullOrWhiteSpace()) fileName = process.MainModule.FileName;
+                if (String.IsNullOrWhiteSpace(fileName)) fileName = process.MainModule.FileName;
 #endif
             }
             catch { }

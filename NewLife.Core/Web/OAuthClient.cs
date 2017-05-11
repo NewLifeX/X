@@ -67,7 +67,9 @@ namespace NewLife.Web
 
             var url = GetUrl(AuthUrl);
 
+#if !__CORE__
             HttpContext.Current.Response.Redirect(url);
+#endif
         }
 
         /// <summary>根据授权码获取访问令牌</summary>
