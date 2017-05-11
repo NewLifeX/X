@@ -169,7 +169,7 @@ namespace NewLife.Remoting
             var code = 0;
             try
             {
-                result = Handler.Execute(session, action, args as IDictionary<String, Object>).Result;
+                result = Handler.Execute(session, action, args as IDictionary<String, Object>);
             }
             catch (Exception ex)
             {

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Reflection;
 
@@ -18,7 +17,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Task<Object> Execute(IApiSession session, String action, IDictionary<String, Object> args);
+        Object Execute(IApiSession session, String action, IDictionary<String, Object> args);
     }
 
     class ApiHandler : IApiHandler
@@ -31,7 +30,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task<Object> Execute(IApiSession session, String action, IDictionary<String, Object> args)
+        public Object Execute(IApiSession session, String action, IDictionary<String, Object> args)
         {
             var api = session.FindAction(action);
             if (api == null) throw new ApiException(404, "无法找到名为[{0}]的服务！".F(action));
@@ -89,25 +88,16 @@ namespace NewLife.Remoting
             ExceptionContext etx = null;
             try
             {
+                // 当前上下文
+                var actx = new ActionExecutingContext(ctx) { ActionParameters = ps };
+                ControllerContext.Current = actx;
+
                 // 执行动作前的过滤器
-                var actx = OnExecuting(ctx, fs, ps);
+                OnExecuting(actx, fs);
                 rs = actx.Result;
 
                 // 执行动作
-                if (rs == null) rs = await Task.Run(() =>
-                {
-                    // 当前上下文
-                    ControllerContext.Current = actx;
-                    try
-                    {
-                        var result = controller.InvokeWithParams(api.Method, ps as IDictionary);
-                        return result;
-                    }
-                    finally
-                    {
-                        ControllerContext.Current = null;
-                    }
-                });
+                if (rs == null) rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
             }
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)
@@ -138,21 +128,18 @@ namespace NewLife.Remoting
             {
                 // 执行动作后的过滤器
                 rs = OnExecuted(ctx, etx, fs, rs);
+                ControllerContext.Current = null;
             }
 
             return rs;
         }
 
-        protected virtual ActionExecutingContext OnExecuting(ControllerContext ctx, IActionFilter[] fs, IDictionary<String, Object> ps)
+        protected virtual void OnExecuting(ActionExecutingContext ctx, IActionFilter[] fs)
         {
-            //if (fs.Length == 0) return;
-
-            var actx = new ActionExecutingContext(ctx) { ActionParameters = ps };
             foreach (var filter in fs)
             {
-                filter.OnActionExecuting(actx);
+                filter.OnActionExecuting(ctx);
             }
-            return actx;
         }
 
         protected virtual Object OnExecuted(ControllerContext ctx, ExceptionContext etx, IActionFilter[] fs, Object rs)
