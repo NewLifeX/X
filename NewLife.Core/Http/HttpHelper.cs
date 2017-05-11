@@ -201,12 +201,12 @@ namespace NewLife.Http
             /*
              * 数据长度
              * len < 126    单字节表示长度
-             * len = 126    后续2字节表示长度
+             * len = 126    后续2字节表示长度，大端
              * len = 127    后续8字节表示长度
              */
             len = len & 0x7F;
             if (len == 126)
-                len = ms.ReadBytes(2).ToInt();
+                len = ms.ReadBytes(2).ToUInt16(0, false);
             else if (len == 127)
                 // 没有人会传输超大数据
                 len = (Int32)BitConverter.ToUInt64(ms.ReadBytes(8), 0);
@@ -243,12 +243,18 @@ namespace NewLife.Http
             var ms = new MemoryStream();
             ms.WriteByte(0x81);
 
+            /*
+             * 数据长度
+             * len < 126    单字节表示长度
+             * len = 126    后续2字节表示长度，大端
+             * len = 127    后续8字节表示长度
+             */
             if (size < 126)
                 ms.WriteByte((Byte)size);
             else if (size < 0xFFFF)
             {
                 ms.WriteByte(126);
-                ms.Write(size.GetBytes());
+                ms.Write(((Int16)size).GetBytes(false));
             }
             else
                 throw new NotSupportedException();
