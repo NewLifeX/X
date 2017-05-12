@@ -189,6 +189,7 @@ namespace NewLife.Remoting
             // 未登录且设置了用户名，并且当前不是登录，则异步登录
             if (!Logined && !UserName.IsNullOrEmpty() && action != LoginAction) await LoginAsync();
 
+            LastInvoke = DateTime.Now;
             try
             {
                 return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args).ConfigureAwait(false);
@@ -365,14 +366,19 @@ namespace NewLife.Remoting
         /// <summary>定时器</summary>
         protected TimerX Timer { get; set; }
 
+        /// <summary>最后调用。用于判断是否需要心跳</summary>
+        public DateTime LastInvoke { get; private set; }
+
         /// <summary>定时执行登录或心跳</summary>
         /// <param name="state"></param>
-        protected async void OnTimer(Object state)
+        protected virtual async void OnTimer(Object state)
         {
             try
             {
                 if (Logined)
-                    await PingAsync();
+                {
+                    if (LastInvoke.AddSeconds(10000) < DateTime.Now) await PingAsync();
+                }
                 else if (!UserName.IsNullOrEmpty())
                     await LoginAsync();
             }
