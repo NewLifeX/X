@@ -185,10 +185,18 @@ namespace NewLife.Remoting
                 Object v = null;
                 if (args != null && args.ContainsKey(name)) v = args[name];
 
-                if (Type.GetTypeCode(pi.ParameterType) == TypeCode.Object && v is IDictionary<String, Object>)
-                    ps[name] = encoder.Convert(v, pi.ParameterType);
-                else
+                // 基本类型
+                if (pi.ParameterType.GetTypeCode() != TypeCode.Object)
+                {
                     ps[name] = v.ChangeType(pi.ParameterType);
+                }
+                // 复杂对象填充，各个参数填充到一个模型参数里面去
+                else
+                {
+                    if (v == null) v = args;
+                    if (v is IDictionary<String, Object>)
+                        ps[name] = encoder.Convert(v, pi.ParameterType);
+                }
             }
 
             return ps;

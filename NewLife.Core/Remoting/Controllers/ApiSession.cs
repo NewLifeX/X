@@ -85,7 +85,7 @@ namespace NewLife.Remoting
 
             // 登录会话
             Session["Session"] = this;
-            Session.UserState = this;
+            //Session.UserState = this;
 
             // 生成密钥
             if (!dic.ContainsKey("Key")) dic["Key"] = GenerateKey().ToHex();
