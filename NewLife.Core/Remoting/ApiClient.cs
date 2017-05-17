@@ -148,6 +148,8 @@ namespace NewLife.Remoting
             var nu = new NetUri(uri);
             if (!Providers.TryGetValue(nu.Protocol, out type)) return false;
 
+            WriteLog("{0} SetRemote {1}", type.Name, nu);
+
             var ac = type.CreateInstance() as IApiClient;
             if (ac != null)
             {
