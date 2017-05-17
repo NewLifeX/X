@@ -14,6 +14,7 @@ namespace XCode.Cache
     public class FieldCache<TEntity> : EntityCache<TEntity> where TEntity : Entity<TEntity>, new()
     {
         private FieldItem _field;
+        private FieldItem _Unique;
 
         /// <summary>最大行数。默认20</summary>
         public Int32 MaxRows { get; set; } = 20;
@@ -32,19 +33,26 @@ namespace XCode.Cache
             Expire = 10 * 60;
             FillListMethod = () =>
             {
-                // 根据数量降序
-                var id = field.Table.Identity;
-                return Entity<TEntity>.FindAll(field.GroupBy(), id.Desc(), id.Count() & field, 0, MaxRows);
+                return Entity<TEntity>.FindAll(_field.GroupBy(), _Unique.Desc(), _Unique.Count() & _field, 0, MaxRows);
             };
 
             _field = field;
+            {
+                var tb = field.Table;
+                var id = tb.Identity;
+                if (id == null && tb.PrimaryKeys != null && tb.PrimaryKeys.Length == 1) id = tb.PrimaryKeys[0];
+
+                if (id == null) throw new Exception("{0}缺少唯一主键，无法使用缓存".F(tb.TableName));
+
+                _Unique = id;
+            }
         }
 
         /// <summary>获取所有类别名称</summary>
         /// <returns></returns>
         public IDictionary<String, String> FindAllName()
         {
-            var id = _field.Table.Identity;
+            //var id = _field.Table.Identity;
             var list = Entities.ToList().Take(MaxRows).ToList();
 
             var dic = new Dictionary<String, String>();
@@ -58,7 +66,7 @@ namespace XCode.Cache
                     if (v.IsNullOrEmpty()) v = "[{0}]".F(k);
                 }
 
-                dic[k] = DisplayFormat.F(v, entity[id.Name]);
+                dic[k] = DisplayFormat.F(v, entity[_Unique.Name]);
             }
             return dic;
         }
