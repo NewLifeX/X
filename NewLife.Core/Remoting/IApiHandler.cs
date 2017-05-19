@@ -48,7 +48,7 @@ namespace NewLife.Remoting
                 if (controller.GetType().GetCustomAttribute<AllowAnonymousAttribute>() == null &&
                     api.Method.GetCustomAttribute<AllowAnonymousAttribute>() == null)
                 {
-                    if (session["Session"] == null) throw new ApiException(401, "未登录！");
+                    if (session.UserSession == null || !session.UserSession.Logined) throw new ApiException(401, "未登录！");
                 }
             }
 

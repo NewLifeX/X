@@ -10,7 +10,7 @@ using NewLife.Threading;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口客户端</summary>
-    public class ApiClient : ApiHost, IApiSession
+    public class ApiClient : ApiHost, IApiSession, IUserSession
     {
         #region 静态
         /// <summary>协议到提供者类的映射</summary>
@@ -39,6 +39,9 @@ namespace NewLife.Remoting
         /// <summary>用户对象。一般用于共享用户信息对象</summary>
         public Object UserState { get; set; }
 
+        /// <summary>用户状态会话</summary>
+        IUserSession IApiSession.UserSession { get; set; }
+
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions { get { return new IApiSession[] { this }; } }
         #endregion
@@ -49,6 +52,8 @@ namespace NewLife.Remoting
         {
             var type = GetType();
             Name = type.GetDisplayName() ?? type.Name.TrimEnd("Client");
+
+            (this as IApiSession).UserSession = this;
 
             Register(new ApiController { Host = this }, null);
         }
@@ -283,7 +288,6 @@ namespace NewLife.Remoting
                 var dic = rs.ToDictionary();
                 //!!! 使用密码解密通信密钥
                 Key = (dic["Key"] + "").ToHex().RC4(Password.GetBytes());
-                //Key = (dic["Key"] + "").ToHex();
 
                 WriteLog("密匙:{0}", Key.ToHex());
             }

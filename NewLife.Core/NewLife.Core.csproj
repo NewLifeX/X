@@ -216,6 +216,7 @@
     <Compile Include="Remoting\ApiServer.cs" />
     <Compile Include="Remoting\ApiTest.cs" />
     <Compile Include="Remoting\IEncoder.cs" />
+    <Compile Include="Remoting\IUserSession.cs" />
     <Compile Include="Remoting\JsonEncoder.cs" />
     <Compile Include="Remoting\Filters\RC4Filter.cs" />
     <Compile Include="Security\Certificate.cs" />

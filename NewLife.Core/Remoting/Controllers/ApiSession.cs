@@ -10,14 +10,20 @@ namespace NewLife.Remoting
 {
     /// <summary>Api会话</summary>
     [Api(null, true)]
-    public class ApiSession : DisposeBase, IApi
+    public class ApiSession : DisposeBase, IApi, IUserSession
     {
         #region 属性
         /// <summary>会话</summary>
         public IApiSession Session { get; set; }
 
-        /// <summary>用户名</summary>
-        public String User { get; set; }
+        ///// <summary>用户名</summary>
+        //public String User { get; set; }
+
+        /// <summary>通信密钥</summary>
+        protected Byte[] Key { get; set; }
+
+        /// <summary>是否已登录</summary>
+        public Boolean Logined { get; set; }
 
         /// <summary>最后活跃时间</summary>
         public DateTime LastActive { get; set; }
@@ -41,10 +47,10 @@ namespace NewLife.Remoting
         internal static Byte[] GetKey(FilterContext context)
         {
             var ctx = context as ApiFilterContext;
-            var ss = ctx?.Session;
+            var ss = ctx?.Session?.UserSession as ApiSession;
             if (ss == null) return null;
 
-            return ss["Key"] as Byte[];
+            return ss.Key;
         }
         #endregion
 
@@ -77,15 +83,12 @@ namespace NewLife.Remoting
             // 可能是注册
             var dic = rs.ToDictionary();
             if (dic.ContainsKey(nameof(user))) user = dic[nameof(user)] + "";
-            if (dic.ContainsKey(nameof(pass))) pass = dic[nameof(pass)] + "";
-
-            // 用户名保存到会话
-            Session["Name"] = user;
-            User = user;
+            //if (dic.ContainsKey(nameof(pass))) pass = dic[nameof(pass)] + "";
 
             // 登录会话
-            Session["Session"] = this;
-            //Session.UserState = this;
+            Session.UserSession = this;
+            Session.UserState = rs;
+            Logined = true;
 
             // 生成密钥
             if (!dic.ContainsKey("Key")) dic["Key"] = GenerateKey().ToHex();
@@ -112,8 +115,7 @@ namespace NewLife.Remoting
         protected virtual Byte[] GenerateKey()
         {
             // 随机密钥
-            var key = Rand.NextBytes(8);
-            Session["Key"] = key;
+            var key = Key = Rand.NextBytes(8);
 
             WriteLog("生成密钥 {0}", key.ToHex());
 
@@ -121,6 +123,16 @@ namespace NewLife.Remoting
             if (!tp.IsNullOrEmpty()) key = key.RC4(tp.GetBytes());
 
             return key;
+        }
+
+        /// <summary>注销</summary>
+        /// <returns></returns>
+        protected virtual Object OnLogout()
+        {
+            Logined = false;
+            Session.UserState = null;
+
+            return null;
         }
         #endregion
 

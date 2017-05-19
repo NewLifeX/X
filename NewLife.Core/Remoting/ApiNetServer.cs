@@ -78,6 +78,9 @@ namespace NewLife.Remoting
         /// <summary>用户对象。一般用于共享用户信息对象</summary>
         public Object UserState { get; set; }
 
+        /// <summary>用户状态会话</summary>
+        IUserSession IApiSession.UserSession { get; set; }
+
         private IApiHost _Host;
         /// <summary>主机</summary>
         IApiHost IApiSession.Host { get { return _Host; } }
@@ -91,6 +94,16 @@ namespace NewLife.Remoting
                 var svr = _Host as ApiServer;
                 return svr.Servers.SelectMany(e => e.AllSessions).ToArray();
             }
+        }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
+
+            var ss = (this as IApiSession).UserSession;
+            ss.TryDispose();
         }
 
         /// <summary>开始会话处理</summary>
