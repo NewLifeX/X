@@ -158,17 +158,17 @@ namespace NewLife.Remoting
         {
             var enc = Encoder;
 
-            // 这里会导致二次解码，因为解码以后才知道是不是请求
-            var dic = enc.Decode(pk);
-
-            var action = "";
-            Object args = null;
-            if (!enc.TryGet(dic, out action, out args)) return null;
-
             Object result = null;
             var code = 0;
             try
             {
+                // 这里会导致二次解码，因为解码以后才知道是不是请求
+                var dic = enc.Decode(pk);
+
+                var action = "";
+                Object args = null;
+                if (!enc.TryGet(dic, out action, out args)) return null;
+
                 result = Handler.Execute(session, action, args as IDictionary<String, Object>);
             }
             catch (Exception ex)
