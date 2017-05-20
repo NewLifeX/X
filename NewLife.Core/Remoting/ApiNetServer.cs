@@ -85,6 +85,9 @@ namespace NewLife.Remoting
         /// <summary>主机</summary>
         IApiHost IApiSession.Host { get { return _Host; } }
 
+        /// <summary>最后活跃时间</summary>
+        public DateTime LastActive { get; set; }
+
         /// <summary>所有服务器所有会话，包含自己</summary>
         public virtual IApiSession[] AllSessions
         {
@@ -127,6 +130,8 @@ namespace NewLife.Remoting
 
         protected override void OnReceive(MessageEventArgs e)
         {
+            LastActive = DateTime.Now;
+
             // Api解码消息得到Action和参数
             var msg = e.Message;
             if (msg.Reply) return;

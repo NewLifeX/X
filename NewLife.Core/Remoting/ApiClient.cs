@@ -42,6 +42,9 @@ namespace NewLife.Remoting
         /// <summary>用户状态会话</summary>
         IUserSession IApiSession.UserSession { get; set; }
 
+        /// <summary>最后活跃时间</summary>
+        public DateTime LastActive { get; set; }
+
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions { get { return new IApiSession[] { this }; } }
         #endregion

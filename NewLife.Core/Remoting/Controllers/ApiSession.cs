@@ -16,17 +16,11 @@ namespace NewLife.Remoting
         /// <summary>会话</summary>
         public IApiSession Session { get; set; }
 
-        ///// <summary>用户名</summary>
-        //public String User { get; set; }
-
         /// <summary>通信密钥</summary>
         protected Byte[] Key { get; set; }
 
         /// <summary>是否已登录</summary>
         public Boolean Logined { get; set; }
-
-        /// <summary>最后活跃时间</summary>
-        public DateTime LastActive { get; set; }
         #endregion
 
         #region 构造
@@ -72,8 +66,6 @@ namespace NewLife.Remoting
         protected virtual Object OnLogin(String user, String pass)
         {
             if (user.IsNullOrEmpty()) throw Error(3, "用户名不能为空");
-
-            LastActive = DateTime.Now;
 
             WriteLog("登录 {0}/{1}", user, pass);
 
@@ -143,8 +135,6 @@ namespace NewLife.Remoting
         protected virtual Object OnPing()
         {
             WriteLog("心跳 ");
-
-            LastActive = DateTime.Now;
 
             var dic = ControllerContext.Current.Parameters;
             // 返回服务器时间

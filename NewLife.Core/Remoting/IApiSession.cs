@@ -17,6 +17,9 @@ namespace NewLife.Remoting
         /// <summary>主机</summary>
         IApiHost Host { get; }
 
+        /// <summary>最后活跃时间</summary>
+        DateTime LastActive { get; }
+
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] AllSessions { get; }
 
