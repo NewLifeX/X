@@ -193,9 +193,15 @@ namespace NewLife.Remoting
                 // 复杂对象填充，各个参数填充到一个模型参数里面去
                 else
                 {
-                    if (v == null) v = args;
-                    if (v is IDictionary<String, Object>)
+                    // 特殊处理字节数组
+                    if (pi.ParameterType == typeof(Byte[]))
+                        ps[name] = Convert.FromBase64String(v + "");
+                    else
+                    {
+                        if (v == null) v = args;
+                        //if (v is IDictionary<String, Object>)
                         ps[name] = encoder.Convert(v, pi.ParameterType);
+                    }
                 }
             }
 
