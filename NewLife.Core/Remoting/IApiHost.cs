@@ -81,7 +81,8 @@ namespace NewLife.Remoting
             if (session == null) return default(TResult);
 
             var enc = host.Encoder;
-            var data = enc.Encode(action, args);
+            //var data = enc.Encode(action, args);
+            var data = enc.Encode(new { action, args });
 
             var msg = session.CreateMessage(data);
 
@@ -103,7 +104,13 @@ namespace NewLife.Remoting
             //return enc.Decode<TResult>(dic);
             var code = 0;
             Object result = null;
-            enc.TryGet(dic, out code, out result);
+            //enc.TryGet(dic, out code, out result);
+            Object cod = null;
+            dic.TryGetValue("code", out cod);
+
+            // 参数可能不存在
+            dic.TryGetValue("result", out result);
+            code = cod.ToInt();
 
             // 是否成功
             if (code != 0) throw new ApiException(code, result + "");

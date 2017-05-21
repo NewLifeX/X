@@ -167,7 +167,14 @@ namespace NewLife.Remoting
 
                 var action = "";
                 Object args = null;
-                if (!enc.TryGet(dic, out action, out args)) return null;
+                //if (!enc.TryGet(dic, out action, out args)) return null;
+                Object act = null;
+                if (!dic.TryGetValue("action", out act)) return null;
+
+                // 参数可能不存在
+                dic.TryGetValue("args", out args);
+
+                action = act + "";
 
                 result = Handler.Execute(session, action, args as IDictionary<String, Object>);
             }
@@ -176,11 +183,13 @@ namespace NewLife.Remoting
                 ex = ex.GetTrue();
                 var aex = ex as ApiException;
                 code = aex != null ? aex.Code : 500;
-                result = ex;
+                result = ex?.Message;
             }
 
             // 编码响应数据包
-            return enc.Encode(code, result);
+            //return enc.Encode(code, result);
+
+            return enc.Encode(new { code, result });
         }
         #endregion
 
