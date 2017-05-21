@@ -75,14 +75,15 @@ namespace NewLife.Remoting
         /// <param name="session"></param>
         /// <param name="action"></param>
         /// <param name="args"></param>
+        /// <param name="cookie"></param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args = null)
+        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args = null, IDictionary<String, Object> cookie = null)
         {
             if (session == null) return default(TResult);
 
             var enc = host.Encoder;
-            //var data = enc.Encode(action, args);
-            var data = enc.Encode(new { action, args });
+            var data = enc.Encode(action, args, cookie);
+            //var data = cookie != null && cookie.Count > 0 ? enc.Encode(new { action, args, cookie }) : enc.Encode(new { action, args });
 
             var msg = session.CreateMessage(data);
 

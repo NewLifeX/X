@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
@@ -22,6 +23,9 @@ namespace NewLife.Remoting
 
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] AllSessions { get; }
+
+        /// <summary>附加参数，每次请求都携带</summary>
+        IDictionary<String, Object> Cookie { get; set; }
 
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>

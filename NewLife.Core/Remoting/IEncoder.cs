@@ -13,17 +13,19 @@ namespace NewLife.Remoting
         /// <returns></returns>
         Byte[] Encode(Object obj);
 
-        ///// <summary>编码请求</summary>
-        ///// <param name="action"></param>
-        ///// <param name="args"></param>
-        ///// <returns></returns>
-        //Byte[] Encode(String action, Object args);
+        /// <summary>编码请求</summary>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <param name="cookie"></param>
+        /// <returns></returns>
+        Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie);
 
-        ///// <summary>编码响应</summary>
-        ///// <param name="code"></param>
-        ///// <param name="result"></param>
-        ///// <returns></returns>
-        //Byte[] Encode(Int32 code, Object result);
+        /// <summary>编码响应</summary>
+        /// <param name="code"></param>
+        /// <param name="result"></param>
+        /// <param name="cookie"></param>
+        /// <returns></returns>
+        Byte[] Encode(Int32 code, Object result, IDictionary<String, Object> cookie);
 
         /// <summary>解码成为字典</summary>
         /// <param name="pk">数据包</param>
@@ -68,29 +70,31 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public abstract Byte[] Encode(Object obj);
 
-        ///// <summary>编码请求</summary>
-        ///// <param name="action"></param>
-        ///// <param name="args"></param>
-        ///// <returns></returns>
-        //public virtual Byte[] Encode(String action, Object args)
-        //{
-        //    var obj = new { action, args };
-        //    return Encode(obj);
-        //}
+        /// <summary>编码请求</summary>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <param name="cookie"></param>
+        /// <returns></returns>
+        public virtual Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie)
+        {
+            var obj = new { action, args };
+            return Encode(cookie.Merge(obj));
+        }
 
-        ///// <summary>编码响应</summary>
-        ///// <param name="code"></param>
-        ///// <param name="result"></param>
-        ///// <returns></returns>
-        //public virtual Byte[] Encode(Int32 code, Object result)
-        //{
-        //    // 不支持序列化异常
-        //    var ex = result as Exception;
-        //    if (ex != null) result = ex.GetTrue()?.Message;
+        /// <summary>编码响应</summary>
+        /// <param name="code"></param>
+        /// <param name="result"></param>
+        /// <param name="cookie"></param>
+        /// <returns></returns>
+        public virtual Byte[] Encode(Int32 code, Object result, IDictionary<String, Object> cookie)
+        {
+            // 不支持序列化异常
+            var ex = result as Exception;
+            if (ex != null) result = ex.GetTrue()?.Message;
 
-        //    var obj = new { code, result };
-        //    return Encode(obj);
-        //}
+            var obj = new { code, result };
+            return Encode(cookie.Merge(obj));
+        }
 
         /// <summary>解码成为字典</summary>
         /// <param name="pk"></param>
