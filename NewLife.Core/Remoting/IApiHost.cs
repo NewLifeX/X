@@ -83,7 +83,6 @@ namespace NewLife.Remoting
 
             var enc = host.Encoder;
             var data = enc.Encode(action, args, cookie);
-            //var data = cookie != null && cookie.Count > 0 ? enc.Encode(new { action, args, cookie }) : enc.Encode(new { action, args });
 
             var msg = session.CreateMessage(data);
 
@@ -140,7 +139,6 @@ namespace NewLife.Remoting
             foreach (var item in fs)
             {
                 item.Execute(ctx);
-                //Log.Debug("{0}:{1}", item.GetType().Name, ctx.Packet.ToHex());
             }
             msg.Payload = ctx.Packet;
         }

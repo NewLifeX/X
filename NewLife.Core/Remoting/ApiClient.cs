@@ -206,7 +206,7 @@ namespace NewLife.Remoting
             LastInvoke = DateTime.Now;
             try
             {
-                return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args).ConfigureAwait(false);
+                return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, Cookie).ConfigureAwait(false);
             }
             catch (ApiException ex)
             {
@@ -218,7 +218,7 @@ namespace NewLife.Remoting
                     if (action != LoginAction && !UserName.IsNullOrEmpty())
                     {
                         await LoginAsync();
-                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args).ConfigureAwait(false);
+                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, Cookie).ConfigureAwait(false);
                     }
                 }
 

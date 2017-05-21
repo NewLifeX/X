@@ -78,7 +78,7 @@ namespace NewLife.Remoting
         public virtual Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie)
         {
             var obj = new { action, args };
-            return Encode(cookie.Merge(obj));
+            return Encode(obj.ToDictionary().Merge(cookie));
         }
 
         /// <summary>编码响应</summary>
@@ -93,7 +93,7 @@ namespace NewLife.Remoting
             if (ex != null) result = ex.GetTrue()?.Message;
 
             var obj = new { code, result };
-            return Encode(cookie.Merge(obj));
+            return Encode(obj.ToDictionary().Merge(cookie));
         }
 
         /// <summary>解码成为字典</summary>
