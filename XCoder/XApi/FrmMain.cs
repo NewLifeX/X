@@ -141,7 +141,7 @@ namespace XApi
                     client.Open();
 
                     "已连接服务器".SpeechTip();
-                    
+
                     break;
                 default:
                     return;
@@ -267,6 +267,7 @@ namespace XApi
             }
         }
 
+        Byte _Seq = 0;
         private async void btnSend_Click(Object sender, EventArgs e)
         {
             var str = txtSend.Text;
@@ -299,9 +300,13 @@ namespace XApi
 
             if (_Client != null)
             {
+                var uri = new NetUri(cbAddr.Text);
+                var cookie = new Dictionary<String, Object>();
+                if (uri.Type == NetType.Http || uri.Type == NetType.WebSocket) cookie["seq"] = ++_Seq;
+
                 if (ths <= 1)
                 {
-                    await _Client.InvokeAsync<Object>(act, args);
+                    await _Client.InvokeAsync<Object>(act, args, cookie);
                 }
                 //else
                 //{

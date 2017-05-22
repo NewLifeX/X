@@ -194,8 +194,9 @@ namespace NewLife.Remoting
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
         /// <param name="args"></param>
+        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null)
         {
             var ss = Client;
             if (ss == null) return default(TResult);
@@ -206,7 +207,7 @@ namespace NewLife.Remoting
             LastInvoke = DateTime.Now;
             try
             {
-                return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, Cookie).ConfigureAwait(false);
+                return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, cookie ?? Cookie).ConfigureAwait(false);
             }
             catch (ApiException ex)
             {
@@ -218,7 +219,7 @@ namespace NewLife.Remoting
                     if (action != LoginAction && !UserName.IsNullOrEmpty())
                     {
                         await LoginAsync();
-                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, Cookie).ConfigureAwait(false);
+                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, cookie ?? Cookie).ConfigureAwait(false);
                     }
                 }
 

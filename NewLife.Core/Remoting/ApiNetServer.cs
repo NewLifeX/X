@@ -153,10 +153,11 @@ namespace NewLife.Remoting
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
         /// <param name="args"></param>
+        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
+        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null)
         {
-            return await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args).ConfigureAwait(false);
+            return await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args, cookie).ConfigureAwait(false);
         }
 
         async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Session.SendAsync(msg).ConfigureAwait(false); }

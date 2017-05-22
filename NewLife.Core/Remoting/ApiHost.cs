@@ -160,6 +160,7 @@ namespace NewLife.Remoting
 
             Object result = null;
             var code = 0;
+            var seq = -1;
             try
             {
                 // 这里会导致二次解码，因为解码以后才知道是不是请求
@@ -168,13 +169,16 @@ namespace NewLife.Remoting
                 var action = "";
                 Object args = null;
                 //if (!enc.TryGet(dic, out action, out args)) return null;
-                Object act = null;
-                if (!dic.TryGetValue("action", out act)) return null;
+                Object obj = null;
+                if (!dic.TryGetValue("action", out obj)) return null;
 
                 // 参数可能不存在
                 dic.TryGetValue("args", out args);
 
-                action = act + "";
+                action = obj + "";
+
+                // 针对Http前端Json，可能带有序列号
+                if (dic.TryGetValue("seq", out obj)) seq = obj.ToInt();
 
                 result = Handler.Execute(session, action, args as IDictionary<String, Object>);
             }
@@ -188,6 +192,8 @@ namespace NewLife.Remoting
 
             // 编码响应数据包
             //return enc.Encode(code, result);
+
+            if (seq >= 0) return enc.Encode(new { code, result, seq });
 
             return enc.Encode(new { code, result });
         }

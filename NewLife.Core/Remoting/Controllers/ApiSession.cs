@@ -155,10 +155,11 @@ namespace NewLife.Remoting
         /// </example>
         /// <param name="action"></param>
         /// <param name="args"></param>
+        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null)
         {
-            return await Session.InvokeAsync<TResult>(action, args);
+            return await Session.InvokeAsync<TResult>(action, args, cookie);
         }
         #endregion
 

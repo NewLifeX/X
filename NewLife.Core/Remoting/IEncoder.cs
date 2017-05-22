@@ -16,14 +16,14 @@ namespace NewLife.Remoting
         /// <summary>编码请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie"></param>
+        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
         Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie);
 
         /// <summary>编码响应</summary>
         /// <param name="code"></param>
         /// <param name="result"></param>
-        /// <param name="cookie"></param>
+        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
         Byte[] Encode(Int32 code, Object result, IDictionary<String, Object> cookie);
 
@@ -73,7 +73,7 @@ namespace NewLife.Remoting
         /// <summary>编码请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie"></param>
+        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
         public virtual Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie)
         {
@@ -84,7 +84,7 @@ namespace NewLife.Remoting
         /// <summary>编码响应</summary>
         /// <param name="code"></param>
         /// <param name="result"></param>
-        /// <param name="cookie"></param>
+        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
         public virtual Byte[] Encode(Int32 code, Object result, IDictionary<String, Object> cookie)
         {

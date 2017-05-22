@@ -56,7 +56,8 @@ namespace NewLife.Remoting
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
         /// <param name="args"></param>
+        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        Task<TResult> InvokeAsync<TResult>(String action, Object args = null);
+        Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null);
     }
 }

@@ -75,9 +75,9 @@ namespace NewLife.Remoting
         /// <param name="session"></param>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie"></param>
+        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args = null, IDictionary<String, Object> cookie = null)
+        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args, IDictionary<String, Object> cookie)
         {
             if (session == null) return default(TResult);
 
