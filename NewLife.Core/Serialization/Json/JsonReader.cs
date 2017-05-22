@@ -73,6 +73,12 @@ namespace NewLife.Serialization
                     return arr;
                 }
             }
+            else if (type == typeof(Byte[]))
+            {
+                if (jobj is Byte[]) return (Byte[])jobj;
+
+                return Convert.FromBase64String(jobj + "");
+            }
             else if (type != null && jobj.GetType() != type)
                 return ChangeType(jobj, type);
 

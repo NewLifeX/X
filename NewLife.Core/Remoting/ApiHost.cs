@@ -158,6 +158,7 @@ namespace NewLife.Remoting
         {
             var enc = Encoder;
 
+            var action = "";
             Object result = null;
             var code = 0;
             var seq = -1;
@@ -166,7 +167,6 @@ namespace NewLife.Remoting
                 // 这里会导致二次解码，因为解码以后才知道是不是请求
                 var dic = enc.Decode(pk);
 
-                var action = "";
                 Object args = null;
                 //if (!enc.TryGet(dic, out action, out args)) return null;
                 Object obj = null;
@@ -193,9 +193,9 @@ namespace NewLife.Remoting
             // 编码响应数据包
             //return enc.Encode(code, result);
 
-            if (seq >= 0) return enc.Encode(new { code, result, seq });
+            if (seq >= 0) return enc.Encode(new { action, code, result, seq });
 
-            return enc.Encode(new { code, result });
+            return enc.Encode(new { action, code, result });
         }
         #endregion
 

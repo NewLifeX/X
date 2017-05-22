@@ -82,7 +82,8 @@ namespace NewLife.Remoting
             if (session == null) return default(TResult);
 
             var enc = host.Encoder;
-            var data = enc.Encode(action, args, cookie);
+            //var data = enc.Encode(action, args, cookie);
+            var data = enc.Encode(new { action, args }.ToDictionary().Merge(cookie));
 
             var msg = session.CreateMessage(data);
 
