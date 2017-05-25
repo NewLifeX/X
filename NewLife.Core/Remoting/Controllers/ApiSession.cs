@@ -79,7 +79,7 @@ namespace NewLife.Remoting
 
             // 登录会话
             Session.UserSession = this;
-            Session.UserState = rs;
+            if (Session.UserState == null) Session.UserState = rs;
             Logined = true;
 
             // 生成密钥

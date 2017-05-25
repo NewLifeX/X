@@ -56,7 +56,7 @@ namespace NewLife.Reflection
 					return;
                 }
 				Console.WriteLine("目标 {0}", tar);
-				"NuGet".Run("spec -f -a " + tar, 5000);
+				"NuGet".Run("spec -Force -a " + tar, 5000);
 				
                 var spec2 = ".".AsDirectory().GetAllFiles(spec).First().Name;
                 if (!spec.EqualIgnoreCase(spec2)) File.Move(spec2, spec);
@@ -114,7 +114,7 @@ namespace NewLife.Reflection
             {
                 var nupkg = fi.Name;
                 Console.WriteLine("发布：{0}", nupkg);
-                "NuGet".Run("push {0}".F(nupkg), 30000);
+                "NuGet".Run("push {0} -Source https://www.nuget.org".F(nupkg), 30000);
             }
         }
 
