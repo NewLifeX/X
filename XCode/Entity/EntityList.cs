@@ -757,7 +757,12 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<T> FromJson(String json)
         {
-            return json.ToJsonEntity<EntityList<T>>();
+            //return json.ToJsonEntity<EntityList<T>>();
+            // 先转为基本类型
+            var es = json.ToJsonEntity<T[]>();
+            if (es == null || es.Length == 0) return new EntityList<T>();
+
+            return new EntityList<T>(es);
         }
         #endregion
 
