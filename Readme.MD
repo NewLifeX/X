@@ -1,11 +1,11 @@
-新生命团队基础框架X组件，包括`网络、数据库、安全、多线程、反射、序列化、模版引擎、服务代理、远程过程调用`等模块，包括`Mvc后台魔方、超级码神工具、消息队列`等子系统，支持`Mono/Android/iOS`。
+新生命团队基础框架X组件，包括`网络、数据库、安全、多线程、反射、序列化、模版引擎、服务代理、远程过程调用`等模块，包括`Mvc后台魔方、超级码神工具、消息队列`等子系统，支持`Mono/Android/iOS/NetStandard`。
 
 #### 新生命开发团队  
 网站：http://www.NewLifeX.com  
 QQ群：1600800  
 
 ## 项目源码位置
-国内 https://git.NewLifeX.com/NewLife/X  
+国内 http://git.NewLifeX.com/NewLife/X  
 国外 https://github.com/NewLifeX/X  
 
 ## 组件各组成部分
@@ -57,3 +57,6 @@ ORM组件，主要亮点：
 
 ### 模版引擎 XTemplate
 使用C#编写模版，T4风格，主要用于生成实体代码和页面  
+
+### 消息队列 NewLife.MQ
+发布与订阅  
