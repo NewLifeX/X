@@ -161,7 +161,6 @@
     <Compile Include="Net\Upgrade.cs" />
     <Compile Include="Net\SessionBase.cs" />
     <Compile Include="Net\ISocketSession.cs" />
-    <Compile Include="Properties\AssemblyInfo_.cs" />
     <Compile Include="Extension\EnumHelper.cs" />
     <Compile Include="Extension\StringHelper.cs" />
     <Compile Include="Configuration\Config.cs" />
@@ -276,7 +275,6 @@
     <Compile Include="Threading\TaskHelper.cs" />
     <Compile Include="Threading\TimerX.cs" />
     <Compile Include="Threading\TimerScheduler.cs" />
-    <Compile Include="Web\Css.cs" />
     <Compile Include="Web\Js.cs" />
     <Compile Include="Web\Link.cs" />
     <Compile Include="Web\Modules\ErrorModule.cs" />

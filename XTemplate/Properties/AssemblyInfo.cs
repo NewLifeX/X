@@ -9,6 +9,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("编译型模版引擎")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XTemplate")]
+[assembly: AssemblyCompany("新生命开发团队")]
+[assembly: AssemblyCopyright("©2002-2017 新生命开发团队 http://www.NewLifeX.com")]
+[assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型

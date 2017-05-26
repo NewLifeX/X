@@ -62,9 +62,6 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
-      <Link>Properties\AssemblyInfo_.cs</Link>
-    </Compile>
     <Compile Include="Attributes\BindColumnAttribute.cs" />
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\MapAttribute.cs" />

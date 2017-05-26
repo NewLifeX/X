@@ -9,6 +9,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("日常开发中的各种基础功能")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.Core")]
+[assembly: AssemblyCompany("新生命开发团队")]
+[assembly: AssemblyCopyright("©2002-2017 新生命开发团队 http://git.newlifex.com/NewLife/X")]
+[assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型
@@ -31,7 +34,7 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("6.3.*")]
-[assembly: AssemblyFileVersion("6.3.2017.0320")]
+[assembly: AssemblyFileVersion("6.3.2017.0526")]
 
 /*
  * v6.3.2017.0320   增加7z扩展压缩与解压缩

@@ -529,7 +529,12 @@ namespace NewLife.Log
             if (asm == null) return;
 
             var asmx = AssemblyX.Create(asm);
-            if (asmx != null) WriteLine("{0,-12} v{1,-13} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
+            if (asmx != null)
+            {
+                WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
+                var att = asmx.Asm.GetCustomAttribute<AssemblyCopyrightAttribute>();
+                WriteLine("{0} {1}", asmx.Title, att?.Copyright);
+            }
         }
         #endregion
     }

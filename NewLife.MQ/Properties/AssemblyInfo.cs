@@ -9,6 +9,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("消息发布订阅持久化")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.MQ")]
+[assembly: AssemblyCompany("新生命开发团队")]
+[assembly: AssemblyCopyright("©2002-2017 新生命开发团队 http://git.newlifex.com/NewLife/X/Tree/master/NewLife.MQ")]
+[assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型
@@ -30,7 +33,7 @@ using System.Runtime.InteropServices;
 // 方法是按如下所示使用“*”: 
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.1.*")]
-[assembly: AssemblyFileVersion("1.1.2016.0424")]
+[assembly: AssemblyFileVersion("1.1.2017.0526")]
 
 /*
  * v1.1.2016.0424   消息队列主机解耦

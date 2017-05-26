@@ -8,6 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("网络通讯基础框架及各种协议实现")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.Net")]
+[assembly: AssemblyCompany("新生命开发团队")]
+[assembly: AssemblyCopyright("©2002-2017 新生命开发团队 http://www.NewLifeX.com")]
+[assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型

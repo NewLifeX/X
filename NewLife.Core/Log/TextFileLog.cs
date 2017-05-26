@@ -207,45 +207,6 @@ namespace NewLife.Log
             else
                 PerformWriteLog(e.Set(Format(format, args), null));
         }
-
-        ///// <summary>输出日志</summary>
-        ///// <param name="msg">信息</param>
-        //public void Write(String msg)
-        //{
-        //    PerformWriteLog(WriteLogEventArgs.Current.Set(msg, null, false));
-        //}
-
-        ///// <summary>写日志</summary>
-        ///// <param name="format"></param>
-        ///// <param name="args"></param>
-        //public void Write(String format, params Object[] args)
-        //{
-        //    Write(Format(format, args));
-        //}
-
-        ///// <summary>输出日志</summary>
-        ///// <param name="msg">信息</param>
-        //public void WriteLine(String msg)
-        //{
-        //    // 小对象，采用对象池的成本太高了
-        //    PerformWriteLog(WriteLogEventArgs.Current.Set(msg, null, true));
-        //}
-
-        ///// <summary>写日志</summary>
-        ///// <param name="level"></param>
-        ///// <param name="format"></param>
-        ///// <param name="args"></param>
-        //public void WriteLine(LogLevel level, String format, params Object[] args)
-        //{
-        //    WriteLine(Format(format, args));
-        //}
-
-        ///// <summary>输出异常日志</summary>
-        ///// <param name="ex">异常信息</param>
-        //public void WriteException(Exception ex)
-        //{
-        //    PerformWriteLog(WriteLogEventArgs.Current.Set(null, ex, false));
-        //}
         #endregion
 
         #region 辅助

@@ -10,6 +10,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("包括并大于Orm的数据映射框架")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]
+[assembly: AssemblyCompany("新生命开发团队")]
+[assembly: AssemblyCopyright("©2002-2017 新生命开发团队 http://www.NewLifeX.com")]
+[assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 使此程序集中的类型
@@ -32,7 +35,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("9.4.*")]
-[assembly: AssemblyFileVersion("9.4.2017.0207")]
+[assembly: AssemblyFileVersion("9.4.2017.0526")]
 
 /*
  * XCode的重大改进

@@ -40,6 +40,7 @@ namespace NewLife.Cube
         static AreaRegistrationBase()
         {
             XTrace.WriteLine("{0} Start 初始化魔方 {0}", new String('=', 32));
+            Assembly.GetExecutingAssembly().WriteVersion();
 
             //// 注册视图引擎
             //RazorViewEngineX.Register(ViewEngines.Engines);

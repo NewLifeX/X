@@ -53,9 +53,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
-      <Link>Properties\AssemblyInfo_.cs</Link>
-    </Compile>
     <Compile Include="Consumer.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MQHost.cs" />
