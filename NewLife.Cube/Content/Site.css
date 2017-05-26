@@ -1,4 +1,4 @@
-﻿@media(max-width: 500px) {
+﻿@media(max-width: 768px) {
     body {
         padding-left: 0px;
         padding-right: 0px;
@@ -38,6 +38,11 @@
         vertical-align: middle;
         float: left;
     }*/
+
+    .form-inline .input-group {
+        display: inline-table;
+        vertical-align: middle;
+    }
 }
 
 .list-toolbar .btn-sm-force, .btn-toolbar .btn-sm-force {
