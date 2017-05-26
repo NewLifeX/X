@@ -75,13 +75,13 @@ WriteLiteral("\r\n");
             #line hidden
 WriteLiteral("    <td");
 
-WriteLiteral(" class=\"text-center hidden-md hidden-sm hidden-xs\"");
+WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral(">");
 
             
             #line 10 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                                                     Write(entity[item.Name]);
+                       Write(entity[item.Name]);
 
             
             #line default
