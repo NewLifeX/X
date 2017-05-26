@@ -62,7 +62,7 @@ namespace ASP
             
             #line 4 "..\..\Views\Shared\Form.cshtml"
   
-    Layout = "~/Views/Shared/_Ace_Layout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     var fact = ViewBag.Factory as IEntityOperate;
     var fields = ViewBag.Fields as List<FieldItem>;
     var entity = Model as IEntity;

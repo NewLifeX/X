@@ -62,7 +62,7 @@ namespace ASP
             
             #line 4 "..\..\Views\Shared\ObjectForm.cshtml"
   
-    Layout = "~/Views/Shared/_Ace_Layout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
     var Obj = Model as Object;
     var pis = ViewBag.Properties as IEnumerable<PropertyInfo>;
@@ -141,43 +141,43 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                    <div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 1077), Tuple.Create("\"", 1132)
-, Tuple.Create(Tuple.Create("", 1085), Tuple.Create("form-group", 1085), true)
-, Tuple.Create(Tuple.Create(" ", 1095), Tuple.Create("col-sm-12", 1096), true)
-, Tuple.Create(Tuple.Create(" ", 1105), Tuple.Create("col-md-", 1106), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1073), Tuple.Create("\"", 1128)
+, Tuple.Create(Tuple.Create("", 1081), Tuple.Create("form-group", 1081), true)
+, Tuple.Create(Tuple.Create(" ", 1091), Tuple.Create("col-sm-12", 1092), true)
+, Tuple.Create(Tuple.Create(" ", 1101), Tuple.Create("col-md-", 1102), true)
             
             #line 30 "..\..\Views\Shared\ObjectForm.cshtml"
-, Tuple.Create(Tuple.Create("", 1113), Tuple.Create<System.Object, System.Int32>(bs.GetGroupWidth()
+, Tuple.Create(Tuple.Create("", 1109), Tuple.Create<System.Object, System.Int32>(bs.GetGroupWidth()
             
             #line default
             #line hidden
-, 1113), false)
+, 1109), false)
 );
 
 WriteLiteral(">\r\n                        <label");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 1166), Tuple.Create("\"", 1234)
-, Tuple.Create(Tuple.Create("", 1174), Tuple.Create("control-label", 1174), true)
-, Tuple.Create(Tuple.Create(" ", 1187), Tuple.Create("col-xs-2", 1188), true)
-, Tuple.Create(Tuple.Create(" ", 1196), Tuple.Create("col-md-", 1197), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1162), Tuple.Create("\"", 1230)
+, Tuple.Create(Tuple.Create("", 1170), Tuple.Create("control-label", 1170), true)
+, Tuple.Create(Tuple.Create(" ", 1183), Tuple.Create("col-xs-2", 1184), true)
+, Tuple.Create(Tuple.Create(" ", 1192), Tuple.Create("col-md-", 1193), true)
             
             #line 31 "..\..\Views\Shared\ObjectForm.cshtml"
-, Tuple.Create(Tuple.Create("", 1204), Tuple.Create<System.Object, System.Int32>(bs.LabelWidth
+, Tuple.Create(Tuple.Create("", 1200), Tuple.Create<System.Object, System.Int32>(bs.LabelWidth
             
             #line default
             #line hidden
-, 1204), false)
-, Tuple.Create(Tuple.Create(" ", 1218), Tuple.Create("no-padding-left", 1219), true)
+, 1200), false)
+, Tuple.Create(Tuple.Create(" ", 1214), Tuple.Create("no-padding-left", 1215), true)
 );
 
-WriteAttribute("for", Tuple.Create(" for=\"", 1235), Tuple.Create("\"", 1249)
+WriteAttribute("for", Tuple.Create(" for=\"", 1231), Tuple.Create("\"", 1245)
             
             #line 31 "..\..\Views\Shared\ObjectForm.cshtml"
-                         , Tuple.Create(Tuple.Create("", 1241), Tuple.Create<System.Object, System.Int32>(pi.Name
+                         , Tuple.Create(Tuple.Create("", 1237), Tuple.Create<System.Object, System.Int32>(pi.Name
             
             #line default
             #line hidden
-, 1241), false)
+, 1237), false)
 );
 
 WriteLiteral(">");

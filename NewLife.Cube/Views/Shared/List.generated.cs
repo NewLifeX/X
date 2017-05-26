@@ -55,7 +55,7 @@ namespace ASP
             
             #line 3 "..\..\Views\Shared\List.cshtml"
   
-    Layout = "~/Views/Shared/_Ace_Layout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
