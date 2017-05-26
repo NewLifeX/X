@@ -258,34 +258,29 @@ WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
 
 WriteLiteral(" class=\"form-control form_datetime\"");
 
-WriteLiteral(" />\r\n                    </div>\r\n                </div>\r\n                <div");
+WriteLiteral(" />\r\n                    </div>\r\n                </div>\r\n");
 
-WriteLiteral(" class=\"input-group btn-toolbar\"");
-
-WriteLiteral(">\r\n");
-
-WriteLiteral("                    ");
+WriteLiteral("                ");
 
             
-            #line 39 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
-               Write(Html.Partial("_List_Toolbar_Search"));
+            #line 38 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
+           Write(Html.Partial("_List_Toolbar_Search"));
 
             
             #line default
             #line hidden
 WriteLiteral("\r\n");
 
-WriteLiteral("                    ");
+WriteLiteral("                ");
 
             
-            #line 40 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
-               Write(Html.Partial("_List_Toolbar_Adv"));
+            #line 39 "..\..\Areas\Admin\Views\Log\_List_Toolbar.cshtml"
+           Write(Html.Partial("_List_Toolbar_Adv"));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                </div>\r\n            </div>\r\n        </form>\r\n    </div>\r\n</div>" +
-"\r\n");
+WriteLiteral("\r\n            </div>\r\n        </form>\r\n    </div>\r\n</div>\r\n");
 
         }
     }

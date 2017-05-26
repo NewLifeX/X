@@ -35,10 +35,8 @@
                         <input name="dtEnd" id="dtEnd" value="@Request["dtEnd"]" dateformat="yyyy-MM-dd" class="form-control form_datetime" />
                     </div>
                 </div>
-                <div class="input-group btn-toolbar">
-                    @Html.Partial("_List_Toolbar_Search")
-                    @Html.Partial("_List_Toolbar_Adv")
-                </div>
+                @Html.Partial("_List_Toolbar_Search")
+                @Html.Partial("_List_Toolbar_Adv")
             </div>
         </form>
     </div>
