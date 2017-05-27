@@ -152,11 +152,13 @@ namespace XCode.Remoting
         private void CheckOnline(String name)
         {
             var ns = Session as NetSession;
+            var u = Current;
 
             var olt = Online ?? CreateOnline(ns.ID);
             olt.SessionID = ns.ID;
-            olt.UserID = Current.ID;
             olt.UpdateTime = DateTime.Now;
+
+            if (u != null) olt.UserID = u.ID;
             olt.SaveAsync();
 
             Online = olt;
