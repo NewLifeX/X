@@ -158,6 +158,12 @@ namespace XCode.Remoting
             olt.SessionID = ns.ID;
             olt.UpdateTime = DateTime.Now;
 
+            if (olt != Online)
+            {
+                olt.CreateTime = DateTime.Now;
+                olt.CreateIP = ns?.Remote?.Address + "";
+            }
+
             if (u != null) olt.UserID = u.ID;
             olt.SaveAsync();
 
@@ -189,7 +195,7 @@ namespace XCode.Remoting
             else if (ot != null)
             {
                 hi.UserID = ot.UserID;
-                if (hi.Name.IsNullOrEmpty()) hi.Name = ot.Name;
+                //if (hi.Name.IsNullOrEmpty()) hi.Name = ot.Name;
             }
 
             hi.Action = action;
@@ -199,8 +205,7 @@ namespace XCode.Remoting
             var sc = Session as NetSession;
             if (sc != null) hi.CreateIP = sc.Remote + "";
 
-            //hi.SaveAsync();
-            (hi as IEntity).SaveAsync();
+            hi.SaveAsync();
         }
 
         /// <summary>创建历史</summary>
