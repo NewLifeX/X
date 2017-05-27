@@ -46,7 +46,8 @@ namespace XApi
             gbSend.Tag = gbSend.Text;
 
             var cfg = ApiConfig.Current;
-            cbMode.SelectedItem = cbMode.Items[0] + "";
+            //cbMode.SelectedItem = cbMode.Items[0] + "";
+            cbMode.SelectedItem = cfg.Mode;
             if (!cfg.Address.IsNullOrEmpty())
             {
                 //cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -82,6 +83,10 @@ namespace XApi
             mi显示编码日志.Checked = cfg.ShowEncoderLog;
             mi显示统计信息.Checked = cfg.ShowStat;
 
+            cbMode.SelectedItem = cfg.Mode;
+            txtUser.Text = cfg.UserName;
+            txtPass.Text = cfg.Password;
+
             txtSend.Text = cfg.SendContent;
             numMutilSend.Value = cfg.SendTimes;
             numSleep.Value = cfg.SendSleep;
@@ -95,6 +100,10 @@ namespace XApi
             cfg.ShowLog = mi显示应用日志.Checked;
             cfg.ShowEncoderLog = mi显示编码日志.Checked;
             cfg.ShowStat = mi显示统计信息.Checked;
+
+            cfg.Mode = cbMode.SelectedItem + "";
+            cfg.UserName = txtUser.Text;
+            cfg.Password = txtPass.Text;
 
             cfg.SendContent = txtSend.Text;
             cfg.SendTimes = (Int32)numMutilSend.Value;
@@ -135,7 +144,12 @@ namespace XApi
                     client.EncoderLog = cfg.ShowEncoderLog ? XTrace.Log : Logger.Null;
 
                     // 连接成功后拉取Api列表
-                    client.Opened += (s, e) => GetApiAll();
+                    client.Opened += (s, e) =>
+                    {
+                        GetApiAll();
+                        //client.UserName = cfg.UserName;
+                        //client.Password = cfg.Password;
+                    };
 
                     _Client = client;
                     client.Open();
@@ -147,6 +161,7 @@ namespace XApi
                     return;
             }
 
+            pnlInfo.Enabled = true;
             pnlSetting.Enabled = false;
             btnConnect.Text = "关闭";
 
@@ -202,6 +217,7 @@ namespace XApi
                 _timer = null;
             }
 
+            pnlInfo.Enabled = false;
             pnlSetting.Enabled = true;
             btnConnect.Text = "打开";
         }
@@ -353,5 +369,46 @@ namespace XApi
             mi.Checked = !mi.Checked;
         }
         #endregion
+
+        private void cbAction_SelectedIndexChanged(Object sender, EventArgs e)
+        {
+            var cb = sender as ComboBox;
+            if (cb == null) return;
+
+            var txt = cb.SelectedItem + "";
+            if (txt.IsNullOrEmpty()) return;
+
+            var set = ApiConfig.Current;
+
+            // 截取参数部分
+            var pis = txt.Substring("(", ")").Split(",");
+
+            // 生成参数
+            var ps = new Dictionary<String, Object>();
+            foreach (var item in pis)
+            {
+                var ss = item.Split(" ");
+                Object val = null;
+                switch (ss[0])
+                {
+                    case "String":
+                        val = "";
+                        switch (ss[1].ToLower())
+                        {
+                            case "user": val = set.UserName; break;
+                            case "pass": val = set.Password; break;
+                        }
+                        break;
+                    case "Int32":
+                        val = 0;
+                        break;
+                    default:
+                        break;
+                }
+                ps[ss[1]] = val;
+            }
+
+            txtSend.Text = ps.ToJson();
+        }
     }
 }

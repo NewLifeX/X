@@ -14,6 +14,18 @@ namespace XApi
         [Description("地址")]
         public String Address { get; set; } = "";
 
+        /// <summary>用户名</summary>
+        [Description("用户名")]
+        public String UserName { get; set; } = "test";
+
+        /// <summary>密码</summary>
+        [Description("密码")]
+        public String Password { get; set; } = "test";
+
+        /// <summary>模式</summary>
+        [Description("模式")]
+        public String Mode { get; set; } = "服务端";
+
         /// <summary>发送内容</summary>
         [Description("发送内容")]
         public String SendContent { get; set; } = "新生命开发团队，学无先后达者为师";

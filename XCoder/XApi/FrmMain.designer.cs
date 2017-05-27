@@ -59,6 +59,11 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.pnlInfo = new System.Windows.Forms.Panel();
+            this.txtPass = new System.Windows.Forms.TextBox();
+            this.txtUser = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             this.gbReceive.SuspendLayout();
             this.menuReceive.SuspendLayout();
             this.menuSend.SuspendLayout();
@@ -67,6 +72,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numThreads)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).BeginInit();
+            this.pnlInfo.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbReceive
@@ -75,9 +81,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.gbReceive.Controls.Add(this.txtReceive);
-            this.gbReceive.Location = new System.Drawing.Point(9, 43);
+            this.gbReceive.Location = new System.Drawing.Point(9, 78);
             this.gbReceive.Name = "gbReceive";
-            this.gbReceive.Size = new System.Drawing.Size(652, 234);
+            this.gbReceive.Size = new System.Drawing.Size(652, 199);
             this.gbReceive.TabIndex = 4;
             this.gbReceive.TabStop = false;
             this.gbReceive.Text = "接收区：已接收0字节";
@@ -89,7 +95,7 @@
             this.txtReceive.HideSelection = false;
             this.txtReceive.Location = new System.Drawing.Point(3, 17);
             this.txtReceive.Name = "txtReceive";
-            this.txtReceive.Size = new System.Drawing.Size(646, 214);
+            this.txtReceive.Size = new System.Drawing.Size(646, 179);
             this.txtReceive.TabIndex = 1;
             this.txtReceive.Text = "";
             // 
@@ -108,40 +114,40 @@
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(148, 22);
             this.toolStripMenuItem1.Text = "清空";
             this.toolStripMenuItem1.Click += new System.EventHandler(this.mi清空_Click);
             // 
             // mi日志着色
             // 
             this.mi日志着色.Name = "mi日志着色";
-            this.mi日志着色.Size = new System.Drawing.Size(152, 22);
+            this.mi日志着色.Size = new System.Drawing.Size(148, 22);
             this.mi日志着色.Text = "日志着色";
             this.mi日志着色.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(149, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(145, 6);
             // 
             // mi显示应用日志
             // 
             this.mi显示应用日志.Name = "mi显示应用日志";
-            this.mi显示应用日志.Size = new System.Drawing.Size(152, 22);
+            this.mi显示应用日志.Size = new System.Drawing.Size(148, 22);
             this.mi显示应用日志.Text = "显示应用日志";
             this.mi显示应用日志.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // mi显示编码日志
             // 
             this.mi显示编码日志.Name = "mi显示编码日志";
-            this.mi显示编码日志.Size = new System.Drawing.Size(152, 22);
+            this.mi显示编码日志.Size = new System.Drawing.Size(148, 22);
             this.mi显示编码日志.Text = "显示编码日志";
             this.mi显示编码日志.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // mi显示统计信息
             // 
             this.mi显示统计信息.Name = "mi显示统计信息";
-            this.mi显示统计信息.Size = new System.Drawing.Size(152, 22);
+            this.mi显示统计信息.Size = new System.Drawing.Size(148, 22);
             this.mi显示统计信息.Text = "显示统计信息";
             this.mi显示统计信息.Click += new System.EventHandler(this.miCheck_Click);
             // 
@@ -150,12 +156,12 @@
             this.menuSend.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mi清空2});
             this.menuSend.Name = "menuSend";
-            this.menuSend.Size = new System.Drawing.Size(153, 48);
+            this.menuSend.Size = new System.Drawing.Size(101, 26);
             // 
             // mi清空2
             // 
             this.mi清空2.Name = "mi清空2";
-            this.mi清空2.Size = new System.Drawing.Size(122, 22);
+            this.mi清空2.Size = new System.Drawing.Size(100, 22);
             this.mi清空2.Text = "清空";
             this.mi清空2.Click += new System.EventHandler(this.mi清空2_Click);
             // 
@@ -208,10 +214,12 @@
             // 
             // cbAddr
             // 
+            this.cbAddr.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cbAddr.FormattingEnabled = true;
             this.cbAddr.Location = new System.Drawing.Point(184, 3);
             this.cbAddr.Name = "cbAddr";
-            this.cbAddr.Size = new System.Drawing.Size(149, 20);
+            this.cbAddr.Size = new System.Drawing.Size(365, 20);
             this.cbAddr.TabIndex = 10;
             // 
             // pnlSetting
@@ -222,7 +230,7 @@
             this.pnlSetting.Controls.Add(this.cbMode);
             this.pnlSetting.Location = new System.Drawing.Point(9, 8);
             this.pnlSetting.Name = "pnlSetting";
-            this.pnlSetting.Size = new System.Drawing.Size(343, 31);
+            this.pnlSetting.Size = new System.Drawing.Size(559, 31);
             this.pnlSetting.TabIndex = 13;
             // 
             // cbAction
@@ -231,11 +239,12 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbAction.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbAction.FormattingEnabled = true;
-            this.cbAction.Location = new System.Drawing.Point(358, 13);
+            this.cbAction.Location = new System.Drawing.Point(339, 48);
             this.cbAction.Name = "cbAction";
-            this.cbAction.Size = new System.Drawing.Size(223, 20);
+            this.cbAction.Size = new System.Drawing.Size(315, 20);
             this.cbAction.TabIndex = 12;
             this.cbAction.Visible = false;
+            this.cbAction.SelectedIndexChanged += new System.EventHandler(this.cbAction_SelectedIndexChanged);
             // 
             // gbSend
             // 
@@ -367,11 +376,56 @@
             this.label7.TabIndex = 15;
             this.label7.Text = "次数：";
             // 
+            // pnlInfo
+            // 
+            this.pnlInfo.Controls.Add(this.txtPass);
+            this.pnlInfo.Controls.Add(this.txtUser);
+            this.pnlInfo.Controls.Add(this.label4);
+            this.pnlInfo.Controls.Add(this.label3);
+            this.pnlInfo.Enabled = false;
+            this.pnlInfo.Location = new System.Drawing.Point(9, 44);
+            this.pnlInfo.Name = "pnlInfo";
+            this.pnlInfo.Size = new System.Drawing.Size(324, 28);
+            this.pnlInfo.TabIndex = 20;
+            // 
+            // txtPass
+            // 
+            this.txtPass.Location = new System.Drawing.Point(208, 4);
+            this.txtPass.Name = "txtPass";
+            this.txtPass.Size = new System.Drawing.Size(110, 21);
+            this.txtPass.TabIndex = 23;
+            // 
+            // txtUser
+            // 
+            this.txtUser.Location = new System.Drawing.Point(48, 3);
+            this.txtUser.Name = "txtUser";
+            this.txtUser.Size = new System.Drawing.Size(116, 21);
+            this.txtUser.TabIndex = 22;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(170, 8);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(41, 12);
+            this.label4.TabIndex = 21;
+            this.label4.Text = "密码：";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(6, 7);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(41, 12);
+            this.label3.TabIndex = 20;
+            this.label3.Text = "用户：";
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(667, 379);
+            this.Controls.Add(this.pnlInfo);
             this.Controls.Add(this.cbAction);
             this.Controls.Add(this.gbSend);
             this.Controls.Add(this.pnlSetting);
@@ -391,6 +445,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.numThreads)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numSleep)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numMutilSend)).EndInit();
+            this.pnlInfo.ResumeLayout(false);
+            this.pnlInfo.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -427,6 +483,11 @@
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.ComboBox cbAction;
         private System.Windows.Forms.ToolStripMenuItem mi日志着色;
+        private System.Windows.Forms.Panel pnlInfo;
+        private System.Windows.Forms.TextBox txtPass;
+        private System.Windows.Forms.TextBox txtUser;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label3;
     }
 }
 
