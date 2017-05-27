@@ -96,6 +96,7 @@ namespace XCode.Remoting
 
                 // 当前设备
                 Current = u;
+                Session.UserState = u;
 
                 var olt = Online;
                 if (olt.UserID > 0 && olt.UserID != u.ID) SaveHistory("Logout", true, "=> " + u);

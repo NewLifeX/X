@@ -322,7 +322,14 @@ namespace XApi
 
                 if (ths <= 1)
                 {
-                    await _Client.InvokeAsync<Object>(act, args, cookie);
+                    try
+                    {
+                        await _Client.InvokeAsync<Object>(act, args, cookie);
+                    }
+                    catch (ApiException ex)
+                    {
+                        XTrace.WriteLine(ex.Message);
+                    }
                 }
                 //else
                 //{
