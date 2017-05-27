@@ -6,7 +6,7 @@ using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Log;
-using NewLife.Security;
+using NewLife.Model;
 using NewLife.Web;
 
 namespace XCode.Membership
@@ -557,14 +557,14 @@ namespace XCode.Membership
         #endregion
 
         #region IManageUser 成员
-        /// <summary>编号</summary>
-        Object IManageUser.Uid { get { return ID; } }
+        ///// <summary>编号</summary>
+        //Object IManageUser.Uid { get { return ID; } }
 
-        /// <summary>密码</summary>
-        String IManageUser.Password { get { return Password; } set { Password = value; } }
+        /// <summary>昵称</summary>
+        String IManageUser.NickName { get { return DisplayName; } set { DisplayName = value; } }
 
-        /// <summary>是否管理员</summary>
-        Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
+        ///// <summary>是否管理员</summary>
+        //Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
         #endregion
     }
 

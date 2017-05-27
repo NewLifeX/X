@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Text;
 using System.Web;
-using NewLife.Configuration;
 using NewLife.Model;
-using NewLife.Reflection;
 using NewLife.Web;
-using XCode;
 
 namespace XCode.Membership
 {
@@ -162,8 +159,9 @@ namespace XCode.Membership
             var user = Current;
             if (user != null)
             {
-                if (user["RoleName"] != null)
-                    builder.AppendFormat("登录：{0}({1})\r\n", user.Name, user["RoleName"]);
+                var e = user as IEntity;
+                if (e["RoleName"] != null)
+                    builder.AppendFormat("登录：{0}({1})\r\n", user.Name, e["RoleName"]);
                 else
                     builder.AppendFormat("登录：{0}\r\n", user.Name);
             }

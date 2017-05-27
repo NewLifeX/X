@@ -78,6 +78,7 @@ namespace XCode.Membership
                 if (_Provider == null) _Provider = ObjectContainer.Current.Resolve<LogProvider>();
                 return _Provider;
             }
+            set { _Provider = value; }
         }
         #endregion
     }

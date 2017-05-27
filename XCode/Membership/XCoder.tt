@@ -35,7 +35,7 @@
 	WriteLine("参数：" + arg);
 
 	var dic = new Dictionary<String, Object>();
-	dic["Debug"] = true;
+	dic["Debug"] = false;
 	dic["NameSpace"] = "XCode.Membership";// 命名空间
 	dic["EntityConnName"] = name;	// 连接名
 	

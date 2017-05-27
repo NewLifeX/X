@@ -128,7 +128,10 @@
     </Compile>
     <Compile Include="Messaging\MessageEventArgs.cs" />
     <Compile Include="Model\IFactory.cs" />
+    <Compile Include="Model\IHistory.cs" />
+    <Compile Include="Model\IOnline.cs" />
     <Compile Include="Model\IPlugin.cs" />
+    <Compile Include="Model\IManageUser.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
     <Compile Include="Net\DefaultPacket.cs" />

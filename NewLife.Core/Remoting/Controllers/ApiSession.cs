@@ -83,35 +83,37 @@ namespace NewLife.Remoting
             Logined = true;
 
             // 生成密钥
-            if (!dic.ContainsKey("Key")) dic["Key"] = GenerateKey().ToHex();
+            if (!dic.ContainsKey("Key")) dic["Key"] = GenerateKey(user).ToHex();
 
             return dic;
         }
 
-        /// <summary>检查登录，默认检查密码MD5散列，可继承修改</summary>
+        /// <summary>检查登录，默认检查密码，可继承修改</summary>
         /// <param name="user">用户名</param>
         /// <param name="pass">密码</param>
         /// <returns>返回要发给客户端的对象</returns>
         protected virtual Object CheckLogin(String user, String pass)
         {
-            var _TruePass = user;
-
-            if (pass != _TruePass.MD5()) throw Error(0x01, "密码错误！");
-            Session["_TruePass"] = _TruePass;
+            if (pass != GetPassword(user)) throw Error(0x01, "密码错误！");
 
             return new { Name = user };
         }
 
+        /// <summary>获取原始密码</summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        protected virtual String GetPassword(String user) { return user; }
+
         /// <summary>生成密钥，默认密码加密密钥，可继承修改</summary>
         /// <returns></returns>
-        protected virtual Byte[] GenerateKey()
+        protected virtual Byte[] GenerateKey(String user)
         {
             // 随机密钥
             var key = Key = Rand.NextBytes(8);
 
             WriteLog("生成密钥 {0}", key.ToHex());
 
-            var tp = Session["_TruePass"] + "";
+            var tp = GetPassword(user);
             if (!tp.IsNullOrEmpty()) key = key.RC4(tp.GetBytes());
 
             return key;

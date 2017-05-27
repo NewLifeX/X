@@ -83,7 +83,6 @@
     <Compile Include="Cache\FieldCache.cs" />
     <Compile Include="Membership\LogEntity.cs" />
     <Compile Include="Membership\IManageProvider.cs" />
-    <Compile Include="Membership\IManageUser.cs" />
     <Compile Include="Membership\MenuProvider.cs" />
     <Compile Include="Membership\LogProvider.cs" />
     <Compile Include="Membership\UserTimeEntity.cs" />
@@ -103,6 +102,7 @@
     <Compile Include="Model\Expression.cs" />
     <Compile Include="Model\FormatExpression.cs" />
     <Compile Include="Model\FieldExpression.cs" />
+    <Compile Include="Remoting\ApiUserSession.cs" />
     <Compile Include="Setting.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />

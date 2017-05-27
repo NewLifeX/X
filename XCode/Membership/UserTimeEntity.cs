@@ -8,6 +8,7 @@ using NewLife.Collections;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;
+using NewLife.Model;
 
 namespace XCode.Membership
 {
