@@ -79,6 +79,7 @@ namespace XCode.Remoting
                 {
                     act = "Register";
                     u = Register(user, pass);
+                    if (u == null) throw Error(3, user + " 禁止注册");
 
                     if (u.ID == 0) u.SaveRegister(ns);
 
