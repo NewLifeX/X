@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NewLife.Model;
 using NewLife.Net;
 using NewLife.Remoting;
+using NewLife.Security;
 using XCode.Membership;
 
 namespace XCode.Remoting
@@ -124,6 +125,21 @@ namespace XCode.Remoting
             {
                 SaveHistory(act, flag, msg);
             }
+        }
+
+        /// <summary>生成密钥，默认密码加密密钥，可继承修改</summary>
+        /// <returns></returns>
+        protected override Byte[] GenerateKey(String user)
+        {
+            // 随机密钥
+            var key = Key = Rand.NextBytes(8);
+
+            WriteLog("生成密钥 {0}", key.ToHex());
+
+            var tp = Current?.Password;
+            if (!tp.IsNullOrEmpty()) key = key.RC4(tp.GetBytes());
+
+            return key;
         }
 
         /// <summary>查找用户并登录</summary>

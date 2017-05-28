@@ -254,7 +254,7 @@ namespace NewLife.Remoting
         public String LoginAction { get; set; } = "Login";
 
         /// <summary>登录完成事件</summary>
-        public EventHandler<EventArgs<Object>> OnLogined;
+        public event EventHandler<EventArgs<Object>> OnLogined;
 
         private Task<Object> _login;
 
@@ -290,10 +290,22 @@ namespace NewLife.Remoting
 
             var rs = await OnLogin(args);
 
+            // 注册成功则保存
+            var dic = rs.ToDictionary();
+            if (Password.IsNullOrEmpty() && dic.ContainsKey("pass"))
+            {
+                UserName = dic["user"] + "";
+                Password = dic["pass"] + "";
+
+                WriteLog("注册成功！{0}/{1}", UserName, Password);
+            }
+            else
+                WriteLog("登录成功！");
+
             // 从响应中解析通信密钥
             if (Encrypted)
             {
-                var dic = rs.ToDictionary();
+                //var dic = rs.ToDictionary();
                 //!!! 使用密码解密通信密钥
                 Key = (dic["Key"] + "").ToHex().RC4(Password.GetBytes());
 

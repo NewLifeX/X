@@ -94,15 +94,10 @@ namespace NewLife.Remoting
         /// <returns>返回要发给客户端的对象</returns>
         protected virtual Object CheckLogin(String user, String pass)
         {
-            if (pass != GetPassword(user)) throw Error(0x01, "密码错误！");
+            if (pass != user) throw Error(0x01, "密码错误！");
 
             return new { Name = user };
         }
-
-        /// <summary>获取原始密码</summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        protected virtual String GetPassword(String user) { return user; }
 
         /// <summary>生成密钥，默认密码加密密钥，可继承修改</summary>
         /// <returns></returns>
@@ -113,7 +108,7 @@ namespace NewLife.Remoting
 
             WriteLog("生成密钥 {0}", key.ToHex());
 
-            var tp = GetPassword(user);
+            var tp = user;
             if (!tp.IsNullOrEmpty()) key = key.RC4(tp.GetBytes());
 
             return key;
