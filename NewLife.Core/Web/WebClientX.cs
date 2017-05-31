@@ -380,7 +380,11 @@ namespace NewLife.Web
                 {
                     var cachefile = cachedir.CombinePath(link.Name);
                     Log.Info("缓存到 {0}", cachefile);
-                    File.Copy(file2, cachefile.EnsureDirectory(), true);
+                    try
+                    {
+                        File.Copy(file2, cachefile.EnsureDirectory(), true);
+                    }
+                    catch { }
                 }
                 file = file2;
             }

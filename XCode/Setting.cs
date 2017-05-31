@@ -1,9 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using NewLife;
-using NewLife.Configuration;
 using NewLife.Xml;
-using XCode.Cache;
 using XCode.DataAccessLayer;
 
 namespace XCode
@@ -94,20 +92,7 @@ namespace XCode
         /// <summary>加载后检查默认值</summary>
         protected override void OnLoaded()
         {
-            var dbpath = SQLiteDbPath;
-            if (dbpath.IsNullOrEmpty())
-            {
-                dbpath = ".";
-                if (Runtime.IsWeb)
-                {
-                    if (!Environment.CurrentDirectory.Contains("iisexpress") ||
-                        !Environment.CurrentDirectory.Contains("Web"))
-                        dbpath = "..\\Data";
-                    else
-                        dbpath = "~\\App_Data";
-                }
-                SQLiteDbPath = dbpath;
-            }
+            if (SQLiteDbPath.IsNullOrEmpty()) SQLiteDbPath = Runtime.IsWeb ? "..\\Data" : ".";
 
             base.OnLoaded();
         }
@@ -126,10 +111,5 @@ namespace XCode
         [Description("是否忽略大小写，如果不忽略则在表名字段名外面加上双引号，默认true")]
         public Boolean IgnoreCase { get; set; } = true;
         #endregion
-
-        /// <summary>初始化</summary>
-        public OracleSetting()
-        {
-        }
     }
 }

@@ -518,7 +518,7 @@ namespace System
             if (p >= 0) addr = addr.Substring(p + 3);
 
             // 过滤IPv4/IPv6端口
-            if (addr.Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
+            if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
 
             IPAddress ip = null;
             if (!IPAddress.TryParse(addr, out ip)) return null;

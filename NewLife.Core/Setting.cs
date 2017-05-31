@@ -46,36 +46,20 @@ namespace NewLife
         [Description("插件缓存目录。默认位于系统盘的X\\Cache")]
         public String PluginCache { get; set; } = "";
 
-        ///// <summary>网络调试</summary>
-        //[Description("网络调试")]
-        //public Boolean NetDebug { get; set; }
-
         /// <summary>语音提示。默认true</summary>
         [Description("语音提示。默认true")]
         public Boolean SpeechTip { get; set; } = true;
         #endregion
 
         #region 方法
-        /// <summary>实例化</summary>
-        public Setting()
-        {
-        }
-
-        /// <summary>新建时调用</summary>
-        protected override void OnNew()
-        {
-        }
-
         /// <summary>加载完成后</summary>
         protected override void OnLoaded()
         {
-            if (TempPath.IsNullOrEmpty())
-            {
-                if (Runtime.IsWeb)
-                    TempPath = "..\\XTemp";
-                else
-                    TempPath = "XTemp";
-            }
+            var web = Runtime.IsWeb;
+
+            if (LogPath.IsNullOrEmpty()) LogPath = web ? "..\\Log" : "Log";
+            if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\XTemp" : "XTemp";
+
 #if !__MOBILE__
             if (PluginCache.IsNullOrWhiteSpace())
             {
@@ -94,9 +78,6 @@ namespace NewLife
         /// <returns></returns>
         public String GetPluginPath()
         {
-            //if (Runtime.IsWeb)
-            //    return "Bin".GetFullPath();
-            //else
             return PluginPath.GetBasePath();
         }
 

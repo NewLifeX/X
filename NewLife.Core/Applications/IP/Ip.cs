@@ -19,15 +19,17 @@ namespace NewLife.IP
 
         static Ip()
         {
-            var ns = new String[] { "qqwry.dat", "qqwry.gz", "ip.gz", "ip.gz.config", "ipdata.config" };
-            foreach (var item in ns)
+            var dir = Runtime.IsWeb ? "..\\Data" : ".";
+            var ip = dir.CombinePath("ip.gz");
+            if (File.Exists(ip)) DbFile = ip;
+
+            // 删除旧版本
+            ip = "App_Data\\ip.gz".GetFullPath();
+            if (File.Exists(ip))
             {
-                var fi = ".".AsDirectory().GetAllFiles(item, true).FirstOrDefault();
-                if (fi != null)
-                {
-                    DbFile = fi.FullName;
-                    break;
-                }
+                File.Delete(ip);
+                var di = "App_Data".AsDirectory();
+                if (di.GetFiles().Length == 0) di.Delete(true);
             }
 
             // 如果本地没有IP数据库，则从网络下载
@@ -40,7 +42,6 @@ namespace NewLife.IP
 
                     var client = new WebClientX();
                     client.Log = XTrace.Log;
-                    var dir = Runtime.IsWeb ? "App_Data" : "Data";
                     var file = client.DownloadLink(url, "ip.gz", dir.GetFullPath());
 
                     if (File.Exists(file))
