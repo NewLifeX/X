@@ -37,6 +37,9 @@ namespace XCode.Remoting
 
         /// <summary>版本</summary>
         public String Version { get; set; }
+
+        /// <summary>验证Key</summary>
+        public String AuthKey { get; set; }
         #endregion
 
         #region 登录注册
@@ -91,7 +94,8 @@ namespace XCode.Remoting
                 {
                     if (!u.Enable) throw Error(4, user + " 已被禁用");
 
-                    rs = new { Name = u.Name };
+                    if (AuthKey.IsNullOrEmpty()) rs = new { Name = u.Name };
+                    else rs = new { Name = u.Name, Key = AuthKey };
                 }
 
                 u.SaveLogin(ns);
