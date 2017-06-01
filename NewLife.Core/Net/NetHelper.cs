@@ -679,12 +679,12 @@ namespace System
                     return new UdpServer { Remote = remote };
                 case NetType.Http:
                     var http = new HttpClient { Remote = remote };
-                    http.Request.IsSSL = remote.Protocol.EqualIgnoreCase("https");
+                    http.IsSSL = remote.Protocol.EqualIgnoreCase("https");
                     return http;
                 case NetType.WebSocket:
                     var ws = new HttpClient { Remote = remote };
-                    ws.Request.IsSSL = remote.Protocol.EqualIgnoreCase("https");
-                    ws.Request.IsWebSocket = true;
+                    ws.IsSSL = remote.Protocol.EqualIgnoreCase("https");
+                    ws.IsWebSocket = true;
                     return ws;
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(remote.Type));
@@ -701,6 +701,22 @@ namespace System
             var http = new HttpClient();
             http.Request.Url = uri;
             http.Remote = new NetUri(uri + "");
+
+            switch (uri.Scheme.ToLower())
+            {
+                case "https":
+                    http.IsSSL = true;
+                    break;
+                case "wss":
+                    http.IsWebSocket = true;
+                    http.IsSSL = true;
+                    break;
+                case "ws":
+                    http.IsWebSocket = true;
+                    break;
+                default:
+                    break;
+            }
 
             return http;
         }

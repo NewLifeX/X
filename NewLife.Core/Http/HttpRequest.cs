@@ -13,12 +13,6 @@ namespace NewLife.Http
         /// <summary>资源路径</summary>
         public Uri Url { get; set; }
 
-        ///// <summary>是否WebSocket</summary>
-        //public Boolean IsWebSocket { get; set; }
-
-        /// <summary>是否启用SSL</summary>
-        public Boolean IsSSL { get; set; }
-
         /// <summary>用户代理</summary>
         public String UserAgent { get; set; }
 
@@ -49,8 +43,9 @@ namespace NewLife.Http
                 Method = ss[0];
 
                 // 构造资源路径
+                var sch = Headers["Sec-WebSocket-Key"] + "" != "" ? "ws" : "http";
                 var host = Headers["Host"] + "";
-                var uri = "{0}://{1}".F("http", host);
+                var uri = "{0}://{1}".F(sch, host);
                 //var uri = "{0}://{1}".F(IsSSL ? "https" : "http", host);
                 //if (host.IsNullOrEmpty() || !host.Contains(":"))
                 //{

@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Security;
 
 namespace NewLife.Http
 {
@@ -156,10 +157,20 @@ namespace NewLife.Http
         #endregion
 
         #region WebSocket
+        /// <summary>建立握手包</summary>
+        /// <param name="request"></param>
+        public static void MakeHandshake(HttpRequest request)
+        {
+            request["Upgrade"] = "websocket";
+            request["Connection"] = "Upgrade";
+            request["Sec-WebSocket-Key"] = Rand.NextBytes(16).ToBase64();
+            request["Sec-WebSocket-Version"] = "13";
+        }
+
         /// <summary>握手</summary>
         /// <param name="key"></param>
         /// <param name="response"></param>
-        public static void HandeShake(String key, HttpResponse response)
+        public static void Handshake(String key, HttpResponse response)
         {
             if (key.IsNullOrEmpty()) return;
 

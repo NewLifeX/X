@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
-using NewLife.Collections;
+using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Net;
 
@@ -12,6 +10,12 @@ namespace NewLife.Http
     public class HttpClient : TcpSession
     {
         #region 属性
+        /// <summary>是否WebSocket</summary>
+        public Boolean IsWebSocket { get; set; }
+
+        /// <summary>是否启用SSL</summary>
+        public Boolean IsSSL { get; set; }
+
         ///// <summary>Http方法</summary>
         //public String Method { get; set; }
 
@@ -38,6 +42,44 @@ namespace NewLife.Http
         #endregion
 
         #region 方法
+        private Boolean handshake;
+
+        /// <summary>打开</summary>
+        /// <returns></returns>
+        public override Boolean Open()
+        {
+            if (!base.Open()) return false;
+
+            // WebSocket此时需要发送握手
+            if (IsWebSocket)
+            {
+                Task.Run(() =>
+                {
+                    handshake = true;
+                    try
+                    {
+                        WriteLog("Handshake");
+                        HttpHelper.MakeHandshake(Request);
+
+                        //var pk = Request.Build(null);
+                        SendAsync(new Byte[0]).Wait();
+                    }
+                    catch
+                    {
+                        Active = false;
+                        Close("Handshake");
+                        throw;
+                    }
+                    finally
+                    {
+                        handshake = false;
+                    }
+                });
+            }
+
+            return true;
+        }
+
         /// <summary>打开</summary>
         protected override Boolean OnOpen()
         {
@@ -86,7 +128,7 @@ namespace NewLife.Http
                 var header = Response;
 
                 // 是否全新请求
-                if (header == null || !header.IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
+                if (header == null || !IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
                 {
                     Response = new HttpResponse { Expire = DateTime.Now.AddSeconds(5) };
                     header = Response;
@@ -98,7 +140,7 @@ namespace NewLife.Http
 #endif
                 }
 
-                if (header.ParseBody(ref pk)) OnReceive(pk, remote);
+                if (IsWebSocket || header.ParseBody(ref pk)) OnReceive(pk, remote);
             }
             catch (Exception ex)
             {
@@ -115,11 +157,6 @@ namespace NewLife.Http
             protected override Boolean OnExecute(FilterContext context)
             {
                 var pk = context.Packet;
-                //var rq = Client.Request;
-                //if (rq.Compressed) rq["Accept-Encoding"] = "gzip, deflate";
-                //if (rq.KeepAlive) rq["Connection"] = "keep-alive";
-                //if (!rq.UserAgent.IsNullOrEmpty()) rq["User-Agent"] = rq.UserAgent;
-                //pk = HttpHelper.MakeRequest(ss.Method, ss.Url, ss.Headers, pk);
 
                 pk = Client.Request.Build(pk);
 

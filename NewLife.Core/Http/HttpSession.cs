@@ -10,6 +10,12 @@ namespace NewLife.Http
     public class HttpSession : TcpSession
     {
         #region 属性
+        /// <summary>是否WebSocket</summary>
+        public Boolean IsWebSocket { get; set; }
+
+        ///// <summary>是否启用SSL</summary>
+        //public Boolean IsSSL { get; set; }
+
         /// <summary>请求</summary>
         public HttpRequest Request { get; set; }
 
@@ -55,7 +61,7 @@ namespace NewLife.Http
             var header = Request;
 
             // 是否全新请求
-            if (header == null || !header.IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
+            if (header == null || !IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
             {
                 Request = new HttpRequest { Expire = DateTime.Now.AddSeconds(5) };
                 Response = new HttpResponse();
@@ -64,7 +70,7 @@ namespace NewLife.Http
                 // 分析头部
                 header.ParseHeader(pk);
 #if DEBUG
-                WriteLog(" {0} {1}", header.Method, header.Url);
+                WriteLog("{0} {1}", header.Method, header.Url);
 #endif
             }
 
@@ -74,7 +80,7 @@ namespace NewLife.Http
             // WebSocket
             if (CheckWebSocket(ref pk, remote)) return true;
 
-            if (!header.ParseBody(ref pk)) return true;
+            if (!IsWebSocket && !header.ParseBody(ref pk)) return true;
 
             base.OnReceive(pk, remote);
 
@@ -101,7 +107,7 @@ namespace NewLife.Http
                 var pk = context.Packet;
                 var ss = Session;
 
-                if (ss.Request.IsWebSocket)
+                if (ss.IsWebSocket)
                     pk = HttpHelper.MakeWS(pk);
                 else
                     pk = ss.Response.Build(pk);
@@ -124,17 +130,18 @@ namespace NewLife.Http
         /// <returns></returns>
         protected virtual Boolean CheckWebSocket(ref Packet pk, IPEndPoint remote)
         {
-            if (!Request.IsWebSocket)
+            if (!IsWebSocket)
             {
                 var key = Request["Sec-WebSocket-Key"];
                 if (key.IsNullOrEmpty()) return false;
 
-                //pk = HttpHelper.HandeShake(key);
-                //if (pk != null) Send(pk);
-                HttpHelper.HandeShake(key, Response);
+                WriteLog("WebSocket Handshake {0}", key);
+
+                // 发送握手
+                HttpHelper.Handshake(key, Response);
                 Send(null);
 
-                Request.IsWebSocket = true;
+                IsWebSocket = true;
                 DisconnectWhenEmptyData = false;
             }
             else

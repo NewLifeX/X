@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Log;
 
 namespace NewLife.Http
 {
@@ -11,12 +10,6 @@ namespace NewLife.Http
     public abstract class HttpBase
     {
         #region 属性
-        /// <summary>是否WebSocket</summary>
-        public Boolean IsWebSocket { get; set; }
-
-        ///// <summary>是否启用SSL</summary>
-        //public Boolean IsSSL { get; set; }
-
         /// <summary>内容长度</summary>
         public Int32 ContentLength { get; set; }
 
@@ -81,10 +74,7 @@ namespace NewLife.Http
         private MemoryStream _cache;
         internal Boolean ParseBody(ref Packet pk)
         {
-            if (IsWebSocket) return true;
-
             BodyLength += pk.Count;
-            //XTrace.WriteLine("{0}/{1}/{2}", pk.Count, BodyLength, ContentLength);
 
             if (_cache == null) _cache = new MemoryStream();
             pk.WriteTo(_cache);
