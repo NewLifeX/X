@@ -111,12 +111,12 @@ namespace NewLife.Net
                 if (!Active) return false;
 
                 if (Timeout > 0) Client.ReceiveTimeout = Timeout;
-
-                // 触发打开完成的事件
-                Opened?.Invoke(this, EventArgs.Empty);
             }
 
             ReceiveAsync();
+
+            // 触发打开完成的事件
+            Opened?.Invoke(this, EventArgs.Empty);
 
             return true;
         }

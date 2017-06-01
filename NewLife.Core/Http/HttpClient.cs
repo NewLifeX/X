@@ -27,6 +27,9 @@ namespace NewLife.Http
 
         /// <summary>响应</summary>
         public HttpResponse Response { get; set; }
+
+        /// <summary>WebSocket握手</summary>
+        private Boolean wsHandshake;
         #endregion
 
         #region 构造
@@ -38,48 +41,12 @@ namespace NewLife.Http
 
             //DisconnectWhenEmptyData = false;
             ProcessAsync = false;
+
+            Opened += HttpClient_Opened;
         }
         #endregion
 
         #region 方法
-        private Boolean handshake;
-
-        /// <summary>打开</summary>
-        /// <returns></returns>
-        public override Boolean Open()
-        {
-            if (!base.Open()) return false;
-
-            // WebSocket此时需要发送握手
-            if (IsWebSocket)
-            {
-                Task.Run(() =>
-                {
-                    handshake = true;
-                    try
-                    {
-                        WriteLog("Handshake");
-                        HttpHelper.MakeHandshake(Request);
-
-                        //var pk = Request.Build(null);
-                        SendAsync(new Byte[0]).Wait();
-                    }
-                    catch
-                    {
-                        Active = false;
-                        Close("Handshake");
-                        throw;
-                    }
-                    finally
-                    {
-                        handshake = false;
-                    }
-                });
-            }
-
-            return true;
-        }
-
         /// <summary>打开</summary>
         protected override Boolean OnOpen()
         {
@@ -95,6 +62,30 @@ namespace NewLife.Http
             if (SendFilter == null) SendFilter = new HttpRequestFilter { Client = this };
 
             return base.OnOpen();
+        }
+
+        private void HttpClient_Opened(Object sender, EventArgs e)
+        {
+            // WebSocket此时需要发送握手
+            if (IsWebSocket)
+            {
+                HttpHelper.MakeHandshake(Request);
+
+                //SendAsync(new Byte[0]);
+                try
+                {
+                    var pk = SendAsync(new Byte[0]).Result;
+                    //WriteLog("Handshake# {0}", pk.Count);
+                    if (Response.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception(Response.StatusCode + "");
+                    wsHandshake = true;
+                }
+                catch //(Exception ex)
+                {
+                    //WriteLog(ex.GetTrue()?.Message);
+                    Close("HandshakeError");
+                    throw;
+                }
+            }
         }
         #endregion
 
@@ -135,12 +126,26 @@ namespace NewLife.Http
 
                     // 分析头部
                     header.ParseHeader(pk);
+
+                    // 握手响应包
+                    if (IsWebSocket && pk.Count == 0) Packet?.Match(pk, remote);
+
 #if DEBUG
                     WriteLog(" {0} {1} {2}", (Int32)header.StatusCode, header.StatusCode, header.ContentLength);
 #endif
                 }
 
-                if (IsWebSocket || header.ParseBody(ref pk)) OnReceive(pk, remote);
+                // WebSocket
+                if (IsWebSocket)
+                {
+                    pk = HttpHelper.ParseWS(pk);
+
+                    OnReceive(pk, remote);
+                }
+                else
+                {
+                    if (header.ParseBody(ref pk)) OnReceive(pk, remote);
+                }
             }
             catch (Exception ex)
             {
@@ -158,7 +163,10 @@ namespace NewLife.Http
             {
                 var pk = context.Packet;
 
-                pk = Client.Request.Build(pk);
+                if (Client.IsWebSocket && Client.wsHandshake)
+                    pk = HttpHelper.MakeWS(pk);
+                else
+                    pk = Client.Request.Build(pk);
 
                 context.Packet = pk;
 #if DEBUG

@@ -101,7 +101,6 @@ namespace NewLife.Remoting
             Client.Provider = this;
             Client.Log = Log;
             Client.Opened += Client_Opened;
-            if (!Client.Open()) return false;
 
             var ms = Manager.Services;
             if (ms.Count > 0)
@@ -112,6 +111,8 @@ namespace NewLife.Remoting
                     Log.Info("\t{0,-16}\t{1}", item.Key, item.Value);
                 }
             }
+
+            if (!Client.Open()) return false;
 
             // 打开连接后马上就可以登录
             Timer = new TimerX(OnTimer, this, 0, 30000);
