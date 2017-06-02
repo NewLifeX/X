@@ -56,10 +56,7 @@
     <Compile Include="Consumer.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MQHost.cs" />
-    <Compile Include="MQSession.cs" />
     <Compile Include="MQTest.cs" />
-    <Compile Include="MQClient.cs" />
-    <Compile Include="MQServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Subscriber.cs" />
     <Compile Include="Topic.cs" />
