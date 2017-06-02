@@ -384,10 +384,9 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </Content>
-    <Content Include="HtmlPage1.html" />
+    <Content Include="index.html" />
     <Content Include="Scripts\ApiClient.js" />
     <Content Include="Scripts\WebSocketX.js" />
-    <Content Include="ws.html" />
     <Content Include="Areas\Admin\Views\File\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
@@ -467,7 +466,6 @@
     <None Include="Content\js\jquery1x.min.js" />
     <None Include="Content\js\respond.min.js" />
     <Content Include="favicon.ico" />
-    <None Include="说明.txt" />
     <None Include="Areas\Admin\Views\Log\_List_Toolbar.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
@@ -519,7 +517,7 @@
       <LastGenOutput>_Login_Register.generated.cs</LastGenOutput>
     </None>
     <None Include="Content\artDialog\dist\dialog.new.life.js" />
-    <Content Include="Global.asax" />
+    <None Include="Global.asax" />
     <None Include="Areas\Admin\Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
