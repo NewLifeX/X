@@ -479,8 +479,8 @@ namespace XCode
                     {
                         m = max;
 
-                        // 异步查询弥补不足
-                        Task.Factory.StartNew(() =>
+                        // 异步查询弥补不足，千万数据以内
+                        if (max < 10000000) Task.Factory.StartNew(() =>
                         {
                             _LastCount = _Count = Dal.Session.QueryCountFast(TableName);
 

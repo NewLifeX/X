@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Data.Common;
 using XCode.Cache;
 using XCode.Configuration;
-using XCode.DataAccessLayer;
-using NewLife.Reflection;
 
 namespace XCode
 {
