@@ -89,7 +89,7 @@ namespace XCode.DataAccessLayer
                 else
                 {
                     var name = "";
-                    if (TryGetDataRowValue<String>(dr, _.TalbeName, out name) && names.Contains(name)) list.Add(dr);
+                    if (TryGetDataRowValue(dr, _.TalbeName, out name) && names.Contains(name)) list.Add(dr);
                 }
             }
             if (list.Count < 1) return null;
@@ -261,11 +261,11 @@ namespace XCode.DataAccessLayer
 
                 // 原始数据类型
                 String str;
-                if (TryGetDataRowValue<String>(dr, "DATA_TYPE", out str))
+                if (TryGetDataRowValue(dr, "DATA_TYPE", out str))
                     field.RawType = str;
-                else if (TryGetDataRowValue<String>(dr, "DATATYPE", out str))
+                else if (TryGetDataRowValue(dr, "DATATYPE", out str))
                     field.RawType = str;
-                else if (TryGetDataRowValue<String>(dr, "COLUMN_DATA_TYPE", out str))
+                else if (TryGetDataRowValue(dr, "COLUMN_DATA_TYPE", out str))
                     field.RawType = str;
 
                 // 是否Unicode
@@ -304,11 +304,11 @@ namespace XCode.DataAccessLayer
                 // 允许空
                 if (TryGetDataRowValue<Boolean>(dr, "IS_NULLABLE", out b))
                     field.Nullable = b;
-                else if (TryGetDataRowValue<String>(dr, "IS_NULLABLE", out str))
+                else if (TryGetDataRowValue(dr, "IS_NULLABLE", out str))
                 {
                     if (!String.IsNullOrEmpty(str)) field.Nullable = "YES".EqualIgnoreCase(str);
                 }
-                else if (TryGetDataRowValue<String>(dr, "NULLABLE", out str))
+                else if (TryGetDataRowValue(dr, "NULLABLE", out str))
                 {
                     if (!String.IsNullOrEmpty(str)) field.Nullable = "Y".EqualIgnoreCase(str);
                 }
@@ -357,7 +357,7 @@ namespace XCode.DataAccessLayer
             String typeName = field.RawType;
 
             // 修正数据类型 +++重点+++
-            if (TryGetDataRowValue<String>(drDataType, "DataType", out typeName))
+            if (TryGetDataRowValue(drDataType, "DataType", out typeName))
             {
                 field.DataType = typeName.GetTypeEx();
             }
@@ -402,12 +402,12 @@ namespace XCode.DataAccessLayer
             {
                 String name = null;
 
-                if (!TryGetDataRowValue<String>(dr, _.IndexName, out name)) continue;
+                if (!TryGetDataRowValue(dr, _.IndexName, out name)) continue;
 
                 IDataIndex di = table.CreateIndex();
                 di.Name = name;
 
-                if (TryGetDataRowValue<String>(dr, _.ColumnName, out name) && !String.IsNullOrEmpty(name))
+                if (TryGetDataRowValue(dr, _.ColumnName, out name) && !String.IsNullOrEmpty(name))
                     di.Columns = name.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                 else if (_indexColumns != null)
                 {
@@ -425,7 +425,7 @@ namespace XCode.DataAccessLayer
                         foreach (DataRow item in dics)
                         {
                             String dcname = null;
-                            if (TryGetDataRowValue<String>(item, _.ColumnName, out dcname) &&
+                            if (TryGetDataRowValue(item, _.ColumnName, out dcname) &&
                                 !String.IsNullOrEmpty(dcname) && !ns.Contains(dcname)) ns.Add(dcname);
                         }
                         if (ns.Count < 1) DAL.WriteLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
@@ -650,7 +650,7 @@ namespace XCode.DataAccessLayer
                 drs = FindDataType(field, typeName, null);
                 if (drs != null && drs.Length > 0)
                 {
-                    if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName))
+                    if (TryGetDataRowValue(drs[0], "TypeName", out typeName))
                     {
                         // 处理格式参数
                         String param = GetFormatParam(field, drs[0]);
@@ -666,7 +666,7 @@ namespace XCode.DataAccessLayer
             drs = FindDataType(field, typeName, null);
             if (drs != null && drs.Length > 0)
             {
-                if (TryGetDataRowValue<String>(drs[0], "TypeName", out typeName))
+                if (TryGetDataRowValue(drs[0], "TypeName", out typeName))
                 {
                     // 处理格式参数
                     String param = GetFormatParam(field, drs[0]);
@@ -686,11 +686,11 @@ namespace XCode.DataAccessLayer
         protected virtual String GetFormatParam(IDataColumn field, DataRow dr)
         {
             // 为了最大程度保证兼容性，所有数据库的Decimal和DateTime类型不指定精度，均采用数据库默认值
-            if (field.DataType == typeof(Decimal)) return null;
+            //if (field.DataType == typeof(Decimal)) return null;
             if (field.DataType == typeof(DateTime)) return null;
 
             String ps = null;
-            if (!TryGetDataRowValue<String>(dr, "CreateParameters", out ps) || String.IsNullOrEmpty(ps)) return null;
+            if (!TryGetDataRowValue(dr, "CreateParameters", out ps) || String.IsNullOrEmpty(ps)) return null;
 
             var sb = new StringBuilder();
             sb.Append("(");

@@ -72,52 +72,8 @@ namespace Test
 
         static void Test1()
         {
-            NewLife.MessageQueue.MQTest.Main2();
-            //ApiTest.Main();
-            //NewLife.MessageQueue.MQTest.TestBase();
-            //NewLife.MessageQueue.MQTest.Main();
-            //TestService.ServiceMain();
-            //PacketProvider.Test();
-            //var svr = new DNSServer();
-            //svr.Start();
-
-            //var uri = new Uri("http://yun.wslink.cn/Home/About");
-            //var http = uri.CreateRemote();
-            //http.Send("");
-            //var html = http.ReceiveString();
-            //Console.WriteLine(html.Length);
-
-            //var client = new WebClientX(true, true);
-            //client.Log = XTrace.Log;
-            //var html = client.DownloadString("http://yun.wslink.cn/Home/About");
-            //Console.WriteLine(html.Length);
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    html = client.DownloadString("http://yun.wslink.cn/Home/About");
-            //    XTrace.WriteLine("" + html?.Length);
-            //}
-
-            //PluginHelper.LoadPlugin("System.Data.SQLite.SQLiteFactory", null, "System.Data.SQLite.dll", "System.Data.SQLite64Fx40", "http://x.newlifex.com");
-
-            //uri = new Uri("ws://yun.wslink.cn");
-            //http = uri.CreateRemote();
-            //http.Send("");
-            //html = http.ReceiveString();
-            //Console.WriteLine(html.Length);
-
-            //var t1 = new TimerX(TestTimer, 1, 100, 1000);
-            //var ts = TimerScheduler.Create("Test");
-            //var t2 = new TimerX(TestTimer, 2, 300, 777, ts);
-            //Console.ReadKey();
-
-            //DynamicXml.Test();
-
-            //var obj = new A { Name = "Stone", Time = DateTime.Now };
-            //var json = obj.ToJson();
-            //var dic = new JsonParser(json).Decode();
-            //Console.WriteLine(dic);
-            //var a = json.ToJsonEntity<A>();
-            //Console.WriteLine(a);
+            var count = UserX.Meta.Count;
+            Console.WriteLine(count);
         }
 
         class A

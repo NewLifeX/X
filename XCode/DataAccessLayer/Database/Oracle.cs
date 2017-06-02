@@ -441,7 +441,7 @@ namespace XCode.DataAccessLayer
                 {
                     // 找到主键所在索引，这个索引的列才是主键
                     String name = null;
-                    if (TryGetDataRowValue<String>(dt.Rows[0], _.IndexName, out name) && !String.IsNullOrEmpty(name))
+                    if (TryGetDataRowValue(dt.Rows[0], _.IndexName, out name) && !String.IsNullOrEmpty(name))
                     {
                         IDataIndex di = table.Indexes.FirstOrDefault(i => i.Name == name);
                         if (di != null)
@@ -604,7 +604,7 @@ namespace XCode.DataAccessLayer
             foreach (DataRow dr in rows)
             {
                 String str = null;
-                if (TryGetDataRowValue<String>(dr, KEY_OWNER, out str) && Owner.EqualIgnoreCase(str)) list.Add(dr);
+                if (TryGetDataRowValue(dr, KEY_OWNER, out str) && Owner.EqualIgnoreCase(str)) list.Add(dr);
             }
 
             return base.GetFields(table, list.ToArray());
@@ -781,7 +781,7 @@ namespace XCode.DataAccessLayer
         protected override void FixIndex(IDataIndex index, DataRow dr)
         {
             String str = null;
-            if (TryGetDataRowValue<String>(dr, "UNIQUENESS", out str))
+            if (TryGetDataRowValue(dr, "UNIQUENESS", out str))
                 index.Unique = str == "UNIQUE";
 
             base.FixIndex(index, dr);

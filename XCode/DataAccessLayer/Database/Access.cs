@@ -288,7 +288,7 @@ namespace XCode.DataAccessLayer
                     String typeName = GetDataRowValue<String>(drs[0], "TypeName");
                     field.RawType = typeName;
 
-                    if (TryGetDataRowValue<String>(drs[0], "DataType", out typeName)) field.DataType = typeName.GetTypeEx();
+                    if (TryGetDataRowValue(drs[0], "DataType", out typeName)) field.DataType = typeName.GetTypeEx();
 
                     // 修正备注类型
                     if (field.DataType == typeof(String) && drs.Length > 1)
@@ -317,7 +317,7 @@ namespace XCode.DataAccessLayer
 
             // 修正原始类型
             String typeName = null;
-            if (TryGetDataRowValue<String>(drDataType, "TypeName", out typeName)) field.RawType = typeName;
+            if (TryGetDataRowValue(drDataType, "TypeName", out typeName)) field.RawType = typeName;
         }
 
         protected override List<IDataIndex> GetIndexes(IDataTable table)
