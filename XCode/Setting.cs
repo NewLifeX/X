@@ -32,6 +32,10 @@ namespace XCode
         [Description("连接映射。连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
         public String ConnMaps { get; set; } = "";
 
+        /// <summary>参数化添删改查。默认关闭</summary>
+        [Description("参数化添删改查。默认关闭")]
+        public Boolean UserParameter { get; set; }
+
         /// <summary>是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用</summary>
         [Description("代码调试。是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
         public Boolean CodeDebug { get; set; }

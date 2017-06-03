@@ -539,6 +539,9 @@ namespace XCode
 
         static Boolean UseParam(FieldItem fi, Object value)
         {
+            // 是否使用参数化
+            if (Setting.Current.UserParameter) return true;
+
             //return (fi.Length <= 0 || fi.Length >= 4000) && (fi.Type == typeof(Byte[]) || fi.Type == typeof(String));
 
             if (fi.Length > 0 && fi.Length < 4000) return false;

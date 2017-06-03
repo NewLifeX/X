@@ -654,7 +654,7 @@ namespace XCode.DataAccessLayer
                     }
                     else
                         sv = "" + v;
-                    sb.AppendFormat("{1}:{0}={2}", ps[i].ParameterName, ps[i].DbType, sv);
+                    sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
                 }
                 sb.Append("]");
                 sql = sb.ToString();
