@@ -167,6 +167,9 @@ namespace NewLife.Remoting
                 // 这里会导致二次解码，因为解码以后才知道是不是请求
                 var dic = enc.Decode(pk);
 
+                // 请求响应，由code决定
+                if (dic.ContainsKey("code")) return null;
+
                 Object args = null;
                 //if (!enc.TryGet(dic, out action, out args)) return null;
                 Object obj = null;
