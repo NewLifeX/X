@@ -7,13 +7,11 @@ namespace XCode
     public class Expression
     {
         #region 属性
-        private String _Text;
         /// <summary>文本表达式</summary>
-        public String Text { get { return _Text; } set { _Text = value; } }
+        public String Text { get; set; }
 
-        private Int32 _Strict;
         /// <summary>严格模式。在严格模式下将放弃一些不满足要求的表达式。默认false</summary>
-        public Int32 Strict { get { return _Strict; } set { _Strict = value; } }
+        public Int32 Strict { get; set; }
         #endregion
 
         #region 构造

@@ -9,9 +9,8 @@ namespace XCode
     public class WhereExpression : Expression
     {
         #region 属性
-        private List<ExpItem> _Expressions = new List<ExpItem>();
         /// <summary>表达式集合</summary>
-        List<ExpItem> Expressions { get { return _Expressions; } set { _Expressions = value; } }
+        List<ExpItem> Expressions { get; set; } = new List<ExpItem>();
 
         class ExpItem
         {

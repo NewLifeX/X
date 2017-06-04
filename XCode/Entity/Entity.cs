@@ -866,41 +866,6 @@ namespace XCode
             return FindAll(MakeCondition(new String[] { name }, new Object[] { value }, "And"), orderClause, null, startRowIndex, maximumRows);
         }
 
-        ///// <summary>查询SQL并返回实体对象数组。
-        ///// Select方法将直接使用参数指定的查询语句进行查询，不进行任何转换。
-        ///// </summary>
-        ///// <param name="sql">查询语句</param>
-        ///// <returns>实体数组</returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public static EntityList<TEntity> FindAll(String sql) { return LoadData(Meta.Session.Query(sql)); }
-
-        ///// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
-        ///// <param name="whereClause">条件，不带Where</param>
-        ///// <param name="orderClause">排序，不带Order By</param>
-        ///// <param name="selects">查询列</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <param name="count">记录总数</param>
-        ///// <param name="mode">查询模式，分为记录集和记录总数两种，默认Both表示同时查询两者</param>
-        ///// <returns>实体集</returns>
-        //[Obsolete("=>FindAll(String whereClause, PageParameter param)")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public static EntityList<TEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, out Int32 count, SelectModes mode = SelectModes.Both)
-        //{
-        //    count = 0;
-
-        //    if (mode.Has(SelectModes.TotalCount))
-        //    {
-        //        count = FindCount(whereClause, null, null, 0, 0);
-        //        if (mode == SelectModes.TotalCount) return null;
-
-        //        if (count <= 0) return new EntityList<TEntity>();
-        //    }
-
-        //    return FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows);
-        //}
-
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
@@ -1055,32 +1020,6 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
         public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0); }
-
-        ///// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
-        ///// <param name="key"></param>
-        ///// <param name="orderClause"></param>
-        ///// <param name="startRowIndex"></param>
-        ///// <param name="maximumRows"></param>
-        ///// <param name="count"></param>
-        ///// <param name="mode"></param>
-        ///// <returns></returns>
-        //[Obsolete("=>Search(String key, PageParameter param)")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows, out Int32 count, SelectModes mode = SelectModes.Both)
-        //{
-        //    count = 0;
-        //    var where = SearchWhereByKeys(key, null);
-
-        //    if (mode.Has(SelectModes.TotalCount))
-        //    {
-        //        count = FindCount(where, null, null, 0, 0);
-        //        if (mode == SelectModes.TotalCount) return null;
-
-        //        if (count <= 0) return new EntityList<TEntity>();
-        //    }
-
-        //    return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows);
-        //}
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
