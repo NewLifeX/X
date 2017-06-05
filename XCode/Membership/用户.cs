@@ -79,18 +79,6 @@ namespace XCode.Membership
             set { if (OnPropertyChanging(__.Sex, value)) { _Sex = value; OnPropertyChanged(__.Sex); } }
         }
 
-        private Decimal _Sex2;
-        /// <summary>性别。未知、男、女</summary>
-        [DisplayName("性别")]
-        [Description("性别。未知、男、女")]
-        [DataObjectField(false, false, true, 10)]
-        [BindColumn(5, "Sex2", "性别。未知、男、女", null, "decimal", 10, 6, false)]
-        public virtual Decimal Sex2
-        {
-            get { return _Sex2; }
-            set { if (OnPropertyChanging(__.Sex, value)) { _Sex2 = value; OnPropertyChanged(__.Sex); } }
-        }
-
         private String _Mail;
         /// <summary>邮件</summary>
         [DisplayName("邮件")]
