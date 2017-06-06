@@ -1010,7 +1010,10 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows); }
+        public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        {
+            return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows);
+        }
 
         /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
         /// <param name="key">关键字</param>
@@ -1018,7 +1021,10 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows) { return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0); }
+        public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        {
+            return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
+        }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
@@ -1080,44 +1086,12 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
         public static Int32 Insert(TEntity obj) { return obj.Insert(); }
 
-        /// <summary>把一个实体对象持久化到数据库</summary>
-        /// <param name="names">更新属性列表</param>
-        /// <param name="values">更新值列表</param>
-        /// <returns>返回受影响的行数</returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Insert(String[] names, Object[] values)
-        {
-            return persistence.Insert(Meta.ThisType, names, values);
-        }
-
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Update, true)]
         public static Int32 Update(TEntity obj) { return obj.Update(); }
-
-        /// <summary>更新一批实体数据</summary>
-        /// <param name="setClause">要更新的项和数据</param>
-        /// <param name="whereClause">指定要更新的实体</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(String setClause, String whereClause)
-        {
-            return persistence.Update(Meta.ThisType, setClause, whereClause);
-        }
-
-        /// <summary>更新一批实体数据</summary>
-        /// <param name="setNames">更新属性列表</param>
-        /// <param name="setValues">更新值列表</param>
-        /// <param name="whereNames">条件属性列表</param>
-        /// <param name="whereValues">条件值列表</param>
-        /// <returns>返回受影响的行数</returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
-        {
-            return persistence.Update(Meta.ThisType, setNames, setValues, whereNames, whereValues);
-        }
 
         /// <summary>
         /// 从数据库中删除指定实体对象。
@@ -1128,25 +1102,6 @@ namespace XCode
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Delete, true)]
         public static Int32 Delete(TEntity obj) { return obj.Delete(); }
-
-        /// <summary>从数据库中删除指定条件的实体对象。</summary>
-        /// <param name="whereClause">限制条件</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(String whereClause)
-        {
-            return persistence.Delete(Meta.ThisType, whereClause);
-        }
-
-        /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(String[] names, Object[] values)
-        {
-            return persistence.Delete(Meta.ThisType, names, values);
-        }
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
@@ -1167,8 +1122,6 @@ namespace XCode
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static String MakeCondition(String[] names, Object[] values, String action)
         {
-            //if (names == null || names.Length <= 0) throw new ArgumentNullException("names", "属性列表和值列表不能为空");
-            //if (values == null || values.Length <= 0) throw new ArgumentNullException("values", "属性列表和值列表不能为空");
             if (names == null || names.Length <= 0) return null;
             if (values == null || values.Length <= 0) return null;
             if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
@@ -1181,7 +1134,6 @@ namespace XCode
 
                 // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
                 if (i > 0) sb.AppendFormat(" {0} ", action.Trim());
-                //sb.AppendFormat("{0}={1}", Meta.FormatName(fi.ColumnName), Meta.FormatValue(fi, values[i]));
                 sb.Append(MakeCondition(fi, values[i], "="));
             }
             return sb.ToString();
@@ -1263,12 +1215,13 @@ namespace XCode
         #endregion
 
         #region 获取/设置 字段值
-        /// <summary>获取/设置 字段值。
+        /// <summary>获取/设置 字段值。</summary>
+        /// <remarks>
         /// 一个索引，反射实现。
         /// 派生实体类可重写该索引，以避免发射带来的性能损耗。
         /// 基类已经实现了通用的快速访问，但是这里仍然重写，以增加控制，
         /// 比如字段名是属性名前面加上_，并且要求是实体字段才允许这样访问，否则一律按属性处理。
-        /// </summary>
+        /// </remarks>
         /// <param name="name">字段名</param>
         /// <returns></returns>
         public override Object this[String name]
@@ -1330,8 +1283,6 @@ namespace XCode
                 if (f != null && f.IsDynamic) value = value.ChangeType(f.Type);
 
                 Extends[name] = value;
-
-                //throw new ArgumentException("类[" + this.GetType().FullName + "]中不存在[" + name + "]属性");
             }
         }
         #endregion
@@ -1350,12 +1301,9 @@ namespace XCode
         /// <summary>导入</summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！")]
         public static TEntity FromJson(String json)
         {
-            //return JsonHelper.ToJsonEntity<TEntity>(json);
             return json.ToJsonEntity<TEntity>();
-            //return new Json().Deserialize<TEntity>(json);
         }
         #endregion
 
@@ -1444,11 +1392,6 @@ namespace XCode
             else
                 return "实体" + Meta.ThisType.Name;
         }
-
-        ///// <summary>默认累加字段</summary>
-        //[Obsolete("=>IEntityOperate")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public static ICollection<String> AdditionalFields { get { return Meta.Factory.AdditionalFields; } }
         #endregion
 
         #region 脏数据

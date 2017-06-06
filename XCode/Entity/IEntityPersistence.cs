@@ -13,28 +13,6 @@ namespace XCode
     /// <summary>实体持久化接口。可通过实现该接口来自定义实体类持久化行为。</summary>
     public interface IEntityPersistence
     {
-        #region 查找方法
-        ///// <summary>执行SQL查询，返回记录集</summary>
-        ///// <param name="entityType">实体类型</param>
-        ///// <param name="builder">SQL语句</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <returns></returns>
-        //DataSet Query(Type entityType, SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows);
-
-        ///// <summary>查询记录数</summary>
-        ///// <param name="entityType">实体类型</param>
-        ///// <param name="builder">查询生成器</param>
-        ///// <returns>记录数</returns>
-        //Int32 QueryCount(Type entityType, SelectBuilder builder);
-
-        ///// <summary>执行SQL查询，返回记录集</summary>
-        ///// <param name="entityType">实体类型</param>
-        ///// <param name="builder">SQL语句</param>
-        ///// <returns></returns>
-        //SelectBuilder FindSQL(Type entityType, SelectBuilder builder);
-        #endregion
-
         #region 添删改方法
         /// <summary>插入</summary>
         /// <param name="entity"></param>
@@ -50,42 +28,6 @@ namespace XCode
         /// <param name="entity"></param>
         /// <returns></returns>
         Int32 Delete(IEntity entity);
-
-        /// <summary>把一个实体对象持久化到数据库</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="names">更新属性列表</param>
-        /// <param name="values">更新值列表</param>
-        /// <returns>返回受影响的行数</returns>
-        Int32 Insert(Type entityType, String[] names, Object[] values);
-
-        /// <summary>更新一批实体数据</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="setClause">要更新的项和数据</param>
-        /// <param name="whereClause">指定要更新的实体</param>
-        /// <returns></returns>
-        Int32 Update(Type entityType, String setClause, String whereClause);
-
-        /// <summary>更新一批实体数据</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="setNames">更新属性列表</param>
-        /// <param name="setValues">更新值列表</param>
-        /// <param name="whereNames">条件属性列表</param>
-        /// <param name="whereValues">条件值列表</param>
-        /// <returns>返回受影响的行数</returns>
-        Int32 Update(Type entityType, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues);
-
-        /// <summary>从数据库中删除指定条件的实体对象。</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="whereClause">限制条件</param>
-        /// <returns></returns>
-        Int32 Delete(Type entityType, String whereClause);
-
-        /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <returns></returns>
-        Int32 Delete(Type entityType, String[] names, Object[] values);
         #endregion
 
         #region 获取语句
@@ -105,49 +47,6 @@ namespace XCode
     /// <summary>默认实体持久化</summary>
     public class EntityPersistence : IEntityPersistence
     {
-        #region 查找方法
-        ///// <summary>执行SQL查询，返回记录集</summary>
-        ///// <param name="entityType">实体类型</param>
-        ///// <param name="builder">SQL语句</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <returns></returns>
-        //public virtual DataSet Query(Type entityType, SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
-        //{
-        //    var op = EntityFactory.CreateOperate(entityType);
-        //    var dal = DAL.Create(op.ConnName);
-        //    builder.Table = op.FormatName(op.TableName);
-
-        //    return dal.Select(builder, startRowIndex, maximumRows, op.TableName);
-        //}
-
-        ///// <summary>查询记录数</summary>
-        ///// <param name="entityType">实体类型</param>
-        ///// <param name="builder">查询生成器</param>
-        ///// <returns>记录数</returns>
-        //public virtual Int32 QueryCount(Type entityType, SelectBuilder builder)
-        //{
-        //    var op = EntityFactory.CreateOperate(entityType);
-        //    var dal = DAL.Create(op.ConnName);
-        //    builder.Table = op.FormatName(op.TableName);
-
-        //    return dal.SelectCount(builder, new String[] { op.TableName });
-        //}
-
-        ///// <summary>执行SQL查询，返回记录集</summary>
-        ///// <param name="entityType">实体类型</param>
-        ///// <param name="builder">SQL语句</param>
-        ///// <returns></returns>
-        //public virtual SelectBuilder FindSQL(Type entityType, SelectBuilder builder)
-        //{
-        //    var op = EntityFactory.CreateOperate(entityType);
-        //    var dal = DAL.Create(op.ConnName);
-        //    builder.Table = op.FormatName(op.TableName);
-
-        //    return builder;
-        //}
-        #endregion
-
         #region 添删改方法
         /// <summary>插入</summary>
         /// <param name="entity"></param>
@@ -233,7 +132,6 @@ namespace XCode
             //清除脏数据，避免重复提交
             ds.Clear();
 
-            //entity.ClearAdditionalValues();
             EntityAddition.ClearValues(entity as EntityBase);
 
             return rs;
@@ -244,111 +142,18 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Delete(IEntity entity)
         {
-            var op = EntityFactory.CreateOperate(entity.GetType());
-            var session = op.Session;
-
-            var sql = DefaultCondition(entity);
+            DbParameter[] dps = null;
+            var sql = SQL(entity, DataObjectMethodType.Delete, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
-            var rs = session.Execute(String.Format("Delete From {0} Where {1}", op.FormatedTableName, sql));
+            var op = EntityFactory.CreateOperate(entity.GetType());
+            var session = op.Session;
+            var rs = session.Execute(sql, CommandType.Text, dps);
 
             // 清除脏数据，避免重复提交保存
             entity.Dirtys.Clear();
 
             return rs;
-        }
-
-        /// <summary>把一个实体对象持久化到数据库</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="names">更新属性列表</param>
-        /// <param name="values">更新值列表</param>
-        /// <returns>返回受影响的行数</returns>
-        public virtual Int32 Insert(Type entityType, String[] names, Object[] values)
-        {
-            if (names == null) throw new ArgumentNullException("names", "属性列表和值列表不能为空");
-            if (values == null) throw new ArgumentNullException("values", "属性列表和值列表不能为空");
-            if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
-
-            var op = EntityFactory.CreateOperate(entityType);
-            var session = op.Session;
-
-            var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
-            foreach (var fi in op.Fields)
-                fs.Add(fi.Name, fi);
-            var sbn = new StringBuilder();
-            var sbv = new StringBuilder();
-            for (Int32 i = 0; i < names.Length; i++)
-            {
-                if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + entityType.FullName + "]中不存在[" + names[i] + "]属性");
-                // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
-                if (i > 0)
-                {
-                    sbn.Append(", ");
-                    sbv.Append(", ");
-                }
-                sbn.Append(op.FormatName(fs[names[i]].Name));
-                //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
-                sbv.Append(op.FormatValue(names[i], values[i]));
-            }
-            return session.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), op.FormatedTableName));
-        }
-
-        /// <summary>更新一批实体数据</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="setClause">要更新的项和数据</param>
-        /// <param name="whereClause">指定要更新的实体</param>
-        /// <returns></returns>
-        public virtual Int32 Update(Type entityType, String setClause, String whereClause)
-        {
-            if (String.IsNullOrEmpty(setClause) || !setClause.Contains("=")) throw new ArgumentException("非法参数");
-
-            var op = EntityFactory.CreateOperate(entityType);
-            var session = op.Session;
-            var sql = String.Format("Update {0} Set {1}", op.FormatedTableName, setClause);
-            if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
-            return session.Execute(sql);
-        }
-
-        /// <summary>更新一批实体数据</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="setNames">更新属性列表</param>
-        /// <param name="setValues">更新值列表</param>
-        /// <param name="whereNames">条件属性列表</param>
-        /// <param name="whereValues">条件值列表</param>
-        /// <returns>返回受影响的行数</returns>
-        public virtual Int32 Update(Type entityType, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
-        {
-            var op = EntityFactory.CreateOperate(entityType);
-
-            var sc = op.MakeCondition(setNames, setValues, ", ");
-            var wc = op.MakeCondition(whereNames, whereValues, " And ");
-            return Update(entityType, sc, wc);
-        }
-
-        /// <summary>从数据库中删除指定条件的实体对象。</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="whereClause">限制条件</param>
-        /// <returns></returns>
-        public virtual Int32 Delete(Type entityType, String whereClause)
-        {
-            var op = EntityFactory.CreateOperate(entityType);
-            var session = op.Session;
-
-            var sql = String.Format("Delete From {0}", op.FormatedTableName);
-            if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
-            return session.Execute(sql);
-        }
-
-        /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
-        /// <param name="entityType">实体类</param>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <returns></returns>
-        public virtual Int32 Delete(Type entityType, String[] names, Object[] values)
-        {
-            var op = EntityFactory.CreateOperate(entityType);
-
-            return Delete(entityType, op.MakeCondition(names, values, "And"));
         }
         #endregion
 
@@ -357,7 +162,11 @@ namespace XCode
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        public virtual String GetSql(IEntity entity, DataObjectMethodType methodType) { DbParameter[] dps = null; return SQL(entity, methodType, ref dps); }
+        public virtual String GetSql(IEntity entity, DataObjectMethodType methodType)
+        {
+            DbParameter[] dps = null;
+            return SQL(entity, methodType, ref dps);
+        }
 
         /// <summary>把SQL模版格式化为SQL语句</summary>
         /// <param name="entity">实体对象</param>
@@ -373,13 +182,13 @@ namespace XCode
 
             switch (methodType)
             {
-                case DataObjectMethodType.Fill:
-                    return String.Format("Select * From {0}", formatedTalbeName);
-                case DataObjectMethodType.Select:
-                    sql = DefaultCondition(entity);
-                    // 没有标识列和主键，返回取所有数据的语句
-                    if (String.IsNullOrEmpty(sql)) throw new XCodeException("实体类缺少主键！");
-                    return String.Format("Select * From {0} Where {1}", formatedTalbeName, sql);
+                //case DataObjectMethodType.Fill:
+                //    return String.Format("Select * From {0}", formatedTalbeName);
+                //case DataObjectMethodType.Select:
+                //    sql = DefaultCondition(entity);
+                //    // 没有标识列和主键，返回取所有数据的语句
+                //    if (String.IsNullOrEmpty(sql)) throw new XCodeException("实体类缺少主键！");
+                //    return String.Format("Select * From {0} Where {1}", formatedTalbeName, sql);
                 case DataObjectMethodType.Insert:
                     return InsertSQL(entity, ref parameters);
                 case DataObjectMethodType.Update:
@@ -387,8 +196,7 @@ namespace XCode
                 case DataObjectMethodType.Delete:
                     // 标识列作为删除关键字
                     sql = DefaultCondition(entity);
-                    if (String.IsNullOrEmpty(sql))
-                        return null;
+                    if (String.IsNullOrEmpty(sql)) return null;
                     return String.Format("Delete From {0} Where {1}", formatedTalbeName, sql);
             }
             return null;
@@ -408,7 +216,6 @@ namespace XCode
 
             var sbNames = new StringBuilder();
             var sbValues = new StringBuilder();
-            //sbParams = new StringBuilder();
             var dps = new List<DbParameter>();
             // 只读列没有插入操作
             foreach (var fi in op.Fields)
@@ -426,34 +233,13 @@ namespace XCode
                     if (fi.DefaultValue != null) continue;
 
                     // 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
-                    //switch (Type.GetTypeCode(fi.Type))
-                    //{
-                    //    case TypeCode.DateTime:
-                    //        value = DateTime.MinValue;
-                    //        break;
-                    //    case TypeCode.String:
-                    //        value = "";
-                    //        break;
-                    //    default:
-                    //        break;
-                    //}
                     value = FormatParamValue(fi, null, op);
                 }
-
-                //// 有默认值，并且没有设置值时，不参与插入操作
-                //// 20120509增加，同时还得判断是否相同数据库或者数据库默认值，比如MSSQL数据库默认值不是GetDate，那么其它数据库是不可能使用的
-                //if (!String.IsNullOrEmpty(fi.DefaultValue) && !entity.Dirtys[fi.Name] && CanUseDefault(fi, op)) continue;
 
                 sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
                 sbValues.Separate(", ");
 
-                //// 可空类型插入空
-                //if (!obj.Dirtys[fi.Name] && fi.DataObjectField.IsNullable)
-                //    sbValues.Append("null");
-                //else
-                //sbValues.Append(SqlDataFormat(obj[fi.Name], fi)); // 数据
-
-                if (UseParam(fi, entity))
+                if (UseParam(fi, value))
                     dps.Add(CreateParameter(sbValues, op, fi, value));
                 else
                     sbValues.Append(op.FormatValue(fi, value));
@@ -520,8 +306,7 @@ namespace XCode
                 sb.Append(name);
                 sb.Append("=");
 
-                /*注释的是之前的代码,看起来应该是传错了参数 树獭*/
-                if (UseParam(fi, value))  //if (UseParam(fi, entity))
+                if (UseParam(fi, value))
                     dps.Add(CreateParameter(sb, op, fi, value));
                 else
                 {
@@ -541,8 +326,6 @@ namespace XCode
         {
             // 是否使用参数化
             if (Setting.Current.UserParameter) return true;
-
-            //return (fi.Length <= 0 || fi.Length >= 4000) && (fi.Type == typeof(Byte[]) || fi.Type == typeof(String));
 
             if (fi.Length > 0 && fi.Length < 4000) return false;
 
@@ -617,7 +400,6 @@ namespace XCode
         {
             Object addvalue = null;
             Boolean sign;
-            //if (!entity.TryGetAdditionalValue(name, out addvalue, out sign)) return false;
             if (!EntityAddition.TryGetValue(entity as EntityBase, name, out addvalue, out sign)) return false;
 
             if (sign)
@@ -627,26 +409,6 @@ namespace XCode
 
             return true;
         }
-
-        //static Boolean CanUseDefault(FieldItem fi, IEntityOperate eop)
-        //{
-        //    var dbType = fi.Table.Table.DbType;
-        //    var dal = DAL.Create(eop.ConnName);
-        //    if (dbType == dal.DbType) return true;
-
-        //    // 原始数据库类型
-        //    var db = DbFactory.Create(dbType);
-        //    if (db == null) return false;
-
-        //    var tc = Type.GetTypeCode(fi.Type);
-        //    // 特殊处理时间
-        //    if (tc == TypeCode.DateTime)
-        //    {
-        //        if (String.Equals(db.DateTimeNow, fi.DefaultValue, StringComparison.OrdinalIgnoreCase)) return true;
-        //    }
-
-        //    return false;
-        //}
 
         /// <summary>获取主键条件</summary>
         /// <param name="entity"></param>
