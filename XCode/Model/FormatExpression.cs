@@ -8,13 +8,11 @@ namespace XCode
     public class FormatExpression : Expression
     {
         #region 属性
-        private FieldItem _Field;
         /// <summary>字段</summary>
-        public FieldItem Field { get { return _Field; } set { _Field = value; } }
+        public FieldItem Field { get; set; }
 
-        private String _Format;
         /// <summary>格式化字符串</summary>
-        public String Format { get { return _Format; } set { _Format = value; } }
+        public String Format { get; set; }
         #endregion
 
         #region 构造
@@ -38,17 +36,6 @@ namespace XCode
         {
             if (Field == null || Format.IsNullOrWhiteSpace()) return null;
 
-            // 严格模式下，判断字段表达式是否有效
-            if (Strict > 0 && Format.Contains("{1}"))
-            {
-                // 所有空值无效
-                if (Text == null) return null;
-
-                // 如果数据为空，则返回
-                if (Strict > 1 && Text == String.Empty) return null;
-            }
-
-            //var op = Field.Factory;
             return String.Format(Format, Field.FormatedName, Text);
         }
         #endregion

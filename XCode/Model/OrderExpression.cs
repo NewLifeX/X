@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Text;
 
 namespace XCode
@@ -8,9 +7,8 @@ namespace XCode
     public class OrderExpression : Expression
     {
         #region 属性
-        private StringBuilder _Builder = new StringBuilder();
         /// <summary>内置字符串</summary>
-        public StringBuilder Builder { get { return _Builder; } set { _Builder = value; } }
+        public StringBuilder Builder { get; set; } = new StringBuilder();
         #endregion
 
         #region 构造
@@ -36,26 +34,9 @@ namespace XCode
             return this;
         }
 
-        ///// <summary>升序</summary>
-        ///// <returns></returns>
-        //[Obsolete("=>.And(_.ID.Asc())")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public OrderExpression Asc(String exp) { return And(exp); }
-
-        ///// <summary>降序</summary>
-        ///// <returns></returns>
-        //[Obsolete("=>.And(_.ID.Desc())")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public OrderExpression Desc(String exp)
-        //{
-        //    if (String.IsNullOrEmpty(exp)) return this;
-
-        //    return And(exp + " Desc");
-        //}
-
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
+        public override String GetString(Boolean needBracket = false)
         {
             if (Builder == null || Builder.Length <= 0) return null;
 
@@ -65,10 +46,7 @@ namespace XCode
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(OrderExpression obj)
-        {
-            return obj != null ? obj.ToString() : null;
-        }
+        public static implicit operator String(OrderExpression obj) { return obj?.GetString(); }
         #endregion
 
         #region 重载运算符
@@ -80,7 +58,8 @@ namespace XCode
         {
             if (value == null) return exp;
 
-            exp.And(value.ToString());
+            exp?.And(value + "");
+
             return exp;
         }
         #endregion

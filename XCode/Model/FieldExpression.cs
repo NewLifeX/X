@@ -1,5 +1,4 @@
 ﻿using System;
-using XCode.Common;
 using XCode.Configuration;
 
 namespace XCode
@@ -8,17 +7,14 @@ namespace XCode
     public class FieldExpression : Expression
     {
         #region 属性
-        private FieldItem _Field;
         /// <summary>字段</summary>
-        public FieldItem Field { get { return _Field; } set { _Field = value; } }
+        public FieldItem Field { get; set; }
 
-        private String _Action;
         /// <summary>动作</summary>
-        public String Action { get { return _Action; } set { _Action = value; } }
+        public String Action { get; set; }
 
-        private Object _Value;
         /// <summary>值</summary>
-        public Object Value { get { return _Value; } set { _Value = value; } }
+        public Object Value { get; set; }
         #endregion
 
         #region 构造
@@ -41,24 +37,6 @@ namespace XCode
         public override String GetString(Boolean needBracket)
         {
             if (Field == null) return null;
-
-            // 严格模式下，判断字段表达式是否有效
-            if (Strict > 0)
-            {
-                // 所有空值无效
-                if (Value == null) return null;
-
-                // 如果数据为空，则返回
-                if (Strict > 1)
-                {
-                    // 整型
-                    if (Field.Type.IsIntType() && Value.ToInt() <= 0) return null;
-                    // 字符串
-                    if (Field.Type == typeof(String) && Value + "" == "") return null;
-                    // 时间
-                    if (Field.Type == typeof(DateTime) && Value.ToDateTime() <= DateTime.MinValue) return null;
-                }
-            }
 
             var op = Field.Factory;
 

@@ -76,7 +76,7 @@ namespace XCode
             if (mst.IsNullOrEmpty()) throw new ArgumentNullException("没有设置主要字段");
 
             // 数据较少时，从缓存读取
-            var list = fact.Count < 1000 ? fact.FindAllWithCache() : fact.FindAll(null, null, null, 0, 100);
+            var list = fact.Count < 1000 ? fact.FindAllWithCache() : fact.FindAll("", null, null, 0, 100);
 
             return list.ToDictionary(e => e[key], e => e[mst] + "");
         }

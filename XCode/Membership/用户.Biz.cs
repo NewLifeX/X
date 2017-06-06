@@ -236,24 +236,24 @@ namespace XCode.Membership
         /// <summary>查询满足条件的记录集，分页、排序</summary>
         /// <param name="key">关键字</param>
         /// <param name="roleId">角色ID</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, Int32 roleId, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> Search(String key, Int32 roleId, String order, Int32 startRowIndex, Int32 maximumRows)
         {
-            return FindAll(SearchWhere(key, roleId), orderClause, null, startRowIndex, maximumRows);
+            return FindAll(SearchWhere(key, roleId), order, null, startRowIndex, maximumRows);
         }
 
         /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
         /// <param name="key">关键字</param>
         /// <param name="roleId">角色ID</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, Int32 roleId, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static Int32 SearchCount(String key, Int32 roleId, String order, Int32 startRowIndex, Int32 maximumRows)
         {
             return FindCount(SearchWhere(key, roleId), null, null, 0, 0);
         }
@@ -262,25 +262,25 @@ namespace XCode.Membership
         /// <param name="key">关键字</param>
         /// <param name="roleId">角色ID</param>
         /// <param name="isEnable">是否启用</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, String order, Int32 startRowIndex, Int32 maximumRows)
         {
-            return FindAll(SearchWhere(key, roleId, isEnable), orderClause, null, startRowIndex, maximumRows);
+            return FindAll(SearchWhere(key, roleId, isEnable), order, null, startRowIndex, maximumRows);
         }
 
         /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
         /// <param name="key">关键字</param>
         /// <param name="roleId">角色ID</param>
         /// <param name="isEnable">是否启用</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, Int32 roleId, Boolean? isEnable, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static Int32 SearchCount(String key, Int32 roleId, Boolean? isEnable, String order, Int32 startRowIndex, Int32 maximumRows)
         {
             return FindCount(SearchWhere(key, roleId, isEnable), null, null, 0, 0);
         }
@@ -290,11 +290,13 @@ namespace XCode.Membership
         /// <param name="roleId">角色ID</param>
         /// <param name="isEnable">是否启用</param>
         /// <returns></returns>
-        private static String SearchWhere(String key, Int32 roleId, Boolean? isEnable = null)
+        private static WhereExpression SearchWhere(String key, Int32 roleId, Boolean? isEnable = null)
         {
-            var exp2 = SearchWhereByKey(key) & _.RoleID == roleId & _.Enable == isEnable;
+            var exp = SearchWhereByKey(key) & _.RoleID == roleId & _.Enable == isEnable;
+            if (roleId > 0) exp &= _.RoleID == roleId;
+            if (isEnable != null) exp &= _.Enable == isEnable;
 
-            return exp2.SetStrict();
+            return exp;
         }
 
         /// <summary>参数化查询</summary>

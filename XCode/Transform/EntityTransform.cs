@@ -133,9 +133,9 @@ namespace XCode.Transform
                 if (isDesc != null)
                 {
                     var fi = eop.Unique;
-                    if (fi != null) order = isDesc.Value ? fi.Desc() : fi.Asc();
+                    if (fi != null) order = (isDesc.Value ? fi.Desc() : fi.Asc()).GetString();
                 }
-                getData = (start, max) => eop.FindAll(null, order, null, start, max);
+                getData = (start, max) => eop.FindAll("", order, null, start, max);
             }
 
             // 在目标链接上启用事务保护

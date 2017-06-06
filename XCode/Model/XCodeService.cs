@@ -5,7 +5,7 @@ using XCode.DataAccessLayer;
 namespace XCode.Model
 {
     /// <summary>XCode服务对象提供者</summary>
-    class XCodeService //: ServiceContainer<XCodeService>
+    class XCodeService
     {
         #region 当前静态服务容器
         /// <summary>当前对象容器</summary>
@@ -22,21 +22,7 @@ namespace XCode.Model
                 .AutoRegister<IEntityAddition, EntityAddition>();
 
             DbFactory.Reg(container);
-
-            //EntityAccessorFactory.Reg(container);
         }
-
-        #region 方法
-        //public static Type ResolveType<TInterface>(Func<IObjectMap, Boolean> func)
-        //{
-        //    foreach (var item in Container.ResolveAll(typeof(TInterface)))
-        //    {
-        //        if (func(item)) return item.ImplementType;
-        //    }
-
-        //    return null;
-        //}
-        #endregion
 
         #region 使用
         /// <summary>创建模型数据表</summary>

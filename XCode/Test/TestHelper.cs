@@ -91,7 +91,7 @@ namespace XCode.Test
             }
             Debug.Assert(b, "Name作为唯一索引，插入相同数据时，应该报错！");
 
-            EntityList<TEntity> list = FindAll(null, null, "12345 ext,*", 0, 1);
+            EntityList<TEntity> list = FindAll("", null, "12345 ext,*", 0, 1);
             Debug.Assert(list != null && list.Count > 0, "居然无法查到数据！");
 
             entity = list[0];

@@ -10,7 +10,10 @@ namespace XCode
     {
         #region 属性
         /// <summary>表达式集合</summary>
-        List<ExpItem> Expressions { get; set; } = new List<ExpItem>();
+        List<ExpItem> Exps { get; set; } = new List<ExpItem>();
+
+        /// <summary>是否为空</summary>
+        public Boolean Empty { get { return Exps.Count == 0; } }
 
         class ExpItem
         {
@@ -45,20 +48,19 @@ namespace XCode
         /// <returns></returns>
         public WhereExpression And(Expression exp)
         {
-            if (exp != null)
+            if (exp == null) return this;
+
+            // 如果前面有Or，则整体推入下一层
+            if (Exps.Any(e => !e.IsAnd))
             {
-                // 如果前面有Or，则整体推入下一层
-                if (Expressions.Any(e => !e.IsAnd))
-                {
-                    var where = new WhereExpression();
-                    where.Expressions.AddRange(Expressions);
+                var where = new WhereExpression();
+                where.Exps.AddRange(Exps);
 
-                    Expressions.Clear();
-                    Expressions.Add(new ExpItem(true, where));
-                }
-
-                Expressions.Add(new ExpItem(true, exp));
+                Exps.Clear();
+                Exps.Add(new ExpItem(true, where));
             }
+
+            Exps.Add(new ExpItem(true, exp));
 
             return this;
         }
@@ -68,10 +70,7 @@ namespace XCode
         /// <returns></returns>
         public WhereExpression Or(Expression exp)
         {
-            if (exp != null)
-            {
-                Expressions.Add(new ExpItem(false, exp));
-            }
+            if (exp != null) Exps.Add(new ExpItem(false, exp));
 
             return this;
         }
@@ -85,7 +84,7 @@ namespace XCode
         /// <returns></returns>
         public override String GetString(Boolean needBracket = false)
         {
-            var exps = Expressions;
+            var exps = Exps;
             if (exps.Count == 0) return null;
 
             // 重整表达式
@@ -113,7 +112,7 @@ namespace XCode
                     {
                         // 这一片And凑成一个子表达式
                         var where = new WhereExpression();
-                        where.Expressions.AddRange(sub);
+                        where.Exps.AddRange(sub);
                         list.Add(new ExpItem(false, where));
                         hasOr = true;
                     }
@@ -130,7 +129,7 @@ namespace XCode
             {
                 var item = list[i];
                 var exp = item.Exp;
-                exp.Strict = Strict;
+                //exp.Strict = Strict;
 
                 // 里面是Or的时候，外面前后任意一个And，需要括号
                 var str = exp.GetString(item.IsAnd || i < list.Count - 1 && list[i + 1].IsAnd);
@@ -151,17 +150,17 @@ namespace XCode
             return sb.ToString();
         }
 
-        /// <summary>有条件And操作</summary>
-        /// <param name="condition"></param>
-        /// <param name="exp"></param>
-        /// <returns></returns>
-        public WhereExpression AndIf(Boolean condition, Expression exp) { return condition ? And(exp) : this; }
+        ///// <summary>有条件And操作</summary>
+        ///// <param name="condition"></param>
+        ///// <param name="exp"></param>
+        ///// <returns></returns>
+        //public WhereExpression AndIf(Boolean condition, Expression exp) { return condition ? And(exp) : this; }
 
-        /// <summary>有条件Or操作</summary>
-        /// <param name="condition"></param>
-        /// <param name="exp"></param>
-        /// <returns></returns>
-        public WhereExpression OrIf(Boolean condition, Expression exp) { return condition ? Or(exp) : this; }
+        ///// <summary>有条件Or操作</summary>
+        ///// <param name="condition"></param>
+        ///// <param name="exp"></param>
+        ///// <returns></returns>
+        //public WhereExpression OrIf(Boolean condition, Expression exp) { return condition ? Or(exp) : this; }
         #endregion
 
         #region 分组

@@ -380,15 +380,15 @@ namespace XCode
 
         #region 批量操作
         /// <summary>根据条件删除实体记录，此操作跨越缓存，使用事务保护
-        /// <para>如果删除操作不带业务，可直接使用静态方法 Delete(String whereClause)</para>
+        /// <para>如果删除操作不带业务，可直接使用静态方法 Delete(String where)</para>
         /// </summary>
-        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="where">条件，不带Where</param>
         /// <param name="batchSize">每次删除记录数</param>
-        public static void DeleteAll(String whereClause, Int32 batchSize = 500)
+        public static void DeleteAll(String where, Int32 batchSize = 500)
         {
             using (var trans = new EntityTransaction<TEntity>())
             {
-                var count = FindCount(whereClause, null, null, 0, 0);
+                var count = FindCount(where, null, null, 0, 0);
                 var index = count - batchSize;
                 while (true)
                 {
@@ -396,7 +396,7 @@ namespace XCode
 
                     var size = Math.Min(batchSize, count - index);
 
-                    var list = FindAll(whereClause, null, null, index, size);
+                    var list = FindAll(where, null, null, index, size);
                     if (list == null || list.Count < 1) break;
 
                     if (index <= 0)
@@ -428,43 +428,43 @@ namespace XCode
 
         /// <summary>批量处理实体记录，此操作跨越缓存</summary>
         /// <param name="action">处理实体记录集方法</param>
-        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="where">条件，不带Where</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <param name="batchSize">每次处理记录数</param>
         /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        public static void ProcessAll(Action<EntityList<TEntity>> action, String whereClause, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
+        public static void ProcessAll(Action<EntityList<TEntity>> action, String where, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
         {
-            ProcessAll(action, whereClause, null, null, useTransition, batchSize);
+            ProcessAll(action, where, null, null, useTransition, batchSize);
         }
 
         /// <summary>批量处理实体记录，此操作跨越缓存</summary>
         /// <param name="action">处理实体记录集方法</param>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <param name="batchSize">每次处理记录数</param>
         /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        public static void ProcessAll(Action<EntityList<TEntity>> action, String whereClause, String orderClause, String selects, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
+        public static void ProcessAll(Action<EntityList<TEntity>> action, String where, String order, String selects, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
         {
             if (useTransition)
             {
                 using (var trans = new EntityTransaction<TEntity>())
                 {
-                    DoAction(action, whereClause, orderClause, selects, batchSize, maxCount);
+                    DoAction(action, where, order, selects, batchSize, maxCount);
 
                     trans.Commit();
                 }
             }
             else
             {
-                DoAction(action, whereClause, orderClause, selects, batchSize, maxCount);
+                DoAction(action, where, order, selects, batchSize, maxCount);
             }
         }
 
-        private static void DoAction(Action<EntityList<TEntity>> action, String whereClause, String orderClause, String selects, Int32 batchSize, Int32 maxCount)
+        private static void DoAction(Action<EntityList<TEntity>> action, String where, String order, String selects, Int32 batchSize, Int32 maxCount)
         {
-            var count = FindCount(whereClause, orderClause, selects, 0, 0);
+            var count = FindCount(where, order, selects, 0, 0);
             var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
             var index = 0;
             while (true)
@@ -475,7 +475,7 @@ namespace XCode
                     break;
                 }
 
-                var list = FindAll(whereClause, orderClause, selects, index, size);
+                var list = FindAll(where, order, selects, index, size);
                 if ((list == null) || (list.Count < 1))
                 {
                     break;
@@ -502,6 +502,7 @@ namespace XCode
         /// <returns></returns>
         public static TEntity Find(String[] names, Object[] values)
         {
+            var exp = new WhereExpression();
             // 判断自增和主键
             if (names != null && names.Length == 1)
             {
@@ -511,11 +512,11 @@ namespace XCode
                     // 唯一键为自增且参数小于等于0时，返回空
                     if (Helper.IsNullKey(values[0], field.Type)) return null;
 
-                    return FindUnique(field == values[0]);
+                    exp &= field == values[0];
+                    return FindUnique(exp);
                 }
             }
 
-            var exp = new WhereExpression();
             for (int i = 0; i < names.Length; i++)
             {
                 var fi = Meta.Table.FindByName(names[i]);
@@ -534,33 +535,33 @@ namespace XCode
         /// 如果不确定是否唯一，一定不要调用该方法，否则会返回大量的数据。
         /// <remarks>
         /// </remarks>
-        /// <param name="whereClause">查询条件</param>
+        /// <param name="where">查询条件</param>
         /// <returns></returns>
-        static TEntity FindUnique(String whereClause)
+        static TEntity FindUnique(WhereExpression where)
         {
             var session = Meta.Session;
             var builder = new SelectBuilder();
             builder.Table = session.FormatedTableName;
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
-            builder.Where = whereClause;
+            builder.Where = where?.GetString();
             var list = LoadData(session.Query(builder, 0, 0));
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
             {
-                DAL.WriteLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", whereClause);
+                DAL.WriteLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", where);
                 XTrace.DebugStack(5);
             }
             return list[0];
         }
 
         /// <summary>根据条件查找单个实体</summary>
-        /// <param name="whereClause">查询条件</param>
+        /// <param name="where">查询条件</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity Find(String whereClause)
+        public static TEntity Find(WhereExpression where)
         {
-            var list = FindAll(whereClause, null, null, 0, 1);
+            var list = FindAll(where, null, null, 0, 1);
             return list.Count < 1 ? null : list[0];
         }
 
@@ -625,23 +626,23 @@ namespace XCode
 
         /// <summary>查询指定字段的最小值</summary>
         /// <param name="field">指定字段</param>
-        /// <param name="whereClause">条件字句</param>
+        /// <param name="where">条件字句</param>
         /// <returns></returns>
-        public static Int32 FindMin(String field, String whereClause = null)
+        public static Int32 FindMin(String field, String where = null)
         {
             var fd = Meta.Table.FindByName(field);
-            var list = FindAll(whereClause, fd, null, 0, 1);
+            var list = FindAll(where, fd, null, 0, 1);
             return list.Count < 1 ? 0 : Convert.ToInt32(list[0][fd.Name]);
         }
 
         /// <summary>查询指定字段的最大值</summary>
         /// <param name="field">指定字段</param>
-        /// <param name="whereClause">条件字句</param>
+        /// <param name="where">条件字句</param>
         /// <returns></returns>
-        public static Int32 FindMax(String field, String whereClause = null)
+        public static Int32 FindMax(String field, String where = null)
         {
             var fd = Meta.Table.FindByName(field);
-            var list = FindAll(whereClause, fd.Desc(), null, 0, 1);
+            var list = FindAll(where, fd.Desc(), null, 0, 1);
             return list.Count < 1 ? 0 : Convert.ToInt32(list[0][fd.Name]);
         }
         #endregion
@@ -650,20 +651,20 @@ namespace XCode
         /// <summary>获取所有数据。获取大量数据时会非常慢，慎用。没有数据时返回空集合而不是null</summary>
         /// <returns>实体数组</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAll() { return FindAll(null, null, null, 0, 0); }
+        public static EntityList<TEntity> FindAll() { return FindAll("", null, null, 0, 0); }
 
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
         /// <remarks>
-        /// 最经典的批量查询，看这个Select @selects From Table Where @whereClause Order By @orderClause Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
+        /// 最经典的批量查询，看这个Select @selects From Table Where @where Order By @order Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
         /// </remarks>
-        /// <param name="whereClause">条件字句，不带Where</param>
-        /// <param name="orderClause">排序字句，不带Order By</param>
+        /// <param name="where">条件字句，不带Where</param>
+        /// <param name="order">排序字句，不带Order By</param>
         /// <param name="selects">查询列，默认null表示所有字段</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> FindAll(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
             var session = Meta.Session;
 
@@ -678,27 +679,27 @@ namespace XCode
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
                 // 计算本次查询的结果行数
-                if (!String.IsNullOrEmpty(whereClause)) count = FindCount(whereClause, orderClause, selects, startRowIndex, maximumRows);
+                if (!String.IsNullOrEmpty(where)) count = FindCount(where, order, selects, startRowIndex, maximumRows);
                 // 游标在中间偏后
                 if (startRowIndex * 2 > count)
                 {
-                    String order = orderClause;
+                    var order2 = order;
                     Boolean bk = false; // 是否跳过
 
                     #region 排序倒序
                     // 默认是自增字段的降序
                     FieldItem fi = Meta.Unique;
-                    if (String.IsNullOrEmpty(order) && fi != null && fi.IsIdentity) order = fi.Name + " Desc";
+                    if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
 
-                    if (!String.IsNullOrEmpty(order))
+                    if (!String.IsNullOrEmpty(order2))
                     {
                         //2014-01-05 Modify by Apex
                         //处理order by带有函数的情况，避免分隔时将函数拆分导致错误
-                        foreach (Match match in Regex.Matches(order, @"\([^\)]*\)", RegexOptions.Singleline))
+                        foreach (Match match in Regex.Matches(order2, @"\([^\)]*\)", RegexOptions.Singleline))
                         {
-                            order = order.Replace(match.Value, match.Value.Replace(",", "★"));
+                            order2 = order2.Replace(match.Value, match.Value.Replace(",", "★"));
                         }
-                        String[] ss = order.Split(',');
+                        var ss = order2.Split(',');
                         var sb = new StringBuilder();
                         foreach (String item in ss)
                         {
@@ -731,12 +732,12 @@ namespace XCode
                             sb.AppendFormat("{0} {1}", fn, od);
                         }
 
-                        order = sb.ToString().Replace("★", ",");
+                        order2 = sb.ToString().Replace("★", ",");
                     }
                     #endregion
 
                     // 没有排序的实在不适合这种办法，因为没办法倒序
-                    if (!String.IsNullOrEmpty(order))
+                    if (!String.IsNullOrEmpty(order2))
                     {
                         // 最大可用行数改为实际最大可用行数
                         var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
@@ -744,7 +745,7 @@ namespace XCode
                         if (max <= 0) return new EntityList<TEntity>();
                         var start = (Int32)(count - (startRowIndex + maximumRows));
 
-                        var builder2 = CreateBuilder(whereClause, order, selects, start, max);
+                        var builder2 = CreateBuilder(where, order2, selects, start, max);
                         var list = LoadData(session.Query(builder2, start, max));
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
@@ -755,18 +756,125 @@ namespace XCode
             }
             #endregion
 
-            var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows);
+            var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
+            return LoadData(session.Query(builder, startRowIndex, maximumRows));
+        }
+
+        /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
+        /// <remarks>
+        /// 最经典的批量查询，看这个Select @selects From Table Where @where Order By @order Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
+        /// </remarks>
+        /// <param name="where">条件字句，不带Where</param>
+        /// <param name="order">排序字句，不带Order By</param>
+        /// <param name="selects">查询列，默认null表示所有字段</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>实体集</returns>
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public static EntityList<TEntity> FindAll(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+        {
+            var session = Meta.Session;
+
+            #region 海量数据查询优化
+            // 海量数据尾页查询优化
+            // 在海量数据分页中，取越是后面页的数据越慢，可以考虑倒序的方式
+            // 只有在百万数据，且开始行大于五十万时才使用
+
+            // 如下优化，避免了每次都调用Meta.Count而导致形成一次查询，虽然这次查询时间损耗不大
+            // 但是绝大多数查询，都不需要进行类似的海量数据优化，显然，这个startRowIndex将会挡住99%以上的浪费
+            Int64 count = 0;
+            if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
+            {
+                // 计算本次查询的结果行数
+                if (!String.IsNullOrEmpty(where?.GetString())) count = FindCount(where, order, selects, startRowIndex, maximumRows);
+                // 游标在中间偏后
+                if (startRowIndex * 2 > count)
+                {
+                    var order2 = order;
+                    Boolean bk = false; // 是否跳过
+
+                    #region 排序倒序
+                    // 默认是自增字段的降序
+                    FieldItem fi = Meta.Unique;
+                    if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
+
+                    if (!String.IsNullOrEmpty(order2))
+                    {
+                        //2014-01-05 Modify by Apex
+                        //处理order by带有函数的情况，避免分隔时将函数拆分导致错误
+                        foreach (Match match in Regex.Matches(order2, @"\([^\)]*\)", RegexOptions.Singleline))
+                        {
+                            order2 = order2.Replace(match.Value, match.Value.Replace(",", "★"));
+                        }
+                        String[] ss = order2.Split(',');
+                        var sb = new StringBuilder();
+                        foreach (String item in ss)
+                        {
+                            String fn = item;
+                            String od = "asc";
+
+                            Int32 p = fn.LastIndexOf(" ");
+                            if (p > 0)
+                            {
+                                od = item.Substring(p).Trim().ToLower();
+                                fn = item.Substring(0, p).Trim();
+                            }
+
+                            switch (od)
+                            {
+                                case "asc":
+                                    od = "desc";
+                                    break;
+                                case "desc":
+                                    //od = "asc";
+                                    od = null;
+                                    break;
+                                default:
+                                    bk = true;
+                                    break;
+                            }
+                            if (bk) break;
+
+                            if (sb.Length > 0) sb.Append(", ");
+                            sb.AppendFormat("{0} {1}", fn, od);
+                        }
+
+                        order2 = sb.ToString().Replace("★", ",");
+                    }
+                    #endregion
+
+                    // 没有排序的实在不适合这种办法，因为没办法倒序
+                    if (!String.IsNullOrEmpty(order2))
+                    {
+                        // 最大可用行数改为实际最大可用行数
+                        var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
+                        //if (max <= 0) return null;
+                        if (max <= 0) return new EntityList<TEntity>();
+                        var start = (Int32)(count - (startRowIndex + maximumRows));
+
+                        var builder2 = CreateBuilder(where, order2, selects, start, max);
+                        var list = LoadData(session.Query(builder2, start, max));
+                        if (list == null || list.Count < 1) return list;
+                        // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
+                        list.Reverse();
+                        return list;
+                    }
+                }
+            }
+            #endregion
+
+            var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
             return LoadData(session.Query(builder, startRowIndex, maximumRows));
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
-        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="where">条件，不带Where</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(String whereClause, PageParameter param)
+        public static EntityList<TEntity> FindAll(WhereExpression where, PageParameter param)
         {
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
-            param.TotalCount = FindCount(whereClause, null, null, 0, 0);
+            param.TotalCount = FindCount(where, null, null, 0, 0);
             if (param.TotalCount <= 0) return new EntityList<TEntity>();
 
             // 验证排序字段，避免非法
@@ -776,7 +884,7 @@ namespace XCode
                 param.Sort = st != null ? st.Name : null;
             }
 
-            return FindAll(whereClause, param.OrderBy, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
+            return FindAll(where, param.OrderBy, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
         }
         #endregion
 
@@ -790,25 +898,50 @@ namespace XCode
         #region 取总记录数
         /// <summary>返回总记录数</summary>
         /// <returns></returns>
-        public static Int32 FindCount() { return FindCount(null, null, null, 0, 0); }
+        public static Int32 FindCount() { return FindCount("", null, null, 0, 0); }
 
         /// <summary>返回总记录数</summary>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="selects">查询列。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
-        public static Int32 FindCount(String whereClause, String orderClause = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
+        public static Int32 FindCount(String where, String order = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var session = Meta.Session;
 
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(whereClause) && session.Count > 10000) return session.Count;
+            if (String.IsNullOrEmpty(where) && session.Count > 10000) return session.Count;
 
             var sb = new SelectBuilder();
             sb.Table = session.FormatedTableName;
-            sb.Where = whereClause;
+            sb.Where = where;
+
+            // MSSQL分组查分组数的时候，必须带上全部selects字段
+            if (session.Dal.DbType == DatabaseType.SqlServer && !sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
+
+            return session.QueryCount(sb);
+        }
+
+        /// <summary>返回总记录数</summary>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="selects">查询列。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <returns>总行数</returns>
+        public static Int32 FindCount(WhereExpression where, String order = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
+        {
+            var session = Meta.Session;
+            var wh = where?.GetString();
+
+            // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
+            if (String.IsNullOrEmpty(wh) && session.Count > 10000) return session.Count;
+
+            var sb = new SelectBuilder();
+            sb.Table = session.FormatedTableName;
+            sb.Where = wh;
 
             // MSSQL分组查分组数的时候，必须带上全部selects字段
             if (session.Dal.DbType == DatabaseType.SqlServer && !sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
@@ -819,48 +952,48 @@ namespace XCode
 
         #region 获取查询SQL
         /// <summary>获取查询SQL。主要用于构造子查询</summary>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        public static SelectBuilder FindSQL(String whereClause, String orderClause, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
+        public static SelectBuilder FindSQL(String where, String order, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
-            var builder = CreateBuilder(whereClause, orderClause, selects, startRowIndex, maximumRows, false);
+            var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows, false);
             return Meta.Session.PageSplit(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>获取查询唯一键的SQL。比如Select ID From Table</summary>
-        /// <param name="whereClause"></param>
+        /// <param name="where"></param>
         /// <returns></returns>
-        public static SelectBuilder FindSQLWithKey(String whereClause = null)
+        public static SelectBuilder FindSQLWithKey(String where = null)
         {
             var f = Meta.Unique;
-            return FindSQL(whereClause, null, f != null ? Meta.FormatName(f.ColumnName) : null, 0, 0);
+            return FindSQL(where, null, f != null ? Meta.FormatName(f.ColumnName) : null, 0, 0);
         }
         #endregion
 
         #region 高级查询
         /// <summary>查询满足条件的记录集，分页、排序。没有数据时返回空集合而不是null</summary>
         /// <param name="key">关键字</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> Search(String key, String order, Int32 startRowIndex, Int32 maximumRows)
         {
-            return FindAll(SearchWhereByKeys(key, null), orderClause, null, startRowIndex, maximumRows);
+            return FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
         }
 
         /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
         /// <param name="key">关键字</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, String orderClause, Int32 startRowIndex, Int32 maximumRows)
+        public static Int32 SearchCount(String key, String order, Int32 startRowIndex, Int32 maximumRows)
         {
             return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
         }
@@ -950,14 +1083,24 @@ namespace XCode
         #endregion
 
         #region 构造SQL语句
-        static SelectBuilder CreateBuilder(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
+        static SelectBuilder CreateBuilder(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
+        {
+            var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows, needOrderByID);
+
+            // 提取参数
+            //builder.Parameters.Add();
+
+            return builder;
+        }
+
+        static SelectBuilder CreateBuilder(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
         {
             var builder = new SelectBuilder();
             builder.Column = selects;
             builder.Table = Meta.Session.FormatedTableName;
-            builder.OrderBy = orderClause;
+            builder.OrderBy = order;
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
-            builder.Where = whereClause;
+            builder.Where = where;
 
             // XCode对于默认排序的规则：自增主键降序，其它情况默认
             // 返回所有记录

@@ -10,8 +10,8 @@ namespace XCode
         /// <summary>文本表达式</summary>
         public String Text { get; set; }
 
-        /// <summary>严格模式。在严格模式下将放弃一些不满足要求的表达式。默认false</summary>
-        public Int32 Strict { get; set; }
+        ///// <summary>严格模式。在严格模式下将放弃一些不满足要求的表达式。默认false</summary>
+        //public Int32 Strict { get; set; }
         #endregion
 
         #region 构造
@@ -24,19 +24,19 @@ namespace XCode
         #endregion
 
         #region 方法
-        /// <summary>设置严格模式</summary>
-        /// <param name="strict">严格模式。为Null的参数都忽略</param>
-        /// <param name="fullStrict">完全严格模式。整型0、时间最小值、空字符串，都忽略</param>
-        /// <returns></returns>
-        public Expression SetStrict(Boolean strict = true, Boolean fullStrict = true)
-        {
-            if (fullStrict)
-                Strict = 2;
-            else if (strict)
-                Strict = 1;
+        ///// <summary>设置严格模式</summary>
+        ///// <param name="strict">严格模式。为Null的参数都忽略</param>
+        ///// <param name="fullStrict">完全严格模式。整型0、时间最小值、空字符串，都忽略</param>
+        ///// <returns></returns>
+        //public Expression SetStrict(Boolean strict = true, Boolean fullStrict = true)
+        //{
+        //    if (fullStrict)
+        //        Strict = 2;
+        //    else if (strict)
+        //        Strict = 1;
 
-            return this;
-        }
+        //    return this;
+        //}
 
         /// <summary>用于匹配Or关键字的正则表达式</summary>
         internal protected static Regex _regOr = new Regex(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -65,10 +65,7 @@ namespace XCode
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(Expression obj)
-        {
-            return obj != null ? obj.GetString() : null;
-        }
+        public static implicit operator String(Expression obj) { return obj?.GetString(); }
         #endregion
 
         #region 重载运算符

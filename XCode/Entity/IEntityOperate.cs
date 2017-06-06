@@ -73,9 +73,9 @@ namespace XCode
         #region 批量操作
 
         /// <summary>根据条件删除实体记录，此操作跨越缓存，使用事务保护</summary>
-        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="where">条件，不带Where</param>
         /// <param name="batchSize">每次删除记录数</param>
-        void DeleteAll(String whereClause, Int32 batchSize);
+        void DeleteAll(String where, Int32 batchSize);
 
         /// <summary>批量处理实体记录，此操作跨越缓存</summary>
         /// <param name="action">处理实体记录集方法</param>
@@ -86,21 +86,21 @@ namespace XCode
 
         /// <summary>批量处理实体记录，此操作跨越缓存</summary>
         /// <param name="action">处理实体记录集方法</param>
-        /// <param name="whereClause">条件，不带Where</param>
+        /// <param name="where">条件，不带Where</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <param name="batchSize">每次处理记录数</param>
         /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        void ProcessAll(Action<IEntityList> action, String whereClause, Boolean useTransition, Int32 batchSize, Int32 maxCount);
+        void ProcessAll(Action<IEntityList> action, String where, Boolean useTransition, Int32 batchSize, Int32 maxCount);
 
         /// <summary>批量处理实体记录，此操作跨越缓存，使用事务保护</summary>
         /// <param name="action">实体记录操作方法</param>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <param name="batchSize">每次处理记录数</param>
         /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        void ProcessAll(Action<IEntityList> action, String whereClause, String orderClause, String selects, Boolean useTransition, Int32 batchSize, Int32 maxCount);
+        void ProcessAll(Action<IEntityList> action, String where, String order, String selects, Boolean useTransition, Int32 batchSize, Int32 maxCount);
 
         #endregion
 
@@ -112,9 +112,9 @@ namespace XCode
         IEntity Find(String name, Object value);
 
         /// <summary>根据条件查找单个实体</summary>
-        /// <param name="whereClause"></param>
+        /// <param name="where"></param>
         /// <returns></returns>
-        IEntity Find(String whereClause);
+        IEntity Find(WhereExpression where);
 
         /// <summary>根据主键查找单个实体</summary>
         /// <param name="key"></param>
@@ -136,13 +136,25 @@ namespace XCode
         /// 查询并返回实体对象集合。
         /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
         /// </summary>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
-        IEntityList FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
+        IEntityList FindAll(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
+
+        /// <summary>
+        /// 查询并返回实体对象集合。
+        /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
+        /// </summary>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By</param>
+        /// <param name="selects">查询列</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>实体数组</returns>
+        IEntityList FindAll(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 缓存查询
@@ -157,13 +169,22 @@ namespace XCode
         Int32 FindCount();
 
         /// <summary>返回总记录数</summary>
-        /// <param name="whereClause">条件，不带Where</param>
-        /// <param name="orderClause">排序，不带Order By</param>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By</param>
         /// <param name="selects">查询列</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
-        Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
+        Int32 FindCount(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
+
+        /// <summary>返回总记录数</summary>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By</param>
+        /// <param name="selects">查询列</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>总行数</returns>
+        Int32 FindCount(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 导入导出XML/Json

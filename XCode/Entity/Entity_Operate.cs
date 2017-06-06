@@ -76,11 +76,11 @@ namespace XCode
             #region 批量操作
 
             /// <summary>根据条件删除实体记录，此操作跨越缓存，使用事务保护</summary>
-            /// <param name="whereClause">条件，不带Where</param>
+            /// <param name="where">条件，不带Where</param>
             /// <param name="batchSize">每次删除记录数</param>
-            public virtual void DeleteAll(String whereClause, Int32 batchSize)
+            public virtual void DeleteAll(String where, Int32 batchSize)
             {
-                Entity<TEntity>.DeleteAll(whereClause, batchSize);
+                Entity<TEntity>.DeleteAll(where, batchSize);
             }
 
             /// <summary>批量处理实体记录，此操作跨越缓存</summary>
@@ -95,44 +95,44 @@ namespace XCode
 
             /// <summary>批量处理实体记录，此操作跨越缓存</summary>
             /// <param name="action">处理实体记录集方法</param>
-            /// <param name="whereClause">条件，不带Where</param>
+            /// <param name="where">条件，不带Where</param>
             /// <param name="useTransition">是否使用事务保护</param>
             /// <param name="batchSize">每次处理记录数</param>
             /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-            public virtual void ProcessAll(Action<IEntityList> action, String whereClause, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
+            public virtual void ProcessAll(Action<IEntityList> action, String where, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
             {
-                ProcessAll(action, whereClause, null, null, useTransition, batchSize);
+                ProcessAll(action, where, null, null, useTransition, batchSize);
             }
 
             /// <summary>批量处理实体记录，此操作跨越缓存，使用事务保护</summary>
             /// <param name="action">实体记录操作方法</param>
-            /// <param name="whereClause">条件，不带Where</param>
-            /// <param name="orderClause">排序，不带Order By</param>
+            /// <param name="where">条件，不带Where</param>
+            /// <param name="order">排序，不带Order By</param>
             /// <param name="selects">查询列</param>
             /// <param name="useTransition">是否使用事务保护</param>
             /// <param name="batchSize">每次处理记录数</param>
             /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-            public virtual void ProcessAll(Action<IEntityList> action, String whereClause, String orderClause, String selects, Boolean useTransition, Int32 batchSize, Int32 maxCount = 0)
+            public virtual void ProcessAll(Action<IEntityList> action, String where, String order, String selects, Boolean useTransition, Int32 batchSize, Int32 maxCount = 0)
             {
                 if (useTransition)
                 {
                     using (var trans = new EntityTransaction<TEntity>())
                     {
-                        DoAction(action, whereClause, orderClause, selects, batchSize, maxCount);
+                        DoAction(action, where, order, selects, batchSize, maxCount);
 
                         trans.Commit();
                     }
                 }
                 else
                 {
-                    DoAction(action, whereClause, orderClause, selects, batchSize, maxCount);
+                    DoAction(action, where, order, selects, batchSize, maxCount);
                 }
             }
 
-            private static void DoAction(Action<IEntityList> action, String whereClause, String orderClause, String selects, Int32 batchSize,
+            private static void DoAction(Action<IEntityList> action, String where, String order, String selects, Int32 batchSize,
                 Int32 maxCount)
             {
-                var count = Entity<TEntity>.FindCount(whereClause, orderClause, selects, 0, 0);
+                var count = Entity<TEntity>.FindCount(where, order, selects, 0, 0);
                 var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
                 var index = 0;
                 while (true)
@@ -143,7 +143,7 @@ namespace XCode
                         break;
                     }
 
-                    var list = Entity<TEntity>.FindAll(whereClause, orderClause, selects, index, size);
+                    var list = Entity<TEntity>.FindAll(where, order, selects, index, size);
                     if ((list == null) || (list.Count < 1))
                     {
                         break;
@@ -164,9 +164,9 @@ namespace XCode
             public virtual IEntity Find(String name, Object value) { return Entity<TEntity>.Find(name, value); }
 
             /// <summary>根据条件查找单个实体</summary>
-            /// <param name="whereClause"></param>
+            /// <param name="where"></param>
             /// <returns></returns>
-            public virtual IEntity Find(String whereClause) { return Entity<TEntity>.Find(whereClause); }
+            public virtual IEntity Find(WhereExpression where) { return Entity<TEntity>.Find(where); }
 
             /// <summary>根据主键查找单个实体</summary>
             /// <param name="key"></param>
@@ -187,15 +187,29 @@ namespace XCode
             /// <summary>查询并返回实体对象集合。
             /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
             /// </summary>
-            /// <param name="whereClause">条件，不带Where</param>
-            /// <param name="orderClause">排序，不带Order By</param>
+            /// <param name="where">条件，不带Where</param>
+            /// <param name="order">排序，不带Order By</param>
             /// <param name="selects">查询列</param>
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IEntityList FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
+            public virtual IEntityList FindAll(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
             {
-                return Entity<TEntity>.FindAll(whereClause, orderClause, selects, startRowIndex, maximumRows);
+                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows);
+            }
+
+            /// <summary>查询并返回实体对象集合。
+            /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
+            /// </summary>
+            /// <param name="where">条件，不带Where</param>
+            /// <param name="order">排序，不带Order By</param>
+            /// <param name="selects">查询列</param>
+            /// <param name="startRowIndex">开始行，0表示第一行</param>
+            /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+            /// <returns>实体数组</returns>
+            public virtual IEntityList FindAll(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+            {
+                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows);
             }
             #endregion
 
@@ -211,15 +225,27 @@ namespace XCode
             public virtual Int32 FindCount() { return Entity<TEntity>.FindCount(); }
 
             /// <summary>返回总记录数</summary>
-            /// <param name="whereClause">条件，不带Where</param>
-            /// <param name="orderClause">排序，不带Order By</param>
+            /// <param name="where">条件，不带Where</param>
+            /// <param name="order">排序，不带Order By</param>
             /// <param name="selects">查询列</param>
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>总行数</returns>
-            public virtual Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows)
+            public virtual Int32 FindCount(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
             {
-                return Entity<TEntity>.FindCount(whereClause, orderClause, selects, startRowIndex, maximumRows);
+                return Entity<TEntity>.FindCount(where, order, selects, startRowIndex, maximumRows);
+            }
+
+            /// <summary>返回总记录数</summary>
+            /// <param name="where">条件，不带Where</param>
+            /// <param name="order">排序，不带Order By</param>
+            /// <param name="selects">查询列</param>
+            /// <param name="startRowIndex">开始行，0表示第一行</param>
+            /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+            /// <returns>总行数</returns>
+            public virtual Int32 FindCount(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+            {
+                return Entity<TEntity>.FindCount(where, order, selects, startRowIndex, maximumRows);
             }
             #endregion
 

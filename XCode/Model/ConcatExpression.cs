@@ -7,9 +7,8 @@ namespace XCode
     public class ConcatExpression : Expression
     {
         #region 属性
-        private StringBuilder _Builder = new StringBuilder();
         /// <summary>内置字符串</summary>
-        public StringBuilder Builder { get { return _Builder; } set { _Builder = value; } }
+        public StringBuilder Builder { get; set; } = new StringBuilder();
         #endregion
 
         #region 构造
@@ -45,13 +44,10 @@ namespace XCode
             return Builder.ToString();
         }
 
-        ///// <summary>类型转换</summary>
-        ///// <param name="obj"></param>
-        ///// <returns></returns>
-        //public static implicit operator String(ConcatExpression obj)
-        //{
-        //    return obj != null ? obj.GetString() : null;
-        //}
+        /// <summary>类型转换</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static implicit operator String(ConcatExpression obj) { return obj?.GetString(); }
         #endregion
 
         #region 重载运算符
@@ -72,24 +68,6 @@ namespace XCode
             return ce;
         }
 
-        ///// <summary>重载运算符实现And操作</summary>
-        ///// <param name="exp"></param>
-        ///// <param name="value">数值</param>
-        ///// <returns></returns>
-        //[Obsolete("==>&")]
-        //public static ConcatExpression operator +(WhereExpression exp, ConcatExpression value)
-        //{
-        //    var left = exp.GetString();
-        //    var ce = new ConcatExpression(left);
-
-        //    if (value == null) return ce;
-
-        //    //return ce.And(value);
-        //    // 条件表达式遇上连接表达式，不需要And或者逗号，只需要一个空格
-        //    ce.Builder.Append(" ").Append(value);
-        //    return ce;
-        //}
-
         /// <summary>重载运算符实现And操作，同时通过布尔型支持AndIf</summary>
         /// <param name="exp"></param>
         /// <param name="value">数值</param>
@@ -98,10 +76,6 @@ namespace XCode
         {
             if (value == null) return exp;
 
-            //if (value is ConcatExpression)
-            //    exp.And((value as ConcatExpression).GetString());
-            //else
-            //    exp.And(value.ToString());
             exp.And(value);
 
             return exp;

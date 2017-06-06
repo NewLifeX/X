@@ -34,7 +34,7 @@ namespace XCode
         /// <summary>获取主键条件</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        String GetPrimaryCondition(IEntity entity);
+        WhereExpression GetPrimaryCondition(IEntity entity);
 
         /// <summary>把SQL模版格式化为SQL语句</summary>
         /// <param name="entity">实体对象</param>
@@ -195,7 +195,7 @@ namespace XCode
                     return UpdateSQL(entity, ref parameters);
                 case DataObjectMethodType.Delete:
                     // 标识列作为删除关键字
-                    sql = DefaultCondition(entity);
+                    sql = DefaultCondition(entity)?.GetString();
                     if (String.IsNullOrEmpty(sql)) return null;
                     return String.Format("Delete From {0} Where {1}", formatedTalbeName, sql);
             }
@@ -284,7 +284,8 @@ namespace XCode
              */
 
             var def = DefaultCondition(entity);
-            if (String.IsNullOrEmpty(def)) return null;
+            //if (String.IsNullOrEmpty(def)) return null;
+            if (def.Empty) return null;
 
             var op = EntityFactory.CreateOperate(entity.GetType());
 
@@ -413,7 +414,7 @@ namespace XCode
         /// <summary>获取主键条件</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public virtual String GetPrimaryCondition(IEntity entity) { return DefaultCondition(entity); }
+        public virtual WhereExpression GetPrimaryCondition(IEntity entity) { return DefaultCondition(entity); }
 
         /// <summary>
         /// 默认条件。
@@ -422,13 +423,18 @@ namespace XCode
         /// </summary>
         /// <param name="entity">实体对象</param>
         /// <returns>条件</returns>
-        static String DefaultCondition(IEntity entity)
+        static WhereExpression DefaultCondition(IEntity entity)
         {
             var op = EntityFactory.CreateOperate(entity.GetType());
+            var exp = new WhereExpression();
 
             // 标识列作为查询关键字
             var fi = op.Table.Identity;
-            if (fi != null) return (fi as Field) == entity[fi.Name];
+            if (fi != null)
+            {
+                exp &= (fi as Field) == entity[fi.Name];
+                return exp;
+            }
 
             // 主键作为查询关键字
             var ps = op.Table.PrimaryKeys;
@@ -440,15 +446,18 @@ namespace XCode
                 ps = op.Table.Fields;
             }
 
-            var sb = new StringBuilder();
+            //var sb = new StringBuilder();
             foreach (var item in ps)
             {
-                if (sb.Length > 0) sb.Append(" And ");
-                sb.Append(op.FormatName(item.ColumnName));
-                sb.Append("=");
-                sb.Append(op.FormatValue(item, entity[item.Name]));
+                //if (sb.Length > 0) sb.Append(" And ");
+                //sb.Append(op.FormatName(item.ColumnName));
+                //sb.Append("=");
+                //sb.Append(op.FormatValue(item, entity[item.Name]));
+
+                exp &= (item as Field) == op.FormatValue(item, entity[item.Name]);
             }
-            return sb.ToString();
+            //return sb.ToString();
+            return exp;
         }
         #endregion
     }

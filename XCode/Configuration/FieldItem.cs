@@ -91,21 +91,6 @@ namespace XCode.Configuration
         /// <summary>是否动态字段</summary>
         public Boolean IsDynamic { get { return _Property == null; } }
 
-        ///// <summary>显示名。如果备注不为空则采用备注，否则采用属性名</summary>
-        //public String DisplayName
-        //{
-        //    get
-        //    {
-        //        var name = Description;
-        //        if (String.IsNullOrEmpty(name)) return Name;
-
-        //        var p = name.IndexOf("。");
-        //        if (p > 0) name = name.Substring(0, p);
-
-        //        return name;
-        //    }
-        //}
-
         /// <summary>字段名要过滤掉的标识符，考虑MSSQL、MySql、SQLite、Oracle等</summary>
         static Char[] COLUMNNAME_FLAG = new Char[] { '[', ']', '\'', '"', '`' };
 
@@ -150,18 +135,6 @@ namespace XCode.Configuration
 
         /// <summary>获取映射特性</summary>
         public MapAttribute Map { get; private set; }
-
-        ///// <summary>宽度</summary>
-        ///// <remarks>主要用于界面上的控件宽度</remarks>
-        //public int Width { get; set; }
-
-        ///// <summary>排序</summary>
-        ///// <remarks>主要用于界面上的控件显示排序</remarks>
-        //public int Sort { get; set; }
-
-        ///// <summary>跟当前字段有关系的原始字段</summary>
-        ///// <remarks>（原始字段，主要是在列表或者是Form里替换字段后可以读取原来的绑定关系）,不敢用OriField，因为暂时没有去查OriField具体的用途。</remarks>
-        //public FieldItem OldField { get;  set; }
         #endregion
 
         #region 构造
@@ -276,12 +249,12 @@ namespace XCode.Configuration
         }
 
         /// <summary>建立表达式</summary>
-        /// <param name="action"></param>
+        /// <param name="format"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        internal Expression CreateFormatExpression(String action, String value) { return new FormatExpression(this, action, value); }
+        internal Expression CreateFormat(String format, String value) { return new FormatExpression(this, format, value); }
 
-        internal static Expression CreateFieldExpression(FieldItem field, String action, Object value)
+        internal static Expression CreateField(FieldItem field, String action, Object value)
         {
             return field == null ? new Expression() : new FieldExpression(field, action, value);
         }
@@ -291,14 +264,14 @@ namespace XCode.Configuration
         /// <summary>等于</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Expression Equal(Object value) { return CreateFieldExpression(this, "=", value); }
+        public Expression Equal(Object value) { return CreateField(this, "=", value); }
 
         /// <summary>不等于</summary>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public Expression NotEqual(Object value) { return CreateFieldExpression(this, "<>", value); }
+        public Expression NotEqual(Object value) { return CreateField(this, "<>", value); }
 
-        Expression CreateLike(String value) { return CreateFormatExpression("{0} Like {1}", Factory.FormatValue(this, value)); }
+        Expression CreateLike(String value) { return CreateFormat("{0} Like {1}", Factory.FormatValue(this, value)); }
 
         /// <summary>以某个字符串开始,{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
@@ -332,18 +305,6 @@ namespace XCode.Configuration
 
             return CreateLike("%{0}%".F(value));
         }
-
-        ///// <summary>In操作。直接使用字符串可能有注入风险</summary>
-        ///// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
-        ///// <param name="value">逗号分割的数据。可能有注入风险</param>
-        ///// <returns></returns>
-        //[Obsolete("=>In(IEnumerable value)，直接使用字符串参数可能有注入风险")]
-        //public Expression In(String value)
-        //{
-        //    if (String.IsNullOrEmpty(value)) return new Expression();
-
-        //    return CreateFormatExpression("{0} In({1})", Factory.FormatValue(this, value));
-        //}
 
         /// <summary>In操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接。只有一项时转为等于</remarks>
@@ -383,22 +344,10 @@ namespace XCode.Configuration
             }
 
             // 如果In操作且只有一项，修改为等于
-            if (list.Count == 1) return CreateFieldExpression(this, flag ? "=" : "<>", vs[0]);
+            if (list.Count == 1) return CreateField(this, flag ? "=" : "<>", vs[0]);
 
-            return CreateFormatExpression(flag ? "{0} In({1})" : "{0} Not In({1})", list.Join(","));
+            return CreateFormat(flag ? "{0} In({1})" : "{0} Not In({1})", list.Join(","));
         }
-
-        ///// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
-        ///// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
-        ///// <param name="value">数值</param>
-        ///// <returns></returns>
-        //[Obsolete("=>NotIn(IEnumerable value)，直接使用字符串参数可能有注入风险")]
-        //public Expression NotIn(String value)
-        //{
-        //    if (String.IsNullOrEmpty(value)) return new Expression();
-
-        //    return CreateFormatExpression("{0} Not In({1})", Factory.FormatValue(this, value));
-        //}
 
         /// <summary>NotIn操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接。只有一项时修改为不等于</remarks>
@@ -414,7 +363,7 @@ namespace XCode.Configuration
         {
             if (builder == null) return new Expression();
 
-            return CreateFormatExpression("{0} In({1})", builder);
+            return CreateFormat("{0} In({1})", builder);
         }
 
         /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
@@ -425,16 +374,16 @@ namespace XCode.Configuration
         {
             if (builder == null) return new Expression();
 
-            return CreateFormatExpression("{0} NOT IN ({1})", builder);
+            return CreateFormat("{0} Not In ({1})", builder);
         }
 
         /// <summary>IsNull操作，不为空，一般用于字符串，但不匹配0长度字符串</summary>
         /// <returns></returns>
-        public Expression IsNull() { return CreateFormatExpression("{0} Is Null", null); }
+        public Expression IsNull() { return CreateFormat("{0} Is Null", null); }
 
         /// <summary>NotIn操作</summary>
         /// <returns></returns>
-        public Expression NotIsNull() { return CreateFormatExpression("Not {0} Is Null", null); }
+        public Expression NotIsNull() { return CreateFormat("Not {0} Is Null", null); }
         #endregion
 
         #region 复杂运算
@@ -509,25 +458,25 @@ namespace XCode.Configuration
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static Expression operator >(FieldItem field, Object value) { return CreateFieldExpression(field, ">", value); }
+        public static Expression operator >(FieldItem field, Object value) { return CreateField(field, ">", value); }
 
         /// <summary>小于</summary>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static Expression operator <(FieldItem field, Object value) { return CreateFieldExpression(field, "<", value); }
+        public static Expression operator <(FieldItem field, Object value) { return CreateField(field, "<", value); }
 
         /// <summary>大于等于</summary>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static Expression operator >=(FieldItem field, Object value) { return CreateFieldExpression(field, ">=", value); }
+        public static Expression operator >=(FieldItem field, Object value) { return CreateField(field, ">=", value); }
 
         /// <summary>小于等于</summary>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static Expression operator <=(FieldItem field, Object value) { return CreateFieldExpression(field, "<=", value); }
+        public static Expression operator <=(FieldItem field, Object value) { return CreateField(field, "<=", value); }
         #endregion
 
         #region 类型转换
