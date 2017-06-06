@@ -56,16 +56,16 @@ namespace XCode.Test
             //return Meta.SingleCache[name];
         }
 
-        /// <summary>根据启用、开始日期、结束时间查找</summary>
-        /// <param name="isenable">启用</param>
-        /// <param name="startdate">开始日期</param>
-        /// <param name="endtime">结束时间</param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllByIsEnableAndStartDateAndEndTime(Boolean isenable, DateTime startdate, DateTime endtime)
-        {
-            return FindAll(new String[] { _.IsEnable, _.StartDate, _.EndTime }, new Object[] { isenable, startdate, endtime });
-        }
+        ///// <summary>根据启用、开始日期、结束时间查找</summary>
+        ///// <param name="isenable">启用</param>
+        ///// <param name="startdate">开始日期</param>
+        ///// <param name="endtime">结束时间</param>
+        ///// <returns></returns>
+        //[DataObjectMethod(DataObjectMethodType.Select, false)]
+        //public static EntityList<TEntity> FindAllByIsEnableAndStartDateAndEndTime(Boolean isenable, DateTime startdate, DateTime endtime)
+        //{
+        //    return FindAll(new String[] { _.IsEnable, _.StartDate, _.EndTime }, new Object[] { isenable, startdate, endtime });
+        //}
 
         /// <summary>根据自增编号查找</summary>
         /// <param name="id">自增编号</param>

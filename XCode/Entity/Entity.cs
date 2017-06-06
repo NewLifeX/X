@@ -109,55 +109,6 @@ namespace XCode
             return elist;
         }
 
-        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        ///// <param name="dr">数据行</param>
-        //public override void LoadData(DataRow dr)
-        //{
-        //    if (dr != null)
-        //    {
-        //        dreAccessor.LoadData(dr, this);
-        //        OnLoad();
-        //    }
-        //}
-
-        ///// <summary>加载数据读写器。无数据时返回空集合而不是null。</summary>
-        ///// <param name="dr">数据读写器</param>
-        ///// <returns>实体数组</returns>
-        //public static EntityList<TEntity> LoadData(IDataReader dr)
-        //{
-        //    var list = dreAccessor.LoadData(dr);
-
-        //    // 设置默认累加字段
-        //    EntityAddition.SetField(list);
-        //    foreach (EntityBase entity in list)
-        //    {
-        //        entity.OnLoad();
-        //    }
-        //    // 减少一步类型转换
-        //    var elist = list as EntityList<TEntity>;
-        //    if (elist != null) return elist;
-
-        //    return new EntityList<TEntity>(list);
-        //}
-
-        ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
-        ///// <param name="dr">数据读写器</param>
-        //public override void LoadDataReader(IDataReader dr)
-        //{
-        //    if (dr != null)
-        //    {
-        //        dreAccessor.LoadData(dr, this);
-        //        OnLoad();
-
-        //        // 设置默认累加字段
-        //        EntityAddition.SetField(this);
-        //    }
-        //}
-
-        ///// <summary>把数据复制到数据行对象中。</summary>
-        ///// <param name="dr">数据行</param>
-        //public virtual DataRow ToData(ref DataRow dr) { return dr == null ? null : dreAccessor.ToData(this, ref dr); }
-
         private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
         #endregion
 
@@ -391,10 +342,10 @@ namespace XCode
             var cache = Meta.Session.Cache;
             if (!cache.Using)
             {
-                // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-                if (IsNullKey) return FindCount(names, values) > 0;
+                //// 如果是空主键，则采用直接判断记录数的方式，以加快速度
+                //if (IsNullKey) return FindCount(names, values) > 0;
 
-                var list = FindAll(names, values);
+                var list = FindAll(MakeCondition(names, values, "And"), null, null, 0, 0);
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
 
@@ -439,7 +390,7 @@ namespace XCode
                     var size = Math.Min(batchSize, count - index);
 
                     var list = FindAll(whereClause, null, null, index, size);
-                    if ((list == null) || (list.Count < 1)) { break; }
+                    if (list == null || list.Count < 1) break;
 
                     if (index <= 0)
                     {
@@ -504,8 +455,7 @@ namespace XCode
             }
         }
 
-        private static void DoAction(Action<EntityList<TEntity>> action, String whereClause, String orderClause, String selects, Int32 batchSize,
-            Int32 maxCount)
+        private static void DoAction(Action<EntityList<TEntity>> action, String whereClause, String orderClause, String selects, Int32 batchSize, Int32 maxCount)
         {
             var count = FindCount(whereClause, orderClause, selects, 0, 0);
             var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
@@ -559,7 +509,7 @@ namespace XCode
             }
 
             // 判断唯一索引，唯一索引也不需要分页
-            IDataIndex di = Meta.Table.DataTable.GetIndex(names);
+            var di = Meta.Table.DataTable.GetIndex(names);
             if (di != null && di.Unique) return FindUnique(MakeCondition(names, values, "And"));
 
             return Find(MakeCondition(names, values, "And"));
@@ -594,25 +544,11 @@ namespace XCode
         /// <param name="whereClause">查询条件</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //[Obsolete("=>Find(String whereClause, String orderClause = null)")]
         public static TEntity Find(String whereClause)
         {
             var list = FindAll(whereClause, null, null, 0, 1);
             return list.Count < 1 ? null : list[0];
         }
-
-        // 不能这么做，我们默认Find的条件能过滤出来一行数据
-        ///// <summary>根据条件查找单个实体</summary>
-        ///// <param name="whereClause">查询条件</param>
-        ///// <param name="orderClause">排序，不带Order By</param>
-        ///// <returns></returns>
-        //[DataObjectMethod(DataObjectMethodType.Select, false)]
-        //public static TEntity Find(String whereClause, String orderClause = null)
-        //{
-        //    var list = FindAll(whereClause, orderClause, null, 0, 1);
-        //    return list.Count < 1 ? null : list[0];
-        //}
 
         /// <summary>根据主键查找单个实体</summary>
         /// <param name="key">唯一主键的值</param>
@@ -809,62 +745,6 @@ namespace XCode
             return LoadData(session.Query(builder, startRowIndex, maximumRows));
         }
 
-        /// <summary>根据属性列表以及对应的值列表查询数据。没有数据时返回空集合而不是null</summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <returns>实体数组</returns>
-        public static EntityList<TEntity> FindAll(String[] names, Object[] values)
-        {
-            // 判断自增和主键
-            if (names != null && names.Length == 1)
-            {
-                FieldItem field = Meta.Table.FindByName(names[0]);
-                if (field != null && (field.IsIdentity || field.PrimaryKey))
-                {
-                    // 唯一键为自增且参数小于等于0时，返回空
-                    if (Helper.IsNullKey(values[0], field.Type)) return null;
-                }
-            }
-
-            return FindAll(MakeCondition(names, values, "And"), null, null, 0, 0);
-        }
-
-        /// <summary>根据属性以及对应的值查询数据。没有数据时返回空集合而不是null</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <returns>实体数组</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
-
-        /// <summary>根据属性以及对应的值查询数据，带排序。没有数据时返回空集合而不是null</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体数组</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
-        {
-            if (String.IsNullOrEmpty(name)) return FindAll(null, orderClause, null, startRowIndex, maximumRows);
-
-            FieldItem field = Meta.Table.FindByName(name);
-            if (field != null && (field.IsIdentity || field.PrimaryKey))
-            {
-                // 唯一键为自增且参数小于等于0时，返回空
-                if (Helper.IsNullKey(value, field.Type)) return new EntityList<TEntity>();
-
-                // 自增或者主键查询，记录集肯定是唯一的，不需要指定记录数和排序
-                return FindAll(MakeCondition(field, value, "="), null, null, 0, 0);
-                //var builder = new SelectBuilder();
-                //builder.Table = Meta.FormatName(Meta.TableName);
-                //builder.Where = MakeCondition(field, value, "=");
-                //return FindAll(builder.ToString());
-            }
-
-            return FindAll(MakeCondition(new String[] { name }, new Object[] { value }, "And"), orderClause, null, startRowIndex, maximumRows);
-        }
-
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="whereClause">条件，不带Where</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
@@ -887,24 +767,10 @@ namespace XCode
         #endregion
 
         #region 缓存查询
-        /// <summary>根据属性以及对应的值，在缓存中查找单个实体</summary>
-        /// <param name="name">属性名称</param>
-        /// <param name="value">属性值</param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity FindWithCache(String name, Object value) { return Meta.Session.Cache.Entities.Find(name, value); }
-
         /// <summary>查找所有缓存。没有数据时返回空集合而不是null</summary>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
-
-        /// <summary>根据属性以及对应的值，在缓存中查询数据。没有数据时返回空集合而不是null</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <returns>实体数组</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllWithCache(String name, Object value) { return Meta.Session.Cache.Entities.FindAll(name, value); }
         #endregion
 
         #region 取总记录数
@@ -934,47 +800,6 @@ namespace XCode
             if (session.Dal.DbType == DatabaseType.SqlServer && !sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
 
             return session.QueryCount(sb);
-        }
-
-        /// <summary>根据属性列表以及对应的值列表，返回总记录数</summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <returns>总行数</returns>
-        public static Int32 FindCount(String[] names, Object[] values)
-        {
-            // 判断自增和主键
-            if (names != null && names.Length == 1)
-            {
-                FieldItem field = Meta.Table.FindByName(names[0]);
-                if (field != null && (field.IsIdentity || field.PrimaryKey))
-                {
-                    // 唯一键为自增且参数小于等于0时，返回空
-                    if (Helper.IsNullKey(values[0], field.Type)) return 0;
-                }
-            }
-
-            return FindCount(MakeCondition(names, values, "And"), null, null, 0, 0);
-        }
-
-        /// <summary>根据属性以及对应的值，返回总记录数</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <returns>总行数</returns>
-        public static Int32 FindCount(String name, Object value) { return FindCountByName(name, value, null, 0, 0); }
-
-        /// <summary>根据属性以及对应的值，返回总记录数</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <param name="orderClause">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
-        /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
-        /// <returns>总行数</returns>
-        public static Int32 FindCountByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows)
-        {
-            if (String.IsNullOrEmpty(name))
-                return FindCount(null, null, null, 0, 0);
-            else
-                return FindCount(new String[] { name }, new Object[] { value });
         }
         #endregion
 

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Data.Common;
 using XCode.Cache;
 using XCode.Configuration;
 
@@ -145,45 +143,12 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
         IEntityList FindAll(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
-
-        /// <summary>根据属性列表以及对应的值列表，获取所有实体对象</summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <returns>实体数组</returns>
-        IEntityList FindAll(String[] names, Object[] values);
-
-        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <returns>实体数组</returns>
-        IEntityList FindAll(String name, Object value);
-
-        /// <summary>根据属性以及对应的值，获取所有实体对象</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体数组</returns>
-        IEntityList FindAllByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 缓存查询
-        /// <summary>根据属性以及对应的值，在缓存中查找单个实体</summary>
-        /// <param name="name">属性名称</param>
-        /// <param name="value">属性值</param>
-        /// <returns></returns>
-        IEntity FindWithCache(String name, Object value);
-
         /// <summary>查找所有缓存</summary>
         /// <returns></returns>
         IEntityList FindAllWithCache();
-
-        /// <summary>根据属性以及对应的值，在缓存中获取所有实体对象</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <returns>实体数组</returns>
-        IEntityList FindAllWithCache(String name, Object value);
         #endregion
 
         #region 取总记录数
@@ -199,27 +164,6 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
         Int32 FindCount(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows);
-
-        /// <summary>根据属性列表以及对应的值列表，返回总记录数</summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <returns>总行数</returns>
-        Int32 FindCount(String[] names, Object[] values);
-
-        /// <summary>根据属性以及对应的值，返回总记录数</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <returns>总行数</returns>
-        Int32 FindCount(String name, Object value);
-
-        /// <summary>根据属性以及对应的值，返回总记录数</summary>
-        /// <param name="name">属性</param>
-        /// <param name="value">值</param>
-        /// <param name="orderClause">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>总行数</returns>
-        Int32 FindCountByName(String name, Object value, String orderClause, Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 导入导出XML/Json
