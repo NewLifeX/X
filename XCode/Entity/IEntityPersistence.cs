@@ -428,7 +428,7 @@ namespace XCode
 
             // 标识列作为查询关键字
             var fi = op.Table.Identity;
-            if (fi != null) return op.MakeCondition(fi, entity[fi.Name], "=");
+            if (fi != null) return (fi as Field) == entity[fi.Name];
 
             // 主键作为查询关键字
             var ps = op.Table.PrimaryKeys;

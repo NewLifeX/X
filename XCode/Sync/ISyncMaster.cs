@@ -118,8 +118,8 @@ namespace XCode.Sync
         /// <returns></returns>
         public virtual ISyncMasterEntity[] GetAllUpdated(DateTime last, Int32 start, Int32 max)
         {
-            var name = LastUpdateName;
-            var where = String.IsNullOrEmpty(name) ? null : Facotry.MakeCondition(LastUpdateName, last, ">");
+            FieldItem fi = Facotry.Table.FindByName(LastUpdateName);
+            var where = fi == null ? null : fi > last;
             var list = Facotry.FindAll(where, null, null, start, max);
             if (list == null || list.Count < 1) return null;
 
@@ -150,8 +150,8 @@ namespace XCode.Sync
         /// <returns></returns>
         public virtual Int32 GetAllUpdatedCount(DateTime last)
         {
-            var name = LastUpdateName;
-            var where = String.IsNullOrEmpty(name) ? null : Facotry.MakeCondition(LastUpdateName, last, ">");
+            FieldItem fi = Facotry.Table.FindByName(LastUpdateName);
+            var where = fi == null ? null : fi > last;
             return Facotry.FindCount(where, null, null, 0, 0);
         }
 

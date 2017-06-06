@@ -345,7 +345,14 @@ namespace XCode
                 //// 如果是空主键，则采用直接判断记录数的方式，以加快速度
                 //if (IsNullKey) return FindCount(names, values) > 0;
 
-                var list = FindAll(MakeCondition(names, values, "And"), null, null, 0, 0);
+                var exp = new WhereExpression();
+                for (int i = 0; i < names.Length; i++)
+                {
+                    var fi = Meta.Table.FindByName(names[i]);
+                    exp &= fi == values[i];
+                }
+
+                var list = FindAll(exp, null, null, 0, 0);
                 if (list == null || list.Count < 1) return false;
                 if (list.Count > 1) return true;
 
@@ -498,21 +505,28 @@ namespace XCode
             // 判断自增和主键
             if (names != null && names.Length == 1)
             {
-                FieldItem field = Meta.Table.FindByName(names[0]);
-                if (field != null && (field.IsIdentity || field.PrimaryKey))
+                var field = Meta.Table.FindByName(names[0]);
+                if ((field as FieldItem) != null && (field.IsIdentity || field.PrimaryKey))
                 {
                     // 唯一键为自增且参数小于等于0时，返回空
                     if (Helper.IsNullKey(values[0], field.Type)) return null;
 
-                    return FindUnique(MakeCondition(field, values[0], "="));
+                    return FindUnique(field == values[0]);
                 }
+            }
+
+            var exp = new WhereExpression();
+            for (int i = 0; i < names.Length; i++)
+            {
+                var fi = Meta.Table.FindByName(names[i]);
+                exp &= fi == values[i];
             }
 
             // 判断唯一索引，唯一索引也不需要分页
             var di = Meta.Table.DataTable.GetIndex(names);
-            if (di != null && di.Unique) return FindUnique(MakeCondition(names, values, "And"));
+            if (di != null && di.Unique) return FindUnique(exp);
 
-            return Find(MakeCondition(names, values, "And"));
+            return Find(exp);
         }
 
         /// <summary>根据条件查找唯一的单个实体</summary>
@@ -936,65 +950,6 @@ namespace XCode
         #endregion
 
         #region 构造SQL语句
-        /// <summary>
-        /// 根据属性列表和值列表，构造查询条件。
-        /// 例如构造多主键限制查询条件。
-        /// </summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <param name="action">联合方式</param>
-        /// <returns>条件子串</returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static String MakeCondition(String[] names, Object[] values, String action)
-        {
-            if (names == null || names.Length <= 0) return null;
-            if (values == null || values.Length <= 0) return null;
-            if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
-
-            var sb = new StringBuilder();
-            for (Int32 i = 0; i < names.Length; i++)
-            {
-                FieldItem fi = Meta.Table.FindByName(names[i]);
-                if (fi == null) throw new ArgumentException("类[" + Meta.ThisType.FullName + "]中不存在[" + names[i] + "]属性");
-
-                // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
-                if (i > 0) sb.AppendFormat(" {0} ", action.Trim());
-                sb.Append(MakeCondition(fi, values[i], "="));
-            }
-            return sb.ToString();
-        }
-
-        /// <summary>构造条件</summary>
-        /// <param name="name">名称</param>
-        /// <param name="value">值</param>
-        /// <param name="action">大于小于等符号</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static String MakeCondition(String name, Object value, String action)
-        {
-            FieldItem field = Meta.Table.FindByName(name);
-            if (field == null) return String.Format("{0}{1}{2}", Meta.FormatName(name), action, Meta.FormatValue(name, value));
-
-            return MakeCondition(field, value, action);
-        }
-
-        /// <summary>构造条件</summary>
-        /// <param name="field">名称</param>
-        /// <param name="value">值</param>
-        /// <param name="action">大于小于等符号</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static String MakeCondition(FieldItem field, Object value, String action)
-        {
-            var columnName = Meta.FormatName(field.ColumnName);
-            if (String.IsNullOrEmpty(action) || !action.Contains("{0}")) return String.Format("{0}{1}{2}", columnName, action, Meta.FormatValue(field, value));
-
-            if (action.Contains("%"))
-                return columnName + " Like " + Meta.FormatValue(field, String.Format(action, value));
-            else
-                return columnName + String.Format(action, Meta.FormatValue(field, value));
-        }
-
         static SelectBuilder CreateBuilder(String whereClause, String orderClause, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
         {
             var builder = new SelectBuilder();

@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Data.Common;
-using NewLife.Reflection;
 using XCode.Cache;
 using XCode.Configuration;
-using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -231,105 +227,29 @@ namespace XCode
             /// <summary>导入</summary>
             /// <param name="xml"></param>
             /// <returns></returns>
-            //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
             public virtual IEntity FromXml(String xml) { return Entity<TEntity>.FromXml(xml); }
 
             /// <summary>导入</summary>
             /// <param name="json"></param>
             /// <returns></returns>
-            //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
             public virtual IEntity FromJson(String json) { return Entity<TEntity>.FromJson(json); }
-            #endregion
-
-            #region 数据库操作
-            ///// <summary>查询</summary>
-            ///// <param name="sql">SQL语句</param>
-            ///// <returns>结果记录集</returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //public virtual DataSet Query(String sql) { return Session.Query(sql); }
-
-            ///// <summary>查询记录数</summary>
-            ///// <param name="sql">SQL语句</param>
-            ///// <returns>记录数</returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //public virtual Int32 QueryCount(String sql)
-            //{
-            //    var sb = new SelectBuilder();
-            //    sb.Parse(sql);
-            //    return Session.QueryCount(sb);
-            //}
-
-            ///// <summary>执行</summary>
-            ///// <param name="sql">SQL语句</param>
-            ///// <returns>影响的结果</returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //public virtual Int32 Execute(String sql) { return Session.Execute(sql); }
-
-            ///// <summary>执行插入语句并返回新增行的自动编号</summary>
-            ///// <param name="sql">SQL语句</param>
-            ///// <returns>新增行的自动编号</returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //public virtual Int64 InsertAndGetIdentity(String sql) { return Session.InsertAndGetIdentity(sql); }
-
-            ///// <summary>执行</summary>
-            ///// <param name="sql">SQL语句</param>
-            ///// <param name="type">命令类型，默认SQL文本</param>
-            ///// <param name="ps">命令参数</param>
-            ///// <returns>影响的结果</returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //public virtual Int32 Execute(String sql, CommandType type, DbParameter[] ps) { return Session.Execute(sql, type, ps); }
-
-            ///// <summary>执行插入语句并返回新增行的自动编号</summary>
-            ///// <param name="sql">SQL语句</param>
-            ///// <param name="type">命令类型，默认SQL文本</param>
-            ///// <param name="ps">命令参数</param>
-            ///// <returns>新增行的自动编号</returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //public virtual Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps) { return Session.InsertAndGetIdentity(sql, type, ps); }
             #endregion
 
             #region 事务
             /// <summary>开始事务</summary>
             /// <returns></returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 BeginTransaction() { return Session.BeginTrans(); }
 
             /// <summary>提交事务</summary>
             /// <returns></returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 Commit() { return Session.Commit(); }
 
             /// <summary>回滚事务</summary>
             /// <returns></returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
             public virtual Int32 Rollback() { return Session.Rollback(); }
 
             /// <summary>创建事务</summary>
             public virtual EntityTransaction CreateTrans() { return new EntityTransaction<TEntity>(); }
-            #endregion
-
-            #region 参数化
-            ///// <summary>创建参数</summary>
-            ///// <returns></returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //public virtual DbParameter CreateParameter() { return Session.CreateParameter(); }
-
-            ///// <summary>格式化参数名</summary>
-            ///// <param name="name"></param>
-            ///// <returns></returns>
-            //[Obsolete("=>Session")]
-            //[EditorBrowsable(EditorBrowsableState.Never)]
-            //public virtual String FormatParameterName(String name) { return Session.FormatParameterName(name); }
             #endregion
 
             #region 辅助方法
@@ -352,30 +272,6 @@ namespace XCode
             /// <param name="value">数值</param>
             /// <returns></returns>
             public virtual String FormatValue(FieldItem field, Object value) { return Meta.FormatValue(field, value); }
-
-            /// <summary>
-            /// 根据属性列表和值列表，构造查询条件。
-            /// 例如构造多主键限制查询条件。
-            /// </summary>
-            /// <param name="names">属性列表</param>
-            /// <param name="values">值列表</param>
-            /// <param name="action">联合方式</param>
-            /// <returns>条件子串</returns>
-            public virtual String MakeCondition(String[] names, Object[] values, String action) { return Entity<TEntity>.MakeCondition(names, values, action); }
-
-            /// <summary>构造条件</summary>
-            /// <param name="name">名称</param>
-            /// <param name="value">值</param>
-            /// <param name="action">大于小于等符号</param>
-            /// <returns></returns>
-            public virtual String MakeCondition(String name, Object value, String action) { return Entity<TEntity>.MakeCondition(name, value, action); }
-
-            /// <summary>构造条件</summary>
-            /// <param name="field">名称</param>
-            /// <param name="value">值</param>
-            /// <param name="action">大于小于等符号</param>
-            /// <returns></returns>
-            public virtual String MakeCondition(FieldItem field, Object value, String action) { return Entity<TEntity>.MakeCondition(field, value, action); }
             #endregion
 
             #region 一些设置
@@ -384,9 +280,8 @@ namespace XCode
             /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
             public virtual Boolean AllowInsertIdentity { get { return _AllowInsertIdentity; } set { _AllowInsertIdentity = value; } }
 
-            private FieldItem _AutoSetGuidField;
             /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
-            public virtual FieldItem AutoSetGuidField { get { return _AutoSetGuidField; } set { _AutoSetGuidField = value; } }
+            public virtual FieldItem AutoSetGuidField { get; set; }
 
             [NonSerialized]
             private ICollection<String> _AdditionalFields;

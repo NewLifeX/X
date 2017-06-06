@@ -170,100 +170,29 @@ namespace XCode
         /// <summary>导入</summary>
         /// <param name="xml"></param>
         /// <returns></returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         IEntity FromXml(String xml);
 
         /// <summary>导入</summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！请使用实体访问器IEntityAccessor替代！")]
         IEntity FromJson(String json);
-        #endregion
-
-        #region 数据库操作
-        ///// <summary>查询</summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <returns>结果记录集</returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //DataSet Query(String sql);
-
-        ///// <summary>查询记录数</summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <returns>记录数</returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //Int32 QueryCount(String sql);
-
-        ///// <summary>执行</summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <returns>影响的结果</returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //Int32 Execute(String sql);
-
-        ///// <summary>执行插入语句并返回新增行的自动编号</summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <returns>新增行的自动编号</returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //Int64 InsertAndGetIdentity(String sql);
-
-        ///// <summary>执行</summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <param name="type">命令类型，默认SQL文本</param>
-        ///// <param name="ps">命令参数</param>
-        ///// <returns>影响的结果</returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
-
-        ///// <summary>执行插入语句并返回新增行的自动编号</summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <param name="type">命令类型，默认SQL文本</param>
-        ///// <param name="ps">命令参数</param>
-        ///// <returns>新增行的自动编号</returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
         #endregion
 
         #region 事务
         /// <summary>开始事务</summary>
         /// <returns></returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
         Int32 BeginTransaction();
 
         /// <summary>提交事务</summary>
         /// <returns></returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
         Int32 Commit();
 
         /// <summary>回滚事务</summary>
         /// <returns></returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
         Int32 Rollback();
 
         /// <summary>创建事务</summary>
         EntityTransaction CreateTrans();
-        #endregion
-
-        #region 参数化
-        ///// <summary>创建参数</summary>
-        ///// <returns></returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //DbParameter CreateParameter();
-
-        ///// <summary>格式化参数名</summary>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //[Obsolete("=>Session")]
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //String FormatParameterName(String name);
         #endregion
 
         #region 辅助方法
@@ -286,30 +215,6 @@ namespace XCode
         /// <param name="value">数值</param>
         /// <returns></returns>
         String FormatValue(FieldItem field, Object value);
-
-        /// <summary>
-        /// 根据属性列表和值列表，构造查询条件。
-        /// 例如构造多主键限制查询条件。
-        /// </summary>
-        /// <param name="names">属性列表</param>
-        /// <param name="values">值列表</param>
-        /// <param name="action">联合方式</param>
-        /// <returns>条件子串</returns>
-        String MakeCondition(String[] names, Object[] values, String action);
-
-        /// <summary>构造条件</summary>
-        /// <param name="name">名称</param>
-        /// <param name="value">值</param>
-        /// <param name="action">大于小于等符号</param>
-        /// <returns></returns>
-        String MakeCondition(String name, Object value, String action);
-
-        /// <summary>构造条件</summary>
-        /// <param name="field">名称</param>
-        /// <param name="value">值</param>
-        /// <param name="action">大于小于等符号</param>
-        /// <returns></returns>
-        String MakeCondition(FieldItem field, Object value, String action);
         #endregion
 
         #region 一些设置
