@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using XCode.Cache;
@@ -75,7 +74,7 @@ namespace XCode
         /// <summary>查询</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>结果记录集</returns>
-        //[Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
+        [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
         DataSet Query(String sql);
 
         /// <summary>查询记录数</summary>
@@ -93,16 +92,6 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
         SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows);
-
-        /// <summary>执行</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>影响的结果</returns>
-        Int32 Execute(String sql);
-
-        /// <summary>执行插入语句并返回新增行的自动编号</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>新增行的自动编号</returns>
-        Int64 InsertAndGetIdentity(String sql);
 
         /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>

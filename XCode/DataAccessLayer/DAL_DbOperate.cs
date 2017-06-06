@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
 using System.Threading;
 
 namespace XCode.DataAccessLayer
@@ -117,28 +116,6 @@ namespace XCode.DataAccessLayer
             Interlocked.Increment(ref _ExecuteTimes);
 
             return Session.InsertAndGetIdentity(sql, type, ps);
-        }
-
-        /// <summary>执行CMD，返回记录集</summary>
-        /// <param name="cmd">CMD</param>
-        /// <returns></returns>
-        public DataSet Select(DbCommand cmd)
-        {
-            CheckBeforeUseDatabase();
-
-            Interlocked.Increment(ref _QueryTimes);
-            return Session.Query(cmd);
-        }
-
-        /// <summary>执行CMD，返回受影响的行数</summary>
-        /// <param name="cmd"></param>
-        /// <returns></returns>
-        public Int32 Execute(DbCommand cmd)
-        {
-            CheckBeforeUseDatabase();
-
-            Interlocked.Increment(ref _ExecuteTimes);
-            return Session.Execute(cmd);
         }
         #endregion
 

@@ -549,7 +549,7 @@ namespace XCode
         /// <summary>查询</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns>结果记录集</returns>
-        //[Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
+        [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
         public virtual DataSet Query(String sql)
         {
             InitData();
@@ -579,31 +579,6 @@ namespace XCode
         public virtual SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
         {
             return Dal.PageSplit(builder, startRowIndex, maximumRows);
-        }
-
-        /// <summary>执行</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>影响的结果</returns>
-        public Int32 Execute(String sql)
-        {
-            InitData();
-
-            var rs = Dal.Execute(sql);
-            DataChange("Execute");
-
-            return rs;
-        }
-
-        /// <summary>执行插入语句并返回新增行的自动编号</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>新增行的自动编号</returns>
-        public Int64 InsertAndGetIdentity(String sql)
-        {
-            InitData();
-
-            Int64 rs = Dal.InsertAndGetIdentity(sql);
-            DataChange("InsertAndGetIdentity");
-            return rs;
         }
 
         /// <summary>执行</summary>

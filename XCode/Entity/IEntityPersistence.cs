@@ -171,9 +171,9 @@ namespace XCode
             var bAllow = op.AllowInsertIdentity;
             if (field != null && field.IsIdentity && !bAllow)
             {
-                var res = dps != null && dps.Length > 0 ? session.InsertAndGetIdentity(sql, CommandType.Text, dps) : session.InsertAndGetIdentity(sql);
-                if (res > 0) entity[field.Name] = res;
-                rs = res > 0 ? 1 : 0;
+                var id = session.InsertAndGetIdentity(sql, CommandType.Text, dps);
+                if (id > 0) entity[field.Name] = id;
+                rs = id > 0 ? 1 : 0;
             }
             else
             {
@@ -187,7 +187,7 @@ namespace XCode
                         if (bAllow) sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, op.FormatedTableName);
                     }
                 }
-                rs = dps != null && dps.Length > 0 ? session.Execute(sql, CommandType.Text, dps) : session.Execute(sql);
+                rs = session.Execute(sql, CommandType.Text, dps);
             }
 
             // 清除脏数据，避免连续两次调用Save造成重复提交
@@ -228,7 +228,7 @@ namespace XCode
 
             var op = EntityFactory.CreateOperate(entity.GetType());
             var session = op.Session;
-            var rs = dps != null && dps.Length > 0 ? session.Execute(sql, CommandType.Text, dps) : session.Execute(sql);
+            var rs = session.Execute(sql, CommandType.Text, dps);
 
             //清除脏数据，避免重复提交
             ds.Clear();
