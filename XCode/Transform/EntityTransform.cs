@@ -133,7 +133,7 @@ namespace XCode.Transform
                 if (isDesc != null)
                 {
                     var fi = eop.Unique;
-                    if (fi != null) order = (isDesc.Value ? fi.Desc() : fi.Asc()).GetString();
+                    if (fi != null) order = isDesc.Value ? fi.Desc() : fi.Asc();
                 }
                 getData = (start, max) => eop.FindAll("", order, null, start, max);
             }

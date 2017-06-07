@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace XCode
@@ -42,8 +43,9 @@ namespace XCode
         internal protected static Regex _regOr = new Regex(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>获取表达式的文本表示</summary>
         /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
+        /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public virtual String GetString(Boolean needBracket = false)
+        public virtual String GetString(Boolean needBracket, IDictionary<String, Object> ps)
         {
             if (Text.IsNullOrWhiteSpace()) return Text;
 
@@ -59,13 +61,13 @@ namespace XCode
         {
             if (this.GetType() == typeof(Expression)) return Text;
 
-            return GetString();
+            return GetString(false, null);
         }
 
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(Expression obj) { return obj?.GetString(); }
+        public static implicit operator String(Expression obj) { return obj?.GetString(false, null); }
         #endregion
 
         #region 重载运算符

@@ -93,7 +93,7 @@ namespace XCode.Membership
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> Search(String key, Int32 adminid, String category, DateTime start, DateTime end, String order, Int32 startRowIndex, Int32 maximumRows)
         {
-            if (String.IsNullOrEmpty(order)) order = _.ID.Desc().GetString();
+            if (String.IsNullOrEmpty(order)) order = _.ID.Desc();
             return FindAll(SearchWhere(key, adminid, category, start, end), order, null, startRowIndex, maximumRows);
         }
 

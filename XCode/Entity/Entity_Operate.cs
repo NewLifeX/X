@@ -166,7 +166,7 @@ namespace XCode
             /// <summary>根据条件查找单个实体</summary>
             /// <param name="where"></param>
             /// <returns></returns>
-            public virtual IEntity Find(WhereExpression where) { return Entity<TEntity>.Find(where); }
+            public virtual IEntity Find(Expression where) { return Entity<TEntity>.Find(where); }
 
             /// <summary>根据主键查找单个实体</summary>
             /// <param name="key"></param>
@@ -207,7 +207,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IEntityList FindAll(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+            public virtual IEntityList FindAll(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
             {
                 return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows);
             }
@@ -243,7 +243,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>总行数</returns>
-            public virtual Int32 FindCount(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+            public virtual Int32 FindCount(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
             {
                 return Entity<TEntity>.FindCount(where, order, selects, startRowIndex, maximumRows);
             }

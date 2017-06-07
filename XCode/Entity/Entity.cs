@@ -537,19 +537,26 @@ namespace XCode
         /// </remarks>
         /// <param name="where">查询条件</param>
         /// <returns></returns>
-        static TEntity FindUnique(WhereExpression where)
+        static TEntity FindUnique(Expression where)
         {
             var session = Meta.Session;
+            var ps = new Dictionary<String, Object>();
+            var wh = where.GetString(false, ps);
+
             var builder = new SelectBuilder();
             builder.Table = session.FormatedTableName;
             // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
-            builder.Where = where?.GetString();
+            builder.Where = wh;
+
+            // 提取参数
+            builder = FixParam(builder, ps);
+
             var list = LoadData(session.Query(builder, 0, 0));
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
             {
-                DAL.WriteLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", where);
+                DAL.WriteLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", wh);
                 XTrace.DebugStack(5);
             }
             return list[0];
@@ -559,7 +566,7 @@ namespace XCode
         /// <param name="where">查询条件</param>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static TEntity Find(WhereExpression where)
+        public static TEntity Find(Expression where)
         {
             var list = FindAll(where, null, null, 0, 1);
             return list.Count < 1 ? null : list[0];
@@ -771,7 +778,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAll(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> FindAll(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
             var session = Meta.Session;
 
@@ -786,7 +793,7 @@ namespace XCode
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
                 // 计算本次查询的结果行数
-                if (!String.IsNullOrEmpty(where?.GetString())) count = FindCount(where, order, selects, startRowIndex, maximumRows);
+                if (!String.IsNullOrEmpty(where?.GetString(false, null))) count = FindCount(where, order, selects, startRowIndex, maximumRows);
                 // 游标在中间偏后
                 if (startRowIndex * 2 > count)
                 {
@@ -871,7 +878,7 @@ namespace XCode
         /// <param name="where">条件，不带Where</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(WhereExpression where, PageParameter param)
+        public static EntityList<TEntity> FindAll(Expression where, PageParameter param)
         {
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
             param.TotalCount = FindCount(where, null, null, 0, 0);
@@ -931,22 +938,26 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
-        public static Int32 FindCount(WhereExpression where, String order = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
+        public static Int32 FindCount(Expression where, String order = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var session = Meta.Session;
-            var wh = where?.GetString();
+            var ps = new Dictionary<String, Object>();
+            var wh = where.GetString(false, ps);
 
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
             if (String.IsNullOrEmpty(wh) && session.Count > 10000) return session.Count;
 
-            var sb = new SelectBuilder();
-            sb.Table = session.FormatedTableName;
-            sb.Where = wh;
+            var builder = new SelectBuilder();
+            builder.Table = session.FormatedTableName;
+            builder.Where = wh;
+
+            // 提取参数
+            builder = FixParam(builder, ps);
 
             // MSSQL分组查分组数的时候，必须带上全部selects字段
-            if (session.Dal.DbType == DatabaseType.SqlServer && !sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
+            if (session.Dal.DbType == DatabaseType.SqlServer && !builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
 
-            return session.QueryCount(sb);
+            return session.QueryCount(builder);
         }
         #endregion
 
@@ -1083,12 +1094,13 @@ namespace XCode
         #endregion
 
         #region 构造SQL语句
-        static SelectBuilder CreateBuilder(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
+        static SelectBuilder CreateBuilder(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
         {
-            var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows, needOrderByID);
+            var ps = new Dictionary<String, Object>();
+            var wh = where.GetString(false, ps);
+            var builder = CreateBuilder(wh, order, selects, startRowIndex, maximumRows, needOrderByID);
 
-            // 提取参数
-            //builder.Parameters.Add();
+            builder = FixParam(builder, ps);
 
             return builder;
         }
@@ -1133,6 +1145,25 @@ namespace XCode
                 // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
                 if (String.IsNullOrEmpty(builder.OrderBy)) builder.Keys = Meta.FieldNames.ToArray();
             }
+            return builder;
+        }
+
+        static SelectBuilder FixParam(SelectBuilder builder, IDictionary<String, Object> ps)
+        {
+            // 提取参数
+            if (ps != null)
+            {
+                foreach (var item in ps)
+                {
+                    var dp = Meta.Session.CreateParameter();
+                    dp.ParameterName = item.Key;
+                    dp.Value = item.Value;
+                    //dp.IsNullable = fi.IsNullable;
+
+                    builder.Parameters.Add(dp);
+                }
+            }
+
             return builder;
         }
         #endregion

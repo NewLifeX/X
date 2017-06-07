@@ -81,8 +81,9 @@ namespace XCode
 
         /// <summary>输出条件表达式的字符串表示，遍历表达式集合并拼接起来</summary>
         /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
+        /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override String GetString(Boolean needBracket = false)
+        public override String GetString(Boolean needBracket, IDictionary<String, Object> ps)
         {
             var exps = Exps;
             if (exps.Count == 0) return null;
@@ -132,7 +133,7 @@ namespace XCode
                 //exp.Strict = Strict;
 
                 // 里面是Or的时候，外面前后任意一个And，需要括号
-                var str = exp.GetString(item.IsAnd || i < list.Count - 1 && list[i + 1].IsAnd);
+                var str = exp.GetString(item.IsAnd || i < list.Count - 1 && list[i + 1].IsAnd, ps);
                 // 跳过没有返回的表达式
                 if (str.IsNullOrWhiteSpace()) continue;
 
@@ -169,7 +170,7 @@ namespace XCode
         /// <returns>返回条件语句加上分组语句</returns>
         public String GroupBy(params String[] names)
         {
-            var where = GetString(false);
+            var where = GetString(false, null);
             var sb = new StringBuilder();
             foreach (var item in names)
             {

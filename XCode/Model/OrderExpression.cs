@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace XCode
@@ -36,7 +37,7 @@ namespace XCode
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String GetString(Boolean needBracket = false)
+        public override String GetString(Boolean needBracket, IDictionary<String, Object> ps)
         {
             if (Builder == null || Builder.Length <= 0) return null;
 
@@ -46,7 +47,7 @@ namespace XCode
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(OrderExpression obj) { return obj?.GetString(); }
+        public static implicit operator String(OrderExpression obj) { return obj?.GetString(false, null); }
         #endregion
 
         #region 重载运算符

@@ -114,7 +114,7 @@ namespace XCode
         /// <summary>根据条件查找单个实体</summary>
         /// <param name="where"></param>
         /// <returns></returns>
-        IEntity Find(WhereExpression where);
+        IEntity Find(Expression where);
 
         /// <summary>根据主键查找单个实体</summary>
         /// <param name="key"></param>
@@ -154,7 +154,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
-        IEntityList FindAll(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
+        IEntityList FindAll(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 缓存查询
@@ -184,7 +184,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
-        Int32 FindCount(WhereExpression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
+        Int32 FindCount(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 导入导出XML/Json

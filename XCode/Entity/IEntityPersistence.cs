@@ -175,10 +175,10 @@ namespace XCode
         /// <returns>SQL字符串</returns>
         String SQL(IEntity entity, DataObjectMethodType methodType, ref DbParameter[] parameters)
         {
-            var op = EntityFactory.CreateOperate(entity.GetType());
-            var formatedTalbeName = op.FormatedTableName;
+            //var op = EntityFactory.CreateOperate(entity.GetType());
+            //var formatedTalbeName = op.FormatedTableName;
 
-            String sql;
+            //String sql;
 
             switch (methodType)
             {
@@ -194,10 +194,7 @@ namespace XCode
                 case DataObjectMethodType.Update:
                     return UpdateSQL(entity, ref parameters);
                 case DataObjectMethodType.Delete:
-                    // 标识列作为删除关键字
-                    sql = DefaultCondition(entity)?.GetString();
-                    if (String.IsNullOrEmpty(sql)) return null;
-                    return String.Format("Delete From {0} Where {1}", formatedTalbeName, sql);
+                    return DeleteSQL(entity, ref parameters);
             }
             return null;
         }
@@ -321,6 +318,35 @@ namespace XCode
 
             if (dps.Count > 0) parameters = dps.ToArray();
             return String.Format("Update {0} Set {1} Where {2}", op.FormatedTableName, sb, def);
+        }
+
+        static String DeleteSQL(IEntity entity, ref DbParameter[] parameters)
+        {
+            // 标识列作为删除关键字
+            var exp = DefaultCondition(entity);
+            var ps = new Dictionary<String, Object>();
+            var sql = exp?.GetString(false, ps);
+            if (String.IsNullOrEmpty(sql)) return null;
+
+            var op = EntityFactory.CreateOperate(entity.GetType());
+            if (ps.Count > 0)
+            {
+                var session = op.Session;
+                var dps = new List<DbParameter>();
+                foreach (var item in ps)
+                {
+                    var dp = session.CreateParameter();
+                    dp.ParameterName = item.Key;
+                    dp.Value = item.Value;
+                    //dp.IsNullable = fi.IsNullable;
+
+                    dps.Add(dp);
+                }
+                parameters = dps.ToArray();
+            }
+
+            var formatedTalbeName = op.FormatedTableName;
+            return String.Format("Delete From {0} Where {1}", formatedTalbeName, sql);
         }
 
         static Boolean UseParam(FieldItem fi, Object value)
@@ -454,7 +480,7 @@ namespace XCode
                 //sb.Append("=");
                 //sb.Append(op.FormatValue(item, entity[item.Name]));
 
-                exp &= (item as Field) == op.FormatValue(item, entity[item.Name]);
+                exp &= (item as Field) == entity[item.Name];
             }
             //return sb.ToString();
             return exp;

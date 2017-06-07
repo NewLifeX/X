@@ -52,7 +52,10 @@ namespace XCode.DataAccessLayer
             builder = PageSplit(builder, startRowIndex, maximumRows);
             if (builder == null) return null;
 
-            return Select(builder.ToString());
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _QueryTimes);
+            return Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray());
         }
 
         /// <summary>执行SQL查询，返回总记录数</summary>

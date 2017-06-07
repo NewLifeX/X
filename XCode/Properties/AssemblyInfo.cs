@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("新生命数据映射框架")]
-[assembly: AssemblyDescription("包括并大于Orm的数据映射框架")]
+[assembly: AssemblyDescription("分布式大数据中间件")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]
 [assembly: AssemblyCompany("新生命开发团队")]
@@ -34,8 +34,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.4.*")]
-[assembly: AssemblyFileVersion("9.4.2017.0526")]
+[assembly: AssemblyVersion("9.5.*")]
+[assembly: AssemblyFileVersion("9.5.2017.0607")]
 
 /*
  * XCode的重大改进
@@ -53,6 +53,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v9.5.2017.0607   全面支持参数化添删改查
+ * 
  * v9.4.2017.0207   废弃单对象缓存的自动保存
  *                  异步保存SaveAsync支持指定延迟时间
  * 

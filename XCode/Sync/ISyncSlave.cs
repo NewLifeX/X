@@ -173,7 +173,7 @@ namespace XCode.Sync
             return GetAll(LastSyncField < now, start, max);
         }
 
-        ISyncSlaveEntity[] GetAll(WhereExpression where, Int32 start, Int32 max)
+        ISyncSlaveEntity[] GetAll(Expression where, Int32 start, Int32 max)
         {
             var list = Factory.FindAll(where, null, null, start, max);
             if (list == null || list.Count < 1) return null;

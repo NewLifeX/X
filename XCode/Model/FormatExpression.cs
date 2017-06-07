@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using XCode.Configuration;
 
 namespace XCode
@@ -31,12 +32,24 @@ namespace XCode
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
         /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
+        /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override String GetString(Boolean needBracket)
+        public override String GetString(Boolean needBracket, IDictionary<String, Object> ps)
         {
             if (Field == null || Format.IsNullOrWhiteSpace()) return null;
 
-            return String.Format(Format, Field.FormatedName, Text);
+            if (ps == null) return String.Format(Format, Field.FormatedName, Text);
+
+            // 参数化处理
+            var name = Field.Name;
+            var i = 2;
+            while (ps.ContainsKey(name)) name = Field.Name + i++;
+
+            // 数值留给字典
+            ps[name] = Text;
+
+            var op = Field.Factory;
+            return String.Format(Format, Field.FormatedName, op.Session.FormatParameterName(name));
         }
         #endregion
     }
