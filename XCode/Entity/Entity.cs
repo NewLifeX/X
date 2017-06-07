@@ -378,116 +378,6 @@ namespace XCode
         }
         #endregion
 
-        #region 批量操作
-        /// <summary>根据条件删除实体记录，此操作跨越缓存，使用事务保护
-        /// <para>如果删除操作不带业务，可直接使用静态方法 Delete(String where)</para>
-        /// </summary>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="batchSize">每次删除记录数</param>
-        public static void DeleteAll(String where, Int32 batchSize = 500)
-        {
-            using (var trans = new EntityTransaction<TEntity>())
-            {
-                var count = FindCount(where, null, null, 0, 0);
-                var index = count - batchSize;
-                while (true)
-                {
-                    index = Math.Max(0, index);
-
-                    var size = Math.Min(batchSize, count - index);
-
-                    var list = FindAll(where, null, null, index, size);
-                    if (list == null || list.Count < 1) break;
-
-                    if (index <= 0)
-                    {
-                        list.Delete(true);
-                        break;
-                    }
-                    else
-                    {
-                        index -= list.Count;
-                        count -= list.Count;
-                        list.Delete(true);
-                    }
-                }
-
-                trans.Commit();
-            }
-        }
-
-        /// <summary>批量处理实体记录，此操作跨越缓存</summary>
-        /// <param name="action">处理实体记录集方法</param>
-        /// <param name="useTransition">是否使用事务保护</param>
-        /// <param name="batchSize">每次处理记录数</param>
-        /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        public static void ProcessAll(Action<EntityList<TEntity>> action, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
-        {
-            ProcessAll(action, null, null, null, useTransition, batchSize);
-        }
-
-        /// <summary>批量处理实体记录，此操作跨越缓存</summary>
-        /// <param name="action">处理实体记录集方法</param>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="useTransition">是否使用事务保护</param>
-        /// <param name="batchSize">每次处理记录数</param>
-        /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        public static void ProcessAll(Action<EntityList<TEntity>> action, String where, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
-        {
-            ProcessAll(action, where, null, null, useTransition, batchSize);
-        }
-
-        /// <summary>批量处理实体记录，此操作跨越缓存</summary>
-        /// <param name="action">处理实体记录集方法</param>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
-        /// <param name="useTransition">是否使用事务保护</param>
-        /// <param name="batchSize">每次处理记录数</param>
-        /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        public static void ProcessAll(Action<EntityList<TEntity>> action, String where, String order, String selects, Boolean useTransition = true, Int32 batchSize = 500, Int32 maxCount = 0)
-        {
-            if (useTransition)
-            {
-                using (var trans = new EntityTransaction<TEntity>())
-                {
-                    DoAction(action, where, order, selects, batchSize, maxCount);
-
-                    trans.Commit();
-                }
-            }
-            else
-            {
-                DoAction(action, where, order, selects, batchSize, maxCount);
-            }
-        }
-
-        private static void DoAction(Action<EntityList<TEntity>> action, String where, String order, String selects, Int32 batchSize, Int32 maxCount)
-        {
-            var count = FindCount(where, order, selects, 0, 0);
-            var total = maxCount <= 0 ? count : Math.Min(maxCount, count);
-            var index = 0;
-            while (true)
-            {
-                var size = Math.Min(batchSize, total - index);
-                if (size <= 0)
-                {
-                    break;
-                }
-
-                var list = FindAll(where, order, selects, index, size);
-                if ((list == null) || (list.Count < 1))
-                {
-                    break;
-                }
-                index += list.Count;
-
-                action(list);
-            }
-        }
-
-        #endregion
-
         #region 查找单个实体
         /// <summary>根据属性以及对应的值，查找单个实体</summary>
         /// <param name="name">属性名称</param>
@@ -635,7 +525,7 @@ namespace XCode
         /// <param name="field">指定字段</param>
         /// <param name="where">条件字句</param>
         /// <returns></returns>
-        public static Int32 FindMin(String field, String where = null)
+        public static Int32 FindMin(String field, Expression where = null)
         {
             var fd = Meta.Table.FindByName(field);
             var list = FindAll(where, fd, null, 0, 1);
@@ -646,7 +536,7 @@ namespace XCode
         /// <param name="field">指定字段</param>
         /// <param name="where">条件字句</param>
         /// <returns></returns>
-        public static Int32 FindMax(String field, String where = null)
+        public static Int32 FindMax(String field, Expression where = null)
         {
             var fd = Meta.Table.FindByName(field);
             var list = FindAll(where, fd.Desc(), null, 0, 1);
@@ -657,8 +547,13 @@ namespace XCode
         #region 静态查询
         /// <summary>获取所有数据。获取大量数据时会非常慢，慎用。没有数据时返回空集合而不是null</summary>
         /// <returns>实体数组</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll() { return FindAll("", null, null, 0, 0); }
+
+        /// <summary>根据名称获取数据集。没有数据时返回空集合而不是null</summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(Meta.Table.FindByName(name) == value); }
 
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
         /// <remarks>
@@ -670,98 +565,9 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
             var session = Meta.Session;
-
-            #region 海量数据查询优化
-            // 海量数据尾页查询优化
-            // 在海量数据分页中，取越是后面页的数据越慢，可以考虑倒序的方式
-            // 只有在百万数据，且开始行大于五十万时才使用
-
-            // 如下优化，避免了每次都调用Meta.Count而导致形成一次查询，虽然这次查询时间损耗不大
-            // 但是绝大多数查询，都不需要进行类似的海量数据优化，显然，这个startRowIndex将会挡住99%以上的浪费
-            Int64 count = 0;
-            if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
-            {
-                // 计算本次查询的结果行数
-                if (!String.IsNullOrEmpty(where)) count = FindCount(where, order, selects, startRowIndex, maximumRows);
-                // 游标在中间偏后
-                if (startRowIndex * 2 > count)
-                {
-                    var order2 = order;
-                    Boolean bk = false; // 是否跳过
-
-                    #region 排序倒序
-                    // 默认是自增字段的降序
-                    FieldItem fi = Meta.Unique;
-                    if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
-
-                    if (!String.IsNullOrEmpty(order2))
-                    {
-                        //2014-01-05 Modify by Apex
-                        //处理order by带有函数的情况，避免分隔时将函数拆分导致错误
-                        foreach (Match match in Regex.Matches(order2, @"\([^\)]*\)", RegexOptions.Singleline))
-                        {
-                            order2 = order2.Replace(match.Value, match.Value.Replace(",", "★"));
-                        }
-                        var ss = order2.Split(',');
-                        var sb = new StringBuilder();
-                        foreach (String item in ss)
-                        {
-                            String fn = item;
-                            String od = "asc";
-
-                            Int32 p = fn.LastIndexOf(" ");
-                            if (p > 0)
-                            {
-                                od = item.Substring(p).Trim().ToLower();
-                                fn = item.Substring(0, p).Trim();
-                            }
-
-                            switch (od)
-                            {
-                                case "asc":
-                                    od = "desc";
-                                    break;
-                                case "desc":
-                                    //od = "asc";
-                                    od = null;
-                                    break;
-                                default:
-                                    bk = true;
-                                    break;
-                            }
-                            if (bk) break;
-
-                            if (sb.Length > 0) sb.Append(", ");
-                            sb.AppendFormat("{0} {1}", fn, od);
-                        }
-
-                        order2 = sb.ToString().Replace("★", ",");
-                    }
-                    #endregion
-
-                    // 没有排序的实在不适合这种办法，因为没办法倒序
-                    if (!String.IsNullOrEmpty(order2))
-                    {
-                        // 最大可用行数改为实际最大可用行数
-                        var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
-                        //if (max <= 0) return null;
-                        if (max <= 0) return new EntityList<TEntity>();
-                        var start = (Int32)(count - (startRowIndex + maximumRows));
-
-                        var builder2 = CreateBuilder(where, order2, selects, start, max);
-                        var list = LoadData(session.Query(builder2, start, max));
-                        if (list == null || list.Count < 1) return list;
-                        // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
-                        list.Reverse();
-                        return list;
-                    }
-                }
-            }
-            #endregion
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
             return LoadData(session.Query(builder, startRowIndex, maximumRows));
@@ -777,7 +583,6 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static EntityList<TEntity> FindAll(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
         {
             var session = Meta.Session;
@@ -878,8 +683,10 @@ namespace XCode
         /// <param name="where">条件，不带Where</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(Expression where, PageParameter param)
+        public static EntityList<TEntity> FindAll(Expression where, PageParameter param = null)
         {
+            if (param == null) return FindAll("", null, null, 0, 0);
+
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
             param.TotalCount = FindCount(where, null, null, 0, 0);
             if (param.TotalCount <= 0) return new EntityList<TEntity>();

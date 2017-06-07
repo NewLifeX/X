@@ -70,40 +70,6 @@ namespace XCode
         IEntityList LoadData(DataSet ds);
         #endregion
 
-        #region 批量操作
-
-        /// <summary>根据条件删除实体记录，此操作跨越缓存，使用事务保护</summary>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="batchSize">每次删除记录数</param>
-        void DeleteAll(String where, Int32 batchSize);
-
-        /// <summary>批量处理实体记录，此操作跨越缓存</summary>
-        /// <param name="action">处理实体记录集方法</param>
-        /// <param name="useTransition">是否使用事务保护</param>
-        /// <param name="batchSize">每次处理记录数</param>
-        /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        void ProcessAll(Action<IEntityList> action, Boolean useTransition, Int32 batchSize, Int32 maxCount);
-
-        /// <summary>批量处理实体记录，此操作跨越缓存</summary>
-        /// <param name="action">处理实体记录集方法</param>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="useTransition">是否使用事务保护</param>
-        /// <param name="batchSize">每次处理记录数</param>
-        /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        void ProcessAll(Action<IEntityList> action, String where, Boolean useTransition, Int32 batchSize, Int32 maxCount);
-
-        /// <summary>批量处理实体记录，此操作跨越缓存，使用事务保护</summary>
-        /// <param name="action">实体记录操作方法</param>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
-        /// <param name="useTransition">是否使用事务保护</param>
-        /// <param name="batchSize">每次处理记录数</param>
-        /// <param name="maxCount">处理最大记录数，默认0，处理所有行</param>
-        void ProcessAll(Action<IEntityList> action, String where, String order, String selects, Boolean useTransition, Int32 batchSize, Int32 maxCount);
-
-        #endregion
-
         #region 查找单个实体
         /// <summary>根据属性以及对应的值，查找单个实体</summary>
         /// <param name="name">名称</param>
