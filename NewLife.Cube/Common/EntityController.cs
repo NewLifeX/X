@@ -376,71 +376,71 @@ namespace NewLife.Cube
                 list.Add(fi);
             }
 
-            var ms = new MemoryStream();
-
-            OnExportExcel(ms, list);
-
-            ms.Position = 0;
-
+            var html = OnExportExcel(list);
             var name = GetType().GetDisplayName() ?? Factory.EntityType.GetDisplayName() ?? Factory.EntityType.Name;
-            //name = HttpUtility.UrlEncode(name, Encoding.UTF8);
 
-            return File(ms, "application/ms-excel", name + ".csv");
+            ToExcel( "application/ms-excel", "{0}_{1}.xls".F(name, DateTime.Now.ToString("yyyyMMddHHmmss")), html);
+
+            return null;
+        }
+
+        private  void ToExcel(string FileType, string FileName, string ExcelContent)
+        {
+            System.Web.HttpContext.Current.Response.Charset = "UTF-8";
+            System.Web.HttpContext.Current.Response.ContentEncoding = System.Text.Encoding.UTF8;
+            System.Web.HttpContext.Current.Response.AppendHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(FileName, System.Text.Encoding.UTF8).ToString());
+            System.Web.HttpContext.Current.Response.ContentType = FileType;
+            System.IO.StringWriter tw = new System.IO.StringWriter();
+            System.Web.HttpContext.Current.Response.Output.Write(ExcelContent.ToString());
+            System.Web.HttpContext.Current.Response.Flush();
+            System.Web.HttpContext.Current.Response.End();
         }
 
         /// <summary>导出Excel，可重载修改要输出的结果集</summary>
         /// <param name="ms"></param>
         /// <param name="fs"></param>
-        protected virtual void OnExportExcel(Stream ms, List<FieldItem> fs)
+        protected virtual String OnExportExcel(List<FieldItem> fs)
         {
             var list = Entity<TEntity>.FindAll();
 
-            OnExportExcel(ms, fs, list);
+            return OnExportExcel(fs, list);
         }
 
         /// <summary>导出Excel，可重载修改要输出的列</summary>
         /// <param name="ms"></param>
         /// <param name="fs"></param>
         /// <param name="list"></param>
-        protected virtual void OnExportExcel(Stream ms, List<FieldItem> fs, List<TEntity> list)
+        protected virtual String OnExportExcel(List<FieldItem> fs, List<TEntity> list)
         {
+            var sHtml = new StringBuilder();
+            //下面这句解决中文乱码
+            sHtml.Append("<meta http-equiv='content-type' content='application/ms-excel; charset=utf-8'/>");
+            //打印表头
+            sHtml.Append("<table border='1' width='100%'>");
             // 列头
             {
-                var sb = new StringBuilder();
+                sHtml.Append("<tr>");
                 foreach (var fi in fs)
                 {
-                    if (sb.Length > 0) sb.Append(",");
-                    sb.Append(fi.Name);
+                    sHtml.Append(string.Format("<td>{0}</td>", fi.Description));
                 }
-                sb.AppendLine();
-                ms.Write(sb.ToString().GetBytes());
+                sHtml.Append("</tr>");
             }
             // 内容
             foreach (var item in list)
             {
-                var sb = new StringBuilder();
-                var f = true;
+                sHtml.Append("<tr>");
                 foreach (var fi in fs)
                 {
-                    //if (sb.Length > 0) sb.Append(",");
-                    // 注意第一个字段的值可能为空，那样导致逗号不匹配
-                    if (f)
-                        f = false;
-                    else
-                        sb.Append(",");
-
-                    var v = "{0}".F(item[fi.Name]);
-
-                    // 列内容如存在半角引号（即"）则应替换成半角双引号（""）转义，并用半角引号（即""）将该字段值包含起来
-                    if (v.Contains("\"")) v = "\"" + v.Replace("\"", "\"\"") + "\"";
-                    // 列内容如存在半角逗号（即,）则用半角双引号（即""）将该字段值包含起来
-                    if (v.Contains(",")) v = "\"" + v + "\"";
-
-                    sb.Append(v);
+                    sHtml.Append(string.Format("<td>{0}</td>", "{0}".F(item[fi.Name])));
                 }
-                sb.AppendLine();
-                ms.Write(sb.ToString().GetBytes());
+                sHtml.Append("</tr>");
             }
+
+            //打印表尾
+            sHtml.Append("</table>");
+
+            return sHtml.ToString();
         }
 
         /// <summary>清空全表数据</summary>
