@@ -37,7 +37,7 @@ namespace NewLife.Data
         /// <param name="numbers"></param>
         /// <param name="operators"></param>
         /// <returns></returns>
-        static Expression Build(Node node, Double[] numbers, List<Func<Expression, Expression, BinaryExpression>> operators)
+        static Expression Build(Node node, Double[] numbers, List<Func<Expression, Expression, Expression>> operators)
         {
             var iNum = 0;
             var iOprt = 0;
@@ -89,23 +89,24 @@ namespace NewLife.Data
 
         /// <summary>从4种运算符中挑选3个运算符</summary>
         /// <param name="operators"></param>
+        /// <param name="count"></param>
         /// <returns></returns>
-        static IEnumerable<IEnumerable<Func<Expression, Expression, BinaryExpression>>> OperatorPermute3(List<Func<Expression, Expression, BinaryExpression>> operators)
+        static IEnumerable<IEnumerable<Func<Expression, Expression, Expression>>> OperatorPermute(List<Func<Expression, Expression, Expression>> operators, Int32 count)
         {
+            if (count == 2)
+                return from operator1 in operators
+                       from operator2 in operators
+                       select new[] { operator1, operator2 };
+
             return from operator1 in operators
                    from operator2 in operators
                    from operator3 in operators
                    select new[] { operator1, operator2, operator3 };
         }
 
-        /// <summary>从3种运算符中挑选2个运算符</summary>
-        /// <param name="operators"></param>
-        /// <returns></returns>
-        static IEnumerable<IEnumerable<Func<Expression, Expression, BinaryExpression>>> OperatorPermute2(List<Func<Expression, Expression, BinaryExpression>> operators)
+        static Expression Sqrt(Expression left, Expression right)
         {
-            return from operator1 in operators
-                   from operator2 in operators
-                   select new[] { operator1, operator2 };
+            return Expression.Call(typeof(Math).GetMethod("Sqrt"), left);
         }
 
         /// <summary>数学运算</summary>
@@ -114,11 +115,13 @@ namespace NewLife.Data
         public static String[] Execute(Double[] numbers, Double result)
         {
             var rs = new List<String>();
-            var operators = new List<Func<Expression, Expression, BinaryExpression>> { Expression.Add, Expression.Subtract, Expression.Multiply, Expression.Divide };
-            var ops = numbers.Length == 3 ? OperatorPermute2(operators) : OperatorPermute3(operators);
+            var operators = new List<Func<Expression, Expression, Expression>> { Expression.Add, Expression.Subtract, Expression.Multiply, Expression.Divide, Expression.Modulo, Expression.Power, Sqrt };
+            var size = numbers.Length - 1;
+            var ops = OperatorPermute(operators, size);
+            var nodes = GetAll(size);
             foreach (var op in ops)
             {
-                foreach (var node in GetAll(numbers.Length - 1))
+                foreach (var node in nodes)
                 {
                     foreach (var nums in FullPermute(numbers))
                     {
