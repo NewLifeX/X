@@ -162,7 +162,7 @@ namespace NewLife.Remoting
         {
             if (!Active) return;
 
-            Log.Info("停止{0} {1}", this.GetType().Name, reason);
+            Log.Info("停止{0} {1}", GetType().Name, reason);
             foreach (var item in Servers)
             {
                 item.Stop(reason ?? (GetType().Name + "Stop"));

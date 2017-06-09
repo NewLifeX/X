@@ -24,7 +24,7 @@ namespace System
         /// <returns></returns>
         public static String ToAddress(this IPEndPoint endpoint)
         {
-            return string.Format("{0}:{1}", endpoint.Address, endpoint.Port);
+            return String.Format("{0}:{1}", endpoint.Address, endpoint.Port);
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace System
                 throw new Exception("Invalid endpoint address: " + address);
             }
             var ip = IPAddress.Parse(array[0]);
-            var port = int.Parse(array[1]);
+            var port = Int32.Parse(array[1]);
             return new IPEndPoint(ip, port);
         }
 

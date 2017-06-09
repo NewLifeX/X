@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Agent;
 using NewLife.Common;
+using NewLife.Expressions;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.DNS;
@@ -72,8 +73,14 @@ namespace Test
 
         static void Test1()
         {
-            var count = UserX.Meta.Count;
-            Console.WriteLine(count);
+            var exp = "99-(12+34*56)/78";
+            Console.WriteLine("表达式：{0}", exp);
+            var me = new MathExpression();
+            exp = me.ToExpression(exp);
+            Console.WriteLine("逆波兰：{0}", exp);
+
+            var rs = me.Complie(exp);
+            Console.WriteLine("结  果：{0}", rs);
         }
 
         class A

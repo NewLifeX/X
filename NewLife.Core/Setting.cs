@@ -89,7 +89,7 @@ namespace NewLife
 
 #if !__MOBILE__
             // 确保缓存目录可用
-            for (int i = 0; i < 2; i++)
+            for (Int32 i = 0; i < 2; i++)
             {
                 try
                 {

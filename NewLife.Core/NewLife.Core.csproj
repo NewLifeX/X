@@ -119,6 +119,10 @@
     <Compile Include="Log\NetworkLog.cs" />
     <Compile Include="Log\TextControlLog.cs" />
     <Compile Include="Log\TimeCost.cs" />
+    <Compile Include="Expressions\IndexInfo.cs" />
+    <Compile Include="Expressions\UnionExpresion.cs" />
+    <Compile Include="Expressions\MathExpression.cs" />
+    <Compile Include="Expressions\RpnExpression.cs" />
     <Compile Include="Messaging\DefaultMessage.cs" />
     <Compile Include="Messaging\IMessage.cs">
       <SubType>Code</SubType>
