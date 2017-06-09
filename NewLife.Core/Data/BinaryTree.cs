@@ -90,12 +90,22 @@ namespace NewLife.Data
         /// <summary>从4种运算符中挑选3个运算符</summary>
         /// <param name="operators"></param>
         /// <returns></returns>
-        static IEnumerable<IEnumerable<Func<Expression, Expression, BinaryExpression>>> OperatorPermute(List<Func<Expression, Expression, BinaryExpression>> operators)
+        static IEnumerable<IEnumerable<Func<Expression, Expression, BinaryExpression>>> OperatorPermute3(List<Func<Expression, Expression, BinaryExpression>> operators)
         {
             return from operator1 in operators
                    from operator2 in operators
                    from operator3 in operators
                    select new[] { operator1, operator2, operator3 };
+        }
+
+        /// <summary>从3种运算符中挑选2个运算符</summary>
+        /// <param name="operators"></param>
+        /// <returns></returns>
+        static IEnumerable<IEnumerable<Func<Expression, Expression, BinaryExpression>>> OperatorPermute2(List<Func<Expression, Expression, BinaryExpression>> operators)
+        {
+            return from operator1 in operators
+                   from operator2 in operators
+                   select new[] { operator1, operator2 };
         }
 
         /// <summary>数学运算</summary>
@@ -105,13 +115,14 @@ namespace NewLife.Data
         {
             var rs = new List<String>();
             var operators = new List<Func<Expression, Expression, BinaryExpression>> { Expression.Add, Expression.Subtract, Expression.Multiply, Expression.Divide };
-            foreach (var operatorCombination in OperatorPermute(operators))
+            var ops = numbers.Length == 3 ? OperatorPermute2(operators) : OperatorPermute3(operators);
+            foreach (var op in ops)
             {
-                foreach (var node in GetAll(3))
+                foreach (var node in GetAll(numbers.Length - 1))
                 {
                     foreach (var nums in FullPermute(numbers))
                     {
-                        var exp = Build(node, nums, operatorCombination.ToList());
+                        var exp = Build(node, nums, op.ToList());
                         var compiled = Expression.Lambda<Func<Double>>(exp).Compile();
 
                         if (Math.Abs(compiled() - result) < 0.000001) rs.Add(exp + "");

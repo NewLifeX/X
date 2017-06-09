@@ -83,12 +83,23 @@ namespace Test
             //var rs = me.Complie(exp);
             //Console.WriteLine("结  果：{0}", rs);
 
-            var nums = new Double[] { 8, 5, 1, 2 };
-            var ss = BinaryTree.Execute(nums, 24);
-            Console.WriteLine("共有结果：{0}", ss.Length);
-            foreach (var item in ss)
+            //var nums = new Double[] { 8, 5, 1, 2 };
+            //var ss = BinaryTree.Execute(nums, 24);
+            //Console.WriteLine("共有结果：{0}", ss.Length);
+            //foreach (var item in ss)
+            //{
+            //    Console.WriteLine(item);
+            //}
+
+            for (int i = 2; i < 10; i++)
             {
-                Console.WriteLine(item);
+                var nums = new Double[] { i, i, i };
+                var ss = BinaryTree.Execute(nums, 6);
+                Console.WriteLine("[{1} {1} {1}] 共有结果：{0}", ss.Length, i);
+                foreach (var item in ss)
+                {
+                    Console.WriteLine("{0}=6",item);
+                }
             }
         }
 
