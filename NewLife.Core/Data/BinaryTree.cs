@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace NewLife.Data
 {
@@ -35,9 +37,10 @@ namespace NewLife.Data
         /// <summary>构建表达式树</summary>
         /// <param name="node"></param>
         /// <param name="numbers"></param>
-        /// <param name="operators"></param>
+        /// <param name="ops"></param>
+        /// <param name="sops"></param>
         /// <returns></returns>
-        static Expression Build(Node node, Double[] numbers, List<Func<Expression, Expression, Expression>> operators)
+        static Expression Build(Node node, Double[] numbers, List<Func<Expression, Expression, Expression>> ops, List<Func<Expression, Expression>> sops)
         {
             var iNum = 0;
             var iOprt = 0;
@@ -45,11 +48,17 @@ namespace NewLife.Data
             Func<Node, Expression> f = null;
             f = n =>
             {
-                if (n == null) return Expression.Constant(numbers[iNum++]);
+                if (n == null)
+                {
+                    Expression exp = Expression.Constant(numbers[iNum]);
+                    if (sops[iNum] != null) exp = sops[iNum](exp);
+                    iNum++;
+                    return exp;
+                }
 
                 var left = f(n.Left);
                 var right = f(n.Right);
-                return operators[iOprt++](left, right);
+                return ops[iOprt++](left, right);
             };
             return f(node);
         }
@@ -104,9 +113,57 @@ namespace NewLife.Data
                    select new[] { operator1, operator2, operator3 };
         }
 
-        static Expression Sqrt(Expression left, Expression right)
+        static IEnumerable<IEnumerable<Func<Expression, Expression>>> OperatorPermute(Int32 count)
+        {
+            var ops = new List<Func<Expression, Expression>>();
+            // 有一个空的
+            ops.Add(null);
+            //foreach (var mi in typeof(Math).GetMethods())
+            //{
+            //    if (mi.ReturnParameter.ParameterType != typeof(Double)) continue;
+
+            //    var pis = mi.GetParameters();
+            //    if (pis != null && pis.Length == 1 && pis[0].ParameterType == typeof(Double))
+            //    {
+            //        Func<Expression, Expression> func = left => Expression.Call(mi, left);
+            //        ops.Add(func);
+            //    }
+            //}
+            ops.Add(left => Expression.Call(typeof(Math).GetMethod("Sqrt"), left));
+            //ops.Add(left => Expression.Call(typeof(Math).GetMethod("Sin"), left));
+            //ops.Add(left => Expression.Call(typeof(Math).GetMethod("Cos"), left));
+            //ops.Add(left => Expression.Call(typeof(Math).GetMethod("Tan"), left));
+            ops.Add(left => Expression.Call(typeof(BinaryTree).GetMethod(nameof(Cbrt), BindingFlags.NonPublic | BindingFlags.Static), left));
+
+            if (count == 2)
+                return from operator1 in ops
+                       from operator2 in ops
+                       select new[] { operator1, operator2 };
+
+            if (count == 3)
+                return from operator1 in ops
+                       from operator2 in ops
+                       from operator3 in ops
+                       select new[] { operator1, operator2, operator3 };
+
+            return from operator1 in ops
+                   from operator2 in ops
+                   from operator3 in ops
+                   from operator4 in ops
+                   select new[] { operator1, operator2, operator3, operator4 };
+        }
+
+        static Expression Sqrt(Expression left)
         {
             return Expression.Call(typeof(Math).GetMethod("Sqrt"), left);
+        }
+
+        /// <summary>立方根</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        static Double Cbrt(Double value)
+        {
+            return Math.Pow(value, 1.0d / 3);
         }
 
         /// <summary>数学运算</summary>
@@ -115,23 +172,31 @@ namespace NewLife.Data
         public static String[] Execute(Double[] numbers, Double result)
         {
             var rs = new List<String>();
-            var operators = new List<Func<Expression, Expression, Expression>> { Expression.Add, Expression.Subtract, Expression.Multiply, Expression.Divide, Expression.Modulo, Expression.Power, Sqrt };
-            var size = numbers.Length - 1;
-            var ops = OperatorPermute(operators, size);
-            var nodes = GetAll(size);
-            foreach (var op in ops)
+            var operators = new List<Func<Expression, Expression, Expression>> { Expression.Add, Expression.Subtract, Expression.Multiply, Expression.Divide, Expression.Modulo, Expression.Power };
+            var size = numbers.Length;
+            var opss = OperatorPermute(operators, size - 1);
+            var nodes = GetAll(size - 1);
+            var sopss = OperatorPermute(size);
+            // 所有二元运算符重新组合
+            Parallel.ForEach(opss, ops =>
             {
+                // 二叉树表示所有括号重新组合
                 foreach (var node in nodes)
                 {
+                    // 数字所有组合
                     foreach (var nums in FullPermute(numbers))
                     {
-                        var exp = Build(node, nums, op.ToList());
-                        var compiled = Expression.Lambda<Func<Double>>(exp).Compile();
+                        // 所有一元运算符重新组合
+                        foreach (var sops in sopss)
+                        {
+                            var exp = Build(node, nums, ops.ToList(), sops.ToList());
+                            var compiled = Expression.Lambda<Func<Double>>(exp).Compile();
 
-                        if (Math.Abs(compiled() - result) < 0.000001) rs.Add(exp + "");
+                            if (Math.Abs(compiled() - result) < 0.000001) rs.Add(exp + "");
+                        }
                     }
                 }
-            }
+            });
 
             return rs.Distinct().ToArray();
         }

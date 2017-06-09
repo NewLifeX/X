@@ -53,7 +53,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -93,12 +93,14 @@ namespace Test
 
             for (int i = 2; i < 10; i++)
             {
+                var sw = Stopwatch.StartNew();
                 var nums = new Double[] { i, i, i };
                 var ss = BinaryTree.Execute(nums, 6);
-                Console.WriteLine("[{1} {1} {1}] 共有结果：{0}", ss.Length, i);
+                sw.Stop();
+                Console.WriteLine("[{1} {1} {1}] 共有结果：{0} 耗时{2:n0}ms", ss.Length, i, sw.ElapsedMilliseconds);
                 foreach (var item in ss)
                 {
-                    Console.WriteLine("{0}=6",item);
+                    Console.WriteLine("{0}=6", item);
                 }
             }
         }
