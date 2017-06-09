@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Agent;
 using NewLife.Common;
+using NewLife.Data;
 using NewLife.Expressions;
 using NewLife.Log;
 using NewLife.Net;
@@ -73,14 +74,22 @@ namespace Test
 
         static void Test1()
         {
-            var exp = "99-(12+34*56)/78";
-            Console.WriteLine("表达式：{0}", exp);
-            var me = new MathExpression();
-            exp = me.ToExpression(exp);
-            Console.WriteLine("逆波兰：{0}", exp);
+            //var exp = "99-(12+34*56)/78";
+            //Console.WriteLine("表达式：{0}", exp);
+            //var me = new MathExpression();
+            //exp = me.ToExpression(exp);
+            //Console.WriteLine("逆波兰：{0}", exp);
 
-            var rs = me.Complie(exp);
-            Console.WriteLine("结  果：{0}", rs);
+            //var rs = me.Complie(exp);
+            //Console.WriteLine("结  果：{0}", rs);
+
+            var nums = new Double[] { 8, 5, 1, 2 };
+            var ss = BinaryTree.Execute(nums, 24);
+            Console.WriteLine("共有结果：{0}", ss.Length);
+            foreach (var item in ss)
+            {
+                Console.WriteLine(item);
+            }
         }
 
         class A

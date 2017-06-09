@@ -98,6 +98,7 @@
     <Compile Include="Compression\ZipEntry.cs" />
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
+    <Compile Include="Data\BinaryTree.cs" />
     <Compile Include="Data\IFilter.cs" />
     <Compile Include="Data\Packet.cs" />
     <Compile Include="Extension\BitHelper.cs" />
