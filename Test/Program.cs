@@ -97,10 +97,11 @@ namespace Test
                 var nums = new Double[] { i, i, i };
                 var ss = BinaryTree.Execute(nums, 6);
                 sw.Stop();
+                Console.WriteLine();
                 Console.WriteLine("[{1} {1} {1}] 共有结果：{0} 耗时{2:n0}ms", ss.Length, i, sw.ElapsedMilliseconds);
                 foreach (var item in ss)
                 {
-                    Console.WriteLine("{0}=6", item);
+                    Console.WriteLine("{0}\t=6", item);
                 }
             }
         }

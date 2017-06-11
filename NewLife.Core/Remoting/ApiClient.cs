@@ -87,7 +87,8 @@ namespace NewLife.Remoting
         {
             if (Active) return true;
 
-            if (Client == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
+            var ct = Client;
+            if (ct == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
             //if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
 
             if (Encoder == null) Encoder = new JsonEncoder();
@@ -98,9 +99,12 @@ namespace NewLife.Remoting
             // 设置过滤器
             SetFilter();
 
-            Client.Provider = this;
-            Client.Log = Log;
-            Client.Opened += Client_Opened;
+            ct.Provider = this;
+            ct.Log = Log;
+            ct.Opened += Client_Opened;
+
+            // 打开网络连接
+            if (!ct.Open()) return false;
 
             var ms = Manager.Services;
             if (ms.Count > 0)
@@ -111,8 +115,6 @@ namespace NewLife.Remoting
                     Log.Info("\t{0,-16}\t{1}", item.Key, item.Value);
                 }
             }
-
-            if (!Client.Open()) return false;
 
             // 打开连接后马上就可以登录
             Timer = new TimerX(OnTimer, this, 0, 30000);
@@ -130,11 +132,11 @@ namespace NewLife.Remoting
             Key = null;
             Timer.TryDispose();
 
-            var tc = Client;
-            if (tc != null)
+            var ct = Client;
+            if (ct != null)
             {
-                tc.Opened -= Client_Opened;
-                tc.Close(reason ?? (GetType().Name + "Close"));
+                ct.Opened -= Client_Opened;
+                ct.Close(reason ?? (GetType().Name + "Close"));
             }
 
             Active = false;
@@ -201,6 +203,8 @@ namespace NewLife.Remoting
         {
             var ss = Client;
             if (ss == null) return default(TResult);
+
+            //if (!Active || !ss) Logined = false;
 
             // 未登录且设置了用户名，并且当前不是登录，则异步登录
             if (!Logined && !UserName.IsNullOrEmpty() && action != LoginAction) await LoginAsync();
@@ -404,7 +408,7 @@ namespace NewLife.Remoting
             {
                 if (Logined)
                 {
-                    if (LastInvoke.AddSeconds(10000) < DateTime.Now) await PingAsync();
+                    if (LastInvoke.AddMilliseconds(Timer.Period) < DateTime.Now) await PingAsync();
                 }
                 else if (!UserName.IsNullOrEmpty())
                     await LoginAsync();

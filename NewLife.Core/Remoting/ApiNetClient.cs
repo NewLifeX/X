@@ -37,28 +37,28 @@ namespace NewLife.Remoting
             var uri = config is String ? new NetUri(config + "") : config as NetUri;
             if (uri == null) return false;
 
-            Client = uri.CreateRemote();
+            var ct = Client = uri.CreateRemote();
 
             // 新生命标准网络封包协议
-            Client.Packet = new DefaultPacket();
+            ct.Packet = new DefaultPacket();
 
             // Udp客户端默认超时时间
-            if (Client is UdpServer) (Client as UdpServer).SessionTimeout = 10 * 60;
+            if (ct is UdpServer) (ct as UdpServer).SessionTimeout = 10 * 60;
 
             // 网络非法断开时，自动恢复
-            Client.OnDisposed += (s, e) => { if (Active) { Init(config); Open(); } };
+            ct.OnDisposed += (s, e) => { if (Active) { Init(config); Open(); } };
 
             return true;
         }
 
         public Boolean Open()
         {
-            var tc = Client;
-            tc.MessageReceived += Client_Received;
-            tc.Log = Log;
-            tc.Opened += Client_Opened;
+            var ct = Client;
+            ct.MessageReceived += Client_Received;
+            ct.Log = Log;
+            ct.Opened += Client_Opened;
 
-            return Active = tc.Open();
+            return Active = ct.Open();
         }
 
         /// <summary>关闭</summary>
@@ -78,6 +78,10 @@ namespace NewLife.Remoting
 
         private void Client_Opened(Object sender, EventArgs e)
         {
+            // 提前设置Active，避免外部时间进行特殊操作
+            var ct = Client;
+            if (ct.Active) Active = true;
+
             Opened?.Invoke(this, e);
         }
         #endregion
