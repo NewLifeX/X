@@ -91,6 +91,12 @@ namespace Test
             //    Console.WriteLine(item);
             //}
 
+            var str = "中华人民共和国";
+            Console.WriteLine(PinYin.Get(str));
+            Console.WriteLine(PinYin.GetFirst(str));
+            Console.WriteLine(PinYin.GetMulti(str[0]).Join(","));
+            Console.WriteLine(PinYin.GetPinYinByMS(str[0]).Join(","));
+
             for (int i = 2; i < 10; i++)
             {
                 var sw = Stopwatch.StartNew();
