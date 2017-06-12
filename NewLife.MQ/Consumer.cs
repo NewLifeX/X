@@ -74,8 +74,9 @@ namespace NewLife.MessageQueue
                 {
                     try
                     {
-                        await item.NoitfyAsync(msg);
+                        // 如果出错，会自动选择下一个订阅者
                         _next = idx + 1;
+                        await item.NoitfyAsync(msg);
                         return true;
                     }
                     catch { }

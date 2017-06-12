@@ -27,7 +27,7 @@ namespace NewLife.MessageQueue
         private ConcurrentDictionary<String, Consumer> Consumers { get; } = new ConcurrentDictionary<String, Consumer>();
 
         /// <summary>消息队列</summary>
-        public Queue<Message> Queue { get; } = new Queue<Message>();
+        public ConcurrentQueue<Message> Queue { get; } = new ConcurrentQueue<Message>();
         #endregion
 
         #region 构造函数
@@ -122,10 +122,10 @@ namespace NewLife.MessageQueue
             var ss = Consumers.ToValueArray();
             if (ss.Length == 0) return;
 
-            while (Queue.Count > 0)
+            // 消息出列
+            Message msg = null;
+            while (Queue.TryDequeue(out msg))
             {
-                // 消息出列
-                var msg = Queue.Dequeue();
                 // 向每一个订阅者推送消息
                 try
                 {
