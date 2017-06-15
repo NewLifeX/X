@@ -553,7 +553,24 @@ namespace XCode
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(Meta.Table.FindByName(name) == value); }
+        public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
+
+        /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
+        /// <param name="names">属性名称集合</param>
+        /// <param name="values">属性值集合</param>
+        /// <returns></returns>
+        public static EntityList<TEntity> FindAll(String[] names, Object[] values)
+        {
+            var exp = new WhereExpression();
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                var fi = Meta.Table.FindByName(names[i]);
+                exp &= fi == values[i];
+            }
+
+            return FindAll(exp, null, null, 0, 0);
+        }
 
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
         /// <remarks>
