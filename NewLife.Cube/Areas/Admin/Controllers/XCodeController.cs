@@ -3,7 +3,7 @@
 namespace NewLife.Cube.Admin.Controllers
 {
     /// <summary>设置控制器</summary>
-    [DisplayName("数据映射设置")]
+    [DisplayName("数据中间件")]
     public class XCodeController : ConfigController<XCode.Setting>
     {
     }
