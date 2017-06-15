@@ -702,7 +702,7 @@ namespace XCode
         /// <returns></returns>
         public static EntityList<TEntity> FindAll(Expression where, PageParameter param = null)
         {
-            if (param == null) return FindAll("", null, null, 0, 0);
+            if (param == null) return FindAll(where, null, null, 0, 0);
 
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
             param.TotalCount = FindCount(where, null, null, 0, 0);
