@@ -292,7 +292,7 @@ namespace XCode.Membership
         /// <returns></returns>
         private static WhereExpression SearchWhere(String key, Int32 roleId, Boolean? isEnable = null)
         {
-            var exp = SearchWhereByKey(key) & _.RoleID == roleId & _.Enable == isEnable;
+            var exp = SearchWhereByKey(key);
             if (roleId > 0) exp &= _.RoleID == roleId;
             if (isEnable != null) exp &= _.Enable == isEnable;
 
