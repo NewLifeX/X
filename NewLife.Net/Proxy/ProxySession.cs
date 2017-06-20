@@ -143,8 +143,11 @@ namespace NewLife.Net.Proxy
         /// <returns></returns>
         protected virtual ISocketClient CreateRemote(ReceivedEventArgs e)
         {
-            //return NetService.CreateClient(RemoteServerUri);
-            return RemoteServerUri.CreateRemote();
+            var client = RemoteServerUri.CreateRemote();
+            // 如果是Tcp，收到空数据时不要断开。为了稳定可靠，默认设置
+            if (client is TcpSession) (client as TcpSession).DisconnectWhenEmptyData = false;
+
+            return client;
         }
 
         /// <summary>远程连接断开时触发。默认销毁整个会话，子类可根据业务情况决定客户端与代理的链接是否重用。</summary>

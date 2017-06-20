@@ -74,42 +74,11 @@ namespace Test
 
         static void Test1()
         {
-            //var exp = "99-(12+34*56)/78";
-            //Console.WriteLine("表达式：{0}", exp);
-            //var me = new MathExpression();
-            //exp = me.ToExpression(exp);
-            //Console.WriteLine("逆波兰：{0}", exp);
-
-            //var rs = me.Complie(exp);
-            //Console.WriteLine("结  果：{0}", rs);
-
-            //var nums = new Double[] { 8, 5, 1, 2 };
-            //var ss = BinaryTree.Execute(nums, 24);
-            //Console.WriteLine("共有结果：{0}", ss.Length);
-            //foreach (var item in ss)
-            //{
-            //    Console.WriteLine(item);
-            //}
-
-            var str = "中华人民共和国";
-            Console.WriteLine(PinYin.Get(str));
-            Console.WriteLine(PinYin.GetFirst(str));
-            Console.WriteLine(PinYin.GetMulti(str[0]).Join(","));
-            Console.WriteLine(PinYin.GetPinYinByMS(str[0]).Join(","));
-
-            for (int i = 2; i < 10; i++)
-            {
-                var sw = Stopwatch.StartNew();
-                var nums = new Double[] { i, i, i };
-                var ss = BinaryTree.Execute(nums, 6);
-                sw.Stop();
-                Console.WriteLine();
-                Console.WriteLine("[{1} {1} {1}] 共有结果：{0} 耗时{2:n0}ms", ss.Length, i, sw.ElapsedMilliseconds);
-                foreach (var item in ss)
-                {
-                    Console.WriteLine("{0}\t=6", item);
-                }
-            }
+            var svr = new NATProxy("10.10.4.157", 4781);
+            svr.Port = 3349;
+            svr.Log = XTrace.Log;
+            svr.Start();
+            Console.ReadKey();
         }
 
         class A
