@@ -390,7 +390,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
             return ExecuteScalar<Int64>(CreateCommand(sql, type, ps));

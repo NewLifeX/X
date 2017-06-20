@@ -83,7 +83,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>记录集</returns>
-        DataSet Query(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+        DataSet Query(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
         /// <summary>执行DbCommand，返回记录集</summary>
         /// <param name="cmd">DbCommand</param>
@@ -95,7 +95,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>总记录数</returns>
-        Int64 QueryCount(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+        Int64 QueryCount(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="builder">查询生成器</param>
@@ -112,7 +112,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+        Int32 Execute(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
         /// <summary>执行DbCommand，返回受影响的行数</summary>
         /// <param name="cmd">DbCommand</param>
@@ -124,7 +124,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+        Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
         /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
         /// <typeparam name="T">返回类型</typeparam>
@@ -132,7 +132,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+        T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
         /// <summary>
         /// 获取一个DbCommand。
@@ -144,7 +144,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+        DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
         #endregion
 
         #region 高级

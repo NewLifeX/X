@@ -586,7 +586,7 @@ namespace XCode
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>影响的结果</returns>
-        public Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public Int32 Execute(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             InitData();
 
@@ -600,7 +600,7 @@ namespace XCode
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             InitData();
 
@@ -720,7 +720,7 @@ namespace XCode
         #region 参数化
         /// <summary>创建参数</summary>
         /// <returns></returns>
-        public virtual DbParameter CreateParameter() { return Dal.Db.Factory.CreateParameter(); }
+        public virtual IDataParameter CreateParameter() { return Dal.Db.Factory.CreateParameter(); }
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>

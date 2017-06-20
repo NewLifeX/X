@@ -298,7 +298,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual DataSet Query(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public virtual DataSet Query(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             return Query(OnCreateCommand(sql, type, ps));
         }
@@ -344,7 +344,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual Int64 QueryCount(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public virtual Int64 QueryCount(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             if (sql.Contains(" "))
             {
@@ -379,7 +379,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             return Execute(OnCreateCommand(sql, type, ps));
         }
@@ -418,7 +418,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             return Execute(sql, type, ps);
         }
@@ -429,7 +429,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public virtual T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             var cmd = OnCreateCommand(sql, type, ps);
             cmd.Transaction = Transaction?.Check(false);
@@ -472,7 +472,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        public virtual DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             var cmd = OnCreateCommand(sql, type, ps);
             cmd.Transaction = Transaction?.Check(true);
@@ -484,7 +484,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        protected DbCommand OnCreateCommand(String sql, CommandType type = CommandType.Text, params DbParameter[] ps)
+        protected DbCommand OnCreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             var cmd = Factory?.CreateCommand();
             if (cmd == null) return null;
@@ -625,7 +625,7 @@ namespace XCode.DataAccessLayer
         /// <summary>写入SQL到文本中</summary>
         /// <param name="sql"></param>
         /// <param name="ps"></param>
-        public void WriteSQL(String sql, params DbParameter[] ps)
+        public void WriteSQL(String sql, params IDataParameter[] ps)
         {
             if (!ShowSQL) return;
 
@@ -683,11 +683,11 @@ namespace XCode.DataAccessLayer
             var sql = cmd.CommandText;
             if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
 
-            DbParameter[] ps = null;
+            IDataParameter[] ps = null;
             if (cmd.Parameters != null)
             {
                 var cps = cmd.Parameters;
-                ps = new DbParameter[cps.Count];
+                ps = new IDataParameter[cps.Count];
                 //cmd.Parameters.CopyTo(ps, 0);
                 for (Int32 i = 0; i < ps.Length; i++)
                 {

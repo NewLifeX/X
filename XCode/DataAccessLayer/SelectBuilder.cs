@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -98,7 +99,7 @@ namespace XCode.DataAccessLayer
         /// <summary>实例化一个SQL语句</summary>
         public SelectBuilder()
         {
-            Parameters = new List<DbParameter>();
+            Parameters = new List<IDataParameter>();
         }
         #endregion
 
@@ -226,7 +227,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>参数集合</summary>
-        internal List<DbParameter> Parameters { get; set; }
+        public List<IDataParameter> Parameters { get; set; }
         #endregion
 
         #region 导入SQL

@@ -98,7 +98,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public Int32 Execute(String sql, CommandType type, DbParameter[] ps)
+        public Int32 Execute(String sql, CommandType type, IDataParameter[] ps)
         {
             CheckBeforeUseDatabase();
 
@@ -112,7 +112,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public Int64 InsertAndGetIdentity(String sql, CommandType type, DbParameter[] ps)
+        public Int64 InsertAndGetIdentity(String sql, CommandType type, IDataParameter[] ps)
         {
             CheckBeforeUseDatabase();
 

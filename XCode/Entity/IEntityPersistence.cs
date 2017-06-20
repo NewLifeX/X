@@ -59,7 +59,7 @@ namespace XCode
             // 添加数据前，处理Guid
             SetGuidField(op, entity);
 
-            DbParameter[] dps = null;
+            IDataParameter[] dps = null;
             var sql = SQL(entity, DataObjectMethodType.Insert, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
@@ -121,7 +121,7 @@ namespace XCode
             // 没有脏数据，不需要更新
             if (ds.Count == 0) return 0;
 
-            DbParameter[] dps = null;
+            IDataParameter[] dps = null;
             var sql = SQL(entity, DataObjectMethodType.Update, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
@@ -142,7 +142,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Delete(IEntity entity)
         {
-            DbParameter[] dps = null;
+            IDataParameter[] dps = null;
             var sql = SQL(entity, DataObjectMethodType.Delete, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
@@ -164,7 +164,7 @@ namespace XCode
         /// <returns>SQL字符串</returns>
         public virtual String GetSql(IEntity entity, DataObjectMethodType methodType)
         {
-            DbParameter[] dps = null;
+            IDataParameter[] dps = null;
             return SQL(entity, methodType, ref dps);
         }
 
@@ -173,7 +173,7 @@ namespace XCode
         /// <param name="methodType"></param>
         /// <param name="parameters">参数数组</param>
         /// <returns>SQL字符串</returns>
-        String SQL(IEntity entity, DataObjectMethodType methodType, ref DbParameter[] parameters)
+        String SQL(IEntity entity, DataObjectMethodType methodType, ref IDataParameter[] parameters)
         {
             //var op = EntityFactory.CreateOperate(entity.GetType());
             //var formatedTalbeName = op.FormatedTableName;
@@ -199,7 +199,7 @@ namespace XCode
             return null;
         }
 
-        static String InsertSQL(IEntity entity, ref DbParameter[] parameters)
+        static String InsertSQL(IEntity entity, ref IDataParameter[] parameters)
         {
             var op = EntityFactory.CreateOperate(entity.GetType());
 
@@ -213,7 +213,7 @@ namespace XCode
 
             var sbNames = new StringBuilder();
             var sbValues = new StringBuilder();
-            var dps = new List<DbParameter>();
+            var dps = new List<IDataParameter>();
             // 只读列没有插入操作
             foreach (var fi in op.Fields)
             {
@@ -270,7 +270,7 @@ namespace XCode
             return true;
         }
 
-        static String UpdateSQL(IEntity entity, ref DbParameter[] parameters)
+        static String UpdateSQL(IEntity entity, ref IDataParameter[] parameters)
         {
             /*
              * 实体更新原则：
@@ -287,7 +287,7 @@ namespace XCode
             var op = EntityFactory.CreateOperate(entity.GetType());
 
             var sb = new StringBuilder();
-            var dps = new List<DbParameter>();
+            var dps = new List<IDataParameter>();
             // 只读列没有更新操作
             foreach (var fi in op.Fields)
             {
@@ -320,7 +320,7 @@ namespace XCode
             return String.Format("Update {0} Set {1} Where {2}", op.FormatedTableName, sb, def);
         }
 
-        static String DeleteSQL(IEntity entity, ref DbParameter[] parameters)
+        static String DeleteSQL(IEntity entity, ref IDataParameter[] parameters)
         {
             // 标识列作为删除关键字
             var exp = DefaultCondition(entity);
@@ -332,7 +332,7 @@ namespace XCode
             if (ps.Count > 0)
             {
                 var session = op.Session;
-                var dps = new List<DbParameter>();
+                var dps = new List<IDataParameter>();
                 foreach (var item in ps)
                 {
                     var dp = session.CreateParameter();
@@ -408,7 +408,7 @@ namespace XCode
             return DBNull.Value;
         }
 
-        static DbParameter CreateParameter(StringBuilder sb, IEntityOperate op, FieldItem fi, Object value)
+        static IDataParameter CreateParameter(StringBuilder sb, IEntityOperate op, FieldItem fi, Object value)
         {
             var session = op.Session;
 
@@ -418,7 +418,9 @@ namespace XCode
             var dp = session.CreateParameter();
             dp.ParameterName = paraname;
             dp.Value = FormatParamValue(fi, value, op);
-            dp.IsNullable = fi.IsNullable;
+
+            var dbp = dp as DbParameter;
+            if (dbp != null) dbp.IsNullable = fi.IsNullable;
 
             return dp;
         }

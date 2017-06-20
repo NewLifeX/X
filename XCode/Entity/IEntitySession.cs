@@ -98,14 +98,14 @@ namespace XCode
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>影响的结果</returns>
-        Int32 Execute(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+        Int32 Execute(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params DbParameter[] ps);
+        Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
         /// <summary>执行Truncate语句</summary>
         /// <returns>影响的结果</returns>
@@ -132,7 +132,7 @@ namespace XCode
         #region 参数化
         /// <summary>创建参数</summary>
         /// <returns></returns>
-        DbParameter CreateParameter();
+        IDataParameter CreateParameter();
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>
