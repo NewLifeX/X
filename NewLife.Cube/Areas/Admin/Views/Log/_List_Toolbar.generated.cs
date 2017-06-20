@@ -280,7 +280,20 @@ WriteLiteral("                ");
             
             #line default
             #line hidden
-WriteLiteral("\r\n            </div>\r\n        </form>\r\n    </div>\r\n</div>\r\n");
+WriteLiteral("\r\n                <a");
+
+WriteLiteral(" class=\"btn btn-danger\"");
+
+WriteLiteral(" href=\"Log/EnableClear\"");
+
+WriteLiteral(" style=\"height:33px;\"");
+
+WriteLiteral(">\r\n                    <span");
+
+WriteLiteral(" class=\"ace-icon fa fa-trash icon-on-right bigger-110\"");
+
+WriteLiteral("></span>\r\n                    清理\r\n                </a>\r\n            </div>\r\n     " +
+"   </form>\r\n    </div>\r\n</div>\r\n");
 
         }
     }

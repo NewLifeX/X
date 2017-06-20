@@ -94,5 +94,12 @@ namespace NewLife.Cube.Admin.Controllers
 
         //    return dic;
         //}
+
+        public ActionResult EnableClear()
+        {
+            // Gateway.Meta.Session.Execute("Update Gateway set Online=0");
+            XLog.Meta.Session.Execute("DELETE FROM Log");
+            return RedirectToAction("Index");
+        }
     }
 }

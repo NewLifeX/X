@@ -62,7 +62,7 @@
       <Index Columns="ParentID,Name" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Log" Description="日志" ConnName="Log" DbType="SqlServer" RenderGenEntity="true">
+  <Table Name="Log" Description="日志" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />
