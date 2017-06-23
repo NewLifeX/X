@@ -121,7 +121,7 @@ namespace XCode.DataAccessLayer
 
             SelectBuilder builder2 = null;
             if (maximumRows < 1)
-                builder2 = builder.CloneWithGroupBy("XCode_T0");
+                builder2 = builder.CloneWithGroupBy("XCode_T0", true);
             else
                 builder2 = builder.Clone().Top(maximumRows);
 
@@ -186,11 +186,11 @@ namespace XCode.DataAccessLayer
             // 必须加一个排序，否则会被优化掉而导致出错
             if (String.IsNullOrEmpty(builder1.OrderBy)) builder1.OrderBy = builder1.KeyOrder;
 
-            var builder2 = builder1.AsChild("XCode_T0").Top(maximumRows);
+            var builder2 = builder1.AsChild("XCode_T0", true).Top(maximumRows);
             // 要反向排序
             builder2.OrderBy = reversekeyorder;
 
-            var builder3 = builder2.AsChild("XCode_T1");
+            var builder3 = builder2.AsChild("XCode_T1", true);
             // 结果列处理
             builder3.Column = builder.Column;
             // 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
@@ -217,12 +217,12 @@ namespace XCode.DataAccessLayer
             // Select Top 10 * From Table Where ID>(Select max(ID) From (Select Top 20 ID From Table Order By ID) Order By ID Desc) Order By ID Desc
 
             var builder1 = builder.Clone().Top(startRowIndex, builder.Key);
-            var builder2 = builder1.AsChild("XCode_T0");
+            var builder2 = builder1.AsChild("XCode_T0", true);
             builder2.Column = String.Format("{0}({1})", builder.IsDesc ? "Min" : "Max", builder.Key);
 
             SelectBuilder builder3 = null;
             if (maximumRows < 1)
-                builder3 = builder.CloneWithGroupBy("XCode_T1");
+                builder3 = builder.CloneWithGroupBy("XCode_T1", true);
             else
                 builder3 = builder.Clone().Top(maximumRows);
 
@@ -245,12 +245,12 @@ namespace XCode.DataAccessLayer
             //    sql = String.Format("Select * From (Select *, row_number() over({3}) as rowNumber From {1}) XCode_Temp_b Where rowNumber Between {0} And {2}", startRowIndex + 1, sql, startRowIndex + maximumRows, orderBy);
 
             // 如果包含分组，则必须作为子查询
-            var builder1 = builder.CloneWithGroupBy("XCode_T0");
+            var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
             //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
             // 不必追求极致，把所有列放出来
             builder1.Column = "*, row_number() over(Order By {0}) as rowNumber".F(builder.OrderBy ?? builder.KeyOrder);
 
-            var builder2 = builder1.AsChild("XCode_T1");
+            var builder2 = builder1.AsChild("XCode_T1", true);
             // 结果列处理
             //builder2.Column = builder.Column;
             //// 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列

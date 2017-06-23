@@ -302,7 +302,7 @@ $";
             // 该BUG由@行走江湖（534163320）发现
 
             // 包含GroupBy时，作为子查询
-            var sb = this.CloneWithGroupBy("XCode_T0");
+            var sb = this.CloneWithGroupBy("XCode_T0", true);
             sb.Column = "Count(*)";
             sb.OrderBy = null;
             return sb;
@@ -370,12 +370,14 @@ $";
 
         /// <summary>作为子查询</summary>
         /// <param name="alias">别名，某些数据库可能需要使用as</param>
+        /// <param name="trimOrder">SqlServer需要转移OrderBy到外层，Oracle则不能</param>
         /// <returns></returns>
-        public SelectBuilder AsChild(String alias = null)
+        public SelectBuilder AsChild(String alias, Boolean trimOrder)
         {
             var t = this;
             // 如果包含排序，则必须有Top，否则去掉
-            var hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWithIgnoreCase("top ");
+            var hasOrderWithoutTop = false;
+            if (trimOrder) hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWithIgnoreCase("top ");
             if (hasOrderWithoutTop)
             {
                 t = this.Clone();
@@ -395,14 +397,15 @@ $";
         }
 
         /// <summary>处理可能带GroupBy的克隆，如果带有GroupBy，则必须作为子查询，否则简单克隆即可</summary>
-        /// <param name="alias"></param>
+        /// <param name="alias">别名，某些数据库可能需要使用as</param>
+        /// <param name="trimOrder">SqlServer需要转移OrderBy到外层，Oracle则不能</param>
         /// <returns></returns>
-        public SelectBuilder CloneWithGroupBy(String alias = null)
+        public SelectBuilder CloneWithGroupBy(String alias, Boolean trimOrder)
         {
             if (String.IsNullOrEmpty(this.GroupBy))
                 return this.Clone();
             else
-                return AsChild(alias);
+                return AsChild(alias, trimOrder);
         }
         #endregion
 

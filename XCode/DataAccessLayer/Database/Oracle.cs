@@ -144,14 +144,14 @@ namespace XCode.DataAccessLayer
             // 从第一行开始
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum<={0}", maximumRows, sql);
+                if (maximumRows > 0) sql = String.Format("Select * From ({1}) XCode_T0 Where rownum<={0}", maximumRows, sql);
             }
             else
             {
                 if (maximumRows <= 0)
-                    sql = String.Format("Select * From ({1}) XCode_Temp_a Where rownum>={0}", startRowIndex, sql);
+                    sql = String.Format("Select * From ({1}) XCode_T0 Where rownum>={0}", startRowIndex + 1, sql);
                 else
-                    sql = String.Format("Select * From (Select XCode_Temp_a.*, rownum as rowNumber From ({1}) XCode_Temp_a Where rownum<={2}) XCode_Temp_b Where rowNumber>={0}", startRowIndex, sql, startRowIndex + maximumRows - 1);
+                    sql = String.Format("Select * From (Select XCode_T0.*, rownum as rowNumber From ({1}) XCode_T0 Where rownum<={2}) XCode_T1 Where rowNumber>{0}", startRowIndex, sql, startRowIndex + maximumRows);
             }
             return sql;
         }
@@ -171,14 +171,14 @@ namespace XCode.DataAccessLayer
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) builder = builder.AsChild("XCode_Temp_a").AppendWhereAnd("rownum<={0}", maximumRows);
+                if (maximumRows > 0) builder = builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum<={0}", maximumRows);
                 return builder;
             }
-            if (maximumRows < 1) return builder.AsChild("XCode_Temp_a").AppendWhereAnd("rownum>={0}", startRowIndex);
+            if (maximumRows < 1) return builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum>={0}", startRowIndex + 1);
 
-            builder = builder.AsChild("XCode_Temp_a").AppendWhereAnd("rownum<={0}", startRowIndex + maximumRows - 1);
-            builder.Column = "XCode_Temp_a.*, rownum as rowNumber";
-            builder = builder.AsChild("XCode_Temp_b").AppendWhereAnd("rowNumber>={0}", startRowIndex);
+            builder = builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum<={0}", startRowIndex + maximumRows);
+            builder.Column = "XCode_T0.*, rownum as rowNumber";
+            builder = builder.AsChild("XCode_T1", false).AppendWhereAnd("rowNumber>{0}", startRowIndex);
 
             return builder;
         }
