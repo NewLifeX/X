@@ -66,9 +66,11 @@ namespace XCode.Configuration
                             //if (dal.DbType == DatabaseType.Oracle)
                             {
                                 // 加上用户名
-                                var ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
-                                ocsb.ConnectionString = dal.ConnStr;
-                                if (ocsb.ContainsKey("Role")) str = (String)ocsb["Role"] + "." + str;
+                                //var ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
+                                //ocsb.ConnectionString = dal.ConnStr;
+                                //if (ocsb.ContainsKey("Role")) str = (String)ocsb["Role"] + "." + str;
+
+                                if (!dal.Db.Owner.IsNullOrEmpty()) str = dal.Db.Owner + "." + str;
                             }
                         }
                     }

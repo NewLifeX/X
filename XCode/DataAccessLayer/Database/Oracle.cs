@@ -103,6 +103,8 @@ namespace XCode.DataAccessLayer
 
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
+            base.OnSetConnectionString(builder);
+
             String str = null;
             // 获取OCI目录
             if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
