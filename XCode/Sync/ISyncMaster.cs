@@ -28,7 +28,7 @@ namespace XCode.Sync
         /// <summary>获取指定时间后更新过的数据数量</summary>
         /// <param name="last"></param>
         /// <returns></returns>
-        Int32 GetAllUpdatedCount(DateTime last);
+        Int64 GetAllUpdatedCount(DateTime last);
 
         /// <summary>提交新增数据</summary>
         /// <param name="list"></param>
@@ -150,7 +150,7 @@ namespace XCode.Sync
         /// <summary>获取指定时间后更新过的数据数量</summary>
         /// <param name="last"></param>
         /// <returns></returns>
-        public virtual Int32 GetAllUpdatedCount(DateTime last)
+        public virtual Int64 GetAllUpdatedCount(DateTime last)
         {
             var fi = Facotry.Table.FindByName(LastUpdateName);
             return Facotry.FindCount(fi > last, null, null, 0, 0);

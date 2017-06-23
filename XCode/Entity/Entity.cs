@@ -705,6 +705,10 @@ namespace XCode
             if (param == null) return FindAll(where, null, null, 0, 0);
 
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
+            //var session = Meta.Session;
+            //if (session.LongCount > 1000000)
+            //    param.TotalCount = (Int32)session.LongCount;
+            //else
             param.TotalCount = FindCount(where, null, null, 0, 0);
             if (param.TotalCount <= 0) return new EntityList<TEntity>();
 
@@ -729,7 +733,7 @@ namespace XCode
         #region 取总记录数
         /// <summary>返回总记录数</summary>
         /// <returns></returns>
-        public static Int32 FindCount() { return FindCount("", null, null, 0, 0); }
+        public static Int64 FindCount() { return FindCount("", null, null, 0, 0); }
 
         /// <summary>返回总记录数</summary>
         /// <param name="where">条件，不带Where</param>
@@ -743,7 +747,7 @@ namespace XCode
             var session = Meta.Session;
 
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(where) && session.Count > 10000) return session.Count;
+            if (String.IsNullOrEmpty(where) && session.LongCount > 10000) return session.Count;
 
             var sb = new SelectBuilder();
             sb.Table = session.FormatedTableName;
@@ -762,14 +766,14 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
-        public static Int32 FindCount(Expression where, String order = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
+        public static Int64 FindCount(Expression where, String order = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var session = Meta.Session;
             var ps = Setting.Current.UserParameter ? new Dictionary<String, Object>() : null;
             var wh = where.GetString(false, ps);
 
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(wh) && session.Count > 10000) return session.Count;
+            if (String.IsNullOrEmpty(wh) && session.LongCount > 10000) return session.LongCount;
 
             var builder = new SelectBuilder();
             builder.Table = session.FormatedTableName;
@@ -830,7 +834,7 @@ namespace XCode
         /// <returns>记录数</returns>
         public static Int32 SearchCount(String key, String order, Int32 startRowIndex, Int32 maximumRows)
         {
-            return FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
+            return (Int32)FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>

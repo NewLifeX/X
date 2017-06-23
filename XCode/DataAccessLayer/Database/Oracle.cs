@@ -280,6 +280,9 @@ namespace XCode.DataAccessLayer
         Dictionary<String, DateTime> cache = new Dictionary<String, DateTime>();
         public Boolean NeedAnalyzeStatistics(String tableName)
         {
+            // 非当前用户，不支持统计
+            if (!Owner.EqualIgnoreCase(UserID)) return false;
+
             var key = String.Format("{0}.{1}", Owner, tableName);
             DateTime dt;
             if (!cache.TryGetValue(key, out dt))

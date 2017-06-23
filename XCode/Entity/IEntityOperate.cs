@@ -132,7 +132,7 @@ namespace XCode
         #region 取总记录数
         /// <summary>返回总记录数</summary>
         /// <returns></returns>
-        Int32 FindCount();
+        Int64 FindCount();
 
         /// <summary>返回总记录数</summary>
         /// <param name="where">条件，不带Where</param>
@@ -145,12 +145,8 @@ namespace XCode
 
         /// <summary>返回总记录数</summary>
         /// <param name="where">条件，不带Where</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
-        Int32 FindCount(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
+        Int64 FindCount(Expression where);
         #endregion
 
         #region 导入导出XML/Json

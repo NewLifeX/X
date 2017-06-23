@@ -253,7 +253,7 @@ namespace XCode.Membership
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, Int32 roleId, String order, Int32 startRowIndex, Int32 maximumRows)
+        public static Int64 SearchCount(String key, Int32 roleId, String order, Int32 startRowIndex, Int32 maximumRows)
         {
             return FindCount(SearchWhere(key, roleId), null, null, 0, 0);
         }
@@ -280,7 +280,7 @@ namespace XCode.Membership
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, Int32 roleId, Boolean? isEnable, String order, Int32 startRowIndex, Int32 maximumRows)
+        public static Int64 SearchCount(String key, Int32 roleId, Boolean? isEnable, String order, Int32 startRowIndex, Int32 maximumRows)
         {
             return FindCount(SearchWhere(key, roleId, isEnable), null, null, 0, 0);
         }

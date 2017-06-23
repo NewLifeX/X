@@ -52,10 +52,10 @@ namespace NewLife.Data
 
         #region 扩展属性
         /// <summary>总记录数</summary>
-        public virtual Int32 TotalCount { get; set; }
+        public virtual Int64 TotalCount { get; set; }
 
         /// <summary>页数</summary>
-        public virtual Int32 PageCount
+        public virtual Int64 PageCount
         {
             get
             {

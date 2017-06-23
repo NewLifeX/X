@@ -9,7 +9,7 @@
 
     int left = (len - 1) / 2, right = len - left - 1;
     int start = page.PageIndex - left;//开始页数
-    int end = page.PageIndex + right;//结束页数
+    Int64 end = page.PageIndex + right;//结束页数
     start = start < 1 ? 1 : start;
     end = end > page.PageCount ? page.PageCount : end;
     if (page.PageIndex <= 1)

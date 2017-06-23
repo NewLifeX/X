@@ -146,7 +146,7 @@ namespace XCode.Transform
             try
             {
                 XTrace.WriteLine("{0} 共 {1}", name, count);
-                if (OnlyTransformToEmptyTable && session.Count > 0)
+                if (OnlyTransformToEmptyTable && session.LongCount > 0)
                 {
                     XTrace.WriteLine("{0} 非空，跳过", name);
                     session.Rollback();

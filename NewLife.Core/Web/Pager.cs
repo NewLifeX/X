@@ -152,7 +152,7 @@ namespace NewLife.Web
         /// <param name="name"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public virtual String GetPageUrl(String name, Int32 index)
+        public virtual String GetPageUrl(String name, Int64 index)
         {
             var url = GetBaseUrl(true, true, false);
             // 当前在非首页而要跳回首页，不写页面序号

@@ -107,7 +107,7 @@ namespace XCode.Membership
         /// <param name="startRowIndex"></param>
         /// <param name="maximumRows"></param>
         /// <returns></returns>
-        public static Int32 SearchCount(String key, Int32 adminid, String category, DateTime start, DateTime end, String order, Int32 startRowIndex, Int32 maximumRows)
+        public static Int64 SearchCount(String key, Int32 adminid, String category, DateTime start, DateTime end, String order, Int32 startRowIndex, Int32 maximumRows)
         {
             var where = SearchWhere(key, adminid, category, start, end);
             return FindCount(where, null, null, 0, 0);
