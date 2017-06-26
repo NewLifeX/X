@@ -925,7 +925,7 @@ namespace XCode
         static SelectBuilder CreateBuilder(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
         {
             var ps = Setting.Current.UserParameter ? new Dictionary<String, Object>() : null;
-            var wh = where.GetString(false, ps);
+            var wh = where?.GetString(false, ps);
             var builder = CreateBuilder(wh, order, selects, startRowIndex, maximumRows, needOrderByID);
 
             builder = FixParam(builder, ps);
