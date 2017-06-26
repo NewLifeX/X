@@ -1,18 +1,12 @@
 ﻿
+using System;
+
 namespace NewLife.Agent
 {
     /// <summary>代理服务例子。自定义服务程序可参照该类实现。</summary>
     class AgentService : AgentServiceBase<AgentService>
     {
         #region 属性
-        /// <summary>线程数</summary>
-        public override System.Int32 ThreadCount { get { return 2; } }
-
-        /// <summary>显示名</summary>
-        public override System.String DisplayName { get { return "新生命服务代理"; } }
-
-        /// <summary>描述</summary>
-        public override System.String Description { get { return "用于承载各种服务的服务代理！"; } }
         #endregion
 
         #region 构造函数
@@ -21,6 +15,10 @@ namespace NewLife.Agent
         {
             // 一般在构造函数里面指定服务名
             ServiceName = "XAgent";
+
+            ThreadCount = 2;
+            DisplayName = "新生命服务代理";
+            Description = "用于承载各种服务的服务代理！";
         }
         #endregion
 

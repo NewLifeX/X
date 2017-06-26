@@ -490,15 +490,16 @@ namespace NewLife.Agent
             if (index < Intervals.Length) time = Intervals[index];
             if (time < 0) return;
 
-            Threads[index] = new Thread(workWaper);
+            var th = new Thread(workWaper);
+            Threads[index] = th;
             //String name = "XAgent_" + index;
             var name = "A" + index;
-            if (ThreadNames != null && ThreadNames.Length > index && !String.IsNullOrEmpty(ThreadNames[index]))
-                name = ThreadNames[index];
-            Threads[index].Name = name;
-            Threads[index].IsBackground = true;
-            Threads[index].Priority = ThreadPriority.AboveNormal;
-            Threads[index].Start(index);
+            var ns = ThreadNames;
+            if (ns != null && ns.Length > index && !String.IsNullOrEmpty(ns[index])) name = ns[index];
+            th.Name = name;
+            th.IsBackground = true;
+            th.Priority = ThreadPriority.AboveNormal;
+            th.Start(index);
         }
 
         /// <summary>线程包装</summary>

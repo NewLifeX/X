@@ -10,16 +10,16 @@ namespace NewLife.Agent
     {
         #region 属性
         /// <summary>显示名</summary>
-        public virtual String DisplayName { get { return ServiceName; } }
+        public virtual String DisplayName { get; set; }
 
         /// <summary>描述</summary>
-        public virtual String Description { get { return ServiceName + "服务"; } }
+        public virtual String Description { get; set; }
 
         /// <summary>线程数</summary>
-        public virtual Int32 ThreadCount { get; set; }
+        public virtual Int32 ThreadCount { get; set; } = 1;
 
         /// <summary>线程名</summary>
-        public virtual String[] ThreadNames { get { return null; } }
+        public virtual String[] ThreadNames { get; set; }
         #endregion
 
         #region 构造
@@ -29,7 +29,8 @@ namespace NewLife.Agent
             // 指定默认服务名
             if (String.IsNullOrEmpty(ServiceName)) ServiceName = GetType().Name;
 
-            ThreadCount = 1;
+            DisplayName = ServiceName;
+            Description = ServiceName + "服务";
         }
         #endregion
 
