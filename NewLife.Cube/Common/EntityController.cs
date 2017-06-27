@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -24,6 +23,8 @@ namespace NewLife.Cube
         #region 属性
         /// <summary>实体工厂</summary>
         public static IEntityOperate Factory { get { return Entity<TEntity>.Meta.Factory; } }
+
+        private String CacheKey { get { return "CubeView_{0}".F(typeof(TEntity).FullName); } }
         #endregion
 
         #region 构造
@@ -34,6 +35,38 @@ namespace NewLife.Cube
             var entity = new TEntity();
 
             ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
+        }
+        #endregion
+
+        #region 数据获取
+        /// <summary>搜索数据集</summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        protected virtual EntityList<TEntity> FindAll(Pager p)
+        {
+            // 缓存数据，用于后续导出
+            Session[CacheKey] = p;
+
+            return Entity<TEntity>.Search(p["Q"], p);
+        }
+
+        /// <summary>查找单行数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        protected virtual TEntity Find(Object key) { return Entity<TEntity>.FindByKeyForEdit(key); }
+
+        /// <summary>导出当前页以后的数据</summary>
+        /// <returns></returns>
+        protected virtual EntityList<TEntity> ExportData()
+        {
+            // 跳过头部一些页数，导出当前页以及以后的数据
+            var p = new Pager(Session[CacheKey] as Pager);
+            p.StartRow = (p.PageIndex - 1) * p.PageSize;
+            p.PageSize = 100000;
+            // 不要查记录数
+            p.TotalCount = -1;
+
+            return FindAll(p);
         }
         #endregion
 
@@ -48,6 +81,9 @@ namespace NewLife.Cube
 
             ViewBag.Page = p;
 
+            // 缓存数据，用于后续导出
+            Session[CacheKey] = p;
+
             // 用于显示的列
             var fields = GetFields(false);
             ViewBag.Fields = fields;
@@ -60,7 +96,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         protected virtual ActionResult IndexView(Pager p)
         {
-            var list = Entity<TEntity>.Search(p["Q"], p);
+            var list = FindAll(p);
 
             return View("List", list);
         }
@@ -72,7 +108,7 @@ namespace NewLife.Cube
         [DisplayName("查看{type}")]
         public virtual ActionResult Detail(String id)
         {
-            var entity = Entity<TEntity>.FindByKeyForEdit(id);
+            var entity = Find(id);
             if (entity.IsNullKey) throw new XException("要查看的数据[{0}]不存在！", id);
 
             return FormView(entity);
@@ -89,7 +125,7 @@ namespace NewLife.Cube
 
             try
             {
-                var entity = Entity<TEntity>.FindByKey(id);
+                var entity = Find(id);
                 OnDelete(entity);
 
                 Js.Alert("删除成功！").Redirect(url);
@@ -121,7 +157,7 @@ namespace NewLife.Cube
 
             try
             {
-                var entity = Entity<TEntity>.FindByKey(id);
+                var entity = Find(id);
                 OnDelete(entity);
 
                 return Json(new { msg = "删除成功！", code = 0, url = url }, JsonRequestBehavior.AllowGet);
@@ -204,7 +240,7 @@ namespace NewLife.Cube
         [DisplayName("更新{type}")]
         public virtual ActionResult Edit(String id)
         {
-            var entity = Entity<TEntity>.FindByKeyForEdit(id);
+            var entity = Find(id);
             if (entity.IsNullKey) throw new XException("要编辑的数据[{0}]不存在！", id);
 
             return FormView(entity);
@@ -289,13 +325,7 @@ namespace NewLife.Cube
 
         /// <summary>要导出Xml的对象</summary>
         /// <returns></returns>
-        protected virtual Object OnExportXml()
-        {
-            var count = Entity<TEntity>.Meta.Count;
-            if (count > 10000) count = 10000;
-
-            return Entity<TEntity>.FindAll(null, null, null, 0, count);
-        }
+        protected virtual Object OnExportXml() { return ExportData(); }
 
         /// <summary>设置附件响应方式</summary>
         /// <param name="name"></param>
@@ -341,13 +371,7 @@ namespace NewLife.Cube
 
         /// <summary>要导出Json的对象</summary>
         /// <returns></returns>
-        protected virtual Object OnExportJson()
-        {
-            var count = Entity<TEntity>.Meta.Count;
-            if (count > 10000) count = 10000;
-
-            return Entity<TEntity>.FindAll(null, null, null, 0, count);
-        }
+        protected virtual Object OnExportJson() { return ExportData(); }
 
         /// <summary>导入Json</summary>
         /// <returns></returns>
@@ -379,12 +403,12 @@ namespace NewLife.Cube
             var html = OnExportExcel(list);
             var name = GetType().GetDisplayName() ?? Factory.EntityType.GetDisplayName() ?? Factory.EntityType.Name;
 
-            ToExcel( "application/ms-excel", "{0}_{1}.xls".F(name, DateTime.Now.ToString("yyyyMMddHHmmss")), html);
+            ToExcel("application/ms-excel", "{0}_{1}.xls".F(name, DateTime.Now.ToString("yyyyMMddHHmmss")), html);
 
             return null;
         }
 
-        private  void ToExcel(string FileType, string FileName, string ExcelContent)
+        private void ToExcel(string FileType, string FileName, string ExcelContent)
         {
             System.Web.HttpContext.Current.Response.Charset = "UTF-8";
             System.Web.HttpContext.Current.Response.ContentEncoding = System.Text.Encoding.UTF8;
@@ -401,7 +425,7 @@ namespace NewLife.Cube
         /// <param name="fs"></param>
         protected virtual String OnExportExcel(List<FieldItem> fs)
         {
-            var list = Entity<TEntity>.FindAll();
+            var list = ExportData();
 
             return OnExportExcel(fs, list);
         }

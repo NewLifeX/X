@@ -77,6 +77,21 @@ namespace NewLife.Data
                 return sort;
             }
         }
+
+        /// <summary>获取 或 设置 开始行</summary>
+        public virtual Int64 StartRow { get; set; } = -1;
+        //{
+        //    get
+        //    {
+        //        // 负数表示直接开始行
+        //        return _PageIndex > 0 ? (_PageIndex - 1) * PageSize : (0 - _PageIndex);
+        //    }
+        //    set
+        //    {
+        //        // 直接指定具体起始行
+        //        _PageIndex = 0 - value;
+        //    }
+        //}
         #endregion
 
         #region 构造函数
@@ -94,10 +109,13 @@ namespace NewLife.Data
         /// <returns></returns>
         public virtual PageParameter CopyFrom(PageParameter pm)
         {
+            if (pm == null) return this;
+
             Sort = pm.Sort;
             Desc = pm.Desc;
             PageIndex = pm.PageIndex;
             PageSize = pm.PageSize;
+            StartRow = pm.StartRow;
 
             TotalCount = pm.TotalCount;
 

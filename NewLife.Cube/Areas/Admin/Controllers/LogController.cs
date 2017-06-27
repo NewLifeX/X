@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
 using NewLife.Web;
+using XCode;
 using XCode.Membership;
 using XLog = XCode.Membership.Log;
 
@@ -23,23 +24,12 @@ namespace NewLife.Cube.Admin.Controllers
             FormFields.RemoveField("Remark");
         }
 
-        ///// <summary>动作执行前</summary>
-        ///// <param name="filterContext"></param>
-        //protected override void OnActionExecuting(ActionExecutingContext filterContext)
-        //{
-        //    ViewBag.HeaderContent = "系统内重要操作均记录日志，便于审计。任何人都不能删除、修改或伪造操作日志。";
-
-        //    base.OnActionExecuting(filterContext);
-        //}
-
-        /// <summary>列表页视图。子控制器可重载，以传递更多信息给视图，比如修改要显示的列</summary>
+        /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        protected override ActionResult IndexView(Pager p)
+        protected override EntityList<XLog> FindAll(Pager p)
         {
-            var list = XLog.Search(p["Q"], p["adminid"].ToInt(), p["category"], p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
-
-            return View("List", list);
+            return XLog.Search(p["Q"], p["adminid"].ToInt(), p["category"], p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }
 
         /// <summary>不允许添加修改日志</summary>

@@ -24,23 +24,12 @@ namespace NewLife.Cube.Admin.Controllers
             ListFields.RemoveField("Answer");
         }
 
-        ///// <summary>动作执行前</summary>
-        ///// <param name="filterContext"></param>
-        //protected override void OnActionExecuting(ActionExecutingContext filterContext)
-        //{
-        //    ViewBag.HeaderContent = "系统基于角色授权，每个角色对不同的功能模块具备添删改查以及自定义权限等多种权限设定。";
-
-        //    base.OnActionExecuting(filterContext);
-        //}
-
-        /// <summary>列表页视图。子控制器可重载，以传递更多信息给视图，比如修改要显示的列</summary>
+        /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        protected override ActionResult IndexView(Pager p)
+        protected override EntityList<UserX> FindAll(Pager p)
         {
-            var list = UserX.Search(p["Q"], p["RoleID"].ToInt(), null, p);
-
-            return View("List", list);
+            return UserX.Search(p["Q"], p["RoleID"].ToInt(), null, p);
         }
 
         /// <summary>表单页视图。</summary>

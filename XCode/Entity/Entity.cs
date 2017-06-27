@@ -718,6 +718,7 @@ namespace XCode
                 param.Sort = st != null ? st.Name : null;
             }
 
+            // 采用起始行还是分页
             if (param.StartRow >= 0)
                 return FindAll(where, param.OrderBy, null, param.StartRow, param.PageSize);
             else
