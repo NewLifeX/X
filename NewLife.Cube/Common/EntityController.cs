@@ -436,35 +436,38 @@ namespace NewLife.Cube
         /// <param name="list"></param>
         protected virtual String OnExportExcel(List<FieldItem> fs, List<TEntity> list)
         {
-            var sHtml = new StringBuilder();
+            var sb = new StringBuilder();
             //下面这句解决中文乱码
-            sHtml.Append("<meta http-equiv='content-type' content='application/ms-excel; charset=utf-8'/>");
+            sb.Append("<meta http-equiv='content-type' content='application/ms-excel; charset=utf-8'/>");
             //打印表头
-            sHtml.Append("<table border='1' width='100%'>");
+            sb.Append("<table border='1' width='100%'>");
             // 列头
             {
-                sHtml.Append("<tr>");
+                sb.Append("<tr>");
                 foreach (var fi in fs)
                 {
-                    sHtml.Append(string.Format("<td>{0}</td>", fi.Description));
+                    var name = fi.DisplayName;
+                    if (name.IsNullOrEmpty()) name = fi.Description;
+                    if (name.IsNullOrEmpty()) name = fi.Name;
+                    sb.Append(string.Format("<td>{0}</td>", name));
                 }
-                sHtml.Append("</tr>");
+                sb.Append("</tr>");
             }
             // 内容
             foreach (var item in list)
             {
-                sHtml.Append("<tr>");
+                sb.Append("<tr>");
                 foreach (var fi in fs)
                 {
-                    sHtml.Append(string.Format("<td>{0}</td>", "{0}".F(item[fi.Name])));
+                    sb.Append(string.Format("<td>{0}</td>", "{0}".F(item[fi.Name])));
                 }
-                sHtml.Append("</tr>");
+                sb.Append("</tr>");
             }
 
             //打印表尾
-            sHtml.Append("</table>");
+            sb.Append("</table>");
 
-            return sHtml.ToString();
+            return sb.ToString();
         }
 
         /// <summary>清空全表数据</summary>
