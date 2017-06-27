@@ -108,7 +108,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
-        IEntityList FindAll(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
+        IEntityList FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows);
 
         /// <summary>
         /// 查询并返回实体对象集合。
@@ -120,7 +120,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体数组</returns>
-        IEntityList FindAll(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
+        IEntityList FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows);
         #endregion
 
         #region 缓存查询
@@ -141,7 +141,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>总行数</returns>
-        Int32 FindCount(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows);
+        Int32 FindCount(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows);
 
         /// <summary>返回总记录数</summary>
         /// <param name="where">条件，不带Where</param>

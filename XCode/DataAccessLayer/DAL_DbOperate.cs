@@ -25,7 +25,7 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        public SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        public SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             //2016年7月2日 HUIYUE 取消分页SQL缓存，此部分缓存提升性能不多，但有可能会造成分页数据不准确，感觉得不偿失
             return Db.PageSplit(builder, startRowIndex, maximumRows);
@@ -47,7 +47,7 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        public DataSet Select(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        public DataSet Select(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             builder = PageSplit(builder, startRowIndex, maximumRows);
             if (builder == null) return null;

@@ -110,7 +110,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IEntityList FindAll(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+            public virtual IEntityList FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
             {
                 return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows);
             }
@@ -124,7 +124,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IEntityList FindAll(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+            public virtual IEntityList FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
             {
                 return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows);
             }
@@ -148,7 +148,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>总行数</returns>
-            public virtual Int32 FindCount(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+            public virtual Int32 FindCount(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
             {
                 return Entity<TEntity>.FindCount(where, order, selects, startRowIndex, maximumRows);
             }

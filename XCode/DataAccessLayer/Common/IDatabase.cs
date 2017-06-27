@@ -61,7 +61,7 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
-        String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn);
+        String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn);
 
         /// <summary>构造分页SQL</summary>
         /// <remarks>
@@ -73,7 +73,7 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows);
+        SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
         #endregion
 
         #region 数据库特性

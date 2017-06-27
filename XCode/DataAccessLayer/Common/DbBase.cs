@@ -315,7 +315,7 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
-        public virtual String PageSplit(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        public virtual String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0 && maximumRows < 1) return sql;
@@ -362,7 +362,7 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">唯一键。用于not in分页</param>
         /// <returns>分页SQL</returns>
-        public static String PageSplitMaxMin(String sql, Int32 startRowIndex, Int32 maximumRows, String keyColumn)
+        public static String PageSplitMaxMin(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn)
         {
             // 唯一键的顺序。默认为Empty，可以为asc或desc，如果有，则表明主键列是数字唯一列，可以使用max/min分页法
             Boolean isAscOrder = keyColumn.ToLower().EndsWith(" asc");
@@ -490,7 +490,7 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        public virtual SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows)
+        public virtual SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0 && maximumRows < 1) return builder;

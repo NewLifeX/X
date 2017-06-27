@@ -431,7 +431,7 @@ namespace XCode
         {
             var session = Meta.Session;
             var ps = Setting.Current.UserParameter ? new Dictionary<String, Object>() : null;
-            var wh = where.GetString(false, ps);
+            var wh = where?.GetString(false, ps);
 
             var builder = new SelectBuilder();
             builder.Table = session.FormatedTableName;
@@ -582,7 +582,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        public static EntityList<TEntity> FindAll(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
         {
             var session = Meta.Session;
 
@@ -600,7 +600,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        public static EntityList<TEntity> FindAll(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
         {
             var session = Meta.Session;
 
@@ -705,12 +705,11 @@ namespace XCode
             if (param == null) return FindAll(where, null, null, 0, 0);
 
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
-            //var session = Meta.Session;
-            //if (session.LongCount > 1000000)
-            //    param.TotalCount = (Int32)session.LongCount;
-            //else
-            param.TotalCount = FindCount(where, null, null, 0, 0);
-            if (param.TotalCount <= 0) return new EntityList<TEntity>();
+            if (param.TotalCount >= 0)
+            {
+                param.TotalCount = FindCount(where, null, null, 0, 0);
+                if (param.TotalCount <= 0) return new EntityList<TEntity>();
+            }
 
             // 验证排序字段，避免非法
             if (!param.Sort.IsNullOrEmpty())
@@ -719,7 +718,10 @@ namespace XCode
                 param.Sort = st != null ? st.Name : null;
             }
 
-            return FindAll(where, param.OrderBy, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
+            if (param.StartRow >= 0)
+                return FindAll(where, param.OrderBy, null, param.StartRow, param.PageSize);
+            else
+                return FindAll(where, param.OrderBy, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
         }
         #endregion
 
@@ -742,7 +744,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
-        public static Int32 FindCount(String where, String order = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
+        public static Int32 FindCount(String where, String order = null, String selects = null, Int64 startRowIndex = 0, Int64 maximumRows = 0)
         {
             var session = Meta.Session;
 
@@ -766,11 +768,11 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
         /// <returns>总行数</returns>
-        public static Int64 FindCount(Expression where, String order = null, String selects = null, Int32 startRowIndex = 0, Int32 maximumRows = 0)
+        public static Int64 FindCount(Expression where, String order = null, String selects = null, Int64 startRowIndex = 0, Int64 maximumRows = 0)
         {
             var session = Meta.Session;
             var ps = Setting.Current.UserParameter ? new Dictionary<String, Object>() : null;
-            var wh = where.GetString(false, ps);
+            var wh = where?.GetString(false, ps);
 
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
             if (String.IsNullOrEmpty(wh) && session.LongCount > 10000) return session.LongCount;
@@ -821,7 +823,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, String order, Int32 startRowIndex, Int32 maximumRows)
+        public static EntityList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows)
         {
             return FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
         }
@@ -832,7 +834,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        public static Int32 SearchCount(String key, String order, Int32 startRowIndex, Int32 maximumRows)
+        public static Int32 SearchCount(String key, String order, Int64 startRowIndex, Int64 maximumRows)
         {
             return (Int32)FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
         }
@@ -922,7 +924,7 @@ namespace XCode
         #endregion
 
         #region 构造SQL语句
-        static SelectBuilder CreateBuilder(Expression where, String order, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
+        static SelectBuilder CreateBuilder(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows, Boolean needOrderByID = true)
         {
             var ps = Setting.Current.UserParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(false, ps);
@@ -933,7 +935,7 @@ namespace XCode
             return builder;
         }
 
-        static SelectBuilder CreateBuilder(String where, String order, String selects, Int32 startRowIndex, Int32 maximumRows, Boolean needOrderByID = true)
+        static SelectBuilder CreateBuilder(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows, Boolean needOrderByID = true)
         {
             var builder = new SelectBuilder();
             builder.Column = selects;

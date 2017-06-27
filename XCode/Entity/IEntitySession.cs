@@ -69,7 +69,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        DataSet Query(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows);
+        DataSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
 
         /// <summary>查询</summary>
         /// <param name="sql">SQL语句</param>
@@ -91,7 +91,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        SelectBuilder PageSplit(SelectBuilder builder, Int32 startRowIndex, Int32 maximumRows);
+        SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
 
         /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>
