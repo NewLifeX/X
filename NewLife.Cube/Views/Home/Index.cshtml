@@ -1,6 +1,8 @@
 ﻿@using NewLife.Common;
 @{
     Layout = null;
+    var page = HttpRuntime.AppDomainAppVirtualPath;
+    page = page.EnsureEnd("/") + "Admin";
 }
 
 <!DOCTYPE html>
@@ -9,7 +11,7 @@
 <head>
     <meta name="viewport" content="width=device-width" />
     <title>@SysConfig.Current.DisplayName</title>
-    <meta http-equiv="refresh" content="0;url=/Admin">
+    <meta http-equiv="refresh" content="0;url=@page">
 </head>
 <body>
     <div>

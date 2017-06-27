@@ -52,6 +52,8 @@ namespace ASP
             #line 2 "..\..\Views\Home\Index.cshtml"
   
     Layout = null;
+    var page = HttpRuntime.AppDomainAppVirtualPath;
+    page = page.EnsureEnd("/") + "Admin";
 
             
             #line default
@@ -65,7 +67,7 @@ WriteLiteral(" content=\"width=device-width\"");
 WriteLiteral(" />\r\n    <title>");
 
             
-            #line 11 "..\..\Views\Home\Index.cshtml"
+            #line 13 "..\..\Views\Home\Index.cshtml"
       Write(SysConfig.Current.DisplayName);
 
             
@@ -75,12 +77,21 @@ WriteLiteral("</title>\r\n    <meta");
 
 WriteLiteral(" http-equiv=\"refresh\"");
 
-WriteLiteral(" content=\"0;url=/Admin\"");
+WriteAttribute("content", Tuple.Create(" content=\"", 324), Tuple.Create("\"", 345)
+, Tuple.Create(Tuple.Create("", 334), Tuple.Create("0;url=", 334), true)
+            
+            #line 14 "..\..\Views\Home\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 340), Tuple.Create<System.Object, System.Int32>(page
+            
+            #line default
+            #line hidden
+, 340), false)
+);
 
 WriteLiteral(">\r\n</head>\r\n<body>\r\n    <div>\r\n        <h1>");
 
             
-            #line 16 "..\..\Views\Home\Index.cshtml"
+            #line 18 "..\..\Views\Home\Index.cshtml"
        Write(SysConfig.Current.DisplayName);
 
             
@@ -91,7 +102,7 @@ WriteLiteral("</h1>\r\n");
 WriteLiteral("        ");
 
             
-            #line 17 "..\..\Views\Home\Index.cshtml"
+            #line 19 "..\..\Views\Home\Index.cshtml"
    Write(SysConfig.Current.Company);
 
             
