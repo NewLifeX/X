@@ -680,6 +680,8 @@ namespace XCode.DataAccessLayer
 
         public void WriteSQL(DbCommand cmd)
         {
+            if (!ShowSQL) return;
+
             var sql = cmd.CommandText;
             if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
 
