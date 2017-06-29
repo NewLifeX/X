@@ -71,7 +71,8 @@ namespace NewLife.Cube
             {
                 //HandleUnauthorizedRequest(filterContext);
                 var ctx = filterContext.HttpContext;
-                var rurl = "/Admin/User/Login";
+                var rurl = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/");
+                rurl += "Admin/User/Login";
                 if (ctx.Request.Url != null) rurl += "?returnUrl=" + ctx.Request.Url;
 
                 filterContext.HttpContext.Response.Redirect(rurl, true);
@@ -98,7 +99,6 @@ namespace NewLife.Cube
             vr.ViewBag.Permission = Permission;
 
             filterContext.Result = vr;
-
         }
         #endregion
     }
