@@ -41,18 +41,18 @@ namespace XCode.Common
             //如果不根据类型分别进行会导致类型转换失败抛出异常
             switch (Type.GetTypeCode(type))
             {
-                case TypeCode.Int16: return ((Int16)key) <= 0;
-                case TypeCode.Int32: return ((Int32)key) <= 0;
-                case TypeCode.Int64: return ((Int64)key) <= 0;
-                case TypeCode.UInt16: return ((UInt16)key) <= 0;
-                case TypeCode.UInt32: return ((UInt32)key) <= 0;
-                case TypeCode.UInt64: return ((UInt64)key) <= 0;
+                case TypeCode.Int16: return ((Int16)key) == 0;
+                case TypeCode.Int32: return ((Int32)key) == 0;
+                case TypeCode.Int64: return ((Int64)key) == 0;
+                case TypeCode.UInt16: return ((UInt16)key) == 0;
+                case TypeCode.UInt32: return ((UInt32)key) == 0;
+                case TypeCode.UInt64: return ((UInt64)key) == 0;
                 case TypeCode.String: return String.IsNullOrEmpty((String)key);
                 default: break;
             }
 
             if (type == typeof(Guid)) return ((Guid)key) == Guid.Empty;
-            if (type == typeof(Byte[])) return ((Byte[])key).Length <= 0;
+            if (type == typeof(Byte[])) return ((Byte[])key).Length == 0;
 
             return false;
         }
