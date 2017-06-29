@@ -949,7 +949,7 @@ namespace XCode
             // 返回所有记录
             if (!needOrderByID && startRowIndex <= 0 && maximumRows <= 0) return builder;
 
-            FieldItem fi = Meta.Unique;
+            FieldItem fi = Meta.Table.Identity;
             if (fi != null)
             {
                 builder.Key = Meta.FormatName(fi.ColumnName);
@@ -971,11 +971,11 @@ namespace XCode
                     builder.OrderBy = builder.KeyOrder;
                 }
             }
-            else
-            {
-                // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
-                if (String.IsNullOrEmpty(builder.OrderBy)) builder.Keys = Meta.FieldNames.ToArray();
-            }
+            //else
+            //{
+            //    // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
+            //    if (String.IsNullOrEmpty(builder.OrderBy)) builder.Keys = Meta.FieldNames.ToArray();
+            //}
             return builder;
         }
 
