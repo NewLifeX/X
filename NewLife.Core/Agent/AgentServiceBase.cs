@@ -508,9 +508,6 @@ namespace NewLife.Agent
         {
             var index = (Int32)data;
 
-            // 旧异常
-            Exception oldEx = null;
-
             while (true)
             {
                 var isContinute = false;
@@ -519,28 +516,21 @@ namespace NewLife.Agent
                 try
                 {
                     isContinute = Work(index);
-
-                    oldEx = null;
                 }
-                catch (ThreadAbortException) //线程被取消
+                catch (ThreadAbortException)
                 {
                     WriteLine("线程" + index + "被取消！");
                     break;
                 }
-                catch (ThreadInterruptedException) //线程中断错误
+                catch (ThreadInterruptedException)
                 {
                     WriteLine("线程" + index + "中断错误！");
                     break;
                 }
-                catch (Exception ex) //确保拦截了所有的异常，保证服务稳定运行
+                catch (Exception ex)
                 {
-                    // 避免同样的异常信息连续出现，造成日志膨胀
-                    if (oldEx == null || oldEx.GetType() != ex.GetType() || oldEx.Message != ex.Message)
-                    {
-                        oldEx = ex;
-
-                        WriteLine(ex.ToString());
-                    }
+                    // 确保拦截了所有的异常，保证服务稳定运行
+                    WriteLine(ex?.GetTrue() + "");
                 }
                 Active[index] = DateTime.Now;
 
@@ -551,14 +541,9 @@ namespace NewLife.Agent
                     break;
                 }
 
-                //var ts = Setting.Current.Intervals.SplitAsInt();
                 var time = Intervals[0]; //ts[0];
                 //使用专用的时间间隔
                 if (index < Intervals.Length) time = Intervals[index];
-
-                //如果有数据库连接错误，则将等待间隔放大十倍
-                //if (hasdberr) time *= 10;
-                if (oldEx != null) time *= 10;
 
                 if (!isContinute) Thread.Sleep(time * 1000);
             }
