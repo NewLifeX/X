@@ -182,9 +182,8 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        //private String _Limit;
-        ///// <summary>分页用的Limit语句</summary>
-        //public String Limit { get { return _Limit; } set { _Limit = value; } }
+        /// <summary>分页用的Limit语句</summary>
+        public String Limit { get; set; }
         #endregion
 
         #region 扩展属性
@@ -284,6 +283,7 @@ $";
             if (!String.IsNullOrEmpty(GroupBy)) sb.Append(" Group By " + GroupBy);
             if (!String.IsNullOrEmpty(Having)) sb.Append(" Having " + Having);
             if (!String.IsNullOrEmpty(OrderBy)) sb.Append(" Order By " + OrderBy);
+            if (!Limit.IsNullOrEmpty()) sb.Append(Limit.EnsureStart(" "));
 
             return sb.ToString();
         }

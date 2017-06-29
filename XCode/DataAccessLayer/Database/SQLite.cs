@@ -172,12 +172,12 @@ namespace XCode.DataAccessLayer
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) builder.OrderBy += String.Format(" limit {0}", maximumRows);
+                if (maximumRows > 0) builder.Limit += String.Format(" limit {0}", maximumRows);
                 return builder;
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
-            builder.OrderBy += String.Format(" limit {0}, {1}", startRowIndex, maximumRows);
+            builder.Limit += String.Format(" limit {0}, {1}", startRowIndex, maximumRows);
             return builder;
         }
         #endregion
