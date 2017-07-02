@@ -56,13 +56,13 @@ namespace XCode
         [Description("缓存调试")]
         public Boolean CacheDebug { get; set; }
 
-        /// <summary>实体缓存过期。默认60秒</summary>
-        [Description("实体缓存过期。默认60秒")]
-        public Int32 EntityCacheExpire { get; set; } = 60;
+        /// <summary>实体缓存过期。默认10秒</summary>
+        [Description("实体缓存过期。默认10秒")]
+        public Int32 EntityCacheExpire { get; set; } = 10;
 
-        /// <summary>单对象缓存过期。默认60秒</summary>
-        [Description("单对象缓存过期。默认60秒")]
-        public Int32 SingleCacheExpire { get; set; } = 60;
+        /// <summary>单对象缓存过期。默认10秒</summary>
+        [Description("单对象缓存过期。默认10秒")]
+        public Int32 SingleCacheExpire { get; set; } = 10;
 
         /// <summary>扩展属性过期。默认10秒</summary>
         [Description("扩展属性过期。默认10秒")]
