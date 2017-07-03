@@ -403,14 +403,15 @@ namespace XCode.DataAccessLayer
                 if ((entityColumn.Length > Database.LongTextLength || entityColumn.Length <= 0) &&
                     (entityDb != null && dbColumn.Length > entityDb.LongTextLength || dbColumn.Length <= 0)) isChanged = false;
             }
-
+            //云飞扬 2017-07-03 注释掉下面验证decimal类型的精度和小数位数的代码
+            //这是因为DbMetaData.GetFormatParam方法中"为了最大程度保证兼容性，所有数据库的Decimal和DateTime类型不指定精度，均采用数据库默认值"
             //chenqi 2017-3-28
             //增加处理decimal类型的精度和小数位数
-            if (!isChanged && Type.GetTypeCode(entityColumn.DataType) == TypeCode.Decimal &&
-                entityColumn.Scale != dbColumn.Scale)
-            {
-                isChanged = true;
-            }
+            //if (!isChanged && Type.GetTypeCode(entityColumn.DataType) == TypeCode.Decimal &&
+            //    entityColumn.Scale != dbColumn.Scale)
+            //{
+            //    isChanged = true;
+            //}
 
             return isChanged;
         }
