@@ -74,11 +74,10 @@ namespace Test
 
         static void Test1()
         {
-            var svr = new NATProxy("10.10.4.157", 4781);
-            svr.Port = 3349;
-            svr.Log = XTrace.Log;
-            svr.Start();
-            Console.ReadKey();
+            var ds = new XCode.Common.DataSimulation<Log>();
+            ds.Log = XTrace.Log;
+            ds.BatchSize = 10000;
+            ds.Run(100000);
         }
 
         class A

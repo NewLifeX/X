@@ -68,6 +68,7 @@
     <Compile Include="Attributes\BindTableAttribute.cs" />
     <Compile Include="Attributes\BindRelationAttribute.cs" />
     <Compile Include="Code\CodeDomHelper.cs" />
+    <Compile Include="Common\DataSimulation.cs" />
     <Compile Include="Configuration\FieldExtension.cs" />
     <Compile Include="DataAccessLayer\Common\ITransaction.cs" />
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
