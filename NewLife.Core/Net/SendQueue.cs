@@ -135,6 +135,9 @@ namespace NewLife.Net
             {
                 var pk = qi.Packet;
                 var len = pk.Total;
+
+                if (pk == null || pk.Data == null || se.Buffer == null) break;
+
                 if (pk.Next == null)
                     Buffer.BlockCopy(pk.Data, pk.Offset, se.Buffer, p, len);
                 else
