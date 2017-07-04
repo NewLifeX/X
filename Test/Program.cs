@@ -76,7 +76,8 @@ namespace Test
         {
             var ds = new XCode.Common.DataSimulation<Log>();
             ds.Log = XTrace.Log;
-            ds.BatchSize = 10000;
+            //ds.BatchSize = 10000;
+            //ds.Threads = 2;
             ds.Run(100000);
         }
 
