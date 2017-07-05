@@ -59,11 +59,10 @@ namespace XCode.Remoting
                 Type = dic["Type"] + "";
                 Version = dic["Version"] + "";
             }
-
-            CheckOnline(user);
-
             // 登录
             Name = user;
+
+            CheckOnline(user);           
 
             var msg = "登录 {0}/{1}".F(user, pass);
             WriteLog(msg);

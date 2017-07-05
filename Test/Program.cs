@@ -74,11 +74,20 @@ namespace Test
 
         static void Test1()
         {
-            var svr = new NATProxy("10.10.4.157", 4781);
-            svr.Port = 3349;
-            svr.Log = XTrace.Log;
-            svr.Start();
-            Console.ReadKey();
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
+
+            var db = "Membership.db".GetFullPath();
+            if (File.Exists(db)) File.Delete(db);
+
+            Console.Write("请输入线程数：");
+            var ths = Console.ReadLine().ToInt();
+            if (ths < 1) ths = 1;
+
+            var ds = new XCode.Common.DataSimulation<Log>();
+            ds.Log = XTrace.Log;
+            //ds.BatchSize = 10000;
+            ds.Threads = ths;
+            ds.Run(100000);
         }
 
         class A

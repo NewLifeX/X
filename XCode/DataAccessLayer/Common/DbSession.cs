@@ -252,7 +252,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>提交事务</summary>
         /// <returns>剩下的事务计数</returns>
-        public Int32 Commit()
+        public virtual Int32 Commit()
         {
             var tr = Transaction;
             if (tr == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");

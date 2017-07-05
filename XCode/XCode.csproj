@@ -68,6 +68,7 @@
     <Compile Include="Attributes\BindTableAttribute.cs" />
     <Compile Include="Attributes\BindRelationAttribute.cs" />
     <Compile Include="Code\CodeDomHelper.cs" />
+    <Compile Include="Common\DataSimulation.cs" />
     <Compile Include="Configuration\FieldExtension.cs" />
     <Compile Include="DataAccessLayer\Common\ITransaction.cs" />
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
@@ -210,15 +211,9 @@
     <None Include="Transform\TransformBase.cs" />
     <Compile Include="Tree\IEntityTreeSettting.cs" />
     <Compile Include="Web\DbRunTimeModule.cs" />
-    <Compile Include="Test\TestHelper.cs" />
-    <Compile Include="Test\实体测试.Biz.cs">
-      <DependentUpon>实体测试.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Test\实体测试.cs" />
     <Compile Include="Tree\EntityTree.cs" />
     <Compile Include="Tree\IEntityTree.cs" />
     <None Include="DataAccessLayer\Model\数据模型.cd" />
-    <None Include="Test\XCodeTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -240,7 +235,6 @@
     <None Include="Membership\Member.xml">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Test\EntityTest.xml" />
     <Content Include="Sync\同步机制.txt" />
     <None Include="说明.txt" />
   </ItemGroup>
