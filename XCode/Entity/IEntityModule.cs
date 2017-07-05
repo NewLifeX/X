@@ -33,7 +33,6 @@ namespace XCode
     class EntityModules : ICollection<IEntityModule>
     {
         #region 属性
-        //private Type _EntityType;
         /// <summary>实体类型</summary>
         public Type EntityType { get; set; }
 

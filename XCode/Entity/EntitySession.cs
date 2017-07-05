@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
@@ -131,6 +132,9 @@ namespace XCode
                 return _Default;
             }
         }
+
+        /// <summary>用户数据</summary>
+        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
         #endregion
 
         #region 数据初始化

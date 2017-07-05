@@ -27,8 +27,10 @@ namespace XCode
                 }
             }
 
+            [ThreadStatic]
+            private static EntitySession<TEntity> _Session;
             /// <summary>实体会话</summary>
-            public static EntitySession<TEntity> Session { get { return EntitySession<TEntity>.Create(ConnName, TableName); } }
+            public static EntitySession<TEntity> Session { get { return _Session ?? (_Session = EntitySession<TEntity>.Create(ConnName, TableName)); } }
             #endregion
 
             #region 基本属性
@@ -43,6 +45,7 @@ namespace XCode
                 get { return _ConnName ?? (_ConnName = Table.ConnName); }
                 set
                 {
+                    _Session = null;
                     _ConnName = value;
 
                     if (String.IsNullOrEmpty(_ConnName)) _ConnName = Table.ConnName;
@@ -57,6 +60,7 @@ namespace XCode
                 get { return _TableName ?? (_TableName = Table.TableName); }
                 set
                 {
+                    _Session = null;
                     _TableName = value;
 
                     if (String.IsNullOrEmpty(_TableName)) _TableName = Table.TableName;

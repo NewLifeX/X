@@ -46,6 +46,8 @@ namespace XCode.Common
             //XCode.Setting.Current.ShowSQL = false;
             //fact.Session.Dal.Session.ShowSQL = false;
             fact.Session.Dal.Db.ShowSQL = false;
+            // 不必获取自增返回值
+            fact.AutoIdentity = false;
 
             // 预热数据表
             WriteLog("{0} 已有数据：{1:n0}", fact.TableName, fact.Count);

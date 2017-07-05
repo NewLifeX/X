@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using XCode.Cache;
@@ -24,6 +25,9 @@ namespace XCode
 
         /// <summary>数据操作层</summary>
         DAL Dal { get; }
+
+        /// <summary>用户数据</summary>
+        IDictionary<String, Object> Items { get; set; }
         #endregion
 
         #region 数据初始化
