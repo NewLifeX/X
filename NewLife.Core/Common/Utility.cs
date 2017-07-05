@@ -302,22 +302,67 @@ namespace System
 
             //return value.ToString("yyyy-MM-dd HH:mm:ss");
 
-            var dt = value;
-            var sb = new StringBuilder();
-            sb.Append(dt.Year.ToString().PadLeft(4, '0'));
-            sb.Append("-");
-            sb.Append(dt.Month.ToString().PadLeft(2, '0'));
-            sb.Append("-");
-            sb.Append(dt.Day.ToString().PadLeft(2, '0'));
-            sb.Append(" ");
+            //var dt = value;
+            //var sb = new StringBuilder();
+            //sb.Append(dt.Year.ToString().PadLeft(4, '0'));
+            //sb.Append("-");
+            //sb.Append(dt.Month.ToString().PadLeft(2, '0'));
+            //sb.Append("-");
+            //sb.Append(dt.Day.ToString().PadLeft(2, '0'));
+            //sb.Append(" ");
 
-            sb.Append(dt.Hour.ToString().PadLeft(2, '0'));
-            sb.Append(":");
-            sb.Append(dt.Minute.ToString().PadLeft(2, '0'));
-            sb.Append(":");
-            sb.Append(dt.Second.ToString().PadLeft(2, '0'));
+            //sb.Append(dt.Hour.ToString().PadLeft(2, '0'));
+            //sb.Append(":");
+            //sb.Append(dt.Minute.ToString().PadLeft(2, '0'));
+            //sb.Append(":");
+            //sb.Append(dt.Second.ToString().PadLeft(2, '0'));
 
-            return sb.ToString();
+            //return sb.ToString();
+
+            var cs = "yyyy-MM-dd HH:mm:ss".ToCharArray();
+
+            var k = 0;
+            var y = value.Year;
+            cs[k++] = (Char)('0' + (y / 1000));
+            y %= 1000;
+            cs[k++] = (Char)('0' + (y / 100));
+            y %= 100;
+            cs[k++] = (Char)('0' + (y / 10));
+            y %= 10;
+            cs[k++] = (Char)('0' + y);
+            k++;
+
+            var m = value.Month;
+            cs[k++] = (Char)('0' + (m / 10));
+            m %= 10;
+            cs[k++] = (Char)('0' + m);
+            k++;
+
+            m = value.Day;
+            cs[k++] = (Char)('0' + (m / 10));
+            m %= 10;
+            cs[k++] = (Char)('0' + m);
+            k++;
+
+            m = value.Hour;
+            cs[k++] = (Char)('0' + (m / 10));
+            m %= 10;
+            cs[k++] = (Char)('0' + m);
+            k++;
+
+            m = value.Minute;
+            cs[k++] = (Char)('0' + (m / 10));
+            m %= 10;
+            cs[k++] = (Char)('0' + m);
+            k++;
+
+            m = value.Second;
+            cs[k++] = (Char)('0' + (m / 10));
+            m %= 10;
+            cs[k++] = (Char)('0' + m);
+            k++;
+
+            return new String(cs);
         }
 
         /// <summary>时间日期转为指定格式字符串</summary>

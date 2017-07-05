@@ -75,6 +75,9 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
+            Console.Title = "SQLite极速插入测试 之 一夜无眠 v1.4 " + AssemblyX.Entry.Compile.ToFullString();
+
+            //Console.WriteLine(DateTime.Now.ToFullString());
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
 
             if (ths <= 0)
