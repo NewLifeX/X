@@ -353,24 +353,13 @@ namespace XCode.DataAccessLayer
 
         Dictionary<String, Int64> QueryIndex()
         {
-            if (_index == null)
-            {
-                _next = DateTime.Now.AddSeconds(10);
-                return _index = QueryIndex_();
-            }
-
             // 检查更新
-            if (_next < DateTime.Now)
+            if (_index == null || _next < DateTime.Now)
             {
-                // 先改时间，让别的线程先用着旧的
-                _next = DateTime.Now.AddSeconds(10);
-                //// 同一个会话里面，不担心分表分库的问题，倒是有可能有冲突
-                //ThreadPool.QueueUserWorkItem(s => _index = QueryIndex_());
-
                 _index = QueryIndex_();
+                _next = DateTime.Now.AddSeconds(10);
             }
 
-            // 直接返回旧的
             return _index;
         }
 
