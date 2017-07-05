@@ -78,7 +78,7 @@ namespace XCode.DataAccessLayer
 
             // 优化SQLite，如果原始字符串里面没有这些参数，就设置这些参数
             if (!builder.ContainsKey("Pooling")) builder["Pooling"] = "true";
-            if (!builder.ContainsKey("Cache Size")) builder["Cache Size"] = "2000";
+            if (!builder.ContainsKey("Cache Size")) builder["Cache Size"] = "5000";
             // 加大Page Size会导致磁盘IO大大加大，性能反而有所下降
             //if (!builder.ContainsKey("Page Size")) builder["Page Size"] = "32768";
             // 这两个设置可以让SQLite拥有数十倍的极限性能，但同时又加大了风险，如果系统遭遇突然断电，数据库会出错，而导致系统无法自动恢复
@@ -278,6 +278,16 @@ namespace XCode.DataAccessLayer
         {
             sql += ";Select last_insert_rowid() newid";
             return ExecuteScalar<Int64>(CreateCommand(sql, type, ps));
+        }
+        #endregion
+
+        #region 事务
+        public override Int32 Commit()
+        {
+            lock (Database)
+            {
+                return base.Commit();
+            }
         }
         #endregion
 
