@@ -45,22 +45,32 @@ namespace XCode
         {
             EntityType = entityType;
 
-            // 异步扫描添加，避免阻塞
-            var task = Task.Run(() =>
-            {
-                foreach (var item in typeof(IEntityModule).GetAllSubclasses(true))
-                {
-                    var module = item.CreateInstance() as IEntityModule;
-                    Add(module);
-                }
-            });
+            //// 异步扫描添加，避免阻塞
+            //var task = Task.Run(() =>
+            //{
+            //    foreach (var item in typeof(IEntityModule).GetAllSubclasses(true))
+            //    {
+            //        var module = item.CreateInstance() as IEntityModule;
+            //        Add(module);
+            //    }
+            //});
 
-            // 略微等一下
-            task.Wait(100);
+            //// 略微等一下
+            //task.Wait(100);
         }
         #endregion
 
         #region 方法
+        /// <summary>自动扫描可用模块</summary>
+        public void Scan()
+        {
+            foreach (var item in typeof(IEntityModule).GetAllSubclasses(true))
+            {
+                var module = item.CreateInstance() as IEntityModule;
+                Add(module);
+            }
+        }
+
         public virtual Boolean Add(IEntityModule module)
         {
             if (!module.Init(EntityType)) return false;
