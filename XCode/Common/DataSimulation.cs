@@ -38,7 +38,6 @@ namespace XCode.Common
         }
         #endregion
 
-
         #region 方法
         public void Run(Int32 count)
         {
@@ -54,7 +53,7 @@ namespace XCode.Common
             // 准备数据
             var list = new List<IEntity>();
             WriteLog("正在准备数据：");
-            var cpu = Threads;
+            var cpu = Environment.ProcessorCount;
             Parallel.For(0, cpu, n =>
             {
                 var k = 0;
@@ -87,11 +86,12 @@ namespace XCode.Common
             sw.Start();
 
             WriteLog("正在准备写入：");
-            Parallel.For(0, cpu, n =>
+            var ths = Threads;
+            Parallel.For(0, ths, n =>
             {
                 var k = 0;
                 EntityTransaction tr = null;
-                for (int i = n; i < list.Count; i += cpu, k++)
+                for (int i = n; i < list.Count; i += ths, k++)
                 {
                     if (k % BatchSize == 0)
                     {
@@ -108,6 +108,7 @@ namespace XCode.Common
             });
 
             sw.Stop();
+            Console.WriteLine();
             WriteLog("数据写入完毕！");
             var ms = sw.ElapsedMilliseconds;
             WriteLog("{2}插入{3:n0}行数据，耗时：{0:n0}ms 速度：{1:n0}tps", ms, list.Count * 1000L / ms, fact.Session.Dal.DbType, list.Count);
