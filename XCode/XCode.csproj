@@ -93,6 +93,8 @@
     <Compile Include="Membership\用户.Biz.cs">
     </Compile>
     <Compile Include="Membership\用户.cs" />
+    <Compile Include="Membership\用户在线.Biz.cs" />
+    <Compile Include="Membership\用户在线.cs" />
     <Compile Include="Membership\菜单.Biz.cs">
     </Compile>
     <Compile Include="Membership\菜单.cs" />

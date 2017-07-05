@@ -72,18 +72,22 @@ namespace Test
             }
         }
 
+        private static Int32 ths = 0;
         static void Test1()
         {
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
 
-            var db = "Membership.db".GetFullPath();
-            if (File.Exists(db)) File.Delete(db);
+            if (ths <= 0)
+            {
+                var db = "Membership.db".GetFullPath();
+                if (File.Exists(db)) File.Delete(db);
 
-            Console.Write("请输入线程数：");
-            var ths = Console.ReadLine().ToInt();
-            if (ths < 1) ths = 1;
+                Console.Write("请输入线程数：");
+                ths = Console.ReadLine().ToInt();
+                if (ths < 1) ths = 1;
+            }
 
-            var ds = new XCode.Common.DataSimulation<Log>();
+            var ds = new XCode.Common.DataSimulation<UserOnline>();
             ds.Log = XTrace.Log;
             //ds.BatchSize = 10000;
             ds.Threads = ths;
