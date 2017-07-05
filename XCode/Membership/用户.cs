@@ -16,7 +16,7 @@ namespace XCode.Membership
     [BindIndex("IX_User_RoleID", false, "RoleID")]
     [BindRelation("RoleID", false, "Role", "ID")]
     [BindTable("User", Description = "用户", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
-    public abstract partial class User<TEntity> : IUser
+    public partial class User<TEntity> : IUser
     {
         #region 属性
         private Int32 _ID;
@@ -343,7 +343,7 @@ namespace XCode.Membership
 
         #region 字段名
         /// <summary>取得用户字段信息的快捷方式</summary>
-        partial class _
+        public partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);

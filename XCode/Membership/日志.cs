@@ -12,13 +12,9 @@ namespace XCode.Membership
     [Serializable]
     [DataObject]
     [Description("日志")]
-    [BindIndex("IX_Log_Category", false, "Category")]
-    [BindIndex("IX_Log_Category_LinkID", false, "Category,LinkID")]
-    [BindIndex("IX_Log_Action", false, "Action")]
-    [BindIndex("IX_Log_CreateUserID", false, "CreateUserID")]
-    [BindIndex("IX_Log_CreateTime", false, "CreateTime")]
+    [BindIndex("IX_Log_Category_CreateUserID_CreateTime", false, "Category,CreateUserID,CreateTime")]
     [BindTable("Log", Description = "日志", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
-    public abstract partial class Log<TEntity> : ILog
+    public partial class Log<TEntity> : ILog
     {
         #region 属性
         private Int32 _ID;
@@ -177,7 +173,7 @@ namespace XCode.Membership
 
         #region 字段名
         /// <summary>取得日志字段信息的快捷方式</summary>
-        partial class _
+        public partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);

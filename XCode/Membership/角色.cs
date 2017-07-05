@@ -14,7 +14,7 @@ namespace XCode.Membership
     [Description("角色")]
     [BindIndex("IU_Role_Name", true, "Name")]
     [BindTable("Role", Description = "角色", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
-    public abstract partial class Role<TEntity> : IRole
+    public partial class Role<TEntity> : IRole
     {
         #region 属性
         private Int32 _ID;
@@ -117,7 +117,7 @@ namespace XCode.Membership
 
         #region 字段名
         /// <summary>取得角色字段信息的快捷方式</summary>
-        partial class _
+        public partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);

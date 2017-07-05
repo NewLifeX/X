@@ -15,7 +15,7 @@ namespace XCode.Membership
     [BindIndex("IX_Menu_Name", false, "Name")]
     [BindIndex("IU_Menu_ParentID_Name", true, "ParentID,Name")]
     [BindTable("Menu", Description = "菜单", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
-    public abstract partial class Menu<TEntity> : IMenu
+    public partial class Menu<TEntity> : IMenu
     {
         #region 属性
         private Int32 _ID;
@@ -188,7 +188,7 @@ namespace XCode.Membership
 
         #region 字段名
         /// <summary>取得菜单字段信息的快捷方式</summary>
-        partial class _
+        public partial class _
         {
             ///<summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);
