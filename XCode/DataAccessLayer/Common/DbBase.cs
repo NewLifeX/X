@@ -103,9 +103,8 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         public virtual DbProviderFactory Factory { get { return OleDbFactory.Instance; } }
 
-        private String _ConnName;
         /// <summary>连接名</summary>
-        public String ConnName { get { return _ConnName; } set { _ConnName = value; } }
+        public String ConnName { get; set; }
 
         private String _ConnectionString;
         /// <summary>链接字符串</summary>
@@ -163,9 +162,8 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(_.ShowSQL, out value) && !String.IsNullOrEmpty(value)) ShowSQL = value.ToBoolean();
         }
 
-        private String _Owner;
         /// <summary>拥有者</summary>
-        public virtual String Owner { get { return _Owner; } set { _Owner = value; } }
+        public virtual String Owner { get; set; }
 
         private String _ServerVersion;
         /// <summary>数据库服务器版本</summary>

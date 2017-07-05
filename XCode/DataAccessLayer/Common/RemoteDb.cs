@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Threading;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {

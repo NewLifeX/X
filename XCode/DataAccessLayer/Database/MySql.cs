@@ -226,38 +226,40 @@ namespace XCode.DataAccessLayer
         {
             tableName = tableName.Trim().Trim('`', '`').Trim();
 
-            var n = 0L;
-            if (QueryIndex().TryGetValue(tableName, out n)) return n;
+            //var n = 0L;
+            //if (QueryIndex().TryGetValue(tableName, out n)) return n;
 
-            var sql = String.Format("select table_rows from information_schema.tables where table_schema=SCHEMA() and table_name='{0}'", tableName);
+            var db = DatabaseName;
+            var sql = String.Format("select table_rows from information_schema.tables where table_schema='{1}' and table_name='{0}'", tableName, db);
             return ExecuteScalar<Int64>(sql);
         }
 
-        Dictionary<String, Int64> _index;
-        DateTime _next;
+        //Dictionary<String, Int64> _index;
+        //DateTime _next;
 
-        Dictionary<String, Int64> QueryIndex()
-        {
-            // 检查更新
-            if (_index == null || _next < DateTime.Now)
-            {
-                _index = QueryIndex_();
-                _next = DateTime.Now.AddSeconds(10);
-            }
+        //Dictionary<String, Int64> QueryIndex()
+        //{
+        //    // 检查更新
+        //    if (_index == null || _next < DateTime.Now)
+        //    {
+        //        _index = QueryIndex_();
+        //        _next = DateTime.Now.AddSeconds(10);
+        //    }
 
-            return _index;
-        }
+        //    return _index;
+        //}
 
-        Dictionary<String, Int64> QueryIndex_()
-        {
-            var ds = Query("select table_name,table_rows from information_schema.tables where table_schema=SCHEMA()");
-            var dic = new Dictionary<String, Int64>(StringComparer.OrdinalIgnoreCase);
-            foreach (DataRow dr in ds.Tables[0].Rows)
-            {
-                dic.Add(dr[0] + "", Convert.ToInt64(dr[1]));
-            }
-            return dic;
-        }
+        //Dictionary<String, Int64> QueryIndex_()
+        //{
+        //    var db = DatabaseName;
+        //    var ds = Query("select table_name,table_rows from information_schema.tables where table_schema='{0}'".F(db));
+        //    var dic = new Dictionary<String, Int64>(StringComparer.OrdinalIgnoreCase);
+        //    foreach (DataRow dr in ds.Tables[0].Rows)
+        //    {
+        //        dic.Add(dr[0] + "", Convert.ToInt64(dr[1]));
+        //    }
+        //    return dic;
+        //}
         #endregion
 
         #region 基本方法 查询/执行
