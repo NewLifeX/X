@@ -75,7 +75,7 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
-            Console.Title = "SQLite极速插入测试 之 一夜无眠 v1.4 " + AssemblyX.Entry.Compile.ToFullString();
+            Console.Title = "SQLite极速插入测试 之 天下无贼 v2.0 " + AssemblyX.Entry.Compile.ToFullString();
 
             //Console.WriteLine(DateTime.Now.ToFullString());
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
@@ -85,7 +85,7 @@ namespace Test
                 var db = "Membership.db".GetFullPath();
                 if (File.Exists(db)) File.Delete(db);
 
-                Console.Write("请输入线程数：");
+                Console.Write("请输入线程数（推荐1）：");
                 ths = Console.ReadLine().ToInt();
                 if (ths < 1) ths = 1;
             }
@@ -94,6 +94,7 @@ namespace Test
             ds.Log = XTrace.Log;
             //ds.BatchSize = 10000;
             ds.Threads = ths;
+            ds.UseSql = true;
             ds.Run(100000);
         }
 

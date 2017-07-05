@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Security;
+using XCode.Model;
 
 namespace XCode.Common
 {
@@ -27,6 +29,9 @@ namespace XCode.Common
 
         /// <summary>并发线程数</summary>
         public Int32 Threads { get; set; } = 1;
+
+        /// <summary>直接执行SQL</summary>
+        public Boolean UseSql { get; set; }
         #endregion
 
         #region 构造
@@ -42,6 +47,8 @@ namespace XCode.Common
         public void Run(Int32 count)
         {
             var fact = Factory;
+            var pst = XCodeService.Container.ResolveInstance<IEntityPersistence>();
+
             // 关闭SQL日志
             //XCode.Setting.Current.ShowSQL = false;
             //fact.Session.Dal.Session.ShowSQL = false;
@@ -54,6 +61,8 @@ namespace XCode.Common
 
             // 准备数据
             var list = new List<IEntity>();
+            var qs = new List<String>();
+
             WriteLog("正在准备数据：");
             var cpu = Environment.ProcessorCount;
             Parallel.For(0, cpu, n =>
@@ -75,9 +84,12 @@ namespace XCode.Common
                         else if (item.Type == typeof(DateTime))
                             e.SetItem(item.Name, DateTime.Now.AddSeconds(Rand.Next(-10000, 10000)));
                     }
+                    var sql = "";
+                    if (UseSql) sql = pst.GetSql(e, DataObjectMethodType.Insert);
                     lock (list)
                     {
                         list.Add(e);
+                        if (UseSql) qs.Add(sql);
                     }
                 }
             });
@@ -103,8 +115,10 @@ namespace XCode.Common
                         tr = fact.CreateTrans();
                     }
 
-                    //list[i].SaveWithoutValid();
-                    list[i].Insert();
+                    if (!UseSql)
+                        list[i].Insert();
+                    else
+                        fact.Session.Execute(qs[i]);
                 }
                 if (tr != null) tr.Commit();
             });
@@ -114,6 +128,8 @@ namespace XCode.Common
             WriteLog("数据写入完毕！");
             var ms = sw.ElapsedMilliseconds;
             WriteLog("{2}插入{3:n0}行数据，耗时：{0:n0}ms 速度：{1:n0}tps", ms, list.Count * 1000L / ms, fact.Session.Dal.DbType, list.Count);
+
+            WriteLog("{0} 共有数据：{1:n0}", fact.TableName, fact.Count);
         }
         #endregion
 
