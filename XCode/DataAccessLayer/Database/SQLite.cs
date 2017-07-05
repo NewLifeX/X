@@ -368,7 +368,9 @@ namespace XCode.DataAccessLayer
 
             // 自增字段必须是integer
             if (field.Identity && typeName == "int") return "integer";
-
+            //云飞扬 2017-07-05
+            //因为SQLite的text长度比较小，这里设置为默认值
+            if (typeName.Contains("text")) return "text";
             return typeName;
         }
 
