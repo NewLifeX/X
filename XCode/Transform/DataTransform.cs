@@ -9,6 +9,8 @@ namespace XCode.Transform
     public class DataTransform : TransformBase<DataTransform>
     {
         #region 方法
+        /// <summary>执行</summary>
+        /// <returns></returns>
         public override Int32 Transform()
         {
             return 0;

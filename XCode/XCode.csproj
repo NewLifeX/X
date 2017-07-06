@@ -208,9 +208,9 @@
       <LastGenOutput>XCoder.log</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-    <None Include="Transform\DataTransform.cs" />
+    <Compile Include="Transform\DataTransform.cs" />
     <Compile Include="Transform\EntityTransform.cs" />
-    <None Include="Transform\TransformBase.cs" />
+    <Compile Include="Transform\TransformBase.cs" />
     <Compile Include="Tree\IEntityTreeSettting.cs" />
     <Compile Include="Web\DbRunTimeModule.cs" />
     <Compile Include="Tree\EntityTree.cs" />

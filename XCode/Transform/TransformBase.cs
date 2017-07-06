@@ -17,53 +17,26 @@ namespace XCode.Transform
         /// <returns></returns>
         public static Int32 Transform(String srcConn, String desConn)
         {
-            //return Transform(DAL.Create(srcConn), DAL.Create(desConn));
-
             var tf = new T();
             tf.SrcConn = srcConn;
             tf.DesConn = desConn;
 
             return tf.Transform();
         }
-
-        ///// <summary>把一个链接的数据全部导入到另一个链接</summary>
-        ///// <param name="srcDal"></param>
-        ///// <param name="desDal"></param>
-        ///// <returns></returns>
-        //public static Int32 Transform(DAL srcDal, DAL desDal)
-        //{
-        //    var tf = new T();
-        //    tf.SrcDal = srcDal;
-        //    tf.DesDal = desDal;
-
-        //    return tf.Transform();
-        //}
         #endregion
 
         #region 属性
-        //private DAL _SrcDal;
-        ///// <summary>源</summary>
-        //public DAL SrcDal { get { return _SrcDal; } set { _SrcDal = value; } }
-
-        //private DAL _DesDal;
-        ///// <summary>目的</summary>
-        //public DAL DesDal { get { return _DesDal; } set { _DesDal = value; } }
-
-        private String _SrcConn;
         /// <summary>源</summary>
-        public String SrcConn { get { return _SrcConn; } set { _SrcConn = value; } }
+        public String SrcConn { get; set; }
 
-        private String _DesConn;
         /// <summary>目的</summary>
-        public String DesConn { get { return _DesConn; } set { _DesConn = value; } }
+        public String DesConn { get; set; }
 
-        private ICollection<String> _TableNames;
         /// <summary>要导数据的表，为空表示全部</summary>
-        public ICollection<String> TableNames { get { return _TableNames ?? (_TableNames = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } set { _TableNames = value; } }
+        public ICollection<String> TableNames { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
-        private Int32 _BatchSize = 1000;
         /// <summary>每批处理多少行数据，默认1000</summary>
-        public Int32 BatchSize { get { return _BatchSize; } set { _BatchSize = value; } }
+        public Int32 BatchSize { get; set; } = 1000;
         #endregion
 
         #region 方法

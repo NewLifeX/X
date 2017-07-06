@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Security;
@@ -11,6 +9,8 @@ using XCode.Model;
 
 namespace XCode.Common
 {
+    /// <summary>数据模拟</summary>
+    /// <typeparam name="T"></typeparam>
     public class DataSimulation<T> : DataSimulation where T : Entity<T>, new()
     {
         /// <summary>实例化</summary>
@@ -44,6 +44,8 @@ namespace XCode.Common
         #endregion
 
         #region 方法
+        /// <summary>开始执行</summary>
+        /// <param name="count"></param>
         public void Run(Int32 count)
         {
             var fact = Factory;

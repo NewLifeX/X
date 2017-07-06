@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using NewLife;
 using NewLife.Log;
 using XCode.DataAccessLayer;
-using NewLife.Configuration;
 
 namespace XCode.Transform
 {
@@ -11,13 +10,11 @@ namespace XCode.Transform
     public class EntityTransform
     {
         #region 属性
-        private String _SrcConn;
         /// <summary>源</summary>
-        public String SrcConn { get { return _SrcConn; } set { _SrcConn = value; } }
+        public String SrcConn { get; set; }
 
-        private String _DesConn;
         /// <summary>目的</summary>
-        public String DesConn { get { return _DesConn; } set { _DesConn = value; } }
+        public String DesConn { get; set; }
 
         private ICollection<String> _TableNames;
         /// <summary>要导数据的表，为空表示全部</summary>
@@ -42,35 +39,28 @@ namespace XCode.Transform
             set { _TableNames = value; }
         }
 
-        private Int32 _BatchSize = 1000;
         /// <summary>每批处理多少行数据，默认1000</summary>
-        public Int32 BatchSize { get { return _BatchSize; } set { _BatchSize = value; } }
+        public Int32 BatchSize { get; set; } = 1000;
 
-        private Boolean _AllowInsertIdentity;
         /// <summary>是否允许插入自增列</summary>
-        public Boolean AllowInsertIdentity { get { return _AllowInsertIdentity; } set { _AllowInsertIdentity = value; } }
+        public Boolean AllowInsertIdentity { get; set; }
 
-        private Boolean _OnlyTransformToEmptyTable;
         /// <summary>仅迁移到空表。对于已有数据的表，不执行迁移。</summary>
-        public Boolean OnlyTransformToEmptyTable { get { return _OnlyTransformToEmptyTable; } set { _OnlyTransformToEmptyTable = value; } }
+        public Boolean OnlyTransformToEmptyTable { get; set; }
 
-        private Boolean _ShowSQL;
         /// <summary>是否显示SQL</summary>
-        public Boolean ShowSQL { get { return _ShowSQL; } set { _ShowSQL = value; } }
+        public Boolean ShowSQL { get; set; }
         #endregion
 
         #region 局部迁移
-        private ICollection<String> _PartialTableNames;
         /// <summary>需要局部迁移的表。局部迁移就是只迁移一部分数据。</summary>
-        public ICollection<String> PartialTableNames { get { return _PartialTableNames ?? (_PartialTableNames = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } set { _PartialTableNames = value; } }
+        public ICollection<String> PartialTableNames { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
-        private Int32 _PartialCount = 1000;
         /// <summary>局部迁移记录数。默认1000</summary>
-        public Int32 PartialCount { get { return _PartialCount; } set { _PartialCount = value; } }
+        public Int32 PartialCount { get; set; } = 1000;
 
-        private Boolean _PartialDesc = true;
         /// <summary>局部迁移降序。默认为true，也就是只迁移最后的一批数据。</summary>
-        public Boolean PartialDesc { get { return _PartialDesc; } set { _PartialDesc = value; } }
+        public Boolean PartialDesc { get; set; } = true;
         #endregion
 
         #region 方法
@@ -118,8 +108,6 @@ namespace XCode.Transform
         /// <returns></returns>
         public Int32 TransformTable(IEntityOperate eop, Int32 count = 0, Boolean? isDesc = null, Func<Int32, Int32, IEntityList> getData = null)
         {
-            //var oldInitData = Config.GetConfig<Boolean>("XCode.InitData", true);
-            //Config.SetConfig("XCode.InitData", false);
             var set = Setting.Current;
             var oldInitData = set.InitData;
             set.InitData = false;
@@ -206,7 +194,6 @@ namespace XCode.Transform
                 eop.ConnName = DesConn;
                 session.Commit();
 
-                //Config.SetConfig("XCode.InitData", oldInitData);
                 set.InitData = oldInitData;
 
                 return total;
@@ -225,9 +212,6 @@ namespace XCode.Transform
         #region 事件
         /// <summary>转换表时触发。如果参数被置空，表示不转换该表</summary>
         public event EventHandler<EventArgs<IDataTable>> OnTransformTable;
-
-        ///// <summary>转换实体时触发</summary>
-        //public event EventHandler<EventArgs<IEntity>> OnTransformEntity;
 
         /// <summary>转换实体时触发</summary>
         public event EventHandler<EventArgs<IEntity>> OnTransformEntity;
