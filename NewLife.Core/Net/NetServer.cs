@@ -291,6 +291,8 @@ namespace NewLife.Net
         {
             EnsureCreateServer();
 
+            if (Servers.Count == 0) throw new Exception("全部端口监听失败！");
+
             WriteLog("准备开始监听{0}个服务器", Servers.Count);
 
             foreach (var item in Servers)
