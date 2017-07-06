@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Threading;
 using XCode.Code;
-using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -429,7 +425,7 @@ namespace XCode.DataAccessLayer
 
         #region 创建数据操作实体
         private EntityAssembly _Assembly;
-        /// <summary>根据数据模型动态创建的程序集。带缓存，如果要更新，建议调用<see cref="EntityAssembly.Create(string, string, System.Collections.Generic.List&lt;XCode.DataAccessLayer.IDataTable&gt;)"/></summary>
+        /// <summary>根据数据模型动态创建的程序集</summary>
         public EntityAssembly Assembly
         {
             get
