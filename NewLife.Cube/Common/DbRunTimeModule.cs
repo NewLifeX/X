@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 using NewLife.Common;
 using NewLife.Configuration;
@@ -63,7 +64,7 @@ namespace NewLife.Cube
             if (SysConfig.Current.Develop)
             {
                 var list = Context.Items["XCode_SQLList"] as List<String>;
-                if (list != null && list.Count > 0) inf += "<br />" + list.Join("<br />" + Environment.NewLine);
+                if (list != null && list.Count > 0) inf += "<br />" + list.Select(e => HttpUtility.HtmlEncode(e)).Join("<br />" + Environment.NewLine);
             }
 
             return inf;

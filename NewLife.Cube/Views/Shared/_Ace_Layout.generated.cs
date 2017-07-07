@@ -133,27 +133,15 @@ WriteAttribute("href", Tuple.Create(" href=\"", 636), Tuple.Create("\"", 692)
 , 643), false)
 );
 
-WriteLiteral(">\r\n    <!--[if lte IE 9]>\r\n        <link");
+WriteLiteral(@">
+    <!--[if lte IE 9]>
+        <link rel=""stylesheet"" href=""~/Content/ace/css/ace-part2.min.css"" class=""ace-main-stylesheet"" >
+    <![endif]-->
+    <!--[if lte IE 9]>
+        <link rel=""stylesheet"" href=""~/Content/ace/css/ace-ie.min.css"" >
+    <![endif]-->
 
-WriteLiteral(" rel=\"stylesheet\"");
-
-WriteAttribute("href", Tuple.Create(" href=\"", 750), Tuple.Create("\"", 792)
-, Tuple.Create(Tuple.Create("", 757), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/css/ace-part2.min.css")
-, 757), false)
-);
-
-WriteLiteral(" class=\"ace-main-stylesheet\"");
-
-WriteLiteral(" >\r\n    <![endif]-->\r\n    <!--[if lte IE 9]>\r\n        <link");
-
-WriteLiteral(" rel=\"stylesheet\"");
-
-WriteAttribute("href", Tuple.Create(" href=\"", 897), Tuple.Create("\"", 936)
-, Tuple.Create(Tuple.Create("", 904), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/css/ace-ie.min.css")
-, 904), false)
-);
-
-WriteLiteral(" >\r\n    <![endif]-->\r\n\r\n    <link");
+    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
@@ -375,22 +363,14 @@ WriteAttribute("src", Tuple.Create(" src=\"", 2877), Tuple.Create("\"", 2916)
 , 2883), false)
 );
 
-WriteLiteral("></script>\r\n\r\n    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements" +
-" and media queries -->\r\n    <!--[if lte IE 8]>\r\n    <script");
+WriteLiteral(@"></script>
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3057), Tuple.Create("\"", 3092)
-, Tuple.Create(Tuple.Create("", 3063), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/html5shiv.min.js")
-, 3063), false)
-);
-
-WriteLiteral("></script>\r\n    <script");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 3116), Tuple.Create("\"", 3149)
-, Tuple.Create(Tuple.Create("", 3122), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/respond.min.js")
-, 3122), false)
-);
-
-WriteLiteral("></script>\r\n    <![endif]-->\r\n");
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+    <!--[if lte IE 8]>
+    <script src=""~/Content/js/html5shiv.min.js""></script>
+    <script src=""~/Content/js/respond.min.js""></script>
+    <![endif]-->
+");
 
 WriteLiteral("    ");
 
