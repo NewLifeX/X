@@ -79,8 +79,10 @@ namespace XCode.Transform
             var now = DateTime.Now;
             if (start >= now) return null;
 
-            var end = now;
-            if (set.End > DateTime.MinValue && end > set.End) end = set.End;
+            // 结束时间，必须是小于当前时间的有效值
+            var end = DateTime.MaxValue;
+            if (set.End > DateTime.MinValue && set.End < DateTime.MaxValue && set.End < now)
+                end = set.End;
 
             // 区间无效
             if (start >= end) return null;
