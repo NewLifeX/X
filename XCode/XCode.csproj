@@ -197,6 +197,8 @@
     <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Model\XCodeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Transform\TimeExtracter.cs" />
+    <Compile Include="Transform\ExtractSetting.cs" />
     <Compile Include="Web\EntityGrid.cs" />
     <None Include="Cache\readme.md" />
     <None Include="Membership\XCoder.log">
@@ -208,9 +210,7 @@
       <LastGenOutput>XCoder.log</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-    <Compile Include="Transform\DataTransform.cs" />
     <Compile Include="Transform\EntityTransform.cs" />
-    <Compile Include="Transform\TransformBase.cs" />
     <Compile Include="Tree\IEntityTreeSettting.cs" />
     <Compile Include="Web\DbRunTimeModule.cs" />
     <Compile Include="Tree\EntityTree.cs" />
