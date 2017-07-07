@@ -223,11 +223,12 @@ namespace XCode.Cache
             item.SetEntity(entity);
 
             var success = false;
-            lock (Entities)
+            var es = Entities;
+            lock (es)
             {
-                if (!Entities.ContainsKey(mkey))
+                if (!es.ContainsKey(mkey))
                 {
-                    Entities.Add(mkey, item);
+                    es.Add(mkey, item);
                     success = true;
                 }
             }
@@ -354,6 +355,8 @@ namespace XCode.Cache
             WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
 
             var es = Entities;
+            if (es == null) return;
+
             var vs = es.ToValueArray();
 
             // 不要清空单对象缓存，而是设为过期
