@@ -24,7 +24,7 @@ using XCode.Configuration;
 namespace XCode.Transform
 {
     /// <summary>以时间为比较点的数据抽取器</summary>
-    public class TimeExtracter
+    public class TimeExtracter : IExtracter
     {
         #region 属性
         /// <summary>名称</summary>
@@ -50,7 +50,7 @@ namespace XCode.Transform
             {
                 if (_Field == null)
                 {
-                    _Field = Factory.Table.FindByName(Field);
+                    _Field = Factory.Table.FindByName(FieldName);
                     if (_Field == null) throw new ArgumentNullException(nameof(Field));
                 }
                 return _Field;
