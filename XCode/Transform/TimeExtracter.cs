@@ -76,12 +76,15 @@ namespace XCode.Transform
 
             // 验证时间段
             var start = set.Start;
+            if (set.Step > 0) start = GetMinTime(start);
+            //if (start <= DateTime.MinValue) start = GetMinTime(start);
             var now = DateTime.Now;
             if (start >= now) return null;
 
             // 结束时间，必须是小于当前时间的有效值
-            var end = DateTime.MaxValue;
-            if (set.End > DateTime.MinValue && set.End < DateTime.MaxValue && set.End < now)
+            var end = set.Step <= 0 ? DateTime.MaxValue : start.AddSeconds(set.Step);
+            //var end = DateTime.MaxValue;
+            if (set.End > DateTime.MinValue && set.End < DateTime.MaxValue && set.End < end)
                 end = set.End;
 
             // 区间无效
@@ -135,6 +138,22 @@ namespace XCode.Transform
             if (!Where.IsNullOrEmpty()) exp &= Where;
 
             return Factory.FindAll(exp, fi, null, startRow, maxRows);
+        }
+
+        /// <summary>获取大于等于指定时间的最小修改时间</summary>
+        /// <param name="start"></param>
+        /// <returns></returns>
+        protected virtual DateTime GetMinTime(DateTime start)
+        {
+            var fi = Field;
+            var exp = new WhereExpression();
+            if (start > DateTime.MinValue) exp &= fi >= start;
+
+            if (!Where.IsNullOrEmpty()) exp &= Where;
+
+            var list = Factory.FindAll(exp, null, fi.Min(), 0, 0);
+
+            return list.Count > 0 ? (DateTime)list[0][FieldName] : DateTime.MaxValue;
         }
 
         private DateTime NextStart { get; set; }

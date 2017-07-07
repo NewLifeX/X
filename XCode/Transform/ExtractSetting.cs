@@ -14,6 +14,9 @@ namespace XCode.Transform
         /// <summary>开始行。分页</summary>
         Int32 Row { get; set; }
 
+        /// <summary>步进。最大区间大小，秒</summary>
+        Int32 Step { get; set; }
+
         /// <summary>批大小</summary>
         Int32 BatchSize { get; set; }
 
@@ -34,6 +37,9 @@ namespace XCode.Transform
         /// <summary>开始行。分页</summary>
         public Int32 Row { get; set; }
 
+        /// <summary>步进。最大区间大小，秒</summary>
+        public Int32 Step { get; set; }
+
         /// <summary>批大小</summary>
         public Int32 BatchSize { get; set; } = 5000;
 
@@ -52,6 +58,7 @@ namespace XCode.Transform
             Start = set.Start;
             End = set.End;
             Row = set.Row;
+            Step = set.Step;
             BatchSize = set.BatchSize;
             Enable = set.Enable;
         }
