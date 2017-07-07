@@ -478,17 +478,32 @@ namespace XCode
 
                     // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
                     if (max < 500000)
-                        m = Dal.Session.QueryCountFast(TableName);
+                    {
+                        if (n > 0)
+                            m = n;
+                        else
+                            m = Dal.Session.QueryCountFast(TableName);
+                        // 查真实记录数，修正FastCount不够准确的情况
+                        Task.Run(() =>
+                        {
+                            var sb = new SelectBuilder();
+                            sb.Table = FormatedTableName;
+
+                            _LastCount = _Count = Dal.SelectCount(sb);
+
+                            AddCache(key, _Count);
+                        }).LogException();
+                    }
                     else
                     {
                         m = max;
 
                         // 异步查询弥补不足，千万数据以内
-                        if (max < 10000000) Task.Factory.StartNew(() =>
+                        if (max < 10000000) Task.Run(() =>
                         {
                             _LastCount = _Count = Dal.Session.QueryCountFast(TableName);
 
-                            if (_Count >= 1000) HttpRuntime.Cache.Insert(key, _Count, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
+                            AddCache(key, _Count);
                         }).LogException();
                     }
                 }
@@ -496,7 +511,7 @@ namespace XCode
                 _Count = m;
                 _LastCount = m;
 
-                if (m >= 1000) HttpRuntime.Cache.Insert(key, m, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
+                AddCache(key, m);
 
                 // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
                 WaitForInitData();
@@ -512,6 +527,12 @@ namespace XCode
                     HttpRuntime.Cache.Remove(CacheKey);
                 }
             }
+        }
+
+        private void AddCache(String key, Int64 count)
+        {
+            if (count < 1000) return;
+            HttpRuntime.Cache.Insert(key, count, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
         }
 
         /// <summary>清除缓存</summary>
