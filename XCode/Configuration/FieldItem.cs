@@ -431,9 +431,9 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression Between(DateTime start, DateTime end)
         {
-            if (start <= DateTime.MinValue)
+            if (start <= DateTime.MinValue || start >= DateTime.MaxValue)
             {
-                if (end <= DateTime.MinValue) return null;
+                if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return null;
 
                 // 如果只有日期，则加一天，表示包含这一天
                 if (end == end.Date) end = end.AddDays(1);
@@ -443,7 +443,7 @@ namespace XCode.Configuration
             else
             {
                 var exp = this >= start;
-                if (end <= DateTime.MinValue) return exp;
+                if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
 
                 // 如果只有日期，则加一天，表示包含这一天
                 if (end == end.Date) end = end.AddDays(1);
