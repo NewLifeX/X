@@ -74,16 +74,23 @@ namespace XCode.Transform
             if (set == null) set = Setting = new ExtractSetting();
             if (!set.Enable) return null;
 
-            // 验证
+            // 验证时间段
             var start = set.Start;
-            if (start >= DateTime.Now) return null;
+            var now = DateTime.Now;
+            if (start >= now) return null;
+
+            var end = now;
+            if (set.End > DateTime.MinValue && end > set.End) end = set.End;
+
+            // 区间无效
+            if (start >= end) return null;
 
             var size = set.BatchSize;
             if (size <= 0) size = 1000;
 
             // 分批获取数据，如果没有取到，则结束
             var sw = Stopwatch.StartNew();
-            var list = FetchData(start, set.Row, size);
+            var list = FetchData(start, end, set.Row, size);
             sw.Stop();
 
             // 取到数据，需要滑动窗口
@@ -111,14 +118,14 @@ namespace XCode.Transform
 
         /// <summary>分段分页抽取数据</summary>
         /// <param name="start"></param>
+        /// <param name="end"></param>
         /// <param name="startRow"></param>
         /// <param name="maxRows"></param>
         /// <returns></returns>
-        protected virtual IEntityList FetchData(DateTime start, Int32 startRow, Int32 maxRows)
+        protected virtual IEntityList FetchData(DateTime start, DateTime end, Int32 startRow, Int32 maxRows)
         {
             var fi = Field;
-            var exp = new WhereExpression();
-            if (start > DateTime.MinValue) exp &= fi >= start;
+            var exp = fi.Between(start, end);
 
             if (!Where.IsNullOrEmpty()) exp &= Where;
 
@@ -129,6 +136,14 @@ namespace XCode.Transform
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(format, args);
+        }
         #endregion
     }
 }

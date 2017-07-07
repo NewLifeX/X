@@ -8,6 +8,9 @@ namespace XCode.Transform
         /// <summary>开始。大于等于</summary>
         DateTime Start { get; set; }
 
+        /// <summary>结束。小于</summary>
+        DateTime End { get; set; }
+
         /// <summary>开始行。分页</summary>
         Int32 Row { get; set; }
 
@@ -21,8 +24,12 @@ namespace XCode.Transform
     /// <summary>数据抽取参数</summary>
     public class ExtractSetting : IExtractSetting
     {
+        #region 属性
         /// <summary>开始。大于等于</summary>
         public DateTime Start { get; set; }
+
+        /// <summary>结束。小于</summary>
+        public DateTime End { get; set; }
 
         /// <summary>开始行。分页</summary>
         public Int32 Row { get; set; }
@@ -32,5 +39,22 @@ namespace XCode.Transform
 
         /// <summary>启用</summary>
         public Boolean Enable { get; set; } = true;
+        #endregion
+
+        #region 构造
+        /// <summary>实例化</summary>
+        public ExtractSetting() { }
+
+        /// <summary>实例化</summary>
+        /// <param name="set"></param>
+        public ExtractSetting(IExtractSetting set)
+        {
+            Start = set.Start;
+            End = set.End;
+            Row = set.Row;
+            BatchSize = set.BatchSize;
+            Enable = set.Enable;
+        }
+        #endregion
     }
 }
