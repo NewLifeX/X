@@ -105,8 +105,11 @@ namespace XCode.Transform
                     // 最大时间行数
                     var maxCount = list.Count(e => (DateTime)e[FieldName] == last);
                     // 以最后时间为起点，跳过若干行。注意可能产生连续分页的情况
+                    if (last == NextStart)
+                        NextRow = set.Row + maxCount;
+                    else
+                        NextRow = maxCount;
                     NextStart = last;
-                    NextRow = set.Row + maxCount;
                 }
                 else
                 {
