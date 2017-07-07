@@ -103,13 +103,13 @@ namespace XCode.Transform
                     // 最大时间行数
                     var maxCount = list.Count(e => (DateTime)e[FieldName] == last);
                     // 以最后时间为起点，跳过若干行。注意可能产生连续分页的情况
-                    set.Start = last;
-                    set.Row += maxCount;
+                    NextStart = last;
+                    NextRow = set.Row + maxCount;
                 }
                 else
                 {
-                    set.Start = last.AddSeconds(1);
-                    set.Row = 0;
+                    NextStart = last.AddSeconds(1);
+                    NextRow = 0;
                 }
             }
 
@@ -130,6 +130,17 @@ namespace XCode.Transform
             if (!Where.IsNullOrEmpty()) exp &= Where;
 
             return Factory.FindAll(exp, fi, null, startRow, maxRows);
+        }
+
+        private DateTime NextStart { get; set; }
+        private Int32 NextRow { get; set; }
+
+        /// <summary>当前批数据处理完成，移动到下一块</summary>
+        public void SaveNext()
+        {
+            var set = Setting;
+            set.Start = NextStart;
+            set.Row = NextRow;
         }
         #endregion
 
