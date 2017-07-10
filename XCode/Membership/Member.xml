@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.5.6383.25983">
+<Tables Version="9.0.6059.32399">
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -62,7 +62,7 @@
       <Index Columns="ParentID,Name" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Log" Description="日志" DbType="SqlServer" RenderGenEntity="true">
+  <Table Name="Log" Description="日志" ConnName="Log" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />
@@ -75,19 +75,11 @@
       <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
     </Columns>
     <Indexes>
-      <Index Columns="Category,CreateUserID,CreateTime" />
+      <Index Columns="Category" />
+      <Index Columns="Category,LinkID" />
+      <Index Columns="Action" />
+      <Index Columns="CreateUserID" />
+      <Index Columns="CreateTime" />
     </Indexes>
-  </Table>
-  <Table Name="UserOnline" Description="用户在线" DbType="SqlServer" RenderGenEntity="true">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="UserID" DataType="Int32" Description="用户" />
-      <Column Name="UserName" DataType="String" Description="用户名" />
-      <Column Name="SessionID" DataType="Int32" Description="会话" />
-      <Column Name="Action" DataType="String" Description="操作" />
-      <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="修改时间" />
-    </Columns>
   </Table>
 </Tables>

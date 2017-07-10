@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 using System.Web.Mvc;
 using NewLife.Web;
 using XCode;
-using XCode.Membership;
 using XLog = XCode.Membership.Log;
 
 namespace NewLife.Cube.Admin.Controllers
@@ -71,25 +67,6 @@ namespace NewLife.Cube.Admin.Controllers
             var url = Request.UrlReferrer + "";
 
             return Json(new { msg = "不允许删除日志！", code = -1, url = url }, JsonRequestBehavior.AllowGet);
-        }
-
-        ///// <summary>获取可用于生成权限菜单的Action集合</summary>
-        ///// <param name="menu"></param>
-        ///// <returns></returns>
-        //protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
-        //{
-        //    var dic = base.ScanActionMenu(menu);
-
-        //    dic = dic.Where(e => !e.Key.Name.EqualIgnoreCase("Add", "Edit", "Delete")).ToDictionary(e => e.Key, e => e.Value);
-
-        //    return dic;
-        //}
-
-        public ActionResult EnableClear()
-        {
-            // Gateway.Meta.Session.Execute("Update Gateway set Online=0");
-            XLog.Meta.Session.Execute("DELETE FROM Log");
-            return RedirectToAction("Index");
         }
     }
 }
