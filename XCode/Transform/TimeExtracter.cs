@@ -137,7 +137,12 @@ namespace XCode.Transform
 
             if (!Where.IsNullOrEmpty()) exp &= Where;
 
-            return Factory.FindAll(exp, fi, null, startRow, maxRows);
+            // 先按时间升序，再按主键升序，避免同一秒存在多行数据时，数据顺序不统一
+            var sort = fi.Asc();
+            var uq = Factory.Unique;
+            if (uq != null && uq.Name != fi.Name) sort &= uq.Asc();
+
+            return Factory.FindAll(exp, sort, null, startRow, maxRows);
         }
 
         /// <summary>获取大于等于指定时间的最小修改时间</summary>
