@@ -99,7 +99,6 @@ namespace XCode.DataAccessLayer
         /// <summary>实例化一个SQL语句</summary>
         public SelectBuilder()
         {
-            Parameters = new List<IDataParameter>();
         }
         #endregion
 
@@ -226,7 +225,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>参数集合</summary>
-        public List<IDataParameter> Parameters { get; set; }
+        public List<IDataParameter> Parameters { get; set; } = new List<IDataParameter>();
         #endregion
 
         #region 导入SQL
@@ -302,7 +301,7 @@ $";
             // 该BUG由@行走江湖（534163320）发现
 
             // 包含GroupBy时，作为子查询
-            var sb = this.CloneWithGroupBy("XCode_T0", true);
+            var sb = CloneWithGroupBy("XCode_T0", true);
             sb.Column = "Count(*)";
             sb.OrderBy = null;
             return sb;
@@ -315,17 +314,19 @@ $";
         public SelectBuilder Clone()
         {
             var sb = new SelectBuilder();
-            sb.Column = this.Column;
-            sb.Table = this.Table;
+            sb.Column = Column;
+            sb.Table = Table;
             // 直接拷贝字段，避免属性set时触发分析代码
-            sb._Where = this._Where;
-            sb._OrderBy = this._OrderBy;
-            sb.GroupBy = this.GroupBy;
-            sb.Having = this.Having;
+            sb._Where = _Where;
+            sb._OrderBy = _OrderBy;
+            sb.GroupBy = GroupBy;
+            sb.Having = Having;
 
-            sb.Keys = this.Keys;
-            sb.IsDescs = this.IsDescs;
-            sb.IsInt = this.IsInt;
+            sb.Keys = Keys;
+            sb.IsDescs = IsDescs;
+            sb.IsInt = IsInt;
+
+            sb.Parameters.AddRange(Parameters);
 
             return sb;
         }
@@ -380,7 +381,7 @@ $";
             if (trimOrder) hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWithIgnoreCase("top ");
             if (hasOrderWithoutTop)
             {
-                t = this.Clone();
+                t = Clone();
                 t.OrderBy = null;
             }
 
@@ -391,7 +392,9 @@ $";
                 builder.Table = String.Format("({0}) {1}", t.ToString(), alias);
 
             // 把排序加载外层
-            if (hasOrderWithoutTop) builder.OrderBy = this.OrderBy;
+            if (hasOrderWithoutTop) builder.OrderBy = OrderBy;
+
+            builder.Parameters.AddRange(Parameters);
 
             return builder;
         }
@@ -402,8 +405,8 @@ $";
         /// <returns></returns>
         public SelectBuilder CloneWithGroupBy(String alias, Boolean trimOrder)
         {
-            if (String.IsNullOrEmpty(this.GroupBy))
-                return this.Clone();
+            if (String.IsNullOrEmpty(GroupBy))
+                return Clone();
             else
                 return AsChild(alias, trimOrder);
         }

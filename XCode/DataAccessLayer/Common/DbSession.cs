@@ -633,7 +633,7 @@ namespace XCode.DataAccessLayer
             {
                 var sb = new StringBuilder(64);
                 sb.Append(sql);
-                sb.Append("[");
+                sb.Append(" [");
                 for (Int32 i = 0; i < ps.Length; i++)
                 {
                     if (i > 0) sb.Append(", ");
