@@ -30,7 +30,7 @@ namespace XCode
     }
 
     /// <summary>实体模块集合</summary>
-    class EntityModules : ICollection<IEntityModule>
+    public class EntityModules : ICollection<IEntityModule>
     {
         #region 属性
         /// <summary>实体类型</summary>
@@ -78,6 +78,14 @@ namespace XCode
             Modules.Add(module);
 
             return true;
+        }
+
+        public virtual IEntityModule Add<T>() where T : IEntityModule, new()
+        {
+            var module = new T();
+            if (Add(module)) return null;
+
+            return module;
         }
 
         public void Create(IEntity entity, Boolean forEdit)

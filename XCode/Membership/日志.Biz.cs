@@ -23,6 +23,10 @@ namespace XCode.Membership
         static Log()
         {
             Meta.Table.DataTable.InsertOnly = true;
+
+            Meta.Modules.Add<TimeModule>();
+            Meta.Modules.Add<UserModule>();
+            Meta.Modules.Add<IPModule>();
         }
 
         /// <summary>已重载。记录当前管理员</summary>

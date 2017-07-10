@@ -26,11 +26,14 @@ namespace XCode.Membership
     /// <summary>用户在线</summary>
     public partial class UserOnline<TEntity> : Entity<TEntity> where TEntity : UserOnline<TEntity>, new()
     {
-        #region 对象操作            ﻿
+        #region 对象操作
         static UserOnline()
         {
             // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
             TEntity entity = new TEntity();
+
+            Meta.Modules.Add<TimeModule>();
+            Meta.Modules.Add<IPModule>();
         }
 
         ///// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
