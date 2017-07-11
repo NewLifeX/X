@@ -28,8 +28,8 @@ namespace NewLife.Web
         /// <summary>引用页面</summary>
         public String Referer { get; set; }
 
-        /// <summary>超时，默认3000毫秒</summary>
-        public Int32 Timeout { get; set; } = 3000;
+        /// <summary>超时，默认15000毫秒</summary>
+        public Int32 Timeout { get; set; } = 15000;
 
         /// <summary>自动解压缩模式。</summary>
         public DecompressionMethods AutomaticDecompression { get; set; }
@@ -118,7 +118,7 @@ namespace NewLife.Web
         {
             var uri = new NetUri(address);
 
-            if (_client == null)
+            if (_client == null || _client.Disposed)
                 _client = Create(uri);
             // 远程主机不同，需要重新建立
             else if (_client.Remote + "" != uri + "")
@@ -205,6 +205,8 @@ namespace NewLife.Web
         {
             var http = Check(address);
             http.Request.Method = "POST";
+            // 表单编码
+            if (!http.Request.Headers.ContainsKey("Content-Type")) http.Request.Headers["Content-Type"] = "application/x-www-form-urlencoded";
 
             Log.Info("WebClientX.PostAsync [{0}] {1}", data?.Length, address);
 

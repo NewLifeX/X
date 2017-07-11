@@ -37,12 +37,13 @@ namespace NewLife.Http
             var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
             if (p < 0) return false;
 
+            var str = pk.ReadBytes(0, p).ToStr();
 #if DEBUG
-            //WriteLog(pk.ToStr());
+            Log.XTrace.WriteLine(str);
 #endif
 
             // 截取
-            var lines = pk.ReadBytes(0, p).ToStr().Split("\r\n");
+            var lines = str.Split("\r\n");
             // 重构
             p += 4;
             pk.Set(pk.Data, pk.Offset + p, pk.Count - p);

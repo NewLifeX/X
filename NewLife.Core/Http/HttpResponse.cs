@@ -23,6 +23,9 @@ namespace NewLife.Http
         protected override void OnParse(String firstLine)
         {
             var ss = firstLine.Split(" ");
+            //if (ss.Length < 3) throw new Exception("非法响应头 {0}".F(firstLine));
+            if (ss.Length < 3) return;
+
             // 分析响应码
             var code = ss[1].ToInt();
             if (code > 0) StatusCode = (HttpStatusCode)code;
