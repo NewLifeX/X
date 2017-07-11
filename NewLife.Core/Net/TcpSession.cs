@@ -22,6 +22,9 @@ namespace NewLife.Net
 
         /// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
         public Int32 AutoReconnect { get; set; } = 3;
+
+        /// <summary>是否匹配空包。Http协议需要</summary>
+        protected Boolean MatchEmpty { get; set; }
         #endregion
 
         #region 构造
@@ -224,7 +227,7 @@ namespace NewLife.Net
         /// <param name="remote"></param>
         protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
-            if (pk == null || pk.Count == 0) return true;
+            if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
 
 #if !__MOBILE__
             // 更新全局远程IP地址

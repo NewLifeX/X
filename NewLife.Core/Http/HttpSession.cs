@@ -33,6 +33,7 @@ namespace NewLife.Http
 
             //DisconnectWhenEmptyData = false;
             ProcessAsync = false;
+            MatchEmpty = true;
 
             // 添加过滤器
             if (SendFilter == null) SendFilter = new HttpResponseFilter { Session = this };

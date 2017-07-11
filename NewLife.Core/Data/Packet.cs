@@ -146,6 +146,22 @@ namespace NewLife.Data
             Next?.WriteTo(stream);
         }
 
+        /// <summary>把封包写入到目标数组</summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        public void WriteTo(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+        {
+            if (count < 0) count = Total;
+            var len = count;
+            if (len > Count) len = Count;
+            Buffer.BlockCopy(Data, Offset, buffer, offset, len);
+
+            offset += len;
+            count -= len;
+            if (count > 0) Next?.WriteTo(buffer, offset, count);
+        }
+
         /// <summary>深度克隆一份数据包，拷贝数据区</summary>
         /// <returns></returns>
         public Packet Clone()

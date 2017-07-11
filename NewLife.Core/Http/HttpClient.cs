@@ -41,6 +41,7 @@ namespace NewLife.Http
 
             //DisconnectWhenEmptyData = false;
             ProcessAsync = false;
+            MatchEmpty = true;
 
             Opened += HttpClient_Opened;
         }
