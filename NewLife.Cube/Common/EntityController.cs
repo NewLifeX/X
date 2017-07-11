@@ -421,7 +421,6 @@ namespace NewLife.Cube
         }
 
         /// <summary>导出Excel，可重载修改要输出的结果集</summary>
-        /// <param name="ms"></param>
         /// <param name="fs"></param>
         protected virtual String OnExportExcel(List<FieldItem> fs)
         {
@@ -431,7 +430,6 @@ namespace NewLife.Cube
         }
 
         /// <summary>导出Excel，可重载修改要输出的列</summary>
-        /// <param name="ms"></param>
         /// <param name="fs"></param>
         /// <param name="list"></param>
         protected virtual String OnExportExcel(List<FieldItem> fs, List<TEntity> list)

@@ -27,6 +27,11 @@ namespace XCode.Transform
         String Where { get; set; }
         #endregion
 
+        #region 方法
+        /// <summary>初始化</summary>
+        void Init();
+        #endregion
+
         #region 抽取数据
         /// <summary>抽取一批数据</summary>
         /// <returns></returns>

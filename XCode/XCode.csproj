@@ -200,6 +200,7 @@
     <Compile Include="Transform\IExtracter.cs" />
     <Compile Include="Transform\TimeExtracter.cs" />
     <Compile Include="Transform\ExtractSetting.cs" />
+    <Compile Include="Transform\ETL.cs" />
     <Compile Include="Web\EntityGrid.cs" />
     <None Include="Cache\readme.md" />
     <None Include="Membership\XCoder.log">

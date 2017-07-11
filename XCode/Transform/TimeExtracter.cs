@@ -65,6 +65,16 @@ namespace XCode.Transform
         }
         #endregion
 
+        #region 方法
+        /// <summary>初始化</summary>
+        public virtual void Init()
+        {
+            // 自动找时间字段
+            var fi = Factory.Fields.FirstOrDefault(e => e.Type == typeof(DateTime) && e.Name.StartsWithIgnoreCase("UpdateTime", "Modify", "Modified"));
+            if (fi != null) FieldName = fi.Name;
+        }
+        #endregion
+
         #region 抽取数据
         /// <summary>抽取一批数据</summary>
         /// <returns></returns>
