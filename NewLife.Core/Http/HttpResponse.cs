@@ -20,17 +20,21 @@ namespace NewLife.Http
 
         /// <summary>分析第一行</summary>
         /// <param name="firstLine"></param>
-        protected override void OnParse(String firstLine)
+        protected override Boolean OnParse(String firstLine)
         {
+            if (firstLine.IsNullOrEmpty()) return false;
+
             var ss = firstLine.Split(" ");
             //if (ss.Length < 3) throw new Exception("非法响应头 {0}".F(firstLine));
-            if (ss.Length < 3) return;
+            if (ss.Length < 3) return false;
 
             // 分析响应码
             var code = ss[1].ToInt();
             if (code > 0) StatusCode = (HttpStatusCode)code;
 
             ContentLength = Headers["Content-Length"].ToInt();
+
+            return true;
         }
 
         /// <summary>创建头部</summary>

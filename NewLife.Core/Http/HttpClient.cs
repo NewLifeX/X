@@ -121,18 +121,20 @@ namespace NewLife.Http
                 // 是否全新请求
                 if (header == null || !IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
                 {
-                    Response = new HttpResponse { Expire = DateTime.Now.AddSeconds(5) };
-                    header = Response;
+                    var res = new HttpResponse { Expire = DateTime.Now.AddSeconds(5) };
 
                     // 分析头部
-                    header.ParseHeader(pk);
+                    if (res.ParseHeader(pk))
+                    {
+                        Response = header = res;
 
-                    // 握手响应包
-                    if (IsWebSocket && pk.Count == 0) Packet?.Match(pk, remote);
+                        // 握手响应包
+                        if (IsWebSocket && pk.Count == 0) Packet?.Match(pk, remote);
 
 #if DEBUG
-                    WriteLog(" {0} {1} {2}", (Int32)header.StatusCode, header.StatusCode, header.ContentLength);
+                        WriteLog(" {0} {1} {2}", (Int32)header.StatusCode, header.StatusCode, header.ContentLength);
 #endif
+                    }
                 }
 
                 // WebSocket

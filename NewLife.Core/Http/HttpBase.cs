@@ -59,18 +59,18 @@ namespace NewLife.Http
             }
 
             // 分析第一行
-            OnParse(lines[0]);
+            if (!OnParse(lines[0])) return false;
 
             //// 判断主体长度
             //BodyLength += pk.Count;
             //if (ContentLength > 0 && BodyLength >= ContentLength) IsCompleted = true;
 
-            return false;
+            return true;
         }
 
         /// <summary>分析第一行</summary>
         /// <param name="firstLine"></param>
-        protected abstract void OnParse(String firstLine);
+        protected abstract Boolean OnParse(String firstLine);
 
         private MemoryStream _cache;
         internal Boolean ParseBody(ref Packet pk)

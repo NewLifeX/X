@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
@@ -17,7 +19,7 @@ namespace NewLife.Web
     {
         #region 属性
         /// <summary>Cookie容器</summary>
-        public CookieContainer Cookie { get; set; } = new CookieContainer();
+        public IDictionary<String, String> Cookie { get; set; } = new NullableDictionary<String, String>();
 
         /// <summary>可接受类型</summary>
         public String Accept { get; set; }
@@ -39,6 +41,12 @@ namespace NewLife.Web
 
         /// <summary>编码。网络时代，绝大部分使用utf8编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
+
+        /// <summary>请求</summary>
+        public HttpRequest Request { get; set; } = new HttpRequest();
+
+        /// <summary>响应</summary>
+        public HttpResponse Response { get; set; }
 
         private HttpClient _client;
         #endregion
@@ -99,7 +107,7 @@ namespace NewLife.Web
             //    http.LogReceive = true;
             //}
 
-            var req = http.Request;
+            var req = http.Request = Request;
             req.UserAgent = UserAgent;
 
             if (AutomaticDecompression != DecompressionMethods.None) req.Compressed = true;
@@ -127,7 +135,11 @@ namespace NewLife.Web
                 _client = Create(uri);
             }
 
-            _client.Request.Url = new Uri(address);
+            GetCookie();
+
+            var req = _client.Request;
+            req.Url = new Uri(address);
+            req.Referer = Referer;
 
             return _client;
         }
@@ -150,6 +162,8 @@ namespace NewLife.Web
                 // 发送请求
                 var task = http.SendAsync(data);
                 if (!task.Wait(time)) return null;
+                Response = http.Response;
+                SetCookie();
 
                 var buf = task.Result?.ToArray();
                 //var pk = await http.SendAsync(data);
@@ -212,6 +226,8 @@ namespace NewLife.Web
 
             // 发送请求
             var rs = await http.SendAsync(data).ConfigureAwait(false);
+            Response = http.Response;
+            SetCookie();
 
             // 修改引用地址
             Referer = address;
@@ -479,6 +495,42 @@ namespace NewLife.Web
             }
 
             return null;
+        }
+        #endregion
+
+        #region Cookie处理
+        /// <summary>根据Http响应设置本地Cookie</summary>
+        private void SetCookie()
+        {
+            // PSTM=1499740028; expires=Thu, 31-Dec-37 23:55:55 GMT; max-age=2147483647; path=/; domain=.baidu.com
+            var excludes = new HashSet<String>(new String[] { "expires", "max-age", "path", "domain" }, StringComparer.OrdinalIgnoreCase);
+
+            var cs = Response?.Headers["Set-Cookie"] + "";
+            if (cs.IsNullOrEmpty()) return;
+
+            foreach (var item in cs.SplitAsDictionary())
+            {
+                if (!excludes.Contains(item.Key))
+                {
+                    Cookie[item.Key] = item.Value;
+                }
+            }
+        }
+
+        /// <summary>从本地获取Cookie并设置到Http请求头</summary>
+        private void GetCookie()
+        {
+            var req = Request;
+            if (req == null) return;
+            if (Cookie == null || Cookie.Count == 0) return;
+
+            var sb = new StringBuilder();
+            foreach (var item in Cookie)
+            {
+                if (sb.Length > 0) sb.Append(";");
+                sb.AppendFormat("{0}={1}", item.Key, item.Value);
+            }
+            req.Headers["Cookie"] = sb.ToString();
         }
         #endregion
 
