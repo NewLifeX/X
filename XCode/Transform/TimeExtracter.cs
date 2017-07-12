@@ -76,8 +76,11 @@ namespace XCode.Transform
         public virtual void Init()
         {
             // 自动找时间字段
-            var fi = Factory.Fields.FirstOrDefault(e => e.Type == typeof(DateTime) && e.Name.StartsWithIgnoreCase("UpdateTime", "Modify", "Modified"));
-            if (fi != null) FieldName = fi.Name;
+            if (FieldName.IsNullOrEmpty())
+            {
+                var fi = Factory.Fields.FirstOrDefault(e => e.Type == typeof(DateTime) && e.Name.StartsWithIgnoreCase("UpdateTime", "Modify", "Modified"));
+                if (fi != null) FieldName = fi.Name;
+            }
         }
         #endregion
 
@@ -86,6 +89,8 @@ namespace XCode.Transform
         /// <returns></returns>
         public virtual IEntityList Fetch()
         {
+            if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
+
             var set = Setting;
             if (set == null) set = Setting = new ExtractSetting();
             if (!set.Enable) return null;
