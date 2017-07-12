@@ -8,7 +8,9 @@ using XCode.Configuration;
 /*
  *  时间点抽取流程：
  *      验证时间start，越界则退出
- *      抽取一批数据 list = FindAll(UpdateTime >= start, UpdateTime.Asc(), null, Row, 1000)
+ *          有步进且位于第一页时，重新计算最小时间 FindAll(UpdateTime >= start, UpdateTime.Min(), 0, 0)
+ *          结束时间有效时，设定末端边界
+ *      抽取一批数据 list = FindAll(UpdateTime >= start, UpdateTime.Asc() & ID.Asc(), null, Row, 1000)
  *      有数据list.Count > 0
  *          last = list.Last().UpdateTime
  *          满一批，后续还有数据 list.Count == 1000
@@ -18,6 +20,10 @@ using XCode.Configuration;
  *          不满一批，后续没有数据
  *              Row = 0;
  *              滑动时间点 start = last + 1
+ *      没有数据
+ *          有步进
+ *              Row = 0;
+ *              滑动时间窗口 start = end
  *      返回这一批数据
  */
 
@@ -86,14 +92,15 @@ namespace XCode.Transform
 
             // 验证时间段
             var start = set.Start;
-            if (set.Step > 0) start = GetMinTime(start);
-            //if (start <= DateTime.MinValue) start = GetMinTime(start);
+            // 有步进且位于第一页时，重新计算最小时间
+            if (set.Step > 0 && set.Row == 0) start = GetMinTime(start);
             var now = DateTime.Now;
             if (start >= now) return null;
 
             // 结束时间，必须是小于当前时间的有效值
             var end = set.Step <= 0 ? DateTime.MaxValue : start.AddSeconds(set.Step);
             //var end = DateTime.MaxValue;
+            // 结束时间有效时，设定末端边界
             if (set.End > DateTime.MinValue && set.End < DateTime.MaxValue && set.End < end)
                 end = set.End;
 
@@ -113,7 +120,7 @@ namespace XCode.Transform
             {
                 var last = (DateTime)list.Last()[FieldName];
                 // 满一批，后续还有数据
-                if (list.Count >= 1000)
+                if (list.Count >= size)
                 {
                     // 最大时间行数
                     var maxCount = list.Count(e => (DateTime)e[FieldName] == last);
@@ -129,6 +136,11 @@ namespace XCode.Transform
                     NextStart = last.AddSeconds(1);
                     NextRow = 0;
                 }
+            }
+            else if (set.Step > 0)
+            {
+                NextStart = end;
+                NextRow = 0;
             }
 
             return list;

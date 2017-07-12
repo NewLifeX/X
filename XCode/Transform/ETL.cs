@@ -116,7 +116,7 @@ namespace XCode.Transform
             var row = set.Row;
 
             var ext = Extracter;
-            ext.Setting = set;
+            //ext.Setting = set;
             try
             {
                 var sw = Stopwatch.StartNew();
