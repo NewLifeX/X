@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using NewLife;
 
@@ -121,6 +123,17 @@ namespace XCode.DataAccessLayer
         /// <param name="right"></param>
         /// <returns></returns>
         String StringConcat(String left, String right);
+
+        /// <summary>创建参数</summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        IDataParameter CreateParameter(String name, Object value);
+
+        /// <summary>创建参数数组</summary>
+        /// <param name="ps"></param>
+        /// <returns></returns>
+        IDataParameter[] CreateParameters(IDictionary<String, Object> ps);
         #endregion
     }
 }

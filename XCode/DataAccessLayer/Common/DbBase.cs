@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Data.OleDb;
 using System.IO;
@@ -684,6 +685,27 @@ namespace XCode.DataAccessLayer
         /// <param name="right"></param>
         /// <returns></returns>
         public virtual String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "+" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
+
+        /// <summary>创建参数</summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public IDataParameter CreateParameter(String name, Object value)
+        {
+            var dp = Factory.CreateParameter();
+            dp.ParameterName = name;
+            dp.Value = value;
+
+            return dp;
+        }
+
+        /// <summary>创建参数数组</summary>
+        /// <param name="ps"></param>
+        /// <returns></returns>
+        public IDataParameter[] CreateParameters(IDictionary<String, Object> ps)
+        {
+            return ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
+        }
         #endregion
 
         #region 辅助函数
