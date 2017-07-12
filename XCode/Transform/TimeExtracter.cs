@@ -120,10 +120,7 @@ namespace XCode.Transform
             if (size <= 0) size = 1000;
 
             // 分批获取数据，如果没有取到，则结束
-            var sw = Stopwatch.StartNew();
             var list = FetchData(start, end, set.Row, size);
-            sw.Stop();
-
             // 取到数据，需要滑动窗口
             if (list.Count > 0)
             {
