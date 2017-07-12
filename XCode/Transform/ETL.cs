@@ -159,6 +159,7 @@ namespace XCode.Transform
                 var ms = sw.ElapsedMilliseconds;
                 st.Speed = ms <= 0 ? 0 : (Int32)(count * 1000 / ms);
 
+                if (ext is TimeExtracter) end = (ext as TimeExtracter).BatchEnd;
                 var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
                 var msg = "共同步{0}行，区间({1}, {2}{3})，{4:n0}ms，{5:n0}tps".F(count, start, row, ends, ms, st.Speed);
                 WriteLog(msg);

@@ -62,6 +62,9 @@ namespace XCode.Transform
                 return _Field;
             }
         }
+
+        /// <summary>本批数据结束时间</summary>
+        public DateTime BatchEnd { get; set; }
         #endregion
 
         #region 构造
@@ -111,6 +114,7 @@ namespace XCode.Transform
 
             // 区间无效
             if (start >= end) return null;
+            BatchEnd = end;
 
             var size = set.BatchSize;
             if (size <= 0) size = 1000;
