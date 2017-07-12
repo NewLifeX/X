@@ -11,6 +11,41 @@ using XCode.Membership;
 namespace XCode.Transform
 {
     /// <summary>数据抽取转换处理</summary>
+    /// <typeparam name="TSource">源实体类</typeparam>
+    /// <typeparam name="TTarget">目标实体类</typeparam>
+    public class ETL<TSource, TTarget> : ETL
+        where TSource : Entity<TSource>, new()
+        where TTarget : Entity<TTarget>, new()
+    {
+        #region 构造
+        public ETL() : base(Entity<TSource>.Meta.Factory, Entity<TTarget>.Meta.Factory)
+        {
+            Name = GetType().Name.TrimEnd("Worker");
+        }
+        #endregion
+
+        /// <summary>处理单行数据</summary>
+        /// <param name="source">源实体</param>
+        /// <param name="target">目标实体</param>
+        /// <param name="isNew">是否新增</param>
+        protected override IEntity ProcessItem(IEntity source, IEntity target, Boolean isNew)
+        {
+            return ProcessItem(source as TSource, target as TTarget, isNew);
+        }
+
+        /// <summary>处理单行数据</summary>
+        /// <param name="source">源实体</param>
+        /// <param name="target">目标实体</param>
+        /// <param name="isNew">是否新增</param>
+        protected virtual IEntity ProcessItem(TSource source, TTarget target, Boolean isNew)
+        {
+            target.CopyFrom(source, true);
+
+            return target;
+        }
+    }
+
+    /// <summary>数据抽取转换处理</summary>
     /// <remarks>
     /// ETL数据抽取可以独立使用，也可以继承扩展。
     /// </remarks>
@@ -31,23 +66,9 @@ namespace XCode.Transform
 
         /// <summary>处理单个实体遇到错误时如何处理。默认true跳过错误，否则抛出异常</summary>
         public Boolean SkipError { get; set; } = true;
-        #endregion
 
-        #region 性能指标
-        /// <summary>总数</summary>
-        public Int32 Total { get; set; }
-
-        /// <summary>次数</summary>
-        public Int32 Times { get; set; }
-
-        /// <summary>速度</summary>
-        public Int32 Speed { get; set; }
-
-        /// <summary>错误</summary>
-        public Int32 Error { get; set; }
-
-        /// <summary>错误内容</summary>
-        public String Message { get; set; }
+        /// <summary>统计</summary>
+        public IETLStat Stat { get; set; }
         #endregion
 
         #region 构造
@@ -61,13 +82,6 @@ namespace XCode.Transform
             Extracter = new TimeExtracter { Factory = source };
             Target = target;
         }
-
-        //protected override void OnDispose(Boolean disposing)
-        //{
-        //    base.OnDispose(disposing);
-
-        //    Stop();
-        //}
         #endregion
 
         #region 开始停止
@@ -78,6 +92,8 @@ namespace XCode.Transform
             if (ext == null) ext = Extracter = new TimeExtracter();
             if (ext.Setting == null) ext.Setting = new ExtractSetting();
             ext.Init();
+
+            if (Stat == null) Stat = new ETLStat();
         }
 
         /// <summary>停止</summary>
@@ -115,12 +131,15 @@ namespace XCode.Transform
             var end = set.End;
             var row = set.Row;
 
+            var st = Stat;
+            st.Message = null;
+
             var ext = Extracter;
             //ext.Setting = set;
             try
             {
                 var sw = Stopwatch.StartNew();
-                Speed = 0;
+                st.Speed = 0;
 
                 // 分批抽取
                 var list = ext.Fetch();
@@ -134,22 +153,21 @@ namespace XCode.Transform
                 ext.SaveNext();
 
                 var count = list.Count;
-                Total += count;
-                Times++;
-
-                Message = null;
+                //st.Total += count;
+                st.Times++;
 
                 var ms = sw.ElapsedMilliseconds;
-                Speed = ms <= 0 ? 0 : (Int32)(count * 1000 / ms);
+                st.Speed = ms <= 0 ? 0 : (Int32)(count * 1000 / ms);
 
-                var msg = "共同步{0}行，区间({1}, {2}, {3})，耗时 {4:n0}毫秒，{5:n0}".F(count, start, row, end, ms, Speed);
+                var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
+                var msg = "共同步{0}行，区间({1}, {2}{3})，{4:n0}ms，{5:n0}tps".F(count, start, row, ends, ms, st.Speed);
                 WriteLog(msg);
                 LogProvider.Provider.WriteLog(Name, "同步", msg);
             }
             catch (Exception ex)
             {
-                Error++;
-                Message = ex?.GetTrue()?.Message;
+                st.Error++;
+                st.Message = ex?.GetTrue()?.Message;
             }
 
             return true;
@@ -162,15 +180,18 @@ namespace XCode.Transform
             // 批量提交
             using (var tran = Target.CreateTrans())
             {
-                foreach (var entity in list)
+                foreach (var source in list)
                 {
                     try
                     {
-                        ProcessItem(entity);
+                        var isNew = false;
+                        var target = GetItem(source, out isNew);
+                        target = ProcessItem(source, target, isNew);
+                        SaveItem(target, isNew);
                     }
                     catch (Exception ex)
                     {
-                        ex = OnError(entity, ex);
+                        ex = OnError(source, ex);
                         if (ex != null) throw ex;
                     }
                 }
@@ -178,36 +199,62 @@ namespace XCode.Transform
             }
         }
 
-        /// <summary>处理单行数据</summary>
-        /// <param name="entity"></param>
+        /// <summary>根据源实体获取目标实体</summary>
+        /// <param name="source">源实体</param>
+        /// <param name="isNew">是否新增</param>
         /// <returns></returns>
-        protected virtual IEntity ProcessItem(IEntity entity)
+        protected virtual IEntity GetItem(IEntity source, out Boolean isNew)
         {
-            var key = entity[Extracter.Factory.Unique.Name];
+            var key = source[Extracter.Factory.Unique.Name];
 
             // 查找目标，如果不存在则创建
-            var flag = true;
-            var e = Target.FindByKey(key);
-            if (e == null)
+            isNew = false;
+            var fact = Target;
+            var target = fact.FindByKey(key);
+            if (target == null)
             {
-                e = Target.Create();
-                e[Target.Unique.Name] = key;
-                flag = false;
+                target = fact.Create();
+                target[fact.Unique.Name] = key;
+                isNew = true;
             }
 
-            // 同名字段对拷
-            e.CopyFrom(entity, true);
+            return target;
+        }
 
+        /// <summary>处理单行数据</summary>
+        /// <remarks>打开AutoSave时，上层ProcessList会自动保存数据</remarks>
+        /// <param name="source">源实体</param>
+        /// <param name="target">目标实体</param>
+        /// <param name="isNew">是否新增</param>
+        /// <returns></returns>
+        protected virtual IEntity ProcessItem(IEntity source, IEntity target, Boolean isNew)
+        {
+            // 同名字段对拷
+            target.CopyFrom(source, true);
+
+            return target;
+        }
+
+        /// <summary>保存目标实体</summary>
+        /// <param name="target"></param>
+        /// <param name="isNew"></param>
+        protected virtual void SaveItem(IEntity target, Boolean isNew)
+        {
             // 自动保存
             if (AutoSave)
             {
-                if (flag)
-                    e.Update();
+                var st = Stat;
+                if (isNew)
+                {
+                    target.Insert();
+                    st.Total++;
+                }
                 else
-                    e.Insert();
+                {
+                    target.Update();
+                    st.TotalUpdate++;
+                }
             }
-
-            return e;
         }
 
         /// <summary>处理单个实体遇到错误时如何处理</summary>
@@ -222,8 +269,9 @@ namespace XCode.Transform
             if (!SkipError) return ex;
 
             // 跳过错误时，把错误记下来
-            Error++;
-            Message = ex.Message;
+            var st = Stat;
+            st.Error++;
+            st.Message = ex.Message;
 
             Log?.Error(ex.Message);
 
