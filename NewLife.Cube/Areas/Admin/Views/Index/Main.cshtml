@@ -1,4 +1,5 @@
 ﻿@using System.Diagnostics;
+@using System.Collections;
 @using NewLife.Common;
 @{
     ViewBag.Title = "服务器信息";
@@ -114,12 +115,14 @@
                 </td>
                 <td class="value">
                     @Session.Contents.Count 个，@Session.Timeout 分钟，SessionID：@Session.Contents.SessionID
+                    <a href="@Url.Action("Main/Session")" target="_blank" title="点击打开Session列表">Session列表</a>
                 </td>
                 <td class="name">
                     Cache：
                 </td>
                 <td class="value">
                     @Cache.Count 个，可用：@((Cache.EffectivePrivateBytesLimit / 1024).ToString("n0"))KB
+                    <a href="@Url.Action("Main/Cache")" target="_blank" title="点击打开Cache列表">Cache列表</a>
                 </td>
             </tr>
         </tbody>
@@ -147,7 +150,7 @@
             }
         </tbody>
     </table>
-}
+                    }
 @if (Act == "ProcessModules")
 {
     var isAll = String.Equals("All", Request["Mode"], StringComparison.OrdinalIgnoreCase);
@@ -165,11 +168,11 @@
                 进程模块(@process.ProcessName , PID=@process.Id )
                 @if (!isAll)
                 {
-                    <text>（<a href="?Mode=All">完整</a>，仅用户）：</text>
+                <text>（<a href="?Mode=All">完整</a>，仅用户）：</text>
                 }
                 else
                 {
-                    <text>（完整，<a href="?Mode=OnlyUser">仅用户</a>）：</text>
+                <text>（完整，<a href="?Mode=OnlyUser">仅用户</a>）：</text>
                 }
             </th>
         </tr>
@@ -198,29 +201,29 @@
         </tr>
         @foreach (ProcessModule item in list)
         {
-            <tr>
-                <td>
-                    @item.ModuleName
-                </td>
-                <td>
-                    @item.FileVersionInfo.CompanyName
-                </td>
-                <td>
-                    @item.FileVersionInfo.ProductName
-                </td>
-                <td>
-                    @item.FileVersionInfo.FileDescription
-                </td>
-                <td>
-                    @item.FileVersionInfo.FileVersion
-                </td>
-                <td>
-                    @item.ModuleMemorySize
-                </td>
-                <td>
-                    @item.FileName
-                </td>
-            </tr>
+        <tr>
+            <td>
+                @item.ModuleName
+            </td>
+            <td>
+                @item.FileVersionInfo.CompanyName
+            </td>
+            <td>
+                @item.FileVersionInfo.ProductName
+            </td>
+            <td>
+                @item.FileVersionInfo.FileDescription
+            </td>
+            <td>
+                @item.FileVersionInfo.FileVersion
+            </td>
+            <td>
+                @item.ModuleMemorySize
+            </td>
+            <td>
+                @item.FileName
+            </td>
+        </tr>
         }
     </table>
 }
@@ -233,24 +236,12 @@
             </th>
         </tr>
         <tr>
-            <th>
-                名称
-            </th>
-            <th>
-                标题
-            </th>
-            <th>
-                文件版本
-            </th>
-            <th>
-                内部版本
-            </th>
-            <th>
-                编译时间
-            </th>
-            <th>
-                路径
-            </th>
+            <th>名称</th>
+            <th>标题</th>
+            <th>文件版本</th>
+            <th>内部版本</th>
+            <th>编译时间</th>
+            <th>路径</th>
         </tr>
         @foreach (AssemblyX item in ViewBag.Asms)
         {
@@ -264,23 +255,65 @@
                 <td>
                     @item.FileVersion
                 </td>
-                <td>
-                    @item.Version
-                </td>
-                <td>
-                    @item.Compile.ToFullString()
-                </td>
+                <td>@item.Version</td>
+                <td>@item.Compile.ToFullString()</td>
                 <td>
                     @{
-            var location = String.Empty;
-            try
-            {
-                location = item.Asm.Location;
-            }
-            catch { }
+                        var location = String.Empty;
+                        try
+                        {
+                            location = item.Asm.Location;
+                        }
+                        catch { }
                     }
                     @location
                 </td>
+            </tr>
+         }
+    </table>
+}
+@if (Act == "Session")
+{
+    <table class="table table-bordered table-hover table-striped table-condensed">
+        <tr>
+            <th colspan="6">
+                Session列表(@Session.Contents.Count )
+            </th>
+        </tr>
+        <tr>
+            <th>名称</th>
+            <th>类型</th>
+            <th>数值</th>
+        </tr>
+        @foreach (String item in Session.Keys)
+        {
+            <tr>
+                <td>@item</td>
+                <td>@Session[item].GetType().FullName</td>
+                <td>@Session[item]</td>
+            </tr>
+        }
+    </table>
+}
+@if (Act == "Cache")
+{
+    <table class="table table-bordered table-hover table-striped table-condensed">
+        <tr>
+            <th colspan="6">
+                Cache列表(@Cache.Count )
+            </th>
+        </tr>
+        <tr>
+            <th>名称</th>
+            <th>类型</th>
+            <th>数值</th>
+        </tr>
+        @foreach (DictionaryEntry item in Cache)
+        {
+            <tr>
+                <td>@item.Key</td>
+                <td>@item.Value.GetType().FullName</td>
+                <td>@item.Value</td>
             </tr>
         }
     </table>
