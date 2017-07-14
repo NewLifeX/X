@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using NewLife;
-using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 
