@@ -236,7 +236,7 @@ namespace XCode
                 if (sbNames != null && CheckIdentity(fi, value, op, sbNames, sbValues)) continue;
 
                 // 1，有脏数据的字段一定要参与同时对于实体有值的也应该参与（针对通过置空主键的方式另存）
-                if (value == null && !entity.Dirtys[fi.Name])
+                if (!up && value == null && !entity.Dirtys[fi.Name])
                 {
                     // 2，没有脏数据，允许空的字段不参与
                     if (fi.IsNullable) continue;
