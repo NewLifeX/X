@@ -131,6 +131,7 @@ namespace XICO
                 var chk = item as CheckBox;
                 if (chk != null && chk.Checked) list.Add(chk.Name.Substring(3).ToInt());
             }
+            list.Sort();
 
             if (list.Count < 1)
             {
@@ -159,27 +160,23 @@ namespace XICO
             var fs = (String[])e.Data.GetData(DataFormats.FileDrop);
             if (fs != null && fs.Length > 0)
             {
-                try
-                {
-                    var fi = fs[0];
-                    sfd.FileName = fi;
-                    picSrc.Load(fi);
+                var fi = fs[0];
+                sfd.FileName = fi;
 
-                    // 如果是图标，读取信息
-                    if (fi.EndsWithIgnoreCase(".ico"))
+                // 如果是图标，读取信息
+                if (fi.EndsWithIgnoreCase(".ico"))
+                {
+                    var ico = new IconFile(fi);
+                    //ico.Sort();
+                    var sb = new StringBuilder();
+                    foreach (var item in ico.Items)
                     {
-                        var ico = new IconFile(fi);
-                        //ico.Sort();
-                        var sb = new StringBuilder();
-                        foreach (var item in ico.Items)
-                        {
-                            if (sb.Length > 0) sb.AppendLine();
-                            sb.AppendFormat("{0}*{1}*{2}", item.Width, item.Height, item.BitCount);
-                        }
-                        MessageBox.Show(sb.ToString());
+                        if (sb.Length > 0) sb.AppendLine();
+                        sb.AppendFormat("{0}*{1}*{2}", item.Width, item.Height, item.BitCount);
                     }
+                    MessageBox.Show(sb.ToString());
                 }
-                catch { }
+                picSrc.Load(fi);
             }
         }
 
