@@ -117,6 +117,7 @@ namespace XICO
             item.Size = (UInt32)item.Data.Length;
             item.BitCount = (UInt16)bit;
 
+            if (size >= 256) size = 255;
             item.Width = (Byte)size;
             item.Height = (Byte)size;
 
@@ -199,6 +200,11 @@ namespace XICO
             }
         }
 
+        /// <summary>转换源图片到目标ICO文件，指定大小和位深</summary>
+        /// <param name="bmp"></param>
+        /// <param name="des"></param>
+        /// <param name="sizes"></param>
+        /// <param name="bits"></param>
         public static void Convert(Image bmp, Stream des, Int32[] sizes, Int32[] bits)
         {
             var ico = new IconFile();
@@ -220,42 +226,46 @@ namespace XICO
 
         public class IconItem
         {
+            /*
+typedef struct
+{
+    BYTE        bWidth;          // Width, in pixels, of the image
+    BYTE        bHeight;         // Height, in pixels, of the image
+    BYTE        bColorCount;     // Number of colors in image (0 if >=8bpp)
+    BYTE        bReserved;       // Reserved ( must be 0)
+    WORD        wPlanes;         // Color Planes
+    WORD        wBitCount;       // Bits per pixel
+    DWORD       dwBytesInRes;    // How many bytes in this resource?
+    DWORD       dwImageOffset;   // Where in the file is this image?
+} ICONDIRENTRY, *LPICONDIRENTRY;
+             */
             #region 属性
-            private Byte _Width = 16;
             /// <summary>图像宽度，以象素为单位。一个字节</summary>
-            public Byte Width { get { return _Width; } set { _Width = value; } }
+            public Byte Width { get; set; } = 16;
 
-            private Byte _Height = 16;
             /// <summary>图像高度，以象素为单位。一个字节</summary>
-            public Byte Height { get { return _Height; } set { _Height = value; } }
+            public Byte Height { get; set; } = 16;
 
-            private Byte _ColorCount = 0;
             /// <summary>图像中的颜色数（如果是>=8bpp的位图则为0）</summary>
-            public Byte ColorCount { get { return _ColorCount; } set { _ColorCount = value; } }
+            public Byte ColorCount { get; set; }
 
-            private Byte _Reserved = 0;        //4 
             /// <summary>保留字必须是0</summary>
-            public Byte Reserved { get { return _Reserved; } set { _Reserved = value; } }
+            public Byte Reserved { get; set; }
 
-            private UInt16 _Planes = 1;
             /// <summary>为目标设备说明位面数，其值将总是被设为1</summary>
-            public UInt16 Planes { get { return _Planes; } set { _Planes = value; } }
+            public UInt16 Planes { get; set; } = 1;
 
-            private UInt16 _BitCount = 32;      //8
             /// <summary>每象素所占位数。</summary>
-            public UInt16 BitCount { get { return _BitCount; } set { _BitCount = value; } }
+            public UInt16 BitCount { get; set; } = 32;      //8
 
-            private UInt32 _Size = 0;
             /// <summary>字节大小。</summary>
-            public UInt32 Size { get { return _Size; } set { _Size = value; } }
+            public UInt32 Size { get; set; }
 
-            private UInt32 _Offset = 0;         //16
             /// <summary>起点偏移位置。</summary>
-            public UInt32 Offset { get { return _Offset; } set { _Offset = value; } }
+            public UInt32 Offset { get; set; }
 
-            private Byte[] _Data;
             /// <summary>图形数据</summary>
-            public Byte[] Data { get { return _Data; } set { _Data = value; } }
+            public Byte[] Data { get; set; }
             #endregion
 
             #region 构造
@@ -267,20 +277,20 @@ namespace XICO
             #region 方法
             public IconItem Load(BinaryReader reader)
             {
-                _Width = reader.ReadByte();
-                _Height = reader.ReadByte();
-                _ColorCount = reader.ReadByte();
-                _Reserved = reader.ReadByte();
+                Width = reader.ReadByte();
+                Height = reader.ReadByte();
+                ColorCount = reader.ReadByte();
+                Reserved = reader.ReadByte();
 
-                _Planes = reader.ReadUInt16();
-                _BitCount = reader.ReadUInt16();
-                _Size = reader.ReadUInt32();
-                _Offset = reader.ReadUInt32();
+                Planes = reader.ReadUInt16();
+                BitCount = reader.ReadUInt16();
+                Size = reader.ReadUInt32();
+                Offset = reader.ReadUInt32();
 
                 var ms = reader.BaseStream;
                 var p = ms.Position;
-                ms.Position = _Offset;
-                _Data = reader.ReadBytes((Int32)_Size);
+                ms.Position = Offset;
+                Data = reader.ReadBytes((Int32)Size);
                 ms.Position = p;
 
                 return this;
@@ -288,15 +298,15 @@ namespace XICO
 
             public IconItem Save(BinaryWriter writer)
             {
-                writer.Write(_Width);
-                writer.Write(_Height);
-                writer.Write(_ColorCount);
-                writer.Write(_Reserved);
+                writer.Write(Width);
+                writer.Write(Height);
+                writer.Write(ColorCount);
+                writer.Write(Reserved);
 
-                writer.Write(_Planes);
-                writer.Write(_BitCount);
-                writer.Write(_Size);
-                writer.Write(_Offset);
+                writer.Write(Planes);
+                writer.Write(BitCount);
+                writer.Write(Size);
+                writer.Write(Offset);
 
                 return this;
             }

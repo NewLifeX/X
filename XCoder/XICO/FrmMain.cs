@@ -26,7 +26,7 @@ namespace XICO
 
         private void FrmMain_Shown(Object sender, EventArgs e)
         {
-            sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            //sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             var ms = FileSource.GetFileResource(null, "XCoder.XICO.leaf.png");
             if (ms != null) picSrc.Image = new Bitmap(ms);
@@ -129,7 +129,7 @@ namespace XICO
             foreach (var item in groupBox2.Controls)
             {
                 var chk = item as CheckBox;
-                if (chk != null && chk.Checked) list.Add(Int16.Parse(chk.Name.Substring(3)));
+                if (chk != null && chk.Checked) list.Add(chk.Name.Substring(3).ToInt());
             }
 
             if (list.Count < 1)
@@ -141,7 +141,8 @@ namespace XICO
             var bmp = MakeWater(true);
 
             var ms = new MemoryStream();
-            IconFile.Convert(bmp, ms, list.ToArray(), new Int32[] { 8, 32 });
+            //IconFile.Convert(bmp, ms, list.ToArray(), new Int32[] { 8, 32 });
+            IconFile.Convert(bmp, ms, list.ToArray(), new Int32[] { 32 });
 
             //sfd.DefaultExt = "ico";
             sfd.Filter = "ICO图标(*.ico)|*.ico";
@@ -168,12 +169,12 @@ namespace XICO
                     if (fi.EndsWithIgnoreCase(".ico"))
                     {
                         var ico = new IconFile(fi);
-                        ico.Sort();
+                        //ico.Sort();
                         var sb = new StringBuilder();
                         foreach (var item in ico.Items)
                         {
-                            if (sb.Length > 0) sb.Append(",");
-                            sb.AppendFormat("{0}*{1}", item.Width, item.BitCount);
+                            if (sb.Length > 0) sb.AppendLine();
+                            sb.AppendFormat("{0}*{1}*{2}", item.Width, item.Height, item.BitCount);
                         }
                         MessageBox.Show(sb.ToString());
                     }
