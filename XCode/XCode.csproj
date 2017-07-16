@@ -107,6 +107,8 @@
     <Compile Include="Model\FieldExpression.cs" />
     <Compile Include="Remoting\ApiUserSession.cs" />
     <Compile Include="Setting.cs" />
+    <Compile Include="Sharding\分片.Biz.cs" />
+    <Compile Include="Sharding\分片.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Sync\SyncManager.cs" />
@@ -236,9 +238,21 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Sharding\XCoder.log">
+      <DependentUpon>XCoder.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="UpdateInfo.txt" />
     <None Include="Membership\Member.xml">
       <SubType>Designer</SubType>
+    </None>
+    <None Include="Sharding\Shard.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Sharding\XCoder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>XCoder.log</LastGenOutput>
     </None>
     <Content Include="Sync\同步机制.txt" />
     <None Include="说明.txt" />
