@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using NewLife.Log;
 using XCode;
@@ -68,6 +67,7 @@ namespace XCode.Transform
         #endregion
 
         #region 构造
+        /// <summary>实例化时基抽取算法</summary>
         public TimeExtracter()
         {
             Name = GetType().Name.TrimEnd("Extracter", "Worker");

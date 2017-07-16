@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Reflection;
 
@@ -41,6 +38,8 @@ namespace XCode
         #endregion
 
         #region 构造
+        /// <summary>实例化实体模块集合</summary>
+        /// <param name="entityType"></param>
         public EntityModules(Type entityType)
         {
             EntityType = entityType;
@@ -71,6 +70,9 @@ namespace XCode
             }
         }
 
+        /// <summary>添加实体模块</summary>
+        /// <param name="module"></param>
+        /// <returns></returns>
         public virtual Boolean Add(IEntityModule module)
         {
             if (!module.Init(EntityType)) return false;
@@ -80,6 +82,9 @@ namespace XCode
             return true;
         }
 
+        /// <summary>添加实体模块</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public virtual IEntityModule Add<T>() where T : IEntityModule, new()
         {
             var module = new T();
@@ -88,6 +93,9 @@ namespace XCode
             return module;
         }
 
+        /// <summary>创建实体时执行模块</summary>
+        /// <param name="entity"></param>
+        /// <param name="forEdit"></param>
         public void Create(IEntity entity, Boolean forEdit)
         {
             foreach (var item in Modules)
@@ -96,6 +104,10 @@ namespace XCode
             }
         }
 
+        /// <summary>添加更新实体时验证</summary>
+        /// <param name="entity"></param>
+        /// <param name="isNew"></param>
+        /// <returns></returns>
         public Boolean Valid(IEntity entity, Boolean isNew)
         {
             foreach (var item in Modules)

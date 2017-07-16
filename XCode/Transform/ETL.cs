@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
-using NewLife;
-using NewLife.Collections;
 using NewLife.Log;
-using XCode.DataAccessLayer;
 using XCode.Membership;
 
 namespace XCode.Transform
@@ -18,9 +13,9 @@ namespace XCode.Transform
         where TTarget : Entity<TTarget>, new()
     {
         #region 构造
+        /// <summary>实例化数据抽取器</summary>
         public ETL() : base(Entity<TSource>.Meta.Factory, Entity<TTarget>.Meta.Factory)
         {
-            Name = GetType().Name.TrimEnd("Worker");
         }
         #endregion
 
@@ -72,12 +67,16 @@ namespace XCode.Transform
         #endregion
 
         #region 构造
+        /// <summary>实例化数据抽取器</summary>
         public ETL()
         {
             Name = GetType().Name.TrimEnd("Worker");
         }
 
-        public ETL(IEntityOperate source, IEntityOperate target)
+        /// <summary>实例化数据抽取器</summary>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        public ETL(IEntityOperate source, IEntityOperate target) : this()
         {
             Extracter = new TimeExtracter { Factory = source };
             Target = target;

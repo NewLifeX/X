@@ -64,6 +64,7 @@ namespace XCode.Transform
     public static class ExtractSettingHelper
     {
         /// <summary>拷贝设置参数</summary>
+        /// <param name="src"></param>
         /// <param name="set"></param>
         public static IExtractSetting Copy(this IExtractSetting src, IExtractSetting set)
         {
