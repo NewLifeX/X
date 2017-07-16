@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Agent;
+using NewLife.Caching;
 using NewLife.Common;
 using NewLife.Data;
 using NewLife.Expressions;
@@ -53,7 +54,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -111,48 +112,34 @@ namespace Test
 
         static void Test2()
         {
-            XCode.Setting.Current.TransactionDebug = true;
-
-            XTrace.WriteLine(Role.Meta.Count + "");
-            XTrace.WriteLine(Log.Meta.Count + "");
-            Console.Clear();
-
-            Task.Run(() => TestTask(1));
-            Thread.Sleep(1000);
-            Task.Run(() => TestTask(2));
-        }
-
-        static void TestTask(Int32 tid)
-        {
-            try
+            // 多线程测试缓存
+            var mc = Cache.Default;
+            var total = 0;
+            var success = 0;
+            for (int i = 0; i < 8; i++)
             {
-                XTrace.WriteLine("TestTask {0} Start", tid);
-                using (var tran = Role.Meta.CreateTrans())
+                Task.Run(() =>
                 {
-                    var role = new Role();
-                    role.Name = "R" + DateTime.Now.Millisecond;
-                    role.Save();
-                    XTrace.WriteLine("role.ID={0}", role.ID);
+                    for (int k = 0; k < 1000; k++)
+                    {
+                        var key = Rand.Next(0, 10) + "";
+                        var value = Rand.NextString(8);
 
-                    Thread.Sleep(3000);
+                        Interlocked.Increment(ref total);
+                        if (mc.Contains(key)) Interlocked.Increment(ref success);
 
-                    role = new Role();
-                    role.Name = "R" + DateTime.Now.Millisecond;
-                    role.Save();
-                    XTrace.WriteLine("role.ID={0}", role.ID);
+                        mc.Add(key, value);
 
-                    Thread.Sleep(3000);
-
-                    if (tid == 2) tran.Commit();
-                }
+                        Thread.Sleep(10);
+                    }
+                });
             }
-            catch (Exception ex)
+
+            for (int i = 0; i < 1000; i++)
             {
-                XTrace.WriteException(ex);
-            }
-            finally
-            {
-                XTrace.WriteLine("TestTask {0} End", tid);
+                Thread.Sleep(500);
+
+                Console.Title = "次数{0:n0} 成功{1:n0} 成功率{2:p} ".F(total, success, total == 0 ? 0 : (Double)success / total);
             }
         }
 
