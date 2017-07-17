@@ -326,7 +326,7 @@ namespace XCode.Transform
             st.Error++;
             st.Message = ex.Message;
 
-            Log?.Error(ex.Message);
+            WriteError(ex.Message);
 
             return null;
         }
@@ -336,12 +336,27 @@ namespace XCode.Transform
         /// <summary>日志</summary>
         public NewLife.Log.ILog Log { get; set; } = Logger.Null;
 
+        /// <summary>数据库日志提供者</summary>
+        public LogProvider Provider { get; set; }
+
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
             Log?.Info(Name + " " + format, args);
+
+            Provider?.WriteLog(Name, "同步", format.F(args));
+        }
+
+        /// <summary>写错误日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteError(String format, params Object[] args)
+        {
+            Log?.Error(Name + " " + format, args);
+
+            Provider?.WriteLog(Name, "错误", format.F(args));
         }
         #endregion
     }
