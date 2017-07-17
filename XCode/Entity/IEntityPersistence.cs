@@ -440,7 +440,12 @@ namespace XCode
 
             var dp = session.CreateParameter();
             dp.ParameterName = paraname;
-            dp.Value = FormatParamValue(fi, value, op);
+
+            //!!! MySql布尔型参数化有BUG，临时处理
+            if (session.Dal.DbType == DatabaseType.MySql && fi.Type == typeof(Boolean))
+                dp.Value = value.ToBoolean() ? 'Y' : 'N';
+            else
+                dp.Value = FormatParamValue(fi, value, op);
 
             var dbp = dp as DbParameter;
             if (dbp != null) dbp.IsNullable = fi.IsNullable;
