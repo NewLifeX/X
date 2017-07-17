@@ -5,7 +5,7 @@ using XCode.Membership;
 
 namespace XCode.Transform
 {
-    /// <summary>数据抽取转换处理</summary>
+    /// <summary>数据同步</summary>
     /// <typeparam name="TSource">源实体类</typeparam>
     /// <typeparam name="TTarget">目标实体类</typeparam>
     public class ETL<TSource, TTarget> : ETL
@@ -14,9 +14,7 @@ namespace XCode.Transform
     {
         #region 构造
         /// <summary>实例化数据抽取器</summary>
-        public ETL() : base(Entity<TSource>.Meta.Factory, Entity<TTarget>.Meta.Factory)
-        {
-        }
+        public ETL() : base(Entity<TSource>.Meta.Factory, Entity<TTarget>.Meta.Factory) { }
         #endregion
 
         /// <summary>处理单行数据</summary>
@@ -40,9 +38,37 @@ namespace XCode.Transform
         }
     }
 
+    /// <summary>数据分批统计</summary>
+    /// <typeparam name="TSource">源实体类</typeparam>
+    public class ETL<TSource> : ETL
+        where TSource : Entity<TSource>, new()
+    {
+        #region 构造
+        /// <summary>实例化数据抽取器</summary>
+        public ETL() : base(Entity<TSource>.Meta.Factory, null) { }
+        #endregion
+
+        /// <summary>处理单行数据</summary>
+        /// <param name="source">源实体</param>
+        /// <param name="target">目标实体</param>
+        /// <param name="isNew">是否新增</param>
+        protected override IEntity ProcessItem(IEntity source, IEntity target, Boolean isNew)
+        {
+            return ProcessItem(source as TSource);
+        }
+
+        /// <summary>处理单行数据</summary>
+        /// <param name="source">源实体</param>
+        protected virtual IEntity ProcessItem(TSource source)
+        {
+            return source;
+        }
+    }
+
     /// <summary>数据抽取转换处理</summary>
     /// <remarks>
     /// ETL数据抽取可以独立使用，也可以继承扩展。
+    /// 同步数据或数据分批统计。
     /// </remarks>
     public class ETL
     {
@@ -53,7 +79,7 @@ namespace XCode.Transform
         /// <summary>数据源抽取器</summary>
         public IExtracter Extracter { get; set; }
 
-        /// <summary>目标实体工厂</summary>
+        /// <summary>目标实体工厂。分批统计时不需要设定</summary>
         public IEntityOperate Target { get; set; }
 
         ///// <summary>逐行处理后自动保存。默认true</summary>
@@ -184,17 +210,27 @@ namespace XCode.Transform
         /// <param name="list"></param>
         protected virtual void ProcessList(IEntityList list)
         {
-            // 批量提交
-            using (var tran = Target.CreateTrans())
+            // 批量事务提交
+            var fact = Target;
+            fact?.BeginTransaction();
+            try
             {
                 foreach (var source in list)
                 {
                     try
                     {
-                        var isNew = false;
-                        var target = GetItem(source, out isNew);
-                        target = ProcessItem(source, target, isNew);
-                        SaveItem(target, isNew);
+                        // 有目标跟没有目标处理方式不同
+                        if (fact != null)
+                        {
+                            var isNew = false;
+                            var target = GetItem(source, out isNew);
+                            target = ProcessItem(source, target, isNew);
+                            SaveItem(target, isNew);
+                        }
+                        else
+                        {
+                            ProcessItem(source, null, false);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -202,7 +238,12 @@ namespace XCode.Transform
                         if (ex != null) throw ex;
                     }
                 }
-                tran.Commit();
+                fact?.Commit();
+            }
+            catch
+            {
+                fact?.Rollback();
+                throw;
             }
         }
 
@@ -237,7 +278,7 @@ namespace XCode.Transform
         protected virtual IEntity ProcessItem(IEntity source, IEntity target, Boolean isNew)
         {
             // 同名字段对拷
-            target.CopyFrom(source, true);
+            target?.CopyFrom(source, true);
 
             return target;
         }
@@ -264,17 +305,21 @@ namespace XCode.Transform
             //}
         }
 
+        private Exception _lastError;
         /// <summary>处理单个实体遇到错误时如何处理</summary>
         /// <param name="source"></param>
         /// <param name="ex"></param>
         /// <returns></returns>
         protected virtual Exception OnError(Object source, Exception ex)
         {
+            // 处理单个实体时的异常，会被外层捕获，需要判断跳过
+            if (_lastError == ex) return ex;
+
             ex = ex?.GetTrue();
             if (ex == null) return null;
 
             _Error++;
-            if (MaxError > 0 && _Error >= MaxError) return ex;
+            if (MaxError > 0 && _Error >= MaxError) return _lastError = ex;
 
             // 跳过错误时，把错误记下来
             var st = Stat;
