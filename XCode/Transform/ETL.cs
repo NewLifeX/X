@@ -56,11 +56,14 @@ namespace XCode.Transform
         /// <summary>目标实体工厂</summary>
         public IEntityOperate Target { get; set; }
 
-        /// <summary>逐行处理后自动保存。默认true</summary>
-        public Boolean AutoSave { get; set; } = true;
+        ///// <summary>逐行处理后自动保存。默认true</summary>
+        //public Boolean AutoSave { get; set; } = true;
 
-        /// <summary>处理单个实体遇到错误时如何处理。默认true跳过错误，否则抛出异常</summary>
-        public Boolean SkipError { get; set; } = true;
+        /// <summary>最大错误数，连续发生多个错误时停止</summary>
+        public Int32 MaxError { get; set; }
+
+        /// <summary>当前累计连续错误次数</summary>
+        private Int32 _Error;
 
         /// <summary>统计</summary>
         public IETLStat Stat { get; set; }
@@ -135,13 +138,14 @@ namespace XCode.Transform
 
             var ext = Extracter;
             //ext.Setting = set;
+            IEntityList list = null;
             try
             {
                 var sw = Stopwatch.StartNew();
                 st.Speed = 0;
 
                 // 分批抽取
-                var list = ext.Fetch();
+                list = ext.Fetch();
                 if (list == null || list.Count == 0) return false;
 
                 // 批量处理
@@ -150,6 +154,9 @@ namespace XCode.Transform
 
                 // 当前批数据处理完成，移动到下一块
                 ext.SaveNext();
+
+                // 累计错误清零
+                _Error = 0;
 
                 var count = list.Count;
                 //st.Total += count;
@@ -162,12 +169,12 @@ namespace XCode.Transform
                 var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
                 var msg = "共同步{0}行，区间({1}, {2}{3})，{4:n0}ms，{5:n0}tps".F(count, start, row, ends, ms, st.Speed);
                 WriteLog(msg);
-                LogProvider.Provider.WriteLog(Name, "同步", msg);
+                //LogProvider.Provider.WriteLog(Name, "同步", msg);
             }
             catch (Exception ex)
             {
-                st.Error++;
-                st.Message = ex?.GetTrue()?.Message;
+                ex = OnError(list, ex);
+                if (ex != null) throw ex;
             }
 
             return true;
@@ -241,32 +248,33 @@ namespace XCode.Transform
         protected virtual void SaveItem(IEntity target, Boolean isNew)
         {
             // 自动保存
-            if (AutoSave)
+            //if (AutoSave)
+            //{
+            var st = Stat;
+            if (isNew)
             {
-                var st = Stat;
-                if (isNew)
-                {
-                    target.Insert();
-                    st.Total++;
-                }
-                else
-                {
-                    target.Update();
-                    st.TotalUpdate++;
-                }
+                target.Insert();
+                st.Total++;
             }
+            else
+            {
+                target.Update();
+                st.TotalUpdate++;
+            }
+            //}
         }
 
         /// <summary>处理单个实体遇到错误时如何处理</summary>
-        /// <param name="entity"></param>
+        /// <param name="source"></param>
         /// <param name="ex"></param>
         /// <returns></returns>
-        protected virtual Exception OnError(IEntity entity, Exception ex)
+        protected virtual Exception OnError(Object source, Exception ex)
         {
             ex = ex?.GetTrue();
             if (ex == null) return null;
 
-            if (!SkipError) return ex;
+            _Error++;
+            if (MaxError > 0 && _Error >= MaxError) return ex;
 
             // 跳过错误时，把错误记下来
             var st = Stat;
