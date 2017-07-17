@@ -34,6 +34,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>是否输出SQL</summary>
         Boolean ShowSQL { get; set; }
+
+        /// <summary>参数化添删改查。默认关闭</summary>
+        Boolean UserParameter { get; set; }
         #endregion
 
         #region 方法

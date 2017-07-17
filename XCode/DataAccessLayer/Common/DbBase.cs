@@ -94,6 +94,7 @@ namespace XCode.DataAccessLayer
             public static readonly String DataSource = "Data Source";
             public static readonly String Owner = "Owner";
             public static readonly String ShowSQL = "ShowSQL";
+            public static readonly String UserParameter = "UserParameter";
         }
         #endregion
 
@@ -161,6 +162,7 @@ namespace XCode.DataAccessLayer
             String value;
             if (builder.TryGetAndRemove(_.Owner, out value) && !String.IsNullOrEmpty(value)) Owner = value;
             if (builder.TryGetAndRemove(_.ShowSQL, out value) && !String.IsNullOrEmpty(value)) ShowSQL = value.ToBoolean();
+            if (builder.TryGetAndRemove(_.UserParameter, out value) && !String.IsNullOrEmpty(value)) UserParameter = value.ToBoolean();
         }
 
         /// <summary>拥有者</summary>
@@ -747,6 +749,11 @@ namespace XCode.DataAccessLayer
         #region Sql日志输出
         /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
         public Boolean ShowSQL { get; set; } = Setting.Current.ShowSQL;
+        #endregion
+
+        #region 参数化
+        /// <summary>参数化添删改查。默认关闭</summary>
+        public Boolean UserParameter { get; set; } = Setting.Current.UserParameter;
         #endregion
     }
 }

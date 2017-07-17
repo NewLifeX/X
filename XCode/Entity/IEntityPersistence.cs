@@ -202,7 +202,7 @@ namespace XCode
         static String InsertSQL(IEntity entity, ref IDataParameter[] parameters)
         {
             var op = EntityFactory.CreateOperate(entity.GetType());
-            var up = Setting.Current.UserParameter;
+            var up = op.Session.Dal.Db.UserParameter;
 
             /*
             * 插入数据原则：
@@ -307,7 +307,7 @@ namespace XCode
             if (def.Empty) return null;
 
             var op = EntityFactory.CreateOperate(entity.GetType());
-            var up = Setting.Current.UserParameter;
+            var up = op.Session.Dal.Db.UserParameter;
 
             var sb = new StringBuilder();
             var dps = new List<IDataParameter>();
