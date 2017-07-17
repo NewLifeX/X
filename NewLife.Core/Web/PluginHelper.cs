@@ -13,9 +13,9 @@ namespace NewLife.Web
         /// <param name="disname"></param>
         /// <param name="dll"></param>
         /// <param name="linkName"></param>
-        /// <param name="url"></param>
+        /// <param name="urls">提供下载地址的多个目标页面</param>
         /// <returns></returns>
-        public static Type LoadPlugin(String typeName, String disname, String dll, String linkName, String url)
+        public static Type LoadPlugin(String typeName, String disname, String dll, String linkName, String urls = null)
         {
             var type = typeName.GetTypeEx(true);
             if (type != null) return type;
@@ -27,15 +27,17 @@ namespace NewLife.Web
             if (!File.Exists(file) && Runtime.IsWeb) file = "Bin".GetFullPath().CombinePath(dll);
             if (!File.Exists(file)) file = Setting.Current.GetPluginPath().CombinePath(dll);
 
+            if (urls.IsNullOrEmpty()) urls = Setting.Current.PluginServer;
+
             // 如果本地没有数据库，则从网络下载
             if (!File.Exists(file))
             {
-                XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", disname ?? dll, url);
+                XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", disname ?? dll, urls);
 
                 var client = new WebClientX(true, true);
                 client.Log = XTrace.Log;
                 var dir = Path.GetDirectoryName(file);
-                var file2 = client.DownloadLinkAndExtract(url, linkName, dir);
+                var file2 = client.DownloadLinkAndExtract(urls, linkName, dir);
                 client.TryDispose();
             }
             if (!File.Exists(file))

@@ -251,8 +251,7 @@ namespace NewLife.Common
                 if (_inited) return null;
                 _inited = true;
 
-                var url = Setting.Current.PluginServer;
-                _type = PluginHelper.LoadPlugin("ChineseChar", "微软拼音库", "ChnCharInfo.dll", "PinYin", url);
+                _type = PluginHelper.LoadPlugin("ChineseChar", "微软拼音库", "ChnCharInfo.dll", "PinYin");
                 if (_type == null) XTrace.WriteLine("未找到微软拼音库ChineseChar类");
             }
             if (_type == null) return null;

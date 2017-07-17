@@ -134,6 +134,7 @@ namespace NewLife.Web
                 _client.Dispose();
                 _client = Create(uri);
             }
+            if (Timeout > 0) _client.Timeout = Timeout;
 
             GetCookie();
 
@@ -309,11 +310,11 @@ namespace NewLife.Web
         /// <remarks>
         /// 根据版本或时间降序排序选择
         /// </remarks>
-        /// <param name="url">指定页面</param>
+        /// <param name="urls">指定页面</param>
         /// <param name="name">页面上指定名称的链接</param>
         /// <param name="destdir">要下载到的目标目录</param>
         /// <returns>返回已下载的文件，无效时返回空</returns>
-        public String DownloadLink(String url, String name, String destdir)
+        public String DownloadLink(String urls, String name, String destdir)
         {
             // 一定时间之内，不再重复下载
             var cacheTime = DateTime.Now.AddDays(-1);
@@ -339,27 +340,41 @@ namespace NewLife.Web
 
             // 确保即使联网下载失败，也返回较旧版本
             Link link = null;
-            try
+            Exception lastError = null;
+            foreach (var url in urls.Split(",", ";"))
             {
-                var ls = GetLinks(url);
-                if (ls.Length == 0) return file;
-
-                // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
-                foreach (var item in names)
+                try
                 {
-                    link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                       .Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
-                       .OrderByDescending(e => e.Version)
-                       .OrderByDescending(e => e.Time)
-                       .FirstOrDefault();
-                    if (link != null) break;
+                    var ls = GetLinks(url);
+                    if (ls.Length == 0) return file;
+
+                    // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
+                    foreach (var item in names)
+                    {
+                        link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
+                           .Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
+                           .OrderByDescending(e => e.Version)
+                           .OrderByDescending(e => e.Time)
+                           .FirstOrDefault();
+                        if (link != null) break;
+                    }
                 }
+                catch (WebException ex)
+                {
+                    Log.Error(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                }
+                if (link != null) break;
             }
-            catch (WebException ex)
+            if (link == null)
             {
-                Log.Error(ex.Message);
+                if (lastError != null) throw lastError;
+
+                return file;
             }
-            if (link == null) return file;
 
             var file2 = destdir.CombinePath(link.Name).EnsureDirectory();
 
@@ -428,12 +443,12 @@ namespace NewLife.Web
         }
 
         /// <summary>分析指定页面指定名称的链接，并下载到目标目录，解压Zip后返回目标文件</summary>
-        /// <param name="url">指定页面</param>
+        /// <param name="urls">提供下载地址的多个目标页面</param>
         /// <param name="name">页面上指定名称的链接</param>
         /// <param name="destdir">要下载到的目标目录</param>
         /// <param name="overwrite">是否覆盖目标同名文件</param>
         /// <returns></returns>
-        public String DownloadLinkAndExtract(String url, String name, String destdir, Boolean overwrite = false)
+        public String DownloadLinkAndExtract(String urls, String name, String destdir, Boolean overwrite = false)
         {
             var file = "";
             var cachedir = Setting.Current.GetPluginCache();
@@ -441,7 +456,7 @@ namespace NewLife.Web
             // 下载
             try
             {
-                file = DownloadLink(url, name, cachedir);
+                file = DownloadLink(urls, name, cachedir);
             }
             catch (Exception ex)
             {

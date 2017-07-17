@@ -258,7 +258,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected static DbProviderFactory GetProviderFactory(String assemblyFile, String className)
         {
-            var url = NewLife.Setting.Current.PluginServer;
             var name = Path.GetFileNameWithoutExtension(assemblyFile);
             var linkName = name;
             if (Runtime.Is64BitProcess) linkName += "64";
@@ -267,7 +266,7 @@ namespace XCode.DataAccessLayer
             // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
             linkName += ";" + name;
 
-            var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName, url);
+            var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
 
             // 反射实现获取数据库工厂
             var file = assemblyFile;
@@ -287,7 +286,7 @@ namespace XCode.DataAccessLayer
                 catch (UnauthorizedAccessException) { }
                 catch (Exception ex) { XTrace.Log.Error(ex.ToString()); }
 
-                type = PluginHelper.LoadPlugin(className, null, file, linkName, url);
+                type = PluginHelper.LoadPlugin(className, null, file, linkName);
 
                 // 如果还没有，就写异常
                 if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
