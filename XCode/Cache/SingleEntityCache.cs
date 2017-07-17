@@ -246,9 +246,12 @@ namespace XCode.Cache
                 Using = true;
                 //WriteLog("单对象缓存首次使用 {0} {1}", typeof(TEntity).FullName, XTrace.GetCaller(1, 16));
 
-                // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
-                _Timer = new TimerX(CheckExpire, null, Expire * 1000, Expire * 1000, "SC");
-                _Timer.Async = true;
+                if (_Timer == null)
+                {
+                    // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
+                    _Timer = new TimerX(CheckExpire, null, Expire * 1000, Expire * 1000, "SC");
+                    _Timer.Async = true;
+                }
             }
 
             var item = new CacheItem();
