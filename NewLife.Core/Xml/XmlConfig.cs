@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Log;
 
@@ -42,11 +43,10 @@ namespace NewLife.Xml
 
                     XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
-                    var cfg = Load(dcf);
-                    if (cfg == null) return config;
+                    // 异步更新
+                    Task.Run(() => config.Load(dcf));
 
-                    _Current = cfg;
-                    return cfg;
+                    return config;
                 }
 
                 // 现在没有对象，尝试加载，若返回null则实例化一个新的
@@ -54,34 +54,29 @@ namespace NewLife.Xml
                 {
                     if (_Current != null) return _Current;
 
-                    config = Load(dcf);
-                    if (config != null)
-                        _Current = config;
-                    else
-                        _Current = new TConfig();
-                }
-
-                if (config == null)
-                {
-                    config = _Current;
-                    config.ConfigFile = dcf.GetFullPath();
-                    config.SetExpire();  // 设定过期时间
-                    config.IsNew = true;
-                    config.OnNew();
-
-                    config.OnLoaded();
-
-                    // 创建或覆盖
-                    var act = File.Exists(dcf.GetFullPath()) ? "加载出错" : "不存在";
-                    XTrace.WriteLine("{0}的配置文件{1} {2}，准备用默认配置覆盖！", typeof(TConfig).Name, dcf, act);
-                    try
+                    config = new TConfig();
+                    _Current = config;
+                    if (!config.Load(dcf))
                     {
-                        // 根据配置，有可能不保存，直接返回默认
-                        if (_.SaveNew) config.Save();
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex);
+                        config.ConfigFile = dcf.GetFullPath();
+                        config.SetExpire();  // 设定过期时间
+                        config.IsNew = true;
+                        config.OnNew();
+
+                        config.OnLoaded();
+
+                        // 创建或覆盖
+                        var act = File.Exists(dcf.GetFullPath()) ? "加载出错" : "不存在";
+                        XTrace.WriteLine("{0}的配置文件{1} {2}，准备用默认配置覆盖！", typeof(TConfig).Name, dcf, act);
+                        try
+                        {
+                            // 根据配置，有可能不保存，直接返回默认
+                            if (_.SaveNew) config.Save();
+                        }
+                        catch (Exception ex)
+                        {
+                            XTrace.WriteException(ex);
+                        }
                     }
                 }
 
@@ -100,16 +95,10 @@ namespace NewLife.Xml
             public static Int32 ReloadTime { get; set; }
 
             /// <summary>没有配置文件时是否保存新配置。默认true</summary>
-            public static Boolean SaveNew { get; set; }
-
-            /// <summary>是否检查配置文件格式，当格式不一致是保存新格式配置文件。默认true</summary>
-            public static Boolean CheckFormat { get; set; }
+            public static Boolean SaveNew { get; set; } = true;
 
             static _()
             {
-                SaveNew = true;
-                CheckFormat = true;
-
                 // 获取XmlConfigFileAttribute特性，那里会指定配置文件名称
                 var att = typeof(TConfig).GetCustomAttribute<XmlConfigFileAttribute>(true);
                 if (att == null || att.FileName.IsNullOrWhiteSpace())
@@ -195,42 +184,36 @@ namespace NewLife.Xml
         /// <summary>加载指定配置文件</summary>
         /// <param name="filename"></param>
         /// <returns></returns>
-        public static TConfig Load(String filename)
+        public virtual Boolean Load(String filename)
         {
-            if (filename.IsNullOrWhiteSpace()) return null;
+            if (filename.IsNullOrWhiteSpace()) return false;
             filename = filename.GetFullPath();
-            if (!File.Exists(filename)) return null;
+            if (!File.Exists(filename)) return false;
 
             _loading = true;
             try
             {
-                //var config = filename.ToXmlFileEntity<TConfig>();
-
-                /*
-                 * 初步现象：在不带sp的.Net 2.0中，两种扩展方法加泛型的写法都会导致一个诡异异常
-                 * System.BadImageFormatException: 试图加载格式不正确的程序
-                 * 
-                 * 经过多次尝试，不用扩展方法也不行，但是不用泛型可以！
-                 */
-
-                TConfig config = null;
+                var config = this as TConfig;
                 using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
                 {
-                    //config = stream.ToXmlEntity<TConfig>();
-                    config = stream.ToXmlEntity(typeof(TConfig)) as TConfig;
+                    Object obj = config;
+                    var xml = new NewLife.Serialization.Xml();
+                    xml.Stream = stream;
+                    xml.UseAttribute = false;
+                    xml.UseComment = true;
+                    if (!xml.TryRead(GetType(), ref obj)) return false;
                 }
-                if (config == null) return null;
 
                 config.ConfigFile = filename;
                 config.SetExpire();  // 设定过期时间
                 config.OnLoaded();
 
-                return config;
+                return true;
             }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
-                return null;
+                return false;
             }
             finally
             {
@@ -244,12 +227,6 @@ namespace NewLife.Xml
         protected virtual void OnLoaded()
         {
             // 如果默认加载后的配置与保存的配置不一致，说明可能配置实体类已变更，需要强制覆盖
-            if (_.CheckFormat) CheckFormat();
-        }
-
-        /// <summary>是否检查配置文件格式，当格式不一致是保存新格式配置文件</summary>
-        protected virtual void CheckFormat()
-        {
             var config = this;
             try
             {
