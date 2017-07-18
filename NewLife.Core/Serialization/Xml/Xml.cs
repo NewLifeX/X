@@ -18,6 +18,12 @@ namespace NewLife.Serialization
 
         /// <summary>处理器列表</summary>
         public List<IXmlHandler> Handlers { get; }
+
+        /// <summary>使用特性</summary>
+        public Boolean UseAttribute { get; set; }
+
+        /// <summary>使用注释</summary>
+        public Boolean UseComment { get; set; }
         #endregion
 
         #region 构造
@@ -109,7 +115,22 @@ namespace NewLife.Serialization
             // 要先写入根
             Depth++;
             if (Depth == 1) writer.WriteStartDocument();
-            writer.WriteStartElement(name);
+
+            var att = UseAttribute;
+            // 写入注释
+            if (UseComment)
+            {
+                var des = "";
+                if (Member != null) des = Member.GetDisplayName() ?? Member.GetDescription();
+                if (des.IsNullOrEmpty() && type != null) des = type.GetDisplayName() ?? type.GetDescription();
+
+                if (!des.IsNullOrEmpty()) writer.WriteComment(des);
+            }
+
+            if (att && Depth > 1 && type.GetTypeCode() != TypeCode.Object)
+                writer.WriteStartAttribute(name);
+            else
+                writer.WriteStartElement(name);
             try
             {
                 foreach (var item in Handlers)
@@ -125,7 +146,10 @@ namespace NewLife.Serialization
             {
                 if (writer.WriteState != WriteState.Start)
                 {
-                    writer.WriteEndElement();
+                    if (writer.WriteState == WriteState.Attribute)
+                        writer.WriteEndAttribute();
+                    else
+                        writer.WriteEndElement();
                     if (Depth == 1) writer.WriteEndDocument();
                 }
                 writer.Flush();

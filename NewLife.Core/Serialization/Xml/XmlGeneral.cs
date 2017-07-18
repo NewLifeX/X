@@ -22,6 +22,13 @@ namespace NewLife.Serialization
 
             var writer = Host.GetWriter();
 
+            // 枚举 写入字符串
+            if (type.IsEnum)
+            {
+                writer.WriteValue(value + "");
+                return true;
+            }
+
             switch (Type.GetTypeCode(type))
             {
                 case TypeCode.Boolean:
@@ -148,6 +155,13 @@ namespace NewLife.Serialization
             if (code == TypeCode.Object) return false;
 
             var v = reader.ReadElementContentAsString() + "";
+
+            // 枚举
+            if (type.IsEnum)
+            {
+                value = Enum.Parse(type, v);
+                return true;
+            }
 
             switch (code)
             {

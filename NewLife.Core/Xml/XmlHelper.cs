@@ -53,9 +53,9 @@ namespace NewLife.Xml
         /// <param name="prefix">前缀</param>
         /// <param name="ns">命名空间，设为0长度字符串可去掉默认命名空间xmlns:xsd和xmlns:xsi</param>
         /// <param name="includeDeclaration">是否包含Xml声明 &lt;?xml version="1.0" encoding="utf-8"?&gt;</param>
-        /// <param name="attachCommit">是否附加注释，附加成员的Description和DisplayName注释</param>
+        /// <param name="attachComment">是否附加注释，附加成员的Description和DisplayName注释</param>
         /// <returns>Xml字符串</returns>
-        public static void ToXml(this Object obj, Stream stream, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = false)
+        public static void ToXml(this Object obj, Stream stream, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachComment = false)
         {
             if (obj == null) throw new ArgumentNullException("obj");
             if (encoding == null) encoding = Encoding.UTF8;
@@ -85,13 +85,13 @@ namespace NewLife.Xml
                     serial.Serialize(writer, obj, xsns);
                 }
             }
-            if (attachCommit)
+            if (attachComment)
             {
                 if (stream is FileStream) stream.SetLength(stream.Position);
                 stream.Position = p;
                 var doc = new XmlDocument();
                 doc.Load(stream);
-                doc.DocumentElement.AttachCommit(type);
+                doc.DocumentElement.AttachComment(type);
 
                 stream.Position = p;
                 //doc.Save(stream);
@@ -109,9 +109,9 @@ namespace NewLife.Xml
         /// <param name="prefix">前缀</param>
         /// <param name="ns">命名空间，设为0长度字符串可去掉默认命名空间xmlns:xsd和xmlns:xsi</param>
         /// <param name="includeDeclaration">是否包含Xml声明 &lt;?xml version="1.0" encoding="utf-8"?&gt;</param>
-        /// <param name="attachCommit">是否附加注释，附加成员的Description和DisplayName注释</param>
+        /// <param name="attachComment">是否附加注释，附加成员的Description和DisplayName注释</param>
         /// <returns>Xml字符串</returns>
-        public static void ToXmlFile(this Object obj, String file, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = true)
+        public static void ToXmlFile(this Object obj, String file, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachComment = true)
         {
             if (File.Exists(file)) File.Delete(file);
             file.EnsureDirectory(true);
@@ -126,7 +126,7 @@ namespace NewLife.Xml
 
             using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
-                obj.ToXml(stream, encoding, prefix, ns, includeDeclaration, attachCommit);
+                obj.ToXml(stream, encoding, prefix, ns, includeDeclaration, attachComment);
                 // 必须通过设置文件流长度来实现截断，否则后面可能会多一截旧数据
                 stream.SetLength(stream.Position);
             }
@@ -289,7 +289,7 @@ namespace NewLife.Xml
         /// <param name="node"></param>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        public static XmlNode AttachCommit(this XmlNode node, Type type)
+        public static XmlNode AttachComment(this XmlNode node, Type type)
         {
             if (node == null || type == null) return node;
             if (node.ChildNodes == null || node.ChildNodes.Count < 1) return node;

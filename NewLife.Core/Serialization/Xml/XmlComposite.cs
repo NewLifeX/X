@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -126,10 +125,13 @@ namespace NewLife.Serialization
             if (type.Name.EqualIgnoreCase(name)) return true;
 
             // 当前正在序列化的成员
-            if (Host.Member != null)
+            var mb = Host.Member;
+            if (mb != null)
             {
-                var elm = Host.Member.GetCustomAttribute<XmlElementAttribute>();
+                var elm = mb.GetCustomAttribute<XmlElementAttribute>();
                 if (elm != null) return elm.ElementName.EqualIgnoreCase(name);
+
+                if (mb.Name.EqualIgnoreCase(name)) return true;
             }
 
             // 检查类型的Root

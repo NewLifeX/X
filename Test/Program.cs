@@ -33,7 +33,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -124,19 +124,32 @@ namespace Test
 
         static void Test3()
         {
-            var user = UserX.FindByID(1);
+            var set = XCode.Setting.Current;
 
             var xml = new Xml();
-            xml.Write(user);
+            xml.Log = XTrace.Log;
+            xml.UseAttribute = false;
+            xml.UseComment = true;
+            xml.Write(set);
 
             var str = xml.GetString();
             Console.WriteLine(str);
 
             var xml2 = new Xml();
+            xml2.Log = XTrace.Log;
             xml2.Stream = new MemoryStream(str.GetBytes());
-            var user2 = xml2.Read<UserX>();
+            var set2 = xml2.Read<XCode.Setting>();
 
-            Console.WriteLine(user2?.DisplayName);
+            Console.WriteLine(set2?.ConfigFile);
+
+            var xml3 = new Xml();
+            xml3.Log = XTrace.Log;
+            xml3.UseAttribute = false;
+            xml3.UseComment = true;
+            xml3.Write(set);
+
+            str = xml3.GetString();
+            Console.WriteLine(str);
         }
     }
 }
