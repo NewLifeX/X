@@ -24,7 +24,12 @@ namespace NewLife.Cube.Admin.Controllers
         {
             ViewBag.User = ManageProvider.User;
             ViewBag.Config = SysConfig.Current;
-            ViewBag.Main = Url.Action("Main");
+
+            // 工作台页面
+            var startPage = Request["page"];
+            if (startPage.IsNullOrEmpty()) startPage = Setting.Current.StartPage;
+
+            ViewBag.Main = startPage;
 
             return View();
         }

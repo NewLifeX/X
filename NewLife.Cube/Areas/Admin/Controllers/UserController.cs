@@ -56,7 +56,7 @@ namespace NewLife.Cube.Admin.Controllers
                 if (Url.IsLocalUrl(returnUrl))
                     return Redirect(returnUrl);
                 else
-                    return RedirectToAction("Index", "Index");
+                    return RedirectToAction("Index", "Index", new { page = returnUrl });
             }
 
             ViewBag.ReturnUrl = returnUrl;
@@ -85,7 +85,7 @@ namespace NewLife.Cube.Admin.Controllers
                     if (Url.IsLocalUrl(returnUrl))
                         return Redirect(returnUrl);
                     else
-                        return RedirectToAction("Index", "Index");
+                        return RedirectToAction("Index", "Index", new { page = returnUrl });
                 }
 
                 // 如果我们进行到这一步时某个地方出错，则重新显示表单

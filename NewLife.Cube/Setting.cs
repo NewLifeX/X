@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
-using NewLife.Configuration;
-using NewLife.Log;
+using System.Web;
 using NewLife.Xml;
 
 namespace NewLife.Cube
@@ -23,6 +22,10 @@ namespace NewLife.Cube
         /// <summary>扩展插件服务器。将从该网页上根据关键字分析链接并下载插件</summary>
         [Description("扩展插件服务器。将从该网页上根据关键字分析链接并下载插件")]
         public String PluginServer { get; set; } = "http://x.newlifex.com/";
+
+        /// <summary>工作台页面。进入后台的第一个内容页</summary>
+        [Description("工作台页面。进入后台的第一个内容页")]
+        public String StartPage { get; set; }
         #endregion
 
         #region 方法
@@ -31,9 +34,12 @@ namespace NewLife.Cube
         {
         }
 
-        /// <summary>新建时调用</summary>
-        protected override void OnNew()
+        /// <summary>加载时触发</summary>
+        protected override void OnLoaded()
         {
+            if (StartPage.IsNullOrEmpty()) StartPage = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + "Admin/Index/Main";
+
+            base.OnLoaded();
         }
         #endregion
     }
