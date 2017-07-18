@@ -203,9 +203,10 @@ namespace XCode.DataAccessLayer
         /// <param name="ex"></param>
         /// <param name="sql"></param>
         /// <returns></returns>
-        protected virtual XSqlException OnException(Exception ex, String sql)
+        protected virtual XSqlException OnException(Exception ex, DbCommand cmd)
         {
             if (Transaction == null && Opened) Close(); // 强制关闭数据库
+            var sql = GetSql(cmd);
             if (ex != null)
                 return new XSqlException(sql, this, ex);
             else
@@ -326,7 +327,7 @@ namespace XCode.DataAccessLayer
                 }
                 catch (DbException ex)
                 {
-                    throw OnException(ex, cmd.CommandText);
+                    throw OnException(ex, cmd);
                 }
                 finally
                 {
@@ -402,7 +403,7 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw OnException(ex, cmd.CommandText);
+                throw OnException(ex, cmd);
             }
             finally
             {
@@ -451,7 +452,7 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw OnException(ex, cmd.CommandText);
+                throw OnException(ex, cmd);
             }
             finally
             {
