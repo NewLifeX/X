@@ -491,7 +491,7 @@ namespace XCode.DataAccessLayer
 
             if (!Opened) Open();
             cmd.Connection = Conn;
-
+            cmd.CommandTimeout = Setting.Current.CommandTimeout;
             cmd.CommandType = type;
             cmd.CommandText = sql;
             if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
