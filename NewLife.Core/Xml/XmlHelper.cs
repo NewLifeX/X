@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Xml;
-using System.Xml.Serialization;
 using NewLife.Reflection;
 
 namespace NewLife.Xml
@@ -30,9 +26,9 @@ namespace NewLife.Xml
         /// <param name="prefix">前缀</param>
         /// <param name="ns">命名空间，设为0长度字符串可去掉默认命名空间xmlns:xsd和xmlns:xsi</param>
         /// <param name="includeDeclaration">是否包含Xml声明</param>
-        /// <param name="attachCommit">是否附加注释，附加成员的Description和DisplayName注释</param>
+        /// <param name="attachComment">是否附加注释，附加成员的Description和DisplayName注释</param>
         /// <returns>Xml字符串</returns>
-        public static String ToXml(this Object obj, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachCommit = false)
+        public static String ToXml(this Object obj, Encoding encoding = null, String prefix = null, String ns = null, Boolean includeDeclaration = false, Boolean attachComment = false)
         {
             if (obj == null) throw new ArgumentNullException("obj");
             if (encoding == null) encoding = Encoding.UTF8;
@@ -41,7 +37,7 @@ namespace NewLife.Xml
 
             using (var stream = new MemoryStream())
             {
-                ToXml(obj, stream, encoding, prefix, ns, includeDeclaration, attachCommit);
+                ToXml(obj, stream, encoding, prefix, ns, includeDeclaration, attachComment);
                 return encoding.GetString(stream.ToArray());
             }
         }
@@ -62,44 +58,51 @@ namespace NewLife.Xml
             // 删除字节序
             encoding = encoding.TrimPreamble();
 
-            var type = obj.GetType();
-            if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
+            var xml = new NewLife.Serialization.Xml();
+            xml.Stream = stream;
+            xml.Encoding = encoding;
+            xml.UseAttribute = false;
+            xml.UseComment = attachComment;
+            xml.Write(obj);
 
-            var serial = new XmlSerializer(type);
-            var setting = new XmlWriterSettings();
-            //setting.Encoding = encoding.TrimPreamble();
-            setting.Encoding = encoding;
-            setting.Indent = true;
-            // 去掉开头 <?xml version="1.0" encoding="utf-8"?>
-            setting.OmitXmlDeclaration = !includeDeclaration;
+            //var type = obj.GetType();
+            //if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
 
-            var p = stream.Position;
-            using (var writer = XmlWriter.Create(stream, setting))
-            {
-                if (ns == null)
-                    serial.Serialize(writer, obj);
-                else
-                {
-                    var xsns = new XmlSerializerNamespaces();
-                    xsns.Add(prefix, ns);
-                    serial.Serialize(writer, obj, xsns);
-                }
-            }
-            if (attachComment)
-            {
-                if (stream is FileStream) stream.SetLength(stream.Position);
-                stream.Position = p;
-                var doc = new XmlDocument();
-                doc.Load(stream);
-                doc.DocumentElement.AttachComment(type);
+            //var serial = new XmlSerializer(type);
+            //var setting = new XmlWriterSettings();
+            ////setting.Encoding = encoding.TrimPreamble();
+            //setting.Encoding = encoding;
+            //setting.Indent = true;
+            //// 去掉开头 <?xml version="1.0" encoding="utf-8"?>
+            //setting.OmitXmlDeclaration = !includeDeclaration;
 
-                stream.Position = p;
-                //doc.Save(stream);
-                using (var writer = XmlWriter.Create(stream, setting))
-                {
-                    doc.Save(writer);
-                }
-            }
+            //var p = stream.Position;
+            //using (var writer = XmlWriter.Create(stream, setting))
+            //{
+            //    if (ns == null)
+            //        serial.Serialize(writer, obj);
+            //    else
+            //    {
+            //        var xsns = new XmlSerializerNamespaces();
+            //        xsns.Add(prefix, ns);
+            //        serial.Serialize(writer, obj, xsns);
+            //    }
+            //}
+            //if (attachComment)
+            //{
+            //    if (stream is FileStream) stream.SetLength(stream.Position);
+            //    stream.Position = p;
+            //    var doc = new XmlDocument();
+            //    doc.Load(stream);
+            //    doc.DocumentElement.AttachComment(type);
+
+            //    stream.Position = p;
+            //    //doc.Save(stream);
+            //    using (var writer = XmlWriter.Create(stream, setting))
+            //    {
+            //        doc.Save(writer);
+            //    }
+            //}
         }
 
         /// <summary>序列化为Xml文件</summary>
@@ -152,16 +155,21 @@ namespace NewLife.Xml
             if (xml.IsNullOrWhiteSpace()) throw new ArgumentNullException("xml");
             if (type == null) throw new ArgumentNullException("type");
 
-            if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
+            var x = new NewLife.Serialization.Xml();
+            x.Stream = new MemoryStream(xml.GetBytes());
 
-            var serial = new XmlSerializer(type);
-            using (var reader = new StringReader(xml))
-            using (var xr = new XmlTextReader(reader))
-            {
-                // 必须关闭Normalization，否则字符串的\r\n会变为\n
-                //xr.Normalization = true;
-                return serial.Deserialize(xr);
-            }
+            return x.Read(type);
+
+            //if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
+
+            //var serial = new XmlSerializer(type);
+            //using (var reader = new StringReader(xml))
+            //using (var xr = new XmlTextReader(reader))
+            //{
+            //    // 必须关闭Normalization，否则字符串的\r\n会变为\n
+            //    //xr.Normalization = true;
+            //    return serial.Deserialize(xr);
+            //}
         }
 
         /// <summary>数据流转为Xml实体对象</summary>
@@ -185,16 +193,22 @@ namespace NewLife.Xml
             if (type == null) throw new ArgumentNullException("type");
             if (encoding == null) encoding = Encoding.UTF8;
 
-            if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
+            var x = new NewLife.Serialization.Xml();
+            x.Stream = stream;
+            x.Encoding = encoding;
 
-            var serial = new XmlSerializer(type);
-            using (var reader = new StreamReader(stream, encoding))
-            using (var xr = new XmlTextReader(reader))
-            {
-                // 必须关闭Normalization，否则字符串的\r\n会变为\n
-                //xr.Normalization = true;
-                return serial.Deserialize(xr);
-            }
+            return x.Read(type);
+
+            //if (!type.IsPublic) throw new XException("类型{0}不是public，不能进行Xml序列化！", type.FullName);
+
+            //var serial = new XmlSerializer(type);
+            //using (var reader = new StreamReader(stream, encoding))
+            //using (var xr = new XmlTextReader(reader))
+            //{
+            //    // 必须关闭Normalization，否则字符串的\r\n会变为\n
+            //    //xr.Normalization = true;
+            //    return serial.Deserialize(xr);
+            //}
         }
 
         /// <summary>Xml文件转为Xml实体对象</summary>
@@ -282,123 +296,123 @@ namespace NewLife.Xml
         #endregion
 
         #region Xml注释
-        /// <summary>是否拥有注释</summary>
-        private static Dictionary<Type, Boolean> typeHasCommit = new Dictionary<Type, Boolean>();
+        ///// <summary>是否拥有注释</summary>
+        //private static Dictionary<Type, Boolean> typeHasCommit = new Dictionary<Type, Boolean>();
 
-        /// <summary>附加注释</summary>
-        /// <param name="node"></param>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        public static XmlNode AttachComment(this XmlNode node, Type type)
-        {
-            if (node == null || type == null) return node;
-            if (node.ChildNodes == null || node.ChildNodes.Count < 1) return node;
+        ///// <summary>附加注释</summary>
+        ///// <param name="node"></param>
+        ///// <param name="type">类型</param>
+        ///// <returns></returns>
+        //public static XmlNode AttachComment(this XmlNode node, Type type)
+        //{
+        //    if (node == null || type == null) return node;
+        //    if (node.ChildNodes == null || node.ChildNodes.Count < 1) return node;
 
-            // 如果没有注释
-            var rs = false;
-            if (typeHasCommit.TryGetValue(type, out rs) && !rs) return node;
+        //    // 如果没有注释
+        //    var rs = false;
+        //    if (typeHasCommit.TryGetValue(type, out rs) && !rs) return node;
 
-            rs = node.AttachCommitInternal(type);
-            if (!typeHasCommit.ContainsKey(type))
-            {
-                lock (typeHasCommit)
-                {
-                    if (!typeHasCommit.ContainsKey(type))
-                    {
-                        typeHasCommit.Add(type, rs);
-                    }
-                }
-            }
+        //    rs = node.AttachCommentInternal(type);
+        //    if (!typeHasCommit.ContainsKey(type))
+        //    {
+        //        lock (typeHasCommit)
+        //        {
+        //            if (!typeHasCommit.ContainsKey(type))
+        //            {
+        //                typeHasCommit.Add(type, rs);
+        //            }
+        //        }
+        //    }
 
-            return node;
-        }
+        //    return node;
+        //}
 
-        static Boolean AttachCommitInternal(this XmlNode node, Type type)
-        {
-            if (node.ChildNodes == null || node.ChildNodes.Count < 1) return false;
+        //static Boolean AttachCommentInternal(this XmlNode node, Type type)
+        //{
+        //    if (node.ChildNodes == null || node.ChildNodes.Count < 1) return false;
 
-            var rs = false;
+        //    var rs = false;
 
-            // 当前节点加注释
-            if (!node.PreviousSibling.IsComment())
-            {
-                if (SetComment(node, type)) rs = true;
-            }
+        //    // 当前节点加注释
+        //    if (!node.PreviousSibling.IsComment())
+        //    {
+        //        if (SetComment(node, type)) rs = true;
+        //    }
 
-            #region 特殊处理数组和列表
-            Type elmType = null;
-            if (type.HasElementType)
-                elmType = type.GetElementType();
-            else if (type.IsGenericType && type.GetGenericArguments().Length == 1 && type.As<IEnumerable>())
-                elmType = type.GetGenericArguments()[0];
+        //    #region 特殊处理数组和列表
+        //    Type elmType = null;
+        //    if (type.HasElementType)
+        //        elmType = type.GetElementType();
+        //    else if (type.IsGenericType && type.GetGenericArguments().Length == 1 && type.As<IEnumerable>())
+        //        elmType = type.GetGenericArguments()[0];
 
-            if (elmType != null && elmType.Name.EqualIgnoreCase(node.ChildNodes[0].Name))
-            {
-                for (var i = 0; i < node.ChildNodes.Count; i++)
-                {
-                    rs |= node.ChildNodes[i].AttachCommitInternal(elmType);
-                }
-                return rs;
-            }
-            #endregion
+        //    if (elmType != null && elmType.Name.EqualIgnoreCase(node.ChildNodes[0].Name))
+        //    {
+        //        for (var i = 0; i < node.ChildNodes.Count; i++)
+        //        {
+        //            rs |= node.ChildNodes[i].AttachCommentInternal(elmType);
+        //        }
+        //        return rs;
+        //    }
+        //    #endregion
 
-            for (var i = 0; i < node.ChildNodes.Count; i++)
-            {
-                var curNode = node.ChildNodes[i];
+        //    for (var i = 0; i < node.ChildNodes.Count; i++)
+        //    {
+        //        var curNode = node.ChildNodes[i];
 
-                // 如果当前是注释，跳过两个，下一个也不处理了
-                if (curNode.IsComment()) { i++; continue; }
+        //        // 如果当前是注释，跳过两个，下一个也不处理了
+        //        if (curNode.IsComment()) { i++; continue; }
 
-                // 找到对应的属性
-                var name = curNode.Name;
-                var pi = type.GetPropertyEx(name);
+        //        // 找到对应的属性
+        //        var name = curNode.Name;
+        //        var pi = type.GetPropertyEx(name);
 
-                // 如果前一个是注释，跳过
-                if (i <= 0 || !node.ChildNodes[i - 1].IsComment())
-                {
-                    if (pi != null && SetComment(curNode, pi)) { rs = true; i++; }
-                }
+        //        // 如果前一个是注释，跳过
+        //        if (i <= 0 || !node.ChildNodes[i - 1].IsComment())
+        //        {
+        //            if (pi != null && SetComment(curNode, pi)) { rs = true; i++; }
+        //        }
 
-                // 递归。因为必须依赖于Xml树，所以不用担心死循环
-                if (pi != null && Type.GetTypeCode(pi.PropertyType) == TypeCode.Object) rs |= curNode.AttachCommitInternal(pi.PropertyType);
-            }
+        //        // 递归。因为必须依赖于Xml树，所以不用担心死循环
+        //        if (pi != null && Type.GetTypeCode(pi.PropertyType) == TypeCode.Object) rs |= curNode.AttachCommentInternal(pi.PropertyType);
+        //    }
 
-            return rs;
-        }
+        //    return rs;
+        //}
 
-        private static Boolean SetComment(this XmlNode node, MemberInfo member)
-        {
-            if (node.IsComment() || node.PreviousSibling.IsComment()) return false;
+        //private static Boolean SetComment(this XmlNode node, MemberInfo member)
+        //{
+        //    if (node.IsComment() || node.PreviousSibling.IsComment()) return false;
 
-            #region 从特性中获取注释
-            var commit = String.Empty;
-            var des = member.GetCustomAttribute<DescriptionAttribute>(true);
-            var dis = member.GetCustomAttribute<DisplayNameAttribute>(true);
-            if (des != null && dis == null)
-                commit = des.Description;
-            else if (des == null && dis != null)
-                commit = dis.DisplayName;
-            else if (des != null && dis != null)
-            {
-                // DisplayName。Description
-                if (des.Description == null && !dis.DisplayName.IsNullOrWhiteSpace() || !des.Description.Contains(dis.DisplayName))
-                {
-                    commit = dis.DisplayName;
-                    if (!commit.EndsWith(".") || commit.EndsWith("。")) commit += "。";
-                }
-                if (!des.Description.IsNullOrWhiteSpace()) commit += des.Description;
-            }
-            #endregion
+        //    #region 从特性中获取注释
+        //    var commit = String.Empty;
+        //    var des = member.GetCustomAttribute<DescriptionAttribute>(true);
+        //    var dis = member.GetCustomAttribute<DisplayNameAttribute>(true);
+        //    if (des != null && dis == null)
+        //        commit = des.Description;
+        //    else if (des == null && dis != null)
+        //        commit = dis.DisplayName;
+        //    else if (des != null && dis != null)
+        //    {
+        //        // DisplayName。Description
+        //        if (des.Description == null && !dis.DisplayName.IsNullOrWhiteSpace() || !des.Description.Contains(dis.DisplayName))
+        //        {
+        //            commit = dis.DisplayName;
+        //            if (!commit.EndsWith(".") || commit.EndsWith("。")) commit += "。";
+        //        }
+        //        if (!des.Description.IsNullOrWhiteSpace()) commit += des.Description;
+        //    }
+        //    #endregion
 
-            if (commit.IsNullOrWhiteSpace()) return false;
+        //    if (commit.IsNullOrWhiteSpace()) return false;
 
-            var cm = node.OwnerDocument.CreateComment(commit);
-            node.ParentNode.InsertBefore(cm, node);
+        //    var cm = node.OwnerDocument.CreateComment(commit);
+        //    node.ParentNode.InsertBefore(cm, node);
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        private static Boolean IsComment(this XmlNode node) { return node != null && node.NodeType == XmlNodeType.Comment; }
+        //private static Boolean IsComment(this XmlNode node) { return node != null && node.NodeType == XmlNodeType.Comment; }
         #endregion
 
         #region Xml转字典
