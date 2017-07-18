@@ -221,7 +221,6 @@
     <Compile Include="Common\EntityController.cs" />
     <Compile Include="Common\ConfigController.cs" />
     <Compile Include="Common\ViewHelper.cs" />
-    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Common\EntityAuthorizeAttribute.cs" />
     <Compile Include="Common\MvcHandleErrorAttribute.cs" />
     <Compile Include="Global.asax.cs">
@@ -243,11 +242,6 @@
     <Compile Include="Precompiled\PrecompiledViewAssembly.cs" />
     <Compile Include="Precompiled\PrecompiledViewLocationCache.cs" />
     <Compile Include="Setting.cs" />
-    <Compile Include="Views\Home\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Shared\ListTree.generated.cs">
       <DependentUpon>ListTree.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -621,10 +615,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
     </None>
-    <None Include="Views\Home\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </None>
     <None Include="Views\Shared\_LoginPartial.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_LoginPartial.generated.cs</LastGenOutput>
@@ -667,7 +657,9 @@
       <LastGenOutput>_List_Pager1.generated.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
       <SubType>Designer</SubType>
