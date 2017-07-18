@@ -93,10 +93,10 @@ namespace XCode.DataAccessLayer
                     // 没有等号，或者等号在第一位，都不合法
                     if (p <= 0) continue;
 
-                    String name = item.Substring(0, p);
-                    String val = "";
+                    var name = item.Substring(0, p);
+                    var val = "";
                     if (p < item.Length - 1) val = item.Substring(p + 1);
-                    Add(name.Trim(), val.Trim());
+                    this[name.Trim()] = val.Trim();
                 }
             }
         }

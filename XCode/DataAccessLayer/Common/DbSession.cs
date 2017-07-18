@@ -330,7 +330,7 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    EndTrace(cmd.CommandText);
+                    EndTrace(cmd);
 
                     AutoClose();
                     cmd.Parameters.Clear();
@@ -406,7 +406,7 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                EndTrace(cmd.CommandText);
+                EndTrace(cmd);
 
                 AutoClose();
                 cmd.Parameters.Clear();
@@ -455,7 +455,7 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                EndTrace(cmd.CommandText);
+                EndTrace(cmd);
 
                 AutoClose();
                 cmd.Parameters.Clear();
@@ -624,17 +624,38 @@ namespace XCode.DataAccessLayer
 
         /// <summary>写入SQL到文本中</summary>
         /// <param name="sql"></param>
-        /// <param name="ps"></param>
-        public void WriteSQL(String sql, params IDataParameter[] ps)
+        public void WriteSQL(String sql)
         {
             if (!ShowSQL) return;
 
-            if (ps != null && ps.Length > 0)
+            // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
+            var context = HttpContext.Current;
+            if (context != null)
+            {
+                var list = context.Items["XCode_SQLList"] as List<String>;
+                if (list != null) list.Add(sql);
+            }
+
+            var sqlpath = Setting.Current.SQLPath;
+            if (String.IsNullOrEmpty(sqlpath))
+                WriteLog(sql);
+            else
+            {
+                if (logger == null) logger = TextFileLog.Create(sqlpath);
+                logger.Info(sql);
+            }
+        }
+
+        private String GetSql(DbCommand cmd)
+        {
+            var sql = cmd.CommandText;
+            var ps = cmd.Parameters;
+            if (ps != null && ps.Count > 0)
             {
                 var sb = new StringBuilder(64);
                 sb.Append(sql);
                 sb.Append(" [");
-                for (Int32 i = 0; i < ps.Length; i++)
+                for (Int32 i = 0; i < ps.Count; i++)
                 {
                     if (i > 0) sb.Append(", ");
                     var v = ps[i].Value;
@@ -660,44 +681,19 @@ namespace XCode.DataAccessLayer
                 sql = sb.ToString();
             }
 
-            // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
-            var context = HttpContext.Current;
-            if (context != null)
-            {
-                var list = context.Items["XCode_SQLList"] as List<String>;
-                if (list != null) list.Add(sql);
-            }
-
-            var sqlpath = Setting.Current.SQLPath;
-            if (String.IsNullOrEmpty(sqlpath))
-                WriteLog(sql);
-            else
-            {
-                if (logger == null) logger = TextFileLog.Create(sqlpath);
-                logger.Info(sql);
-            }
+            return sql;
         }
 
         public void WriteSQL(DbCommand cmd)
         {
             if (!ShowSQL) return;
 
-            var sql = cmd.CommandText;
-            if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
+            //var sql = cmd.CommandText;
+            //if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
 
-            IDataParameter[] ps = null;
-            if (cmd.Parameters != null)
-            {
-                var cps = cmd.Parameters;
-                ps = new IDataParameter[cps.Count];
-                //cmd.Parameters.CopyTo(ps, 0);
-                for (Int32 i = 0; i < ps.Length; i++)
-                {
-                    ps[i] = cps[i];
-                }
-            }
+            var sql = GetSql(cmd);
 
-            WriteSQL(sql, ps);
+            WriteSQL(sql);
         }
 
         /// <summary>输出日志</summary>
@@ -726,13 +722,15 @@ namespace XCode.DataAccessLayer
             _swSql.Start();
         }
 
-        protected void EndTrace(String sql)
+        protected void EndTrace(DbCommand cmd)
         {
             if (_swSql == null) return;
 
             _swSql.Stop();
 
             if (_swSql.ElapsedMilliseconds < Setting.Current.TraceSQLTime) return;
+
+            var sql = GetSql(cmd);
 
             // 同一个SQL只需要报警一次
             if (_trace_sqls.Contains(sql)) return;

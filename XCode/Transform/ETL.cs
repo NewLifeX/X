@@ -326,7 +326,7 @@ namespace XCode.Transform
             st.Error++;
             st.Message = ex.Message;
 
-            WriteError(ex.Message);
+            WriteError(ex.ToString());
 
             return null;
         }
