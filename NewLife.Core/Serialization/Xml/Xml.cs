@@ -13,13 +13,11 @@ namespace NewLife.Serialization
     public class Xml : FormatterBase, IXml
     {
         #region 属性
-        private Int32 _Depth;
         /// <summary>深度</summary>
-        public Int32 Depth { get { return _Depth; } set { _Depth = value; } }
+        public Int32 Depth { get; set; }
 
-        private List<IXmlHandler> _Handlers;
         /// <summary>处理器列表</summary>
-        public List<IXmlHandler> Handlers { get { return _Handlers ?? (_Handlers = new List<IXmlHandler>()); } }
+        public List<IXmlHandler> Handlers { get; }
         #endregion
 
         #region 构造
@@ -39,7 +37,7 @@ namespace NewLife.Serialization
             // 根据优先级排序
             list.Sort();
 
-            _Handlers = list;
+            Handlers = list;
         }
         #endregion
 
@@ -52,9 +50,9 @@ namespace NewLife.Serialization
             if (handler != null)
             {
                 handler.Host = this;
-                _Handlers.Add(handler);
+                Handlers.Add(handler);
                 // 根据优先级排序
-                _Handlers.Sort();
+                Handlers.Sort();
             }
 
             return this;
@@ -172,7 +170,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public T Read<T>()
         {
-            return (T)(Object)Read(typeof(T));
+            return (T)Read(typeof(T));
         }
 
         /// <summary>尝试读取指定类型对象</summary>
@@ -183,7 +181,7 @@ namespace NewLife.Serialization
         {
             var reader = GetReader();
             // 移动到第一个元素
-            while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read())return false; }
+            while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read()) return false; }
 
             if (Hosts.Count == 0) WriteLog("XmlRead {0} {1}", type.Name, value);
 
@@ -194,8 +192,6 @@ namespace NewLife.Serialization
 
             value = GetReader().ReadContentAs(type, null);
             return true;
-
-            //return false;
         }
 
         private XmlReader _Reader;

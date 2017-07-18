@@ -1,37 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
-using System.Numerics;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Agent;
 using NewLife.Caching;
-using NewLife.Common;
-using NewLife.Data;
-using NewLife.Expressions;
 using NewLife.Log;
-using NewLife.Net;
-using NewLife.Net.DNS;
-using NewLife.Net.IO;
-using NewLife.Net.Proxy;
-using NewLife.Net.Stress;
 using NewLife.Reflection;
-using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
-using NewLife.Xml;
-using XCode.DataAccessLayer;
 using XCode.Membership;
-using XCode.Transform;
 
 namespace Test
 {
@@ -54,7 +33,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -145,11 +124,19 @@ namespace Test
 
         static void Test3()
         {
-            var url = "http://y.newlifex.com;http://x.newlifex.com";
-            var client = new WebClientX(true, true);
-            client.Log = XTrace.Log;
-            var link = client.DownloadLink(url, "xscript", ".");
-            Console.WriteLine(link);
+            var user = UserX.FindByID(1);
+
+            var xml = new Xml();
+            xml.Write(user);
+
+            var str = xml.GetString();
+            Console.WriteLine(str);
+
+            var xml2 = new Xml();
+            xml2.Stream = new MemoryStream(str.GetBytes());
+            var user2 = xml2.Read<UserX>();
+
+            Console.WriteLine(user2?.DisplayName);
         }
     }
 }
