@@ -47,7 +47,7 @@ namespace XCode.DataAccessLayer
                 {
                     builder["Server"] = "127.0.0.1";
                     // Oracle连接字符串不支持Database关键字
-                    if (DbType != DatabaseType.Oracle) builder["Database"] = SystemDatabaseName;
+                    if (Type != DatabaseType.Oracle) builder["Database"] = SystemDatabaseName;
                     return builder.ToString();
                 }
 

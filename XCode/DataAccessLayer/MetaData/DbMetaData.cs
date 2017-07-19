@@ -196,7 +196,7 @@ namespace XCode.DataAccessLayer
         protected virtual Boolean CheckAndGetDefault(IDataColumn dc, ref String oriDefault)
         {
             // 如果数据库类型等于原始类型，则直接通过
-            if (dc.Table.DbType == Database.DbType) return false;
+            if (dc.Table.DbType == Database.Type) return false;
 
             // 原始数据库类型
             var db = DbFactory.Create(dc.Table.DbType);

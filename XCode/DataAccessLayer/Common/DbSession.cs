@@ -59,7 +59,7 @@ namespace XCode.DataAccessLayer
         public IDatabase Database { get; }
 
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        private DatabaseType DbType { get { return Database.DbType; } }
+        private DatabaseType DbType { get { return Database.Type; } }
 
         /// <summary>工厂</summary>
         private DbProviderFactory Factory { get { return Database.Factory; } }

@@ -215,7 +215,7 @@ namespace XCode
             //if (Dal.CheckAndAdd(TableName)) return;
 
 #if DEBUG
-            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.DbType, Setting.Current.Negative.CheckOnly ? "异步" : "同步");
+            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.Type, Setting.Current.Negative.CheckOnly ? "异步" : "同步");
 #endif
 
             var sw = new Stopwatch();
@@ -743,9 +743,22 @@ namespace XCode
         #endregion
 
         #region 参数化
-        /// <summary>创建参数</summary>
-        /// <returns></returns>
-        public virtual IDataParameter CreateParameter() { return Dal.Db.Factory.CreateParameter(); }
+        ///// <summary>创建参数</summary>
+        ///// <param name="fi"></param>
+        ///// <param name="value"></param>
+        ///// <returns></returns>
+        //public virtual IDataParameter CreateParameter(FieldItem fi, Object value)
+        //{
+        //    var name = fi.ColumnName;
+        //    if (name.IsNullOrEmpty()) name = fi.Name;
+
+        //    var dp = Dal.Db.CreateParameter(name, value, fi.Type);
+
+        //    var dbp = dp as DbParameter;
+        //    if (dbp != null) dbp.IsNullable = fi.IsNullable;
+
+        //    return dp;
+        //}
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>

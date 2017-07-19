@@ -136,7 +136,7 @@ namespace XCode.DataAccessLayer
                     // 是否视图
                     table.IsView = "View".EqualIgnoreCase(GetDataRowValue<String>(dr, "TABLE_TYPE"));
 
-                    table.DbType = Database.DbType;
+                    table.DbType = Database.Type;
                     #endregion
 
                     #region 字段及修正

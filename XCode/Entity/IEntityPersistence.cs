@@ -355,14 +355,11 @@ namespace XCode
             var op = EntityFactory.CreateOperate(entity.GetType());
             if (ps.Count > 0)
             {
-                var session = op.Session;
+                var db = op.Session.Dal.Db;
                 var dps = new List<IDataParameter>();
                 foreach (var item in ps)
                 {
-                    var dp = session.CreateParameter();
-                    dp.ParameterName = item.Key;
-                    dp.Value = item.Value;
-                    //dp.IsNullable = fi.IsNullable;
+                    var dp = db.CreateParameter(item.Key, item.Value, op.Table.FindByName(item.Key)?.Type);
 
                     dps.Add(dp);
                 }
@@ -434,61 +431,9 @@ namespace XCode
 
         static IDataParameter CreateParameter(StringBuilder sb, IEntityOperate op, FieldItem fi, Object value)
         {
-            var session = op.Session;
+            var dp = op.Session.Dal.Db.CreateParameter(fi.ColumnName ?? fi.Name, value, fi.Type);
 
-            var paraname = session.FormatParameterName(fi.ColumnName);
-            if (sb != null) sb.Append(paraname);
-
-            var dp = session.CreateParameter();
-            dp.ParameterName = paraname;
-
-            // 写入数据类型
-            switch (fi.Type.GetTypeCode())
-            {
-                case TypeCode.Boolean:
-                    dp.DbType = DbType.Boolean;
-                    break;
-                case TypeCode.Char:
-                case TypeCode.SByte:
-                case TypeCode.Byte:
-                    dp.DbType = DbType.Byte;
-                    break;
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                    dp.DbType = DbType.Int16;
-                    break;
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                    dp.DbType = DbType.Int32;
-                    break;
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    dp.DbType = DbType.Int64;
-                    break;
-                case TypeCode.Single:
-                    dp.DbType = DbType.Double;
-                    break;
-                case TypeCode.Double:
-                    dp.DbType = DbType.Double;
-                    break;
-                case TypeCode.Decimal:
-                    dp.DbType = DbType.Decimal;
-                    break;
-                case TypeCode.DateTime:
-                    dp.DbType = DbType.DateTime;
-                    break;
-                case TypeCode.String:
-                    dp.DbType = DbType.String;
-                    break;
-                default:
-                    break;
-            }
-
-            //!!! MySql布尔型参数化有BUG，临时处理
-            if (session.Dal.DbType == DatabaseType.MySql && fi.Type == typeof(Boolean))
-                dp.Value = value.ToBoolean() ? 'Y' : 'N';
-            else
-                dp.Value = FormatParamValue(fi, value, op);
+            if (sb != null) sb.Append(dp.ParameterName);
 
             var dbp = dp as DbParameter;
             if (dbp != null) dbp.IsNullable = fi.IsNullable;

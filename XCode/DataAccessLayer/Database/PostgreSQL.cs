@@ -11,7 +11,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
-        public override DatabaseType DbType
+        public override DatabaseType Type
         {
             get { return DatabaseType.PostgreSQL; }
         }

@@ -19,7 +19,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType DbType
+        public override DatabaseType Type
         {
             get { return DatabaseType.SqlCe; }
         }

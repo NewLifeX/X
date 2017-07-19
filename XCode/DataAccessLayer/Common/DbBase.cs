@@ -100,7 +100,7 @@ namespace XCode.DataAccessLayer
 
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public virtual DatabaseType DbType { get { return DatabaseType.Other; } }
+        public virtual DatabaseType Type { get { return DatabaseType.Other; } }
 
         /// <summary>工厂</summary>
         public virtual DbProviderFactory Factory { get { return OleDbFactory.Instance; } }
@@ -248,7 +248,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>
         /// <returns></returns>
-        public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(this.DbType.ToString().ToLower()); }
+        public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(this.Type.ToString().ToLower()); }
         #endregion
 
         #region 下载驱动
@@ -595,7 +595,7 @@ namespace XCode.DataAccessLayer
             else if (value != null)
                 type = value.GetType();
 
-            var code = Type.GetTypeCode(type);
+            var code = System.Type.GetTypeCode(type);
             if (code == TypeCode.String)
             {
                 if (value == null) return isNullable ? "null" : "''";
@@ -688,14 +688,64 @@ namespace XCode.DataAccessLayer
         public virtual String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "+" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
 
         /// <summary>创建参数</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
+        /// <param name="name">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        public IDataParameter CreateParameter(String name, Object value)
+        public virtual IDataParameter CreateParameter(String name, Object value, Type type = null)
         {
+            if (value == null && type == null) throw new ArgumentNullException(nameof(type));
+
             var dp = Factory.CreateParameter();
-            dp.ParameterName = name;
+            dp.ParameterName = FormatParameterName(name);
             dp.Value = value;
+
+            if (type == null) type = value?.GetType();
+
+            if (dp.DbType == DbType.AnsiString)
+            {
+                // 写入数据类型
+                switch (type.GetTypeCode())
+                {
+                    case TypeCode.Boolean:
+                        dp.DbType = DbType.Boolean;
+                        break;
+                    case TypeCode.Char:
+                    case TypeCode.SByte:
+                    case TypeCode.Byte:
+                        dp.DbType = DbType.Byte;
+                        break;
+                    case TypeCode.Int16:
+                    case TypeCode.UInt16:
+                        dp.DbType = DbType.Int16;
+                        break;
+                    case TypeCode.Int32:
+                    case TypeCode.UInt32:
+                        dp.DbType = DbType.Int32;
+                        break;
+                    case TypeCode.Int64:
+                    case TypeCode.UInt64:
+                        dp.DbType = DbType.Int64;
+                        break;
+                    case TypeCode.Single:
+                        dp.DbType = DbType.Double;
+                        break;
+                    case TypeCode.Double:
+                        dp.DbType = DbType.Double;
+                        break;
+                    case TypeCode.Decimal:
+                        dp.DbType = DbType.Decimal;
+                        break;
+                    case TypeCode.DateTime:
+                        dp.DbType = DbType.DateTime;
+                        break;
+                    case TypeCode.String:
+                        dp.DbType = DbType.String;
+                        break;
+                    default:
+                        break;
+                }
+            }
 
             return dp;
         }
@@ -714,7 +764,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String ToString()
         {
-            return String.Format("[{0}] {1} {2}", ConnName, DbType, ServerVersion);
+            return String.Format("[{0}] {1} {2}", ConnName, Type, ServerVersion);
         }
 
         protected static String ResolveFile(String file)

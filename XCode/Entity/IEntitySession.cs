@@ -134,9 +134,9 @@ namespace XCode
         #endregion
 
         #region 参数化
-        /// <summary>创建参数</summary>
-        /// <returns></returns>
-        IDataParameter CreateParameter();
+        ///// <summary>创建参数</summary>
+        ///// <returns></returns>
+        //IDataParameter CreateParameter();
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>

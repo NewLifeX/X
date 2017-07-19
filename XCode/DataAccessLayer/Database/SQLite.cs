@@ -16,7 +16,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
-        public override DatabaseType DbType { get { return DatabaseType.SQLite; } }
+        public override DatabaseType Type { get { return DatabaseType.SQLite; } }
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>提供者工厂</summary>

@@ -15,7 +15,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>数据库类型</summary>
-        DatabaseType DbType { get; }
+        DatabaseType Type { get; }
 
         /// <summary>数据库提供者工厂</summary>
         DbProviderFactory Factory { get; }
@@ -128,10 +128,11 @@ namespace XCode.DataAccessLayer
         String StringConcat(String left, String right);
 
         /// <summary>创建参数</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
+        /// <param name="name">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        IDataParameter CreateParameter(String name, Object value);
+        IDataParameter CreateParameter(String name, Object value, Type type = null);
 
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>

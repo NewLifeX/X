@@ -18,7 +18,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType DbType { get { return DatabaseType.SqlServer; } }
+        public override DatabaseType Type { get { return DatabaseType.SqlServer; } }
 
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory { get { return SqlClientFactory.Instance; } }
@@ -292,7 +292,7 @@ namespace XCode.DataAccessLayer
 
         public override String FormatValue(IDataColumn field, Object value)
         {
-            TypeCode code = Type.GetTypeCode(field.DataType);
+            TypeCode code = System.Type.GetTypeCode(field.DataType);
             Boolean isNullable = field.Nullable;
 
             if (code == TypeCode.String)

@@ -41,7 +41,7 @@ namespace XCode.DataAccessLayer
             try
             {
                 var db = typeof(T).CreateInstance() as IDatabase;
-                if (id == null) id = db.DbType;
+                if (id == null) id = db.Type;
 
                 // 把这个实例注册进去，作为默认实现
                 return container.Register(typeof(IDatabase), null, db, id);

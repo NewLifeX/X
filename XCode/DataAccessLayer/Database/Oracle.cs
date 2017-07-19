@@ -14,7 +14,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType DbType { get { return DatabaseType.Oracle; } }
+        public override DatabaseType Type { get { return DatabaseType.Oracle; } }
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>提供者工厂</summary>
@@ -202,7 +202,7 @@ namespace XCode.DataAccessLayer
 
         public override String FormatValue(IDataColumn field, Object value)
         {
-            TypeCode code = Type.GetTypeCode(field.DataType);
+            TypeCode code = System.Type.GetTypeCode(field.DataType);
             Boolean isNullable = field.Nullable;
 
             if (code == TypeCode.String)
@@ -236,6 +236,24 @@ namespace XCode.DataAccessLayer
         /// <param name="right"></param>
         /// <returns></returns>
         public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
+
+        /// <summary>创建参数</summary>
+        /// <param name="name">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        public override IDataParameter CreateParameter(String name, Object value, Type type = null)
+        {
+            if (type == null) type = value?.GetType();
+            if (type == typeof(Boolean)) type = typeof(Int32);
+
+            var dp = base.CreateParameter(name, value, type);
+
+            // 修正时间映射
+            if (type == typeof(DateTime)) dp.DbType = DbType.Date;
+
+            return dp;
+        }
         #endregion
 
         #region 关键字

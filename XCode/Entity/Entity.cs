@@ -987,10 +987,7 @@ namespace XCode
             {
                 foreach (var item in ps)
                 {
-                    var dp = Meta.Session.CreateParameter();
-                    dp.ParameterName = item.Key;
-                    dp.Value = item.Value;
-                    //dp.IsNullable = fi.IsNullable;
+                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Type);
 
                     builder.Parameters.Add(dp);
                 }

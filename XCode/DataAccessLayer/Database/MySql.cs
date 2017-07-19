@@ -12,7 +12,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
-        public override DatabaseType DbType
+        public override DatabaseType Type
         {
             get { return DatabaseType.MySql; }
         }
@@ -177,7 +177,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatValue(IDataColumn field, Object value)
         {
-            var code = Type.GetTypeCode(field.DataType);
+            var code = System.Type.GetTypeCode(field.DataType);
             if (code == TypeCode.String)
             {
                 if (value == null)
@@ -199,6 +199,24 @@ namespace XCode.DataAccessLayer
         public override Int32 LongTextLength { get { return 255; } }
 
         internal protected override String ParamPrefix { get { return "?"; } }
+
+        /// <summary>创建参数</summary>
+        /// <param name="name">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        public override IDataParameter CreateParameter(String name, Object value, Type type = null)
+        {
+            var dp = base.CreateParameter(name, value, type);
+
+            if (type == null) type = value?.GetType();
+            if (type == typeof(Boolean))
+            {
+                dp.Value = value.ToBoolean() ? 'Y' : 'N';
+            }
+
+            return dp;
+        }
 
         /// <summary>系统数据库名</summary>
         public override String SystemDatabaseName { get { return "mysql"; } }
