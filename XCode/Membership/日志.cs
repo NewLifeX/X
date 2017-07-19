@@ -15,7 +15,7 @@ namespace XCode.Membership
     [BindIndex("IX_Log_Category", false, "Category")]
     [BindIndex("IX_Log_CreateUserID", false, "CreateUserID")]
     [BindIndex("IX_Log_CreateTime", false, "CreateTime")]
-    [BindTable("Log", Description = "日志", ConnName = "Log", DbType = DatabaseType.SqlServer)]
+    [BindTable("Log", Description = "日志", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public partial class Log<TEntity> : ILog
     {
         #region 属性
