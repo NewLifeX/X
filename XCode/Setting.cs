@@ -22,7 +22,7 @@ namespace XCode
 
         /// <summary>设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录</summary>
         [Description("SQL目录。设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录")]
-        public String SQLPath { get; set; } = "";
+        public String SQLPath { get; set; } = "..\\SqlLog";
 
         /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认5000毫秒</summary>
         [Description("SQL执行时间。跟踪SQL执行时间，大于该阀值将输出日志，默认5000毫秒")]
