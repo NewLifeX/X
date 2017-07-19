@@ -245,7 +245,12 @@ namespace XCode.DataAccessLayer
         public override IDataParameter CreateParameter(String name, Object value, Type type = null)
         {
             if (type == null) type = value?.GetType();
-            if (type == typeof(Boolean)) type = typeof(Int32);
+
+            if (type == typeof(Boolean))
+            {
+                type = typeof(Int32);
+                value = value.ToBoolean() ? 1 : 0;
+            }
 
             var dp = base.CreateParameter(name, value, type);
 
