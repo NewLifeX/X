@@ -675,7 +675,7 @@ namespace XCode.DataAccessLayer
                         if (sv.Length > 32) sv = String.Format("[{0}]{1}...", sv.Length, sv.Substring(0, 8));
                     }
                     else
-                        sv = "" + v;
+                        sv = "{0}".F(v);
                     sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
                 }
                 sb.Append("]");
