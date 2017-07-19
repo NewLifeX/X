@@ -201,7 +201,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>当异常发生时触发。关闭数据库连接，或者返还连接到连接池。</summary>
         /// <param name="ex"></param>
-        /// <param name="sql"></param>
+        /// <param name="cmd"></param>
         /// <returns></returns>
         protected virtual XSqlException OnException(Exception ex, DbCommand cmd)
         {

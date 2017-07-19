@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -440,6 +441,48 @@ namespace XCode
 
             var dp = session.CreateParameter();
             dp.ParameterName = paraname;
+
+            // 写入数据类型
+            switch (fi.Type.GetTypeCode())
+            {
+                case TypeCode.Boolean:
+                    dp.DbType = DbType.Boolean;
+                    break;
+                case TypeCode.Char:
+                case TypeCode.SByte:
+                case TypeCode.Byte:
+                    dp.DbType = DbType.Byte;
+                    break;
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                    dp.DbType = DbType.Int16;
+                    break;
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                    dp.DbType = DbType.Int32;
+                    break;
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    dp.DbType = DbType.Int64;
+                    break;
+                case TypeCode.Single:
+                    dp.DbType = DbType.Double;
+                    break;
+                case TypeCode.Double:
+                    dp.DbType = DbType.Double;
+                    break;
+                case TypeCode.Decimal:
+                    dp.DbType = DbType.Decimal;
+                    break;
+                case TypeCode.DateTime:
+                    dp.DbType = DbType.DateTime;
+                    break;
+                case TypeCode.String:
+                    dp.DbType = DbType.String;
+                    break;
+                default:
+                    break;
+            }
 
             //!!! MySql布尔型参数化有BUG，临时处理
             if (session.Dal.DbType == DatabaseType.MySql && fi.Type == typeof(Boolean))
