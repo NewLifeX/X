@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Web.Mvc;
+using NewLife.Common;
 using NewLife.Web;
 using XCode;
+using XCode.Membership;
 using XLog = XCode.Membership.Log;
 
 namespace NewLife.Cube.Admin.Controllers
@@ -67,6 +69,17 @@ namespace NewLife.Cube.Admin.Controllers
             var url = Request.UrlReferrer + "";
 
             return Json(new { msg = "不允许删除日志！", code = -1, url = url }, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>清空全表数据</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Delete)]
+        [DisplayName("清空")]
+        public override ActionResult Clear()
+        {
+            if (!SysConfig.Current.Develop || !Setting.Current.Debug || UserX.Current.Role.Name != "管理员") throw new Exception("不允许删除日志");
+
+            return base.Clear();
         }
     }
 }
