@@ -313,6 +313,22 @@ namespace NewLife.Log
                 Log = new CompositeLog(clg, ftl);
             }
         }
+
+        /// <summary>控件绑定到日志，生成混合日志</summary>
+        /// <param name="control"></param>
+        /// <param name="log"></param>
+        /// <param name="maxLines"></param>
+        /// <returns></returns>
+        public static ILog Combine(this Control control, ILog log, Int32 maxLines = 1000)
+        {
+            if (control == null || log == null) return log;
+
+            var clg = new TextControlLog();
+            clg.Control = control;
+            clg.MaxLines = maxLines;
+
+            return new CompositeLog(log, clg);
+        }
 #endif
         #endregion
 

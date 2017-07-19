@@ -30,6 +30,10 @@ namespace NewLife
         [Description("网络日志。本地子网日志广播255.255.255.255:514")]
         public String NetworkLog { get; set; } = "";
 
+        /// <summary>日志文件格式</summary>
+        [Description("日志文件格式。默认{0:yyyy_MM_dd}.log")]
+        public String LogFileFormat { get; set; } = "{0:yyyy_MM_dd}.log";
+
         /// <summary>临时目录</summary>
         [Description("临时目录")]
         public String TempPath { get; set; } = "";
@@ -59,6 +63,7 @@ namespace NewLife
 
             if (LogPath.IsNullOrEmpty()) LogPath = web ? "..\\Log" : "Log";
             if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\XTemp" : "XTemp";
+            if (LogFileFormat.IsNullOrEmpty()) LogFileFormat = "{0:yyyy_MM_dd}.log";
 
 #if !__MOBILE__
             if (PluginCache.IsNullOrWhiteSpace())

@@ -24,6 +24,9 @@ namespace XNet
         ISocketClient _Client;
         static Task<Dictionary<String, Type>> _task;
 
+        /// <summary>业务日志输出</summary>
+        ILog BizLog;
+
         #region 窗体
         static FrmMain()
         {
@@ -39,6 +42,8 @@ namespace XNet
 
         private void FrmMain_Load(Object sender, EventArgs e)
         {
+            var log = TextFileLog.Create(null, "Net_{0:yyyy_MM_dd}.log");
+            BizLog = txtReceive.Combine(log);
             txtReceive.UseWinFormControl();
 
             txtReceive.SetDefaultStyle(12);
@@ -85,7 +90,7 @@ namespace XNet
                 .Register("退出", () => Application.Exit())
                 .Register("发送", () => this.Invoke(() => btnSend_Click(null, null)));
 
-                XTrace.WriteLine("语音识别前缀：{0} 可用命令：{1}", sp.Name, sp.GetAllKeys().Join());
+                BizLog.Info("语音识别前缀：{0} 可用命令：{1}", sp.Name, sp.GetAllKeys().Join());
             });
         }
         #endregion
@@ -195,7 +200,7 @@ namespace XNet
 
             if (_Client != null)
             {
-                _Client.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
+                _Client.Log = cfg.ShowLog ? BizLog : Logger.Null;
                 if (!local.Contains("所有本地")) _Client.Local.Host = local;
                 _Client.Received += OnReceived;
                 _Client.Remote.Port = port;
@@ -211,8 +216,8 @@ namespace XNet
             else if (_Server != null)
             {
                 if (_Server == null) _Server = new NetServer();
-                _Server.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
-                _Server.SocketLog = cfg.ShowSocketLog ? XTrace.Log : Logger.Null;
+                _Server.Log = cfg.ShowLog ? BizLog : Logger.Null;
+                _Server.SocketLog = cfg.ShowSocketLog ? BizLog : Logger.Null;
                 _Server.Port = port;
                 if (!local.Contains("所有本地")) _Server.Local.Host = local;
                 _Server.Received += OnReceived;
@@ -234,8 +239,6 @@ namespace XNet
             cfg.Save();
 
             _timer = new TimerX(ShowStat, null, 5000, 5000);
-
-            BizLog = TextFileLog.Create("NetLog");
         }
 
         void Disconnect()
@@ -278,7 +281,7 @@ namespace XNet
             if (!msg.IsNullOrEmpty() && msg != _lastStat)
             {
                 _lastStat = msg;
-                XTrace.WriteLine(msg);
+                BizLog.Info(msg);
             }
         }
 
@@ -293,9 +296,6 @@ namespace XNet
                 Disconnect();
         }
 
-        /// <summary>业务日志输出</summary>
-        ILog BizLog;
-
         void OnReceived(Object sender, ReceivedEventArgs e)
         {
             var session = sender as ISocketSession;
@@ -309,9 +309,9 @@ namespace XNet
             if (NetConfig.Current.ShowReceiveString)
             {
                 var line = e.ToStr();
-                XTrace.WriteLine(line);
+                //XTrace.WriteLine(line);
 
-                if (BizLog != null) BizLog.Info(line);
+                BizLog.Info(line);
             }
         }
 
@@ -413,13 +413,13 @@ namespace XNet
             {
                 Task.Run(async () =>
                 {
-                    XTrace.WriteLine("准备向[{0}]个客户端发送[{1}]次[{2}]的数据", _Server.SessionCount, count, buf.Length);
+                    BizLog.Info("准备向[{0}]个客户端发送[{1}]次[{2}]的数据", _Server.SessionCount, count, buf.Length);
                     for (Int32 i = 0; i < count && _Server != null; i++)
                     {
                         var sw = Stopwatch.StartNew();
                         var cs = await _Server.SendAllAsync(buf);
                         sw.Stop();
-                        XTrace.WriteLine("{3}/{4} 已向[{0}]个客户端发送[{1}]数据 {2:n0}ms", cs, buf.Length, sw.ElapsedMilliseconds, i + 1, count);
+                        BizLog.Info("{3}/{4} 已向[{0}]个客户端发送[{1}]数据 {2:n0}ms", cs, buf.Length, sw.ElapsedMilliseconds, i + 1, count);
                         if (sleep > 0) await Task.Delay(sleep);
                     }
                 });
