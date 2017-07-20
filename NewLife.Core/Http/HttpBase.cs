@@ -13,6 +13,9 @@ namespace NewLife.Http
         /// <summary>内容长度</summary>
         public Int32 ContentLength { get; set; }
 
+        /// <summary>内容类型</summary>
+        public String ContentType { get; set; }
+
         /// <summary>头部集合</summary>
         public IDictionary<String, Object> Headers { get; set; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
@@ -57,6 +60,9 @@ namespace NewLife.Http
                 p = line.IndexOf(':');
                 if (p > 0) Headers[line.Substring(0, p)] = line.Substring(p + 1).Trim();
             }
+
+            ContentLength = Headers["Content-Length"].ToInt();
+            ContentType = Headers["Content-Type"] + "";
 
             // 分析第一行
             if (!OnParse(lines[0])) return false;

@@ -66,7 +66,6 @@ namespace NewLife.Http
             Accept = Headers["Accept"] + "";
             AcceptLanguage = Headers["Accept-Language"] + "";
             Referer = Headers["Referer"] + "";
-            ContentLength = Headers["Content-Length"].ToInt();
 
             return true;
         }
@@ -110,6 +109,7 @@ namespace NewLife.Http
 
             // 内容长度
             if (length > 0) sb.AppendFormat("Content-Length:{0}\r\n", length);
+            if (!ContentType.IsNullOrEmpty()) sb.AppendFormat("Content-Type:{0}\r\n", ContentType);
 
             if (KeepAlive) sb.AppendLine("Connection:keep-alive");
             if (!Referer.IsNullOrEmpty()) sb.AppendFormat("Referer:{0}\r\n", Referer);

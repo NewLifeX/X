@@ -112,9 +112,6 @@ namespace NewLife.Web
 
             if (AutomaticDecompression != DecompressionMethods.None) req.Compressed = true;
 
-            //if (!String.IsNullOrEmpty(Accept)) req.Headers[HttpRequestHeader.Accept + ""] = Accept;
-            //if (!String.IsNullOrEmpty(AcceptLanguage)) req.Headers[HttpRequestHeader.AcceptLanguage + ""] = AcceptLanguage;
-            //if (!String.IsNullOrEmpty(Referer)) req.Headers[HttpRequestHeader.Referer + ""] = Referer;
             req.Accept = Accept;
             req.AcceptLanguage = AcceptLanguage;
             req.Referer = Referer;
@@ -221,7 +218,8 @@ namespace NewLife.Web
             var http = Check(address);
             http.Request.Method = "POST";
             // 表单编码
-            if (!http.Request.Headers.ContainsKey("Content-Type")) http.Request.Headers["Content-Type"] = "application/x-www-form-urlencoded";
+            //if (!http.Request.Headers.ContainsKey("Content-Type")) http.Request.Headers["Content-Type"] = "application/x-www-form-urlencoded";
+            if (http.Request.ContentType.IsNullOrEmpty()) http.Request.ContentType = "application/x-www-form-urlencoded";
 
             Log.Info("WebClientX.PostAsync [{0}] {1}", data?.Length, address);
 

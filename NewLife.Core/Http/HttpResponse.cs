@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Text;
 
@@ -16,6 +17,9 @@ namespace NewLife.Http
 
         /// <summary>状态码</summary>
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
+
+        /// <summary>状态描述</summary>
+        public String StatusDescription { get; set; }
         #endregion
 
         /// <summary>分析第一行</summary>
@@ -23,6 +27,8 @@ namespace NewLife.Http
         protected override Boolean OnParse(String firstLine)
         {
             if (firstLine.IsNullOrEmpty()) return false;
+
+            // HTTP/1.1 502 Bad Gateway
 
             var ss = firstLine.Split(" ");
             //if (ss.Length < 3) throw new Exception("非法响应头 {0}".F(firstLine));
@@ -32,7 +38,8 @@ namespace NewLife.Http
             var code = ss[1].ToInt();
             if (code > 0) StatusCode = (HttpStatusCode)code;
 
-            ContentLength = Headers["Content-Length"].ToInt();
+            StatusDescription = ss.Skip(2).Join(" ");
+            //ContentLength = Headers["Content-Length"].ToInt();
 
             return true;
         }
@@ -48,6 +55,7 @@ namespace NewLife.Http
 
             // 内容长度
             if (length > 0) sb.AppendFormat("Content-Length:{0}\r\n", length);
+            if (!ContentType.IsNullOrEmpty()) sb.AppendFormat("Content-Type:{0}\r\n", ContentType);
 
             foreach (var item in Headers)
             {
@@ -57,6 +65,12 @@ namespace NewLife.Http
             sb.AppendLine();
 
             return sb.ToString();
+        }
+
+        /// <summary>验证，如果失败则抛出异常</summary>
+        public void Valid()
+        {
+            if (StatusCode != HttpStatusCode.OK) throw new Exception(StatusDescription ?? (StatusCode + ""));
         }
     }
 }
