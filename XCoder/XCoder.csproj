@@ -99,6 +99,12 @@
       <DependentUpon>NewModel.cs</DependentUpon>
     </Compile>
     <Compile Include="NewModelForm\WinFormHelper.cs" />
+    <Compile Include="Tools\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\FrmMain.Designer.cs">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
     <Compile Include="XCom\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -228,6 +234,9 @@
     </Compile>
     <EmbeddedResource Include="NewModelForm\BaseForm.resx">
       <DependentUpon>BaseForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\FrmMain.resx">
+      <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Windows\FrmItems.resx">
       <DependentUpon>FrmItems.cs</DependentUpon>
