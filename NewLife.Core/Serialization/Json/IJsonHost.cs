@@ -63,6 +63,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static Object ToJsonEntity(this String json, Type type)
         {
+            if (json.IsNullOrEmpty()) return null;
+
             return Default.Read(json, type);
         }
 
@@ -72,6 +74,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static T ToJsonEntity<T>(this String json)
         {
+            if (json.IsNullOrEmpty()) return default(T);
+
             return (T)Default.Read(json, typeof(T));
         }
 
