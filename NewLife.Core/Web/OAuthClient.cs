@@ -67,6 +67,8 @@ namespace NewLife.Web
         /// <param name="state"></param>
         public void Authorize(String redirect, String state = null)
         {
+            if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key));
+            if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
             if (redirect.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect));
             if (state.IsNullOrEmpty()) state = Rand.Next().ToString();
             if (redirect.Contains("/")) redirect = HttpUtility.UrlEncode(redirect);
