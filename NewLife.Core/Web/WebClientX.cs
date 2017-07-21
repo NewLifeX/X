@@ -137,7 +137,8 @@ namespace NewLife.Web
 
             // 发送请求
             var source = new CancellationTokenSource(time);
-            var rs = content != null ? await http.PostAsync(address, content, source.Token) : await http.GetAsync(address, source.Token);
+            var task = content != null ? http.PostAsync(address, content, source.Token) : http.GetAsync(address, source.Token);
+            var rs = await task;
             Response = rs.EnsureSuccessStatusCode();
             SetCookie();
 
@@ -230,7 +231,7 @@ namespace NewLife.Web
         /// <returns></returns>
         public String GetHtml(String url)
         {
-            return DownloadStringAsync(url).Result;
+            return Task.Run(() => DownloadStringAsync(url)).Result;
         }
 
         /// <summary>获取指定地址的Html，分析所有超链接</summary>
@@ -340,7 +341,7 @@ namespace NewLife.Web
 
             var sw = new Stopwatch();
             sw.Start();
-            DownloadFileAsync(link.Url, file2).Wait();
+            Task.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
             sw.Stop();
 
             if (File.Exists(file2))

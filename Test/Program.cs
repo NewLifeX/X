@@ -124,9 +124,8 @@ namespace Test
 
         static void Test3()
         {
-            var client = new WebClientX();
-            var link = client.DownloadLink(NewLife.Setting.Current.PluginServer, "ip", ".");
-            Console.WriteLine(link);
+            var str = "{{\"ID\":\"4b357dcee9aa4fbfaabc1816f0379541\",\"USER_ID\":4615563,\"USER_NAME\":\"王宇航\",\"SITE_ID\":2743,\"SITE_NAME\":\"上海\",\"MENU\":\"1,2\",\"FEATURE\":\"1,2,3,4,5,6\",\"PROVINCE\":null,\"BL_ADMIN\":1,\"PROVINCE_ID\":null,\"DEPARTMENT\":null,\"ADMINISTRATOR\":1,\"CITY_ID\":null,\"COUNTRY_ID\":null,\"SITE_ID_SEE\":null,\"CITY\":null,\"COUNTRY\":null,\"SITE_SEE_NAME\":null,\"NICKNAME\":null,\"Report\":false}}";
+            var dic = str.ToJsonEntity(typeof(Object));
         }
     }
 }
