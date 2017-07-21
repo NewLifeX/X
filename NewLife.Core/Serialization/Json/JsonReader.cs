@@ -212,6 +212,8 @@ namespace NewLife.Serialization
                 var vdic = v as IDictionary<String, Object>;
 
                 var pt = pi.PropertyType;
+                // 支持可空类型
+                pt = Nullable.GetUnderlyingType(pt) ?? pt;
                 if (pt.IsEnum)
                     val = Enum.Parse(pt, v + "");
                 else if (pt == typeof(Object))

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
@@ -33,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -124,8 +125,13 @@ namespace Test
 
         static void Test3()
         {
-            var str = "{{\"ID\":\"4b357dcee9aa4fbfaabc1816f0379541\",\"USER_ID\":4615563,\"USER_NAME\":\"王宇航\",\"SITE_ID\":2743,\"SITE_NAME\":\"上海\",\"MENU\":\"1,2\",\"FEATURE\":\"1,2,3,4,5,6\",\"PROVINCE\":null,\"BL_ADMIN\":1,\"PROVINCE_ID\":null,\"DEPARTMENT\":null,\"ADMINISTRATOR\":1,\"CITY_ID\":null,\"COUNTRY_ID\":null,\"SITE_ID_SEE\":null,\"CITY\":null,\"COUNTRY\":null,\"SITE_SEE_NAME\":null,\"NICKNAME\":null,\"Report\":false}}";
-            var dic = str.ToJsonEntity(typeof(Object));
+            var pt = typeof(Int32?);
+            //Console.WriteLine(pt.As<Nullable>());
+            Console.WriteLine(Nullable.GetUnderlyingType(pt).FullName);
+
+            var str = File.ReadAllText("aa.txt", Encoding.Default);
+            var obj = new JsonParser(str).Decode();
+            Console.WriteLine(obj);
         }
     }
 }
