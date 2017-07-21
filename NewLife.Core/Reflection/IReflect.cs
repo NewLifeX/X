@@ -603,6 +603,7 @@ namespace NewLife.Reflection
             if (value != null) vtype = value.GetType();
             if (vtype == conversionType) return value;
 
+            conversionType = Nullable.GetUnderlyingType(conversionType) ?? conversionType;
             if (conversionType.IsEnum)
             {
                 if (vtype == typeof(String))
