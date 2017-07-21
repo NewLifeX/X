@@ -134,7 +134,7 @@ namespace NewLife.Net
                 sw.Start();
 
                 var web = CreateClient();
-                web.DownloadFile(link.Url, file.EnsureDirectory());
+                web.DownloadFileAsync(link.Url, file).Wait();
 
                 sw.Stop();
                 WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);

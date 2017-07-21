@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using System.Threading.Tasks;
 #if __CORE__
 #else
 using System.Web;
@@ -86,13 +86,13 @@ namespace NewLife.Web
         /// <summary>根据授权码获取访问令牌</summary>
         /// <param name="code"></param>
         /// <returns></returns>
-        public String GetAccessToken(String code)
+        public async Task<String> GetAccessToken(String code)
         {
             Code = code;
 
             var url = GetUrl(AccessUrl);
 
-            var html = Request(url);
+            var html = await Request(url);
             if (html.IsNullOrEmpty()) return null;
 
             html = html.Trim();
@@ -137,11 +137,11 @@ namespace NewLife.Web
         /// <summary>创建客户端</summary>
         /// <param name="url">路径</param>
         /// <returns></returns>
-        protected virtual String Request(String url)
+        protected virtual async Task<String> Request(String url)
         {
             if (_Client == null) _Client = new WebClientX();
 
-            return _Client.DownloadString(url);
+            return await _Client.DownloadStringAsync(url);
         }
         #endregion
     }
