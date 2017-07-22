@@ -1,10 +1,6 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using System.Web.Mvc;
 using NewLife.Log;
-using NewLife.Web;
 using XCode.Membership;
 
 namespace NewLife.Cube.Admin
@@ -38,9 +34,6 @@ namespace NewLife.Cube.Admin
             //bundles.Add(new StyleBundle("~/bootstrap_css").IncludeDirectory("~/bootstrap/css", "*.css", true));
             //bundles.Add(new ScriptBundle("~/bootstrap_js").IncludeDirectory("~/bootstrap/js", "*.js", true));
 
-            // 自动检查并下载魔方资源
-            Task.Factory.StartNew(CheckContent, TaskCreationOptions.LongRunning).LogException();
-
             // 自动检查并添加菜单
             XTrace.WriteLine("初始化权限管理体系");
             var user = ManageProvider.User;
@@ -59,18 +52,5 @@ namespace NewLife.Cube.Admin
         //        menu.Save();
         //    }
         //}
-
-        void CheckContent()
-        {
-            var cube = "~/Content/Cube.js".GetFullPath();
-            if (File.Exists(cube)) return;
-
-            var url = Setting.Current.PluginServer;
-            if (url.IsNullOrEmpty()) return;
-
-            var wc = new WebClientX(true, true);
-            wc.Log = XTrace.Log;
-            wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath(), false);
-        }
     }
 }

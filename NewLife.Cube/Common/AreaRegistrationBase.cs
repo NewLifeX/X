@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using System.Web.WebPages;
 using NewLife.Cube.Precompiled;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Web;
 using XCode;
 using XCode.Membership;
 
@@ -88,6 +90,9 @@ namespace NewLife.Cube
             //    constraints: new { controller = "Frontend", action = "Default" }
             //);
 
+            // 自动检查并下载魔方资源
+            Task.Factory.StartNew(CheckContent, TaskCreationOptions.LongRunning).LogException();
+
             XTrace.WriteLine("{0} End   初始化魔方 {0}", new String('=', 32));
         }
 
@@ -121,6 +126,20 @@ namespace NewLife.Cube
             });
 
             return list;
+        }
+
+        static void CheckContent()
+        {
+            var js = "~/Content/Cube.js".GetFullPath();
+            var css = "~/Content/Cube.css".GetFullPath();
+            if (File.Exists(js) && File.Exists(css)) return;
+
+            var url = Setting.Current.PluginServer;
+            if (url.IsNullOrEmpty()) return;
+
+            var wc = new WebClientX(true, true);
+            wc.Log = XTrace.Log;
+            wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath(), false);
         }
 
         /// <summary>注册区域</summary>

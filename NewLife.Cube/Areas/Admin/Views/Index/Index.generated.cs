@@ -169,7 +169,7 @@ WriteLiteral(@" />
 WriteLiteral(" rel=\"stylesheet\"");
 
 WriteAttribute("href", Tuple.Create(" href=\"", 1441), Tuple.Create("\"", 1466)
-, Tuple.Create(Tuple.Create("", 1448), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Site.css")
+, Tuple.Create(Tuple.Create("", 1448), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.css")
 , 1448), false)
 );
 

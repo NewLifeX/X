@@ -222,7 +222,7 @@ WriteLiteral(">\r\n\r\n    <!-- 自定义样式 -->\r\n    <link");
 WriteLiteral(" rel=\"stylesheet\"");
 
 WriteAttribute("href", Tuple.Create(" href=\"", 1780), Tuple.Create("\"", 1805)
-, Tuple.Create(Tuple.Create("", 1787), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Site.css")
+, Tuple.Create(Tuple.Create("", 1787), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.css")
 , 1787), false)
 );
 

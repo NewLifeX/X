@@ -263,10 +263,10 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Views\Shared\Error.generated.cs">
+    <Compile Include="Views\Shared\CubeError.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Error.cshtml</DependentUpon>
+      <DependentUpon>CubeError.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Shared\Form.generated.cs">
       <AutoGen>True</AutoGen>
@@ -587,7 +587,7 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
-    <None Include="Content\Site.css" />
+    <None Include="Content\Cube.css" />
     <None Include="Scripts\_references.js" />
     <None Include="Views\Shared\_Form_Action.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -634,9 +634,9 @@
       <LastGenOutput>_LoginPartial.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Web.config" />
-    <None Include="Views\Shared\Error.cshtml">
+    <None Include="Views\Shared\CubeError.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Error.generated.cs</LastGenOutput>
+      <LastGenOutput>CubeError.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Shared\_List_Pager.cshtml">
       <Generator>RazorGenerator</Generator>
