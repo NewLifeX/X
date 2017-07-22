@@ -63,9 +63,9 @@ namespace NewLife.Web
         private String _state;
 
         /// <summary>跳转验证</summary>
-        /// <param name="redirect"></param>
-        /// <param name="state"></param>
-        public void Authorize(String redirect, String state = null)
+        /// <param name="redirect">验证完成后调整的目标地址</param>
+        /// <param name="state">用户状态数据</param>
+        public virtual void Authorize(String redirect, String state = null)
         {
             if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key));
             if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
@@ -86,7 +86,7 @@ namespace NewLife.Web
         /// <summary>根据授权码获取访问令牌</summary>
         /// <param name="code"></param>
         /// <returns></returns>
-        public async Task<String> GetAccessToken(String code)
+        public virtual async Task<String> GetAccessToken(String code)
         {
             Code = code;
 
@@ -120,7 +120,10 @@ namespace NewLife.Web
         #endregion
 
         #region 辅助
-        String GetUrl(String url)
+        /// <summary>替换地址模版参数</summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        protected virtual String GetUrl(String url)
         {
             url = url
                .Replace("{key}", Key)
