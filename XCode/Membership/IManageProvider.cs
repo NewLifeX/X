@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using System.Web;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Web;
+using XCode.Model;
 
 namespace XCode.Membership
 {
@@ -80,6 +83,35 @@ namespace XCode.Membership
 
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu { get { return GetFactory<IMenu>() as IMenuFactory; } }
+
+        /// <summary>预热基础数据</summary>
+        public static void Init()
+        {
+            var sb = new StringBuilder();
+            sb.Append("预热基础数据");
+
+            var sw = Stopwatch.StartNew();
+
+            var fact = GetFactory<IUser>();
+            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
+
+            fact = GetFactory<IMenu>();
+            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
+
+            fact = GetFactory<IRole>();
+            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
+
+            fact = GetFactory<ILog>();
+            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
+
+            fact = GetFactory<IUserOnline>();
+            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
+
+            sw.Stop();
+            sb.AppendFormat("，耗时{0:n0}ms", sw.ElapsedMilliseconds);
+
+            XTrace.WriteLine(sb.ToString());
+        }
         #endregion
 
         #region IManageProvider 接口
@@ -127,12 +159,8 @@ namespace XCode.Membership
         /// <returns></returns>
         public virtual Object GetService(Type serviceType)
         {
-            //if (serviceType == typeof(IManagePage))
-            //    return GetHttpCache(typeof(IManagePage), k => CommonService.Container.Resolve<IManagePage>());
-            //else if (serviceType == typeof(IEntityForm))
-            //    return GetHttpCache(typeof(IEntityForm), k => CommonService.Container.Resolve<IEntityForm>());
-
-            return ObjectContainer.Current.Resolve(serviceType);
+            var container = XCodeService.Container;
+            return container.Resolve(serviceType);
         }
         #endregion
 
@@ -174,7 +202,8 @@ namespace XCode.Membership
         /// <returns></returns>
         internal static IEntityOperate GetFactory<TIEntity>()
         {
-            var type = ObjectContainer.Current.ResolveType<TIEntity>();
+            var container = XCodeService.Container;
+            var type = container.ResolveType<TIEntity>();
             if (type == null) return null;
 
             return EntityFactory.CreateOperate(type);
