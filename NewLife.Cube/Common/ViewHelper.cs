@@ -51,6 +51,10 @@ namespace NewLife.Cube
 @using NewLife.Web;
 @using XCode;
 @using XCode.Configuration;
+@using System.Web.Mvc;
+@using System.Web.Mvc.Ajax;
+@using System.Web.Mvc.Html;
+@using System.Web.Routing;
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
@@ -171,7 +175,7 @@ namespace NewLife.Cube
             sb.Append("                @if");
             sb.Append(tmp.Substring("                @if", null, ps[1]));
 
-            File.WriteAllText(vpath.GetFullPath(), sb.ToString(), Encoding.UTF8);
+            File.WriteAllText(vpath.GetFullPath().EnsureDirectory(true), sb.ToString(), Encoding.UTF8);
 
             return true;
         }
