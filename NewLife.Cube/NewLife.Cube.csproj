@@ -313,11 +313,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Form_Item.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Shared\_Layout.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Layout.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Shared\_Layout_Header.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -637,10 +632,6 @@
     <None Include="Views\Shared\_LoginPartial.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_LoginPartial.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Layout.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Layout.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Web.config" />
     <None Include="Views\Shared\Error.cshtml">

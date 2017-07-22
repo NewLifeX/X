@@ -97,12 +97,12 @@ WriteLiteral(">\r\n</head>\r\n<body>\r\n    <div>\r\n        <h1>");
             
             #line default
             #line hidden
-WriteLiteral("</h1>\r\n");
+WriteLiteral("</h1>\r\n        <h3>正在启动系统……</h3>\r\n");
 
 WriteLiteral("        ");
 
             
-            #line 19 "..\..\Views\CubeHome\Index.cshtml"
+            #line 20 "..\..\Views\CubeHome\Index.cshtml"
    Write(SysConfig.Current.Company);
 
             

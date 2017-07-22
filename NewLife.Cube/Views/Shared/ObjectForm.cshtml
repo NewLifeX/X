@@ -2,7 +2,7 @@
 @using System.Reflection;
 @using NewLife.Reflection;
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = NewLife.Cube.Setting.Current.Layout;
 
     var Obj = Model as Object;
     var pis = ViewBag.Properties as IEnumerable<PropertyInfo>;

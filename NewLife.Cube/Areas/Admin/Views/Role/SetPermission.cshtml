@@ -2,6 +2,8 @@
 @using XCode
 @using XCode.Configuration
 @{
+    Layout = NewLife.Cube.Setting.Current.Layout;
+
     var role = Model.Role as Role;
     var menus = Menu.Root.AllChilds;
     //var pfs = EnumHelper.GetDescriptions<PermissionFlags>().Where(e => e.Key > PermissionFlags.None);

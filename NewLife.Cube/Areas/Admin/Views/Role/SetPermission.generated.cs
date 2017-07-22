@@ -62,29 +62,18 @@ namespace ASP
             
             #line 4 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
   
+    Layout = NewLife.Cube.Setting.Current.Layout;
+
     var role = Model.Role as Role;
     var menus = Menu.Root.AllChilds;
     //var pfs = EnumHelper.GetDescriptions<PermissionFlags>().Where(e => e.Key > PermissionFlags.None);
-
-    var bs = this.Bootstrap();
 
             
             #line default
             #line hidden
 WriteLiteral("\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 292), Tuple.Create("\"", 347)
-, Tuple.Create(Tuple.Create("", 300), Tuple.Create("form-group", 300), true)
-, Tuple.Create(Tuple.Create(" ", 310), Tuple.Create("col-sm-12", 311), true)
-, Tuple.Create(Tuple.Create(" ", 320), Tuple.Create("col-md-", 321), true)
-            
-            #line 11 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
-, Tuple.Create(Tuple.Create("", 328), Tuple.Create<System.Object, System.Int32>(bs.GetGroupWidth()
-            
-            #line default
-            #line hidden
-, 328), false)
-);
+WriteLiteral(" class=\"form-group col-md-12\"");
 
 WriteLiteral(">\r\n    <label");
 

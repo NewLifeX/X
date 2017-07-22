@@ -62,7 +62,8 @@ namespace ASP
             
             #line 4 "..\..\Views\Shared\Form.cshtml"
   
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = NewLife.Cube.Setting.Current.Layout;
+
     var fact = ViewBag.Factory as IEntityOperate;
     var fields = ViewBag.Fields as List<FieldItem>;
     var entity = Model as IEntity;
@@ -80,7 +81,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 13 "..\..\Views\Shared\Form.cshtml"
+            #line 14 "..\..\Views\Shared\Form.cshtml"
 Write(Html.Partial("_Form_Header", entity));
 
             
@@ -89,13 +90,13 @@ Write(Html.Partial("_Form_Header", entity));
 WriteLiteral("\r\n");
 
             
-            #line 14 "..\..\Views\Shared\Form.cshtml"
+            #line 15 "..\..\Views\Shared\Form.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 14 "..\..\Views\Shared\Form.cshtml"
+            #line 15 "..\..\Views\Shared\Form.cshtml"
      using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
     {
         
@@ -103,28 +104,28 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 16 "..\..\Views\Shared\Form.cshtml"
+            #line 17 "..\..\Views\Shared\Form.cshtml"
    Write(Html.AntiForgeryToken());
 
             
             #line default
             #line hidden
             
-            #line 16 "..\..\Views\Shared\Form.cshtml"
+            #line 17 "..\..\Views\Shared\Form.cshtml"
                                 
         
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\Form.cshtml"
+            #line 18 "..\..\Views\Shared\Form.cshtml"
    Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\Form.cshtml"
+            #line 18 "..\..\Views\Shared\Form.cshtml"
                                  
         foreach (var item in fields)
         {
@@ -135,14 +136,14 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 22 "..\..\Views\Shared\Form.cshtml"
+            #line 23 "..\..\Views\Shared\Form.cshtml"
            Write(Html.Partial("_Form_Group", new Pair(Model, item)));
 
             
             #line default
             #line hidden
             
-            #line 22 "..\..\Views\Shared\Form.cshtml"
+            #line 23 "..\..\Views\Shared\Form.cshtml"
                                                                    
             }
         }
@@ -151,28 +152,28 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 25 "..\..\Views\Shared\Form.cshtml"
+            #line 26 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Footer", entity));
 
             
             #line default
             #line hidden
             
-            #line 25 "..\..\Views\Shared\Form.cshtml"
+            #line 26 "..\..\Views\Shared\Form.cshtml"
                                              
         
             
             #line default
             #line hidden
             
-            #line 26 "..\..\Views\Shared\Form.cshtml"
+            #line 27 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Action", entity));
 
             
             #line default
             #line hidden
             
-            #line 26 "..\..\Views\Shared\Form.cshtml"
+            #line 27 "..\..\Views\Shared\Form.cshtml"
                                              
     }
 

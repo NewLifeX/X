@@ -26,6 +26,10 @@ namespace NewLife.Cube
         /// <summary>工作台页面。进入后台的第一个内容页</summary>
         [Description("工作台页面。进入后台的第一个内容页")]
         public String StartPage { get; set; }
+
+        /// <summary>布局页。</summary>
+        [Description("布局页。")]
+        public String Layout { get; set; } = "~/Views/Shared/_Ace_Layout.cshtml";
         #endregion
 
         #region 方法

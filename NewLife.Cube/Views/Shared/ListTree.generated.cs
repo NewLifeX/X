@@ -55,7 +55,7 @@ namespace ASP
             
             #line 3 "..\..\Views\Shared\ListTree.cshtml"
   
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = NewLife.Cube.Setting.Current.Layout;
 
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
