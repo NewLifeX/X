@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 using System.Web.Routing;
+using NewLife.Cube.Controllers;
 
 namespace NewLife.Cube
 {
@@ -19,12 +16,16 @@ namespace NewLife.Cube
             routes.IgnoreRoute("Scripts/{*relpath}");
             routes.IgnoreRoute("Images/{*relpath}");
 
-            routes.MapRoute(
-                name: "Default",
-                url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional },
-                namespaces: new[] { typeof(RouteConfig).Namespace + ".Controllers" }
-            );
+            if (routes["Cube"] == null)
+            {
+                // 为魔方注册默认首页，启动魔方站点时能自动跳入后台，同时为Home预留默认过度视图页面
+                routes.MapRoute(
+                    name: "Cube",
+                    url: "{controller}/{action}/{id}",
+                    defaults: new { controller = "CubeHome", action = "Index", id = UrlParameter.Optional },
+                    namespaces: new[] { typeof(CubeHomeController).Namespace }
+                    );
+            }
         }
     }
 }
