@@ -12,6 +12,9 @@ namespace XCode.Membership
     [Serializable]
     [DataObject]
     [Description("用户在线")]
+    [BindIndex("IX_UserOnline_UserID", false, "UserID")]
+    [BindIndex("IU_UserOnline_SessionID", true, "SessionID")]
+    [BindIndex("IX_UserOnline_CreateTime", false, "CreateTime")]
     [BindTable("UserOnline", Description = "用户在线", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public partial class UserOnline<TEntity> : IUserOnline
     {
@@ -40,40 +43,64 @@ namespace XCode.Membership
             set { if (OnPropertyChanging(__.UserID, value)) { _UserID = value; OnPropertyChanged(__.UserID); } }
         }
 
-        private String _UserName;
-        /// <summary>用户名</summary>
-        [DisplayName("用户名")]
-        [Description("用户名")]
+        private String _Name;
+        /// <summary>名称</summary>
+        [DisplayName("名称")]
+        [Description("名称")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(3, "UserName", "用户名", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String UserName
+        [BindColumn(3, "Name", "名称", null, "nvarchar(50)", 0, 0, true, Master=true)]
+        public virtual String Name
         {
-            get { return _UserName; }
-            set { if (OnPropertyChanging(__.UserName, value)) { _UserName = value; OnPropertyChanged(__.UserName); } }
+            get { return _Name; }
+            set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } }
         }
 
-        private Int32 _SessionID;
-        /// <summary>会话</summary>
+        private String _SessionID;
+        /// <summary>会话。Web的SessionID或Server的会话编号</summary>
         [DisplayName("会话")]
-        [Description("会话")]
-        [DataObjectField(false, false, true, 10)]
-        [BindColumn(4, "SessionID", "会话", null, "int", 10, 0, false)]
-        public virtual Int32 SessionID
+        [Description("会话。Web的SessionID或Server的会话编号")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn(4, "SessionID", "会话。Web的SessionID或Server的会话编号", null, "nvarchar(50)", 0, 0, true)]
+        public virtual String SessionID
         {
             get { return _SessionID; }
             set { if (OnPropertyChanging(__.SessionID, value)) { _SessionID = value; OnPropertyChanged(__.SessionID); } }
         }
 
-        private String _Action;
-        /// <summary>操作</summary>
-        [DisplayName("操作")]
-        [Description("操作")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn(5, "Action", "操作", null, "nvarchar(50)", 0, 0, true)]
-        public virtual String Action
+        private Int32 _Times;
+        /// <summary>次数</summary>
+        [DisplayName("次数")]
+        [Description("次数")]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn(5, "Times", "次数", null, "int", 10, 0, false)]
+        public virtual Int32 Times
         {
-            get { return _Action; }
-            set { if (OnPropertyChanging(__.Action, value)) { _Action = value; OnPropertyChanged(__.Action); } }
+            get { return _Times; }
+            set { if (OnPropertyChanging(__.Times, value)) { _Times = value; OnPropertyChanged(__.Times); } }
+        }
+
+        private String _Status;
+        /// <summary>状态</summary>
+        [DisplayName("状态")]
+        [Description("状态")]
+        [DataObjectField(false, false, true, 200)]
+        [BindColumn(6, "Status", "状态", null, "nvarchar(200)", 0, 0, true)]
+        public virtual String Status
+        {
+            get { return _Status; }
+            set { if (OnPropertyChanging(__.Status, value)) { _Status = value; OnPropertyChanged(__.Status); } }
+        }
+
+        private Int32 _OnlineTime;
+        /// <summary>在线时间。本次在线总时间，秒</summary>
+        [DisplayName("在线时间")]
+        [Description("在线时间。本次在线总时间，秒")]
+        [DataObjectField(false, false, true, 10)]
+        [BindColumn(7, "OnlineTime", "在线时间。本次在线总时间，秒", null, "int", 10, 0, false)]
+        public virtual Int32 OnlineTime
+        {
+            get { return _OnlineTime; }
+            set { if (OnPropertyChanging(__.OnlineTime, value)) { _OnlineTime = value; OnPropertyChanged(__.OnlineTime); } }
         }
 
         private String _CreateIP;
@@ -81,7 +108,7 @@ namespace XCode.Membership
         [DisplayName("创建地址")]
         [Description("创建地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(6, "CreateIP", "创建地址", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(8, "CreateIP", "创建地址", null, "nvarchar(50)", 0, 0, true)]
         public virtual String CreateIP
         {
             get { return _CreateIP; }
@@ -93,7 +120,7 @@ namespace XCode.Membership
         [DisplayName("创建时间")]
         [Description("创建时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(7, "CreateTime", "创建时间", null, "datetime", 3, 0, false)]
+        [BindColumn(9, "CreateTime", "创建时间", null, "datetime", 3, 0, false)]
         public virtual DateTime CreateTime
         {
             get { return _CreateTime; }
@@ -105,7 +132,7 @@ namespace XCode.Membership
         [DisplayName("修改时间")]
         [Description("修改时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(8, "UpdateTime", "修改时间", null, "datetime", 3, 0, false)]
+        [BindColumn(10, "UpdateTime", "修改时间", null, "datetime", 3, 0, false)]
         public virtual DateTime UpdateTime
         {
             get { return _UpdateTime; }
@@ -129,9 +156,11 @@ namespace XCode.Membership
                 {
                     case __.ID : return _ID;
                     case __.UserID : return _UserID;
-                    case __.UserName : return _UserName;
+                    case __.Name : return _Name;
                     case __.SessionID : return _SessionID;
-                    case __.Action : return _Action;
+                    case __.Times : return _Times;
+                    case __.Status : return _Status;
+                    case __.OnlineTime : return _OnlineTime;
                     case __.CreateIP : return _CreateIP;
                     case __.CreateTime : return _CreateTime;
                     case __.UpdateTime : return _UpdateTime;
@@ -144,9 +173,11 @@ namespace XCode.Membership
                 {
                     case __.ID : _ID = Convert.ToInt32(value); break;
                     case __.UserID : _UserID = Convert.ToInt32(value); break;
-                    case __.UserName : _UserName = Convert.ToString(value); break;
-                    case __.SessionID : _SessionID = Convert.ToInt32(value); break;
-                    case __.Action : _Action = Convert.ToString(value); break;
+                    case __.Name : _Name = Convert.ToString(value); break;
+                    case __.SessionID : _SessionID = Convert.ToString(value); break;
+                    case __.Times : _Times = Convert.ToInt32(value); break;
+                    case __.Status : _Status = Convert.ToString(value); break;
+                    case __.OnlineTime : _OnlineTime = Convert.ToInt32(value); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
                     case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
                     case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
@@ -166,14 +197,20 @@ namespace XCode.Membership
             ///<summary>用户</summary>
             public static readonly Field UserID = FindByName(__.UserID);
 
-            ///<summary>用户名</summary>
-            public static readonly Field UserName = FindByName(__.UserName);
+            ///<summary>名称</summary>
+            public static readonly Field Name = FindByName(__.Name);
 
-            ///<summary>会话</summary>
+            ///<summary>会话。Web的SessionID或Server的会话编号</summary>
             public static readonly Field SessionID = FindByName(__.SessionID);
 
-            ///<summary>操作</summary>
-            public static readonly Field Action = FindByName(__.Action);
+            ///<summary>次数</summary>
+            public static readonly Field Times = FindByName(__.Times);
+
+            ///<summary>状态</summary>
+            public static readonly Field Status = FindByName(__.Status);
+
+            ///<summary>在线时间。本次在线总时间，秒</summary>
+            public static readonly Field OnlineTime = FindByName(__.OnlineTime);
 
             ///<summary>创建地址</summary>
             public static readonly Field CreateIP = FindByName(__.CreateIP);
@@ -196,14 +233,20 @@ namespace XCode.Membership
             ///<summary>用户</summary>
             public const String UserID = "UserID";
 
-            ///<summary>用户名</summary>
-            public const String UserName = "UserName";
+            ///<summary>名称</summary>
+            public const String Name = "Name";
 
-            ///<summary>会话</summary>
+            ///<summary>会话。Web的SessionID或Server的会话编号</summary>
             public const String SessionID = "SessionID";
 
-            ///<summary>操作</summary>
-            public const String Action = "Action";
+            ///<summary>次数</summary>
+            public const String Times = "Times";
+
+            ///<summary>状态</summary>
+            public const String Status = "Status";
+
+            ///<summary>在线时间。本次在线总时间，秒</summary>
+            public const String OnlineTime = "OnlineTime";
 
             ///<summary>创建地址</summary>
             public const String CreateIP = "CreateIP";
@@ -228,14 +271,20 @@ namespace XCode.Membership
         /// <summary>用户</summary>
         Int32 UserID { get; set; }
 
-        /// <summary>用户名</summary>
-        String UserName { get; set; }
+        /// <summary>名称</summary>
+        String Name { get; set; }
 
-        /// <summary>会话</summary>
-        Int32 SessionID { get; set; }
+        /// <summary>会话。Web的SessionID或Server的会话编号</summary>
+        String SessionID { get; set; }
 
-        /// <summary>操作</summary>
-        String Action { get; set; }
+        /// <summary>次数</summary>
+        Int32 Times { get; set; }
+
+        /// <summary>状态</summary>
+        String Status { get; set; }
+
+        /// <summary>在线时间。本次在线总时间，秒</summary>
+        Int32 OnlineTime { get; set; }
 
         /// <summary>创建地址</summary>
         String CreateIP { get; set; }

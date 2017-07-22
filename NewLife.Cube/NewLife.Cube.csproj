@@ -110,6 +110,7 @@
     <Compile Include="Areas\Admin\Controllers\MenuController.cs" />
     <Compile Include="Areas\Admin\Controllers\CoreController.cs" />
     <Compile Include="Areas\Admin\Controllers\CubeController.cs" />
+    <Compile Include="Areas\Admin\Controllers\UserOnlineController.cs" />
     <Compile Include="Areas\Admin\Controllers\XCodeController.cs" />
     <Compile Include="Areas\Admin\Controllers\SysController.cs" />
     <Compile Include="Areas\Admin\Controllers\UserController.cs" />

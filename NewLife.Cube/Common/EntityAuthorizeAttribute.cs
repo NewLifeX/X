@@ -47,6 +47,9 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
+            // 统计网页状态
+            UserOnline.SetWebStatus();
+
             //// 基类方法会检查AllowAnonymous
             //base.OnAuthorization(filterContext);
             //if (filterContext.Result == null) return;
