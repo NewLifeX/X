@@ -92,10 +92,14 @@ namespace NewLife.Cube
                 XTrace.WriteLine("设计错误！验证权限时无法找到[{0}]的菜单", url);
             }
 
+            var res = "[{0}/{1}] {2}".F(act.ControllerDescriptor.ControllerName, act.ActionName, menu != null ? (menu + "") : url);
+            var msg = "访问资源 {0} 需要 {1} 权限".F(res, Permission.GetDescription());
+            LogProvider.Provider.WriteLog("授权", "拒绝", msg);
+
             var vr = new ViewResult();
             vr.ViewName = "NoPermission";
             vr.ViewBag.Context = filterContext;
-            vr.ViewBag.Resource = menu != null ? (menu + "") : url;
+            vr.ViewBag.Resource = res;
             vr.ViewBag.Permission = Permission;
 
             filterContext.Result = vr;
