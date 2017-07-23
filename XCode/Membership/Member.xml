@@ -95,7 +95,7 @@
     </Columns>
     <Indexes>
       <Index Columns="UserID" />
-      <Index Columns="SessionID" Unique="True" />
+      <Index Columns="SessionID" />
       <Index Columns="CreateTime" />
     </Indexes>
   </Table>

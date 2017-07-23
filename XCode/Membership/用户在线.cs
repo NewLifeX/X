@@ -13,7 +13,7 @@ namespace XCode.Membership
     [DataObject]
     [Description("用户在线")]
     [BindIndex("IX_UserOnline_UserID", false, "UserID")]
-    [BindIndex("IU_UserOnline_SessionID", true, "SessionID")]
+    [BindIndex("IX_UserOnline_SessionID", false, "SessionID")]
     [BindIndex("IX_UserOnline_CreateTime", false, "CreateTime")]
     [BindTable("UserOnline", Description = "用户在线", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
     public partial class UserOnline<TEntity> : IUserOnline

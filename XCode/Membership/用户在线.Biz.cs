@@ -140,12 +140,19 @@ namespace XCode.Membership
             if (entity.ID == 0)
             {
                 entity.CreateTime = DateTime.Now;
-                entity.Save();
+                entity.Insert();
             }
             else
             {
                 entity.OnlineTime = (Int32)(entity.UpdateTime - entity.CreateTime).TotalSeconds;
                 entity.SaveAsync();
+            }
+
+            var user = ManageProvider.Provider.FindByID(userid);
+            if (user != null)
+            {
+                user.Online = true;
+                user.Save();
             }
 
             return entity;
@@ -183,6 +190,17 @@ namespace XCode.Membership
             var exp = _.UpdateTime < DateTime.Now.AddSeconds(-secTimeout);
             var list = FindAll(exp, null, null, 0, 0);
             list.Delete();
+
+            // 设置离线
+            foreach (var item in list)
+            {
+                var user = ManageProvider.Provider.FindByID(item.ID);
+                if (user != null)
+                {
+                    user.Online = false;
+                    user.Save();
+                }
+            }
 
             return list;
         }
