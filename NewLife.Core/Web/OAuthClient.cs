@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 #if __CORE__
 #else
 using System.Web;
+using NewLife.Log;
 #endif
 using NewLife.Security;
 using NewLife.Serialization;
@@ -71,12 +72,25 @@ namespace NewLife.Web
             if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
             if (redirect.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect));
             if (state.IsNullOrEmpty()) state = Rand.Next().ToString();
+
+            // 如果是相对路径，自动加上前缀。需要考虑反向代理的可能，不能直接使用Request.Url
+            if (redirect.StartsWith("~/")) redirect = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + redirect.Substring(2);
+            if (redirect.StartsWith("/"))
+            {
+                // 从Http请求头中取出原始主机名和端口
+                var req = HttpContext.Current.Request;
+                var uri = new Uri("{0}://{1}:{2}".F(req.Url.Scheme, req.ServerVariables["SERVER_NAME"], req.ServerVariables["Server_Port"]));
+                uri = new Uri(uri, redirect);
+                redirect = uri.ToString();
+            }
+
             if (redirect.Contains("/")) redirect = HttpUtility.UrlEncode(redirect);
 
             _redirect = redirect;
             _state = state;
 
             var url = GetUrl(AuthUrl);
+            WriteLog("Authorize {0}", url);
 
 #if !__CORE__
             HttpContext.Current.Response.Redirect(url);
@@ -91,6 +105,7 @@ namespace NewLife.Web
             Code = code;
 
             var url = GetUrl(AccessUrl);
+            WriteLog("GetAccessToken {0}", url);
 
             var html = await Request(url);
             if (html.IsNullOrEmpty()) return null;
@@ -142,9 +157,26 @@ namespace NewLife.Web
         /// <returns></returns>
         protected virtual async Task<String> Request(String url)
         {
-            if (_Client == null) _Client = new WebClientX();
+            if (_Client == null)
+            {
+                _Client = new WebClientX();
+                _Client.Log = Log;
+            }
 
             return await _Client.DownloadStringAsync(url);
+        }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(format, args);
         }
         #endregion
     }

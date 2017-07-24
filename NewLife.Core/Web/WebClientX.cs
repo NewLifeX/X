@@ -493,7 +493,7 @@ namespace NewLife.Web
 
         #region 日志
         /// <summary>日志</summary>
-        public ILog Log { get; set; } = XTrace.Debug ? XTrace.Log : Logger.Null;
+        public ILog Log { get; set; } = Logger.Null;
         #endregion
     }
 }
