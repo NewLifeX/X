@@ -100,7 +100,7 @@ namespace NewLife.Web
         #region 核心方法
         /// <summary>创建客户端会话</summary>
         /// <returns></returns>
-        protected virtual HttpClientX Create()
+        public virtual HttpClientX EnsureCreate()
         {
             var http = _client;
             if (http == null)
@@ -131,7 +131,7 @@ namespace NewLife.Web
             var time = Timeout;
             if (time <= 0) time = 3000;
 
-            var http = Create();
+            var http = EnsureCreate();
 
             Log.Info("{2}.{1} {0}", address, content != null ? "Post" : "Get", GetType().Name);
 
