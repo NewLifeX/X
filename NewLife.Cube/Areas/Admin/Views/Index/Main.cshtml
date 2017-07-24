@@ -40,6 +40,7 @@
                     @Request.ServerVariables["SERVER_NAME"]，
                     @Request.ServerVariables["LOCAl_ADDR"]:@Request.ServerVariables["Server_Port"]
                     &nbsp;[@Request.ServerVariables["REMOTE_HOST"]]
+                    <a href="@Url.Action("Main/ServerVar")" target="_blank" title="点击打开服务器变量列表">服务器变量列表</a>
                 </td>
                 <td class="name">
                     计算机用户：
@@ -170,11 +171,11 @@
                 进程模块(@process.ProcessName , PID=@process.Id )
                 @if (!isAll)
                 {
-                <text>（<a href="?Mode=All">完整</a>，仅用户）：</text>
+                    <text>（<a href="?Mode=All">完整</a>，仅用户）：</text>
                 }
                 else
                 {
-                <text>（完整，<a href="?Mode=OnlyUser">仅用户</a>）：</text>
+                    <text>（完整，<a href="?Mode=OnlyUser">仅用户</a>）：</text>
                 }
             </th>
         </tr>
@@ -203,29 +204,29 @@
         </tr>
         @foreach (ProcessModule item in list)
         {
-        <tr>
-            <td>
-                @item.ModuleName
-            </td>
-            <td>
-                @item.FileVersionInfo.CompanyName
-            </td>
-            <td>
-                @item.FileVersionInfo.ProductName
-            </td>
-            <td>
-                @item.FileVersionInfo.FileDescription
-            </td>
-            <td>
-                @item.FileVersionInfo.FileVersion
-            </td>
-            <td>
-                @item.ModuleMemorySize
-            </td>
-            <td>
-                @item.FileName
-            </td>
-        </tr>
+            <tr>
+                <td>
+                    @item.ModuleName
+                </td>
+                <td>
+                    @item.FileVersionInfo.CompanyName
+                </td>
+                <td>
+                    @item.FileVersionInfo.ProductName
+                </td>
+                <td>
+                    @item.FileVersionInfo.FileDescription
+                </td>
+                <td>
+                    @item.FileVersionInfo.FileVersion
+                </td>
+                <td>
+                    @item.ModuleMemorySize
+                </td>
+                <td>
+                    @item.FileName
+                </td>
+            </tr>
         }
     </table>
 }
@@ -271,9 +272,9 @@
                     @location
                 </td>
             </tr>
-         }
+                        }
     </table>
-}
+                        }
 @if (Act == "Session")
 {
     <table class="table table-bordered table-hover table-striped table-condensed">
@@ -316,6 +317,30 @@
                 <td>@item.Key</td>
                 <td>@item.Value.GetType().FullName</td>
                 <td>@item.Value</td>
+            </tr>
+        }
+    </table>
+}
+@if (Act == "ServerVar")
+{
+    <table class="table table-bordered table-hover table-striped table-condensed">
+        <tr>
+            <th colspan="6">
+                服务器变量列表
+            </th>
+        </tr>
+        <tr>
+            <th>名称</th>
+            <th>数值</th>
+        </tr>
+        @foreach (var item in Request.ServerVariables.AllKeys)
+        {
+            var v = Request.ServerVariables[item];
+            v = v.Replace("\r\n", "</br>");
+            if (item.EqualIgnoreCase("HTTP_COOKIE")) { v = v.Replace(";", "</br>"); }
+            <tr>
+                <td>@item</td>
+                <td>@Html.Raw(v)</td>
             </tr>
         }
     </table>
