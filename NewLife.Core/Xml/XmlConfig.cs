@@ -140,6 +140,8 @@ namespace NewLife.Xml
         {
             get
             {
+                if (ConfigFile.IsNullOrEmpty() || !File.Exists(ConfigFile)) return false;
+
                 var now = DateTime.Now;
                 if (_.ReloadTime > 0 && expire < now)
                 {
