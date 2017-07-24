@@ -333,13 +333,13 @@
             <th>名称</th>
             <th>数值</th>
         </tr>
-        @foreach (var item in Request.ServerVariables.AllKeys)
+        @foreach (var key in Request.ServerVariables.AllKeys)
         {
-            var v = Request.ServerVariables[item];
+            var v = Request.ServerVariables[key];
             v = v.Replace("\r\n", "</br>");
-            if (item.EqualIgnoreCase("HTTP_COOKIE")) { v = v.Replace(";", "</br>"); }
+            if (key.EqualIgnoreCase("HTTP_COOKIE")) { v = v.Replace(";", "</br>"); }
             <tr>
-                <td>@item</td>
+                <td>@key</td>
                 <td>@Html.Raw(v)</td>
             </tr>
         }

@@ -1253,11 +1253,11 @@ WriteLiteral(">\r\n                服务器变量列表\r\n            </th>\r\
             #line hidden
             
             #line 336 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-         foreach (var item in Request.ServerVariables.AllKeys)
+         foreach (var key in Request.ServerVariables.AllKeys)
         {
-            var v = Request.ServerVariables[item];
+            var v = Request.ServerVariables[key];
             v = v.Replace("\r\n", "</br>");
-            if (item.EqualIgnoreCase("HTTP_COOKIE")) { v = v.Replace(";", "</br>"); }
+            if (key.EqualIgnoreCase("HTTP_COOKIE")) { v = v.Replace(";", "</br>"); }
 
             
             #line default
@@ -1266,7 +1266,7 @@ WriteLiteral("            <tr>\r\n                <td>");
 
             
             #line 342 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-               Write(item);
+               Write(key);
 
             
             #line default
