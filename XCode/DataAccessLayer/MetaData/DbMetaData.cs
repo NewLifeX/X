@@ -12,9 +12,8 @@ namespace XCode.DataAccessLayer
     abstract partial class DbMetaData : DisposeBase, IMetaData
     {
         #region 属性
-        private IDatabase _Database;
         /// <summary>数据库</summary>
-        public virtual IDatabase Database { get { return _Database; } set { _Database = value; } }
+        public virtual IDatabase Database { get; set; }
 
         private ICollection<String> _MetaDataCollections;
         /// <summary>所有元数据集合</summary>

@@ -39,9 +39,8 @@ namespace XCode.DataAccessLayer
 
         protected virtual String OnResolveFile(String file) { return ResolveFile(file); }
 
-        private String _FileName;
         /// <summary>文件</summary>
-        public String FileName { get { return _FileName; } set { _FileName = value; } }
+        public String FileName { get; set; }
         #endregion
     }
 

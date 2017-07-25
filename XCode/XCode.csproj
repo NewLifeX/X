@@ -130,9 +130,7 @@
     </Compile>
     <Compile Include="DataAccessLayer\DAL_Setting.cs">
     </Compile>
-    <Compile Include="DataAccessLayer\Database\Distributed.cs" />
     <Compile Include="DataAccessLayer\Database\Firebird.cs" />
-    <Compile Include="DataAccessLayer\Database\Network.cs" />
     <Compile Include="DataAccessLayer\Database\PostgreSQL.cs" />
     <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
     <Compile Include="DataAccessLayer\Common\DbBase.cs" />
