@@ -228,6 +228,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="PreApplicationStartCode.cs" />
     <Compile Include="Precompiled\AssemblyExtensions.cs">
       <SubType>Code</SubType>
     </Compile>

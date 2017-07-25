@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Web;
+using NewLife.Cube;
 
 // 有关程序集的常规信息通过下列特性集
 // 控制。更改这些特性值可修改
@@ -21,6 +23,9 @@ using System.Runtime.InteropServices;
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
 [assembly: Guid("f3362f22-bdbe-4345-9436-4ed577113c3c")]
+
+[assembly: RuntimeCompatibility(WrapNonExceptionThrows = true)]
+[assembly: PreApplicationStartMethod(typeof(PreApplicationStartCode), "Start")]
 
 // 程序集的版本信息由下列四个值组成:
 //
