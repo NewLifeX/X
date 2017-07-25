@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Xml;
 
@@ -32,14 +31,8 @@ namespace NewLife.Serialization
         {
             // 遍历所有处理器实现
             var list = new List<IXmlHandler>();
-            foreach (var item in typeof(IXmlHandler).GetAllSubclasses(true))
-            {
-                var handler = item.CreateInstance() as IXmlHandler;
-                handler.Host = this;
-                list.Add(handler);
-            }
-            //list.Add(new XmlGeneral { Host = this });
-            //list.Add(new XmlComposite { Host = this });
+            list.Add(new XmlGeneral { Host = this });
+            list.Add(new XmlComposite { Host = this });
             // 根据优先级排序
             list.Sort();
 
