@@ -15,22 +15,18 @@ namespace XCode.Membership
     public enum SexKinds
     {
         /// <summary>未知</summary>
-        //[Description("未知")]
         未知 = 0,
 
         /// <summary>男</summary>
-        //[Description("男")]
         男 = 1,
 
         /// <summary>女</summary>
-        //[Description("女")]
         女 = 2
     }
 
     /// <summary>管理员</summary>
     [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    [BindRelation("RoleID", false, "Role", "ID")]
     public class UserX : User<UserX> { }
 
     /// <summary>管理员</summary>

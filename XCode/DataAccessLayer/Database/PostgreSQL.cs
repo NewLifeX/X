@@ -278,12 +278,18 @@ namespace XCode.DataAccessLayer
                 // 字符串
                 if (typeName == typeof(String).FullName)
                 {
-                    foreach (DataRow dr in drs)
+                    foreach (var dr in drs)
                     {
-                        String name = GetDataRowValue<String>(dr, "TypeName");
-                        if ((name == "NVARCHAR" && field.IsUnicode || name == "VARCHAR" && !field.IsUnicode) && field.Length <= Database.LongTextLength)
+                        var name = GetDataRowValue<String>(dr, "TypeName");
+                        if (name == "NVARCHAR" && field.Length <= Database.LongTextLength)
                             return new DataRow[] { dr };
                         else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
+                            return new DataRow[] { dr };
+                    }
+                    foreach (var dr in drs)
+                    {
+                        var name = GetDataRowValue<String>(dr, "TypeName");
+                        if (name == "VARCHAR" && field.Length <= Database.LongTextLength)
                             return new DataRow[] { dr };
                     }
                 }

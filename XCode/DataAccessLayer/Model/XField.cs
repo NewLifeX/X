@@ -76,11 +76,11 @@ namespace XCode.DataAccessLayer
         [Description("长度")]
         public Int32 Length { get; set; }
 
-        /// <summary>字节数</summary>
-        [XmlAttribute]
-        [DisplayName("字节数")]
-        [Description("字节数")]
-        public Int32 NumOfByte { get; set; }
+        ///// <summary>字节数</summary>
+        //[XmlAttribute]
+        //[DisplayName("字节数")]
+        //[Description("字节数")]
+        //public Int32 NumOfByte { get; set; }
 
         /// <summary>精度</summary>
         [XmlAttribute]
@@ -100,11 +100,11 @@ namespace XCode.DataAccessLayer
         [Description("允许空")]
         public Boolean Nullable { get; set; }
 
-        /// <summary>是否Unicode</summary>
-        [XmlAttribute]
-        [DisplayName("Unicode")]
-        [Description("Unicode")]
-        public Boolean IsUnicode { get; set; }
+        ///// <summary>是否Unicode</summary>
+        //[XmlAttribute]
+        //[DisplayName("Unicode")]
+        //[Description("Unicode")]
+        //public Boolean IsUnicode { get; set; }
 
         /// <summary>默认值</summary>
         [XmlAttribute]

@@ -653,7 +653,7 @@ namespace XCode.DataAccessLayer
                 case TypeCode.Boolean:
                     dc.RawType = "bit";
                     dc.Length = 1;
-                    dc.NumOfByte = 1;
+                    //dc.NumOfByte = 1;
                     dc.Nullable = true;
                     break;
                 case TypeCode.Byte:
@@ -661,13 +661,13 @@ namespace XCode.DataAccessLayer
                 case TypeCode.SByte:
                     dc.RawType = "tinyint";
                     dc.Length = 1;
-                    dc.NumOfByte = 1;
+                    //dc.NumOfByte = 1;
                     dc.Nullable = true;
                     break;
                 case TypeCode.DateTime:
                     dc.RawType = "datetime";
                     dc.Length = 3;
-                    dc.NumOfByte = 8;
+                    //dc.NumOfByte = 8;
                     dc.Precision = 3;
                     dc.Nullable = true;
                     break;
@@ -675,7 +675,7 @@ namespace XCode.DataAccessLayer
                 case TypeCode.UInt16:
                     dc.RawType = "smallint";
                     dc.Length = 5;
-                    dc.NumOfByte = 2;
+                    //dc.NumOfByte = 2;
                     dc.Precision = 5;
 
                     // 自增字段非空
@@ -685,7 +685,7 @@ namespace XCode.DataAccessLayer
                 case TypeCode.UInt32:
                     dc.RawType = "int";
                     dc.Length = 10;
-                    dc.NumOfByte = 4;
+                    //dc.NumOfByte = 4;
                     dc.Precision = 10;
 
                     // 自增字段非空
@@ -695,7 +695,7 @@ namespace XCode.DataAccessLayer
                 case TypeCode.UInt64:
                     dc.RawType = "bigint";
                     dc.Length = 19;
-                    dc.NumOfByte = 8;
+                    //dc.NumOfByte = 8;
                     dc.Precision = 20;
 
                     // 自增字段非空
@@ -728,7 +728,7 @@ namespace XCode.DataAccessLayer
                         var len = dc.Length;
                         if (len == 0) len = 50;
                         dc.RawType = String.Format("nvarchar({0})", len);
-                        dc.NumOfByte = len * 2;
+                        //dc.NumOfByte = len * 2;
 
                         // 新建默认长度50，写入忽略50的长度，其它长度不能忽略
                         if (len == 50)
@@ -743,7 +743,7 @@ namespace XCode.DataAccessLayer
                         {
                             dc.RawType = "ntext";
                             dc.Length = -1;
-                            dc.NumOfByte = 16;
+                            //dc.NumOfByte = 16;
                         }
                         else
                         {
@@ -754,12 +754,12 @@ namespace XCode.DataAccessLayer
 
                             // 不写RawType
                             dc.RawType = oridc.RawType;
-                            // 不写NumOfByte
-                            dc.NumOfByte = oridc.NumOfByte;
+                            //// 不写NumOfByte
+                            //dc.NumOfByte = oridc.NumOfByte;
                         }
                     }
                     dc.Nullable = true;
-                    dc.IsUnicode = true;
+                    //dc.IsUnicode = true;
                     break;
                 default:
                     break;

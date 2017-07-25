@@ -37,8 +37,8 @@ namespace XCode.DataAccessLayer
         /// <summary>长度</summary>
         Int32 Length { get; set; }
 
-        /// <summary>字节数</summary>
-        Int32 NumOfByte { get; set; }
+        ///// <summary>字节数</summary>
+        //Int32 NumOfByte { get; set; }
 
         /// <summary>精度</summary>
         Int32 Precision { get; set; }
@@ -49,8 +49,8 @@ namespace XCode.DataAccessLayer
         /// <summary>允许空</summary>
         Boolean Nullable { get; set; }
 
-        /// <summary>是否Unicode</summary>
-        Boolean IsUnicode { get; set; }
+        ///// <summary>是否Unicode</summary>
+        //Boolean IsUnicode { get; set; }
 
         /// <summary>默认值</summary>
         String Default { get; set; }

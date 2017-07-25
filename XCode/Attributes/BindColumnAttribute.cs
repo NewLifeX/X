@@ -8,72 +8,35 @@ namespace XCode
     public sealed class BindColumnAttribute : Attribute
     {
         #region 属性
-        private Int32 _Order;
         /// <summary>顺序</summary>
-        public Int32 Order
-        {
-            get { return _Order; }
-            set { _Order = value; }
-        }
+        public Int32 Order { get; set; }
 
-        private String _Name;
         /// <summary>字段名</summary>
-        public String Name
-        {
-            get { return _Name; }
-            set { _Name = value; }
-        }
+        public String Name { get; set; }
 
-        private String _Description;
         /// <summary>描述</summary>
-        public String Description
-        {
-            get { return _Description; }
-            set { _Description = value; }
-        }
+        public String Description { get; set; }
 
-        private String _DefaultValue;
         /// <summary>默认值</summary>
-        public String DefaultValue
-        {
-            get { return _DefaultValue; }
-            set { _DefaultValue = value; }
-        }
+        public String DefaultValue { get; set; }
 
-        private String _RawType;
         /// <summary>
         /// 原始数据类型。
         /// 当且仅当目标数据库同为该数据库类型时，采用实体属性信息上的RawType作为反向工程的目标字段类型，以期获得开发和生产的最佳兼容。
         /// </summary>
-        public String RawType
-        {
-            get { return _RawType; }
-            set { _RawType = value; }
-        }
+        public String RawType { get; set; }
 
-        private Int32 _Precision;
         /// <summary>精度</summary>
-        public Int32 Precision
-        {
-            get { return _Precision; }
-            set { _Precision = value; }
-        }
+        public Int32 Precision { get; set; }
 
-        private Int32 _Scale;
         /// <summary>位数</summary>
-        public Int32 Scale
-        {
-            get { return _Scale; }
-            set { _Scale = value; }
-        }
+        public Int32 Scale { get; set; }
 
-        private Boolean _IsUnicode;
-        /// <summary>是否Unicode</summary>
-        public Boolean IsUnicode        {            get { return _IsUnicode; }            set { _IsUnicode = value; }        }
+        ///// <summary>是否Unicode</summary>
+        //public Boolean IsUnicode { get; set; }
 
-        private Boolean _Master;
         /// <summary>是否主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
-        public Boolean Master { get { return _Master; } set { _Master = value; } }
+        public Boolean Master { get; set; }
         #endregion
 
         #region 构造
@@ -109,13 +72,31 @@ namespace XCode
         /// <param name="precision"></param>
         /// <param name="scale"></param>
         /// <param name="isUnicode"></param>
+        public BindColumnAttribute(Int32 order, String name, String description, String defaultValue, String rawType, Int32 precision, Int32 scale)
+            : this(order, name, description, defaultValue)
+        {
+            RawType = rawType;
+            Precision = precision;
+            Scale = scale;
+        }
+
+        /// <summary>构造函数</summary>
+        /// <param name="order"></param>
+        /// <param name="name">名称</param>
+        /// <param name="description"></param>
+        /// <param name="defaultValue"></param>
+        /// <param name="rawType"></param>
+        /// <param name="precision"></param>
+        /// <param name="scale"></param>
+        /// <param name="isUnicode"></param>
+        [Obsolete()]
         public BindColumnAttribute(Int32 order, String name, String description, String defaultValue, String rawType, Int32 precision, Int32 scale, Boolean isUnicode)
             : this(order, name, description, defaultValue)
         {
             RawType = rawType;
             Precision = precision;
             Scale = scale;
-            IsUnicode = isUnicode;
+            //IsUnicode = isUnicode;
         }
         #endregion
 

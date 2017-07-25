@@ -309,7 +309,7 @@ namespace XCode.DataAccessLayer
                 //    !String.IsNullOrEmpty(field.RawType) && (field.RawType.StartsWith("nchar") || field.RawType.StartsWith("nvarchar")))
 
                 // 为了兼容旧版本实体类
-                if (field.IsUnicode || IsUnicode(field.RawType))
+                if (field.RawType.IsNullOrEmpty() || IsUnicode(field.RawType))
                     return "N'" + value.ToString().Replace("'", "''") + "'";
                 else
                     return "'" + value.ToString().Replace("'", "''") + "'";
@@ -465,7 +465,7 @@ namespace XCode.DataAccessLayer
 
                 field.Identity = GetDataRowValue<Boolean>(dr2, "标识");
                 field.PrimaryKey = GetDataRowValue<Boolean>(dr2, "主键");
-                field.NumOfByte = GetDataRowValue<Int32>(dr2, "占用字节数");
+                //field.NumOfByte = GetDataRowValue<Int32>(dr2, "占用字节数");
                 field.Description = GetDataRowValue<String>(dr2, "字段说明");
                 field.Precision = GetDataRowValue<Int32>(dr2, "精度");
                 field.Scale = GetDataRowValue<Int32>(dr2, "小数位数");

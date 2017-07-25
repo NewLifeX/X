@@ -268,8 +268,8 @@ namespace XCode.DataAccessLayer
                 else if (TryGetDataRowValue(dr, "COLUMN_DATA_TYPE", out str))
                     field.RawType = str;
 
-                // 是否Unicode
-                if (Database is DbBase) field.IsUnicode = (Database as DbBase).IsUnicode(field.RawType);
+                //// 是否Unicode
+                //if (Database is DbBase) field.IsUnicode = (Database as DbBase).IsUnicode(field.RawType);
 
                 // 精度
                 if (TryGetDataRowValue<Int32>(dr, "NUMERIC_PRECISION", out n))
@@ -295,11 +295,11 @@ namespace XCode.DataAccessLayer
                 else
                     field.Length = field.Precision;
 
-                // 字节数
-                if (TryGetDataRowValue<Int32>(dr, "CHARACTER_OCTET_LENGTH", out n))
-                    field.NumOfByte = n;
-                else
-                    field.NumOfByte = field.Length;
+                //// 字节数
+                //if (TryGetDataRowValue<Int32>(dr, "CHARACTER_OCTET_LENGTH", out n))
+                //    field.NumOfByte = n;
+                //else
+                //    field.NumOfByte = field.Length;
 
                 // 允许空
                 if (TryGetDataRowValue<Boolean>(dr, "IS_NULLABLE", out b))
@@ -369,7 +369,7 @@ namespace XCode.DataAccessLayer
                 if (TryGetDataRowValue<Int32>(drDataType, "ColumnSize", out n))
                 {
                     field.Length = n;
-                    if (field.NumOfByte == 0) field.NumOfByte = field.Length;
+                    //if (field.NumOfByte == 0) field.NumOfByte = field.Length;
                 }
 
                 if (field.Length <= 0 && field.DataType == typeof(String)) field.Length = Int32.MaxValue / 2;

@@ -23,7 +23,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn(1, "ID", "编号", null, "int", 10, 0, false)]
+        [BindColumn(1, "ID", "编号", null, "int", 10, 0)]
         public virtual Int32 ID
         {
             get { return _ID; }
@@ -35,7 +35,7 @@ namespace XCode.Membership
         [DisplayName("名称")]
         [Description("名称。登录用户名")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn(2, "Name", "名称。登录用户名", null, "nvarchar(50)", 0, 0, true, Master=true)]
+        [BindColumn(2, "Name", "名称。登录用户名", null, "nvarchar(50)", 0, 0, Master=true)]
         public virtual String Name
         {
             get { return _Name; }
@@ -47,7 +47,7 @@ namespace XCode.Membership
         [DisplayName("密码")]
         [Description("密码")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(3, "Password", "密码", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(3, "Password", "密码", null, "nvarchar(50)", 0, 0)]
         public virtual String Password
         {
             get { return _Password; }
@@ -59,7 +59,7 @@ namespace XCode.Membership
         [DisplayName("昵称")]
         [Description("昵称")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "DisplayName", "昵称", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(4, "DisplayName", "昵称", null, "nvarchar(50)", 0, 0)]
         public virtual String DisplayName
         {
             get { return _DisplayName; }
@@ -71,7 +71,7 @@ namespace XCode.Membership
         [DisplayName("性别")]
         [Description("性别。未知、男、女")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(5, "Sex", "性别。未知、男、女", null, "int", 10, 0, false)]
+        [BindColumn(5, "Sex", "性别。未知、男、女", null, "int", 10, 0)]
         public virtual Int32 Sex
         {
             get { return _Sex; }
@@ -83,7 +83,7 @@ namespace XCode.Membership
         [DisplayName("邮件")]
         [Description("邮件")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(6, "Mail", "邮件", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(6, "Mail", "邮件", null, "nvarchar(50)", 0, 0)]
         public virtual String Mail
         {
             get { return _Mail; }
@@ -95,7 +95,7 @@ namespace XCode.Membership
         [DisplayName("电话")]
         [Description("电话")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(7, "Phone", "电话", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(7, "Phone", "电话", null, "nvarchar(50)", 0, 0)]
         public virtual String Phone
         {
             get { return _Phone; }
@@ -107,7 +107,7 @@ namespace XCode.Membership
         [DisplayName("代码")]
         [Description("代码。身份证、员工编号等")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(8, "Code", "代码。身份证、员工编号等", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(8, "Code", "代码。身份证、员工编号等", null, "nvarchar(50)", 0, 0)]
         public virtual String Code
         {
             get { return _Code; }
@@ -119,7 +119,7 @@ namespace XCode.Membership
         [DisplayName("角色")]
         [Description("角色")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn(9, "RoleID", "角色", null, "int", 10, 0, false)]
+        [BindColumn(9, "RoleID", "角色", null, "int", 10, 0)]
         public virtual Int32 RoleID
         {
             get { return _RoleID; }
@@ -131,7 +131,7 @@ namespace XCode.Membership
         [DisplayName("在线")]
         [Description("在线")]
         [DataObjectField(false, false, true, 1)]
-        [BindColumn(10, "Online", "在线", null, "bit", 0, 0, false)]
+        [BindColumn(10, "Online", "在线", null, "bit", 0, 0)]
         public virtual Boolean Online
         {
             get { return _Online; }
@@ -143,7 +143,7 @@ namespace XCode.Membership
         [DisplayName("启用")]
         [Description("启用")]
         [DataObjectField(false, false, true, 1)]
-        [BindColumn(11, "Enable", "启用", null, "bit", 0, 0, false)]
+        [BindColumn(11, "Enable", "启用", null, "bit", 0, 0)]
         public virtual Boolean Enable
         {
             get { return _Enable; }
@@ -155,7 +155,7 @@ namespace XCode.Membership
         [DisplayName("开始时间")]
         [Description("开始时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(12, "StartTime", "开始时间", null, "datetime", 3, 0, false)]
+        [BindColumn(12, "StartTime", "开始时间", null, "datetime", 3, 0)]
         public virtual DateTime StartTime
         {
             get { return _StartTime; }
@@ -167,7 +167,7 @@ namespace XCode.Membership
         [DisplayName("结束时间")]
         [Description("结束时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(13, "EndTime", "结束时间", null, "datetime", 3, 0, false)]
+        [BindColumn(13, "EndTime", "结束时间", null, "datetime", 3, 0)]
         public virtual DateTime EndTime
         {
             get { return _EndTime; }
@@ -179,7 +179,7 @@ namespace XCode.Membership
         [DisplayName("登录次数")]
         [Description("登录次数")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(14, "Logins", "登录次数", null, "int", 10, 0, false)]
+        [BindColumn(14, "Logins", "登录次数", null, "int", 10, 0)]
         public virtual Int32 Logins
         {
             get { return _Logins; }
@@ -191,7 +191,7 @@ namespace XCode.Membership
         [DisplayName("最后登录")]
         [Description("最后登录")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(15, "LastLogin", "最后登录", null, "datetime", 3, 0, false)]
+        [BindColumn(15, "LastLogin", "最后登录", null, "datetime", 3, 0)]
         public virtual DateTime LastLogin
         {
             get { return _LastLogin; }
@@ -203,7 +203,7 @@ namespace XCode.Membership
         [DisplayName("最后登录IP")]
         [Description("最后登录IP")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(16, "LastLoginIP", "最后登录IP", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(16, "LastLoginIP", "最后登录IP", null, "nvarchar(50)", 0, 0)]
         public virtual String LastLoginIP
         {
             get { return _LastLoginIP; }
@@ -215,7 +215,7 @@ namespace XCode.Membership
         [DisplayName("注册时间")]
         [Description("注册时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(17, "RegisterTime", "注册时间", null, "datetime", 3, 0, false)]
+        [BindColumn(17, "RegisterTime", "注册时间", null, "datetime", 3, 0)]
         public virtual DateTime RegisterTime
         {
             get { return _RegisterTime; }
@@ -227,7 +227,7 @@ namespace XCode.Membership
         [DisplayName("注册IP")]
         [Description("注册IP")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(18, "RegisterIP", "注册IP", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(18, "RegisterIP", "注册IP", null, "nvarchar(50)", 0, 0)]
         public virtual String RegisterIP
         {
             get { return _RegisterIP; }
@@ -239,7 +239,7 @@ namespace XCode.Membership
         [DisplayName("问题")]
         [Description("问题")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(19, "Question", "问题", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(19, "Question", "问题", null, "nvarchar(50)", 0, 0)]
         public virtual String Question
         {
             get { return _Question; }
@@ -251,7 +251,7 @@ namespace XCode.Membership
         [DisplayName("答案")]
         [Description("答案")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(20, "Answer", "答案", null, "nvarchar(50)", 0, 0, true)]
+        [BindColumn(20, "Answer", "答案", null, "nvarchar(50)", 0, 0)]
         public virtual String Answer
         {
             get { return _Answer; }
@@ -263,7 +263,7 @@ namespace XCode.Membership
         [DisplayName("配置信息")]
         [Description("配置信息")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(21, "Profile", "配置信息", null, "nvarchar(500)", 0, 0, true)]
+        [BindColumn(21, "Profile", "配置信息", null, "nvarchar(500)", 0, 0)]
         public virtual String Profile
         {
             get { return _Profile; }

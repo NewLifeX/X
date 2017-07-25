@@ -228,12 +228,12 @@ namespace XCode.Configuration
                 dc.RawType = col.RawType;
                 dc.Precision = col.Precision;
                 dc.Scale = col.Scale;
-                dc.IsUnicode = col.IsUnicode;
+                //dc.IsUnicode = col.IsUnicode;
             }
-            else
-            {
-                dc.IsUnicode = true;
-            }
+            //else
+            //{
+            //    dc.IsUnicode = true;
+            //}
 
             // 特别处理，兼容旧版本
             if (dc.DataType == typeof(Decimal))

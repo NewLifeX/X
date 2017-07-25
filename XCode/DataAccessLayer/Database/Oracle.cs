@@ -202,8 +202,8 @@ namespace XCode.DataAccessLayer
 
         public override String FormatValue(IDataColumn field, Object value)
         {
-            TypeCode code = System.Type.GetTypeCode(field.DataType);
-            Boolean isNullable = field.Nullable;
+            var code = System.Type.GetTypeCode(field.DataType);
+            var isNullable = field.Nullable;
 
             if (code == TypeCode.String)
             {
@@ -211,7 +211,7 @@ namespace XCode.DataAccessLayer
                 //云飞扬：这里注释掉，应该返回''而不是null字符
                 //if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
-                if (field.IsUnicode || IsUnicode(field.RawType))
+                if (field.RawType.IsNullOrEmpty() || IsUnicode(field.RawType))
                     return "N'" + value.ToString().Replace("'", "''") + "'";
                 else
                     return "'" + value.ToString().Replace("'", "''") + "'";
@@ -723,9 +723,9 @@ namespace XCode.DataAccessLayer
             Int32 len = 0;
             if (TryGetDataRowValue<Int32>(drColumn, "LENGTHINCHARS", out len) && len > 0) field.Length = len;
 
-            // 字节数
-            len = 0;
-            if (TryGetDataRowValue<Int32>(drColumn, "LENGTH", out len) && len > 0) field.NumOfByte = len;
+            //// 字节数
+            //len = 0;
+            //if (TryGetDataRowValue<Int32>(drColumn, "LENGTH", out len) && len > 0) field.NumOfByte = len;
         }
 
         protected override String GetFieldType(IDataColumn field)
@@ -771,18 +771,26 @@ namespace XCode.DataAccessLayer
 
         protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
-            DataRow[] drs = base.FindDataType(field, typeName, isLong);
+            var drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 1)
             {
                 // 字符串
                 if (typeName == typeof(String).FullName)
                 {
-                    foreach (DataRow dr in drs)
+                    foreach (var dr in drs)
                     {
-                        String name = GetDataRowValue<String>(dr, "TypeName");
-                        if ((name == "NVARCHAR2" && field.IsUnicode || name == "VARCHAR2" && !field.IsUnicode) && field.Length <= Database.LongTextLength)
+                        var name = GetDataRowValue<String>(dr, "TypeName");
+                        if (name == "NVARCHAR2" && field.Length <= Database.LongTextLength)
                             return new DataRow[] { dr };
-                        else if ((name == "NCLOB" && field.IsUnicode || name == "LONG" && !field.IsUnicode) && field.Length > Database.LongTextLength)
+                        else if (name == "NCLOB" && field.Length > Database.LongTextLength)
+                            return new DataRow[] { dr };
+                    }
+                    foreach (var dr in drs)
+                    {
+                        var name = GetDataRowValue<String>(dr, "TypeName");
+                        if (name == "VARCHAR2" && field.Length <= Database.LongTextLength)
+                            return new DataRow[] { dr };
+                        else if (name == "LONG" && field.Length > Database.LongTextLength)
                             return new DataRow[] { dr };
                     }
                 }
