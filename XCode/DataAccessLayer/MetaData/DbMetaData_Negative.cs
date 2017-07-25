@@ -558,7 +558,7 @@ namespace XCode.DataAccessLayer
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
                                 sbName.Append(FormatName(name));
-                                sbValue.Append(Database.FormatDateTime(Database.DateTimeMin));
+                                sbValue.Append(Database.FormatDateTime(DateTime.MinValue));
                             }
                         }
                     }

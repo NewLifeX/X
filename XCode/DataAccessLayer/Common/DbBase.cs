@@ -503,17 +503,17 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>当前时间函数</summary>
-        public virtual String DateTimeNow { get { return null; } }
+        ///// <summary>当前时间函数</summary>
+        //public virtual String DateTimeNow { get { return null; } }
 
-        /// <summary>最小时间</summary>
-        public virtual DateTime DateTimeMin { get { return DateTime.MinValue; } }
+        ///// <summary>最小时间</summary>
+        //public virtual DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
         /// <summary>长文本长度</summary>
         public virtual Int32 LongTextLength { get { return 4000; } }
 
-        /// <summary>获取Guid的函数</summary>
-        public virtual String NewGuid { get { return "newid()"; } }
+        ///// <summary>获取Guid的函数</summary>
+        //public virtual String NewGuid { get { return "newid()"; } }
 
         /// <summary>
         /// 保留字字符串，其实可以在首次使用时动态从Schema中加载
@@ -609,9 +609,9 @@ namespace XCode.DataAccessLayer
                 if (value == null) return isNullable ? "null" : "''";
                 var dt = Convert.ToDateTime(value);
 
-                if (dt < DateTimeMin || dt > DateTime.MaxValue) return isNullable ? "null" : "''";
+                if (dt <= DateTime.MinValue || dt >= DateTime.MaxValue) return isNullable ? "null" : "''";
 
-                if ((dt == DateTime.MinValue || dt == DateTimeMin) && isNullable) return "null";
+                if ((dt == DateTime.MinValue) && isNullable) return "null";
 
                 return FormatDateTime(dt);
             }

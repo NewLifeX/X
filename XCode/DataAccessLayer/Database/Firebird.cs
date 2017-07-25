@@ -115,8 +115,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>当前时间函数</summary>
-        public override String DateTimeNow { get { return "now()"; } }
+        ///// <summary>当前时间函数</summary>
+        //public override String DateTimeNow { get { return "now()"; } }
 
         //protected override string ReservedWordsStr
         //{

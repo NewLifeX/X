@@ -406,7 +406,7 @@ namespace XCode
                 case TypeCode.Empty:
                     return DBNull.Value;
                 case TypeCode.DateTime:
-                    return DAL.Create(eop.ConnName).Db.DateTimeMin;
+                    return DateTime.MinValue;
                 case TypeCode.Byte:
                 case TypeCode.Char:
                 case TypeCode.Decimal:

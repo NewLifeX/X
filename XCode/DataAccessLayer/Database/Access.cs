@@ -97,11 +97,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>当前时间函数</summary>
-        public override String DateTimeNow { get { return "now()"; } }
+        ///// <summary>当前时间函数</summary>
+        //public override String DateTimeNow { get { return "now()"; } }
 
-        /// <summary>最小时间</summary>
-        public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
+        ///// <summary>最小时间</summary>
+        //public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
         /// <summary>长文本长度</summary>
         public override Int32 LongTextLength { get { return 255; } }

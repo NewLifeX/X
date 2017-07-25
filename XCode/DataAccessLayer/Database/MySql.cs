@@ -128,18 +128,18 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>当前时间函数</summary>
-        public override String DateTimeNow
-        {
-            get
-            {
-                // MySql默认值不能用函数，所以不能用now()
-                return null;
-            }
-        }
+        ///// <summary>当前时间函数</summary>
+        //public override String DateTimeNow
+        //{
+        //    get
+        //    {
+        //        // MySql默认值不能用函数，所以不能用now()
+        //        return null;
+        //    }
+        //}
 
-        /// <summary>获取Guid的函数</summary>
-        public override String NewGuid { get { return "uuid()"; } }
+        ///// <summary>获取Guid的函数</summary>
+        //public override String NewGuid { get { return "uuid()"; } }
 
         protected override String ReservedWordsStr
         {

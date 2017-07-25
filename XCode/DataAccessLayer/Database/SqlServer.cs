@@ -245,17 +245,17 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>当前时间函数</summary>
-        public override String DateTimeNow { get { return "getdate()"; } }
+        ///// <summary>当前时间函数</summary>
+        //public override String DateTimeNow { get { return "getdate()"; } }
 
-        /// <summary>最小时间</summary>
-        public override DateTime DateTimeMin { get { return SqlDateTime.MinValue.Value; } }
+        ///// <summary>最小时间</summary>
+        //public override DateTime DateTimeMin { get { return SqlDateTime.MinValue.Value; } }
 
         /// <summary>长文本长度</summary>
         public override Int32 LongTextLength { get { return 4000; } }
 
-        /// <summary>获取Guid的函数</summary>
-        public override String NewGuid { get { return "newid()"; } }
+        ///// <summary>获取Guid的函数</summary>
+        //public override String NewGuid { get { return "newid()"; } }
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
