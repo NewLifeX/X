@@ -64,7 +64,7 @@ namespace XCoder
 
             gv.DataSource = table.Columns;
             dgvIndex.DataSource = table.Indexes;
-            dgvRelation.DataSource = table.Relations;
+            //dgvRelation.DataSource = table.Relations;
         }
 
         private void gv_RowEnter(Object sender, DataGridViewCellEventArgs e)
@@ -145,18 +145,18 @@ namespace XCoder
             pgColumn.SelectedObject = di;
         }
 
-        private void btnAddRelation_Click(Object sender, EventArgs e)
-        {
-            IDataTable table = GetSelectedTable();
-            if (table == null) return;
+        //private void btnAddRelation_Click(Object sender, EventArgs e)
+        //{
+        //    IDataTable table = GetSelectedTable();
+        //    if (table == null) return;
 
-            IDataRelation dr = table.CreateRelation();
-            table.Relations.Add(dr);
+        //    IDataRelation dr = table.CreateRelation();
+        //    table.Relations.Add(dr);
 
-            dgvRelation.DataSource = null;
-            dgvRelation.DataSource = table.Relations;
-            pgColumn.SelectedObject = dr;
-        }
+        //    dgvRelation.DataSource = null;
+        //    dgvRelation.DataSource = table.Relations;
+        //    pgColumn.SelectedObject = dr;
+        //}
         #endregion
 
         #region 建表语句

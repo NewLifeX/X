@@ -172,7 +172,7 @@ namespace XCode.DataAccessLayer
                 //        if (table != rtable) table.Connect(rtable);
                 //    }
                 //}
-                ModelHelper.Connect(list);
+                //ModelHelper.Connect(list);
 
                 //// 因为可能修改了表间关系，再修正一次
                 //foreach (var table in list)

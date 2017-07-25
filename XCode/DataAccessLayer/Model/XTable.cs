@@ -122,12 +122,12 @@ namespace XCode.DataAccessLayer
         [Description("字段集合")]
         public List<IDataColumn> Columns { get; private set; }
 
-        /// <summary>关系集合。可以是空集合，但不能为null。</summary>
-        [XmlIgnore]
-        [Category("集合")]
-        [DisplayName("关系集合")]
-        [Description("关系集合")]
-        public List<IDataRelation> Relations { get; private set; }
+        ///// <summary>关系集合。可以是空集合，但不能为null。</summary>
+        //[XmlIgnore]
+        //[Category("集合")]
+        //[DisplayName("关系集合")]
+        //[Description("关系集合")]
+        //public List<IDataRelation> Relations { get; private set; }
 
         /// <summary>索引集合。可以是空集合，但不能为null。</summary>
         [XmlIgnore]
@@ -159,7 +159,7 @@ namespace XCode.DataAccessLayer
             IsView = false;
 
             Columns = new List<IDataColumn>();
-            Relations = new List<IDataRelation>();
+            //Relations = new List<IDataRelation>();
             Indexes = new List<IDataIndex>();
 
             Properties = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -184,14 +184,14 @@ namespace XCode.DataAccessLayer
             return dc;
         }
 
-        /// <summary>创建外键</summary>
-        /// <returns></returns>
-        public virtual IDataRelation CreateRelation()
-        {
-            var fk = new XRelation();
-            fk.Table = this;
-            return fk;
-        }
+        ///// <summary>创建外键</summary>
+        ///// <returns></returns>
+        //public virtual IDataRelation CreateRelation()
+        //{
+        //    var fk = new XRelation();
+        //    fk.Table = this;
+        //    return fk;
+        //}
 
         /// <summary>创建索引</summary>
         /// <returns></returns>
@@ -213,9 +213,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual IDataColumn[] GetColumns(String[] names) { return ModelHelper.GetColumns(this, names); }
 
-        /// <summary>连接另一个表，处理两表间关系</summary>
-        /// <param name="table"></param>
-        public virtual IDataTable Connect(IDataTable table) { return ModelResolver.Current.Connect(this, table); }
+        ///// <summary>连接另一个表，处理两表间关系</summary>
+        ///// <param name="table"></param>
+        //public virtual IDataTable Connect(IDataTable table) { return ModelResolver.Current.Connect(this, table); }
 
         /// <summary>修正数据</summary>
         public virtual IDataTable Fix() { return ModelResolver.Current.Fix(this); }
@@ -269,11 +269,11 @@ namespace XCode.DataAccessLayer
             {
                 table.Columns.Add(item.Clone(table));
             }
-            table.Relations = new List<IDataRelation>();
-            foreach (var item in Relations)
-            {
-                table.Relations.Add(item.Clone(table));
-            }
+            //table.Relations = new List<IDataRelation>();
+            //foreach (var item in Relations)
+            //{
+            //    table.Relations.Add(item.Clone(table));
+            //}
             table.Indexes = new List<IDataIndex>();
             foreach (var item in Indexes)
             {

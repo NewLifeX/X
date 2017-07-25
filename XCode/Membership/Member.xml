@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.5.6412.41697">
+<Tables Version="9.5.6415.40916">
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -27,76 +27,6 @@
     <Indexes>
       <Index Columns="Name" Unique="True" />
       <Index Columns="RoleID" />
-    </Indexes>
-    <Relations>
-      <Relation Column="RoleID" RelationTable="Role" RelationColumn="ID" />
-    </Relations>
-  </Table>
-  <Table Name="Role" Description="角色" DbType="SqlServer" RenderGenEntity="true">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
-      <Column Name="IsSystem" DataType="Boolean" Description="是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除" />
-      <Column Name="Remark" DataType="String" Description="说明" />
-      <Column Name="Permission" DataType="String" Length="500" Description="权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔" />
-    </Columns>
-    <Indexes>
-      <Index Columns="Name" Unique="True" />
-    </Indexes>
-  </Table>
-  <Table Name="Menu" Description="菜单" DbType="SqlServer" BaseType="EntityTree" RenderGenEntity="true">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
-      <Column Name="DisplayName" DataType="String" Description="显示名" />
-      <Column Name="ParentID" DataType="Int32" Description="父编号" />
-      <Column Name="Url" DataType="String" Length="200" Description="链接" />
-      <Column Name="Sort" DataType="Int32" Description="排序" />
-      <Column Name="Visible" DataType="Boolean" Description="是否可见" />
-      <Column Name="Necessary" DataType="Boolean" Description="必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色" />
-      <Column Name="Permission" DataType="String" Length="200" Description="权限子项。逗号分隔，每个权限子项名值竖线分隔" />
-      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
-    </Columns>
-    <Indexes>
-      <Index Columns="Name" />
-      <Index Columns="ParentID,Name" Unique="True" />
-    </Indexes>
-  </Table>
-  <Table Name="Log" Description="日志" DbType="SqlServer" RenderGenEntity="true">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Category" DataType="String" Description="类别" />
-      <Column Name="Action" DataType="String" Description="操作" />
-      <Column Name="LinkID" DataType="Int32" Description="链接" />
-      <Column Name="UserName" DataType="String" Description="用户名" />
-      <Column Name="CreateUserID" DataType="Int32" Description="用户编号" />
-      <Column Name="CreateIP" DataType="String" Description="IP地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="时间" />
-      <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
-    </Columns>
-    <Indexes>
-      <Index Columns="Category" />
-      <Index Columns="CreateUserID" />
-      <Index Columns="CreateTime" />
-    </Indexes>
-  </Table>
-  <Table Name="UserOnline" Description="用户在线" DbType="SqlServer" RenderGenEntity="true">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="UserID" DataType="Int32" Description="用户" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称" />
-      <Column Name="SessionID" DataType="String" Description="会话。Web的SessionID或Server的会话编号" />
-      <Column Name="Times" DataType="Int32" Description="次数" />
-      <Column Name="Status" DataType="String" Length="200" Description="状态" />
-      <Column Name="OnlineTime" DataType="Int32" Description="在线时间。本次在线总时间，秒" />
-      <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="修改时间" />
-    </Columns>
-    <Indexes>
-      <Index Columns="UserID" />
-      <Index Columns="SessionID" />
-      <Index Columns="CreateTime" />
     </Indexes>
   </Table>
 </Tables>

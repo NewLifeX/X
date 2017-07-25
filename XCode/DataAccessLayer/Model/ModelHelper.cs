@@ -126,39 +126,39 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        /// <summary>根据字段从指定表中查找关系</summary>
-        /// <param name="table"></param>
-        /// <param name="columnName"></param>
-        /// <returns></returns>
-        public static IDataRelation GetRelation(this IDataTable table, String columnName)
-        {
-            return table.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(columnName));
-        }
+        ///// <summary>根据字段从指定表中查找关系</summary>
+        ///// <param name="table"></param>
+        ///// <param name="columnName"></param>
+        ///// <returns></returns>
+        //public static IDataRelation GetRelation(this IDataTable table, String columnName)
+        //{
+        //    return table.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(columnName));
+        //}
 
-        /// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>
-        /// <param name="table"></param>
-        /// <param name="dr"></param>
-        /// <returns></returns>
-        public static IDataRelation GetRelation(this IDataTable table, IDataRelation dr)
-        {
-            return table.GetRelation(dr.Column, dr.RelationTable, dr.RelationColumn);
-        }
+        ///// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>
+        ///// <param name="table"></param>
+        ///// <param name="dr"></param>
+        ///// <returns></returns>
+        //public static IDataRelation GetRelation(this IDataTable table, IDataRelation dr)
+        //{
+        //    return table.GetRelation(dr.Column, dr.RelationTable, dr.RelationColumn);
+        //}
 
-        /// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>
-        /// <param name="table"></param>
-        /// <param name="columnName"></param>
-        /// <param name="rtableName"></param>
-        /// <param name="rcolumnName"></param>
-        /// <returns></returns>
-        public static IDataRelation GetRelation(this IDataTable table, String columnName, String rtableName, String rcolumnName)
-        {
-            foreach (var item in table.Relations)
-            {
-                if (item.Column == columnName && item.RelationTable == rtableName && item.RelationColumn == rcolumnName) return item;
-            }
+        ///// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>
+        ///// <param name="table"></param>
+        ///// <param name="columnName"></param>
+        ///// <param name="rtableName"></param>
+        ///// <param name="rcolumnName"></param>
+        ///// <returns></returns>
+        //public static IDataRelation GetRelation(this IDataTable table, String columnName, String rtableName, String rcolumnName)
+        //{
+        //    foreach (var item in table.Relations)
+        //    {
+        //        if (item.Column == columnName && item.RelationTable == rtableName && item.RelationColumn == rcolumnName) return item;
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
         #endregion
 
         #region 索引扩展
@@ -321,16 +321,16 @@ namespace XCode.DataAccessLayer
                         }
                         reader.ReadEndElement();
                         break;
-                    case "Relations":
-                        reader.ReadStartElement();
-                        while (reader.IsStartElement())
-                        {
-                            var dr = table.CreateRelation();
-                            (dr as IXmlSerializable).ReadXml(reader);
-                            if (table.GetRelation(dr) == null) table.Relations.Add(dr);
-                        }
-                        reader.ReadEndElement();
-                        break;
+                    //case "Relations":
+                    //    reader.ReadStartElement();
+                    //    while (reader.IsStartElement())
+                    //    {
+                    //        var dr = table.CreateRelation();
+                    //        (dr as IXmlSerializable).ReadXml(reader);
+                    //        if (table.GetRelation(dr) == null) table.Relations.Add(dr);
+                    //    }
+                    //    reader.ReadEndElement();
+                    //    break;
                     default:
                         // 这里必须处理，否则加载特殊Xml文件时将会导致死循环
                         reader.Read();
@@ -375,17 +375,17 @@ namespace XCode.DataAccessLayer
                 }
                 writer.WriteEndElement();
             }
-            if (table.Relations.Count > 0)
-            {
-                writer.WriteStartElement("Relations");
-                foreach (IXmlSerializable item in table.Relations)
-                {
-                    writer.WriteStartElement("Relation");
-                    item.WriteXml(writer);
-                    writer.WriteEndElement();
-                }
-                writer.WriteEndElement();
-            }
+            //if (table.Relations.Count > 0)
+            //{
+            //    writer.WriteStartElement("Relations");
+            //    foreach (IXmlSerializable item in table.Relations)
+            //    {
+            //        writer.WriteStartElement("Relation");
+            //        item.WriteXml(writer);
+            //        writer.WriteEndElement();
+            //    }
+            //    writer.WriteEndElement();
+            //}
 
             return table;
         }
@@ -621,7 +621,7 @@ namespace XCode.DataAccessLayer
             src.CopyFrom(des);
             src.Columns.AddRange(des.Columns.Select(i => src.CreateColumn().CopyFrom(i)));
             src.Indexes.AddRange(des.Indexes.Select(i => src.CreateIndex().CopyFrom(i)));
-            src.Relations.AddRange(des.Relations.Select(i => src.CreateRelation().CopyFrom(i)));
+            //src.Relations.AddRange(des.Relations.Select(i => src.CreateRelation().CopyFrom(i)));
             // 重载ID
             //if (resetColumnID) src.Columns.ForEach((it, i) => it.ID = i + 1);
             if (resetColumnID)
@@ -770,25 +770,25 @@ namespace XCode.DataAccessLayer
             return dc;
         }
 
-        /// <summary>表间连接，猜测关系</summary>
-        /// <param name="tables"></param>
-        public static void Connect(IEnumerable<IDataTable> tables)
-        {
-            // 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
-            foreach (var table in tables)
-            {
-                foreach (var rtable in tables)
-                {
-                    if (table != rtable) table.Connect(rtable);
-                }
-            }
+        ///// <summary>表间连接，猜测关系</summary>
+        ///// <param name="tables"></param>
+        //public static void Connect(IEnumerable<IDataTable> tables)
+        //{
+        //    // 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
+        //    foreach (var table in tables)
+        //    {
+        //        foreach (var rtable in tables)
+        //        {
+        //            if (table != rtable) table.Connect(rtable);
+        //        }
+        //    }
 
-            // 因为可能修改了表间关系，再修正一次
-            foreach (var table in tables)
-            {
-                table.Fix();
-            }
-        }
+        //    // 因为可能修改了表间关系，再修正一次
+        //    foreach (var table in tables)
+        //    {
+        //        table.Fix();
+        //    }
+        //}
         #endregion
     }
 }

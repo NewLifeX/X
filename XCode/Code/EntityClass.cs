@@ -69,13 +69,13 @@ namespace XCode.Code
                     Class.AddAttribute<BindIndexAttribute>(item.Name, item.Unique, String.Join(",", item.Columns));
                 }
             }
-            if (Table.Relations != null && Table.Relations.Count > 0)
-            {
-                foreach (var item in Table.Relations)
-                {
-                    Class.AddAttribute<BindRelationAttribute>(item.Column, item.Unique, item.RelationTable, item.RelationColumn);
-                }
-            }
+            //if (Table.Relations != null && Table.Relations.Count > 0)
+            //{
+            //    foreach (var item in Table.Relations)
+            //    {
+            //        Class.AddAttribute<BindRelationAttribute>(item.Column, item.Unique, item.RelationTable, item.RelationColumn);
+            //    }
+            //}
 
             // 绑定表
             Class.AddAttribute<BindTableAttribute>(Table.TableName, Table.Description, Table.ConnName ?? ConnName, Table.DbType, Table.IsView);

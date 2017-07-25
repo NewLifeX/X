@@ -22,8 +22,7 @@ namespace <#=Config.NameSpace#>
 foreach(IDataIndex di in Table.Indexes){if(di.Columns==null||di.Columns.Length<1)continue;#>
     [BindIndex("<#=di.Name#>", <#=di.Unique.ToString().ToLower()#>, "<#=String.Join(",", di.Columns)#>")]<#
 }
-foreach(IDataRelation dr in Table.Relations){#>
-    [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
+#>
     [BindTable("<#=Table.TableName#>", Description = "<#=tdes#>", ConnName = "<#=Table.ConnName ?? Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
 if(Config.RenderGenEntity){#>
     public partial class <#=Table.Name#><TEntity> : I<#=Table.Name#><#

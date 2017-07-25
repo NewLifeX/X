@@ -25,7 +25,6 @@
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.btnAddRelation = new System.Windows.Forms.Button();
             this.btnAddIndex = new System.Windows.Forms.Button();
             this.btnAddColumn = new System.Windows.Forms.Button();
             this.btnAddTable = new System.Windows.Forms.Button();
@@ -35,17 +34,15 @@
             this.pgTable = new System.Windows.Forms.PropertyGrid();
             this.pgColumn = new System.Windows.Forms.PropertyGrid();
             this.dgvIndex = new System.Windows.Forms.DataGridView();
-            this.dgvRelation = new System.Windows.Forms.DataGridView();
             this.btnCreateTableSQL = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.cbConn = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.btnCreateDbSQL = new System.Windows.Forms.Button();
             this.btnCreateDb = new System.Windows.Forms.Button();
+            this.btnCreateDbSQL = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gv)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvIndex)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvRelation)).BeginInit();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -53,7 +50,6 @@
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.btnAddRelation);
             this.groupBox1.Controls.Add(this.btnAddIndex);
             this.groupBox1.Controls.Add(this.btnAddColumn);
             this.groupBox1.Controls.Add(this.btnAddTable);
@@ -64,16 +60,6 @@
             this.groupBox1.Size = new System.Drawing.Size(536, 44);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
-            // 
-            // btnAddRelation
-            // 
-            this.btnAddRelation.Location = new System.Drawing.Point(461, 11);
-            this.btnAddRelation.Name = "btnAddRelation";
-            this.btnAddRelation.Size = new System.Drawing.Size(68, 27);
-            this.btnAddRelation.TabIndex = 5;
-            this.btnAddRelation.Text = "添加关系";
-            this.btnAddRelation.UseVisualStyleBackColor = true;
-            this.btnAddRelation.Click += new System.EventHandler(this.btnAddRelation_Click);
             // 
             // btnAddIndex
             // 
@@ -133,7 +119,7 @@
             this.gv.Location = new System.Drawing.Point(194, 52);
             this.gv.Name = "gv";
             this.gv.RowTemplate.Height = 23;
-            this.gv.Size = new System.Drawing.Size(629, 187);
+            this.gv.Size = new System.Drawing.Size(629, 286);
             this.gv.TabIndex = 3;
             this.gv.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.gv_RowEnter);
             // 
@@ -162,24 +148,12 @@
             this.dgvIndex.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvIndex.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvIndex.Location = new System.Drawing.Point(194, 245);
+            this.dgvIndex.Location = new System.Drawing.Point(194, 344);
             this.dgvIndex.Name = "dgvIndex";
             this.dgvIndex.RowTemplate.Height = 23;
             this.dgvIndex.Size = new System.Drawing.Size(629, 112);
             this.dgvIndex.TabIndex = 6;
             this.dgvIndex.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.gv_RowEnter);
-            // 
-            // dgvRelation
-            // 
-            this.dgvRelation.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.dgvRelation.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvRelation.Location = new System.Drawing.Point(194, 363);
-            this.dgvRelation.Name = "dgvRelation";
-            this.dgvRelation.RowTemplate.Height = 23;
-            this.dgvRelation.Size = new System.Drawing.Size(629, 102);
-            this.dgvRelation.TabIndex = 7;
-            this.dgvRelation.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.gv_RowEnter);
             // 
             // btnCreateTableSQL
             // 
@@ -222,16 +196,6 @@
             this.groupBox2.TabIndex = 8;
             this.groupBox2.TabStop = false;
             // 
-            // btnCreateDbSQL
-            // 
-            this.btnCreateDbSQL.Location = new System.Drawing.Point(281, 11);
-            this.btnCreateDbSQL.Name = "btnCreateDbSQL";
-            this.btnCreateDbSQL.Size = new System.Drawing.Size(88, 27);
-            this.btnCreateDbSQL.TabIndex = 9;
-            this.btnCreateDbSQL.Text = "建所有表语句";
-            this.btnCreateDbSQL.UseVisualStyleBackColor = true;
-            this.btnCreateDbSQL.Click += new System.EventHandler(this.btnCreateDbSQL_Click);
-            // 
             // btnCreateDb
             // 
             this.btnCreateDb.Location = new System.Drawing.Point(375, 11);
@@ -242,13 +206,22 @@
             this.btnCreateDb.UseVisualStyleBackColor = true;
             this.btnCreateDb.Click += new System.EventHandler(this.btnCreateDb_Click);
             // 
+            // btnCreateDbSQL
+            // 
+            this.btnCreateDbSQL.Location = new System.Drawing.Point(281, 11);
+            this.btnCreateDbSQL.Name = "btnCreateDbSQL";
+            this.btnCreateDbSQL.Size = new System.Drawing.Size(88, 27);
+            this.btnCreateDbSQL.TabIndex = 9;
+            this.btnCreateDbSQL.Text = "建所有表语句";
+            this.btnCreateDbSQL.UseVisualStyleBackColor = true;
+            this.btnCreateDbSQL.Click += new System.EventHandler(this.btnCreateDbSQL_Click);
+            // 
             // FrmModel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1020, 468);
             this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.dgvRelation);
             this.Controls.Add(this.dgvIndex);
             this.Controls.Add(this.pgColumn);
             this.Controls.Add(this.pgTable);
@@ -262,7 +235,6 @@
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gv)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvIndex)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvRelation)).EndInit();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
@@ -278,8 +250,6 @@
         private System.Windows.Forms.PropertyGrid pgTable;
         private System.Windows.Forms.PropertyGrid pgColumn;
         private System.Windows.Forms.DataGridView dgvIndex;
-        private System.Windows.Forms.DataGridView dgvRelation;
-        private System.Windows.Forms.Button btnAddRelation;
         private System.Windows.Forms.Button btnAddIndex;
         private System.Windows.Forms.Button btnAddColumn;
         private System.Windows.Forms.Button btnAddTable;

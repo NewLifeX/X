@@ -23,8 +23,8 @@ namespace XCode.Configuration
         /// <summary>绑定索引特性</summary>
         private BindIndexAttribute[] _Indexes;
 
-        /// <summary>绑定关系特性</summary>
-        private BindRelationAttribute[] _Relations;
+        ///// <summary>绑定关系特性</summary>
+        //private BindRelationAttribute[] _Relations;
 
         private DescriptionAttribute _Description;
         /// <summary>说明</summary>
@@ -219,7 +219,7 @@ namespace XCode.Configuration
             if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
             _Indexes = type.GetCustomAttributes<BindIndexAttribute>(true).ToArray();
-            _Relations = type.GetCustomAttributes<BindRelationAttribute>(true).ToArray();
+            //_Relations = type.GetCustomAttributes<BindRelationAttribute>(true).ToArray();
             _Description = type.GetCustomAttribute<DescriptionAttribute>(true);
             _ModelCheckMode = type.GetCustomAttribute<ModelCheckModeAttribute>(true);
 
@@ -308,16 +308,16 @@ namespace XCode.Configuration
                     table.Indexes.Add(di);
                 }
             }
-            if (_Relations != null && _Relations.Length > 0)
-            {
-                foreach (var item in _Relations)
-                {
-                    var dr = table.CreateRelation();
-                    item.Fill(dr);
+            //if (_Relations != null && _Relations.Length > 0)
+            //{
+            //    foreach (var item in _Relations)
+            //    {
+            //        var dr = table.CreateRelation();
+            //        item.Fill(dr);
 
-                    if (table.GetRelation(dr) == null) table.Relations.Add(dr);
-                }
-            }
+            //        if (table.GetRelation(dr) == null) table.Relations.Add(dr);
+            //    }
+            //}
 
             // 不允许为null
             _AllFields = allfields.ToArray();

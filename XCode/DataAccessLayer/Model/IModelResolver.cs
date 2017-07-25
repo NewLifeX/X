@@ -44,20 +44,20 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 模型处理
-        /// <summary>连接两个表。
-        /// 实际上是猜测它们之间的关系，根据一个字段名是否等于另一个表的表名加某个字段名来判断是否存在关系。</summary>
-        /// <param name="table"></param>
-        /// <param name="rtable"></param>
-        IDataTable Connect(IDataTable table, IDataTable rtable);
+        ///// <summary>连接两个表。
+        ///// 实际上是猜测它们之间的关系，根据一个字段名是否等于另一个表的表名加某个字段名来判断是否存在关系。</summary>
+        ///// <param name="table"></param>
+        ///// <param name="rtable"></param>
+        //IDataTable Connect(IDataTable table, IDataTable rtable);
 
-        /// <summary>猜测表间关系</summary>
-        /// <param name="table"></param>
-        /// <param name="rtable"></param>
-        /// <param name="rname"></param>
-        /// <param name="column"></param>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        Boolean GuessRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name);
+        ///// <summary>猜测表间关系</summary>
+        ///// <param name="table"></param>
+        ///// <param name="rtable"></param>
+        ///// <param name="rname"></param>
+        ///// <param name="column"></param>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //Boolean GuessRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name);
 
         /// <summary>修正数据</summary>
         /// <param name="table"></param>
@@ -376,93 +376,93 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 模型处理
-        /// <summary>连接两个表。
-        /// 实际上是猜测它们之间的关系，根据一个字段名是否等于另一个表的表名加某个字段名来判断是否存在关系。</summary>
-        /// <param name="table"></param>
-        /// <param name="rtable"></param>
-        public virtual IDataTable Connect(IDataTable table, IDataTable rtable)
-        {
-            foreach (var dc in table.Columns)
-            {
-                if (dc.PrimaryKey || dc.Identity) continue;
+        ///// <summary>连接两个表。
+        ///// 实际上是猜测它们之间的关系，根据一个字段名是否等于另一个表的表名加某个字段名来判断是否存在关系。</summary>
+        ///// <param name="table"></param>
+        ///// <param name="rtable"></param>
+        //public virtual IDataTable Connect(IDataTable table, IDataTable rtable)
+        //{
+        //    foreach (var dc in table.Columns)
+        //    {
+        //        if (dc.PrimaryKey || dc.Identity) continue;
 
-                if (GuessRelation(table, rtable, rtable.TableName, dc, dc.ColumnName)) continue;
-                if (!dc.ColumnName.EqualIgnoreCase(dc.Name))
-                {
-                    if (GuessRelation(table, rtable, rtable.TableName, dc, dc.Name)) continue;
-                }
+        //        if (GuessRelation(table, rtable, rtable.TableName, dc, dc.ColumnName)) continue;
+        //        if (!dc.ColumnName.EqualIgnoreCase(dc.Name))
+        //        {
+        //            if (GuessRelation(table, rtable, rtable.TableName, dc, dc.Name)) continue;
+        //        }
 
-                if (rtable.TableName.EqualIgnoreCase(rtable.Name)) continue;
+        //        if (rtable.TableName.EqualIgnoreCase(rtable.Name)) continue;
 
-                // 如果表2的别名和名称不同，还要继续
-                if (GuessRelation(table, rtable, rtable.Name, dc, dc.ColumnName)) continue;
-                if (!dc.ColumnName.EqualIgnoreCase(dc.Name))
-                {
-                    if (GuessRelation(table, rtable, rtable.Name, dc, dc.Name)) continue;
-                }
-            }
+        //        // 如果表2的别名和名称不同，还要继续
+        //        if (GuessRelation(table, rtable, rtable.Name, dc, dc.ColumnName)) continue;
+        //        if (!dc.ColumnName.EqualIgnoreCase(dc.Name))
+        //        {
+        //            if (GuessRelation(table, rtable, rtable.Name, dc, dc.Name)) continue;
+        //        }
+        //    }
 
-            return table;
-        }
+        //    return table;
+        //}
 
-        /// <summary>猜测表间关系</summary>
-        /// <param name="table"></param>
-        /// <param name="rtable"></param>
-        /// <param name="rname"></param>
-        /// <param name="column"></param>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual Boolean GuessRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name)
-        {
-            if (table == null || rtable == null || rname == null || column == null || name == null) return false;
-            if (name.Length <= rtable.TableName.Length || !name.StartsWithIgnoreCase(rtable.TableName)) return false;
+        ///// <summary>猜测表间关系</summary>
+        ///// <param name="table"></param>
+        ///// <param name="rtable"></param>
+        ///// <param name="rname"></param>
+        ///// <param name="column"></param>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public virtual Boolean GuessRelation(IDataTable table, IDataTable rtable, String rname, IDataColumn column, String name)
+        //{
+        //    if (table == null || rtable == null || rname == null || column == null || name == null) return false;
+        //    if (name.Length <= rtable.TableName.Length || !name.StartsWithIgnoreCase(rtable.TableName)) return false;
 
-            var key = name.Substring(rtable.TableName.Length);
-            var dc = rtable.GetColumn(key);
-            // 猜测两表关联关系时，两个字段的类型也必须一致
-            if (dc == null || dc.DataType != column.DataType) return false;
+        //    var key = name.Substring(rtable.TableName.Length);
+        //    var dc = rtable.GetColumn(key);
+        //    // 猜测两表关联关系时，两个字段的类型也必须一致
+        //    if (dc == null || dc.DataType != column.DataType) return false;
 
-            // 建立关系
-            var dr = table.CreateRelation();
-            dr.Column = column.ColumnName;
-            dr.RelationTable = rtable.TableName;
-            dr.RelationColumn = dc.ColumnName;
-            // 表关系这里一般是多对一，比如管理员的RoleID=>Role+Role.ID，对于索引来说，不是唯一的
-            dr.Unique = false;
-            // 当然，如果这个字段column有唯一索引，那么，这里也是唯一的。这就是典型的一对一
-            if (column.PrimaryKey || column.Identity)
-                dr.Unique = true;
-            else
-            {
-                var di = table.GetIndex(column.ColumnName);
-                if (di != null && di.Unique) dr.Unique = true;
-            }
+        //    // 建立关系
+        //    var dr = table.CreateRelation();
+        //    dr.Column = column.ColumnName;
+        //    dr.RelationTable = rtable.TableName;
+        //    dr.RelationColumn = dc.ColumnName;
+        //    // 表关系这里一般是多对一，比如管理员的RoleID=>Role+Role.ID，对于索引来说，不是唯一的
+        //    dr.Unique = false;
+        //    // 当然，如果这个字段column有唯一索引，那么，这里也是唯一的。这就是典型的一对一
+        //    if (column.PrimaryKey || column.Identity)
+        //        dr.Unique = true;
+        //    else
+        //    {
+        //        var di = table.GetIndex(column.ColumnName);
+        //        if (di != null && di.Unique) dr.Unique = true;
+        //    }
 
-            dr.Computed = true;
-            if (table.GetRelation(dr) == null) table.Relations.Add(dr);
+        //    dr.Computed = true;
+        //    if (table.GetRelation(dr) == null) table.Relations.Add(dr);
 
-            // 给另一方建立关系
-            if (rtable.GetRelation(dc.ColumnName, table.TableName, column.ColumnName) != null) return true;
+        //    // 给另一方建立关系
+        //    if (rtable.GetRelation(dc.ColumnName, table.TableName, column.ColumnName) != null) return true;
 
-            dr = rtable.CreateRelation();
-            dr.Column = dc.ColumnName;
-            dr.RelationTable = table.TableName;
-            dr.RelationColumn = column.ColumnName;
-            // 那么这里就是唯一的啦
-            dr.Unique = true;
-            // 当然，如果字段dc不是主键，也没有唯一索引，那么关系就不是唯一的。这就是典型的多对多
-            if (!dc.PrimaryKey && !dc.Identity)
-            {
-                var di = rtable.GetIndex(dc.ColumnName);
-                // 没有索引，或者索引不是唯一的
-                if (di == null || !di.Unique) dr.Unique = false;
-            }
+        //    dr = rtable.CreateRelation();
+        //    dr.Column = dc.ColumnName;
+        //    dr.RelationTable = table.TableName;
+        //    dr.RelationColumn = column.ColumnName;
+        //    // 那么这里就是唯一的啦
+        //    dr.Unique = true;
+        //    // 当然，如果字段dc不是主键，也没有唯一索引，那么关系就不是唯一的。这就是典型的多对多
+        //    if (!dc.PrimaryKey && !dc.Identity)
+        //    {
+        //        var di = rtable.GetIndex(dc.ColumnName);
+        //        // 没有索引，或者索引不是唯一的
+        //        if (di == null || !di.Unique) dr.Unique = false;
+        //    }
 
-            dr.Computed = true;
-            if (rtable.GetRelation(dr) == null) rtable.Relations.Add(dr);
+        //    dr.Computed = true;
+        //    if (rtable.GetRelation(dr) == null) rtable.Relations.Add(dr);
 
-            return true;
-        }
+        //    return true;
+        //}
 
         /// <summary>修正数据</summary>
         /// <param name="table"></param>
@@ -470,11 +470,11 @@ namespace XCode.DataAccessLayer
         {
             if (table.Name.IsNullOrEmpty()) table.Name = GetName(table.TableName);
 
-            // 根据单字段索引修正对应的关系
-            FixRelationBySingleIndex(table);
+            //// 根据单字段索引修正对应的关系
+            //FixRelationBySingleIndex(table);
 
-            // 给所有关系字段建立索引
-            CreateIndexForRelation(table);
+            //// 给所有关系字段建立索引
+            //CreateIndexForRelation(table);
 
             // 从索引中修正主键
             FixPrimaryByIndex(table);
@@ -512,6 +512,7 @@ namespace XCode.DataAccessLayer
 
             return table;
         }
+
         /// <summary>修正数据列</summary>
         /// <param name="column"></param>
         public virtual IDataColumn Fix(IDataColumn column)
@@ -520,45 +521,46 @@ namespace XCode.DataAccessLayer
 
             return column;
         }
-        /// <summary>根据单字段索引修正对应的关系</summary>
-        /// <param name="table"></param>
-        protected virtual void FixRelationBySingleIndex(IDataTable table)
-        {
-            // 给所有单字段索引建立关系，特别是一对一关系
-            foreach (var item in table.Indexes)
-            {
-                if (item.Columns == null || item.Columns.Length != 1) continue;
 
-                var dr = table.GetRelation(item.Columns[0]);
-                if (dr == null) continue;
+        ///// <summary>根据单字段索引修正对应的关系</summary>
+        ///// <param name="table"></param>
+        //protected virtual void FixRelationBySingleIndex(IDataTable table)
+        //{
+        //    // 给所有单字段索引建立关系，特别是一对一关系
+        //    foreach (var item in table.Indexes)
+        //    {
+        //        if (item.Columns == null || item.Columns.Length != 1) continue;
 
-                dr.Unique = item.Unique;
-                // 跟关系有关联的索引
-                dr.Computed = item.Computed;
-            }
-        }
+        //        var dr = table.GetRelation(item.Columns[0]);
+        //        if (dr == null) continue;
 
-        /// <summary>给所有关系字段建立索引</summary>
-        /// <param name="table"></param>
-        protected virtual void CreateIndexForRelation(IDataTable table)
-        {
-            foreach (var dr in table.Relations)
-            {
-                // 跳过主键
-                var dc = table.GetColumn(dr.Column);
-                if (dc == null || dc.PrimaryKey) continue;
+        //        dr.Unique = item.Unique;
+        //        // 跟关系有关联的索引
+        //        dr.Computed = item.Computed;
+        //    }
+        //}
 
-                if (table.GetIndex(dr.Column) == null)
-                {
-                    var di = table.CreateIndex();
-                    di.Columns = new String[] { dr.Column };
-                    // 这两个的关系，唯一性
-                    di.Unique = dr.Unique;
-                    di.Computed = true;
-                    table.Indexes.Add(di);
-                }
-            }
-        }
+        ///// <summary>给所有关系字段建立索引</summary>
+        ///// <param name="table"></param>
+        //protected virtual void CreateIndexForRelation(IDataTable table)
+        //{
+        //    foreach (var dr in table.Relations)
+        //    {
+        //        // 跳过主键
+        //        var dc = table.GetColumn(dr.Column);
+        //        if (dc == null || dc.PrimaryKey) continue;
+
+        //        if (table.GetIndex(dr.Column) == null)
+        //        {
+        //            var di = table.CreateIndex();
+        //            di.Columns = new String[] { dr.Column };
+        //            // 这两个的关系，唯一性
+        //            di.Unique = dr.Unique;
+        //            di.Computed = true;
+        //            table.Indexes.Add(di);
+        //        }
+        //    }
+        //}
 
         /// <summary>从索引中修正主键</summary>
         /// <param name="table"></param>

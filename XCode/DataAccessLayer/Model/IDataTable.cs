@@ -48,8 +48,8 @@ namespace XCode.DataAccessLayer
         /// <summary>数据列集合。可以是空集合，但不能为null。</summary>
         List<IDataColumn> Columns { get; }
 
-        /// <summary>数据关系集合。可以是空集合，但不能为null。</summary>
-        List<IDataRelation> Relations { get; }
+        ///// <summary>数据关系集合。可以是空集合，但不能为null。</summary>
+        //List<IDataRelation> Relations { get; }
 
         /// <summary>数据索引集合。可以是空集合，但不能为null。</summary>
         List<IDataIndex> Indexes { get; }
@@ -69,9 +69,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         IDataColumn CreateColumn();
 
-        /// <summary>创建数据关系</summary>
-        /// <returns></returns>
-        IDataRelation CreateRelation();
+        ///// <summary>创建数据关系</summary>
+        ///// <returns></returns>
+        //IDataRelation CreateRelation();
 
         /// <summary>创建数据索引</summary>
         /// <returns></returns>
@@ -87,9 +87,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         IDataColumn[] GetColumns(String[] names);
 
-        /// <summary>连接另一个表，处理两表间关系</summary>
-        /// <param name="table"></param>
-        IDataTable Connect(IDataTable table);
+        ///// <summary>连接另一个表，处理两表间关系</summary>
+        ///// <param name="table"></param>
+        //IDataTable Connect(IDataTable table);
 
         /// <summary>修正数据</summary>
         IDataTable Fix();
