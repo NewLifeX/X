@@ -381,21 +381,21 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Areas\Admin\Views\Db\Index.cshtml">
+    <None Include="Areas\Admin\Views\Db\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <Content Include="index.html" />
     <Content Include="Scripts\ApiClient.js" />
     <Content Include="Scripts\WebSocketX.js" />
-    <Content Include="Areas\Admin\Views\File\Index.cshtml">
+    <None Include="Areas\Admin\Views\File\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\User\_Form_Action.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\User\_Form_Action.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Content\ace\css\ace-fonts.min.css" />
     <None Include="Content\ace\css\ace-ie.min.css" />
     <None Include="Content\ace\css\ace-part2.min.css" />
@@ -524,14 +524,14 @@
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
     </None>
     <None Include="Areas\Admin\Views\Web.config" />
-    <Content Include="Views\Home\Index.cshtml">
+    <None Include="Views\Home\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\CubeHome\Index.cshtml">
+    </None>
+    <None Include="Views\CubeHome\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\ListTree.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ListTree.generated.cs</LastGenOutput>
@@ -634,7 +634,7 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_LoginPartial.generated.cs</LastGenOutput>
     </None>
-    <None Include="Views\Web.config" />
+    <EmbeddedResource Include="Views\Web.config" />
     <None Include="Views\Shared\CubeError.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>CubeError.generated.cs</LastGenOutput>
