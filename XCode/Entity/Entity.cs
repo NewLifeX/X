@@ -714,8 +714,8 @@ namespace XCode
             // 验证排序字段，避免非法
             if (!param.Sort.IsNullOrEmpty())
             {
-                FieldItem st = Meta.Table.FindByName(param.Sort);
-                param.Sort = st != null ? st.Name : null;
+                var st = Meta.Table.FindByName(param.Sort);
+                param.Sort = st?.ColumnName;
             }
 
             // 采用起始行还是分页
