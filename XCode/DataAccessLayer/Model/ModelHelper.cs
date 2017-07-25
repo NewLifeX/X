@@ -321,16 +321,17 @@ namespace XCode.DataAccessLayer
                         }
                         reader.ReadEndElement();
                         break;
-                    //case "Relations":
-                    //    reader.ReadStartElement();
-                    //    while (reader.IsStartElement())
-                    //    {
-                    //        var dr = table.CreateRelation();
-                    //        (dr as IXmlSerializable).ReadXml(reader);
-                    //        if (table.GetRelation(dr) == null) table.Relations.Add(dr);
-                    //    }
-                    //    reader.ReadEndElement();
-                    //    break;
+                    case "Relations":
+                        reader.ReadStartElement();
+                        reader.Skip();
+                        //while (reader.IsStartElement())
+                        //{
+                        //    var dr = table.CreateRelation();
+                        //    (dr as IXmlSerializable).ReadXml(reader);
+                        //    if (table.GetRelation(dr) == null) table.Relations.Add(dr);
+                        //}
+                        reader.ReadEndElement();
+                        break;
                     default:
                         // 这里必须处理，否则加载特殊Xml文件时将会导致死循环
                         reader.Read();
@@ -425,15 +426,15 @@ namespace XCode.DataAccessLayer
             var pi2 = pis.FirstOrDefault(e => e.Name == "TableName" || e.Name == "ColumnName");
             if (pi1 != null && pi2 != null)
             {
-                // 兼容旧版本
-                var v2 = reader.GetAttribute("Alias");
-                if (!String.IsNullOrEmpty(v2))
-                {
-                    value.SetValue(pi2, value.GetValue(pi1));
-                    value.SetValue(pi1, v2);
-                }
+                //// 兼容旧版本
+                //var v2 = reader.GetAttribute("Alias");
+                //if (!String.IsNullOrEmpty(v2))
+                //{
+                //    value.SetValue(pi2, value.GetValue(pi1));
+                //    value.SetValue(pi1, v2);
+                //}
                 // 写入的时候省略了相同的TableName/ColumnName
-                v2 = (String)value.GetValue(pi2);
+                var v2 = (String)value.GetValue(pi2);
                 if (String.IsNullOrEmpty(v2))
                 {
                     value.SetValue(pi2, value.GetValue(pi1));
@@ -515,7 +516,7 @@ namespace XCode.DataAccessLayer
                     // 如果别名与名称相同，则跳过，不区分大小写
                     if (pi.Name == "Name")
                         name = (String)obj;
-                    else if (pi.Name == "Alias" || pi.Name == "TableName" || pi.Name == "ColumnName")
+                    else if (pi.Name == "TableName" || pi.Name == "ColumnName")
                         if (name.EqualIgnoreCase((String)obj)) continue;
 
                     // 如果DisplayName与Name或者Description相同，则跳过

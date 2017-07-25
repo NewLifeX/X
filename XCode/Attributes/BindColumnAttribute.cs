@@ -71,7 +71,6 @@ namespace XCode
         /// <param name="rawType"></param>
         /// <param name="precision"></param>
         /// <param name="scale"></param>
-        /// <param name="isUnicode"></param>
         public BindColumnAttribute(Int32 order, String name, String description, String defaultValue, String rawType, Int32 precision, Int32 scale)
             : this(order, name, description, defaultValue)
         {

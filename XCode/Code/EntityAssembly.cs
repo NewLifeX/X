@@ -114,7 +114,7 @@ namespace XCode.Code
         /// <returns></returns>
         public EntityClass Create(IDataTable table)
         {
-            if (String.IsNullOrEmpty(table.Name)) throw new ArgumentNullException("Alias", "数据表中将用作实体类名的别名Alias不能为空！");
+            if (String.IsNullOrEmpty(table.Name)) throw new ArgumentNullException(nameof(table.Name), "数据表中将用作实体类名的Name不能为空！");
 
             // 复制一份，以免修改原来的结构
             var tb = table.Clone() as IDataTable;
