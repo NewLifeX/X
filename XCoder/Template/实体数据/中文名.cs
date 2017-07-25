@@ -46,7 +46,7 @@ if(Table.Columns.Count>0)
         [DisplayName("<#=dis#>")]
         [Description("<#=des#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-        [BindColumn(<#=Field.ID#>, "<#=Field.ColumnName#>", "<#=des#>", <#=Field.Default==null?"null":"\""+Field.Default.Replace("\\", "\\\\")+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#><#if(Field.Master){#>, Master=<#=Field.Master.ToString().ToLower()#><#}#>)]
+        [BindColumn(<#=Field.ID#>, "<#=Field.ColumnName#>", "<#=des#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#><#if(Field.Master){#>, Master=<#=Field.Master.ToString().ToLower()#><#}#>)]
         public virtual <#=Field.DataType==null?"":Field.DataType.Name#> <#=Field.Name#>
         {
             get { return _<#=Field.Name#>; }

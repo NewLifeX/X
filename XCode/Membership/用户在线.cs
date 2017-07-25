@@ -24,7 +24,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn(1, "ID", "编号", null, "int", 10, 0)]
+        [BindColumn(1, "ID", "编号", "int", 10, 0)]
         public virtual Int32 ID
         {
             get { return _ID; }
@@ -36,7 +36,7 @@ namespace XCode.Membership
         [DisplayName("用户")]
         [Description("用户")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(2, "UserID", "用户", null, "int", 10, 0)]
+        [BindColumn(2, "UserID", "用户", "int", 10, 0)]
         public virtual Int32 UserID
         {
             get { return _UserID; }
@@ -48,7 +48,7 @@ namespace XCode.Membership
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(3, "Name", "名称", null, "nvarchar(50)", 0, 0, Master=true)]
+        [BindColumn(3, "Name", "名称", "nvarchar(50)", 0, 0, Master=true)]
         public virtual String Name
         {
             get { return _Name; }
@@ -60,7 +60,7 @@ namespace XCode.Membership
         [DisplayName("会话")]
         [Description("会话。Web的SessionID或Server的会话编号")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "SessionID", "会话。Web的SessionID或Server的会话编号", null, "nvarchar(50)", 0, 0)]
+        [BindColumn(4, "SessionID", "会话。Web的SessionID或Server的会话编号", "nvarchar(50)", 0, 0)]
         public virtual String SessionID
         {
             get { return _SessionID; }
@@ -72,7 +72,7 @@ namespace XCode.Membership
         [DisplayName("次数")]
         [Description("次数")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(5, "Times", "次数", null, "int", 10, 0)]
+        [BindColumn(5, "Times", "次数", "int", 10, 0)]
         public virtual Int32 Times
         {
             get { return _Times; }
@@ -84,7 +84,7 @@ namespace XCode.Membership
         [DisplayName("状态")]
         [Description("状态")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn(6, "Status", "状态", null, "nvarchar(200)", 0, 0)]
+        [BindColumn(6, "Status", "状态", "nvarchar(200)", 0, 0)]
         public virtual String Status
         {
             get { return _Status; }
@@ -96,7 +96,7 @@ namespace XCode.Membership
         [DisplayName("在线时间")]
         [Description("在线时间。本次在线总时间，秒")]
         [DataObjectField(false, false, true, 10)]
-        [BindColumn(7, "OnlineTime", "在线时间。本次在线总时间，秒", null, "int", 10, 0)]
+        [BindColumn(7, "OnlineTime", "在线时间。本次在线总时间，秒", "int", 10, 0)]
         public virtual Int32 OnlineTime
         {
             get { return _OnlineTime; }
@@ -108,7 +108,7 @@ namespace XCode.Membership
         [DisplayName("创建地址")]
         [Description("创建地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(8, "CreateIP", "创建地址", null, "nvarchar(50)", 0, 0)]
+        [BindColumn(8, "CreateIP", "创建地址", "nvarchar(50)", 0, 0)]
         public virtual String CreateIP
         {
             get { return _CreateIP; }
@@ -120,7 +120,7 @@ namespace XCode.Membership
         [DisplayName("创建时间")]
         [Description("创建时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(9, "CreateTime", "创建时间", null, "datetime", 3, 0)]
+        [BindColumn(9, "CreateTime", "创建时间", "datetime", 3, 0)]
         public virtual DateTime CreateTime
         {
             get { return _CreateTime; }
@@ -132,7 +132,7 @@ namespace XCode.Membership
         [DisplayName("修改时间")]
         [Description("修改时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(10, "UpdateTime", "修改时间", null, "datetime", 3, 0)]
+        [BindColumn(10, "UpdateTime", "修改时间", "datetime", 3, 0)]
         public virtual DateTime UpdateTime
         {
             get { return _UpdateTime; }

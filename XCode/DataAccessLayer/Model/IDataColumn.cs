@@ -52,8 +52,8 @@ namespace XCode.DataAccessLayer
         ///// <summary>是否Unicode</summary>
         //Boolean IsUnicode { get; set; }
 
-        /// <summary>默认值</summary>
-        String Default { get; set; }
+        ///// <summary>默认值</summary>
+        //String Default { get; set; }
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         String DisplayName { get; set; }

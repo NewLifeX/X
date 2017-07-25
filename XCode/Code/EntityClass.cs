@@ -131,7 +131,7 @@ namespace XCode.Code
             if (!field.DisplayName.IsNullOrWhiteSpace() && field.DisplayName != field.Name) p.AddAttribute<DisplayNameAttribute>(field.DisplayName);
 
             p.AddAttribute<DataObjectFieldAttribute>(field.PrimaryKey, field.Identity, field.Nullable, field.Length);
-            p.AddAttribute<BindColumnAttribute>(field.ID, field.ColumnName, field.Description, field.Default == null ? null : field.Default, field.RawType, field.Precision, field.Scale);
+            p.AddAttribute<BindColumnAttribute>(field.ID, field.ColumnName, field.Description, field.RawType, field.Precision, field.Scale);
 
             p.HasGet = true;
             p.HasSet = true;

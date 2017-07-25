@@ -313,8 +313,8 @@ namespace XCode.DataAccessLayer
                     if (!String.IsNullOrEmpty(str)) field.Nullable = "Y".EqualIgnoreCase(str);
                 }
 
-                // 默认值
-                field.Default = GetDataRowValue<String>(dr, "COLUMN_DEFAULT");
+                //// 默认值
+                //field.Default = GetDataRowValue<String>(dr, "COLUMN_DEFAULT");
 
                 // 描述
                 field.Description = GetDataRowValue<String>(dr, "DESCRIPTION");

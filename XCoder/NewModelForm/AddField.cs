@@ -35,7 +35,7 @@ namespace XCoder
         void BandText()
         {
             txtName.Text = DataColumn.Name;
-            txtDefault.Text = DataColumn.Default;
+            //txtDefault.Text = DataColumn.Default;
             txtDescription.Text = DataColumn.Description;
             txtLength.Text = DataColumn.Length.ToString();
             //txtNumOfByte.Text = DataColumn.NumOfByte.ToString();
@@ -59,7 +59,7 @@ namespace XCoder
         void SaveValue()
         {
             DataColumn.Name = txtName.Text.Trim();
-            DataColumn.Default = txtDefault.Text.Trim();
+            //DataColumn.Default = txtDefault.Text.Trim();
             DataColumn.Description = txtDescription.Text.Trim();
             DataColumn.Length = Convert.ToInt32(txtLength.Text.Trim());
             //DataColumn.NumOfByte = Convert.ToInt32(txtNumOfByte.Text.Trim());

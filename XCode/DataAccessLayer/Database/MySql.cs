@@ -334,14 +334,14 @@ namespace XCode.DataAccessLayer
             if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
             {
                 field.DataType = typeof(Boolean);
-                // 处理默认值
-                if (!String.IsNullOrEmpty(field.Default))
-                {
-                    if (field.Default == "Y")
-                        field.Default = "true";
-                    else if (field.Default == "N")
-                        field.Default = "false";
-                }
+                //// 处理默认值
+                //if (!String.IsNullOrEmpty(field.Default))
+                //{
+                //    if (field.Default == "Y")
+                //        field.Default = "true";
+                //    else if (field.Default == "N")
+                //        field.Default = "false";
+                //}
                 return;
             }
             base.FixField(field, dr);
@@ -472,31 +472,31 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        {
-            if (String.IsNullOrEmpty(field.Default)) return null;
+        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
+        //{
+        //    if (String.IsNullOrEmpty(field.Default)) return null;
 
-            if (field.DataType == typeof(Boolean))
-            {
-                if (field.Default == "true")
-                    return " Default 'Y'";
-                else if (field.Default == "false")
-                    return " Default 'N'";
-            }
-            else if (field.DataType == typeof(String))
-            {
-                // 大文本不能有默认值
-                if (field.Length <= 0 || field.Length >= Database.LongTextLength) return null;
-            }
-            //else if (field.DataType == typeof(DateTime))
-            //{
-            //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
-            //    if (d == "now()") d = "CURRENT_TIMESTAMP";
-            //    return String.Format(" Default {0}", d);
-            //}
+        //    if (field.DataType == typeof(Boolean))
+        //    {
+        //        if (field.Default == "true")
+        //            return " Default 'Y'";
+        //        else if (field.Default == "false")
+        //            return " Default 'N'";
+        //    }
+        //    else if (field.DataType == typeof(String))
+        //    {
+        //        // 大文本不能有默认值
+        //        if (field.Length <= 0 || field.Length >= Database.LongTextLength) return null;
+        //    }
+        //    //else if (field.DataType == typeof(DateTime))
+        //    //{
+        //    //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+        //    //    if (d == "now()") d = "CURRENT_TIMESTAMP";
+        //    //    return String.Format(" Default {0}", d);
+        //    //}
 
-            return base.GetFieldDefault(field, onlyDefine);
-        }
+        //    return base.GetFieldDefault(field, onlyDefine);
+        //}
 
         //protected override void FixIndex(IDataIndex index, DataRow dr)
         //{

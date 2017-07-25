@@ -17,8 +17,8 @@ namespace XCode
         /// <summary>描述</summary>
         public String Description { get; set; }
 
-        /// <summary>默认值</summary>
-        public String DefaultValue { get; set; }
+        ///// <summary>默认值</summary>
+        //public String DefaultValue { get; set; }
 
         /// <summary>
         /// 原始数据类型。
@@ -54,25 +54,23 @@ namespace XCode
         /// <param name="order"></param>
         /// <param name="name">名称</param>
         /// <param name="description"></param>
-        /// <param name="defaultValue"></param>
-        public BindColumnAttribute(Int32 order, String name, String description, String defaultValue)
+        public BindColumnAttribute(Int32 order, String name, String description)
         {
             Order = order;
             Name = name;
             Description = description;
-            DefaultValue = defaultValue;
+            //DefaultValue = defaultValue;
         }
 
         /// <summary>构造函数</summary>
         /// <param name="order"></param>
         /// <param name="name">名称</param>
         /// <param name="description"></param>
-        /// <param name="defaultValue"></param>
         /// <param name="rawType"></param>
         /// <param name="precision"></param>
         /// <param name="scale"></param>
-        public BindColumnAttribute(Int32 order, String name, String description, String defaultValue, String rawType, Int32 precision, Int32 scale)
-            : this(order, name, description, defaultValue)
+        public BindColumnAttribute(Int32 order, String name, String description, String rawType, Int32 precision, Int32 scale)
+            : this(order, name, description)
         {
             RawType = rawType;
             Precision = precision;
@@ -90,7 +88,7 @@ namespace XCode
         /// <param name="isUnicode"></param>
         [Obsolete()]
         public BindColumnAttribute(Int32 order, String name, String description, String defaultValue, String rawType, Int32 precision, Int32 scale, Boolean isUnicode)
-            : this(order, name, description, defaultValue)
+            : this(order, name, description)
         {
             RawType = rawType;
             Precision = precision;

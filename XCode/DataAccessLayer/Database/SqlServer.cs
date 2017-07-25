@@ -471,39 +471,39 @@ namespace XCode.DataAccessLayer
                 field.Scale = GetDataRowValue<Int32>(dr2, "小数位数");
             }
 
-            // 整理默认值
-            if (!String.IsNullOrEmpty(field.Default))
-            {
-                field.Default = Trim(field.Default, "(", ")");
-                field.Default = Trim(field.Default, "\"", "\"");
-                field.Default = Trim(field.Default, "\'", "\'");
-                field.Default = Trim(field.Default, "N\'", "\'");
-                field.Default = field.Default.Replace("''", "'");
+            //// 整理默认值
+            //if (!String.IsNullOrEmpty(field.Default))
+            //{
+            //    field.Default = Trim(field.Default, "(", ")");
+            //    field.Default = Trim(field.Default, "\"", "\"");
+            //    field.Default = Trim(field.Default, "\'", "\'");
+            //    field.Default = Trim(field.Default, "N\'", "\'");
+            //    field.Default = field.Default.Replace("''", "'");
 
-                // 处理类似CONVERT([datetime],'1753-1-1',(0))的时间默认值
-                if (field.DataType == typeof(DateTime))
-                {
-                    var def = field.Default;
-                    if (def.StartsWithIgnoreCase("CONVERT("))
-                    {
-                        var ss = def.Split(",");
-                        if (ss.Length >= 3)
-                        {
-                            def = ss[1].Trim().Trim('\'').Trim();
-                            DateTime dt;
-                            if (DateTime.TryParse(def, out dt))
-                            {
-                                if (dt == Database.DateTimeMin || dt.Date == Database.DateTimeMin.Date)
-                                {
-                                    //def = Database.DateTimeNow;
-                                    //def = Database.DateTimeMin.ToString("yyyy-MM-dd");
-                                    field.Default = def;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            //    // 处理类似CONVERT([datetime],'1753-1-1',(0))的时间默认值
+            //    if (field.DataType == typeof(DateTime))
+            //    {
+            //        var def = field.Default;
+            //        if (def.StartsWithIgnoreCase("CONVERT("))
+            //        {
+            //            var ss = def.Split(",");
+            //            if (ss.Length >= 3)
+            //            {
+            //                def = ss[1].Trim().Trim('\'').Trim();
+            //                DateTime dt;
+            //                if (DateTime.TryParse(def, out dt))
+            //                {
+            //                    if (dt == Database.DateTimeMin || dt.Date == Database.DateTimeMin.Date)
+            //                    {
+            //                        //def = Database.DateTimeNow;
+            //                        //def = Database.DateTimeMin.ToString("yyyy-MM-dd");
+            //                        field.Default = def;
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         protected override List<IDataIndex> GetIndexes(IDataTable table)
@@ -595,12 +595,12 @@ namespace XCode.DataAccessLayer
             return pi;
         }
 
-        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        {
-            if (!onlyDefine) return null;
+        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
+        //{
+        //    if (!onlyDefine) return null;
 
-            return base.GetFieldDefault(field, onlyDefine);
-        }
+        //    return base.GetFieldDefault(field, onlyDefine);
+        //}
         #endregion
 
         #region 取得字段信息的SQL模版
@@ -906,23 +906,23 @@ namespace XCode.DataAccessLayer
                     sql += ";" + Environment.NewLine + pk;
                 }
             }
-            
-            // 需要提前删除相关默认值
-            if (oldfield.Default != null)
-            {
-                var df = DropDefaultSQL(oldfield);
-                if (!String.IsNullOrEmpty(df))
-                {
-                    sql = df + ";" + Environment.NewLine + sql;
 
-                    // 如果还有默认值，加上
-                    if (field.Default != null)
-                    {
-                        df = AddDefaultSQLWithNoCheck(field);
-                        if (!String.IsNullOrEmpty(df)) sql += ";" + Environment.NewLine + df;
-                    }
-                }
-            }
+            //// 需要提前删除相关默认值
+            //if (oldfield.Default != null)
+            //{
+            //    var df = DropDefaultSQL(oldfield);
+            //    if (!String.IsNullOrEmpty(df))
+            //    {
+            //        sql = df + ";" + Environment.NewLine + sql;
+
+            //        // 如果还有默认值，加上
+            //        if (field.Default != null)
+            //        {
+            //            df = AddDefaultSQLWithNoCheck(field);
+            //            if (!String.IsNullOrEmpty(df)) sql += ";" + Environment.NewLine + df;
+            //        }
+            //    }
+            //}
             // 需要提前删除相关索引
             foreach (var di in oldfield.Table.Indexes)
             {
@@ -954,13 +954,13 @@ namespace XCode.DataAccessLayer
 
         public override String DropColumnSQL(IDataColumn field)
         {
-            //删除默认值
-            String sql = DropDefaultSQL(field);
-            if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
+            ////删除默认值
+            //String sql = DropDefaultSQL(field);
+            //if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
 
             //删除主键
-            String sql2 = DeletePrimaryKeySQL(field);
-            if (!String.IsNullOrEmpty(sql2)) sql += sql2 + ";" + Environment.NewLine;
+            var sql = DeletePrimaryKeySQL(field);
+            if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
 
             sql += base.DropColumnSQL(field);
             return sql;
@@ -977,65 +977,65 @@ namespace XCode.DataAccessLayer
             return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.TableName, field.ColumnName, level0type);
         }
 
-        public override String AddDefaultSQL(IDataColumn field)
-        {
-            var sql = DropDefaultSQL(field);
-            if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
+        //public override String AddDefaultSQL(IDataColumn field)
+        //{
+        //    var sql = DropDefaultSQL(field);
+        //    if (!String.IsNullOrEmpty(sql)) sql += ";" + Environment.NewLine;
 
-            var sql2 = AddDefaultSQLWithNoCheck(field);
-            if (String.IsNullOrEmpty(sql2))
-                return sql;
-            else
-                return sql + ";" + Environment.NewLine + sql2;
-        }
+        //    var sql2 = AddDefaultSQLWithNoCheck(field);
+        //    if (String.IsNullOrEmpty(sql2))
+        //        return sql;
+        //    else
+        //        return sql + ";" + Environment.NewLine + sql2;
+        //}
 
-        String AddDefaultSQLWithNoCheck(IDataColumn field)
-        {
-            var tc = Type.GetTypeCode(field.DataType);
+        //String AddDefaultSQLWithNoCheck(IDataColumn field)
+        //{
+        //    var tc = Type.GetTypeCode(field.DataType);
 
-            var dv = field.Default;
-            if (CheckAndGetDefault(field, ref dv))
-            {
-                //if (String.IsNullOrEmpty(dv)) return null;
-                if (dv == null) return null;
-                return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, dv);
-            }
+        //    var dv = field.Default;
+        //    if (CheckAndGetDefault(field, ref dv))
+        //    {
+        //        //if (String.IsNullOrEmpty(dv)) return null;
+        //        if (dv == null) return null;
+        //        return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, dv);
+        //    }
 
-            if (tc == TypeCode.String)
-                return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
-            //else if (tc == TypeCode.DateTime)
-            //{
-            //    String dv = CheckAndGetDefault(field, field.Default);
-            //    sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
-            //}
-            else
-                return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
-        }
+        //    if (tc == TypeCode.String)
+        //        return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT N'{2}' FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
+        //    //else if (tc == TypeCode.DateTime)
+        //    //{
+        //    //    String dv = CheckAndGetDefault(field, field.Default);
+        //    //    sql += String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.Name, field.Name, dv);
+        //    //}
+        //    else
+        //        return String.Format("Alter Table {0} Add CONSTRAINT DF_{0}_{1} DEFAULT {2} FOR {1}", field.Table.TableName, field.ColumnName, field.Default);
+        //}
 
-        public override String DropDefaultSQL(IDataColumn field)
-        {
-            //if (String.IsNullOrEmpty(field.Default)) return String.Empty;
-            // 默认值有可能是空字符串
-            if (field.Default == null) return String.Empty;
+        //public override String DropDefaultSQL(IDataColumn field)
+        //{
+        //    //if (String.IsNullOrEmpty(field.Default)) return String.Empty;
+        //    // 默认值有可能是空字符串
+        //    if (field.Default == null) return String.Empty;
 
-            String sql = null;
-            if (IsSQL2005)
-                sql = String.Format("select b.name from sys.tables a inner join sys.default_constraints b on a.object_id=b.parent_object_id inner join sys.columns c on a.object_id=c.object_id and b.parent_column_id=c.column_id where a.name='{0}' and c.name='{1}'", field.Table.TableName, field.ColumnName);
-            else
-                sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}' and b.xtype='D'", field.Table.TableName, field.ColumnName);
+        //    String sql = null;
+        //    if (IsSQL2005)
+        //        sql = String.Format("select b.name from sys.tables a inner join sys.default_constraints b on a.object_id=b.parent_object_id inner join sys.columns c on a.object_id=c.object_id and b.parent_column_id=c.column_id where a.name='{0}' and c.name='{1}'", field.Table.TableName, field.ColumnName);
+        //    else
+        //        sql = String.Format("select b.name from syscolumns a inner join sysobjects b on a.cdefault=b.id inner join sysobjects c on a.id=c.id where a.name='{1}' and c.name='{0}' and b.xtype='D'", field.Table.TableName, field.ColumnName);
 
-            var ds = Database.CreateSession().Query(sql);
-            if (ds == null || ds.Tables == null || ds.Tables[0].Rows.Count < 1) return null;
+        //    var ds = Database.CreateSession().Query(sql);
+        //    if (ds == null || ds.Tables == null || ds.Tables[0].Rows.Count < 1) return null;
 
-            var sb = new StringBuilder();
-            foreach (DataRow dr in ds.Tables[0].Rows)
-            {
-                var name = dr[0].ToString();
-                if (sb.Length > 0) sb.AppendLine(";");
-                sb.AppendFormat("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.TableName), name);
-            }
-            return sb.ToString();
-        }
+        //    var sb = new StringBuilder();
+        //    foreach (DataRow dr in ds.Tables[0].Rows)
+        //    {
+        //        var name = dr[0].ToString();
+        //        if (sb.Length > 0) sb.AppendLine(";");
+        //        sb.AppendFormat("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.TableName), name);
+        //    }
+        //    return sb.ToString();
+        //}
 
         String DeletePrimaryKeySQL(IDataColumn field)
         {

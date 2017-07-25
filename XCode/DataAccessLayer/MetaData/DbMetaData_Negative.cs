@@ -282,7 +282,7 @@ namespace XCode.DataAccessLayer
                     PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
                 }
                 if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
-                if (IsColumnDefaultChanged(item, dbf, entityDb)) ChangeColmnDefault(sb, onlySql, item, dbf, entityDb);
+                //if (IsColumnDefaultChanged(item, dbf, entityDb)) ChangeColmnDefault(sb, onlySql, item, dbf, entityDb);
 
                 if (item.Description + "" != dbf.Description + "")
                 {
@@ -431,82 +431,82 @@ namespace XCode.DataAccessLayer
             return true;
         }
 
-        /// <summary>检查字段默认值是否有改变</summary>
-        /// <param name="entityColumn"></param>
-        /// <param name="dbColumn"></param>
-        /// <param name="entityDb"></param>
-        /// <returns></returns>
-        protected virtual Boolean IsColumnDefaultChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
-        {
-            // 是否已改变
-            Boolean isChanged = false;
+        ///// <summary>检查字段默认值是否有改变</summary>
+        ///// <param name="entityColumn"></param>
+        ///// <param name="dbColumn"></param>
+        ///// <param name="entityDb"></param>
+        ///// <returns></returns>
+        //protected virtual Boolean IsColumnDefaultChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
+        //{
+        //    // 是否已改变
+        //    Boolean isChanged = false;
 
-            //比较默认值
-            isChanged = !(entityColumn.Default + "").EqualIgnoreCase(dbColumn.Default + "");
+        //    //比较默认值
+        //    isChanged = !(entityColumn.Default + "").EqualIgnoreCase(dbColumn.Default + "");
 
-            if (isChanged && !String.IsNullOrEmpty(entityColumn.Default) && !String.IsNullOrEmpty(dbColumn.Default))
-            {
-                var tc = Type.GetTypeCode(entityColumn.DataType);
-                // 特殊处理时间
-                if (tc == TypeCode.DateTime)
-                {
-                    // 如果当前默认值是开发数据库的时间默认值，则判断当前数据库的时间默认值
-                    if (entityDb.DateTimeNow == entityColumn.Default && Database.DateTimeNow == dbColumn.Default) isChanged = false;
-                }
-                // 特殊处理Guid
-                else if (tc == TypeCode.String)
-                {
-                    if (entityDb.NewGuid == entityColumn.Default && Database.NewGuid == dbColumn.Default) isChanged = false;
-                }
-                // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
-                else if (entityColumn.DataType == typeof(Guid))
-                {
-                    if ((entityDb.NewGuid == entityColumn.Default || String.IsNullOrEmpty(entityColumn.Default)) && Database.NewGuid == dbColumn.Default) isChanged = false;
-                }
-            }
+        //    if (isChanged && !String.IsNullOrEmpty(entityColumn.Default) && !String.IsNullOrEmpty(dbColumn.Default))
+        //    {
+        //        var tc = Type.GetTypeCode(entityColumn.DataType);
+        //        // 特殊处理时间
+        //        if (tc == TypeCode.DateTime)
+        //        {
+        //            // 如果当前默认值是开发数据库的时间默认值，则判断当前数据库的时间默认值
+        //            if (entityDb.DateTimeNow == entityColumn.Default && Database.DateTimeNow == dbColumn.Default) isChanged = false;
+        //        }
+        //        // 特殊处理Guid
+        //        else if (tc == TypeCode.String)
+        //        {
+        //            if (entityDb.NewGuid == entityColumn.Default && Database.NewGuid == dbColumn.Default) isChanged = false;
+        //        }
+        //        // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
+        //        else if (entityColumn.DataType == typeof(Guid))
+        //        {
+        //            if ((entityDb.NewGuid == entityColumn.Default || String.IsNullOrEmpty(entityColumn.Default)) && Database.NewGuid == dbColumn.Default) isChanged = false;
+        //        }
+        //    }
 
-            return isChanged;
-        }
+        //    return isChanged;
+        //}
 
-        /// <summary>改变字段默认值。这里仅仅默认处理了时间日期，如果需要兼容多数据库，子类需要重载</summary>
-        /// <param name="sb"></param>
-        /// <param name="onlySql"></param>
-        /// <param name="entityColumn"></param>
-        /// <param name="dbColumn"></param>
-        /// <param name="entityDb"></param>
-        protected virtual void ChangeColmnDefault(StringBuilder sb, Boolean onlySql, IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
-        {
-            // 如果数据库存在默认值，则删除
-            if (!String.IsNullOrEmpty(dbColumn.Default))
-                PerformSchema(sb, onlySql, DDLSchema.DropDefault, dbColumn);
+        ///// <summary>改变字段默认值。这里仅仅默认处理了时间日期，如果需要兼容多数据库，子类需要重载</summary>
+        ///// <param name="sb"></param>
+        ///// <param name="onlySql"></param>
+        ///// <param name="entityColumn"></param>
+        ///// <param name="dbColumn"></param>
+        ///// <param name="entityDb"></param>
+        //protected virtual void ChangeColmnDefault(StringBuilder sb, Boolean onlySql, IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
+        //{
+        //    // 如果数据库存在默认值，则删除
+        //    if (!String.IsNullOrEmpty(dbColumn.Default))
+        //        PerformSchema(sb, onlySql, DDLSchema.DropDefault, dbColumn);
 
-            // 如果实体存在默认值，则增加
-            if (!String.IsNullOrEmpty(entityColumn.Default))
-            {
-                var tc = Type.GetTypeCode(entityColumn.DataType);
-                String dv = entityColumn.Default;
-                // 特殊处理时间
-                if (tc == TypeCode.DateTime)
-                {
-                    if (dv == entityDb.DateTimeNow) entityColumn.Default = Database.DateTimeNow;
-                }
-                // 特殊处理Guid
-                else if (tc == TypeCode.String || entityColumn.DataType == typeof(Guid))
-                {
-                    if (dv == entityDb.NewGuid) entityColumn.Default = Database.NewGuid;
-                }
-                // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
-                else if (tc == TypeCode.String)
-                {
-                    if (dv == entityDb.NewGuid || String.IsNullOrEmpty(dv)) entityColumn.Default = Database.NewGuid;
-                }
+        //    // 如果实体存在默认值，则增加
+        //    if (!String.IsNullOrEmpty(entityColumn.Default))
+        //    {
+        //        var tc = Type.GetTypeCode(entityColumn.DataType);
+        //        String dv = entityColumn.Default;
+        //        // 特殊处理时间
+        //        if (tc == TypeCode.DateTime)
+        //        {
+        //            if (dv == entityDb.DateTimeNow) entityColumn.Default = Database.DateTimeNow;
+        //        }
+        //        // 特殊处理Guid
+        //        else if (tc == TypeCode.String || entityColumn.DataType == typeof(Guid))
+        //        {
+        //            if (dv == entityDb.NewGuid) entityColumn.Default = Database.NewGuid;
+        //        }
+        //        // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
+        //        else if (tc == TypeCode.String)
+        //        {
+        //            if (dv == entityDb.NewGuid || String.IsNullOrEmpty(dv)) entityColumn.Default = Database.NewGuid;
+        //        }
 
-                PerformSchema(sb, onlySql, DDLSchema.AddDefault, entityColumn);
+        //        PerformSchema(sb, onlySql, DDLSchema.AddDefault, entityColumn);
 
-                // 还原
-                entityColumn.Default = dv;
-            }
-        }
+        //        // 还原
+        //        entityColumn.Default = dv;
+        //    }
+        //}
 
         protected virtual String ReBuildTable(IDataTable entitytable, IDataTable dbtable)
         {
@@ -671,12 +671,12 @@ namespace XCode.DataAccessLayer
                     case DDLSchema.DropColumnDescription:
                         WriteLog("{0}({1})", schema, dc.ColumnName);
                         break;
-                    case DDLSchema.AddDefault:
-                        WriteLog("{0}({1},{2})", schema, dc.ColumnName, dc.Default);
-                        break;
-                    case DDLSchema.DropDefault:
-                        WriteLog("{0}({1})", schema, dc.ColumnName);
-                        break;
+                    //case DDLSchema.AddDefault:
+                    //    WriteLog("{0}({1},{2})", schema, dc.ColumnName, dc.Default);
+                    //    break;
+                    //case DDLSchema.DropDefault:
+                    //    WriteLog("{0}({1})", schema, dc.ColumnName);
+                    //    break;
                     //case DDLSchema.CreateIndex:
                     //    break;
                     //case DDLSchema.DropIndex:
@@ -781,10 +781,10 @@ namespace XCode.DataAccessLayer
                     return AddColumnDescriptionSQL((IDataColumn)values[0]);
                 case DDLSchema.DropColumnDescription:
                     return DropColumnDescriptionSQL((IDataColumn)values[0]);
-                case DDLSchema.AddDefault:
-                    return AddDefaultSQL((IDataColumn)values[0]);
-                case DDLSchema.DropDefault:
-                    return DropDefaultSQL((IDataColumn)values[0]);
+                //case DDLSchema.AddDefault:
+                //    return AddDefaultSQL((IDataColumn)values[0]);
+                //case DDLSchema.DropDefault:
+                //    return DropDefaultSQL((IDataColumn)values[0]);
                 case DDLSchema.CreateIndex:
                     return CreateIndexSQL((IDataIndex)values[0]);
                 case DDLSchema.DropIndex:
@@ -876,8 +876,8 @@ namespace XCode.DataAccessLayer
             // 约束
             sb.Append(GetFieldConstraints(field, onlyDefine));
 
-            //默认值
-            sb.Append(GetFieldDefault(field, onlyDefine));
+            ////默认值
+            //sb.Append(GetFieldDefault(field, onlyDefine));
 
             return sb.ToString();
         }
@@ -898,40 +898,40 @@ namespace XCode.DataAccessLayer
                 return " NOT NULL";
         }
 
-        /// <summary>取得字段默认值</summary>
-        /// <param name="field">字段</param>
-        /// <param name="onlyDefine">仅仅定义</param>
-        /// <returns></returns>
-        protected virtual String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        {
-            if (String.IsNullOrEmpty(field.Default)) return null;
+        ///// <summary>取得字段默认值</summary>
+        ///// <param name="field">字段</param>
+        ///// <param name="onlyDefine">仅仅定义</param>
+        ///// <returns></returns>
+        //protected virtual String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
+        //{
+        //    if (String.IsNullOrEmpty(field.Default)) return null;
 
-            TypeCode tc = Type.GetTypeCode(field.DataType);
+        //    TypeCode tc = Type.GetTypeCode(field.DataType);
 
-            // 特殊处理时间和NewGuid默认值
-            String d = field.Default;
-            if (CheckAndGetDefault(field, ref d))
-            {
-                // 如果数据库特性没有默认值，则说明不支持
-                if (String.IsNullOrEmpty(d)) return null;
+        //    // 特殊处理时间和NewGuid默认值
+        //    String d = field.Default;
+        //    if (CheckAndGetDefault(field, ref d))
+        //    {
+        //        // 如果数据库特性没有默认值，则说明不支持
+        //        if (String.IsNullOrEmpty(d)) return null;
 
-                return String.Format(" Default {0}", d);
-            }
+        //        return String.Format(" Default {0}", d);
+        //    }
 
-            if (tc == TypeCode.String)
-            {
-                return String.Format(" Default {0}", Database.FormatValue(field, field.Default));
-            }
-            else if (tc == TypeCode.DateTime)
-            {
-                if (field.Default.Contains("(") || field.Default.EqualIgnoreCase(Database.DateTimeNow))
-                    return String.Format(" Default {0}", d);
-                else
-                    return String.Format(" Default '{0}'", d);
-            }
-            else
-                return String.Format(" Default {0}", field.Default);
-        }
+        //    if (tc == TypeCode.String)
+        //    {
+        //        return String.Format(" Default {0}", Database.FormatValue(field, field.Default));
+        //    }
+        //    else if (tc == TypeCode.DateTime)
+        //    {
+        //        if (field.Default.Contains("(") || field.Default.EqualIgnoreCase(Database.DateTimeNow))
+        //            return String.Format(" Default {0}", d);
+        //        else
+        //            return String.Format(" Default '{0}'", d);
+        //    }
+        //    else
+        //        return String.Format(" Default {0}", field.Default);
+        //}
         #endregion
 
         #region 数据定义语句
@@ -996,9 +996,9 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropColumnDescriptionSQL(IDataColumn field) { return null; }
 
-        public virtual String AddDefaultSQL(IDataColumn field) { return null; }
+        //public virtual String AddDefaultSQL(IDataColumn field) { return null; }
 
-        public virtual String DropDefaultSQL(IDataColumn field) { return null; }
+        //public virtual String DropDefaultSQL(IDataColumn field) { return null; }
 
         public virtual String CreateIndexSQL(IDataIndex index)
         {

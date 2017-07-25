@@ -241,8 +241,8 @@ namespace XCode
                 {
                     // 2，没有脏数据，允许空的字段不参与
                     if (fi.IsNullable) continue;
-                    // 3，没有脏数据，不允许空，有默认值的不参与
-                    if (fi.DefaultValue != null) continue;
+                    //// 3，没有脏数据，不允许空，有默认值的不参与
+                    //if (fi.DefaultValue != null) continue;
 
                     // 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
                     value = FormatParamValue(fi, null, op);

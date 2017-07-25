@@ -189,53 +189,53 @@ namespace XCode.DataAccessLayer
             return Database.FormatName(name);
         }
 
-        /// <summary>检查并获取当前数据库的默认值。如果数据库类型一致，则直接返回false，因为没有修改</summary>
-        /// <param name="dc"></param>
-        /// <param name="oriDefault"></param>
-        /// <returns></returns>
-        protected virtual Boolean CheckAndGetDefault(IDataColumn dc, ref String oriDefault)
-        {
-            // 如果数据库类型等于原始类型，则直接通过
-            if (dc.Table.DbType == Database.Type) return false;
+        ///// <summary>检查并获取当前数据库的默认值。如果数据库类型一致，则直接返回false，因为没有修改</summary>
+        ///// <param name="dc"></param>
+        ///// <param name="oriDefault"></param>
+        ///// <returns></returns>
+        //protected virtual Boolean CheckAndGetDefault(IDataColumn dc, ref String oriDefault)
+        //{
+        //    // 如果数据库类型等于原始类型，则直接通过
+        //    if (dc.Table.DbType == Database.Type) return false;
 
-            // 原始数据库类型
-            var db = DbFactory.Create(dc.Table.DbType);
-            if (db == null) return false;
+        //    // 原始数据库类型
+        //    var db = DbFactory.Create(dc.Table.DbType);
+        //    if (db == null) return false;
 
-            var tc = Type.GetTypeCode(dc.DataType);
-            // 特殊处理时间
-            if (tc == TypeCode.DateTime)
-            {
-                if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.DateTimeNow))
-                {
-                    oriDefault = Database.DateTimeNow;
-                    return true;
-                }
-                else
-                {
-                    //// 出现了不支持的时间默认值
-                    //if (DAL.Debug) DAL.WriteLog("出现了{0}不支持的时间默认值：{1}.{2}={3}", Database.DbType, dc.Table.Name, dc.Name, oriDefault);
+        //    var tc = Type.GetTypeCode(dc.DataType);
+        //    // 特殊处理时间
+        //    if (tc == TypeCode.DateTime)
+        //    {
+        //        if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.DateTimeNow))
+        //        {
+        //            oriDefault = Database.DateTimeNow;
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            //// 出现了不支持的时间默认值
+        //            //if (DAL.Debug) DAL.WriteLog("出现了{0}不支持的时间默认值：{1}.{2}={3}", Database.DbType, dc.Table.Name, dc.Name, oriDefault);
 
-                    //oriDefault = null;
-                    //return true;
+        //            //oriDefault = null;
+        //            //return true;
 
-                    return false;
-                }
-            }
-            // 特殊处理Guid
-            else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
-            {
-                // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
-                if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.NewGuid) ||
-                   String.IsNullOrEmpty(db.NewGuid) && dc.DataType == typeof(Guid))
-                {
-                    oriDefault = Database.NewGuid;
-                    return true;
-                }
-            }
+        //            return false;
+        //        }
+        //    }
+        //    // 特殊处理Guid
+        //    else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
+        //    {
+        //        // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
+        //        if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.NewGuid) ||
+        //           String.IsNullOrEmpty(db.NewGuid) && dc.DataType == typeof(Guid))
+        //        {
+        //            oriDefault = Database.NewGuid;
+        //            return true;
+        //        }
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
         #endregion
 
         #region 日志输出

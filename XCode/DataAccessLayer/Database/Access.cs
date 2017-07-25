@@ -371,15 +371,15 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        /// <summary>取得字段默认值</summary>
-        /// <param name="field">字段</param>
-        /// <param name="onlyDefine">仅仅定义</param>
-        /// <returns></returns>
-        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        {
-            // Access不能通过DDL来操作默认值
-            return null;
-        }
+        ///// <summary>取得字段默认值</summary>
+        ///// <param name="field">字段</param>
+        ///// <param name="onlyDefine">仅仅定义</param>
+        ///// <returns></returns>
+        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
+        //{
+        //    // Access不能通过DDL来操作默认值
+        //    return null;
+        //}
         #endregion
 
         #region 数据定义
@@ -462,39 +462,39 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程创建表
-        protected override void CreateTable(StringBuilder sb, IDataTable table, Boolean onlySql)
-        {
-            base.CreateTable(sb, table, onlySql);
+        //protected override void CreateTable(StringBuilder sb, IDataTable table, Boolean onlySql)
+        //{
+        //    base.CreateTable(sb, table, onlySql);
 
-            if (!onlySql)
-            {
-                IDatabase entityDb = null;
-                foreach (IDataColumn dc in table.Columns)
-                {
-                    // 如果实体存在默认值，则增加
-                    if (!String.IsNullOrEmpty(dc.Default))
-                    {
-                        var tc = Type.GetTypeCode(dc.DataType);
-                        String dv = dc.Default;
-                        // 特殊处理时间
-                        if (tc == TypeCode.DateTime)
-                        {
-                            if (entityDb != null && dv == entityDb.DateTimeNow) dc.Default = Database.DateTimeNow;
-                        }
-                        // 特殊处理Guid
-                        else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
-                        {
-                            if (entityDb != null && dv == entityDb.NewGuid) dc.Default = Database.NewGuid;
-                        }
+        //    if (!onlySql)
+        //    {
+        //        IDatabase entityDb = null;
+        //        foreach (IDataColumn dc in table.Columns)
+        //        {
+        //            // 如果实体存在默认值，则增加
+        //            if (!String.IsNullOrEmpty(dc.Default))
+        //            {
+        //                var tc = Type.GetTypeCode(dc.DataType);
+        //                String dv = dc.Default;
+        //                // 特殊处理时间
+        //                if (tc == TypeCode.DateTime)
+        //                {
+        //                    if (entityDb != null && dv == entityDb.DateTimeNow) dc.Default = Database.DateTimeNow;
+        //                }
+        //                // 特殊处理Guid
+        //                else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
+        //                {
+        //                    if (entityDb != null && dv == entityDb.NewGuid) dc.Default = Database.NewGuid;
+        //                }
 
-                        PerformSchema(sb, onlySql, DDLSchema.AddDefault, dc);
+        //                PerformSchema(sb, onlySql, DDLSchema.AddDefault, dc);
 
-                        // 还原
-                        dc.Default = dv;
-                    }
-                }
-            }
-        }
+        //                // 还原
+        //                dc.Default = dv;
+        //            }
+        //        }
+        //    }
+        //}
 
         public override String CreateTableSQL(IDataTable table)
         {

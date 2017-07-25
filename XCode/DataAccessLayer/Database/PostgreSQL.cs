@@ -239,14 +239,14 @@ namespace XCode.DataAccessLayer
                 if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
                 {
                     field.DataType = typeof(Boolean);
-                    // 处理默认值
-                    if (!String.IsNullOrEmpty(field.Default))
-                    {
-                        if (field.Default == "Y")
-                            field.Default = "true";
-                        else if (field.Default == "N")
-                            field.Default = "false";
-                    }
+                    //// 处理默认值
+                    //if (!String.IsNullOrEmpty(field.Default))
+                    //{
+                    //    if (field.Default == "Y")
+                    //        field.Default = "true";
+                    //    else if (field.Default == "N")
+                    //        field.Default = "false";
+                    //}
                     return;
                 }
             }
@@ -299,15 +299,12 @@ namespace XCode.DataAccessLayer
                 {
                     // DateTime的范围是0001到9999
                     // Timestamp的范围是1970到2038
-                    String d = field.Default;
-                    CheckAndGetDefault(field, ref d);
+                    //String d = field.Default;
+                    //CheckAndGetDefault(field, ref d);
                     foreach (DataRow dr in drs)
                     {
-                        String name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
-                            return new DataRow[] { dr };
-                        else if (name == "TIMESTAMP" && (d == "now()" || field.Default == "CURRENT_TIMESTAMP"))
-                            return new DataRow[] { dr };
+                        var name = GetDataRowValue<String>(dr, "TypeName");
+                        if (name == "DATETIME") return new DataRow[] { dr };
                     }
                 }
             }
@@ -362,26 +359,26 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        {
-            if (String.IsNullOrEmpty(field.Default)) return null;
+        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
+        //{
+        //    if (String.IsNullOrEmpty(field.Default)) return null;
 
-            if (field.DataType == typeof(Boolean))
-            {
-                if (field.Default == "true")
-                    return " Default 'Y'";
-                else if (field.Default == "false")
-                    return " Default 'N'";
-            }
-            //else if (field.DataType == typeof(DateTime))
-            //{
-            //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
-            //    if (d == "now()") d = "CURRENT_TIMESTAMP";
-            //    return String.Format(" Default {0}", d);
-            //}
+        //    if (field.DataType == typeof(Boolean))
+        //    {
+        //        if (field.Default == "true")
+        //            return " Default 'Y'";
+        //        else if (field.Default == "false")
+        //            return " Default 'N'";
+        //    }
+        //    //else if (field.DataType == typeof(DateTime))
+        //    //{
+        //    //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
+        //    //    if (d == "now()") d = "CURRENT_TIMESTAMP";
+        //    //    return String.Format(" Default {0}", d);
+        //    //}
 
-            return base.GetFieldDefault(field, onlyDefine);
-        }
+        //    return base.GetFieldDefault(field, onlyDefine);
+        //}
 
         //protected override void SetFieldType(IDataColumn field, string typeName)
         //{

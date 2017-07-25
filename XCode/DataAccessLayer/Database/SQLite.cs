@@ -666,15 +666,15 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 默认值
-        public override String AddDefaultSQL(IDataColumn field)
-        {
-            return String.Empty;
-        }
+        //public override String AddDefaultSQL(IDataColumn field)
+        //{
+        //    return String.Empty;
+        //}
 
-        public override String DropDefaultSQL(IDataColumn field)
-        {
-            return String.Empty;
-        }
+        //public override String DropDefaultSQL(IDataColumn field)
+        //{
+        //    return String.Empty;
+        //}
         #endregion
 
         #region 反向工程

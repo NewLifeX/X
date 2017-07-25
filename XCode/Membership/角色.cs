@@ -22,7 +22,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn(1, "ID", "编号", null, "int", 10, 0)]
+        [BindColumn(1, "ID", "编号", "int", 10, 0)]
         public virtual Int32 ID
         {
             get { return _ID; }
@@ -34,7 +34,7 @@ namespace XCode.Membership
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn(2, "Name", "名称", null, "nvarchar(50)", 0, 0, Master=true)]
+        [BindColumn(2, "Name", "名称", "nvarchar(50)", 0, 0, Master=true)]
         public virtual String Name
         {
             get { return _Name; }
@@ -46,7 +46,7 @@ namespace XCode.Membership
         [DisplayName("是否系统角色")]
         [Description("是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除")]
         [DataObjectField(false, false, true, 1)]
-        [BindColumn(3, "IsSystem", "是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除", null, "bit", 0, 0)]
+        [BindColumn(3, "IsSystem", "是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除", "bit", 0, 0)]
         public virtual Boolean IsSystem
         {
             get { return _IsSystem; }
@@ -58,7 +58,7 @@ namespace XCode.Membership
         [DisplayName("说明")]
         [Description("说明")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "Remark", "说明", null, "nvarchar(50)", 0, 0)]
+        [BindColumn(4, "Remark", "说明", "nvarchar(50)", 0, 0)]
         public virtual String Remark
         {
             get { return _Remark; }
@@ -70,7 +70,7 @@ namespace XCode.Membership
         [DisplayName("权限")]
         [Description("权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(5, "Permission", "权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔", null, "nvarchar(500)", 0, 0)]
+        [BindColumn(5, "Permission", "权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔", "nvarchar(500)", 0, 0)]
         public virtual String Permission
         {
             get { return _Permission; }

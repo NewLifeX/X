@@ -106,11 +106,11 @@ namespace XCode.DataAccessLayer
         //[Description("Unicode")]
         //public Boolean IsUnicode { get; set; }
 
-        /// <summary>默认值</summary>
-        [XmlAttribute]
-        [DisplayName("默认值")]
-        [Description("默认值")]
-        public String Default { get; set; }
+        ///// <summary>默认值</summary>
+        //[XmlAttribute]
+        //[DisplayName("默认值")]
+        //[Description("默认值")]
+        //public String Default { get; set; }
 
         private String _DisplayName;
         /// <summary>显示名</summary>

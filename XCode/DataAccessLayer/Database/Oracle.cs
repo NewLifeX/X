@@ -598,23 +598,23 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override List<IDataColumn> GetFields(IDataTable table)
         {
-            List<IDataColumn> list = base.GetFields(table);
+            var list = base.GetFields(table);
             if (list == null || list.Count < 1) return null;
 
             // 字段注释
             if (list != null && list.Count > 0)
             {
-                foreach (IDataColumn field in list)
+                foreach (var field in list)
                 {
                     field.Description = GetColumnComment(table.TableName, field.ColumnName);
                 }
 
-                #region  2013.6.27 上海石头 添加，发现在 Oracle11 中，反向工程无法扫描到默认值
-                foreach (IDataColumn field in list)
-                {
-                    field.Default = GetColumnDefault(table.TableName, field.ColumnName);
-                }
-                #endregion
+                //#region  2013.6.27 上海石头 添加，发现在 Oracle11 中，反向工程无法扫描到默认值
+                //foreach (IDataColumn field in list)
+                //{
+                //    field.Default = GetColumnDefault(table.TableName, field.ColumnName);
+                //}
+                //#endregion
             }
 
             return list;
@@ -657,35 +657,35 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        DataTable dtColumnDefault;
-        /// <summary>获取默认值信息</summary>
-        /// <param name="tableName"></param>
-        /// <param name="columnName"></param>
-        /// <returns></returns>
-        String GetColumnDefault(String tableName, String columnName)
-        {
-            if (dtColumnDefault == null)
-            {
-                DataSet ds = Database.CreateSession().Query("SELECT * FROM USER_TAB_COLS");
-                if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
-                    dtColumnDefault = ds.Tables[0];
-                else
-                    dtColumnDefault = new DataTable();
-            }
-            if (dtColumnDefault.Rows == null || dtColumnDefault.Rows.Count < 1) return null;
+        //DataTable dtColumnDefault;
+        ///// <summary>获取默认值信息</summary>
+        ///// <param name="tableName"></param>
+        ///// <param name="columnName"></param>
+        ///// <returns></returns>
+        //String GetColumnDefault(String tableName, String columnName)
+        //{
+        //    if (dtColumnDefault == null)
+        //    {
+        //        DataSet ds = Database.CreateSession().Query("SELECT * FROM USER_TAB_COLS");
+        //        if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
+        //            dtColumnDefault = ds.Tables[0];
+        //        else
+        //            dtColumnDefault = new DataTable();
+        //    }
+        //    if (dtColumnDefault.Rows == null || dtColumnDefault.Rows.Count < 1) return null;
 
-            String where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
-            DataRow[] drs = dtColumnDefault.Select(where);
-            String result = null;
-            if (drs == null || drs.Length == 0) return null;
+        //    String where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
+        //    DataRow[] drs = dtColumnDefault.Select(where);
+        //    String result = null;
+        //    if (drs == null || drs.Length == 0) return null;
 
-            result = Convert.ToString(drs[0]["DATA_DEFAULT"]);  //如果默认值中最后一个字符是  \n ,则排除掉
-            if (result.EndsWith("\n") == true && result.Length > "\n".Length)
-                result = result.Substring(0, result.Length - "\n".Length);
-            else
-                result = null;
-            return result;
-        }
+        //    result = Convert.ToString(drs[0]["DATA_DEFAULT"]);  //如果默认值中最后一个字符是  \n ,则排除掉
+        //    if (result.EndsWith("\n") == true && result.Length > "\n".Length)
+        //        result = result.Substring(0, result.Length - "\n".Length);
+        //    else
+        //        result = null;
+        //    return result;
+        //}
 
         protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
@@ -849,9 +849,9 @@ namespace XCode.DataAccessLayer
 
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            // 有默认值时直接返回，待会在默认值里面加约束
-            // 因为Oracle的声明是先有默认值再有约束的
-            if (!String.IsNullOrEmpty(field.Default)) return null;
+            //// 有默认值时直接返回，待会在默认值里面加约束
+            //// 因为Oracle的声明是先有默认值再有约束的
+            //if (!String.IsNullOrEmpty(field.Default)) return null;
 
             //return base.GetFieldConstraints(field, onlyDefine);
 
@@ -861,12 +861,12 @@ namespace XCode.DataAccessLayer
                 return " NOT NULL";
         }
 
-        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        {
-            if (String.IsNullOrEmpty(field.Default)) return null;
+        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
+        //{
+        //    if (String.IsNullOrEmpty(field.Default)) return null;
 
-            return base.GetFieldDefault(field, onlyDefine) + base.GetFieldConstraints(field, onlyDefine);
-        }
+        //    return base.GetFieldDefault(field, onlyDefine) + base.GetFieldConstraints(field, onlyDefine);
+        //}
 
         public override String CreateTableSQL(IDataTable table)
         {

@@ -102,8 +102,8 @@ namespace XCode.Configuration
         /// </remarks>
         public String ColumnName { get { return _ColumnName; } set { if (value != null) _ColumnName = value.Trim(COLUMNNAME_FLAG); } }
 
-        /// <summary>默认值</summary>
-        public String DefaultValue { get; set; }
+        ///// <summary>默认值</summary>
+        //public String DefaultValue { get; set; }
 
         /// <summary>是否只读</summary>
         /// <remarks>set { _ReadOnly = value; } 放出只读属性的设置，比如在编辑页面的时候，有的字段不能修改 如修改用户时  不能修改用户名</remarks>
@@ -220,7 +220,7 @@ namespace XCode.Configuration
             dc.Name = Name;
             dc.DataType = Type;
             dc.Description = Description;
-            dc.Default = DefaultValue;
+            //dc.Default = DefaultValue;
 
             var col = _Column;
             if (col != null)

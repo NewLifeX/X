@@ -43,11 +43,11 @@ namespace XCode.DataAccessLayer
         /// <summary>删除字段说明</summary>
         DropColumnDescription,
 
-        /// <summary>添加默认值</summary>
-        AddDefault,
+        ///// <summary>添加默认值</summary>
+        //AddDefault,
 
-        /// <summary>删除默认值</summary>
-        DropDefault,
+        ///// <summary>删除默认值</summary>
+        //DropDefault,
 
         /// <summary>建立索引</summary>
         CreateIndex,
