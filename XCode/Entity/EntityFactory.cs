@@ -135,7 +135,15 @@ namespace XCode
         /// <returns></returns>
         public static IEnumerable<Type> LoadEntities(String connName, Boolean isLoadAssembly = false)
         {
-            return typeof(IEntity).GetAllSubclasses(isLoadAssembly).Where(t => TableItem.Create(t).ConnName == connName);
+            //return typeof(IEntity).GetAllSubclasses(isLoadAssembly).Where(t => TableItem.Create(t).ConnName == connName);
+            foreach (var item in typeof(IEntity).GetAllSubclasses(isLoadAssembly))
+            {
+                var ti = TableItem.Create(item);
+                if (ti == null)
+                    XTrace.WriteLine("实体类[{0}]无法创建TableItem", item.FullName);
+                else if (ti.ConnName == connName)
+                    yield return item;
+            }
         }
 
         /// <summary>获取指定连接名下的初始化时检查的所有实体数据表，用于反向工程检查表架构</summary>
