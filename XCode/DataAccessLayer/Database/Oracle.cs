@@ -416,10 +416,13 @@ namespace XCode.DataAccessLayer
             if (owner.IsNullOrEmpty()) owner = UserID;
 
             dt = GetSchema(_.Tables, new String[] { owner, tableName });
-            dt.Columns.Add("TABLE_TYPE", typeof(String));
-            foreach (DataRow dr in dt.Rows)
+            if (!dt.Columns.Contains("TABLE_TYPE"))
             {
-                dr["TABLE_TYPE"] = "Table";
+                dt.Columns.Add("TABLE_TYPE", typeof(String));
+                foreach (DataRow dr in dt.Rows)
+                {
+                    dr["TABLE_TYPE"] = "Table";
+                }
             }
             var dtView = GetSchema(_.Views, new String[] { owner, tableName });
             if (dtView != null && dtView.Rows.Count != 0)

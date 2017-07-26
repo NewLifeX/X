@@ -63,15 +63,7 @@ namespace XCode.Configuration
                         if (dal != null && !str.Contains("."))
                         {
                             // 角色名作为点前缀来约束表名，支持所有数据库
-                            //if (dal.DbType == DatabaseType.Oracle)
-                            {
-                                // 加上用户名
-                                //var ocsb = dal.Db.Factory.CreateConnectionStringBuilder();
-                                //ocsb.ConnectionString = dal.ConnStr;
-                                //if (ocsb.ContainsKey("Role")) str = (String)ocsb["Role"] + "." + str;
-
-                                if (!dal.Db.Owner.IsNullOrEmpty()) str = dal.Db.Owner + "." + str;
-                            }
+                            if (!dal.Db.Owner.IsNullOrEmpty()) str = dal.Db.Owner + "." + str;
                         }
                     }
                     _TableName = str;
