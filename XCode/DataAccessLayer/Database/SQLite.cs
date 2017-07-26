@@ -375,7 +375,30 @@ namespace XCode.DataAccessLayer
         protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
             var drs = base.FindDataType(field, typeName, isLong);
-            if (drs == null || drs.Length < 1)
+            if (drs != null && drs.Length > 1)
+            {
+                // 字符串
+                if (typeName == typeof(String).FullName)
+                {
+                    foreach (var dr in drs)
+                    {
+                        var name = GetDataRowValue<String>(dr, "TypeName");
+                        if (name == "nvarchar" && field.Length <= Database.LongTextLength)
+                            return new DataRow[] { dr };
+                        else if (name == "ntext" && field.Length > Database.LongTextLength)
+                            return new DataRow[] { dr };
+                    }
+                    foreach (var dr in drs)
+                    {
+                        var name = GetDataRowValue<String>(dr, "TypeName");
+                        if (name == "varchar" && field.Length <= Database.LongTextLength)
+                            return new DataRow[] { dr };
+                        else if (name == "text" && field.Length > Database.LongTextLength)
+                            return new DataRow[] { dr };
+                    }
+                }
+            }
+            else
             {
                 // 字符串
                 if (typeName.IndexOf("int", StringComparison.OrdinalIgnoreCase) >= 0)

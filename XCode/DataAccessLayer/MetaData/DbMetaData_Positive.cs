@@ -620,16 +620,6 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        ///// <summary>检查是否自增，如果自增，则附加过滤条件</summary>
-        ///// <param name="dt"></param>
-        ///// <param name="field"></param>
-        ///// <param name="where"></param>
-        ///// <returns></returns>
-        //protected virtual Boolean CheckAutoIncrementable(DataTable dt, IDataColumn field,StringBuilder where)
-        //{
-        //    if (field.Identity && dt.Columns.Contains("IsAutoIncrementable")) sb.Append(" And IsAutoIncrementable=1");
-        //}
-
         /// <summary>取字段类型</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
@@ -669,7 +659,7 @@ namespace XCode.DataAccessLayer
                 if (TryGetDataRowValue(drs[0], "TypeName", out typeName))
                 {
                     // 处理格式参数
-                    String param = GetFormatParam(field, drs[0]);
+                    var param = GetFormatParam(field, drs[0]);
                     if (!String.IsNullOrEmpty(param) && param != "()") typeName += param;
 
                     return typeName;
