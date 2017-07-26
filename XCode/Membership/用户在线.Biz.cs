@@ -41,9 +41,9 @@ namespace XCode.Membership
             df.Add(__.Times);
             df.Add(__.OnlineTime);
 
-            var sc = Meta.SingleCache;
-            sc.FindSlaveKeyMethod = k => Find(__.SessionID, k);
-            sc.GetSlaveKeyMethod = e => e.SessionID;
+            //var sc = Meta.SingleCache;
+            //sc.FindSlaveKeyMethod = k => Find(__.SessionID, k);
+            //sc.GetSlaveKeyMethod = e => e.SessionID;
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -66,7 +66,8 @@ namespace XCode.Membership
         {
             if (id <= 0) return null;
 
-            return Meta.SingleCache[id];
+            //return Meta.SingleCache[id];
+            return Find(__.ID, id);
         }
 
         /// <summary>根据会话编号查找</summary>
@@ -76,7 +77,8 @@ namespace XCode.Membership
         {
             if (sessionid.IsNullOrEmpty()) return null;
 
-            return Meta.SingleCache.GetItemWithSlaveKey(sessionid) as TEntity;
+            //return Meta.SingleCache.GetItemWithSlaveKey(sessionid) as TEntity;
+            return Find(__.SessionID, sessionid);
         }
 
         /// <summary>根据用户编号查找</summary>
