@@ -126,8 +126,9 @@ namespace XCode.Membership
         /// <param name="status"></param>
         /// <param name="userid"></param>
         /// <param name="name"></param>
+        /// <param name="ip"></param>
         /// <returns></returns>
-        public static TEntity SetStatus(String sessionid, String status, Int32 userid = 0, String name = null)
+        public static TEntity SetStatus(String sessionid, String status, Int32 userid = 0, String name = null, String ip = null)
         {
             var entity = FindBySessionID(sessionid) ?? new TEntity();
             entity.SessionID = sessionid;
@@ -141,6 +142,7 @@ namespace XCode.Membership
             entity.UpdateTime = DateTime.Now;
             if (entity.ID == 0)
             {
+                entity.CreateIP = ip;
                 entity.CreateTime = DateTime.Now;
                 entity.Insert();
             }
@@ -154,7 +156,7 @@ namespace XCode.Membership
             if (user != null)
             {
                 user.Online = true;
-                user.Save();
+                (user as IEntity).SaveAsync();
             }
 
             return entity;
@@ -168,17 +170,26 @@ namespace XCode.Membership
         public static TEntity SetWebStatus(String status = null)
         {
             // 网页使用一个定时器来清理过期
-            if (_timer == null) _timer = new TimerX(s => ClearExpire(), null, 0, 30 * 1000) { Async = true };
+            if (_timer == null)
+            {
+                lock (typeof(TEntity))
+                {
+                    if (_timer == null) _timer = new TimerX(s => ClearExpire(), null, 0, 30 * 1000) { Async = true };
+                }
+            }
 
             var ctx = HttpContext.Current;
             var ss = ctx.Session;
+            if (ss == null) return null;
+
             if (status.IsNullOrEmpty()) status = ctx.Request.Url.PathAndQuery;
+            var ip = WebHelper.UserHost;
 
             var user = ManageProvider.User;
             if (user == null)
-                return SetStatus(ss.SessionID, status);
+                return SetStatus(ss.SessionID, status, 0, null, ip);
             else
-                return SetStatus(ss.SessionID, status, user.ID, user.FriendName);
+                return SetStatus(ss.SessionID, status, user.ID, user.FriendName, ip);
         }
 
         /// <summary>删除过期，指定过期时间</summary>
@@ -196,7 +207,7 @@ namespace XCode.Membership
             // 设置离线
             foreach (var item in list)
             {
-                var user = ManageProvider.Provider.FindByID(item.ID);
+                var user = ManageProvider.Provider.FindByID(item.UserID);
                 if (user != null)
                 {
                     user.Online = false;

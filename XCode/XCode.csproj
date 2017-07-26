@@ -105,6 +105,7 @@
     <Compile Include="Model\Expression.cs" />
     <Compile Include="Model\FormatExpression.cs" />
     <Compile Include="Model\FieldExpression.cs" />
+    <Compile Include="PreApplicationStartCode.cs" />
     <Compile Include="Remoting\ApiUserSession.cs" />
     <Compile Include="Setting.cs" />
     <Compile Include="Sharding\分片.Biz.cs" />
@@ -200,6 +201,7 @@
     <Compile Include="Transform\TimeExtracter.cs" />
     <Compile Include="Transform\ExtractSetting.cs" />
     <Compile Include="Transform\ETL.cs" />
+    <Compile Include="Web\UserBehaviorModule..cs" />
     <Compile Include="Web\EntityGrid.cs" />
     <None Include="Cache\readme.md" />
     <None Include="Membership\XCoder.log">

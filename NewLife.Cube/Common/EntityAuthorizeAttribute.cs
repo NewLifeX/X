@@ -47,9 +47,6 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
-            // 统计网页状态
-            UserOnline.SetWebStatus();
-
             //// 基类方法会检查AllowAnonymous
             //base.OnAuthorization(filterContext);
             //if (filterContext.Result == null) return;
@@ -97,7 +94,7 @@ namespace NewLife.Cube
 
             var res = "[{0}/{1}] {2}".F(act.ControllerDescriptor.ControllerName, act.ActionName, menu != null ? (menu + "") : url);
             var msg = "访问资源 {0} 需要 {1} 权限".F(res, Permission.GetDescription());
-            LogProvider.Provider.WriteLog("授权", "拒绝", msg);
+            LogProvider.Provider.WriteLog("访问", "拒绝", msg);
 
             var vr = new ViewResult();
             vr.ViewName = "NoPermission";

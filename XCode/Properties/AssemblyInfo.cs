@@ -2,11 +2,13 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Web;
+using XCode;
 
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("新生命数据映射框架")]
+[assembly: AssemblyTitle("新生命数据中间件")]
 [assembly: AssemblyDescription("分布式大数据中间件")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]
@@ -21,6 +23,9 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 //[assembly: CLSCompliant(true)]
 [assembly: Dependency("NewLife.Core", LoadHint.Always)]
+
+[assembly: RuntimeCompatibility(WrapNonExceptionThrows = true)]
+[assembly: PreApplicationStartMethod(typeof(PreApplicationStartCode), "Start")]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
 [assembly: Guid("fd577d2c-f8aa-4cc8-a697-d7990c264af3")]
