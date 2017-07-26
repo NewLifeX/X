@@ -76,12 +76,6 @@ namespace XCode.DataAccessLayer
         [Description("长度")]
         public Int32 Length { get; set; }
 
-        ///// <summary>字节数</summary>
-        //[XmlAttribute]
-        //[DisplayName("字节数")]
-        //[Description("字节数")]
-        //public Int32 NumOfByte { get; set; }
-
         /// <summary>精度</summary>
         [XmlAttribute]
         [DisplayName("精度")]
@@ -98,19 +92,7 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("允许空")]
         [Description("允许空")]
-        public Boolean Nullable { get; set; }
-
-        ///// <summary>是否Unicode</summary>
-        //[XmlAttribute]
-        //[DisplayName("Unicode")]
-        //[Description("Unicode")]
-        //public Boolean IsUnicode { get; set; }
-
-        ///// <summary>默认值</summary>
-        //[XmlAttribute]
-        //[DisplayName("默认值")]
-        //[Description("默认值")]
-        //public String Default { get; set; }
+        public Boolean Nullable { get; set; } 
 
         private String _DisplayName;
         /// <summary>显示名</summary>
@@ -162,15 +144,12 @@ namespace XCode.DataAccessLayer
         [Category("扩展")]
         [DisplayName("扩展属性")]
         [Description("扩展属性")]
-        public IDictionary<String, String> Properties { get; private set; }
+        public IDictionary<String, String> Properties { get; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
-        public XField()
-        {
-            Properties = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-        }
+        public XField() { }
         #endregion
 
         #region 方法

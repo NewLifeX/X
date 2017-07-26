@@ -125,43 +125,6 @@ namespace XCode.DataAccessLayer
 
             return null;
         }
-
-        ///// <summary>根据字段从指定表中查找关系</summary>
-        ///// <param name="table"></param>
-        ///// <param name="columnName"></param>
-        ///// <returns></returns>
-        //public static IDataRelation GetRelation(this IDataTable table, String columnName)
-        //{
-        //    return table.Relations.FirstOrDefault(e => e.Column.EqualIgnoreCase(columnName));
-        //}
-
-        ///// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>
-        ///// <param name="table"></param>
-        ///// <param name="dr"></param>
-        ///// <returns></returns>
-        //public static IDataRelation GetRelation(this IDataTable table, IDataRelation dr)
-        //{
-        //    return table.GetRelation(dr.Column, dr.RelationTable, dr.RelationColumn);
-        //}
-
-        ///// <summary>根据字段、关联表、关联字段从指定表中查找关系</summary>
-        ///// <param name="table"></param>
-        ///// <param name="columnName"></param>
-        ///// <param name="rtableName"></param>
-        ///// <param name="rcolumnName"></param>
-        ///// <returns></returns>
-        //public static IDataRelation GetRelation(this IDataTable table, String columnName, String rtableName, String rcolumnName)
-        //{
-        //    foreach (var item in table.Relations)
-        //    {
-        //        if (item.Column == columnName && item.RelationTable == rtableName && item.RelationColumn == rcolumnName) return item;
-        //    }
-
-        //    return null;
-        //}
-        #endregion
-
-        #region 索引扩展
         #endregion
 
         #region 序列化扩展
@@ -294,9 +257,7 @@ namespace XCode.DataAccessLayer
                                 var len = 0;
                                 if (v != null && Int32.TryParse(v, out len)) dc.Length = len;
 
-                                // 含有ID表示是旧的，不需要特殊处理，否则一些默认值会不对
-                                v = reader.GetAttribute("ID");
-                                if (v == null) dc = Fix(dc, dc);
+                                dc = Fix(dc, dc);
                             }
                             (dc as IXmlSerializable).ReadXml(reader);
                             table.Columns.Add(dc);
@@ -324,12 +285,6 @@ namespace XCode.DataAccessLayer
                     case "Relations":
                         reader.ReadStartElement();
                         reader.Skip();
-                        //while (reader.IsStartElement())
-                        //{
-                        //    var dr = table.CreateRelation();
-                        //    (dr as IXmlSerializable).ReadXml(reader);
-                        //    if (table.GetRelation(dr) == null) table.Relations.Add(dr);
-                        //}
                         reader.ReadEndElement();
                         break;
                     default:
@@ -339,8 +294,6 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            //if (reader.NodeType != XmlNodeType.Element && reader.NodeType != XmlNodeType.EndElement) reader.Read();
-            //reader.ReadEndElement();
             if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
 
             return table;
@@ -376,17 +329,6 @@ namespace XCode.DataAccessLayer
                 }
                 writer.WriteEndElement();
             }
-            //if (table.Relations.Count > 0)
-            //{
-            //    writer.WriteStartElement("Relations");
-            //    foreach (IXmlSerializable item in table.Relations)
-            //    {
-            //        writer.WriteStartElement("Relation");
-            //        item.WriteXml(writer);
-            //        writer.WriteEndElement();
-            //    }
-            //    writer.WriteEndElement();
-            //}
 
             return table;
         }
@@ -426,13 +368,6 @@ namespace XCode.DataAccessLayer
             var pi2 = pis.FirstOrDefault(e => e.Name == "TableName" || e.Name == "ColumnName");
             if (pi1 != null && pi2 != null)
             {
-                //// 兼容旧版本
-                //var v2 = reader.GetAttribute("Alias");
-                //if (!String.IsNullOrEmpty(v2))
-                //{
-                //    value.SetValue(pi2, value.GetValue(pi1));
-                //    value.SetValue(pi1, v2);
-                //}
                 // 写入的时候省略了相同的TableName/ColumnName
                 var v2 = (String)value.GetValue(pi2);
                 if (String.IsNullOrEmpty(v2))
@@ -597,46 +532,6 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region 复制扩展方法
-        /// <summary>复制数据表到另一个数据表，不复制数据列、索引和关系</summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <returns></returns>
-        public static T CopyFrom<T>(this T src, T des)
-        {
-            foreach (var pi in typeof(T).GetProperties(true))
-            {
-                if (pi.CanWrite) src.SetValue(pi, des.GetValue(pi));
-            }
-
-            return src;
-        }
-
-        /// <summary>复制数据表到另一个数据表，复制所有数据列、索引和关系</summary>
-        /// <param name="src"></param>
-        /// <param name="des"></param>
-        /// <param name="resetColumnID">是否重置列ID</param>
-        /// <returns></returns>
-        public static IDataTable CopyAllFrom(this IDataTable src, IDataTable des, Boolean resetColumnID = false)
-        {
-            src.CopyFrom(des);
-            src.Columns.AddRange(des.Columns.Select(i => src.CreateColumn().CopyFrom(i)));
-            src.Indexes.AddRange(des.Indexes.Select(i => src.CreateIndex().CopyFrom(i)));
-            //src.Relations.AddRange(des.Relations.Select(i => src.CreateRelation().CopyFrom(i)));
-            // 重载ID
-            //if (resetColumnID) src.Columns.ForEach((it, i) => it.ID = i + 1);
-            if (resetColumnID)
-            {
-                for (Int32 i = 0; i < src.Columns.Count; i++)
-                {
-                    src.Columns[i].ID = i + 1;
-                }
-            }
-
-            return src;
-        }
-        #endregion
-
         #region 修正连接
         /// <summary>根据类型修正字段的一些默认值。仅考虑MSSQL</summary>
         /// <param name="dc"></param>
@@ -654,21 +549,18 @@ namespace XCode.DataAccessLayer
                 case TypeCode.Boolean:
                     dc.RawType = "bit";
                     dc.Length = 1;
-                    //dc.NumOfByte = 1;
-                    dc.Nullable = true;
+                    dc.Nullable = false;
                     break;
                 case TypeCode.Byte:
                 case TypeCode.Char:
                 case TypeCode.SByte:
                     dc.RawType = "tinyint";
                     dc.Length = 1;
-                    //dc.NumOfByte = 1;
-                    dc.Nullable = true;
+                    dc.Nullable = false;
                     break;
                 case TypeCode.DateTime:
                     dc.RawType = "datetime";
                     dc.Length = 3;
-                    //dc.NumOfByte = 8;
                     dc.Precision = 3;
                     dc.Nullable = true;
                     break;
@@ -676,52 +568,49 @@ namespace XCode.DataAccessLayer
                 case TypeCode.UInt16:
                     dc.RawType = "smallint";
                     dc.Length = 5;
-                    //dc.NumOfByte = 2;
                     dc.Precision = 5;
+                    dc.Nullable = false;
 
-                    // 自增字段非空
-                    dc.Nullable = oridc == null || !oridc.Identity;
+                    //// 自增字段非空
+                    //dc.Nullable = oridc == null || !oridc.Identity;
                     break;
                 case TypeCode.Int32:
                 case TypeCode.UInt32:
                     dc.RawType = "int";
                     dc.Length = 10;
-                    //dc.NumOfByte = 4;
                     dc.Precision = 10;
+                    dc.Nullable = false;
 
-                    // 自增字段非空
-                    dc.Nullable = oridc == null || !oridc.Identity;
+                    //// 自增字段非空
+                    //dc.Nullable = oridc == null || !oridc.Identity;
                     break;
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
                     dc.RawType = "bigint";
                     dc.Length = 19;
-                    //dc.NumOfByte = 8;
                     dc.Precision = 20;
+                    dc.Nullable = false;
 
-                    // 自增字段非空
-                    dc.Nullable = oridc == null || !oridc.Identity;
+                    //// 自增字段非空
+                    //dc.Nullable = oridc == null || !oridc.Identity;
                     break;
                 case TypeCode.Single:
                     dc.RawType = "real";
                     dc.Length = 7;
-                    //dc.NumOfByte = 8;
                     //dc.Precision = 20;
-                    dc.Nullable = true;
+                    dc.Nullable = false;
                     break;
                 case TypeCode.Double:
                     dc.RawType = "double";
                     dc.Length = 53;
-                    //dc.NumOfByte = 8;
                     //dc.Precision = 20;
-                    dc.Nullable = true;
+                    dc.Nullable = false;
                     break;
                 case TypeCode.Decimal:
                     dc.RawType = "money";
                     dc.Length = 19;
-                    //dc.NumOfByte = 8;
                     //dc.Precision = 20;
-                    dc.Nullable = true;
+                    dc.Nullable = false;
                     break;
                 case TypeCode.String:
                     if (dc.Length >= 0 && dc.Length < 4000 || !isnew && oridc.RawType != "ntext")
@@ -729,7 +618,6 @@ namespace XCode.DataAccessLayer
                         var len = dc.Length;
                         if (len == 0) len = 50;
                         dc.RawType = String.Format("nvarchar({0})", len);
-                        //dc.NumOfByte = len * 2;
 
                         // 新建默认长度50，写入忽略50的长度，其它长度不能忽略
                         if (len == 50)
@@ -744,52 +632,28 @@ namespace XCode.DataAccessLayer
                         {
                             dc.RawType = "ntext";
                             dc.Length = -1;
-                            //dc.NumOfByte = 16;
                         }
                         else
                         {
-                            //dc.NumOfByte = 16;
                             // 写入长度-1
                             dc.Length = 0;
                             oridc.Length = -1;
 
                             // 不写RawType
                             dc.RawType = oridc.RawType;
-                            //// 不写NumOfByte
-                            //dc.NumOfByte = oridc.NumOfByte;
                         }
                     }
                     dc.Nullable = true;
-                    //dc.IsUnicode = true;
                     break;
                 default:
                     break;
             }
 
             dc.DataType = null;
+            if (dc.Table.DbType != DatabaseType.SqlServer) dc.RawType = null;
 
             return dc;
         }
-
-        ///// <summary>表间连接，猜测关系</summary>
-        ///// <param name="tables"></param>
-        //public static void Connect(IEnumerable<IDataTable> tables)
-        //{
-        //    // 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
-        //    foreach (var table in tables)
-        //    {
-        //        foreach (var rtable in tables)
-        //        {
-        //            if (table != rtable) table.Connect(rtable);
-        //        }
-        //    }
-
-        //    // 因为可能修改了表间关系，再修正一次
-        //    foreach (var table in tables)
-        //    {
-        //        table.Fix();
-        //    }
-        //}
         #endregion
     }
 }
