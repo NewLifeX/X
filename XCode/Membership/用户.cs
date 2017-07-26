@@ -70,7 +70,7 @@ namespace XCode.Membership
         /// <summary>性别。未知、男、女</summary>
         [DisplayName("性别")]
         [Description("性别。未知、男、女")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(5, "Sex", "性别。未知、男、女", "int", 10, 0)]
         public virtual Int32 Sex
         {
@@ -130,7 +130,7 @@ namespace XCode.Membership
         /// <summary>在线</summary>
         [DisplayName("在线")]
         [Description("在线")]
-        [DataObjectField(false, false, true, 1)]
+        [DataObjectField(false, false, false, 1)]
         [BindColumn(10, "Online", "在线", "bit", 0, 0)]
         public virtual Boolean Online
         {
@@ -142,7 +142,7 @@ namespace XCode.Membership
         /// <summary>启用</summary>
         [DisplayName("启用")]
         [Description("启用")]
-        [DataObjectField(false, false, true, 1)]
+        [DataObjectField(false, false, false, 1)]
         [BindColumn(11, "Enable", "启用", "bit", 0, 0)]
         public virtual Boolean Enable
         {
@@ -178,7 +178,7 @@ namespace XCode.Membership
         /// <summary>登录次数</summary>
         [DisplayName("登录次数")]
         [Description("登录次数")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(14, "Logins", "登录次数", "int", 10, 0)]
         public virtual Int32 Logins
         {

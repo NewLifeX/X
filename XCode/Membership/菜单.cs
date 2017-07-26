@@ -58,7 +58,7 @@ namespace XCode.Membership
         /// <summary>父编号</summary>
         [DisplayName("父编号")]
         [Description("父编号")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(4, "ParentID", "父编号", "int", 10, 0)]
         public virtual Int32 ParentID
         {
@@ -82,7 +82,7 @@ namespace XCode.Membership
         /// <summary>排序</summary>
         [DisplayName("排序")]
         [Description("排序")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(6, "Sort", "排序", "int", 10, 0)]
         public virtual Int32 Sort
         {
@@ -94,7 +94,7 @@ namespace XCode.Membership
         /// <summary>是否可见</summary>
         [DisplayName("是否可见")]
         [Description("是否可见")]
-        [DataObjectField(false, false, true, 1)]
+        [DataObjectField(false, false, false, 1)]
         [BindColumn(7, "Visible", "是否可见", "bit", 0, 0)]
         public virtual Boolean Visible
         {
@@ -106,7 +106,7 @@ namespace XCode.Membership
         /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
         [DisplayName("必要的菜单")]
         [Description("必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色")]
-        [DataObjectField(false, false, true, 1)]
+        [DataObjectField(false, false, false, 1)]
         [BindColumn(8, "Necessary", "必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", "bit", 0, 0)]
         public virtual Boolean Necessary
         {

@@ -184,20 +184,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        ///// <summary>当前时间函数</summary>
-        //public override String DateTimeNow { get { return "CURRENT_TIMESTAMP"; } }
-
-        ///// <summary>最小时间</summary>
-        //public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
-
-        ///// <summary>获取Guid的函数，@老树 说SQLite没有这个函数</summary>
-        //public override String NewGuid { get { return null; } }
-
-        ///// <summary>格式化时间为SQL字符串</summary>
-        ///// <param name="dateTime">时间值</param>
-        ///// <returns></returns>
-        //public override String FormatDateTime(DateTime dateTime) { return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime); }
-
         /// <summary>格式化关键字</summary>
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
@@ -598,48 +584,6 @@ namespace XCode.DataAccessLayer
 
             return sql;
         }
-
-        //protected override bool IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
-        //{
-        //    //// SQLite的自增将会被识别为64位，而实际应用一般使用32位，不需要修改
-        //    //if (entityColumn.DataType == typeof(Int32) && entityColumn.Identity &&
-        //    //    dbColumn.DataType == typeof(Int64) && dbColumn.Identity)
-        //    //{
-        //    //    // 克隆一个，修改类型
-        //    //    entityColumn = entityColumn.Clone(entityColumn.Table);
-        //    //    entityColumn.DataType = typeof(Int64);
-        //    //}
-
-        //    if (!base.IsColumnChanged(entityColumn, dbColumn, entityDb)) return false;
-
-        //    // 自增字段必须是主键
-        //    if (entityColumn.Identity && !entityColumn.PrimaryKey)
-        //    {
-        //        // 取消所有主键
-        //        entityColumn.Table.Columns.ForEach(dc => dc.PrimaryKey = false);
-
-        //        // 自增字段作为主键
-        //        entityColumn.PrimaryKey = true;
-        //    }
-
-        //    return true;
-        //}
-
-        /////// <summary>字段片段</summary>
-        /////// <param name="field">字段</param>
-        /////// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
-        /////// <returns></returns>
-        ////public override String FieldClause(IDataColumn field, Boolean onlyDefine)
-        ////{
-        ////    //chenqi 2017-3-28
-        ////    //增加处理decimal类型精度和小数位数处理
-        ////    if (!String.IsNullOrEmpty(field.RawType) && field.RawType.Contains("decimal"))
-        ////    {
-        ////        field.RawType = $"decimal({field.Precision},{field.Scale})";
-        ////    }
-
-        ////    return base.FieldClause(field, onlyDefine);
-        ////}
         #endregion
 
         #region 表和字段备注
@@ -663,18 +607,6 @@ namespace XCode.DataAccessLayer
         {
             return String.Empty;
         }
-        #endregion
-
-        #region 默认值
-        //public override String AddDefaultSQL(IDataColumn field)
-        //{
-        //    return String.Empty;
-        //}
-
-        //public override String DropDefaultSQL(IDataColumn field)
-        //{
-        //    return String.Empty;
-        //}
         #endregion
 
         #region 反向工程

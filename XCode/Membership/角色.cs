@@ -45,7 +45,7 @@ namespace XCode.Membership
         /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
         [DisplayName("是否系统角色")]
         [Description("是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除")]
-        [DataObjectField(false, false, true, 1)]
+        [DataObjectField(false, false, false, 1)]
         [BindColumn(3, "IsSystem", "是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除", "bit", 0, 0)]
         public virtual Boolean IsSystem
         {

@@ -35,7 +35,7 @@ namespace XCode.Membership
         /// <summary>用户</summary>
         [DisplayName("用户")]
         [Description("用户")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(2, "UserID", "用户", "int", 10, 0)]
         public virtual Int32 UserID
         {
@@ -71,7 +71,7 @@ namespace XCode.Membership
         /// <summary>次数</summary>
         [DisplayName("次数")]
         [Description("次数")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(5, "Times", "次数", "int", 10, 0)]
         public virtual Int32 Times
         {
@@ -95,7 +95,7 @@ namespace XCode.Membership
         /// <summary>在线时间。本次在线总时间，秒</summary>
         [DisplayName("在线时间")]
         [Description("在线时间。本次在线总时间，秒")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(7, "OnlineTime", "在线时间。本次在线总时间，秒", "int", 10, 0)]
         public virtual Int32 OnlineTime
         {

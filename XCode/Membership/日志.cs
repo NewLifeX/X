@@ -59,7 +59,7 @@ namespace XCode.Membership
         /// <summary>链接</summary>
         [DisplayName("链接")]
         [Description("链接")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(4, "LinkID", "链接", "int", 10, 0)]
         public virtual Int32 LinkID
         {
@@ -83,7 +83,7 @@ namespace XCode.Membership
         /// <summary>用户编号</summary>
         [DisplayName("用户编号")]
         [Description("用户编号")]
-        [DataObjectField(false, false, true, 10)]
+        [DataObjectField(false, false, false, 10)]
         [BindColumn(6, "CreateUserID", "用户编号", "int", 10, 0)]
         public virtual Int32 CreateUserID
         {
