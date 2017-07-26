@@ -230,8 +230,12 @@ namespace XCode
 
                 if (table != null && table.TableName != TableName)
                 {
+                    // 表名去掉前缀
+                    var name = TableName;
+                    if (name.Contains(".")) name = name.Substring(".");
+
+                    table.TableName = name;
                     FixIndexName(table);
-                    table.TableName = TableName;
                 }
 
                 //var set = new NegativeSetting

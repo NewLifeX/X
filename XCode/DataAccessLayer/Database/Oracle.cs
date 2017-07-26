@@ -395,8 +395,8 @@ namespace XCode.DataAccessLayer
         /// <summary>拥有者</summary>
         public String Owner { get { return (Database as Oracle).Owner.ToUpper(); } }
 
-        /// <summary>是否限制只能访问拥有者的信息</summary>
-        Boolean IsUseOwner { get { return Setting.Current.Oracle.UseOwner; } }
+        /// <summary>用户名</summary>
+        public String UserID { get { return (Database as Oracle).UserID.ToUpper(); } }
 
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
@@ -412,41 +412,34 @@ namespace XCode.DataAccessLayer
             else
                 tableName = tableName.ToUpper();
 
-            if (IsUseOwner)
-            {
-                dt = GetSchema(_.Tables, new String[] { Owner, tableName });
-                dt.Columns.Add("TABLE_TYPE", Type.GetType("System.String"));
-                foreach (DataRow dr in dt.Rows)
-                {
-                    dr["TABLE_TYPE"] = "Table";
-                }
-                DataTable dtView = GetSchema(_.Views, new String[] { Owner, tableName });
-                if (dtView != null && dtView.Rows.Count != 0)
-                {
-                    foreach (DataRow dr in dtView.Rows)
-                    {
-                        DataRow drNew = dt.NewRow();
-                        drNew["OWNER"] = dr["OWNER"];
-                        drNew["TABLE_NAME"] = dr["VIEW_NAME"];
-                        drNew["TABLE_TYPE"] = "View";
-                        dt.Rows.Add(drNew);
-                    }
-                }
+            var owner = Owner;
+            if (owner.IsNullOrEmpty()) owner = UserID;
 
-                if (_columns == null) _columns = GetSchema(_.Columns, new String[] { Owner, tableName, null });
-                if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { Owner, null, Owner, tableName });
-                if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, new String[] { Owner, null, Owner, tableName, null });
-            }
-            else
+            dt = GetSchema(_.Tables, new String[] { owner, tableName });
+            dt.Columns.Add("TABLE_TYPE", typeof(String));
+            foreach (DataRow dr in dt.Rows)
             {
-                if (String.IsNullOrEmpty(tableName))
-                    dt = GetSchema(_.Tables, null);
-                else
-                    dt = GetSchema(_.Tables, new String[] { null, tableName });
+                dr["TABLE_TYPE"] = "Table";
             }
+            var dtView = GetSchema(_.Views, new String[] { owner, tableName });
+            if (dtView != null && dtView.Rows.Count != 0)
+            {
+                foreach (DataRow dr in dtView.Rows)
+                {
+                    var drNew = dt.NewRow();
+                    drNew["OWNER"] = dr["OWNER"];
+                    drNew["TABLE_NAME"] = dr["VIEW_NAME"];
+                    drNew["TABLE_TYPE"] = "View";
+                    dt.Rows.Add(drNew);
+                }
+            }
+
+            if (_columns == null) _columns = GetSchema(_.Columns, new String[] { owner, tableName, null });
+            if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { owner, null, owner, tableName });
+            if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
 
             // 默认列出所有字段
-            DataRow[] rows = OnGetTables(names, dt.Rows);
+            var rows = OnGetTables(names, dt.Rows);
             if (rows == null || rows.Length < 1) return null;
 
             return GetTables(rows);
@@ -459,23 +452,21 @@ namespace XCode.DataAccessLayer
             // 主键
             if (MetaDataCollections.Contains(_.PrimaryKeys))
             {
-                DataTable dt = null;
-                if (IsUseOwner)
-                    dt = GetSchema(_.PrimaryKeys, new String[] { Owner, table.TableName, null });
-                else
-                    dt = GetSchema(_.PrimaryKeys, new String[] { null, table.TableName, null });
+                var owner = Owner;
+                if (owner.IsNullOrEmpty()) owner = UserID;
 
+                var dt = GetSchema(_.PrimaryKeys, new String[] { owner, table.TableName, null });
                 if (dt != null && dt.Rows.Count > 0)
                 {
                     // 找到主键所在索引，这个索引的列才是主键
                     String name = null;
                     if (TryGetDataRowValue(dt.Rows[0], _.IndexName, out name) && !String.IsNullOrEmpty(name))
                     {
-                        IDataIndex di = table.Indexes.FirstOrDefault(i => i.Name == name);
+                        var di = table.Indexes.FirstOrDefault(i => i.Name == name);
                         if (di != null)
                         {
                             di.PrimaryKey = true;
-                            foreach (IDataColumn dc in table.Columns)
+                            foreach (var dc in table.Columns)
                             {
                                 dc.PrimaryKey = di.Columns.Contains(dc.ColumnName);
                             }
@@ -487,19 +478,19 @@ namespace XCode.DataAccessLayer
             // 表注释 USER_TAB_COMMENTS
             //String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
             //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
-            String comment = GetTableComment(table.TableName);
+            var comment = GetTableComment(table.TableName);
             if (!String.IsNullOrEmpty(comment)) table.Description = comment;
 
             if (table == null || table.Columns == null || table.Columns.Count < 1) return;
 
             // 自增
-            Boolean exists = false;
-            foreach (IDataColumn field in table.Columns)
+            var exists = false;
+            foreach (var field in table.Columns)
             {
                 // 不管是否主键
                 if (!field.DataType.IsIntType()) continue;
 
-                String name = String.Format("SEQ_{0}_{1}", table.TableName, field.ColumnName);
+                var name = String.Format("SEQ_{0}_{1}", table.TableName, field.ColumnName);
                 if (CheckSeqExists(name))
                 {
                     field.Identity = true;
@@ -510,7 +501,7 @@ namespace XCode.DataAccessLayer
             if (!exists)
             {
                 // 检查该表是否有序列，如有，让主键成为自增
-                String name = String.Format("SEQ_{0}", table.TableName);
+                var name = String.Format("SEQ_{0}", table.TableName);
                 if (CheckSeqExists(name))
                 {
                     foreach (IDataColumn field in table.Columns)
@@ -523,17 +514,6 @@ namespace XCode.DataAccessLayer
                     }
                 }
             }
-            //if (!exists)
-            //{
-            //    // 处理自增，整型、主键、名为ID认为是自增
-            //    foreach (IDataColumn field in table.Columns)
-            //    {
-            //        if (field.DataType.IsIntType())
-            //        {
-            //            if (field.PrimaryKey && field.ColumnName.ToLower().Contains("id")) field.Identity = true;
-            //        }
-            //    }
-            //}
         }
 
         /// <summary>序列</summary>
@@ -543,13 +523,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         Boolean CheckSeqExists(String name)
         {
+            var owner = Owner;
+            if (owner.IsNullOrEmpty()) owner = UserID;
             if (dtSequences == null)
             {
-                DataSet ds = null;
-                if (IsUseOwner)
-                    ds = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES Where SEQUENCE_OWNER='" + Owner + "'");
-                else
-                    ds = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES");
+                var ds = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES Where SEQUENCE_OWNER='" + owner + "'");
 
                 if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
                     dtSequences = ds.Tables[0];
@@ -558,17 +536,10 @@ namespace XCode.DataAccessLayer
             }
             if (dtSequences.Rows == null || dtSequences.Rows.Count < 1) return false;
 
-            String where = null;
-            if (IsUseOwner)
-                where = String.Format("SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, Owner);
-            else
-                where = String.Format("SEQUENCE_NAME='{0}'", name);
+            var where = String.Format("SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, owner);
 
-            DataRow[] drs = dtSequences.Select(where);
+            var drs = dtSequences.Select(where);
             return drs != null && drs.Length > 0;
-
-            //String sql = String.Format("SELECT Count(*) FROM ALL_SEQUENCES Where SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, Owner);
-            //return Convert.ToInt32(Database.CreateSession().ExecuteScalar(sql)) > 0;
         }
 
         DataTable dtTableComment;
@@ -576,7 +547,7 @@ namespace XCode.DataAccessLayer
         {
             if (dtTableComment == null)
             {
-                DataSet ds = Database.CreateSession().Query("SELECT * FROM USER_TAB_COMMENTS");
+                var ds = Database.CreateSession().Query("SELECT * FROM USER_TAB_COMMENTS");
                 if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
                     dtTableComment = ds.Tables[0];
                 else
@@ -584,13 +555,10 @@ namespace XCode.DataAccessLayer
             }
             if (dtTableComment.Rows == null || dtTableComment.Rows.Count < 1) return null;
 
-            String where = String.Format("TABLE_NAME='{0}'", name);
-            DataRow[] drs = dtTableComment.Select(where);
+            var where = String.Format("TABLE_NAME='{0}'", name);
+            var drs = dtTableComment.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
             return null;
-
-            //String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
-            //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
         }
 
         /// <summary>取得指定表的所有列构架</summary>
@@ -608,13 +576,6 @@ namespace XCode.DataAccessLayer
                 {
                     field.Description = GetColumnComment(table.TableName, field.ColumnName);
                 }
-
-                //#region  2013.6.27 上海石头 添加，发现在 Oracle11 中，反向工程无法扫描到默认值
-                //foreach (IDataColumn field in list)
-                //{
-                //    field.Default = GetColumnDefault(table.TableName, field.ColumnName);
-                //}
-                //#endregion
             }
 
             return list;
@@ -628,7 +589,7 @@ namespace XCode.DataAccessLayer
 
             if (String.IsNullOrEmpty(Owner) || !rows[0].Table.Columns.Contains(KEY_OWNER)) return base.GetFields(table, rows);
 
-            List<DataRow> list = new List<DataRow>();
+            var list = new List<DataRow>();
             foreach (DataRow dr in rows)
             {
                 String str = null;
@@ -643,7 +604,7 @@ namespace XCode.DataAccessLayer
         {
             if (dtColumnComment == null)
             {
-                DataSet ds = Database.CreateSession().Query("SELECT * FROM USER_COL_COMMENTS");
+                var ds = Database.CreateSession().Query("SELECT * FROM USER_COL_COMMENTS");
                 if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
                     dtColumnComment = ds.Tables[0];
                 else
@@ -651,41 +612,11 @@ namespace XCode.DataAccessLayer
             }
             if (dtColumnComment.Rows == null || dtColumnComment.Rows.Count < 1) return null;
 
-            String where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
-            DataRow[] drs = dtColumnComment.Select(where);
+            var where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
+            var drs = dtColumnComment.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
             return null;
         }
-
-        //DataTable dtColumnDefault;
-        ///// <summary>获取默认值信息</summary>
-        ///// <param name="tableName"></param>
-        ///// <param name="columnName"></param>
-        ///// <returns></returns>
-        //String GetColumnDefault(String tableName, String columnName)
-        //{
-        //    if (dtColumnDefault == null)
-        //    {
-        //        DataSet ds = Database.CreateSession().Query("SELECT * FROM USER_TAB_COLS");
-        //        if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
-        //            dtColumnDefault = ds.Tables[0];
-        //        else
-        //            dtColumnDefault = new DataTable();
-        //    }
-        //    if (dtColumnDefault.Rows == null || dtColumnDefault.Rows.Count < 1) return null;
-
-        //    String where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
-        //    DataRow[] drs = dtColumnDefault.Select(where);
-        //    String result = null;
-        //    if (drs == null || drs.Length == 0) return null;
-
-        //    result = Convert.ToString(drs[0]["DATA_DEFAULT"]);  //如果默认值中最后一个字符是  \n ,则排除掉
-        //    if (result.EndsWith("\n") == true && result.Length > "\n".Length)
-        //        result = result.Substring(0, result.Length - "\n".Length);
-        //    else
-        //        result = null;
-        //    return result;
-        //}
 
         protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
@@ -722,10 +653,6 @@ namespace XCode.DataAccessLayer
             // 长度
             Int32 len = 0;
             if (TryGetDataRowValue<Int32>(drColumn, "LENGTHINCHARS", out len) && len > 0) field.Length = len;
-
-            //// 字节数
-            //len = 0;
-            //if (TryGetDataRowValue<Int32>(drColumn, "LENGTH", out len) && len > 0) field.NumOfByte = len;
         }
 
         protected override String GetFieldType(IDataColumn field)
@@ -794,22 +721,6 @@ namespace XCode.DataAccessLayer
                             return new DataRow[] { dr };
                     }
                 }
-
-                //// 时间日期
-                //if (typeName == typeof(DateTime).FullName)
-                //{
-                //    // DateTime的范围是0001到9999
-                //    // Timestamp的范围是1970到2038
-                //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
-                //    foreach (DataRow dr in drs)
-                //    {
-                //        String name = GetDataRowValue<String>(dr, "TypeName");
-                //        if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
-                //            return new DataRow[] { dr };
-                //        else if (name == "TIMESTAMP" && (d == "now()" || field.Default == "CURRENT_TIMESTAMP"))
-                //            return new DataRow[] { dr };
-                //    }
-                //}
             }
             return drs;
         }
@@ -849,24 +760,11 @@ namespace XCode.DataAccessLayer
 
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            //// 有默认值时直接返回，待会在默认值里面加约束
-            //// 因为Oracle的声明是先有默认值再有约束的
-            //if (!String.IsNullOrEmpty(field.Default)) return null;
-
-            //return base.GetFieldConstraints(field, onlyDefine);
-
             if (field.Nullable)
                 return " NULL";
             else
                 return " NOT NULL";
         }
-
-        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        //{
-        //    if (String.IsNullOrEmpty(field.Default)) return null;
-
-        //    return base.GetFieldDefault(field, onlyDefine) + base.GetFieldConstraints(field, onlyDefine);
-        //}
 
         public override String CreateTableSQL(IDataTable table)
         {
@@ -902,11 +800,11 @@ namespace XCode.DataAccessLayer
             sb.AppendLine();
             sb.Append(")");
 
-            String sql = sb.ToString();
+            var sql = sb.ToString();
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小和开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
-            String sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
+            // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
+            var sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
             //return sql + "; " + Environment.NewLine + sqlSeq;
             // 去掉分号后的空格，Oracle不支持同时执行多个语句
             return sql + ";" + Environment.NewLine + sqlSeq;
@@ -914,35 +812,38 @@ namespace XCode.DataAccessLayer
 
         public override String DropTableSQL(String tableName)
         {
-            String sql = base.DropTableSQL(tableName);
+            var sql = base.DropTableSQL(tableName);
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            String sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
+            var sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
             return sql + "; " + Environment.NewLine + sqlSeq;
         }
 
         public override String AddColumnSQL(IDataColumn field)
         {
-            if (String.IsNullOrEmpty(Owner))
+            var owner = Owner;
+            if (owner.EqualIgnoreCase(UserID))
                 return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true));
             else
-                return String.Format("Alter Table {2}.{0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true), Owner);
+                return String.Format("Alter Table {2}.{0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true), owner);
         }
 
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
-            if (String.IsNullOrEmpty(Owner))
+            var owner = Owner;
+            if (owner.EqualIgnoreCase(UserID))
                 return String.Format("Alter Table {0} Modify {1}", FormatName(field.Table.TableName), FieldClause(field, false));
             else
-                return String.Format("Alter Table {2}.{0} Modify {1}", FormatName(field.Table.TableName), FieldClause(field, false), Owner);
+                return String.Format("Alter Table {2}.{0} Modify {1}", FormatName(field.Table.TableName), FieldClause(field, false), owner);
         }
 
         public override String DropColumnSQL(IDataColumn field)
         {
-            if (String.IsNullOrEmpty(Owner))
+            var owner = Owner;
+            if (owner.EqualIgnoreCase(UserID))
                 return String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName);
             else
-                return String.Format("Alter Table {2}.{0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName, Owner);
+                return String.Format("Alter Table {2}.{0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName, owner);
         }
 
         public override String AddTableDescriptionSQL(IDataTable table)
