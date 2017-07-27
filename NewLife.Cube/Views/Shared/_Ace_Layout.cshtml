@@ -51,10 +51,10 @@
             <ul class="breadcrumb">
                 @Html.Partial("_Layout_Nav")
             </ul>
+            <div style="float: right; margin-left: 40px;">@ViewBag.HeaderContent</div>
         </div>
         <div class="page-content">
             <section class="content-wrapper main-content clear-fix">
-                @Html.Partial("_Layout_Header")
                 @RenderBody()
             </section>
         </div>
