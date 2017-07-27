@@ -109,7 +109,7 @@ namespace XCode.Cache
                 {
                     foreach (var item in list)
                     {
-                        ses.Remove(item.SlaveKey);
+                        if (!item.SlaveKey.IsNullOrEmpty()) ses.Remove(item.SlaveKey);
                     }
                 }
             }
