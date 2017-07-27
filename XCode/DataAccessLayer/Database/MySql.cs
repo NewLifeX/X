@@ -543,22 +543,20 @@ namespace XCode.DataAccessLayer
 
         public override String CreateTableSQL(IDataTable table)
         {
-            var Fields = new List<IDataColumn>(table.Columns);
-            //Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
-            Fields.OrderBy(dc => dc.ID);
+            var fs = new List<IDataColumn>(table.Columns);
 
-            var sb = new StringBuilder(32 + Fields.Count * 20);
+            var sb = new StringBuilder(32 + fs.Count * 20);
             var pks = new List<String>();
 
             sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.TableName));
-            for (var i = 0; i < Fields.Count; i++)
+            for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
-                sb.Append(FieldClause(Fields[i], true));
-                if (i < Fields.Count - 1) sb.Append(",");
+                sb.Append(FieldClause(fs[i], true));
+                if (i < fs.Count - 1) sb.Append(",");
 
-                if (Fields[i].PrimaryKey) pks.Add(FormatName(Fields[i].ColumnName));
+                if (fs[i].PrimaryKey) pks.Add(FormatName(fs[i].ColumnName));
             }
             // 如果有自增，则自增必须作为主键
             foreach (var item in table.Columns)

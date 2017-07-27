@@ -771,18 +771,17 @@ namespace XCode.DataAccessLayer
 
         public override String CreateTableSQL(IDataTable table)
         {
-            var Fields = new List<IDataColumn>(table.Columns);
-            Fields.OrderBy(dc => dc.ID);
+            var fs = new List<IDataColumn>(table.Columns);
 
-            var sb = new StringBuilder(32 + Fields.Count * 20);
+            var sb = new StringBuilder(32 + fs.Count * 20);
 
             sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
-            for (var i = 0; i < Fields.Count; i++)
+            for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
-                sb.Append(FieldClause(Fields[i], true));
-                if (i < Fields.Count - 1) sb.Append(",");
+                sb.Append(FieldClause(fs[i], true));
+                if (i < fs.Count - 1) sb.Append(",");
             }
 
             // 主键

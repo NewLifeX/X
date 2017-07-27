@@ -12,7 +12,6 @@
 
 	//var company = "XCode";
 	var name = "Shard";
-	var dir = "$(实体分类)";
 
 	// 自动寻找模型文件，并从中获取公司名和链接名
 	//var mdl = GetModelFile(ref company, ref name);

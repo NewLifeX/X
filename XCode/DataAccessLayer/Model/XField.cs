@@ -16,12 +16,6 @@ namespace XCode.DataAccessLayer
     class XField : SerializableDataMember, IDataColumn, ICloneable
     {
         #region 属性
-        /// <summary>顺序编号</summary>
-        [XmlAttribute]
-        [DisplayName("编号")]
-        [Description("编号")]
-        public Int32 ID { get; set; }
-
         /// <summary>名称</summary>
         [XmlAttribute]
         [DisplayName("名称")]
@@ -92,7 +86,7 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("允许空")]
         [Description("允许空")]
-        public Boolean Nullable { get; set; } 
+        public Boolean Nullable { get; set; }
 
         private String _DisplayName;
         /// <summary>显示名</summary>
@@ -165,9 +159,9 @@ namespace XCode.DataAccessLayer
         public override String ToString()
         {
             if (!String.IsNullOrEmpty(DisplayName) && DisplayName != Name)
-                return String.Format("ID={0} Name={1} FieldType={2} RawType={3} DisplayName={4}", ID, ColumnName, FieldType, RawType, DisplayName);
+                return String.Format("Name={0} FieldType={1} RawType={2} DisplayName={3}", ColumnName, FieldType, RawType, DisplayName);
             else
-                return String.Format("ID={0} Name={1} FieldType={2} RawType={3}", ID, ColumnName, FieldType, RawType);
+                return String.Format("Name={0} FieldType={1} RawType={2}", ColumnName, FieldType, RawType);
         }
         #endregion
 

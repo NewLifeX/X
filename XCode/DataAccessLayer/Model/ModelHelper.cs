@@ -185,13 +185,11 @@ namespace XCode.DataAccessLayer
             reader.ReadStartElement();
 
             var list = new List<IDataTable>();
-            var id = 1;
             while (reader.IsStartElement())
             {
                 if (reader.Name.EqualIgnoreCase("Table"))
                 {
                     var table = createTable();
-                    table.ID = id++;
                     list.Add(table);
 
                     //reader.ReadStartElement();
@@ -244,11 +242,9 @@ namespace XCode.DataAccessLayer
                 {
                     case "Columns":
                         reader.ReadStartElement();
-                        var id = 1;
                         while (reader.IsStartElement())
                         {
                             var dc = table.CreateColumn();
-                            dc.ID = id++;
                             var v = reader.GetAttribute("DataType");
                             if (v != null)
                             {

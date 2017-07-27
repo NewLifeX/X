@@ -24,7 +24,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn(1, "ID", "编号", "int", 10, 0)]
+        [BindColumn("ID", "编号", "int", 10, 0)]
         public virtual Int32 ID
         {
             get { return _ID; }
@@ -36,7 +36,7 @@ namespace XCode.Membership
         [DisplayName("类别")]
         [Description("类别")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(2, "Category", "类别", "nvarchar(50)", 0, 0)]
+        [BindColumn("Category", "类别", "nvarchar(50)", 0, 0)]
         public virtual String Category
         {
             get { return _Category; }
@@ -48,7 +48,7 @@ namespace XCode.Membership
         [DisplayName("操作")]
         [Description("操作")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(3, "Action", "操作", "nvarchar(50)", 0, 0)]
+        [BindColumn("Action", "操作", "nvarchar(50)", 0, 0)]
         public virtual String Action
         {
             get { return _Action; }
@@ -60,7 +60,7 @@ namespace XCode.Membership
         [DisplayName("链接")]
         [Description("链接")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn(4, "LinkID", "链接", "int", 10, 0)]
+        [BindColumn("LinkID", "链接", "int", 10, 0)]
         public virtual Int32 LinkID
         {
             get { return _LinkID; }
@@ -72,7 +72,7 @@ namespace XCode.Membership
         [DisplayName("用户名")]
         [Description("用户名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(5, "UserName", "用户名", "nvarchar(50)", 0, 0)]
+        [BindColumn("UserName", "用户名", "nvarchar(50)", 0, 0)]
         public virtual String UserName
         {
             get { return _UserName; }
@@ -84,7 +84,7 @@ namespace XCode.Membership
         [DisplayName("用户编号")]
         [Description("用户编号")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn(6, "CreateUserID", "用户编号", "int", 10, 0)]
+        [BindColumn("CreateUserID", "用户编号", "int", 10, 0)]
         public virtual Int32 CreateUserID
         {
             get { return _CreateUserID; }
@@ -96,7 +96,7 @@ namespace XCode.Membership
         [DisplayName("IP地址")]
         [Description("IP地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(7, "CreateIP", "IP地址", "nvarchar(50)", 0, 0)]
+        [BindColumn("CreateIP", "IP地址", "nvarchar(50)", 0, 0)]
         public virtual String CreateIP
         {
             get { return _CreateIP; }
@@ -108,7 +108,7 @@ namespace XCode.Membership
         [DisplayName("时间")]
         [Description("时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(8, "CreateTime", "时间", "datetime", 3, 0)]
+        [BindColumn("CreateTime", "时间", "datetime", 3, 0)]
         public virtual DateTime CreateTime
         {
             get { return _CreateTime; }
@@ -120,7 +120,7 @@ namespace XCode.Membership
         [DisplayName("详细信息")]
         [Description("详细信息")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(9, "Remark", "详细信息", "nvarchar(500)", 0, 0)]
+        [BindColumn("Remark", "详细信息", "nvarchar(500)", 0, 0)]
         public virtual String Remark
         {
             get { return _Remark; }

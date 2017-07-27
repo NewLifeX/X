@@ -829,19 +829,17 @@ namespace XCode.DataAccessLayer
 
         public virtual String CreateTableSQL(IDataTable table)
         {
-            var Fields = new List<IDataColumn>(table.Columns);
-            //Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
-            Fields.OrderBy(dc => dc.ID);
+            var fs = new List<IDataColumn>(table.Columns);
 
             var sb = new StringBuilder();
 
             sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
-            for (Int32 i = 0; i < Fields.Count; i++)
+            for (Int32 i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
-                sb.Append(FieldClause(Fields[i], true));
-                if (i < Fields.Count - 1) sb.Append(",");
+                sb.Append(FieldClause(fs[i], true));
+                if (i < fs.Count - 1) sb.Append(",");
             }
             sb.AppendLine();
             sb.Append(")");

@@ -23,7 +23,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn(1, "ID", "编号", "int", 10, 0)]
+        [BindColumn("ID", "编号", "int", 10, 0)]
         public virtual Int32 ID
         {
             get { return _ID; }
@@ -35,7 +35,7 @@ namespace XCode.Membership
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn(2, "Name", "名称", "nvarchar(50)", 0, 0, Master=true)]
+        [BindColumn("Name", "名称", "nvarchar(50)", 0, 0, Master=true)]
         public virtual String Name
         {
             get { return _Name; }
@@ -47,7 +47,7 @@ namespace XCode.Membership
         [DisplayName("显示名")]
         [Description("显示名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(3, "DisplayName", "显示名", "nvarchar(50)", 0, 0)]
+        [BindColumn("DisplayName", "显示名", "nvarchar(50)", 0, 0)]
         public virtual String DisplayName
         {
             get { return _DisplayName; }
@@ -59,7 +59,7 @@ namespace XCode.Membership
         [DisplayName("父编号")]
         [Description("父编号")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn(4, "ParentID", "父编号", "int", 10, 0)]
+        [BindColumn("ParentID", "父编号", "int", 10, 0)]
         public virtual Int32 ParentID
         {
             get { return _ParentID; }
@@ -71,7 +71,7 @@ namespace XCode.Membership
         [DisplayName("链接")]
         [Description("链接")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn(5, "Url", "链接", "nvarchar(200)", 0, 0)]
+        [BindColumn("Url", "链接", "nvarchar(200)", 0, 0)]
         public virtual String Url
         {
             get { return _Url; }
@@ -83,7 +83,7 @@ namespace XCode.Membership
         [DisplayName("排序")]
         [Description("排序")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn(6, "Sort", "排序", "int", 10, 0)]
+        [BindColumn("Sort", "排序", "int", 10, 0)]
         public virtual Int32 Sort
         {
             get { return _Sort; }
@@ -95,7 +95,7 @@ namespace XCode.Membership
         [DisplayName("是否可见")]
         [Description("是否可见")]
         [DataObjectField(false, false, false, 1)]
-        [BindColumn(7, "Visible", "是否可见", "bit", 0, 0)]
+        [BindColumn("Visible", "是否可见", "bit", 0, 0)]
         public virtual Boolean Visible
         {
             get { return _Visible; }
@@ -107,7 +107,7 @@ namespace XCode.Membership
         [DisplayName("必要的菜单")]
         [Description("必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色")]
         [DataObjectField(false, false, false, 1)]
-        [BindColumn(8, "Necessary", "必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", "bit", 0, 0)]
+        [BindColumn("Necessary", "必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", "bit", 0, 0)]
         public virtual Boolean Necessary
         {
             get { return _Necessary; }
@@ -119,7 +119,7 @@ namespace XCode.Membership
         [DisplayName("权限子项")]
         [Description("权限子项。逗号分隔，每个权限子项名值竖线分隔")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn(9, "Permission", "权限子项。逗号分隔，每个权限子项名值竖线分隔", "nvarchar(200)", 0, 0)]
+        [BindColumn("Permission", "权限子项。逗号分隔，每个权限子项名值竖线分隔", "nvarchar(200)", 0, 0)]
         public virtual String Permission
         {
             get { return _Permission; }
@@ -131,7 +131,7 @@ namespace XCode.Membership
         [DisplayName("备注")]
         [Description("备注")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn(10, "Remark", "备注", "nvarchar(200)", 0, 0)]
+        [BindColumn("Remark", "备注", "nvarchar(200)", 0, 0)]
         public virtual String Remark
         {
             get { return _Remark; }

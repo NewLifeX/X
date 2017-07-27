@@ -45,9 +45,6 @@ namespace XCode.Configuration
             }
             internal set { _dis = value; }
         }
-
-        /// <summary>顺序标识</summary>
-        internal Int32 _ID;
         #endregion
 
         #region 扩展属性
@@ -171,7 +168,6 @@ namespace XCode.Configuration
 
                 if (dc != null)
                 {
-                    _ID = dc.Order;
                     Master = dc.Master;
                 }
 
@@ -215,7 +211,6 @@ namespace XCode.Configuration
             IDataColumn dc = field;
             if (dc == null) return;
 
-            dc.ID = _ID;
             dc.ColumnName = ColumnName;
             dc.Name = Name;
             dc.DataType = Type;
@@ -503,8 +498,6 @@ namespace XCode.Configuration
         internal Field(TableItem table, String name, Type type, String description, Int32 length)
         {
             Table = table;
-
-            _ID = table.Fields.Length + 1;
 
             Name = name;
             ColumnName = name;

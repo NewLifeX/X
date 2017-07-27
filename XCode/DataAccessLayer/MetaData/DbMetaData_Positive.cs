@@ -117,15 +117,8 @@ namespace XCode.DataAccessLayer
                 foreach (DataRow dr in rows)
                 {
                     #region 基本属性
-                    IDataTable table = DAL.CreateTable();
+                    var table = DAL.CreateTable();
                     table.TableName = GetDataRowValue<String>(dr, _.TalbeName);
-
-                    // 顺序、编号
-                    Int32 id = 0;
-                    if (TryGetDataRowValue<Int32>(dr, "TABLE_ID", out id))
-                        table.ID = id;
-                    else
-                        table.ID = list.Count + 1;
 
                     // 描述
                     table.Description = GetDataRowValue<String>(dr, "DESCRIPTION");
@@ -228,25 +221,9 @@ namespace XCode.DataAccessLayer
         protected virtual List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
         {
             var list = new List<IDataColumn>();
-            // 开始序号
-            Int32 startIndex = 0;
             foreach (var dr in rows)
             {
                 var field = table.CreateColumn();
-
-                // 序号
-                Int32 n = 0;
-                if (TryGetDataRowValue<Int32>(dr, _.OrdinalPosition, out n))
-                    field.ID = n;
-                else if (TryGetDataRowValue<Int32>(dr, _.ID, out n))
-                    field.ID = n;
-                // 如果从0开始，则所有需要同步增加；如果所有字段序号都是0，则按照先后顺序
-                if (field.ID == 0)
-                {
-                    startIndex++;
-                    //field.ID = startIndex;
-                }
-                if (startIndex > 0) field.ID += startIndex;
 
                 // 名称
                 field.ColumnName = GetDataRowValue<String>(dr, _.ColumnName);
@@ -272,6 +249,7 @@ namespace XCode.DataAccessLayer
                 //if (Database is DbBase) field.IsUnicode = (Database as DbBase).IsUnicode(field.RawType);
 
                 // 精度
+                var n = 0;
                 if (TryGetDataRowValue<Int32>(dr, "NUMERIC_PRECISION", out n))
                     field.Precision = n;
                 else if (TryGetDataRowValue<Int32>(dr, "DATETIME_PRECISION", out n))

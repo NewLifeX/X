@@ -7,9 +7,6 @@ namespace XCode.DataAccessLayer
     public interface IDataColumn
     {
         #region 属性
-        /// <summary>顺序编号</summary>
-        Int32 ID { get; set; }
-
         /// <summary>名称</summary>
         String Name { get; set; }
 
@@ -37,9 +34,6 @@ namespace XCode.DataAccessLayer
         /// <summary>长度</summary>
         Int32 Length { get; set; }
 
-        ///// <summary>字节数</summary>
-        //Int32 NumOfByte { get; set; }
-
         /// <summary>精度</summary>
         Int32 Precision { get; set; }
 
@@ -48,12 +42,6 @@ namespace XCode.DataAccessLayer
 
         /// <summary>允许空</summary>
         Boolean Nullable { get; set; }
-
-        ///// <summary>是否Unicode</summary>
-        //Boolean IsUnicode { get; set; }
-
-        ///// <summary>默认值</summary>
-        //String Default { get; set; }
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
         String DisplayName { get; set; }

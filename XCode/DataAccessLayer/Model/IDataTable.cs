@@ -7,9 +7,6 @@ namespace XCode.DataAccessLayer
     public interface IDataTable : ICloneable
     {
         #region 属性
-        /// <summary>编号</summary>
-        Int32 ID { get; set; }
-
         /// <summary>名称</summary>
         String Name { get; set; }
 

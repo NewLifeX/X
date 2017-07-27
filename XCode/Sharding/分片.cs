@@ -23,7 +23,7 @@ namespace XCode.Sharding
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn(1, "ID", "编号", "int", 10, 0)]
+        [BindColumn("ID", "编号", "int", 10, 0)]
         public virtual Int32 ID
         {
             get { return _ID; }
@@ -35,7 +35,7 @@ namespace XCode.Sharding
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn(2, "Name", "名称", "nvarchar(50)", 0, 0, Master=true)]
+        [BindColumn("Name", "名称", "nvarchar(50)", 0, 0, Master=true)]
         public virtual String Name
         {
             get { return _Name; }
@@ -47,7 +47,7 @@ namespace XCode.Sharding
         [DisplayName("实体类")]
         [Description("实体类")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(3, "EntityType", "实体类", "nvarchar(50)", 0, 0)]
+        [BindColumn("EntityType", "实体类", "nvarchar(50)", 0, 0)]
         public virtual String EntityType
         {
             get { return _EntityType; }
@@ -59,7 +59,7 @@ namespace XCode.Sharding
         [DisplayName("连接名")]
         [Description("连接名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(4, "ConnName", "连接名", "nvarchar(50)", 0, 0)]
+        [BindColumn("ConnName", "连接名", "nvarchar(50)", 0, 0)]
         public virtual String ConnName
         {
             get { return _ConnName; }
@@ -71,7 +71,7 @@ namespace XCode.Sharding
         [DisplayName("表名")]
         [Description("表名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(5, "TableName", "表名", "nvarchar(50)", 0, 0)]
+        [BindColumn("TableName", "表名", "nvarchar(50)", 0, 0)]
         public virtual String TableName
         {
             get { return _TableName; }
@@ -82,8 +82,8 @@ namespace XCode.Sharding
         /// <summary>创建者</summary>
         [DisplayName("创建者")]
         [Description("创建者")]
-        [DataObjectField(false, false, true, 10)]
-        [BindColumn(6, "CreateUserID", "创建者", "int", 10, 0)]
+        [DataObjectField(false, false, false, 10)]
+        [BindColumn("CreateUserID", "创建者", "int", 10, 0)]
         public virtual Int32 CreateUserID
         {
             get { return _CreateUserID; }
@@ -95,7 +95,7 @@ namespace XCode.Sharding
         [DisplayName("创建地址")]
         [Description("创建地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(7, "CreateIP", "创建地址", "nvarchar(50)", 0, 0)]
+        [BindColumn("CreateIP", "创建地址", "nvarchar(50)", 0, 0)]
         public virtual String CreateIP
         {
             get { return _CreateIP; }
@@ -107,7 +107,7 @@ namespace XCode.Sharding
         [DisplayName("创建时间")]
         [Description("创建时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(8, "CreateTime", "创建时间", "datetime", 3, 0)]
+        [BindColumn("CreateTime", "创建时间", "datetime", 3, 0)]
         public virtual DateTime CreateTime
         {
             get { return _CreateTime; }
@@ -118,8 +118,8 @@ namespace XCode.Sharding
         /// <summary>更新者</summary>
         [DisplayName("更新者")]
         [Description("更新者")]
-        [DataObjectField(false, false, true, 10)]
-        [BindColumn(9, "UpdateUserID", "更新者", "int", 10, 0)]
+        [DataObjectField(false, false, false, 10)]
+        [BindColumn("UpdateUserID", "更新者", "int", 10, 0)]
         public virtual Int32 UpdateUserID
         {
             get { return _UpdateUserID; }
@@ -131,7 +131,7 @@ namespace XCode.Sharding
         [DisplayName("更新地址")]
         [Description("更新地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn(10, "UpdateIP", "更新地址", "nvarchar(50)", 0, 0)]
+        [BindColumn("UpdateIP", "更新地址", "nvarchar(50)", 0, 0)]
         public virtual String UpdateIP
         {
             get { return _UpdateIP; }
@@ -143,7 +143,7 @@ namespace XCode.Sharding
         [DisplayName("更新时间")]
         [Description("更新时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn(11, "UpdateTime", "更新时间", "datetime", 3, 0)]
+        [BindColumn("UpdateTime", "更新时间", "datetime", 3, 0)]
         public virtual DateTime UpdateTime
         {
             get { return _UpdateTime; }
@@ -155,7 +155,7 @@ namespace XCode.Sharding
         [DisplayName("备注")]
         [Description("备注")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn(12, "Remark", "备注", "nvarchar(500)", 0, 0)]
+        [BindColumn("Remark", "备注", "nvarchar(500)", 0, 0)]
         public virtual String Remark
         {
             get { return _Remark; }
