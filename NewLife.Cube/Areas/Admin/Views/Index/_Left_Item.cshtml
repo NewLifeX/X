@@ -7,6 +7,7 @@
 
     var item = Model as IMenu;
     var childs = fact.GetMySubMenus(item.ID).Where(m => m.Visible);
+    var url = item.Url.IsNullOrEmpty() ? "" : Url.Content(item.Url);
 }
 <li>
     @if (childs.Any())
@@ -18,14 +19,14 @@
     }
     else
     {
-        <a href="@Url.Content(item.Url)" target="main">
+        <a href="@url" target="main">
             <i class="menu-icon fa fa-caret-right"></i>
             @item.DisplayName
         </a>
 
         <b class="arrow"></b>
         <ul class="submenu">
-            @foreach (IMenu menu in childs)
+            @foreach (var menu in childs)
             {
                 @Html.Partial("_Left_Item", menu);
             }
