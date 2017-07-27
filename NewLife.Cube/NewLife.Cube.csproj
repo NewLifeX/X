@@ -152,10 +152,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Navbar.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Log\_List_Toolbar.generated.cs">
+    <Compile Include="Areas\Admin\Views\Log\_List_Search.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
+      <DependentUpon>_List_Search.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Views\Role\_Form_Group.generated.cs">
       <AutoGen>True</AutoGen>
@@ -182,10 +182,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Form_Action.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\_List_Toolbar.generated.cs">
+    <Compile Include="Areas\Admin\Views\User\_List_Search.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
+      <DependentUpon>_List_Search.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Views\User\_Login_Forgot.generated.cs">
       <AutoGen>True</AutoGen>
@@ -360,6 +360,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_List_Search.generated.cs">
+      <DependentUpon>_List_Search.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Shared\_List_Toolbar_Search.generated.cs">
       <DependentUpon>_List_Toolbar_Search.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -468,9 +473,9 @@
     <None Include="Content\js\jquery1x.min.js" />
     <None Include="Content\js\respond.min.js" />
     <Content Include="favicon.ico" />
-    <None Include="Areas\Admin\Views\Log\_List_Toolbar.cshtml">
+    <None Include="Areas\Admin\Views\Log\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
+      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
     </None>
     <None Include="Areas\Admin\Views\Index\_Left_Item.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -484,9 +489,9 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Info.generated.cs</LastGenOutput>
     </None>
-    <None Include="Areas\Admin\Views\User\_List_Toolbar.cshtml">
+    <None Include="Areas\Admin\Views\User\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
+      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
     </None>
     <None Include="Content\bootstrap\fonts\glyphicons-halflings-regular.eot" />
     <None Include="Content\bootstrap\fonts\glyphicons-halflings-regular.ttf" />
@@ -619,6 +624,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_List_Search.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\_List_Toolbar_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar_Search.generated.cs</LastGenOutput>

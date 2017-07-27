@@ -25,7 +25,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        protected override EntityList<XLog> FindAll(Pager p)
+        protected override EntityList<XLog> Search(Pager p)
         {
             return XLog.Search(p["Q"], p["adminid"].ToInt(), p["category"], p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }

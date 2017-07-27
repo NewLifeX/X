@@ -42,7 +42,7 @@ namespace NewLife.Cube
         /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        protected virtual EntityList<TEntity> FindAll(Pager p)
+        protected virtual EntityList<TEntity> Search(Pager p)
         {
             // 缓存数据，用于后续导出
             Session[CacheKey] = p;
@@ -66,7 +66,7 @@ namespace NewLife.Cube
             // 不要查记录数
             p.TotalCount = -1;
 
-            return FindAll(p);
+            return Search(p);
         }
         #endregion
 
@@ -96,7 +96,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         protected virtual ActionResult IndexView(Pager p)
         {
-            var list = FindAll(p);
+            var list = Search(p);
 
             return View("List", list);
         }
