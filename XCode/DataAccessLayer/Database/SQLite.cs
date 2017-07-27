@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Reflection;
 using NewLife.Security;
@@ -216,6 +217,20 @@ namespace XCode.DataAccessLayer
         /// <param name="right"></param>
         /// <returns></returns>
         public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
+
+        private Boolean _inited;
+        public void Init()
+        {
+            if (_inited) return;
+            _inited = true;
+
+            Task.Run(() =>
+            {
+                var ss = CreateSession();
+                ss.Execute("PRAGMA temp_store=memory");
+                ss.Execute("PRAGMA temp_store_directory='{0}'".F(".".GetFullPath()));
+            });
+        }
         #endregion
     }
 
@@ -232,6 +247,8 @@ namespace XCode.DataAccessLayer
             try
             {
                 base.Open();
+
+                (Database as SQLite).Init();
             }
             catch (Exception ex)
             {
