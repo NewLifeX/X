@@ -29,7 +29,6 @@ foreach(IDataTable table in Tables){
     <td width="35">主键</td>
     <td width="35">唯一</td>
     <td width="35">必填</td>
-    <td width="75">默认值</td>
     <td width="150">描述</td>
   </tr><#
   foreach(IDataColumn Field in table.GetAllColumns(Tables, true))
@@ -44,7 +43,6 @@ foreach(IDataTable table in Tables){
     <td align="center"><#=Field.PrimaryKey?"是":"&nbsp;"#></td>
     <td align="center"><#=Field.Identity?"是":(Field.PrimaryKey?"是":"&nbsp;")#></td>
     <td align="center"><#=Field.Nullable?"&nbsp;":"是"#></td>
-    <td><#=Field.Default+" "#></td>
     <td><#=StringHelper.TrimStart(Field.Description, Field.DisplayName, ".", "。")+" "#></td>
   </tr><#}#>
 </table>

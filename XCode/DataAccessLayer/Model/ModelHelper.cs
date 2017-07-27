@@ -650,7 +650,7 @@ namespace XCode.DataAccessLayer
             }
 
             dc.DataType = null;
-            if (dc.Table.DbType != DatabaseType.SqlServer) dc.RawType = null;
+            if (oridc.Table.DbType != DatabaseType.SqlServer) dc.RawType = null;
 
             return dc;
         }
