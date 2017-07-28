@@ -13,14 +13,8 @@
             @foreach (var item in fields)
             {
                 var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
-                if (item.IsIdentity)
-                {
-                    <th class="text-center hidden-md hidden-sm hidden-xs"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
-                }
-                else
-                {
-                    <th class="text-center"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
-                }
+                var cls = item.IsIdentity ? "text-center hidden-md hidden-sm hidden-xs" : "text-center";
+                <th class="@cls" title="@item.Description"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
             }
             @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {

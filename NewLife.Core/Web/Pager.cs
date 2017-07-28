@@ -123,8 +123,8 @@ namespace NewLife.Web
         /// <returns></returns>
         public virtual String GetSortUrl(String name)
         {
-            // 首次访问该排序项，默认升序，重复访问取反
-            var desc = false;
+            // 首次访问该排序项，默认降序，重复访问取反
+            var desc = true;
             if (Sort.EqualIgnoreCase(name)) desc = !Desc;
 
             var url = GetBaseUrl(true, false, true);
