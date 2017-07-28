@@ -720,7 +720,7 @@ namespace XCode.DataAccessLayer
                         var name = GetDataRowValue<String>(dr, "TypeName");
                         if (name == "VARCHAR2" && field.Length <= Database.LongTextLength)
                             return new DataRow[] { dr };
-                        else if (name == "LONG" && field.Length > Database.LongTextLength)
+                        else if (name == "CLOB" && field.Length > Database.LongTextLength)
                             return new DataRow[] { dr };
                     }
                 }
