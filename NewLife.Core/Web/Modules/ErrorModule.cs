@@ -94,21 +94,21 @@ namespace NewLife.Web
 
             XTrace.WriteLine(sb.ToString());
 
-            OnErrorComplete();
+            //OnErrorComplete();
         }
 
-        /// <summary>错误处理完成后执行。一般用于输出友好错误信息</summary>
-        protected virtual void OnErrorComplete()
-        {
-            if (!XTrace.Debug)
-            {
-                var Server = HttpContext.Current.Server;
-                var Response = HttpContext.Current.Response;
+        ///// <summary>错误处理完成后执行。一般用于输出友好错误信息</summary>
+        //protected virtual void OnErrorComplete()
+        //{
+        //    if (!XTrace.Debug)
+        //    {
+        //        var Server = HttpContext.Current.Server;
+        //        var Response = HttpContext.Current.Response;
 
-                Server.ClearError();
-                Response.Write("非常抱歉，服务器遇到错误，请与管理员联系！");
-            }
-        }
+        //        Server.ClearError();
+        //        Response.Write("非常抱歉，服务器遇到错误，请与管理员联系！");
+        //    }
+        //}
         #endregion
     }
 

@@ -228,7 +228,7 @@ namespace XCode.DataAccessLayer
             {
                 var ss = CreateSession();
                 ss.Execute("PRAGMA temp_store=memory");
-                ss.Execute("PRAGMA temp_store_directory='{0}'".F(".".GetFullPath()));
+                //ss.Execute("PRAGMA temp_store_directory='{0}'".F(".".GetFullPath()));
             });
         }
         #endregion
