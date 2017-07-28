@@ -13,7 +13,7 @@
             @foreach (var item in fields)
             {
                 var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
-                if (item.PrimaryKey)
+                if (item.IsIdentity)
                 {
                     <th class="text-center hidden-md hidden-sm hidden-xs"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
                 }

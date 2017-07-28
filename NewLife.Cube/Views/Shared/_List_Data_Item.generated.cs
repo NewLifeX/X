@@ -67,7 +67,7 @@ WriteLiteral("\r\n");
 
             
             #line 8 "..\..\Views\Shared\_List_Data_Item.cshtml"
- if (item.PrimaryKey)
+ if (item.IsIdentity)
 {
 
             
