@@ -152,7 +152,14 @@ namespace NewLife.Serialization
         /// <summary>Json类型对象转换实体类</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T Convert<T>(Object obj) { return (T)Default.Convert(obj, typeof(T)); }
+        public static T Convert<T>(Object obj)
+        {
+            if (obj == null) return default(T);
+            if (obj is T) return (T)obj;
+            if (obj.GetType().As<T>()) return (T)obj;
+
+            return (T)Default.Convert(obj, typeof(T));
+        }
     }
 
 #if !__MOBILE__ && !__CORE__
