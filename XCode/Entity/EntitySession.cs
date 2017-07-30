@@ -488,7 +488,7 @@ namespace XCode
                         else
                             m = Dal.Session.QueryCountFast(TableName);
                         // 查真实记录数，修正FastCount不够准确的情况
-                        Task.Run(() =>
+                        if (Dal.DbType != DatabaseType.SQLite) Task.Run(() =>
                         {
                             var sb = new SelectBuilder();
                             sb.Table = FormatedTableName;
