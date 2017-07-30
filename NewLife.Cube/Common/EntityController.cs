@@ -34,7 +34,18 @@ namespace NewLife.Cube
             // 强行实例化一次，初始化实体对象
             var entity = new TEntity();
 
-            ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
+            var title = Entity<TEntity>.Meta.Table.Description + "管理";
+            ViewBag.Title = title;
+        }
+
+        /// <summary>执行后</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuted(ActionExecutedContext filterContext)
+        {
+            base.OnActionExecuted(filterContext);
+
+            var title = ViewBag.Title + "";
+            HttpContext.Items["Title"] = title;
         }
         #endregion
 

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Web;
+using System.Web.Routing;
+using System.Web.UI;
 using NewLife.Log;
 using NewLife.Web;
 using XCode.DataAccessLayer;
@@ -55,7 +57,10 @@ namespace XCode.Web
 
         void SaveBehavior()
         {
-            var req = HttpContext.Current?.Request;
+            var ctx = HttpContext.Current;
+            if (ctx == null) return;
+
+            var req = ctx.Request;
             if (req == null) return;
 
             var p = req.Path;
@@ -65,7 +70,21 @@ namespace XCode.Web
             var ext = Path.GetExtension(p);
             if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
 
+            var title = ctx.Items["Title"] + "";
+            //if (title.IsNullOrEmpty())
+            //{
+            //    var route = ctx.Handler as MvcHandler;
+            //    if (route != null) title = route + "";
+            //}
+
+            if (title.IsNullOrEmpty())
+            {
+                var page = ctx.Handler as Page;
+                if (page != null) title = page.Title;
+            }
+
             var msg = "{0} {1}".F(req.HttpMethod, req.RawUrl);
+            if (!title.IsNullOrEmpty()) msg = title + " " + msg;
             LogProvider.Provider.WriteLog("访问", "记录", msg);
         }
     }

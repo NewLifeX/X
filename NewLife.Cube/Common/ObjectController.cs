@@ -24,6 +24,7 @@ namespace NewLife.Cube
             var name = GetType().GetDisplayName() ?? typeof(TObject).GetDisplayName() ?? typeof(TObject).Name;
             var des = GetType().GetDescription() ?? typeof(TObject).GetDescription();
 
+            ViewBag.Title = name;
             ViewBag.HeaderTitle = name;
 
             var txt = "";
@@ -32,6 +33,16 @@ namespace NewLife.Cube
             ViewBag.HeaderContent = txt;
 
             if (Value != null) ViewBag.Properties = GetMembers(Value);
+        }
+
+        /// <summary>执行后</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuted(ActionExecutedContext filterContext)
+        {
+            base.OnActionExecuted(filterContext);
+
+            var title = ViewBag.Title + "";
+            HttpContext.Items["Title"] = title;
         }
 
         /// <summary>显示对象</summary>
