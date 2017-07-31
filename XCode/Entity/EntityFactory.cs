@@ -171,25 +171,10 @@ namespace XCode
                 Type type = null;
                 if (dic.TryGetValue(table.TableName, out type))
                 {
-                    // 两个实体类，只能要一个
-
-                    // 当前实体类是，跳过
-                    if (IsCommonEntity(item))
-                        continue;
-                    // 前面那个是，排除
-                    else if (IsCommonEntity(type))
-                    {
-                        dic[table.TableName] = item;
-                        // 删除原始实体类
-                        tables.RemoveAll(tb => tb.TableName == table.TableName);
-                    }
                     // 两个都不是，报错吧！
-                    else
-                    {
-                        String msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.TableName, type.FullName, item.FullName);
-                        XTrace.WriteLine(msg);
-                        throw new XCodeException(msg);
-                    }
+                    var msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.TableName, type.FullName, item.FullName);
+                    XTrace.WriteLine(msg);
+                    throw new XCodeException(msg);
                 }
                 else
                 {
@@ -206,23 +191,6 @@ namespace XCode
             }
 
             return tables;
-        }
-
-        /// <summary>是否普通实体类</summary>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        private static Boolean IsCommonEntity(Type type)
-        {
-            // 通用实体类全部都是
-            //if (type.FullName.Contains("NewLife.CommonEntity")) return true;
-            if (type.Namespace == "NewLife.CommonEntity") return true;
-
-            // 实体类和基类名字相同的也是
-            String name = type.BaseType.Name;
-            Int32 p = name.IndexOf('`');
-            if (p > 0 && type.Name == name.Substring(0, p)) return true;
-
-            return false;
         }
 
         static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
