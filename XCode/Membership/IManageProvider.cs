@@ -18,9 +18,6 @@ namespace XCode.Membership
     /// </remarks>
     public interface IManageProvider : IServiceProvider
     {
-        /// <summary>用户实体类</summary>
-        Type UserType { get; }
-
         /// <summary>当前登录用户，设为空则注销登录</summary>
         IManageUser Current { get; set; }
 
@@ -83,41 +80,9 @@ namespace XCode.Membership
 
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu { get { return GetFactory<IMenu>() as IMenuFactory; } }
-
-        /// <summary>预热基础数据</summary>
-        public static void Init()
-        {
-            var sb = new StringBuilder();
-            sb.Append("预热基础数据");
-
-            var sw = Stopwatch.StartNew();
-
-            var fact = GetFactory<IUser>();
-            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
-
-            fact = GetFactory<IMenu>();
-            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
-
-            fact = GetFactory<IRole>();
-            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
-
-            fact = GetFactory<ILog>();
-            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
-
-            fact = GetFactory<IUserOnline>();
-            if (fact != null) sb.AppendFormat("，{0}={1:n0}", fact.EntityType.GetDisplayName() ?? fact.EntityType.Name, fact.Count);
-
-            sw.Stop();
-            sb.AppendFormat("，耗时{0:n0}ms", sw.ElapsedMilliseconds);
-
-            XTrace.WriteLine(sb.ToString());
-        }
         #endregion
 
         #region IManageProvider 接口
-        /// <summary>管理用户类</summary>
-        public abstract Type UserType { get; }
-
         /// <summary>当前用户</summary>
         public abstract IManageUser Current { get; set; }
 
@@ -164,23 +129,6 @@ namespace XCode.Membership
         }
         #endregion
 
-        #region 辅助
-        /// <summary>获取Http缓存，如果不存在，则调用func去计算</summary>
-        /// <param name="key"></param>
-        /// <param name="func"></param>
-        /// <returns></returns>
-        protected Object GetHttpCache(Object key, Func<Object, Object> func)
-        {
-            if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key];
-
-            var value = func(key);
-
-            HttpContext.Current.Items[key] = value;
-
-            return value;
-        }
-        #endregion
-
         #region IErrorInfoProvider 成员
         void IErrorInfoProvider.AddInfo(Exception ex, StringBuilder builder)
         {
@@ -223,9 +171,6 @@ namespace XCode.Membership
     /// <typeparam name="TUser"></typeparam>
     public class ManageProvider<TUser> : ManageProvider where TUser : User<TUser>, new()
     {
-        /// <summary>用户类型</summary>
-        public override Type UserType { get { return typeof(TUser); } }
-
         /// <summary>当前用户</summary>
         public override IManageUser Current { get { return User<TUser>.Current; } set { User<TUser>.Current = (TUser)value; } }
 

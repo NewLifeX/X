@@ -619,11 +619,10 @@ namespace NewLife.Cube
             if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
 
             var txt = (String)ViewBag.HeaderContent;
-            if (txt.IsNullOrEmpty() && ManageProvider.Menu.Current != null) txt = ManageProvider.Menu.Current.Remark;
+            if (txt.IsNullOrEmpty()) txt = ManageProvider.Menu?.Current?.Remark;
             if (txt.IsNullOrEmpty()) txt = GetType().GetDescription();
             if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
                 txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
-            //txt = "这里是页头内容，你可以通过重载OnActionExecuting然后设置ViewBag.HeaderTitle/HeaderContent来修改，或者给控制器增加Description特性";
             ViewBag.HeaderContent = txt;
 
             base.OnActionExecuting(filterContext);

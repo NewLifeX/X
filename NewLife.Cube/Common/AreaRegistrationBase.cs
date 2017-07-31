@@ -41,9 +41,6 @@ namespace NewLife.Cube
 
         static AreaRegistrationBase()
         {
-            // 预热XCode
-            Task.Run(() => ManageProvider.Init());
-
             XTrace.WriteLine("{0} Start 初始化魔方 {0}", new String('=', 32));
             Assembly.GetExecutingAssembly().WriteVersion();
 
