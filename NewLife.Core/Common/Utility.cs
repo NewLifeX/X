@@ -394,6 +394,9 @@ namespace System
             if (ex is TargetInvocationException)
                 return GetTrue((ex as TargetInvocationException).InnerException);
 
+            if (ex is TypeInitializationException)
+                return GetTrue((ex as TypeInitializationException).InnerException);
+
             return ex;
         }
     }
