@@ -18,7 +18,7 @@ namespace NewLife.Cube
 
             HttpApplication.RegisterModule(typeof(ErrorModule));
             HttpApplication.RegisterModule(typeof(DbRunTimeModule));
-            HttpApplication.RegisterModule(typeof(ManagerModule));
+            //HttpApplication.RegisterModule(typeof(ManagerModule));
         }
     }
 }
