@@ -455,10 +455,11 @@ namespace XCode.Membership
                 var list = new List<IMenu>();
 
                 // 如果根菜单不存在，则添加
-                var root = Root.FindByPath(rootName);
+                var r = Root as IMenu;
+                var root = r.FindByPath(rootName);
                 if (root == null)
                 {
-                    root = Root.Add(rootName, null, "~/" + rootName);
+                    root = r.Add(rootName, null, "~/" + rootName);
                     list.Add(root);
                 }
 
@@ -512,7 +513,7 @@ namespace XCode.Membership
                         var method = item.Key;
 
                         var dn = method.GetDisplayName();
-                        if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", controller.FriendName);
+                        if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", (controller as TEntity)?.FriendName);
 
                         var pmName = !dn.IsNullOrEmpty() ? dn : method.Name;
                         if (item.Value == 0)
