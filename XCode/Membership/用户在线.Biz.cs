@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Web;
 using NewLife.Data;
+using NewLife.Model;
 using NewLife.Threading;
 using NewLife.Web;
 
@@ -172,13 +173,13 @@ namespace XCode.Membership
             if (status.IsNullOrEmpty()) status = ctx.Request.Url.PathAndQuery;
             var ip = WebHelper.UserHost;
 
-            var user = ManageProvider.User;
+            var user = ctx.User?.Identity as IManageUser;
             if (user == null) return SetStatus(ss.SessionID, status, 0, null, ip);
 
             user.Online = true;
             (user as IEntity).SaveAsync();
 
-            return SetStatus(ss.SessionID, status, user.ID, user.FriendName, ip);
+            return SetStatus(ss.SessionID, status, user.ID, user + "", ip);
         }
 
         /// <summary>删除过期，指定过期时间</summary>

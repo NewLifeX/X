@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
@@ -38,7 +39,8 @@ namespace XCode.Membership
         /// <param name="provider"></param>
         public UserModule(IManageProvider provider)
         {
-            Provider = provider ?? ManageProvider.Provider;
+            //Provider = provider ?? ManageProvider.Provider;
+            Provider = provider;
         }
         #endregion
 
@@ -64,7 +66,7 @@ namespace XCode.Membership
             var fs = GetFieldNames(entity.GetType());
 
             // 当前登录用户
-            var user = Provider?.Current;
+            var user = Provider?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
             if (user != null)
             {
                 if (isNew) SetNoDirtyItem(fs, entity, __.CreateUserID, user.ID);

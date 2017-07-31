@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Model;
 using NewLife.Web;
 using XCode.Cache;
 
@@ -37,7 +39,8 @@ namespace XCode.Membership
                 // 自动设置当前登录用户
                 if (!Dirtys[__.UserName])
                 {
-                    var user = ManageProvider.User;
+                    var user = HttpContext.Current?.User?.Identity as IManageUser;
+                    //var user = ManageProvider.User;
                     if (user != null) UserName = user + "";
                 }
             }
