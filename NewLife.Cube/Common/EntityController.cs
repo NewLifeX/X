@@ -621,8 +621,8 @@ namespace NewLife.Cube
             var txt = (String)ViewBag.HeaderContent;
             if (txt.IsNullOrEmpty()) txt = ManageProvider.Menu?.Current?.Remark;
             if (txt.IsNullOrEmpty()) txt = GetType().GetDescription();
-            if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
-                txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
+            //if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
+            //    txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
             ViewBag.HeaderContent = txt;
 
             base.OnActionExecuting(filterContext);
