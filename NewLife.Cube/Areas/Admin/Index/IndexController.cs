@@ -48,7 +48,7 @@ namespace NewLife.Cube.Admin.Controllers
             }
 
             ViewBag.Act = id;
-            ViewBag.User = ManageProvider.User;
+            //ViewBag.User = ManageProvider.User;
             ViewBag.Config = SysConfig.Current;
 
             var name = Request.ServerVariables["Server_SoftWare"];

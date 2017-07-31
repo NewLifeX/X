@@ -2,8 +2,9 @@
 @{
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 }
-@if (ManageProvider.User.Has(PermissionFlags.Insert, PermissionFlags.Update))
+@if (user.Has(PermissionFlags.Insert, PermissionFlags.Update))
 {
     <div class="clearfix form-actions col-sm-12 col-md-12">
         <a href="~/Admin/User/ClearPassword/@entity["ID"]" class="col-xs-1 btn btn-success btn-sm">清空密码</a>

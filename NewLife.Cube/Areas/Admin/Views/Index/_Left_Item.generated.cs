@@ -56,7 +56,7 @@ namespace ASP
             
             #line 3 "..\..\Areas\Admin\Views\Index\_Left_Item.cshtml"
   
-    var user = ManageProvider.User;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
     var fact = ObjectContainer.Current.Resolve<IMenuFactory>();
 
@@ -117,14 +117,14 @@ WriteLiteral("\r\n        </a>\r\n");
             #line hidden
 WriteLiteral("        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 552), Tuple.Create("\"", 563)
+WriteAttribute("href", Tuple.Create(" href=\"", 580), Tuple.Create("\"", 591)
             
             #line 22 "..\..\Areas\Admin\Views\Index\_Left_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 559), Tuple.Create<System.Object, System.Int32>(url
+, Tuple.Create(Tuple.Create("", 587), Tuple.Create<System.Object, System.Int32>(url
             
             #line default
             #line hidden
-, 559), false)
+, 587), false)
 );
 
 WriteLiteral(" target=\"main\"");

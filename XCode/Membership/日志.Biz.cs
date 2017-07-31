@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Net;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.Web;
 using XCode.Cache;
 
@@ -41,10 +38,7 @@ namespace XCode.Membership
                 if (!Dirtys[__.UserName])
                 {
                     var user = ManageProvider.User;
-                    if (user != null)
-                    {
-                        UserName = user.ToString();
-                    }
+                    if (user != null) UserName = user + "";
                 }
             }
 

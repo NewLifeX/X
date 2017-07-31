@@ -5,19 +5,11 @@
  * 版权：版权所有 (C) 新生命开发团队 2002~2017
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
-using System.Threading;
 using System.Web;
-using System.Xml.Serialization;
 using NewLife.Data;
-using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
-using XCode;
-using XCode.Configuration;
-using XCode.Membership;
 
 namespace XCode.Membership
 {
@@ -154,13 +146,6 @@ namespace XCode.Membership
                 entity.SaveAsync();
             }
 
-            var user = ManageProvider.Provider.FindByID(userid);
-            if (user != null)
-            {
-                user.Online = true;
-                (user as IEntity).SaveAsync();
-            }
-
             return entity;
         }
 
@@ -188,10 +173,12 @@ namespace XCode.Membership
             var ip = WebHelper.UserHost;
 
             var user = ManageProvider.User;
-            if (user == null)
-                return SetStatus(ss.SessionID, status, 0, null, ip);
-            else
-                return SetStatus(ss.SessionID, status, user.ID, user.FriendName, ip);
+            if (user == null) return SetStatus(ss.SessionID, status, 0, null, ip);
+
+            user.Online = true;
+            (user as IEntity).SaveAsync();
+
+            return SetStatus(ss.SessionID, status, user.ID, user.FriendName, ip);
         }
 
         /// <summary>删除过期，指定过期时间</summary>

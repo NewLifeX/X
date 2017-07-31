@@ -3,6 +3,7 @@
     var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
     var entity = Model as IEntity;
     var key = entity[fact.Unique];
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
     var ajax = true;
     if (ViewBag.AjaxDelete is Boolean)
@@ -10,17 +11,17 @@
         ajax = (Boolean)ViewBag.AjaxDelete;
     }
 }
-@if (ManageProvider.User.Has(PermissionFlags.Update))
+@if (user.Has(PermissionFlags.Update))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
     @Html.ActionLink("编辑", "Edit", new { id = @key }, new { @class = "editcell" })
 }
-else if (ManageProvider.User.Has(PermissionFlags.Detail))
+else if (user.Has(PermissionFlags.Detail))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
     @Html.ActionLink("查看", "Detail", new { id = @key }, new { @class = "editcell" })
 }
-@if (ManageProvider.User.Has(PermissionFlags.Delete))
+@if (user.Has(PermissionFlags.Delete))
 {
     if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
     {

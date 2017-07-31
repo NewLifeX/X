@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Web;
-using System.Web.Routing;
 using System.Web.UI;
 using NewLife.Log;
-using NewLife.Web;
-using XCode.DataAccessLayer;
 using XCode.Membership;
 
 namespace XCode.Web
@@ -21,14 +18,9 @@ namespace XCode.Web
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {
-            //context.BeginRequest += new EventHandler(OnBeginRequest);
             context.PostRequestHandlerExecute += OnPost;
         }
         #endregion
-
-        //void OnBeginRequest(Object sender, EventArgs e)
-        //{
-        //}
 
         /// <summary>输出运行时间</summary>
         void OnPost(Object sender, EventArgs e)

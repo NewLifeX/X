@@ -62,6 +62,7 @@ namespace ASP
   
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
             
             #line default
@@ -76,21 +77,21 @@ WriteLiteral(" class=\"form-inline\"");
 
 WriteLiteral(">\r\n        <form");
 
-WriteAttribute("action", Tuple.Create(" action=\"", 230), Tuple.Create("\"", 310)
+WriteAttribute("action", Tuple.Create(" action=\"", 295), Tuple.Create("\"", 375)
             
-            #line 10 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 239), Tuple.Create<System.Object, System.Int32>(Url.Action("index")
-            
-            #line default
-            #line hidden
-, 239), false)
-            
-            #line 10 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 259), Tuple.Create<System.Object, System.Int32>(Html.Raw("?" + page.GetBaseUrl(false, true, true))
+            #line 11 "..\..\Views\Shared\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 304), Tuple.Create<System.Object, System.Int32>(Url.Action("index")
             
             #line default
             #line hidden
-, 259), false)
+, 304), false)
+            
+            #line 11 "..\..\Views\Shared\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 324), Tuple.Create<System.Object, System.Int32>(Html.Raw("?" + page.GetBaseUrl(false, true, true))
+            
+            #line default
+            #line hidden
+, 324), false)
 );
 
 WriteLiteral(" method=\"post\"");
@@ -100,28 +101,28 @@ WriteLiteral(" role=\"form\"");
 WriteLiteral(">\r\n");
 
             
-            #line 11 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 12 "..\..\Views\Shared\_List_Toolbar.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 11 "..\..\Views\Shared\_List_Toolbar.cshtml"
-             if (ManageProvider.User.Has(PermissionFlags.Insert))
+            #line 12 "..\..\Views\Shared\_List_Toolbar.cshtml"
+             if (user.Has(PermissionFlags.Insert))
             {
                 
             
             #line default
             #line hidden
             
-            #line 13 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 14 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" }));
 
             
             #line default
             #line hidden
             
-            #line 13 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 14 "..\..\Views\Shared\_List_Toolbar.cshtml"
                                                                                                                                                   
             }
 
@@ -137,7 +138,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.Partial("_List_Search"));
 
             
@@ -148,7 +149,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                ");
 
             
-            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 18 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.Partial("_List_Toolbar_Search"));
 
             
@@ -159,7 +160,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                ");
 
             
-            #line 18 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 19 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.Partial("_List_Toolbar_Adv"));
 
             

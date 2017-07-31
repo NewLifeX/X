@@ -1,8 +1,11 @@
 ﻿@using XCode.Membership;
-@if (ManageProvider.User != null)
+@{ 
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+}
+@if (user != null)
 {
     <text>
-        你好，@Html.ActionLink(ManageProvider.User + "", "Info", "Admin/User", routeValues: new { id = ManageProvider.User.ID }, htmlAttributes: new { @class = "username", title = "管理" })!
+        你好，@Html.ActionLink(user + "", "Info", "Admin/User", routeValues: new { id = user.ID }, htmlAttributes: new { @class = "username", title = "管理" })!
         @Html.ActionLink("注销", "Logout", "Admin/User")
     </text>
 }

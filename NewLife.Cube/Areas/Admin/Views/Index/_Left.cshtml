@@ -1,6 +1,6 @@
 ﻿@using NewLife.Model;
 @{
-    var user = ManageProvider.User;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
     var fact = ObjectContainer.Current.Resolve<IMenuFactory>();
 

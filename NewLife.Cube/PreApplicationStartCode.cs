@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Web;
 using NewLife.Web;
+using XCode.Membership;
 
 namespace NewLife.Cube
 {
@@ -17,6 +18,7 @@ namespace NewLife.Cube
 
             HttpApplication.RegisterModule(typeof(ErrorModule));
             HttpApplication.RegisterModule(typeof(DbRunTimeModule));
+            HttpApplication.RegisterModule(typeof(ManagerModule));
         }
     }
 }

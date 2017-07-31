@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Security.Principal;
 using System.Text;
 using System.Web;
-using NewLife.Log;
 using NewLife.Model;
 using NewLife.Web;
 using XCode.Model;
@@ -64,9 +64,11 @@ namespace XCode.Membership
         #region 静态实例
         static ManageProvider()
         {
-            ObjectContainer.Current
-                .AutoRegister<IManageProvider, DefaultManageProvider>()
-                .AutoRegister<IRole, Role>()
+            var ioc = ObjectContainer.Current;
+            // 外部管理提供者需要手工覆盖
+            ioc.Register<IManageProvider, DefaultManageProvider>();
+
+            ioc.AutoRegister<IRole, Role>()
                 .AutoRegister<IMenu, Menu>()
                 .AutoRegister<ILog, Log>()
                 .AutoRegister<IUser, UserX>();
@@ -218,4 +220,28 @@ namespace XCode.Membership
     }
 
     class DefaultManageProvider : ManageProvider<UserX> { }
+
+    /// <summary>管理提供者助手</summary>
+    public static class ManagerProviderHelper
+    {
+        /// <summary>设置当前用户</summary>
+        /// <param name="provider">提供者</param>
+        public static void SetPrincipal(this IManageProvider provider)
+        {
+            var ctx = HttpContext.Current;
+            if (ctx == null) return;
+
+            var user = provider.Current;
+            if (user == null) return;
+
+            var id = user as IIdentity;
+            if (id == null) return;
+
+            // 角色列表
+            var roles = new List<String>();
+            if (user is IUser) roles.Add((user as IUser).RoleName);
+
+            ctx.User = new GenericPrincipal(id, roles.ToArray());
+        }
+    }
 }

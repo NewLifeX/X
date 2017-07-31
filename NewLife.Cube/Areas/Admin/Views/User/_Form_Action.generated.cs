@@ -52,15 +52,16 @@ namespace ASP
   
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n");
+WriteLiteral("\n");
 
             
-            #line 6 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
- if (ManageProvider.User.Has(PermissionFlags.Insert, PermissionFlags.Update))
+            #line 7 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+ if (user.Has(PermissionFlags.Insert, PermissionFlags.Update))
 {
 
             
@@ -70,27 +71,27 @@ WriteLiteral("    <div");
 
 WriteLiteral(" class=\"clearfix form-actions col-sm-12 col-md-12\"");
 
-WriteLiteral(">\r\n        <a");
+WriteLiteral(">\n        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 257), Tuple.Create("\"", 304)
-, Tuple.Create(Tuple.Create("", 264), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/ClearPassword/")
-, 264), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 300), Tuple.Create("\"", 347)
+, Tuple.Create(Tuple.Create("", 307), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/ClearPassword/")
+, 307), false)
             
-            #line 9 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 291), Tuple.Create<System.Object, System.Int32>(entity["ID"]
+            #line 10 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 334), Tuple.Create<System.Object, System.Int32>(entity["ID"]
             
             #line default
             #line hidden
-, 291), false)
+, 334), false)
 );
 
 WriteLiteral(" class=\"col-xs-1 btn btn-success btn-sm\"");
 
-WriteLiteral(">清空密码</a>\r\n        <label");
+WriteLiteral(">清空密码</a>\n        <label");
 
 WriteLiteral(" class=\"control-label col-xs-3 col-sm-4 col-md-4\"");
 
-WriteLiteral("></label>\r\n        <button");
+WriteLiteral("></label>\n        <button");
 
 WriteLiteral(" type=\"submit\"");
 
@@ -98,28 +99,28 @@ WriteLiteral(" class=\"btn btn-success btn-sm\"");
 
 WriteLiteral("><i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 493), Tuple.Create("\"", 547)
-, Tuple.Create(Tuple.Create("", 501), Tuple.Create("glyphicon", 501), true)
-, Tuple.Create(Tuple.Create(" ", 510), Tuple.Create("glyphicon-", 511), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 534), Tuple.Create("\"", 588)
+, Tuple.Create(Tuple.Create("", 542), Tuple.Create("glyphicon", 542), true)
+, Tuple.Create(Tuple.Create(" ", 551), Tuple.Create("glyphicon-", 552), true)
             
-            #line 11 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
-             , Tuple.Create(Tuple.Create("", 521), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
+            #line 12 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+             , Tuple.Create(Tuple.Create("", 562), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
             
             #line default
             #line hidden
-, 521), false)
+, 562), false)
 );
 
 WriteLiteral("></i><strong>");
 
             
-            #line 11 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+            #line 12 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
                                                                                                                                Write(isNew ? "新增" : "保存");
 
             
             #line default
             #line hidden
-WriteLiteral("</strong></button>\r\n        <button");
+WriteLiteral("</strong></button>\n        <button");
 
 WriteLiteral(" type=\"button\"");
 
@@ -131,10 +132,10 @@ WriteLiteral("><i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 
-WriteLiteral("></i><strong>取消</strong></button>\r\n    </div>\r\n");
+WriteLiteral("></i><strong>取消</strong></button>\n    </div>\n");
 
             
-            #line 14 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+            #line 15 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
 }
             
             #line default

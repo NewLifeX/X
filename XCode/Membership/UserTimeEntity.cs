@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
-using NewLife.Web;
-using XCode;
-using XCode.Membership;
 using NewLife.Model;
+using NewLife.Web;
 
 namespace XCode.Membership
 {
@@ -24,6 +22,23 @@ namespace XCode.Membership
 
             /// <summary>更新人</summary>
             public static String UpdateUserID = "UpdateUserID";
+        }
+        #endregion
+
+        #region 提供者
+        /// <summary>当前用户提供者</summary>
+        public IManageProvider Provider { get; set; }
+        #endregion
+
+        #region 构造函数
+        /// <summary>实例化</summary>
+        public UserModule() : this(null) { }
+
+        /// <summary>实例化</summary>
+        /// <param name="provider"></param>
+        public UserModule(IManageProvider provider)
+        {
+            Provider = provider ?? ManageProvider.Provider;
         }
         #endregion
 
@@ -49,7 +64,7 @@ namespace XCode.Membership
             var fs = GetFieldNames(entity.GetType());
 
             // 当前登录用户
-            var user = ManageProvider.Provider.Current;
+            var user = Provider?.Current;
             if (user != null)
             {
                 if (isNew) SetNoDirtyItem(fs, entity, __.CreateUserID, user.ID);
@@ -134,14 +149,6 @@ namespace XCode.Membership
             if (fs.Contains(__.CreateIP)) return true;
             if (fs.Contains(__.UpdateIP)) return true;
 
-            // 任意以IP结尾的字段都要，仅在创建时生效
-            //foreach (var item in fs)
-            //{
-            //    if (item.EndsWith("IP")) return true;
-            //}
-
-            //return false;
-
             var fs2 = GetIPFieldNames(entityType);
             return fs2 != null && fs2.Count > 0;
         }
@@ -166,11 +173,6 @@ namespace XCode.Membership
                 {
                     SetNoDirtyItem(fs, entity, __.CreateIP, ip);
 
-                    // 任意以IP结尾的字段都要，仅在创建时生效
-                    //foreach (var item in fs)
-                    //{
-                    //    if (item.EndsWith("IP")) SetNoDirtyItem(fs, entity, item, ip);
-                    //}
                     var fs2 = GetIPFieldNames(entity.GetType());
                     if (fs2 != null)
                     {
@@ -199,7 +201,6 @@ namespace XCode.Membership
                 var fs = GetFieldNames(t);
                 if (fs == null || fs.Count == 0) return null;
 
-                //return fs.Where(e => e.EndsWith("IP")).ToList();
                 return new HashSet<String>(fs.Where(e => e.EndsWith("IP")));
             });
         }

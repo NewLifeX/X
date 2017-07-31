@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Data.Common;
 using System.Linq;
+using System.Security.Principal;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -34,7 +35,7 @@ namespace XCode.Membership
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class User<TEntity> : LogEntity<TEntity>, IUser, IManageUser//, IPrincipal//, IIdentity
+    public abstract partial class User<TEntity> : LogEntity<TEntity>, IUser, IManageUser, IIdentity
         where TEntity : User<TEntity>, new()
     {
         #region 对象操作
@@ -113,29 +114,29 @@ namespace XCode.Membership
                 var key = "Admin";
 
                 if (HttpContext.Current == null) return null;
-                var Session = HttpContext.Current.Session;
-                if (Session == null) return null;
+                var ss = HttpContext.Current.Session;
+                if (ss == null) return null;
 
                 // 从Session中获取
-                var entity = Session[key] as TEntity;
+                var entity = ss[key] as TEntity;
                 if (entity != null) return entity;
 
                 // 设置一个陷阱，避免重复计算Cookie
-                if (Session[key] != null) return null;
+                if (ss[key] != null) return null;
 
                 // 从Cookie中获取
                 entity = GetCookie(key);
                 if (entity != null)
-                    Session[key] = entity;
+                    ss[key] = entity;
                 else
-                    Session[key] = "1";
+                    ss[key] = "1";
 
                 return entity;
             }
             set
             {
                 var key = "Admin";
-                var Session = HttpContext.Current.Session;
+                var ss = HttpContext.Current.Session;
 
                 // 特殊处理注销
                 if (value == null)
@@ -144,12 +145,12 @@ namespace XCode.Membership
                     if (entity != null) WriteLog("注销", entity.Name);
 
                     // 修改Session
-                    if (Session != null) Session.Remove(key);
+                    if (ss != null) ss.Remove(key);
                 }
                 else
                 {
                     // 修改Session
-                    if (Session != null) Session[key] = value;
+                    if (ss != null) ss[key] = value;
                 }
 
                 // 修改Cookie
@@ -560,6 +561,12 @@ namespace XCode.Membership
 
         /// <summary>昵称</summary>
         String IManageUser.NickName { get { return DisplayName; } set { DisplayName = value; } }
+
+        String IIdentity.Name => Name;
+
+        String IIdentity.AuthenticationType => "XCode";
+
+        Boolean IIdentity.IsAuthenticated => true;
 
         ///// <summary>是否管理员</summary>
         //Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }

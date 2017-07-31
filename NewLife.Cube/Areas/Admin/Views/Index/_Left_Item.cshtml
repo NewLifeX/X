@@ -1,7 +1,7 @@
 ﻿@using NewLife.Model;
 @using XCode.Membership;
 @{
-    var user = ManageProvider.User;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
     var fact = ObjectContainer.Current.Resolve<IMenuFactory>();
 

@@ -39,7 +39,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         protected override Boolean AuthorizeCore(HttpContextBase httpContext)
         {
-            var user = ManageProvider.User;
+            var user = httpContext.User?.Identity as IUser;
             return user != null;
         }
 
@@ -47,12 +47,10 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
-            //// 基类方法会检查AllowAnonymous
-            //base.OnAuthorization(filterContext);
-            //if (filterContext.Result == null) return;
-
             // 只验证管辖范围
             if (!AreaRegistrationBase.Contains(filterContext.Controller)) return;
+
+            ManageProvider.Provider.SetPrincipal();
 
             var act = filterContext.ActionDescriptor;
 

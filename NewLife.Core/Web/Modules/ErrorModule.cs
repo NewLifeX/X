@@ -43,10 +43,7 @@ namespace NewLife.Web
                 }
             }
             // 无效操作，句柄未初始化，不用出现
-            if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化"))
-            {
-                return false;
-            }
+            if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return false;
 
             return true;
         }
