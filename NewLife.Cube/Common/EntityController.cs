@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Serialization;
 using NewLife.Web;
+using NewLife.Xml;
 using XCode;
 using XCode.Configuration;
 using XCode.Membership;
@@ -323,14 +324,14 @@ namespace NewLife.Cube
         [DisplayName("导出")]
         public virtual ActionResult ExportXml()
         {
-            //var list = Entity<TEntity>.FindAll();
-            //var xml = list.ToXml();
             var obj = OnExportXml();
             var xml = "";
             if (obj is IEntity)
                 xml = (obj as IEntity).ToXml();
             else if (obj is EntityList<TEntity>)
                 xml = (obj as EntityList<TEntity>).ToXml();
+            else
+                xml = obj.ToXml();
 
             SetAttachment(null, ".xml");
 

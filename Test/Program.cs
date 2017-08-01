@@ -11,6 +11,7 @@ using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
+using NewLife.Xml;
 using XCode.Membership;
 
 namespace Test
@@ -125,13 +126,14 @@ namespace Test
 
         static void Test3()
         {
-            var pt = typeof(Int32?);
-            //Console.WriteLine(pt.As<Nullable>());
-            Console.WriteLine(Nullable.GetUnderlyingType(pt).FullName);
-
-            var str = File.ReadAllText("aa.txt", Encoding.Default);
-            var obj = new JsonParser(str).Decode();
-            Console.WriteLine(obj);
+            var obj = new
+            {
+                ID = 1234,
+                Name = "Stone",
+                Childs = new { Name = "Test" }
+            };
+            var xml = obj.ToXml();
+            Console.WriteLine(xml);
         }
     }
 }

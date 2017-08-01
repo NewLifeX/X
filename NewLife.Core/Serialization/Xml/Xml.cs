@@ -102,6 +102,10 @@ namespace NewLife.Serialization
                 if (String.IsNullOrEmpty(name)) name = GetName(type);
             }
 
+            name = name.Replace('<', '_');
+            name = name.Replace('>', '_');
+            name = name.Replace('`', '_');
+
             // 一般类型为空是顶级调用
             if (Hosts.Count == 0) WriteLog("XmlWrite {0} {1}", name ?? type.Name, value);
 
