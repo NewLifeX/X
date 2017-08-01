@@ -53,7 +53,7 @@ namespace NewLife.Cube
         /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        protected virtual EntityList<TEntity> Search(Pager p)
+        protected virtual IEnumerable<TEntity> Search(Pager p)
         {
             // 缓存数据，用于后续导出
             Session[CacheKey] = p;
@@ -68,7 +68,7 @@ namespace NewLife.Cube
 
         /// <summary>导出当前页以后的数据</summary>
         /// <returns></returns>
-        protected virtual EntityList<TEntity> ExportData()
+        protected virtual IEnumerable<TEntity> ExportData()
         {
             // 跳过头部一些页数，导出当前页以及以后的数据
             var p = new Pager(Session[CacheKey] as Pager);
@@ -422,16 +422,17 @@ namespace NewLife.Cube
             return null;
         }
 
-        private void ToExcel(string FileType, string FileName, string ExcelContent)
+        private void ToExcel(String FileType, String FileName, String ExcelContent)
         {
-            System.Web.HttpContext.Current.Response.Charset = "UTF-8";
-            System.Web.HttpContext.Current.Response.ContentEncoding = System.Text.Encoding.UTF8;
-            System.Web.HttpContext.Current.Response.AppendHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(FileName, System.Text.Encoding.UTF8).ToString());
-            System.Web.HttpContext.Current.Response.ContentType = FileType;
-            System.IO.StringWriter tw = new System.IO.StringWriter();
-            System.Web.HttpContext.Current.Response.Output.Write(ExcelContent.ToString());
-            System.Web.HttpContext.Current.Response.Flush();
-            System.Web.HttpContext.Current.Response.End();
+            var rs = Response;
+            rs.Charset = "UTF-8";
+            rs.ContentEncoding = Encoding.UTF8;
+            rs.AppendHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(FileName, Encoding.UTF8).ToString());
+            rs.ContentType = FileType;
+            var tw = new System.IO.StringWriter();
+            rs.Output.Write(ExcelContent.ToString());
+            rs.Flush();
+            rs.End();
         }
 
         /// <summary>导出Excel，可重载修改要输出的结果集</summary>
@@ -446,7 +447,7 @@ namespace NewLife.Cube
         /// <summary>导出Excel，可重载修改要输出的列</summary>
         /// <param name="fs"></param>
         /// <param name="list"></param>
-        protected virtual String OnExportExcel(List<FieldItem> fs, List<TEntity> list)
+        protected virtual String OnExportExcel(List<FieldItem> fs, IEnumerable<TEntity> list)
         {
             var sb = new StringBuilder();
             //下面这句解决中文乱码
@@ -461,7 +462,7 @@ namespace NewLife.Cube
                     var name = fi.DisplayName;
                     if (name.IsNullOrEmpty()) name = fi.Description;
                     if (name.IsNullOrEmpty()) name = fi.Name;
-                    sb.Append(string.Format("<td>{0}</td>", name));
+                    sb.Append(String.Format("<td>{0}</td>", name));
                 }
                 sb.Append("</tr>");
             }
@@ -471,7 +472,7 @@ namespace NewLife.Cube
                 sb.Append("<tr>");
                 foreach (var fi in fs)
                 {
-                    sb.Append(string.Format("<td>{0}</td>", "{0}".F(item[fi.Name])));
+                    sb.Append(String.Format("<td>{0}</td>", "{0}".F(item[fi.Name])));
                 }
                 sb.Append("</tr>");
             }
@@ -513,7 +514,7 @@ namespace NewLife.Cube
             if (!SysConfig.Current.Develop) throw new InvalidOperationException("仅支持开发模式下使用！");
 
             // 视图路径，Areas/区域/Views/控制器/_List_Data.cshtml
-            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], this.GetType().Name.TrimEnd("Controller"));
+            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], GetType().Name.TrimEnd("Controller"));
 
             var rs = ViewHelper.MakeListDataView(vpath, ListFields);
 
@@ -531,7 +532,7 @@ namespace NewLife.Cube
             if (!SysConfig.Current.Develop) throw new InvalidOperationException("仅支持开发模式下使用！");
 
             // 视图路径，Areas/区域/Views/控制器/_List_Data.cshtml
-            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], this.GetType().Name.TrimEnd("Controller"));
+            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], GetType().Name.TrimEnd("Controller"));
 
             var rs = ViewHelper.MakeListDataView(vpath, FormFields);
 

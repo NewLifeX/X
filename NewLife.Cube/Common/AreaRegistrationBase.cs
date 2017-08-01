@@ -134,8 +134,10 @@ namespace NewLife.Cube
             var url = Setting.Current.PluginServer;
             if (url.IsNullOrEmpty()) return;
 
-            var wc = new WebClientX(true, true);
-            wc.Log = XTrace.Log;
+            var wc = new WebClientX(true, true)
+            {
+                Log = XTrace.Log
+            };
             wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath(), false);
         }
 

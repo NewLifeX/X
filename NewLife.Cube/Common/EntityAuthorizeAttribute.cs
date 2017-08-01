@@ -94,8 +94,10 @@ namespace NewLife.Cube
             var msg = "访问资源 {0} 需要 {1} 权限".F(res, Permission.GetDescription());
             LogProvider.Provider.WriteLog("访问", "拒绝", msg);
 
-            var vr = new ViewResult();
-            vr.ViewName = "NoPermission";
+            var vr = new ViewResult()
+            {
+                ViewName = "NoPermission"
+            };
             vr.ViewBag.Context = filterContext;
             vr.ViewBag.Resource = res;
             vr.ViewBag.Permission = Permission;

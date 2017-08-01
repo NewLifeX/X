@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web.Mvc;
 using System.Web.Security;
@@ -27,7 +28,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        protected override EntityList<UserX> Search(Pager p)
+        protected override IEnumerable<UserX> Search(Pager p)
         {
             return UserX.Search(p["Q"], p["RoleID"].ToInt(), null, p);
         }
@@ -185,11 +186,13 @@ namespace NewLife.Cube.Admin.Controllers
                 if (String.IsNullOrEmpty(password2)) throw new ArgumentNullException("password2", "重复密码不能为空！");
                 if (password != password2) throw new ArgumentOutOfRangeException("password2", "两次密码必须一致！");
 
-                var user = new UserX();
-                user.Name = username;
-                user.Password = password.MD5();
-                user.Mail = email;
-                user.Enable = true;
+                var user = new UserX()
+                {
+                    Name = username,
+                    Password = password.MD5(),
+                    Mail = email,
+                    Enable = true
+                };
                 user.Register();
 
                 // 注册成功
