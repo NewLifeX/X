@@ -16,8 +16,8 @@ namespace XCode
             if (_startWasCalled) return;
             _startWasCalled = true;
 
-            var set = Setting.Current;
-            if (set.WebOnline || set.WebBehavior) HttpApplication.RegisterModule(typeof(UserBehaviorModule));
+            //var set = Setting.Current;
+            //if (set.WebOnline || set.WebBehavior) HttpApplication.RegisterModule(typeof(UserBehaviorModule));
         }
     }
 }

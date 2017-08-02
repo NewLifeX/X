@@ -72,14 +72,6 @@ namespace XCode
         [Description("扩展属性过期。默认10秒")]
         public Int32 ExtendExpire { get; set; } = 10;
 
-        /// <summary>用户在线。记录用户在线状态</summary>
-        [Description("用户在线。记录用户在线状态")]
-        public Boolean WebOnline { get; set; }
-
-        /// <summary>用户行为。记录用户所有操作</summary>
-        [Description("用户行为。记录用户所有操作")]
-        public Boolean WebBehavior { get; set; }
-
         /// <summary>反向工程</summary>
         [Description("反向工程")]
         public NegativeSetting Negative { get; set; }

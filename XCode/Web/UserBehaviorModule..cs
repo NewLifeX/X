@@ -22,18 +22,24 @@ namespace XCode.Web
         }
         #endregion
 
+        /// <summary>Web在线</summary>
+        public static Boolean WebOnline { get; set; }
+
+        /// <summary>Web在线</summary>
+        public static Boolean WebBehavior { get; set; }
+
         /// <summary>输出运行时间</summary>
         void OnPost(Object sender, EventArgs e)
         {
             try
             {
-                var set = Setting.Current;
+                //var set = Setting.Current;
 
                 // 统计网页状态
-                if (set.WebOnline) UserOnline.SetWebStatus();
+                if (WebOnline) UserOnline.SetWebStatus();
 
                 // 记录用户访问的Url
-                if (set.WebBehavior) SaveBehavior();
+                if (WebBehavior) SaveBehavior();
             }
             catch (Exception ex)
             {
