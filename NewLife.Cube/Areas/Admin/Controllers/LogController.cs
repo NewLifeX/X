@@ -28,7 +28,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         protected override IEnumerable<XLog> Search(Pager p)
         {
-            return XLog.Search(p["Q"], p["adminid"].ToInt(), p["category"], p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
+            return XLog.Search(p["Q"], p["userid"].ToInt(), p["category"], p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }
 
         /// <summary>不允许添加修改日志</summary>

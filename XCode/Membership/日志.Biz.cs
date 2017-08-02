@@ -81,69 +81,25 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展查询
-        /// <summary>查询</summary>
-        /// <param name="key"></param>
-        /// <param name="adminid"></param>
-        /// <param name="category"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <param name="order"></param>
-        /// <param name="startRowIndex"></param>
-        /// <param name="maximumRows"></param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> Search(String key, Int32 adminid, String category, DateTime start, DateTime end, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            if (String.IsNullOrEmpty(order)) order = _.ID.Desc();
-            return FindAll(SearchWhere(key, adminid, category, start, end), order, null, startRowIndex, maximumRows);
-        }
 
         /// <summary>查询</summary>
         /// <param name="key"></param>
-        /// <param name="adminid"></param>
-        /// <param name="category"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <param name="order"></param>
-        /// <param name="startRowIndex"></param>
-        /// <param name="maximumRows"></param>
-        /// <returns></returns>
-        public static Int64 SearchCount(String key, Int32 adminid, String category, DateTime start, DateTime end, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            var where = SearchWhere(key, adminid, category, start, end);
-            return FindCount(where, null, null, 0, 0);
-        }
-
-        /// <summary>查询</summary>
-        /// <param name="key"></param>
-        /// <param name="adminid"></param>
-        /// <param name="category"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
-        public static WhereExpression SearchWhere(String key, Int32 adminid, String category, DateTime start, DateTime end)
-        {
-            var exp = new WhereExpression();
-            if (!String.IsNullOrEmpty(key)) exp &= (_.Action == key | _.Remark.Contains(key));
-            if (!String.IsNullOrEmpty(category) && category != "全部") exp &= _.Category == category;
-            if (adminid > 0) exp &= _.CreateUserID == adminid;
-            if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
-            if (end > DateTime.MinValue) exp &= _.CreateTime < end.Date.AddDays(1);
-
-            return exp;
-        }
-
-        /// <summary>查询</summary>
-        /// <param name="key"></param>
-        /// <param name="adminid"></param>
+        /// <param name="userid"></param>
         /// <param name="category"></param>
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> Search(String key, Int32 adminid, String category, DateTime start, DateTime end, Pager p)
+        public static EntityList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, Pager p)
         {
-            return FindAll(SearchWhere(key, adminid, category, start, end), p);
+            var exp = new WhereExpression();
+            if (!String.IsNullOrEmpty(key)) exp &= (_.Action == key | _.Remark.Contains(key));
+            if (!String.IsNullOrEmpty(category) && category != "全部") exp &= _.Category == category;
+            if (userid > 0) exp &= _.CreateUserID == userid;
+            if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
+            if (end > DateTime.MinValue) exp &= _.CreateTime < end.Date.AddDays(1);
+
+            return FindAll(exp, p);
         }
         #endregion
 

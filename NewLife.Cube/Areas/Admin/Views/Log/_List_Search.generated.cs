@@ -79,7 +79,7 @@ WriteLiteral("    ");
 
             
             #line 7 "..\..\Areas\Admin\Views\Log\_List_Search.cshtml"
-Write(Html.ForDropDownList("adminid", UserX.FindAllWithCache(), "全部", true));
+Write(Html.ForDropDownList("userid", UserX.FindAllWithCache(), "全部", true));
 
             
             #line default
@@ -112,14 +112,14 @@ WriteLiteral(" name=\"dtStart\"");
 
 WriteLiteral(" id=\"dtStart\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 602), Tuple.Create("\"", 629)
+WriteAttribute("value", Tuple.Create(" value=\"", 601), Tuple.Create("\"", 628)
             
             #line 13 "..\..\Areas\Admin\Views\Log\_List_Search.cshtml"
-, Tuple.Create(Tuple.Create("", 610), Tuple.Create<System.Object, System.Int32>(Request["dtStart"]
+, Tuple.Create(Tuple.Create("", 609), Tuple.Create<System.Object, System.Int32>(Request["dtStart"]
             
             #line default
             #line hidden
-, 610), false)
+, 609), false)
 );
 
 WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
@@ -154,14 +154,14 @@ WriteLiteral(" name=\"dtEnd\"");
 
 WriteLiteral(" id=\"dtEnd\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 944), Tuple.Create("\"", 969)
+WriteAttribute("value", Tuple.Create(" value=\"", 943), Tuple.Create("\"", 968)
             
             #line 20 "..\..\Areas\Admin\Views\Log\_List_Search.cshtml"
-, Tuple.Create(Tuple.Create("", 952), Tuple.Create<System.Object, System.Int32>(Request["dtEnd"]
+, Tuple.Create(Tuple.Create("", 951), Tuple.Create<System.Object, System.Int32>(Request["dtEnd"]
             
             #line default
             #line hidden
-, 952), false)
+, 951), false)
 );
 
 WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
