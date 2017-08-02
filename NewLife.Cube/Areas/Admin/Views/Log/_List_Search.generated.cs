@@ -69,7 +69,7 @@ WriteLiteral(" class=\"form-group\"");
 
 WriteLiteral(">\r\n    <label");
 
-WriteLiteral(" for=\"adminid\"");
+WriteLiteral(" for=\"userid\"");
 
 WriteLiteral(" class=\"control-label\"");
 
@@ -112,14 +112,14 @@ WriteLiteral(" name=\"dtStart\"");
 
 WriteLiteral(" id=\"dtStart\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 601), Tuple.Create("\"", 628)
+WriteAttribute("value", Tuple.Create(" value=\"", 600), Tuple.Create("\"", 627)
             
             #line 13 "..\..\Areas\Admin\Views\Log\_List_Search.cshtml"
-, Tuple.Create(Tuple.Create("", 609), Tuple.Create<System.Object, System.Int32>(Request["dtStart"]
+, Tuple.Create(Tuple.Create("", 608), Tuple.Create<System.Object, System.Int32>(Request["dtStart"]
             
             #line default
             #line hidden
-, 609), false)
+, 608), false)
 );
 
 WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
@@ -154,14 +154,14 @@ WriteLiteral(" name=\"dtEnd\"");
 
 WriteLiteral(" id=\"dtEnd\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 943), Tuple.Create("\"", 968)
+WriteAttribute("value", Tuple.Create(" value=\"", 942), Tuple.Create("\"", 967)
             
             #line 20 "..\..\Areas\Admin\Views\Log\_List_Search.cshtml"
-, Tuple.Create(Tuple.Create("", 951), Tuple.Create<System.Object, System.Int32>(Request["dtEnd"]
+, Tuple.Create(Tuple.Create("", 950), Tuple.Create<System.Object, System.Int32>(Request["dtEnd"]
             
             #line default
             #line hidden
-, 951), false)
+, 950), false)
 );
 
 WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
