@@ -165,7 +165,18 @@ namespace NewLife.Cube.Admin.Controllers
         [AllowAnonymous]
         public ActionResult ForgetPassword(String email)
         {
-            throw new NotImplementedException("未实现！");
+            var set = Setting.Current;
+            if (!set.AllowForgot) throw new Exception("禁止取回密码！");
+
+            //throw new NotImplementedException("未实现！");
+            var user = UserX.FindByMail(email);
+            if (user == null)
+            {
+                //throw new Exception("未找到");
+                Js.Alert("未找到用户");
+            }
+
+            return View("Login");
         }
 
         /// <summary>注册</summary>
@@ -178,6 +189,9 @@ namespace NewLife.Cube.Admin.Controllers
         [AllowAnonymous]
         public ActionResult Register(String email, String username, String password, String password2)
         {
+            var set = Setting.Current;
+            if (!set.AllowRegister) throw new Exception("禁止注册！");
+
             try
             {
                 if (String.IsNullOrEmpty(email)) throw new ArgumentNullException("email", "邮箱地址不能为空！");
@@ -191,6 +205,7 @@ namespace NewLife.Cube.Admin.Controllers
                     Name = username,
                     Password = password.MD5(),
                     Mail = email,
+                    RoleID = set.DefaultRole,
                     Enable = true
                 };
                 user.Register();
@@ -210,6 +225,8 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         public ActionResult ClearPassword(Int32 id)
         {
+            if (ManageProvider.User.RoleName != "管理员") throw new Exception("非法操作！");
+
             // 前面表单可能已经清空密码
             var user = UserX.FindByID(id);
             //user.Password = "nopass";

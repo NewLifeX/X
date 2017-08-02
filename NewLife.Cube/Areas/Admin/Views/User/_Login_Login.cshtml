@@ -1,4 +1,7 @@
-﻿<div id="login-box" class="login-box visible widget-box no-border">
+﻿@{
+    var set = NewLife.Cube.Setting.Current;
+}
+<div id="login-box" class="login-box visible widget-box no-border">
     <div class="widget-body">
         <div class="widget-main">
             <h4 class="header blue lighter bigger">
@@ -44,21 +47,28 @@
                 </fieldset>
             }
         </div><!-- /.widget-main -->
-
-        <div class="toolbar clearfix">
-            <div>
-                <a href="#" data-target="#forgot-box" class="forgot-password-link">
-                    <i class="ace-icon fa fa-arrow-left"></i>
-                    忘记密码？
-                </a>
+        @if (set.AllowRegister || set.AllowForgot)
+        {
+            <div class="toolbar clearfix">
+                @if (set.AllowForgot)
+                {
+                    <div>
+                        <a href="#" data-target="#forgot-box" class="forgot-password-link">
+                            <i class="ace-icon fa fa-arrow-left"></i>
+                            忘记密码？
+                        </a>
+                    </div>
+                }
+                @if (set.AllowRegister)
+                {
+                    <div>
+                        <a href="#" data-target="#signup-box" class="user-signup-link">
+                            我要注册
+                            <i class="ace-icon fa fa-arrow-right"></i>
+                        </a>
+                    </div>
+                }
             </div>
-
-            <div>
-                <a href="#" data-target="#signup-box" class="user-signup-link">
-                    我要注册
-                    <i class="ace-icon fa fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
+        }
     </div><!-- /.widget-body -->
 </div><!-- /.login-box -->

@@ -30,6 +30,18 @@ namespace NewLife.Cube
         /// <summary>布局页。</summary>
         [Description("布局页。")]
         public String Layout { get; set; } = "~/Views/Shared/_Ace_Layout.cshtml";
+
+        /// <summary>默认角色。注册用户得到的角色</summary>
+        [Description("默认角色。注册用户得到的角色")]
+        public Int32 DefaultRole { get; set; } = 3;
+
+        /// <summary>启用注册</summary>
+        [Description("启用注册")]
+        public Boolean AllowRegister { get; set; } = true;
+
+        /// <summary>启用取回密码</summary>
+        [Description("启用取回密码")]
+        public Boolean AllowForgot { get; set; } = true;
         #endregion
 
         #region 方法
