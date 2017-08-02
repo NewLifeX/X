@@ -42,6 +42,10 @@ namespace NewLife.Cube
         /// <summary>启用取回密码</summary>
         [Description("启用取回密码")]
         public Boolean AllowForgot { get; set; } = true;
+
+        /// <summary>登录提示。留空表示不显示登录提示信息</summary>
+        [Description("登录提示。留空表示不显示登录提示信息")]
+        public String LoginTip { get; set; } = "请输入登录信息……";
         #endregion
 
         #region 方法

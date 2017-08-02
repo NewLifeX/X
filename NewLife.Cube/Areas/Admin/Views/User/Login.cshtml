@@ -1,22 +1,10 @@
 ﻿@using NewLife.Common;
 @{
     Layout = null;
-    if (ViewBag.Title == null)
+    //if (ViewBag.Title == null)
     {
         ViewBag.Title = "登录";
     }
-
-    // 根据空格分隔大小标题
-    var dis = SysConfig.Current.DisplayName;
-    var title = "";
-    var title2 = "";
-    var p = dis.IndexOf(" ");
-    if (p < 0)
-    {
-        p = dis.Length > 3 ? 3 : dis.Length;
-    }
-    title = dis.Substring(0, p).Trim();
-    if (p < dis.Length) { title2 = dis.Substring(p).Trim(); }
 }
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -44,7 +32,7 @@
     <link rel="stylesheet" href="~/Content/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/Content/bootstrap/css/font-awesome.min.css" />
 </head>
-<body class="login-layout">
+<body class="login-layout light-login">
     <div class="main-container">
         <div class="main-content">
             <div class="row">
@@ -52,37 +40,15 @@
                     <div class="login-container">
                         <div class="center">
                             <h2>
-                                <i class="ace-icon fa fa-leaf green"></i>
-                                <span class="red">@title</span>
-                                <span class="white" id="id-text2">@title2</span>
+                                <span class="red">@SysConfig.Current.DisplayName</span>
                             </h2>
-                            <h4 class="blue" id="id-company-text">&copy; @SysConfig.Current.Company</h4>
                         </div>
-
                         <div class="space-6"></div>
-
                         <div class="position-relative">
                             @Html.Partial("_Login_Login")
-
                             @Html.Partial("_Login_Forgot")
-
                             @Html.Partial("_Login_Register")
                         </div><!-- /.position-relative -->
-
-                        <div class="navbar-fixed-top align-right">
-                            <br />
-                            &nbsp;
-                            <a id="btn-login-dark" href="#">暗黑</a>
-                            &nbsp;
-                            <span class="blue">/</span>
-                            &nbsp;
-                            <a id="btn-login-blur" href="#">蓝色</a>
-                            &nbsp;
-                            <span class="blue">/</span>
-                            &nbsp;
-                            <a id="btn-login-light" href="#">明亮</a>
-                            &nbsp; &nbsp; &nbsp;
-                        </div>
                     </div>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -109,34 +75,6 @@
                 $('.widget-box.visible').removeClass('visible');//hide others
                 $(target).addClass('visible');//show target
             });
-        });
-
-
-
-        //you don't need this, just used for changing background
-        jQuery(function ($) {
-            $('#btn-login-dark').on('click', function (e) {
-                $('body').attr('class', 'login-layout');
-                $('#id-text2').attr('class', 'white');
-                $('#id-company-text').attr('class', 'blue');
-
-                e.preventDefault();
-            });
-            $('#btn-login-light').on('click', function (e) {
-                $('body').attr('class', 'login-layout light-login');
-                $('#id-text2').attr('class', 'grey');
-                $('#id-company-text').attr('class', 'blue');
-
-                e.preventDefault();
-            });
-            $('#btn-login-blur').on('click', function (e) {
-                $('body').attr('class', 'login-layout blur-login');
-                $('#id-text2').attr('class', 'white');
-                $('#id-company-text').attr('class', 'light-blue');
-
-                e.preventDefault();
-            });
-
         });
     </script>
 </body>
