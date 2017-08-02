@@ -122,16 +122,21 @@ namespace System
         {
             if (target == null) return default(TResult);
 
-            var list = CustomAttributeData.GetCustomAttributes(target);
-            if (list == null || list.Count < 1) return default(TResult);
-
-            foreach (var item in list)
+            // CustomAttributeData可能会导致只反射加载，需要屏蔽内部异常
+            try
             {
-                if (typeof(TAttribute) != item.Constructor.DeclaringType) continue;
+                var list = CustomAttributeData.GetCustomAttributes(target);
+                if (list == null || list.Count < 1) return default(TResult);
 
-                var args = item.ConstructorArguments;
-                if (args != null && args.Count > 0) return (TResult)args[0].Value;
+                foreach (var item in list)
+                {
+                    if (typeof(TAttribute) != item.Constructor.DeclaringType) continue;
+
+                    var args = item.ConstructorArguments;
+                    if (args != null && args.Count > 0) return (TResult)args[0].Value;
+                }
             }
+            catch { }
 
             return default(TResult);
         }
