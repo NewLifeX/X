@@ -68,9 +68,11 @@ namespace NewLife.Web
         /// <param name="state">用户状态数据</param>
         public virtual void Authorize(String redirect, String state = null)
         {
-            if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key));
-            if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
             if (redirect.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect));
+
+            if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key), "未设置应用标识");
+            if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret), "未设置应用密钥");
+
             if (state.IsNullOrEmpty()) state = Rand.Next().ToString();
 
             // 如果是相对路径，自动加上前缀。需要考虑反向代理的可能，不能直接使用Request.Url
@@ -102,6 +104,8 @@ namespace NewLife.Web
         /// <returns></returns>
         public virtual async Task<String> GetAccessToken(String code)
         {
+            if (code.IsNullOrEmpty()) throw new ArgumentNullException(nameof(code), "未设置授权码");
+
             Code = code;
 
             var url = GetUrl(AccessUrl);
