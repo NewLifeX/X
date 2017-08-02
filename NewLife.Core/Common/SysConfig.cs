@@ -75,25 +75,28 @@ namespace NewLife.Common
         {
             var asmx = SysAssembly;
 
-            Name = asmx != null ? asmx.Name : "NewLife.Cube";
-            Version = asmx != null ? asmx.Version : "0.1";
-            DisplayName = asmx != null ? (asmx.Title ?? asmx.Name) : "新生命魔方平台";
-            Company = asmx != null ? asmx.Company : "新生命开发团队";
+            Name = asmx?.Name ?? "NewLife.Cube";
+            Version = asmx?.Version ?? "0.1";
+            DisplayName = (asmx?.Title ?? asmx?.Name) ?? "新生命魔方平台";
+            Company = asmx?.Company ?? "新生命开发团队";
             Address = "新生命开发团队";
 
             if (String.IsNullOrEmpty(DisplayName)) DisplayName = "系统设置";
         }
 
         /// <summary>系统主程序集</summary>
-        private static AssemblyX SysAssembly;
-
-        static SysConfig()
+        private static AssemblyX SysAssembly
         {
-            SysAssembly = AssemblyX.Entry;
-            if (SysAssembly == null)
-                SysAssembly = AssemblyX.GetMyAssemblies()
-                    .Where(e => e.Title == null || !(e.Title.Contains("新生命") && (e.Title.Contains("库") || e.Title.Contains("框架") || e.Title.Contains("SQLite"))))
-                    .OrderByDescending(e => e.Compile).FirstOrDefault();
+            get
+            {
+                try
+                {
+                    return AssemblyX.GetMyAssemblies()
+                        .Where(e => e.Title == null || !(e.Title.Contains("新生命") && (e.Title.Contains("库") || e.Title.Contains("框架") || e.Title.Contains("SQLite"))))
+                        .OrderByDescending(e => e.Compile).FirstOrDefault();
+                }
+                catch { return null; }
+            }
         }
 #endif
         #endregion

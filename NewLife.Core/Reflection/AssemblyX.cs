@@ -679,33 +679,43 @@ namespace NewLife.Reflection
             var cur = AppDomain.CurrentDomain.BaseDirectory;
             foreach (var asmx in GetAssemblies())
             {
-                if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
-                var file = asmx.Asm.CodeBase;
-                if (String.IsNullOrEmpty(file)) continue;
-                file = file.TrimStart("file:///");
-                file = file.Replace("/", "\\");
-                if (!file.StartsWithIgnoreCase(cur)) continue;
-
-                if (!hs.Contains(file))
+                // 加载程序集列表很容易抛出异常，全部屏蔽
+                try
                 {
-                    hs.Add(file);
-                    list.Add(asmx);
+                    if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
+                    var file = asmx.Asm.CodeBase;
+                    if (String.IsNullOrEmpty(file)) continue;
+                    file = file.TrimStart("file:///");
+                    file = file.Replace("/", "\\");
+                    if (!file.StartsWithIgnoreCase(cur)) continue;
+
+                    if (!hs.Contains(file))
+                    {
+                        hs.Add(file);
+                        list.Add(asmx);
+                    }
                 }
+                catch { }
             }
             foreach (var asmx in ReflectionOnlyGetAssemblies())
             {
-                if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
-                var file = asmx.Asm.CodeBase;
-                if (String.IsNullOrEmpty(file)) continue;
-                file = file.TrimStart("file:///");
-                file = file.Replace("/", "\\");
-                if (!file.StartsWithIgnoreCase(cur)) continue;
-
-                if (!hs.Contains(file))
+                // 加载程序集列表很容易抛出异常，全部屏蔽
+                try
                 {
-                    hs.Add(file);
-                    list.Add(asmx);
+                    if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
+                    var file = asmx.Asm.CodeBase;
+                    if (String.IsNullOrEmpty(file)) continue;
+                    file = file.TrimStart("file:///");
+                    file = file.Replace("/", "\\");
+                    if (!file.StartsWithIgnoreCase(cur)) continue;
+
+                    if (!hs.Contains(file))
+                    {
+                        hs.Add(file);
+                        list.Add(asmx);
+                    }
                 }
+                catch { }
             }
             return list;
         }
