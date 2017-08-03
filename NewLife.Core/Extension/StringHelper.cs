@@ -673,7 +673,7 @@ namespace System
         /// <param name="keys"></param>
         /// <param name="keySelector"></param>
         /// <returns></returns>
-        public static IEnumerable<KeyValuePair<T, Double>> Match<T>(IEnumerable<T> list, String keys, Func<T, String> keySelector)
+        public static IEnumerable<KeyValuePair<T, Double>> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector)
         {
             var rs = new List<KeyValuePair<T, Double>>();
 
@@ -696,7 +696,7 @@ namespace System
                 });
                 if (dist > 0)
                 {
-                    var val = (Double)dist / keys.Length;
+                    var val = dist / keys.Length;
                     //var val = dist;
                     rs.Add(new KeyValuePair<T, Double>(item, val));
                 }
@@ -758,14 +758,15 @@ namespace System
 
         /// <summary>模糊匹配</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="list"></param>
-        /// <param name="keys"></param>
-        /// <param name="keySelector"></param>
-        /// <param name="count"></param>
+        /// <param name="list">列表项</param>
+        /// <param name="keys">关键字</param>
+        /// <param name="keySelector">匹配字符串选择</param>
+        /// <param name="count">获取个数</param>
+        /// <param name="confidence">权重阀值</param>
         /// <returns></returns>
-        public static IEnumerable<T> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector, Int32 count = -1)
+        public static IEnumerable<T> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector, Int32 count, Double confidence = 0.5)
         {
-            var rs = Match(list, keys, keySelector);
+            var rs = Match(list, keys, keySelector).Where(e => e.Value >= confidence);
 
             if (count >= 0)
                 rs = rs.OrderByDescending(e => e.Value).Take(count);
