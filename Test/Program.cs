@@ -12,6 +12,7 @@ using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
 using NewLife.Xml;
+using XCode.Code;
 using XCode.Membership;
 
 namespace Test
@@ -126,14 +127,34 @@ namespace Test
 
         static void Test3()
         {
-            var obj = new
+            var table = UserX.Meta.Table.DataTable;
+            var builder = new ClassBuilder
             {
-                ID = 1234,
-                Name = "Stone",
-                Childs = new { Name = "Test" }
+                Table = table,
             };
-            var xml = obj.ToXml();
-            Console.WriteLine(xml);
+
+            builder.Execute();
+
+            Console.WriteLine();
+            Console.WriteLine(builder.ToString());
+            builder.Save(".Biz.cs", true);
+
+            Console.WriteLine();
+            Console.WriteLine();
+            builder.Pure = true;
+            builder.Namespace = "xxx.Entities";
+
+            builder.Execute();
+            Console.WriteLine(builder.ToString());
+            builder.Save(null, true);
+
+            Console.WriteLine();
+            Console.WriteLine();
+            builder.Interface = true;
+
+            builder.Execute();
+            Console.WriteLine(builder.ToString());
+            builder.Save(null, true);
         }
     }
 }
