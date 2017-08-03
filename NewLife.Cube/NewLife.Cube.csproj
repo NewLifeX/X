@@ -255,6 +255,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Index.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_DateRange.generated.cs">
+      <DependentUpon>_DateRange.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Shared\ListTree.generated.cs">
       <DependentUpon>ListTree.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -533,6 +538,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_DateRange.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_DateRange.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\ListTree.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ListTree.generated.cs</LastGenOutput>

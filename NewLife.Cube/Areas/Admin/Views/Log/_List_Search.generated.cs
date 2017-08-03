@@ -46,13 +46,13 @@ WriteLiteral("<div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n    <label");
+WriteLiteral(">\n    <label");
 
 WriteLiteral(" for=\"category\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">类别：</label>\r\n");
+WriteLiteral(">类别：</label>\n");
 
 WriteLiteral("    ");
 
@@ -63,17 +63,17 @@ Write(Html.ForDropDownList("category", Log.FindAllCategoryName(), Request["categ
             
             #line default
             #line hidden
-WriteLiteral("\r\n</div>\r\n<div");
+WriteLiteral("\n</div>\n<div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n    <label");
+WriteLiteral(">\n    <label");
 
 WriteLiteral(" for=\"userid\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">用户：</label>\r\n");
+WriteLiteral(">用户：</label>\n");
 
 WriteLiteral("    ");
 
@@ -84,92 +84,15 @@ Write(Html.ForDropDownList("userid", UserX.FindAllWithCache(), "全部", true));
             
             #line default
             #line hidden
-WriteLiteral("\r\n</div>\r\n<div");
+WriteLiteral("\n</div>\n");
 
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n    <label");
-
-WriteLiteral(" for=\"dtStart\"");
-
-WriteLiteral(" class=\"control-label\"");
-
-WriteLiteral(">时间：</label>\r\n    <div");
-
-WriteLiteral(" class=\"input-group\"");
-
-WriteLiteral(">\r\n        <span");
-
-WriteLiteral(" class=\"input-group-addon\"");
-
-WriteLiteral("><i");
-
-WriteLiteral(" class=\"fa fa-calendar\"");
-
-WriteLiteral("></i></span>\r\n        <input");
-
-WriteLiteral(" name=\"dtStart\"");
-
-WriteLiteral(" id=\"dtStart\"");
-
-WriteAttribute("value", Tuple.Create(" value=\"", 600), Tuple.Create("\"", 627)
             
-            #line 13 "..\..\Areas\Admin\Views\Log\_List_Search.cshtml"
-, Tuple.Create(Tuple.Create("", 608), Tuple.Create<System.Object, System.Int32>(Request["dtStart"]
+            #line 9 "..\..\Areas\Admin\Views\Log\_List_Search.cshtml"
+Write(Html.Partial("_DateRange"));
+
             
             #line default
             #line hidden
-, 608), false)
-);
-
-WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
-
-WriteLiteral(" class=\"form-control form_datetime\"");
-
-WriteLiteral(" />\r\n    </div>\r\n</div>\r\n<div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n    <label");
-
-WriteLiteral(" for=\"dtEnd\"");
-
-WriteLiteral(" class=\"control-label\"");
-
-WriteLiteral(">至</label>\r\n    <div");
-
-WriteLiteral(" class=\"input-group\"");
-
-WriteLiteral(">\r\n        <span");
-
-WriteLiteral(" class=\"input-group-addon\"");
-
-WriteLiteral("><i");
-
-WriteLiteral(" class=\"fa fa-calendar\"");
-
-WriteLiteral("></i></span>\r\n        <input");
-
-WriteLiteral(" name=\"dtEnd\"");
-
-WriteLiteral(" id=\"dtEnd\"");
-
-WriteAttribute("value", Tuple.Create(" value=\"", 942), Tuple.Create("\"", 967)
-            
-            #line 20 "..\..\Areas\Admin\Views\Log\_List_Search.cshtml"
-, Tuple.Create(Tuple.Create("", 950), Tuple.Create<System.Object, System.Int32>(Request["dtEnd"]
-            
-            #line default
-            #line hidden
-, 950), false)
-);
-
-WriteLiteral(" dateformat=\"yyyy-MM-dd\"");
-
-WriteLiteral(" class=\"form-control form_datetime\"");
-
-WriteLiteral(" />\r\n    </div>\r\n</div>");
-
         }
     }
 }
