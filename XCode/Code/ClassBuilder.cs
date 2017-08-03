@@ -62,7 +62,7 @@ namespace XCode.Code
         protected virtual void OnExecuting()
         {
             // 引用命名空间
-            var us = Usings.OrderBy(e => e.StartsWith("System") ? 1 : 0).ThenBy(e => e).ToArray();
+            var us = Usings.OrderBy(e => e.StartsWith("System") ? 0 : 1).ThenBy(e => e).ToArray();
             foreach (var item in us)
             {
                 WriteLine("using {0};", item);
@@ -74,8 +74,6 @@ namespace XCode.Code
             {
                 WriteLine("namespace {0}", ns);
                 WriteLine("{");
-
-                SetIndent(true);
             }
 
             // 头部
@@ -89,10 +87,8 @@ namespace XCode.Code
             if (Interface)
                 WriteLine("public interface I{0}{1}", Table.Name, bc);
             else
-                WriteLine("public class {0}{1}", Table.Name, bc);
+                WriteLine("public partial class {0}{1}", Table.Name, bc);
             WriteLine("{");
-
-            SetIndent(true);
         }
 
         /// <summary>实体类头部</summary>
@@ -115,14 +111,12 @@ namespace XCode.Code
         protected virtual void OnExecuted()
         {
             // 类接口
-            SetIndent(false);
             WriteLine("}");
 
             var ns = Namespace;
             if (!ns.IsNullOrEmpty())
             {
-                SetIndent(false);
-                WriteLine("}");
+                Writer.Write("}");
             }
         }
 
@@ -141,23 +135,24 @@ namespace XCode.Code
         /// <summary>生成每一项</summary>
         protected virtual void BuildItem(IDataColumn column)
         {
+            var dc = column;
             //BuildItemAttribute(column);
             // 注释
-            var des = column.Description;
+            var des = dc.Description;
             WriteLine("/// <summary>{0}</summary>", des);
 
             if (!Pure)
             {
                 if (!des.IsNullOrEmpty()) WriteLine("[Description(\"{0}\")]", des);
 
-                var dis = column.DisplayName;
+                var dis = dc.DisplayName;
                 if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
             }
 
             if (Interface)
-                WriteLine("{0} {1} {{ get; set; }}", column.DataType.Name, column.Name);
+                WriteLine("{0} {1} {{ get; set; }}", dc.DataType.Name, dc.Name);
             else
-                WriteLine("public {0} {1} {{ get; set; }}", column.DataType.Name, column.Name);
+                WriteLine("public {0} {1} {{ get; set; }}", dc.DataType.Name, dc.Name);
         }
 
         ///// <summary>属性头部特性</summary>
@@ -196,9 +191,14 @@ namespace XCode.Code
                 return;
             }
 
-            if (!_Indent.IsNullOrEmpty()) value = _Indent + value;
+            if (value == "}") SetIndent(false);
 
-            Writer.WriteLine(value);
+            var v = value;
+            if (!_Indent.IsNullOrEmpty()) v = _Indent + v;
+
+            Writer.WriteLine(v);
+
+            if (value == "{") SetIndent(true);
         }
 
         /// <summary>写入</summary>
@@ -236,7 +236,7 @@ namespace XCode.Code
         public String Output { get; set; }
 
         /// <summary>保存文件</summary>
-        public void Save(String ext = null, Boolean overwrite = false)
+        public void Save(String ext = null, Boolean overwrite = true)
         {
             var p = Output;
             if (Table.Properties.ContainsKey("Output")) p = p.CombinePath(Table.Properties["Output"]);

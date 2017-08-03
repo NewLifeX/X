@@ -11,7 +11,6 @@ using XCode.Cache;
 namespace XCode.Membership
 {
     /// <summary>日志</summary>
-    [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Log : Log<Log> { }
 

@@ -137,7 +137,7 @@ namespace Test
 
             Console.WriteLine();
             Console.WriteLine(builder.ToString());
-            builder.Save(".Biz.cs", true);
+            builder.Save(".Biz.cs");
 
             Console.WriteLine();
             Console.WriteLine();
@@ -146,7 +146,7 @@ namespace Test
 
             builder.Execute();
             Console.WriteLine(builder.ToString());
-            builder.Save(null, true);
+            builder.Save();
 
             Console.WriteLine();
             Console.WriteLine();
@@ -154,7 +154,14 @@ namespace Test
 
             builder.Execute();
             Console.WriteLine(builder.ToString());
-            builder.Save(null, true);
+            builder.Save();
+
+            var builder2 = new EntityBuilder();
+            builder2.Table = Log.Meta.Table.DataTable;
+            builder2.ConnName = Log.Meta.ConnName;
+            builder2.Namespace = Log.Meta.ThisType.Namespace;
+            builder2.Execute();
+            builder2.Save();
         }
     }
 }
