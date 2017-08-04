@@ -18,17 +18,25 @@ namespace XCode
         class ExpItem
         {
             public Boolean IsAnd;
+            public String Action;
             public Expression Exp;
+
+            public ExpItem(String act, Expression exp)
+            {
+                Action = act;
+                Exp = exp;
+            }
 
             public ExpItem(Boolean isAnd, Expression exp)
             {
                 IsAnd = isAnd;
+                Action = isAnd ? "And " : "Or ";
                 Exp = exp;
             }
 
             public override String ToString()
             {
-                return (IsAnd ? "And " : "Or ") + Exp;
+                return Action + Exp;
             }
         }
         #endregion
@@ -139,7 +147,7 @@ namespace XCode
 
                 if (sb.Length > 0)
                 {
-                    sb.AppendFormat(" {0} ", item.IsAnd ? "And" : "Or");
+                    sb.AppendFormat(" {0} ", item.Action);
                     // 不能判断第一个，控制符可能不正确
                     if (!item.IsAnd) hasOr = true;
                 }
@@ -151,17 +159,18 @@ namespace XCode
             return sb.ToString();
         }
 
-        ///// <summary>有条件And操作</summary>
-        ///// <param name="condition"></param>
-        ///// <param name="exp"></param>
-        ///// <returns></returns>
-        //public WhereExpression AndIf(Boolean condition, Expression exp) { return condition ? And(exp) : this; }
+        /// <summary>重载运算符实现+操作</summary>
+        /// <param name="exp"></param>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public static WhereExpression operator +(WhereExpression exp, Expression value)
+        {
+            if (exp == null || value == null) return exp;
 
-        ///// <summary>有条件Or操作</summary>
-        ///// <param name="condition"></param>
-        ///// <param name="exp"></param>
-        ///// <returns></returns>
-        //public WhereExpression OrIf(Boolean condition, Expression exp) { return condition ? Or(exp) : this; }
+            exp.Exps.Add(new ExpItem(" ", value));
+
+            return exp;
+        }
         #endregion
 
         #region 分组

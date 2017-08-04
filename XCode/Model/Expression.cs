@@ -86,7 +86,7 @@ namespace XCode
         static WhereExpression And(Expression exp, Expression value)
         {
             // 如果exp为空，主要考虑右边
-            if (exp == null) CreateWhere(value);
+            if (exp == null) return CreateWhere(value);
 
             // 左边构造条件表达式，自己是也好，新建立也好
             var where = CreateWhere(exp);
@@ -111,7 +111,7 @@ namespace XCode
         static WhereExpression Or(Expression exp, Expression value)
         {
             // 如果exp为空，主要考虑右边
-            if (exp == null) CreateWhere(value);
+            if (exp == null) return CreateWhere(value);
 
             // 左边构造条件表达式，自己是也好，新建立也好
             var where = CreateWhere(exp);
@@ -121,7 +121,7 @@ namespace XCode
             return where.Or(value);
         }
 
-        static WhereExpression CreateWhere(Expression value)
+        internal static WhereExpression CreateWhere(Expression value)
         {
             if (value == null) return new WhereExpression();
             if (value is WhereExpression) return (value as WhereExpression);

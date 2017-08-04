@@ -51,7 +51,7 @@ namespace XCode
         #endregion
 
         #region 重载运算符
-        /// <summary>重载运算符实现And操作，同时通过布尔型支持AndIf</summary>
+        /// <summary>重载运算符实现And操作</summary>
         /// <param name="exp"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>

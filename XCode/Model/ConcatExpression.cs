@@ -10,9 +10,6 @@ namespace XCode
         #region 属性
         /// <summary>内置字符串</summary>
         public StringBuilder Builder { get; set; } = new StringBuilder();
-
-        ///// <summary>表达式集合</summary>
-        //public List<Expression> Exps { get; set; } = new List<Expression>();
         #endregion
 
         #region 构造
@@ -32,7 +29,6 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(exp)) return this;
 
-            //if (Builder.Length > 0) Builder.Append(",");
             Builder.Separate(",").Append(exp);
 
             return this;
@@ -48,31 +44,9 @@ namespace XCode
 
             return Builder.ToString();
         }
-
-        ///// <summary>类型转换</summary>
-        ///// <param name="obj"></param>
-        ///// <returns></returns>
-        //public static implicit operator String(ConcatExpression obj) { return obj?.GetString(false, null); }
         #endregion
 
         #region 重载运算符
-        ///// <summary>重载运算符实现And操作</summary>
-        ///// <param name="exp"></param>
-        ///// <param name="value">数值</param>
-        ///// <returns></returns>
-        //public static ConcatExpression operator &(WhereExpression exp, ConcatExpression value)
-        //{
-        //    var left = exp.GetString();
-        //    var ce = new ConcatExpression(left);
-
-        //    if (value == null) return ce;
-
-        //    //return ce.And(value.GetString());
-        //    // 条件表达式遇上连接表达式，不需要And或者逗号，只需要一个空格
-        //    ce.Builder.Append(" ").Append(value.GetString());
-        //    return ce;
-        //}
-
         /// <summary>重载运算符实现And操作，同时通过布尔型支持AndIf</summary>
         /// <param name="exp"></param>
         /// <param name="value">数值</param>
