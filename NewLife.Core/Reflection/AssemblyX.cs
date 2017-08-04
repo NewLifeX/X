@@ -133,7 +133,7 @@ namespace NewLife.Reflection
 #if !__MOBILE__ && !__CORE__
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) =>
             {
-                XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
+                if (XTrace.Debug) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
                 return Assembly.ReflectionOnlyLoad(args.Name);
             };
 #endif

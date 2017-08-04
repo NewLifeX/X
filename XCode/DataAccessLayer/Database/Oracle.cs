@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using XCode.Common;
 
 namespace XCode.DataAccessLayer
@@ -352,10 +353,20 @@ namespace XCode.DataAccessLayer
             tableName = tableName.ToUpper();
             var owner = (Database as Oracle).Owner.ToUpper();
 
-            String sql = String.Format("analyze table {0}.{1}  compute statistics", owner, tableName);
-            if ((Database as Oracle).NeedAnalyzeStatistics(tableName)) Execute(sql);
+            if ((Database as Oracle).NeedAnalyzeStatistics(tableName))
+            {
+                // 异步更新，屏蔽错误
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        Execute("analyze table {0}.{1} compute statistics".F(owner, tableName));
+                    }
+                    catch { }
+                });
+            }
 
-            sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}' and UNIQUENESS='UNIQUE'", owner, tableName);
+            var sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}' and UNIQUENESS='UNIQUE'", owner, tableName);
             return ExecuteScalar<Int64>(sql);
         }
 
