@@ -457,6 +457,8 @@ namespace XCode.Membership
                 // 如果根菜单不存在，则添加
                 var r = Root as IMenu;
                 var root = r.FindByPath(rootName);
+                if (root == null) root = r.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase(rootName));
+                if (root == null) root = FindByName(rootName);
                 if (root == null)
                 {
                     root = r.Add(rootName, null, "~/" + rootName);
