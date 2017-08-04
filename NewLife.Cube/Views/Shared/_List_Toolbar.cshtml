@@ -4,7 +4,7 @@
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+    var user = ViewBag.User as IUser ?? (User == null ? null : User.Identity as IUser);
 }
 <div class="tableTools-container">
     <div class="form-inline">

@@ -62,7 +62,7 @@ namespace ASP
   
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+    var user = ViewBag.User as IUser ?? (User == null ? null : User.Identity as IUser);
 
             
             #line default
@@ -77,21 +77,21 @@ WriteLiteral(" class=\"form-inline\"");
 
 WriteLiteral(">\r\n        <form");
 
-WriteAttribute("action", Tuple.Create(" action=\"", 295), Tuple.Create("\"", 375)
+WriteAttribute("action", Tuple.Create(" action=\"", 319), Tuple.Create("\"", 399)
             
             #line 11 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 304), Tuple.Create<System.Object, System.Int32>(Url.Action("index")
+, Tuple.Create(Tuple.Create("", 328), Tuple.Create<System.Object, System.Int32>(Url.Action("index")
             
             #line default
             #line hidden
-, 304), false)
+, 328), false)
             
             #line 11 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 324), Tuple.Create<System.Object, System.Int32>(Html.Raw("?" + page.GetBaseUrl(false, true, true))
+, Tuple.Create(Tuple.Create("", 348), Tuple.Create<System.Object, System.Int32>(Html.Raw("?" + page.GetBaseUrl(false, true, true))
             
             #line default
             #line hidden
-, 324), false)
+, 348), false)
 );
 
 WriteLiteral(" method=\"post\"");
