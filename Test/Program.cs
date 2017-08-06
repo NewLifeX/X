@@ -15,7 +15,6 @@ using NewLife.Xml;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
-using XCode.Sharding;
 
 namespace Test
 {
@@ -189,6 +188,7 @@ namespace Test
             //}
 
             var count = EntityBuilder.Build("..\\Src\\XCode\\Membership\\Member.xml", "XCode.Membership");
+            count += EntityBuilder.Build("..\\Src\\XCode\\Sharding\\Shard.xml", "XCode.Sharding", "Shard");
             Console.WriteLine(count);
         }
     }

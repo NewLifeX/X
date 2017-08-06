@@ -605,7 +605,7 @@ namespace XCode.Membership
         IList<IMenu> ScanController(String rootName, Assembly asm, String nameSpace);
     }
 
-    public partial interface IMenu
+    public partial interface IMenu : IEntityTree
     {
         /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf">是否包含自己</param>

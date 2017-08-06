@@ -77,11 +77,11 @@ namespace XCode.Code
 
                 builder.Business = true;
                 builder.Execute();
-#if DEBUG
-                builder.Save(".Biz.cs", true);
-#else
+                //#if DEBUG
+                //builder.Save(".Biz.cs", true);
+                //#else
                 builder.Save();
-#endif
+                //#endif
 
                 count++;
             }
@@ -348,11 +348,12 @@ namespace XCode.Code
             WriteLine("/// <summary>取得{0}字段名称的快捷方式</summary>", Table.DisplayName);
             WriteLine("public partial class __");
             WriteLine("{");
+            var k = Table.Columns.Count;
             foreach (var dc in Table.Columns)
             {
                 WriteLine("/// <summary>{0}</summary>", dc.Description);
                 WriteLine("public const String {0} = \"{0}\";", dc.Name);
-                WriteLine();
+                if (--k > 0) WriteLine();
             }
             WriteLine("}");
 
@@ -367,11 +368,12 @@ namespace XCode.Code
             WriteLine("{");
 
             WriteLine("#region 属性");
+            var k = Table.Columns.Count;
             foreach (var dc in Table.Columns)
             {
                 WriteLine("/// <summary>{0}</summary>", dc.Description);
                 WriteLine("{0} {1} {{ get; set; }}", dc.DataType.Name, dc.Name);
-                WriteLine();
+                if (--k > 0) WriteLine();
             }
             WriteLine("#endregion");
 
@@ -648,9 +650,11 @@ namespace XCode.Code
         {
             WriteLine("#region 扩展查询");
 
+            // 主键
+            IDataColumn pk = null;
             if (Table.PrimaryKeys.Length == 1)
             {
-                var pk = Table.PrimaryKeys[0];
+                pk = Table.PrimaryKeys[0];
                 var name = pk.Name.ToLower();
 
                 WriteLine("/// <summary>根据{0}查找</summary>", pk.DisplayName);
@@ -672,6 +676,52 @@ namespace XCode.Code
                     WriteLine();
                     WriteLine("// 实体缓存");
                     WriteLine("//return Meta.SingleCache[{0}];", name);
+                }
+                WriteLine("}");
+            }
+
+            // 索引
+            foreach (var di in Table.Indexes)
+            {
+                // 跳过主键
+                if (di.Columns.Length == 1 && pk != null && di.Columns[0].EqualIgnoreCase(pk.Name, pk.ColumnName)) continue;
+
+                var cs = Table.GetColumns(di.Columns);
+                // 只有整数和字符串能生成查询函数
+                if (!cs.All(e => e.DataType.IsInt() || e.DataType == typeof(String))) continue;
+
+                WriteLine();
+                WriteLine("/// <summary>根据{0}查找</summary>", cs.Select(e => e.DisplayName).Join("、"));
+                foreach (var dc in cs)
+                {
+                    WriteLine("/// <param name=\"{0}\">{1}</param>", dc.Name.ToLower(), dc.DisplayName);
+                }
+
+                var rt = GenericType ? "TEntity" : Table.Name;
+                if (!di.Unique) rt = "EntityList<{0}>".F(rt);
+
+                WriteLine("/// <returns>{0}</returns>", di.Unique ? "实体对象" : "实体列表");
+                WriteLine("public static {2} FindBy{0}({1})", cs.Select(e => e.Name).Join("And"), cs.Select(e => e.DataType.Name + " " + e.Name.ToLower()).Join(", "), rt);
+                WriteLine("{");
+                {
+                    var act = "Find";
+                    if (!di.Unique) act = "FindAll";
+
+                    if (cs.Length == 1)
+                    {
+                        var dc = cs[0];
+                        WriteLine("if (Meta.Count >= 1000)");
+                        WriteLine("    return {2}(__.{0}, {1});", dc.Name, dc.Name.ToLower(), act);
+                        WriteLine("else // 实体缓存");
+                        WriteLine("    return Meta.Cache.Entities.{2}(__.{0}, {1});", dc.Name, dc.Name.ToLower(), act);
+                    }
+                    else
+                    {
+                        WriteLine("if (Meta.Count >= 1000)");
+                        WriteLine("    return {1}({0});", cs.Select(e => "_.{0} == {1}".F(e.Name, e.Name.ToLower())).Join(" & "), act);
+                        WriteLine("else // 实体缓存");
+                        WriteLine("    return Meta.Cache.Entities.{1}(e => {0});", cs.Select(e => "e.{0} == {1}".F(e.Name, e.Name.ToLower())).Join(" && "), act);
+                    }
                 }
                 WriteLine("}");
             }

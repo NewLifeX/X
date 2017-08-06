@@ -1,22 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web;
-using System.Web.Script.Serialization;
-using System.Xml.Serialization;
-using NewLife.Model;
-using NewLife.Web;
 using XCode;
-using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace XCode.Membership
 {
     /// <summary>日志</summary>
-    [Description("日志")]
     [Serializable]
     [DataObject]
+    [Description("日志")]
     [BindIndex("IX_Log_Category", false, "Category")]
     [BindIndex("IX_Log_CreateUserID", false, "CreateUserID")]
     [BindIndex("IX_Log_CreateTime", false, "CreateTime")]
@@ -139,7 +133,7 @@ namespace XCode.Membership
         #endregion
 
         #region 字段名
-        /// <summary>取得角色字段信息的快捷方式</summary>
+        /// <summary>取得日志字段信息的快捷方式</summary>
         public partial class _
         {
             /// <summary>编号</summary>
@@ -172,7 +166,7 @@ namespace XCode.Membership
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
-        /// <summary>取得角色字段名称的快捷方式</summary>
+        /// <summary>取得日志字段名称的快捷方式</summary>
         public partial class __
         {
             /// <summary>编号</summary>
@@ -201,7 +195,6 @@ namespace XCode.Membership
 
             /// <summary>详细信息</summary>
             public const String Remark = "Remark";
-
         }
         #endregion
     }
@@ -236,7 +229,6 @@ namespace XCode.Membership
 
         /// <summary>详细信息</summary>
         String Remark { get; set; }
-
         #endregion
 
         #region 获取/设置 字段值
