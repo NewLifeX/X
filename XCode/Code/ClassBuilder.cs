@@ -51,6 +51,14 @@ namespace XCode.Code
             Clear();
             if (Writer == null) Writer = new StringWriter();
 
+            var us = Usings;
+            if (!Pure && !us.Contains(""))
+            {
+                us.Add("System.Web");
+                us.Add("System.Web.Script.Serialization");
+                us.Add("System.Xml.Serialization");
+            }
+
             OnExecuting();
 
             BuildItems();
@@ -79,17 +87,32 @@ namespace XCode.Code
             // 头部
             BuildAttribute();
 
-            // 基类
-            var bc = "";
-            if (!BaseClass.IsNullOrEmpty()) bc = " : " + BaseClass.F(Table.Name);
+            // 类名和基类
+            var cn = GetClassName();
+            var bc = GetBaseClass();
+            if (!bc.IsNullOrEmpty()) bc = " : " + bc;
 
             // 类接口
             if (Interface)
-                WriteLine("public interface I{0}{1}", Table.Name, bc);
+                WriteLine("public interface {0}{1}", cn, bc);
             else
-                WriteLine("public partial class {0}{1}", Table.Name, bc);
+                WriteLine("public partial class {0}{1}", cn, bc);
             WriteLine("{");
         }
+
+        /// <summary>获取类名</summary>
+        /// <returns></returns>
+        protected virtual String GetClassName()
+        {
+            var name = Table.Name;
+            if (Interface) name = "I" + name;
+
+            return name;
+        }
+
+        /// <summary>获取基类</summary>
+        /// <returns></returns>
+        protected virtual String GetBaseClass() { return BaseClass; }
 
         /// <summary>实体类头部</summary>
         protected virtual void BuildAttribute()
@@ -236,7 +259,7 @@ namespace XCode.Code
         public String Output { get; set; }
 
         /// <summary>保存文件</summary>
-        public void Save(String ext = null, Boolean overwrite = true)
+        public virtual void Save(String ext = null, Boolean overwrite = true)
         {
             var p = Output;
             if (Table.Properties.ContainsKey("Output")) p = p.CombinePath(Table.Properties["Output"]);

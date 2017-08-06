@@ -10,29 +10,101 @@ namespace XCode.Code
         #region 属性
         /// <summary>连接名</summary>
         public String ConnName { get; set; }
+
+        /// <summary>泛型实体类。泛型参数名TEntity</summary>
+        public Boolean GenericType { get; set; }
+
+        /// <summary>业务类。</summary>
+        public Boolean Business { get; set; }
         #endregion
 
+        #region 构造
         /// <summary>实例化</summary>
         public EntityBuilder()
         {
+            Usings.Add("NewLife.Model");
+            Usings.Add("NewLife.Web");
             Usings.Add("XCode");
+            Usings.Add("XCode.Cache");
             Usings.Add("XCode.Configuration");
             Usings.Add("XCode.DataAccessLayer");
 
             Pure = false;
         }
+        #endregion
 
-        /// <summary>执行生成</summary>
-        public override void Execute()
+        #region 基础
+        /// <summary>获取类名</summary>
+        /// <returns></returns>
+        protected override String GetClassName()
         {
-            BaseClass = "I" + Table.Name;
+            // 类名
+            var name = base.GetClassName();
+            if (GenericType) name += "<TEntity>";
 
-            base.Execute();
+            return name;
         }
 
+        /// <summary>获取基类</summary>
+        /// <returns></returns>
+        protected override String GetBaseClass()
+        {
+            // 数据类的基类只有接口，业务类基类则比较复杂
+            if (!Business) return "I" + Table.Name;
+
+            var name = BaseClass;
+            if (name.IsNullOrEmpty()) name = "Entity";
+
+            if (GenericType)
+                name = "{0}<TEntity> where TEntity : {1}<TEntity>, new()".F(name, Table.Name);
+            else
+                name = "{0}<{1}>".F(name, Table.Name);
+
+            return name;
+
+            return base.GetBaseClass();
+        }
+
+        /// <summary>保存</summary>
+        /// <param name="ext"></param>
+        /// <param name="overwrite"></param>
+        public override void Save(String ext = null, Boolean overwrite = true)
+        {
+            if (ext.IsNullOrEmpty() && Business)
+            {
+                ext = ".Biz.cs";
+                overwrite = false;
+            }
+
+            base.Save(ext, overwrite);
+        }
+
+        /// <summary>生成尾部</summary>
+        protected override void OnExecuted()
+        {
+            // 类接口
+            WriteLine("}");
+
+            if (!Business)
+            {
+                WriteLine();
+                BuildInterface();
+            }
+
+            var ns = Namespace;
+            if (!ns.IsNullOrEmpty())
+            {
+                Writer.Write("}");
+            }
+        }
+        #endregion
+
+        #region 数据类
         /// <summary>实体类头部</summary>
         protected override void BuildAttribute()
         {
+            if (Business) return;
+
             base.BuildAttribute();
 
             var dt = Table;
@@ -78,13 +150,18 @@ namespace XCode.Code
         /// <summary>生成主体</summary>
         protected override void BuildItems()
         {
-            base.BuildItems();
+            if (Business)
+                BuildBiz();
+            else
+            {
+                base.BuildItems();
 
-            WriteLine();
-            BuildIndex();
+                WriteLine();
+                BuildIndex();
 
-            WriteLine();
-            BuildFieldName();
+                WriteLine();
+                BuildFieldName();
+            }
         }
 
         private void BuildIndex()
@@ -170,22 +247,6 @@ namespace XCode.Code
             WriteLine("#endregion");
         }
 
-        /// <summary>生成尾部</summary>
-        protected override void OnExecuted()
-        {
-            // 类接口
-            WriteLine("}");
-
-            WriteLine();
-            BuildInterface();
-
-            var ns = Namespace;
-            if (!ns.IsNullOrEmpty())
-            {
-                Writer.Write("}");
-            }
-        }
-
         private void BuildInterface()
         {
             var dt = Table;
@@ -212,5 +273,159 @@ namespace XCode.Code
 
             WriteLine("}");
         }
+        #endregion
+
+        #region 业务类
+        /// <summary>生成实体类业务部分</summary>
+        protected virtual void BuildBiz()
+        {
+            BuildAction();
+
+            WriteLine();
+            BuildExtendProperty();
+
+            WriteLine();
+            BuildExtendSearch();
+
+            WriteLine();
+            BuildSearch();
+
+            WriteLine();
+            BuildBusiness();
+        }
+
+        /// <summary>对象操作</summary>
+        protected virtual void BuildAction()
+        {
+            WriteLine("#region 对象操作");
+
+            // 静态构造函数
+            {
+                WriteLine("static {0}()", Table.Name);
+                WriteLine("{");
+                {
+                    if (GenericType)
+                    {
+                        WriteLine("// 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个");
+                        WriteLine("var entity = new TEntity();");
+                    }
+
+                    WriteLine();
+                    WriteLine("// 累加字典");
+                    WriteLine("//Meta.Factory.AdditionalFields.Add(__.Logins);");
+
+                    WriteLine();
+                    WriteLine("// 过滤器");
+                    WriteLine("//Meta.Modules.Add<UserModule>();");
+                    WriteLine("//Meta.Modules.Add<TimeModule>();");
+                    WriteLine("//Meta.Modules.Add<IPModule>();");
+                }
+                WriteLine("}");
+            }
+
+            // 验证函数
+            {
+                WriteLine("/// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>");
+                WriteLine("/// <param name=\"isNew\">是否插入</param>");
+                WriteLine("public override void Valid(Boolean isNew)");
+                WriteLine("{");
+                {
+                    WriteLine("// 如果没有脏数据，则不需要进行任何处理");
+                    WriteLine("if (!HasDirty) return;");
+
+                    // 非空判断
+                    var cs = Table.Columns.Where(e => !e.Nullable && e.DataType == typeof(String)).ToArray();
+                    if (cs.Length > 0)
+                    {
+                        WriteLine();
+                        WriteLine("// 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框");
+                        foreach (var item in cs)
+                        {
+                            WriteLine("if (String.IsNullOrEmpty({0})) throw new ArgumentNullException(nameof({0}), \"{1}不能为空！\");", item.Name, item.DisplayName ?? item.Name);
+                        }
+                    }
+
+                    WriteLine();
+                    WriteLine("// 建议先调用基类方法，基类方法会对唯一索引的数据进行验证");
+                    WriteLine("base.Valid(isNew);");
+
+                    WriteLine();
+                    WriteLine("// 在新插入数据或者修改了指定字段时进行修正");
+
+                    // 货币类型保留小数位数
+                    cs = Table.Columns.Where(e => e.DataType == typeof(Decimal)).ToArray();
+                    if (cs.Length > 0)
+                    {
+                        WriteLine("// 货币保留6位小数");
+                        foreach (var item in cs)
+                        {
+                            WriteLine("{0} = Math.Round({0}, 6);", item.Name);
+                        }
+                    }
+
+                    // 处理当前已登录用户信息
+                    cs = Table.Columns.Where(e => e.DataType == typeof(Int32) && e.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID")).ToArray();
+                    if (cs.Length > 0)
+                    {
+                        WriteLine("// 处理当前已登录用户信息");
+                        WriteLine("//var user = ManageProvider.User;");
+                        WriteLine("//if (user != null)");
+                        WriteLine("{");
+                        foreach (var item in cs)
+                        {
+                            if (item.Name.EqualIgnoreCase("CreateUserID"))
+                                WriteLine("//if (isNew && !Dirtys[nameof({0})) {0} = user.ID;", item.Name);
+                            else
+                                WriteLine("//if (!Dirtys[nameof({0})]) {0} = user.ID;", item.Name);
+                        }
+                        WriteLine("}");
+                    }
+
+                    var dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateTime"));
+                    if (dc != null) WriteLine("//if (isNew && !Dirtys[nameof({0})]) {0} = DateTime.Now;", dc.Name);
+
+                    dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateTime"));
+                    if (dc != null) WriteLine("//if (!Dirtys[nameof({0})]) {0} = DateTime.Now;", dc.Name);
+
+                    dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateIP"));
+                    if (dc != null) WriteLine("//if (isNew && !Dirtys[nameof({0})]) {0} = WebHelper.UserHost;", dc.Name);
+
+                    dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateIP"));
+                    if (dc != null) WriteLine("//if (!Dirtys[nameof({0})]) {0} = WebHelper.UserHost;", dc.Name);
+                }
+                WriteLine("}");
+            }
+
+            WriteLine("#endregion");
+        }
+
+        /// <summary>扩展属性</summary>
+        protected virtual void BuildExtendProperty()
+        {
+            WriteLine("#region 扩展属性");
+            WriteLine("#endregion");
+        }
+
+        /// <summary>扩展查询</summary>
+        protected virtual void BuildExtendSearch()
+        {
+            WriteLine("#region 扩展查询");
+            WriteLine("#endregion");
+        }
+
+        /// <summary>高级查询</summary>
+        protected virtual void BuildSearch()
+        {
+            WriteLine("#region 高级查询");
+            WriteLine("#endregion");
+        }
+
+        /// <summary>业务操作</summary>
+        protected virtual void BuildBusiness()
+        {
+            WriteLine("#region 业务操作");
+            WriteLine("#endregion");
+        }
+        #endregion
     }
 }

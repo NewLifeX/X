@@ -14,6 +14,7 @@ using NewLife.Web;
 using NewLife.Xml;
 using XCode.Code;
 using XCode.Membership;
+using XCode.Sharding;
 
 namespace Test
 {
@@ -127,41 +128,47 @@ namespace Test
 
         static void Test3()
         {
-            var table = UserX.Meta.Table.DataTable;
-            var builder = new ClassBuilder
-            {
-                Table = table,
-            };
+            //var table = UserX.Meta.Table.DataTable;
+            //var builder = new ClassBuilder
+            //{
+            //    Table = table,
+            //};
 
-            builder.Execute();
+            //builder.Execute();
 
-            Console.WriteLine();
-            Console.WriteLine(builder.ToString());
-            builder.Save(".Biz.cs");
+            //Console.WriteLine();
+            //Console.WriteLine(builder.ToString());
+            //builder.Save(".Biz.cs");
 
-            Console.WriteLine();
-            Console.WriteLine();
-            builder.Pure = true;
-            builder.Namespace = "xxx.Entities";
+            //Console.WriteLine();
+            //Console.WriteLine();
+            //builder.Pure = true;
+            //builder.Namespace = "xxx.Entities";
 
-            builder.Execute();
-            Console.WriteLine(builder.ToString());
-            builder.Save();
+            //builder.Execute();
+            //Console.WriteLine(builder.ToString());
+            //builder.Save();
 
-            Console.WriteLine();
-            Console.WriteLine();
-            builder.Interface = true;
+            //Console.WriteLine();
+            //Console.WriteLine();
+            //builder.Interface = true;
 
-            builder.Execute();
-            Console.WriteLine(builder.ToString());
-            builder.Save();
+            //builder.Execute();
+            //Console.WriteLine(builder.ToString());
+            //builder.Save();
 
-            var builder2 = new EntityBuilder();
-            builder2.Table = Log.Meta.Table.DataTable;
-            builder2.ConnName = Log.Meta.ConnName;
-            builder2.Namespace = Log.Meta.ThisType.Namespace;
-            builder2.Execute();
-            builder2.Save();
+            var b = new EntityBuilder();
+            b.Table = Shard.Meta.Table.DataTable;
+            b.ConnName = Shard.Meta.ConnName;
+            b.Namespace = Shard.Meta.ThisType.Namespace;
+            b.GenericType = true;
+            b.BaseClass = "LogEntity";
+            b.Execute();
+            b.Save();
+
+            b.Business = true;
+            b.Execute();
+            b.Save(".Biz.cs", true);
         }
     }
 }
