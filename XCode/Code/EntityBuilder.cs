@@ -647,6 +647,35 @@ namespace XCode.Code
         protected virtual void BuildExtendSearch()
         {
             WriteLine("#region 扩展查询");
+
+            if (Table.PrimaryKeys.Length == 1)
+            {
+                var pk = Table.PrimaryKeys[0];
+                var name = pk.Name.ToLower();
+
+                WriteLine("/// <summary>根据{0}查找</summary>", pk.DisplayName);
+                WriteLine("/// <param name=\"{0}\">{1}</param>", name, pk.DisplayName);
+                WriteLine("/// <returns>实体对象</returns>");
+                WriteLine("public static {3} FindBy{0}({1} {2})", pk.Name, pk.DataType.Name, name, GenericType ? "TEntity" : Table.Name);
+                WriteLine("{");
+                {
+                    if (pk.DataType.IsInt())
+                        WriteLine("if ({0} <= 0) return null;", name);
+                    else if (pk.DataType == typeof(String))
+                        WriteLine("if ({0}.IsNullOrEmpty()) return null;", name);
+                    WriteLine();
+                    WriteLine("if (Meta.Count >= 1000)");
+                    WriteLine("    return Find(__.{0}, {1});", pk.Name, name);
+                    WriteLine("else // 实体缓存");
+                    WriteLine("    return Meta.Cache.Entities.Find(__.{0}, {1});", pk.Name, name);
+
+                    WriteLine();
+                    WriteLine("// 实体缓存");
+                    WriteLine("//return Meta.SingleCache[{0}];", name);
+                }
+                WriteLine("}");
+            }
+
             WriteLine("#endregion");
         }
 

@@ -178,10 +178,15 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity FindByID(Int32 id)
         {
+            if (id <= 0) return null;
+
             if (Meta.Count >= 1000)
                 return Find(__.ID, id);
             else // 实体缓存
                 return Meta.Cache.Entities.Find(__.ID, id);
+
+            // 实体缓存
+            //return Meta.SingleCache[id];
         }
 
         /// <summary>根据名称查找</summary>
