@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
@@ -17,6 +19,9 @@ namespace XCode.Code
 
         /// <summary>业务类。</summary>
         public Boolean Business { get; set; }
+
+        /// <summary>所有表类型名。用于扩展属性</summary>
+        public ICollection<IDataTable> AllTables { get; } = new HashSet<IDataTable>();
         #endregion
 
         #region 构造
@@ -492,6 +497,41 @@ namespace XCode.Code
         protected virtual void BuildExtendProperty()
         {
             WriteLine("#region 扩展属性");
+
+            foreach (var dc in Table.Columns)
+            {
+                // 找到名字映射
+                var dt = AllTables.FirstOrDefault(e => e.PrimaryKeys.Length == 1 && e.PrimaryKeys[0].DataType == dc.DataType && (e.Name + e.PrimaryKeys[0].Name).EqualIgnoreCase(dc.Name));
+                if (dt != null)
+                {
+                    // 属性名
+                    var pname = dt.Name;
+
+                    // 备注
+                    var dis = dc.DisplayName;
+                    if (dis.IsNullOrEmpty()) dis = dt.DisplayName;
+
+                    var pk = dt.PrimaryKeys[0];
+
+                    WriteLine("/// <summary>{0}</summary>", dis);
+                    WriteLine("public {1} {0} {{ get {{ return Extends.Get(nameof({0}), k => {1}.FindBy{3}({2})); }} }}", pname, dt.Name, dc.Name, pk.Name);
+
+                    // 主字段
+                    var master = dt.Master ?? dt.GetColumn("Name");
+                    if (master != null)
+                    {
+                        WriteLine();
+                        WriteLine("/// <summary>{0}</summary>", dis);
+                        if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
+                        WriteLine("[Map(__.{0}, typeof({1}), \"{2}\")]", dc.Name, dt.Name, pk.Name);
+                        if (master.DataType == typeof(String))
+                            WriteLine("public {2} {0}{1} {{ get {{ return {0}?.{1}; }} }}", pname, master.Name, master.DataType.Name);
+                        else
+                            WriteLine("public {2} {0}{1} {{ get {{ return {0} != null ? {0}.{1} : 0; }} }}", pname, master.Name, master.DataType.Name);
+                    }
+                }
+            }
+
             WriteLine("#endregion");
         }
 
