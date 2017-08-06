@@ -13,6 +13,7 @@ using NewLife.Threading;
 using NewLife.Web;
 using NewLife.Xml;
 using XCode.Code;
+using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Sharding;
 
@@ -157,18 +158,38 @@ namespace Test
             //Console.WriteLine(builder.ToString());
             //builder.Save();
 
-            var b = new EntityBuilder();
-            b.Table = Shard.Meta.Table.DataTable;
-            b.ConnName = Shard.Meta.ConnName;
-            b.Namespace = Shard.Meta.ThisType.Namespace;
-            b.GenericType = true;
-            b.BaseClass = "LogEntity";
-            b.Execute();
-            b.Save();
+            //var b = new EntityBuilder();
+            //b.Table = Shard.Meta.Table.DataTable;
+            //b.ConnName = Shard.Meta.ConnName;
+            //b.Namespace = Shard.Meta.ThisType.Namespace;
+            //b.GenericType = true;
+            //b.BaseClass = "LogEntity";
+            //b.Execute();
+            //b.Save();
 
-            b.Business = true;
-            b.Execute();
-            b.Save(".Biz.cs", true);
+            //b.Business = true;
+            //b.Execute();
+            //b.Save(".Biz.cs", true);
+
+            //var tables = DAL.Import(File.ReadAllText("..\\Src\\XCode\\Membership\\Member.xml".GetFullPath()));
+            //foreach (var item in tables)
+            //{
+            //    var b = new EntityBuilder();
+            //    b.Table = item;
+            //    b.AllTables = tables;
+            //    //b.GenericType = true;
+            //    //b.BaseClass = "LogEntity";
+            //    b.Execute();
+            //    b.Output = "TE";
+            //    b.Save();
+
+            //    b.Business = true;
+            //    b.Execute();
+            //    b.Save(".Biz.cs", true);
+            //}
+
+            var count = EntityBuilder.Build("..\\Src\\XCode\\Membership\\Member.xml", "XCode.Membership");
+            Console.WriteLine(count);
         }
     }
 }

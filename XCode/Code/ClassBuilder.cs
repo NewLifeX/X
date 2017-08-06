@@ -51,13 +51,13 @@ namespace XCode.Code
             Clear();
             if (Writer == null) Writer = new StringWriter();
 
-            var us = Usings;
-            if (!Pure && !us.Contains(""))
-            {
-                us.Add("System.Web");
-                us.Add("System.Web.Script.Serialization");
-                us.Add("System.Xml.Serialization");
-            }
+            //var us = Usings;
+            //if (!Pure && !us.Contains(""))
+            //{
+            //    us.Add("System.Web");
+            //    us.Add("System.Web.Script.Serialization");
+            //    us.Add("System.Xml.Serialization");
+            //}
 
             OnExecuting();
 
@@ -123,10 +123,10 @@ namespace XCode.Code
 
             if (!Pure)
             {
-                if (!des.IsNullOrEmpty()) WriteLine("[Description(\"{0}\")]", des);
-
                 WriteLine("[Serializable]");
                 WriteLine("[DataObject]");
+
+                if (!des.IsNullOrEmpty()) WriteLine("[Description(\"{0}\")]", des);
             }
         }
 
@@ -276,7 +276,7 @@ namespace XCode.Code
 
             p = p.GetFullPath();
 
-            if (!File.Exists(p) || overwrite) File.WriteAllText(p, ToString());
+            if (!File.Exists(p) || overwrite) File.WriteAllText(p.EnsureDirectory(true), ToString());
         }
         #endregion
     }

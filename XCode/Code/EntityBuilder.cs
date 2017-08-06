@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
@@ -21,17 +22,14 @@ namespace XCode.Code
         public Boolean Business { get; set; }
 
         /// <summary>所有表类型名。用于扩展属性</summary>
-        public ICollection<IDataTable> AllTables { get; } = new HashSet<IDataTable>();
+        public IList<IDataTable> AllTables { get; set; } = new List<IDataTable>();
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
         public EntityBuilder()
         {
-            Usings.Add("NewLife.Model");
-            Usings.Add("NewLife.Web");
             Usings.Add("XCode");
-            Usings.Add("XCode.Cache");
             Usings.Add("XCode.Configuration");
             Usings.Add("XCode.DataAccessLayer");
 
@@ -39,7 +37,69 @@ namespace XCode.Code
         }
         #endregion
 
+        #region 静态快速
+        /// <summary>为Xml模型文件生成实体类</summary>
+        /// <param name="xmlFile">模型文件</param>
+        /// <param name="nameSpace">命名空间</param>
+        /// <param name="connName">连接名</param>
+        public static Int32 Build(String xmlFile, String nameSpace = null, String connName = null)
+        {
+            if (xmlFile.IsNullOrEmpty()) return 0;
+
+            xmlFile = xmlFile.GetFullPath();
+            if (!File.Exists(xmlFile)) return 0;
+
+            // 导入模型
+            var tables = DAL.Import(File.ReadAllText(xmlFile));
+            if (tables.Count == 0) return 0;
+
+            // 输出
+            var output = Path.GetDirectoryName(xmlFile);
+
+            // 命名空间
+            if (nameSpace.IsNullOrEmpty()) nameSpace = Path.GetFileNameWithoutExtension(xmlFile);
+
+            // 连接名
+            if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
+
+            var count = 0;
+            foreach (var item in tables)
+            {
+                var builder = new EntityBuilder();
+                builder.Table = item;
+                builder.AllTables = tables;
+                builder.GenericType = item.Properties["RenderGenEntity"].ToBoolean();
+                builder.Namespace = nameSpace;
+                builder.ConnName = connName;
+                builder.Execute();
+                builder.Output = output;
+                builder.Save();
+
+                builder.Business = true;
+                builder.Execute();
+#if DEBUG
+                builder.Save(".Biz.cs", true);
+#else
+                builder.Save();
+#endif
+
+                count++;
+            }
+
+            return count;
+        }
+        #endregion
+
         #region 基础
+        /// <summary>执行生成</summary>
+        public override void Execute()
+        {
+            // 增加常用命名空间
+            if (Business) AddNameSpace();
+
+            base.Execute();
+        }
+
         /// <summary>获取类名</summary>
         /// <returns></returns>
         protected override String GetClassName()
@@ -68,7 +128,7 @@ namespace XCode.Code
 
             return name;
 
-            return base.GetBaseClass();
+            //return base.GetBaseClass();
         }
 
         /// <summary>保存</summary>
@@ -101,6 +161,24 @@ namespace XCode.Code
             if (!ns.IsNullOrEmpty())
             {
                 Writer.Write("}");
+            }
+        }
+
+        /// <summary>增加常用命名空间</summary>
+        protected virtual void AddNameSpace()
+        {
+            var us = Usings;
+            if (!Pure && !us.Contains("System.Web"))
+            {
+                us.Add("System.Web");
+                us.Add("System.Web.Script.Serialization");
+                us.Add("System.Xml.Serialization");
+
+                us.Add("System.Linq");
+
+                us.Add("NewLife.Model");
+                us.Add("NewLife.Web");
+                us.Add("XCode.Cache");
             }
         }
         #endregion
@@ -145,7 +223,7 @@ namespace XCode.Code
             }
 
             WriteLine("[DataObjectField({0}, {1}, {2}, {3})]", dc.PrimaryKey.ToString().ToLower(), dc.Identity.ToString().ToLower(), dc.Nullable.ToString().ToLower(), dc.Length);
-            WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\", {3}, {4})]", dc.ColumnName, dc.DisplayName, dc.RawType, dc.Precision, dc.Scale);
+            WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\", {3}, {4}{5})]", dc.ColumnName, dc.Description, dc.RawType, dc.Precision, dc.Scale, dc.Master ? ", Master = true" : "");
 
             if (Interface)
                 WriteLine("{0} {1} {{ get; set; }}", dc.DataType.Name, dc.Name);
@@ -225,7 +303,7 @@ namespace XCode.Code
         {
             WriteLine("#region 字段名");
 
-            WriteLine("/// <summary>取得角色字段信息的快捷方式</summary>");
+            WriteLine("/// <summary>取得{0}字段信息的快捷方式</summary>", Table.DisplayName);
             WriteLine("public partial class _");
             WriteLine("{");
             foreach (var dc in Table.Columns)
@@ -239,7 +317,7 @@ namespace XCode.Code
 
             WriteLine();
 
-            WriteLine("/// <summary>取得角色字段名称的快捷方式</summary>");
+            WriteLine("/// <summary>取得{0}字段名称的快捷方式</summary>", Table.DisplayName);
             WriteLine("public partial class __");
             WriteLine("{");
             foreach (var dc in Table.Columns)
