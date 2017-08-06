@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using NewLife.Reflection;
 using XCode.DataAccessLayer;
 
 namespace XCode.Code
@@ -300,103 +301,191 @@ namespace XCode.Code
             WriteLine("#region 对象操作");
 
             // 静态构造函数
-            {
-                WriteLine("static {0}()", Table.Name);
-                WriteLine("{");
-                {
-                    if (GenericType)
-                    {
-                        WriteLine("// 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个");
-                        WriteLine("var entity = new TEntity();");
-                    }
-
-                    WriteLine();
-                    WriteLine("// 累加字典");
-                    WriteLine("//Meta.Factory.AdditionalFields.Add(__.Logins);");
-
-                    WriteLine();
-                    WriteLine("// 过滤器");
-                    WriteLine("//Meta.Modules.Add<UserModule>();");
-                    WriteLine("//Meta.Modules.Add<TimeModule>();");
-                    WriteLine("//Meta.Modules.Add<IPModule>();");
-                }
-                WriteLine("}");
-            }
+            BuildCctor();
 
             // 验证函数
-            {
-                WriteLine("/// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>");
-                WriteLine("/// <param name=\"isNew\">是否插入</param>");
-                WriteLine("public override void Valid(Boolean isNew)");
-                WriteLine("{");
-                {
-                    WriteLine("// 如果没有脏数据，则不需要进行任何处理");
-                    WriteLine("if (!HasDirty) return;");
+            WriteLine();
+            BuildValid();
 
-                    // 非空判断
-                    var cs = Table.Columns.Where(e => !e.Nullable && e.DataType == typeof(String)).ToArray();
-                    if (cs.Length > 0)
-                    {
-                        WriteLine();
-                        WriteLine("// 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框");
-                        foreach (var item in cs)
-                        {
-                            WriteLine("if (String.IsNullOrEmpty({0})) throw new ArgumentNullException(nameof({0}), \"{1}不能为空！\");", item.Name, item.DisplayName ?? item.Name);
-                        }
-                    }
+            // 初始化数据
+            WriteLine();
+            BuildInitData();
 
-                    WriteLine();
-                    WriteLine("// 建议先调用基类方法，基类方法会对唯一索引的数据进行验证");
-                    WriteLine("base.Valid(isNew);");
-
-                    WriteLine();
-                    WriteLine("// 在新插入数据或者修改了指定字段时进行修正");
-
-                    // 货币类型保留小数位数
-                    cs = Table.Columns.Where(e => e.DataType == typeof(Decimal)).ToArray();
-                    if (cs.Length > 0)
-                    {
-                        WriteLine("// 货币保留6位小数");
-                        foreach (var item in cs)
-                        {
-                            WriteLine("{0} = Math.Round({0}, 6);", item.Name);
-                        }
-                    }
-
-                    // 处理当前已登录用户信息
-                    cs = Table.Columns.Where(e => e.DataType == typeof(Int32) && e.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID")).ToArray();
-                    if (cs.Length > 0)
-                    {
-                        WriteLine("// 处理当前已登录用户信息");
-                        WriteLine("//var user = ManageProvider.User;");
-                        WriteLine("//if (user != null)");
-                        WriteLine("{");
-                        foreach (var item in cs)
-                        {
-                            if (item.Name.EqualIgnoreCase("CreateUserID"))
-                                WriteLine("//if (isNew && !Dirtys[nameof({0})) {0} = user.ID;", item.Name);
-                            else
-                                WriteLine("//if (!Dirtys[nameof({0})]) {0} = user.ID;", item.Name);
-                        }
-                        WriteLine("}");
-                    }
-
-                    var dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateTime"));
-                    if (dc != null) WriteLine("//if (isNew && !Dirtys[nameof({0})]) {0} = DateTime.Now;", dc.Name);
-
-                    dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateTime"));
-                    if (dc != null) WriteLine("//if (!Dirtys[nameof({0})]) {0} = DateTime.Now;", dc.Name);
-
-                    dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateIP"));
-                    if (dc != null) WriteLine("//if (isNew && !Dirtys[nameof({0})]) {0} = WebHelper.UserHost;", dc.Name);
-
-                    dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateIP"));
-                    if (dc != null) WriteLine("//if (!Dirtys[nameof({0})]) {0} = WebHelper.UserHost;", dc.Name);
-                }
-                WriteLine("}");
-            }
+            // 重写添删改
+            WriteLine();
+            BuildOverride();
 
             WriteLine("#endregion");
+        }
+
+        /// <summary>生成静态构造函数</summary>
+        protected virtual void BuildCctor()
+        {
+            WriteLine("static {0}()", Table.Name);
+            WriteLine("{");
+            {
+                if (GenericType)
+                {
+                    WriteLine("// 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个");
+                    WriteLine("var entity = new TEntity();");
+                }
+
+                WriteLine();
+                WriteLine("// 累加字典");
+                WriteLine("//Meta.Factory.AdditionalFields.Add(__.Logins);");
+
+                WriteLine();
+                WriteLine("// 过滤器");
+                WriteLine("//Meta.Modules.Add<UserModule>();");
+                WriteLine("//Meta.Modules.Add<TimeModule>();");
+                WriteLine("//Meta.Modules.Add<IPModule>();");
+            }
+            WriteLine("}");
+        }
+
+        /// <summary>数据验证</summary>
+        protected virtual void BuildValid()
+        {
+            WriteLine("/// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>");
+            WriteLine("/// <param name=\"isNew\">是否插入</param>");
+            WriteLine("public override void Valid(Boolean isNew)");
+            WriteLine("{");
+            {
+                WriteLine("// 如果没有脏数据，则不需要进行任何处理");
+                WriteLine("if (!HasDirty) return;");
+
+                // 非空判断
+                var cs = Table.Columns.Where(e => !e.Nullable && e.DataType == typeof(String)).ToArray();
+                if (cs.Length > 0)
+                {
+                    WriteLine();
+                    WriteLine("// 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框");
+                    foreach (var item in cs)
+                    {
+                        WriteLine("if (String.IsNullOrEmpty({0})) throw new ArgumentNullException(nameof({0}), \"{1}不能为空！\");", item.Name, item.DisplayName ?? item.Name);
+                    }
+                }
+
+                WriteLine();
+                WriteLine("// 建议先调用基类方法，基类方法会对唯一索引的数据进行验证");
+                WriteLine("base.Valid(isNew);");
+
+                WriteLine();
+                WriteLine("// 在新插入数据或者修改了指定字段时进行修正");
+
+                // 货币类型保留小数位数
+                cs = Table.Columns.Where(e => e.DataType == typeof(Decimal)).ToArray();
+                if (cs.Length > 0)
+                {
+                    WriteLine("// 货币保留6位小数");
+                    foreach (var item in cs)
+                    {
+                        WriteLine("{0} = Math.Round({0}, 6);", item.Name);
+                    }
+                }
+
+                // 处理当前已登录用户信息
+                cs = Table.Columns.Where(e => e.DataType == typeof(Int32) && e.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID")).ToArray();
+                if (cs.Length > 0)
+                {
+                    WriteLine("// 处理当前已登录用户信息");
+                    WriteLine("//var user = ManageProvider.User;");
+                    WriteLine("//if (user != null)");
+                    WriteLine("{");
+                    foreach (var item in cs)
+                    {
+                        if (item.Name.EqualIgnoreCase("CreateUserID"))
+                            WriteLine("//if (isNew && !Dirtys[nameof({0})) {0} = user.ID;", item.Name);
+                        else
+                            WriteLine("//if (!Dirtys[nameof({0})]) {0} = user.ID;", item.Name);
+                    }
+                    WriteLine("}");
+                }
+
+                var dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateTime"));
+                if (dc != null) WriteLine("//if (isNew && !Dirtys[nameof({0})]) {0} = DateTime.Now;", dc.Name);
+
+                dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateTime"));
+                if (dc != null) WriteLine("//if (!Dirtys[nameof({0})]) {0} = DateTime.Now;", dc.Name);
+
+                dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateIP"));
+                if (dc != null) WriteLine("//if (isNew && !Dirtys[nameof({0})]) {0} = WebHelper.UserHost;", dc.Name);
+
+                dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateIP"));
+                if (dc != null) WriteLine("//if (!Dirtys[nameof({0})]) {0} = WebHelper.UserHost;", dc.Name);
+            }
+            WriteLine("}");
+        }
+
+        /// <summary>初始化数据</summary>
+        protected virtual void BuildInitData()
+        {
+            var name = GenericType ? "TEntity" : Table.Name;
+
+            WriteLine("///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>");
+            WriteLine("//[EditorBrowsable(EditorBrowsableState.Never)]");
+            WriteLine("//protected override void InitData()");
+            WriteLine("//{");
+            WriteLine("//    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用");
+            WriteLine("//    if (Meta.Count > 0) return;");
+            WriteLine();
+            WriteLine("//    if (XTrace.Debug) XTrace.WriteLine(\"开始初始化{0}[{1}]数据……\");", name, Table.DisplayName);
+            WriteLine();
+            WriteLine("//    var entity = new {0}();", name);
+            foreach (var dc in Table.Columns)
+            {
+                switch (dc.DataType.GetTypeCode())
+                {
+                    case TypeCode.Boolean:
+                        WriteLine("//    entity.{0} = true;", dc.Name);
+                        break;
+                    case TypeCode.SByte:
+                    case TypeCode.Byte:
+                    case TypeCode.Int16:
+                    case TypeCode.UInt16:
+                    case TypeCode.Int32:
+                    case TypeCode.UInt32:
+                    case TypeCode.Int64:
+                    case TypeCode.UInt64:
+                        WriteLine("//    entity.{0} = 0;", dc.Name);
+                        break;
+                    case TypeCode.Single:
+                    case TypeCode.Double:
+                    case TypeCode.Decimal:
+                        WriteLine("//    entity.{0} = 0.0;", dc.Name);
+                        break;
+                    case TypeCode.DateTime:
+                        WriteLine("//    entity.{0} = DateTime.Now;", dc.Name);
+                        break;
+                    case TypeCode.String:
+                        WriteLine("//    entity.{0} = \"abc\";", dc.Name);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            WriteLine("//    entity.Insert();");
+            WriteLine();
+            WriteLine("//    if (XTrace.Debug) XTrace.WriteLine(\"完成初始化{0}[{1}]数据！\"", name, Table.DisplayName);
+            WriteLine("//}");
+        }
+
+        /// <summary>重写添删改</summary>
+        protected virtual void BuildOverride()
+        {
+            WriteLine("///// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>");
+            WriteLine("///// <returns></returns>");
+            WriteLine("//public override Int32 Insert()");
+            WriteLine("//{");
+            WriteLine("//    return base.Insert();");
+            WriteLine("//}");
+            WriteLine();
+            WriteLine("///// <summary>已重载。在事务保护范围内处理业务，位于Valid之后</summary>");
+            WriteLine("///// <returns></returns>");
+            WriteLine("//protected override Int32 OnDelete()");
+            WriteLine("//{");
+            WriteLine("//    return base.OnDelete();");
+            WriteLine("//}");
         }
 
         /// <summary>扩展属性</summary>
