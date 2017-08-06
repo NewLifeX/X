@@ -100,6 +100,22 @@ namespace XCode.Code
             base.Execute();
         }
 
+        /// <summary>实体类头部</summary>
+        protected override void BuildClassHeader()
+        {
+            // 泛型实体类增加默认实例
+            if (GenericType && Business)
+            {
+                WriteLine("/// <summary>{0}</summary>", Table.DisplayName);
+                WriteLine("[Serializable]");
+                WriteLine("[ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]");
+                WriteLine("public class {0} : {0}<{0}> {{ }}", Table.Name);
+                WriteLine();
+            }
+
+            base.BuildClassHeader();
+        }
+
         /// <summary>获取类名</summary>
         /// <returns></returns>
         protected override String GetClassName()
@@ -170,13 +186,21 @@ namespace XCode.Code
             var us = Usings;
             if (!Pure && !us.Contains("System.Web"))
             {
+                us.Add("System.IO");
+                us.Add("System.Linq");
+                us.Add("System.Reflection");
+                us.Add("System.Text");
+                us.Add("System.Threading.Tasks");
                 us.Add("System.Web");
                 us.Add("System.Web.Script.Serialization");
                 us.Add("System.Xml.Serialization");
 
-                us.Add("System.Linq");
-
+                us.Add("NewLife");
+                us.Add("NewLife.Data");
                 us.Add("NewLife.Model");
+                us.Add("NewLife.Log");
+                us.Add("NewLife.Reflection");
+                us.Add("NewLife.Threading");
                 us.Add("NewLife.Web");
                 us.Add("XCode.Cache");
             }
@@ -187,7 +211,11 @@ namespace XCode.Code
         /// <summary>实体类头部</summary>
         protected override void BuildAttribute()
         {
-            if (Business) return;
+            if (Business)
+            {
+                WriteLine("/// <summary>{0}</summary>", Table.Description);
+                return;
+            }
 
             base.BuildAttribute();
 
@@ -592,6 +620,7 @@ namespace XCode.Code
                     var pk = dt.PrimaryKeys[0];
 
                     WriteLine("/// <summary>{0}</summary>", dis);
+                    WriteLine("[XmlIgnore, ScriptIgnore]");
                     WriteLine("public {1} {0} {{ get {{ return Extends.Get(nameof({0}), k => {1}.FindBy{3}({2})); }} }}", pname, dt.Name, dc.Name, pk.Name);
 
                     // 主字段
@@ -600,6 +629,7 @@ namespace XCode.Code
                     {
                         WriteLine();
                         WriteLine("/// <summary>{0}</summary>", dis);
+                        WriteLine("[XmlIgnore, ScriptIgnore]");
                         if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
                         WriteLine("[Map(__.{0}, typeof({1}), \"{2}\")]", dc.Name, dt.Name, pk.Name);
                         if (master.DataType == typeof(String))

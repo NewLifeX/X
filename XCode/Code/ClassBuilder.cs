@@ -51,14 +51,6 @@ namespace XCode.Code
             Clear();
             if (Writer == null) Writer = new StringWriter();
 
-            //var us = Usings;
-            //if (!Pure && !us.Contains(""))
-            //{
-            //    us.Add("System.Web");
-            //    us.Add("System.Web.Script.Serialization");
-            //    us.Add("System.Xml.Serialization");
-            //}
-
             OnExecuting();
 
             BuildItems();
@@ -84,6 +76,12 @@ namespace XCode.Code
                 WriteLine("{");
             }
 
+            BuildClassHeader();
+        }
+
+        /// <summary>实体类头部</summary>
+        protected virtual void BuildClassHeader()
+        {
             // 头部
             BuildAttribute();
 
