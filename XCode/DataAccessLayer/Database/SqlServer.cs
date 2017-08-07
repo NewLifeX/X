@@ -467,43 +467,9 @@ namespace XCode.DataAccessLayer
                 field.PrimaryKey = GetDataRowValue<Boolean>(dr2, "主键");
                 //field.NumOfByte = GetDataRowValue<Int32>(dr2, "占用字节数");
                 field.Description = GetDataRowValue<String>(dr2, "字段说明");
-                field.Precision = GetDataRowValue<Int32>(dr2, "精度");
-                field.Scale = GetDataRowValue<Int32>(dr2, "小数位数");
+                //field.Precision = GetDataRowValue<Int32>(dr2, "精度");
+                //field.Scale = GetDataRowValue<Int32>(dr2, "小数位数");
             }
-
-            //// 整理默认值
-            //if (!String.IsNullOrEmpty(field.Default))
-            //{
-            //    field.Default = Trim(field.Default, "(", ")");
-            //    field.Default = Trim(field.Default, "\"", "\"");
-            //    field.Default = Trim(field.Default, "\'", "\'");
-            //    field.Default = Trim(field.Default, "N\'", "\'");
-            //    field.Default = field.Default.Replace("''", "'");
-
-            //    // 处理类似CONVERT([datetime],'1753-1-1',(0))的时间默认值
-            //    if (field.DataType == typeof(DateTime))
-            //    {
-            //        var def = field.Default;
-            //        if (def.StartsWithIgnoreCase("CONVERT("))
-            //        {
-            //            var ss = def.Split(",");
-            //            if (ss.Length >= 3)
-            //            {
-            //                def = ss[1].Trim().Trim('\'').Trim();
-            //                DateTime dt;
-            //                if (DateTime.TryParse(def, out dt))
-            //                {
-            //                    if (dt == Database.DateTimeMin || dt.Date == Database.DateTimeMin.Date)
-            //                    {
-            //                        //def = Database.DateTimeNow;
-            //                        //def = Database.DateTimeMin.ToString("yyyy-MM-dd");
-            //                        field.Default = def;
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
         }
 
         protected override List<IDataIndex> GetIndexes(IDataTable table)
@@ -553,14 +519,14 @@ namespace XCode.DataAccessLayer
                     field.RawType = field.RawType.Replace("char(-1)", "char(" + (Int32.MaxValue / 2) + ")");
             }
 
-            //chenqi 2017-3-28
-            //增加处理decimal类型精度和小数位数处理
-            //此处只针对Sql server进行处理
-            //严格来说，应该修改的地方是
-            if (!String.IsNullOrEmpty(field.RawType) && field.RawType.Contains("decimal"))
-            {
-                field.RawType = $"decimal({field.Precision},{field.Scale})";
-            }
+            ////chenqi 2017-3-28
+            ////增加处理decimal类型精度和小数位数处理
+            ////此处只针对Sql server进行处理
+            ////严格来说，应该修改的地方是
+            //if (!String.IsNullOrEmpty(field.RawType) && field.RawType.Contains("decimal"))
+            //{
+            //    field.RawType = $"decimal({field.Precision},{field.Scale})";
+            //}
 
             return base.FieldClause(field, onlyDefine);
         }

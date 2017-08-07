@@ -39,7 +39,7 @@ namespace XCoder
             txtDescription.Text = DataColumn.Description;
             txtLength.Text = DataColumn.Length.ToString();
             //txtNumOfByte.Text = DataColumn.NumOfByte.ToString();
-            txtPrecision.Text = DataColumn.Precision.ToString();
+            //txtPrecision.Text = DataColumn.Precision.ToString();
             if (DataColumn.DataType != null)
             {
                 txtDataType.Text = DataColumn.DataType.Name;
@@ -63,7 +63,7 @@ namespace XCoder
             DataColumn.Description = txtDescription.Text.Trim();
             DataColumn.Length = Convert.ToInt32(txtLength.Text.Trim());
             //DataColumn.NumOfByte = Convert.ToInt32(txtNumOfByte.Text.Trim());
-            DataColumn.Precision = Convert.ToInt32(txtPrecision.Text.Trim());
+            //DataColumn.Precision = Convert.ToInt32(txtPrecision.Text.Trim());
             DataColumn.DataType = Type.GetType(txtDataType.Text.Trim());
 
             if (combRawType.SelectedIndex != 3)
@@ -99,7 +99,7 @@ namespace XCoder
                     txtDataType.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].DataType;
                     txtLength.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].Length.ToString();
                     //txtNumOfByte.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].NumOfByte.ToString();
-                    txtPrecision.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].Precision.ToString();
+                    //txtPrecision.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].Precision.ToString();
                 }
             }
             else
@@ -108,7 +108,7 @@ namespace XCoder
                 txtDataType.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].DataType;
                 txtLength.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].Length.ToString();
                 //txtNumOfByte.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].NumOfByte.ToString();
-                txtPrecision.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].Precision.ToString();
+                //txtPrecision.Text = PrimitiveType.TypeList[combRawType.SelectedIndex].Precision.ToString();
             }
         }
 
@@ -127,10 +127,10 @@ namespace XCoder
 
         private void txtLength_TextChanged(Object sender, EventArgs e)
         {
-            if (combRawType.SelectedIndex == 3)
-            {
-                txtPrecision.Text = txtLength.Text;
-            }
+            //if (combRawType.SelectedIndex == 3)
+            //{
+            //    txtPrecision.Text = txtLength.Text;
+            //}
         }
 
         private void txtLength_KeyPress(Object sender, KeyPressEventArgs e)

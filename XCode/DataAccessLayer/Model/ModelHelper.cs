@@ -557,14 +557,14 @@ namespace XCode.DataAccessLayer
                 case TypeCode.DateTime:
                     dc.RawType = "datetime";
                     dc.Length = 3;
-                    dc.Precision = 3;
+                    //dc.Precision = 3;
                     dc.Nullable = true;
                     break;
                 case TypeCode.Int16:
                 case TypeCode.UInt16:
                     dc.RawType = "smallint";
                     dc.Length = 5;
-                    dc.Precision = 5;
+                    //dc.Precision = 5;
                     dc.Nullable = false;
 
                     //// 自增字段非空
@@ -574,7 +574,7 @@ namespace XCode.DataAccessLayer
                 case TypeCode.UInt32:
                     dc.RawType = "int";
                     dc.Length = 10;
-                    dc.Precision = 10;
+                    //dc.Precision = 10;
                     dc.Nullable = false;
 
                     //// 自增字段非空
@@ -584,7 +584,7 @@ namespace XCode.DataAccessLayer
                 case TypeCode.UInt64:
                     dc.RawType = "bigint";
                     dc.Length = 19;
-                    dc.Precision = 20;
+                    //dc.Precision = 20;
                     dc.Nullable = false;
 
                     //// 自增字段非空

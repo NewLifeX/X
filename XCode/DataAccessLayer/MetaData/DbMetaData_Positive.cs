@@ -227,7 +227,7 @@ namespace XCode.DataAccessLayer
 
                 // 名称
                 field.ColumnName = GetDataRowValue<String>(dr, _.ColumnName);
-                                
+
                 // 标识、主键
                 Boolean b;
                 if (TryGetDataRowValue<Boolean>(dr, "AUTOINCREMENT", out b))
@@ -248,30 +248,34 @@ namespace XCode.DataAccessLayer
                 //// 是否Unicode
                 //if (Database is DbBase) field.IsUnicode = (Database as DbBase).IsUnicode(field.RawType);
 
-                // 精度
                 var n = 0;
-                if (TryGetDataRowValue<Int32>(dr, "NUMERIC_PRECISION", out n))
-                    field.Precision = n;
-                else if (TryGetDataRowValue<Int32>(dr, "DATETIME_PRECISION", out n))
-                    field.Precision = n;
-                else if (TryGetDataRowValue<Int32>(dr, "PRECISION", out n))
-                    field.Precision = n;
+                var fi = field as XField;
+                if (fi != null)
+                {
+                    // 精度
+                    if (TryGetDataRowValue(dr, "NUMERIC_PRECISION", out n))
+                        fi.Precision = n;
+                    else if (TryGetDataRowValue(dr, "DATETIME_PRECISION", out n))
+                        fi.Precision = n;
+                    else if (TryGetDataRowValue(dr, "PRECISION", out n))
+                        fi.Precision = n;
 
-                // 位数
-                if (TryGetDataRowValue<Int32>(dr, "NUMERIC_SCALE", out n))
-                    field.Scale = n;
-                else if (TryGetDataRowValue<Int32>(dr, "SCALE", out n))
-                    field.Scale = n;
+                    // 位数
+                    if (TryGetDataRowValue(dr, "NUMERIC_SCALE", out n))
+                        fi.Scale = n;
+                    else if (TryGetDataRowValue(dr, "SCALE", out n))
+                        fi.Scale = n;
+                }
 
                 // 长度
-                if (TryGetDataRowValue<Int32>(dr, "CHARACTER_MAXIMUM_LENGTH", out n))
+                if (TryGetDataRowValue(dr, "CHARACTER_MAXIMUM_LENGTH", out n))
                     field.Length = n;
-                else if (TryGetDataRowValue<Int32>(dr, "LENGTH", out n))
+                else if (TryGetDataRowValue(dr, "LENGTH", out n))
                     field.Length = n;
-                else if (TryGetDataRowValue<Int32>(dr, "COLUMN_SIZE", out n))
+                else if (TryGetDataRowValue(dr, "COLUMN_SIZE", out n))
                     field.Length = n;
-                else
-                    field.Length = field.Precision;
+                else if (fi != null)
+                    field.Length = fi.Precision;
 
                 //// 字节数
                 //if (TryGetDataRowValue<Int32>(dr, "CHARACTER_OCTET_LENGTH", out n))
@@ -280,7 +284,7 @@ namespace XCode.DataAccessLayer
                 //    field.NumOfByte = field.Length;
 
                 // 允许空
-                if (TryGetDataRowValue<Boolean>(dr, "IS_NULLABLE", out b))
+                if (TryGetDataRowValue(dr, "IS_NULLABLE", out b))
                     field.Nullable = b;
                 else if (TryGetDataRowValue(dr, "IS_NULLABLE", out str))
                 {
@@ -344,7 +348,7 @@ namespace XCode.DataAccessLayer
             if (field.Length == 0)
             {
                 Int32 n = 0;
-                if (TryGetDataRowValue<Int32>(drDataType, "ColumnSize", out n))
+                if (TryGetDataRowValue(drDataType, "ColumnSize", out n))
                 {
                     field.Length = n;
                     //if (field.NumOfByte == 0) field.NumOfByte = field.Length;
@@ -682,18 +686,18 @@ namespace XCode.DataAccessLayer
         {
             if (item.Contains("length") || item.Contains("size")) return field.Length.ToString();
 
-            if (item.Contains("precision")) return field.Precision.ToString();
+            //if (item.Contains("precision")) return field.Precision.ToString();
 
-            if (item.Contains("scale") || item.Contains("bits"))
-            {
-                // 如果没有设置位数，则使用最大位数
-                Int32 d = field.Scale;
-                //if (d < 0)
-                //{
-                //    if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Scale;
-                //}
-                return d.ToString();
-            }
+            //if (item.Contains("scale") || item.Contains("bits"))
+            //{
+            //    // 如果没有设置位数，则使用最大位数
+            //    Int32 d = field.Scale;
+            //    //if (d < 0)
+            //    //{
+            //    //    if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Scale;
+            //    //}
+            //    return d.ToString();
+            //}
 
             return "0";
         }

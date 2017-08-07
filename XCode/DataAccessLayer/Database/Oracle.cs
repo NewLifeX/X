@@ -639,40 +639,52 @@ namespace XCode.DataAccessLayer
             // 处理数字类型
             if (field.RawType.StartsWith("NUMBER"))
             {
-                if (field.Scale == 0)
+                var fi = field as XField;
+                if (fi != null)
                 {
-                    // 0表示长度不限制，为了方便使用，转为最常见的Int32
-                    if (field.Precision == 0)
-                        field.DataType = typeof(Int32);
-                    else if (field.Precision == 1)
-                        field.DataType = typeof(Boolean);
-                    else if (field.Precision <= 5)
-                        field.DataType = typeof(Int16);
-                    else if (field.Precision <= 10)
-                        field.DataType = typeof(Int32);
+                    var prec = fi.Precision;
+                    if (fi.Scale == 0)
+                    {
+                        // 0表示长度不限制，为了方便使用，转为最常见的Int32
+                        if (prec == 0)
+                            field.DataType = typeof(Int32);
+                        else if (prec == 1)
+                            field.DataType = typeof(Boolean);
+                        else if (prec <= 5)
+                            field.DataType = typeof(Int16);
+                        else if (prec <= 10)
+                            field.DataType = typeof(Int32);
+                        else
+                            field.DataType = typeof(Int64);
+                    }
                     else
-                        field.DataType = typeof(Int64);
-                }
-                else
-                {
-                    if (field.Precision == 0)
-                        field.DataType = typeof(Decimal);
-                    else if (field.Precision <= 5)
-                        field.DataType = typeof(Single);
-                    else if (field.Precision <= 10)
-                        field.DataType = typeof(Double);
+                    {
+                        if (prec == 0)
+                            field.DataType = typeof(Decimal);
+                        else if (prec <= 5)
+                            field.DataType = typeof(Single);
+                        else if (prec <= 10)
+                            field.DataType = typeof(Double);
+                    }
                 }
             }
 
             // 长度
             Int32 len = 0;
-            if (TryGetDataRowValue<Int32>(drColumn, "LENGTHINCHARS", out len) && len > 0) field.Length = len;
+            if (TryGetDataRowValue(drColumn, "LENGTHINCHARS", out len) && len > 0) field.Length = len;
         }
 
         protected override String GetFieldType(IDataColumn field)
         {
-            Int32 precision = field.Precision;
-            Int32 scale = field.Scale;
+            var precision = 0;
+            var scale = 0;
+
+            var fi = field as XField;
+            if (fi != null)
+            {
+                precision = fi.Precision;
+                scale = fi.Scale;
+            }
 
             switch (Type.GetTypeCode(field.DataType))
             {
