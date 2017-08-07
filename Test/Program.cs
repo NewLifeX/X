@@ -187,8 +187,8 @@ namespace Test
             //    b.Save(".Biz.cs", true);
             //}
 
-            var count = EntityBuilder.Build("..\\Src\\XCode\\Membership\\Member.xml", "XCode.Membership");
-            count += EntityBuilder.Build("..\\Src\\XCode\\Sharding\\Shard.xml", "XCode.Sharding", "Shard");
+            var count = EntityBuilder.Build("..\\Src\\XCode\\Membership\\Member.xml", null, "XCode.Membership");
+            count += EntityBuilder.Build("..\\Src\\XCode\\Sharding\\Shard.xml", null, "XCode.Sharding", "Shard");
             Console.WriteLine(count);
         }
     }

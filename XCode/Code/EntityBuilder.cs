@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NewLife.Log;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
 
@@ -40,9 +41,10 @@ namespace XCode.Code
         #region 静态快速
         /// <summary>为Xml模型文件生成实体类</summary>
         /// <param name="xmlFile">模型文件</param>
+        /// <param name="output">输出目录</param>
         /// <param name="nameSpace">命名空间</param>
         /// <param name="connName">连接名</param>
-        public static Int32 Build(String xmlFile, String nameSpace = null, String connName = null)
+        public static Int32 Build(String xmlFile, String output = null, String nameSpace = null, String connName = null)
         {
             if (xmlFile.IsNullOrEmpty()) return 0;
 
@@ -54,13 +56,15 @@ namespace XCode.Code
             if (tables.Count == 0) return 0;
 
             // 输出
-            var output = Path.GetDirectoryName(xmlFile);
+            if (output.IsNullOrEmpty()) output = Path.GetDirectoryName(xmlFile);
 
             // 命名空间
             if (nameSpace.IsNullOrEmpty()) nameSpace = Path.GetFileNameWithoutExtension(xmlFile);
 
             // 连接名
             if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
+
+            XTrace.WriteLine("代码生成源：{0} 输出：{1} 命名空间：{2} 连接名：{3}", xmlFile, output, nameSpace, connName);
 
             var count = 0;
             foreach (var item in tables)
@@ -71,6 +75,8 @@ namespace XCode.Code
                 builder.GenericType = item.Properties["RenderGenEntity"].ToBoolean();
                 builder.Namespace = nameSpace;
                 builder.ConnName = connName;
+                if (Setting.Current.CodeDebug) builder.Log = XTrace.Log;
+
                 builder.Execute();
                 builder.Output = output;
                 builder.Save();

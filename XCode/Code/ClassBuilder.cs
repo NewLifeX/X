@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NewLife.Log;
 using XCode.DataAccessLayer;
 
 namespace XCode.Code
@@ -48,6 +49,8 @@ namespace XCode.Code
         /// <summary>执行生成</summary>
         public virtual void Execute()
         {
+            WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
+
             Clear();
             if (Writer == null) Writer = new StringWriter();
 
@@ -275,6 +278,19 @@ namespace XCode.Code
             p = p.GetFullPath();
 
             if (!File.Exists(p) || overwrite) File.WriteAllText(p.EnsureDirectory(true), ToString());
+        }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(format, args);
         }
         #endregion
     }
