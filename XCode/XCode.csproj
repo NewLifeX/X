@@ -206,15 +206,6 @@
     <Compile Include="Web\UserBehaviorModule..cs" />
     <Compile Include="Web\EntityGrid.cs" />
     <None Include="Cache\readme.md" />
-    <None Include="Membership\XCoder.log">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>XCoder.tt</DependentUpon>
-    </None>
-    <None Include="Membership\XCoder.tt">
-      <LastGenOutput>XCoder.log</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
     <Compile Include="Transform\EntityTransform.cs" />
     <Compile Include="Tree\IEntityTreeSettting.cs" />
     <Compile Include="Web\DbRunTimeModule.cs" />
@@ -238,10 +229,19 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Sharding\XCoder.log">
-      <DependentUpon>XCoder.tt</DependentUpon>
+    <Content Include="生成实体类.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>生成实体类.log</LastGenOutput>
+    </Content>
+    <None Include="Membership\生成实体类.log">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <DependentUpon>生成实体类.tt</DependentUpon>
+    </None>
+    <None Include="Sharding\生成实体类.log">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>生成实体类.tt</DependentUpon>
     </None>
     <None Include="UpdateInfo.txt" />
     <None Include="Membership\Member.xml">
@@ -250,11 +250,20 @@
     <None Include="Sharding\Shard.xml">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Sharding\XCoder.tt">
+    <Content Include="Membership\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>XCoder.log</LastGenOutput>
-    </None>
+      <LastGenOutput>生成实体类.log</LastGenOutput>
+    </Content>
+    <Content Include="Sharding\生成实体类.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>生成实体类.log</LastGenOutput>
+    </Content>
     <Content Include="Sync\同步机制.txt" />
+    <None Include="生成实体类.log">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>生成实体类.tt</DependentUpon>
+    </None>
     <None Include="说明.txt" />
   </ItemGroup>
   <ItemGroup>

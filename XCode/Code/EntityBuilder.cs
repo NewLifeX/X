@@ -46,10 +46,18 @@ namespace XCode.Code
         /// <param name="connName">连接名</param>
         public static Int32 Build(String xmlFile, String output = null, String nameSpace = null, String connName = null)
         {
-            if (xmlFile.IsNullOrEmpty()) return 0;
+            if (xmlFile.IsNullOrEmpty())
+            {
+                var di = ".".AsDirectory();
+                XTrace.WriteLine("未指定模型文件，准备从目录中查找第一个xml文件 {0}", di.FullName);
+                // 选当前目录第一个
+                xmlFile = di.GetFiles("*.xml", SearchOption.TopDirectoryOnly).FirstOrDefault()?.FullName;
+            }
+
+            if (xmlFile.IsNullOrEmpty()) throw new Exception("找不到任何模型文件！");
 
             xmlFile = xmlFile.GetFullPath();
-            if (!File.Exists(xmlFile)) return 0;
+            if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
 
             // 导入模型
             var tables = DAL.Import(File.ReadAllText(xmlFile));

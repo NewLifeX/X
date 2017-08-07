@@ -174,7 +174,7 @@ namespace NewLife.Cube
 
             using (var tran = (mf as IEntityOperate).CreateTrans())
             {
-                XTrace.WriteLine("初始化[{0}]的菜单体系 {1}", AreaName, mf.GetType().FullName);
+                XTrace.WriteLine("初始化[{0}]的菜单体系 {1}", AreaName, mf.GetType().Name);
                 mf.ScanController(AreaName, GetType().Assembly, GetType().Namespace + ".Controllers");
 
                 // 更新区域名称为友好中文名
