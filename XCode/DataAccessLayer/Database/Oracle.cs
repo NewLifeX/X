@@ -415,7 +415,7 @@ namespace XCode.DataAccessLayer
 
             // 采用集合过滤，提高效率
             String tableName = null;
-            if (names != null && names.Length > 0) tableName = names.FirstOrDefault();
+            if (names != null && names.Length == 1) tableName = names.FirstOrDefault();
             if (String.IsNullOrEmpty(tableName))
                 tableName = null;
             else
