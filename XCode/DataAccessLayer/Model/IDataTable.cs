@@ -74,15 +74,15 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         IDataIndex CreateIndex();
 
-        /// <summary>根据字段名获取字段</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        IDataColumn GetColumn(String name);
+        ///// <summary>根据字段名获取字段</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //IDataColumn GetColumn(String name);
 
-        /// <summary>根据字段名数组获取字段数组</summary>
-        /// <param name="names"></param>
-        /// <returns></returns>
-        IDataColumn[] GetColumns(String[] names);
+        ///// <summary>根据字段名数组获取字段数组</summary>
+        ///// <param name="names"></param>
+        ///// <returns></returns>
+        //IDataColumn[] GetColumns(String[] names);
 
         ///// <summary>连接另一个表，处理两表间关系</summary>
         ///// <param name="table"></param>
@@ -91,11 +91,11 @@ namespace XCode.DataAccessLayer
         /// <summary>修正数据</summary>
         IDataTable Fix();
 
-        /// <summary>获取全部字段，包括继承的父类</summary>
-        /// <param name="tables">在该表集合里面找父类</param>
-        /// <param name="baseFirst">是否父类字段在前</param>
-        /// <returns></returns>
-        List<IDataColumn> GetAllColumns(IEnumerable<IDataTable> tables, Boolean baseFirst = true);
+        ///// <summary>获取全部字段，包括继承的父类</summary>
+        ///// <param name="tables">在该表集合里面找父类</param>
+        ///// <param name="baseFirst">是否父类字段在前</param>
+        ///// <returns></returns>
+        //List<IDataColumn> GetAllColumns(IEnumerable<IDataTable> tables, Boolean baseFirst = true);
         #endregion
     }
 }

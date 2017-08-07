@@ -125,24 +125,16 @@ namespace XCode.DataAccessLayer
                     #endregion
 
                     #region 字段及修正
-                    // 字段的获取可能有异常，但不应该影响整体架构的获取
-                    try
-                    {
-                        var columns = GetFields(table);
-                        if (columns != null && columns.Count > 0) table.Columns.AddRange(columns);
+                    var columns = GetFields(table);
+                    if (columns != null && columns.Count > 0) table.Columns.AddRange(columns);
 
-                        var indexes = GetIndexes(table);
-                        if (indexes != null && indexes.Count > 0) table.Indexes.AddRange(indexes);
-
-                        // 先修正一次关系数据
-                        table.Fix();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (DAL.Debug) DAL.WriteLog(ex.ToString());
-                    }
+                    var indexes = GetIndexes(table);
+                    if (indexes != null && indexes.Count > 0) table.Indexes.AddRange(indexes);
 
                     FixTable(table, dr);
+
+                    // 修正关系数据
+                    table.Fix();
 
                     list.Add(table);
                     #endregion

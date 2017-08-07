@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NewLife.Reflection;
 using XCode.Common;
 
 namespace XCode.DataAccessLayer
@@ -510,36 +511,13 @@ namespace XCode.DataAccessLayer
 
             if (table == null || table.Columns == null || table.Columns.Count < 1) return;
 
-            // 自增
-            var exists = false;
-            foreach (var field in table.Columns)
+            // 检查该表是否有序列
+            if (CheckSeqExists("SEQ_{0}".F(table.TableName)))
             {
-                // 不管是否主键
-                if (!field.DataType.IsIntType()) continue;
-
-                var name = String.Format("SEQ_{0}_{1}", table.TableName, field.ColumnName);
-                if (CheckSeqExists(name))
-                {
-                    field.Identity = true;
-                    exists = true;
-                    break;
-                }
-            }
-            if (!exists)
-            {
-                // 检查该表是否有序列，如有，让主键成为自增
-                var name = String.Format("SEQ_{0}", table.TableName);
-                if (CheckSeqExists(name))
-                {
-                    foreach (var field in table.Columns)
-                    {
-                        if (!field.PrimaryKey || !field.DataType.IsIntType()) continue;
-
-                        field.Identity = true;
-                        exists = true;
-                        break;
-                    }
-                }
+                // 不好判断自增列表，只能硬编码
+                var dc = table.GetColumn("ID");
+                if (dc == null) dc = table.Columns.FirstOrDefault(e => e.PrimaryKey && e.DataType.IsInt());
+                if (dc != null) dc.Identity = true;
             }
         }
 

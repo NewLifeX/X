@@ -203,15 +203,15 @@ namespace XCode.DataAccessLayer
             return idx;
         }
 
-        /// <summary>根据字段名获取字段</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual IDataColumn GetColumn(String name) { return ModelHelper.GetColumn(this, name); }
+        ///// <summary>根据字段名获取字段</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public virtual IDataColumn GetColumn(String name) { return ModelHelper.GetColumn(this, name); }
 
-        /// <summary>根据字段名数组获取字段数组</summary>
-        /// <param name="names"></param>
-        /// <returns></returns>
-        public virtual IDataColumn[] GetColumns(String[] names) { return ModelHelper.GetColumns(this, names); }
+        ///// <summary>根据字段名数组获取字段数组</summary>
+        ///// <param name="names"></param>
+        ///// <returns></returns>
+        //public virtual IDataColumn[] GetColumns(String[] names) { return ModelHelper.GetColumns(this, names); }
 
         ///// <summary>连接另一个表，处理两表间关系</summary>
         ///// <param name="table"></param>
@@ -220,11 +220,11 @@ namespace XCode.DataAccessLayer
         /// <summary>修正数据</summary>
         public virtual IDataTable Fix() { return ModelResolver.Current.Fix(this); }
 
-        /// <summary>获取全部字段，包括继承的父类</summary>
-        /// <param name="tables">在该表集合里面找父类</param>
-        /// <param name="baseFirst">是否父类字段在前</param>
-        /// <returns></returns>
-        public virtual List<IDataColumn> GetAllColumns(IEnumerable<IDataTable> tables, Boolean baseFirst = true) { return ModelHelper.GetAllColumns(this, tables, baseFirst); }
+        ///// <summary>获取全部字段，包括继承的父类</summary>
+        ///// <param name="tables">在该表集合里面找父类</param>
+        ///// <param name="baseFirst">是否父类字段在前</param>
+        ///// <returns></returns>
+        //public virtual List<IDataColumn> GetAllColumns(IEnumerable<IDataTable> tables, Boolean baseFirst = true) { return ModelHelper.GetAllColumns(this, tables, baseFirst); }
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
