@@ -100,7 +100,7 @@ namespace XCode.DataAccessLayer
             if (names != null && names.Length > 0)
             {
                 var hs = new HashSet<String>(names, StringComparer.OrdinalIgnoreCase);
-                rows = rows.Where(dr => TryGetDataRowValue(dr, _.TalbeName, out String name) && names.Contains(name)).ToArray();
+                rows = rows.Where(dr => TryGetDataRowValue(dr, _.TalbeName, out String name) && hs.Contains(name)).ToArray();
             }
 
             try

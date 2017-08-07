@@ -435,7 +435,11 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(tableName))
                 tableName = null;
             else
-                tableName = tableName.ToUpper();
+            {
+                // 不缺分大小写，并且不是保留字，才转大写
+                if (Setting.Current.Oracle.IgnoreCase && !(Database as Oracle).IsReservedWord(tableName))
+                    tableName = tableName.ToUpper();
+            }
 
             var owner = Owner;
             //if (owner.IsNullOrEmpty()) owner = UserID;
