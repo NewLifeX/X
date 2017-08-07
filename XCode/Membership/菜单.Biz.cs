@@ -553,7 +553,7 @@ namespace XCode.Membership
                 for (Int32 i = 0; i < ms.Count; i++)
                 {
                     ms[i].Sort = i;
-                    ms[i].Save();
+                    (ms[i] as IEntity).Save();
                 }
 
                 // 如果新增了菜单，需要检查权限
@@ -605,7 +605,7 @@ namespace XCode.Membership
         IList<IMenu> ScanController(String rootName, Assembly asm, String nameSpace);
     }
 
-    public partial interface IMenu : IEntityTree
+    public partial interface IMenu
     {
         /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf">是否包含自己</param>
@@ -622,13 +622,13 @@ namespace XCode.Membership
         IMenu Add(String name, String displayName, String url);
 
         /// <summary>父菜单</summary>
-        new IMenu Parent { get; }
+        IMenu Parent { get; }
 
         /// <summary>子菜单</summary>
-        new IList<IMenu> Childs { get; }
+        IList<IMenu> Childs { get; }
 
         /// <summary>子孙菜单</summary>
-        new IList<IMenu> AllChilds { get; }
+        IList<IMenu> AllChilds { get; }
 
         /// <summary>根据层次路径查找。因为需要指定在某个菜单子级查找路径，所以是成员方法而不是静态方法</summary>
         /// <param name="path">层次路径</param>
