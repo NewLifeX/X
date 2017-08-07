@@ -239,7 +239,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(connstr)) return connstr;
 
             // 如果包含任何非Base64编码字符，直接返回
-            foreach (Char c in connstr)
+            foreach (var c in connstr)
             {
                 if (!(c >= 'a' && c <= 'z' ||
                     c >= 'A' && c <= 'Z' ||

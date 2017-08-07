@@ -114,12 +114,11 @@ namespace XCode.Membership
                 var key = "Admin";
 
                 if (HttpContext.Current == null) return null;
-                var ss = HttpContext.Current.Session;
+                var ss = HttpContext.Current?.Session;
                 if (ss == null) return null;
 
                 // 从Session中获取
-                var entity = ss[key] as TEntity;
-                if (entity != null) return entity;
+                if (ss[key] is TEntity entity) return entity;
 
                 // 设置一个陷阱，避免重复计算Cookie
                 if (ss[key] != null) return null;
@@ -136,7 +135,7 @@ namespace XCode.Membership
             set
             {
                 var key = "Admin";
-                var ss = HttpContext.Current.Session;
+                var ss = HttpContext.Current?.Session;
 
                 // 特殊处理注销
                 if (value == null)
@@ -514,7 +513,9 @@ namespace XCode.Membership
         static void SetCookie(String key, TEntity entity)
         {
             var context = HttpContext.Current;
-            var res = context.Response;
+            var res = context?.Response;
+            if (res == null) return;
+
             var reqcookie = context.Request.Cookies[key];
             if (entity != null)
             {

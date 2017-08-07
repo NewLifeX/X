@@ -32,7 +32,7 @@ namespace XCode
             // 1，可以初始化该实体类型的操作工厂
             // 2，CreateOperate将会实例化一个TEntity对象，从而引发TEntity的静态构造函数，
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
 
             ////! 大石头 2011-03-14 以下过程改为异步处理
             ////  已确认，当实体类静态构造函数中使用了EntityFactory.CreateOperate(Type)方法时，可能出现死锁。
@@ -88,7 +88,7 @@ namespace XCode
             var list = dreAccessor.LoadData(dt);
             // 设置默认累加字段
             EntityAddition.SetField(list);
-            foreach (EntityBase entity in list)
+            foreach (TEntity entity in list)
             {
                 entity.OnLoad();
             }
@@ -190,7 +190,7 @@ namespace XCode
                     Meta._Modules.Valid(this, isnew.Value);
                 }
 
-                Int32 rs = func();
+                var rs = func();
 
                 trans.Commit();
 
@@ -277,7 +277,7 @@ namespace XCode
                     if (columns.All(c => c.Identity)) continue;
 
                     // 记录字段是否有更新
-                    Boolean changed = false;
+                    var changed = false;
                     if (!isNew) changed = columns.Any(c => Dirtys[c.Name]);
 
                     // 存在检查
@@ -304,7 +304,7 @@ namespace XCode
             {
                 var sb = new StringBuilder();
                 String name = null;
-                for (Int32 i = 0; i < names.Length; i++)
+                for (var i = 0; i < names.Length; i++)
                 {
                     if (sb.Length > 0) sb.Append("，");
 
@@ -331,8 +331,8 @@ namespace XCode
         {
             // 根据指定键查找所有符合的数据，然后比对。
             // 当然，也可以通过指定键和主键配合，找到拥有指定键，但是不是当前主键的数据，只查记录数。
-            Object[] values = new Object[names.Length];
-            for (Int32 i = 0; i < names.Length; i++)
+            var values = new Object[names.Length];
+            for (var i = 0; i < names.Length; i++)
             {
                 values[i] = this[names[i]];
             }
@@ -346,7 +346,7 @@ namespace XCode
                 //if (IsNullKey) return FindCount(names, values) > 0;
 
                 var exp = new WhereExpression();
-                for (int i = 0; i < names.Length; i++)
+                for (var i = 0; i < names.Length; i++)
                 {
                     var fi = Meta.Table.FindByName(names[i]);
                     exp &= fi == values[i];
@@ -407,7 +407,7 @@ namespace XCode
                 }
             }
 
-            for (int i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 var fi = Meta.Table.FindByName(names[i]);
                 exp &= fi == values[i];
@@ -468,7 +468,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKey(Object key)
         {
-            FieldItem field = Meta.Unique;
+            var field = Meta.Unique;
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求" + Meta.ThisType.FullName + "有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
@@ -483,7 +483,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKeyForEdit(Object key)
         {
-            FieldItem field = Meta.Unique;
+            var field = Meta.Unique;
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKeyForEdit方法要求该表有唯一主键！");
 
             // 参数为空时，返回新实例
@@ -493,7 +493,7 @@ namespace XCode
                 return Meta.Factory.Create(true) as TEntity;
             }
 
-            Type type = field.Type;
+            var type = field.Type;
 
             // 唯一键为自增且参数小于等于0时，返回新实例
             if (Helper.IsNullKey(key, field.Type))
@@ -504,7 +504,7 @@ namespace XCode
             }
 
             // 此外，一律返回 查找值，即使可能是空。而绝不能在找不到数据的情况下给它返回空，因为可能是找不到数据而已，而返回新实例会导致前端以为这里是新增数据
-            TEntity entity = Find(field.Name, key);
+            var entity = Find(field.Name, key);
 
             // 判断实体
             if (entity == null)
@@ -563,7 +563,7 @@ namespace XCode
         {
             var exp = new WhereExpression();
 
-            for (int i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 var fi = Meta.Table.FindByName(names[i]);
                 exp &= fi == values[i];
@@ -620,11 +620,11 @@ namespace XCode
                 if (startRowIndex * 2 > count)
                 {
                     var order2 = order;
-                    Boolean bk = false; // 是否跳过
+                    var bk = false; // 是否跳过
 
                     #region 排序倒序
                     // 默认是自增字段的降序
-                    FieldItem fi = Meta.Unique;
+                    var fi = Meta.Unique;
                     if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
 
                     if (!String.IsNullOrEmpty(order2))
@@ -635,14 +635,14 @@ namespace XCode
                         {
                             order2 = order2.Replace(match.Value, match.Value.Replace(",", "★"));
                         }
-                        String[] ss = order2.Split(',');
+                        var ss = order2.Split(',');
                         var sb = new StringBuilder();
-                        foreach (String item in ss)
+                        foreach (var item in ss)
                         {
-                            String fn = item;
-                            String od = "asc";
+                            var fn = item;
+                            var od = "asc";
 
-                            Int32 p = fn.LastIndexOf(" ");
+                            var p = fn.LastIndexOf(" ");
                             if (p > 0)
                             {
                                 od = item.Substring(p).Trim().ToLower();
@@ -863,7 +863,7 @@ namespace XCode
 
             var ks = keys.Split(" ");
 
-            for (Int32 i = 0; i < ks.Length; i++)
+            for (var i = 0; i < ks.Length; i++)
             {
                 if (!ks[i].IsNullOrWhiteSpace()) exp &= func(ks[i].Trim(), fields);
             }
@@ -950,7 +950,7 @@ namespace XCode
             // 返回所有记录
             if (!needOrderByID && startRowIndex <= 0 && maximumRows <= 0) return builder;
 
-            FieldItem fi = Meta.Table.Identity;
+            var fi = Meta.Table.Identity;
             if (fi != null)
             {
                 builder.Key = Meta.FormatName(fi.ColumnName);

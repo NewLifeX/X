@@ -41,10 +41,7 @@ namespace XCode.Cache
                 var tb = field.Table;
                 var id = tb.Identity;
                 if (id == null && tb.PrimaryKeys != null && tb.PrimaryKeys.Length == 1) id = tb.PrimaryKeys[0];
-
-                if (id == null) throw new Exception("{0}缺少唯一主键，无法使用缓存".F(tb.TableName));
-
-                _Unique = id;
+                _Unique = id ?? throw new Exception("{0}缺少唯一主键，无法使用缓存".F(tb.TableName));
             }
         }
 

@@ -54,18 +54,18 @@ namespace XCode.Configuration
                 {
                     var table = _Table;
                     var str = table != null ? table.Name : EntityType.Name;
-                    var conn = ConnName;
+                    //var conn = ConnName;
 
-                    if (conn != null && DAL.ConnStrs.ContainsKey(conn))
-                    {
-                        // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-                        var dal = DAL.Create(conn);
-                        if (dal != null && !str.Contains("."))
-                        {
-                            // 角色名作为点前缀来约束表名，支持所有数据库
-                            if (!dal.Db.Owner.IsNullOrEmpty()) str = dal.Db.Owner + "." + str;
-                        }
-                    }
+                    //if (conn != null && DAL.ConnStrs.ContainsKey(conn))
+                    //{
+                    //    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
+                    //    var dal = DAL.Create(conn);
+                    //    if (dal != null && !str.Contains("."))
+                    //    {
+                    //        // 角色名作为点前缀来约束表名，支持所有数据库
+                    //        if (!dal.Db.Owner.IsNullOrEmpty()) str = dal.Db.Owner + "." + str;
+                    //    }
+                    //}
                     _TableName = str;
                 }
                 return _TableName;
@@ -84,7 +84,7 @@ namespace XCode.Configuration
                     String connName = null;
                     if (_Table != null) connName = _Table.ConnName;
 
-                    String str = FindConnMap(connName, EntityType.Name);
+                    var str = FindConnMap(connName, EntityType.Name);
                     _ConnName = String.IsNullOrEmpty(str) ? connName : str;
                 }
                 return _ConnName;
@@ -109,8 +109,8 @@ namespace XCode.Configuration
                     //String str = Config.GetMutilConfig<String>(null, "XCode.ConnMaps", "XCodeConnMaps");
                     var str = Setting.Current.ConnMaps;
                     if (String.IsNullOrEmpty(str)) return _ConnMaps = list;
-                    String[] ss = str.Split(",");
-                    foreach (String item in ss)
+                    var ss = str.Split(",");
+                    foreach (var item in ss)
                     {
                         if (list.Contains(item.Trim())) continue;
 
@@ -128,10 +128,10 @@ namespace XCode.Configuration
         /// <returns></returns>
         private static String FindConnMap(String connName, String className)
         {
-            String name1 = connName + "#";
-            String name2 = className + "@";
+            var name1 = connName + "#";
+            var name2 = className + "@";
 
-            foreach (String item in ConnMaps)
+            foreach (var item in ConnMaps)
             {
                 if (item.StartsWith(name1)) return item.Substring(name1.Length);
                 if (item.StartsWith(name2)) return item.Substring(name2.Length);
@@ -339,7 +339,7 @@ namespace XCode.Configuration
                 {
                     // 反序入栈，因为属性可能是顺序的，这里先反序，待会出来再反一次
                     // 没有数据属性的
-                    for (Int32 i = list.Count - 1; i >= 0; i--)
+                    for (var i = list.Count - 1; i >= 0; i--)
                     {
                         var item = list[i];
                         if (item.DeclaringType == t && !item.IsDataObjectField)
@@ -349,7 +349,7 @@ namespace XCode.Configuration
                         }
                     }
                     // 有数据属性的
-                    for (int i = list.Count - 1; i >= 0; i--)
+                    for (var i = list.Count - 1; i >= 0; i--)
                     {
                         var item = list[i];
                         if (item.DeclaringType == t && item.IsDataObjectField)

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Data.Common;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -114,7 +112,30 @@ namespace XCode
 
         private String _FormatedTableName;
         /// <summary>已格式化的表名，带有中括号等</summary>
-        public virtual String FormatedTableName { get { return _FormatedTableName ?? (_FormatedTableName = Dal.Db.FormatName(TableName)); } }
+        public virtual String FormatedTableName
+        {
+            get
+            {
+                if (_FormatedTableName.IsNullOrEmpty())
+                {
+                    var str = Dal.Db.FormatName(TableName);
+                    var conn = ConnName;
+                    if (conn != null && DAL.ConnStrs.ContainsKey(conn))
+                    {
+                        // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
+                        var dal = DAL.Create(conn);
+                        if (dal != null && !str.Contains("."))
+                        {
+                            // 角色名作为点前缀来约束表名，支持所有数据库
+                            if (!dal.Db.Owner.IsNullOrEmpty()) str = Dal.Db.FormatName(dal.Db.Owner) + "." + str;
+                        }
+                    }
+
+                    _FormatedTableName = str;
+                }
+                return _FormatedTableName;
+            }
+        }
 
         private EntitySession<TEntity> _Default;
         /// <summary>该实体类的默认会话。</summary>
@@ -238,20 +259,6 @@ namespace XCode
                     FixIndexName(table);
                 }
 
-                //var set = new NegativeSetting
-                //{
-                //    CheckOnly = Setting.Current.Negative.CheckOnly,
-                //    NoDelete = Setting.Current.Negative.NoDelete
-                //};
-
-                //// 对于分库操作，强制检查架构，但不删除数据
-                //if (Default != this)
-                //{
-                //    set.CheckOnly = false;
-                //    set.NoDelete = true;
-                //}
-
-                //Dal.SetTables(set, table);
                 Dal.SetTables(null, table);
             }
             finally
@@ -297,12 +304,13 @@ namespace XCode
 
                 // 是否默认连接和默认表名，非默认则强制检查，并且不允许异步检查（异步检查会导致ConnName和TableName不对）
                 var def = Default;
-
+                var cname = ConnName;
+                var tname = TableName;
                 if (def == this)
                 {
                     if (!Setting.Current.Negative.Enable ||
-                        DAL.NegativeExclude.Contains(ConnName) ||
-                        DAL.NegativeExclude.Contains(TableName) ||
+                        DAL.NegativeExclude.Contains(cname) ||
+                        DAL.NegativeExclude.Contains(tname) ||
                         IsGenerated)
                     {
                         _hasCheckModel = true;
@@ -312,7 +320,7 @@ namespace XCode
 #if DEBUG
                 else
                 {
-                    DAL.WriteLog("[{0}@{1}]非默认表名连接名，强制要求检查架构！", TableName, ConnName);
+                    DAL.WriteLog("[{0}@{1}]非默认表名连接名，强制要求检查架构！", tname, cname);
                 }
 #endif
 
@@ -326,12 +334,12 @@ namespace XCode
                 // 第一次使用才检查的，此时检查
                 var ck = mode == ModelCheckModes.CheckTableWhenFirstUse;
                 // 或者前面初始化的时候没有涉及的，也在这个时候检查
-                var dal = DAL.Create(ConnName);
-                if (!dal.HasCheckTables.Contains(TableName))
+                var dal = DAL.Create(cname);
+                if (!dal.HasCheckTables.Contains(tname))
                 {
                     if (!ck)
                     {
-                        dal.HasCheckTables.Add(TableName);
+                        dal.HasCheckTables.Add(tname);
 
 #if DEBUG
                         if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");

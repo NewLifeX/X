@@ -247,7 +247,7 @@ namespace XCode
                     {
                         // 有可能用于查找的是表名，而表名曾经被格式化（大小写、去前缀等）
                         var ti = TableItem.Create(item);
-                        if (ti != null && ti.DataTable != null && typeName.EqualIgnoreCase(ti.TableName)) type = item;
+                        if (ti?.DataTable != null && typeName.EqualIgnoreCase(ti.TableName)) type = item;
                     }
                 }
             }
