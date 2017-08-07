@@ -45,8 +45,20 @@ namespace XCode
         /// <param name="name">名称</param>
         /// <param name="description"></param>
         /// <param name="rawType"></param>
+        public BindColumnAttribute(String name, String description, String rawType)
+        {
+            Name = name;
+            Description = description;
+            RawType = rawType;
+        }
+
+        /// <summary>构造函数</summary>
+        /// <param name="name">名称</param>
+        /// <param name="description"></param>
+        /// <param name="rawType"></param>
         /// <param name="precision"></param>
         /// <param name="scale"></param>
+        [Obsolete()]
         public BindColumnAttribute(String name, String description, String rawType, Int32 precision, Int32 scale)
         {
             Name = name;

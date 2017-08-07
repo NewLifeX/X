@@ -265,7 +265,7 @@ namespace XCode.Code
             }
 
             WriteLine("[DataObjectField({0}, {1}, {2}, {3})]", dc.PrimaryKey.ToString().ToLower(), dc.Identity.ToString().ToLower(), dc.Nullable.ToString().ToLower(), dc.Length);
-            WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\", {3}, {4}{5})]", dc.ColumnName, dc.Description, dc.RawType, dc.Precision, dc.Scale, dc.Master ? ", Master = true" : "");
+            WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\"{3})]", dc.ColumnName, dc.Description, dc.RawType, dc.Master ? ", Master = true" : "");
 
             if (Interface)
                 WriteLine("{0} {1} {{ get; set; }}", dc.DataType.Name, dc.Name);

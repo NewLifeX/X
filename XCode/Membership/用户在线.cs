@@ -23,7 +23,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn("ID", "编号", "int", 10, 0)]
+        [BindColumn("ID", "编号", "int")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
         private Int32 _UserID;
@@ -31,7 +31,7 @@ namespace XCode.Membership
         [DisplayName("用户")]
         [Description("用户")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn("UserID", "用户", "int", 10, 0)]
+        [BindColumn("UserID", "用户", "int")]
         public Int32 UserID { get { return _UserID; } set { if (OnPropertyChanging(__.UserID, value)) { _UserID = value; OnPropertyChanged(__.UserID); } } }
 
         private String _Name;
@@ -39,7 +39,7 @@ namespace XCode.Membership
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Name", "名称", "nvarchar(50)", 0, 0, Master = true)]
+        [BindColumn("Name", "名称", "nvarchar(50)", Master = true)]
         public String Name { get { return _Name; } set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
 
         private String _SessionID;
@@ -47,7 +47,7 @@ namespace XCode.Membership
         [DisplayName("会话")]
         [Description("会话。Web的SessionID或Server的会话编号")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("SessionID", "会话。Web的SessionID或Server的会话编号", "nvarchar(50)", 0, 0)]
+        [BindColumn("SessionID", "会话。Web的SessionID或Server的会话编号", "nvarchar(50)")]
         public String SessionID { get { return _SessionID; } set { if (OnPropertyChanging(__.SessionID, value)) { _SessionID = value; OnPropertyChanged(__.SessionID); } } }
 
         private Int32 _Times;
@@ -55,7 +55,7 @@ namespace XCode.Membership
         [DisplayName("次数")]
         [Description("次数")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn("Times", "次数", "int", 10, 0)]
+        [BindColumn("Times", "次数", "int")]
         public Int32 Times { get { return _Times; } set { if (OnPropertyChanging(__.Times, value)) { _Times = value; OnPropertyChanged(__.Times); } } }
 
         private String _Status;
@@ -63,7 +63,7 @@ namespace XCode.Membership
         [DisplayName("状态")]
         [Description("状态")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("Status", "状态", "nvarchar(200)", 0, 0)]
+        [BindColumn("Status", "状态", "nvarchar(200)")]
         public String Status { get { return _Status; } set { if (OnPropertyChanging(__.Status, value)) { _Status = value; OnPropertyChanged(__.Status); } } }
 
         private Int32 _OnlineTime;
@@ -71,7 +71,7 @@ namespace XCode.Membership
         [DisplayName("在线时间")]
         [Description("在线时间。本次在线总时间，秒")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn("OnlineTime", "在线时间。本次在线总时间，秒", "int", 10, 0)]
+        [BindColumn("OnlineTime", "在线时间。本次在线总时间，秒", "int")]
         public Int32 OnlineTime { get { return _OnlineTime; } set { if (OnPropertyChanging(__.OnlineTime, value)) { _OnlineTime = value; OnPropertyChanged(__.OnlineTime); } } }
 
         private String _CreateIP;
@@ -79,7 +79,7 @@ namespace XCode.Membership
         [DisplayName("创建地址")]
         [Description("创建地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("CreateIP", "创建地址", "nvarchar(50)", 0, 0)]
+        [BindColumn("CreateIP", "创建地址", "nvarchar(50)")]
         public String CreateIP { get { return _CreateIP; } set { if (OnPropertyChanging(__.CreateIP, value)) { _CreateIP = value; OnPropertyChanged(__.CreateIP); } } }
 
         private DateTime _CreateTime;
@@ -87,7 +87,7 @@ namespace XCode.Membership
         [DisplayName("创建时间")]
         [Description("创建时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn("CreateTime", "创建时间", "datetime", 3, 0)]
+        [BindColumn("CreateTime", "创建时间", "datetime")]
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
         private DateTime _UpdateTime;
@@ -95,7 +95,7 @@ namespace XCode.Membership
         [DisplayName("修改时间")]
         [Description("修改时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn("UpdateTime", "修改时间", "datetime", 3, 0)]
+        [BindColumn("UpdateTime", "修改时间", "datetime")]
         public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
         #endregion
 

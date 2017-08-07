@@ -22,7 +22,7 @@ namespace XCode.Sharding
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn("ID", "编号", "int", 10, 0)]
+        [BindColumn("ID", "编号", "int")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
         private String _Name;
@@ -30,7 +30,7 @@ namespace XCode.Sharding
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn("Name", "名称", "nvarchar(50)", 0, 0, Master = true)]
+        [BindColumn("Name", "名称", "nvarchar(50)", Master = true)]
         public String Name { get { return _Name; } set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
 
         private String _EntityType;
@@ -38,7 +38,7 @@ namespace XCode.Sharding
         [DisplayName("实体类")]
         [Description("实体类")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("EntityType", "实体类", "nvarchar(50)", 0, 0)]
+        [BindColumn("EntityType", "实体类", "nvarchar(50)")]
         public String EntityType { get { return _EntityType; } set { if (OnPropertyChanging(__.EntityType, value)) { _EntityType = value; OnPropertyChanged(__.EntityType); } } }
 
         private String _ConnName;
@@ -46,7 +46,7 @@ namespace XCode.Sharding
         [DisplayName("连接名")]
         [Description("连接名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("ConnName", "连接名", "nvarchar(50)", 0, 0)]
+        [BindColumn("ConnName", "连接名", "nvarchar(50)")]
         public String ConnName { get { return _ConnName; } set { if (OnPropertyChanging(__.ConnName, value)) { _ConnName = value; OnPropertyChanged(__.ConnName); } } }
 
         private String _TableName;
@@ -54,7 +54,7 @@ namespace XCode.Sharding
         [DisplayName("表名")]
         [Description("表名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("TableName", "表名", "nvarchar(50)", 0, 0)]
+        [BindColumn("TableName", "表名", "nvarchar(50)")]
         public String TableName { get { return _TableName; } set { if (OnPropertyChanging(__.TableName, value)) { _TableName = value; OnPropertyChanged(__.TableName); } } }
 
         private Int32 _CreateUserID;
@@ -62,7 +62,7 @@ namespace XCode.Sharding
         [DisplayName("创建者")]
         [Description("创建者")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn("CreateUserID", "创建者", "int", 10, 0)]
+        [BindColumn("CreateUserID", "创建者", "int")]
         public Int32 CreateUserID { get { return _CreateUserID; } set { if (OnPropertyChanging(__.CreateUserID, value)) { _CreateUserID = value; OnPropertyChanged(__.CreateUserID); } } }
 
         private String _CreateIP;
@@ -70,7 +70,7 @@ namespace XCode.Sharding
         [DisplayName("创建地址")]
         [Description("创建地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("CreateIP", "创建地址", "nvarchar(50)", 0, 0)]
+        [BindColumn("CreateIP", "创建地址", "nvarchar(50)")]
         public String CreateIP { get { return _CreateIP; } set { if (OnPropertyChanging(__.CreateIP, value)) { _CreateIP = value; OnPropertyChanged(__.CreateIP); } } }
 
         private DateTime _CreateTime;
@@ -78,7 +78,7 @@ namespace XCode.Sharding
         [DisplayName("创建时间")]
         [Description("创建时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn("CreateTime", "创建时间", "datetime", 3, 0)]
+        [BindColumn("CreateTime", "创建时间", "datetime")]
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
         private Int32 _UpdateUserID;
@@ -86,7 +86,7 @@ namespace XCode.Sharding
         [DisplayName("更新者")]
         [Description("更新者")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn("UpdateUserID", "更新者", "int", 10, 0)]
+        [BindColumn("UpdateUserID", "更新者", "int")]
         public Int32 UpdateUserID { get { return _UpdateUserID; } set { if (OnPropertyChanging(__.UpdateUserID, value)) { _UpdateUserID = value; OnPropertyChanged(__.UpdateUserID); } } }
 
         private String _UpdateIP;
@@ -94,7 +94,7 @@ namespace XCode.Sharding
         [DisplayName("更新地址")]
         [Description("更新地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("UpdateIP", "更新地址", "nvarchar(50)", 0, 0)]
+        [BindColumn("UpdateIP", "更新地址", "nvarchar(50)")]
         public String UpdateIP { get { return _UpdateIP; } set { if (OnPropertyChanging(__.UpdateIP, value)) { _UpdateIP = value; OnPropertyChanged(__.UpdateIP); } } }
 
         private DateTime _UpdateTime;
@@ -102,7 +102,7 @@ namespace XCode.Sharding
         [DisplayName("更新时间")]
         [Description("更新时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn("UpdateTime", "更新时间", "datetime", 3, 0)]
+        [BindColumn("UpdateTime", "更新时间", "datetime")]
         public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
 
         private String _Remark;
@@ -110,7 +110,7 @@ namespace XCode.Sharding
         [DisplayName("备注")]
         [Description("备注")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn("Remark", "备注", "nvarchar(500)", 0, 0)]
+        [BindColumn("Remark", "备注", "nvarchar(500)")]
         public String Remark { get { return _Remark; } set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
         #endregion
 

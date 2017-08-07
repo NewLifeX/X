@@ -215,26 +215,20 @@ namespace XCode.Configuration
             dc.Name = Name;
             dc.DataType = Type;
             dc.Description = Description;
-            //dc.Default = DefaultValue;
 
             var col = _Column;
             if (col != null)
             {
                 dc.RawType = col.RawType;
-                dc.Precision = col.Precision;
-                dc.Scale = col.Scale;
-                //dc.IsUnicode = col.IsUnicode;
+                //dc.Precision = col.Precision;
+                //dc.Scale = col.Scale;
             }
-            //else
-            //{
-            //    dc.IsUnicode = true;
-            //}
 
-            // 特别处理，兼容旧版本
-            if (dc.DataType == typeof(Decimal))
-            {
-                if (dc.Precision == 0) dc.Precision = 18;
-            }
+            //// 特别处理，兼容旧版本
+            //if (dc.DataType == typeof(Decimal))
+            //{
+            //    if (dc.Precision == 0) dc.Precision = 18;
+            //}
 
             dc.Length = Length;
             dc.Identity = IsIdentity;

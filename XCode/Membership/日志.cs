@@ -23,7 +23,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 10)]
-        [BindColumn("ID", "编号", "int", 10, 0)]
+        [BindColumn("ID", "编号", "int")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
         private String _Category;
@@ -31,7 +31,7 @@ namespace XCode.Membership
         [DisplayName("类别")]
         [Description("类别")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Category", "类别", "nvarchar(50)", 0, 0)]
+        [BindColumn("Category", "类别", "nvarchar(50)")]
         public String Category { get { return _Category; } set { if (OnPropertyChanging(__.Category, value)) { _Category = value; OnPropertyChanged(__.Category); } } }
 
         private String _Action;
@@ -39,7 +39,7 @@ namespace XCode.Membership
         [DisplayName("操作")]
         [Description("操作")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Action", "操作", "nvarchar(50)", 0, 0)]
+        [BindColumn("Action", "操作", "nvarchar(50)")]
         public String Action { get { return _Action; } set { if (OnPropertyChanging(__.Action, value)) { _Action = value; OnPropertyChanged(__.Action); } } }
 
         private Int32 _LinkID;
@@ -47,7 +47,7 @@ namespace XCode.Membership
         [DisplayName("链接")]
         [Description("链接")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn("LinkID", "链接", "int", 10, 0)]
+        [BindColumn("LinkID", "链接", "int")]
         public Int32 LinkID { get { return _LinkID; } set { if (OnPropertyChanging(__.LinkID, value)) { _LinkID = value; OnPropertyChanged(__.LinkID); } } }
 
         private String _UserName;
@@ -55,7 +55,7 @@ namespace XCode.Membership
         [DisplayName("用户名")]
         [Description("用户名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("UserName", "用户名", "nvarchar(50)", 0, 0)]
+        [BindColumn("UserName", "用户名", "nvarchar(50)")]
         public String UserName { get { return _UserName; } set { if (OnPropertyChanging(__.UserName, value)) { _UserName = value; OnPropertyChanged(__.UserName); } } }
 
         private Int32 _CreateUserID;
@@ -63,7 +63,7 @@ namespace XCode.Membership
         [DisplayName("用户编号")]
         [Description("用户编号")]
         [DataObjectField(false, false, false, 10)]
-        [BindColumn("CreateUserID", "用户编号", "int", 10, 0)]
+        [BindColumn("CreateUserID", "用户编号", "int")]
         public Int32 CreateUserID { get { return _CreateUserID; } set { if (OnPropertyChanging(__.CreateUserID, value)) { _CreateUserID = value; OnPropertyChanged(__.CreateUserID); } } }
 
         private String _CreateIP;
@@ -71,7 +71,7 @@ namespace XCode.Membership
         [DisplayName("IP地址")]
         [Description("IP地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("CreateIP", "IP地址", "nvarchar(50)", 0, 0)]
+        [BindColumn("CreateIP", "IP地址", "nvarchar(50)")]
         public String CreateIP { get { return _CreateIP; } set { if (OnPropertyChanging(__.CreateIP, value)) { _CreateIP = value; OnPropertyChanged(__.CreateIP); } } }
 
         private DateTime _CreateTime;
@@ -79,7 +79,7 @@ namespace XCode.Membership
         [DisplayName("时间")]
         [Description("时间")]
         [DataObjectField(false, false, true, 3)]
-        [BindColumn("CreateTime", "时间", "datetime", 3, 0)]
+        [BindColumn("CreateTime", "时间", "datetime")]
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
         private String _Remark;
@@ -87,7 +87,7 @@ namespace XCode.Membership
         [DisplayName("详细信息")]
         [Description("详细信息")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn("Remark", "详细信息", "nvarchar(500)", 0, 0)]
+        [BindColumn("Remark", "详细信息", "nvarchar(500)")]
         public String Remark { get { return _Remark; } set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
         #endregion
 
