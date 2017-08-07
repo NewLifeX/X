@@ -21,7 +21,7 @@ namespace XCode.DataAccessLayer
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>提供者工厂</summary>
-        static DbProviderFactory dbProviderFactory
+        static DbProviderFactory DbProviderFactory
         {
             get
             {
@@ -46,7 +46,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>工厂</summary>
-        public override DbProviderFactory Factory { get { return dbProviderFactory; } }
+        public override DbProviderFactory Factory { get { return DbProviderFactory; } }
 
         /// <summary>是否内存数据库</summary>
         public Boolean IsMemoryDatabase { get { return FileName.EqualIgnoreCase(MemoryDatabase); } }
@@ -203,7 +203,7 @@ namespace XCode.DataAccessLayer
         {
             if (field.DataType == typeof(Byte[]))
             {
-                Byte[] bts = (Byte[])value;
+                var bts = (Byte[])value;
                 if (bts == null || bts.Length < 1) return "0x0";
 
                 return "X'" + BitConverter.ToString(bts).Replace("-", null) + "'";
@@ -341,7 +341,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构架
-        protected override List<IDataTable> OnGetTables(ICollection<String> names)
+        protected override List<IDataTable> OnGetTables(String[] names)
         {
             // 特殊处理内存数据库
             if ((Database as SQLite).IsMemoryDatabase)
@@ -350,14 +350,13 @@ namespace XCode.DataAccessLayer
             }
 
             var dt = GetSchema(_.Tables, null);
-            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
             var rows = dt.Select("TABLE_TYPE='table'");
-            rows = OnGetTables(names, rows);
             if (rows == null || rows.Length < 1) return null;
 
-            return GetTables(rows);
+            return GetTables(rows, names);
         }
 
         protected override void FixField(IDataColumn field, DataRow dr)
@@ -540,7 +539,7 @@ namespace XCode.DataAccessLayer
             }
 
             sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
-            for (Int32 i = 0; i < index.Columns.Length; i++)
+            for (var i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(FormatName(index.Columns[i]));
@@ -584,9 +583,11 @@ namespace XCode.DataAccessLayer
 
             //String sql = base.CheckColumnsChange(entitytable, dbtable, onlySql);
             // 把onlySql设为true，让基类只产生语句而不执行
-            var set = new NegativeSetting();
-            set.CheckOnly = true;
-            set.NoDelete = setting.NoDelete;
+            var set = new NegativeSetting()
+            {
+                CheckOnly = true,
+                NoDelete = setting.NoDelete
+            };
             var sql = base.CheckColumnsChange(entitytable, dbtable, set);
             if (String.IsNullOrEmpty(sql)) return sql;
 
@@ -605,7 +606,7 @@ namespace XCode.DataAccessLayer
             // 输出日志，说明重建表的理由
             WriteLog("SQLite需要重建表，因无法执行：{0}", sql2);
 
-            Boolean flag = true;
+            var flag = true;
             // 如果设定不允许删
             if (setting.NoDelete)
             {

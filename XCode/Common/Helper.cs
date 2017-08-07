@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using NewLife.Reflection;
 
 namespace XCode.Common
@@ -86,6 +88,19 @@ namespace XCode.Common
 
             // 特殊处理整型
             return left.GetType().IsIntType() && right.GetType().IsIntType() && Convert.ToInt64(left) == Convert.ToInt64(right);
+        }
+
+        public static DataRow[] ToArray(this DataRowCollection collection)
+        {
+            if (collection == null) return new DataRow[0];
+
+            var list = new List<DataRow>();
+            foreach (var item in collection)
+            {
+                if (item is DataRow dr) list.Add(dr);
+            }
+
+            return list.ToArray();
         }
     }
 }

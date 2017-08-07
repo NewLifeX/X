@@ -557,7 +557,7 @@ namespace XCode.Membership
         /// <summary>角色名</summary>
         [DisplayName("角色")]
         [Map(__.RoleID, typeof(RoleMapProvider))]
-        public virtual String RoleName { get { return Role == null ? null : Role.Name; } }
+        public virtual String RoleName { get { return Role?.Name; } }
         #endregion
 
         #region IManageUser 成员

@@ -106,7 +106,7 @@ namespace XCode.Membership
         #region 扩展属性
         /// <summary>父菜单名</summary>
         [XmlIgnore, ScriptIgnore]
-        public virtual String ParentMenuName { get { return Parent == null ? null : Parent.Name; } set { } }
+        public virtual String ParentMenuName { get { return Parent?.Name; } set { } }
 
         /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
         internal static Int32[] Necessaries

@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.IO;
 using System.Text.RegularExpressions;
 using NewLife.Reflection;
+using XCode.Common;
 
 namespace XCode.DataAccessLayer
 {
@@ -19,7 +20,7 @@ namespace XCode.DataAccessLayer
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>提供者工厂</summary>
-        static DbProviderFactory dbProviderFactory
+        static DbProviderFactory DbProviderFactory
         {
             get
             {
@@ -39,15 +40,14 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
-            get { return dbProviderFactory; }
+            get { return DbProviderFactory; }
         }
 
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
-            String file;
-            if (!builder.TryGetValue("Database", out file)) return;
+            if (!builder.TryGetValue("Database", out var file)) return;
 
             file = ResolveFile(file);
             builder["Database"] = file;
@@ -238,15 +238,14 @@ namespace XCode.DataAccessLayer
     {
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
-        protected override List<IDataTable> OnGetTables(ICollection<String> names)
+        protected override List<IDataTable> OnGetTables(String[] names)
         {
-            DataTable dt = GetSchema(_.Tables, new String[] { null, null, null, "TABLE" });
+            var dt = GetSchema(_.Tables, new String[] { null, null, null, "TABLE" });
 
             // 默认列出所有字段
-            DataRow[] rows = OnGetTables(names, dt.Rows);
-            if (rows == null || rows.Length < 1) return null;
+            var rows = dt?.Rows.ToArray();
 
-            return GetTables(rows);
+            return GetTables(rows, names);
         }
 
         protected override String GetFieldType(IDataColumn field)
@@ -301,13 +300,13 @@ namespace XCode.DataAccessLayer
 
         public override String CreateTableSQL(IDataTable table)
         {
-            String sql = base.CreateTableSQL(table);
+            var sql = base.CreateTableSQL(table);
             if (String.IsNullOrEmpty(sql)) return sql;
 
             //String sqlSeq = String.Format("Create GENERATOR GEN_{0}", table.TableName);
             //return sql + "; " + Environment.NewLine + sqlSeq;
 
-            String sqlSeq = String.Format("Create Sequence SEQ_{0}", table.TableName);
+            var sqlSeq = String.Format("Create Sequence SEQ_{0}", table.TableName);
             //return sql + "; " + Environment.NewLine + sqlSeq;
             // 去掉分号后的空格，Oracle不支持同时执行多个语句
             return sql + ";" + Environment.NewLine + sqlSeq;
@@ -315,13 +314,13 @@ namespace XCode.DataAccessLayer
 
         public override String DropTableSQL(String tableName)
         {
-            String sql = base.DropTableSQL(tableName);
+            var sql = base.DropTableSQL(tableName);
             if (String.IsNullOrEmpty(sql)) return sql;
 
             //String sqlSeq = String.Format("Drop GENERATOR GEN_{0}", tableName);
             //return sql + "; " + Environment.NewLine + sqlSeq;
 
-            String sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
+            var sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
             return sql + "; " + Environment.NewLine + sqlSeq;
         }
 

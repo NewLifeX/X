@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Text;
 using NewLife.Reflection;
+using XCode.Common;
 using XCode.Exceptions;
-using System.Linq;
 
 namespace XCode.DataAccessLayer
 {
@@ -65,42 +65,27 @@ namespace XCode.DataAccessLayer
 
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
-        protected virtual List<IDataTable> OnGetTables(ICollection<String> names)
+        protected virtual List<IDataTable> OnGetTables(String[] names)
         {
+            var list = new List<IDataTable>();
+
             var dt = GetSchema(_.Tables, null);
-            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
 
             // 默认列出所有表
-            var rows = OnGetTables(names, dt.Rows);
-            if (rows == null || rows.Length < 1) return null;
+            var rows = dt?.Rows.ToArray();
 
-            return GetTables(rows);
-        }
-
-        protected DataRow[] OnGetTables(ICollection<String> names, IEnumerable rows)
-        {
-            if (rows == null) return null;
-
-            var list = new List<DataRow>();
-            foreach (DataRow dr in rows)
-            {
-                if (names == null || names.Count < 1)
-                    list.Add(dr);
-                else
-                {
-                    var name = "";
-                    if (TryGetDataRowValue(dr, _.TalbeName, out name) && names.Contains(name)) list.Add(dr);
-                }
-            }
-            if (list.Count < 1) return null;
-            return list.ToArray();
+            return GetTables(rows, names);
         }
 
         /// <summary>根据数据行取得数据表</summary>
         /// <param name="rows">数据行</param>
+        /// <param name="names">指定表名</param>
         /// <returns></returns>
-        protected List<IDataTable> GetTables(DataRow[] rows)
+        protected List<IDataTable> GetTables(DataRow[] rows, String[] names)
         {
+            if (rows == null || rows.Length == 0) return new List<IDataTable>();
+
             if (_columns == null)
                 try { _columns = GetSchema(_.Columns, null); }
                 catch (Exception ex) { DAL.WriteDebugLog(ex.ToString()); }
@@ -111,10 +96,17 @@ namespace XCode.DataAccessLayer
                 try { _indexColumns = GetSchema(_.IndexColumns, null); }
                 catch (Exception ex) { DAL.WriteDebugLog(ex.ToString()); }
 
+            // 表名过滤
+            if (names != null && names.Length > 0)
+            {
+                var hs = new HashSet<String>(names, StringComparer.OrdinalIgnoreCase);
+                rows = rows.Where(dr => TryGetDataRowValue(dr, _.TalbeName, out String name) && names.Contains(name)).ToArray();
+            }
+
             try
             {
                 var list = new List<IDataTable>();
-                foreach (DataRow dr in rows)
+                foreach (var dr in rows)
                 {
                     #region 基本属性
                     var table = DAL.CreateTable();
@@ -156,24 +148,6 @@ namespace XCode.DataAccessLayer
                     #endregion
                 }
 
-                #region 表间关系处理
-                //// 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
-                //foreach (var table in list)
-                //{
-                //    foreach (var rtable in list)
-                //    {
-                //        if (table != rtable) table.Connect(rtable);
-                //    }
-                //}
-                //ModelHelper.Connect(list);
-
-                //// 因为可能修改了表间关系，再修正一次
-                //foreach (var table in list)
-                //{
-                //    table.Fix();
-                //}
-                #endregion
-
                 return list;
                 // 不要把这些清空。因为，多线程同时操作的时候，前面的线程有可能把后面线程的数据给清空了
             }
@@ -199,11 +173,11 @@ namespace XCode.DataAccessLayer
         protected virtual List<IDataColumn> GetFields(IDataTable table)
         {
             //DataTable dt = GetSchema(_.Columns, new String[] { null, null, table.Name });
-            DataTable dt = _columns;
+            var dt = _columns;
             if (dt == null) return null;
 
             DataRow[] drs = null;
-            String where = String.Format("{0}='{1}'", _.TalbeName, table.TableName);
+            var where = String.Format("{0}='{1}'", _.TalbeName, table.TableName);
             if (dt.Columns.Contains(_.OrdinalPosition))
                 drs = dt.Select(where, _.OrdinalPosition);
             else if (dt.Columns.Contains(_.ID))
@@ -229,16 +203,14 @@ namespace XCode.DataAccessLayer
                 field.ColumnName = GetDataRowValue<String>(dr, _.ColumnName);
 
                 // 标识、主键
-                Boolean b;
-                if (TryGetDataRowValue<Boolean>(dr, "AUTOINCREMENT", out b))
+                if (TryGetDataRowValue(dr, "AUTOINCREMENT", out Boolean b))
                     field.Identity = b;
 
-                if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out b))
+                if (TryGetDataRowValue(dr, "PRIMARY_KEY", out b))
                     field.PrimaryKey = b;
 
                 // 原始数据类型
-                String str;
-                if (TryGetDataRowValue(dr, "DATA_TYPE", out str))
+                if (TryGetDataRowValue(dr, "DATA_TYPE", out String str))
                     field.RawType = str;
                 else if (TryGetDataRowValue(dr, "DATATYPE", out str))
                     field.RawType = str;
@@ -336,7 +308,7 @@ namespace XCode.DataAccessLayer
         /// <param name="drDataType">字段匹配的数据类型</param>
         protected virtual void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
         {
-            String typeName = field.RawType;
+            var typeName = field.RawType;
 
             // 修正数据类型 +++重点+++
             if (TryGetDataRowValue(drDataType, "DataType", out typeName))
@@ -347,8 +319,7 @@ namespace XCode.DataAccessLayer
             // 修正长度为最大长度
             if (field.Length == 0)
             {
-                Int32 n = 0;
-                if (TryGetDataRowValue(drDataType, "ColumnSize", out n))
+                if (TryGetDataRowValue(drDataType, "ColumnSize", out Int32 n))
                 {
                     field.Length = n;
                     //if (field.NumOfByte == 0) field.NumOfByte = field.Length;
@@ -360,7 +331,7 @@ namespace XCode.DataAccessLayer
             // 处理格式参数
             if (!String.IsNullOrEmpty(field.RawType) && !field.RawType.EndsWith(")"))
             {
-                String param = GetFormatParam(field, drDataType);
+                var param = GetFormatParam(field, drDataType);
                 if (!String.IsNullOrEmpty(param)) field.RawType += param;
             }
         }
@@ -376,17 +347,16 @@ namespace XCode.DataAccessLayer
         {
             if (_indexes == null) return null;
 
-            DataRow[] drs = _indexes.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
+            var drs = _indexes.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
             if (drs == null || drs.Length < 1) return null;
 
-            List<IDataIndex> list = new List<IDataIndex>();
-            foreach (DataRow dr in drs)
+            var list = new List<IDataIndex>();
+            foreach (var dr in drs)
             {
-                String name = null;
 
-                if (!TryGetDataRowValue(dr, _.IndexName, out name)) continue;
+                if (!TryGetDataRowValue(dr, _.IndexName, out String name)) continue;
 
-                IDataIndex di = table.CreateIndex();
+                var di = table.CreateIndex();
                 di.Name = name;
 
                 if (TryGetDataRowValue(dr, _.ColumnName, out name) && !String.IsNullOrEmpty(name))
@@ -400,28 +370,26 @@ namespace XCode.DataAccessLayer
                     else if (_indexColumns.Columns.Contains(_.ColumnPosition))
                         orderby = _.ColumnPosition;
 
-                    DataRow[] dics = _indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.TableName, _.IndexName, di.Name), orderby);
+                    var dics = _indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.TableName, _.IndexName, di.Name), orderby);
                     if (dics != null && dics.Length > 0)
                     {
-                        List<String> ns = new List<String>();
-                        foreach (DataRow item in dics)
+                        var ns = new List<String>();
+                        foreach (var item in dics)
                         {
-                            String dcname = null;
-                            if (TryGetDataRowValue(item, _.ColumnName, out dcname) &&
-                                !String.IsNullOrEmpty(dcname) && !ns.Contains(dcname)) ns.Add(dcname);
+                            if (TryGetDataRowValue(item, _.ColumnName, out String dcname) &&
+    !String.IsNullOrEmpty(dcname) && !ns.Contains(dcname)) ns.Add(dcname);
                         }
                         if (ns.Count < 1) DAL.WriteLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
                         di.Columns = ns.ToArray();
                     }
                 }
 
-                Boolean b = false;
-                if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b))
+                if (TryGetDataRowValue(dr, "UNIQUE", out Boolean b))
                     di.Unique = b;
 
-                if (TryGetDataRowValue<Boolean>(dr, "PRIMARY", out b))
+                if (TryGetDataRowValue(dr, "PRIMARY", out b))
                     di.PrimaryKey = b;
-                else if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out b))
+                else if (TryGetDataRowValue(dr, "PRIMARY_KEY", out b))
                     di.PrimaryKey = b;
 
                 FixIndex(di, dr);
@@ -455,42 +423,43 @@ namespace XCode.DataAccessLayer
                 if (_FieldTypeMaps == null)
                 {
                     // 把不常用的类型映射到常用类型，比如数据库SByte映射到实体类Byte，UInt32映射到Int32，而不需要重新修改数据库
-                    var list = new List<KeyValuePair<Type, Type>>();
-                    list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Byte)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int16)));
-                    // 因为等价，字节需要能够互相映射
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Byte), typeof(SByte)));
+                    var list = new List<KeyValuePair<Type, Type>>
+                    {
+                        new KeyValuePair<Type, Type>(typeof(SByte), typeof(Byte)),
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int16)));
+                        // 因为等价，字节需要能够互相映射
+                        new KeyValuePair<Type, Type>(typeof(Byte), typeof(SByte)),
 
-                    list.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int16)));
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(UInt16)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int32)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(Int32)));
+                        new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int16)),
+                        new KeyValuePair<Type, Type>(typeof(Int16), typeof(UInt16)),
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int32)));
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(Int32)));
 
-                    list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int32)));
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Int32), typeof(UInt32)));
-                    //// 因为自增的原因，某些字段需要被映射到Int32里面来
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int32)));
+                        new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int32)),
+                        new KeyValuePair<Type, Type>(typeof(Int32), typeof(UInt32)),
+                        //// 因为自增的原因，某些字段需要被映射到Int32里面来
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int32)));
 
-                    list.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int64)));
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(UInt64)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int32)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
+                        new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int64)),
+                        new KeyValuePair<Type, Type>(typeof(Int64), typeof(UInt64)),
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int32)));
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
 
-                    //// 根据常用行，从不常用到常用排序，然后配对进入映射表
-                    //var types = new Type[] { typeof(SByte), typeof(Byte), typeof(UInt16), typeof(Int16), typeof(UInt64), typeof(Int64), typeof(UInt32), typeof(Int32) };
+                        //// 根据常用行，从不常用到常用排序，然后配对进入映射表
+                        //var types = new Type[] { typeof(SByte), typeof(Byte), typeof(UInt16), typeof(Int16), typeof(UInt64), typeof(Int64), typeof(UInt32), typeof(Int32) };
 
-                    //for (int i = 0; i < types.Length; i++)
-                    //{
-                    //    for (int j = i + 1; j < types.Length; j++)
-                    //    {
-                    //        list.Add(new KeyValuePair<Type, Type>(types[i], types[j]));
-                    //    }
-                    //}
-                    //// 因为自增的原因，某些字段需要被映射到Int64里面来
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int64)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(Int32), typeof(Int64)));
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Guid), typeof(String)));
-
+                        //for (int i = 0; i < types.Length; i++)
+                        //{
+                        //    for (int j = i + 1; j < types.Length; j++)
+                        //    {
+                        //        list.Add(new KeyValuePair<Type, Type>(types[i], types[j]));
+                        //    }
+                        //}
+                        //// 因为自增的原因，某些字段需要被映射到Int64里面来
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int64)));
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(Int32), typeof(Int64)));
+                        new KeyValuePair<Type, Type>(typeof(Guid), typeof(String))
+                    };
                     _FieldTypeMaps = list;
                 }
                 return _FieldTypeMaps;
@@ -613,7 +582,7 @@ namespace XCode.DataAccessLayer
              * 两种方法都要注意处理类型参数，比如长度、精度、小数位数等
              */
 
-            String typeName = field.RawType;
+            var typeName = field.RawType;
             DataRow[] drs = null;
 
             if (!String.IsNullOrEmpty(typeName))
@@ -625,7 +594,7 @@ namespace XCode.DataAccessLayer
                     if (TryGetDataRowValue(drs[0], "TypeName", out typeName))
                     {
                         // 处理格式参数
-                        String param = GetFormatParam(field, drs[0]);
+                        var param = GetFormatParam(field, drs[0]);
                         if (!String.IsNullOrEmpty(param) && param != "()") typeName += param;
 
                         return typeName;
@@ -661,13 +630,12 @@ namespace XCode.DataAccessLayer
             //if (field.DataType == typeof(Decimal)) return null;
             if (field.DataType == typeof(DateTime)) return null;
 
-            String ps = null;
-            if (!TryGetDataRowValue(dr, "CreateParameters", out ps) || String.IsNullOrEmpty(ps)) return null;
+            if (!TryGetDataRowValue(dr, "CreateParameters", out String ps) || String.IsNullOrEmpty(ps)) return null;
 
             var sb = new StringBuilder();
             sb.Append("(");
             var pms = ps.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            for (Int32 i = 0; i < pms.Length; i++)
+            for (var i = 0; i < pms.Length; i++)
             {
                 if (sb.Length > 1) sb.Append(",");
                 sb.Append(GetFormatParamItem(field, dr, pms[i]));

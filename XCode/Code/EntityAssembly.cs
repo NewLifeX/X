@@ -244,8 +244,7 @@ namespace XCode.Code
 
             var asmx = AssemblyX.Create(Assembly);
 
-            String typeName = null;
-            if (TypeMaps.TryGetValue(name, out typeName))
+            if (TypeMaps.TryGetValue(name, out var typeName))
                 return asmx.GetType(typeName);
             else
                 return asmx.GetType(name);

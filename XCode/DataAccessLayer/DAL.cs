@@ -51,8 +51,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException(nameof(connName));
 
             // 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的ConnStr属性
-            DAL dal = null;
-            if (_dals.TryGetValue(connName, out dal)) return dal;
+            if (_dals.TryGetValue(connName, out var dal)) return dal;
             lock (_dals)
             {
                 if (_dals.TryGetValue(connName, out dal)) return dal;

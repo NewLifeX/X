@@ -159,8 +159,7 @@ namespace XCode.DataAccessLayer
         /// <param name="builder"></param>
         protected virtual void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
-            String value;
-            if (builder.TryGetAndRemove(_.Owner, out value) && !String.IsNullOrEmpty(value)) Owner = value;
+            if (builder.TryGetAndRemove(_.Owner, out var value) && !String.IsNullOrEmpty(value)) Owner = value;
             if (builder.TryGetAndRemove(_.ShowSQL, out value) && !String.IsNullOrEmpty(value)) ShowSQL = value.ToBoolean();
             if (builder.TryGetAndRemove(_.UserParameter, out value) && !String.IsNullOrEmpty(value)) UserParameter = value.ToBoolean();
         }
@@ -201,9 +200,8 @@ namespace XCode.DataAccessLayer
             if (_sessions == null) _sessions = new Dictionary<Int32, IDbSession>();
 
             var tid = Thread.CurrentThread.ManagedThreadId;
-            IDbSession session = null;
             // 会话可能已经被销毁
-            if (_sessions.TryGetValue(tid, out session) && session != null && !session.Disposed) return session;
+            if (_sessions.TryGetValue(tid, out var session) && session != null && !session.Disposed) return session;
             lock (_sessions)
             {
                 if (_sessions.TryGetValue(tid, out session) && session != null && !session.Disposed) return session;

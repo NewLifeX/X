@@ -39,7 +39,7 @@ namespace XCode.Exceptions
         /// <param name="db"></param>
         /// <param name="innerException"></param>
         public XDbException(IDatabase db, Exception innerException)
-            : base((innerException != null ? innerException.Message : null) + (db != null ? "[DB:" + db.ConnName + "/" + db.Type.ToString() + "]" : null), innerException)
+            : base((innerException?.Message) + (db != null ? "[DB:" + db.ConnName + "/" + db.Type.ToString() + "]" : null), innerException)
         {
             _Database = db;
         }

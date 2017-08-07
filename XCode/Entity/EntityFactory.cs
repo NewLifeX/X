@@ -69,8 +69,7 @@ namespace XCode
 
             //return op_cache.GetItem(type, key => { throw new XCodeException("无法创建{0}的实体操作接口！", key); });
 
-            IEntityOperate eop = null;
-            if (!op_cache.TryGetValue(type, out eop)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
+            if (!op_cache.TryGetValue(type, out var eop)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
             return eop;
         }
 
@@ -168,8 +167,7 @@ namespace XCode
                 var table = TableItem.Create(item).DataTable;
 
                 // 判断表名是否已存在
-                Type type = null;
-                if (dic.TryGetValue(table.TableName, out type))
+                if (dic.TryGetValue(table.TableName, out var type))
                 {
                     // 两个都不是，报错吧！
                     var msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.TableName, type.FullName, item.FullName);

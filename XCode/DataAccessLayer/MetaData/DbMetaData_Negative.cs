@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using NewLife.Security;
@@ -82,7 +81,7 @@ namespace XCode.DataAccessLayer
             hasCheckedDatabase = true;
 
             //数据库检查
-            Boolean dbExist = true;
+            var dbExist = true;
             try
             {
                 dbExist = (Boolean)SetSchema(DDLSchema.DatabaseExist, null);
@@ -115,7 +114,7 @@ namespace XCode.DataAccessLayer
         {
             // 数据库表进入字典
             var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
-            var dbtables = OnGetTables(new HashSet<String>(tables.Select(t => t.TableName), StringComparer.OrdinalIgnoreCase));
+            var dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
             if (dbtables != null && dbtables.Count > 0)
             {
                 foreach (var item in dbtables)
@@ -129,8 +128,7 @@ namespace XCode.DataAccessLayer
                 try
                 {
                     // 判断指定表是否存在于数据库中，以决定是创建表还是修改表
-                    IDataTable dbtable = null;
-                    if (dic.TryGetValue(item.TableName, out dbtable))
+                    if (dic.TryGetValue(item.TableName, out var dbtable))
                         CheckTable(item, dbtable, setting);
                     else
                         CheckTable(item, null, setting);
@@ -166,7 +164,7 @@ namespace XCode.DataAccessLayer
             else
             {
                 #region 修改表
-                String sql = CheckColumnsChange(entitytable, dbtable, setting);
+                var sql = CheckColumnsChange(entitytable, dbtable, setting);
                 if (!String.IsNullOrEmpty(sql)) sql += ";";
                 sql += CheckTableDescriptionAndIndex(entitytable, dbtable, setting.CheckOnly);
                 if (!String.IsNullOrEmpty(sql) && setting.CheckOnly)
@@ -212,7 +210,7 @@ namespace XCode.DataAccessLayer
             #endregion
 
             #region 新增列
-            foreach (IDataColumn item in entitytable.Columns)
+            foreach (var item in entitytable.Columns)
             {
                 if (!dbdic.ContainsKey(item.ColumnName.ToLower()))
                 {
@@ -230,7 +228,7 @@ namespace XCode.DataAccessLayer
 
             #region 删除列
             var sbDelete = new StringBuilder();
-            for (Int32 i = dbtable.Columns.Count - 1; i >= 0; i--)
+            for (var i = dbtable.Columns.Count - 1; i >= 0; i--)
             {
                 var item = dbtable.Columns[i];
                 if (!entitydic.ContainsKey(item.ColumnName.ToLower()))
@@ -260,8 +258,7 @@ namespace XCode.DataAccessLayer
 
             foreach (var item in entitytable.Columns)
             {
-                IDataColumn dbf = null;
-                if (!dbdic.TryGetValue(item.ColumnName, out dbf)) continue;
+                if (!dbdic.TryGetValue(item.ColumnName, out var dbf)) continue;
 
                 if (IsColumnTypeChanged(item, dbf))
                 {
@@ -312,7 +309,7 @@ namespace XCode.DataAccessLayer
             #region 删除索引
             if (dbtable.Indexes != null)
             {
-                for (Int32 i = dbtable.Indexes.Count - 1; i >= 0; i--)
+                for (var i = dbtable.Indexes.Count - 1; i >= 0; i--)
                 {
                     var item = dbtable.Indexes[i];
                     // 计算的索引不需要删除
@@ -370,7 +367,7 @@ namespace XCode.DataAccessLayer
             if (entityColumn.Nullable != dbColumn.Nullable && !entityColumn.Identity && !entityColumn.PrimaryKey) return true;
 
             // 是否已改变
-            Boolean isChanged = false;
+            var isChanged = false;
 
             ////比较类型/允许空/主键
             //if (entityColumn.DataType != dbColumn.DataType ||
@@ -441,7 +438,7 @@ namespace XCode.DataAccessLayer
                 var sbValue = new StringBuilder();
                 foreach (var item in entitytable.Columns)
                 {
-                    String name = item.ColumnName;
+                    var name = item.ColumnName;
                     var field = dbtable.GetColumn(item.ColumnName);
                     if (field == null)
                     {
@@ -532,7 +529,7 @@ namespace XCode.DataAccessLayer
                 var s = new StringBuilder();
                 if (values != null && values.Length > 0)
                 {
-                    foreach (Object item in values)
+                    foreach (var item in values)
                     {
                         if (s.Length > 0) s.Append(" ");
                         s.Append(item);
@@ -834,7 +831,7 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder();
 
             sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
-            for (Int32 i = 0; i < fs.Count; i++)
+            for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
@@ -879,7 +876,7 @@ namespace XCode.DataAccessLayer
 
             sb.Append(FormatName(index.Name));
             sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
-            for (Int32 i = 0; i < index.Columns.Length; i++)
+            for (var i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(FormatName(index.Columns[i]));

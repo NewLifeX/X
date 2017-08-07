@@ -208,8 +208,7 @@ namespace XCode.DataAccessLayer
         protected override void FixTable(IDataTable table, DataRow dr)
         {
             // 注释
-            String comment = null;
-            if (TryGetDataRowValue(dr, "TABLE_COMMENT", out comment)) table.Description = comment;
+            if (TryGetDataRowValue(dr, "TABLE_COMMENT", out String comment)) table.Description = comment;
 
             base.FixTable(table, dr);
         }
@@ -217,20 +216,16 @@ namespace XCode.DataAccessLayer
         protected override void FixField(IDataColumn field, DataRow dr)
         {
             // 修正原始类型
-            String rawType = null;
-            if (TryGetDataRowValue(dr, "COLUMN_TYPE", out rawType)) field.RawType = rawType;
+            if (TryGetDataRowValue(dr, "COLUMN_TYPE", out String rawType)) field.RawType = rawType;
 
             // 修正自增字段
-            String extra = null;
-            if (TryGetDataRowValue(dr, "EXTRA", out extra) && extra == "auto_increment") field.Identity = true;
+            if (TryGetDataRowValue(dr, "EXTRA", out String extra) && extra == "auto_increment") field.Identity = true;
 
             // 修正主键
-            String key = null;
-            if (TryGetDataRowValue(dr, "COLUMN_KEY", out key)) field.PrimaryKey = key == "PRI";
+            if (TryGetDataRowValue(dr, "COLUMN_KEY", out String key)) field.PrimaryKey = key == "PRI";
 
             // 注释
-            String comment = null;
-            if (TryGetDataRowValue(dr, "COLUMN_COMMENT", out comment)) field.Description = comment;
+            if (TryGetDataRowValue(dr, "COLUMN_COMMENT", out String comment)) field.Description = comment;
 
             // 布尔类型
             if (field.RawType == "enum")

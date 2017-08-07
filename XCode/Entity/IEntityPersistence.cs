@@ -216,11 +216,10 @@ namespace XCode
             // 缓存参数化时的SQL语句
             var key = "{0}_Insert".F(entity.GetType().FullName);
             var sql = "";
-            Object oql = null;
 
             StringBuilder sbNames = null;
             StringBuilder sbValues = null;
-            if (!up || !op.Session.Items.TryGetValue(key, out oql))
+            if (!up || !op.Session.Items.TryGetValue(key, out var oql))
             {
                 sbNames = new StringBuilder();
                 sbValues = new StringBuilder();
@@ -443,9 +442,7 @@ namespace XCode
 
         static Boolean CheckAdditionalValue(StringBuilder sb, IEntity entity, String name, String cname)
         {
-            Object addvalue = null;
-            Boolean sign;
-            if (!EntityAddition.TryGetValue(entity as EntityBase, name, out addvalue, out sign)) return false;
+            if (!EntityAddition.TryGetValue(entity as EntityBase, name, out var addvalue, out var sign)) return false;
 
             if (sign)
                 sb.AppendFormat("{0}+{1}", cname, addvalue);

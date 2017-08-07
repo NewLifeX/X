@@ -69,7 +69,7 @@ namespace XCode.DataAccessLayer
                 //return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null;
                 // 减少一步类型转换
                 var remotedb = Database as RemoteDb;
-                return remotedb != null ? remotedb.SystemDatabaseName : null;
+                return remotedb?.SystemDatabaseName;
             }
         }
         #endregion
@@ -135,7 +135,7 @@ namespace XCode.DataAccessLayer
                 //return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null;
                 // 减少一步类型转换
                 var remotedb = Database as RemoteDb;
-                return remotedb != null ? remotedb.SystemDatabaseName : null;
+                return remotedb?.SystemDatabaseName;
             }
         }
         #endregion

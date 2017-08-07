@@ -26,7 +26,7 @@ namespace XCode.DataAccessLayer
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>SqlCe提供者工厂</summary>
-        static DbProviderFactory dbProviderFactory
+        static DbProviderFactory DbProviderFactory
         {
             get
             {
@@ -56,7 +56,7 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
-            get { return dbProviderFactory; }
+            get { return DbProviderFactory; }
         }
 
         private static SQLCEVersion _SqlCeProviderVersion = SQLCEVersion.SQLCE40;
@@ -212,7 +212,7 @@ namespace XCode.DataAccessLayer
     class SqlCeMetaData : FileDbMetaData
     {
         #region 构架
-        protected override List<IDataTable> OnGetTables(ICollection<String> names)
+        protected override List<IDataTable> OnGetTables(String[] names)
         {
             #region 查表、字段信息、索引信息、主键信息
             var session = Database.CreateSession();
@@ -233,10 +233,9 @@ namespace XCode.DataAccessLayer
 
             // 默认列出所有字段
             var rows = dt.Select("TABLE_TYPE='table'");
-            rows = OnGetTables(names, rows);
             if (rows == null || rows.Length < 1) return null;
 
-            return GetTables(rows);
+            return GetTables(rows, names);
         }
 
         protected override List<IDataIndex> GetIndexes(IDataTable table)
@@ -248,8 +247,7 @@ namespace XCode.DataAccessLayer
                 var dic = new Dictionary<String, IDataIndex>();
                 foreach (var item in list)
                 {
-                    IDataIndex di = null;
-                    if (!dic.TryGetValue(item.Name, out di))
+                    if (!dic.TryGetValue(item.Name, out var di))
                     {
                         dic.Add(item.Name, item);
                     }
@@ -293,7 +291,7 @@ namespace XCode.DataAccessLayer
             //sb.Remove(sb.Length - 1, 1);
 
             // sb.Remove涉及内存复制
-            for (Int32 i = 0; i < pks.Length; i++)
+            for (var i = 0; i < pks.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(FormatName(pks[i].ColumnName));
@@ -441,7 +439,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static SQLCEVersion DetermineVersion(String fileName)
         {
-            Int32 versionLONGWORD = 0;
+            var versionLONGWORD = 0;
 
             using (var fs = new FileStream(fileName, FileMode.Open))
             {
@@ -533,8 +531,10 @@ namespace XCode.DataAccessLayer
                 var e = EngineType.CreateInstance(connstr);
                 if (e == null) return null;
 
-                var sce = new SqlCeEngine();
-                sce.Engine = e;
+                var sce = new SqlCeEngine()
+                {
+                    Engine = e
+                };
                 return sce;
             }
             catch { return null; }

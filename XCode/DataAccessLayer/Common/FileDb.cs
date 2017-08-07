@@ -28,10 +28,9 @@ namespace XCode.DataAccessLayer
         {
             base.OnSetConnectionString(builder);
 
-            String file;
             //if (!builder.TryGetValue(_.DataSource, out file)) return;
             // 允许空，当作内存数据库处理
-            builder.TryGetValue(_.DataSource, out file);
+            builder.TryGetValue(_.DataSource, out var file);
             file = OnResolveFile(file);
             builder[_.DataSource] = file;
             FileName = file;
@@ -56,7 +55,7 @@ namespace XCode.DataAccessLayer
                 //return Database is FileDbBase ? (Database as FileDbBase).FileName : null;
                 // 减少一步类型转换
                 var filedb = Database as FileDbBase;
-                return filedb != null ? filedb.FileName : null;
+                return filedb?.FileName;
             }
         }
         #endregion

@@ -135,7 +135,7 @@ namespace XCode
             /// <param name="field">字段</param>
             /// <param name="value">数值</param>
             /// <returns></returns>
-            public static String FormatValue(FieldItem field, Object value) { return Session.Dal.Db.FormatValue(field != null ? field.Field : null, value); }
+            public static String FormatValue(FieldItem field, Object value) { return Session.Dal.Db.FormatValue(field?.Field, value); }
             #endregion
 
             #region 缓存

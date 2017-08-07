@@ -222,8 +222,7 @@ namespace XCode.Transform
                         // 有目标跟没有目标处理方式不同
                         if (fact != null)
                         {
-                            var isNew = false;
-                            var target = GetItem(source, out isNew);
+                            var target = GetItem(source, out var isNew);
                             target = ProcessItem(source, target, isNew);
                             SaveItem(target, isNew);
                         }

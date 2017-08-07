@@ -282,8 +282,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public PermissionFlags Get(Int32 resid)
         {
-            PermissionFlags pf;
-            if (!Permissions.TryGetValue(resid, out pf)) return PermissionFlags.None;
+            if (!Permissions.TryGetValue(resid, out var pf)) return PermissionFlags.None;
 
             return pf;
         }

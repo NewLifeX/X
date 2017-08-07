@@ -1025,8 +1025,7 @@ namespace XCode
                 // 检查动态增加的字段，返回默认值
                 var f = Meta.Table.FindByName(name) as FieldItem;
 
-                Object obj = null;
-                if (Extends.TryGetValue(name, out obj))
+                if (Extends.TryGetValue(name, out var obj))
                 {
                     if (f != null && f.IsDynamic) return obj.ChangeType(f.Type);
 

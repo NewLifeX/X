@@ -38,7 +38,7 @@ namespace XCode.DataAccessLayer
         [XmlIgnore]
         [DisplayName("字段类型")]
         [Description("字段类型")]
-        public String FieldType { get { return DataType == null ? null : DataType.Name; } set { DataType = value.GetTypeEx(); } }
+        public String FieldType { get { return DataType?.Name; } set { DataType = value.GetTypeEx(); } }
 
         /// <summary>原始数据类型</summary>
         [XmlAttribute]

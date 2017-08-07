@@ -19,7 +19,7 @@ namespace XCode.DataAccessLayer
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>提供者工厂</summary>
-        static DbProviderFactory dbProviderFactory
+        static DbProviderFactory DbProviderFactory
         {
             get
             {
@@ -61,7 +61,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>工厂</summary>
-        public override DbProviderFactory Factory { get { return dbProviderFactory; } }
+        public override DbProviderFactory Factory { get { return DbProviderFactory; } }
 
         private String _UserID;
         /// <summary>用户名UserID</summary>
@@ -72,7 +72,7 @@ namespace XCode.DataAccessLayer
                 if (_UserID != null) return _UserID;
                 _UserID = String.Empty;
 
-                String connStr = ConnectionString;
+                var connStr = ConnectionString;
 
                 if (String.IsNullOrEmpty(connStr)) return null;
 
@@ -106,9 +106,8 @@ namespace XCode.DataAccessLayer
         {
             base.OnSetConnectionString(builder);
 
-            String str = null;
             // 获取OCI目录
-            if (builder.TryGetAndRemove("DllPath", out str) && !String.IsNullOrEmpty(str))
+            if (builder.TryGetAndRemove("DllPath", out var str) && !String.IsNullOrEmpty(str))
             {
             }
         }
@@ -278,11 +277,11 @@ namespace XCode.DataAccessLayer
             //if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
             if (String.IsNullOrEmpty(keyWord)) return keyWord;
 
-            Int32 pos = keyWord.LastIndexOf(".");
+            var pos = keyWord.LastIndexOf(".");
 
             if (pos < 0) return "\"" + keyWord + "\"";
 
-            String tn = keyWord.Substring(pos + 1);
+            var tn = keyWord.Substring(pos + 1);
             if (tn.StartsWith("\"")) return keyWord;
 
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
@@ -308,8 +307,7 @@ namespace XCode.DataAccessLayer
             if (!Owner.EqualIgnoreCase(UserID)) return false;
 
             var key = String.Format("{0}.{1}", Owner, tableName);
-            DateTime dt;
-            if (!cache.TryGetValue(key, out dt))
+            if (!cache.TryGetValue(key, out var dt))
             {
                 dt = DateTime.MinValue;
                 cache[key] = dt;
@@ -332,7 +330,7 @@ namespace XCode.DataAccessLayer
         static OracleSession()
         {
             // 旧版Oracle运行时会因为没有这个而报错
-            String name = "NLS_LANG";
+            var name = "NLS_LANG";
             if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable(name))) Environment.SetEnvironmentVariable(name, "SIMPLIFIED CHINESE_CHINA.ZHS16GBK");
         }
 
@@ -348,7 +346,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(tableName)) return 0;
 
-            Int32 p = tableName.LastIndexOf(".");
+            var p = tableName.LastIndexOf(".");
             if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
             tableName = tableName.ToUpper();
             var owner = (Database as Oracle).Owner.ToUpper();
@@ -411,13 +409,13 @@ namespace XCode.DataAccessLayer
 
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
-        protected override List<IDataTable> OnGetTables(ICollection<String> names)
+        protected override List<IDataTable> OnGetTables(String[] names)
         {
             DataTable dt = null;
 
             // 采用集合过滤，提高效率
             String tableName = null;
-            if (names != null && names.Count > 0) tableName = names.FirstOrDefault();
+            if (names != null && names.Length > 0) tableName = names.FirstOrDefault();
             if (String.IsNullOrEmpty(tableName))
                 tableName = null;
             else
@@ -430,7 +428,7 @@ namespace XCode.DataAccessLayer
             if (!dt.Columns.Contains("TABLE_TYPE"))
             {
                 dt.Columns.Add("TABLE_TYPE", typeof(String));
-                foreach (DataRow dr in dt.Rows)
+                foreach (var dr in dt.Rows?.ToArray())
                 {
                     dr["TABLE_TYPE"] = "Table";
                 }
@@ -438,7 +436,7 @@ namespace XCode.DataAccessLayer
             var dtView = GetSchema(_.Views, new String[] { owner, tableName });
             if (dtView != null && dtView.Rows.Count != 0)
             {
-                foreach (DataRow dr in dtView.Rows)
+                foreach (var dr in dtView.Rows?.ToArray())
                 {
                     var drNew = dt.NewRow();
                     drNew["OWNER"] = dr["OWNER"];
@@ -452,11 +450,7 @@ namespace XCode.DataAccessLayer
             if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { owner, null, owner, tableName });
             if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
 
-            // 默认列出所有字段
-            var rows = OnGetTables(names, dt.Rows);
-            if (rows == null || rows.Length < 1) return null;
-
-            return GetTables(rows);
+            return GetTables(dt.Rows.ToArray(), names);
         }
 
         protected override void FixTable(IDataTable table, DataRow dr)
@@ -473,8 +467,7 @@ namespace XCode.DataAccessLayer
                 if (dt != null && dt.Rows.Count > 0)
                 {
                     // 找到主键所在索引，这个索引的列才是主键
-                    String name = null;
-                    if (TryGetDataRowValue(dt.Rows[0], _.IndexName, out name) && !String.IsNullOrEmpty(name))
+                    if (TryGetDataRowValue(dt.Rows[0], _.IndexName, out String name) && !String.IsNullOrEmpty(name))
                     {
                         var di = table.Indexes.FirstOrDefault(i => i.Name == name);
                         if (di != null)
@@ -518,7 +511,7 @@ namespace XCode.DataAccessLayer
                 var name = String.Format("SEQ_{0}", table.TableName);
                 if (CheckSeqExists(name))
                 {
-                    foreach (IDataColumn field in table.Columns)
+                    foreach (var field in table.Columns)
                     {
                         if (!field.PrimaryKey || !field.DataType.IsIntType()) continue;
 
@@ -604,10 +597,9 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(Owner) || !rows[0].Table.Columns.Contains(KEY_OWNER)) return base.GetFields(table, rows);
 
             var list = new List<DataRow>();
-            foreach (DataRow dr in rows)
+            foreach (var dr in rows)
             {
-                String str = null;
-                if (TryGetDataRowValue(dr, KEY_OWNER, out str) && Owner.EqualIgnoreCase(str)) list.Add(dr);
+                if (TryGetDataRowValue(dr, KEY_OWNER, out String str) && Owner.EqualIgnoreCase(str)) list.Add(dr);
             }
 
             return base.GetFields(table, list.ToArray());
@@ -639,8 +631,7 @@ namespace XCode.DataAccessLayer
             // 处理数字类型
             if (field.RawType.StartsWith("NUMBER"))
             {
-                var fi = field as XField;
-                if (fi != null)
+                if (field is XField fi)
                 {
                     var prec = fi.Precision;
                     if (fi.Scale == 0)
@@ -670,8 +661,7 @@ namespace XCode.DataAccessLayer
             }
 
             // 长度
-            Int32 len = 0;
-            if (TryGetDataRowValue(drColumn, "LENGTHINCHARS", out len) && len > 0) field.Length = len;
+            if (TryGetDataRowValue(drColumn, "LENGTHINCHARS", out Int32 len) && len > 0) field.Length = len;
         }
 
         protected override String GetFieldType(IDataColumn field)
@@ -679,8 +669,7 @@ namespace XCode.DataAccessLayer
             var precision = 0;
             var scale = 0;
 
-            var fi = field as XField;
-            if (fi != null)
+            if (field is XField fi)
             {
                 precision = fi.Precision;
                 scale = fi.Scale;
@@ -753,8 +742,7 @@ namespace XCode.DataAccessLayer
 
         protected override void FixIndex(IDataIndex index, DataRow dr)
         {
-            String str = null;
-            if (TryGetDataRowValue(dr, "UNIQUENESS", out str))
+            if (TryGetDataRowValue(dr, "UNIQUENESS", out String str))
                 index.Unique = str == "UNIQUE";
 
             base.FixIndex(index, dr);
@@ -763,10 +751,10 @@ namespace XCode.DataAccessLayer
         #region 架构定义
         public override Object SetSchema(DDLSchema schema, params Object[] values)
         {
-            IDbSession session = Database.CreateSession();
+            var session = Database.CreateSession();
 
-            String dbname = String.Empty;
-            String databaseName = String.Empty;
+            var dbname = String.Empty;
+            var databaseName = String.Empty;
             switch (schema)
             {
                 case DDLSchema.DatabaseExist:
@@ -814,7 +802,7 @@ namespace XCode.DataAccessLayer
                 sb.AppendLine(",");
                 sb.Append("\t");
                 sb.AppendFormat("constraint pk_{0} primary key (", table.TableName);
-                for (Int32 i = 0; i < pks.Length; i++)
+                for (var i = 0; i < pks.Length; i++)
                 {
                     if (i > 0) sb.Append(",");
                     sb.Append(FormatName(pks[i].ColumnName));

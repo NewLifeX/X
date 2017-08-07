@@ -250,8 +250,7 @@ namespace XCode.DataAccessLayer
                             {
                                 dc.DataType = v.GetTypeEx();
                                 v = reader.GetAttribute("Length");
-                                var len = 0;
-                                if (v != null && Int32.TryParse(v, out len)) dc.Length = len;
+                                if (v != null && Int32.TryParse(v, out var len)) dc.Length = len;
 
                                 dc = Fix(dc, dc);
                             }
@@ -492,7 +491,7 @@ namespace XCode.DataAccessLayer
                     }
                     //if (item.Type == typeof(Type)) obj = (obj as Type).Name;
                 }
-                writer.WriteAttributeString(pi.Name, obj == null ? null : obj.ToString());
+                writer.WriteAttributeString(pi.Name, obj?.ToString());
             }
 
             if (value is IDataTable)

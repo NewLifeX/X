@@ -6,18 +6,8 @@ using System.Data.OleDb;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using NewLife.IO;
 using NewLife.Reflection;
-
-#if ACCESS
-using ADODB;
-using ADOX;
-using DAO;
-using ConnectionClass = ADODB.Connection;
-using DBEngineClass = DAO.DBEngine;
-using CatalogClass = ADOX.Catalog;
-#endif
 
 namespace XCode.DataAccessLayer
 {
@@ -87,7 +77,7 @@ namespace XCode.DataAccessLayer
             // 特别处理一下Excel
             if (!String.IsNullOrEmpty(FileName))
             {
-                String ext = Path.GetExtension(FileName);
+                var ext = Path.GetExtension(FileName);
                 if (ext.EqualIgnoreCase(".xls"))
                 {
                     if (!builder.ContainsKey("Extended Properties")) builder["Extended Properties"] = "Excel 8.0";
@@ -165,11 +155,9 @@ namespace XCode.DataAccessLayer
         /// <summary>是否支持</summary>
         public static void CheckSupport()
         {
-            Module module = typeof(Object).Module;
+            var module = typeof(Object).Module;
 
-            PortableExecutableKinds kind;
-            ImageFileMachine machine;
-            module.GetPEKind(out kind, out machine);
+            module.GetPEKind(out var kind, out var machine);
 
             if (machine != ImageFileMachine.I386) throw new NotSupportedException("64位平台不支持OLEDB驱动！");
         }
@@ -222,70 +210,32 @@ namespace XCode.DataAccessLayer
     class AccessMetaData : FileDbMetaData
     {
         #region 构架
-        protected override List<IDataTable> OnGetTables(ICollection<String> names)
+        protected override List<IDataTable> OnGetTables(String[] names)
         {
             var dt = GetSchema(_.Tables, null);
-            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
-            DataRow[] rows = dt.Select(String.Format("{0}='Table' Or {0}='View'", "TABLE_TYPE"));
-            rows = OnGetTables(names, rows);
-            if (rows == null || rows.Length < 1) return null;
+            var rows = dt.Select(String.Format("{0}='Table' Or {0}='View'", "TABLE_TYPE"));
 
-            return GetTables(rows);
+            return GetTables(rows, names);
         }
-
-#if ACCESS
-        protected override List<IDataColumn> GetFields(IDataTable xt)
-        {
-            var list = base.GetFields(xt);
-            if (list == null || list.Count < 1) return null;
-
-            var dic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
-            foreach (var xf in list)
-            {
-                dic.Add(xf.ColumnName, xf);
-            }
-
-            try
-            {
-                using (var table = GetTable(xt.TableName))
-                {
-                    if (table.Supported && table.Columns != null)
-                    {
-                        foreach (var item in table.Columns)
-                        {
-                            if (!dic.ContainsKey(item.Name)) continue;
-
-                            var field = dic[item.Name];
-                            field.Identity = item.AutoIncrement;
-                            if (!field.Identity) field.Nullable = item.Nullable;
-                        }
-                    }
-                }
-            }
-            catch { }
-
-            return list;
-        }
-#endif
 
         protected override void FixField(IDataColumn field, DataRow drColumn)
         {
             base.FixField(field, drColumn);
 
             // 字段标识
-            Int64 flag = GetDataRowValue<Int64>(drColumn, "COLUMN_FLAGS");
+            var flag = GetDataRowValue<Int64>(drColumn, "COLUMN_FLAGS");
 
             Boolean? isLong = null;
 
-            Int32 id = 0;
-            if (Int32.TryParse(GetDataRowValue<String>(drColumn, "DATA_TYPE"), out id))
+            if (Int32.TryParse(GetDataRowValue<String>(drColumn, "DATA_TYPE"), out var id))
             {
-                DataRow[] drs = FindDataType(field, "" + id, isLong);
+                var drs = FindDataType(field, "" + id, isLong);
                 if (drs != null && drs.Length > 0)
                 {
-                    String typeName = GetDataRowValue<String>(drs[0], "TypeName");
+                    var typeName = GetDataRowValue<String>(drs[0], "TypeName");
                     field.RawType = typeName;
 
                     if (TryGetDataRowValue(drs[0], "DataType", out typeName)) field.DataType = typeName.GetTypeEx();
@@ -316,8 +266,7 @@ namespace XCode.DataAccessLayer
             base.FixField(field, drColumn, drDataType);
 
             // 修正原始类型
-            String typeName = null;
-            if (TryGetDataRowValue(drDataType, "TypeName", out typeName)) field.RawType = typeName;
+            if (TryGetDataRowValue(drDataType, "TypeName", out String typeName)) field.RawType = typeName;
         }
 
         protected override List<IDataIndex> GetIndexes(IDataTable table)
@@ -329,8 +278,7 @@ namespace XCode.DataAccessLayer
                 var dic = new Dictionary<String, IDataIndex>();
                 foreach (var item in list)
                 {
-                    IDataIndex di = null;
-                    if (!dic.TryGetValue(item.Name, out di))
+                    if (!dic.TryGetValue(item.Name, out var di))
                     {
                         dic.Add(item.Name, item);
                     }
@@ -364,7 +312,7 @@ namespace XCode.DataAccessLayer
 
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            String str = base.GetFieldConstraints(field, onlyDefine);
+            var str = base.GetFieldConstraints(field, onlyDefine);
 
             if (field.Identity) str = " AUTOINCREMENT(1,1)" + str;
 
@@ -380,85 +328,6 @@ namespace XCode.DataAccessLayer
         //    // Access不能通过DDL来操作默认值
         //    return null;
         //}
-        #endregion
-
-        #region 数据定义
-#if ACCESS
-        /// <summary>设置数据定义模式</summary>
-        /// <param name="schema"></param>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        public override object SetSchema(DDLSchema schema, object[] values)
-        {
-            Object obj = null;
-            switch (schema)
-            {
-                case DDLSchema.CreateTable:
-                    obj = base.SetSchema(DDLSchema.CreateTable, values);
-                    IDataTable table = values[0] as IDataTable;
-
-                    // Access建表语句的不能操作默认值，所以在这里操作
-
-                    // 默认值
-                    foreach (IDataColumn item in table.Columns)
-                    {
-                        if (!String.IsNullOrEmpty(item.Default)) AddDefault(item, item.Default);
-                    }
-
-                    return obj;
-                case DDLSchema.AddTableDescription:
-                    return AddTableDescription((IDataTable)values[0], ((IDataTable)values[0]).Description);
-                case DDLSchema.DropTableDescription:
-                    return DropTableDescription((IDataTable)values[0]);
-                case DDLSchema.AddColumnDescription:
-                    return AddColumnDescription((IDataColumn)values[0], ((IDataColumn)values[0]).Description);
-                case DDLSchema.DropColumnDescription:
-                    return DropColumnDescription((IDataColumn)values[0]);
-                case DDLSchema.AddDefault:
-                    return AddDefault((IDataColumn)values[0], ((IDataColumn)values[0]).Default);
-                case DDLSchema.DropDefault:
-                    return DropDefault((IDataColumn)values[0]);
-                default:
-                    break;
-            }
-            return base.SetSchema(schema, values);
-        }
-#endif
-        #endregion
-
-        #region 创建数据库
-#if ACCESS
-        const string dbLangChineseSimplified = ";LANGID=0x0804;CP=936;COUNTRY=0";
-
-        /// <summary>创建数据库</summary>
-        protected override void CreateDatabase()
-        {
-            if (String.IsNullOrEmpty(FileName) || File.Exists(FileName)) return;
-
-            DAL.WriteDebugLog("创建数据库：{0}", FileName);
-
-            //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", FileName, true);
-
-            var dbe = new DBEngineClass();
-            try
-            {
-                var db = dbe.CreateDatabase(FileName, dbLangChineseSimplified);
-                if (db != null)
-                {
-                    db.Close();
-                    Marshal.ReleaseComObject(db);
-                }
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(dbe);
-            }
-        }
-#endif
         #endregion
 
         #region 反向工程创建表
@@ -523,104 +392,17 @@ namespace XCode.DataAccessLayer
 
         public override String CreateIndexSQL(IDataIndex index)
         {
-            String sql = base.CreateIndexSQL(index);
+            var sql = base.CreateIndexSQL(index);
             if (String.IsNullOrEmpty(sql) || !index.PrimaryKey) return sql;
 
             return sql + " WITH PRIMARY";
         }
         #endregion
 
-        #region 表和字段备注
-#if ACCESS
-        public Boolean AddTableDescription(IDataTable table, String value)
-        {
-            try
-            {
-                using (var tb = GetTable(table.TableName))
-                {
-                    tb.Description = value;
-                    return true;
-                }
-            }
-            catch { return false; }
-        }
-
-        public Boolean DropTableDescription(IDataTable table)
-        {
-            return AddTableDescription(table, null);
-        }
-
-        public Boolean AddColumnDescription(IDataColumn field, String value)
-        {
-            try
-            {
-                using (var table = GetTable(field.Table.TableName))
-                {
-                    if (table.Supported && table.Columns != null)
-                    {
-                        foreach (var item in table.Columns)
-                        {
-                            if (item.Name == field.ColumnName)
-                            {
-                                item.Description = value;
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                }
-            }
-            catch { return false; }
-        }
-
-        public Boolean DropColumnDescription(IDataColumn field)
-        {
-            return AddColumnDescription(field, null);
-        }
-#endif
-        #endregion
-
-        #region 默认值
-#if ACCESS
-        public virtual Boolean AddDefault(IDataColumn field, String value)
-        {
-            //if (field.DataType == typeof(DateTime))
-            //{
-            CheckAndGetDefault(field, ref value);
-            //}
-
-            try
-            {
-                using (var table = GetTable(field.Table.TableName))
-                {
-                    if (table.Supported && table.Columns != null)
-                    {
-                        foreach (var item in table.Columns)
-                        {
-                            if (item.Name == field.ColumnName)
-                            {
-                                item.Default = value;
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                }
-            }
-            catch { return false; }
-        }
-
-        public virtual Boolean DropDefault(IDataColumn field)
-        {
-            return AddDefault(field, null);
-        }
-#endif
-        #endregion
-
         #region 数据类型
         protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         {
-            DataRow[] drs = base.FindDataType(field, typeName, isLong);
+            var drs = base.FindDataType(field, typeName, isLong);
             if (drs != null && drs.Length > 0) return drs;
 
             //// 处理SByte类型
@@ -631,12 +413,11 @@ namespace XCode.DataAccessLayer
             //    if (drs != null && drs.Length > 0) return drs;
             //}
 
-            DataTable dt = DataTypes;
+            var dt = DataTypes;
             if (dt == null) return null;
 
             // 转为整数
-            Int32 n = 0;
-            if (!Int32.TryParse(typeName, out n)) return null;
+            if (!Int32.TryParse(typeName, out var n)) return null;
 
             try
             {
@@ -658,7 +439,7 @@ namespace XCode.DataAccessLayer
 
         protected override String GetFieldType(IDataColumn field)
         {
-            String typeName = base.GetFieldType(field);
+            var typeName = base.GetFieldType(field);
 
             //if (typeName.StartsWith("VarChar")) return typeName.Replace("VarChar", "Text");
             if (field.Identity) return null;
@@ -666,392 +447,5 @@ namespace XCode.DataAccessLayer
             return typeName;
         }
         #endregion
-
-        #region 辅助函数
-#if ACCESS
-        ADOTabe GetTable(String tableName)
-        {
-            return new ADOTabe(Database.ConnectionString, FileName, tableName);
-        }
-#endif
-        #endregion
     }
-
-#if ACCESS
-    #region ADOX封装
-    internal class ADOTabe : /*DisposeBase*/IDisposable
-    {
-    #region ADOX属性
-        private Table _Table;
-        /// <summary>表</summary>
-        public Table Table
-        {
-            get
-            {
-                if (_Table == null) _Table = Cat.Tables[TableName];
-                return _Table;
-            }
-        }
-
-        private String _ConnectionString;
-        /// <summary>连接字符串</summary>
-        public String ConnectionString
-        {
-            get { return _ConnectionString; }
-            set { _ConnectionString = value; }
-        }
-
-        private String _FileName;
-        /// <summary>文件名</summary>
-        public String FileName
-        {
-            get { return _FileName; }
-            set { _FileName = value; }
-        }
-
-        private ConnectionClass _Conn;
-        /// <summary>链接</summary>
-        public ConnectionClass Conn
-        {
-            get
-            {
-                if (_Conn == null)
-                {
-                    _Conn = new ConnectionClass();
-                    _Conn.Open(ConnectionString, null, null, 0);
-                }
-                return _Conn;
-            }
-        }
-
-        private Catalog _Cat;
-        /// <summary></summary>
-        public Catalog Cat
-        {
-            get
-            {
-                if (_Cat == null)
-                {
-                    _Cat = new CatalogClass();
-                    _Cat.ActiveConnection = Conn;
-                }
-                return _Cat;
-            }
-        }
-    #endregion
-
-    #region DAO属性
-        private String _TableName;
-        /// <summary>表名</summary>
-        public String TableName { get { return _TableName; } set { _TableName = value; } }
-
-        private TableDef _TableDef;
-        /// <summary>表定义</summary>
-        public TableDef TableDef
-        {
-            get
-            {
-                if (_TableDef == null) _TableDef = Db.TableDefs[TableName];
-                return _TableDef;
-            }
-        }
-
-        private DBEngineClass _Dbe;
-        /// <summary>链接</summary>
-        public DBEngineClass Dbe
-        {
-            get
-            {
-                if (_Dbe == null) _Dbe = new DBEngineClass();
-                return _Dbe;
-            }
-        }
-
-        private DAO.Database _Db;
-        /// <summary></summary>
-        public DAO.Database Db
-        {
-            get
-            {
-                if (_Db == null) _Db = Dbe.OpenDatabase(FileName, null, null, null);
-                return _Db;
-            }
-        }
-    #endregion
-
-    #region 扩展属性
-        private List<ADOColumn> _Columns;
-        /// <summary>字段集合</summary>
-        public List<ADOColumn> Columns
-        {
-            get
-            {
-                if (_Columns == null)
-                {
-                    //Dictionary<String, DAO.Field> dic = new Dictionary<string, DAO.Field>();
-                    //foreach (DAO.Field item in TableDef.Fields)
-                    //{
-                    //    dic.Add(item.Name, item);
-                    //}
-
-                    _Columns = new List<ADOColumn>();
-                    foreach (Column item in Table.Columns)
-                    {
-                        //_Columns.Add(new ADOColumn(this, item, dic[item.Name]));
-                        _Columns.Add(new ADOColumn(this, item));
-                    }
-                }
-                return _Columns;
-            }
-        }
-
-        /// <summary>是否支持</summary>
-        public Boolean Supported
-        {
-            get
-            {
-                try
-                {
-                    return Conn != null;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-        }
-
-        /// <summary>描述</summary>
-        public String Description
-        {
-            get
-            {
-                DAO.Property p = TableDef.Properties["Description"];
-                if (p == null && p.Value == null)
-                    return null;
-                else
-                    return p.Value.ToString();
-            }
-            set
-            {
-                DAO.Property p = null;
-                try
-                {
-                    p = TableDef.Properties["Description"];
-                }
-                catch { }
-
-                if (p != null)
-                {
-                    p.Value = value;
-                }
-                else
-                {
-                    try
-                    {
-                        p = TableDef.CreateProperty("Description", DAO.DataTypeEnum.dbText, value, false);
-                        //Thread.Sleep(1000);
-                        TableDef.Properties.Append(p);
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteLine("表" + Table.Name + "没有Description属性！" + ex.ToString());
-#if DEBUG
-                        throw new Exception("表" + Table.Name + "没有Description属性！", ex);
-#endif
-                    }
-                }
-            }
-        }
-    #endregion
-
-    #region 构造
-        public ADOTabe(String connstr, String filename, String tablename)
-        {
-            ConnectionString = connstr;
-            FileName = filename;
-            TableName = tablename;
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                if (_Columns != null && _Columns.Count > 0)
-                {
-                    foreach (var item in _Columns)
-                    {
-                        item.Dispose();
-                    }
-                }
-                if (_Table != null) Marshal.ReleaseComObject(_Table);
-                if (_Cat != null) Marshal.ReleaseComObject(_Cat);
-                if (_Conn != null)
-                {
-                    _Conn.Close();
-                    Marshal.ReleaseComObject(_Conn);
-                }
-
-                if (_TableDef != null) Marshal.ReleaseComObject(_TableDef);
-                if (_Db != null)
-                {
-                    _Db.Close();
-                    Marshal.ReleaseComObject(_Db);
-                }
-                if (_Dbe != null) Marshal.ReleaseComObject(_Dbe);
-            }
-            catch (Exception ex)
-            {
-                if (DAL.Debug) DAL.WriteLog(ex.ToString());
-            }
-        }
-    #endregion
-    }
-
-    internal class ADOColumn : /*DisposeBase*/IDisposable
-    {
-    #region 属性
-        private Column _Column;
-        /// <summary>字段</summary>
-        public Column Column
-        {
-            get { return _Column; }
-            set { _Column = value; }
-        }
-
-        private ADOTabe _Table;
-        /// <summary>表</summary>
-        public ADOTabe Table
-        {
-            get { return _Table; }
-            set { _Table = value; }
-        }
-    #endregion
-
-    #region DAO属性
-        //private DAO.Field _Field;
-        ///// <summary>字段</summary>
-        //public DAO.Field Field
-        //{
-        //    get { return _Field; }
-        //    set { _Field = value; }
-        //}
-    #endregion
-
-    #region 扩展属性
-        /// <summary>名称</summary>
-        public String Name
-        {
-            get { return Column.Name; }
-            set { Column.Name = value; }
-        }
-
-        /// <summary>描述</summary>
-        public String Description
-        {
-            get
-            {
-                ADOX.Property p = Column.Properties["Description"];
-                if (p == null && p.Value == null)
-                    return null;
-                else
-                    return p.Value.ToString();
-            }
-            set
-            {
-                ADOX.Property p = Column.Properties["Description"];
-                if (p != null)
-                    p.Value = value;
-                else
-                    throw new XCodeException("列" + Column.Name + "没有Description属性！");
-            }
-        }
-
-        /// <summary>描述</summary>
-        public String Default
-        {
-            get
-            {
-                ADOX.Property p = Column.Properties["Default"];
-                if (p == null && p.Value == null)
-                    return null;
-                else
-                    return p.Value.ToString();
-            }
-            set
-            {
-                ADOX.Property p = Column.Properties["Default"];
-                if (p != null)
-                    p.Value = value;
-                else
-                    throw new XCodeException("列" + Column.Name + "没有Default属性！");
-            }
-        }
-
-        /// <summary>是否自增</summary>
-        public Boolean AutoIncrement
-        {
-            get
-            {
-                ADOX.Property p = Column.Properties["Autoincrement"];
-                if (p == null && p.Value == null)
-                    return false;
-                else
-                    return (Boolean)p.Value;
-            }
-            set
-            {
-                ADOX.Property p = Column.Properties["Autoincrement"];
-                if (p != null)
-                    p.Value = value;
-                else
-                    throw new XCodeException("列" + Column.Name + "没有Autoincrement属性！");
-            }
-        }
-
-        /// <summary>是否允许空</summary>
-        public Boolean Nullable
-        {
-            get
-            {
-                ADOX.Property p = Column.Properties["Nullable"];
-                if (p == null && p.Value == null)
-                    return false;
-                else
-                    return (Boolean)p.Value;
-            }
-            set
-            {
-                ADOX.Property p = Column.Properties["Nullable"];
-                if (p != null)
-                    p.Value = value;
-                else
-                    throw new XCodeException("列" + Column.Name + "没有Nullable属性！");
-            }
-        }
-    #endregion
-
-    #region 构造
-        public ADOColumn(ADOTabe table, Column column/*, DAO.Field field*/)
-        {
-            Table = table;
-            Column = column;
-            //Field = field;
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                if (Column != null) Marshal.ReleaseComObject(Column);
-            }
-            catch (Exception ex)
-            {
-                if (DAL.Debug) DAL.WriteLog(ex.ToString());
-            }
-        }
-    #endregion
-    }
-    #endregion
-#endif
 }

@@ -215,9 +215,8 @@ namespace XCode.Cache
             CheckShowStatics(ref Total, ShowStatics);
 
             // 如果找到项，返回
-            CacheItem item = null;
             // 如果TryGetValue获取成功，item为空说明同一时间别的线程已做删除操作
-            if (dic.TryGetValue(key, out item) && item != null && !item.Expired) return GetData(item);
+            if (dic.TryGetValue(key, out var item) && item != null && !item.Expired) return GetData(item);
             lock (dic)
             {
                 // 再次尝试获取
@@ -365,8 +364,7 @@ namespace XCode.Cache
         private void RemoveKey(TKey key)
         {
             var es = Entities;
-            CacheItem item = null;
-            if (!es.TryGetValue(key, out item)) return;
+            if (!es.TryGetValue(key, out var item)) return;
             lock (es)
             {
                 if (!es.TryGetValue(key, out item)) return;

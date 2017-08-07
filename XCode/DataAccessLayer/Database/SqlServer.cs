@@ -67,15 +67,14 @@ namespace XCode.DataAccessLayer
         const String Application_Name = "Application Name";
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
-            String str = null;
             // 获取数据目录，用于反向工程创建数据库
-            if (builder.TryGetAndRemove("DataPath", out str) && !String.IsNullOrEmpty(str)) DataPath = str;
+            if (builder.TryGetAndRemove("DataPath", out var str) && !String.IsNullOrEmpty(str)) DataPath = str;
 
             base.OnSetConnectionString(builder);
 
             if (!builder.ContainsKey(Application_Name))
             {
-                String name = Runtime.IsWeb ? HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
+                var name = Runtime.IsWeb ? HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
                 builder[Application_Name] = String.Format("XCode_{0}_{1}", name, ConnName);
             }
         }
@@ -148,7 +147,7 @@ namespace XCode.DataAccessLayer
                 if (IsSQL2005)
                 {
                     //return PageSplitRowNumber(sql, startRowIndex, maximumRows, keyColumn);
-                    SelectBuilder builder = new SelectBuilder();
+                    var builder = new SelectBuilder();
                     builder.Parse(sql);
                     return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005).ToString();
                 }
@@ -165,8 +164,8 @@ namespace XCode.DataAccessLayer
             //// 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
             //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             //if (ms == null || ms.Count < 1 || ms[0].Index < 1)
-            String sql2 = sql;
-            String orderBy = CheckOrderClause(ref sql2);
+            var sql2 = sql;
+            var orderBy = CheckOrderClause(ref sql2);
             if (String.IsNullOrEmpty(orderBy))
             {
                 return base.PageSplit(sql, startRowIndex, maximumRows, keyColumn);
@@ -190,10 +189,10 @@ namespace XCode.DataAccessLayer
 
             #region Max/Min分页
             // 如果要使用max/min分页法，首先keyColumn必须有asc或者desc
-            String kc = keyColumn.ToLower();
+            var kc = keyColumn.ToLower();
             if (kc.EndsWith(" desc") || kc.EndsWith(" asc") || kc.EndsWith(" unknown"))
             {
-                String str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
+                var str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
                 if (!String.IsNullOrEmpty(str)) return str;
                 keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
             }
@@ -217,7 +216,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         private String FormatSqlserver2012SQL(String sql)
         {
-            SelectBuilder builder = new SelectBuilder();
+            var builder = new SelectBuilder();
             builder.Parse(sql);
             var sb = new StringBuilder();
             sb.Append("Select ");
@@ -292,8 +291,8 @@ namespace XCode.DataAccessLayer
 
         public override String FormatValue(IDataColumn field, Object value)
         {
-            TypeCode code = System.Type.GetTypeCode(field.DataType);
-            Boolean isNullable = field.Nullable;
+            var code = System.Type.GetTypeCode(field.DataType);
+            var isNullable = field.Nullable;
 
             if (code == TypeCode.String)
             {
@@ -344,7 +343,7 @@ namespace XCode.DataAccessLayer
             //var n = 0L;
             //if (QueryIndex().TryGetValue(tableName, out n)) return n;
 
-            String sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
+            var sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
             return ExecuteScalar<Int64>(sql);
         }
 
@@ -397,13 +396,13 @@ namespace XCode.DataAccessLayer
         public Version Version { get { return (Database as SqlServer).Version; } }
 
         /// <summary>0级类型</summary>
-        public String level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
+        public String Level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
         #endregion
 
         #region 构架
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
-        protected override List<IDataTable> OnGetTables(ICollection<String> names)
+        protected override List<IDataTable> OnGetTables(String[] names)
         {
             #region 查表说明、字段信息、索引信息
             var session = Database.CreateSession();
@@ -434,17 +433,16 @@ namespace XCode.DataAccessLayer
             #endregion
 
             // 列出用户表
-            DataRow[] rows = dt.Select(String.Format("({0}='BASE TABLE' Or {0}='VIEW') AND TABLE_NAME<>'Sysdiagrams'", "TABLE_TYPE"));
-            rows = OnGetTables(names, rows);
+            var rows = dt.Select(String.Format("({0}='BASE TABLE' Or {0}='VIEW') AND TABLE_NAME<>'Sysdiagrams'", "TABLE_TYPE"));
             if (rows == null || rows.Length < 1) return null;
 
-            List<IDataTable> list = GetTables(rows);
+            var list = GetTables(rows, names);
             if (list == null || list.Count < 1) return list;
 
             // 修正备注
-            foreach (IDataTable item in list)
+            foreach (var item in list)
             {
-                DataRow[] drs = DescriptionTable == null ? null : DescriptionTable.Select("n='" + item.TableName + "'");
+                var drs = DescriptionTable?.Select("n='" + item.TableName + "'");
                 item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
             }
 
@@ -458,7 +456,7 @@ namespace XCode.DataAccessLayer
         {
             base.FixField(field, dr);
 
-            var rows = AllFields == null ? null : AllFields.Select("表名='" + field.Table.TableName + "' And 字段名='" + field.ColumnName + "'", null);
+            var rows = AllFields?.Select("表名='" + field.Table.TableName + "' And 字段名='" + field.ColumnName + "'", null);
             if (rows != null && rows.Length > 0)
             {
                 var dr2 = rows[0];
@@ -474,12 +472,12 @@ namespace XCode.DataAccessLayer
 
         protected override List<IDataIndex> GetIndexes(IDataTable table)
         {
-            List<IDataIndex> list = base.GetIndexes(table);
+            var list = base.GetIndexes(table);
             if (list != null && list.Count > 0)
             {
-                foreach (IDataIndex item in list)
+                foreach (var item in list)
                 {
-                    DataRow[] drs = AllIndexes == null ? null : AllIndexes.Select("name='" + item.Name + "'");
+                    var drs = AllIndexes?.Select("name='" + item.Name + "'");
                     if (drs != null && drs.Length > 0)
                     {
                         item.Unique = GetDataRowValue<Boolean>(drs[0], "is_unique");
@@ -492,7 +490,7 @@ namespace XCode.DataAccessLayer
 
         public override String CreateTableSQL(IDataTable table)
         {
-            String sql = base.CreateTableSQL(table);
+            var sql = base.CreateTableSQL(table);
 
             var pks = table.PrimaryKeys;
             if (String.IsNullOrEmpty(sql) || pks == null || pks.Length < 2) return sql;
@@ -536,7 +534,7 @@ namespace XCode.DataAccessLayer
             // 非定义时（修改字段），主键字段没有约束
             if (!onlyDefine && field.PrimaryKey) return null;
 
-            String str = base.GetFieldConstraints(field, onlyDefine);
+            var str = base.GetFieldConstraints(field, onlyDefine);
 
             // 非定义时，自增字段没有约束
             if (onlyDefine && field.Identity) str = " IDENTITY(1,1)" + str;
@@ -546,7 +544,7 @@ namespace XCode.DataAccessLayer
 
         protected override String GetFormatParam(IDataColumn field, DataRow dr)
         {
-            String str = base.GetFormatParam(field, dr);
+            var str = base.GetFormatParam(field, dr);
             if (String.IsNullOrEmpty(str)) return str;
 
             // 这个主要来自于float，因为无法取得其精度
@@ -556,7 +554,7 @@ namespace XCode.DataAccessLayer
 
         protected override String GetFormatParamItem(IDataColumn field, DataRow dr, String item)
         {
-            String pi = base.GetFormatParamItem(field, dr, item);
+            var pi = base.GetFormatParamItem(field, dr, item);
             if (field.DataType == typeof(String) && pi == "-1" && IsSQL2005) return "MAX";
             return pi;
         }
@@ -690,7 +688,7 @@ namespace XCode.DataAccessLayer
 
         public override String CreateDatabaseSQL(String dbname, String file)
         {
-            String dataPath = (Database as SqlServer).DataPath;
+            var dataPath = (Database as SqlServer).DataPath;
 
             if (String.IsNullOrEmpty(file))
             {
@@ -699,7 +697,7 @@ namespace XCode.DataAccessLayer
                 file = dbname + ".mdf";
             }
 
-            String logfile = String.Empty;
+            var logfile = String.Empty;
 
             if (!Path.IsPathRooted(file))
             {
@@ -813,7 +811,7 @@ namespace XCode.DataAccessLayer
             //list.Insert(1, String.Format("SET IDENTITY_INSERT {0} ON", tableName));
             //list.Insert(list.Count - 1, String.Format("SET IDENTITY_INSERT {0} OFF", tableName));
             //return String.Join("; " + Environment.NewLine, list.ToArray());
-            for (Int32 i = 0; i < ss.Length; i++)
+            for (var i = 0; i < ss.Length; i++)
             {
                 if (ss[i].StartsWithIgnoreCase("Insert Into"))
                 {
@@ -826,12 +824,12 @@ namespace XCode.DataAccessLayer
 
         public override String AddTableDescriptionSQL(IDataTable table)
         {
-            return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, table.Description, level0type);
+            return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, table.Description, Level0type);
         }
 
         public override String DropTableDescriptionSQL(IDataTable table)
         {
-            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{1}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, level0type);
+            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{1}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, Level0type);
         }
 
         public override String AddColumnSQL(IDataColumn field)
@@ -934,13 +932,13 @@ namespace XCode.DataAccessLayer
 
         public override String AddColumnDescriptionSQL(IDataColumn field)
         {
-            String sql = String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{3}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", field.Table.TableName, field.Description, field.ColumnName, level0type);
+            var sql = String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{3}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", field.Table.TableName, field.Description, field.ColumnName, Level0type);
             return sql;
         }
 
         public override String DropColumnDescriptionSQL(IDataColumn field)
         {
-            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.TableName, field.ColumnName, level0type);
+            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.TableName, field.ColumnName, Level0type);
         }
 
         //public override String AddDefaultSQL(IDataColumn field)
@@ -1010,7 +1008,7 @@ namespace XCode.DataAccessLayer
             if (field.Table.Indexes == null || field.Table.Indexes.Count < 1) return String.Empty;
 
             IDataIndex di = null;
-            foreach (IDataIndex item in field.Table.Indexes)
+            foreach (var item in field.Table.Indexes)
             {
                 if (Array.IndexOf(item.Columns, field.ColumnName) >= 0)
                 {

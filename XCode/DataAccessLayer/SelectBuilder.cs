@@ -87,8 +87,7 @@ namespace XCode.DataAccessLayer
             {
                 if (String.IsNullOrEmpty(Key)) return false;
 
-                Boolean[] isdescs = null;
-                String[] keys = Split(OrderBy, out isdescs);
+                String[] keys = Split(OrderBy, out var isdescs);
 
                 return keys != null && keys.Length == 1 && keys[0].EqualIgnoreCase(Key);
             }
@@ -162,8 +161,7 @@ namespace XCode.DataAccessLayer
                 // 分析排序字句，从中分析出分页用的主键
                 if (!String.IsNullOrEmpty(_OrderBy))
                 {
-                    Boolean[] isdescs = null;
-                    String[] keys = Split(_OrderBy, out isdescs);
+                    String[] keys = Split(_OrderBy, out var isdescs);
 
                     if (keys != null && keys.Length > 0)
                     {
