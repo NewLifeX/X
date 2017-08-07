@@ -85,22 +85,22 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>拥有者</summary>
-        public override String Owner
-        {
-            get
-            {
-                // 利用null和Empty的区别来判断是否已计算
-                if (base.Owner == null)
-                {
-                    base.Owner = UserID;
-                    if (String.IsNullOrEmpty(base.Owner)) base.Owner = String.Empty;
-                }
+        ///// <summary>拥有者</summary>
+        //public override String Owner
+        //{
+        //    get
+        //    {
+        //        // 利用null和Empty的区别来判断是否已计算
+        //        if (base.Owner == null)
+        //        {
+        //            base.Owner = UserID;
+        //            if (String.IsNullOrEmpty(base.Owner)) base.Owner = String.Empty;
+        //        }
 
-                return base.Owner;
-            }
-            set { base.Owner = value; }
-        }
+        //        return base.Owner;
+        //    }
+        //    set { base.Owner = value; }
+        //}
 
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
@@ -303,10 +303,13 @@ namespace XCode.DataAccessLayer
         Dictionary<String, DateTime> cache = new Dictionary<String, DateTime>();
         public Boolean NeedAnalyzeStatistics(String tableName)
         {
-            // 非当前用户，不支持统计
-            if (!Owner.EqualIgnoreCase(UserID)) return false;
+            var owner = Owner;
+            if (owner.IsNullOrEmpty()) owner = UserID;
 
-            var key = String.Format("{0}.{1}", Owner, tableName);
+            // 非当前用户，不支持统计
+            if (!owner.EqualIgnoreCase(UserID)) return false;
+
+            var key = String.Format("{0}.{1}", owner, tableName);
             if (!cache.TryGetValue(key, out var dt))
             {
                 dt = DateTime.MinValue;
@@ -349,7 +352,11 @@ namespace XCode.DataAccessLayer
             var p = tableName.LastIndexOf(".");
             if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
             tableName = tableName.ToUpper();
-            var owner = (Database as Oracle).Owner.ToUpper();
+
+            var owner = (Database as Oracle).Owner;
+            if (owner.IsNullOrEmpty()) owner = (Database as Oracle).UserID;
+            //var owner = (Database as Oracle).Owner.ToUpper();
+            owner = owner.ToUpper();
 
             if ((Database as Oracle).NeedAnalyzeStatistics(tableName))
             {
@@ -402,7 +409,16 @@ namespace XCode.DataAccessLayer
     class OracleMeta : RemoteDbMetaData
     {
         /// <summary>拥有者</summary>
-        public String Owner { get { return (Database as Oracle).Owner.ToUpper(); } }
+        public String Owner
+        {
+            get
+            {
+                var owner = Database.Owner;
+                if (owner.IsNullOrEmpty()) owner = (Database as Oracle).UserID;
+
+                return owner.ToUpper();
+            }
+        }
 
         /// <summary>用户名</summary>
         public String UserID { get { return (Database as Oracle).UserID.ToUpper(); } }
@@ -422,7 +438,7 @@ namespace XCode.DataAccessLayer
                 tableName = tableName.ToUpper();
 
             var owner = Owner;
-            if (owner.IsNullOrEmpty()) owner = UserID;
+            //if (owner.IsNullOrEmpty()) owner = UserID;
 
             dt = GetSchema(_.Tables, new String[] { owner, tableName });
             if (!dt.Columns.Contains("TABLE_TYPE"))
@@ -461,7 +477,7 @@ namespace XCode.DataAccessLayer
             if (MetaDataCollections.Contains(_.PrimaryKeys))
             {
                 var owner = Owner;
-                if (owner.IsNullOrEmpty()) owner = UserID;
+                //if (owner.IsNullOrEmpty()) owner = UserID;
 
                 var dt = GetSchema(_.PrimaryKeys, new String[] { owner, table.TableName, null });
                 if (dt != null && dt.Rows.Count > 0)
@@ -531,7 +547,7 @@ namespace XCode.DataAccessLayer
         Boolean CheckSeqExists(String name)
         {
             var owner = Owner;
-            if (owner.IsNullOrEmpty()) owner = UserID;
+            //if (owner.IsNullOrEmpty()) owner = UserID;
             if (dtSequences == null)
             {
                 var ds = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES Where SEQUENCE_OWNER='" + owner + "'");
@@ -594,12 +610,13 @@ namespace XCode.DataAccessLayer
         {
             if (rows == null || rows.Length < 1) return null;
 
-            if (String.IsNullOrEmpty(Owner) || !rows[0].Table.Columns.Contains(KEY_OWNER)) return base.GetFields(table, rows);
+            var owner = Owner;
+            if (owner.IsNullOrEmpty() || !rows[0].Table.Columns.Contains(KEY_OWNER)) return base.GetFields(table, rows);
 
             var list = new List<DataRow>();
             foreach (var dr in rows)
             {
-                if (TryGetDataRowValue(dr, KEY_OWNER, out String str) && Owner.EqualIgnoreCase(str)) list.Add(dr);
+                if (TryGetDataRowValue(dr, KEY_OWNER, out String str) && owner.EqualIgnoreCase(str)) list.Add(dr);
             }
 
             return base.GetFields(table, list.ToArray());

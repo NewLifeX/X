@@ -127,7 +127,8 @@ namespace XCode
                         if (dal != null && !str.Contains("."))
                         {
                             // 角色名作为点前缀来约束表名，支持所有数据库
-                            if (!dal.Db.Owner.IsNullOrEmpty()) str = Dal.Db.FormatName(dal.Db.Owner) + "." + str;
+                            var owner = dal.Db.Owner;
+                            if (!owner.IsNullOrEmpty()) str = Dal.Db.FormatName(owner) + "." + str;
                         }
                     }
 
