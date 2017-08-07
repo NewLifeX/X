@@ -322,10 +322,10 @@ namespace XCode.DataAccessLayer
             // 如果要使用max/min分页法，首先keyColumn必须有asc或者desc
             if (!String.IsNullOrEmpty(keyColumn))
             {
-                String kc = keyColumn.ToLower();
+                var kc = keyColumn.ToLower();
                 if (kc.EndsWith(" desc") || kc.EndsWith(" asc") || kc.EndsWith(" unknown"))
                 {
-                    String str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
+                    var str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
                     if (!String.IsNullOrEmpty(str)) return str;
 
                     // 如果不能使用最大最小值分页，则砍掉排序，为TopNotIn分页做准备
@@ -335,7 +335,7 @@ namespace XCode.DataAccessLayer
             #endregion
 
             //检查简单SQL。为了让生成分页SQL更短
-            String tablename = CheckSimpleSQL(sql);
+            var tablename = CheckSimpleSQL(sql);
             if (tablename != sql)
                 sql = tablename;
             else
@@ -363,13 +363,13 @@ namespace XCode.DataAccessLayer
         public static String PageSplitMaxMin(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn)
         {
             // 唯一键的顺序。默认为Empty，可以为asc或desc，如果有，则表明主键列是数字唯一列，可以使用max/min分页法
-            Boolean isAscOrder = keyColumn.ToLower().EndsWith(" asc");
+            var isAscOrder = keyColumn.ToLower().EndsWith(" asc");
             // 是否使用max/min分页法
-            Boolean canMaxMin = false;
+            var canMaxMin = false;
 
             // 如果sql最外层有排序，且唯一的一个排序字段就是keyColumn时，可用max/min分页法
             // 如果sql最外层没有排序，其排序不是unknown，可用max/min分页法
-            MatchCollection ms = reg_Order.Matches(sql);
+            var ms = reg_Order.Matches(sql);
             if (ms != null && ms.Count > 0 && ms[0].Index > 0)
             {
                 #region 有OrderBy
@@ -380,14 +380,14 @@ namespace XCode.DataAccessLayer
                 keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
                 sql = sql.Substring(0, ms[0].Index);
 
-                String strOrderBy = ms[0].Groups[1].Value.Trim();
+                var strOrderBy = ms[0].Groups[1].Value.Trim();
                 // 只有一个排序字段
                 if (!String.IsNullOrEmpty(strOrderBy) && !strOrderBy.Contains(","))
                 {
                     // 有asc或者desc。没有时，默认为asc
                     if (strOrderBy.ToLower().EndsWith(" desc"))
                     {
-                        String str = strOrderBy.Substring(0, strOrderBy.Length - " desc".Length).Trim();
+                        var str = strOrderBy.Substring(0, strOrderBy.Length - " desc".Length).Trim();
                         // 排序字段等于keyColumn
                         if (str.ToLower() == keyColumn.ToLower())
                         {
@@ -397,7 +397,7 @@ namespace XCode.DataAccessLayer
                     }
                     else if (strOrderBy.ToLower().EndsWith(" asc"))
                     {
-                        String str = strOrderBy.Substring(0, strOrderBy.Length - " asc".Length).Trim();
+                        var str = strOrderBy.Substring(0, strOrderBy.Length - " asc".Length).Trim();
                         // 排序字段等于keyColumn
                         if (str.ToLower() == keyColumn.ToLower())
                         {
@@ -455,7 +455,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            MatchCollection ms = reg_SimpleSQL.Matches(sql);
+            var ms = reg_SimpleSQL.Matches(sql);
             if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
                 String.IsNullOrEmpty(ms[0].Groups[1].Value)) return String.Format("({0}) XCode_Temp_a", sql);
             return ms[0].Groups[1].Value;
@@ -470,9 +470,9 @@ namespace XCode.DataAccessLayer
             if (!sql.ToLower().Contains("order")) return null;
 
             // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
-            MatchCollection ms = reg_Order.Matches(sql);
+            var ms = reg_Order.Matches(sql);
             if (ms == null || ms.Count < 1 || ms[0].Index < 1) return null;
-            String orderBy = sql.Substring(ms[0].Index).Trim();
+            var orderBy = sql.Substring(ms[0].Index).Trim();
             sql = sql.Substring(0, ms[0].Index).Trim();
 
             return orderBy;
@@ -528,13 +528,14 @@ namespace XCode.DataAccessLayer
             {
                 if (_ReservedWords == null)
                 {
-                    _ReservedWords = new Dictionary<String, Boolean>(StringComparer.OrdinalIgnoreCase);
-                    String[] ss = (ReservedWordsStr + "").Split(',');
-                    foreach (String item in ss)
+                    var dic = new Dictionary<String, Boolean>(StringComparer.OrdinalIgnoreCase);
+                    var ss = (ReservedWordsStr + "").Split(',');
+                    foreach (var item in ss)
                     {
-                        String key = item.Trim();
-                        if (!_ReservedWords.ContainsKey(key)) _ReservedWords.Add(key, true);
+                        var key = item.Trim();
+                        if (!dic.ContainsKey(key)) dic.Add(key, true);
                     }
+                    _ReservedWords = dic;
                 }
                 return _ReservedWords;
             }
@@ -545,7 +546,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        private Boolean IsReservedWord(String word) { return String.IsNullOrEmpty(word) ? false : ReservedWords.ContainsKey(word); }
+        private Boolean IsReservedWord(String word) { return !String.IsNullOrEmpty(word) && ReservedWords.ContainsKey(word); }
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <remarks>
@@ -583,7 +584,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatValue(IDataColumn field, Object value)
         {
-            Boolean isNullable = true;
+            var isNullable = true;
             Type type = null;
             if (field != null)
             {
@@ -620,7 +621,7 @@ namespace XCode.DataAccessLayer
             }
             else if (type == typeof(Byte[]))
             {
-                Byte[] bts = (Byte[])value;
+                var bts = (Byte[])value;
                 if (bts == null || bts.Length < 1) return isNullable ? "null" : "0x0";
 
                 return "0x" + BitConverter.ToString(bts).Replace("-", null);
