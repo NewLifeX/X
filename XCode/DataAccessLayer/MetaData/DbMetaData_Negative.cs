@@ -211,13 +211,11 @@ namespace XCode.DataAccessLayer
             {
                 if (!dbdic.ContainsKey(item.ColumnName.ToLower()))
                 {
+                    // 非空字段需要重建表
+                    if (!item.Nullable) return ReBuildTable(entitytable, dbtable);
+
                     PerformSchema(sb, onlySql, DDLSchema.AddColumn, item);
-                    if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
-
-                    //! 以下已经不需要了，目前只有SQLite会采用重建表的方式添加删除字段。如果这里提前添加了字段，重建表的时候，会导致失败。
-
-                    //// 这里必须给dbtable加加上当前列，否则下面如果刚好有删除列的话，会导致增加列成功，然后删除列重建表的时候没有新加的列
-                    //dbtable.Columns.Add(item.Clone(dbtable));
+                    if (!item.Description.IsNullOrEmpty()) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
                 }
             }
             #endregion
@@ -415,6 +413,7 @@ namespace XCode.DataAccessLayer
                 foreach (var item in entitytable.Columns)
                 {
                     var name = item.ColumnName;
+                    var fname = FormatName(name);
                     var field = dbtable.GetColumn(item.ColumnName);
                     if (field == null)
                     {
@@ -425,7 +424,7 @@ namespace XCode.DataAccessLayer
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
-                                sbName.Append(FormatName(name));
+                                sbName.Append(fname);
                                 sbValue.Append("''");
                             }
                             else if (item.DataType == typeof(Int16) || item.DataType == typeof(Int32) || item.DataType == typeof(Int64) ||
@@ -433,15 +432,22 @@ namespace XCode.DataAccessLayer
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
-                                sbName.Append(FormatName(name));
+                                sbName.Append(fname);
                                 sbValue.Append("0");
                             }
                             else if (item.DataType == typeof(DateTime))
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
-                                sbName.Append(FormatName(name));
+                                sbName.Append(fname);
                                 sbValue.Append(Database.FormatDateTime(DateTime.MinValue));
+                            }
+                            else if (item.DataType == typeof(Boolean))
+                            {
+                                if (sbName.Length > 0) sbName.Append(", ");
+                                if (sbValue.Length > 0) sbValue.Append(", ");
+                                sbName.Append(fname);
+                                sbValue.Append(Database.FormatValue(item, false));
                             }
                         }
                     }
@@ -449,14 +455,28 @@ namespace XCode.DataAccessLayer
                     {
                         if (sbName.Length > 0) sbName.Append(", ");
                         if (sbValue.Length > 0) sbValue.Append(", ");
-                        sbName.Append(FormatName(name));
-                        //sbValue.Append(FormatName(name));
-
-                        // 处理字符串不允许空，ntext不支持+""
-                        if (item.DataType == typeof(String) && !item.Nullable && item.Length > 0 && item.Length < 500)
-                            sbValue.Append(Database.StringConcat(FormatName(name), "\'\'"));
+                        sbName.Append(fname);
+                        // 处理一下非空默认值
+                        if (field.Nullable && !item.Nullable)
+                        {
+                            if (item.DataType == typeof(String))
+                                sbValue.Append("ifnull({0}, \'\')".F(fname));
+                            else if (item.DataType == typeof(Int16) || item.DataType == typeof(Int32) || item.DataType == typeof(Int64) ||
+                               item.DataType == typeof(Single) || item.DataType == typeof(Double) || item.DataType == typeof(Decimal))
+                                sbValue.Append("ifnull({0}, 0)".F(fname));
+                            else if (item.DataType == typeof(DateTime))
+                                sbValue.Append("ifnull({0}, {1})".F(fname, Database.FormatDateTime(DateTime.MinValue)));
+                        }
                         else
-                            sbValue.Append(FormatName(name));
+                        {
+                            //sbValue.Append(fname);
+
+                            // 处理字符串不允许空，ntext不支持+""
+                            if (item.DataType == typeof(String) && !item.Nullable && item.Length > 0 && item.Length < Database.LongTextLength)
+                                sbValue.Append(Database.StringConcat(fname, "\'\'"));
+                            else
+                                sbValue.Append(fname);
+                        }
                     }
                 }
                 sb.AppendFormat("Insert Into {0}({2}) Select {3} From {1}", tableName, tempTableName, sbName.ToString(), sbValue.ToString());
