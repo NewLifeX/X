@@ -39,8 +39,8 @@ using XCode;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.5.*")]
-[assembly: AssemblyFileVersion("9.5.2017.0607")]
+[assembly: AssemblyVersion("9.6.*")]
+[assembly: AssemblyFileVersion("9.6.2017.0808")]
 
 /*
  * XCode的重大改进
@@ -58,6 +58,8 @@ using XCode;
  * /
 
 /*
+ * v9.6.2017.0808   重构正向工程，基于映射表查找数据库字段类型到实体类型的映射
+ * 
  * v9.5.2017.0607   全面支持参数化添删改查
  * 
  * v9.4.2017.0207   废弃单对象缓存的自动保存
