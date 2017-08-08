@@ -748,19 +748,23 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static Dictionary<TypeCode, String[]> _DataTypes = new Dictionary<TypeCode, String[]>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
         {
-            { TypeCode.Boolean, new String[]{ } },
-            { TypeCode.Byte, new String[]{ } },
-            { TypeCode.Int16, new String[]{ } },
-            { TypeCode.Int32, new String[]{ } },
-            { TypeCode.Int64, new String[]{ } },
-            { TypeCode.Single, new String[]{ } },
-            { TypeCode.Double, new String[]{ } },
-            { TypeCode.Decimal, new String[]{ } },
-            { TypeCode.DateTime, new String[]{ } },
-            { TypeCode.String, new String[]{ } },
-            { TypeCode.Object, new String[]{ } },
+            { typeof(Byte[]), new String[] { "RAW({0})", "BFILE", "BLOB", "LONG RAW" } },
+            //{ typeof(Int64), new String[] { "INTERVAL YEAR({0}) TO MONTH" } },
+            //{ typeof(TimeSpan), new String[] { "INTERVAL DAY({0}) TO SECOND({1})" } },
+            //{ typeof(Single), new String[] { "BINARY_FLOAT" } },
+            //{ typeof(Double), new String[] { "BINARY_DOUBLE" } },
+            { typeof(Boolean), new String[] { "NUMBER(1,0)" } },
+            { typeof(Byte), new String[] { "NUMBER(1,0)" } },
+            { typeof(Int16), new String[] { "NUMBER(5,0)" } },
+            { typeof(Int32), new String[] { "NUMBER(10,0)" } },
+            { typeof(Int64), new String[] { "NUMBER(20,0)" } },
+            { typeof(Single), new String[] { "BINARY_FLOAT" } },
+            { typeof(Double), new String[] { "BINARY_DOUBLE" } },
+            { typeof(Decimal), new String[] { "NUMBER", "FLOAT({0})" } },
+            { typeof(DateTime), new String[] { "DATE", "TIMESTAMP({0})", "TIMESTAMP({0} WITH LOCAL TIME ZONE)", "TIMESTAMP({0} WITH TIME ZONE)" } },
+            { typeof(String), new String[] { "NVARCHAR2({0})", "LONG", "VARCHAR2({0})", "CHAR({0})", "CLOB", "NCHAR({0})", "NCLOB", "XMLTYPE", "ROWID" } }
         };
 
         #region 架构定义

@@ -467,40 +467,25 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        //{
-        //    if (String.IsNullOrEmpty(field.Default)) return null;
-
-        //    if (field.DataType == typeof(Boolean))
-        //    {
-        //        if (field.Default == "true")
-        //            return " Default 'Y'";
-        //        else if (field.Default == "false")
-        //            return " Default 'N'";
-        //    }
-        //    else if (field.DataType == typeof(String))
-        //    {
-        //        // 大文本不能有默认值
-        //        if (field.Length <= 0 || field.Length >= Database.LongTextLength) return null;
-        //    }
-        //    //else if (field.DataType == typeof(DateTime))
-        //    //{
-        //    //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
-        //    //    if (d == "now()") d = "CURRENT_TIMESTAMP";
-        //    //    return String.Format(" Default {0}", d);
-        //    //}
-
-        //    return base.GetFieldDefault(field, onlyDefine);
-        //}
-
-        //protected override void FixIndex(IDataIndex index, DataRow dr)
-        //{
-        //    base.FixIndex(index, dr);
-
-        //    Boolean b;
-        //    if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b)) index.Unique = b;
-        //    if (TryGetDataRowValue<Boolean>(dr, "PRIMARY", out b)) index.PrimaryKey = b;
-        //}
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        {
+            { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
+            //{ typeof(TimeSpan), new String[] { "TIME" } },
+            //{ typeof(SByte), new String[] { "TINYINT" } },
+            { typeof(Byte), new String[] { "TINYINT UNSIGNED" } },
+            { typeof(Int16), new String[] { "SMALLINT" } },
+            //{ typeof(UInt16), new String[] { "SMALLINT UNSIGNED" } },
+            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT" } },
+            //{ typeof(UInt32), new String[] { "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
+            { typeof(Int64), new String[] { "BIGINT" } },
+            //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
+            { typeof(Single), new String[] { "FLOAT" } },
+            { typeof(Double), new String[] { "DOUBLE" } },
+            { typeof(Decimal), new String[] { "DECIMAL" } },
+            { typeof(DateTime), new String[] { "DATE", "DATETIME", "TIMESTAMP" } },
+            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } }
+        };
 
         #region 架构定义
         //public override object SetSchema(DDLSchema schema, params object[] values)

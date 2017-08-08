@@ -673,10 +673,12 @@ namespace XCode.DataAccessLayer
             {
                 var tname = (dr["DataType"] + "").TrimStart("System.");
                 if (!dic.TryGetValue(tname, out List<String> list)) dic[tname] = list = new List<String>();
-                list.Add(dr["CreateFormat"] + "");
+                var v = dr["CreateFormat"] + "";
+                if(v.IsNullOrEmpty()) v = dr["TypeName"] + "";
+                list.Add(v);
             }
 
-            dic = dic.OrderBy(e => e.Key.GetType().GetTypeCode()).ToDictionary(e => e.Key, e => e.Value);
+            dic = dic.OrderBy(e => (Int32)e.Key.GetTypeEx().GetTypeCode()).ToDictionary(e => e.Key, e => e.Value);
 
             var sb = new StringBuilder();
             foreach (var item in dic)

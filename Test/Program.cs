@@ -131,7 +131,7 @@ namespace Test
 
         static void Test3()
         {
-            var dal = DAL.Create("Membership");
+            var dal = DAL.Create("MSSQL");
             var meta = dal.Db.CreateMetaData();
             var ts = meta.Invoke("GetDataTypes") as String;
 

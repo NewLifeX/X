@@ -301,15 +301,6 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
-        //protected override void FixIndex(IDataIndex index, DataRow dr)
-        //{
-        //    base.FixIndex(index, dr);
-
-        //    Boolean b = false;
-        //    if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out b)) index.PrimaryKey = b;
-        //    if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b)) index.PrimaryKey = b;
-        //}
-
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
             var str = base.GetFieldConstraints(field, onlyDefine);
@@ -318,16 +309,6 @@ namespace XCode.DataAccessLayer
 
             return str;
         }
-
-        ///// <summary>取得字段默认值</summary>
-        ///// <param name="field">字段</param>
-        ///// <param name="onlyDefine">仅仅定义</param>
-        ///// <returns></returns>
-        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        //{
-        //    // Access不能通过DDL来操作默认值
-        //    return null;
-        //}
         #endregion
 
         #region 反向工程创建表
@@ -446,6 +427,23 @@ namespace XCode.DataAccessLayer
 
             return typeName;
         }
+
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        {
+            { typeof(Byte[]), new String[] { "binary", "varbinary", "blob", "image", "general", "oleobject" } },
+            { typeof(Guid), new String[] { "uniqueidentifier", "guid" } },
+            { typeof(Boolean), new String[] { "bit", "yesno", "logical", "bool", "boolean" } },
+            { typeof(Byte), new String[] { "tinyint" } },
+            { typeof(Int16), new String[] { "smallint" } },
+            { typeof(Int32), new String[] { "int" } },
+            { typeof(Int64), new String[] { "integer", "counter", "autoincrement", "identity", "long", "bigint" } },
+            { typeof(Single), new String[] { "single" } },
+            { typeof(Double), new String[] { "real", "float", "double" } },
+            { typeof(Decimal), new String[] { "money", "decimal", "currency", "numeric" } },
+            { typeof(DateTime), new String[] { "datetime", "smalldate", "timestamp", "date", "time" } },
+            { typeof(String), new String[] { "nvarchar({0})", "ntext", "varchar({0})", "memo({0})", "longtext({0})", "note({0})", "text({0})", "string({0})", "char({0})", "char({0})" } }
+        };
         #endregion
     }
 }

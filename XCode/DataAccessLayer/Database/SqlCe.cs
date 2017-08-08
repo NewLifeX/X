@@ -387,24 +387,24 @@ namespace XCode.DataAccessLayer
                 "           SEARCHABLE as IsSearchable, UNSIGNED_ATTRIBUTE as IsUnsigned, FIXED_PREC_SCALE, AUTO_UNIQUE_VALUE, LOCAL_TYPE_NAME,  " +
                 "           MINIMUM_SCALE as MinimumScale, MAXIMUM_SCALE as MaximumScale, GUID , TYPELIB , VERSION , IS_LONG as IsLong, BEST_MATCH as IsBestMatch, IS_FIXEDLENGTH as IsFixedLength  " +
                 " FROM      INFORMATION_SCHEMA.PROVIDER_TYPES ";
-
-        #region 未使用，以后可能有用
-        //private readonly String _AllPrimaryKeySql =
-        //        "SELECT u.COLUMN_NAME, c.CONSTRAINT_NAME, c.TABLE_NAME " +
-        //        "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS c INNER JOIN " +
-        //        "INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS u ON c.CONSTRAINT_NAME = u.CONSTRAINT_NAME AND u.TABLE_NAME = c.TABLE_NAME " +
-        //        "where c.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY u.TABLE_NAME, c.CONSTRAINT_NAME, u.ORDINAL_POSITION";
-
-        //private readonly String _AllForeignKeySql =
-        //        "SELECT DISTINCT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
-        //        "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
-        //        "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
-        //        "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
-        //        "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
-        //        "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION";
         #endregion
 
-        #endregion
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        {
+            { typeof(Byte[]), new String[] { "varbinary({0})", "timestamp", "binary({0})", "image" } },
+            { typeof(Guid), new String[] { "uniqueidentifier" } },
+            { typeof(Boolean), new String[] { "bit" } },
+            { typeof(Byte), new String[] { "tinyint" } },
+            { typeof(Int16), new String[] { "smallint" } },
+            { typeof(Int32), new String[] { "int" } },
+            { typeof(Int64), new String[] { "bigint" } },
+            { typeof(Single), new String[] { "real" } },
+            { typeof(Double), new String[] { "float" } },
+            { typeof(Decimal), new String[] { "money", "numeric({0}, {1})" } },
+            { typeof(DateTime), new String[] { "datetime" } },
+            { typeof(String), new String[] { "nvarchar({0})", "ntext", "nchar({0})" } }
+        };
     }
 
     /// <summary>SqlCe版本</summary>

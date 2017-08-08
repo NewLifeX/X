@@ -306,29 +306,6 @@ namespace XCode.DataAccessLayer
             return drs;
         }
 
-        //protected override void SetFieldType(IDataColumn field, string typeName)
-        //{
-        //    if (typeName == "enum")
-        //    {
-        //        // PostgreSQL中没有布尔型，这里处理YN枚举作为布尔型
-        //        if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
-        //        {
-        //            field.DataType = typeof(Boolean);
-        //            // 处理默认值
-        //            if (!String.IsNullOrEmpty(field.Default))
-        //            {
-        //                if (field.Default == "Y")
-        //                    field.Default = "true";
-        //                else if (field.Default == "N")
-        //                    field.Default = "false";
-        //            }
-        //            return;
-        //        }
-        //    }
-
-        //    base.SetFieldType(field, typeName);
-        //}
-
         protected override String GetFieldType(IDataColumn field)
         {
             if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
@@ -354,41 +331,25 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
-        //{
-        //    if (String.IsNullOrEmpty(field.Default)) return null;
-
-        //    if (field.DataType == typeof(Boolean))
-        //    {
-        //        if (field.Default == "true")
-        //            return " Default 'Y'";
-        //        else if (field.Default == "false")
-        //            return " Default 'N'";
-        //    }
-        //    //else if (field.DataType == typeof(DateTime))
-        //    //{
-        //    //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
-        //    //    if (d == "now()") d = "CURRENT_TIMESTAMP";
-        //    //    return String.Format(" Default {0}", d);
-        //    //}
-
-        //    return base.GetFieldDefault(field, onlyDefine);
-        //}
-
-        //protected override void SetFieldType(IDataColumn field, string typeName)
-        //{
-        //    DataTable dt = DataTypes;
-        //    if (dt == null) return;
-
-        //    DataRow[] drs = FindDataType(field, typeName, null);
-        //    if (drs == null || drs.Length < 1) return;
-
-        //    // 修正原始类型
-        //    String rawType = null;
-        //    if (TryGetDataRowValue<String>(drs[0], "COLUMN_TYPE", out rawType)) field.RawType = rawType;
-
-        //    base.SetFieldType(field, typeName);
-        //}
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        {
+            { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
+            //{ typeof(TimeSpan), new String[] { "TIME" } },
+            //{ typeof(SByte), new String[] { "TINYINT" } },
+            { typeof(Byte), new String[] { "TINYINT UNSIGNED" } },
+            { typeof(Int16), new String[] { "SMALLINT" } },
+            //{ typeof(UInt16), new String[] { "SMALLINT UNSIGNED" } },
+            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT" } },
+            //{ typeof(UInt32), new String[] { "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
+            { typeof(Int64), new String[] { "BIGINT" } },
+            //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
+            { typeof(Single), new String[] { "FLOAT" } },
+            { typeof(Double), new String[] { "DOUBLE" } },
+            { typeof(Decimal), new String[] { "DECIMAL" } },
+            { typeof(DateTime), new String[] { "DATE", "DATETIME", "TIMESTAMP" } },
+            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } }
+        };
 
         #region 架构定义
         //public override object SetSchema(DDLSchema schema, params object[] values)
