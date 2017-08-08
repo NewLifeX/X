@@ -477,9 +477,16 @@ namespace XCode.DataAccessLayer
             var indexColumns = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
 
             if (MetaDataCollections.Contains(_.PrimaryKeys)) _PrimaryKeys = GetSchema(_.PrimaryKeys, new String[] { owner, tableName, null });
+            dtSequences = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES Where SEQUENCE_OWNER='{0}'".F(owner)).Tables[0];
+            dtTableComment = Database.CreateSession().Query("SELECT * FROM USER_TAB_COMMENTS").Tables[0];
+            dtColumnComment = Database.CreateSession().Query("SELECT * FROM USER_COL_COMMENTS").Tables[0];
 
             var list = GetTables(dt.Rows.ToArray(), names, columns, indexes, indexColumns);
+
             _PrimaryKeys = null;
+            dtSequences = null;
+            dtTableComment = null;
+            dtColumnComment = null;
 
             return list;
         }
@@ -530,21 +537,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         Boolean CheckSeqExists(String name)
         {
-            var owner = Owner;
-            //if (owner.IsNullOrEmpty()) owner = UserID;
-            if (dtSequences == null)
-            {
-                var ds = Database.CreateSession().Query("SELECT * FROM ALL_SEQUENCES Where SEQUENCE_OWNER='" + owner + "'");
+            if (dtSequences.Rows.Count < 1) return false;
 
-                if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
-                    dtSequences = ds.Tables[0];
-                else
-                    dtSequences = new DataTable();
-            }
-            if (dtSequences.Rows == null || dtSequences.Rows.Count < 1) return false;
-
-            var where = String.Format("SEQUENCE_NAME='{0}' And SEQUENCE_OWNER='{1}'", name, owner);
-
+            var where = String.Format("SEQUENCE_NAME='{0}'", name);
             var drs = dtSequences.Select(where);
             return drs != null && drs.Length > 0;
         }
@@ -552,19 +547,12 @@ namespace XCode.DataAccessLayer
         DataTable dtTableComment;
         String GetTableComment(String name)
         {
-            if (dtTableComment == null)
-            {
-                var ds = Database.CreateSession().Query("SELECT * FROM USER_TAB_COMMENTS");
-                if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
-                    dtTableComment = ds.Tables[0];
-                else
-                    dtTableComment = new DataTable();
-            }
-            if (dtTableComment.Rows == null || dtTableComment.Rows.Count < 1) return null;
+            if (dtTableComment.Rows.Count < 1) return null;
 
             var where = String.Format("TABLE_NAME='{0}'", name);
             var drs = dtTableComment.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
+
             return null;
         }
 
@@ -610,18 +598,11 @@ namespace XCode.DataAccessLayer
         DataTable dtColumnComment;
         String GetColumnComment(String tableName, String columnName)
         {
-            if (dtColumnComment == null)
-            {
-                var ds = Database.CreateSession().Query("SELECT * FROM USER_COL_COMMENTS");
-                if (ds != null && ds.Tables != null && ds.Tables.Count > 0)
-                    dtColumnComment = ds.Tables[0];
-                else
-                    dtColumnComment = new DataTable();
-            }
-            if (dtColumnComment.Rows == null || dtColumnComment.Rows.Count < 1) return null;
+            var dt = dtColumnComment;
+            if (dt.Rows == null || dt.Rows.Count < 1) return null;
 
             var where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
-            var drs = dtColumnComment.Select(where);
+            var drs = dt.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
             return null;
         }

@@ -154,6 +154,7 @@ namespace XCode.DataAccessLayer
             var dt = columns;
             if (dt == null) return null;
 
+            // 找到该表所有字段，注意排序
             DataRow[] drs = null;
             var where = String.Format("{0}='{1}'", _.TalbeName, table.TableName);
             if (dt.Columns.Contains(_.OrdinalPosition))
