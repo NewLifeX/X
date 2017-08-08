@@ -100,7 +100,7 @@ namespace XCode.DataAccessLayer
 
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public virtual DatabaseType Type { get { return DatabaseType.Other; } }
+        public virtual DatabaseType Type { get { return DatabaseType.None; } }
 
         /// <summary>工厂</summary>
         public virtual DbProviderFactory Factory { get { return OleDbFactory.Instance; } }

@@ -24,14 +24,11 @@ namespace XCode.DataAccessLayer
         internal static void Reg(IObjectContainer container)
         {
             container
-                .Reg<Access>()
+                .Reg<SQLite>()
                 .Reg<SqlServer>()
                 .Reg<Oracle>()
                 .Reg<MySql>()
-                .Reg<SQLite>()
-                .Reg<Firebird>()
                 .Reg<PostgreSQL>()
-                .Reg<SqlCe>()
                 .Reg<SQLite>(String.Empty);
             // SQLite作为默认实现
         }

@@ -401,13 +401,13 @@ namespace XCode.DataAccessLayer
         /// <summary>类型映射</summary>
         protected IDictionary<Type, String[]> Types { get; set; }
 
-        private DataTable _DataTypes;
-        /// <summary>数据类型</summary>
-        public DataTable DataTypes
-        {
-            get { return _DataTypes ?? (_DataTypes = GetSchema(DbMetaDataCollectionNames.DataTypes, null)); }
-            internal protected set { _DataTypes = value; }
-        }
+        //private DataTable _DataTypes;
+        ///// <summary>数据类型</summary>
+        //public DataTable DataTypes
+        //{
+        //    get { return _DataTypes ?? (_DataTypes = GetSchema(DbMetaDataCollectionNames.DataTypes, null)); }
+        //    internal protected set { _DataTypes = value; }
+        //}
 
         protected List<KeyValuePair<Type, Type>> _FieldTypeMaps;
         /// <summary>字段类型映射</summary>
@@ -634,7 +634,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public String GetDataTypes()
         {
-            var dt = DataTypes;
+            var dt = GetSchema(DbMetaDataCollectionNames.DataTypes, null);
             var rows = dt.Select("", "DataType Asc, IsBestMatch Desc");
             var dic = new Dictionary<String, List<String>>();
             foreach (var dr in rows)

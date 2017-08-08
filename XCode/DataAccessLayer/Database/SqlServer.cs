@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
-using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,8 +22,8 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory { get { return SqlClientFactory.Instance; } }
 
-        /// <summary>是否SQL2005及以上</summary>
-        public Boolean IsSQL2005 { get { return Version.Major > 8; } }
+        ///// <summary>是否SQL2005及以上</summary>
+        //public Boolean IsSQL2005 { get { return Version.Major > 8; } }
 
         /// <summary>是否SQL2012及以上</summary>
         public Boolean IsSQL2012 { get { return Version.Major > 11; } }
@@ -122,20 +121,13 @@ namespace XCode.DataAccessLayer
                 // 指定了起始行，并且是SQL2005及以上版本，使用MS SQL 2012特有的分页算法
                 if (IsSQL2012)
                 {
-                    // var str = $"select * from spt_values where type = 'p' order by {keyColumn} offset {startRowIndex} rows fetch next {maximumRows} rows only";
-                    //SelectBuilder builder = new SelectBuilder();
-                    //builder.Parse(sql);
-                    //return MSPageSplit.PageSplit_Sql2012(builder, startRowIndex, maximumRows);
                     // 从第一行开始，不需要分页
                     if (startRowIndex <= 0)
                     {
-                        if (maximumRows < 1)
-                            return sql;
-                        else
-                        {
-                            var sql_ = FormatSqlserver2012SQL(sql);
-                            return $"{sql_} offset 1 rows fetch next {maximumRows} rows only ";
-                        }
+                        if (maximumRows < 1) return sql;
+
+                        var sql_ = FormatSqlserver2012SQL(sql);
+                        return $"{sql_} offset 1 rows fetch next {maximumRows} rows only ";
                     }
                     if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
@@ -144,16 +136,16 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 指定了起始行，并且是SQL2005及以上版本，使用RowNumber算法
-                if (IsSQL2005)
+                //if (IsSQL2005)
                 {
                     //return PageSplitRowNumber(sql, startRowIndex, maximumRows, keyColumn);
                     var builder = new SelectBuilder();
                     builder.Parse(sql);
-                    return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005).ToString();
+                    //return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005).ToString();
+
+                    return PageSplit(builder, startRowIndex, maximumRows).ToString();
                 }
-
             }
-
 
             // 如果没有Order By，直接调用基类方法
             // 先用字符串判断，命中率高，这样可以提高处理效率
@@ -239,7 +231,33 @@ namespace XCode.DataAccessLayer
 
         public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
-            return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005, b => CreateSession().QueryCount(b));
+            //return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005, b => CreateSession().QueryCount(b));
+
+            // 如果包含分组，则必须作为子查询
+            var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
+            //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
+            // 不必追求极致，把所有列放出来
+            builder1.Column = "*, row_number() over(Order By {0}) as rowNumber".F(builder.OrderBy ?? builder.KeyOrder);
+
+            var builder2 = builder1.AsChild("XCode_T1", true);
+            // 结果列处理
+            //builder2.Column = builder.Column;
+            //// 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
+            //if ((!string.IsNullOrEmpty(builder2.Column)) && builder2.Column.Contains("."))
+            //{
+            //    builder2.Column = "*";
+            //}
+            // 不必追求极致，把所有列放出来
+            builder2.Column = "*";
+
+            // row_number()直接影响了排序，这里不再需要
+            builder2.OrderBy = null;
+            if (maximumRows < 1)
+                builder2.Where = String.Format("rowNumber>={0}", startRowIndex + 1);
+            else
+                builder2.Where = String.Format("rowNumber Between {0} And {1}", startRowIndex + 1, startRowIndex + maximumRows);
+
+            return builder2;
         }
         #endregion
 
@@ -395,13 +413,13 @@ namespace XCode.DataAccessLayer
         }
 
         #region 属性
-        /// <summary>是否SQL2005</summary>
-        public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
+        ///// <summary>是否SQL2005</summary>
+        //public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
 
         public Version Version { get { return (Database as SqlServer).Version; } }
 
-        /// <summary>0级类型</summary>
-        public String Level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
+        ///// <summary>0级类型</summary>
+        //public String Level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
         #endregion
 
         #region 构架
@@ -419,7 +437,8 @@ namespace XCode.DataAccessLayer
             //session.ShowSQL = false;
             try
             {
-                DescriptionTable = session.Query(DescriptionSql).Tables[0];
+                var sql = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
+                DescriptionTable = session.Query(sql).Tables[0];
             }
             catch { }
             //session.ShowSQL = old;
@@ -516,10 +535,10 @@ namespace XCode.DataAccessLayer
         {
             if (!String.IsNullOrEmpty(field.RawType) && field.RawType.Contains("char(-1)"))
             {
-                if (IsSQL2005)
-                    field.RawType = field.RawType.Replace("char(-1)", "char(MAX)");
-                else
-                    field.RawType = field.RawType.Replace("char(-1)", "char(" + (Int32.MaxValue / 2) + ")");
+                //if (IsSQL2005)
+                field.RawType = field.RawType.Replace("char(-1)", "char(MAX)");
+                //else
+                //    field.RawType = field.RawType.Replace("char(-1)", "char(" + (Int32.MaxValue / 2) + ")");
             }
 
             ////chenqi 2017-3-28
@@ -595,14 +614,14 @@ namespace XCode.DataAccessLayer
                     sb.Append("left join systypes b on a.xtype=b.xusertype ");
                     sb.Append("inner join sysobjects d on a.id=d.id  and d.xtype='U' ");
                     sb.Append("left join syscomments e on a.cdefault=e.id ");
-                    if (IsSQL2005)
-                    {
-                        sb.Append("left join sys.extended_properties g on a.id=g.major_id and a.colid=g.minor_id and g.name = 'MS_Description'  ");
-                    }
-                    else
-                    {
-                        sb.Append("left join sysproperties g on a.id=g.id and a.colid=g.smallid  ");
-                    }
+                    //if (IsSQL2005)
+                    //{
+                    sb.Append("left join sys.extended_properties g on a.id=g.major_id and a.colid=g.minor_id and g.name = 'MS_Description'  ");
+                    //}
+                    //else
+                    //{
+                    //    sb.Append("left join sysproperties g on a.id=g.id and a.colid=g.smallid  ");
+                    //}
                     sb.Append("order by a.id,a.colorder");
                     _SchemaSql = sb.ToString();
                 }
@@ -617,19 +636,19 @@ namespace XCode.DataAccessLayer
             {
                 if (_IndexSql == null)
                 {
-                    if (IsSQL2005)
-                        _IndexSql = "select ind.* from sys.indexes ind inner join sys.objects obj on ind.object_id = obj.object_id where obj.type='u'";
-                    else
-                        _IndexSql = "select IndexProperty(obj.id, ind.name,'IsUnique') as is_unique, ObjectProperty(object_id(ind.name),'IsPrimaryKey') as is_primary_key,ind.* from sysindexes ind inner join sysobjects obj on ind.id = obj.id where obj.type='u'";
+                    //if (IsSQL2005)
+                    _IndexSql = "select ind.* from sys.indexes ind inner join sys.objects obj on ind.object_id = obj.object_id where obj.type='u'";
+                    //else
+                    //    _IndexSql = "select IndexProperty(obj.id, ind.name,'IsUnique') as is_unique, ObjectProperty(object_id(ind.name),'IsPrimaryKey') as is_primary_key,ind.* from sysindexes ind inner join sysobjects obj on ind.id = obj.id where obj.type='u'";
                 }
                 return _IndexSql;
             }
         }
 
-        private readonly String _DescriptionSql2000 = "select b.name n, a.value v from sysproperties a inner join sysobjects b on a.id=b.id where a.smallid=0";
-        private readonly String _DescriptionSql2005 = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
-        /// <summary>取表说明SQL</summary>
-        public virtual String DescriptionSql { get { return IsSQL2005 ? _DescriptionSql2005 : _DescriptionSql2000; } }
+        //private readonly String _DescriptionSql2000 = "select b.name n, a.value v from sysproperties a inner join sysobjects b on a.id=b.id where a.smallid=0";
+        //private readonly String _DescriptionSql2005 = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
+        ///// <summary>取表说明SQL</summary>
+        //public virtual String DescriptionSql { get { return IsSQL2005 ? _DescriptionSql2005 : _DescriptionSql2000; } }
         #endregion
 
         #region 数据定义
@@ -720,10 +739,10 @@ namespace XCode.DataAccessLayer
 
         public override String TableExistSQL(String tableName)
         {
-            if (IsSQL2005)
-                return String.Format("select * from sysobjects where xtype='U' and name='{0}'", tableName);
-            else
-                return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatName(tableName));
+            //if (IsSQL2005)
+            return String.Format("select * from sysobjects where xtype='U' and name='{0}'", tableName);
+            //else
+            //    return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatName(tableName));
         }
 
         /// <summary>使用数据架构确定数据表是否存在，因为使用系统视图可能没有权限</summary>
@@ -771,12 +790,12 @@ namespace XCode.DataAccessLayer
 
         public override String AddTableDescriptionSQL(IDataTable table)
         {
-            return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, table.Description, Level0type);
+            return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, table.Description);
         }
 
         public override String DropTableDescriptionSQL(IDataTable table)
         {
-            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{1}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, Level0type);
+            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName);
         }
 
         public override String AddColumnSQL(IDataColumn field)
@@ -879,13 +898,13 @@ namespace XCode.DataAccessLayer
 
         public override String AddColumnDescriptionSQL(IDataColumn field)
         {
-            var sql = String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'{3}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", field.Table.TableName, field.Description, field.ColumnName, Level0type);
+            var sql = String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{2}'", field.Table.TableName, field.Description, field.ColumnName);
             return sql;
         }
 
         public override String DropColumnDescriptionSQL(IDataColumn field)
         {
-            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'{2}',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.TableName, field.ColumnName, Level0type);
+            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.TableName, field.ColumnName);
         }
 
         String DeletePrimaryKeySQL(IDataColumn field)

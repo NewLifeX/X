@@ -154,7 +154,7 @@ namespace XCode.DataAccessLayer
             get
             {
                 var db = DbFactory.GetDefault(ProviderType);
-                if (db == null) return DatabaseType.Other;
+                if (db == null) return DatabaseType.None;
                 return db.Type;
             }
         }
