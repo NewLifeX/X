@@ -345,14 +345,17 @@ namespace XCode
 
         static String DeleteSQL(IEntity entity, ref IDataParameter[] parameters)
         {
+            var op = EntityFactory.CreateOperate(entity.GetType());
+            var up = op.Session.Dal.Db.UserParameter;
+
             // 标识列作为删除关键字
             var exp = DefaultCondition(entity);
             var ps = new Dictionary<String, Object>();
+            if (!up) ps = null;
             var sql = exp?.GetString(false, ps);
             if (String.IsNullOrEmpty(sql)) return null;
 
-            var op = EntityFactory.CreateOperate(entity.GetType());
-            if (ps.Count > 0)
+            if (ps != null && ps.Count > 0)
             {
                 var db = op.Session.Dal.Db;
                 var dps = new List<IDataParameter>();
