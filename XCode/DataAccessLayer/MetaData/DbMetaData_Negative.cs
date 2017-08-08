@@ -653,10 +653,10 @@ namespace XCode.DataAccessLayer
             switch (schema)
             {
                 case DDLSchema.CreateTable:
-                    if (MetaDataCollections.Contains(_.Databases))
-                    {
+                    //if (MetaDataCollections.Contains(_.Databases))
+                    //{
 
-                    }
+                    //}
                     break;
                 case DDLSchema.TableExist:
                     {

@@ -219,17 +219,12 @@ namespace XCode.DataAccessLayer
         public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
 
         private Boolean _inited;
-        public void Init()
+        public Boolean CheckInit()
         {
-            if (_inited) return;
+            if (_inited) return false;
             _inited = true;
 
-            Task.Run(() =>
-            {
-                var ss = CreateSession();
-                ss.Execute("PRAGMA temp_store=memory");
-                //ss.Execute("PRAGMA temp_store_directory='{0}'".F(".".GetFullPath()));
-            });
+            return true;
         }
         #endregion
     }
@@ -248,7 +243,11 @@ namespace XCode.DataAccessLayer
             {
                 base.Open();
 
-                (Database as SQLite).Init();
+                //if ((Database as SQLite).CheckInit())
+                //{
+                //    Execute("PRAGMA temp_store=memory");
+                //    //ss.Execute("PRAGMA temp_store_directory='{0}'".F(".".GetFullPath()));
+                //}
             }
             catch (Exception ex)
             {

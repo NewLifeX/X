@@ -178,7 +178,7 @@ namespace XCode
 
             if (!Monitor.TryEnter(_wait_lock, ms))
             {
-                //if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms，调用栈：{2}", name, ms, XTrace.GetCaller());
+                //if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1}ms，调用栈：{2}", ThisType.Name, ms, XTrace.GetCaller(1, 8));
                 if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1:n0}ms失败", ThisType.Name, ms);
                 return false;
             }
@@ -419,7 +419,7 @@ namespace XCode
         /// <summary>上一次记录数，用于衡量缓存策略，不受缓存清空</summary>
         private Int64? _LastCount;
         /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
-        private Int64 _Count = -1L;
+        private Int64 _Count = -2L;
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
         /// <remarks>
         /// 1，检查静态字段，如果有数据且小于1000，直接返回，否则=>3
@@ -437,7 +437,7 @@ namespace XCode
                 var key = CacheKey;
 
                 // 当前缓存的值
-                Int64 n = _Count;
+                var n = _Count;
 
                 // 如果有缓存，则考虑返回吧
                 if (n >= 0)
@@ -451,9 +451,11 @@ namespace XCode
                 }
                 // 来到这里，有可能是第一次访问，静态字段没有缓存，也有可能是大于1000的缓存过期
 
+                if (n < -1 && DAL.Debug) DAL.WriteLog("{0}.Count 快速计算表记录数（非精确）[{1}/{2}]", ThisType.Name, TableName, ConnName);
+
                 CheckModel();
 
-                Int64 m = 0L;
+                var m = 0L;
                 // 小于1000的精确查询，大于1000的快速查询
                 if (n >= 0 && n <= 1000L)
                 {

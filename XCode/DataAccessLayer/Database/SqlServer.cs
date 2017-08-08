@@ -316,27 +316,13 @@ namespace XCode.DataAccessLayer
             {
                 // 热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码，这里加上N前缀
                 if (value == null) return isNullable ? "null" : "''";
-                //云飞扬：这里注释掉，空串返回''而不是null字符
-                //if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
-
-                // 这里直接判断原始数据类型有所不妥，如果原始数据库不是当前数据库，那么这里的判断将会失效
-                // 一个可行的办法就是给XField增加一个IsUnicode属性，但如此一来，XField就稍微变大了
-                // 目前暂时影响不大，后面看情况决定是否增加吧
-                //if (field.RawType == "ntext" ||
-                //    !String.IsNullOrEmpty(field.RawType) && (field.RawType.StartsWith("nchar") || field.RawType.StartsWith("nvarchar")))
 
                 // 为了兼容旧版本实体类
-                if (field.RawType.IsNullOrEmpty() || IsUnicode(field.RawType))
+                if (field.RawType.StartsWithIgnoreCase("n"))
                     return "N'" + value.ToString().Replace("'", "''") + "'";
                 else
                     return "'" + value.ToString().Replace("'", "''") + "'";
             }
-            //else if (field.DataType == typeof(Guid))
-            //{
-            //    if (value == null) return isNullable ? "null" : "''";
-
-            //    return String.Format("'{0}'", value);
-            //}
 
             return base.FormatValue(field, value);
         }

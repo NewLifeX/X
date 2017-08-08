@@ -20,21 +20,23 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_MetaDataCollections == null)
+                if (_MetaDataCollections != null) return _MetaDataCollections;
+                lock (this)
                 {
+                    if (_MetaDataCollections != null) return _MetaDataCollections;
+
                     var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
                     var dt = GetSchema(DbMetaDataCollectionNames.MetaDataCollections, null);
-                    if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+                    if (dt?.Rows != null && dt.Rows.Count > 0)
                     {
                         foreach (DataRow dr in dt.Rows)
                         {
                             var name = "" + dr[0];
-                            if (!String.IsNullOrEmpty(name) && !list.Contains(name)) list.Add(name);
+                            if (!name.IsNullOrEmpty() && !list.Contains(name)) list.Add(name);
                         }
                     }
-                    _MetaDataCollections = list;
+                    return _MetaDataCollections = list;
                 }
-                return _MetaDataCollections;
             }
         }
 
@@ -44,24 +46,26 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ReservedWords == null)
+                if (_ReservedWords != null) return _ReservedWords;
+                lock (this)
                 {
+                    if (_ReservedWords != null) return _ReservedWords;
+
                     var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
                     if (MetaDataCollections.Contains(DbMetaDataCollectionNames.ReservedWords))
                     {
                         var dt = GetSchema(DbMetaDataCollectionNames.ReservedWords, null);
-                        if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+                        if (dt?.Rows != null && dt.Rows.Count > 0)
                         {
                             foreach (DataRow dr in dt.Rows)
                             {
                                 var name = "" + dr[0];
-                                if (!String.IsNullOrEmpty(name) && !list.Contains(name)) list.Add(name);
+                                if (!name.IsNullOrEmpty() && !list.Contains(name)) list.Add(name);
                             }
                         }
                     }
-                    _ReservedWords = list;
+                    return _ReservedWords = list;
                 }
-                return _ReservedWords;
             }
         }
         #endregion

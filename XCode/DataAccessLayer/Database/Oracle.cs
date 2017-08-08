@@ -86,23 +86,6 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        ///// <summary>拥有者</summary>
-        //public override String Owner
-        //{
-        //    get
-        //    {
-        //        // 利用null和Empty的区别来判断是否已计算
-        //        if (base.Owner == null)
-        //        {
-        //            base.Owner = UserID;
-        //            if (String.IsNullOrEmpty(base.Owner)) base.Owner = String.Empty;
-        //        }
-
-        //        return base.Owner;
-        //    }
-        //    set { base.Owner = value; }
-        //}
-
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
@@ -186,20 +169,10 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        ///// <summary>当前时间函数</summary>
-        //public override String DateTimeNow { get { return "sysdate"; } }
-
-        ///// <summary>获取Guid的函数</summary>
-        //public override String NewGuid { get { return "sys_guid()"; } }
-
         /// <summary>已重载。格式化时间</summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
         public override String FormatDateTime(DateTime dateTime) { return "To_Date('" + dateTime.ToFullString() + "', 'YYYY-MM-DD HH24:MI:SS')"; }
-        //public override string FormatDateTime(DateTime dateTime)
-        //{
-        //    return String.Format("To_Date('{0}', 'YYYY-MM-DD HH24:MI:SS')", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
-        //}
 
         public override String FormatValue(IDataColumn field, Object value)
         {
@@ -209,10 +182,8 @@ namespace XCode.DataAccessLayer
             if (code == TypeCode.String)
             {
                 if (value == null) return isNullable ? "null" : "''";
-                //云飞扬：这里注释掉，应该返回''而不是null字符
-                //if (String.IsNullOrEmpty(value.ToString()) && isNullable) return "null";
 
-                if (field.RawType.IsNullOrEmpty() || IsUnicode(field.RawType))
+                if (field.RawType.StartsWithIgnoreCase("n"))
                     return "N'" + value.ToString().Replace("'", "''") + "'";
                 else
                     return "'" + value.ToString().Replace("'", "''") + "'";

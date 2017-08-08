@@ -229,14 +229,16 @@ namespace XCode.DataAccessLayer
         public IMetaData CreateMetaData()
         {
             if (_metadata != null && !_metadata.Disposed) return _metadata;
+            lock (this)
+            {
+                if (_metadata != null && !_metadata.Disposed) return _metadata;
 
-            _metadata = OnCreateMetaData();
-            //if (_metadata is DbMetaData) (_metadata as DbMetaData).Database = this;
-            // 减少一步类型转换
-            var meta = _metadata as DbMetaData;
-            if (meta != null) { meta.Database = this; }
+                _metadata = OnCreateMetaData();
+                // 减少一步类型转换
+                if (_metadata is DbMetaData meta) meta.Database = this;
 
-            return _metadata;
+                return _metadata;
+            }
         }
 
         /// <summary>创建元数据对象</summary>
@@ -501,17 +503,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        ///// <summary>当前时间函数</summary>
-        //public virtual String DateTimeNow { get { return null; } }
-
-        ///// <summary>最小时间</summary>
-        //public virtual DateTime DateTimeMin { get { return DateTime.MinValue; } }
-
         /// <summary>长文本长度</summary>
         public virtual Int32 LongTextLength { get { return 4000; } }
-
-        ///// <summary>获取Guid的函数</summary>
-        //public virtual String NewGuid { get { return "newid()"; } }
 
         /// <summary>
         /// 保留字字符串，其实可以在首次使用时动态从Schema中加载
@@ -669,19 +662,6 @@ namespace XCode.DataAccessLayer
         }
 
         internal protected virtual String ParamPrefix { get { return "@"; } }
-
-        /// <summary>是否Unicode编码。只是固定判断n开头的几个常见类型为Unicode编码，这种方法不是很严谨，可以考虑读取DataTypes架构</summary>
-        /// <param name="rawType"></param>
-        /// <returns></returns>
-        internal protected virtual Boolean IsUnicode(String rawType)
-        {
-            if (String.IsNullOrEmpty(rawType)) return false;
-
-            rawType = rawType.ToLower();
-            if (rawType.StartsWith("nchar") || rawType.StartsWith("nvarchar") || rawType.StartsWith("ntext") || rawType.StartsWith("nclob")) return true;
-
-            return false;
-        }
 
         /// <summary>字符串相加</summary>
         /// <param name="left"></param>

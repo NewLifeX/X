@@ -78,7 +78,7 @@ namespace XCode.DataAccessLayer
                     {
                         _Conn = Factory.CreateConnection();
                     }
-                    catch (ObjectDisposedException) { this.Dispose(); throw; }
+                    catch (ObjectDisposedException) { Dispose(); throw; }
                     //_Conn.ConnectionString = Database.ConnectionString;
                     checkConnStr();
                     _Conn.ConnectionString = ConnectionString;
