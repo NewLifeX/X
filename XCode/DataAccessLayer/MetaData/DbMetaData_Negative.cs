@@ -142,8 +142,6 @@ namespace XCode.DataAccessLayer
 
         protected virtual void CheckTable(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
         {
-            //Boolean onlySql = DAL.NegativeCheckOnly;
-
             if (dbtable == null)
             {
                 // 没有字段的表不创建
@@ -157,7 +155,6 @@ namespace XCode.DataAccessLayer
                 CreateTable(sb, entitytable, setting.CheckOnly);
 
                 // 仅获取语句
-                //if (onlySql) WriteLog("XCode.Negative.Enable没有设置为True，请手工创建表：" + entitytable.Name + Environment.NewLine + sb.ToString());
                 if (setting.CheckOnly) WriteLog("只检查不对数据库进行操作,请手工创建表：" + entitytable.TableName + Environment.NewLine + sb.ToString());
                 #endregion
             }
@@ -214,7 +211,6 @@ namespace XCode.DataAccessLayer
             {
                 if (!dbdic.ContainsKey(item.ColumnName.ToLower()))
                 {
-                    //AddColumn(sb, item, onlySql);
                     PerformSchema(sb, onlySql, DDLSchema.AddColumn, item);
                     if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
 
@@ -266,13 +262,10 @@ namespace XCode.DataAccessLayer
                     PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
                 }
                 if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
-                //if (IsColumnDefaultChanged(item, dbf, entityDb)) ChangeColmnDefault(sb, onlySql, item, dbf, entityDb);
 
                 if (item.Description + "" != dbf.Description + "")
                 {
                     // 先删除旧注释
-                    //if (!String.IsNullOrEmpty(dbf.Description)) DropColumnDescription(sb, dbf, onlySql);
-                    //if (!String.IsNullOrEmpty(dbf.Description)) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, dbf);
                     if (dbf.Description != null) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, dbf);
 
                     // 加上新注释
@@ -297,11 +290,9 @@ namespace XCode.DataAccessLayer
             if (entitytable.Description + "" != dbtable.Description + "")
             {
                 // 先删除旧注释
-                //if (!String.IsNullOrEmpty(dbtable.Description)) DropTableDescription(sb, dbtable, onlySql);
                 if (!String.IsNullOrEmpty(dbtable.Description)) PerformSchema(sb, onlySql, DDLSchema.DropTableDescription, dbtable);
 
                 // 加上新注释
-                //if (!String.IsNullOrEmpty(entitytable.Description)) AddTableDescription(sb, entitytable, onlySql);
                 if (!String.IsNullOrEmpty(entitytable.Description)) PerformSchema(sb, onlySql, DDLSchema.AddTableDescription, entitytable);
             }
             #endregion
@@ -369,15 +360,6 @@ namespace XCode.DataAccessLayer
             // 是否已改变
             var isChanged = false;
 
-            ////比较类型/允许空/主键
-            //if (entityColumn.DataType != dbColumn.DataType ||
-            //    entityColumn.Identity != dbColumn.Identity ||
-            //    entityColumn.PrimaryKey != dbColumn.PrimaryKey ||
-            //    entityColumn.Nullable != dbColumn.Nullable && !entityColumn.Identity && !entityColumn.PrimaryKey)
-            //{
-            //    isChanged = true;
-            //}
-
             //仅针对字符串类型比较长度
             if (!isChanged && Type.GetTypeCode(entityColumn.DataType) == TypeCode.String && entityColumn.Length != dbColumn.Length)
             {
@@ -387,15 +369,6 @@ namespace XCode.DataAccessLayer
                 if ((entityColumn.Length > Database.LongTextLength || entityColumn.Length <= 0) &&
                     (entityDb != null && dbColumn.Length > entityDb.LongTextLength || dbColumn.Length <= 0)) isChanged = false;
             }
-            //云飞扬 2017-07-03 注释掉下面验证decimal类型的精度和小数位数的代码
-            //这是因为DbMetaData.GetFormatParam方法中"为了最大程度保证兼容性，所有数据库的Decimal和DateTime类型不指定精度，均采用数据库默认值"
-            //chenqi 2017-3-28
-            //增加处理decimal类型的精度和小数位数
-            //if (!isChanged && Type.GetTypeCode(entityColumn.DataType) == TypeCode.Decimal &&
-            //    entityColumn.Scale != dbColumn.Scale)
-            //{
-            //    isChanged = true;
-            //}
 
             return isChanged;
         }
@@ -518,8 +491,6 @@ namespace XCode.DataAccessLayer
             {
                 if (sb.Length > 0) sb.AppendLine(";");
                 sb.Append(sql);
-
-                //if (!onlySql) XTrace.WriteLine("修改表：" + sql);
             }
             else if (sql == null)
             {
@@ -546,18 +517,6 @@ namespace XCode.DataAccessLayer
 
                 switch (schema)
                 {
-                    //case DDLSchema.CreateDatabase:
-                    //    break;
-                    //case DDLSchema.DropDatabase:
-                    //    break;
-                    //case DDLSchema.DatabaseExist:
-                    //    break;
-                    //case DDLSchema.CreateTable:
-                    //    break;
-                    //case DDLSchema.DropTable:
-                    //    break;
-                    //case DDLSchema.TableExist:
-                    //    break;
                     case DDLSchema.AddTableDescription:
                         WriteLog("{0}({1},{2})", schema, dt.TableName, dt.Description);
                         break;
@@ -578,20 +537,6 @@ namespace XCode.DataAccessLayer
                     case DDLSchema.DropColumnDescription:
                         WriteLog("{0}({1})", schema, dc.ColumnName);
                         break;
-                    //case DDLSchema.AddDefault:
-                    //    WriteLog("{0}({1},{2})", schema, dc.ColumnName, dc.Default);
-                    //    break;
-                    //case DDLSchema.DropDefault:
-                    //    WriteLog("{0}({1})", schema, dc.ColumnName);
-                    //    break;
-                    //case DDLSchema.CreateIndex:
-                    //    break;
-                    //case DDLSchema.DropIndex:
-                    //    break;
-                    //case DDLSchema.BackupDatabase:
-                    //    break;
-                    //case DDLSchema.RestoreDatabase:
-                    //    break;
                     default:
                         WriteLog("修改表：{0} {1}", schema.ToString(), s.ToString());
                         break;
@@ -607,11 +552,7 @@ namespace XCode.DataAccessLayer
                 }
                 catch (Exception ex)
                 {
-                    //#if DEBUG
-                    //WriteLog("修改表{0}失败！{1}", schema.ToString(), ex.ToString());
-                    //#else
                     WriteLog("修改表{0}失败！{1}", schema.ToString(), ex.Message);
-                    //#endif
                 }
             }
         }
@@ -621,7 +562,6 @@ namespace XCode.DataAccessLayer
             PerformSchema(sb, onlySql, DDLSchema.CreateTable, table);
 
             // 加上表注释
-            //if (!String.IsNullOrEmpty(table.Description)) AddTableDescription(sb, table, onlySql);
             if (!String.IsNullOrEmpty(table.Description)) PerformSchema(sb, onlySql, DDLSchema.AddTableDescription, table);
 
             // 加上字段注释
@@ -688,10 +628,6 @@ namespace XCode.DataAccessLayer
                     return AddColumnDescriptionSQL((IDataColumn)values[0]);
                 case DDLSchema.DropColumnDescription:
                     return DropColumnDescriptionSQL((IDataColumn)values[0]);
-                //case DDLSchema.AddDefault:
-                //    return AddDefaultSQL((IDataColumn)values[0]);
-                //case DDLSchema.DropDefault:
-                //    return DropDefaultSQL((IDataColumn)values[0]);
                 case DDLSchema.CreateIndex:
                     return CreateIndexSQL((IDataIndex)values[0]);
                 case DDLSchema.DropIndex:
@@ -783,9 +719,6 @@ namespace XCode.DataAccessLayer
             // 约束
             sb.Append(GetFieldConstraints(field, onlyDefine));
 
-            ////默认值
-            //sb.Append(GetFieldDefault(field, onlyDefine));
-
             return sb.ToString();
         }
 
@@ -797,12 +730,8 @@ namespace XCode.DataAccessLayer
         {
             if (field.PrimaryKey && field.Table.PrimaryKeys.Length < 2) return " Primary Key";
 
-            //是否为空
-            //if (!field.Nullable) sb.Append(" NOT NULL");
-            if (field.Nullable)
-                return " NULL";
-            else
-                return " NOT NULL";
+            // 是否为空
+            return field.Nullable ? " NULL" : " NOT NULL";
         }
         #endregion
 
@@ -880,8 +809,6 @@ namespace XCode.DataAccessLayer
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(FormatName(index.Columns[i]));
-                //else
-                //    sb.AppendFormat("{0} {1}", FormatKeyWord(index.Columns[i].Name), isAscs[i].Value ? "Asc" : "Desc");
             }
             sb.Append(")");
 

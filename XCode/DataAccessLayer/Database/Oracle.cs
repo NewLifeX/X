@@ -694,35 +694,6 @@ namespace XCode.DataAccessLayer
             return base.GetFieldType(field);
         }
 
-        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        //{
-        //    var drs = base.FindDataType(field, typeName, isLong);
-        //    if (drs != null && drs.Length > 1)
-        //    {
-        //        // 字符串
-        //        if (typeName == typeof(String).FullName)
-        //        {
-        //            foreach (var dr in drs)
-        //            {
-        //                var name = GetDataRowValue<String>(dr, "TypeName");
-        //                if (name == "NVARCHAR2" && field.Length <= Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //                else if (name == "NCLOB" && field.Length > Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //            }
-        //            foreach (var dr in drs)
-        //            {
-        //                var name = GetDataRowValue<String>(dr, "TypeName");
-        //                if (name == "VARCHAR2" && field.Length <= Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //                else if (name == "CLOB" && field.Length > Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //            }
-        //        }
-        //    }
-        //    return drs;
-        //}
-
         protected override void FixIndex(IDataIndex index, DataRow dr)
         {
             if (TryGetDataRowValue(dr, "UNIQUENESS", out String str))
@@ -735,10 +706,6 @@ namespace XCode.DataAccessLayer
         private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
         {
             { typeof(Byte[]), new String[] { "RAW({0})", "BFILE", "BLOB", "LONG RAW" } },
-            //{ typeof(Int64), new String[] { "INTERVAL YEAR({0}) TO MONTH" } },
-            //{ typeof(TimeSpan), new String[] { "INTERVAL DAY({0}) TO SECOND({1})" } },
-            //{ typeof(Single), new String[] { "BINARY_FLOAT" } },
-            //{ typeof(Double), new String[] { "BINARY_DOUBLE" } },
             { typeof(Boolean), new String[] { "NUMBER(1,0)" } },
             { typeof(Byte), new String[] { "NUMBER(1,0)" } },
             { typeof(Int16), new String[] { "NUMBER(5,0)" } },

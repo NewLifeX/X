@@ -410,56 +410,8 @@ namespace XCode.DataAccessLayer
             return typeName;
         }
 
-        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        //{
-        //    var drs = base.FindDataType(field, typeName, isLong);
-        //    if (drs != null && drs.Length > 1)
-        //    {
-        //        // 字符串
-        //        if (typeName == typeof(String).FullName)
-        //        {
-        //            foreach (var dr in drs)
-        //            {
-        //                var name = GetDataRowValue<String>(dr, "TypeName");
-        //                if (name == "nvarchar" && field.Length <= Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //                else if (name == "ntext" && field.Length > Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //            }
-        //            foreach (var dr in drs)
-        //            {
-        //                var name = GetDataRowValue<String>(dr, "TypeName");
-        //                if (name == "varchar" && field.Length <= Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //                else if (name == "text" && field.Length > Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        // 字符串
-        //        if (typeName.IndexOf("int", StringComparison.OrdinalIgnoreCase) >= 0)
-        //        {
-        //            var name = typeName.ToLower();
-        //            if (name == "int16")
-        //                name = "smallint";
-        //            else if (name == "int32")
-        //                name = "int";
-        //            else if (name == "int64")
-        //                name = "bigint";
-
-        //            if (name != typeName.ToLower()) return base.FindDataType(field, name, isLong);
-        //        }
-        //    }
-        //    return drs;
-        //}
-
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            String str = null;
-
-            //Boolean b = field.PrimaryKey;
             // SQLite要求自增必须是主键
             if (field.Identity && !field.PrimaryKey)
             {
@@ -469,11 +421,8 @@ namespace XCode.DataAccessLayer
                 // 自增字段作为主键
                 field.PrimaryKey = true;
             }
-            //try
-            {
-                str = base.GetFieldConstraints(field, onlyDefine);
-            }
-            //finally { if (field.Identity)field.PrimaryKey = b; }
+
+            var str = base.GetFieldConstraints(field, onlyDefine);
 
             if (field.Identity) str += " AUTOINCREMENT";
 
@@ -560,21 +509,7 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
-            for (var i = 0; i < index.Columns.Length; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.Append(FormatName(index.Columns[i]));
-                //else
-                //    sb.AppendFormat("{0} {1}", FormatKeyWord(index.Columns[i].Name), isAscs[i].Value ? "Asc" : "Desc");
-            }
-            //foreach (var item in index.Columns)
-            //{
-            //    sb.Append(FormatName(item));
-            //    sb.Append(", ");
-            //}
-            //sb.Remove(sb.Length - 2, 2);
-            sb.Append(")");
+            sb.AppendFormat(" On {0} ({1})", FormatName(index.Table.TableName), index.Columns.Select(e => FormatName(e)).Join(", "));
 
             return sb.ToString();
         }
@@ -603,7 +538,6 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            //String sql = base.CheckColumnsChange(entitytable, dbtable, onlySql);
             // 把onlySql设为true，让基类只产生语句而不执行
             var set = new NegativeSetting()
             {
@@ -650,26 +584,17 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 表和字段备注
-        public override String AddTableDescriptionSQL(IDataTable table)
-        {
-            // 返回Empty，告诉反向工程，该数据库类型不支持该功能，请不要输出日志
-            return String.Empty;
-        }
+        /// <summary>添加描述</summary>
+        /// <remarks>返回Empty，告诉反向工程，该数据库类型不支持该功能，请不要输出日志</remarks>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        public override String AddTableDescriptionSQL(IDataTable table) { return String.Empty; }
 
-        public override String DropTableDescriptionSQL(IDataTable table)
-        {
-            return String.Empty;
-        }
+        public override String DropTableDescriptionSQL(IDataTable table) { return String.Empty; }
 
-        public override String AddColumnDescriptionSQL(IDataColumn field)
-        {
-            return String.Empty;
-        }
+        public override String AddColumnDescriptionSQL(IDataColumn field) { return String.Empty; }
 
-        public override String DropColumnDescriptionSQL(IDataColumn field)
-        {
-            return String.Empty;
-        }
+        public override String DropColumnDescriptionSQL(IDataColumn field) { return String.Empty; }
         #endregion
 
         #region 反向工程
