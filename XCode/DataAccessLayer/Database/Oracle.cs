@@ -472,11 +472,11 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            if (_columns == null) _columns = GetSchema(_.Columns, new String[] { owner, tableName, null });
-            if (_indexes == null) _indexes = GetSchema(_.Indexes, new String[] { owner, null, owner, tableName });
-            if (_indexColumns == null) _indexColumns = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
+            var columns = GetSchema(_.Columns, new String[] { owner, tableName, null });
+            var indexes = GetSchema(_.Indexes, new String[] { owner, null, owner, tableName });
+            var indexColumns = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
 
-            return GetTables(dt.Rows.ToArray(), names);
+            return GetTables(dt.Rows.ToArray(), names, columns, indexes, indexColumns);
         }
 
         protected override void FixTable(IDataTable table, DataRow dr)
@@ -573,10 +573,11 @@ namespace XCode.DataAccessLayer
 
         /// <summary>取得指定表的所有列构架</summary>
         /// <param name="table"></param>
+        /// <param name="columns">列</param>
         /// <returns></returns>
-        protected override List<IDataColumn> GetFields(IDataTable table)
+        protected override List<IDataColumn> GetFields(IDataTable table, DataTable columns)
         {
-            var list = base.GetFields(table);
+            var list = base.GetFields(table, columns);
             if (list == null || list.Count < 1) return null;
 
             // 字段注释

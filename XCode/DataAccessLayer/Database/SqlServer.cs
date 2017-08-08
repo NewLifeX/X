@@ -494,9 +494,9 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override List<IDataIndex> GetIndexes(IDataTable table)
+        protected override List<IDataIndex> GetIndexes(IDataTable table, DataTable _indexes, DataTable _indexColumns)
         {
-            var list = base.GetIndexes(table);
+            var list = base.GetIndexes(table, _indexes, _indexColumns);
             if (list != null && list.Count > 0)
             {
                 foreach (var item in list)

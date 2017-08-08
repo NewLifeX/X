@@ -142,11 +142,15 @@ namespace XCode.DataAccessLayer
         /// <summary>获取指定数据行指定字段的值，不存在时返回空</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dr"></param>
-        /// <param name="name">名称</param>
+        /// <param name="names">名称</param>
         /// <returns></returns>
-        protected static T GetDataRowValue<T>(DataRow dr, String name)
+        protected static T GetDataRowValue<T>(DataRow dr, params String[] names)
         {
-            if (TryGetDataRowValue(dr, name, out T value)) return value;
+            foreach (var item in names)
+            {
+                if (TryGetDataRowValue(dr, item, out T value)) return value;
+            }
+
             return default(T);
         }
 

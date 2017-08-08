@@ -132,10 +132,13 @@ namespace Test
         static void Test3()
         {
             var dal = DAL.Create("Membership");
-            var meta = dal.Db.CreateMetaData();
-            var ts = meta.Invoke("GetDataTypes") as String;
+            //var meta = dal.Db.CreateMetaData();
+            //var ts = meta.Invoke("GetDataTypes") as String;
 
-            XTrace.WriteLine(ts);
+            //XTrace.WriteLine(ts);
+
+            var xml = dal.Export();
+            Console.WriteLine(xml);
         }
     }
 }
