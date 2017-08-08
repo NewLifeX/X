@@ -536,7 +536,8 @@ namespace XCode.DataAccessLayer
         protected virtual Type GetDataType(IDataColumn field)
         {
             var rawType = field.RawType;
-            var rawType2 = (rawType.Substring(null, "(") ?? rawType) + "(";
+            if (rawType.Contains("(")) rawType = rawType.Substring(null, "(");
+            var rawType2 = rawType + "(";
             foreach (var item in Types)
             {
                 if (rawType.EqualIgnoreCase(item.Value)) return item.Key;

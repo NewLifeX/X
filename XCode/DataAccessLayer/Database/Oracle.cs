@@ -476,45 +476,42 @@ namespace XCode.DataAccessLayer
             var indexes = GetSchema(_.Indexes, new String[] { owner, null, owner, tableName });
             var indexColumns = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
 
-            return GetTables(dt.Rows.ToArray(), names, columns, indexes, indexColumns);
+            if (MetaDataCollections.Contains(_.PrimaryKeys)) _PrimaryKeys = GetSchema(_.PrimaryKeys, new String[] { owner, tableName, null });
+
+            var list = GetTables(dt.Rows.ToArray(), names, columns, indexes, indexColumns);
+            _PrimaryKeys = null;
+
+            return list;
         }
 
+        private DataTable _PrimaryKeys;
         protected override void FixTable(IDataTable table, DataRow dr)
         {
             base.FixTable(table, dr);
 
             // 主键
-            if (MetaDataCollections.Contains(_.PrimaryKeys))
+            var dt = _PrimaryKeys;
+            if (dt != null && dt.Rows.Count > 0)
             {
-                var owner = Owner;
-                //if (owner.IsNullOrEmpty()) owner = UserID;
-
-                var dt = GetSchema(_.PrimaryKeys, new String[] { owner, table.TableName, null });
-                if (dt != null && dt.Rows.Count > 0)
+                // 找到主键所在索引，这个索引的列才是主键
+                if (TryGetDataRowValue(dt.Rows[0], _.IndexName, out String name) && !String.IsNullOrEmpty(name))
                 {
-                    // 找到主键所在索引，这个索引的列才是主键
-                    if (TryGetDataRowValue(dt.Rows[0], _.IndexName, out String name) && !String.IsNullOrEmpty(name))
+                    var di = table.Indexes.FirstOrDefault(i => i.Name == name);
+                    if (di != null)
                     {
-                        var di = table.Indexes.FirstOrDefault(i => i.Name == name);
-                        if (di != null)
+                        di.PrimaryKey = true;
+                        foreach (var dc in table.Columns)
                         {
-                            di.PrimaryKey = true;
-                            foreach (var dc in table.Columns)
-                            {
-                                dc.PrimaryKey = di.Columns.Contains(dc.ColumnName);
-                            }
+                            dc.PrimaryKey = di.Columns.Contains(dc.ColumnName);
                         }
                     }
                 }
             }
 
             // 表注释 USER_TAB_COMMENTS
-            //String sql = String.Format("Select COMMENTS From USER_TAB_COMMENTS Where TABLE_NAME='{0}'", table.Name);
-            //String comment = (String)Database.CreateSession().ExecuteScalar(sql);
-            var comment = GetTableComment(table.TableName);
-            if (!String.IsNullOrEmpty(comment)) table.Description = comment;
+            table.Description = GetTableComment(table.TableName);
 
-            if (table == null || table.Columns == null || table.Columns.Count < 1) return;
+            if (table?.Columns == null || table.Columns.Count == 0) return;
 
             // 检查该表是否有序列
             if (CheckSeqExists("SEQ_{0}".F(table.TableName)))
