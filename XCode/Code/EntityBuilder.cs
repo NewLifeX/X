@@ -329,7 +329,7 @@ namespace XCode.Code
                         if (conv.GetMethod("To" + dc.DataType.Name, new Type[] { typeof(Object) }) != null)
                             WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, dc.DataType.Name);
                         else
-                            WriteLine("case __.{0} : _{0} = ({1})value; break;", dc.Name, dc.DataType.Name);
+                            WriteLine("case __.{0} : _{0} = ({1})Convert.ToInt32(value); break;", dc.Name, dc.DataType.Name);
                     }
                     WriteLine("default: base[name] = value; break;");
                     WriteLine("}");

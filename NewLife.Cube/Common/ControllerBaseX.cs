@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Web.Mvc;
 using NewLife.Log;
 using NewLife.Reflection;
+using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -73,7 +74,7 @@ namespace NewLife.Cube
                             }
                         }
 
-                        node.Save();
+                        (node as IEntity).Save();
                     }
                 }
             }

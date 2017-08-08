@@ -375,14 +375,16 @@ namespace XCode.DataAccessLayer
 
         protected virtual Boolean IsColumnTypeChanged(IDataColumn entityColumn, IDataColumn dbColumn)
         {
-            if (entityColumn.DataType == dbColumn.DataType) return false;
+            var type = entityColumn.DataType;
+            if (type.IsEnum) type = typeof(Int32);
+            if (type == dbColumn.DataType) return false;
 
             // 类型不匹配，不一定就是有改变，还要查找类型对照表是否有匹配的，只要存在任意一个匹配，就说明是合法的
             foreach (var item in FieldTypeMaps)
             {
                 //if (entityColumn.DataType == item.Key && dbColumn.DataType == item.Value) return false;
                 // 把不常用的类型映射到常用类型，比如数据库SByte映射到实体类Byte，UInt32映射到Int32，而不需要重新修改数据库
-                if (dbColumn.DataType == item.Key && entityColumn.DataType == item.Value) return false;
+                if (dbColumn.DataType == item.Key && type == item.Value) return false;
             }
 
             return true;

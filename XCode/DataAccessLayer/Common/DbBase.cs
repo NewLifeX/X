@@ -594,6 +594,9 @@ namespace XCode.DataAccessLayer
             else if (value != null)
                 type = value.GetType();
 
+            // 枚举
+            if (type.IsEnum) type = typeof(Int32);
+
             var code = System.Type.GetTypeCode(type);
             if (code == TypeCode.String)
             {

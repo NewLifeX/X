@@ -82,8 +82,8 @@ namespace NewLife.Cube
             var menu = ManageProvider.Menu.Current;
             if (menu != null)
             {
-                var role = (user as IUser).Role;
-                if (role.Has(menu.ID, Permission)) return;
+                var role = user?.Role;
+                if (role != null && role.Has(menu.ID, Permission)) return;
             }
             else
             {

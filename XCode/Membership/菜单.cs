@@ -21,7 +21,7 @@ namespace XCode.Membership
         /// <summary>编号</summary>
         [DisplayName("编号")]
         [Description("编号")]
-        [DataObjectField(true, true, false, 10)]
+        [DataObjectField(true, true, false, 0)]
         [BindColumn("ID", "编号", "int")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
@@ -45,7 +45,7 @@ namespace XCode.Membership
         /// <summary>父编号</summary>
         [DisplayName("父编号")]
         [Description("父编号")]
-        [DataObjectField(false, false, false, 10)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("ParentID", "父编号", "int")]
         public Int32 ParentID { get { return _ParentID; } set { if (OnPropertyChanging(__.ParentID, value)) { _ParentID = value; OnPropertyChanged(__.ParentID); } } }
 
@@ -61,7 +61,7 @@ namespace XCode.Membership
         /// <summary>排序</summary>
         [DisplayName("排序")]
         [Description("排序")]
-        [DataObjectField(false, false, false, 10)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("Sort", "排序", "int")]
         public Int32 Sort { get { return _Sort; } set { if (OnPropertyChanging(__.Sort, value)) { _Sort = value; OnPropertyChanged(__.Sort); } } }
 
@@ -69,7 +69,7 @@ namespace XCode.Membership
         /// <summary>是否可见</summary>
         [DisplayName("是否可见")]
         [Description("是否可见")]
-        [DataObjectField(false, false, false, 1)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("Visible", "是否可见", "bit")]
         public Boolean Visible { get { return _Visible; } set { if (OnPropertyChanging(__.Visible, value)) { _Visible = value; OnPropertyChanged(__.Visible); } } }
 
@@ -77,7 +77,7 @@ namespace XCode.Membership
         /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
         [DisplayName("必要的菜单")]
         [Description("必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色")]
-        [DataObjectField(false, false, false, 1)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("Necessary", "必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", "bit")]
         public Boolean Necessary { get { return _Necessary; } set { if (OnPropertyChanging(__.Necessary, value)) { _Necessary = value; OnPropertyChanged(__.Necessary); } } }
 

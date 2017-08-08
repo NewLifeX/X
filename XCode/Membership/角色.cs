@@ -20,7 +20,7 @@ namespace XCode.Membership
         /// <summary>编号</summary>
         [DisplayName("编号")]
         [Description("编号")]
-        [DataObjectField(true, true, false, 10)]
+        [DataObjectField(true, true, false, 0)]
         [BindColumn("ID", "编号", "int")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
@@ -36,7 +36,7 @@ namespace XCode.Membership
         /// <summary>是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
         [DisplayName("是否系统角色")]
         [Description("是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除")]
-        [DataObjectField(false, false, false, 1)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("IsSystem", "是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除", "bit")]
         public Boolean IsSystem { get { return _IsSystem; } set { if (OnPropertyChanging(__.IsSystem, value)) { _IsSystem = value; OnPropertyChanged(__.IsSystem); } } }
 

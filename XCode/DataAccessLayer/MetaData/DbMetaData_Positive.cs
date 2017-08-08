@@ -366,8 +366,13 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual String GetFieldType(IDataColumn field)
         {
-            var ts = Types;
-            if (field.DataType == null || !ts.TryGetValue(field.DataType, out String[] ns)) return null;
+            var type = field.DataType;
+            if (type == null) return null;
+
+            // 处理枚举
+            if (type.IsEnum) type = typeof(Int32);
+
+            if (!Types.TryGetValue(type, out String[] ns)) return null;
 
             var typeName = ns.FirstOrDefault();
             if (typeName.Contains("{0}")) typeName = typeName.F(field.Length);

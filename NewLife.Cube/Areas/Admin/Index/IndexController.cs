@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Reflection;
 using XCode.Membership;
+using XCode;
 
 namespace NewLife.Cube.Admin.Controllers
 {
@@ -80,7 +81,7 @@ namespace NewLife.Cube.Admin.Controllers
             if (menu.Visible)
             {
                 menu.Visible = false;
-                menu.Save();
+                (menu as IEntity).Save();
             }
 
             return base.ScanActionMenu(menu);

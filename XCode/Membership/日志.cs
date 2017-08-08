@@ -22,7 +22,7 @@ namespace XCode.Membership
         /// <summary>编号</summary>
         [DisplayName("编号")]
         [Description("编号")]
-        [DataObjectField(true, true, false, 10)]
+        [DataObjectField(true, true, false, 0)]
         [BindColumn("ID", "编号", "int")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
@@ -46,7 +46,7 @@ namespace XCode.Membership
         /// <summary>链接</summary>
         [DisplayName("链接")]
         [Description("链接")]
-        [DataObjectField(false, false, false, 10)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("LinkID", "链接", "int")]
         public Int32 LinkID { get { return _LinkID; } set { if (OnPropertyChanging(__.LinkID, value)) { _LinkID = value; OnPropertyChanged(__.LinkID); } } }
 
@@ -62,7 +62,7 @@ namespace XCode.Membership
         /// <summary>用户编号</summary>
         [DisplayName("用户编号")]
         [Description("用户编号")]
-        [DataObjectField(false, false, false, 10)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("CreateUserID", "用户编号", "int")]
         public Int32 CreateUserID { get { return _CreateUserID; } set { if (OnPropertyChanging(__.CreateUserID, value)) { _CreateUserID = value; OnPropertyChanged(__.CreateUserID); } } }
 
@@ -78,7 +78,7 @@ namespace XCode.Membership
         /// <summary>时间</summary>
         [DisplayName("时间")]
         [Description("时间")]
-        [DataObjectField(false, false, true, 3)]
+        [DataObjectField(false, false, true, 0)]
         [BindColumn("CreateTime", "时间", "datetime")]
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
