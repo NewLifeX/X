@@ -747,6 +747,22 @@ namespace XCode.DataAccessLayer
             base.FixIndex(index, dr);
         }
 
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<TypeCode, String[]> _DataTypes = new Dictionary<TypeCode, String[]>
+        {
+            { TypeCode.Boolean, new String[]{ } },
+            { TypeCode.Byte, new String[]{ } },
+            { TypeCode.Int16, new String[]{ } },
+            { TypeCode.Int32, new String[]{ } },
+            { TypeCode.Int64, new String[]{ } },
+            { TypeCode.Single, new String[]{ } },
+            { TypeCode.Double, new String[]{ } },
+            { TypeCode.Decimal, new String[]{ } },
+            { TypeCode.DateTime, new String[]{ } },
+            { TypeCode.String, new String[]{ } },
+            { TypeCode.Object, new String[]{ } },
+        };
+
         #region 架构定义
         public override Object SetSchema(DDLSchema schema, params Object[] values)
         {

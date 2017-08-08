@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -128,68 +131,11 @@ namespace Test
 
         static void Test3()
         {
-            //var table = UserX.Meta.Table.DataTable;
-            //var builder = new ClassBuilder
-            //{
-            //    Table = table,
-            //};
+            var dal = DAL.Create("Membership");
+            var meta = dal.Db.CreateMetaData();
+            var ts = meta.Invoke("GetDataTypes") as String;
 
-            //builder.Execute();
-
-            //Console.WriteLine();
-            //Console.WriteLine(builder.ToString());
-            //builder.Save(".Biz.cs");
-
-            //Console.WriteLine();
-            //Console.WriteLine();
-            //builder.Pure = true;
-            //builder.Namespace = "xxx.Entities";
-
-            //builder.Execute();
-            //Console.WriteLine(builder.ToString());
-            //builder.Save();
-
-            //Console.WriteLine();
-            //Console.WriteLine();
-            //builder.Interface = true;
-
-            //builder.Execute();
-            //Console.WriteLine(builder.ToString());
-            //builder.Save();
-
-            //var b = new EntityBuilder();
-            //b.Table = Shard.Meta.Table.DataTable;
-            //b.ConnName = Shard.Meta.ConnName;
-            //b.Namespace = Shard.Meta.ThisType.Namespace;
-            //b.GenericType = true;
-            //b.BaseClass = "LogEntity";
-            //b.Execute();
-            //b.Save();
-
-            //b.Business = true;
-            //b.Execute();
-            //b.Save(".Biz.cs", true);
-
-            //var tables = DAL.Import(File.ReadAllText("..\\Src\\XCode\\Membership\\Member.xml".GetFullPath()));
-            //foreach (var item in tables)
-            //{
-            //    var b = new EntityBuilder();
-            //    b.Table = item;
-            //    b.AllTables = tables;
-            //    //b.GenericType = true;
-            //    //b.BaseClass = "LogEntity";
-            //    b.Execute();
-            //    b.Output = "TE";
-            //    b.Save();
-
-            //    b.Business = true;
-            //    b.Execute();
-            //    b.Save(".Biz.cs", true);
-            //}
-
-            var count = EntityBuilder.Build("..\\Src\\XCode\\Membership\\Member.xml", null, "XCode.Membership");
-            count += EntityBuilder.Build("..\\Src\\XCode\\Sharding\\Shard.xml", null, "XCode.Sharding", "Shard");
-            Console.WriteLine(count);
+            XTrace.WriteLine(ts);
         }
     }
 }

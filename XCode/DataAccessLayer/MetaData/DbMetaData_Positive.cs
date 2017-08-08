@@ -661,6 +661,34 @@ namespace XCode.DataAccessLayer
 
             return "0";
         }
+
+        /// <summary>获取数据类型字符串</summary>
+        /// <returns></returns>
+        public String GetDataTypes()
+        {
+            var dt = DataTypes;
+            var rows = dt.Select("", "DataType Asc, IsBestMatch Desc");
+            var dic = new Dictionary<String, List<String>>();
+            foreach (var dr in rows)
+            {
+                var tname = (dr["DataType"] + "").TrimStart("System.");
+                if (!dic.TryGetValue(tname, out List<String> list)) dic[tname] = list = new List<String>();
+                list.Add(dr["CreateFormat"] + "");
+            }
+
+            dic = dic.OrderBy(e => e.Key.GetType().GetTypeCode()).ToDictionary(e => e.Key, e => e.Value);
+
+            var sb = new StringBuilder();
+            foreach (var item in dic)
+            {
+                if (sb.Length > 0) sb.AppendLine(",");
+
+                sb.Append(new String(' ', 12));
+                sb.AppendFormat("{{ typeof({0}), new String[] {{ {1} }} }}", item.Key, item.Value.Select(e => "\"" + e + "\"").Join(", "));
+            }
+
+            return Environment.NewLine + sb.ToString();
+        }
         #endregion
     }
 }

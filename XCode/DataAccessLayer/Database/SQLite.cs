@@ -338,6 +338,23 @@ namespace XCode.DataAccessLayer
                 return base.FieldTypeMaps;
             }
         }
+
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        {
+            { typeof(Boolean), new String[] { "bit", "yesno", "logical", "bool", "boolean" } },
+            { typeof(Byte), new String[] { "tinyint" } },
+            { typeof(Byte[]), new String[] { "binary", "varbinary", "blob", "image", "general", "oleobject" } },
+            { typeof(DateTime), new String[] { "datetime", "smalldate", "timestamp", "date", "time" } },
+            { typeof(Decimal), new String[] { "money", "decimal", "currency", "numeric" } },
+            { typeof(Double), new String[] { "real", "float", "double" } },
+            { typeof(Guid), new String[] { "uniqueidentifier", "guid" } },
+            { typeof(Int16), new String[] { "smallint" } },
+            { typeof(Int32), new String[] { "int" } },
+            { typeof(Int64), new String[] { "integer", "counter", "autoincrement", "identity", "long", "bigint" } },
+            { typeof(Single), new String[] { "single" } },
+            { typeof(String), new String[] { "nvarchar({0})", "varchar({0})", "memo({0})", "longtext({0})", "note({0})", "text({0})", "ntext({0})", "string({0})", "char({0})", "char({0})" } }
+        };
         #endregion
 
         #region 构架
