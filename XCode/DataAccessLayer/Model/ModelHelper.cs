@@ -543,67 +543,58 @@ namespace XCode.DataAccessLayer
             {
                 case TypeCode.Boolean:
                     dc.RawType = "bit";
-                    dc.Length = 1;
+                    //dc.Length = 1;
                     dc.Nullable = false;
                     break;
                 case TypeCode.Byte:
                 case TypeCode.Char:
                 case TypeCode.SByte:
                     dc.RawType = "tinyint";
-                    dc.Length = 1;
+                    //dc.Length = 1;
                     dc.Nullable = false;
                     break;
                 case TypeCode.DateTime:
                     dc.RawType = "datetime";
-                    dc.Length = 3;
+                    //dc.Length = 3;
                     //dc.Precision = 3;
                     dc.Nullable = true;
                     break;
                 case TypeCode.Int16:
                 case TypeCode.UInt16:
                     dc.RawType = "smallint";
-                    dc.Length = 5;
+                    //dc.Length = 5;
                     //dc.Precision = 5;
                     dc.Nullable = false;
-
-                    //// 自增字段非空
-                    //dc.Nullable = oridc == null || !oridc.Identity;
                     break;
                 case TypeCode.Int32:
                 case TypeCode.UInt32:
                     dc.RawType = "int";
-                    dc.Length = 10;
+                    //dc.Length = 10;
                     //dc.Precision = 10;
                     dc.Nullable = false;
-
-                    //// 自增字段非空
-                    //dc.Nullable = oridc == null || !oridc.Identity;
                     break;
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
                     dc.RawType = "bigint";
-                    dc.Length = 19;
+                    //dc.Length = 19;
                     //dc.Precision = 20;
                     dc.Nullable = false;
-
-                    //// 自增字段非空
-                    //dc.Nullable = oridc == null || !oridc.Identity;
                     break;
                 case TypeCode.Single:
                     dc.RawType = "real";
-                    dc.Length = 7;
+                    //dc.Length = 7;
                     //dc.Precision = 20;
                     dc.Nullable = false;
                     break;
                 case TypeCode.Double:
                     dc.RawType = "double";
-                    dc.Length = 53;
+                    //dc.Length = 53;
                     //dc.Precision = 20;
                     dc.Nullable = false;
                     break;
                 case TypeCode.Decimal:
                     dc.RawType = "money";
-                    dc.Length = 19;
+                    //dc.Length = 19;
                     //dc.Precision = 20;
                     dc.Nullable = false;
                     break;
