@@ -323,6 +323,11 @@ namespace XCode.DataAccessLayer
     /// <summary>SQLite元数据</summary>
     class SQLiteMetaData : FileDbMetaData
     {
+        public SQLiteMetaData()
+        {
+            Types = _DataTypes;
+        }
+
         #region 数据类型
         protected override List<KeyValuePair<Type, Type>> FieldTypeMaps
         {
@@ -405,50 +410,50 @@ namespace XCode.DataAccessLayer
             return typeName;
         }
 
-        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        {
-            var drs = base.FindDataType(field, typeName, isLong);
-            if (drs != null && drs.Length > 1)
-            {
-                // 字符串
-                if (typeName == typeof(String).FullName)
-                {
-                    foreach (var dr in drs)
-                    {
-                        var name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "nvarchar" && field.Length <= Database.LongTextLength)
-                            return new DataRow[] { dr };
-                        else if (name == "ntext" && field.Length > Database.LongTextLength)
-                            return new DataRow[] { dr };
-                    }
-                    foreach (var dr in drs)
-                    {
-                        var name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "varchar" && field.Length <= Database.LongTextLength)
-                            return new DataRow[] { dr };
-                        else if (name == "text" && field.Length > Database.LongTextLength)
-                            return new DataRow[] { dr };
-                    }
-                }
-            }
-            else
-            {
-                // 字符串
-                if (typeName.IndexOf("int", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    var name = typeName.ToLower();
-                    if (name == "int16")
-                        name = "smallint";
-                    else if (name == "int32")
-                        name = "int";
-                    else if (name == "int64")
-                        name = "bigint";
+        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
+        //{
+        //    var drs = base.FindDataType(field, typeName, isLong);
+        //    if (drs != null && drs.Length > 1)
+        //    {
+        //        // 字符串
+        //        if (typeName == typeof(String).FullName)
+        //        {
+        //            foreach (var dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "nvarchar" && field.Length <= Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //                else if (name == "ntext" && field.Length > Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //            }
+        //            foreach (var dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "varchar" && field.Length <= Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //                else if (name == "text" && field.Length > Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // 字符串
+        //        if (typeName.IndexOf("int", StringComparison.OrdinalIgnoreCase) >= 0)
+        //        {
+        //            var name = typeName.ToLower();
+        //            if (name == "int16")
+        //                name = "smallint";
+        //            else if (name == "int32")
+        //                name = "int";
+        //            else if (name == "int64")
+        //                name = "bigint";
 
-                    if (name != typeName.ToLower()) return base.FindDataType(field, name, isLong);
-                }
-            }
-            return drs;
-        }
+        //            if (name != typeName.ToLower()) return base.FindDataType(field, name, isLong);
+        //        }
+        //    }
+        //    return drs;
+        //}
 
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {

@@ -409,6 +409,11 @@ namespace XCode.DataAccessLayer
     /// <summary>Oracle元数据</summary>
     class OracleMeta : RemoteDbMetaData
     {
+        public OracleMeta()
+        {
+            Types = _DataTypes;
+        }
+
         /// <summary>拥有者</summary>
         public String Owner
         {
@@ -623,9 +628,9 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
+        protected override void FixField(IDataColumn field, DataRow drColumn)
         {
-            base.FixField(field, drColumn, drDataType);
+            base.FixField(field, drColumn);
 
             // 处理数字类型
             if (field.RawType.StartsWith("NUMBER"))
@@ -710,34 +715,34 @@ namespace XCode.DataAccessLayer
             return base.GetFieldType(field);
         }
 
-        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        {
-            var drs = base.FindDataType(field, typeName, isLong);
-            if (drs != null && drs.Length > 1)
-            {
-                // 字符串
-                if (typeName == typeof(String).FullName)
-                {
-                    foreach (var dr in drs)
-                    {
-                        var name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "NVARCHAR2" && field.Length <= Database.LongTextLength)
-                            return new DataRow[] { dr };
-                        else if (name == "NCLOB" && field.Length > Database.LongTextLength)
-                            return new DataRow[] { dr };
-                    }
-                    foreach (var dr in drs)
-                    {
-                        var name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "VARCHAR2" && field.Length <= Database.LongTextLength)
-                            return new DataRow[] { dr };
-                        else if (name == "CLOB" && field.Length > Database.LongTextLength)
-                            return new DataRow[] { dr };
-                    }
-                }
-            }
-            return drs;
-        }
+        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
+        //{
+        //    var drs = base.FindDataType(field, typeName, isLong);
+        //    if (drs != null && drs.Length > 1)
+        //    {
+        //        // 字符串
+        //        if (typeName == typeof(String).FullName)
+        //        {
+        //            foreach (var dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "NVARCHAR2" && field.Length <= Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //                else if (name == "NCLOB" && field.Length > Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //            }
+        //            foreach (var dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "VARCHAR2" && field.Length <= Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //                else if (name == "CLOB" && field.Length > Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //            }
+        //        }
+        //    }
+        //    return drs;
+        //}
 
         protected override void FixIndex(IDataIndex index, DataRow dr)
         {

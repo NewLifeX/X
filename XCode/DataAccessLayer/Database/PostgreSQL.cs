@@ -205,6 +205,11 @@ namespace XCode.DataAccessLayer
     /// <summary>PostgreSQL元数据</summary>
     class PostgreSQLMetaData : RemoteDbMetaData
     {
+        public PostgreSQLMetaData()
+        {
+            Types = _DataTypes;
+        }
+
         protected override void FixTable(IDataTable table, DataRow dr)
         {
             // 注释
@@ -249,62 +254,62 @@ namespace XCode.DataAccessLayer
             base.FixField(field, dr);
         }
 
-        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        {
-            DataRow[] drs = base.FindDataType(field, typeName, isLong);
-            if (drs != null && drs.Length > 1)
-            {
-                // 无符号/有符号
-                if (!String.IsNullOrEmpty(field.RawType))
-                {
-                    Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
+        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
+        //{
+        //    DataRow[] drs = base.FindDataType(field, typeName, isLong);
+        //    if (drs != null && drs.Length > 1)
+        //    {
+        //        // 无符号/有符号
+        //        if (!String.IsNullOrEmpty(field.RawType))
+        //        {
+        //            Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
 
-                    foreach (DataRow dr in drs)
-                    {
-                        String format = GetDataRowValue<String>(dr, "CreateFormat");
+        //            foreach (DataRow dr in drs)
+        //            {
+        //                String format = GetDataRowValue<String>(dr, "CreateFormat");
 
-                        if (IsUnsigned && format.ToLower().Contains("unsigned"))
-                            return new DataRow[] { dr };
-                        else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
-                            return new DataRow[] { dr };
-                    }
-                }
+        //                if (IsUnsigned && format.ToLower().Contains("unsigned"))
+        //                    return new DataRow[] { dr };
+        //                else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
+        //                    return new DataRow[] { dr };
+        //            }
+        //        }
 
-                // 字符串
-                if (typeName == typeof(String).FullName)
-                {
-                    foreach (var dr in drs)
-                    {
-                        var name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "NVARCHAR" && field.Length <= Database.LongTextLength)
-                            return new DataRow[] { dr };
-                        else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
-                            return new DataRow[] { dr };
-                    }
-                    foreach (var dr in drs)
-                    {
-                        var name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "VARCHAR" && field.Length <= Database.LongTextLength)
-                            return new DataRow[] { dr };
-                    }
-                }
+        //        // 字符串
+        //        if (typeName == typeof(String).FullName)
+        //        {
+        //            foreach (var dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "NVARCHAR" && field.Length <= Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //                else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //            }
+        //            foreach (var dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "VARCHAR" && field.Length <= Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //            }
+        //        }
 
-                // 时间日期
-                if (typeName == typeof(DateTime).FullName)
-                {
-                    // DateTime的范围是0001到9999
-                    // Timestamp的范围是1970到2038
-                    //String d = field.Default;
-                    //CheckAndGetDefault(field, ref d);
-                    foreach (DataRow dr in drs)
-                    {
-                        var name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "DATETIME") return new DataRow[] { dr };
-                    }
-                }
-            }
-            return drs;
-        }
+        //        // 时间日期
+        //        if (typeName == typeof(DateTime).FullName)
+        //        {
+        //            // DateTime的范围是0001到9999
+        //            // Timestamp的范围是1970到2038
+        //            //String d = field.Default;
+        //            //CheckAndGetDefault(field, ref d);
+        //            foreach (DataRow dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "DATETIME") return new DataRow[] { dr };
+        //            }
+        //        }
+        //    }
+        //    return drs;
+        //}
 
         protected override String GetFieldType(IDataColumn field)
         {

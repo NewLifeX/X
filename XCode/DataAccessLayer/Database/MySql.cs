@@ -297,6 +297,11 @@ namespace XCode.DataAccessLayer
     /// <summary>MySql元数据</summary>
     class MySqlMetaData : RemoteDbMetaData
     {
+        public MySqlMetaData()
+        {
+            Types = _DataTypes;
+        }
+
         protected override void FixTable(IDataTable table, DataRow dr)
         {
             // 注释
@@ -342,105 +347,105 @@ namespace XCode.DataAccessLayer
             base.FixField(field, dr);
         }
 
-        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        {
-            // MySql没有ntext，映射到text
-            if (typeName.EqualIgnoreCase("ntext")) typeName = "text";
-            //field.Table.DbType == DatabaseType.MySql
-            if (field.DataType == typeof(String) && field.Length == -1)
-            {
-                //这里修正为longtext
-                return this.DataTypes.Select("TypeName='LONGTEXT'");
-            }
-            var dbType = field.Table.DbType;
-            if (typeName == "text" && (dbType == DatabaseType.SqlServer || dbType == DatabaseType.SQLite))
-            {
-                //SQL Server 中的text容量要远远大于MySQL中的Text，所以要改为LongText。
-                return this.DataTypes.Select("TypeName='LONGTEXT'");
-            }
-            //if (dbType == DatabaseType.SqlServer || dbType == DatabaseType.SQLite)
-            //{
+        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
+        //{
+        //    // MySql没有ntext，映射到text
+        //    if (typeName.EqualIgnoreCase("ntext")) typeName = "text";
+        //    //field.Table.DbType == DatabaseType.MySql
+        //    if (field.DataType == typeof(String) && field.Length == -1)
+        //    {
+        //        //这里修正为longtext
+        //        return this.DataTypes.Select("TypeName='LONGTEXT'");
+        //    }
+        //    var dbType = field.Table.DbType;
+        //    if (typeName == "text" && (dbType == DatabaseType.SqlServer || dbType == DatabaseType.SQLite))
+        //    {
+        //        //SQL Server 中的text容量要远远大于MySQL中的Text，所以要改为LongText。
+        //        return this.DataTypes.Select("TypeName='LONGTEXT'");
+        //    }
+        //    //if (dbType == DatabaseType.SqlServer || dbType == DatabaseType.SQLite)
+        //    //{
 
-            //}
+        //    //}
 
-            // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
-            //2016年3月1日 去掉这个特性，因为： 
-            // timestamp 类型的列还有个特性：默认情况下，在 insert, update 数据时，timestamp 列会自动以当前时间（CURRENT_TIMESTAMP）填充/更新。“自动”的意思就是，你不去管它，MySQL 会替你去处理。 
-            //意思就是说，如果执行Update操作的话，就算不涉及这个字段，这个字段的值还是会改变的。
-            //如果此字段用作创建时间，就悲剧了。
-            //if (typeName.EqualIgnoreCase("datetime"))
-            //{
-            //    String d = field.Default; ;
-            //    if (CheckAndGetDefault(field, ref d) && String.IsNullOrEmpty(d)) typeName = "timestamp";
-            //}
+        //    // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
+        //    //2016年3月1日 去掉这个特性，因为： 
+        //    // timestamp 类型的列还有个特性：默认情况下，在 insert, update 数据时，timestamp 列会自动以当前时间（CURRENT_TIMESTAMP）填充/更新。“自动”的意思就是，你不去管它，MySQL 会替你去处理。 
+        //    //意思就是说，如果执行Update操作的话，就算不涉及这个字段，这个字段的值还是会改变的。
+        //    //如果此字段用作创建时间，就悲剧了。
+        //    //if (typeName.EqualIgnoreCase("datetime"))
+        //    //{
+        //    //    String d = field.Default; ;
+        //    //    if (CheckAndGetDefault(field, ref d) && String.IsNullOrEmpty(d)) typeName = "timestamp";
+        //    //}
 
-            DataRow[] drs = base.FindDataType(field, typeName, isLong);
-            if (drs != null && drs.Length > 0)
-            {
-                // 无符号/有符号
-                if (!String.IsNullOrEmpty(field.RawType))
-                {
-                    if (!typeName.Contains("char") && !typeName.Contains("String"))
-                    {
-                        Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
+        //    DataRow[] drs = base.FindDataType(field, typeName, isLong);
+        //    if (drs != null && drs.Length > 0)
+        //    {
+        //        // 无符号/有符号
+        //        if (!String.IsNullOrEmpty(field.RawType))
+        //        {
+        //            if (!typeName.Contains("char") && !typeName.Contains("String"))
+        //            {
+        //                Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
 
-                        foreach (DataRow dr in drs)
-                        {
-                            var format = GetDataRowValue<String>(dr, "CreateFormat");
-                            if (!format.IsNullOrEmpty())
-                            {
-                                if (IsUnsigned && format.ToLower().Contains("unsigned"))
-                                    return new DataRow[] { dr };
-                                else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
-                                    return new DataRow[] { dr };
-                            }
-                        }
-                    }
-                }
+        //                foreach (DataRow dr in drs)
+        //                {
+        //                    var format = GetDataRowValue<String>(dr, "CreateFormat");
+        //                    if (!format.IsNullOrEmpty())
+        //                    {
+        //                        if (IsUnsigned && format.ToLower().Contains("unsigned"))
+        //                            return new DataRow[] { dr };
+        //                        else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
+        //                            return new DataRow[] { dr };
+        //                    }
+        //                }
+        //            }
+        //        }
 
-                // 字符串
-                //2016-02-23 @宁波-小董 同步数据库架构到Oracle，报错，CHAR长度1000，要改用text
-                //if (typeName == typeof(String).FullName || typeName.EqualIgnoreCase("varchar") || typeName.Contains("char"))
-                //{
-                //    foreach (DataRow dr in drs)
-                //    {
-                //        String name = GetDataRowValue<String>(dr, "TypeName");
-                //        if ((name == "CHAR" && field.IsUnicode || name == "NVARCHAR" &&
-                //            field.IsUnicode || name == "VARCHAR" && !field.IsUnicode) && field.Length >= Database.LongTextLength)
-                //        {
-                //            dr["TypeName"] = "text";
-                //            return new DataRow[] { dr };
-                //        }
-                //        else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
-                //            return new DataRow[] { dr };
-                //    }
-                //}
+        //        // 字符串
+        //        //2016-02-23 @宁波-小董 同步数据库架构到Oracle，报错，CHAR长度1000，要改用text
+        //        //if (typeName == typeof(String).FullName || typeName.EqualIgnoreCase("varchar") || typeName.Contains("char"))
+        //        //{
+        //        //    foreach (DataRow dr in drs)
+        //        //    {
+        //        //        String name = GetDataRowValue<String>(dr, "TypeName");
+        //        //        if ((name == "CHAR" && field.IsUnicode || name == "NVARCHAR" &&
+        //        //            field.IsUnicode || name == "VARCHAR" && !field.IsUnicode) && field.Length >= Database.LongTextLength)
+        //        //        {
+        //        //            dr["TypeName"] = "text";
+        //        //            return new DataRow[] { dr };
+        //        //        }
+        //        //        else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
+        //        //            return new DataRow[] { dr };
+        //        //    }
+        //        //}
 
-                // 时间日期
-                //2016年3月1日 去掉这个特性，因为： 
-                // timestamp 类型的列还有个特性：默认情况下，在 insert, update 数据时，timestamp 列会自动以当前时间（CURRENT_TIMESTAMP）填充/更新。“自动”的意思就是，你不去管它，MySQL 会替你去处理。 
-                //意思就是说，如果执行Update操作的话，就算不涉及这个字段，这个字段的值还是会改变的。
-                //如果此字段用作创建时间，就悲剧了。
-                //if (typeName == typeof(DateTime).FullName || typeName.EqualIgnoreCase("DateTime"))
-                //{
-                //    // DateTime的范围是0001到9999
-                //    // Timestamp的范围是1970到2038
-                //    // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
-                //    String d = field.Default; ;
-                //    CheckAndGetDefault(field, ref d);
-                //    //String d = CheckAndGetDefault(field, field.Default);
-                //    foreach (DataRow dr in drs)
-                //    {
-                //        String name = GetDataRowValue<String>(dr, "TypeName");
-                //        if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
-                //            return new DataRow[] { dr };
-                //        else if (name == "TIMESTAMP" && String.IsNullOrEmpty(d))
-                //            return new DataRow[] { dr };
-                //    }
-                //}
-            }
-            return drs;
-        }
+        //        // 时间日期
+        //        //2016年3月1日 去掉这个特性，因为： 
+        //        // timestamp 类型的列还有个特性：默认情况下，在 insert, update 数据时，timestamp 列会自动以当前时间（CURRENT_TIMESTAMP）填充/更新。“自动”的意思就是，你不去管它，MySQL 会替你去处理。 
+        //        //意思就是说，如果执行Update操作的话，就算不涉及这个字段，这个字段的值还是会改变的。
+        //        //如果此字段用作创建时间，就悲剧了。
+        //        //if (typeName == typeof(DateTime).FullName || typeName.EqualIgnoreCase("DateTime"))
+        //        //{
+        //        //    // DateTime的范围是0001到9999
+        //        //    // Timestamp的范围是1970到2038
+        //        //    // MySql的默认值不能使用函数，所以无法设置当前时间作为默认值，但是第一个Timestamp类型字段会有当前时间作为默认值效果
+        //        //    String d = field.Default; ;
+        //        //    CheckAndGetDefault(field, ref d);
+        //        //    //String d = CheckAndGetDefault(field, field.Default);
+        //        //    foreach (DataRow dr in drs)
+        //        //    {
+        //        //        String name = GetDataRowValue<String>(dr, "TypeName");
+        //        //        if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
+        //        //            return new DataRow[] { dr };
+        //        //        else if (name == "TIMESTAMP" && String.IsNullOrEmpty(d))
+        //        //            return new DataRow[] { dr };
+        //        //    }
+        //        //}
+        //    }
+        //    return drs;
+        //}
 
         protected override String GetFieldType(IDataColumn field)
         {
@@ -583,19 +588,19 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助函数
-        protected override String GetFormatParam(IDataColumn field, DataRow dr)
-        {
-            String str = base.GetFormatParam(field, dr);
-            if (String.IsNullOrEmpty(str)) return str;
+        //protected override String GetFormatParam(IDataColumn field, DataRow dr)
+        //{
+        //    String str = base.GetFormatParam(field, dr);
+        //    if (String.IsNullOrEmpty(str)) return str;
 
-            if (str == "(-1)" && field.DataType == typeof(String))
-            {
-                return String.Format("({0})", Database.LongTextLength);
-            }
-            if (field.DataType == typeof(Guid)) return "(36)";
+        //    if (str == "(-1)" && field.DataType == typeof(String))
+        //    {
+        //        return String.Format("({0})", Database.LongTextLength);
+        //    }
+        //    if (field.DataType == typeof(Guid)) return "(36)";
 
-            return str;
-        }
+        //    return str;
+        //}
         #endregion
     }
 }

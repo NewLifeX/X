@@ -225,49 +225,46 @@ namespace XCode.DataAccessLayer
         {
             base.FixField(field, drColumn);
 
-            // 字段标识
-            var flag = GetDataRowValue<Int64>(drColumn, "COLUMN_FLAGS");
+            //// 字段标识
+            //var flag = GetDataRowValue<Int64>(drColumn, "COLUMN_FLAGS");
 
-            Boolean? isLong = null;
+            //Boolean? isLong = null;
 
-            if (Int32.TryParse(GetDataRowValue<String>(drColumn, "DATA_TYPE"), out var id))
-            {
-                var drs = FindDataType(field, "" + id, isLong);
-                if (drs != null && drs.Length > 0)
-                {
-                    var typeName = GetDataRowValue<String>(drs[0], "TypeName");
-                    field.RawType = typeName;
-
-                    if (TryGetDataRowValue(drs[0], "DataType", out typeName)) field.DataType = typeName.GetTypeEx();
-
-                    // 修正备注类型
-                    if (field.DataType == typeof(String) && drs.Length > 1)
-                    {
-                        isLong = (flag & 0x80) == 0x80;
-                        drs = FindDataType(field, "" + id, isLong);
-                        if (drs != null && drs.Length > 0)
-                        {
-                            typeName = GetDataRowValue<String>(drs[0], "TypeName");
-                            field.RawType = typeName;
-                        }
-                    }
-                }
-            }
-
-            //// 处理自增
-            //if (field.DataType == typeof(Int32))
+            //if (Int32.TryParse(GetDataRowValue<String>(drColumn, "DATA_TYPE"), out var id))
             //{
-            //    //field.Identity = (flag & 0x20) != 0x20;
+            //    var drs = FindDataType(field, "" + id, isLong);
+            //    if (drs != null && drs.Length > 0)
+            //    {
+            //        var typeName = GetDataRowValue<String>(drs[0], "TypeName");
+            //        field.RawType = typeName;
+
+            //        if (TryGetDataRowValue(drs[0], "DataType", out typeName)) field.DataType = typeName.GetTypeEx();
+
+            //        // 修正备注类型
+            //        if (field.DataType == typeof(String) && drs.Length > 1)
+            //        {
+            //            isLong = (flag & 0x80) == 0x80;
+            //            drs = FindDataType(field, "" + id, isLong);
+            //            if (drs != null && drs.Length > 0)
+            //            {
+            //                typeName = GetDataRowValue<String>(drs[0], "TypeName");
+            //                field.RawType = typeName;
+            //            }
+            //        }
+            //    }
             //}
+
+            //// 修正原始类型
+            //if (TryGetDataRowValue(drDataType, "TypeName", out String typeName)) field.RawType = typeName;
         }
 
-        protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
-        {
-            base.FixField(field, drColumn, drDataType);
+        //protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
+        //{
+        //    base.FixField(field, drColumn, drDataType);
 
-            // 修正原始类型
-            if (TryGetDataRowValue(drDataType, "TypeName", out String typeName)) field.RawType = typeName;
-        }
+        //    // 修正原始类型
+        //    if (TryGetDataRowValue(drDataType, "TypeName", out String typeName)) field.RawType = typeName;
+        //}
 
         protected override List<IDataIndex> GetIndexes(IDataTable table)
         {
@@ -381,42 +378,42 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据类型
-        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        {
-            var drs = base.FindDataType(field, typeName, isLong);
-            if (drs != null && drs.Length > 0) return drs;
+        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
+        //{
+        //    var drs = base.FindDataType(field, typeName, isLong);
+        //    if (drs != null && drs.Length > 0) return drs;
 
-            //// 处理SByte类型
-            //if (typeName == typeof(SByte).FullName)
-            //{
-            //    typeName = typeof(Byte).FullName;
-            //    drs = base.FindDataType(field, typeName, isLong);
-            //    if (drs != null && drs.Length > 0) return drs;
-            //}
+        //    //// 处理SByte类型
+        //    //if (typeName == typeof(SByte).FullName)
+        //    //{
+        //    //    typeName = typeof(Byte).FullName;
+        //    //    drs = base.FindDataType(field, typeName, isLong);
+        //    //    if (drs != null && drs.Length > 0) return drs;
+        //    //}
 
-            var dt = DataTypes;
-            if (dt == null) return null;
+        //    var dt = DataTypes;
+        //    if (dt == null) return null;
 
-            // 转为整数
-            if (!Int32.TryParse(typeName, out var n)) return null;
+        //    // 转为整数
+        //    if (!Int32.TryParse(typeName, out var n)) return null;
 
-            try
-            {
-                if (isLong == null)
-                {
-                    drs = dt.Select(String.Format("NativeDataType={0}", n));
-                    if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", n));
-                }
-                else
-                {
-                    drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", n, isLong.Value));
-                    if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", n, isLong.Value));
-                }
-            }
-            catch { }
+        //    try
+        //    {
+        //        if (isLong == null)
+        //        {
+        //            drs = dt.Select(String.Format("NativeDataType={0}", n));
+        //            if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", n));
+        //        }
+        //        else
+        //        {
+        //            drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", n, isLong.Value));
+        //            if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", n, isLong.Value));
+        //        }
+        //    }
+        //    catch { }
 
-            return drs;
-        }
+        //    return drs;
+        //}
 
         protected override String GetFieldType(IDataColumn field)
         {

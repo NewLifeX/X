@@ -389,6 +389,11 @@ namespace XCode.DataAccessLayer
     /// <summary>SqlServer元数据</summary>
     class SqlServerMetaData : RemoteDbMetaData
     {
+        public SqlServerMetaData()
+        {
+            Types = _DataTypes;
+        }
+
         #region 属性
         /// <summary>是否SQL2005</summary>
         public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
@@ -542,28 +547,21 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        protected override String GetFormatParam(IDataColumn field, DataRow dr)
-        {
-            var str = base.GetFormatParam(field, dr);
-            if (String.IsNullOrEmpty(str)) return str;
-
-            // 这个主要来自于float，因为无法取得其精度
-            if (str == "(0)") return null;
-            return str;
-        }
-
-        protected override String GetFormatParamItem(IDataColumn field, DataRow dr, String item)
-        {
-            var pi = base.GetFormatParamItem(field, dr, item);
-            if (field.DataType == typeof(String) && pi == "-1" && IsSQL2005) return "MAX";
-            return pi;
-        }
-
-        //protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
+        //protected override String GetFormatParam(IDataColumn field, DataRow dr)
         //{
-        //    if (!onlyDefine) return null;
+        //    var str = base.GetFormatParam(field, dr);
+        //    if (String.IsNullOrEmpty(str)) return str;
 
-        //    return base.GetFieldDefault(field, onlyDefine);
+        //    // 这个主要来自于float，因为无法取得其精度
+        //    if (str == "(0)") return null;
+        //    return str;
+        //}
+
+        //protected override String GetFormatParamItem(IDataColumn field, DataRow dr, String item)
+        //{
+        //    var pi = base.GetFormatParamItem(field, dr, item);
+        //    if (field.DataType == typeof(String) && pi == "-1" && IsSQL2005) return "MAX";
+        //    return pi;
         //}
         #endregion
 
@@ -948,7 +946,7 @@ namespace XCode.DataAccessLayer
             { typeof(Int32), new String[] { "int" } },
             { typeof(Int64), new String[] { "bigint" } },
             { typeof(Single), new String[] { "real" } },
-            { typeof(Double), new String[] { "float({0})" } },
+            { typeof(Double), new String[] { "float" } },
             { typeof(Decimal), new String[] { "money", "decimal({0}, {1})", "numeric({0}, {1})", "smallmoney" } },
             { typeof(DateTime), new String[] { "datetime", "smalldatetime", "datetime2({0})", "date" } },
             { typeof(String), new String[] { "nvarchar({0})", "ntext", "text", "varchar({0})", "char({0})", "nchar({0})", "xml" } }
