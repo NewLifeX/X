@@ -353,15 +353,16 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual Boolean IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
         {
-            if (entityColumn.Identity != dbColumn.Identity) return true;
-            if (entityColumn.PrimaryKey != dbColumn.PrimaryKey) return true;
-            if (entityColumn.Nullable != dbColumn.Nullable && !entityColumn.Identity && !entityColumn.PrimaryKey) return true;
+            // 自增、主键、非空等，不再认为是字段修改，减轻反向工程复杂度
+            //if (entityColumn.Identity != dbColumn.Identity) return true;
+            //if (entityColumn.PrimaryKey != dbColumn.PrimaryKey) return true;
+            //if (entityColumn.Nullable != dbColumn.Nullable && !entityColumn.Identity && !entityColumn.PrimaryKey) return true;
 
             // 是否已改变
             var isChanged = false;
 
             //仅针对字符串类型比较长度
-            if (!isChanged && Type.GetTypeCode(entityColumn.DataType) == TypeCode.String && entityColumn.Length != dbColumn.Length)
+            if (!isChanged && entityColumn.DataType == typeof(String) && entityColumn.Length != dbColumn.Length)
             {
                 isChanged = true;
 

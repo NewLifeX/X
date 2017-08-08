@@ -750,7 +750,6 @@ namespace XCode.DataAccessLayer
 
         protected override String ReBuildTable(IDataTable entitytable, IDataTable dbtable)
         {
-            //return String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", base.ReBuildTable(entitytable, dbtable), Database.FormatName(entitytable.TableName));
             var sql = base.ReBuildTable(entitytable, dbtable);
             if (String.IsNullOrEmpty(sql)) return sql;
 
@@ -759,10 +758,6 @@ namespace XCode.DataAccessLayer
 
             var tableName = Database.FormatName(entitytable.TableName);
             var ss = sql.Split("; " + Environment.NewLine);
-            //var list = new List<String>(ss);
-            //list.Insert(1, String.Format("SET IDENTITY_INSERT {0} ON", tableName));
-            //list.Insert(list.Count - 1, String.Format("SET IDENTITY_INSERT {0} OFF", tableName));
-            //return String.Join("; " + Environment.NewLine, list.ToArray());
             for (var i = 0; i < ss.Length; i++)
             {
                 if (ss[i].StartsWithIgnoreCase("Insert Into"))
