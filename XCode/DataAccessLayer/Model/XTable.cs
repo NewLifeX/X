@@ -38,30 +38,6 @@ namespace XCode.DataAccessLayer
         [Description("表名")]
         public String TableName { get; set; }
 
-        private String _DisplayName;
-        /// <summary>显示名</summary>
-        [XmlAttribute]
-        [DisplayName("显示名")]
-        [Description("显示名")]
-        public String DisplayName
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(Name, _Description);
-                return _DisplayName;
-            }
-            set
-            {
-                if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
-                _DisplayName = value;
-
-                if (String.IsNullOrEmpty(_Description))
-                    _Description = _DisplayName;
-                else if (!_Description.StartsWith(_DisplayName))
-                    _Description = _DisplayName + "。" + _Description;
-            }
-        }
-
         private String _Description;
         /// <summary>描述</summary>
         [XmlAttribute]
@@ -122,13 +98,6 @@ namespace XCode.DataAccessLayer
         [Description("字段集合")]
         public List<IDataColumn> Columns { get; private set; }
 
-        ///// <summary>关系集合。可以是空集合，但不能为null。</summary>
-        //[XmlIgnore]
-        //[Category("集合")]
-        //[DisplayName("关系集合")]
-        //[Description("关系集合")]
-        //public List<IDataRelation> Relations { get; private set; }
-
         /// <summary>索引集合。可以是空集合，但不能为null。</summary>
         [XmlIgnore]
         [Category("集合")]
@@ -143,6 +112,30 @@ namespace XCode.DataAccessLayer
         /// <summary>主键集合。可以是空集合，但不能为null。</summary>
         [XmlIgnore]
         public IDataColumn[] PrimaryKeys { get { return Columns.FindAll(item => item.PrimaryKey).ToArray(); } }
+
+        private String _DisplayName;
+        /// <summary>显示名</summary>
+        [XmlAttribute]
+        [DisplayName("显示名")]
+        [Description("显示名")]
+        public String DisplayName
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(Name, _Description);
+                return _DisplayName;
+            }
+            //set
+            //{
+            //    if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
+            //    _DisplayName = value;
+
+            //    if (String.IsNullOrEmpty(_Description))
+            //        _Description = _DisplayName;
+            //    else if (!_Description.StartsWith(_DisplayName))
+            //        _Description = _DisplayName + "。" + _Description;
+            //}
+        }
 
         /// <summary>扩展属性</summary>
         [XmlIgnore]
@@ -159,7 +152,6 @@ namespace XCode.DataAccessLayer
             IsView = false;
 
             Columns = new List<IDataColumn>();
-            //Relations = new List<IDataRelation>();
             Indexes = new List<IDataIndex>();
 
             Properties = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -184,15 +176,6 @@ namespace XCode.DataAccessLayer
             return dc;
         }
 
-        ///// <summary>创建外键</summary>
-        ///// <returns></returns>
-        //public virtual IDataRelation CreateRelation()
-        //{
-        //    var fk = new XRelation();
-        //    fk.Table = this;
-        //    return fk;
-        //}
-
         /// <summary>创建索引</summary>
         /// <returns></returns>
         public virtual IDataIndex CreateIndex()
@@ -203,28 +186,8 @@ namespace XCode.DataAccessLayer
             return idx;
         }
 
-        ///// <summary>根据字段名获取字段</summary>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //public virtual IDataColumn GetColumn(String name) { return ModelHelper.GetColumn(this, name); }
-
-        ///// <summary>根据字段名数组获取字段数组</summary>
-        ///// <param name="names"></param>
-        ///// <returns></returns>
-        //public virtual IDataColumn[] GetColumns(String[] names) { return ModelHelper.GetColumns(this, names); }
-
-        ///// <summary>连接另一个表，处理两表间关系</summary>
-        ///// <param name="table"></param>
-        //public virtual IDataTable Connect(IDataTable table) { return ModelResolver.Current.Connect(this, table); }
-
         /// <summary>修正数据</summary>
         public virtual IDataTable Fix() { return ModelResolver.Current.Fix(this); }
-
-        ///// <summary>获取全部字段，包括继承的父类</summary>
-        ///// <param name="tables">在该表集合里面找父类</param>
-        ///// <param name="baseFirst">是否父类字段在前</param>
-        ///// <returns></returns>
-        //public virtual List<IDataColumn> GetAllColumns(IEnumerable<IDataTable> tables, Boolean baseFirst = true) { return ModelHelper.GetAllColumns(this, tables, baseFirst); }
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
@@ -269,11 +232,6 @@ namespace XCode.DataAccessLayer
             {
                 table.Columns.Add(item.Clone(table));
             }
-            //table.Relations = new List<IDataRelation>();
-            //foreach (var item in Relations)
-            //{
-            //    table.Relations.Add(item.Clone(table));
-            //}
             table.Indexes = new List<IDataIndex>();
             foreach (var item in Indexes)
             {

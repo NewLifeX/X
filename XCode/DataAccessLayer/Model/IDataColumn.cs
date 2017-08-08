@@ -44,7 +44,7 @@ namespace XCode.DataAccessLayer
         Boolean Nullable { get; set; }
 
         /// <summary>显示名。如果有Description则使用Description，否则使用Name</summary>
-        String DisplayName { get; set; }
+        String DisplayName { get; }
 
         /// <summary>说明</summary>
         String Description { get; set; }

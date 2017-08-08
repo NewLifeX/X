@@ -88,30 +88,6 @@ namespace XCode.DataAccessLayer
         [Description("允许空")]
         public Boolean Nullable { get; set; }
 
-        private String _DisplayName;
-        /// <summary>显示名</summary>
-        [XmlAttribute]
-        [DisplayName("显示名")]
-        [Description("显示名")]
-        public String DisplayName
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(Name, _Description);
-                return _DisplayName;
-            }
-            set
-            {
-                if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
-                _DisplayName = value;
-
-                if (String.IsNullOrEmpty(_Description))
-                    _Description = _DisplayName;
-                else if (!_Description.StartsWith(_DisplayName))
-                    _Description = _DisplayName + "。" + _Description;
-            }
-        }
-
         private String _Description;
         /// <summary>描述</summary>
         [XmlAttribute]
@@ -132,6 +108,30 @@ namespace XCode.DataAccessLayer
         /// <summary>表</summary>
         [XmlIgnore]
         public IDataTable Table { get; set; }
+
+        private String _DisplayName;
+        /// <summary>显示名</summary>
+        [XmlAttribute]
+        [DisplayName("显示名")]
+        [Description("显示名")]
+        public String DisplayName
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(Name, _Description);
+                return _DisplayName;
+            }
+            //set
+            //{
+            //    if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
+            //    _DisplayName = value;
+
+            //    if (String.IsNullOrEmpty(_Description))
+            //        _Description = _DisplayName;
+            //    else if (!_Description.StartsWith(_DisplayName))
+            //        _Description = _DisplayName + "。" + _Description;
+            //}
+        }
 
         /// <summary>扩展属性</summary>
         [XmlIgnore]

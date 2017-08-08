@@ -107,7 +107,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(description)) return name;
 
             name = description.Trim();
-            var p = name.IndexOfAny(new Char[] { '.', '。', '\r', '\n' });
+            var p = name.IndexOfAny(new Char[] { '.', '。', ',', '，', '(', '（', '\r', '\n' });
             // p=0表示符号在第一位，不考虑
             if (p > 0) name = name.Substring(0, p).Trim();
 
