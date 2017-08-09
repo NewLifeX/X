@@ -337,7 +337,7 @@ namespace XCode.DataAccessLayer
             var names = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
             foreach (var pi in pis)
             {
-                if (!pi.CanRead) continue;
+                if (!pi.CanRead || !pi.CanWrite) continue;
                 if (pi.GetCustomAttribute<XmlIgnoreAttribute>(false) != null) continue;
 
                 // 已处理的特性

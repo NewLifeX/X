@@ -319,6 +319,19 @@ namespace XCode.DataAccessLayer
 
             return ModelHelper.FromXml(xml, CreateTable);
         }
+
+        /// <summary>导入模型文件</summary>
+        /// <param name="xmlFile"></param>
+        /// <returns></returns>
+        public static List<IDataTable> ImportFrom(String xmlFile)
+        {
+            if (xmlFile.IsNullOrEmpty()) return null;
+
+            xmlFile = xmlFile.GetFullPath();
+            if (!File.Exists(xmlFile)) return null;
+
+            return ModelHelper.FromXml(File.ReadAllText(xmlFile), CreateTable);
+        }
         #endregion
 
         #region 反向工程

@@ -110,7 +110,7 @@ namespace XCode
         #region 导入导出XML、Json
         /// <summary>导出XML</summary>
         /// <returns></returns>
-        public virtual String ToXml() { return this.ToXml(Encoding.UTF8, "", ""); }
+        public virtual String ToXml() { return this.ToXml(Encoding.UTF8); }
 
         /// <summary>导出Json</summary>
         /// <returns></returns>

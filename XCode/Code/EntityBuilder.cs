@@ -44,7 +44,7 @@ namespace XCode.Code
         /// <param name="output">输出目录</param>
         /// <param name="nameSpace">命名空间</param>
         /// <param name="connName">连接名</param>
-        public static Int32 Build(String xmlFile, String output = null, String nameSpace = null, String connName = null)
+        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null)
         {
             if (xmlFile.IsNullOrEmpty())
             {
@@ -72,7 +72,24 @@ namespace XCode.Code
             // 连接名
             if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
 
-            XTrace.WriteLine("代码生成源：{0} 输出：{1} 命名空间：{2} 连接名：{3}", xmlFile, output, nameSpace, connName);
+            XTrace.WriteLine("代码生成源：{0}", xmlFile);
+
+            return Build(tables, output, nameSpace, connName);
+        }
+
+        /// <summary>为Xml模型文件生成实体类</summary>
+        /// <param name="tables">模型文件</param>
+        /// <param name="output">输出目录</param>
+        /// <param name="nameSpace">命名空间</param>
+        /// <param name="connName">连接名</param>
+        public static Int32 Build(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null)
+        {
+            if (tables == null || tables.Count == 0) return 0;
+
+            // 连接名
+            if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
+
+            XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3}", tables.Count, output, nameSpace, connName);
 
             var count = 0;
             foreach (var item in tables)
