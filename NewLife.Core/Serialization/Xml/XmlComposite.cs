@@ -102,9 +102,10 @@ namespace NewLife.Serialization
 
                     var mtype = GetMemberType(member);
                     Host.Member = member;
-                    WriteLog("    {0}.{1}", type.Name, member.Name);
 
-                    Object v = null;
+                    var v = value.GetValue(member);
+                    WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
+
                     if (!Host.TryRead(mtype, ref v)) return false;
 
                     value.SetValue(member, v);

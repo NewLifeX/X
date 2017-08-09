@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -32,6 +33,7 @@ namespace NewLife.Serialization
             // 遍历所有处理器实现
             var list = new List<IXmlHandler>();
             list.Add(new XmlGeneral { Host = this });
+            list.Add(new XmlList { Host = this });
             list.Add(new XmlComposite { Host = this });
             // 根据优先级排序
             list.Sort();
@@ -114,6 +116,8 @@ namespace NewLife.Serialization
             if (Depth == 1) writer.WriteStartDocument();
 
             var att = UseAttribute;
+            if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
+
             // 写入注释
             if (UseComment)
             {
