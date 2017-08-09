@@ -100,7 +100,8 @@ namespace XCode.Code
                 builder.GenericType = item.Properties["RenderGenEntity"].ToBoolean();
                 builder.Namespace = nameSpace;
                 builder.ConnName = connName;
-                if (Setting.Current.CodeDebug) builder.Log = XTrace.Log;
+
+                if (Debug) builder.Log = XTrace.Log;
 
                 builder.Execute();
                 builder.Output = output;

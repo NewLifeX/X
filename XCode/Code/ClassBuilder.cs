@@ -282,6 +282,9 @@ namespace XCode.Code
         #endregion
 
         #region 日志
+        /// <summary>是否调试</summary>
+        public static Boolean Debug { get; set; }
+
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
 

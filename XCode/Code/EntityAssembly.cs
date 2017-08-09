@@ -390,7 +390,7 @@ namespace XCode.Code
 
         #region 调试
         /// <summary>是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用</summary>
-        public static Boolean Debug { get { return Setting.Current.CodeDebug; } }
+        public static Boolean Debug { get; set; }
         #endregion
 
         #region 辅助函数

@@ -36,25 +36,25 @@ namespace XCode
         [Description("参数化添删改查。默认关闭")]
         public Boolean UserParameter { get; set; }
 
-        /// <summary>是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用</summary>
-        [Description("代码调试。是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
-        public Boolean CodeDebug { get; set; }
+        ///// <summary>是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用</summary>
+        //[Description("代码调试。是否启用动态代码调试，把动态生成的实体类代码和程序集输出到临时目录，默认不启用")]
+        //public Boolean CodeDebug { get; set; }
 
-        /// <summary>实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭</summary>
-        [Description("数据初始化。实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭")]
-        public Boolean InitData { get; set; } = true;
+        ///// <summary>实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭</summary>
+        //[Description("数据初始化。实体类首次访问数据库时，是否执行数据初始化，默认true执行，导数据时建议关闭")]
+        //public Boolean InitData { get; set; } = true;
 
-        /// <summary>事务调试。默认关闭</summary>
-        [Description("事务调试。默认关闭")]
-        public Boolean TransactionDebug { get; set; }
+        ///// <summary>事务调试。默认关闭</summary>
+        //[Description("事务调试。默认关闭")]
+        //public Boolean TransactionDebug { get; set; }
 
         /// <summary>SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录</summary>
         [Description("SQLite默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
         public String SQLiteDbPath { get; set; } = "";
 
-        /// <summary>缓存调试</summary>
-        [Description("缓存调试")]
-        public Boolean CacheDebug { get; set; }
+        ///// <summary>缓存调试</summary>
+        //[Description("缓存调试")]
+        //public Boolean CacheDebug { get; set; }
 
         /// <summary>命令超时。查询执行超时时间，默认15秒</summary>
         [Description("命令超时。查询执行超时时间，默认15秒")]

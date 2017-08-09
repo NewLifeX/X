@@ -201,7 +201,8 @@ namespace XCode
                 }
                 catch { }
 
-                var init = Setting.Current.InitData;
+                //var init = Setting.Current.InitData;
+                var init = this == Default;
                 if (init)
                 {
                     BeginTrans();

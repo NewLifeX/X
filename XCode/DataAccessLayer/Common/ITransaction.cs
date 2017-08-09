@@ -91,7 +91,8 @@ namespace XCode.DataAccessLayer
             Level = level;
             Count = 1;
 
-            Log = Setting.Current.TransactionDebug ? XTrace.Log : Logger.Null;
+            //Log = Setting.Current.TransactionDebug ? XTrace.Log : Logger.Null;
+            Log = Logger.Null;
         }
         #endregion
 
