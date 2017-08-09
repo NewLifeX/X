@@ -321,7 +321,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity Add(String name, String pass, Int32 roleid = 1, String display = null)
         {
-            var entity = FindByName(name);
+            var entity = Find(_.Name == name);
             if (entity != null) return entity;
 
             if (pass.IsNullOrEmpty()) pass = name;
