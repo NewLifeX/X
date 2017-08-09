@@ -256,7 +256,7 @@ namespace NewLife.Xml
             }
             catch (Exception ex)
             {
-                XTrace.WriteException(ex);
+                if (_.Debug) XTrace.WriteException(ex);
             }
         }
 
@@ -271,10 +271,13 @@ namespace NewLife.Xml
             // 加锁避免多线程保存同一个文件冲突
             lock (filename)
             {
-                if (File.Exists(filename)) File.Delete(filename);
+                var xml1 = File.Exists(filename) ? File.ReadAllText(filename).Trim() : null;
+                var xml2 = GetXml();
+
+                //if (File.Exists(filename)) File.Delete(filename);
                 filename.EnsureDirectory(true);
 
-                File.WriteAllText(filename, GetXml());
+                if (xml1 != xml2) File.WriteAllText(filename, xml2);
             }
         }
 

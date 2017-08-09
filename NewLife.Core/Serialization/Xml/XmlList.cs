@@ -71,6 +71,9 @@ namespace NewLife.Serialization
             var list = value as IList;
             if (list == null) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
 
+            // 清空已有数据
+            list.Clear();
+
             while (reader.IsStartElement())
             {
                 Object obj = null;
