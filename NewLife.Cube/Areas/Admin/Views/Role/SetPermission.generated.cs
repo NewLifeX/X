@@ -62,7 +62,7 @@ namespace ASP
             
             #line 4 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
   
-    Layout = NewLife.Cube.Setting.Current.Layout;
+    Layout = null;
 
     var role = Model.Role as Role;
     var menus = Menu.Root.AllChilds;
