@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using NewLife.Reflection;
 
 namespace NewLife.Xml
 {
@@ -19,15 +18,6 @@ namespace NewLife.Xml
         /// <summary></summary>
         /// <param name="dictionary"></param>
         public SerializableDictionary(IDictionary<TKey, TValue> dictionary) : base(dictionary) { }
-
-        //public SerializableDictionary(IEqualityComparer<TKey> comparer) : base(comparer) { }
-
-        //public SerializableDictionary(int capacity) : base(capacity) { }
-
-        //public SerializableDictionary(int capacity, IEqualityComparer<TKey> comparer) : base(capacity, comparer) { }
-
-        //protected SerializableDictionary(SerializationInfo info, StreamingContext context) : base(info, context) { }
-
         #region IXmlSerializable 成员
 
         XmlSchema IXmlSerializable.GetSchema() { return null; }

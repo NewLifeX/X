@@ -24,6 +24,9 @@ namespace NewLife.Serialization
 
         /// <summary>使用注释</summary>
         public Boolean UseComment { get; set; }
+
+        /// <summary>当前名称</summary>
+        public String CurrentName { get; set; }
         #endregion
 
         #region 构造
@@ -107,6 +110,7 @@ namespace NewLife.Serialization
             name = name.Replace('<', '_');
             name = name.Replace('>', '_');
             name = name.Replace('`', '_');
+            CurrentName = name;
 
             // 一般类型为空是顶级调用
             if (Hosts.Count == 0) WriteLog("XmlWrite {0} {1}", name ?? type.Name, value);
@@ -115,23 +119,7 @@ namespace NewLife.Serialization
             Depth++;
             if (Depth == 1) writer.WriteStartDocument();
 
-            var att = UseAttribute;
-            if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
-
-            // 写入注释
-            if (UseComment)
-            {
-                var des = "";
-                if (Member != null) des = Member.GetDisplayName() ?? Member.GetDescription();
-                if (des.IsNullOrEmpty() && type != null) des = type.GetDisplayName() ?? type.GetDescription();
-
-                if (!des.IsNullOrEmpty()) writer.WriteComment(des);
-            }
-
-            if (att && Depth > 1 && type.GetTypeCode() != TypeCode.Object)
-                writer.WriteStartAttribute(name);
-            else
-                writer.WriteStartElement(name);
+            WriteStart(type);
             try
             {
                 foreach (var item in Handlers)
@@ -145,20 +133,58 @@ namespace NewLife.Serialization
             }
             finally
             {
-                if (writer.WriteState != WriteState.Start)
+                WriteEnd();
+                if (Depth == 1)
                 {
-                    if (writer.WriteState == WriteState.Attribute)
-                        writer.WriteEndAttribute();
-                    else
-                        writer.WriteEndElement();
-                    if (Depth == 1) writer.WriteEndDocument();
+                    writer.WriteEndDocument();
+                    writer.Flush();
                 }
-                writer.Flush();
                 Depth--;
             }
         }
 
         Boolean IFormatterX.Write(Object value, Type type) { return Write(value, null, type); }
+
+        /// <summary>写入开头</summary>
+        /// <param name="type"></param>
+        public void WriteStart(Type type)
+        {
+            var att = UseAttribute;
+            if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
+            if (att && type.GetTypeCode() == TypeCode.Object) att = false;
+
+            var writer = GetWriter();
+
+            // 写入注释
+            if (UseComment)
+            {
+                var des = "";
+                if (Member != null) des = Member.GetDisplayName() ?? Member.GetDescription();
+                if (des.IsNullOrEmpty() && type != null) des = type.GetDisplayName() ?? type.GetDescription();
+
+                if (!des.IsNullOrEmpty()) writer.WriteComment(des);
+            }
+
+            var name = CurrentName;
+            if (att)
+                writer.WriteStartAttribute(name);
+            else
+                writer.WriteStartElement(name);
+        }
+
+        /// <summary>写入结尾</summary>
+        public void WriteEnd()
+        {
+            var writer = GetWriter();
+
+            if (writer.WriteState != WriteState.Start)
+            {
+                if (writer.WriteState == WriteState.Attribute)
+                    writer.WriteEndAttribute();
+                else
+                    writer.WriteEndElement();
+            }
+        }
 
         private XmlWriter _Writer;
         /// <summary>获取Xml写入器</summary>
@@ -168,7 +194,8 @@ namespace NewLife.Serialization
             if (_Writer == null)
             {
                 var set = new XmlWriterSettings();
-                set.Encoding = Encoding.TrimPreamble();
+                //set.Encoding = Encoding.TrimPreamble();
+                set.Encoding = Encoding;
                 set.Indent = true;
 
                 _Writer = XmlWriter.Create(Stream, set);
@@ -210,13 +237,53 @@ namespace NewLife.Serialization
 
             if (Hosts.Count == 0) WriteLog("XmlRead {0} {1}", type.Name, value);
 
-            foreach (var item in Handlers)
+            // 要先写入根
+            Depth++;
+
+            ReadStart(type);
+            try
             {
-                if (item.TryRead(type, ref value)) return true;
+                foreach (var item in Handlers)
+                {
+                    if (item.TryRead(type, ref value)) return true;
+                }
+
+                value = reader.ReadContentAs(type, null);
+            }
+            finally
+            {
+                ReadEnd();
+                Depth--;
             }
 
-            value = GetReader().ReadContentAs(type, null);
             return true;
+        }
+
+        /// <summary>读取开始</summary>
+        /// <param name="type"></param>
+        public void ReadStart(Type type)
+        {
+            var att = UseAttribute;
+            if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
+
+            var reader = GetReader();
+            while (reader.NodeType == XmlNodeType.Comment) reader.Skip();
+
+            CurrentName = reader.Name;
+            if (reader.HasAttributes)
+                reader.MoveToFirstAttribute();
+            else
+                reader.ReadStartElement();
+
+            while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
+        }
+
+        /// <summary>读取结束</summary>
+        public void ReadEnd()
+        {
+            var reader = GetReader();
+            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
+            if (reader.NodeType == XmlNodeType.Attribute) reader.Read();
         }
 
         private XmlReader _Reader;

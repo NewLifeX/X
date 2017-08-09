@@ -274,6 +274,7 @@
     <Compile Include="Serialization\Protocol.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Serialization\Xml\XmlList.cs" />
     <Compile Include="Serialization\Xml\XmlComposite.cs" />
     <Compile Include="Serialization\Xml\XmlGeneral.cs" />
     <Compile Include="Serialization\Xml\IXml.cs" />
@@ -315,7 +316,6 @@
     <Compile Include="Xml\SerializableDictionary.cs" />
     <Compile Include="Xml\XmlConfig.cs" />
     <Compile Include="Xml\XmlConfigFileAttribute.cs" />
-    <Compile Include="Xml\XmlEntity.cs" />
     <Compile Include="Xml\XmlHelper.cs" />
   </ItemGroup>
   <ItemGroup>

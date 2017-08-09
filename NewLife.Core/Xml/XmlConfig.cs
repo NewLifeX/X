@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Log;
@@ -88,6 +89,9 @@ namespace NewLife.Xml
         /// <summary>一些设置。派生类可以在自己的静态构造函数中指定</summary>
         public static class _
         {
+            /// <summary>是否调试</summary>
+            public static Boolean Debug { get; set; }
+
             /// <summary>配置文件路径</summary>
             public static String ConfigFile { get; set; }
 
@@ -195,16 +199,18 @@ namespace NewLife.Xml
             _loading = true;
             try
             {
+                var data = File.ReadAllBytes(filename);
                 var config = this as TConfig;
-                using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
-                {
-                    Object obj = config;
-                    var xml = new NewLife.Serialization.Xml();
-                    xml.Stream = stream;
-                    xml.UseAttribute = false;
-                    xml.UseComment = true;
-                    if (!xml.TryRead(GetType(), ref obj)) return false;
-                }
+
+                Object obj = config;
+                var xml = new NewLife.Serialization.Xml();
+                xml.Stream = new MemoryStream(data);
+                xml.UseAttribute = false;
+                xml.UseComment = true;
+
+                if (_.Debug) xml.Log = XTrace.Log;
+
+                if (!xml.TryRead(GetType(), ref obj)) return false;
 
                 config.ConfigFile = filename;
                 config.SetExpire();  // 设定过期时间
@@ -237,9 +243,8 @@ namespace NewLife.Xml
                 var flag = File.Exists(cfi);
                 if (!flag) return;
 
-
                 var xml1 = File.ReadAllText(cfi).Trim();
-                var xml2 = config.ToXml(null, "", "", true, true).Trim();
+                var xml2 = config.GetXml().Trim();
                 flag = xml1 == xml2;
 
                 if (!flag)
@@ -266,7 +271,10 @@ namespace NewLife.Xml
             // 加锁避免多线程保存同一个文件冲突
             lock (filename)
             {
-                this.ToXmlFile(filename, null, "", "", true, true);
+                if (File.Exists(filename)) File.Delete(filename);
+                filename.EnsureDirectory(true);
+
+                File.WriteAllText(filename, GetXml());
             }
         }
 
@@ -275,6 +283,20 @@ namespace NewLife.Xml
 
         /// <summary>新创建配置文件时执行</summary>
         protected virtual void OnNew() { }
+
+        private String GetXml()
+        {
+            var xml = new NewLife.Serialization.Xml();
+            xml.Encoding = Encoding.UTF8;
+            xml.UseAttribute = false;
+            xml.UseComment = true;
+
+            if (_.Debug) xml.Log = XTrace.Log;
+
+            xml.Write(this);
+
+            return xml.GetString();
+        }
         #endregion
     }
 }

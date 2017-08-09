@@ -137,7 +137,7 @@ namespace NewLife.Net.UPnP
 
             //xml = Encoding.UTF8.GetString(ms.ToArray());
 
-            xml = env.ToXml(null, "s", "http://schemas.xmlsoap.org/soap/envelope/", true);
+            //xml = env.ToXml(null, "s", "http://schemas.xmlsoap.org/soap/envelope/", true);
             return xml;
         }
     }
