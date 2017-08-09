@@ -570,7 +570,7 @@ namespace XCode.DataAccessLayer
         String GetColumnComment(String tableName, String columnName)
         {
             var dt = dtColumnComment;
-            if (dt.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
             var where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
             var drs = dt.Select(where);

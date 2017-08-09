@@ -223,7 +223,7 @@ namespace XCode.Code
                 us.Add("System.Text");
                 us.Add("System.Threading.Tasks");
                 us.Add("System.Web");
-                us.Add("System.Web.Script.Serialization");
+                //us.Add("System.Web.Script.Serialization");
                 us.Add("System.Xml.Serialization");
 
                 us.Add("NewLife");
@@ -653,7 +653,8 @@ namespace XCode.Code
                     var pk = dt.PrimaryKeys[0];
 
                     WriteLine("/// <summary>{0}</summary>", dis);
-                    WriteLine("[XmlIgnore, ScriptIgnore]");
+                    WriteLine("[XmlIgnore]");
+                    WriteLine("//[ScriptIgnore]");
                     WriteLine("public {1} {0} {{ get {{ return Extends.Get(nameof({0}), k => {1}.FindBy{3}({2})); }} }}", pname, dt.Name, dc.Name, pk.Name);
 
                     // 主字段
