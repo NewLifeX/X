@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Xml;
 
 namespace NewLife.Serialization
 {
@@ -154,7 +155,8 @@ namespace NewLife.Serialization
             var code = Type.GetTypeCode(type);
             if (code == TypeCode.Object) return false;
 
-            var v = reader.ReadContentAsString() + "";
+            // 读取异构Xml时可能报错
+            var v = (reader.NodeType == XmlNodeType.Element ? reader.ReadElementContentAsString() : reader.ReadContentAsString()) + "";
 
             // 枚举
             if (type.IsEnum)
