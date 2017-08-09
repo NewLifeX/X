@@ -514,7 +514,7 @@ namespace XCode.DataAccessLayer
                 {
                     foreach (var item in column.Properties)
                     {
-                        writer.WriteAttributeString(item.Key, item.Value);
+                        if (!item.Key.EqualIgnoreCase("DisplayName", "Precision", "Scale", "NumOfByte")) writer.WriteAttributeString(item.Key, item.Value);
                     }
                 }
             }

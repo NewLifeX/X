@@ -121,16 +121,6 @@ namespace XCode.DataAccessLayer
                 if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(Name, _Description);
                 return _DisplayName;
             }
-            //set
-            //{
-            //    if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
-            //    _DisplayName = value;
-
-            //    if (String.IsNullOrEmpty(_Description))
-            //        _Description = _DisplayName;
-            //    else if (!_Description.StartsWith(_DisplayName))
-            //        _Description = _DisplayName + "。" + _Description;
-            //}
         }
 
         /// <summary>扩展属性</summary>
