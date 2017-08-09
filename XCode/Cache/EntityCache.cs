@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
-using XCode.DataAccessLayer;
 
 namespace XCode.Cache
 {
@@ -19,7 +18,7 @@ namespace XCode.Cache
     {
         #region 基础属性
         /// <summary>缓存过期时间</summary>
-        DateTime ExpiredTime { get; set; } = DateTime.Now;
+        DateTime ExpiredTime { get; set; } = DateTime.Now.AddHours(-1);
 
         /// <summary>缓存更新次数</summary>
         private Int64 Times { get; set; }
@@ -71,7 +70,7 @@ namespace XCode.Cache
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
 
-            var sec = (Int64)(DateTime.Now - ExpiredTime).TotalSeconds;
+            var sec = (DateTime.Now - ExpiredTime).TotalSeconds;
             if (sec < 0)
             {
                 Interlocked.Increment(ref Success);
@@ -101,7 +100,7 @@ namespace XCode.Cache
         {
             // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
             // 设置时间放在获取缓存之前，让其它线程不要空等
-            ExpiredTime = DateTime.Now.AddSeconds(Expire);
+            if (Times > 0) ExpiredTime = DateTime.Now.AddSeconds(Expire);
             Times++;
 
             return Task.Factory.StartNew(FillWaper, reason);
@@ -113,6 +112,7 @@ namespace XCode.Cache
 
             _Entities = Invoke<Object, EntityList<TEntity>>(s => FillListMethod(), null);
 
+            ExpiredTime = DateTime.Now.AddSeconds(Expire);
             WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
         }
 
