@@ -63,6 +63,7 @@ namespace XCode
             //return Activator.CreateInstance(Meta.ThisType) as TEntity;
             var entity = Meta.ThisType.CreateInstance() as TEntity;
             Meta._Modules.Create(entity, forEdit);
+
             return entity;
         }
         #endregion
@@ -184,10 +185,15 @@ namespace XCode
 
             using (var trans = new EntityTransaction<TEntity>())
             {
-                if (isnew != null && enableValid)
+                if (enableValid)
                 {
-                    Valid(isnew.Value);
-                    Meta._Modules.Valid(this, isnew.Value);
+                    if (isnew != null)
+                    {
+                        Valid(isnew.Value);
+                        Meta._Modules.Valid(this, isnew.Value);
+                    }
+                    else
+                        Meta._Modules.Delete(this);
                 }
 
                 var rs = func();

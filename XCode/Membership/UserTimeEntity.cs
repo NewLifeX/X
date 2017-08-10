@@ -47,7 +47,7 @@ namespace XCode.Membership
         /// <summary>初始化。检查是否匹配</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public override Boolean Init(Type entityType)
+        protected override Boolean OnInit(Type entityType)
         {
             var fs = GetFieldNames(entityType);
             if (fs.Contains(__.CreateUserID)) return true;
@@ -59,7 +59,7 @@ namespace XCode.Membership
         /// <summary>验证数据，自动加上创建和更新的信息</summary>
         /// <param name="entity"></param>
         /// <param name="isNew"></param>
-        public override Boolean Valid(IEntity entity, Boolean isNew)
+        protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
             if (!isNew && entity.Dirtys.Count == 0) return true;
 
@@ -100,7 +100,7 @@ namespace XCode.Membership
         /// <summary>初始化。检查是否匹配</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public override Boolean Init(Type entityType)
+        protected override Boolean OnInit(Type entityType)
         {
             var fs = GetFieldNames(entityType);
             if (fs.Contains(__.CreateTime)) return true;
@@ -112,7 +112,7 @@ namespace XCode.Membership
         /// <summary>验证数据，自动加上创建和更新的信息</summary>
         /// <param name="entity"></param>
         /// <param name="isNew"></param>
-        public override Boolean Valid(IEntity entity, Boolean isNew)
+        protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
             if (!isNew && entity.Dirtys.Count == 0) return true;
 
@@ -145,7 +145,7 @@ namespace XCode.Membership
         /// <summary>初始化。检查是否匹配</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public override Boolean Init(Type entityType)
+        protected override Boolean OnInit(Type entityType)
         {
             var fs = GetFieldNames(entityType);
             if (fs.Contains(__.CreateIP)) return true;
@@ -158,7 +158,7 @@ namespace XCode.Membership
         /// <summary>验证数据，自动加上创建和更新的信息</summary>
         /// <param name="entity"></param>
         /// <param name="isNew"></param>
-        public override Boolean Valid(IEntity entity, Boolean isNew)
+        protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
             if (!isNew && entity.Dirtys.Count == 0) return true;
 
@@ -192,11 +192,11 @@ namespace XCode.Membership
             return true;
         }
 
-        private DictionaryCache<Type, ICollection<String>> _ipFieldNames = new DictionaryCache<Type, ICollection<String>>();
+        private static DictionaryCache<Type, ICollection<String>> _ipFieldNames = new DictionaryCache<Type, ICollection<String>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected ICollection<String> GetIPFieldNames(Type entityType)
+        protected static ICollection<String> GetIPFieldNames(Type entityType)
         {
             return _ipFieldNames.GetItem(entityType, t =>
             {
@@ -207,298 +207,4 @@ namespace XCode.Membership
             });
         }
     }
-
-    /// <summary>用户时间实体基类</summary>
-    /// <typeparam name="TEntity"></typeparam>
-    [Obsolete("=>Entity<TEntity> 改为EntityModule横切")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public class UserTimeEntity<TEntity> : Entity<TEntity>, IUserInfo2, ITimeInfo where TEntity : UserTimeEntity<TEntity>, new()
-    {
-        #region 静态引用
-        /// <summary>字段名</summary>
-        public class __Name
-        {
-            /// <summary>创建人</summary>
-            public static String CreateUserID = "CreateUserID";
-            /// <summary>更新人</summary>
-            public static String UpdateUserID = "UpdateUserID";
-            /// <summary>创建人</summary>
-            public static String CreateUserName = "CreateUserName";
-            /// <summary>更新人</summary>
-            public static String UpdateUserName = "UpdateUserName";
-            /// <summary>创建时间</summary>
-            public static String CreateTime = "CreateTime";
-            /// <summary>更新时间</summary>
-            public static String UpdateTime = "UpdateTime";
-        }
-        #endregion
-
-        #region 验证数据
-        ///// <summary>验证数据，自动加上创建和更新的信息</summary>
-        ///// <param name="isNew"></param>
-        //public override void Valid(bool isNew)
-        //{
-        //    if (!isNew && !HasDirty) return;
-
-        //    base.Valid(isNew);
-
-        //    var fs = Meta.FieldNames;
-
-        //    // 当前登录用户
-        //    var user = ManageProvider.Provider.Current;
-        //    if (user != null)
-        //    {
-        //        if (isNew)
-        //        {
-        //            SetNoDirtyItem(__Name.CreateUserID, user.ID);
-        //            SetNoDirtyItem(__Name.CreateUserName, user + "");
-        //        }
-        //        SetNoDirtyItem(__Name.UpdateUserID, user.ID);
-        //        SetNoDirtyItem(__Name.UpdateUserName, user + "");
-        //    }
-        //    if (isNew)
-        //        SetNoDirtyItem(__Name.CreateTime, DateTime.Now);
-
-        //    // 不管新建还是更新，都改变更新时间
-        //    SetNoDirtyItem(__Name.UpdateTime, DateTime.Now);
-        //}
-        #endregion
-
-        #region 扩展属性
-        private IManageUser _CreateUser;
-        /// <summary>创建人</summary>
-        [XmlIgnore, ScriptIgnore]
-        [DisplayName("创建人")]
-        //[BindRelation("CreateUserID", false, "User", "ID")]
-        public IManageUser CreateUser
-        {
-            get
-            {
-                var CreateUserID = this[__Name.CreateUserID].ToInt();
-                if (_CreateUser == null && CreateUserID > 0 && !Dirtys.ContainsKey("CreateUser"))
-                {
-                    _CreateUser = ManageProvider.Provider.FindByID(CreateUserID);
-                    Dirtys["CreateUser"] = true;
-                }
-                return _CreateUser;
-            }
-            set { _CreateUser = value; }
-        }
-
-        /// <summary>创建人名称</summary>
-        [XmlIgnore, ScriptIgnore]
-        [DisplayName("创建人")]
-        [Map("CreateUserID")]
-        public String CreateUserName { get { return CreateUser + ""; } }
-
-        private IManageUser _UpdateUser;
-        /// <summary>更新人</summary>
-        [XmlIgnore, ScriptIgnore]
-        [DisplayName("更新人")]
-        //[BindRelation("UpdateUserID", false, "User", "ID")]
-        public IManageUser UpdateUser
-        {
-            get
-            {
-                var UpdateUserID = this[__Name.UpdateUserID].ToInt();
-                if (_UpdateUser == null && UpdateUserID > 0 && !Dirtys.ContainsKey("UpdateUser"))
-                {
-                    _UpdateUser = ManageProvider.Provider.FindByID(UpdateUserID);
-                    Dirtys["UpdateUser"] = true;
-                }
-                return _UpdateUser;
-            }
-            set { _UpdateUser = value; }
-        }
-
-        /// <summary>更新人名称</summary>
-        [XmlIgnore, ScriptIgnore]
-        [DisplayName("更新人")]
-        [Map("UpdateUserID")]
-        public String UpdateUserName { get { return UpdateUser + ""; } }
-
-        [XmlIgnore, ScriptIgnore]
-        Int32 IUserInfo2.CreateUserID { get { return (Int32)this[__Name.CreateUserID]; } set { SetItem(__Name.CreateUserID, value); } }
-        [XmlIgnore, ScriptIgnore]
-        Int32 IUserInfo2.UpdateUserID { get { return (Int32)this[__Name.UpdateUserID]; } set { SetItem(__Name.UpdateUserID, value); } }
-
-        [XmlIgnore, ScriptIgnore]
-        DateTime ITimeInfo.CreateTime { get { return (DateTime)this[__Name.CreateTime]; } set { SetItem(__Name.CreateTime, value); } }
-        [XmlIgnore, ScriptIgnore]
-        DateTime ITimeInfo.UpdateTime { get { return (DateTime)this[__Name.UpdateTime]; } set { SetItem(__Name.UpdateTime, value); } }
-        #endregion
-    }
-
-    /// <summary>用户时间实体基类</summary>
-    /// <typeparam name="TEntity"></typeparam>
-    [Obsolete("=>EntityTree<TEntity> 改为EntityModule横切")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public class UserTimeEntityTree<TEntity> : EntityTree<TEntity>, IUserInfo2, ITimeInfo where TEntity : UserTimeEntityTree<TEntity>, new()
-    {
-        #region 静态引用
-        /// <summary>字段名</summary>
-        public class __Name
-        {
-            /// <summary>创建人</summary>
-            public static String CreateUserID = "CreateUserID";
-            /// <summary>更新人</summary>
-            public static String UpdateUserID = "UpdateUserID";
-            /// <summary>创建人</summary>
-            public static String CreateUserName = "CreateUserName";
-            /// <summary>更新人</summary>
-            public static String UpdateUserName = "UpdateUserName";
-            /// <summary>创建时间</summary>
-            public static String CreateTime = "CreateTime";
-            /// <summary>更新时间</summary>
-            public static String UpdateTime = "UpdateTime";
-        }
-        #endregion
-
-        #region 验证数据
-        ///// <summary>验证数据，自动加上创建和更新的信息</summary>
-        ///// <param name="isNew"></param>
-        //public override void Valid(bool isNew)
-        //{
-        //    if (!isNew && !HasDirty) return;
-
-        //    base.Valid(isNew);
-
-        //    var fs = Meta.FieldNames;
-
-        //    // 当前登录用户
-        //    var user = ManageProvider.Provider.Current;
-        //    if (user != null)
-        //    {
-        //        if (isNew)
-        //        {
-        //            SetDirtyItem(__Name.CreateUserID, user.ID);
-        //            SetDirtyItem(__Name.CreateUserName, user + "");
-        //        }
-        //        SetDirtyItem(__Name.UpdateUserID, user.ID);
-        //        SetDirtyItem(__Name.UpdateUserName, user + "");
-        //    }
-        //    if (isNew)
-        //        SetDirtyItem(__Name.CreateTime, DateTime.Now);
-
-        //    // 不管新建还是更新，都改变更新时间
-        //    SetDirtyItem(__Name.UpdateTime, DateTime.Now);
-        //}
-        #endregion
-
-        #region 扩展属性
-        private IManageUser _CreateUser;
-        /// <summary>创建人</summary>
-        [XmlIgnore, ScriptIgnore]
-        [DisplayName("创建人")]
-        //[BindRelation("CreateUserID", false, "User", "ID")]
-        public IManageUser CreateUser
-        {
-            get
-            {
-                var CreateUserID = this[__Name.CreateUserID].ToInt();
-                if (_CreateUser == null && CreateUserID > 0 && !Dirtys.ContainsKey("CreateUser"))
-                {
-                    _CreateUser = ManageProvider.Provider.FindByID(CreateUserID);
-                    Dirtys["CreateUser"] = true;
-                }
-                return _CreateUser;
-            }
-            set { _CreateUser = value; }
-        }
-
-        /// <summary>创建人名称</summary>
-        [XmlIgnore, ScriptIgnore]
-        [DisplayName("创建人")]
-        [Map("CreateUserID")]
-        public String CreateUserName { get { return CreateUser + ""; } }
-
-        private IManageUser _UpdateUser;
-        /// <summary>更新人</summary>
-        [XmlIgnore, ScriptIgnore]
-        [DisplayName("更新人")]
-        //[BindRelation("UpdateUserID", false, "User", "ID")]
-        public IManageUser UpdateUser
-        {
-            get
-            {
-                var UpdateUserID = this[__Name.UpdateUserID].ToInt();
-                if (_UpdateUser == null && UpdateUserID > 0 && !Dirtys.ContainsKey("UpdateUser"))
-                {
-                    _UpdateUser = ManageProvider.Provider.FindByID(UpdateUserID);
-                    Dirtys["UpdateUser"] = true;
-                }
-                return _UpdateUser;
-            }
-            set { _UpdateUser = value; }
-        }
-
-        /// <summary>更新人名称</summary>
-        [XmlIgnore, ScriptIgnore]
-        [DisplayName("更新人")]
-        [Map("UpdateUserID")]
-        public String UpdateUserName { get { return UpdateUser + ""; } }
-
-        [XmlIgnore, ScriptIgnore]
-        Int32 IUserInfo2.CreateUserID { get { return (Int32)this[__Name.CreateUserID]; } set { SetItem(__Name.CreateUserID, value); } }
-        [XmlIgnore, ScriptIgnore]
-        Int32 IUserInfo2.UpdateUserID { get { return (Int32)this[__Name.UpdateUserID]; } set { SetItem(__Name.UpdateUserID, value); } }
-
-        [XmlIgnore, ScriptIgnore]
-        DateTime ITimeInfo.CreateTime { get { return (DateTime)this[__Name.CreateTime]; } set { SetItem(__Name.CreateTime, value); } }
-        [XmlIgnore, ScriptIgnore]
-        DateTime ITimeInfo.UpdateTime { get { return (DateTime)this[__Name.UpdateTime]; } set { SetItem(__Name.UpdateTime, value); } }
-        #endregion
-    }
-
-    /// <summary>用户信息接口。包含创建用户和更新用户</summary>
-    [Obsolete("=>Entity<TEntity> 改为EntityModule横切")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public interface IUserInfo
-    {
-        /// <summary>创建用户</summary>
-        IManageUser CreateUser { get; set; }
-
-        /// <summary>创建用户名</summary>
-        String CreateUserName { get; }
-
-        /// <summary>更新用户</summary>
-        IManageUser UpdateUser { get; set; }
-
-        /// <summary>更新用户名</summary>
-        String UpdateUserName { get; }
-    }
-
-    /// <summary>用户信息接口。包含创建用户和更新用户</summary>
-    [Obsolete("=>Entity<TEntity> 改为EntityModule横切")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public interface IUserInfo2 : IUserInfo
-    {
-        /// <summary>创建用户ID</summary>
-        Int32 CreateUserID { get; set; }
-
-        /// <summary>更新用户ID</summary>
-        Int32 UpdateUserID { get; set; }
-    }
-
-    /// <summary>时间信息接口。包含创建时间和更新时间</summary>
-    [Obsolete("=>Entity<TEntity> 改为EntityModule横切")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public interface ITimeInfo
-    {
-        /// <summary>创建时间</summary>
-        DateTime CreateTime { get; set; }
-
-        /// <summary>更新时间</summary>
-        DateTime UpdateTime { get; set; }
-    }
-
-    ///// <summary>IP地址信息接口。包含创建地址和更新地址</summary>
-    //public interface IIPInfo
-    //{
-    //    /// <summary>创建IP地址</summary>
-    //    DateTime CreateIP { get; set; }
-
-    //    /// <summary>更新IP地址</summary>
-    //    DateTime UpdateIP { get; set; }
-    //}
 }
