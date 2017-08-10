@@ -310,8 +310,7 @@ namespace NewLife.Reflection
         {
             // 如果type是null，则返回所有类型
 
-            List<Type> list = null;
-            if (_plugins.TryGetValue(baseType, out list)) return list;
+            if (_plugins.TryGetValue(baseType, out var list)) return list;
             lock (_plugins)
             {
                 if (_plugins.TryGetValue(baseType, out list)) return list;

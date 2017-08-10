@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
-using System.Text;
 
 namespace System
 {
@@ -23,7 +22,6 @@ namespace System
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
         public static Int32 ToInt(this Object value, Int32 defaultValue = 0) { return Convert.ToInt(value, defaultValue); }
-
 
         /// <summary>转为长整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
         /// <remarks></remarks>
@@ -99,19 +97,18 @@ namespace System
             if (value == null) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
-            if (value is String)
+            if (value is String str)
             {
-                var str = value as String;
+                // 拷贝而来的逗号分隔整数
+                str = str.Replace(",", null);
                 str = ToDBC(str).Trim();
-                if (String.IsNullOrEmpty(str)) return defaultValue;
+                if (str.IsNullOrEmpty()) return defaultValue;
 
-                var n = defaultValue;
-                if (Int32.TryParse(str, out n)) return n;
+                if (Int32.TryParse(str, out var n)) return n;
                 return defaultValue;
             }
-            else if (value is Byte[])
+            else if (value is Byte[] buf)
             {
-                var buf = (Byte[])value;
                 if (buf == null || buf.Length < 1) return defaultValue;
 
                 switch (buf.Length)
@@ -129,9 +126,6 @@ namespace System
                 }
             }
 
-            //var tc = Type.GetTypeCode(value.GetType());
-            //if (tc >= TypeCode.Char && tc <= TypeCode.Decimal) return Convert.ToInt32(value);
-
             try
             {
                 return Convert.ToInt32(value);
@@ -145,6 +139,20 @@ namespace System
         /// <returns></returns>
         public virtual Int64 ToLong(Object value, Int64 defaultValue)
         {
+            if (value == null) return defaultValue;
+
+            // 特殊处理字符串，也是最常见的
+            if (value is String str)
+            {
+                // 拷贝而来的逗号分隔整数
+                str = str.Replace(",", null);
+                str = ToDBC(str).Trim();
+                if (str.IsNullOrEmpty()) return defaultValue;
+
+                if (Int64.TryParse(str, out var n)) return n;
+                return defaultValue;
+            }
+
             //暂时不做处理  先处理异常转换
             try
             {
@@ -162,19 +170,16 @@ namespace System
             if (value == null) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
-            if (value is String)
+            if (value is String str)
             {
-                var str = value as String;
                 str = ToDBC(str).Trim();
-                if (String.IsNullOrEmpty(str)) return defaultValue;
+                if (str.IsNullOrEmpty()) return defaultValue;
 
-                var n = defaultValue;
-                if (Double.TryParse(str, out n)) return n;
+                if (Double.TryParse(str, out var n)) return n;
                 return defaultValue;
             }
-            else if (value is Byte[])
+            else if (value is Byte[] buf)
             {
-                var buf = (Byte[])value;
                 if (buf == null || buf.Length < 1) return defaultValue;
 
                 switch (buf.Length)
@@ -206,9 +211,6 @@ namespace System
             catch { return defaultValue; }
         }
 
-        //static readonly String[] trueStr = new String[] { "True", "Y", "Yes", "On" };
-        //static readonly String[] falseStr = new String[] { "False", "N", "N", "Off" };
-
         /// <summary>转为布尔型。支持大小写True/False、0和非零</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -218,21 +220,18 @@ namespace System
             if (value == null) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
-            if (value is String)
+            if (value is String str)
             {
-                var str = value as String;
                 str = ToDBC(str).Trim();
-                if (String.IsNullOrEmpty(str)) return defaultValue;
+                if (str.IsNullOrEmpty()) return defaultValue;
 
-                var b = defaultValue;
-                if (Boolean.TryParse(str, out b)) return b;
+                if (Boolean.TryParse(str, out var b)) return b;
 
                 if (String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
                 if (String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
 
                 // 特殊处理用数字0和1表示布尔型
-                var n = 0;
-                if (Int32.TryParse(str, out n)) return n > 0;
+                if (Int32.TryParse(str, out var n)) return n > 0;
 
                 return defaultValue;
             }
@@ -253,14 +252,12 @@ namespace System
             if (value == null) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
-            if (value is String)
+            if (value is String str)
             {
-                var str = value as String;
                 str = ToDBC(str).Trim();
-                if (String.IsNullOrEmpty(str)) return defaultValue;
+                if (str.IsNullOrEmpty()) return defaultValue;
 
-                var n = defaultValue;
-                if (DateTime.TryParse(str, out n)) return n;
+                if (DateTime.TryParse(str, out var n)) return n;
                 if (str.Contains("-") && DateTime.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out n)) return n;
                 if (str.Contains("/") && DateTime.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out n)) return n;
                 if (DateTime.TryParse(str, out n)) return n;
