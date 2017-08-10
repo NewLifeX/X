@@ -664,7 +664,8 @@ namespace XCode.Code
                     {
                         WriteLine();
                         WriteLine("/// <summary>{0}</summary>", dis);
-                        WriteLine("[XmlIgnore, ScriptIgnore]");
+                        WriteLine("[XmlIgnore]");
+                        WriteLine("//[ScriptIgnore]");
                         if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
                         WriteLine("[Map(__.{0}, typeof({1}), \"{2}\")]", dc.Name, dt.Name, pk.Name);
                         if (master.DataType == typeof(String))
