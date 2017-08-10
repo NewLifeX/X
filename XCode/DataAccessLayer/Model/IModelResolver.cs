@@ -54,15 +54,20 @@ namespace XCode.DataAccessLayer
             name = name.Replace("\\", "_");
 
             // 全大写或全小写名字，格式化为驼峰格式
-            if ((name == name.ToUpper() || name == name.ToLower()) && !name.EqualIgnoreCase("ID"))
+            if ((name == name.ToUpper() || name == name.ToLower()))
             {
                 var ns = name.Split("_");
                 var sb = new StringBuilder();
                 foreach (var item in ns)
                 {
-                    // 首字母大小写，其它小写
-                    sb.Append(item.Substring(0, 1).ToUpper());
-                    sb.Append(item.Substring(1).ToLower());
+                    if (item.EqualIgnoreCase("ID"))
+                        sb.Append("ID");
+                    else
+                    {
+                        // 首字母大小写，其它小写
+                        sb.Append(item.Substring(0, 1).ToUpper());
+                        sb.Append(item.Substring(1).ToLower());
+                    }
                 }
                 name = sb.ToString();
             }
@@ -221,6 +226,8 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         protected virtual void FixIndex(IDataTable table)
         {
+            table.Indexes.RemoveAll(di => di.Columns == null || di.Columns.Length == 0);
+
             // 主要针对MSSQL2000
             foreach (var di in table.Indexes)
             {
@@ -232,6 +239,9 @@ namespace XCode.DataAccessLayer
                 if (!di.Unique) di.Unique = dcs.All(dc => dc.Identity);
                 if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey);
             }
+
+            // 干掉自增列的索引
+            table.Indexes.RemoveAll(di => di.Columns.Length == 1 && table.GetColumn(di.Columns[0]).Identity);
         }
         #endregion
 

@@ -451,21 +451,6 @@ namespace XCode.DataAccessLayer
                         name = (String)obj;
                     else if (pi.Name == "TableName" || pi.Name == "ColumnName")
                         if (name.EqualIgnoreCase((String)obj)) continue;
-
-                    // 如果DisplayName与Name或者Description相同，则跳过
-                    if (pi.Name == "DisplayName")
-                    {
-                        var dis = (String)obj;
-                        if (dis.EqualIgnoreCase(name)) continue;
-
-                        var des = "";
-                        if (value is IDataTable)
-                            des = (value as IDataTable).Description;
-                        else if (value is IDataColumn)
-                            des = (value as IDataColumn).Description;
-
-                        if (des != null && des.StartsWith(dis)) continue;
-                    }
                 }
                 else if (code == TypeCode.Object)
                 {
