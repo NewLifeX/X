@@ -100,7 +100,7 @@ namespace Test
 
         static void Test2()
         {
-            EntityBuilder.Build("..\\Src\\XCode\\Sharding\\Shard.xml");
+            EntityBuilder.Build(@"E:\ZTO\ZTO.GK.Web.Report\GK.Report\GK.Report.xml");
         }
 
         static void Test3()

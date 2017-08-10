@@ -124,22 +124,27 @@ namespace XCode.Code
                 builder.Table = item;
                 builder.AllTables = tables;
                 builder.GenericType = item.Properties["RenderGenEntity"].ToBoolean();
-                builder.Namespace = nameSpace;
-                builder.ConnName = connName;
+
+                var str = item.Properties["Namespace"];
+                if (str.IsNullOrEmpty()) str = nameSpace;
+                builder.Namespace = str;
+
+                str = item.ConnName;
+                if (str.IsNullOrEmpty()) str = connName;
+                builder.ConnName = str;
 
                 if (Debug) builder.Log = XTrace.Log;
 
                 builder.Execute();
-                builder.Output = output;
+
+                str = item.Properties["Output"];
+                if (str.IsNullOrEmpty()) str = output;
+                builder.Output = str;
                 builder.Save();
 
                 builder.Business = true;
                 builder.Execute();
-                //#if DEBUG
-                //builder.Save(".Biz.cs", true);
-                //#else
                 builder.Save();
-                //#endif
 
                 count++;
             }

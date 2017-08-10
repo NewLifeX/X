@@ -20,11 +20,11 @@ namespace XCode.DataAccessLayer
     class XTable : IDataTable, ICloneable, IXmlSerializable
     {
         #region 基本属性
-        /// <summary>编号</summary>
-        [XmlAttribute]
-        [DisplayName("编号")]
-        [Description("编号")]
-        public Int32 ID { get; set; }
+        ///// <summary>编号</summary>
+        //[XmlAttribute]
+        //[DisplayName("编号")]
+        //[Description("编号")]
+        //public Int32 ID { get; set; }
 
         /// <summary>名称</summary>
         [XmlAttribute]
