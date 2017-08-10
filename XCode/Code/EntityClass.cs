@@ -60,22 +60,16 @@ namespace XCode.Code
             Class.AddAttribute<CompilerGeneratedAttribute>();
 
             // 索引和关系
-            if (Table.Indexes != null && Table.Indexes.Count > 0)
+            var dis = Table.Indexes;
+            if (dis != null && dis.Count > 0)
             {
-                foreach (var item in Table.Indexes)
+                foreach (var item in dis)
                 {
                     if (item.Columns.Length < 1) continue;
 
                     Class.AddAttribute<BindIndexAttribute>(item.Name, item.Unique, String.Join(",", item.Columns));
                 }
             }
-            //if (Table.Relations != null && Table.Relations.Count > 0)
-            //{
-            //    foreach (var item in Table.Relations)
-            //    {
-            //        Class.AddAttribute<BindRelationAttribute>(item.Column, item.Unique, item.RelationTable, item.RelationColumn);
-            //    }
-            //}
 
             // 绑定表
             Class.AddAttribute<BindTableAttribute>(Table.TableName, Table.Description, Table.ConnName ?? ConnName, Table.DbType, Table.IsView);

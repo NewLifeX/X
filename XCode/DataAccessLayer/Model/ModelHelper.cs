@@ -108,9 +108,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataIndex GetIndex(this IDataTable table, params String[] columnNames)
         {
-            if (table == null || table.Indexes.Count < 1 || columnNames == null || columnNames.Length < 1) return null;
+            var dis = table?.Indexes;
+            if (dis == null || dis.Count < 1 || columnNames == null || columnNames.Length < 1) return null;
 
-            var di = table.Indexes.FirstOrDefault(e => e != null && e.Columns.EqualIgnoreCase(columnNames));
+            var di = dis.FirstOrDefault(e => e != null && e.Columns.EqualIgnoreCase(columnNames));
             if (di != null) return di;
 
             // 用别名再试一次
@@ -118,7 +119,7 @@ namespace XCode.DataAccessLayer
             if (columns.Length != columnNames.Length) return null;
 
             var names = columns.Select(e => e.Name).ToArray();
-            return table.Indexes.FirstOrDefault(e => e.Columns.EqualIgnoreCase(names));
+            return dis.FirstOrDefault(e => e.Columns.EqualIgnoreCase(names));
         }
         #endregion
 

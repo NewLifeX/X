@@ -892,17 +892,10 @@ namespace XCode.DataAccessLayer
         {
             if (!field.PrimaryKey) return String.Empty;
 
-            if (field.Table.Indexes == null || field.Table.Indexes.Count < 1) return String.Empty;
+            var dis = field.Table.Indexes;
+            if (dis == null || dis.Count < 1) return String.Empty;
 
-            IDataIndex di = null;
-            foreach (var item in field.Table.Indexes)
-            {
-                if (Array.IndexOf(item.Columns, field.ColumnName) >= 0)
-                {
-                    di = item;
-                    break;
-                }
-            }
+            var di = dis.FirstOrDefault(e => e.Columns.Any(x => x.EqualIgnoreCase(field.ColumnName, field.Name)));
             if (di == null) return String.Empty;
 
             return String.Format("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.TableName), di.Name);

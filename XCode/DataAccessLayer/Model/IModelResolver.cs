@@ -186,12 +186,13 @@ namespace XCode.DataAccessLayer
             var pks = table.PrimaryKeys;
             if (pks == null || pks.Length < 1)
             {
+                var dis = table.Indexes;
                 // 在索引中找唯一索引作为主键
-                var di = table.Indexes.FirstOrDefault(e => e.PrimaryKey && e.Columns.Length == 1);
+                var di = dis.FirstOrDefault(e => e.PrimaryKey && e.Columns.Length == 1);
                 // 在索引中找唯一索引作为主键
-                if (di == null) di = table.Indexes.FirstOrDefault(e => e.Unique && e.Columns.Length == 1);
+                if (di == null) di = dis.FirstOrDefault(e => e.Unique && e.Columns.Length == 1);
                 // 如果还没有主键，把第一个索引作为主键
-                if (di == null) di = table.Indexes.FirstOrDefault(e => e.Columns.Length == 1);
+                if (di == null) di = dis.FirstOrDefault(e => e.Columns.Length == 1);
 
                 if (di != null)
                 {
@@ -226,10 +227,11 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         protected virtual void FixIndex(IDataTable table)
         {
-            table.Indexes.RemoveAll(di => di.Columns == null || di.Columns.Length == 0);
+            var dis = table.Indexes;
+            dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0);
 
             // 主要针对MSSQL2000
-            foreach (var di in table.Indexes)
+            foreach (var di in dis)
             {
                 if (di.Columns == null) continue;
 
@@ -241,7 +243,7 @@ namespace XCode.DataAccessLayer
             }
 
             // 干掉自增列的索引
-            table.Indexes.RemoveAll(di => di.Columns.Length == 1 && table.GetColumn(di.Columns[0]).Identity);
+            dis.RemoveAll(di => di.Columns.Length == 1 && table.GetColumn(di.Columns[0]).Identity);
         }
         #endregion
 

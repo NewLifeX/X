@@ -296,11 +296,12 @@ namespace XCode.DataAccessLayer
             #endregion
 
             #region 删除索引
-            if (dbtable.Indexes != null)
+            var dbdis = dbtable.Indexes;
+            if (dbdis != null)
             {
-                for (var i = dbtable.Indexes.Count - 1; i >= 0; i--)
+                for (var i = dbdis.Count - 1; i >= 0; i--)
                 {
-                    var item = dbtable.Indexes[i];
+                    var item = dbdis[i];
                     // 计算的索引不需要删除
                     if (item.Computed) continue;
 
@@ -311,15 +312,16 @@ namespace XCode.DataAccessLayer
                     if (di != null && di.Unique == item.Unique) continue;
 
                     PerformSchema(sb, onlySql, DDLSchema.DropIndex, item);
-                    dbtable.Indexes.RemoveAt(i);
+                    dbdis.RemoveAt(i);
                 }
             }
             #endregion
 
             #region 新增索引
-            if (entitytable.Indexes != null)
+            var edis = entitytable.Indexes;
+            if (edis != null)
             {
-                foreach (var item in entitytable.Indexes)
+                foreach (var item in edis)
                 {
                     if (item.PrimaryKey) continue;
 
@@ -334,7 +336,7 @@ namespace XCode.DataAccessLayer
                     PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
 
                     if (di == null)
-                        dbtable.Indexes.Add(item.Clone(dbtable));
+                        edis.Add(item.Clone(dbtable));
                     else
                         di.Computed = false;
                 }

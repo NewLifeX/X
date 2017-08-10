@@ -261,10 +261,11 @@ namespace XCode
         {
             // 根据索引，判断唯一性
             var table = Meta.Table.DataTable;
-            if (table.Indexes != null && table.Indexes.Count > 0)
+            var dis = table.Indexes;
+            if (dis != null && dis.Count > 0)
             {
                 // 遍历所有索引
-                foreach (var item in table.Indexes)
+                foreach (var item in dis)
                 {
                     // 只处理唯一索引
                     if (!item.Unique) continue;
@@ -1129,10 +1130,11 @@ namespace XCode
 
             // 优先采用业务主键，也就是唯一索引
             var table = Meta.Table.DataTable;
-            if (table.Indexes != null && table.Indexes.Count > 0)
+            var dis = table.Indexes;
+            if (dis != null && dis.Count > 0)
             {
                 IDataIndex di = null;
-                foreach (var item in table.Indexes)
+                foreach (var item in dis)
                 {
                     if (!item.Unique) continue;
                     if (item.Columns == null || item.Columns.Length < 1) continue;

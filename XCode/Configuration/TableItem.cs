@@ -300,16 +300,6 @@ namespace XCode.Configuration
                     table.Indexes.Add(di);
                 }
             }
-            //if (_Relations != null && _Relations.Length > 0)
-            //{
-            //    foreach (var item in _Relations)
-            //    {
-            //        var dr = table.CreateRelation();
-            //        item.Fill(dr);
-
-            //        if (table.GetRelation(dr) == null) table.Relations.Add(dr);
-            //    }
-            //}
 
             // 不允许为null
             _AllFields = allfields.ToArray();
