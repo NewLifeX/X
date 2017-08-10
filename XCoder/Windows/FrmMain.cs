@@ -116,11 +116,7 @@ namespace XCoder
                 Engine = null;
 
                 // 断开的时候再取一次，确保下次能及时得到新的
-                try
-                {
-                    var list = DAL.Create(Config.ConnName).Tables;
-                }
-                catch { }
+                Task.Run(() => DAL.Create(Config.ConnName).Tables);
             }
         }
 
@@ -367,21 +363,27 @@ namespace XCoder
 
         void LoadTables()
         {
-            try
+            Task.Run(() =>
             {
-                var list = DAL.Create(Config.ConnName).Tables;
-                if (!cbIncludeView.Checked) list = list.Where(t => !t.IsView).ToList();
-                //if (Config.NeedFix) list = Engine.FixTable(list);
-                Engine.Tables = list;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), Text);
-                return;
-            }
+                try
+                {
+                    var list = DAL.Create(Config.ConnName).Tables;
+                    if (!cbIncludeView.Checked) list = list.Where(t => !t.IsView).ToList();
+                    //if (Config.NeedFix) list = Engine.FixTable(list);
+                    Engine.Tables = list;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString(), Text);
+                    return;
+                }
 
-            SetTables(null);
-            SetTables(Engine.Tables);
+                this.Invoke(() =>
+                {
+                    SetTables(null);
+                    SetTables(Engine.Tables);
+                });
+            });
         }
 
         void SetTables(Object source)
