@@ -187,13 +187,17 @@ namespace XCode
             {
                 if (enableValid)
                 {
+                    var rt = false;
                     if (isnew != null)
                     {
                         Valid(isnew.Value);
-                        Meta._Modules.Valid(this, isnew.Value);
+                        rt = Meta._Modules.Valid(this, isnew.Value);
                     }
                     else
-                        Meta._Modules.Delete(this);
+                        rt = Meta._Modules.Delete(this);
+
+                    // 没有更新任何数据
+                    if (!rt) return -1;
                 }
 
                 var rs = func();

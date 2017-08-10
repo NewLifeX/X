@@ -17,6 +17,7 @@ using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
 using NewLife.Xml;
+using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -100,7 +101,51 @@ namespace Test
 
         static void Test2()
         {
-            EntityBuilder.Build(@"E:\ZTO\ZTO.GK.Web.Report\GK.Report\GK.Report.xml");
+            //EntityBuilder.Build(@"E:\ZTO\ZTO.GK.Web.Report\GK.Report\GK.Report.xml");
+
+            Console.WriteLine(UserX.Meta.Count);
+            Console.Clear();
+            TestModule.Test();
+        }
+
+        class TestModule : EntityModule
+        {
+            protected override Boolean OnInit(Type entityType)
+            {
+                return entityType == typeof(UserX);
+            }
+
+            protected override Boolean OnValid(IEntity entity, Boolean isNew)
+            {
+                if (isNew)
+                    XTrace.WriteLine("新增实体 " + entity.GetType().Name);
+                else
+                    XTrace.WriteLine("更新实体 " + entity.GetType().Name);
+
+                return base.OnValid(entity, isNew);
+            }
+
+            protected override Boolean OnDelete(IEntity entity)
+            {
+                XTrace.WriteLine("删除实体 " + entity.GetType().Name);
+
+                return base.OnDelete(entity);
+            }
+
+            public static void Test()
+            {
+                EntityModules.Global.Add<TestModule>();
+
+                var user = new UserX();
+                user.Name = "Stone";
+                user.RoleID = 1;
+                user.Save();
+
+                user.Name = "大石头";
+                user.Update();
+
+                user.Delete();
+            }
         }
 
         static void Test3()
