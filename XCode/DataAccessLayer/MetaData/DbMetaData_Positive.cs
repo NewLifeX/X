@@ -375,6 +375,8 @@ namespace XCode.DataAccessLayer
             if (!Types.TryGetValue(type, out String[] ns)) return null;
 
             var typeName = ns.FirstOrDefault();
+            // 大文本选第二个类型
+            if (ns.Length > 1 && type == typeof(String) && (field.Length <= 0 || field.Length >= Database.LongTextLength)) typeName = ns[1];
             if (typeName.Contains("{0}")) typeName = typeName.F(field.Length);
 
             return typeName;
