@@ -330,18 +330,18 @@ namespace XCode.DataAccessLayer
             //var owner = (Database as Oracle).Owner.ToUpper();
             owner = owner.ToUpper();
 
-            if ((Database as Oracle).NeedAnalyzeStatistics(tableName))
-            {
-                // 异步更新，屏蔽错误
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        Execute("analyze table {0}.{1} compute statistics".F(owner, tableName));
-                    }
-                    catch { }
-                });
-            }
+            //if ((Database as Oracle).NeedAnalyzeStatistics(tableName))
+            //{
+            //    // 异步更新，屏蔽错误
+            //    Task.Run(() =>
+            //    {
+            //        try
+            //        {
+            //            Execute("analyze table {0}.{1} compute statistics".F(owner, tableName));
+            //        }
+            //        catch { }
+            //    });
+            //}
 
             var sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}' and UNIQUENESS='UNIQUE'", owner, tableName);
             return ExecuteScalar<Int64>(sql);
