@@ -56,9 +56,9 @@ namespace XCode
         //[Description("缓存调试")]
         //public Boolean CacheDebug { get; set; }
 
-        /// <summary>命令超时。查询执行超时时间，默认15秒</summary>
-        [Description("命令超时。查询执行超时时间，默认15秒")]
-        public Int32 CommandTimeout { get; set; } = 15;
+        /// <summary>命令超时。查询执行超时时间，默认0秒不限制</summary>
+        [Description("命令超时。查询执行超时时间，默认0秒不限制")]
+        public Int32 CommandTimeout { get; set; }
 
         /// <summary>实体缓存过期。默认10秒</summary>
         [Description("实体缓存过期。默认10秒")]
