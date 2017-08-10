@@ -357,17 +357,17 @@ namespace XCode.DataAccessLayer
             { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
             //{ typeof(TimeSpan), new String[] { "TIME" } },
             //{ typeof(SByte), new String[] { "TINYINT" } },
-            { typeof(Byte), new String[] { "TINYINT UNSIGNED" } },
-            { typeof(Int16), new String[] { "SMALLINT" } },
+            { typeof(Byte), new String[] { "TINYINT", "TINYINT UNSIGNED" } },
+            { typeof(Int16), new String[] { "SMALLINT", "SMALLINT UNSIGNED" } },
             //{ typeof(UInt16), new String[] { "SMALLINT UNSIGNED" } },
-            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT" } },
+            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT", "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
             //{ typeof(UInt32), new String[] { "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
-            { typeof(Int64), new String[] { "BIGINT" } },
+            { typeof(Int64), new String[] { "BIGINT", "BIT", "BIGINT UNSIGNED" } },
             //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
             { typeof(Single), new String[] { "FLOAT" } },
             { typeof(Double), new String[] { "DOUBLE" } },
             { typeof(Decimal), new String[] { "DECIMAL" } },
-            { typeof(DateTime), new String[] { "DATE", "DATETIME", "TIMESTAMP" } },
+            { typeof(DateTime), new String[] { "DATE", "DATETIME", "TIMESTAMP", "TIME" } },
             { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } }
         };
 
