@@ -42,7 +42,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -100,35 +100,7 @@ namespace Test
 
         static void Test2()
         {
-            // 多线程测试缓存
-            var mc = Cache.Default;
-            var total = 0;
-            var success = 0;
-            for (int i = 0; i < 8; i++)
-            {
-                Task.Run(() =>
-                {
-                    for (int k = 0; k < 1000; k++)
-                    {
-                        var key = Rand.Next(0, 10) + "";
-                        var value = Rand.NextString(8);
-
-                        Interlocked.Increment(ref total);
-                        if (mc.Contains(key)) Interlocked.Increment(ref success);
-
-                        mc.Add(key, value);
-
-                        Thread.Sleep(10);
-                    }
-                });
-            }
-
-            for (int i = 0; i < 1000; i++)
-            {
-                Thread.Sleep(500);
-
-                Console.Title = "次数{0:n0} 成功{1:n0} 成功率{2:p} ".F(total, success, total == 0 ? 0 : (Double)success / total);
-            }
+            EntityBuilder.Build("..\\Src\\XCode\\Sharding\\Shard.xml");
         }
 
         static void Test3()

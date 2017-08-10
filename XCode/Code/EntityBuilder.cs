@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.DataAccessLayer;
@@ -60,21 +61,46 @@ namespace XCode.Code
             if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
 
             // 导入模型
-            var tables = DAL.Import(File.ReadAllText(xmlFile));
+            var xml = File.ReadAllText(xmlFile);
+            var atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var tables = ModelHelper.FromXml(xml, DAL.CreateTable, atts);
             if (tables.Count == 0) return 0;
 
             // 输出
+            if (!output.IsNullOrEmpty())
+                atts["Output"] = output;
+            else
+                output = atts["Output"];
             if (output.IsNullOrEmpty()) output = Path.GetDirectoryName(xmlFile);
 
             // 命名空间
+            if (!nameSpace.IsNullOrEmpty())
+                atts["NameSpace"] = nameSpace;
+            else
+                nameSpace = atts["NameSpace"];
             if (nameSpace.IsNullOrEmpty()) nameSpace = Path.GetFileNameWithoutExtension(xmlFile);
 
             // 连接名
-            if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
+            if (!connName.IsNullOrEmpty())
+                atts["ConnName"] = connName;
+            else
+                connName = atts["ConnName"];
+            if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty()) connName = nameSpace.Split(".").LastOrDefault(e => !e.EqualIgnoreCase("Entity"));
 
             XTrace.WriteLine("代码生成源：{0}", xmlFile);
 
-            return Build(tables, output, nameSpace, connName);
+            var rs = BuildTables(tables, output, nameSpace, connName);
+
+            // 确保输出空特性
+            if (atts["Output"].IsNullOrEmpty()) atts["Output"] = "";
+            if (atts["NameSpace"].IsNullOrEmpty()) atts["NameSpace"] = "";
+            if (atts["ConnName"].IsNullOrEmpty()) atts["ConnName"] = "";
+
+            // 保存模型文件
+            var xml2 = ModelHelper.ToXml(tables, atts);
+            if (xml != xml2) File.WriteAllText(xmlFile, xml2);
+
+            return rs;
         }
 
         /// <summary>为Xml模型文件生成实体类</summary>
@@ -82,7 +108,7 @@ namespace XCode.Code
         /// <param name="output">输出目录</param>
         /// <param name="nameSpace">命名空间</param>
         /// <param name="connName">连接名</param>
-        public static Int32 Build(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null)
+        public static Int32 BuildTables(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null)
         {
             if (tables == null || tables.Count == 0) return 0;
 

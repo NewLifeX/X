@@ -93,10 +93,8 @@ namespace XCode.DataAccessLayer
 
         static Boolean EqualIgnoreCase(this String[] src, String[] des)
         {
-            if (src == null || src.Length == 0)
-                return des == null || des.Length == 0;
-            else if (des == null || des.Length == 0)
-                return false;
+            if (src == null || src.Length == 0) return des == null || des.Length == 0;
+            if (des == null || des.Length == 0) return false;
 
             if (src.Length != des.Length) return false;
 
@@ -117,13 +115,10 @@ namespace XCode.DataAccessLayer
 
             // 用别名再试一次
             var columns = table.GetColumns(columnNames);
-            if (columns == null || columns.Length < 1) return null;
+            if (columns.Length != columnNames.Length) return null;
 
-            columnNames = columns.Select(e => e.Name).ToArray();
-            di = table.Indexes.FirstOrDefault(e => e.Columns != null && e.Columns.EqualIgnoreCase(columnNames));
-            if (di != null) return di;
-
-            return null;
+            var names = columns.Select(e => e.Name).ToArray();
+            return table.Indexes.FirstOrDefault(e => e.Columns.EqualIgnoreCase(names));
         }
         #endregion
 
@@ -149,8 +144,9 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in atts)
                 {
-                    //writer.WriteAttributeString(item.Key, item.Value);
-                    if (!String.IsNullOrEmpty(item.Value)) writer.WriteElementString(item.Key, item.Value);
+                    if (!item.Key.EqualIgnoreCase("Version")) writer.WriteAttributeString(item.Key, item.Value);
+                    //if (!String.IsNullOrEmpty(item.Value)) writer.WriteElementString(item.Key, item.Value);
+                    //writer.WriteElementString(item.Key, item.Value);
                 }
             }
             foreach (var item in tables)
@@ -173,8 +169,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static List<IDataTable> FromXml(String xml, Func<IDataTable> createTable, IDictionary<String, String> atts = null)
         {
-            if (String.IsNullOrEmpty(xml)) return null;
-            if (createTable == null) throw new ArgumentNullException("createTable");
+            if (xml.IsNullOrEmpty()) return null;
+            if (createTable == null) throw new ArgumentNullException(nameof(createTable));
 
             var settings = new XmlReaderSettings();
             settings.IgnoreWhitespace = true;
@@ -182,6 +178,16 @@ namespace XCode.DataAccessLayer
 
             var reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
             while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read()) return null; }
+
+            if (atts != null && reader.HasAttributes)
+            {
+                reader.MoveToFirstAttribute();
+                do
+                {
+                    atts[reader.Name] = reader.Value;
+                } while (reader.MoveToNextAttribute());
+            }
+
             reader.ReadStartElement();
 
             var list = new List<IDataTable>();
@@ -190,11 +196,8 @@ namespace XCode.DataAccessLayer
                 if (reader.Name.EqualIgnoreCase("Table"))
                 {
                     var table = createTable();
-                    list.Add(table);
-
-                    //reader.ReadStartElement();
                     (table as IXmlSerializable).ReadXml(reader);
-                    //if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
+                    list.Add(table);
                 }
                 else if (atts != null)
                 {
@@ -202,9 +205,9 @@ namespace XCode.DataAccessLayer
                     reader.ReadStartElement();
                     if (reader.NodeType == XmlNodeType.Text)
                     {
-                        atts[name] = reader.ReadString();
+                        atts[name] = reader.ReadContentAsString();
                     }
-                    reader.ReadEndElement();
+                    if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
                 }
                 else
                 {
@@ -534,68 +537,51 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         static IDataColumn Fix(this IDataColumn dc, IDataColumn oridc)
         {
-            if (dc == null || dc.DataType == null) return dc;
+            if (dc?.DataType == null) return dc;
 
             var isnew = oridc == null || oridc == dc;
 
-            var code = Type.GetTypeCode(dc.DataType);
-            switch (code)
+            switch (dc.DataType.GetTypeCode())
             {
                 case TypeCode.Boolean:
                     dc.RawType = "bit";
-                    //dc.Length = 1;
                     dc.Nullable = false;
                     break;
                 case TypeCode.Byte:
                 case TypeCode.Char:
                 case TypeCode.SByte:
                     dc.RawType = "tinyint";
-                    //dc.Length = 1;
                     dc.Nullable = false;
                     break;
                 case TypeCode.DateTime:
                     dc.RawType = "datetime";
-                    //dc.Length = 3;
-                    //dc.Precision = 3;
                     dc.Nullable = true;
                     break;
                 case TypeCode.Int16:
                 case TypeCode.UInt16:
                     dc.RawType = "smallint";
-                    //dc.Length = 5;
-                    //dc.Precision = 5;
                     dc.Nullable = false;
                     break;
                 case TypeCode.Int32:
                 case TypeCode.UInt32:
                     dc.RawType = "int";
-                    //dc.Length = 10;
-                    //dc.Precision = 10;
                     dc.Nullable = false;
                     break;
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
                     dc.RawType = "bigint";
-                    //dc.Length = 19;
-                    //dc.Precision = 20;
                     dc.Nullable = false;
                     break;
                 case TypeCode.Single:
                     dc.RawType = "real";
-                    //dc.Length = 7;
-                    //dc.Precision = 20;
                     dc.Nullable = false;
                     break;
                 case TypeCode.Double:
                     dc.RawType = "double";
-                    //dc.Length = 53;
-                    //dc.Precision = 20;
                     dc.Nullable = false;
                     break;
                 case TypeCode.Decimal:
                     dc.RawType = "money";
-                    //dc.Length = 19;
-                    //dc.Precision = 20;
                     dc.Nullable = false;
                     break;
                 case TypeCode.String:

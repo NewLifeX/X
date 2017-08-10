@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.5.6417.31556">
+<Tables Version="9.6.6431.17841" NameSpace="XCode.Sharding" ConnName="Shard" Output="">
   <Table Name="Shard" Description="分片" DbType="SqlServer">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
