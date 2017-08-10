@@ -299,9 +299,8 @@ namespace XCode.DataAccessLayer
             var dbdis = dbtable.Indexes;
             if (dbdis != null)
             {
-                for (var i = dbdis.Count - 1; i >= 0; i--)
+                foreach (var item in dbdis.ToArray())
                 {
-                    var item = dbdis[i];
                     // 计算的索引不需要删除
                     if (item.Computed) continue;
 
@@ -312,7 +311,7 @@ namespace XCode.DataAccessLayer
                     if (di != null && di.Unique == item.Unique) continue;
 
                     PerformSchema(sb, onlySql, DDLSchema.DropIndex, item);
-                    dbdis.RemoveAt(i);
+                    dbdis.Remove(item);
                 }
             }
             #endregion
@@ -321,7 +320,7 @@ namespace XCode.DataAccessLayer
             var edis = entitytable.Indexes;
             if (edis != null)
             {
-                foreach (var item in edis)
+                foreach (var item in edis.ToArray())
                 {
                     if (item.PrimaryKey) continue;
 

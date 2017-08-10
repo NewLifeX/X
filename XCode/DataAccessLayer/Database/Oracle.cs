@@ -620,6 +620,8 @@ namespace XCode.DataAccessLayer
                         field.DataType = typeof(Single);
                     else if (prec <= 10)
                         field.DataType = typeof(Double);
+                    else
+                        field.DataType = typeof(Decimal);
                 }
                 if (prec > 0 && field.RawType.EqualIgnoreCase("NUMBER")) field.RawType += "({0},{1})".F(prec, fi.Scale);
             }
