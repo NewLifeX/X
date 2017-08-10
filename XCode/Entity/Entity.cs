@@ -713,17 +713,22 @@ namespace XCode
             }
 
             // 验证排序字段，避免非法
+            var orderby = param.OrderBy;
             if (!param.Sort.IsNullOrEmpty())
             {
                 var st = Meta.Table.FindByName(param.Sort);
                 param.Sort = st?.ColumnName;
+                orderby = param.OrderBy;
+
+                //!!! 恢复排序字段，否则属性名和字段名不一致时前台无法降序
+                param.Sort = st?.Name;
             }
 
             // 采用起始行还是分页
             if (param.StartRow >= 0)
-                return FindAll(where, param.OrderBy, null, param.StartRow, param.PageSize);
+                return FindAll(where, orderby, null, param.StartRow, param.PageSize);
             else
-                return FindAll(where, param.OrderBy, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
+                return FindAll(where, orderby, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
         }
         #endregion
 
