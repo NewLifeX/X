@@ -6,6 +6,22 @@ using XCode.DataAccessLayer;
 
 namespace XCode
 {
+    /// <summary>反向工程</summary>
+    public enum Negatives
+    {
+        /// <summary>关闭</summary>
+        Off = 0,
+
+        /// <summary>默认。新建、修改表结构</summary>
+        Default = 1,
+
+        /// <summary>只读。只检查，不执行</summary>
+        ReadOnly = 2,
+
+        /// <summary>完全。新建、修改、删除</summary>
+        Full = 3
+    }
+
     /// <summary>XCode设置</summary>
     [DisplayName("XCode设置")]
     [XmlConfigFile(@"Config\XCode.config", 15000)]

@@ -257,9 +257,7 @@
     <Content Include="Sync\同步机制.txt" />
     <None Include="说明.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="文档\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
       <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
