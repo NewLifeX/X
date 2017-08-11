@@ -508,7 +508,7 @@ namespace XCode.DataAccessLayer
         /// <param name="onlySql"></param>
         /// <param name="schema"></param>
         /// <param name="values"></param>
-        protected void PerformSchema(StringBuilder sb, Boolean onlySql, DDLSchema schema, params Object[] values)
+        protected Boolean PerformSchema(StringBuilder sb, Boolean onlySql, DDLSchema schema, params Object[] values)
         {
             var sql = GetSchemaSQL(schema, values);
             if (!String.IsNullOrEmpty(sql))
@@ -577,13 +577,17 @@ namespace XCode.DataAccessLayer
                 catch (Exception ex)
                 {
                     WriteLog("修改表{0}失败！{1}", schema.ToString(), ex.Message);
+                    return false;
                 }
             }
+
+            return true;
         }
 
         protected virtual void CreateTable(StringBuilder sb, IDataTable table, Boolean onlySql)
         {
-            PerformSchema(sb, onlySql, DDLSchema.CreateTable, table);
+            // 创建表失败后，不再处理注释和索引
+            if (!PerformSchema(sb, onlySql, DDLSchema.CreateTable, table)) return;
 
             // 加上表注释
             if (!String.IsNullOrEmpty(table.Description)) PerformSchema(sb, onlySql, DDLSchema.AddTableDescription, table);
