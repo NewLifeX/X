@@ -46,12 +46,12 @@ namespace XCode.DataAccessLayer
             // 输出当前版本
             System.Reflection.Assembly.GetExecutingAssembly().WriteVersion();
 
-            var set = Setting.Current.Negative;
-            if (DAL.Debug && set.Enable)
-            {
-                if (set.CheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
-                if (set.NoDelete) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
-            }
+            //var set = Setting.Current.Negative;
+            //if (DAL.Debug && set.Enable)
+            //{
+            //    if (set.CheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
+            //    if (set.NoDelete) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
+            //}
         }
         #endregion
 
@@ -66,22 +66,22 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 设置
-        private static ICollection<String> _NegativeExclude;
-        /// <summary>要排除的链接名</summary>
-        public static ICollection<String> NegativeExclude
-        {
-            get
-            {
-                if (_NegativeExclude != null) return _NegativeExclude;
+        //private static ICollection<String> _NegativeExclude;
+        ///// <summary>要排除的链接名</summary>
+        //public static ICollection<String> NegativeExclude
+        //{
+        //    get
+        //    {
+        //        if (_NegativeExclude != null) return _NegativeExclude;
 
-                //String str = Config.GetMutilConfig<String>(null, "XCode.Negative.Exclude", "XCode.Schema.Exclude", "DatabaseSchema_Exclude");
-                var str = Setting.Current.Negative.Exclude + "";
+        //        //String str = Config.GetMutilConfig<String>(null, "XCode.Negative.Exclude", "XCode.Schema.Exclude", "DatabaseSchema_Exclude");
+        //        var str = Setting.Current.Negative.Exclude + "";
 
-                _NegativeExclude = new HashSet<String>(str.Split(), StringComparer.OrdinalIgnoreCase);
+        //        _NegativeExclude = new HashSet<String>(str.Split(), StringComparer.OrdinalIgnoreCase);
 
-                return _NegativeExclude;
-            }
-        }
+        //        return _NegativeExclude;
+        //    }
+        //}
         #endregion
     }
 }

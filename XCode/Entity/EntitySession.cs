@@ -261,7 +261,7 @@ namespace XCode
                     FixIndexName(table);
                 }
 
-                Dal.SetTables(null, table);
+                Dal.SetTables(table);
             }
             finally
             {
@@ -310,10 +310,11 @@ namespace XCode
                 var tname = TableName;
                 if (def == this)
                 {
-                    if (!Setting.Current.Negative.Enable ||
-                        DAL.NegativeExclude.Contains(cname) ||
-                        DAL.NegativeExclude.Contains(tname) ||
-                        IsGenerated)
+                    //if (!Setting.Current.Negative.Enable ||
+                    //    DAL.NegativeExclude.Contains(cname) ||
+                    //    DAL.NegativeExclude.Contains(tname) ||
+                    //    IsGenerated)
+                    if (Dal.Db.Migration == Migration.Off || IsGenerated)
                     {
                         _hasCheckModel = true;
                         return;
@@ -357,7 +358,7 @@ namespace XCode
                 {
                     // 打开了开关，并且设置为true时，使用同步方式检查
                     // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-                    if (!Setting.Current.Negative.CheckOnly || def != this)
+                    if (dal.Db.Migration > Migration.ReadOnly || def != this)
                         CheckTable();
                     else
                         Task.Factory.StartNew(CheckTable).LogException();

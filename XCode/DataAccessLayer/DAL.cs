@@ -344,24 +344,25 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                SetTables();
+                switch (Db.Migration)
+                {
+                    case Migration.Off:
+                        break;
+                    case Migration.ReadOnly:
+                        Task.Factory.StartNew(CheckTables);
+                        break;
+                    case Migration.On:
+                    case Migration.Full:
+                        CheckTables();
+                        break;
+                    default:
+                        break;
+                }
             }
             catch (Exception ex)
             {
                 if (Debug) WriteLog(ex.ToString());
             }
-        }
-
-        /// <summary>反向工程。检查所有采用当前连接的实体类的数据表架构</summary>
-        private void SetTables()
-        {
-            if (!Setting.Current.Negative.Enable || NegativeExclude.Contains(ConnName)) return;
-
-            // NegativeCheckOnly设置为true时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-            if (!Setting.Current.Negative.CheckOnly)
-                CheckTables();
-            else
-                Task.Factory.StartNew(CheckTables);
         }
 
         internal List<String> HasCheckTables = new List<String>();
@@ -398,8 +399,8 @@ namespace XCode.DataAccessLayer
                     // 移除所有已初始化的
                     list.RemoveAll(dt => CheckAndAdd(dt.TableName));
 
-                    // 过滤掉被排除的表名
-                    list.RemoveAll(dt => NegativeExclude.Contains(dt.TableName));
+                    //// 过滤掉被排除的表名
+                    //list.RemoveAll(dt => NegativeExclude.Contains(dt.TableName));
 
                     // 过滤掉视图
                     list.RemoveAll(dt => dt.IsView);
@@ -408,7 +409,7 @@ namespace XCode.DataAccessLayer
                     {
                         WriteLog(ConnName + "待检查表架构的实体个数：" + list.Count);
 
-                        SetTables(null, list.ToArray());
+                        SetTables(list.ToArray());
                     }
                 }
             }
@@ -421,17 +422,10 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>在当前连接上检查指定数据表的架构</summary>
-        /// <param name="set"></param>
         /// <param name="tables"></param>
-        public void SetTables(NegativeSetting set, params IDataTable[] tables)
+        public void SetTables(params IDataTable[] tables)
         {
-            if (set == null)
-            {
-                set = new NegativeSetting();
-                set.CheckOnly = Setting.Current.Negative.CheckOnly;
-                set.NoDelete = Setting.Current.Negative.NoDelete;
-            }
-            Db.CreateMetaData().SetTables(set, tables);
+            Db.CreateMetaData().SetTables(Db.Migration, tables);
         }
         #endregion
 

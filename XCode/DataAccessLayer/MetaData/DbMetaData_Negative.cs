@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NewLife.Reflection;
 using NewLife.Security;
 
 namespace XCode.DataAccessLayer
@@ -60,22 +61,24 @@ namespace XCode.DataAccessLayer
 
         #region 反向工程
         /// <summary>设置表模型，检查数据表是否匹配表模型，反向工程</summary>
-        /// <param name="setting">设置</param>
+        /// <param name="mode">设置</param>
         /// <param name="tables"></param>
-        public void SetTables(NegativeSetting setting, params IDataTable[] tables)
+        public void SetTables(Migration mode, params IDataTable[] tables)
         {
-            OnSetTables(tables, setting);
+            if (mode == Migration.Off) return;
+
+            OnSetTables(tables, mode);
         }
 
-        protected virtual void OnSetTables(IDataTable[] tables, NegativeSetting setting)
+        protected virtual void OnSetTables(IDataTable[] tables, Migration mode)
         {
-            CheckDatabase(setting);
+            CheckDatabase(mode);
 
-            CheckAllTables(tables, setting);
+            CheckAllTables(tables, mode);
         }
 
         Boolean hasCheckedDatabase;
-        private void CheckDatabase(NegativeSetting setting)
+        private void CheckDatabase(Migration mode)
         {
             if (hasCheckedDatabase) return;
             hasCheckedDatabase = true;
@@ -94,7 +97,7 @@ namespace XCode.DataAccessLayer
 
             if (!dbExist)
             {
-                if (!setting.CheckOnly)
+                if (mode > Migration.ReadOnly)
                 {
                     WriteLog("创建数据库：{0}", ConnName);
                     SetSchema(DDLSchema.CreateDatabase, null, null);
@@ -110,7 +113,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private void CheckAllTables(IDataTable[] tables, NegativeSetting setting)
+        private void CheckAllTables(IDataTable[] tables, Migration mode)
         {
             // 数据库表进入字典
             var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
@@ -129,9 +132,9 @@ namespace XCode.DataAccessLayer
                 {
                     // 判断指定表是否存在于数据库中，以决定是创建表还是修改表
                     if (dic.TryGetValue(item.TableName, out var dbtable))
-                        CheckTable(item, dbtable, setting);
+                        CheckTable(item, dbtable, mode);
                     else
-                        CheckTable(item, null, setting);
+                        CheckTable(item, null, mode);
                 }
                 catch (Exception ex)
                 {
@@ -140,71 +143,45 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected virtual void CheckTable(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
+        protected virtual void CheckTable(IDataTable entitytable, IDataTable dbtable, Migration mode)
         {
+            var onlySql = mode <= Migration.ReadOnly;
             if (dbtable == null)
             {
                 // 没有字段的表不创建
                 if (entitytable.Columns.Count < 1) return;
 
-                #region 创建表
                 WriteLog("创建表：{0}({1})", entitytable.TableName, entitytable.Description);
 
                 var sb = new StringBuilder();
                 // 建表，如果不是onlySql，执行时DAL会输出SQL日志
-                CreateTable(sb, entitytable, setting.CheckOnly);
+                CreateTable(sb, entitytable, onlySql);
 
                 // 仅获取语句
-                if (setting.CheckOnly) WriteLog("只检查不对数据库进行操作,请手工创建表：" + entitytable.TableName + Environment.NewLine + sb.ToString());
-                #endregion
+                if (onlySql) WriteLog("只检查不对数据库进行操作,请手工创建表：" + entitytable.TableName + Environment.NewLine + sb.ToString());
             }
             else
             {
-                #region 修改表
-                var sql = CheckColumnsChange(entitytable, dbtable, setting);
+                var sql = CheckColumnsChange(entitytable, dbtable, mode);
                 if (!String.IsNullOrEmpty(sql)) sql += ";";
-                sql += CheckTableDescriptionAndIndex(entitytable, dbtable, setting.CheckOnly);
-                if (!String.IsNullOrEmpty(sql) && setting.CheckOnly)
-                {
-                    WriteLog("只检查不对数据库进行操作,请手工使用以下语句修改表：" + Environment.NewLine + sql);
-                }
-                #endregion
+                sql += CheckTableDescriptionAndIndex(entitytable, dbtable, onlySql);
+                if (!sql.IsNullOrEmpty() && onlySql) WriteLog("只检查不对数据库进行操作,请手工使用以下语句修改表：" + Environment.NewLine + sql);
             }
         }
 
         /// <summary>检查字段改变。某些数据库（如SQLite）没有添删改字段的DDL语法，可重载该方法，使用重建表方法ReBuildTable</summary>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>
-        /// <param name="setting"></param>
+        /// <param name="mode"></param>
         /// <returns></returns>
-        protected virtual String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
+        protected virtual String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Migration mode)
         {
-            #region 准备工作
-            var onlySql = setting.CheckOnly;
-            var sql = String.Empty;
+            var onlySql = mode <= Migration.ReadOnly;
+            var noDelete = mode < Migration.Full;
+
             var sb = new StringBuilder();
-            var entitydic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
-            if (entitytable.Columns != null)
-            {
-                foreach (var item in entitytable.Columns)
-                {
-                    if (entitydic.ContainsKey(item.ColumnName.ToLower()))
-                    {
-                        WriteLog("《" + entitytable.Name + "》实体中存在重复列名，请检查《" + entitytable.TableName + "》表《" + item.Name + "》属性的ColumnName配置（目前配置为：" + item.ColumnName + "）。");
-                        continue;
-                    }
-                    entitydic.Add(item.ColumnName.ToLower(), item);
-                }
-            }
-            var dbdic = new Dictionary<String, IDataColumn>(StringComparer.OrdinalIgnoreCase);
-            if (dbtable.Columns != null)
-            {
-                foreach (var item in dbtable.Columns)
-                {
-                    dbdic.Add(item.ColumnName.ToLower(), item);
-                }
-            }
-            #endregion
+            var etdic = entitytable.Columns.ToDictionary(e => e.ColumnName.ToLower(), e => e, StringComparer.OrdinalIgnoreCase);
+            var dbdic = dbtable.Columns.ToDictionary(e => e.ColumnName.ToLower(), e => e, StringComparer.OrdinalIgnoreCase);
 
             #region 新增列
             foreach (var item in entitytable.Columns)
@@ -212,7 +189,18 @@ namespace XCode.DataAccessLayer
                 if (!dbdic.ContainsKey(item.ColumnName.ToLower()))
                 {
                     // 非空字段需要重建表
-                    if (!item.Nullable) return ReBuildTable(entitytable, dbtable);
+                    if (!item.Nullable)
+                    {
+                        var sql = ReBuildTable(entitytable, dbtable);
+                        if (noDelete)
+                        {
+                            WriteLog("数据表新增非空字段[{0}]，需要重建表，请手工执行：\r\n{1}", item.Name, sql);
+                            return sql;
+                        }
+
+                        Database.CreateSession().Execute(sql);
+                        return String.Empty;
+                    }
 
                     PerformSchema(sb, onlySql, DDLSchema.AddColumn, item);
                     if (!item.Description.IsNullOrEmpty()) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
@@ -225,18 +213,18 @@ namespace XCode.DataAccessLayer
             for (var i = dbtable.Columns.Count - 1; i >= 0; i--)
             {
                 var item = dbtable.Columns[i];
-                if (!entitydic.ContainsKey(item.ColumnName.ToLower()))
+                if (!etdic.ContainsKey(item.ColumnName.ToLower()))
                 {
-                    if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, item);
-                    PerformSchema(sbDelete, setting.NoDelete, DDLSchema.DropColumn, item);
+                    if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, noDelete, DDLSchema.DropColumnDescription, item);
+                    PerformSchema(sbDelete, noDelete, DDLSchema.DropColumn, item);
                 }
             }
             if (sbDelete.Length > 0)
             {
-                if (setting.NoDelete)
+                if (noDelete)
                 {
-                    //不许删除列，显示日志
-                    WriteLog("数据表中发现有多余字段，请手工执行以下语句删除：" + Environment.NewLine + sbDelete.ToString());
+                    // 不许删除列，显示日志
+                    WriteLog("数据表中发现有多余字段，请手工执行以下语句删除：" + Environment.NewLine + sbDelete);
                 }
                 else
                 {
@@ -257,17 +245,17 @@ namespace XCode.DataAccessLayer
                 if (IsColumnTypeChanged(item, dbf))
                 {
                     WriteLog("字段{0}.{1}类型需要由{2}改变为{3}", entitytable.Name, item.Name, dbf.DataType, item.DataType);
-                    PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
+                    PerformSchema(sb, noDelete, DDLSchema.AlterColumn, item, dbf);
                 }
-                if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, onlySql, DDLSchema.AlterColumn, item, dbf);
+                if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, noDelete, DDLSchema.AlterColumn, item, dbf);
 
                 if (item.Description + "" != dbf.Description + "")
                 {
-                    //// 先删除旧注释
-                    //if (dbf.Description != null) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, dbf);
+                    // 先删除旧注释
+                    if (dbf.Description != null) PerformSchema(sb, noDelete, DDLSchema.DropColumnDescription, dbf);
 
                     // 加上新注释
-                    if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
+                    if (!item.Description.IsNullOrEmpty()) PerformSchema(sb, noDelete, DDLSchema.AddColumnDescription, item);
                 }
             }
             #endregion
@@ -378,6 +366,9 @@ namespace XCode.DataAccessLayer
             var type = entityColumn.DataType;
             if (type.IsEnum) type = typeof(Int32);
             if (type == dbColumn.DataType) return false;
+
+            // 整型不做改变
+            if (type.IsInt() && dbColumn.DataType.IsInt()) return false;
 
             // 类型不匹配，不一定就是有改变，还要查找类型对照表是否有匹配的，只要存在任意一个匹配，就说明是合法的
             foreach (var item in FieldTypeMaps)
@@ -604,8 +595,6 @@ namespace XCode.DataAccessLayer
                 foreach (var item in table.Indexes)
                 {
                     if (item.PrimaryKey || item.Computed) continue;
-                    //// 如果这个索引的唯一字段是主键，则无需建立索引
-                    //if (item.Columns.Length == 1 && table.GetColumn(item.Columns[0]).PrimaryKey) continue;
                     // 如果索引全部就是主键，无需创建索引
                     if (table.GetColumns(item.Columns).All(e => e.PrimaryKey)) continue;
 

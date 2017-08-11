@@ -260,11 +260,11 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号</summary>
-        static Boolean _IgnoreCase = Setting.Current.Oracle.IgnoreCase;
+        public Boolean IgnoreCase { get; set; } = true;
 
         public override String FormatName(String name)
         {
-            if (_IgnoreCase)
+            if (IgnoreCase)
                 return base.FormatName(name);
             else
                 return FormatKeyWord(name);
@@ -414,8 +414,8 @@ namespace XCode.DataAccessLayer
             else
             {
                 // 不缺分大小写，并且不是保留字，才转大写
-                if (Setting.Current.Oracle.IgnoreCase && !(Database as Oracle).IsReservedWord(tableName))
-                    tableName = tableName.ToUpper();
+                var db = Database as Oracle;
+                if (db.IgnoreCase && !db.IsReservedWord(tableName)) tableName = tableName.ToUpper();
             }
 
             var owner = Owner;

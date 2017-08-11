@@ -26,7 +26,7 @@ namespace XCode.DataAccessLayer
         /// <summary>设置表模型，检查数据表是否匹配表模型，反向工程</summary>
         /// <param name="setting">设置</param>
         /// <param name="tables"></param>
-        void SetTables(NegativeSetting setting, params IDataTable[] tables);
+        void SetTables(Migration setting, params IDataTable[] tables);
 
         /// <summary>获取数据定义语句</summary>
         /// <param name="schema">数据定义模式</param>

@@ -141,7 +141,6 @@
     </Compile>
     <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs">
     </Compile>
-    <Compile Include="DataAccessLayer\MetaData\NegativeSetting.cs" />
     <Compile Include="DataAccessLayer\Model\ModelHelper.cs" />
     <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
     <Compile Include="DataAccessLayer\Model\IDataIndex.cs" />

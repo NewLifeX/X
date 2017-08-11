@@ -521,7 +521,7 @@ namespace XCode.DataAccessLayer
             return String.Format("Drop Index {0}", FormatName(index.Name));
         }
 
-        protected override String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
+        protected override String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Migration mode)
         {
             foreach (var item in entitytable.Columns)
             {
@@ -538,32 +538,27 @@ namespace XCode.DataAccessLayer
             }
 
             // 把onlySql设为true，让基类只产生语句而不执行
-            var set = new NegativeSetting()
-            {
-                CheckOnly = true,
-                NoDelete = setting.NoDelete
-            };
-            var sql = base.CheckColumnsChange(entitytable, dbtable, set);
+            var sql = base.CheckColumnsChange(entitytable, dbtable, Migration.ReadOnly);
             if (String.IsNullOrEmpty(sql)) return sql;
 
             // 只有修改字段、删除字段需要重建表
             if (!sql.Contains("Alter Column") && !sql.Contains("Drop Column"))
             {
-                if (!setting.CheckOnly) Database.CreateSession().Execute(sql);
+                if (mode > Migration.ReadOnly) Database.CreateSession().Execute(sql);
                 return sql;
             }
 
             var sql2 = sql;
 
             sql = ReBuildTable(entitytable, dbtable);
-            if (String.IsNullOrEmpty(sql) || setting.CheckOnly) return sql;
+            if (sql.IsNullOrEmpty() || mode == Migration.ReadOnly) return sql;
 
             // 输出日志，说明重建表的理由
             WriteLog("SQLite需要重建表，因无法执行：{0}", sql2);
 
             var flag = true;
             // 如果设定不允许删
-            if (setting.NoDelete)
+            if (mode < Migration.Full)
             {
                 // 看看有没有数据库里面有而实体库里没有的
                 foreach (var item in dbtable.Columns)
@@ -601,8 +596,8 @@ namespace XCode.DataAccessLayer
         /// <summary>已重载。因为内存数据库无法检测到架构，不知道表是否已存在，所以需要自己维护</summary>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>
-        /// <param name="setting"></param>
-        protected override void CheckTable(IDataTable entitytable, IDataTable dbtable, NegativeSetting setting)
+        /// <param name="mode"></param>
+        protected override void CheckTable(IDataTable entitytable, IDataTable dbtable, Migration mode)
         {
             if (dbtable == null && (Database as SQLite).IsMemoryDatabase)
             {
@@ -611,7 +606,7 @@ namespace XCode.DataAccessLayer
                 memoryTables.Add(entitytable);
             }
 
-            base.CheckTable(entitytable, dbtable, setting);
+            base.CheckTable(entitytable, dbtable, mode);
         }
 
         public override String CompactDatabaseSQL() { return "VACUUM"; }

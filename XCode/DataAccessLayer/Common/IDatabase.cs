@@ -6,6 +6,22 @@ using NewLife;
 
 namespace XCode.DataAccessLayer
 {
+    /// <summary>反向工程</summary>
+    public enum Migration
+    {
+        /// <summary>关闭</summary>
+        Off = 0,
+
+        /// <summary>只读。异步检查差异，不执行</summary>
+        ReadOnly = 1,
+
+        /// <summary>默认。新建表结构</summary>
+        On = 2,
+
+        /// <summary>完全。新建、修改、删除</summary>
+        Full = 3
+    }
+
     /// <summary>数据库接口</summary>
     /// <remarks>
     /// 抽象数据库的功能特点。
@@ -37,6 +53,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>参数化添删改查。默认关闭</summary>
         Boolean UserParameter { get; set; }
+
+        /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除</summary>
+        Migration Migration { get; set; }
         #endregion
 
         #region 方法
@@ -82,17 +101,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        ///// <summary>当前时间函数</summary>
-        //String DateTimeNow { get; }
-
-        ///// <summary>最小时间</summary>
-        //DateTime DateTimeMin { get; }
-
         /// <summary>长文本长度</summary>
         Int32 LongTextLength { get; }
-
-        ///// <summary>获取Guid的函数</summary>
-        //String NewGuid { get; }
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>

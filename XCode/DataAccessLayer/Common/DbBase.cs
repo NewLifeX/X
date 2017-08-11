@@ -187,6 +187,9 @@ namespace XCode.DataAccessLayer
                 finally { session.AutoClose(); }
             }
         }
+
+        /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除</summary>
+        public Migration Migration { get; set; } = Migration.On;
         #endregion
 
         #region 方法
