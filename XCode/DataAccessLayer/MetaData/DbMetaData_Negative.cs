@@ -263,8 +263,8 @@ namespace XCode.DataAccessLayer
 
                 if (item.Description + "" != dbf.Description + "")
                 {
-                    // 先删除旧注释
-                    if (dbf.Description != null) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, dbf);
+                    //// 先删除旧注释
+                    //if (dbf.Description != null) PerformSchema(sb, onlySql, DDLSchema.DropColumnDescription, dbf);
 
                     // 加上新注释
                     if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
@@ -287,8 +287,8 @@ namespace XCode.DataAccessLayer
             #region 表说明
             if (entitytable.Description + "" != dbtable.Description + "")
             {
-                // 先删除旧注释
-                if (!String.IsNullOrEmpty(dbtable.Description)) PerformSchema(sb, onlySql, DDLSchema.DropTableDescription, dbtable);
+                //// 先删除旧注释
+                //if (!String.IsNullOrEmpty(dbtable.Description)) PerformSchema(sb, onlySql, DDLSchema.DropTableDescription, dbtable);
 
                 // 加上新注释
                 if (!String.IsNullOrEmpty(entitytable.Description)) PerformSchema(sb, onlySql, DDLSchema.AddTableDescription, entitytable);
