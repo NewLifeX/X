@@ -367,8 +367,8 @@ namespace XCode.DataAccessLayer
             if (type.IsEnum) type = typeof(Int32);
             if (type == dbColumn.DataType) return false;
 
-            // 整型不做改变
-            if (type.IsInt() && dbColumn.DataType.IsInt()) return false;
+            //// 整型不做改变
+            //if (type.IsInt() && dbColumn.DataType.IsInt()) return false;
 
             // 类型不匹配，不一定就是有改变，还要查找类型对照表是否有匹配的，只要存在任意一个匹配，就说明是合法的
             foreach (var item in FieldTypeMaps)
