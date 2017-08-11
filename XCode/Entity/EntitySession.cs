@@ -238,7 +238,7 @@ namespace XCode
             //if (Dal.CheckAndAdd(TableName)) return;
 
 #if DEBUG
-            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.Type, Setting.Current.Negative.CheckOnly ? "异步" : "同步");
+            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.Type, Setting.Current.Migration == Migration.ReadOnly ? "异步" : "同步");
 #endif
 
             var sw = new Stopwatch();

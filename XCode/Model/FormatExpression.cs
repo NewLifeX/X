@@ -21,11 +21,11 @@ namespace XCode
         /// <param name="field"></param>
         /// <param name="format"></param>
         /// <param name="value"></param>
-        public FormatExpression(FieldItem field, String format, String value)
+        public FormatExpression(FieldItem field, String format, String value) : base(value)
         {
             Field = field;
             Format = format;
-            Text = value;
+            //Text = value;
         }
         #endregion
 

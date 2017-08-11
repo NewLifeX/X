@@ -9,10 +9,7 @@ namespace XCode
     {
         #region 属性
         /// <summary>文本表达式</summary>
-        public String Text { get; set; }
-
-        ///// <summary>严格模式。在严格模式下将放弃一些不满足要求的表达式。默认false</summary>
-        //public Int32 Strict { get; set; }
+        public String Text { get; private set; }
         #endregion
 
         #region 构造
@@ -25,20 +22,6 @@ namespace XCode
         #endregion
 
         #region 方法
-        ///// <summary>设置严格模式</summary>
-        ///// <param name="strict">严格模式。为Null的参数都忽略</param>
-        ///// <param name="fullStrict">完全严格模式。整型0、时间最小值、空字符串，都忽略</param>
-        ///// <returns></returns>
-        //public Expression SetStrict(Boolean strict = true, Boolean fullStrict = true)
-        //{
-        //    if (fullStrict)
-        //        Strict = 2;
-        //    else if (strict)
-        //        Strict = 1;
-
-        //    return this;
-        //}
-
         /// <summary>用于匹配Or关键字的正则表达式</summary>
         internal protected static Regex _regOr = new Regex(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>获取表达式的文本表示</summary>
@@ -68,6 +51,19 @@ namespace XCode
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator String(Expression obj) { return obj?.GetString(false, null); }
+
+        /// <summary>拉平表达式</summary>
+        /// <returns></returns>
+        public virtual Expression Flatten()
+        {
+            /*
+             * 1，非条件表达式，直接返回
+             * 2，条件表达式只有一个子项，返回子项拉平
+             * 3，多个子项
+             */
+
+            return this;
+        }
         #endregion
 
         #region 重载运算符
@@ -89,11 +85,12 @@ namespace XCode
             if (exp == null) return CreateWhere(value);
 
             // 左边构造条件表达式，自己是也好，新建立也好
-            var where = CreateWhere(exp);
-            if (value == null) return where;
+            //var where = CreateWhere(exp);
+            if (value == null) return CreateWhere(exp);
 
             // 如果右边为空，创建的表达式将会失败，直接返回左边
-            return where.And(value);
+            //return where.And(value);
+            return new WhereExpression(exp, OperatorExpression.And, value);
         }
 
         /// <summary>重载运算符实现Or操作</summary>
@@ -114,11 +111,24 @@ namespace XCode
             if (exp == null) return CreateWhere(value);
 
             // 左边构造条件表达式，自己是也好，新建立也好
-            var where = CreateWhere(exp);
-            if (value == null) return where;
+            //var where = CreateWhere(exp);
+            if (value == null) return CreateWhere(exp);
 
             // 如果右边为空，创建的表达式将会失败，直接返回左边
-            return where.Or(value);
+            //return where.Or(value);
+            return new WhereExpression(exp, OperatorExpression.Or, value);
+        }
+
+        /// <summary>重载运算符实现+操作</summary>
+        /// <param name="exp"></param>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public static Expression operator +(Expression exp, Expression value)
+        {
+            if (exp == null) return value;
+            if (value == null) return exp;
+
+            return new WhereExpression(exp, OperatorExpression.Blank, value);
         }
 
         internal static WhereExpression CreateWhere(Expression value)
