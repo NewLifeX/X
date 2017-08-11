@@ -66,17 +66,17 @@ namespace ASP
             
             #line default
             #line hidden
-WriteLiteral("\r\n<div");
+WriteLiteral("\n<div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n    <label");
+WriteLiteral(">\n    <label");
 
 WriteLiteral(" for=\"RoleID\"");
 
 WriteLiteral(" class=\"control-label\"");
 
-WriteLiteral(">角色：</label>\r\n");
+WriteLiteral(">角色：</label>\n");
 
 WriteLiteral("    ");
 
@@ -87,8 +87,15 @@ Write(Html.ForDropDownList("RoleID", Role.FindAllWithCache(), "全部", true));
             
             #line default
             #line hidden
-WriteLiteral("\r\n</div>");
+WriteLiteral("\n</div>\n");
 
+            
+            #line 12 "..\..\Areas\Admin\Views\User\_List_Search.cshtml"
+Write(Html.Partial("_DateRange"));
+
+            
+            #line default
+            #line hidden
         }
     }
 }
