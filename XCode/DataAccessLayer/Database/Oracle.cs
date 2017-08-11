@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NewLife.Net;
 using NewLife.Reflection;
 using XCode.Common;
 
@@ -90,9 +91,20 @@ namespace XCode.DataAccessLayer
         {
             base.OnSetConnectionString(builder);
 
-            // 获取OCI目录
-            if (builder.TryGetAndRemove("DllPath", out var str) && !String.IsNullOrEmpty(str))
+            // 修正数据源
+            if (builder.TryGetAndRemove("Data Source", out var str) && !str.IsNullOrEmpty())
             {
+                if (str.Contains("://"))
+                {
+                    var uri = new Uri(str);
+                    var type = uri.Scheme.IsNullOrEmpty() ? "TCP" : uri.Scheme;
+                    var port = uri.Port > 0 ? uri.Port : 1521;
+                    var name = uri.PathAndQuery.TrimStart("/");
+                    if (name.IsNullOrEmpty()) name = "ORCL";
+
+                    str = "(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL={0})(HOST={1})(PORT={2})))(CONNECT_DATA=(SERVICE_NAME={3})))".F(type, uri.Host, port, name);
+                }
+                builder.Add("Data Source", str);
             }
         }
         #endregion
