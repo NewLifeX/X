@@ -6,6 +6,7 @@ using System.Security.Principal;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Web;
@@ -233,74 +234,10 @@ namespace XCode.Membership
             else // 实体缓存
                 return Meta.Cache.Entities.FindIgnoreCase(__.Code, code);
         }
+        #endregion
 
-        /// <summary>查询满足条件的记录集，分页、排序</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体集</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, Int32 roleId, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindAll(SearchWhere(key, roleId), order, null, startRowIndex, maximumRows);
-        }
-
-        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>记录数</returns>
-        public static Int64 SearchCount(String key, Int32 roleId, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindCount(SearchWhere(key, roleId), null, null, 0, 0);
-        }
-
-        /// <summary>查询满足条件的记录集，分页、排序</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="isEnable">是否启用</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体集</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindAll(SearchWhere(key, roleId, isEnable), order, null, startRowIndex, maximumRows);
-        }
-
-        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="isEnable">是否启用</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>记录数</returns>
-        public static Int64 SearchCount(String key, Int32 roleId, Boolean? isEnable, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindCount(SearchWhere(key, roleId, isEnable), null, null, 0, 0);
-        }
-
-        /// <summary>构造搜索条件</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="isEnable">是否启用</param>
-        /// <returns></returns>
-        private static WhereExpression SearchWhere(String key, Int32 roleId, Boolean? isEnable = null)
-        {
-            var exp = SearchWhereByKey(key);
-            if (roleId > 0) exp &= _.RoleID == roleId;
-            if (isEnable != null) exp &= _.Enable == isEnable;
-
-            return exp;
-        }
-
-        /// <summary>参数化查询</summary>
+        #region 高级查询
+        /// <summary>高级查询</summary>
         /// <param name="key"></param>
         /// <param name="roleId"></param>
         /// <param name="isEnable"></param>
@@ -308,7 +245,33 @@ namespace XCode.Membership
         /// <returns></returns>
         public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p)
         {
-            return FindAll(SearchWhere(key, roleId, isEnable), p);
+            return Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
+        }
+
+        /// <summary>高级查询</summary>
+        /// <param name="key"></param>
+        /// <param name="roleId"></param>
+        /// <param name="isEnable"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
+        {
+            var exp = _.LastLogin.Between(start, end);
+            if (roleId > 0) exp &= _.RoleID == roleId;
+            if (isEnable != null) exp &= _.Enable == isEnable;
+
+            // 先精确查询，再模糊
+            if (!key.IsNullOrEmpty())
+            {
+                var list = FindAll(exp & (_.Code == key | _.Name == key | _.DisplayName == key | _.Mail == key | _.Phone == key), p);
+                if (list.Count > 0) return list;
+
+                exp &= (_.Code.Contains(key) | _.Name.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Phone.Contains(key));
+            }
+
+            return FindAll(exp, p);
         }
         #endregion
 

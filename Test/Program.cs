@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -103,9 +103,12 @@ namespace Test
         {
             //EntityBuilder.Build(@"E:\ZTO\ZTO.GK.Web.Report\GK.Report\GK.Report.xml");
 
-            Console.WriteLine(UserX.Meta.Count);
-            Console.Clear();
-            TestModule.Test();
+            var list = UserX.Search("mon", 1, true, null);
+            Console.WriteLine(list);
+
+            //Console.WriteLine(UserX.Meta.Count);
+            //Console.Clear();
+            //TestModule.Test();
         }
 
         class TestModule : EntityModule

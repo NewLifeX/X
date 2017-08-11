@@ -442,7 +442,7 @@ namespace XCode
         {
             var session = Meta.Session;
             var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
-            var wh = where?.GetString(false, ps);
+            var wh = where?.GetString(ps);
 
             var builder = new SelectBuilder();
             builder.Table = session.FormatedTableName;
@@ -626,7 +626,7 @@ namespace XCode
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
                 // 计算本次查询的结果行数
-                if (!String.IsNullOrEmpty(where?.GetString(false, null))) count = FindCount(where, order, selects, startRowIndex, maximumRows);
+                if (!String.IsNullOrEmpty(where?.GetString(null))) count = FindCount(where, order, selects, startRowIndex, maximumRows);
                 // 游标在中间偏后
                 if (startRowIndex * 2 > count)
                 {
@@ -789,7 +789,7 @@ namespace XCode
         {
             var session = Meta.Session;
             var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
-            var wh = where?.GetString(false, ps);
+            var wh = where?.GetString(ps);
 
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
             if (String.IsNullOrEmpty(wh) && session.LongCount > 10000) return session.LongCount;
@@ -894,7 +894,7 @@ namespace XCode
         public static WhereExpression SearchWhereByKey(String key, FieldItem[] fields = null)
         {
             var exp = new WhereExpression();
-            if (String.IsNullOrEmpty(key)) return exp;
+            if (key.IsNullOrEmpty()) return exp;
 
             if (fields == null || fields.Length == 0) fields = Meta.Fields;
             foreach (var item in fields)
@@ -904,7 +904,7 @@ namespace XCode
                 exp |= item.Contains(key);
             }
 
-            return exp.AsChild();
+            return exp;
         }
         #endregion
 
@@ -945,7 +945,7 @@ namespace XCode
         {
             var session = Meta.Session;
             var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
-            var wh = where?.GetString(false, ps);
+            var wh = where?.GetString(ps);
             var builder = CreateBuilder(wh, order, selects, startRowIndex, maximumRows, needOrderByID);
 
             builder = FixParam(builder, ps);

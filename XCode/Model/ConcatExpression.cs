@@ -35,14 +35,14 @@ namespace XCode
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
+        /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override String GetString(Boolean needBracket, IDictionary<String, Object> ps)
+        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
-            if (Builder == null || Builder.Length <= 0) return null;
+            if (Builder == null || Builder.Length <= 0) return;
 
-            return Builder.ToString();
+            builder.Append(Builder);
         }
         #endregion
 

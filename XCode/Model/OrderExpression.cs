@@ -36,18 +36,20 @@ namespace XCode
         }
 
         /// <summary>已重载。</summary>
+        /// <param name="builder">字符串构建器</param>
+        /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override String GetString(Boolean needBracket, IDictionary<String, Object> ps)
+        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
-            if (Builder == null || Builder.Length <= 0) return null;
+            if (Builder == null || Builder.Length <= 0) return;
 
-            return Builder.ToString();
+            builder.Append(Builder);
         }
 
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(OrderExpression obj) { return obj?.GetString(false, null); }
+        public static implicit operator String(OrderExpression obj) { return obj?.GetString(null); }
         #endregion
 
         #region 重载运算符

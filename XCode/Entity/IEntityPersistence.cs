@@ -352,7 +352,7 @@ namespace XCode
             var exp = DefaultCondition(entity);
             var ps = new Dictionary<String, Object>();
             if (!up) ps = null;
-            var sql = exp?.GetString(false, ps);
+            var sql = exp?.GetString(ps);
             if (String.IsNullOrEmpty(sql)) return null;
 
             if (ps != null && ps.Count > 0)
