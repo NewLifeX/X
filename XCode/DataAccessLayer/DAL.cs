@@ -31,7 +31,7 @@ namespace XCode.DataAccessLayer
             //if (!ConnStrs.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
             if (!ConnStrs.ContainsKey(connName))
             {
-                var connstr = "Data Source=" + Setting.Current.SQLiteDbPath.CombinePath(connName + ".db");
+                var connstr = "Data Source=" + Setting.Current.SQLiteDbPath.CombinePath(connName + ".db;Migration=On");
                 WriteLog("自动为[{0}]设置SQLite连接字符串：{1}", connName, connstr);
                 AddConnStr(connName, connstr, null, "SQLite");
             }

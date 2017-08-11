@@ -95,6 +95,7 @@ namespace XCode.DataAccessLayer
             public static readonly String Owner = "Owner";
             public static readonly String ShowSQL = "ShowSQL";
             public static readonly String UserParameter = "UserParameter";
+            public static readonly String Migration = "Migration";
         }
         #endregion
 
@@ -162,6 +163,7 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(_.Owner, out var value) && !String.IsNullOrEmpty(value)) Owner = value;
             if (builder.TryGetAndRemove(_.ShowSQL, out value) && !String.IsNullOrEmpty(value)) ShowSQL = value.ToBoolean();
             if (builder.TryGetAndRemove(_.UserParameter, out value) && !String.IsNullOrEmpty(value)) UserParameter = value.ToBoolean();
+            if (builder.TryGetAndRemove(_.Migration, out value) && !String.IsNullOrEmpty(value)) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
         }
 
         /// <summary>拥有者</summary>

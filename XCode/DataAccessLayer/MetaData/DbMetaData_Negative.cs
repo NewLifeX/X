@@ -72,19 +72,18 @@ namespace XCode.DataAccessLayer
 
         protected virtual void OnSetTables(IDataTable[] tables, Migration mode)
         {
-            CheckDatabase(mode);
+            var dbExist = CheckDatabase(mode);
 
-            CheckAllTables(tables, mode);
+            CheckAllTables(tables, mode, dbExist);
         }
 
-        Boolean hasCheckedDatabase;
-        private void CheckDatabase(Migration mode)
+        Boolean? hasCheckedDatabase;
+        private Boolean CheckDatabase(Migration mode)
         {
-            if (hasCheckedDatabase) return;
-            hasCheckedDatabase = true;
+            if (hasCheckedDatabase != null) return hasCheckedDatabase.Value;
 
             //数据库检查
-            var dbExist = true;
+            var dbExist = false;
             try
             {
                 dbExist = (Boolean)SetSchema(DDLSchema.DatabaseExist, null);
@@ -101,6 +100,8 @@ namespace XCode.DataAccessLayer
                 {
                     WriteLog("创建数据库：{0}", ConnName);
                     SetSchema(DDLSchema.CreateDatabase, null, null);
+
+                    dbExist = true;
                 }
                 else
                 {
@@ -111,18 +112,24 @@ namespace XCode.DataAccessLayer
                         WriteLog("请为连接{0}创建数据库，使用以下语句：{1}", ConnName, Environment.NewLine + sql);
                 }
             }
+
+            hasCheckedDatabase = dbExist;
+            return dbExist;
         }
 
-        private void CheckAllTables(IDataTable[] tables, Migration mode)
+        private void CheckAllTables(IDataTable[] tables, Migration mode, Boolean dbExit)
         {
             // 数据库表进入字典
             var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
-            var dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
-            if (dbtables != null && dbtables.Count > 0)
+            if (dbExit)
             {
-                foreach (var item in dbtables)
+                var dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
+                if (dbtables != null && dbtables.Count > 0)
                 {
-                    dic.Add(item.TableName, item);
+                    foreach (var item in dbtables)
+                    {
+                        dic.Add(item.TableName, item);
+                    }
                 }
             }
 
