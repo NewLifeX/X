@@ -30,10 +30,6 @@ namespace XCode
         /// <returns></returns>
         public String GetString(IDictionary<String, Object> ps)
         {
-            //if (Text.IsNullOrWhiteSpace()) return Text;
-
-            //// 如果外部要求括号，而内部又有Or，则加上括号
-            //if (needBracket && _regOr.IsMatch(Text)) return "({0})".F(Text);
             var sb = new StringBuilder();
             GetString(sb, ps);
 
@@ -61,19 +57,6 @@ namespace XCode
         /// <param name="obj"></param>
         /// <returns></returns>
         public static implicit operator String(Expression obj) { return obj?.ToString(); }
-
-        ///// <summary>拉平表达式</summary>
-        ///// <returns></returns>
-        //public virtual Expression Flatten()
-        //{
-        //    /*
-        //     * 1，非条件表达式，直接返回
-        //     * 2，条件表达式只有一个子项，返回子项拉平
-        //     * 3，多个子项
-        //     */
-
-        //    return this;
-        //}
         #endregion
 
         #region 重载运算符
@@ -91,16 +74,12 @@ namespace XCode
 
         static WhereExpression And(Expression exp, Expression value)
         {
-            //// 如果exp为空，主要考虑右边
-            //if (exp == null) return value;
+            // 如果exp为空，主要考虑右边
+            if (exp == null) return CreateWhere(value);
 
-            //// 左边构造条件表达式，自己是也好，新建立也好
-            ////var where = CreateWhere(exp);
-            //if (value == null) return exp;
+            // 左边构造条件表达式，自己是也好，新建立也好
+            if (value == null) return CreateWhere(exp);
 
-            // 如果右边为空，创建的表达式将会失败，直接返回左边
-            //return where.And(value);
-            //return new WhereExpression(exp, OperatorExpression.And, value);
             return new WhereExpression(exp, Operator.And, value);
         }
 
@@ -143,13 +122,13 @@ namespace XCode
             return new WhereExpression(exp, Operator.Space, value);
         }
 
-        //internal static WhereExpression CreateWhere(Expression value)
-        //{
-        //    if (value == null) return new WhereExpression();
-        //    if (value is WhereExpression) return (value as WhereExpression);
+        internal static WhereExpression CreateWhere(Expression value)
+        {
+            if (value == null) return null;
+            if (value is WhereExpression where) return where;
 
-        //    return new WhereExpression(value);
-        //}
+            return new WhereExpression(value, Operator.Space, null);
+        }
         #endregion
     }
 }

@@ -107,7 +107,6 @@
     <Compile Include="Model\Expression.cs" />
     <Compile Include="Model\FormatExpression.cs" />
     <Compile Include="Model\FieldExpression.cs" />
-    <Compile Include="Model\OperatorExpression.cs" />
     <Compile Include="PreApplicationStartCode.cs" />
     <Compile Include="Remoting\ApiUserSession.cs" />
     <Compile Include="Setting.cs" />
