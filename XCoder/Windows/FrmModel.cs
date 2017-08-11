@@ -264,10 +264,7 @@ namespace XCoder
             try
             {
                 var md = dal.Db.CreateMetaData();
-                var set = new NegativeSetting();
-                set.CheckOnly = false;
-                set.NoDelete = false;
-                md.SetTables(set, Tables.ToArray());
+                md.SetTables(Migration.Full, Tables.ToArray());
 
                 MessageBox.Show("成功建立" + Tables.Count + "张数据表！", Text);
             }
