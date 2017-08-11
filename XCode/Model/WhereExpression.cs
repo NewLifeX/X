@@ -137,11 +137,13 @@ namespace XCode
 
             // 递归构建，下级运算符优先级较低时加括号
 
+            var len = builder.Length;
+
             // 左侧表达式
             GetString(builder, ps, Left);
 
             // 中间运算符
-            if (Left != null)
+            if (Left != null && builder.Length > len)
             {
                 switch (Operator)
                 {
