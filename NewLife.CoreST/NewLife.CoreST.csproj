@@ -124,7 +124,6 @@
     <Compile Include="..\NewLife.Core\Net\WebSocketSession.cs" Link="Net\WebSocketSession.cs" />
     <Compile Include="..\NewLife.Core\Reflection\AssemblyX.cs" Link="Reflection\AssemblyX.cs" />
     <Compile Include="..\NewLife.Core\Reflection\AttributeX.cs" Link="Reflection\AttributeX.cs" />
-    <Compile Include="..\NewLife.Core\Reflection\EmitHelper.cs" Link="Reflection\EmitHelper.cs" />
     <Compile Include="..\NewLife.Core\Reflection\IIndexAccessor.cs" Link="Reflection\IIndexAccessor.cs" />
     <Compile Include="..\NewLife.Core\Reflection\IReflect.cs" Link="Reflection\IReflect.cs" />
     <Compile Include="..\NewLife.Core\Reflection\OrcasNamer.cs" Link="Reflection\OrcasNamer.cs" />
@@ -256,10 +255,7 @@
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
     <PackageReference Include="System.Net.Requests" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
-    <PackageReference Include="System.Security.Cryptography.Csp" Version="4.3.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
-    <PackageReference Include="System.Threading.ThreadPool" Version="4.3.0" />
   </ItemGroup>
 
 </Project>
