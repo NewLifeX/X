@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using NewLife.Configuration;
 using NewLife.Log;
-using NewLife.Reflection;
 using XCode.Model;
 
 namespace XCode.DataAccessLayer
@@ -45,13 +42,6 @@ namespace XCode.DataAccessLayer
 
             // 输出当前版本
             System.Reflection.Assembly.GetExecutingAssembly().WriteVersion();
-
-            //var set = Setting.Current.Negative;
-            //if (DAL.Debug && set.Enable)
-            //{
-            //    if (set.CheckOnly) WriteLog("XCode.Negative.CheckOnly设置为True，只是检查不对数据库进行操作");
-            //    if (set.NoDelete) WriteLog("XCode.Negative.NoDelete设置为True，不会删除数据表多余字段");
-            //}
         }
         #endregion
 
@@ -63,25 +53,6 @@ namespace XCode.DataAccessLayer
         /// <summary>建立数据表对象</summary>
         /// <returns></returns>
         internal static IDataTable CreateTable() { return XCodeService.CreateTable(); }
-        #endregion
-
-        #region 设置
-        //private static ICollection<String> _NegativeExclude;
-        ///// <summary>要排除的链接名</summary>
-        //public static ICollection<String> NegativeExclude
-        //{
-        //    get
-        //    {
-        //        if (_NegativeExclude != null) return _NegativeExclude;
-
-        //        //String str = Config.GetMutilConfig<String>(null, "XCode.Negative.Exclude", "XCode.Schema.Exclude", "DatabaseSchema_Exclude");
-        //        var str = Setting.Current.Negative.Exclude + "";
-
-        //        _NegativeExclude = new HashSet<String>(str.Split(), StringComparer.OrdinalIgnoreCase);
-
-        //        return _NegativeExclude;
-        //    }
-        //}
         #endregion
     }
 }

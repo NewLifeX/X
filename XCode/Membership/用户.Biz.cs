@@ -6,7 +6,6 @@ using System.Security.Principal;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Web;
@@ -160,11 +159,6 @@ namespace XCode.Membership
 
         /// <summary>友好名字</summary>
         public virtual String FriendName { get { return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName; } }
-
-        ///// <summary>性别</summary>
-        //[DisplayName("性别")]
-        //[Map(__.Sex)]
-        //SexKinds IUser.SexKind { get { return (SexKinds)Sex; } set { Sex = value; } }
 
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
@@ -562,9 +556,6 @@ namespace XCode.Membership
 
         /// <summary>角色名</summary>
         String RoleName { get; }
-
-        ///// <summary>性别</summary>
-        //SexKinds SexKind { get; set; }
 
         /// <summary>注销</summary>
         void Logout();

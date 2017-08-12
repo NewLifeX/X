@@ -59,7 +59,11 @@ namespace XCode.Membership
     }
 
     /// <summary>管理提供者</summary>
+#if !__CORE__
     public abstract class ManageProvider : IManageProvider, IErrorInfoProvider
+#else
+    public abstract class ManageProvider : IManageProvider
+#endif
     {
         #region 静态实例
         static ManageProvider()
@@ -131,6 +135,7 @@ namespace XCode.Membership
         }
         #endregion
 
+#if !__CORE__
         #region IErrorInfoProvider 成员
         void IErrorInfoProvider.AddInfo(Exception ex, StringBuilder builder)
         {
@@ -145,6 +150,7 @@ namespace XCode.Membership
             }
         }
         #endregion
+#endif
 
         #region 实体类扩展
         /// <summary>根据实体类接口获取实体工厂</summary>
@@ -221,6 +227,7 @@ namespace XCode.Membership
 
     class DefaultManageProvider : ManageProvider<UserX> { }
 
+#if !__CORE__
     /// <summary>管理提供者助手</summary>
     public static class ManagerProviderHelper
     {
@@ -244,4 +251,5 @@ namespace XCode.Membership
             ctx.User = new GenericPrincipal(id, roles.ToArray());
         }
     }
+#endif
 }

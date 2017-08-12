@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
@@ -382,6 +378,7 @@ namespace XCode.Membership
             /// <summary>当前请求所在菜单。自动根据当前请求的文件路径定位</summary>
             IMenu IMenuFactory.Current
             {
+#if !__CORE__
                 get
                 {
                     var context = HttpContext.Current;
@@ -406,7 +403,14 @@ namespace XCode.Membership
                     }
                     return menu;
                 }
-                set { HttpContext.Current.Items["CurrentMenu"] = value; }
+                set
+                {
+                    HttpContext.Current.Items["CurrentMenu"] = value;
+                }
+#else
+                get { return null; }
+                set { }
+#endif
             }
 
             /// <summary>根据编号找到菜单</summary>

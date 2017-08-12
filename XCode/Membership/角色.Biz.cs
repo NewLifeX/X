@@ -4,12 +4,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Web.Script.Serialization;
-using System.Web.UI.WebControls;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Web;
 
 namespace XCode.Membership
 {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.OleDb;
 using System.IO;
 
 namespace XCode.DataAccessLayer
@@ -158,7 +157,7 @@ namespace XCode.DataAccessLayer
             else
                 Database.CreateSession().Dispose();
 
-            OleDbConnection.ReleaseObjectPool();
+            //OleDbConnection.ReleaseObjectPool();
             GC.Collect();
 
             if (File.Exists(FileName)) File.Delete(FileName);

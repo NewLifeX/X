@@ -178,18 +178,6 @@ namespace XCode.Membership
 
     public partial interface ILog
     {
-        ///// <summary>创建</summary>
-        ///// <param name="type"></param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //ILog Create(Type type, String action);
-
-        ///// <summary>写日志</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action">操作</param>
-        ///// <param name="remark">备注</param>
-        //void WriteLog(Type type, String action, String remark);
-
         /// <summary>保存</summary>
         /// <returns></returns>
         Int32 Save();

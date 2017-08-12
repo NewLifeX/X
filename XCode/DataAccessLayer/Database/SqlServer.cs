@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Web.Hosting;
 using NewLife;
 using NewLife.Log;
 
@@ -17,13 +15,10 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType Type { get { return DatabaseType.SqlServer; } }
+        public override DatabaseType Type => DatabaseType.SqlServer;
 
         /// <summary>工厂</summary>
-        public override DbProviderFactory Factory { get { return SqlClientFactory.Instance; } }
-
-        ///// <summary>是否SQL2005及以上</summary>
-        //public Boolean IsSQL2005 { get { return Version.Major > 8; } }
+        public override DbProviderFactory Factory => System.Data.SqlClient.SqlClientFactory.Instance;
 
         /// <summary>是否SQL2012及以上</summary>
         public Boolean IsSQL2012 { get { return Version.Major > 11; } }
@@ -36,8 +31,6 @@ namespace XCode.DataAccessLayer
             {
                 if (_Version == null)
                 {
-                    //if (String.IsNullOrEmpty(ConnectionString)) return _Version = new Version();
-
                     var session = CreateSession();
                     try
                     {
@@ -73,7 +66,11 @@ namespace XCode.DataAccessLayer
 
             if (!builder.ContainsKey(Application_Name))
             {
-                var name = Runtime.IsWeb ? HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
+#if !__CORE__
+                var name = Runtime.IsWeb ? System.Web.Hosting.HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
+#else
+                var name = AppDomain.CurrentDomain.FriendlyName;
+#endif
                 builder[Application_Name] = String.Format("XCode_{0}_{1}", name, ConnName);
             }
         }

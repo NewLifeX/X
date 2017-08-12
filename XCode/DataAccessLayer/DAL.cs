@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Code;
@@ -64,6 +65,7 @@ namespace XCode.DataAccessLayer
             return dal;
         }
 
+#if !__CORE__
         private static Object _connStrs_lock = new Object();
         private static Dictionary<String, ConnectionStringSettings> _connStrs;
         private static Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
@@ -126,6 +128,72 @@ namespace XCode.DataAccessLayer
                 _connTypes[connName] = type;
             }
         }
+#else
+        private static Object _connStrs_lock = new Object();
+        private static Dictionary<String, String> _connStrs;
+        private static Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>链接字符串集合</summary>
+        /// <remarks>
+        /// 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的<see cref="ConnStr"/>属性
+        /// </remarks>
+        public static Dictionary<String, String> ConnStrs
+        {
+            get
+            {
+                if (_connStrs != null) return _connStrs;
+                lock (_connStrs_lock)
+                {
+                    if (_connStrs != null) return _connStrs;
+                    var cs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+
+                    // 读取配置文件
+                    var css = new ConfigurationBuilder().Build().GetSection("connectionStrings");
+                    if (css != null)
+                    {
+                        foreach (var item in css.GetChildren())
+                        {
+                            var name = item["name"];
+                            if (name.IsNullOrWhiteSpace()) continue;
+                            if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
+
+                            var constr = item["connectionString"];
+                            var provider = item["providerName"];
+                            var type = DbFactory.GetProviderType(constr, provider);
+                            if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", constr, provider);
+
+                            cs.Add(name, constr);
+                            _connTypes.Add(name, type);
+                        }
+                    }
+                    _connStrs = cs;
+                }
+                return _connStrs;
+            }
+        }
+
+        static Object lockObj = new Object();
+
+        /// <summary>添加连接字符串</summary>
+        /// <param name="connName">连接名</param>
+        /// <param name="connStr">连接字符串</param>
+        /// <param name="type">实现了IDatabase接口的数据库类型</param>
+        /// <param name="provider">数据库提供者，如果没有指定数据库类型，则有提供者判断使用哪一种内置类型</param>
+        public static void AddConnStr(String connName, String connStr, Type type, String provider)
+        {
+            if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
+            //2016.01.04 @宁波-小董，加锁解决大量分表分库多线程带来的提供者无法识别错误
+            lock (lockObj)
+            {
+                if (type == null) type = DbFactory.GetProviderType(connStr, provider);
+                if (type == null) throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
+
+                // 允许后来者覆盖前面设置过了的
+                var set = new ConnectionStringSettings(connName, connStr, provider);
+                ConnStrs[connName] = set;
+                _connTypes[connName] = type;
+            }
+        }
+#endif
 
         /// <summary>获取所有已注册的连接名</summary>
         /// <returns></returns>
@@ -430,6 +498,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 创建数据操作实体
+#if !__CORE__
         private EntityAssembly _Assembly;
         /// <summary>根据数据模型动态创建的程序集</summary>
         public EntityAssembly Assembly
@@ -440,6 +509,7 @@ namespace XCode.DataAccessLayer
             }
             set { _Assembly = value; }
         }
+#endif
 
         /// <summary>创建实体操作接口</summary>
         /// <remarks>因为只用来做实体操作，所以只需要一个实例即可</remarks>
@@ -447,10 +517,14 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IEntityOperate CreateOperate(String tableName)
         {
+#if !__CORE__
             var type = Assembly?.GetType(tableName);
             if (type == null) return null;
 
             return EntityFactory.CreateOperate(type);
+#else
+            return null;
+#endif
         }
         #endregion
     }

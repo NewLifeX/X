@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.OleDb;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -26,7 +25,11 @@ namespace XCode.DataAccessLayer
         #region 构造函数
         static DbBase()
         {
+#if !__CORE__
             var root = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
+#else
+            var root = AppDomain.CurrentDomain.BaseDirectory;
+#endif
 
             // 根据进程版本，设定x86或者x64为DLL目录
             var dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
@@ -104,7 +107,7 @@ namespace XCode.DataAccessLayer
         public virtual DatabaseType Type { get { return DatabaseType.None; } }
 
         /// <summary>工厂</summary>
-        public virtual DbProviderFactory Factory { get { return OleDbFactory.Instance; } }
+        public abstract DbProviderFactory Factory { get; }
 
         /// <summary>连接名</summary>
         public String ConnName { get; set; }

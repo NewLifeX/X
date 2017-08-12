@@ -1,0 +1,183 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>XCode</AssemblyName>
+    <RootNamespace>XCode</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\Bin\netstandard2.0\</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\Bin\netstandard2.0\</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\XCode\Attributes\BindColumnAttribute.cs" Link="Attributes\BindColumnAttribute.cs" />
+    <Compile Include="..\XCode\Attributes\BindIndexAttribute.cs" Link="Attributes\BindIndexAttribute.cs" />
+    <Compile Include="..\XCode\Attributes\BindTableAttribute.cs" Link="Attributes\BindTableAttribute.cs" />
+    <Compile Include="..\XCode\Attributes\MapAttribute.cs" Link="Attributes\MapAttribute.cs" />
+    <Compile Include="..\XCode\Attributes\ModelCheckModeAttribute.cs" Link="Attributes\ModelCheckModeAttribute.cs" />
+    <Compile Include="..\XCode\Attributes\ModelSortMode.cs" Link="Attributes\ModelSortMode.cs" />
+    <Compile Include="..\XCode\Cache\CacheBase.cs" Link="Cache\CacheBase.cs" />
+    <Compile Include="..\XCode\Cache\CacheItem.cs" Link="Cache\CacheItem.cs" />
+    <Compile Include="..\XCode\Cache\EntityCache.cs" Link="Cache\EntityCache.cs" />
+    <Compile Include="..\XCode\Cache\FieldCache.cs" Link="Cache\FieldCache.cs" />
+    <Compile Include="..\XCode\Cache\IEntityCache.cs" Link="Cache\IEntityCache.cs" />
+    <Compile Include="..\XCode\Cache\SingleEntityCache.cs" Link="Cache\SingleEntityCache.cs" />
+    <Compile Include="..\XCode\Code\ClassBuilder.cs" Link="Code\ClassBuilder.cs" />
+    <Compile Include="..\XCode\Code\EntityBuilder.cs" Link="Code\EntityBuilder.cs" />
+    <Compile Include="..\XCode\Common\DataSimulation.cs" Link="Common\DataSimulation.cs" />
+    <Compile Include="..\XCode\Common\Helper.cs" Link="Common\Helper.cs" />
+    <Compile Include="..\XCode\Configuration\FieldExtension.cs" Link="Configuration\FieldExtension.cs" />
+    <Compile Include="..\XCode\Configuration\FieldItem.cs" Link="Configuration\FieldItem.cs" />
+    <Compile Include="..\XCode\Configuration\TableItem.cs" Link="Configuration\TableItem.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\DatabaseType.cs" Link="DataAccessLayer\Common\DatabaseType.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\DbBase.cs" Link="DataAccessLayer\Common\DbBase.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\DbFactory.cs" Link="DataAccessLayer\Common\DbFactory.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\DbSession.cs" Link="DataAccessLayer\Common\DbSession.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\FileDb.cs" Link="DataAccessLayer\Common\FileDb.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\IDatabase.cs" Link="DataAccessLayer\Common\IDatabase.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\IDbSession.cs" Link="DataAccessLayer\Common\IDbSession.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\ITransaction.cs" Link="DataAccessLayer\Common\ITransaction.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\RemoteDb.cs" Link="DataAccessLayer\Common\RemoteDb.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\DAL.cs" Link="DataAccessLayer\DAL.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\DAL_DbOperate.cs" Link="DataAccessLayer\DAL_DbOperate.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\DAL_Setting.cs" Link="DataAccessLayer\DAL_Setting.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Database\MySql.cs" Link="DataAccessLayer\Database\MySql.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Database\Oracle.cs" Link="DataAccessLayer\Database\Oracle.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Database\PostgreSQL.cs" Link="DataAccessLayer\Database\PostgreSQL.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Database\SQLite.cs" Link="DataAccessLayer\Database\SQLite.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Database\SqlServer.cs" Link="DataAccessLayer\Database\SqlServer.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\MetaData\DbMetaData.cs" Link="DataAccessLayer\MetaData\DbMetaData.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\MetaData\DbMetaData_Negative.cs" Link="DataAccessLayer\MetaData\DbMetaData_Negative.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\MetaData\DbMetaData_Positive.cs" Link="DataAccessLayer\MetaData\DbMetaData_Positive.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\MetaData\DDLSchema.cs" Link="DataAccessLayer\MetaData\DDLSchema.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\MetaData\IMetaData.cs" Link="DataAccessLayer\MetaData\IMetaData.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Model\IDataColumn.cs" Link="DataAccessLayer\Model\IDataColumn.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Model\IDataIndex.cs" Link="DataAccessLayer\Model\IDataIndex.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Model\IDataTable.cs" Link="DataAccessLayer\Model\IDataTable.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Model\IModelResolver.cs" Link="DataAccessLayer\Model\IModelResolver.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Model\ModelHelper.cs" Link="DataAccessLayer\Model\ModelHelper.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Model\SerializableDataMember.cs" Link="DataAccessLayer\Model\SerializableDataMember.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Model\XField.cs" Link="DataAccessLayer\Model\XField.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Model\XIndex.cs" Link="DataAccessLayer\Model\XIndex.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Model\XTable.cs" Link="DataAccessLayer\Model\XTable.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\SelectBuilder.cs" Link="DataAccessLayer\SelectBuilder.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\XDbConnectionStringBuilder.cs" Link="DataAccessLayer\XDbConnectionStringBuilder.cs" />
+    <Compile Include="..\XCode\Entity\DataRowEntityAccessor.cs" Link="Entity\DataRowEntityAccessor.cs" />
+    <Compile Include="..\XCode\Entity\DirtyCollection.cs" Link="Entity\DirtyCollection.cs" />
+    <Compile Include="..\XCode\Entity\Entity.cs" Link="Entity\Entity.cs" />
+    <Compile Include="..\XCode\Entity\EntityBase.cs" Link="Entity\EntityBase.cs" />
+    <Compile Include="..\XCode\Entity\EntityBase_Interface.cs" Link="Entity\EntityBase_Interface.cs" />
+    <Compile Include="..\XCode\Entity\EntityExtend.cs" Link="Entity\EntityExtend.cs" />
+    <Compile Include="..\XCode\Entity\EntityFactory.cs" Link="Entity\EntityFactory.cs" />
+    <Compile Include="..\XCode\Entity\EntityList.cs" Link="Entity\EntityList.cs" />
+    <Compile Include="..\XCode\Entity\EntityListView.cs" Link="Entity\EntityListView.cs" />
+    <Compile Include="..\XCode\Entity\EntityQueue.cs" Link="Entity\EntityQueue.cs" />
+    <Compile Include="..\XCode\Entity\EntitySession.cs" Link="Entity\EntitySession.cs" />
+    <Compile Include="..\XCode\Entity\EntityTransaction.cs" Link="Entity\EntityTransaction.cs" />
+    <Compile Include="..\XCode\Entity\Entity_Meta.cs" Link="Entity\Entity_Meta.cs" />
+    <Compile Include="..\XCode\Entity\Entity_Operate.cs" Link="Entity\Entity_Operate.cs" />
+    <Compile Include="..\XCode\Entity\IEntity.cs" Link="Entity\IEntity.cs" />
+    <Compile Include="..\XCode\Entity\IEntityAddition.cs" Link="Entity\IEntityAddition.cs" />
+    <Compile Include="..\XCode\Entity\IEntityList.cs" Link="Entity\IEntityList.cs" />
+    <Compile Include="..\XCode\Entity\IEntityModule.cs" Link="Entity\IEntityModule.cs" />
+    <Compile Include="..\XCode\Entity\IEntityOperate.cs" Link="Entity\IEntityOperate.cs" />
+    <Compile Include="..\XCode\Entity\IEntityPersistence.cs" Link="Entity\IEntityPersistence.cs" />
+    <Compile Include="..\XCode\Entity\IEntitySession.cs" Link="Entity\IEntitySession.cs" />
+    <Compile Include="..\XCode\Exceptions\EntityException.cs" Link="Exceptions\EntityException.cs" />
+    <Compile Include="..\XCode\Exceptions\XCodeException.cs" Link="Exceptions\XCodeException.cs" />
+    <Compile Include="..\XCode\Exceptions\XDbException.cs" Link="Exceptions\XDbException.cs" />
+    <Compile Include="..\XCode\Exceptions\XDbMetaDataException.cs" Link="Exceptions\XDbMetaDataException.cs" />
+    <Compile Include="..\XCode\Exceptions\XDbSessionException.cs" Link="Exceptions\XDbSessionException.cs" />
+    <Compile Include="..\XCode\Exceptions\XSqlException.cs" Link="Exceptions\XSqlException.cs" />
+    <Compile Include="..\XCode\Membership\IManageProvider.cs" Link="Membership\IManageProvider.cs" />
+    <Compile Include="..\XCode\Membership\LogEntity.cs" Link="Membership\LogEntity.cs" />
+    <Compile Include="..\XCode\Membership\LogProvider.cs" Link="Membership\LogProvider.cs" />
+    <Compile Include="..\XCode\Membership\UserTimeEntity.cs" Link="Membership\UserTimeEntity.cs" />
+    <Compile Include="..\XCode\Membership\日志.Biz.cs" Link="Membership\日志.Biz.cs" />
+    <Compile Include="..\XCode\Membership\日志.cs" Link="Membership\日志.cs" />
+    <Compile Include="..\XCode\Membership\用户.Biz.cs" Link="Membership\用户.Biz.cs" />
+    <Compile Include="..\XCode\Membership\用户.cs" Link="Membership\用户.cs" />
+    <Compile Include="..\XCode\Membership\用户在线.Biz.cs" Link="Membership\用户在线.Biz.cs" />
+    <Compile Include="..\XCode\Membership\用户在线.cs" Link="Membership\用户在线.cs" />
+    <Compile Include="..\XCode\Membership\菜单.Biz.cs" Link="Membership\菜单.Biz.cs" />
+    <Compile Include="..\XCode\Membership\菜单.cs" Link="Membership\菜单.cs" />
+    <Compile Include="..\XCode\Membership\角色.Biz.cs" Link="Membership\角色.Biz.cs" />
+    <Compile Include="..\XCode\Membership\角色.cs" Link="Membership\角色.cs" />
+    <Compile Include="..\XCode\Model\ConcatExpression.cs" Link="Model\ConcatExpression.cs" />
+    <Compile Include="..\XCode\Model\Expression.cs" Link="Model\Expression.cs" />
+    <Compile Include="..\XCode\Model\FieldExpression.cs" Link="Model\FieldExpression.cs" />
+    <Compile Include="..\XCode\Model\FormatExpression.cs" Link="Model\FormatExpression.cs" />
+    <Compile Include="..\XCode\Model\OrderExpression.cs" Link="Model\OrderExpression.cs" />
+    <Compile Include="..\XCode\Model\WhereExpression.cs" Link="Model\WhereExpression.cs" />
+    <Compile Include="..\XCode\Model\XCodeService.cs" Link="Model\XCodeService.cs" />
+    <Compile Include="..\XCode\PreApplicationStartCode.cs" Link="PreApplicationStartCode.cs" />
+    <Compile Include="..\XCode\Remoting\ApiUserSession.cs" Link="Remoting\ApiUserSession.cs" />
+    <Compile Include="..\XCode\Setting.cs" Link="Setting.cs" />
+    <Compile Include="..\XCode\Sharding\分片.Biz.cs" Link="Sharding\分片.Biz.cs" />
+    <Compile Include="..\XCode\Sharding\分片.cs" Link="Sharding\分片.cs" />
+    <Compile Include="..\XCode\Transform\EntityTransform.cs" Link="Transform\EntityTransform.cs" />
+    <Compile Include="..\XCode\Transform\ETL.cs" Link="Transform\ETL.cs" />
+    <Compile Include="..\XCode\Transform\ExtractSetting.cs" Link="Transform\ExtractSetting.cs" />
+    <Compile Include="..\XCode\Transform\IETLStat.cs" Link="Transform\IETLStat.cs" />
+    <Compile Include="..\XCode\Transform\IExtracter.cs" Link="Transform\IExtracter.cs" />
+    <Compile Include="..\XCode\Transform\TimeExtracter.cs" Link="Transform\TimeExtracter.cs" />
+    <Compile Include="..\XCode\Tree\EntityTree.cs" Link="Tree\EntityTree.cs" />
+    <Compile Include="..\XCode\Tree\IEntityTree.cs" Link="Tree\IEntityTree.cs" />
+    <Compile Include="..\XCode\Tree\IEntityTreeSettting.cs" Link="Tree\IEntityTreeSettting.cs" />
+    <Compile Include="..\XCode\Web\EntityGrid.cs" Link="Web\EntityGrid.cs" />
+    <Compile Include="..\XCode\生成实体类.cs" Link="生成实体类.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\XCode\Membership\Member.xml" Link="Membership\Member.xml" />
+    <Content Include="..\XCode\Sharding\Shard.xml" Link="Sharding\Shard.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Attributes\" />
+    <Folder Include="Cache\" />
+    <Folder Include="Code\" />
+    <Folder Include="Common\" />
+    <Folder Include="Configuration\" />
+    <Folder Include="DataAccessLayer\Common\" />
+    <Folder Include="DataAccessLayer\Database\" />
+    <Folder Include="DataAccessLayer\MetaData\" />
+    <Folder Include="DataAccessLayer\Model\" />
+    <Folder Include="Entity\" />
+    <Folder Include="Exceptions\" />
+    <Folder Include="Membership\" />
+    <Folder Include="Model\" />
+    <Folder Include="Remoting\" />
+    <Folder Include="Sharding\" />
+    <Folder Include="Transform\" />
+    <Folder Include="Tree\" />
+    <Folder Include="Web\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\XCode\Membership\生成实体类.tt" Link="Membership\生成实体类.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Include="..\XCode\Sharding\生成实体类.tt" Link="Sharding\生成实体类.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.CoreST\NewLife.CoreST.csproj" />
+  </ItemGroup>
+
+</Project>
