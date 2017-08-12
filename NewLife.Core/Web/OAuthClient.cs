@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-#if __CORE__
-#else
 using System.Web;
 using NewLife.Log;
-#endif
 using NewLife.Security;
 using NewLife.Serialization;
 
@@ -75,6 +72,7 @@ namespace NewLife.Web
 
             if (state.IsNullOrEmpty()) state = Rand.Next().ToString();
 
+#if !__CORE__
             // 如果是相对路径，自动加上前缀。需要考虑反向代理的可能，不能直接使用Request.Url
             if (redirect.StartsWith("~/")) redirect = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + redirect.Substring(2);
             if (redirect.StartsWith("/"))
@@ -87,7 +85,7 @@ namespace NewLife.Web
             }
 
             if (redirect.Contains("/")) redirect = HttpUtility.UrlEncode(redirect);
-
+#endif
             _redirect = redirect;
             _state = state;
 
@@ -136,9 +134,9 @@ namespace NewLife.Web
 
             return html;
         }
-        #endregion
+#endregion
 
-        #region 辅助
+#region 辅助
         /// <summary>替换地址模版参数</summary>
         /// <param name="url"></param>
         /// <returns></returns>
@@ -169,9 +167,9 @@ namespace NewLife.Web
 
             return await _Client.DownloadStringAsync(url);
         }
-        #endregion
+#endregion
 
-        #region 日志
+#region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
 
@@ -182,6 +180,6 @@ namespace NewLife.Web
         {
             Log?.Info(format, args);
         }
-        #endregion
+#endregion
     }
 }

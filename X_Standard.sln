@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Cube", "NewLife.Cub
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.MQ", "NewLife.MQ\NewLife.MQ.csproj", "{D32ADD53-5267-479D-96B7-B987E032E010}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.CoreST", "NewLife.CoreST\NewLife.CoreST.csproj", "{5F968592-B28D-4E43-A66D-1C9E95CD27A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +64,10 @@ Global
 		{D32ADD53-5267-479D-96B7-B987E032E010}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D32ADD53-5267-479D-96B7-B987E032E010}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D32ADD53-5267-479D-96B7-B987E032E010}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F968592-B28D-4E43-A66D-1C9E95CD27A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F968592-B28D-4E43-A66D-1C9E95CD27A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F968592-B28D-4E43-A66D-1C9E95CD27A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F968592-B28D-4E43-A66D-1C9E95CD27A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
