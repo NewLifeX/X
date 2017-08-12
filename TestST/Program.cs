@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Net;
 
@@ -13,7 +14,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test1();
+            Test2();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -39,6 +40,17 @@ namespace TestST
         private static void Svr_Received(Object sender, ReceivedEventArgs e)
         {
             XTrace.WriteLine(e.ToStr());
+        }
+
+        static void Test2()
+        {
+            var css = new ConfigurationBuilder()
+                .AddXmlFile("TestST.dll.config")
+                .Build().GetSection("connectionStrings").GetSection("add");
+            foreach (var item in css.GetChildren())
+            {
+                Console.WriteLine("{0} {1} {2} {3}", item.Key, item["name"], item["connectionString"], item["providerName"]);
+            }
         }
     }
 }

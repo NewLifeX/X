@@ -6,12 +6,17 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\TestST</OutputPath>
+    <OutputPath>..\..\TestST\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\TestST</OutputPath>
+    <OutputPath>..\..\TestST\</OutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="2.0.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NewLife.CoreST\NewLife.CoreST.csproj" />
