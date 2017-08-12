@@ -161,7 +161,9 @@ namespace NewLife.Log
             if (_useConsole) return;
             _useConsole = true;
 
+#if !__CORE__
             if (!Runtime.IsConsole) return;
+#endif
 
             // 适当加大控制台窗口
             try
@@ -176,64 +178,11 @@ namespace NewLife.Log
                 _Log = new CompositeLog(clg, Log);
             else
                 _Log = clg;
-
-            //var clg = _Log as ConsoleLog;
-            //var ftl = _Log as TextFileLog;
-            //var cmp = _Log as CompositeLog;
-            //if (cmp != null)
-            //{
-            //    ftl = cmp.Get<TextFileLog>();
-            //    clg = cmp.Get<ConsoleLog>();
-            //}
-
-            //// 控制控制台日志
-            //if (clg == null)
-            //    clg = new ConsoleLog { UseColor = useColor };
-            //else
-            //    clg.UseColor = useColor;
-
-            //if (!useFileLog)
-            //{
-            //    // 如果原有提供者是文本日志，则直接替换
-            //    if (ftl != null)
-            //    {
-            //        Log = clg;
-            //        ftl.Dispose();
-            //    }
-            //    // 否则组件复合日志
-            //    else
-            //    {
-            //        if (cmp != null)
-            //        {
-            //            cmp.Remove(clg);
-            //            if (cmp.Logs.Count == 0) _Log = null;
-            //        }
-
-            //        cmp = new CompositeLog();
-            //        cmp.Add(clg);
-            //        if (_Log != null) cmp.Add(_Log);
-            //        Log = cmp;
-            //    }
-            //}
-            //else
-            //{
-            //    cmp = new CompositeLog();
-            //    cmp.Add(clg);
-            //    if (ftl == null)
-            //    {
-            //        //if (_Log != null) cmp.Add(_Log);
-            //        ftl = TextFileLog.Create(null);
-            //    }
-            //    cmp.Add(ftl);
-            //    Log = cmp;
-            //}
-
-            //WriteVersion();
         }
 #endif
-        #endregion
+#endregion
 
-        #region 拦截WinForm异常
+            #region 拦截WinForm异常
 #if __MOBILE__
 #elif __CORE__
 #else
@@ -330,10 +279,10 @@ namespace NewLife.Log
             return new CompositeLog(log, clg);
         }
 #endif
-        #endregion
+            #endregion
 
-        #region 属性
-        /// <summary>是否调试。</summary>
+            #region 属性
+            /// <summary>是否调试。</summary>
         public static Boolean Debug { get; set; } = Setting.Current.Debug;
 
         /// <summary>文本日志目录</summary>
