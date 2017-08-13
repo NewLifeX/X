@@ -181,11 +181,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Type GetType(String typeName, Boolean isLoadAssembly)
         {
-#if !__CORE__
             return AssemblyX.GetType(typeName, isLoadAssembly);
-#else
-            return Type.GetType(typeName);
-#endif
         }
 
         static BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;

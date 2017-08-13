@@ -57,13 +57,13 @@ namespace TestST
 
         static void Test3()
         {
-            foreach (var item in DAL.ConnStrs)
-            {
-                Console.WriteLine("{0}\t{1}", item.Key, item.Value);
-            }
+            //foreach (var item in DAL.ConnStrs)
+            //{
+            //    Console.WriteLine("{0}\t{1}", item.Key, item.Value);
+            //}
 
-            var dal = DAL.Create("Sqlite");
-            Console.WriteLine(dal.Db.ConnectionString);
+            //var dal = DAL.Create("Sqlite");
+            //Console.WriteLine(dal.Db.ConnectionString);
 
             var n = UserX.Meta.Count;
             Console.WriteLine(n);

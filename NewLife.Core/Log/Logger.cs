@@ -167,22 +167,22 @@ namespace NewLife.Log
             sb.AppendFormat("#AppDomain: {0}\r\n", AppDomain.CurrentDomain.FriendlyName);
 
             var fileName = String.Empty;
-            try
-            {
-                fileName = process.StartInfo.FileName;
-            }
-            catch { }
 #if !__MOBILE__
             // MonoAndroid无法识别MainModule，致命异常
-            if (fileName.IsNullOrWhiteSpace())
+            try
+            {
+                fileName = process.MainModule.FileName;
+            }
+            catch { }
+#endif
+            if (fileName.IsNullOrEmpty() || !fileName.EndsWithIgnoreCase("dotnet.exe"))
             {
                 try
                 {
-                    fileName = process.MainModule.FileName;
+                    fileName = process.StartInfo.FileName;
                 }
                 catch { }
             }
-#endif
             if (!fileName.IsNullOrEmpty()) sb.AppendFormat("#FileName: {0}\r\n", fileName);
 
 #if !__CORE__
@@ -249,6 +249,6 @@ namespace NewLife.Log
 
             return sb.ToString();
         }
-#endregion
+        #endregion
     }
 }

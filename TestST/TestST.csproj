@@ -21,7 +21,7 @@
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.OracleClient" Version="1.0.6" />
     <PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.105.2" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.105.2" />
   </ItemGroup>
 
   <ItemGroup>
