@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Net;
+using XCode.DataAccessLayer;
 
 namespace TestST
 {
@@ -14,7 +15,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test2();
+            Test3();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -51,6 +52,17 @@ namespace TestST
             {
                 Console.WriteLine("{0} {1} {2} {3}", item.Key, item["name"], item["connectionString"], item["providerName"]);
             }
+        }
+
+        static void Test3()
+        {
+            foreach (var item in DAL.ConnStrs)
+            {
+                Console.WriteLine("{0}\t{1}", item.Key, item.Value);
+            }
+
+            var dal = DAL.Create("Sqlite");
+            Console.WriteLine(dal.Db.ConnectionString);
         }
     }
 }

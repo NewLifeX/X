@@ -108,26 +108,30 @@ namespace XCode.DataAccessLayer
 #else
                     var file = "web.config".GetFullPath();
                     if (!File.Exists(file)) file = "{0}.exe.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
+                    if (!File.Exists(file)) file = "{0}.dll.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
 
-                    // 读取配置文件
-                    var css = new ConfigurationBuilder()
-                        .AddXmlFile(file)
-                        .Build().GetSection("connectionStrings");
-                    if (css != null)
+                    if (File.Exists(file))
                     {
-                        foreach (var item in css.GetChildren())
+                        // 读取配置文件
+                        var css = new ConfigurationBuilder()
+                            .AddXmlFile(file)
+                            .Build().GetSection("connectionStrings")?.GetSection("add");
+                        if (css != null)
                         {
-                            var name = item["name"];
-                            var constr = item["connectionString"];
-                            var provider = item["providerName"];
-                            if (constr.IsNullOrWhiteSpace()) continue;
-                            if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
+                            foreach (var item in css.GetChildren())
+                            {
+                                var name = item["name"];
+                                var constr = item["connectionString"];
+                                var provider = item["providerName"];
+                                if (constr.IsNullOrWhiteSpace()) continue;
+                                if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
 
-                            var type = DbFactory.GetProviderType(constr, provider);
-                            if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
+                                var type = DbFactory.GetProviderType(constr, provider);
+                                if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
 
-                            cs.Add(name, constr);
-                            _connTypes.Add(name, type);
+                                cs.Add(name, constr);
+                                _connTypes.Add(name, type);
+                            }
                         }
                     }
                     _connStrs = cs;

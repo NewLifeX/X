@@ -33,7 +33,7 @@ namespace NewLife.Cube.Admin.Controllers
             {
                 var di = new DbItem();
                 di.Name = item.Key;
-                di.ConnStr = item.Value.ConnectionString;
+                di.ConnStr = item.Value;
 
                 var dal = DAL.Create(item.Key);
                 di.Type = dal.DbType;
