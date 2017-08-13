@@ -25,6 +25,7 @@ namespace XCode
         /// <summary>静态构造</summary>
         static Entity()
         {
+            DAL.InitLog();
             //DAL.WriteDebugLog("开始初始化实体类{0}", Meta.ThisType.Name);
 
             EntityFactory.Register(Meta.ThisType, new EntityOperate());

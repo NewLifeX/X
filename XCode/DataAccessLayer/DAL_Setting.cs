@@ -8,6 +8,8 @@ namespace XCode.DataAccessLayer
 {
     partial class DAL
     {
+        static DAL() { InitLog(); }
+
         #region Sql日志输出
         /// <summary>是否调试</summary>
         public static Boolean Debug { get; set; } = Setting.Current.Debug;
@@ -36,7 +38,7 @@ namespace XCode.DataAccessLayer
         }
 
         static Int32 hasInitLog = 0;
-        private static void InitLog()
+        internal static void InitLog()
         {
             if (Interlocked.CompareExchange(ref hasInitLog, 1, 0) > 0) return;
 
