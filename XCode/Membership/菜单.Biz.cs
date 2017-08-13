@@ -11,6 +11,9 @@ using NewLife;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace XCode.Membership
 {
@@ -563,7 +566,7 @@ namespace XCode.Membership
                 // 如果新增了菜单，需要检查权限
                 if (list.Count > 0)
                 {
-                    Task.Run(() =>
+                    TaskEx.Run(() =>
                     {
                         XTrace.WriteLine("新增了菜单，需要检查权限");
                         var eop = ManageProvider.GetFactory<IRole>();

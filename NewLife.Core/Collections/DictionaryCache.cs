@@ -5,6 +5,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using NewLife.Threading;
+#if NET4
+using Task = System.Threading.Tasks.TaskEx;
+#endif
 
 namespace NewLife.Collections
 {

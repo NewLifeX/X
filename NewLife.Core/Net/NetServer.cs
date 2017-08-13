@@ -12,6 +12,9 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
@@ -536,10 +539,10 @@ namespace NewLife.Net
             var ts = new List<Task>();
             foreach (var item in Sessions)
             {
-                ts.Add(Task.Run(() => item.Value.Send(buffer)));
+                ts.Add(TaskEx.Run(() => item.Value.Send(buffer)));
             }
 
-            return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
+            return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
         #endregion
 

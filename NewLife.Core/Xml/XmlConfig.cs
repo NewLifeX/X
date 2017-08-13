@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Log;
+#if NET4
+using Task = System.Threading.Tasks.TaskEx;
+#endif
 
 namespace NewLife.Xml
 {

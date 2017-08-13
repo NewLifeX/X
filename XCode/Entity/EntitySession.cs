@@ -15,6 +15,9 @@ using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Model;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 /*
  * 检查表结构流程：
@@ -503,7 +506,7 @@ namespace XCode
                         else
                             m = Dal.Session.QueryCountFast(TableName);
                         // 查真实记录数，修正FastCount不够准确的情况
-                        if (Dal.DbType != DatabaseType.SQLite) Task.Run(() =>
+                        if (Dal.DbType != DatabaseType.SQLite) TaskEx.Run(() =>
                         {
                             var sb = new SelectBuilder();
                             sb.Table = FormatedTableName;
@@ -518,7 +521,7 @@ namespace XCode
                         m = max;
 
                         // 异步查询弥补不足，千万数据以内
-                        if (max < 10000000) Task.Run(() =>
+                        if (max < 10000000) TaskEx.Run(() =>
                         {
                             _LastCount = _Count = Dal.Session.QueryCountFast(TableName);
 

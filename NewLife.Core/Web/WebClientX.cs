@@ -14,6 +14,9 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Serialization;
 using HttpClientX = System.Net.Http.HttpClient;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Web
 {
@@ -136,7 +139,11 @@ namespace NewLife.Web
             Log.Info("{2}.{1} {0}", address, content != null ? "Post" : "Get", GetType().Name);
 
             // 发送请求
+#if !NET4
             var source = new CancellationTokenSource(time);
+#else
+            var source = new CancellationTokenSource();
+#endif
             var task = content != null ? http.PostAsync(address, content, source.Token) : http.GetAsync(address, source.Token);
             var rs = await task;
             Response = rs.EnsureSuccessStatusCode();
@@ -231,7 +238,7 @@ namespace NewLife.Web
         /// <returns></returns>
         public String GetHtml(String url)
         {
-            return Task.Run(() => DownloadStringAsync(url)).Result;
+            return TaskEx.Run(() => DownloadStringAsync(url)).Result;
         }
 
         /// <summary>获取指定地址的Html，分析所有超链接</summary>
@@ -341,7 +348,7 @@ namespace NewLife.Web
 
             var sw = new Stopwatch();
             sw.Start();
-            Task.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
+            TaskEx.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
             sw.Stop();
 
             if (File.Exists(file2))

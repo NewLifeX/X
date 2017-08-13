@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace XCode.Cache
 {
@@ -311,7 +314,7 @@ namespace XCode.Cache
 
             // 异步更新缓存
             //var tid = Thread.CurrentThread.ManagedThreadId;
-            if (item.Expired) Task.Run(() =>
+            if (item.Expired) TaskEx.Run(() =>
             {
                 // 先修改过期时间
                 item.ExpireTime = DateTime.Now.AddSeconds(Expire);

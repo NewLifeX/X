@@ -61,9 +61,9 @@ namespace System
 
             // 二级字典缓存
             var cache = micache.GetItem(member, m => new DictionaryCache<Type, Array>());
-            var atts = cache.GetItem<MemberInfo, Boolean>(typeof(TAttribute), member, inherit, (t, m, inh) =>
+            var atts = cache.GetItem(typeof(TAttribute), t =>
             {
-                return m.GetCustomAttributes(t, inh).Cast<TAttribute>().ToArray();
+                return member.GetCustomAttributes(t, inherit).Cast<TAttribute>().ToArray();
             });
             if (atts == null || atts.Length <= 0) return new TAttribute[0];
 
