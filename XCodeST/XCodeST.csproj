@@ -119,7 +119,6 @@
     <Compile Include="..\XCode\Model\OrderExpression.cs" Link="Model\OrderExpression.cs" />
     <Compile Include="..\XCode\Model\WhereExpression.cs" Link="Model\WhereExpression.cs" />
     <Compile Include="..\XCode\Model\XCodeService.cs" Link="Model\XCodeService.cs" />
-    <Compile Include="..\XCode\PreApplicationStartCode.cs" Link="PreApplicationStartCode.cs" />
     <Compile Include="..\XCode\Remoting\ApiUserSession.cs" Link="Remoting\ApiUserSession.cs" />
     <Compile Include="..\XCode\Setting.cs" Link="Setting.cs" />
     <Compile Include="..\XCode\Sharding\分片.Biz.cs" Link="Sharding\分片.Biz.cs" />
@@ -133,7 +132,6 @@
     <Compile Include="..\XCode\Tree\EntityTree.cs" Link="Tree\EntityTree.cs" />
     <Compile Include="..\XCode\Tree\IEntityTree.cs" Link="Tree\IEntityTree.cs" />
     <Compile Include="..\XCode\Tree\IEntityTreeSettting.cs" Link="Tree\IEntityTreeSettting.cs" />
-    <Compile Include="..\XCode\Web\EntityGrid.cs" Link="Web\EntityGrid.cs" />
     <Compile Include="..\XCode\生成实体类.cs" Link="生成实体类.cs" />
   </ItemGroup>
 
@@ -174,6 +172,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="2.0.0" />
+    <PackageReference Include="System.Data.Common" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>

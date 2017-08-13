@@ -12,34 +12,24 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
-        public override DatabaseType Type
-        {
-            get { return DatabaseType.MySql; }
-        }
+        public override DatabaseType Type => DatabaseType.MySql;
 
-        private static DbProviderFactory _dbProviderFactory;
-        /// <summary>提供者工厂</summary>
-        static DbProviderFactory dbProviderFactory
-        {
-            get
-            {
-                //if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
-                if (_dbProviderFactory == null)
-                {
-                    lock (typeof(MySql))
-                    {
-                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
-                    }
-                }
-
-                return _dbProviderFactory;
-            }
-        }
-
+        private static DbProviderFactory _Factory;
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
-            get { return dbProviderFactory; }
+            get
+            {
+                if (_Factory == null)
+                {
+                    lock (typeof(MySql))
+                    {
+                        if (_Factory == null) _Factory = GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
+                    }
+                }
+
+                return _Factory;
+            }
         }
 
         const String Server_Key = "Server";

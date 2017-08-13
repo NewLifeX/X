@@ -447,9 +447,11 @@ namespace XCode
                     // 等于0的时候也应该缓存，否则会一直查询这个表
                     if (n < 1000L) return n;
 
+#if !__CORE__
                     // 大于1000，使用HttpCache
-                    Int64? k = (Int64?)HttpRuntime.Cache[key];
+                    var k = (Int64?)HttpRuntime.Cache[key];
                     if (k != null && k.HasValue) return k.Value;
+#endif
                 }
                 // 来到这里，有可能是第一次访问，静态字段没有缓存，也有可能是大于1000的缓存过期
 
@@ -541,7 +543,9 @@ namespace XCode
                 {
                     _LastCount = null;
                     _Count = 0;
+#if !__CORE__
                     HttpRuntime.Cache.Remove(CacheKey);
+#endif
                 }
             }
         }
@@ -549,7 +553,9 @@ namespace XCode
         private void AddCache(String key, Int64 count)
         {
             if (count < 1000) return;
+#if !__CORE__
             HttpRuntime.Cache.Insert(key, count, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
+#endif
         }
 
         /// <summary>清除缓存</summary>
@@ -566,8 +572,10 @@ namespace XCode
             // 只有小于等于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
             if (n < 1000L)
                 _Count = -1L;
+#if !__CORE__
             else
                 HttpRuntime.Cache.Remove(CacheKey);
+#endif
         }
 
         String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }

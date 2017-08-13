@@ -150,6 +150,7 @@ namespace XCode.Membership
             return entity;
         }
 
+#if !__CORE__
         private static TimerX _timer;
 
         /// <summary>设置网页会话状态</summary>
@@ -181,6 +182,7 @@ namespace XCode.Membership
 
             return SetStatus(ss.SessionID, status, user.ID, user + "", ip);
         }
+#endif
 
         /// <summary>删除过期，指定过期时间</summary>
         /// <param name="secTimeout">超时时间，20 * 60秒</param>
@@ -207,6 +209,6 @@ namespace XCode.Membership
 
             return list;
         }
-        #endregion
+#endregion
     }
 }

@@ -6,10 +6,12 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Code;
+#if __CORE__
+using Microsoft.Extensions.Configuration;
+#endif
 
 namespace XCode.DataAccessLayer
 {
@@ -37,8 +39,8 @@ namespace XCode.DataAccessLayer
                 AddConnStr(connName, connstr, null, "SQLite");
             }
 
-            _ConnStr = ConnStrs[connName].ConnectionString;
-            if (String.IsNullOrEmpty(_ConnStr)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+            _ConnStr = ConnStrs[connName];
+            if (_ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
 
             Queue = new EntityQueue { Dal = this };
         }
@@ -65,70 +67,6 @@ namespace XCode.DataAccessLayer
             return dal;
         }
 
-#if !__CORE__
-        private static Object _connStrs_lock = new Object();
-        private static Dictionary<String, ConnectionStringSettings> _connStrs;
-        private static Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
-        /// <summary>链接字符串集合</summary>
-        /// <remarks>
-        /// 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的<see cref="ConnStr"/>属性
-        /// </remarks>
-        public static Dictionary<String, ConnectionStringSettings> ConnStrs
-        {
-            get
-            {
-                if (_connStrs != null) return _connStrs;
-                lock (_connStrs_lock)
-                {
-                    if (_connStrs != null) return _connStrs;
-                    var cs = new Dictionary<String, ConnectionStringSettings>(StringComparer.OrdinalIgnoreCase);
-
-                    // 读取配置文件
-                    var css = ConfigurationManager.ConnectionStrings;
-                    if (css != null && css.Count > 0)
-                    {
-                        foreach (ConnectionStringSettings set in css)
-                        {
-                            if (set.ConnectionString.IsNullOrWhiteSpace()) continue;
-                            if (set.Name == "LocalSqlServer") continue;
-                            if (set.Name == "LocalMySqlServer") continue;
-
-                            var type = DbFactory.GetProviderType(set.ConnectionString, set.ProviderName);
-                            if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", set.Name, set.ProviderName);
-
-                            cs.Add(set.Name, set);
-                            _connTypes.Add(set.Name, type);
-                        }
-                    }
-                    _connStrs = cs;
-                }
-                return _connStrs;
-            }
-        }
-
-        static Object lockObj = new Object();
-
-        /// <summary>添加连接字符串</summary>
-        /// <param name="connName">连接名</param>
-        /// <param name="connStr">连接字符串</param>
-        /// <param name="type">实现了IDatabase接口的数据库类型</param>
-        /// <param name="provider">数据库提供者，如果没有指定数据库类型，则有提供者判断使用哪一种内置类型</param>
-        public static void AddConnStr(String connName, String connStr, Type type, String provider)
-        {
-            if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
-            //2016.01.04 @宁波-小董，加锁解决大量分表分库多线程带来的提供者无法识别错误
-            lock (lockObj)
-            {
-                if (type == null) type = DbFactory.GetProviderType(connStr, provider);
-                if (type == null) throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
-
-                // 允许后来者覆盖前面设置过了的
-                var set = new ConnectionStringSettings(connName, connStr, provider);
-                ConnStrs[connName] = set;
-                _connTypes[connName] = type;
-            }
-        }
-#else
         private static Object _connStrs_lock = new Object();
         private static Dictionary<String, String> _connStrs;
         private static Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
@@ -146,26 +84,54 @@ namespace XCode.DataAccessLayer
                     if (_connStrs != null) return _connStrs;
                     var cs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
+#if !__CORE__
                     // 读取配置文件
-                    var css = new ConfigurationBuilder().Build().GetSection("connectionStrings");
+                    var css = ConfigurationManager.ConnectionStrings;
+                    if (css != null && css.Count > 0)
+                    {
+                        foreach (ConnectionStringSettings set in css)
+                        {
+                            var name = set.Name;
+                            var connstr = set.ConnectionString;
+                            var provider = set.ProviderName;
+                            if (connstr.IsNullOrWhiteSpace()) continue;
+                            if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
+
+                            var type = DbFactory.GetProviderType(connstr, provider);
+                            if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
+
+                            cs.Add(name, set.ConnectionString);
+                            _connTypes.Add(name, type);
+                        }
+                    }
+                    _connStrs = cs;
+#else
+                    var file = "web.config".GetFullPath();
+                    if (!File.Exists(file)) file = "{0}.exe.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
+
+                    // 读取配置文件
+                    var css = new ConfigurationBuilder()
+                        .AddXmlFile(file)
+                        .Build().GetSection("connectionStrings");
                     if (css != null)
                     {
                         foreach (var item in css.GetChildren())
                         {
                             var name = item["name"];
-                            if (name.IsNullOrWhiteSpace()) continue;
-                            if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
-
                             var constr = item["connectionString"];
                             var provider = item["providerName"];
+                            if (constr.IsNullOrWhiteSpace()) continue;
+                            if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
+
                             var type = DbFactory.GetProviderType(constr, provider);
-                            if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", constr, provider);
+                            if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
 
                             cs.Add(name, constr);
                             _connTypes.Add(name, type);
                         }
                     }
                     _connStrs = cs;
+#endif
                 }
                 return _connStrs;
             }
@@ -185,15 +151,13 @@ namespace XCode.DataAccessLayer
             lock (lockObj)
             {
                 if (type == null) type = DbFactory.GetProviderType(connStr, provider);
-                if (type == null) throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
 
                 // 允许后来者覆盖前面设置过了的
-                var set = new ConnectionStringSettings(connName, connStr, provider);
-                ConnStrs[connName] = set;
-                _connTypes[connName] = type;
+                //var set = new ConnectionStringSettings(connName, connStr, provider);
+                ConnStrs[connName] = connStr;
+                _connTypes[connName] = type ?? throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
             }
         }
-#endif
 
         /// <summary>获取所有已注册的连接名</summary>
         /// <returns></returns>

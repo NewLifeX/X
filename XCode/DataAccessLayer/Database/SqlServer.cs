@@ -17,8 +17,23 @@ namespace XCode.DataAccessLayer
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
         public override DatabaseType Type => DatabaseType.SqlServer;
 
+        private static DbProviderFactory _Factory;
         /// <summary>工厂</summary>
-        public override DbProviderFactory Factory => System.Data.SqlClient.SqlClientFactory.Instance;
+        public override DbProviderFactory Factory
+        {
+            get
+            {
+                if (_Factory == null)
+                {
+                    lock (typeof(SqlServer))
+                    {
+                        if (_Factory == null) _Factory = GetProviderFactory("System.Data.SqlClient.dll", "System.Data.SqlClient.SqlClientFactory");
+                    }
+                }
+
+                return _Factory;
+            }
+        }
 
         /// <summary>是否SQL2012及以上</summary>
         public Boolean IsSQL2012 { get { return Version.Major > 11; } }

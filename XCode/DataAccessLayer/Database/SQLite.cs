@@ -17,36 +17,32 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
-        public override DatabaseType Type { get { return DatabaseType.SQLite; } }
+        public override DatabaseType Type => DatabaseType.SQLite;
 
-        private static DbProviderFactory _dbProviderFactory;
-        /// <summary>提供者工厂</summary>
-        static DbProviderFactory DbProviderFactory
+        private static DbProviderFactory _Factory;
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
         {
             get
             {
-                if (_dbProviderFactory == null)
+                if (_Factory == null)
                 {
                     lock (typeof(SQLite))
                     {
-                        // Mono有自己的驱动，因为SQLite是混合编译，里面的C++代码与平台相关，不能通用;注意大小写问题
-                        if (Runtime.Mono)
+                        if (_Factory == null)
                         {
-                            if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("Mono.Data.Sqlite.dll", "Mono.Data.Sqlite.SqliteFactory");
-                        }
-                        else
-                        {
-                            if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
+                            // Mono有自己的驱动，因为SQLite是混合编译，里面的C++代码与平台相关，不能通用;注意大小写问题
+                            if (Runtime.Mono)
+                                _Factory = GetProviderFactory("Mono.Data.Sqlite.dll", "Mono.Data.Sqlite.SqliteFactory");
+                            else
+                                _Factory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
                         }
                     }
                 }
 
-                return _dbProviderFactory;
+                return _Factory;
             }
         }
-
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory { get { return DbProviderFactory; } }
 
         /// <summary>是否内存数据库</summary>
         public Boolean IsMemoryDatabase { get { return FileName.EqualIgnoreCase(MemoryDatabase); } }
@@ -114,12 +110,12 @@ namespace XCode.DataAccessLayer
             base.OnDispose(disposing);
 
             // 不用Factory属性，为了避免触发加载SQLite驱动
-            if (_dbProviderFactory != null)
+            if (_Factory != null)
             {
                 try
                 {
                     // 清空连接池
-                    var type = _dbProviderFactory.CreateConnection().GetType();
+                    var type = _Factory.CreateConnection().GetType();
                     type.Invoke("ClearAllPools");
                 }
                 catch { }

@@ -38,7 +38,11 @@ namespace XCode.Membership
                 // 自动设置当前登录用户
                 if (!Dirtys[__.UserName])
                 {
+#if !__CORE__
                     var user = HttpContext.Current?.User?.Identity as IManageUser;
+#else
+                    var user = ManageProvider.Provider?.Current;
+#endif
                     //var user = ManageProvider.User;
                     if (user != null) UserName = user + "";
                 }

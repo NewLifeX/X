@@ -630,6 +630,7 @@ namespace XCode.DataAccessLayer
         {
             if (!ShowSQL) return;
 
+#if !__CORE__
             // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
             var context = HttpContext.Current;
             if (context != null)
@@ -637,6 +638,7 @@ namespace XCode.DataAccessLayer
                 var list = context.Items["XCode_SQLList"] as List<String>;
                 if (list != null) list.Add(sql);
             }
+#endif
 
             var sqlpath = Setting.Current.SQLPath;
             if (String.IsNullOrEmpty(sqlpath))

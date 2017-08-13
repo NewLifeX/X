@@ -17,53 +17,25 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType Type { get { return DatabaseType.Oracle; } }
+        public override DatabaseType Type => DatabaseType.Oracle;
 
-        private static DbProviderFactory _dbProviderFactory;
-        /// <summary>提供者工厂</summary>
-        static DbProviderFactory DbProviderFactory
+        private static DbProviderFactory _Factory;
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
         {
             get
             {
-                // 首先尝试使用Oracle.DataAccess
-                if (_dbProviderFactory == null)
+                if (_Factory == null)
                 {
                     lock (typeof(Oracle))
                     {
-                        if (_dbProviderFactory == null)
-                        {
-                            try
-                            {
-                                var fileName = "Oracle.ManagedDataAccess.dll";
-                                _dbProviderFactory = GetProviderFactory(fileName, "Oracle.ManagedDataAccess.Client.OracleClientFactory");
-                                if (_dbProviderFactory != null && DAL.Debug)
-                                {
-                                    var asm = _dbProviderFactory.GetType().Assembly;
-                                    if (DAL.Debug) DAL.WriteLog("Oracle使用文件驱动{0} 版本v{1}", asm.Location, asm.GetName().Version);
-                                }
-                            }
-                            catch (FileNotFoundException) { }
-                            catch (Exception ex)
-                            {
-                                if (DAL.Debug) DAL.WriteLog(ex.ToString());
-                            }
-                        }
-
-                        // 以下三种方式都可以加载，前两种只是为了减少对程序集的引用，第二种是为了避免第一种中没有注册
-                        if (_dbProviderFactory == null)
-                        {
-                            _dbProviderFactory = DbProviderFactories.GetFactory("System.Data.OracleClient");
-                            if (_dbProviderFactory != null && DAL.Debug) DAL.WriteLog("Oracle使用配置驱动{0}", _dbProviderFactory.GetType().Assembly.Location);
-                        }
+                        if (_Factory == null) _Factory = GetProviderFactory("Oracle.ManagedDataAccess.dll", "Oracle.ManagedDataAccess.Client.OracleClientFactory");
                     }
                 }
 
-                return _dbProviderFactory;
+                return _Factory;
             }
         }
-
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory { get { return DbProviderFactory; } }
 
         private String _UserID;
         /// <summary>用户名UserID</summary>

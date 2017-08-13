@@ -301,6 +301,9 @@ namespace XCode.DataAccessLayer
             }
             if (type == null) return null;
 
+            var asm = type.Assembly;
+            if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, className.TrimEnd("Client", "Factory"));
+
             var field = type.GetFieldEx("Instance");
             if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
 

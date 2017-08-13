@@ -111,9 +111,8 @@ namespace XCode.Membership
         {
             get
             {
+#if !__CORE__
                 var key = "Admin";
-
-                if (HttpContext.Current == null) return null;
                 var ss = HttpContext.Current?.Session;
                 if (ss == null) return null;
 
@@ -131,11 +130,16 @@ namespace XCode.Membership
                     ss[key] = "1";
 
                 return entity;
+#else
+                return null;
+#endif
             }
             set
             {
+#if !__CORE__
                 var key = "Admin";
                 var ss = HttpContext.Current?.Session;
+                if (ss == null) return;
 
                 // 特殊处理注销
                 if (value == null)
@@ -144,16 +148,24 @@ namespace XCode.Membership
                     if (entity != null) WriteLog("注销", entity.Name);
 
                     // 修改Session
-                    if (ss != null) ss.Remove(key);
+                    ss.Remove(key);
                 }
                 else
                 {
                     // 修改Session
-                    if (ss != null) ss[key] = value;
+                    ss[key] = value;
                 }
 
                 // 修改Cookie
                 SetCookie(key, value);
+#else
+                // 特殊处理注销
+                if (value == null)
+                {
+                    var entity = Current;
+                    if (entity != null) WriteLog("注销", entity.Name);
+                }
+#endif
             }
         }
 
@@ -314,11 +326,13 @@ namespace XCode.Membership
             try
             {
                 var user = Login(username, password, 1);
+#if !__CORE__
                 if (rememberme && user != null)
                 {
                     var cookie = HttpContext.Current.Response.Cookies["Admin"];
                     if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
                 }
+#endif
                 return user;
             }
             catch (Exception ex)
@@ -437,6 +451,7 @@ namespace XCode.Membership
             Insert();
         }
 
+#if !__CORE__
         static Boolean _isInGetCookie;
         static TEntity GetCookie(String key)
         {
@@ -494,6 +509,7 @@ namespace XCode.Membership
                 //HttpContext.Current.Response.Cookies.Remove(key);
             }
         }
+#endif
         #endregion
 
         #region 权限日志

@@ -11,34 +11,24 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
-        public override DatabaseType Type
-        {
-            get { return DatabaseType.PostgreSQL; }
-        }
+        public override DatabaseType Type => DatabaseType.PostgreSQL;
 
-        private static DbProviderFactory _dbProviderFactory;
-        /// <summary>提供者工厂</summary>
-        static DbProviderFactory dbProviderFactory
-        {
-            get
-            {
-                //if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("PostgreSQL.Data.PostgreSQLClient");
-                if (_dbProviderFactory == null)
-                {
-                    lock (typeof(PostgreSQL))
-                    {
-                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("Npgsql.dll", "Npgsql.NpgsqlFactory");
-                    }
-                }
-
-                return _dbProviderFactory;
-            }
-        }
-
+        private static DbProviderFactory _Factory;
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
-            get { return dbProviderFactory; }
+            get
+            {
+                if (_Factory == null)
+                {
+                    lock (typeof(PostgreSQL))
+                    {
+                        if (_Factory == null) _Factory = GetProviderFactory("Npgsql.dll", "Npgsql.NpgsqlFactory");
+                    }
+                }
+
+                return _Factory;
+            }
         }
         #endregion
 
