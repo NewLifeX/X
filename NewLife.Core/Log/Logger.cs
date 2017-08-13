@@ -199,16 +199,8 @@ namespace NewLife.Log
             // 命令行不为空，也不是文件名时，才输出
             // 当使用cmd启动程序时，这里就是用户输入的整个命令行，所以可能包含空格和各种符号
             var line = System.Environment.CommandLine;
-            if (!String.IsNullOrEmpty(line))
-            {
-                line = line.Trim().TrimStart('\"');
-                if (!String.IsNullOrEmpty(fileName) && line.StartsWithIgnoreCase(fileName))
-                    line = line.Substring(fileName.Length).TrimStart().TrimStart('\"').TrimStart();
-                if (!String.IsNullOrEmpty(line))
-                {
-                    sb.AppendFormat("#CommandLine: {0}\r\n", line);
-                }
-            }
+            if (!line.IsNullOrEmpty())
+                sb.AppendFormat("#CommandLine: {0}\r\n", line);
 #endif
 
 #if __MOBILE__
