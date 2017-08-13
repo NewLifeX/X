@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NewLife.CoreST\NewLife.CoreST.csproj" />
+    <ProjectReference Include="..\XCodeST\XCodeST.csproj" />
   </ItemGroup>
 
 </Project>

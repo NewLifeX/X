@@ -2,11 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>新生命X组件核心库</Description>
-    <FileVersion>6.3.2017.0511</FileVersion>
-    <AssemblyVersion>6.3.0.0</AssemblyVersion>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife.Core</RootNamespace>
+    <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
+    <Description>日常开发中的各种基础功能</Description>
+    <Company>新生命开发团队</Company>
+    <Copyright>©2002-2017 新生命开发团队 http://www.NewLifeX.com</Copyright>
+    <FileVersion>6.4.2017.0719</FileVersion>
+    <AssemblyVersion>6.4.2017.0719</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
