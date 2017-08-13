@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Net;
 using XCode.DataAccessLayer;
+using XCode.Membership;
 
 namespace TestST
 {
@@ -63,6 +64,9 @@ namespace TestST
 
             var dal = DAL.Create("Sqlite");
             Console.WriteLine(dal.Db.ConnectionString);
+
+            var n = UserX.Meta.Count;
+            Console.WriteLine(n);
         }
     }
 }

@@ -170,13 +170,20 @@ namespace NewLife.Log
             try
             {
                 fileName = process.StartInfo.FileName;
-#if !__MOBILE__
-                // MonoAndroid无法识别MainModule，致命异常
-                if (String.IsNullOrWhiteSpace(fileName)) fileName = process.MainModule.FileName;
-#endif
             }
             catch { }
-            if (!String.IsNullOrEmpty(fileName)) sb.AppendFormat("#FileName: {0}\r\n", fileName);
+#if !__MOBILE__
+            // MonoAndroid无法识别MainModule，致命异常
+            if (fileName.IsNullOrWhiteSpace())
+            {
+                try
+                {
+                    fileName = process.MainModule.FileName;
+                }
+                catch { }
+            }
+#endif
+            if (!fileName.IsNullOrEmpty()) sb.AppendFormat("#FileName: {0}\r\n", fileName);
 
 #if !__CORE__
             // 应用域目录
