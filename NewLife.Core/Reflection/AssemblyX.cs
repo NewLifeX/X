@@ -668,7 +668,11 @@ namespace NewLife.Reflection
                 }
             }
 
-            return null;
+            try
+            {
+                return Assembly.ReflectionOnlyLoadFrom(file);
+            }
+            catch { return null; }
         }
 #endif
 
