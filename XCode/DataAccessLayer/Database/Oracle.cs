@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Net;
 using NewLife.Reflection;
 using XCode.Common;
@@ -427,44 +428,39 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            var columns = GetSchema(_.Columns, new String[] { owner, tableName, null });
-            var indexes = GetSchema(_.Indexes, new String[] { owner, null, owner, tableName });
-            var indexColumns = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
+            var data = new NullableDictionary<String, DataTable>(StringComparer.OrdinalIgnoreCase);
+            data["Columns"] = GetSchema(_.Columns, new String[] { owner, tableName, null });
+            data["Indexes"] = GetSchema(_.Indexes, new String[] { owner, null, owner, tableName });
+            data["IndexColumns"] = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
 
             // 主键
-            if (MetaDataCollections.Contains(_.PrimaryKeys)) _PrimaryKeys = GetSchema(_.PrimaryKeys, new String[] { owner, tableName, null });
+            if (MetaDataCollections.Contains(_.PrimaryKeys)) data["PrimaryKeys"] = GetSchema(_.PrimaryKeys, new String[] { owner, tableName, null });
 
             // 序列
             var sql = "Select * From ALL_SEQUENCES Where SEQUENCE_OWNER='{0}'".F(owner);
-            dtSequences = Database.CreateSession().Query(sql).Tables[0];
+            data["Sequences"] = Database.CreateSession().Query(sql).Tables[0];
 
             // 表注释
             sql = "Select * From ALL_TAB_COMMENTS Where Owner='{0}'".F(owner);
             if (!tableName.IsNullOrEmpty()) sql += " And TABLE_NAME='{0}'".F(tableName);
-            dtTableComment = Database.CreateSession().Query(sql).Tables[0];
+            data["TableComment"] = Database.CreateSession().Query(sql).Tables[0];
 
             // 列注释
             sql = "Select * From ALL_COL_COMMENTS Where Owner='{0}'".F(owner);
             if (!tableName.IsNullOrEmpty()) sql += " And TABLE_NAME='{0}'".F(tableName);
-            dtColumnComment = Database.CreateSession().Query("Select * From ALL_COL_COMMENTS where Owner='{0}'".F(owner)).Tables[0];
+            data["ColumnComment"] = Database.CreateSession().Query("Select * From ALL_COL_COMMENTS where Owner='{0}'".F(owner)).Tables[0];
 
-            var list = GetTables(dt.Rows.ToArray(), names, columns, indexes, indexColumns);
-
-            _PrimaryKeys = null;
-            dtSequences = null;
-            dtTableComment = null;
-            dtColumnComment = null;
+            var list = GetTables(dt.Rows.ToArray(), names, data);
 
             return list;
         }
 
-        private DataTable _PrimaryKeys;
-        protected override void FixTable(IDataTable table, DataRow dr)
+        protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
         {
-            base.FixTable(table, dr);
+            base.FixTable(table, dr, data);
 
             // 主键
-            var dt = _PrimaryKeys;
+            var dt = data?["PrimaryKeys"];
             if (dt != null && dt.Rows.Count > 0)
             {
                 // 找到主键所在索引，这个索引的列才是主键
@@ -483,12 +479,12 @@ namespace XCode.DataAccessLayer
             }
 
             // 表注释 USER_TAB_COMMENTS
-            table.Description = GetTableComment(table.TableName);
+            table.Description = GetTableComment(table.TableName, data);
 
             if (table?.Columns == null || table.Columns.Count == 0) return;
 
             // 检查该表是否有序列
-            if (CheckSeqExists("SEQ_{0}".F(table.TableName)))
+            if (CheckSeqExists("SEQ_{0}".F(table.TableName), data))
             {
                 // 不好判断自增列表，只能硬编码
                 var dc = table.GetColumn("ID");
@@ -498,26 +494,26 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>序列</summary>
-        DataTable dtSequences;
         /// <summary>检查序列是否存在</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        Boolean CheckSeqExists(String name)
+        Boolean CheckSeqExists(String name, IDictionary<String, DataTable> data)
         {
-            if (dtSequences?.Rows == null || dtSequences.Rows.Count < 1) return false;
+            var dt = data?["Sequences"];
+            if (dt?.Rows == null || dt.Rows.Count < 1) return false;
 
             var where = String.Format("SEQUENCE_NAME='{0}'", name);
-            var drs = dtSequences.Select(where);
+            var drs = dt.Select(where);
             return drs != null && drs.Length > 0;
         }
 
-        DataTable dtTableComment;
-        String GetTableComment(String name)
+        String GetTableComment(String name, IDictionary<String, DataTable> data)
         {
-            if (dtTableComment?.Rows == null || dtTableComment.Rows.Count < 1) return null;
+            var dt = data?["TableComment"];
+            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
             var where = String.Format("TABLE_NAME='{0}'", name);
-            var drs = dtTableComment.Select(where);
+            var drs = dt.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
 
             return null;
@@ -527,9 +523,9 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         /// <param name="columns">列</param>
         /// <returns></returns>
-        protected override List<IDataColumn> GetFields(IDataTable table, DataTable columns)
+        protected override List<IDataColumn> GetFields(IDataTable table, DataTable columns, IDictionary<String, DataTable> data)
         {
-            var list = base.GetFields(table, columns);
+            var list = base.GetFields(table, columns, data);
             if (list == null || list.Count < 1) return null;
 
             // 字段注释
@@ -537,7 +533,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var field in list)
                 {
-                    field.Description = GetColumnComment(table.TableName, field.ColumnName);
+                    field.Description = GetColumnComment(table.TableName, field.ColumnName, data);
                 }
             }
 
@@ -562,10 +558,9 @@ namespace XCode.DataAccessLayer
             return base.GetFields(table, list.ToArray());
         }
 
-        DataTable dtColumnComment;
-        String GetColumnComment(String tableName, String columnName)
+        String GetColumnComment(String tableName, String columnName, IDictionary<String, DataTable> data)
         {
-            var dt = dtColumnComment;
+            var dt = data?["ColumnComment"];
             if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
             var where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);

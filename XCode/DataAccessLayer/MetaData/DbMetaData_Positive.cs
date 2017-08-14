@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Reflection;
 using XCode.Common;
 using XCode.Exceptions;
@@ -78,11 +79,9 @@ namespace XCode.DataAccessLayer
         /// <summary>根据数据行取得数据表</summary>
         /// <param name="rows">数据行</param>
         /// <param name="names">指定表名</param>
-        /// <param name="columns">列</param>
-        /// <param name="indexes">索引</param>
-        /// <param name="indexColumns">索引列</param>
+        /// <param name="data">扩展</param>
         /// <returns></returns>
-        protected List<IDataTable> GetTables(DataRow[] rows, String[] names, DataTable columns = null, DataTable indexes = null, DataTable indexColumns = null)
+        protected List<IDataTable> GetTables(DataRow[] rows, String[] names, IDictionary<String, DataTable> data = null)
         {
             if (rows == null || rows.Length == 0) return new List<IDataTable>();
 
@@ -92,6 +91,10 @@ namespace XCode.DataAccessLayer
                 var hs = new HashSet<String>(names, StringComparer.OrdinalIgnoreCase);
                 rows = rows.Where(dr => TryGetDataRowValue(dr, _.TalbeName, out String name) && hs.Contains(name)).ToArray();
             }
+
+            var columns = data?["Columns"];
+            var indexes = data != null ? data["Indexes"] : null;
+            var indexColumns = data != null ? data["IndexColumns"] : null;
 
             if (columns == null) columns = GetSchema(_.Columns, null);
             if (indexes == null) indexes = GetSchema(_.Indexes, null);
@@ -117,13 +120,13 @@ namespace XCode.DataAccessLayer
                 #endregion
 
                 #region 字段及修正
-                var cs = GetFields(table, columns);
+                var cs = GetFields(table, columns, data);
                 if (cs != null && cs.Count > 0) table.Columns.AddRange(cs);
 
                 var dis = GetIndexes(table, indexes, indexColumns);
                 if (dis != null && dis.Count > 0) table.Indexes.AddRange(dis);
 
-                FixTable(table, dr);
+                FixTable(table, dr, data);
 
                 // 修正关系数据
                 table.Fix();
@@ -138,7 +141,7 @@ namespace XCode.DataAccessLayer
         /// <summary>修正表</summary>
         /// <param name="table"></param>
         /// <param name="dr"></param>
-        protected virtual void FixTable(IDataTable table, DataRow dr) { }
+        protected virtual void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data) { }
         #endregion
 
         #region 字段架构
@@ -146,7 +149,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         /// <param name="columns">列</param>
         /// <returns></returns>
-        protected virtual List<IDataColumn> GetFields(IDataTable table, DataTable columns)
+        protected virtual List<IDataColumn> GetFields(IDataTable table, DataTable columns, IDictionary<String, DataTable> data)
         {
             var dt = columns;
             if (dt == null) return null;

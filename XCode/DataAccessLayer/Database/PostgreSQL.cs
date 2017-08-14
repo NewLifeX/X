@@ -200,12 +200,12 @@ namespace XCode.DataAccessLayer
             Types = _DataTypes;
         }
 
-        protected override void FixTable(IDataTable table, DataRow dr)
+        protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
         {
             // 注释
             if (TryGetDataRowValue(dr, "TABLE_COMMENT", out String comment)) table.Description = comment;
 
-            base.FixTable(table, dr);
+            base.FixTable(table, dr, data);
         }
 
         protected override void FixField(IDataColumn field, DataRow dr)
