@@ -45,17 +45,24 @@ namespace XCode.DataAccessLayer
             get
             {
                 if (_UserID != null) return _UserID;
-                _UserID = String.Empty;
+                //_UserID = String.Empty;
+                lock (this)
+                {
+                    if (_UserID != null) return _UserID;
+                    //_UserID = String.Empty;
 
-                var connStr = ConnectionString;
+                    var connStr = ConnectionString;
 
-                if (String.IsNullOrEmpty(connStr)) return null;
+                    if (String.IsNullOrEmpty(connStr)) return null;
 
-                var ocsb = Factory.CreateConnectionStringBuilder();
-                ocsb.ConnectionString = connStr;
+                    var ocsb = Factory.CreateConnectionStringBuilder();
+                    ocsb.ConnectionString = connStr;
 
-                if (ocsb.ContainsKey("User ID")) _UserID = (String)ocsb["User ID"];
-
+                    if (ocsb.ContainsKey("User ID"))
+                        _UserID = (String)ocsb["User ID"];
+                    else
+                        _UserID = String.Empty;
+                }
                 return _UserID;
             }
         }
@@ -70,7 +77,7 @@ namespace XCode.DataAccessLayer
                 if (str.Contains("://"))
                 {
                     var uri = new Uri(str);
-                    var type = uri.Scheme.IsNullOrEmpty() ? "TCP" : uri.Scheme;
+                    var type = uri.Scheme.IsNullOrEmpty() ? "TCP" : uri.Scheme.ToUpper();
                     var port = uri.Port > 0 ? uri.Port : 1521;
                     var name = uri.PathAndQuery.TrimStart("/");
                     if (name.IsNullOrEmpty()) name = "ORCL";
