@@ -51,6 +51,9 @@ namespace System.IO
             }
             if (dir.IsNullOrEmpty()) return Path.GetFullPath(path);
 
+            // 处理网络路径
+            if (path.StartsWith(@"\\")) return Path.GetFullPath(path);
+
             // 考虑兼容Linux
             if (!NewLife.Runtime.Mono)
             {
