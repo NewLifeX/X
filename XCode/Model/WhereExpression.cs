@@ -44,9 +44,9 @@ namespace XCode
         /// <param name="right"></param>
         public WhereExpression(Expression left, Operator op, Expression right)
         {
-            Left = left;
+            Left = Flatten(left);
             Operator = op;
-            Right = right;
+            Right = Flatten(right);
         }
         #endregion
 
@@ -87,6 +87,7 @@ namespace XCode
 
         private void GetString(StringBuilder builder, IDictionary<String, Object> ps, Expression exp)
         {
+            exp = Flatten(exp);
             if (exp == null) return;
 
             // 递归构建，下级运算符优先级较低时加括号
@@ -101,6 +102,26 @@ namespace XCode
             if (bracket) builder.Append("(");
             exp.GetString(builder, ps);
             if (bracket) builder.Append(")");
+        }
+
+        /// <summary>拉平表达式，避免空子项</summary>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        private Expression Flatten(Expression exp)
+        {
+            if (exp == null) return null;
+
+            if (exp is WhereExpression where)
+            {
+                // 左右为空，返回空
+                if (where.Left == null && where.Right == null) return null;
+
+                // 其中一边为空，递归拉平另一边
+                if (where.Left == null) return Flatten(where.Right);
+                if (where.Right == null) return Flatten(where.Left);
+            }
+
+            return exp;
         }
         #endregion
 
