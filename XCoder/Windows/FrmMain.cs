@@ -179,7 +179,7 @@ namespace XCoder
             var list = new List<String>();
             foreach (var item in DAL.ConnStrs)
             {
-                if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
+                if (!String.IsNullOrEmpty(item.Value)) list.Add(item.Key);
             }
 
             // 远程数据库耗时太长，这里先列出来
@@ -304,7 +304,7 @@ namespace XCoder
                     var list = new List<String>();
                     foreach (var elm in DAL.ConnStrs)
                     {
-                        if (!String.IsNullOrEmpty(elm.Value.ConnectionString)) list.Add(elm.Key);
+                        if (!String.IsNullOrEmpty(elm.Value)) list.Add(elm.Key);
                     }
                     list.AddRange(names);
 
@@ -322,7 +322,7 @@ namespace XCoder
             var list = new List<String>();
             foreach (var item in DAL.ConnStrs)
             {
-                if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
+                if (!String.IsNullOrEmpty(item.Value)) list.Add(item.Key);
             }
 
             var localName = "local_MSSQL";
@@ -339,7 +339,7 @@ namespace XCoder
         {
             foreach (var item in DAL.ConnStrs)
             {
-                if (connstr.EqualIgnoreCase(item.Value.ConnectionString)) return true;
+                if (connstr.EqualIgnoreCase(item.Value)) return true;
             }
             return false;
         }
@@ -427,9 +427,7 @@ namespace XCoder
         void AutoLoadTables(String name)
         {
             if (String.IsNullOrEmpty(name)) return;
-            //if (!DAL.ConnStrs.ContainsKey(name) || String.IsNullOrEmpty(DAL.ConnStrs[name].ConnectionString)) return;
-            ConnectionStringSettings setting;
-            if (!DAL.ConnStrs.TryGetValue(name, out setting) || setting.ConnectionString.IsNullOrWhiteSpace()) return;
+            if (!DAL.ConnStrs.TryGetValue(name, out var connstr) || connstr.IsNullOrWhiteSpace()) return;
 
             // 异步加载
             Task.Factory.StartNew(() => { var tables = DAL.Create(name).Tables; }).LogException();
