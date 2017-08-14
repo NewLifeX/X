@@ -96,11 +96,20 @@ namespace XCode.Membership
         public static EntityList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, Pager p)
         {
             var exp = new WhereExpression();
-            if (!String.IsNullOrEmpty(key)) exp &= (_.Action == key | _.Remark.Contains(key));
-            if (!String.IsNullOrEmpty(category) && category != "全部") exp &= _.Category == category;
-            if (userid > 0) exp &= _.CreateUserID == userid;
+            //if (!key.IsNullOrEmpty()) exp &= (_.Action == key | _.Remark.Contains(key));
+            if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
+            if (userid >= 0) exp &= _.CreateUserID == userid;
             if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
             if (end > DateTime.MinValue) exp &= _.CreateTime < end.Date.AddDays(1);
+
+            // 先精确查询，再模糊
+            if (!key.IsNullOrEmpty())
+            {
+                var list = FindAll(exp & _.Action == key, p);
+                if (list.Count > 0) return list;
+
+                exp &= _.Action.Contains(key) | _.Remark.Contains(key);
+            }
 
             return FindAll(exp, p);
         }

@@ -30,7 +30,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         protected override IEnumerable<UserX> Search(Pager p)
         {
-            return UserX.Search(p["Q"], p["RoleID"].ToInt(), null, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
+            return UserX.Search(p["Q"], p["RoleID"].ToInt(-1), null, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }
 
         /// <summary>表单页视图。</summary>

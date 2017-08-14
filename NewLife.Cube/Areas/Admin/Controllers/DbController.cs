@@ -23,12 +23,6 @@ namespace NewLife.Cube.Admin.Controllers
             var list = new List<DbItem>();
 
             // 读取配置文件
-            var css = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-            foreach (ConnectionStringSettings set in ConfigurationManager.ConnectionStrings)
-            {
-                if (!css.Contains(set.Name)) css.Add(set.Name);
-            }
-
             foreach (var item in DAL.ConnStrs)
             {
                 var di = new DbItem();
@@ -42,8 +36,6 @@ namespace NewLife.Cube.Admin.Controllers
                     di.Version = dal.Db.ServerVersion;
                 }
                 catch { }
-
-                if (!css.Contains(di.Name)) di.Dynamic = true;
 
                 di.Backups = Rand.Next(5);
 

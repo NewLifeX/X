@@ -265,7 +265,7 @@ namespace XCode.Membership
         public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
         {
             var exp = _.LastLogin.Between(start, end);
-            if (roleId > 0) exp &= _.RoleID == roleId;
+            if (roleId >= 0) exp &= _.RoleID == roleId;
             if (isEnable != null) exp &= _.Enable == isEnable;
 
             // 先精确查询，再模糊
