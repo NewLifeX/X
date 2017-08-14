@@ -289,7 +289,7 @@ namespace NewLife.Log
         public static String LogPath { get; set; } = Setting.Current.LogPath;
 
         /// <summary>临时目录</summary>
-        public static String TempPath { get; set; } = Setting.Current.LogPath;
+        public static String TempPath { get; set; } = Setting.Current.TempPath;
         #endregion
 
         #region Dump
