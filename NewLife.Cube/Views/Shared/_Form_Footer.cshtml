@@ -63,8 +63,8 @@
 @if (remark != null && !fields.Contains(remark))
 {
     <div class="form-group col-sm-12 col-md-12">
-        <label class="control-label col-xs-2 col-sm-2 col-md-1">@remark.DisplayName</label>
-        <div class="col-xs-8 col-sm-8 col-md-8">
+        <label class="control-label col-xs-2 col-sm-2 col-md-2 col-lg-2">@remark.DisplayName</label>
+        <div class="input-group col-xs-5 col-sm-5 col-md-5 col-lg-5">
             @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
             @Html.ForDescription(remark)
         </div>

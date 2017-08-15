@@ -73,18 +73,7 @@ namespace ASP
             #line hidden
 WriteLiteral("\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 239), Tuple.Create("\"", 294)
-, Tuple.Create(Tuple.Create("", 247), Tuple.Create("form-group", 247), true)
-, Tuple.Create(Tuple.Create(" ", 257), Tuple.Create("col-sm-12", 258), true)
-, Tuple.Create(Tuple.Create(" ", 267), Tuple.Create("col-md-", 268), true)
-            
-            #line 12 "..\..\Views\Shared\_Form_Group.cshtml"
-, Tuple.Create(Tuple.Create("", 275), Tuple.Create<System.Object, System.Int32>(bs.GetGroupWidth()
-            
-            #line default
-            #line hidden
-, 275), false)
-);
+WriteLiteral(" class=\"form-group col-sm-12 col-md-12\"");
 
 WriteLiteral(">\r\n");
 

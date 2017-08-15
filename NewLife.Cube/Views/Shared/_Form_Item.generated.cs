@@ -65,17 +65,6 @@ namespace ASP
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
-    var bs = this.Bootstrap();
-
-    var isInt = item.Type == typeof(Int32);
-    var w = isInt ? 4 : 8;
-
-    var w_md = bs.LabelWidth;
-    if (bs.MaxColumn > 1 && item.Type == typeof(String) && item.Length > 100)
-    {
-        w_md /= 2;
-    }
-
             
             #line default
             #line hidden
@@ -86,7 +75,7 @@ WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-2 col-lg-2\"");
 WriteLiteral(">");
 
             
-            #line 20 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 9 "..\..\Views\Shared\_Form_Item.cshtml"
                                                             Write(item.DisplayName);
 
             
@@ -101,7 +90,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 22 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 11 "..\..\Views\Shared\_Form_Item.cshtml"
 Write(Html.ForEditor(item, entity));
 
             
@@ -110,7 +99,7 @@ Write(Html.ForEditor(item, entity));
 WriteLiteral("\r\n</div>\r\n");
 
             
-            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 13 "..\..\Views\Shared\_Form_Item.cshtml"
   
     ModelState st = null;
 
@@ -120,7 +109,7 @@ WriteLiteral("\r\n</div>\r\n");
 WriteLiteral("\r\n");
 
             
-            #line 27 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 16 "..\..\Views\Shared\_Form_Item.cshtml"
  if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null && st.Errors.Count > 0)
 {
 
@@ -136,7 +125,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("        ");
 
             
-            #line 30 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 19 "..\..\Views\Shared\_Form_Item.cshtml"
    Write(Html.ValidationMessage(item.Name));
 
             
@@ -145,7 +134,7 @@ WriteLiteral("        ");
 WriteLiteral("\r\n    </span>\r\n");
 
             
-            #line 32 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 21 "..\..\Views\Shared\_Form_Item.cshtml"
 }
 else if (!item.Description.IsNullOrEmpty())
 {
@@ -160,7 +149,7 @@ WriteLiteral(" class=\"hidden-xs col-md-5\"");
 WriteLiteral(">");
 
             
-            #line 35 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
                                 Write(Html.ForDescription(item));
 
             
@@ -169,7 +158,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 36 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
 }
 
             

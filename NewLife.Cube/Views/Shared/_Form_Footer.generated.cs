@@ -380,20 +380,20 @@ WriteLiteral(" class=\"form-group col-sm-12 col-md-12\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-1\"");
+WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-2 col-lg-2\"");
 
 WriteLiteral(">");
 
             
             #line 66 "..\..\Views\Shared\_Form_Footer.cshtml"
-                                                           Write(remark.DisplayName);
+                                                                    Write(remark.DisplayName);
 
             
             #line default
             #line hidden
 WriteLiteral("</label>\r\n        <div");
 
-WriteLiteral(" class=\"col-xs-8 col-sm-8 col-md-8\"");
+WriteLiteral(" class=\"input-group col-xs-5 col-sm-5 col-md-5 col-lg-5\"");
 
 WriteLiteral(">\r\n");
 
