@@ -1,6 +1,6 @@
-﻿@using System.Diagnostics;
-@using NewLife.Common;
+﻿@using NewLife.Common;
 @using NewLife.Cube.Admin;
+@using XCode.DataAccessLayer;
 @{
     Layout = NewLife.Cube.Setting.Current.Layout;
 
@@ -21,10 +21,11 @@
     <tbody>
         @foreach (var item in dbs)
         {
+            var dal = DAL.Create(item.Name);
             <tr>
                 <td>@item.Name</td>
                 <td>@item.Type</td>
-                <td>@item.ConnStr</td>
+                <td><span title="@dal.Db.ConnectionString">@item.ConnStr</span></td>
                 <td>@item.Version</td>
                 <td>@Html.ActionLink("备份", "Backup", new { Name = item.Name })，共 @item.Backups.ToString("n0")个</td>
                 <td class="text-center">@Html.ActionLink("下载", "Download", new { Name = item.Name })</td>
