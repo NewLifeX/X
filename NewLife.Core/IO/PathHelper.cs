@@ -340,7 +340,7 @@ namespace System.IO
                 new SevenZip().Compress(fi.FullName, destFile);
             }
         }
-#else
+#elif !__MOBILE__
         /// <summary>解压缩</summary>
         /// <param name="fi"></param>
         /// <param name="destDir"></param>

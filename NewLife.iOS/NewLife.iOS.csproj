@@ -273,9 +273,6 @@
     <Compile Include="..\NewLife.Core\Properties\AssemblyInfo.cs">
       <Link>Properties\AssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Properties\AssemblyInfo_.cs">
-      <Link>Properties\AssemblyInfo_.cs</Link>
-    </Compile>
     <Compile Include="..\newlife.core\reflection\AssemblyX.cs">
       <Link>Reflection\AssemblyX.cs</Link>
     </Compile>
@@ -356,6 +353,9 @@
     </Compile>
     <Compile Include="..\newlife.core\serialization\xml\XmlGeneral.cs">
       <Link>Serialization\Xml\XmlGeneral.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Xml\XmlList.cs">
+      <Link>Serialization\Xml\XmlList.cs</Link>
     </Compile>
     <Compile Include="..\newlife.core\Setting.cs">
       <Link>Setting.cs</Link>

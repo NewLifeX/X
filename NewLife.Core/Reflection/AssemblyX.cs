@@ -602,7 +602,7 @@ namespace NewLife.Reflection
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                     loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
-#if !__CORE__
+#if !__MOBILE__ && !__CORE__
                 var asm = ReflectionOnlyLoadFrom(item, ver);
                 if (asm == null) continue;
 #else
@@ -626,7 +626,7 @@ namespace NewLife.Reflection
             }
         }
 
-#if !__CORE__
+#if !__MOBILE__ && !__CORE__
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="file"></param>
         /// <param name="ver"></param>
