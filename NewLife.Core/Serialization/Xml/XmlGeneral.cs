@@ -45,7 +45,7 @@ namespace NewLife.Serialization
                     writer.WriteValue((Byte)0);
                     return true;
                 case TypeCode.DateTime:
-                    writer.WriteValue((DateTime)value);
+                    writer.WriteValue(((DateTime)value).ToFullString());
                     return true;
                 case TypeCode.Decimal:
                     writer.WriteValue((Decimal)value);

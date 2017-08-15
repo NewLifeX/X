@@ -141,6 +141,7 @@ namespace XCode.DataAccessLayer
         /// <summary>修正表</summary>
         /// <param name="table"></param>
         /// <param name="dr"></param>
+        /// <param name="data"></param>
         protected virtual void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data) { }
         #endregion
 
@@ -148,6 +149,7 @@ namespace XCode.DataAccessLayer
         /// <summary>取得指定表的所有列构架</summary>
         /// <param name="table"></param>
         /// <param name="columns">列</param>
+        /// <param name="data"></param>
         /// <returns></returns>
         protected virtual List<IDataColumn> GetFields(IDataTable table, DataTable columns, IDictionary<String, DataTable> data)
         {
