@@ -169,7 +169,7 @@ WriteLiteral(@" />
 WriteLiteral(" rel=\"stylesheet\"");
 
 WriteAttribute("href", Tuple.Create(" href=\"", 1441), Tuple.Create("\"", 1466)
-, Tuple.Create(Tuple.Create("", 1448), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Site.css")
+, Tuple.Create(Tuple.Create("", 1448), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.css")
 , 1448), false)
 );
 
@@ -238,97 +238,12 @@ WriteLiteral(" type=\"text/javascript\"");
 
 WriteLiteral(">\r\n                $(function () {\r\n                    try { ace.settings.check(" +
 "\'sidebar\', \'fixed\') } catch (e) { }\r\n                });\r\n            </script>\r" +
-"\n\r\n            <div");
-
-WriteLiteral(" class=\"sidebar-shortcuts\"");
-
-WriteLiteral(" id=\"sidebar-shortcuts\"");
-
-WriteLiteral(">\r\n                <div");
-
-WriteLiteral(" class=\"sidebar-shortcuts-large\"");
-
-WriteLiteral(" id=\"sidebar-shortcuts-large\"");
-
-WriteLiteral(">\r\n                    <button");
-
-WriteLiteral(" class=\"btn btn-success\"");
-
-WriteLiteral(" onclick=\"$(\'#main\').attr(\'src\', \'/Admin/Index/Main\');\"");
-
-WriteLiteral(" title=\"服务器信息\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-signal\"");
-
-WriteLiteral("></i>\r\n                    </button>\r\n\r\n                    <button");
-
-WriteLiteral(" class=\"btn btn-info\"");
-
-WriteLiteral(" onclick=\"$(\'#main\').attr(\'src\', \'/Admin/Log\');\"");
-
-WriteLiteral(" title=\"系统日志\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-pencil\"");
-
-WriteLiteral("></i>\r\n                    </button>\r\n\r\n                    <!-- #section:basics/" +
-"sidebar.layout.shortcuts -->\r\n                    <button");
-
-WriteLiteral(" class=\"btn btn-warning\"");
-
-WriteLiteral(" onclick=\"$(\'#main\').attr(\'src\', \'/Admin/Menu\');\"");
-
-WriteLiteral(" title=\"系统菜单\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-users\"");
-
-WriteLiteral("></i>\r\n                    </button>\r\n\r\n                    <button");
-
-WriteLiteral(" class=\"btn btn-danger\"");
-
-WriteLiteral(" onclick=\"$(\'#main\').attr(\'src\', \'/Admin/Sys\');\"");
-
-WriteLiteral(" title=\"系统设置\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-cogs\"");
-
-WriteLiteral("></i>\r\n                    </button>\r\n\r\n                    <!-- /section:basics/" +
-"sidebar.layout.shortcuts -->\r\n                </div>\r\n\r\n                <div");
-
-WriteLiteral(" class=\"sidebar-shortcuts-mini\"");
-
-WriteLiteral(" id=\"sidebar-shortcuts-mini\"");
-
-WriteLiteral(">\r\n                    <span");
-
-WriteLiteral(" class=\"btn btn-success\"");
-
-WriteLiteral("></span>\r\n\r\n                    <span");
-
-WriteLiteral(" class=\"btn btn-info\"");
-
-WriteLiteral("></span>\r\n\r\n                    <span");
-
-WriteLiteral(" class=\"btn btn-warning\"");
-
-WriteLiteral("></span>\r\n\r\n                    <span");
-
-WriteLiteral(" class=\"btn btn-danger\"");
-
-WriteLiteral("></span>\r\n                </div>\r\n            </div>\r\n            <!-- /.sidebar-" +
-"shortcuts -->\r\n");
+"\n\r\n");
 
 WriteLiteral("            ");
 
             
-            #line 101 "..\..\Areas\Admin\Views\Index\Index.cshtml"
+            #line 68 "..\..\Areas\Admin\Views\Index\Index.cshtml"
        Write(Html.Partial("_Left"));
 
             
@@ -370,263 +285,7 @@ WriteLiteral(" class=\"page-content\"");
 
 WriteLiteral(" style=\"padding: 0px;\"");
 
-WriteLiteral(">\r\n                    <!-- #section:settings.box -->\r\n                    <div");
-
-WriteLiteral(" class=\"ace-settings-container\"");
-
-WriteLiteral(" id=\"ace-settings-container\"");
-
-WriteLiteral(">\r\n                        <div");
-
-WriteLiteral(" class=\"btn btn-app btn-xs btn-warning ace-settings-btn\"");
-
-WriteLiteral(" id=\"ace-settings-btn\"");
-
-WriteLiteral(">\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-cog bigger-130\"");
-
-WriteLiteral("></i>\r\n                        </div>\r\n\r\n                        <div");
-
-WriteLiteral(" class=\"ace-settings-box clearfix\"");
-
-WriteLiteral(" id=\"ace-settings-box\"");
-
-WriteLiteral(">\r\n                            <div");
-
-WriteLiteral(" class=\"pull-left width-50\"");
-
-WriteLiteral(">\r\n                                <!-- #section:settings.skins -->\r\n            " +
-"                    <div");
-
-WriteLiteral(" class=\"ace-settings-item\"");
-
-WriteLiteral(">\r\n                                    <div");
-
-WriteLiteral(" class=\"pull-left\"");
-
-WriteLiteral(">\r\n                                        <select");
-
-WriteLiteral(" id=\"skin-colorpicker\"");
-
-WriteLiteral(" class=\"hide\"");
-
-WriteLiteral(">\r\n                                            <option");
-
-WriteLiteral(" data-skin=\"no-skin\"");
-
-WriteLiteral(" value=\"#438EB9\"");
-
-WriteLiteral(">#438EB9</option>\r\n                                            <option");
-
-WriteLiteral(" data-skin=\"skin-1\"");
-
-WriteLiteral(" value=\"#222A2D\"");
-
-WriteLiteral(">#222A2D</option>\r\n                                            <option");
-
-WriteLiteral(" data-skin=\"skin-2\"");
-
-WriteLiteral(" value=\"#C6487E\"");
-
-WriteLiteral(">#C6487E</option>\r\n                                            <option");
-
-WriteLiteral(" data-skin=\"skin-3\"");
-
-WriteLiteral(" value=\"#D0D0D0\"");
-
-WriteLiteral(@">#D0D0D0</option>
-                                        </select>
-                                    </div>
-                                    <span>&nbsp; 选择皮肤</span>
-                                </div>
-
-                                <!-- /section:settings.skins -->
-                                <!-- #section:settings.navbar -->
-                                <div");
-
-WriteLiteral(" class=\"ace-settings-item\"");
-
-WriteLiteral(">\r\n                                    <input");
-
-WriteLiteral(" type=\"checkbox\"");
-
-WriteLiteral(" class=\"ace ace-checkbox-2\"");
-
-WriteLiteral(" id=\"ace-settings-navbar\"");
-
-WriteLiteral(" />\r\n                                    <label");
-
-WriteLiteral(" class=\"lbl\"");
-
-WriteLiteral(" for=\"ace-settings-navbar\"");
-
-WriteLiteral(">Fixed Navbar</label>\r\n                                </div>\r\n\r\n                " +
-"                <!-- /section:settings.navbar -->\r\n                             " +
-"   <!-- #section:settings.sidebar -->\r\n                                <div");
-
-WriteLiteral(" class=\"ace-settings-item\"");
-
-WriteLiteral(">\r\n                                    <input");
-
-WriteLiteral(" type=\"checkbox\"");
-
-WriteLiteral(" class=\"ace ace-checkbox-2\"");
-
-WriteLiteral(" id=\"ace-settings-sidebar\"");
-
-WriteLiteral(" />\r\n                                    <label");
-
-WriteLiteral(" class=\"lbl\"");
-
-WriteLiteral(" for=\"ace-settings-sidebar\"");
-
-WriteLiteral(">Fixed Sidebar</label>\r\n                                </div>\r\n\r\n               " +
-"                 <!-- /section:settings.sidebar -->\r\n                           " +
-"     <!-- #section:settings.breadcrumbs -->\r\n                                <di" +
-"v");
-
-WriteLiteral(" class=\"ace-settings-item\"");
-
-WriteLiteral(">\r\n                                    <input");
-
-WriteLiteral(" type=\"checkbox\"");
-
-WriteLiteral(" class=\"ace ace-checkbox-2\"");
-
-WriteLiteral(" id=\"ace-settings-breadcrumbs\"");
-
-WriteLiteral(" />\r\n                                    <label");
-
-WriteLiteral(" class=\"lbl\"");
-
-WriteLiteral(" for=\"ace-settings-breadcrumbs\"");
-
-WriteLiteral(">Fixed Breadcrumbs</label>\r\n                                </div>\r\n\r\n           " +
-"                     <!-- /section:settings.breadcrumbs -->\r\n                   " +
-"             <!-- #section:settings.rtl -->\r\n                                <di" +
-"v");
-
-WriteLiteral(" class=\"ace-settings-item\"");
-
-WriteLiteral(">\r\n                                    <input");
-
-WriteLiteral(" type=\"checkbox\"");
-
-WriteLiteral(" class=\"ace ace-checkbox-2\"");
-
-WriteLiteral(" id=\"ace-settings-rtl\"");
-
-WriteLiteral(" />\r\n                                    <label");
-
-WriteLiteral(" class=\"lbl\"");
-
-WriteLiteral(" for=\"ace-settings-rtl\"");
-
-WriteLiteral(">Right To Left (rtl)</label>\r\n                                </div>\r\n\r\n         " +
-"                       <!-- /section:settings.rtl -->\r\n                         " +
-"       <!-- #section:settings.container -->\r\n                                <di" +
-"v");
-
-WriteLiteral(" class=\"ace-settings-item\"");
-
-WriteLiteral(">\r\n                                    <input");
-
-WriteLiteral(" type=\"checkbox\"");
-
-WriteLiteral(" class=\"ace ace-checkbox-2\"");
-
-WriteLiteral(" id=\"ace-settings-add-container\"");
-
-WriteLiteral(" />\r\n                                    <label");
-
-WriteLiteral(" class=\"lbl\"");
-
-WriteLiteral(" for=\"ace-settings-add-container\"");
-
-WriteLiteral(@">
-                                        Inside
-                                        <b>.container</b>
-                                    </label>
-                                </div>
-
-                                <!-- /section:settings.container -->
-                            </div>
-                            <!-- /.pull-left -->
-
-                            <div");
-
-WriteLiteral(" class=\"pull-left width-50\"");
-
-WriteLiteral(">\r\n                                <!-- #section:basics/sidebar.options -->\r\n    " +
-"                            <div");
-
-WriteLiteral(" class=\"ace-settings-item\"");
-
-WriteLiteral(">\r\n                                    <input");
-
-WriteLiteral(" type=\"checkbox\"");
-
-WriteLiteral(" class=\"ace ace-checkbox-2\"");
-
-WriteLiteral(" id=\"ace-settings-hover\"");
-
-WriteLiteral(" />\r\n                                    <label");
-
-WriteLiteral(" class=\"lbl\"");
-
-WriteLiteral(" for=\"ace-settings-hover\"");
-
-WriteLiteral(">Submenu on Hover</label>\r\n                                </div>\r\n\r\n            " +
-"                    <div");
-
-WriteLiteral(" class=\"ace-settings-item\"");
-
-WriteLiteral(">\r\n                                    <input");
-
-WriteLiteral(" type=\"checkbox\"");
-
-WriteLiteral(" class=\"ace ace-checkbox-2\"");
-
-WriteLiteral(" id=\"ace-settings-compact\"");
-
-WriteLiteral(" />\r\n                                    <label");
-
-WriteLiteral(" class=\"lbl\"");
-
-WriteLiteral(" for=\"ace-settings-compact\"");
-
-WriteLiteral(">Compact Sidebar</label>\r\n                                </div>\r\n\r\n             " +
-"                   <div");
-
-WriteLiteral(" class=\"ace-settings-item\"");
-
-WriteLiteral(">\r\n                                    <input");
-
-WriteLiteral(" type=\"checkbox\"");
-
-WriteLiteral(" class=\"ace ace-checkbox-2\"");
-
-WriteLiteral(" id=\"ace-settings-highlight\"");
-
-WriteLiteral(" />\r\n                                    <label");
-
-WriteLiteral(" class=\"lbl\"");
-
-WriteLiteral(" for=\"ace-settings-highlight\"");
-
-WriteLiteral(@">Alt. Active Item</label>
-                                </div>
-
-                                <!-- /section:basics/sidebar.options -->
-                            </div>
-                            <!-- /.pull-left -->
-                        </div>
-                        <!-- /.ace-settings-box -->
-                    </div>
-                    <!-- /.ace-settings-container -->
-                    <!-- /section:settings.box -->
-                    <iframe");
+WriteLiteral(">\r\n                    <iframe");
 
 WriteLiteral(" style=\"width: 100%; height: 100%; margin: 0; padding: 0; border: none;\"");
 
@@ -634,70 +293,18 @@ WriteLiteral(" id=\"main\"");
 
 WriteLiteral(" name=\"main\"");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 10705), Tuple.Create("\"", 10724)
+WriteAttribute("src", Tuple.Create(" src=\"", 3596), Tuple.Create("\"", 3615)
             
-            #line 208 "..\..\Areas\Admin\Views\Index\Index.cshtml"
-                                              , Tuple.Create(Tuple.Create("", 10711), Tuple.Create<System.Object, System.Int32>(ViewBag.Main
+            #line 87 "..\..\Areas\Admin\Views\Index\Index.cshtml"
+                                               , Tuple.Create(Tuple.Create("", 3602), Tuple.Create<System.Object, System.Int32>(ViewBag.Main
             
             #line default
             #line hidden
-, 10711), false)
+, 3602), false)
 );
 
 WriteLiteral("></iframe>\r\n                </div>\r\n                <!-- /.page-content -->\r\n    " +
-"        </div>\r\n        </div>\r\n        <!-- /.main-content -->\r\n        <div");
-
-WriteLiteral(" class=\"footer\"");
-
-WriteLiteral(">\r\n            <div");
-
-WriteLiteral(" class=\"footer-inner\"");
-
-WriteLiteral(">\r\n                <!-- #section:basics/footer -->\r\n                <div");
-
-WriteLiteral(" class=\"footer-content\"");
-
-WriteLiteral(">\r\n                    <span");
-
-WriteLiteral(" class=\"bigger-120\"");
-
-WriteLiteral(">\r\n                        <span");
-
-WriteLiteral(" class=\"blue bolder\"");
-
-WriteLiteral(">");
-
-            
-            #line 219 "..\..\Areas\Admin\Views\Index\Index.cshtml"
-                                             Write(Config.DisplayName);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</span>\r\n");
-
-WriteLiteral("                        ");
-
-            
-            #line 220 "..\..\Areas\Admin\Views\Index\Index.cshtml"
-                   Write(Config.Company);
-
-            
-            #line default
-            #line hidden
-WriteLiteral(" &copy; 2002-");
-
-            
-            #line 220 "..\..\Areas\Admin\Views\Index\Index.cshtml"
-                                               Write(DateTime.Now.Year);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                    </span>\r\n\r\n                    ");
-
-WriteLiteral("\r\n                </div>\r\n\r\n                <!-- /section:basics/footer -->\r\n    " +
-"        </div>\r\n        </div>\r\n\r\n        <a");
+"        </div>\r\n        </div>\r\n        <!-- /.main-content -->\r\n        <a");
 
 WriteLiteral(" href=\"#\"");
 
@@ -712,53 +319,53 @@ WriteLiteral(" class=\"ace-icon fa fa-angle-double-up icon-only bigger-110\"");
 WriteLiteral("></i>\r\n        </a>\r\n    </div>\r\n    <!-- /.main-container -->\r\n    <!-- basic sc" +
 "ripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12297), Tuple.Create("\"", 12342)
-, Tuple.Create(Tuple.Create("", 12303), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 12303), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4025), Tuple.Create("\"", 4070)
+, Tuple.Create(Tuple.Create("", 4031), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 4031), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12366), Tuple.Create("\"", 12408)
-, Tuple.Create(Tuple.Create("", 12372), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
-, 12372), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4094), Tuple.Create("\"", 4136)
+, Tuple.Create(Tuple.Create("", 4100), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
+, 4100), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12432), Tuple.Create("\"", 12479)
-, Tuple.Create(Tuple.Create("", 12438), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
-, 12438), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4160), Tuple.Create("\"", 4207)
+, Tuple.Create(Tuple.Create("", 4166), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
+, 4166), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- ace scripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12531), Tuple.Create("\"", 12573)
-, Tuple.Create(Tuple.Create("", 12537), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
-, 12537), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4259), Tuple.Create("\"", 4301)
+, Tuple.Create(Tuple.Create("", 4265), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
+, 4265), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12597), Tuple.Create("\"", 12630)
-, Tuple.Create(Tuple.Create("", 12603), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
-, 12603), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4325), Tuple.Create("\"", 4358)
+, Tuple.Create(Tuple.Create("", 4331), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
+, 4331), false)
 );
 
 WriteLiteral("></script>\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12673), Tuple.Create("\"", 12722)
-, Tuple.Create(Tuple.Create("", 12679), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
-, 12679), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4401), Tuple.Create("\"", 4450)
+, Tuple.Create(Tuple.Create("", 4407), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
+, 4407), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 12746), Tuple.Create("\"", 12795)
-, Tuple.Create(Tuple.Create("", 12752), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
-, 12752), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4474), Tuple.Create("\"", 4523)
+, Tuple.Create(Tuple.Create("", 4480), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
+, 4480), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <script");

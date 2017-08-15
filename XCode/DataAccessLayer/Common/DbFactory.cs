@@ -24,14 +24,11 @@ namespace XCode.DataAccessLayer
         internal static void Reg(IObjectContainer container)
         {
             container
-                .Reg<Access>()
+                .Reg<SQLite>()
                 .Reg<SqlServer>()
                 .Reg<Oracle>()
                 .Reg<MySql>()
-                .Reg<SQLite>()
-                .Reg<Firebird>()
                 .Reg<PostgreSQL>()
-                .Reg<SqlCe>()
                 .Reg<SQLite>(String.Empty);
             // SQLite作为默认实现
         }
@@ -41,7 +38,7 @@ namespace XCode.DataAccessLayer
             try
             {
                 var db = typeof(T).CreateInstance() as IDatabase;
-                if (id == null) id = db.DbType;
+                if (id == null) id = db.Type;
 
                 // 把这个实例注册进去，作为默认实现
                 return container.Register(typeof(IDatabase), null, db, id);

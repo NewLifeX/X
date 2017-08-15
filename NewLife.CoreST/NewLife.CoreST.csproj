@@ -2,21 +2,26 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>新生命X组件核心库</Description>
-    <FileVersion>6.3.2017.0511</FileVersion>
-    <AssemblyVersion>6.3.0.0</AssemblyVersion>
+    <AssemblyName>NewLife.Core</AssemblyName>
+    <RootNamespace>NewLife.Core</RootNamespace>
+    <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
+    <Description>日常开发中的各种基础功能</Description>
+    <Company>新生命开发团队</Company>
+    <Copyright>©2002-2017 新生命开发团队 http://www.NewLifeX.com</Copyright>
+    <FileVersion>6.4.2017.0719</FileVersion>
+    <AssemblyVersion>6.4.2017.0719</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
     <OutputPath>..\..\Bin</OutputPath>
-    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.CoreST.xml</DocumentationFile>
+    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Core.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
     <OutputPath>..\..\Bin</OutputPath>
-    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.CoreST.xml</DocumentationFile>
+    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Core.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,6 +47,7 @@
     <Compile Include="..\NewLife.Core\Compression\ZipEntry.cs" Link="Compression\ZipEntry.cs" />
     <Compile Include="..\NewLife.Core\Compression\ZipException.cs" Link="Compression\ZipException.cs" />
     <Compile Include="..\NewLife.Core\Compression\ZipFile.cs" Link="Compression\ZipFile.cs" />
+    <Compile Include="..\NewLife.Core\Data\BinaryTree.cs" Link="Data\BinaryTree.cs" />
     <Compile Include="..\NewLife.Core\Data\IFilter.cs" Link="Data\IFilter.cs" />
     <Compile Include="..\NewLife.Core\Data\Packet.cs" Link="Data\Packet.cs" />
     <Compile Include="..\NewLife.Core\Data\PageParameter.cs" Link="Data\PageParameter.cs" />
@@ -82,7 +88,10 @@
     <Compile Include="..\NewLife.Core\Messaging\MessageBase.cs" Link="Messaging\MessageBase.cs" />
     <Compile Include="..\NewLife.Core\Messaging\MessageEventArgs.cs" Link="Messaging\MessageEventArgs.cs" />
     <Compile Include="..\NewLife.Core\Model\IFactory.cs" Link="Model\IFactory.cs" />
+    <Compile Include="..\NewLife.Core\Model\IHistory.cs" Link="Model\IHistory.cs" />
+    <Compile Include="..\NewLife.Core\Model\IManageUser.cs" Link="Model\IManageUser.cs" />
     <Compile Include="..\NewLife.Core\Model\IObjectContainer.cs" Link="Model\IObjectContainer.cs" />
+    <Compile Include="..\NewLife.Core\Model\IOnline.cs" Link="Model\IOnline.cs" />
     <Compile Include="..\NewLife.Core\Model\IPlugin.cs" Link="Model\IPlugin.cs" />
     <Compile Include="..\NewLife.Core\Model\IServer.cs" Link="Model\IServer.cs" />
     <Compile Include="..\NewLife.Core\Model\ModelExtension.cs" Link="Model\ModelExtension.cs" />
@@ -118,7 +127,6 @@
     <Compile Include="..\NewLife.Core\Net\WebSocketSession.cs" Link="Net\WebSocketSession.cs" />
     <Compile Include="..\NewLife.Core\Reflection\AssemblyX.cs" Link="Reflection\AssemblyX.cs" />
     <Compile Include="..\NewLife.Core\Reflection\AttributeX.cs" Link="Reflection\AttributeX.cs" />
-    <Compile Include="..\NewLife.Core\Reflection\EmitHelper.cs" Link="Reflection\EmitHelper.cs" />
     <Compile Include="..\NewLife.Core\Reflection\IIndexAccessor.cs" Link="Reflection\IIndexAccessor.cs" />
     <Compile Include="..\NewLife.Core\Reflection\IReflect.cs" Link="Reflection\IReflect.cs" />
     <Compile Include="..\NewLife.Core\Reflection\OrcasNamer.cs" Link="Reflection\OrcasNamer.cs" />
@@ -158,6 +166,7 @@
     <Compile Include="..\NewLife.Core\Remoting\IApiServer.cs" Link="Remoting\IApiServer.cs" />
     <Compile Include="..\NewLife.Core\Remoting\IApiSession.cs" Link="Remoting\IApiSession.cs" />
     <Compile Include="..\NewLife.Core\Remoting\IEncoder.cs" Link="Remoting\IEncoder.cs" />
+    <Compile Include="..\NewLife.Core\Remoting\IUserSession.cs" Link="Remoting\IUserSession.cs" />
     <Compile Include="..\NewLife.Core\Remoting\JsonEncoder.cs" Link="Remoting\JsonEncoder.cs" />
     <Compile Include="..\NewLife.Core\Security\Crc16.cs" Link="Security\Crc16.cs" />
     <Compile Include="..\NewLife.Core\Security\Crc32.cs" Link="Security\Crc32.cs" />
@@ -193,6 +202,7 @@
     <Compile Include="..\NewLife.Core\Serialization\Xml\Xml.cs" Link="Serialization\Xml\Xml.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlComposite.cs" Link="Serialization\Xml\XmlComposite.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlGeneral.cs" Link="Serialization\Xml\XmlGeneral.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\Xml\XmlList.cs" Link="Serialization\Xml\XmlList.cs" />
     <Compile Include="..\NewLife.Core\Setting.cs" Link="Setting.cs" />
     <Compile Include="..\NewLife.Core\Threading\TaskHelper.cs" Link="Threading\TaskHelper.cs" />
     <Compile Include="..\NewLife.Core\Threading\TimerScheduler.cs" Link="Threading\TimerScheduler.cs" />
@@ -206,7 +216,6 @@
     <Compile Include="..\NewLife.Core\Xml\SerializableDictionary.cs" Link="Xml\SerializableDictionary.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfig.cs" Link="Xml\XmlConfig.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs" Link="Xml\XmlConfigFileAttribute.cs" />
-    <Compile Include="..\NewLife.Core\Xml\XmlEntity.cs" Link="Xml\XmlEntity.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlHelper.cs" Link="Xml\XmlHelper.cs" />
   </ItemGroup>
 
@@ -229,8 +238,6 @@
     <Folder Include="Remoting\Controllers\" />
     <Folder Include="Remoting\Filters\" />
     <Folder Include="Properties\" />
-    <Folder Include="Reflection\IL\" />
-    <Folder Include="Reflection\快速反射\" />
     <Folder Include="Security\" />
     <Folder Include="Serialization\Binary\" />
     <Folder Include="Serialization\Interface\" />
@@ -239,24 +246,17 @@
     <Folder Include="Stub\" />
     <Folder Include="Threading\" />
     <Folder Include="Web\Modules\" />
-    <Folder Include="Windows\" />
     <Folder Include="Xml\" />
     <Folder Include="Http\" />
+    <Folder Include="Caching\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
-    <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
-    <PackageReference Include="System.Net.Requests" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
-    <PackageReference Include="System.Security.Cryptography.Csp" Version="4.3.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
-    <PackageReference Include="System.Threading.ThreadPool" Version="4.3.0" />
-    <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
-    <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

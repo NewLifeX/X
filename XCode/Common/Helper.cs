@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using NewLife.Reflection;
 
 namespace XCode.Common
@@ -6,24 +8,24 @@ namespace XCode.Common
     /// <summary>助手类</summary>
     static class Helper
     {
-        public static Boolean IsIntType(this Type type)
-        {
-            var code = Type.GetTypeCode(type);
-            switch (code)
-            {
-                case TypeCode.Int16:
-                case TypeCode.Int32:
-                case TypeCode.Int64:
-                case TypeCode.UInt16:
-                case TypeCode.UInt32:
-                case TypeCode.UInt64:
-                    return true;
-                default:
-                    break;
-            }
+        //public static Boolean IsIntType(this Type type)
+        //{
+        //    var code = Type.GetTypeCode(type);
+        //    switch (code)
+        //    {
+        //        case TypeCode.Int16:
+        //        case TypeCode.Int32:
+        //        case TypeCode.Int64:
+        //        case TypeCode.UInt16:
+        //        case TypeCode.UInt32:
+        //        case TypeCode.UInt64:
+        //            return true;
+        //        default:
+        //            break;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>指定键是否为空。一般业务系统设计不允许主键为空，包括自增的0和字符串的空</summary>
         /// <param name="key">键值</param>
@@ -41,18 +43,18 @@ namespace XCode.Common
             //如果不根据类型分别进行会导致类型转换失败抛出异常
             switch (Type.GetTypeCode(type))
             {
-                case TypeCode.Int16: return ((Int16)key) <= 0;
-                case TypeCode.Int32: return ((Int32)key) <= 0;
-                case TypeCode.Int64: return ((Int64)key) <= 0;
-                case TypeCode.UInt16: return ((UInt16)key) <= 0;
-                case TypeCode.UInt32: return ((UInt32)key) <= 0;
-                case TypeCode.UInt64: return ((UInt64)key) <= 0;
+                case TypeCode.Int16: return ((Int16)key) == 0;
+                case TypeCode.Int32: return ((Int32)key) == 0;
+                case TypeCode.Int64: return ((Int64)key) == 0;
+                case TypeCode.UInt16: return ((UInt16)key) == 0;
+                case TypeCode.UInt32: return ((UInt32)key) == 0;
+                case TypeCode.UInt64: return ((UInt64)key) == 0;
                 case TypeCode.String: return String.IsNullOrEmpty((String)key);
                 default: break;
             }
 
             if (type == typeof(Guid)) return ((Guid)key) == Guid.Empty;
-            if (type == typeof(Byte[])) return ((Byte[])key).Length <= 0;
+            if (type == typeof(Byte[])) return ((Byte[])key).Length == 0;
 
             return false;
         }
@@ -85,7 +87,20 @@ namespace XCode.Common
             if (Object.Equals(left, right)) return true;
 
             // 特殊处理整型
-            return left.GetType().IsIntType() && right.GetType().IsIntType() && Convert.ToInt64(left) == Convert.ToInt64(right);
+            return left.GetType().IsInt() && right.GetType().IsInt() && Convert.ToInt64(left) == Convert.ToInt64(right);
+        }
+
+        public static DataRow[] ToArray(this DataRowCollection collection)
+        {
+            if (collection == null) return new DataRow[0];
+
+            var list = new List<DataRow>();
+            foreach (var item in collection)
+            {
+                if (item is DataRow dr) list.Add(dr);
+            }
+
+            return list.ToArray();
         }
     }
 }

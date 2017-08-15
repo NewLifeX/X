@@ -33,6 +33,7 @@ namespace NewLife.Http
 
             //DisconnectWhenEmptyData = false;
             ProcessAsync = false;
+            MatchEmpty = true;
 
             // 添加过滤器
             if (SendFilter == null) SendFilter = new HttpResponseFilter { Session = this };
@@ -63,15 +64,17 @@ namespace NewLife.Http
             // 是否全新请求
             if (header == null || !IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
             {
-                Request = new HttpRequest { Expire = DateTime.Now.AddSeconds(5) };
-                Response = new HttpResponse();
-                header = Request;
+                var req = new HttpRequest { Expire = DateTime.Now.AddSeconds(5) };
 
                 // 分析头部
-                header.ParseHeader(pk);
+                if (req.ParseHeader(pk))
+                {
+                    Request = header = req;
+                    Response = new HttpResponse();
 #if DEBUG
-                WriteLog("{0} {1}", header.Method, header.Url);
+                    WriteLog("{0} {1}", header.Method, header.Url);
 #endif
+                }
             }
 
             // 增加主体长度

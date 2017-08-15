@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife.Collections;
-using NewLife.Reflection;
 
 namespace XCode
 {
@@ -27,13 +23,29 @@ namespace XCode
         /// <param name="isNew"></param>
         /// <returns></returns>
         Boolean Valid(IEntity entity, Boolean isNew);
+
+        ///// <summary>新增实体对象</summary>
+        ///// <param name="entity"></param>
+        //void Insert(IEntity entity);
+
+        ///// <summary>更新实体对象</summary>
+        ///// <param name="entity"></param>
+        //void Update(IEntity entity);
+
+        /// <summary>删除实体对象</summary>
+        /// <param name="entity"></param>
+        Boolean Delete(IEntity entity);
     }
 
     /// <summary>实体模块集合</summary>
-    class EntityModules : ICollection<IEntityModule>
+    public class EntityModules : IEnumerable<IEntityModule>
     {
+        #region 全局静态
+        /// <summary></summary>
+        public static EntityModules Global { get; } = new EntityModules(null);
+        #endregion
+
         #region 属性
-        //private Type _EntityType;
         /// <summary>实体类型</summary>
         public Type EntityType { get; set; }
 
@@ -42,43 +54,56 @@ namespace XCode
         #endregion
 
         #region 构造
+        /// <summary>实例化实体模块集合</summary>
+        /// <param name="entityType"></param>
         public EntityModules(Type entityType)
         {
             EntityType = entityType;
-
-            // 异步扫描添加，避免阻塞
-            var task = Task.Run(() =>
-            {
-                foreach (var item in typeof(IEntityModule).GetAllSubclasses(true))
-                {
-                    var module = item.CreateInstance() as IEntityModule;
-                    Add(module);
-                }
-            });
-
-            // 略微等一下
-            task.Wait(100);
         }
         #endregion
 
         #region 方法
+        /// <summary>添加实体模块</summary>
+        /// <param name="module"></param>
+        /// <returns></returns>
         public virtual Boolean Add(IEntityModule module)
         {
-            if (!module.Init(EntityType)) return false;
+            // 未指定实体类型表示全局模块，不需要初始化
+            if (EntityType != null && !module.Init(EntityType)) return false;
 
             Modules.Add(module);
 
             return true;
         }
 
+        /// <summary>添加实体模块</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public virtual IEntityModule Add<T>() where T : IEntityModule, new()
+        {
+            var module = new T();
+            if (Add(module)) return null;
+
+            return module;
+        }
+
+        /// <summary>创建实体时执行模块</summary>
+        /// <param name="entity"></param>
+        /// <param name="forEdit"></param>
         public void Create(IEntity entity, Boolean forEdit)
         {
             foreach (var item in Modules)
             {
                 item.Create(entity, forEdit);
             }
+
+            if (this != Global) Global.Create(entity, forEdit);
         }
 
+        /// <summary>添加更新实体时验证</summary>
+        /// <param name="entity"></param>
+        /// <param name="isNew"></param>
+        /// <returns></returns>
         public Boolean Valid(IEntity entity, Boolean isNew)
         {
             foreach (var item in Modules)
@@ -86,24 +111,24 @@ namespace XCode
                 if (!item.Valid(entity, isNew)) return false;
             }
 
+            if (this != Global) Global.Valid(entity, isNew);
+
             return true;
         }
-        #endregion
 
-        #region ICollection<IEntityModule> 成员
-        void ICollection<IEntityModule>.Add(IEntityModule item) { Add(item); }
+        /// <summary>删除实体对象</summary>
+        /// <param name="entity"></param>
+        public Boolean Delete(IEntity entity)
+        {
+            foreach (var item in Modules)
+            {
+                if (!item.Delete(entity)) return false;
+            }
 
-        void ICollection<IEntityModule>.Clear() { Modules.Clear(); }
+            if (this != Global) Global.Delete(entity);
 
-        Boolean ICollection<IEntityModule>.Contains(IEntityModule item) { return Modules.Contains(item); }
-
-        void ICollection<IEntityModule>.CopyTo(IEntityModule[] array, Int32 arrayIndex) { Modules.CopyTo(array, arrayIndex); }
-
-        Int32 ICollection<IEntityModule>.Count { get { return Modules.Count; } }
-
-        Boolean ICollection<IEntityModule>.IsReadOnly { get { return (Modules as ICollection<IEntityModule>).IsReadOnly; } }
-
-        Boolean ICollection<IEntityModule>.Remove(IEntityModule item) { return Modules.Remove(item); }
+            return true;
+        }
         #endregion
 
         #region IEnumerable<IEntityModule> 成员
@@ -119,21 +144,67 @@ namespace XCode
     public abstract class EntityModule : IEntityModule
     {
         #region IEntityModule 成员
+        private Dictionary<Type, Boolean> _Inited = new Dictionary<Type, Boolean>();
         /// <summary>为指定实体类初始化模块，返回是否支持</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public virtual Boolean Init(Type entityType) { return true; }
+        public Boolean Init(Type entityType)
+        {
+            var dic = _Inited;
+            if (dic.TryGetValue(entityType, out var b)) return b;
+            lock (dic)
+            {
+                if (dic.TryGetValue(entityType, out b)) return b;
+
+                return dic[entityType] = OnInit(entityType);
+            }
+        }
+
+        /// <summary>为指定实体类初始化模块，返回是否支持</summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        protected virtual Boolean OnInit(Type entityType) { return true; }
 
         /// <summary>创建实体对象</summary>
         /// <param name="entity"></param>
         /// <param name="forEdit"></param>
-        public virtual void Create(IEntity entity, Boolean forEdit) { }
+        public void Create(IEntity entity, Boolean forEdit) { if (Init(entity?.GetType())) OnCreate(entity, forEdit); }
+
+        /// <summary>创建实体对象</summary>
+        /// <param name="entity"></param>
+        /// <param name="forEdit"></param>
+        protected virtual void OnCreate(IEntity entity, Boolean forEdit) { }
 
         /// <summary>验证实体对象</summary>
         /// <param name="entity"></param>
         /// <param name="isNew"></param>
         /// <returns></returns>
-        public virtual Boolean Valid(IEntity entity, Boolean isNew) { return true; }
+        public Boolean Valid(IEntity entity, Boolean isNew)
+        {
+            if (!Init(entity?.GetType())) return true;
+
+            return OnValid(entity, isNew);
+        }
+
+        /// <summary>验证实体对象</summary>
+        /// <param name="entity"></param>
+        /// <param name="isNew"></param>
+        /// <returns></returns>
+        protected virtual Boolean OnValid(IEntity entity, Boolean isNew) { return true; }
+
+        /// <summary>删除实体对象</summary>
+        /// <param name="entity"></param>
+        public Boolean Delete(IEntity entity)
+        {
+            if (!Init(entity?.GetType())) return true;
+
+            return OnDelete(entity);
+        }
+
+        /// <summary>删除实体对象</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        protected virtual Boolean OnDelete(IEntity entity) { return true; }
         #endregion
 
         #region 辅助
@@ -150,11 +221,11 @@ namespace XCode
             return false;
         }
 
-        private DictionaryCache<Type, ICollection<String>> _fieldNames = new DictionaryCache<Type, ICollection<String>>();
+        private static DictionaryCache<Type, ICollection<String>> _fieldNames = new DictionaryCache<Type, ICollection<String>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected ICollection<String> GetFieldNames(Type entityType)
+        protected static ICollection<String> GetFieldNames(Type entityType)
         {
             return _fieldNames.GetItem(entityType, t =>
             {

@@ -13,6 +13,9 @@ namespace NewLife.Http
         /// <summary>内容长度</summary>
         public Int32 ContentLength { get; set; }
 
+        /// <summary>内容类型</summary>
+        public String ContentType { get; set; }
+
         /// <summary>头部集合</summary>
         public IDictionary<String, Object> Headers { get; set; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
@@ -37,12 +40,13 @@ namespace NewLife.Http
             var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
             if (p < 0) return false;
 
+            var str = pk.ReadBytes(0, p).ToStr();
 #if DEBUG
-            //WriteLog(pk.ToStr());
+            Log.XTrace.WriteLine(str);
 #endif
 
             // 截取
-            var lines = pk.ReadBytes(0, p).ToStr().Split("\r\n");
+            var lines = str.Split("\r\n");
             // 重构
             p += 4;
             pk.Set(pk.Data, pk.Offset + p, pk.Count - p);
@@ -57,19 +61,22 @@ namespace NewLife.Http
                 if (p > 0) Headers[line.Substring(0, p)] = line.Substring(p + 1).Trim();
             }
 
+            ContentLength = Headers["Content-Length"].ToInt();
+            ContentType = Headers["Content-Type"] + "";
+
             // 分析第一行
-            OnParse(lines[0]);
+            if (!OnParse(lines[0])) return false;
 
             //// 判断主体长度
             //BodyLength += pk.Count;
             //if (ContentLength > 0 && BodyLength >= ContentLength) IsCompleted = true;
 
-            return false;
+            return true;
         }
 
         /// <summary>分析第一行</summary>
         /// <param name="firstLine"></param>
-        protected abstract void OnParse(String firstLine);
+        protected abstract Boolean OnParse(String firstLine);
 
         private MemoryStream _cache;
         internal Boolean ParseBody(ref Packet pk)

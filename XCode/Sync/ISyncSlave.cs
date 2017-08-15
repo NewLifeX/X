@@ -134,7 +134,7 @@ namespace XCode.Sync
         {
             var dal = DAL.Create(Factory.ConnName);
             // 有效同步时间升序，取一个，即为最小值
-            var list = Factory.FindAll(LastSyncField > dal.Db.DateTimeMin, LastSyncField.Asc(), null, 0, 1);
+            var list = Factory.FindAll(LastSyncField > DateTime.MinValue, LastSyncField.Asc(), null, 0, 1);
             if (list == null || list.Count < 1) return DateTime.MinValue;
 
             return (DateTime)list[0][LastSyncField];
@@ -149,7 +149,7 @@ namespace XCode.Sync
         public virtual ISyncSlaveEntity[] GetAllNew(Int32 start, Int32 max)
         {
             var dal = DAL.Create(Factory.ConnName);
-            return GetAll(LastSyncField <= dal.Db.DateTimeMin | LastSyncField == null, start, max);
+            return GetAll(LastSyncField <= DateTime.MinValue | LastSyncField == null, start, max);
         }
 
         /// <summary>获取所有删除的数据</summary>
@@ -159,7 +159,7 @@ namespace XCode.Sync
         public virtual ISyncSlaveEntity[] GetAllDelete(Int32 start, Int32 max)
         {
             var dal = DAL.Create(Factory.ConnName);
-            return GetAll(LastUpdateField <= dal.Db.DateTimeMin | LastUpdateField == null, start, max);
+            return GetAll(LastUpdateField <= DateTime.MinValue | LastUpdateField == null, start, max);
         }
 
         /// <summary>获取所有未同步的旧数据</summary>

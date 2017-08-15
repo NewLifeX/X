@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Security.Principal;
 using System.Text;
 using System.Web;
 using NewLife.Model;
 using NewLife.Web;
+using XCode.Model;
 
 namespace XCode.Membership
 {
@@ -15,9 +18,6 @@ namespace XCode.Membership
     /// </remarks>
     public interface IManageProvider : IServiceProvider
     {
-        /// <summary>用户实体类</summary>
-        Type UserType { get; }
-
         /// <summary>当前登录用户，设为空则注销登录</summary>
         IManageUser Current { get; set; }
 
@@ -59,14 +59,20 @@ namespace XCode.Membership
     }
 
     /// <summary>管理提供者</summary>
+#if !__CORE__
     public abstract class ManageProvider : IManageProvider, IErrorInfoProvider
+#else
+    public abstract class ManageProvider : IManageProvider
+#endif
     {
         #region 静态实例
         static ManageProvider()
         {
-            ObjectContainer.Current
-                .AutoRegister<IManageProvider, DefaultManageProvider>()
-                .AutoRegister<IRole, Role>()
+            var ioc = ObjectContainer.Current;
+            // 外部管理提供者需要手工覆盖
+            ioc.Register<IManageProvider, DefaultManageProvider>();
+
+            ioc.AutoRegister<IRole, Role>()
                 .AutoRegister<IMenu, Menu>()
                 .AutoRegister<ILog, Log>()
                 .AutoRegister<IUser, UserX>();
@@ -83,9 +89,6 @@ namespace XCode.Membership
         #endregion
 
         #region IManageProvider 接口
-        /// <summary>管理用户类</summary>
-        public abstract Type UserType { get; }
-
         /// <summary>当前用户</summary>
         public abstract IManageUser Current { get; set; }
 
@@ -127,32 +130,12 @@ namespace XCode.Membership
         /// <returns></returns>
         public virtual Object GetService(Type serviceType)
         {
-            //if (serviceType == typeof(IManagePage))
-            //    return GetHttpCache(typeof(IManagePage), k => CommonService.Container.Resolve<IManagePage>());
-            //else if (serviceType == typeof(IEntityForm))
-            //    return GetHttpCache(typeof(IEntityForm), k => CommonService.Container.Resolve<IEntityForm>());
-
-            return ObjectContainer.Current.Resolve(serviceType);
+            var container = XCodeService.Container;
+            return container.Resolve(serviceType);
         }
         #endregion
 
-        #region 辅助
-        /// <summary>获取Http缓存，如果不存在，则调用func去计算</summary>
-        /// <param name="key"></param>
-        /// <param name="func"></param>
-        /// <returns></returns>
-        protected Object GetHttpCache(Object key, Func<Object, Object> func)
-        {
-            if (HttpContext.Current.Items[key] != null) return HttpContext.Current.Items[key];
-
-            var value = func(key);
-
-            HttpContext.Current.Items[key] = value;
-
-            return value;
-        }
-        #endregion
-
+#if !__CORE__
         #region IErrorInfoProvider 成员
         void IErrorInfoProvider.AddInfo(Exception ex, StringBuilder builder)
         {
@@ -167,6 +150,7 @@ namespace XCode.Membership
             }
         }
         #endregion
+#endif
 
         #region 实体类扩展
         /// <summary>根据实体类接口获取实体工厂</summary>
@@ -174,7 +158,8 @@ namespace XCode.Membership
         /// <returns></returns>
         internal static IEntityOperate GetFactory<TIEntity>()
         {
-            var type = ObjectContainer.Current.ResolveType<TIEntity>();
+            var container = XCodeService.Container;
+            var type = container.ResolveType<TIEntity>();
             if (type == null) return null;
 
             return EntityFactory.CreateOperate(type);
@@ -194,9 +179,6 @@ namespace XCode.Membership
     /// <typeparam name="TUser"></typeparam>
     public class ManageProvider<TUser> : ManageProvider where TUser : User<TUser>, new()
     {
-        /// <summary>用户类型</summary>
-        public override Type UserType { get { return typeof(TUser); } }
-
         /// <summary>当前用户</summary>
         public override IManageUser Current { get { return User<TUser>.Current; } set { User<TUser>.Current = (TUser)value; } }
 
@@ -244,4 +226,30 @@ namespace XCode.Membership
     }
 
     class DefaultManageProvider : ManageProvider<UserX> { }
+
+#if !__CORE__
+    /// <summary>管理提供者助手</summary>
+    public static class ManagerProviderHelper
+    {
+        /// <summary>设置当前用户</summary>
+        /// <param name="provider">提供者</param>
+        public static void SetPrincipal(this IManageProvider provider)
+        {
+            var ctx = HttpContext.Current;
+            if (ctx == null) return;
+
+            var user = provider.Current;
+            if (user == null) return;
+
+            var id = user as IIdentity;
+            if (id == null) return;
+
+            // 角色列表
+            var roles = new List<String>();
+            if (user is IUser) roles.Add((user as IUser).RoleName);
+
+            ctx.User = new GenericPrincipal(id, roles.ToArray());
+        }
+    }
+#endif
 }

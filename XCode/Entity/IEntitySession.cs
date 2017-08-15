@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using XCode.Cache;
@@ -24,6 +25,9 @@ namespace XCode
 
         /// <summary>数据操作层</summary>
         DAL Dal { get; }
+
+        /// <summary>用户数据</summary>
+        IDictionary<String, Object> Items { get; set; }
         #endregion
 
         #region 数据初始化
@@ -130,9 +134,9 @@ namespace XCode
         #endregion
 
         #region 参数化
-        /// <summary>创建参数</summary>
-        /// <returns></returns>
-        IDataParameter CreateParameter();
+        ///// <summary>创建参数</summary>
+        ///// <returns></returns>
+        //IDataParameter CreateParameter();
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>

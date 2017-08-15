@@ -6,9 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Threading;
-using XCode.DataAccessLayer;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace XCode.Cache
 {
@@ -79,6 +80,42 @@ namespace XCode.Cache
             {
                 XTrace.WriteException(ex);
             }
+
+            _Timer.TryDispose();
+        }
+
+        private TimerX _Timer;
+        private void CheckExpire(Object state)
+        {
+            var es = Entities;
+            if (es == null) return;
+
+            // 找到所有严重过期的缓存项
+            var exp = DateTime.Now.AddSeconds(-600);
+            var list = new List<CacheItem>();
+            lock (es)
+            {
+                foreach (var item in es)
+                {
+                    if (item.Value.ExpireTime < exp) list.Add(item.Value);
+                }
+                foreach (var item in list)
+                {
+                    es.Remove(item.Key);
+                }
+            }
+            // 删除从表
+            var ses = _SlaveEntities;
+            if (ses != null && list.Count > 0)
+            {
+                lock (ses)
+                {
+                    foreach (var item in list)
+                    {
+                        if (!item.SlaveKey.IsNullOrEmpty()) ses.Remove(item.SlaveKey);
+                    }
+                }
+            }
         }
         #endregion
 
@@ -86,7 +123,7 @@ namespace XCode.Cache
         /// <summary>缓存对象</summary>
         class CacheItem
         {
-            private SingleEntityCache<TKey, TEntity> Cache { get; }
+            //private SingleEntityCache<TKey, TEntity> Cache { get; }
 
             /// <summary>键</summary>
             public TKey Key { get; set; }
@@ -100,19 +137,19 @@ namespace XCode.Cache
             /// <summary>缓存过期时间</summary>
             public DateTime ExpireTime { get; set; }
 
-            /// <summary>下一次保存的时间</summary>
-            public DateTime NextSave { get; set; }
+            ///// <summary>下一次保存的时间</summary>
+            //public DateTime NextSave { get; set; }
 
             /// <summary>是否已经过期</summary>
             public Boolean Expired { get { return ExpireTime <= DateTime.Now; } }
 
-            public CacheItem(SingleEntityCache<TKey, TEntity> sc) { Cache = sc; }
+            //public CacheItem(SingleEntityCache<TKey, TEntity> sc) { Cache = sc; }
 
-            public void SetEntity(TEntity entity)
+            public void SetEntity(TEntity entity, Int32 expire)
             {
                 Entity = entity;
-                ExpireTime = DateTime.Now.AddSeconds(Cache.Expire);
-                NextSave = ExpireTime;
+                ExpireTime = DateTime.Now.AddSeconds(expire);
+                //NextSave = ExpireTime;
             }
         }
         #endregion
@@ -181,9 +218,8 @@ namespace XCode.Cache
             CheckShowStatics(ref Total, ShowStatics);
 
             // 如果找到项，返回
-            CacheItem item = null;
             // 如果TryGetValue获取成功，item为空说明同一时间别的线程已做删除操作
-            if (dic.TryGetValue(key, out item) && item != null && !item.Expired) return GetData(item);
+            if (dic.TryGetValue(key, out var item) && item != null && !item.Expired) return GetData(item);
             lock (dic)
             {
                 // 再次尝试获取
@@ -211,32 +247,49 @@ namespace XCode.Cache
             {
                 Using = true;
                 //WriteLog("单对象缓存首次使用 {0} {1}", typeof(TEntity).FullName, XTrace.GetCaller(1, 16));
+
+                if (_Timer == null)
+                {
+                    // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
+                    _Timer = new TimerX(CheckExpire, null, Expire * 1000, Expire * 1000, "SC");
+                    _Timer.Async = true;
+                }
             }
 
-            var item = new CacheItem(this);
+            var item = new CacheItem();
 
             var skey = GetSlaveKeyMethod?.Invoke(entity);
 
             var mkey = GetKeyMethod(entity);
             item.Key = mkey;
             item.SlaveKey = skey;
-            item.SetEntity(entity);
+            item.SetEntity(entity, Expire);
 
             var success = false;
-            lock (Entities)
+            var es = Entities;
+            lock (es)
             {
-                if (!Entities.ContainsKey(mkey))
+                if (!es.ContainsKey(mkey))
                 {
-                    Entities.Add(mkey, item);
+                    // 如果满了，删除前面一个
+                    while (MaxEntity > 0 && es.Count >= MaxEntity)
+                    {
+                        var key = es.Keys.First();
+                        RemoveKey(key);
+                        //WriteLog("单对象缓存满，删除{0}", key);
+                    }
+
+                    es.Add(mkey, item);
                     success = true;
                 }
             }
             if (success && !skey.IsNullOrWhiteSpace())
             {
-                lock (SlaveEntities)
+                var ses = SlaveEntities;
+                lock (ses)
                 {
                     // 新增或更新
-                    SlaveEntities[skey] = item;
+                    ses[skey] = item;
                 }
             }
             return success;
@@ -260,8 +313,8 @@ namespace XCode.Cache
             Interlocked.Increment(ref Success);
 
             // 异步更新缓存
-            var tid = Thread.CurrentThread.ManagedThreadId;
-            if (item.Expired) Task.Run(() =>
+            //var tid = Thread.CurrentThread.ManagedThreadId;
+            if (item.Expired) TaskEx.Run(() =>
             {
                 // 先修改过期时间
                 item.ExpireTime = DateTime.Now.AddSeconds(Expire);
@@ -269,9 +322,10 @@ namespace XCode.Cache
                 // 更新过期缓存，在原连接名表名里面获取
                 var entity = Invoke(FindKeyMethod, item.Key);
                 if (entity != null)
-                    item.SetEntity(entity);
-                else // 数据库查不到，说明该数据可能已经被删除
-                    Entities.Remove(item.Key);
+                    item.SetEntity(entity, Expire);
+                else
+                    // 数据库查不到，说明该数据可能已经被删除
+                    RemoveKey(item.Key);
             });
 
             return item.Entity;
@@ -300,16 +354,11 @@ namespace XCode.Cache
             CacheItem item = null;
             lock (es)
             {
-                if (es.TryGetValue(key, out item) && item != null)
-                {
-                    item.SetEntity(entity);
+                if (!es.TryGetValue(key, out item) || item == null) return TryAdd(entity);
 
-                    return false;
-                }
-                else
-                {
-                    return TryAdd(entity);
-                }
+                item.SetEntity(entity, Expire);
+
+                return false;
             }
         }
 
@@ -318,8 +367,7 @@ namespace XCode.Cache
         private void RemoveKey(TKey key)
         {
             var es = Entities;
-            CacheItem item = null;
-            if (!es.TryGetValue(key, out item)) return;
+            if (!es.TryGetValue(key, out var item)) return;
             lock (es)
             {
                 if (!es.TryGetValue(key, out item)) return;
@@ -354,12 +402,15 @@ namespace XCode.Cache
             WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
 
             var es = Entities;
-            var vs = es.ToValueArray();
+            if (es == null) return;
 
             // 不要清空单对象缓存，而是设为过期
-            foreach (var item in vs)
+            lock (es)
             {
-                item.ExpireTime = DateTime.MinValue;
+                foreach (var item in es)
+                {
+                    item.Value.ExpireTime = DateTime.Now.AddSeconds(-1);
+                }
             }
 
             Using = false;

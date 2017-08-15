@@ -24,14 +24,25 @@ namespace NewLife.Cube
             var name = GetType().GetDisplayName() ?? typeof(TObject).GetDisplayName() ?? typeof(TObject).Name;
             var des = GetType().GetDescription() ?? typeof(TObject).GetDescription();
 
+            ViewBag.Title = name;
             ViewBag.HeaderTitle = name;
 
             var txt = "";
-            if (txt.IsNullOrEmpty() && ManageProvider.Menu.Current != null) txt = ManageProvider.Menu.Current.Remark;
+            if (txt.IsNullOrEmpty()) txt = ManageProvider.Menu?.Current?.Remark;
             if (txt.IsNullOrEmpty()) txt = des;
             ViewBag.HeaderContent = txt;
 
             if (Value != null) ViewBag.Properties = GetMembers(Value);
+        }
+
+        /// <summary>执行后</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuted(ActionExecutedContext filterContext)
+        {
+            base.OnActionExecuted(filterContext);
+
+            var title = ViewBag.Title + "";
+            HttpContext.Items["Title"] = title;
         }
 
         /// <summary>显示对象</summary>

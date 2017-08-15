@@ -69,8 +69,7 @@ namespace XCode
 
             //return op_cache.GetItem(type, key => { throw new XCodeException("无法创建{0}的实体操作接口！", key); });
 
-            IEntityOperate eop = null;
-            if (!op_cache.TryGetValue(type, out eop)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
+            if (!op_cache.TryGetValue(type, out var eop)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
             return eop;
         }
 
@@ -135,7 +134,15 @@ namespace XCode
         /// <returns></returns>
         public static IEnumerable<Type> LoadEntities(String connName, Boolean isLoadAssembly = false)
         {
-            return typeof(IEntity).GetAllSubclasses(isLoadAssembly).Where(t => TableItem.Create(t).ConnName == connName);
+            //return typeof(IEntity).GetAllSubclasses(isLoadAssembly).Where(t => TableItem.Create(t).ConnName == connName);
+            foreach (var item in typeof(IEntity).GetAllSubclasses(isLoadAssembly))
+            {
+                var ti = TableItem.Create(item);
+                if (ti == null)
+                    XTrace.WriteLine("实体类[{0}]无法创建TableItem", item.FullName);
+                else if (ti.ConnName == connName)
+                    yield return item;
+            }
         }
 
         /// <summary>获取指定连接名下的初始化时检查的所有实体数据表，用于反向工程检查表架构</summary>
@@ -160,28 +167,12 @@ namespace XCode
                 var table = TableItem.Create(item).DataTable;
 
                 // 判断表名是否已存在
-                Type type = null;
-                if (dic.TryGetValue(table.TableName, out type))
+                if (dic.TryGetValue(table.TableName, out var type))
                 {
-                    // 两个实体类，只能要一个
-
-                    // 当前实体类是，跳过
-                    if (IsCommonEntity(item))
-                        continue;
-                    // 前面那个是，排除
-                    else if (IsCommonEntity(type))
-                    {
-                        dic[table.TableName] = item;
-                        // 删除原始实体类
-                        tables.RemoveAll(tb => tb.TableName == table.TableName);
-                    }
                     // 两个都不是，报错吧！
-                    else
-                    {
-                        String msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.TableName, type.FullName, item.FullName);
-                        XTrace.WriteLine(msg);
-                        throw new XCodeException(msg);
-                    }
+                    var msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.TableName, type.FullName, item.FullName);
+                    XTrace.WriteLine(msg);
+                    throw new XCodeException(msg);
                 }
                 else
                 {
@@ -198,23 +189,6 @@ namespace XCode
             }
 
             return tables;
-        }
-
-        /// <summary>是否普通实体类</summary>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        private static Boolean IsCommonEntity(Type type)
-        {
-            // 通用实体类全部都是
-            //if (type.FullName.Contains("NewLife.CommonEntity")) return true;
-            if (type.Namespace == "NewLife.CommonEntity") return true;
-
-            // 实体类和基类名字相同的也是
-            String name = type.BaseType.Name;
-            Int32 p = name.IndexOf('`');
-            if (p > 0 && type.Name == name.Substring(0, p)) return true;
-
-            return false;
         }
 
         static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
@@ -273,7 +247,7 @@ namespace XCode
                     {
                         // 有可能用于查找的是表名，而表名曾经被格式化（大小写、去前缀等）
                         var ti = TableItem.Create(item);
-                        if (ti != null && ti.DataTable != null && typeName.EqualIgnoreCase(ti.TableName)) type = item;
+                        if (ti?.DataTable != null && typeName.EqualIgnoreCase(ti.TableName)) type = item;
                     }
                 }
             }

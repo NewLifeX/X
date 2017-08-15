@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Threading;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -48,7 +47,7 @@ namespace XCode.DataAccessLayer
                 {
                     builder["Server"] = "127.0.0.1";
                     // Oracle连接字符串不支持Database关键字
-                    if (DbType != DatabaseType.Oracle) builder["Database"] = SystemDatabaseName;
+                    if (Type != DatabaseType.Oracle) builder["Database"] = SystemDatabaseName;
                     return builder.ToString();
                 }
 
@@ -70,7 +69,7 @@ namespace XCode.DataAccessLayer
                 //return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null;
                 // 减少一步类型转换
                 var remotedb = Database as RemoteDb;
-                return remotedb != null ? remotedb.SystemDatabaseName : null;
+                return remotedb?.SystemDatabaseName;
             }
         }
         #endregion
@@ -129,16 +128,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>系统数据库名</summary>
-        public String SystemDatabaseName
-        {
-            get
-            {
-                //return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null;
-                // 减少一步类型转换
-                var remotedb = Database as RemoteDb;
-                return remotedb != null ? remotedb.SystemDatabaseName : null;
-            }
-        }
+        public String SystemDatabaseName { get { return (Database as RemoteDb)?.SystemDatabaseName; } }
         #endregion
 
         #region 架构定义
@@ -162,8 +152,8 @@ namespace XCode.DataAccessLayer
 
                     var obj = ProcessWithSystem(s => base.SetSchema(schema, values));
 
-                    // 创建数据库后，需要等待它初始化
-                    Thread.Sleep(5000);
+                    //// 创建数据库后，需要等待它初始化
+                    //Thread.Sleep(5000);
 
                     return obj;
 

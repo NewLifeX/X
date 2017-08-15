@@ -16,25 +16,31 @@ namespace NewLife.Log
         /// <summary>该构造函数没有作用，为了继承而设置</summary>
         public TextFileLog() { }
 
-        private TextFileLog(String path, Boolean isfile)
+        private TextFileLog(String path, Boolean isfile, String fileFormat = null)
         {
             if (!isfile)
                 LogPath = path;
             else
                 LogFile = path;
+
+            if (!fileFormat.IsNullOrEmpty())
+                FileFormat = fileFormat;
+            else
+                FileFormat = Setting.Current.LogFileFormat;
         }
 
         static DictionaryCache<String, TextFileLog> cache = new DictionaryCache<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
         /// <param name="path">日志目录或日志文件路径</param>
+        /// <param name="fileFormat"></param>
         /// <returns></returns>
-        public static TextFileLog Create(String path)
+        public static TextFileLog Create(String path, String fileFormat = null)
         {
             if (path.IsNullOrEmpty()) path = XTrace.LogPath;
             if (path.IsNullOrEmpty()) path = Runtime.IsWeb ? "../Log" : "Log";
 
-            var key = path.ToLower();
-            return cache.GetItem(key, k => new TextFileLog(path, false));
+            var key = (path + fileFormat).ToLower();
+            return cache.GetItem(key, k => new TextFileLog(path, false, fileFormat));
         }
 
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
@@ -82,6 +88,9 @@ namespace NewLife.Log
             }
         }
 
+        /// <summary>日志文件格式</summary>
+        public String FileFormat { get; set; }
+
         /// <summary>是否当前进程的第一次写日志</summary>
         private Boolean isFirst = false;
         #endregion
@@ -109,7 +118,8 @@ namespace NewLife.Log
 
             if (writer == null)
             {
-                logfile = Path.Combine(path, DateTime.Now.ToString("yyyy_MM_dd") + ".log");
+                logfile = Path.Combine(path, FileFormat.F(DateTime.Now));
+                var ext = Path.GetExtension(logfile);
                 var i = 0;
                 while (i < 10)
                 {
@@ -122,10 +132,10 @@ namespace NewLife.Log
                     }
                     catch
                     {
-                        if (logfile.EndsWith("_" + i + ".log"))
-                            logfile = logfile.Replace("_" + i + ".log", "_" + (++i) + ".log");
+                        if (logfile.EndsWith("_" + i + ext))
+                            logfile = logfile.Replace("_" + i + ext, "_" + (++i) + ext);
                         else
-                            logfile = logfile.Replace(@".log", @"_0.log");
+                            logfile = logfile.Replace(ext, "_0" + ext);
                     }
                 }
             }

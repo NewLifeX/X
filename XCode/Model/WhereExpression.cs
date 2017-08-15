@@ -1,167 +1,128 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace XCode
 {
+    /// <summary>操作符</summary>
+    public enum Operator
+    {
+        /// <summary>与，交集</summary>
+        And,
+
+        /// <summary>或，并集</summary>
+        Or,
+
+        /// <summary>空格</summary>
+        Space
+    };
+
     /// <summary>条件表达式</summary>
     public class WhereExpression : Expression
     {
         #region 属性
-        /// <summary>表达式集合</summary>
-        List<ExpItem> Exps { get; set; } = new List<ExpItem>();
+        /// <summary>左节点</summary>
+        public Expression Left { get; set; }
+
+        /// <summary>右节点</summary>
+        public Expression Right { get; set; }
+
+        /// <summary>是否And</summary>
+        public Operator Operator { get; set; }
 
         /// <summary>是否为空</summary>
-        public Boolean Empty { get { return Exps.Count == 0; } }
-
-        class ExpItem
-        {
-            public Boolean IsAnd;
-            public Expression Exp;
-
-            public ExpItem(Boolean isAnd, Expression exp)
-            {
-                IsAnd = isAnd;
-                Exp = exp;
-            }
-
-            public override String ToString()
-            {
-                return (IsAnd ? "And " : "Or ") + Exp;
-            }
-        }
+        public Boolean Empty { get { return Left == null && Right == null; } }
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
         public WhereExpression() { }
 
-        /// <summary>把普通表达式包装为条件表达式表达式</summary>
-        /// <param name="exp"></param>
-        public WhereExpression(Expression exp) { And(exp); }
+        /// <summary>实例化</summary>
+        /// <param name="left"></param>
+        /// <param name="op"></param>
+        /// <param name="right"></param>
+        public WhereExpression(Expression left, Operator op, Expression right)
+        {
+            Left = Flatten(left);
+            Operator = op;
+            Right = Flatten(right);
+        }
         #endregion
 
         #region 方法
-        /// <summary>And操作</summary>
-        /// <param name="exp"></param>
-        /// <returns></returns>
-        public WhereExpression And(Expression exp)
-        {
-            if (exp == null) return this;
-
-            // 如果前面有Or，则整体推入下一层
-            if (Exps.Any(e => !e.IsAnd))
-            {
-                var where = new WhereExpression();
-                where.Exps.AddRange(Exps);
-
-                Exps.Clear();
-                Exps.Add(new ExpItem(true, where));
-            }
-
-            Exps.Add(new ExpItem(true, exp));
-
-            return this;
-        }
-
-        /// <summary>Or操作</summary>
-        /// <param name="exp"></param>
-        /// <returns></returns>
-        public WhereExpression Or(Expression exp)
-        {
-            if (exp != null) Exps.Add(new ExpItem(false, exp));
-
-            return this;
-        }
-
-        /// <summary>当前表达式作为子表达式</summary>
-        /// <returns></returns>
-        public WhereExpression AsChild() { return new WhereExpression(this); }
-
         /// <summary>输出条件表达式的字符串表示，遍历表达式集合并拼接起来</summary>
-        /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
+        /// <param name="builder"></param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override String GetString(Boolean needBracket, IDictionary<String, Object> ps)
+        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
-            var exps = Exps;
-            if (exps.Count == 0) return null;
+            if (Empty) return;
 
-            // 重整表达式
-            var list = new List<ExpItem>();
-            var sub = new List<ExpItem>();
+            // 递归构建，下级运算符优先级较低时加括号
 
-            var hasOr = false;
-            // 优先计算And，所有And作为一个整体表达式进入内层，处理完以后当前层要么全是And，要么全是Or
-            for (Int32 i = 0; i < exps.Count; i++)
-            {
-                sub.Add(exps[i]);
-                // 如果下一个是Or，或者已经是最后一个，则合并sub到list
-                if (i < exps.Count - 1 && !exps[i + 1].IsAnd || i == exps.Count - 1)
-                {
-                    // sub创建新exp加入list
-                    // 一个就不用创建了
-                    if (sub.Count == 1)
-                    {
-                        list.Add(sub[0]);
-                        if (list.Count > 0 && !sub[0].IsAnd) hasOr = true;
-                    }
-                    else if (i == exps.Count - 1 && list.Count == 0)
-                        list.AddRange(sub);
-                    else
-                    {
-                        // 这一片And凑成一个子表达式
-                        var where = new WhereExpression();
-                        where.Exps.AddRange(sub);
-                        list.Add(new ExpItem(false, where));
-                        hasOr = true;
-                    }
+            var len = builder.Length;
 
-                    sub.Clear();
-                }
-            }
-            // 第一个表达式的And/Or必须正确代表本层所有表达式
-            list[0].IsAnd = !hasOr;
+            // 左侧表达式
+            GetString(builder, ps, Left);
 
-            // 开始计算
+            // 右侧表达式
             var sb = new StringBuilder();
-            for (Int32 i = 0; i < list.Count; i++)
+            GetString(sb, ps, Right);
+
+            // 中间运算符
+            if (builder.Length > len && sb.Length > 0)
             {
-                var item = list[i];
-                var exp = item.Exp;
-                //exp.Strict = Strict;
-
-                // 里面是Or的时候，外面前后任意一个And，需要括号
-                var str = exp.GetString(item.IsAnd || i < list.Count - 1 && list[i + 1].IsAnd, ps);
-                // 跳过没有返回的表达式
-                if (str.IsNullOrWhiteSpace()) continue;
-
-                if (sb.Length > 0)
+                switch (Operator)
                 {
-                    sb.AppendFormat(" {0} ", item.IsAnd ? "And" : "Or");
-                    // 不能判断第一个，控制符可能不正确
-                    if (!item.IsAnd) hasOr = true;
+                    case Operator.And: builder.Append(" And "); break;
+                    case Operator.Or: builder.Append(" Or "); break;
+                    case Operator.Space: builder.Append(" "); break;
+                    default: break;
                 }
-                sb.Append(str);
             }
 
-            if (sb.Length == 0) return null;
-            if (needBracket && hasOr) return "({0})".F(sb.ToString());
-            return sb.ToString();
+            builder.Append(sb);
         }
 
-        ///// <summary>有条件And操作</summary>
-        ///// <param name="condition"></param>
-        ///// <param name="exp"></param>
-        ///// <returns></returns>
-        //public WhereExpression AndIf(Boolean condition, Expression exp) { return condition ? And(exp) : this; }
+        private void GetString(StringBuilder builder, IDictionary<String, Object> ps, Expression exp)
+        {
+            exp = Flatten(exp);
+            if (exp == null) return;
 
-        ///// <summary>有条件Or操作</summary>
-        ///// <param name="condition"></param>
-        ///// <param name="exp"></param>
-        ///// <returns></returns>
-        //public WhereExpression OrIf(Boolean condition, Expression exp) { return condition ? Or(exp) : this; }
+            // 递归构建，下级运算符优先级较低时加括号
+            var bracket = false;
+            if (exp is WhereExpression where)
+            {
+                if (where.Empty) return;
+
+                if (where.Operator > Operator) bracket = true;
+            }
+
+            if (bracket) builder.Append("(");
+            exp.GetString(builder, ps);
+            if (bracket) builder.Append(")");
+        }
+
+        /// <summary>拉平表达式，避免空子项</summary>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        private Expression Flatten(Expression exp)
+        {
+            if (exp == null) return null;
+
+            if (exp is WhereExpression where)
+            {
+                // 左右为空，返回空
+                if (where.Left == null && where.Right == null) return null;
+
+                // 其中一边为空，递归拉平另一边
+                if (where.Left == null) return Flatten(where.Right);
+                if (where.Right == null) return Flatten(where.Left);
+            }
+
+            return exp;
+        }
         #endregion
 
         #region 分组
@@ -170,7 +131,8 @@ namespace XCode
         /// <returns>返回条件语句加上分组语句</returns>
         public String GroupBy(params String[] names)
         {
-            var where = GetString(false, null);
+            var where = GetString(null);
+
             var sb = new StringBuilder();
             foreach (var item in names)
             {

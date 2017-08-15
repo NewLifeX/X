@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using NewLife;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
@@ -26,6 +24,9 @@ namespace XMessage
         static Task<Type[]> _packets;
         //static Task<Type[]> _factorys;
 
+        /// <summary>业务日志输出</summary>
+        ILog BizLog;
+
         #region 窗体
         static FrmMain()
         {
@@ -42,6 +43,8 @@ namespace XMessage
 
         private void FrmMain_Load(Object sender, EventArgs e)
         {
+            var log = TextFileLog.Create(null, "Message_{0:yyyy_MM_dd}.log");
+            BizLog = txtReceive.Combine(log);
             txtReceive.UseWinFormControl();
 
             txtReceive.SetDefaultStyle(12);
@@ -82,7 +85,7 @@ namespace XMessage
                 .Register("退出", () => Application.Exit())
                 .Register("发送", () => this.Invoke(() => btnSend_Click(null, null)));
 
-                XTrace.WriteLine("语音识别前缀：{0} 可用命令：{1}", sp.Name, sp.GetAllKeys().Join());
+                BizLog.Info("语音识别前缀：{0} 可用命令：{1}", sp.Name, sp.GetAllKeys().Join());
             });
         }
         #endregion
@@ -140,13 +143,14 @@ namespace XMessage
             _Packet = fact.Create();
 
             var cfg = MessageConfig.Current;
+            var log = BizLog;
 
             switch (cbMode.Text)
             {
                 case "服务端":
                     var svr = new NetServer();
-                    svr.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
-                    svr.SocketLog = cfg.ShowSocketLog ? XTrace.Log : Logger.Null;
+                    svr.Log = cfg.ShowLog ? log : Logger.Null;
+                    svr.SocketLog = cfg.ShowSocketLog ? log : Logger.Null;
                     svr.Port = uri.Port;
                     if (uri.IsTcp || uri.IsUdp) svr.ProtocolType = uri.Type;
                     svr.MessageReceived += OnReceived;
@@ -168,7 +172,7 @@ namespace XMessage
                     break;
                 case "客户端":
                     var client = uri.CreateRemote();
-                    client.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
+                    client.Log = cfg.ShowLog ? log : Logger.Null;
                     client.MessageReceived += OnReceived;
 
                     client.LogSend = cfg.ShowSend;
@@ -202,8 +206,6 @@ namespace XMessage
             cfg.Save();
 
             _timer = new TimerX(ShowStat, null, 5000, 5000);
-
-            BizLog = TextFileLog.Create("MessageLog");
         }
 
         void Disconnect()
@@ -246,7 +248,7 @@ namespace XMessage
             if (!msg.IsNullOrEmpty() && msg != _lastStat)
             {
                 _lastStat = msg;
-                XTrace.WriteLine(msg);
+                BizLog.Info(msg);
             }
         }
 
@@ -261,9 +263,6 @@ namespace XMessage
                 Disconnect();
         }
 
-        /// <summary>业务日志输出</summary>
-        ILog BizLog;
-
         void OnReceived(Object sender, MessageEventArgs e)
         {
             var session = sender as ISocketSession;
@@ -277,9 +276,7 @@ namespace XMessage
             if (MessageConfig.Current.ShowReceiveString)
             {
                 var line = e.Message.Payload.ToStr();
-                XTrace.WriteLine(line);
-
-                if (BizLog != null) BizLog.Info(line);
+                BizLog.Info(line);
             }
         }
 
@@ -365,7 +362,7 @@ namespace XMessage
                     for (Int32 i = 0; i < count; i++)
                     {
                         var cs = await _Server.SendAllAsync(buf);
-                        XTrace.WriteLine("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
+                        BizLog.Info("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
                         if (sleep > 0) await Task.Delay(sleep);
                     }
                 });

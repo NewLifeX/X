@@ -5,7 +5,7 @@
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 }
-@if (item.PrimaryKey)
+@if (item.IsIdentity)
 {
     <td class="text-center hidden-md hidden-sm hidden-xs">@entity[item.Name]</td>
 }

@@ -11,34 +11,24 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
-        public override DatabaseType DbType
-        {
-            get { return DatabaseType.PostgreSQL; }
-        }
+        public override DatabaseType Type => DatabaseType.PostgreSQL;
 
-        private static DbProviderFactory _dbProviderFactory;
-        /// <summary>提供者工厂</summary>
-        static DbProviderFactory dbProviderFactory
-        {
-            get
-            {
-                //if (_dbProviderFactory == null) _dbProviderFactory = DbProviderFactories.GetFactory("PostgreSQL.Data.PostgreSQLClient");
-                if (_dbProviderFactory == null)
-                {
-                    lock (typeof(PostgreSQL))
-                    {
-                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("Npgsql.dll", "Npgsql.NpgsqlFactory");
-                    }
-                }
-
-                return _dbProviderFactory;
-            }
-        }
-
+        private static DbProviderFactory _Factory;
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
-            get { return dbProviderFactory; }
+            get
+            {
+                if (_Factory == null)
+                {
+                    lock (typeof(PostgreSQL))
+                    {
+                        if (_Factory == null) _Factory = GetProviderFactory("Npgsql.dll", "Npgsql.NpgsqlFactory");
+                    }
+                }
+
+                return _Factory;
+            }
         }
         #endregion
 
@@ -101,19 +91,19 @@ namespace XCode.DataAccessLayer
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) builder.OrderBy += String.Format(" limit {0}", maximumRows);
+                if (maximumRows > 0) builder.Limit += String.Format(" limit {0}", maximumRows);
                 return builder;
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
-            builder.OrderBy += String.Format(" limit {0} offset {1}", startRowIndex, maximumRows);
+            builder.Limit += String.Format(" limit {0} offset {1}", startRowIndex, maximumRows);
             return builder;
         }
         #endregion
 
         #region 数据库特性
-        /// <summary>当前时间函数</summary>
-        public override String DateTimeNow { get { return "now()"; } }
+        ///// <summary>当前时间函数</summary>
+        //public override String DateTimeNow { get { return "now()"; } }
 
         //protected override string ReservedWordsStr
         //{
@@ -205,32 +195,32 @@ namespace XCode.DataAccessLayer
     /// <summary>PostgreSQL元数据</summary>
     class PostgreSQLMetaData : RemoteDbMetaData
     {
-        protected override void FixTable(IDataTable table, DataRow dr)
+        public PostgreSQLMetaData()
+        {
+            Types = _DataTypes;
+        }
+
+        protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
         {
             // 注释
-            String comment = null;
-            if (TryGetDataRowValue(dr, "TABLE_COMMENT", out comment)) table.Description = comment;
+            if (TryGetDataRowValue(dr, "TABLE_COMMENT", out String comment)) table.Description = comment;
 
-            base.FixTable(table, dr);
+            base.FixTable(table, dr, data);
         }
 
         protected override void FixField(IDataColumn field, DataRow dr)
         {
             // 修正原始类型
-            String rawType = null;
-            if (TryGetDataRowValue(dr, "COLUMN_TYPE", out rawType)) field.RawType = rawType;
+            if (TryGetDataRowValue(dr, "COLUMN_TYPE", out String rawType)) field.RawType = rawType;
 
             // 修正自增字段
-            String extra = null;
-            if (TryGetDataRowValue(dr, "EXTRA", out extra) && extra == "auto_increment") field.Identity = true;
+            if (TryGetDataRowValue(dr, "EXTRA", out String extra) && extra == "auto_increment") field.Identity = true;
 
             // 修正主键
-            String key = null;
-            if (TryGetDataRowValue(dr, "COLUMN_KEY", out key)) field.PrimaryKey = key == "PRI";
+            if (TryGetDataRowValue(dr, "COLUMN_KEY", out String key)) field.PrimaryKey = key == "PRI";
 
             // 注释
-            String comment = null;
-            if (TryGetDataRowValue(dr, "COLUMN_COMMENT", out comment)) field.Description = comment;
+            if (TryGetDataRowValue(dr, "COLUMN_COMMENT", out String comment)) field.Description = comment;
 
             // 布尔类型
             if (field.RawType == "enum")
@@ -239,14 +229,14 @@ namespace XCode.DataAccessLayer
                 if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
                 {
                     field.DataType = typeof(Boolean);
-                    // 处理默认值
-                    if (!String.IsNullOrEmpty(field.Default))
-                    {
-                        if (field.Default == "Y")
-                            field.Default = "true";
-                        else if (field.Default == "N")
-                            field.Default = "false";
-                    }
+                    //// 处理默认值
+                    //if (!String.IsNullOrEmpty(field.Default))
+                    //{
+                    //    if (field.Default == "Y")
+                    //        field.Default = "true";
+                    //    else if (field.Default == "N")
+                    //        field.Default = "false";
+                    //}
                     return;
                 }
             }
@@ -254,81 +244,61 @@ namespace XCode.DataAccessLayer
             base.FixField(field, dr);
         }
 
-        protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        {
-            DataRow[] drs = base.FindDataType(field, typeName, isLong);
-            if (drs != null && drs.Length > 1)
-            {
-                // 无符号/有符号
-                if (!String.IsNullOrEmpty(field.RawType))
-                {
-                    Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
-
-                    foreach (DataRow dr in drs)
-                    {
-                        String format = GetDataRowValue<String>(dr, "CreateFormat");
-
-                        if (IsUnsigned && format.ToLower().Contains("unsigned"))
-                            return new DataRow[] { dr };
-                        else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
-                            return new DataRow[] { dr };
-                    }
-                }
-
-                // 字符串
-                if (typeName == typeof(String).FullName)
-                {
-                    foreach (DataRow dr in drs)
-                    {
-                        String name = GetDataRowValue<String>(dr, "TypeName");
-                        if ((name == "NVARCHAR" && field.IsUnicode || name == "VARCHAR" && !field.IsUnicode) && field.Length <= Database.LongTextLength)
-                            return new DataRow[] { dr };
-                        else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
-                            return new DataRow[] { dr };
-                    }
-                }
-
-                // 时间日期
-                if (typeName == typeof(DateTime).FullName)
-                {
-                    // DateTime的范围是0001到9999
-                    // Timestamp的范围是1970到2038
-                    String d = field.Default;
-                    CheckAndGetDefault(field, ref d);
-                    foreach (DataRow dr in drs)
-                    {
-                        String name = GetDataRowValue<String>(dr, "TypeName");
-                        if (name == "DATETIME" && String.IsNullOrEmpty(field.Default))
-                            return new DataRow[] { dr };
-                        else if (name == "TIMESTAMP" && (d == "now()" || field.Default == "CURRENT_TIMESTAMP"))
-                            return new DataRow[] { dr };
-                    }
-                }
-            }
-            return drs;
-        }
-
-        //protected override void SetFieldType(IDataColumn field, string typeName)
+        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
         //{
-        //    if (typeName == "enum")
+        //    DataRow[] drs = base.FindDataType(field, typeName, isLong);
+        //    if (drs != null && drs.Length > 1)
         //    {
-        //        // PostgreSQL中没有布尔型，这里处理YN枚举作为布尔型
-        //        if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
+        //        // 无符号/有符号
+        //        if (!String.IsNullOrEmpty(field.RawType))
         //        {
-        //            field.DataType = typeof(Boolean);
-        //            // 处理默认值
-        //            if (!String.IsNullOrEmpty(field.Default))
+        //            Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
+
+        //            foreach (DataRow dr in drs)
         //            {
-        //                if (field.Default == "Y")
-        //                    field.Default = "true";
-        //                else if (field.Default == "N")
-        //                    field.Default = "false";
+        //                String format = GetDataRowValue<String>(dr, "CreateFormat");
+
+        //                if (IsUnsigned && format.ToLower().Contains("unsigned"))
+        //                    return new DataRow[] { dr };
+        //                else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
+        //                    return new DataRow[] { dr };
         //            }
-        //            return;
+        //        }
+
+        //        // 字符串
+        //        if (typeName == typeof(String).FullName)
+        //        {
+        //            foreach (var dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "NVARCHAR" && field.Length <= Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //                else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //            }
+        //            foreach (var dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "VARCHAR" && field.Length <= Database.LongTextLength)
+        //                    return new DataRow[] { dr };
+        //            }
+        //        }
+
+        //        // 时间日期
+        //        if (typeName == typeof(DateTime).FullName)
+        //        {
+        //            // DateTime的范围是0001到9999
+        //            // Timestamp的范围是1970到2038
+        //            //String d = field.Default;
+        //            //CheckAndGetDefault(field, ref d);
+        //            foreach (DataRow dr in drs)
+        //            {
+        //                var name = GetDataRowValue<String>(dr, "TypeName");
+        //                if (name == "DATETIME") return new DataRow[] { dr };
+        //            }
         //        }
         //    }
-
-        //    base.SetFieldType(field, typeName);
+        //    return drs;
         //}
 
         protected override String GetFieldType(IDataColumn field)
@@ -356,41 +326,25 @@ namespace XCode.DataAccessLayer
             return str;
         }
 
-        protected override String GetFieldDefault(IDataColumn field, Boolean onlyDefine)
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
         {
-            if (String.IsNullOrEmpty(field.Default)) return null;
-
-            if (field.DataType == typeof(Boolean))
-            {
-                if (field.Default == "true")
-                    return " Default 'Y'";
-                else if (field.Default == "false")
-                    return " Default 'N'";
-            }
-            //else if (field.DataType == typeof(DateTime))
-            //{
-            //    String d = CheckAndGetDefaultDateTimeNow(field.Table.DbType, field.Default);
-            //    if (d == "now()") d = "CURRENT_TIMESTAMP";
-            //    return String.Format(" Default {0}", d);
-            //}
-
-            return base.GetFieldDefault(field, onlyDefine);
-        }
-
-        //protected override void SetFieldType(IDataColumn field, string typeName)
-        //{
-        //    DataTable dt = DataTypes;
-        //    if (dt == null) return;
-
-        //    DataRow[] drs = FindDataType(field, typeName, null);
-        //    if (drs == null || drs.Length < 1) return;
-
-        //    // 修正原始类型
-        //    String rawType = null;
-        //    if (TryGetDataRowValue<String>(drs[0], "COLUMN_TYPE", out rawType)) field.RawType = rawType;
-
-        //    base.SetFieldType(field, typeName);
-        //}
+            { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
+            //{ typeof(TimeSpan), new String[] { "TIME" } },
+            //{ typeof(SByte), new String[] { "TINYINT" } },
+            { typeof(Byte), new String[] { "TINYINT UNSIGNED" } },
+            { typeof(Int16), new String[] { "SMALLINT" } },
+            //{ typeof(UInt16), new String[] { "SMALLINT UNSIGNED" } },
+            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT" } },
+            //{ typeof(UInt32), new String[] { "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
+            { typeof(Int64), new String[] { "BIGINT" } },
+            //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
+            { typeof(Single), new String[] { "FLOAT" } },
+            { typeof(Double), new String[] { "DOUBLE" } },
+            { typeof(Decimal), new String[] { "DECIMAL" } },
+            { typeof(DateTime), new String[] { "DATE", "DATETIME", "TIMESTAMP" } },
+            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } }
+        };
 
         #region 架构定义
         //public override object SetSchema(DDLSchema schema, params object[] values)
@@ -428,22 +382,20 @@ namespace XCode.DataAccessLayer
 
         public override String CreateTableSQL(IDataTable table)
         {
-            var Fields = new List<IDataColumn>(table.Columns);
-            //Fields.Sort(delegate(IDataColumn item1, IDataColumn item2) { return item1.ID.CompareTo(item2.ID); });
-            Fields.OrderBy(dc => dc.ID);
+            var fs = new List<IDataColumn>(table.Columns);
 
-            var sb = new StringBuilder(32 + Fields.Count * 20);
+            var sb = new StringBuilder(32 + fs.Count * 20);
             String key = null;
 
             sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.TableName));
-            for (var i = 0; i < Fields.Count; i++)
+            for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
-                sb.Append(FieldClause(Fields[i], true));
-                if (i < Fields.Count - 1) sb.Append(",");
+                sb.Append(FieldClause(fs[i], true));
+                if (i < fs.Count - 1) sb.Append(",");
 
-                if (Fields[i].PrimaryKey) key = Fields[i].ColumnName;
+                if (fs[i].PrimaryKey) key = fs[i].ColumnName;
             }
             if (!String.IsNullOrEmpty(key))
             {

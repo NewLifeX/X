@@ -45,9 +45,6 @@ namespace XCode.Configuration
             }
             internal set { _dis = value; }
         }
-
-        /// <summary>顺序标识</summary>
-        internal Int32 _ID;
         #endregion
 
         #region 扩展属性
@@ -102,8 +99,8 @@ namespace XCode.Configuration
         /// </remarks>
         public String ColumnName { get { return _ColumnName; } set { if (value != null) _ColumnName = value.Trim(COLUMNNAME_FLAG); } }
 
-        /// <summary>默认值</summary>
-        public String DefaultValue { get; set; }
+        ///// <summary>默认值</summary>
+        //public String DefaultValue { get; set; }
 
         /// <summary>是否只读</summary>
         /// <remarks>set { _ReadOnly = value; } 放出只读属性的设置，比如在编辑页面的时候，有的字段不能修改 如修改用户时  不能修改用户名</remarks>
@@ -171,7 +168,6 @@ namespace XCode.Configuration
 
                 if (dc != null)
                 {
-                    _ID = dc.Order;
                     Master = dc.Master;
                 }
 
@@ -215,31 +211,24 @@ namespace XCode.Configuration
             IDataColumn dc = field;
             if (dc == null) return;
 
-            dc.ID = _ID;
             dc.ColumnName = ColumnName;
             dc.Name = Name;
             dc.DataType = Type;
             dc.Description = Description;
-            dc.Default = DefaultValue;
 
             var col = _Column;
             if (col != null)
             {
                 dc.RawType = col.RawType;
-                dc.Precision = col.Precision;
-                dc.Scale = col.Scale;
-                dc.IsUnicode = col.IsUnicode;
-            }
-            else
-            {
-                dc.IsUnicode = true;
+                //dc.Precision = col.Precision;
+                //dc.Scale = col.Scale;
             }
 
-            // 特别处理，兼容旧版本
-            if (dc.DataType == typeof(Decimal))
-            {
-                if (dc.Precision == 0) dc.Precision = 18;
-            }
+            //// 特别处理，兼容旧版本
+            //if (dc.DataType == typeof(Decimal))
+            //{
+            //    if (dc.Precision == 0) dc.Precision = 18;
+            //}
 
             dc.Length = Length;
             dc.Identity = IsIdentity;
@@ -431,9 +420,9 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression Between(DateTime start, DateTime end)
         {
-            if (start <= DateTime.MinValue)
+            if (start <= DateTime.MinValue || start >= DateTime.MaxValue)
             {
-                if (end <= DateTime.MinValue) return null;
+                if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return null;
 
                 // 如果只有日期，则加一天，表示包含这一天
                 if (end == end.Date) end = end.AddDays(1);
@@ -443,7 +432,7 @@ namespace XCode.Configuration
             else
             {
                 var exp = this >= start;
-                if (end <= DateTime.MinValue) return exp;
+                if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
 
                 // 如果只有日期，则加一天，表示包含这一天
                 if (end == end.Date) end = end.AddDays(1);
@@ -503,8 +492,6 @@ namespace XCode.Configuration
         internal Field(TableItem table, String name, Type type, String description, Int32 length)
         {
             Table = table;
-
-            _ID = table.Fields.Length + 1;
 
             Name = name;
             ColumnName = name;

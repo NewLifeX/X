@@ -14,6 +14,9 @@ namespace NewLife.Serialization
 
         /// <summary>处理器列表</summary>
         List<IXmlHandler> Handlers { get; }
+
+        /// <summary>使用注释</summary>
+        Boolean UseComment { get; set; }
         #endregion
 
         #region 方法

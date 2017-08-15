@@ -1,7 +1,6 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -16,6 +15,9 @@ using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Model;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 /*
  * 检查表结构流程：
@@ -113,7 +115,31 @@ namespace XCode
 
         private String _FormatedTableName;
         /// <summary>已格式化的表名，带有中括号等</summary>
-        public virtual String FormatedTableName { get { return _FormatedTableName ?? (_FormatedTableName = Dal.Db.FormatName(TableName)); } }
+        public virtual String FormatedTableName
+        {
+            get
+            {
+                if (_FormatedTableName.IsNullOrEmpty())
+                {
+                    var str = Dal.Db.FormatName(TableName);
+                    var conn = ConnName;
+                    if (conn != null && DAL.ConnStrs.ContainsKey(conn))
+                    {
+                        // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
+                        var dal = DAL.Create(conn);
+                        if (dal != null && !str.Contains("."))
+                        {
+                            // 角色名作为点前缀来约束表名，支持所有数据库
+                            var owner = dal.Db.Owner;
+                            if (!owner.IsNullOrEmpty()) str = Dal.Db.FormatName(owner) + "." + str;
+                        }
+                    }
+
+                    _FormatedTableName = str;
+                }
+                return _FormatedTableName;
+            }
+        }
 
         private EntitySession<TEntity> _Default;
         /// <summary>该实体类的默认会话。</summary>
@@ -131,6 +157,9 @@ namespace XCode
                 return _Default;
             }
         }
+
+        /// <summary>用户数据</summary>
+        public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
         #endregion
 
         #region 数据初始化
@@ -152,7 +181,7 @@ namespace XCode
 
             if (!Monitor.TryEnter(_wait_lock, ms))
             {
-                //if (DAL.Debug) DAL.WriteLog("开始等待初始化{0}数据{1}ms，调用栈：{2}", name, ms, XTrace.GetCaller());
+                //if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1}ms，调用栈：{2}", ThisType.Name, ms, XTrace.GetCaller(1, 8));
                 if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1:n0}ms失败", ThisType.Name, ms);
                 return false;
             }
@@ -175,7 +204,8 @@ namespace XCode
                 }
                 catch { }
 
-                var init = Setting.Current.InitData;
+                //var init = Setting.Current.InitData;
+                var init = this == Default;
                 if (init)
                 {
                     BeginTrans();
@@ -211,7 +241,7 @@ namespace XCode
             //if (Dal.CheckAndAdd(TableName)) return;
 
 #if DEBUG
-            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.DbType, Setting.Current.Negative.CheckOnly ? "异步" : "同步");
+            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.Type, Setting.Current.Migration == Migration.ReadOnly ? "异步" : "同步");
 #endif
 
             var sw = new Stopwatch();
@@ -226,25 +256,15 @@ namespace XCode
 
                 if (table != null && table.TableName != TableName)
                 {
+                    // 表名去掉前缀
+                    var name = TableName;
+                    if (name.Contains(".")) name = name.Substring(".");
+
+                    table.TableName = name;
                     FixIndexName(table);
-                    table.TableName = TableName;
                 }
 
-                //var set = new NegativeSetting
-                //{
-                //    CheckOnly = Setting.Current.Negative.CheckOnly,
-                //    NoDelete = Setting.Current.Negative.NoDelete
-                //};
-
-                //// 对于分库操作，强制检查架构，但不删除数据
-                //if (Default != this)
-                //{
-                //    set.CheckOnly = false;
-                //    set.NoDelete = true;
-                //}
-
-                //Dal.SetTables(set, table);
-                Dal.SetTables(null, table);
+                Dal.SetTables(table);
             }
             finally
             {
@@ -289,13 +309,15 @@ namespace XCode
 
                 // 是否默认连接和默认表名，非默认则强制检查，并且不允许异步检查（异步检查会导致ConnName和TableName不对）
                 var def = Default;
-
+                var cname = ConnName;
+                var tname = TableName;
                 if (def == this)
                 {
-                    if (!Setting.Current.Negative.Enable ||
-                        DAL.NegativeExclude.Contains(ConnName) ||
-                        DAL.NegativeExclude.Contains(TableName) ||
-                        IsGenerated)
+                    //if (!Setting.Current.Negative.Enable ||
+                    //    DAL.NegativeExclude.Contains(cname) ||
+                    //    DAL.NegativeExclude.Contains(tname) ||
+                    //    IsGenerated)
+                    if (Dal.Db.Migration == Migration.Off || IsGenerated)
                     {
                         _hasCheckModel = true;
                         return;
@@ -304,7 +326,7 @@ namespace XCode
 #if DEBUG
                 else
                 {
-                    DAL.WriteLog("[{0}@{1}]非默认表名连接名，强制要求检查架构！", TableName, ConnName);
+                    DAL.WriteLog("[{0}@{1}]非默认表名连接名，强制要求检查架构！", tname, cname);
                 }
 #endif
 
@@ -318,12 +340,12 @@ namespace XCode
                 // 第一次使用才检查的，此时检查
                 var ck = mode == ModelCheckModes.CheckTableWhenFirstUse;
                 // 或者前面初始化的时候没有涉及的，也在这个时候检查
-                var dal = DAL.Create(ConnName);
-                if (!dal.HasCheckTables.Contains(TableName))
+                var dal = DAL.Create(cname);
+                if (!dal.HasCheckTables.Contains(tname))
                 {
                     if (!ck)
                     {
-                        dal.HasCheckTables.Add(TableName);
+                        dal.HasCheckTables.Add(tname);
 
 #if DEBUG
                         if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
@@ -339,7 +361,7 @@ namespace XCode
                 {
                     // 打开了开关，并且设置为true时，使用同步方式检查
                     // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-                    if (!Setting.Current.Negative.CheckOnly || def != this)
+                    if (dal.Db.Migration > Migration.ReadOnly || def != this)
                         CheckTable();
                     else
                         Task.Factory.StartNew(CheckTable).LogException();
@@ -402,7 +424,7 @@ namespace XCode
         /// <summary>上一次记录数，用于衡量缓存策略，不受缓存清空</summary>
         private Int64? _LastCount;
         /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
-        private Int64 _Count = -1L;
+        private Int64 _Count = -2L;
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
         /// <remarks>
         /// 1，检查静态字段，如果有数据且小于1000，直接返回，否则=>3
@@ -420,7 +442,7 @@ namespace XCode
                 var key = CacheKey;
 
                 // 当前缓存的值
-                Int64 n = _Count;
+                var n = _Count;
 
                 // 如果有缓存，则考虑返回吧
                 if (n >= 0)
@@ -428,15 +450,19 @@ namespace XCode
                     // 等于0的时候也应该缓存，否则会一直查询这个表
                     if (n < 1000L) return n;
 
+#if !__CORE__
                     // 大于1000，使用HttpCache
-                    Int64? k = (Int64?)HttpRuntime.Cache[key];
+                    var k = (Int64?)HttpRuntime.Cache[key];
                     if (k != null && k.HasValue) return k.Value;
+#endif
                 }
                 // 来到这里，有可能是第一次访问，静态字段没有缓存，也有可能是大于1000的缓存过期
 
+                if (n < -1 && DAL.Debug) DAL.WriteLog("{0}.Count 快速计算表记录数（非精确）[{1}/{2}]", ThisType.Name, TableName, ConnName);
+
                 CheckModel();
 
-                Int64 m = 0L;
+                var m = 0L;
                 // 小于1000的精确查询，大于1000的快速查询
                 if (n >= 0 && n <= 1000L)
                 {
@@ -474,17 +500,32 @@ namespace XCode
 
                     // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
                     if (max < 500000)
-                        m = Dal.Session.QueryCountFast(TableName);
+                    {
+                        if (n > 0)
+                            m = n;
+                        else
+                            m = Dal.Session.QueryCountFast(TableName);
+                        // 查真实记录数，修正FastCount不够准确的情况
+                        if (Dal.DbType != DatabaseType.SQLite) TaskEx.Run(() =>
+                        {
+                            var sb = new SelectBuilder();
+                            sb.Table = FormatedTableName;
+
+                            _LastCount = _Count = Dal.SelectCount(sb);
+
+                            AddCache(key, _Count);
+                        }).LogException();
+                    }
                     else
                     {
                         m = max;
 
                         // 异步查询弥补不足，千万数据以内
-                        if (max < 10000000) Task.Factory.StartNew(() =>
+                        if (max < 10000000) TaskEx.Run(() =>
                         {
                             _LastCount = _Count = Dal.Session.QueryCountFast(TableName);
 
-                            if (_Count >= 1000) HttpRuntime.Cache.Insert(key, _Count, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
+                            AddCache(key, _Count);
                         }).LogException();
                     }
                 }
@@ -492,7 +533,7 @@ namespace XCode
                 _Count = m;
                 _LastCount = m;
 
-                if (m >= 1000) HttpRuntime.Cache.Insert(key, m, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
+                AddCache(key, m);
 
                 // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
                 WaitForInitData();
@@ -505,9 +546,19 @@ namespace XCode
                 {
                     _LastCount = null;
                     _Count = 0;
+#if !__CORE__
                     HttpRuntime.Cache.Remove(CacheKey);
+#endif
                 }
             }
+        }
+
+        private void AddCache(String key, Int64 count)
+        {
+            if (count < 1000) return;
+#if !__CORE__
+            HttpRuntime.Cache.Insert(key, count, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
+#endif
         }
 
         /// <summary>清除缓存</summary>
@@ -524,8 +575,10 @@ namespace XCode
             // 只有小于等于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
             if (n < 1000L)
                 _Count = -1L;
+#if !__CORE__
             else
                 HttpRuntime.Cache.Remove(CacheKey);
+#endif
         }
 
         String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }
@@ -718,9 +771,22 @@ namespace XCode
         #endregion
 
         #region 参数化
-        /// <summary>创建参数</summary>
-        /// <returns></returns>
-        public virtual IDataParameter CreateParameter() { return Dal.Db.Factory.CreateParameter(); }
+        ///// <summary>创建参数</summary>
+        ///// <param name="fi"></param>
+        ///// <param name="value"></param>
+        ///// <returns></returns>
+        //public virtual IDataParameter CreateParameter(FieldItem fi, Object value)
+        //{
+        //    var name = fi.ColumnName;
+        //    if (name.IsNullOrEmpty()) name = fi.Name;
+
+        //    var dp = Dal.Db.CreateParameter(name, value, fi.Type);
+
+        //    var dbp = dp as DbParameter;
+        //    if (dbp != null) dbp.IsNullable = fi.IsNullable;
+
+        //    return dp;
+        //}
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>

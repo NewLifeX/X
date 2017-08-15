@@ -22,8 +22,7 @@ namespace <#=Config.NameSpace#>
 foreach(IDataIndex di in Table.Indexes){if(di.Columns==null||di.Columns.Length<1)continue;#>
     [BindIndex("<#=di.Name#>", <#=di.Unique.ToString().ToLower()#>, "<#=String.Join(",", di.Columns)#>")]<#
 }
-foreach(IDataRelation dr in Table.Relations){#>
-    [BindRelation("<#=dr.Column#>", <#=dr.Unique.ToString().ToLower()#>, "<#=dr.RelationTable#>", "<#=dr.RelationColumn#>")]<#}#>
+#>
     [BindTable("<#=Table.TableName#>", Description = "<#=tdes#>", ConnName = "<#=Table.ConnName ?? Config.EntityConnName#>", DbType = DatabaseType.<#=Table.DbType#><#if(Table.IsView){#>, IsView = true<#}#>)]<#
 if(Config.RenderGenEntity){#>
     public partial class <#=Table.Name#><TEntity> : I<#=Table.Name#><#
@@ -47,7 +46,7 @@ if(Table.Columns.Count>0)
         [DisplayName("<#=dis#>")]
         [Description("<#=des#>")]
         [DataObjectField(<#=Field.PrimaryKey.ToString().ToLower()#>, <#=Field.Identity.ToString().ToLower()#>, <#=Field.Nullable.ToString().ToLower()#>, <#=Field.Length#>)]
-        [BindColumn(<#=Field.ID#>, "<#=Field.ColumnName#>", "<#=des#>", <#=Field.Default==null?"null":"\""+Field.Default.Replace("\\", "\\\\")+"\""#>, "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#>, <#=Field.IsUnicode.ToString().ToLower()#><#if(Field.Master){#>, Master=<#=Field.Master.ToString().ToLower()#><#}#>)]
+        [BindColumn("<#=Field.ColumnName#>", "<#=des#>", "<#=Field.RawType#>", <#=Field.Precision#>, <#=Field.Scale#><#if(Field.Master){#>, Master=<#=Field.Master.ToString().ToLower()#><#}#>)]
         public virtual <#=Field.DataType==null?"":Field.DataType.Name#> <#=Field.Name#>
         {
             get { return _<#=Field.Name#>; }

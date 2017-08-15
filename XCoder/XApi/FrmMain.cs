@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using NewLife;
 using NewLife.Log;
-using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Remoting;
@@ -24,6 +21,9 @@ namespace XApi
         ApiServer _Server;
         ApiClient _Client;
 
+        /// <summary>业务日志输出</summary>
+        ILog BizLog;
+
         #region 窗体
         static FrmMain() { }
 
@@ -36,6 +36,8 @@ namespace XApi
 
         private void FrmMain_Load(Object sender, EventArgs e)
         {
+            var log = TextFileLog.Create(null, "Api_{0:yyyy_MM_dd}.log");
+            BizLog = txtReceive.Combine(log);
             txtReceive.UseWinFormControl();
 
             txtReceive.SetDefaultStyle(12);
@@ -70,7 +72,7 @@ namespace XApi
                 .Register("退出", () => Application.Exit())
                 .Register("发送", () => this.Invoke(() => btnSend_Click(null, null)));
 
-                XTrace.WriteLine("语音识别前缀：{0} 可用命令：{1}", sp.Name, sp.GetAllKeys().Join());
+                BizLog.Info("语音识别前缀：{0} 可用命令：{1}", sp.Name, sp.GetAllKeys().Join());
             });
         }
         #endregion
@@ -124,13 +126,14 @@ namespace XApi
             var uri = new NetUri(cbAddr.Text);
 
             var cfg = ApiConfig.Current;
+            var log = BizLog;
 
             switch (cbMode.Text)
             {
                 case "服务端":
                     var svr = new ApiServer(uri);
-                    svr.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
-                    svr.EncoderLog = cfg.ShowEncoderLog ? XTrace.Log : Logger.Null;
+                    svr.Log = cfg.ShowLog ? log : Logger.Null;
+                    svr.EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null;
 
                     svr.Start();
 
@@ -140,8 +143,8 @@ namespace XApi
                     break;
                 case "客户端":
                     var client = new ApiClient(uri + "");
-                    client.Log = cfg.ShowLog ? XTrace.Log : Logger.Null;
-                    client.EncoderLog = cfg.ShowEncoderLog ? XTrace.Log : Logger.Null;
+                    client.Log = cfg.ShowLog ? log : Logger.Null;
+                    client.EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null;
 
                     // 连接成功后拉取Api列表
                     client.Opened += (s, e) =>
@@ -177,8 +180,6 @@ namespace XApi
             cfg.Save();
 
             _timer = new TimerX(ShowStat, null, 5000, 5000);
-
-            BizLog = TextFileLog.Create("ApiLog");
         }
 
         async void GetApiAll()
@@ -237,7 +238,7 @@ namespace XApi
             if (!msg.IsNullOrEmpty() && msg != _lastStat)
             {
                 _lastStat = msg;
-                XTrace.WriteLine(msg);
+                BizLog.Info(msg);
             }
         }
 
@@ -251,9 +252,6 @@ namespace XApi
             else
                 Disconnect();
         }
-
-        /// <summary>业务日志输出</summary>
-        ILog BizLog;
 
         Int32 _pColor = 0;
         Int32 BytesOfReceived = 0;
@@ -328,7 +326,7 @@ namespace XApi
                     }
                     catch (ApiException ex)
                     {
-                        XTrace.WriteLine(ex.Message);
+                        BizLog.Info(ex.Message);
                     }
                 }
                 //else

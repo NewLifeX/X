@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Text;
-using NewLife.Reflection;
-using XCode.Exceptions;
 using System.Linq;
+using System.Text;
+using NewLife.Collections;
+using NewLife.Reflection;
+using XCode.Common;
+using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
 {
@@ -18,10 +19,7 @@ namespace XCode.DataAccessLayer
      *              GetFields
      *                  GetFields
      *                      FixField
-     *                          FindDataType
-     *                          FixField
-     *                              GetFormatParam
-     *                                  GetFormatParamItem
+     *                          GetDataType
      *              GetIndexes
      *                  FixIndex
      *              FixTable
@@ -65,152 +63,100 @@ namespace XCode.DataAccessLayer
 
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
-        protected virtual List<IDataTable> OnGetTables(ICollection<String> names)
+        protected virtual List<IDataTable> OnGetTables(String[] names)
         {
+            var list = new List<IDataTable>();
+
             var dt = GetSchema(_.Tables, null);
-            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
 
             // 默认列出所有表
-            var rows = OnGetTables(names, dt.Rows);
-            if (rows == null || rows.Length < 1) return null;
+            var rows = dt?.Rows.ToArray();
 
-            return GetTables(rows);
-        }
-
-        protected DataRow[] OnGetTables(ICollection<String> names, IEnumerable rows)
-        {
-            if (rows == null) return null;
-
-            var list = new List<DataRow>();
-            foreach (DataRow dr in rows)
-            {
-                if (names == null || names.Count < 1)
-                    list.Add(dr);
-                else
-                {
-                    var name = "";
-                    if (TryGetDataRowValue(dr, _.TalbeName, out name) && names.Contains(name)) list.Add(dr);
-                }
-            }
-            if (list.Count < 1) return null;
-            return list.ToArray();
+            return GetTables(rows, names);
         }
 
         /// <summary>根据数据行取得数据表</summary>
         /// <param name="rows">数据行</param>
+        /// <param name="names">指定表名</param>
+        /// <param name="data">扩展</param>
         /// <returns></returns>
-        protected List<IDataTable> GetTables(DataRow[] rows)
+        protected List<IDataTable> GetTables(DataRow[] rows, String[] names, IDictionary<String, DataTable> data = null)
         {
-            if (_columns == null)
-                try { _columns = GetSchema(_.Columns, null); }
-                catch (Exception ex) { DAL.WriteDebugLog(ex.ToString()); }
-            if (_indexes == null)
-                try { _indexes = GetSchema(_.Indexes, null); }
-                catch (Exception ex) { DAL.WriteDebugLog(ex.ToString()); }
-            if (_indexColumns == null)
-                try { _indexColumns = GetSchema(_.IndexColumns, null); }
-                catch (Exception ex) { DAL.WriteDebugLog(ex.ToString()); }
+            if (rows == null || rows.Length == 0) return new List<IDataTable>();
 
-            try
+            // 表名过滤
+            if (names != null && names.Length > 0)
             {
-                var list = new List<IDataTable>();
-                foreach (DataRow dr in rows)
-                {
-                    #region 基本属性
-                    IDataTable table = DAL.CreateTable();
-                    table.TableName = GetDataRowValue<String>(dr, _.TalbeName);
+                var hs = new HashSet<String>(names, StringComparer.OrdinalIgnoreCase);
+                rows = rows.Where(dr => TryGetDataRowValue(dr, _.TalbeName, out String name) && hs.Contains(name)).ToArray();
+            }
 
-                    // 顺序、编号
-                    Int32 id = 0;
-                    if (TryGetDataRowValue<Int32>(dr, "TABLE_ID", out id))
-                        table.ID = id;
-                    else
-                        table.ID = list.Count + 1;
+            var columns = data?["Columns"];
+            var indexes = data != null ? data["Indexes"] : null;
+            var indexColumns = data != null ? data["IndexColumns"] : null;
 
-                    // 描述
-                    table.Description = GetDataRowValue<String>(dr, "DESCRIPTION");
+            if (columns == null) columns = GetSchema(_.Columns, null);
+            if (indexes == null) indexes = GetSchema(_.Indexes, null);
+            if (indexColumns == null) indexColumns = GetSchema(_.IndexColumns, null);
 
-                    // 拥有者
-                    table.Owner = GetDataRowValue<String>(dr, "OWNER");
+            var list = new List<IDataTable>();
+            foreach (var dr in rows)
+            {
+                #region 基本属性
+                var table = DAL.CreateTable();
+                table.TableName = GetDataRowValue<String>(dr, _.TalbeName);
 
-                    // 是否视图
-                    table.IsView = "View".EqualIgnoreCase(GetDataRowValue<String>(dr, "TABLE_TYPE"));
+                // 描述
+                table.Description = GetDataRowValue<String>(dr, "DESCRIPTION");
 
-                    table.DbType = Database.DbType;
-                    #endregion
+                // 拥有者
+                table.Owner = GetDataRowValue<String>(dr, "OWNER");
 
-                    #region 字段及修正
-                    // 字段的获取可能有异常，但不应该影响整体架构的获取
-                    try
-                    {
-                        var columns = GetFields(table);
-                        if (columns != null && columns.Count > 0) table.Columns.AddRange(columns);
+                // 是否视图
+                table.IsView = "View".EqualIgnoreCase(GetDataRowValue<String>(dr, "TABLE_TYPE"));
 
-                        var indexes = GetIndexes(table);
-                        if (indexes != null && indexes.Count > 0) table.Indexes.AddRange(indexes);
-
-                        // 先修正一次关系数据
-                        table.Fix();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (DAL.Debug) DAL.WriteLog(ex.ToString());
-                    }
-
-                    FixTable(table, dr);
-
-                    list.Add(table);
-                    #endregion
-                }
-
-                #region 表间关系处理
-                //// 某字段名，为另一个表的（表名+单主键名）形式时，作为关联字段处理
-                //foreach (var table in list)
-                //{
-                //    foreach (var rtable in list)
-                //    {
-                //        if (table != rtable) table.Connect(rtable);
-                //    }
-                //}
-                ModelHelper.Connect(list);
-
-                //// 因为可能修改了表间关系，再修正一次
-                //foreach (var table in list)
-                //{
-                //    table.Fix();
-                //}
+                table.DbType = Database.Type;
                 #endregion
 
-                return list;
-                // 不要把这些清空。因为，多线程同时操作的时候，前面的线程有可能把后面线程的数据给清空了
+                #region 字段及修正
+                var cs = GetFields(table, columns, data);
+                if (cs != null && cs.Count > 0) table.Columns.AddRange(cs);
+
+                var dis = GetIndexes(table, indexes, indexColumns);
+                if (dis != null && dis.Count > 0) table.Indexes.AddRange(dis);
+
+                FixTable(table, dr, data);
+
+                // 修正关系数据
+                table.Fix();
+
+                list.Add(table);
+                #endregion
             }
-            finally
-            {
-                _columns = null;
-                _indexes = null;
-                _indexColumns = null;
-            }
+
+            return list;
         }
 
         /// <summary>修正表</summary>
         /// <param name="table"></param>
         /// <param name="dr"></param>
-        protected virtual void FixTable(IDataTable table, DataRow dr) { }
+        protected virtual void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data) { }
         #endregion
 
         #region 字段架构
-        protected DataTable _columns;
         /// <summary>取得指定表的所有列构架</summary>
         /// <param name="table"></param>
+        /// <param name="columns">列</param>
         /// <returns></returns>
-        protected virtual List<IDataColumn> GetFields(IDataTable table)
+        protected virtual List<IDataColumn> GetFields(IDataTable table, DataTable columns, IDictionary<String, DataTable> data)
         {
-            //DataTable dt = GetSchema(_.Columns, new String[] { null, null, table.Name });
-            DataTable dt = _columns;
+            var dt = columns;
             if (dt == null) return null;
 
+            // 找到该表所有字段，注意排序
             DataRow[] drs = null;
-            String where = String.Format("{0}='{1}'", _.TalbeName, table.TableName);
+            var where = String.Format("{0}='{1}'", _.TalbeName, table.TableName);
             if (dt.Columns.Contains(_.OrdinalPosition))
                 drs = dt.Select(where, _.OrdinalPosition);
             else if (dt.Columns.Contains(_.ID))
@@ -228,83 +174,37 @@ namespace XCode.DataAccessLayer
         protected virtual List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
         {
             var list = new List<IDataColumn>();
-            // 开始序号
-            Int32 startIndex = 0;
             foreach (var dr in rows)
             {
                 var field = table.CreateColumn();
 
-                // 序号
-                Int32 n = 0;
-                if (TryGetDataRowValue<Int32>(dr, _.OrdinalPosition, out n))
-                    field.ID = n;
-                else if (TryGetDataRowValue<Int32>(dr, _.ID, out n))
-                    field.ID = n;
-                // 如果从0开始，则所有需要同步增加；如果所有字段序号都是0，则按照先后顺序
-                if (field.ID == 0)
-                {
-                    startIndex++;
-                    //field.ID = startIndex;
-                }
-                if (startIndex > 0) field.ID += startIndex;
-
                 // 名称
                 field.ColumnName = GetDataRowValue<String>(dr, _.ColumnName);
-                                
+
                 // 标识、主键
-                Boolean b;
-                if (TryGetDataRowValue<Boolean>(dr, "AUTOINCREMENT", out b))
+                if (TryGetDataRowValue(dr, "AUTOINCREMENT", out Boolean b))
                     field.Identity = b;
 
-                if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out b))
+                if (TryGetDataRowValue(dr, "PRIMARY_KEY", out b))
                     field.PrimaryKey = b;
 
                 // 原始数据类型
-                String str;
-                if (TryGetDataRowValue(dr, "DATA_TYPE", out str))
-                    field.RawType = str;
-                else if (TryGetDataRowValue(dr, "DATATYPE", out str))
-                    field.RawType = str;
-                else if (TryGetDataRowValue(dr, "COLUMN_DATA_TYPE", out str))
-                    field.RawType = str;
-
-                // 是否Unicode
-                if (Database is DbBase) field.IsUnicode = (Database as DbBase).IsUnicode(field.RawType);
-
-                // 精度
-                if (TryGetDataRowValue<Int32>(dr, "NUMERIC_PRECISION", out n))
-                    field.Precision = n;
-                else if (TryGetDataRowValue<Int32>(dr, "DATETIME_PRECISION", out n))
-                    field.Precision = n;
-                else if (TryGetDataRowValue<Int32>(dr, "PRECISION", out n))
-                    field.Precision = n;
-
-                // 位数
-                if (TryGetDataRowValue<Int32>(dr, "NUMERIC_SCALE", out n))
-                    field.Scale = n;
-                else if (TryGetDataRowValue<Int32>(dr, "SCALE", out n))
-                    field.Scale = n;
-
+                field.RawType = GetDataRowValue<String>(dr, "DATA_TYPE", "DATATYPE", "COLUMN_DATA_TYPE");
                 // 长度
-                if (TryGetDataRowValue<Int32>(dr, "CHARACTER_MAXIMUM_LENGTH", out n))
-                    field.Length = n;
-                else if (TryGetDataRowValue<Int32>(dr, "LENGTH", out n))
-                    field.Length = n;
-                else if (TryGetDataRowValue<Int32>(dr, "COLUMN_SIZE", out n))
-                    field.Length = n;
-                else
-                    field.Length = field.Precision;
+                field.Length = GetDataRowValue<Int32>(dr, "CHARACTER_MAXIMUM_LENGTH", "LENGTH", "COLUMN_SIZE");
 
-                // 字节数
-                if (TryGetDataRowValue<Int32>(dr, "CHARACTER_OCTET_LENGTH", out n))
-                    field.NumOfByte = n;
-                else
-                    field.NumOfByte = field.Length;
+                if (field is XField fi)
+                {
+                    // 精度 与 位数
+                    fi.Precision = GetDataRowValue<Int32>(dr, "NUMERIC_PRECISION", "DATETIME_PRECISION", "PRECISION");
+                    fi.Scale = GetDataRowValue<Int32>(dr, "NUMERIC_SCALE", "SCALE");
+                    if (field.Length == 0) field.Length = fi.Precision;
+                }
 
                 // 允许空
-                if (TryGetDataRowValue<Boolean>(dr, "IS_NULLABLE", out b))
+                if (TryGetDataRowValue(dr, "IS_NULLABLE", out b))
                     field.Nullable = b;
-                else if (TryGetDataRowValue(dr, "IS_NULLABLE", out str))
+                else if (TryGetDataRowValue(dr, "IS_NULLABLE", out String str))
                 {
                     if (!String.IsNullOrEmpty(str)) field.Nullable = "YES".EqualIgnoreCase(str);
                 }
@@ -313,18 +213,17 @@ namespace XCode.DataAccessLayer
                     if (!String.IsNullOrEmpty(str)) field.Nullable = "Y".EqualIgnoreCase(str);
                 }
 
-                // 默认值
-                field.Default = GetDataRowValue<String>(dr, "COLUMN_DEFAULT");
-
                 // 描述
                 field.Description = GetDataRowValue<String>(dr, "DESCRIPTION");
 
                 FixField(field, dr);
+
                 // 检查是否已正确识别类型
                 if (field.DataType == null)
-                {
                     WriteLog("无法识别{0}.{1}的类型{2}！", table.TableName, field.ColumnName, field.RawType);
-                }
+                // 非字符串字段，长度没有意义
+                else if (field.DataType != typeof(String))
+                    field.Length = 0;
 
                 field.Fix();
                 list.Add(field);
@@ -338,108 +237,62 @@ namespace XCode.DataAccessLayer
         /// <param name="dr"></param>
         protected virtual void FixField(IDataColumn field, DataRow dr)
         {
-            var dt = DataTypes;
-            if (dt == null) return;
-
-            var drs = FindDataType(field, field.RawType, null);
-            if (drs == null || drs.Length < 1)
-                FixField(field, dr, null);
-            else
-                FixField(field, dr, drs[0]);
-        }
-
-        /// <summary>修正指定字段</summary>
-        /// <param name="field">字段</param>
-        /// <param name="drColumn">字段元数据</param>
-        /// <param name="drDataType">字段匹配的数据类型</param>
-        protected virtual void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
-        {
-            String typeName = field.RawType;
-
             // 修正数据类型 +++重点+++
-            if (TryGetDataRowValue(drDataType, "DataType", out typeName))
-            {
-                field.DataType = typeName.GetTypeEx();
-            }
-
-            // 修正长度为最大长度
-            if (field.Length == 0)
-            {
-                Int32 n = 0;
-                if (TryGetDataRowValue<Int32>(drDataType, "ColumnSize", out n))
-                {
-                    field.Length = n;
-                    if (field.NumOfByte == 0) field.NumOfByte = field.Length;
-                }
-
-                if (field.Length <= 0 && field.DataType == typeof(String)) field.Length = Int32.MaxValue / 2;
-            }
-
-            // 处理格式参数
-            if (!String.IsNullOrEmpty(field.RawType) && !field.RawType.EndsWith(")"))
-            {
-                String param = GetFormatParam(field, drDataType);
-                if (!String.IsNullOrEmpty(param)) field.RawType += param;
-            }
+            if (field.DataType == null) field.DataType = GetDataType(field);
         }
         #endregion
 
         #region 索引架构
-        protected DataTable _indexes;
-        protected DataTable _indexColumns;
         /// <summary>获取索引</summary>
         /// <param name="table"></param>
+        /// <param name="indexes">索引</param>
+        /// <param name="indexColumns">索引列</param>
         /// <returns></returns>
-        protected virtual List<IDataIndex> GetIndexes(IDataTable table)
+        protected virtual List<IDataIndex> GetIndexes(IDataTable table, DataTable indexes, DataTable indexColumns)
         {
-            if (_indexes == null) return null;
+            if (indexes == null) return null;
 
-            DataRow[] drs = _indexes.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
+            var drs = indexes.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
             if (drs == null || drs.Length < 1) return null;
 
-            List<IDataIndex> list = new List<IDataIndex>();
-            foreach (DataRow dr in drs)
+            var list = new List<IDataIndex>();
+            foreach (var dr in drs)
             {
-                String name = null;
+                if (!TryGetDataRowValue(dr, _.IndexName, out String name)) continue;
 
-                if (!TryGetDataRowValue(dr, _.IndexName, out name)) continue;
-
-                IDataIndex di = table.CreateIndex();
+                var di = table.CreateIndex();
                 di.Name = name;
 
                 if (TryGetDataRowValue(dr, _.ColumnName, out name) && !String.IsNullOrEmpty(name))
-                    di.Columns = name.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-                else if (_indexColumns != null)
+                    di.Columns = name.Split(",");
+                else if (indexColumns != null)
                 {
                     String orderby = null;
                     // Oracle数据库用ColumnPosition，其它数据库用OrdinalPosition
-                    if (_indexColumns.Columns.Contains(_.OrdinalPosition))
+                    if (indexColumns.Columns.Contains(_.OrdinalPosition))
                         orderby = _.OrdinalPosition;
-                    else if (_indexColumns.Columns.Contains(_.ColumnPosition))
+                    else if (indexColumns.Columns.Contains(_.ColumnPosition))
                         orderby = _.ColumnPosition;
 
-                    DataRow[] dics = _indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.TableName, _.IndexName, di.Name), orderby);
+                    var dics = indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.TableName, _.IndexName, di.Name), orderby);
                     if (dics != null && dics.Length > 0)
                     {
-                        List<String> ns = new List<String>();
-                        foreach (DataRow item in dics)
+                        var ns = new List<String>();
+                        foreach (var item in dics)
                         {
-                            String dcname = null;
-                            if (TryGetDataRowValue(item, _.ColumnName, out dcname) &&
-                                !String.IsNullOrEmpty(dcname) && !ns.Contains(dcname)) ns.Add(dcname);
+                            if (TryGetDataRowValue(item, _.ColumnName, out String dcname) && !dcname.IsNullOrEmpty() && !ns.Contains(dcname)) ns.Add(dcname);
                         }
                         if (ns.Count < 1) DAL.WriteLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
                         di.Columns = ns.ToArray();
                     }
                 }
 
-                Boolean b = false;
-                if (TryGetDataRowValue<Boolean>(dr, "UNIQUE", out b))
+                if (TryGetDataRowValue(dr, "UNIQUE", out Boolean b))
                     di.Unique = b;
 
-                if (TryGetDataRowValue<Boolean>(dr, "PRIMARY", out b))
+                if (TryGetDataRowValue(dr, "PRIMARY", out b))
                     di.PrimaryKey = b;
-                else if (TryGetDataRowValue<Boolean>(dr, "PRIMARY_KEY", out b))
+                else if (TryGetDataRowValue(dr, "PRIMARY_KEY", out b))
                     di.PrimaryKey = b;
 
                 FixIndex(di, dr);
@@ -456,13 +309,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据类型
-        private DataTable _DataTypes;
-        /// <summary>数据类型</summary>
-        public DataTable DataTypes
-        {
-            get { return _DataTypes ?? (_DataTypes = GetSchema(DbMetaDataCollectionNames.DataTypes, null)); }
-            internal protected set { _DataTypes = value; }
-        }
+        /// <summary>类型映射</summary>
+        protected IDictionary<Type, String[]> Types { get; set; }
 
         protected List<KeyValuePair<Type, Type>> _FieldTypeMaps;
         /// <summary>字段类型映射</summary>
@@ -473,261 +321,133 @@ namespace XCode.DataAccessLayer
                 if (_FieldTypeMaps == null)
                 {
                     // 把不常用的类型映射到常用类型，比如数据库SByte映射到实体类Byte，UInt32映射到Int32，而不需要重新修改数据库
-                    var list = new List<KeyValuePair<Type, Type>>();
-                    list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Byte)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int16)));
-                    // 因为等价，字节需要能够互相映射
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Byte), typeof(SByte)));
+                    var list = new List<KeyValuePair<Type, Type>>
+                    {
+                        new KeyValuePair<Type, Type>(typeof(SByte), typeof(Byte)),
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int16)));
+                        // 因为等价，字节需要能够互相映射
+                        new KeyValuePair<Type, Type>(typeof(Byte), typeof(SByte)),
 
-                    list.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int16)));
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(UInt16)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int32)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(Int32)));
+                        new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int16)),
+                        new KeyValuePair<Type, Type>(typeof(Int16), typeof(UInt16)),
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(UInt16), typeof(Int32)));
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(Int16), typeof(Int32)));
 
-                    list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int32)));
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Int32), typeof(UInt32)));
-                    //// 因为自增的原因，某些字段需要被映射到Int32里面来
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int32)));
+                        new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int32)),
+                        new KeyValuePair<Type, Type>(typeof(Int32), typeof(UInt32)),
+                        //// 因为自增的原因，某些字段需要被映射到Int32里面来
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(SByte), typeof(Int32)));
 
-                    list.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int64)));
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(UInt64)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int32)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
+                        new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int64)),
+                        new KeyValuePair<Type, Type>(typeof(Int64), typeof(UInt64)),
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(UInt64), typeof(Int32)));
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(Int64), typeof(Int32)));
 
-                    //// 根据常用行，从不常用到常用排序，然后配对进入映射表
-                    //var types = new Type[] { typeof(SByte), typeof(Byte), typeof(UInt16), typeof(Int16), typeof(UInt64), typeof(Int64), typeof(UInt32), typeof(Int32) };
+                        //// 根据常用行，从不常用到常用排序，然后配对进入映射表
+                        //var types = new Type[] { typeof(SByte), typeof(Byte), typeof(UInt16), typeof(Int16), typeof(UInt64), typeof(Int64), typeof(UInt32), typeof(Int32) };
 
-                    //for (int i = 0; i < types.Length; i++)
-                    //{
-                    //    for (int j = i + 1; j < types.Length; j++)
-                    //    {
-                    //        list.Add(new KeyValuePair<Type, Type>(types[i], types[j]));
-                    //    }
-                    //}
-                    //// 因为自增的原因，某些字段需要被映射到Int64里面来
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int64)));
-                    //list.Add(new KeyValuePair<Type, Type>(typeof(Int32), typeof(Int64)));
-                    list.Add(new KeyValuePair<Type, Type>(typeof(Guid), typeof(String)));
-
+                        //for (int i = 0; i < types.Length; i++)
+                        //{
+                        //    for (int j = i + 1; j < types.Length; j++)
+                        //    {
+                        //        list.Add(new KeyValuePair<Type, Type>(types[i], types[j]));
+                        //    }
+                        //}
+                        //// 因为自增的原因，某些字段需要被映射到Int64里面来
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(UInt32), typeof(Int64)));
+                        //list.Add(new KeyValuePair<Type, Type>(typeof(Int32), typeof(Int64)));
+                        new KeyValuePair<Type, Type>(typeof(Guid), typeof(String))
+                    };
                     _FieldTypeMaps = list;
                 }
                 return _FieldTypeMaps;
             }
         }
 
-        /// <summary>查找指定字段指定类型的数据类型</summary>
-        /// <param name="field">字段</param>
-        /// <param name="typeName"></param>
-        /// <param name="isLong"></param>
-        /// <returns></returns>
-        protected virtual DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        {
-            DataRow[] drs = null;
-            try
-            {
-                drs = OnFindDataType(field, typeName, isLong);
-            }
-            catch { }
-            if (drs != null && drs.Length > 0) return drs;
-
-            // 把Guid映射到varchar(32)去
-            if (typeName == typeof(Guid).FullName || typeName.EqualIgnoreCase("Guid"))
-            {
-                typeName = "varchar(32)";
-                try
-                {
-                    drs = OnFindDataType(field, typeName, isLong);
-                }
-                catch { }
-                if (drs != null && drs.Length > 0) return drs;
-            }
-
-            // 如果该类型无法识别，则去尝试使用最接近的高阶类型
-            foreach (var item in FieldTypeMaps)
-            {
-                if (item.Key.FullName == typeName)
-                {
-                    try
-                    {
-                        drs = OnFindDataType(field, item.Value.FullName, isLong);
-                    }
-                    catch { }
-                    if (drs != null && drs.Length > 0) return drs;
-                }
-            }
-            return null;
-        }
-
-        private DataRow[] OnFindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        {
-            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
-            // 去掉类型中，长度等限制条件
-            if (typeName.Contains("(")) typeName = typeName.Substring(0, typeName.IndexOf("("));
-
-            var dt = DataTypes;
-            if (dt == null) return null;
-
-            DataRow[] drs = null;
-            var sb = new StringBuilder();
-
-            // 匹配TypeName，TypeName具有唯一性
-            sb.AppendFormat("TypeName='{0}'", typeName);
-
-            drs = dt.Select(sb.ToString());
-            if (drs != null && drs.Length > 0)
-            {
-                // 找到太多，试试过滤自增等
-                if (drs.Length > 1 && field.Identity && dt.Columns.Contains("IsAutoIncrementable"))
-                {
-                    var dr = drs.FirstOrDefault(e => (Boolean)e["IsAutoIncrementable"]);
-                    if (dr != null) return new DataRow[] { dr };
-                }
-
-                return drs;
-            }
-
-            // 匹配DataType，重复的可能性很大
-            sb = new StringBuilder();
-            sb.AppendFormat("DataType='{0}'", typeName);
-
-            drs = dt.Select(sb.ToString());
-            if (drs != null && drs.Length > 0)
-            {
-                if (drs.Length == 1) return drs;
-                // 找到太多，试试过滤自增等
-                if (drs.Length > 1 && field.Identity && dt.Columns.Contains("IsAutoIncrementable"))
-                {
-                    var drs1 = drs.Where(e => (Boolean)e["IsAutoIncrementable"]).ToArray();
-                    if (drs1 != null)
-                    {
-                        if (drs1.Length == 1) return drs1;
-                        drs = drs1;
-                    }
-                }
-
-                sb.AppendFormat(" And ColumnSize>={0}", field.Length);
-                //if (field.DataType == typeof(String) && field.Length > Database.LongTextLength) sb.AppendFormat(" And IsLong=1");
-                // 如果字段的长度为0，则也算是大文本
-                if (field.DataType == typeof(String) && (field.Length > Database.LongTextLength || field.Length <= 0))
-                    sb.AppendFormat(" And IsLong=1");
-
-                var drs2 = dt.Select(sb.ToString(), "IsBestMatch Desc, ColumnSize Asc, IsFixedLength Asc, IsLong Asc");
-                if (drs2 == null || drs2.Length < 1) return drs;
-                if (drs2.Length == 1) return drs2;
-
-                return drs2;
-            }
-            return null;
-        }
-
-        ///// <summary>检查是否自增，如果自增，则附加过滤条件</summary>
-        ///// <param name="dt"></param>
-        ///// <param name="field"></param>
-        ///// <param name="where"></param>
-        ///// <returns></returns>
-        //protected virtual Boolean CheckAutoIncrementable(DataTable dt, IDataColumn field,StringBuilder where)
-        //{
-        //    if (field.Identity && dt.Columns.Contains("IsAutoIncrementable")) sb.Append(" And IsAutoIncrementable=1");
-        //}
-
         /// <summary>取字段类型</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
         protected virtual String GetFieldType(IDataColumn field)
         {
-            /*
-             * 首先尝试原始数据类型，因为即使是不同的数据库，相近的类型也可能采用相同的名称；
-             * 然后才使用.Net类型名去匹配；
-             * 两种方法都要注意处理类型参数，比如长度、精度、小数位数等
-             */
+            var type = field.DataType;
+            if (type == null) return null;
 
-            String typeName = field.RawType;
-            DataRow[] drs = null;
+            // 处理枚举
+            if (type.IsEnum) type = typeof(Int32);
 
-            if (!String.IsNullOrEmpty(typeName))
+            if (!Types.TryGetValue(type, out String[] ns)) return null;
+
+            var typeName = ns.FirstOrDefault();
+            // 大文本选第二个类型
+            if (ns.Length > 1 && type == typeof(String) && (field.Length <= 0 || field.Length >= Database.LongTextLength)) typeName = ns[1];
+            if (typeName.Contains("{0}")) typeName = typeName.F(field.Length);
+
+            return typeName;
+        }
+
+        /// <summary>获取数据类型</summary>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        protected virtual Type GetDataType(IDataColumn field)
+        {
+            var rawType = field.RawType;
+            if (rawType.Contains("(")) rawType = rawType.Substring(null, "(");
+            var rawType2 = rawType + "(";
+
+            foreach (var item in Types)
             {
-                if (typeName.Contains("(")) typeName = typeName.Substring(0, typeName.IndexOf("("));
-                drs = FindDataType(field, typeName, null);
-                if (drs != null && drs.Length > 0)
+                String dbtype = null;
+                if (rawType.EqualIgnoreCase(item.Value))
                 {
-                    if (TryGetDataRowValue(drs[0], "TypeName", out typeName))
-                    {
-                        // 处理格式参数
-                        String param = GetFormatParam(field, drs[0]);
-                        if (!String.IsNullOrEmpty(param) && param != "()") typeName += param;
+                    dbtype = item.Value[0];
 
-                        return typeName;
-                    }
+                    // 大文本选第二个类型
+                    if (item.Value.Length > 1 && item.Key == typeof(String) && (field.Length <= 0 || field.Length >= Database.LongTextLength)) dbtype = item.Value[1];
                 }
-            }
-
-            typeName = field.DataType.FullName;
-
-            drs = FindDataType(field, typeName, null);
-            if (drs != null && drs.Length > 0)
-            {
-                if (TryGetDataRowValue(drs[0], "TypeName", out typeName))
+                else
                 {
-                    // 处理格式参数
-                    String param = GetFormatParam(field, drs[0]);
-                    if (!String.IsNullOrEmpty(param) && param != "()") typeName += param;
+                    dbtype = item.Value.FirstOrDefault(e => e.StartsWithIgnoreCase(rawType2));
+                }
+                if (!dbtype.IsNullOrEmpty())
+                {
+                    // 修正原始类型
+                    if (dbtype.Contains("{0}")) field.RawType = dbtype.F(field.Length);
 
-                    return typeName;
+                    return item.Key;
                 }
             }
 
             return null;
         }
 
-        /// <summary>取得格式化的类型参数</summary>
-        /// <param name="field">字段</param>
-        /// <param name="dr"></param>
+        /// <summary>获取数据类型字符串</summary>
         /// <returns></returns>
-        protected virtual String GetFormatParam(IDataColumn field, DataRow dr)
+        public String GetDataTypes()
         {
-            // 为了最大程度保证兼容性，所有数据库的Decimal和DateTime类型不指定精度，均采用数据库默认值
-            //if (field.DataType == typeof(Decimal)) return null;
-            if (field.DataType == typeof(DateTime)) return null;
+            var dt = GetSchema(DbMetaDataCollectionNames.DataTypes, null);
+            var rows = dt.Select("", "DataType Asc, IsBestMatch Desc");
+            var dic = new Dictionary<String, List<String>>();
+            foreach (var dr in rows)
+            {
+                var tname = (dr["DataType"] + "").TrimStart("System.");
+                if (!dic.TryGetValue(tname, out List<String> list)) dic[tname] = list = new List<String>();
+                var v = dr["CreateFormat"] + "";
+                if (v.IsNullOrEmpty()) v = dr["TypeName"] + "";
+                list.Add(v);
+            }
 
-            String ps = null;
-            if (!TryGetDataRowValue(dr, "CreateParameters", out ps) || String.IsNullOrEmpty(ps)) return null;
+            dic = dic.OrderBy(e => (Int32)e.Key.GetTypeEx().GetTypeCode()).ToDictionary(e => e.Key, e => e.Value);
 
             var sb = new StringBuilder();
-            sb.Append("(");
-            var pms = ps.Split(new Char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            for (Int32 i = 0; i < pms.Length; i++)
+            foreach (var item in dic)
             {
-                if (sb.Length > 1) sb.Append(",");
-                sb.Append(GetFormatParamItem(field, dr, pms[i]));
-            }
-            sb.Append(")");
+                if (sb.Length > 0) sb.AppendLine(",");
 
-            return sb.ToString();
-        }
-
-        /// <summary>获取格式化参数项</summary>
-        /// <param name="field">字段</param>
-        /// <param name="dr"></param>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        protected virtual String GetFormatParamItem(IDataColumn field, DataRow dr, String item)
-        {
-            if (item.Contains("length") || item.Contains("size")) return field.Length.ToString();
-
-            if (item.Contains("precision")) return field.Precision.ToString();
-
-            if (item.Contains("scale") || item.Contains("bits"))
-            {
-                // 如果没有设置位数，则使用最大位数
-                Int32 d = field.Scale;
-                //if (d < 0)
-                //{
-                //    if (!TryGetDataRowValue<Int32>(dr, "MaximumScale", out d)) d = field.Scale;
-                //}
-                return d.ToString();
+                sb.Append(new String(' ', 12));
+                sb.AppendFormat("{{ typeof({0}), new String[] {{ {1} }} }}", item.Key, item.Value.Select(e => "\"" + e + "\"").Join(", "));
             }
 
-            return "0";
+            return Environment.NewLine + sb.ToString();
         }
         #endregion
     }

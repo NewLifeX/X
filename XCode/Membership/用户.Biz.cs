@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Data.Common;
 using System.Linq;
+using System.Security.Principal;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -15,22 +16,18 @@ namespace XCode.Membership
     public enum SexKinds
     {
         /// <summary>未知</summary>
-        //[Description("未知")]
         未知 = 0,
 
         /// <summary>男</summary>
-        //[Description("男")]
         男 = 1,
 
         /// <summary>女</summary>
-        //[Description("女")]
         女 = 2
     }
 
     /// <summary>管理员</summary>
     [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    [BindRelation("RoleID", false, "Role", "ID")]
     public class UserX : User<UserX> { }
 
     /// <summary>管理员</summary>
@@ -38,7 +35,7 @@ namespace XCode.Membership
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class User<TEntity> : LogEntity<TEntity>, IUser, IManageUser//, IPrincipal//, IIdentity
+    public abstract partial class User<TEntity> : LogEntity<TEntity>, IUser, IManageUser, IIdentity
         where TEntity : User<TEntity>, new()
     {
         #region 对象操作
@@ -114,32 +111,35 @@ namespace XCode.Membership
         {
             get
             {
+#if !__CORE__
                 var key = "Admin";
-
-                if (HttpContext.Current == null) return null;
-                var Session = HttpContext.Current.Session;
-                if (Session == null) return null;
+                var ss = HttpContext.Current?.Session;
+                if (ss == null) return null;
 
                 // 从Session中获取
-                var entity = Session[key] as TEntity;
-                if (entity != null) return entity;
+                if (ss[key] is TEntity entity) return entity;
 
                 // 设置一个陷阱，避免重复计算Cookie
-                if (Session[key] != null) return null;
+                if (ss[key] != null) return null;
 
                 // 从Cookie中获取
                 entity = GetCookie(key);
                 if (entity != null)
-                    Session[key] = entity;
+                    ss[key] = entity;
                 else
-                    Session[key] = "1";
+                    ss[key] = "1";
 
                 return entity;
+#else
+                return null;
+#endif
             }
             set
             {
+#if !__CORE__
                 var key = "Admin";
-                var Session = HttpContext.Current.Session;
+                var ss = HttpContext.Current?.Session;
+                if (ss == null) return;
 
                 // 特殊处理注销
                 if (value == null)
@@ -148,26 +148,29 @@ namespace XCode.Membership
                     if (entity != null) WriteLog("注销", entity.Name);
 
                     // 修改Session
-                    if (Session != null) Session.Remove(key);
+                    ss.Remove(key);
                 }
                 else
                 {
                     // 修改Session
-                    if (Session != null) Session[key] = value;
+                    ss[key] = value;
                 }
 
                 // 修改Cookie
                 SetCookie(key, value);
+#else
+                // 特殊处理注销
+                if (value == null)
+                {
+                    var entity = Current;
+                    if (entity != null) WriteLog("注销", entity.Name);
+                }
+#endif
             }
         }
 
         /// <summary>友好名字</summary>
         public virtual String FriendName { get { return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName; } }
-
-        /// <summary>性别</summary>
-        [DisplayName("性别")]
-        [Map(__.Sex)]
-        public SexKinds SexKind { get { return (SexKinds)Sex; } set { Sex = (Int32)value; } }
 
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
@@ -181,10 +184,15 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity FindByID(Int32 id)
         {
+            if (id <= 0) return null;
+
             if (Meta.Count >= 1000)
                 return Find(__.ID, id);
             else // 实体缓存
                 return Meta.Cache.Entities.Find(__.ID, id);
+
+            // 实体缓存
+            //return Meta.SingleCache[id];
         }
 
         /// <summary>根据名称查找</summary>
@@ -232,74 +240,10 @@ namespace XCode.Membership
             else // 实体缓存
                 return Meta.Cache.Entities.FindIgnoreCase(__.Code, code);
         }
+        #endregion
 
-        /// <summary>查询满足条件的记录集，分页、排序</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体集</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, Int32 roleId, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindAll(SearchWhere(key, roleId), order, null, startRowIndex, maximumRows);
-        }
-
-        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>记录数</returns>
-        public static Int64 SearchCount(String key, Int32 roleId, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindCount(SearchWhere(key, roleId), null, null, 0, 0);
-        }
-
-        /// <summary>查询满足条件的记录集，分页、排序</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="isEnable">是否启用</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体集</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindAll(SearchWhere(key, roleId, isEnable), order, null, startRowIndex, maximumRows);
-        }
-
-        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="isEnable">是否启用</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>记录数</returns>
-        public static Int64 SearchCount(String key, Int32 roleId, Boolean? isEnable, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            return FindCount(SearchWhere(key, roleId, isEnable), null, null, 0, 0);
-        }
-
-        /// <summary>构造搜索条件</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="roleId">角色ID</param>
-        /// <param name="isEnable">是否启用</param>
-        /// <returns></returns>
-        private static WhereExpression SearchWhere(String key, Int32 roleId, Boolean? isEnable = null)
-        {
-            var exp = SearchWhereByKey(key);
-            if (roleId > 0) exp &= _.RoleID == roleId;
-            if (isEnable != null) exp &= _.Enable == isEnable;
-
-            return exp;
-        }
-
-        /// <summary>参数化查询</summary>
+        #region 高级查询
+        /// <summary>高级查询</summary>
         /// <param name="key"></param>
         /// <param name="roleId"></param>
         /// <param name="isEnable"></param>
@@ -307,7 +251,33 @@ namespace XCode.Membership
         /// <returns></returns>
         public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p)
         {
-            return FindAll(SearchWhere(key, roleId, isEnable), p);
+            return Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
+        }
+
+        /// <summary>高级查询</summary>
+        /// <param name="key"></param>
+        /// <param name="roleId"></param>
+        /// <param name="isEnable"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
+        {
+            var exp = _.LastLogin.Between(start, end);
+            if (roleId >= 0) exp &= _.RoleID == roleId;
+            if (isEnable != null) exp &= _.Enable == isEnable;
+
+            // 先精确查询，再模糊
+            if (!key.IsNullOrEmpty())
+            {
+                var list = FindAll(exp & (_.Code == key | _.Name == key | _.DisplayName == key | _.Mail == key | _.Phone == key), p);
+                if (list.Count > 0) return list;
+
+                exp &= (_.Code.Contains(key) | _.Name.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Phone.Contains(key));
+            }
+
+            return FindAll(exp, p);
         }
         #endregion
 
@@ -320,7 +290,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity Add(String name, String pass, Int32 roleid = 1, String display = null)
         {
-            var entity = FindByName(name);
+            var entity = Find(_.Name == name);
             if (entity != null) return entity;
 
             if (pass.IsNullOrEmpty()) pass = name;
@@ -356,11 +326,13 @@ namespace XCode.Membership
             try
             {
                 var user = Login(username, password, 1);
+#if !__CORE__
                 if (rememberme && user != null)
                 {
                     var cookie = HttpContext.Current.Response.Cookies["Admin"];
                     if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
                 }
+#endif
                 return user;
             }
             catch (Exception ex)
@@ -479,6 +451,7 @@ namespace XCode.Membership
             Insert();
         }
 
+#if !__CORE__
         static Boolean _isInGetCookie;
         static TEntity GetCookie(String key)
         {
@@ -512,7 +485,9 @@ namespace XCode.Membership
         static void SetCookie(String key, TEntity entity)
         {
             var context = HttpContext.Current;
-            var res = context.Response;
+            var res = context?.Response;
+            if (res == null) return;
+
             var reqcookie = context.Request.Cookies[key];
             if (entity != null)
             {
@@ -534,6 +509,7 @@ namespace XCode.Membership
                 //HttpContext.Current.Response.Cookies.Remove(key);
             }
         }
+#endif
         #endregion
 
         #region 权限日志
@@ -555,7 +531,7 @@ namespace XCode.Membership
         /// <summary>角色名</summary>
         [DisplayName("角色")]
         [Map(__.RoleID, typeof(RoleMapProvider))]
-        public virtual String RoleName { get { return Role == null ? null : Role.Name; } }
+        public virtual String RoleName { get { return Role?.Name; } }
         #endregion
 
         #region IManageUser 成员
@@ -564,6 +540,12 @@ namespace XCode.Membership
 
         /// <summary>昵称</summary>
         String IManageUser.NickName { get { return DisplayName; } set { DisplayName = value; } }
+
+        String IIdentity.Name => Name;
+
+        String IIdentity.AuthenticationType => "XCode";
+
+        Boolean IIdentity.IsAuthenticated => true;
 
         ///// <summary>是否管理员</summary>
         //Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
@@ -590,9 +572,6 @@ namespace XCode.Membership
 
         /// <summary>角色名</summary>
         String RoleName { get; }
-
-        /// <summary>性别</summary>
-        SexKinds SexKind { get; set; }
 
         /// <summary>注销</summary>
         void Logout();

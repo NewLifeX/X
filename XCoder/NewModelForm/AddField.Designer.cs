@@ -33,21 +33,15 @@
             this.btnSave = new System.Windows.Forms.Button();
             this.txtDataType = new System.Windows.Forms.TextBox();
             this.txtDescription = new System.Windows.Forms.TextBox();
-            this.txtPrecision = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.ckbNullable = new System.Windows.Forms.CheckBox();
-            this.txtNumOfByte = new System.Windows.Forms.TextBox();
             this.txtLength = new System.Windows.Forms.TextBox();
-            this.txtDefault = new System.Windows.Forms.TextBox();
             this.ckbPrimarykey = new System.Windows.Forms.CheckBox();
             this.ckbIdentity = new System.Windows.Forms.CheckBox();
             this.combRawType = new System.Windows.Forms.ComboBox();
             this.txtName = new System.Windows.Forms.TextBox();
             this.label13 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -60,21 +54,15 @@
             this.gbInfo.Controls.Add(this.btnSave);
             this.gbInfo.Controls.Add(this.txtDataType);
             this.gbInfo.Controls.Add(this.txtDescription);
-            this.gbInfo.Controls.Add(this.txtPrecision);
             this.gbInfo.Controls.Add(this.label2);
             this.gbInfo.Controls.Add(this.ckbNullable);
-            this.gbInfo.Controls.Add(this.txtNumOfByte);
             this.gbInfo.Controls.Add(this.txtLength);
-            this.gbInfo.Controls.Add(this.txtDefault);
             this.gbInfo.Controls.Add(this.ckbPrimarykey);
             this.gbInfo.Controls.Add(this.ckbIdentity);
             this.gbInfo.Controls.Add(this.combRawType);
             this.gbInfo.Controls.Add(this.txtName);
             this.gbInfo.Controls.Add(this.label13);
-            this.gbInfo.Controls.Add(this.label12);
             this.gbInfo.Controls.Add(this.label10);
-            this.gbInfo.Controls.Add(this.label8);
-            this.gbInfo.Controls.Add(this.label7);
             this.gbInfo.Controls.Add(this.label6);
             this.gbInfo.Controls.Add(this.label3);
             this.gbInfo.Controls.Add(this.label1);
@@ -116,18 +104,10 @@
             // 
             // txtDescription
             // 
-            this.txtDescription.Location = new System.Drawing.Point(326, 153);
+            this.txtDescription.Location = new System.Drawing.Point(326, 116);
             this.txtDescription.Name = "txtDescription";
             this.txtDescription.Size = new System.Drawing.Size(130, 29);
             this.txtDescription.TabIndex = 25;
-            // 
-            // txtPrecision
-            // 
-            this.txtPrecision.Enabled = false;
-            this.txtPrecision.Location = new System.Drawing.Point(326, 114);
-            this.txtPrecision.Name = "txtPrecision";
-            this.txtPrecision.Size = new System.Drawing.Size(130, 29);
-            this.txtPrecision.TabIndex = 23;
             // 
             // label2
             // 
@@ -148,14 +128,6 @@
             this.ckbNullable.Text = "是否允许空";
             this.ckbNullable.UseVisualStyleBackColor = true;
             // 
-            // txtNumOfByte
-            // 
-            this.txtNumOfByte.Enabled = false;
-            this.txtNumOfByte.Location = new System.Drawing.Point(326, 75);
-            this.txtNumOfByte.Name = "txtNumOfByte";
-            this.txtNumOfByte.Size = new System.Drawing.Size(130, 29);
-            this.txtNumOfByte.TabIndex = 20;
-            // 
             // txtLength
             // 
             this.txtLength.Enabled = false;
@@ -165,14 +137,6 @@
             this.txtLength.TabIndex = 19;
             this.txtLength.TextChanged += new System.EventHandler(this.txtLength_TextChanged);
             this.txtLength.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtLength_KeyPress);
-            // 
-            // txtDefault
-            // 
-            this.txtDefault.Location = new System.Drawing.Point(101, 153);
-            this.txtDefault.Name = "txtDefault";
-            this.txtDefault.Size = new System.Drawing.Size(155, 29);
-            this.txtDefault.TabIndex = 18;
-            this.txtDefault.Text = "0";
             // 
             // ckbPrimarykey
             // 
@@ -216,20 +180,11 @@
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(281, 156);
+            this.label13.Location = new System.Drawing.Point(281, 120);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(42, 21);
             this.label13.TabIndex = 12;
             this.label13.Text = "说明";
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(40, 156);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(58, 21);
-            this.label12.TabIndex = 11;
-            this.label12.Text = "默认值";
             // 
             // label10
             // 
@@ -238,24 +193,6 @@
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(0, 21);
             this.label10.TabIndex = 9;
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(281, 117);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(42, 21);
-            this.label8.TabIndex = 7;
-            this.label8.Text = "精度";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(265, 78);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(58, 21);
-            this.label7.TabIndex = 6;
-            this.label7.Text = "字节数";
             // 
             // label6
             // 
@@ -305,20 +242,14 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.Label label12;
         private System.Windows.Forms.TextBox txtName;
         private System.Windows.Forms.ComboBox combRawType;
         private System.Windows.Forms.CheckBox ckbIdentity;
         private System.Windows.Forms.CheckBox ckbPrimarykey;
-        private System.Windows.Forms.TextBox txtDefault;
-        private System.Windows.Forms.TextBox txtNumOfByte;
         private System.Windows.Forms.TextBox txtLength;
         private System.Windows.Forms.CheckBox ckbNullable;
         private System.Windows.Forms.TextBox txtDescription;
-        private System.Windows.Forms.TextBox txtPrecision;
         private System.Windows.Forms.TextBox txtDataType;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnCancle;

@@ -4,23 +4,23 @@
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
+    var user = ViewBag.User as IUser ?? (User == null ? null : User.Identity as IUser);
+
+    var act = ViewBag.Action as String;
+    if (act.IsNullOrEmpty()) { act = Url.Action("Index"); }
 }
 <div class="tableTools-container">
     <div class="form-inline">
-        <form action="@Url.Action("index")@Html.Raw("?" + page.GetBaseUrl(false, true, true))" method="post" role="form">
-            <div class="validation-summary-valid" data-valmsg-summary="true">
-                <ul>
-                    <li style="display:none"></li>
-                </ul>
+        <form action="@act@Html.Raw("?" + page.GetBaseUrl(true, true, true))" method="post" role="form">
+            @if (user.Has(PermissionFlags.Insert))
+            {
+                @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
+            }
+            <div class="pull-right form-group">
+                @Html.Partial("_List_Search")
+                @Html.Partial("_List_Toolbar_Search")
+                @Html.Partial("_List_Toolbar_Adv")
             </div>
-            <div class="form-group">
-                @if (ManageProvider.User.Has(PermissionFlags.Insert))
-                {
-                    @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
-                }
-            </div>
-            @Html.Partial("_List_Toolbar_Search")
-            @Html.Partial("_List_Toolbar_Adv")
         </form>
     </div>
 </div>

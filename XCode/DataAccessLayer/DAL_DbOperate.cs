@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Threading;
 
 namespace XCode.DataAccessLayer
@@ -93,12 +93,25 @@ namespace XCode.DataAccessLayer
             return Session.InsertAndGetIdentity(sql);
         }
 
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public DataSet Select(String sql, CommandType type, params IDataParameter[] ps)
+        {
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _QueryTimes);
+            return Session.Query(sql, type, ps);
+        }
+
         /// <summary>执行SQL语句，返回受影响的行数</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public Int32 Execute(String sql, CommandType type, IDataParameter[] ps)
+        public Int32 Execute(String sql, CommandType type, params IDataParameter[] ps)
         {
             CheckBeforeUseDatabase();
 
@@ -112,13 +125,55 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public Int64 InsertAndGetIdentity(String sql, CommandType type, IDataParameter[] ps)
+        public Int64 InsertAndGetIdentity(String sql, CommandType type, params IDataParameter[] ps)
         {
             CheckBeforeUseDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
 
             return Session.InsertAndGetIdentity(sql, type, ps);
+        }
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public DataSet Select(String sql, CommandType type, IDictionary<String, Object> ps)
+        {
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _QueryTimes);
+            return Session.Query(sql, type, Db.CreateParameters(ps));
+        }
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Int32 Execute(String sql, CommandType type, IDictionary<String, Object> ps)
+        {
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _ExecuteTimes);
+
+            return Session.Execute(sql, type, Db.CreateParameters(ps));
+        }
+
+        /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public T ExecuteScalar<T>(String sql, CommandType type, IDictionary<String, Object> ps)
+        {
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _ExecuteTimes);
+
+            return Session.ExecuteScalar<T>(sql, type, Db.CreateParameters(ps));
         }
         #endregion
 

@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -68,7 +69,7 @@ namespace XCode
             //检查是否有标识列，标识列需要特殊处理
             var field = op.Table.Identity;
             var bAllow = op.AllowInsertIdentity;
-            if (field != null && field.IsIdentity && !bAllow)
+            if (field != null && field.IsIdentity && !bAllow && op.AutoIdentity)
             {
                 var id = session.InsertAndGetIdentity(sql, CommandType.Text, dps);
                 if (id > 0) entity[field.Name] = id;
@@ -202,6 +203,7 @@ namespace XCode
         static String InsertSQL(IEntity entity, ref IDataParameter[] parameters)
         {
             var op = EntityFactory.CreateOperate(entity.GetType());
+            var up = op.Session.Dal.Db.UserParameter;
 
             /*
             * 插入数据原则：
@@ -211,41 +213,61 @@ namespace XCode
             * 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
             */
 
-            var sbNames = new StringBuilder();
-            var sbValues = new StringBuilder();
+            // 缓存参数化时的SQL语句
+            var key = "{0}_Insert".F(entity.GetType().FullName);
+            var sql = "";
+
+            StringBuilder sbNames = null;
+            StringBuilder sbValues = null;
+            if (!up || !op.Session.Items.TryGetValue(key, out var oql))
+            {
+                sbNames = new StringBuilder();
+                sbValues = new StringBuilder();
+            }
+            else
+                sql = oql + "";
+
             var dps = new List<IDataParameter>();
             // 只读列没有插入操作
             foreach (var fi in op.Fields)
             {
                 var value = entity[fi.Name];
                 // 标识列不需要插入，别的类型都需要
-                if (CheckIdentity(fi, value, op, sbNames, sbValues)) continue;
+                if (sbNames != null && CheckIdentity(fi, value, op, sbNames, sbValues)) continue;
 
                 // 1，有脏数据的字段一定要参与同时对于实体有值的也应该参与（针对通过置空主键的方式另存）
-                if (!entity.Dirtys[fi.Name] && value == null)
+                if (!up && value == null && !entity.Dirtys[fi.Name])
                 {
                     // 2，没有脏数据，允许空的字段不参与
                     if (fi.IsNullable) continue;
-                    // 3，没有脏数据，不允许空，有默认值的不参与
-                    if (fi.DefaultValue != null) continue;
+                    //// 3，没有脏数据，不允许空，有默认值的不参与
+                    //if (fi.DefaultValue != null) continue;
 
                     // 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
                     value = FormatParamValue(fi, null, op);
                 }
 
-                sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
-                sbValues.Separate(", ");
+                if (sbNames != null) sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
+                if (sbValues != null) sbValues.Separate(", ");
 
-                if (UseParam(fi, value))
+                if (up || UseParam(fi, value))
                     dps.Add(CreateParameter(sbValues, op, fi, value));
                 else
                     sbValues.Append(op.FormatValue(fi, value));
             }
 
-            if (sbNames.Length <= 0) return null;
+            if (sbNames != null && sbNames.Length <= 0) return null;
 
             if (dps.Count > 0) parameters = dps.ToArray();
-            return String.Format("Insert Into {0}({1}) Values({2})", op.FormatedTableName, sbNames, sbValues);
+
+            if (sbNames != null)
+            {
+                sql = String.Format("Insert Into {0}({1}) Values({2})", op.FormatedTableName, sbNames, sbValues);
+                // 缓存参数化时的SQL语句
+                if (up) op.Session.Items[key] = sql;
+            }
+
+            return sql;
         }
 
         static Boolean CheckIdentity(FieldItem fi, Object value, IEntityOperate op, StringBuilder sbNames, StringBuilder sbValues)
@@ -285,6 +307,7 @@ namespace XCode
             if (def.Empty) return null;
 
             var op = EntityFactory.CreateOperate(entity.GetType());
+            var up = op.Session.Dal.Db.UserParameter;
 
             var sb = new StringBuilder();
             var dps = new List<IDataParameter>();
@@ -304,7 +327,7 @@ namespace XCode
                 sb.Append(name);
                 sb.Append("=");
 
-                if (UseParam(fi, value))
+                if (up || UseParam(fi, value))
                     dps.Add(CreateParameter(sb, op, fi, value));
                 else
                 {
@@ -322,23 +345,23 @@ namespace XCode
 
         static String DeleteSQL(IEntity entity, ref IDataParameter[] parameters)
         {
+            var op = EntityFactory.CreateOperate(entity.GetType());
+            var up = op.Session.Dal.Db.UserParameter;
+
             // 标识列作为删除关键字
             var exp = DefaultCondition(entity);
             var ps = new Dictionary<String, Object>();
-            var sql = exp?.GetString(false, ps);
+            if (!up) ps = null;
+            var sql = exp?.GetString(ps);
             if (String.IsNullOrEmpty(sql)) return null;
 
-            var op = EntityFactory.CreateOperate(entity.GetType());
-            if (ps.Count > 0)
+            if (ps != null && ps.Count > 0)
             {
-                var session = op.Session;
+                var db = op.Session.Dal.Db;
                 var dps = new List<IDataParameter>();
                 foreach (var item in ps)
                 {
-                    var dp = session.CreateParameter();
-                    dp.ParameterName = item.Key;
-                    dp.Value = item.Value;
-                    //dp.IsNullable = fi.IsNullable;
+                    var dp = db.CreateParameter(item.Key, item.Value, op.Table.FindByName(item.Key)?.Type);
 
                     dps.Add(dp);
                 }
@@ -351,8 +374,8 @@ namespace XCode
 
         static Boolean UseParam(FieldItem fi, Object value)
         {
-            // 是否使用参数化
-            if (Setting.Current.UserParameter) return true;
+            //// 是否使用参数化
+            //if (Setting.Current.UserParameter) return true;
 
             if (fi.Length > 0 && fi.Length < 4000) return false;
 
@@ -385,7 +408,7 @@ namespace XCode
                 case TypeCode.Empty:
                     return DBNull.Value;
                 case TypeCode.DateTime:
-                    return DAL.Create(eop.ConnName).Db.DateTimeMin;
+                    return DateTime.MinValue;
                 case TypeCode.Byte:
                 case TypeCode.Char:
                 case TypeCode.Decimal:
@@ -410,14 +433,9 @@ namespace XCode
 
         static IDataParameter CreateParameter(StringBuilder sb, IEntityOperate op, FieldItem fi, Object value)
         {
-            var session = op.Session;
+            var dp = op.Session.Dal.Db.CreateParameter(fi.ColumnName ?? fi.Name, value, fi.Type);
 
-            var paraname = session.FormatParameterName(fi.ColumnName);
-            sb.Append(paraname);
-
-            var dp = session.CreateParameter();
-            dp.ParameterName = paraname;
-            dp.Value = FormatParamValue(fi, value, op);
+            if (sb != null) sb.Append(dp.ParameterName);
 
             var dbp = dp as DbParameter;
             if (dbp != null) dbp.IsNullable = fi.IsNullable;
@@ -427,9 +445,7 @@ namespace XCode
 
         static Boolean CheckAdditionalValue(StringBuilder sb, IEntity entity, String name, String cname)
         {
-            Object addvalue = null;
-            Boolean sign;
-            if (!EntityAddition.TryGetValue(entity as EntityBase, name, out addvalue, out sign)) return false;
+            if (!EntityAddition.TryGetValue(entity as EntityBase, name, out var addvalue, out var sign)) return false;
 
             if (sign)
                 sb.AppendFormat("{0}+{1}", cname, addvalue);

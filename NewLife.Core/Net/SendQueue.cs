@@ -135,10 +135,10 @@ namespace NewLife.Net
             {
                 var pk = qi.Packet;
                 var len = pk.Total;
-                if (pk.Next == null)
-                    Buffer.BlockCopy(pk.Data, pk.Offset, se.Buffer, p, len);
-                else
-                    Buffer.BlockCopy(pk.ToArray(), 0, se.Buffer, p, len);
+
+                if (pk?.Data == null || se.Buffer == null) break;
+
+                pk.WriteTo(se.Buffer, p);
                 p += len;
 
                 // 不足最大长度，试试下一个

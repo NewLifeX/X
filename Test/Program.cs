@@ -1,36 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net;
-using System.Numerics;
-using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Agent;
-using NewLife.Common;
-using NewLife.Data;
-using NewLife.Expressions;
+using System.Xml.Serialization;
+using NewLife.Caching;
 using NewLife.Log;
-using NewLife.Net;
-using NewLife.Net.DNS;
-using NewLife.Net.IO;
-using NewLife.Net.Proxy;
-using NewLife.Net.Stress;
 using NewLife.Reflection;
-using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
 using NewLife.Xml;
+using XCode;
+using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
-using XCode.Transform;
 
 namespace Test
 {
@@ -53,12 +43,12 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
                 {
-                    XTrace.WriteException(ex);
+                    XTrace.WriteException(ex?.GetTrue());
                 }
 #endif
 
@@ -72,13 +62,30 @@ namespace Test
             }
         }
 
+        private static Int32 ths = 0;
         static void Test1()
         {
-            var svr = new NATProxy("10.10.4.157", 4781);
-            svr.Port = 3349;
-            svr.Log = XTrace.Log;
-            svr.Start();
-            Console.ReadKey();
+            Console.Title = "SQLite极速插入测试 之 天下无贼 v2.0 " + AssemblyX.Entry.Compile.ToFullString();
+
+            //Console.WriteLine(DateTime.Now.ToFullString());
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
+
+            if (ths <= 0)
+            {
+                var db = "Membership.db".GetFullPath();
+                if (File.Exists(db)) File.Delete(db);
+
+                Console.Write("请输入线程数（推荐1）：");
+                ths = Console.ReadLine().ToInt();
+                if (ths < 1) ths = 1;
+            }
+
+            var ds = new XCode.Common.DataSimulation<UserOnline>();
+            ds.Log = XTrace.Log;
+            //ds.BatchSize = 10000;
+            ds.Threads = ths;
+            ds.UseSql = true;
+            ds.Run(100000);
         }
 
         class A
@@ -94,83 +101,92 @@ namespace Test
 
         static void Test2()
         {
-            XCode.Setting.Current.TransactionDebug = true;
+            //EntityBuilder.Build(@"E:\ZTO\ZTO.GK.Web.Report\GK.Report\GK.Report.xml");
 
-            XTrace.WriteLine(Role.Meta.Count + "");
-            XTrace.WriteLine(Log.Meta.Count + "");
-            Console.Clear();
+            //var list = UserX.Search("mon", 1, true, null);
+            //Console.WriteLine(list);
 
-            Task.Run(() => TestTask(1));
-            Thread.Sleep(1000);
-            Task.Run(() => TestTask(2));
+            AssemblyX.AssemblyPaths.Add(@"D:\vs\Common7\IDE\");
+            //var type = "SexKind".GetTypeEx(true);
+            //Console.WriteLine(type?.FullName);
         }
 
-        static void TestTask(Int32 tid)
+        class TestModule : EntityModule
         {
-            try
+            protected override Boolean OnInit(Type entityType)
             {
-                XTrace.WriteLine("TestTask {0} Start", tid);
-                using (var tran = Role.Meta.CreateTrans())
-                {
-                    var role = new Role();
-                    role.Name = "R" + DateTime.Now.Millisecond;
-                    role.Save();
-                    XTrace.WriteLine("role.ID={0}", role.ID);
-
-                    Thread.Sleep(3000);
-
-                    role = new Role();
-                    role.Name = "R" + DateTime.Now.Millisecond;
-                    role.Save();
-                    XTrace.WriteLine("role.ID={0}", role.ID);
-
-                    Thread.Sleep(3000);
-
-                    if (tid == 2) tran.Commit();
-                }
+                return entityType == typeof(UserX);
             }
-            catch (Exception ex)
+
+            protected override Boolean OnValid(IEntity entity, Boolean isNew)
             {
-                XTrace.WriteException(ex);
+                if (isNew)
+                    XTrace.WriteLine("新增实体 " + entity.GetType().Name);
+                else
+                    XTrace.WriteLine("更新实体 " + entity.GetType().Name);
+
+                return base.OnValid(entity, isNew);
             }
-            finally
+
+            protected override Boolean OnDelete(IEntity entity)
             {
-                XTrace.WriteLine("TestTask {0} End", tid);
+                XTrace.WriteLine("删除实体 " + entity.GetType().Name);
+
+                return base.OnDelete(entity);
+            }
+
+            public static void Test()
+            {
+                EntityModules.Global.Add<TestModule>();
+
+                var user = new UserX();
+                user.Name = "Stone";
+                user.RoleID = 1;
+                user.Save();
+
+                user.Name = "大石头";
+                user.Update();
+
+                user.Delete();
             }
         }
 
         static void Test3()
         {
-            //var d = ".".GetFullPath();
-            //d.AsDirectory().Compress(d.AsDirectory().Name + ".7z");
+            RedisSetting._.Debug = true;
 
-            //"cfg.7z".AsFile().Extract("cfg");
-
-            var d = "Data".GetFullPath();
-            if (Directory.Exists(d)) Directory.Delete(d, true);
-
-            var count = Rand.Next(10, 100);
-            XTrace.WriteLine("正在生成{0}个大文件……", count);
-            var total = 0;
-            for (var i = 0; i < count; i++)
+            var set = RedisSetting.Current;
+            if (set.Items.Count == 0 || set.Items.All(e => e.Name.IsNullOrEmpty()))
             {
-                var sb = new StringBuilder();
-                var lines = Rand.Next(100, 10000);
-                for (var k = 0; k < lines; k++)
-                {
-                    if (Rand.Next(4) > 0)
-                        sb.AppendLine("学无先后达者为师！");
-                    else
-                        sb.AppendLine(Rand.NextString(16));
-                }
-                var f = d.CombinePath(i + ".txt").EnsureDirectory();
-                File.WriteAllText(f, sb.ToString());
-                total += (Int32)f.AsFile().Length;
+                set.Items.Add(new RedisSetting.Item { Name = "aaa", Url = "bbb" });
+                set.Items.Add(new RedisSetting.Item { Name = "xxx", Url = "yyy" });
             }
-            d.AsDirectory().Compress("Data.7z");
+            set.Save();
+        }
+    }
 
-            var size = (Int32)"Data.7z".AsFile().Length;
-            XTrace.WriteLine("压缩 {0:n0}Byte => {1:n0}Byte 压缩比 {2:p}", total, size, (Double)size / total);
+    /// <summary>Redis配置</summary>
+    [Description("Redis配置")]
+    [XmlConfigFile("Config/Redis.config", 15000)]
+    public class RedisSetting : XmlConfig<RedisSetting>
+    {
+        #region 属性
+        /// <summary>调试开关。默认true</summary>
+        [Description("调试开关。默认true")]
+        public Boolean Debug { get; set; } = true;
+
+        /// <summary>配置项</summary>
+        [Description("配置项")]
+        public List<Item> Items { get; set; } = new List<Item>();
+        #endregion
+
+        /// <summary>配置项</summary>
+        public class Item
+        {
+            [XmlAttribute]
+            public String Name { get; set; }
+            [XmlAttribute]
+            public String Url { get; set; }
         }
     }
 }

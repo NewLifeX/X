@@ -36,7 +36,7 @@
     <![endif]-->
     <!-- inline styles related to this page -->
     <!-- 自定义样式 -->
-    <link rel="stylesheet" href="~/Content/Site.css" type="text/css" />
+    <link rel="stylesheet" href="~/Content/Cube.css" type="text/css" />
     <!-- ace settings handler -->
     <script src="~/Content/ace/js/ace-extra.min.js"></script>
 
@@ -65,39 +65,6 @@
                 });
             </script>
 
-            <div class="sidebar-shortcuts" id="sidebar-shortcuts">
-                <div class="sidebar-shortcuts-large" id="sidebar-shortcuts-large">
-                    <button class="btn btn-success" onclick="$('#main').attr('src', '/Admin/Index/Main');" title="服务器信息">
-                        <i class="ace-icon fa fa-signal"></i>
-                    </button>
-
-                    <button class="btn btn-info" onclick="$('#main').attr('src', '/Admin/Log');" title="系统日志">
-                        <i class="ace-icon fa fa-pencil"></i>
-                    </button>
-
-                    <!-- #section:basics/sidebar.layout.shortcuts -->
-                    <button class="btn btn-warning" onclick="$('#main').attr('src', '/Admin/Menu');" title="系统菜单">
-                        <i class="ace-icon fa fa-users"></i>
-                    </button>
-
-                    <button class="btn btn-danger" onclick="$('#main').attr('src', '/Admin/Sys');" title="系统设置">
-                        <i class="ace-icon fa fa-cogs"></i>
-                    </button>
-
-                    <!-- /section:basics/sidebar.layout.shortcuts -->
-                </div>
-
-                <div class="sidebar-shortcuts-mini" id="sidebar-shortcuts-mini">
-                    <span class="btn btn-success"></span>
-
-                    <span class="btn btn-info"></span>
-
-                    <span class="btn btn-warning"></span>
-
-                    <span class="btn btn-danger"></span>
-                </div>
-            </div>
-            <!-- /.sidebar-shortcuts -->
             @Html.Partial("_Left")
             <!-- #section:basics/sidebar.layout.minimize -->
             <div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
@@ -117,129 +84,12 @@
             <div class="main-content-inner">
                 <!-- /section:basics/content.breadcrumbs -->
                 <div class="page-content" style="padding: 0px;">
-                    <!-- #section:settings.box -->
-                    <div class="ace-settings-container" id="ace-settings-container">
-                        <div class="btn btn-app btn-xs btn-warning ace-settings-btn" id="ace-settings-btn">
-                            <i class="ace-icon fa fa-cog bigger-130"></i>
-                        </div>
-
-                        <div class="ace-settings-box clearfix" id="ace-settings-box">
-                            <div class="pull-left width-50">
-                                <!-- #section:settings.skins -->
-                                <div class="ace-settings-item">
-                                    <div class="pull-left">
-                                        <select id="skin-colorpicker" class="hide">
-                                            <option data-skin="no-skin" value="#438EB9">#438EB9</option>
-                                            <option data-skin="skin-1" value="#222A2D">#222A2D</option>
-                                            <option data-skin="skin-2" value="#C6487E">#C6487E</option>
-                                            <option data-skin="skin-3" value="#D0D0D0">#D0D0D0</option>
-                                        </select>
-                                    </div>
-                                    <span>&nbsp; 选择皮肤</span>
-                                </div>
-
-                                <!-- /section:settings.skins -->
-                                <!-- #section:settings.navbar -->
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-navbar" />
-                                    <label class="lbl" for="ace-settings-navbar">Fixed Navbar</label>
-                                </div>
-
-                                <!-- /section:settings.navbar -->
-                                <!-- #section:settings.sidebar -->
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-sidebar" />
-                                    <label class="lbl" for="ace-settings-sidebar">Fixed Sidebar</label>
-                                </div>
-
-                                <!-- /section:settings.sidebar -->
-                                <!-- #section:settings.breadcrumbs -->
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-breadcrumbs" />
-                                    <label class="lbl" for="ace-settings-breadcrumbs">Fixed Breadcrumbs</label>
-                                </div>
-
-                                <!-- /section:settings.breadcrumbs -->
-                                <!-- #section:settings.rtl -->
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-rtl" />
-                                    <label class="lbl" for="ace-settings-rtl">Right To Left (rtl)</label>
-                                </div>
-
-                                <!-- /section:settings.rtl -->
-                                <!-- #section:settings.container -->
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-add-container" />
-                                    <label class="lbl" for="ace-settings-add-container">
-                                        Inside
-                                        <b>.container</b>
-                                    </label>
-                                </div>
-
-                                <!-- /section:settings.container -->
-                            </div>
-                            <!-- /.pull-left -->
-
-                            <div class="pull-left width-50">
-                                <!-- #section:basics/sidebar.options -->
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-hover" />
-                                    <label class="lbl" for="ace-settings-hover">Submenu on Hover</label>
-                                </div>
-
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-compact" />
-                                    <label class="lbl" for="ace-settings-compact">Compact Sidebar</label>
-                                </div>
-
-                                <div class="ace-settings-item">
-                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-highlight" />
-                                    <label class="lbl" for="ace-settings-highlight">Alt. Active Item</label>
-                                </div>
-
-                                <!-- /section:basics/sidebar.options -->
-                            </div>
-                            <!-- /.pull-left -->
-                        </div>
-                        <!-- /.ace-settings-box -->
-                    </div>
-                    <!-- /.ace-settings-container -->
-                    <!-- /section:settings.box -->
                     <iframe style="width: 100%; height: 100%; margin: 0; padding: 0; border: none;" id="main" name="main" src="@ViewBag.Main"></iframe>
                 </div>
                 <!-- /.page-content -->
             </div>
         </div>
         <!-- /.main-content -->
-        <div class="footer">
-            <div class="footer-inner">
-                <!-- #section:basics/footer -->
-                <div class="footer-content">
-                    <span class="bigger-120">
-                        <span class="blue bolder">@Config.DisplayName</span>
-                        @Config.Company &copy; 2002-@DateTime.Now.Year
-                    </span>
-
-                    @*&nbsp; &nbsp;
-                        <span class="action-buttons">
-                            <a href="#">
-                                <i class="ace-icon fa fa-twitter-square light-blue bigger-150"></i>
-                            </a>
-
-                            <a href="#">
-                                <i class="ace-icon fa fa-facebook-square text-primary bigger-150"></i>
-                            </a>
-
-                            <a href="#">
-                                <i class="ace-icon fa fa-rss-square orange bigger-150"></i>
-                            </a>
-                        </span>*@
-                </div>
-
-                <!-- /section:basics/footer -->
-            </div>
-        </div>
-
         <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse">
             <i class="ace-icon fa fa-angle-double-up icon-only bigger-110"></i>
         </a>

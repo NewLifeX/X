@@ -459,11 +459,13 @@ namespace System
                 bts[i] = buffer[k];
             }
 
-            var client = new UdpClient();
-            client.EnableBroadcast = true;
-            //client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
-            //client.Close();
-            client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+            var client = new UdpClient
+            {
+                EnableBroadcast = true
+            };
+            client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+            client.Close();
+            //client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
         }
         #endregion
 

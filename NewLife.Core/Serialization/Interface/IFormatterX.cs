@@ -130,16 +130,15 @@ namespace NewLife.Serialization
         #endregion
 
         #region 跟踪日志
-        private ILog _Log = Logger.Null;
         /// <summary>日志提供者</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        public ILog Log { get; set; } = Logger.Null;
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
         public virtual void WriteLog(String format, params Object[] args)
         {
-            Log.Info(format, args);
+            Log?.Info(format, args);
         }
         #endregion
     }

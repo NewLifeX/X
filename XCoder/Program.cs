@@ -173,19 +173,6 @@ namespace XCoder
                 engine.Render(item);
             }
 
-            // 重新整理模型
-            Int32 i = 0;
-            foreach (var item in tables)
-            {
-                item.ID = ++i;
-
-                Int32 j = 0;
-                foreach (var dc in item.Columns)
-                {
-                    dc.ID = ++j;
-                }
-            }
-
             // 如果有改变，才重新写入模型文件
             var xml2 = DAL.Export(tables);
             if (xml2 != xml) File.WriteAllText(mdl, xml2);

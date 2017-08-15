@@ -19,14 +19,14 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType DbType
+        public override DatabaseType Type
         {
             get { return DatabaseType.SqlCe; }
         }
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>SqlCe提供者工厂</summary>
-        static DbProviderFactory dbProviderFactory
+        static DbProviderFactory DbProviderFactory
         {
             get
             {
@@ -56,7 +56,7 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
-            get { return dbProviderFactory; }
+            get { return DbProviderFactory; }
         }
 
         private static SQLCEVersion _SqlCeProviderVersion = SQLCEVersion.SQLCE40;
@@ -118,11 +118,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>当前时间函数</summary>
-        public override String DateTimeNow { get { return "getdate()"; } }
+        ///// <summary>当前时间函数</summary>
+        //public override String DateTimeNow { get { return "getdate()"; } }
 
-        /// <summary>最小时间</summary>
-        public override DateTime DateTimeMin { get { return SqlDateTime.MinValue.Value; } }
+        ///// <summary>最小时间</summary>
+        //public override DateTime DateTimeMin { get { return SqlDateTime.MinValue.Value; } }
 
         ///// <summary>格式化时间为SQL字符串</summary>
         ///// <param name="dateTime">时间值</param>
@@ -212,7 +212,7 @@ namespace XCode.DataAccessLayer
     class SqlCeMetaData : FileDbMetaData
     {
         #region 构架
-        protected override List<IDataTable> OnGetTables(ICollection<String> names)
+        protected override List<IDataTable> OnGetTables(String[] names)
         {
             #region 查表、字段信息、索引信息、主键信息
             var session = Database.CreateSession();
@@ -233,10 +233,9 @@ namespace XCode.DataAccessLayer
 
             // 默认列出所有字段
             var rows = dt.Select("TABLE_TYPE='table'");
-            rows = OnGetTables(names, rows);
             if (rows == null || rows.Length < 1) return null;
 
-            return GetTables(rows);
+            return GetTables(rows, names);
         }
 
         protected override List<IDataIndex> GetIndexes(IDataTable table)
@@ -248,8 +247,7 @@ namespace XCode.DataAccessLayer
                 var dic = new Dictionary<String, IDataIndex>();
                 foreach (var item in list)
                 {
-                    IDataIndex di = null;
-                    if (!dic.TryGetValue(item.Name, out di))
+                    if (!dic.TryGetValue(item.Name, out var di))
                     {
                         dic.Add(item.Name, item);
                     }
@@ -293,7 +291,7 @@ namespace XCode.DataAccessLayer
             //sb.Remove(sb.Length - 1, 1);
 
             // sb.Remove涉及内存复制
-            for (Int32 i = 0; i < pks.Length; i++)
+            for (var i = 0; i < pks.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(FormatName(pks[i].ColumnName));
@@ -389,24 +387,24 @@ namespace XCode.DataAccessLayer
                 "           SEARCHABLE as IsSearchable, UNSIGNED_ATTRIBUTE as IsUnsigned, FIXED_PREC_SCALE, AUTO_UNIQUE_VALUE, LOCAL_TYPE_NAME,  " +
                 "           MINIMUM_SCALE as MinimumScale, MAXIMUM_SCALE as MaximumScale, GUID , TYPELIB , VERSION , IS_LONG as IsLong, BEST_MATCH as IsBestMatch, IS_FIXEDLENGTH as IsFixedLength  " +
                 " FROM      INFORMATION_SCHEMA.PROVIDER_TYPES ";
-
-        #region 未使用，以后可能有用
-        //private readonly String _AllPrimaryKeySql =
-        //        "SELECT u.COLUMN_NAME, c.CONSTRAINT_NAME, c.TABLE_NAME " +
-        //        "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS c INNER JOIN " +
-        //        "INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS u ON c.CONSTRAINT_NAME = u.CONSTRAINT_NAME AND u.TABLE_NAME = c.TABLE_NAME " +
-        //        "where c.CONSTRAINT_TYPE = 'PRIMARY KEY' ORDER BY u.TABLE_NAME, c.CONSTRAINT_NAME, u.ORDINAL_POSITION";
-
-        //private readonly String _AllForeignKeySql =
-        //        "SELECT DISTINCT KCU1.TABLE_NAME AS FK_TABLE_NAME,  KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME, KCU1.COLUMN_NAME AS FK_COLUMN_NAME, " +
-        //        "KCU2.TABLE_NAME AS UQ_TABLE_NAME, KCU2.CONSTRAINT_NAME AS UQ_CONSTRAINT_NAME, KCU2.COLUMN_NAME AS UQ_COLUMN_NAME, RC.UPDATE_RULE, RC.DELETE_RULE, KCU2.ORDINAL_POSITION AS UQ_ORDINAL_POSITION, KCU1.ORDINAL_POSITION AS FK_ORDINAL_POSITION " +
-        //        "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC " +
-        //        "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU1 ON KCU1.CONSTRAINT_NAME = RC.CONSTRAINT_NAME " +
-        //        "JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU2 ON  KCU2.CONSTRAINT_NAME =  RC.UNIQUE_CONSTRAINT_NAME AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION AND KCU2.TABLE_NAME = RC.UNIQUE_CONSTRAINT_TABLE_NAME " +
-        //        "ORDER BY FK_TABLE_NAME, FK_CONSTRAINT_NAME, FK_ORDINAL_POSITION";
         #endregion
 
-        #endregion
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        {
+            { typeof(Byte[]), new String[] { "varbinary({0})", "timestamp", "binary({0})", "image" } },
+            { typeof(Guid), new String[] { "uniqueidentifier" } },
+            { typeof(Boolean), new String[] { "bit" } },
+            { typeof(Byte), new String[] { "tinyint" } },
+            { typeof(Int16), new String[] { "smallint" } },
+            { typeof(Int32), new String[] { "int" } },
+            { typeof(Int64), new String[] { "bigint" } },
+            { typeof(Single), new String[] { "real" } },
+            { typeof(Double), new String[] { "float" } },
+            { typeof(Decimal), new String[] { "money", "numeric({0}, {1})" } },
+            { typeof(DateTime), new String[] { "datetime" } },
+            { typeof(String), new String[] { "nvarchar({0})", "ntext", "nchar({0})" } }
+        };
     }
 
     /// <summary>SqlCe版本</summary>
@@ -441,7 +439,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static SQLCEVersion DetermineVersion(String fileName)
         {
-            Int32 versionLONGWORD = 0;
+            var versionLONGWORD = 0;
 
             using (var fs = new FileStream(fileName, FileMode.Open))
             {
@@ -533,8 +531,10 @@ namespace XCode.DataAccessLayer
                 var e = EngineType.CreateInstance(connstr);
                 if (e == null) return null;
 
-                var sce = new SqlCeEngine();
-                sce.Engine = e;
+                var sce = new SqlCeEngine()
+                {
+                    Engine = e
+                };
                 return sce;
             }
             catch { return null; }

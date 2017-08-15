@@ -42,7 +42,6 @@ if(Config.RenderGenEntity){#>
         #endregion
 
         #region 扩展属性
-            <#@include Name="扩展属性.xt"#>
         #endregion
 
         #region 扩展查询

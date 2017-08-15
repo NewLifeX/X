@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 using System.Web.Mvc;
+using NewLife.Common;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;
@@ -27,9 +26,9 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        protected override EntityList<XLog> FindAll(Pager p)
+        protected override IEnumerable<XLog> Search(Pager p)
         {
-            return XLog.Search(p["Q"], p["adminid"].ToInt(), p["category"], p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
+            return XLog.Search(p["Q"], p["userid"].ToInt(-1), p["category"], p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }
 
         /// <summary>不允许添加修改日志</summary>
@@ -73,23 +72,15 @@ namespace NewLife.Cube.Admin.Controllers
             return Json(new { msg = "不允许删除日志！", code = -1, url = url }, JsonRequestBehavior.AllowGet);
         }
 
-        ///// <summary>获取可用于生成权限菜单的Action集合</summary>
-        ///// <param name="menu"></param>
-        ///// <returns></returns>
-        //protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
-        //{
-        //    var dic = base.ScanActionMenu(menu);
-
-        //    dic = dic.Where(e => !e.Key.Name.EqualIgnoreCase("Add", "Edit", "Delete")).ToDictionary(e => e.Key, e => e.Value);
-
-        //    return dic;
-        //}
-
-        public ActionResult EnableClear()
+        /// <summary>清空全表数据</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Delete)]
+        [DisplayName("清空")]
+        public override ActionResult Clear()
         {
-            // Gateway.Meta.Session.Execute("Update Gateway set Online=0");
-            XLog.Meta.Session.Execute("DELETE FROM Log");
-            return RedirectToAction("Index");
+            if (!SysConfig.Current.Develop || !Setting.Current.Debug || UserX.Current.Role.Name != "管理员") throw new Exception("不允许删除日志");
+
+            return base.Clear();
         }
     }
 }

@@ -12,6 +12,9 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
@@ -291,6 +294,8 @@ namespace NewLife.Net
         {
             EnsureCreateServer();
 
+            if (Servers.Count == 0) throw new Exception("全部端口监听失败！");
+
             WriteLog("准备开始监听{0}个服务器", Servers.Count);
 
             foreach (var item in Servers)
@@ -534,10 +539,10 @@ namespace NewLife.Net
             var ts = new List<Task>();
             foreach (var item in Sessions)
             {
-                ts.Add(Task.Run(() => item.Value.Send(buffer)));
+                ts.Add(TaskEx.Run(() => item.Value.Send(buffer)));
             }
 
-            return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
+            return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
         #endregion
 

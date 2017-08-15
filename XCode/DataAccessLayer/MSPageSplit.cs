@@ -167,8 +167,7 @@ namespace XCode.DataAccessLayer
 
             // 找到排序，优先采用排序字句来做双Top排序
             var orderby = builder.OrderBy ?? builder.KeyOrder;
-            Boolean[] isdescs = null;
-            var keys = SelectBuilder.Split(orderby, out isdescs);
+            var keys = SelectBuilder.Split(orderby, out var isdescs);
 
             // 把排序反过来
             var isdescs2 = new Boolean[keys.Length];

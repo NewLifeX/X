@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Xml;
 
 namespace NewLife.Serialization
 {
@@ -21,6 +22,13 @@ namespace NewLife.Serialization
             if (value == null && type != typeof(String)) return false;
 
             var writer = Host.GetWriter();
+
+            // 枚举 写入字符串
+            if (type.IsEnum)
+            {
+                writer.WriteValue(value + "");
+                return true;
+            }
 
             switch (Type.GetTypeCode(type))
             {
@@ -117,37 +125,45 @@ namespace NewLife.Serialization
 
             if (type == typeof(Guid))
             {
-                value = new Guid(reader.ReadElementContentAsString());
+                value = new Guid(reader.ReadContentAsString());
                 return true;
             }
             else if (type == typeof(Byte[]))
             {
                 // 用字符串长度作为预设缓冲区的长度
                 var buf = new Byte[reader.Value.Length];
-                var count = reader.ReadElementContentAsBase64(buf, 0, buf.Length);
+                var count = reader.ReadContentAsBase64(buf, 0, buf.Length);
                 value = buf.ReadBytes(0, count);
                 return true;
             }
             else if (type == typeof(Char[]))
             {
-                value = reader.ReadElementContentAsString().ToCharArray();
+                value = reader.ReadContentAsString().ToCharArray();
                 return true;
             }
             else if (type == typeof(DateTimeOffset))
             {
-                value = reader.ReadElementContentAs(type, null);
+                value = reader.ReadContentAs(type, null);
                 return true;
             }
             else if (type == typeof(TimeSpan))
             {
-                value = reader.ReadElementContentAs(type, null);
+                value = reader.ReadContentAs(type, null);
                 return true;
             }
 
             var code = Type.GetTypeCode(type);
             if (code == TypeCode.Object) return false;
 
-            var v = reader.ReadElementContentAsString() + "";
+            // 读取异构Xml时可能报错
+            var v = (reader.NodeType == XmlNodeType.Element ? reader.ReadElementContentAsString() : reader.ReadContentAsString()) + "";
+
+            // 枚举
+            if (type.IsEnum)
+            {
+                value = Enum.Parse(type, v);
+                return true;
+            }
 
             switch (code)
             {

@@ -2,11 +2,13 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Web;
+using XCode;
 
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("新生命数据映射框架")]
+[assembly: AssemblyTitle("新生命数据中间件")]
 [assembly: AssemblyDescription("分布式大数据中间件")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]
@@ -22,6 +24,9 @@ using System.Runtime.InteropServices;
 //[assembly: CLSCompliant(true)]
 [assembly: Dependency("NewLife.Core", LoadHint.Always)]
 
+[assembly: RuntimeCompatibility(WrapNonExceptionThrows = true)]
+[assembly: PreApplicationStartMethod(typeof(PreApplicationStartCode), "Start")]
+
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
 [assembly: Guid("fd577d2c-f8aa-4cc8-a697-d7990c264af3")]
 
@@ -34,8 +39,8 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.5.*")]
-[assembly: AssemblyFileVersion("9.5.2017.0607")]
+[assembly: AssemblyVersion("9.6.*")]
+[assembly: AssemblyFileVersion("9.6.2017.0808")]
 
 /*
  * XCode的重大改进
@@ -53,6 +58,8 @@ using System.Runtime.InteropServices;
  * /
 
 /*
+ * v9.6.2017.0808   重构正向工程，基于映射表查找数据库字段类型到实体类型的映射
+ * 
  * v9.5.2017.0607   全面支持参数化添删改查
  * 
  * v9.4.2017.0207   废弃单对象缓存的自动保存

@@ -201,6 +201,9 @@ namespace XCode
         #endregion
 
         #region 一些设置
+        /// <summary>是否自增获取自增返回值。默认启用</summary>
+        Boolean AutoIdentity { get; set; }
+
         /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
         Boolean AllowInsertIdentity { get; set; }
 

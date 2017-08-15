@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Reflection;
 using XCode.Membership;
+using XCode;
 
 namespace NewLife.Cube.Admin.Controllers
 {
@@ -24,7 +25,12 @@ namespace NewLife.Cube.Admin.Controllers
         {
             ViewBag.User = ManageProvider.User;
             ViewBag.Config = SysConfig.Current;
-            ViewBag.Main = Url.Action("Main");
+
+            // 工作台页面
+            var startPage = Request["page"];
+            if (startPage.IsNullOrEmpty()) startPage = Setting.Current.StartPage;
+
+            ViewBag.Main = startPage;
 
             return View();
         }
@@ -43,7 +49,7 @@ namespace NewLife.Cube.Admin.Controllers
             }
 
             ViewBag.Act = id;
-            ViewBag.User = ManageProvider.User;
+            //ViewBag.User = ManageProvider.User;
             ViewBag.Config = SysConfig.Current;
 
             var name = Request.ServerVariables["Server_SoftWare"];
@@ -75,7 +81,7 @@ namespace NewLife.Cube.Admin.Controllers
             if (menu.Visible)
             {
                 menu.Visible = false;
-                menu.Save();
+                (menu as IEntity).Save();
             }
 
             return base.ScanActionMenu(menu);

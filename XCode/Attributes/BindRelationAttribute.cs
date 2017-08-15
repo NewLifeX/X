@@ -4,6 +4,7 @@ using XCode.DataAccessLayer;
 namespace XCode
 {
     /// <summary>用于指定数据类所绑定到的关系</summary>
+    [Obsolete("废弃BindRelation")]
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class BindRelationAttribute : Attribute
     {
@@ -44,15 +45,15 @@ namespace XCode
         #endregion
 
         #region 方法
-        /// <summary>填充关系</summary>
-        /// <param name="relation"></param>
-        internal void Fill(IDataRelation relation)
-        {
-            relation.Column = Column;
-            relation.Unique = Unique;
-            relation.RelationTable = RelationTable;
-            relation.RelationColumn = RelationColumn;
-        }
+        ///// <summary>填充关系</summary>
+        ///// <param name="relation"></param>
+        //internal void Fill(IDataRelation relation)
+        //{
+        //    relation.Column = Column;
+        //    relation.Unique = Unique;
+        //    relation.RelationTable = RelationTable;
+        //    relation.RelationColumn = RelationColumn;
+        //}
         #endregion
     }
 }

@@ -1,7 +1,9 @@
-﻿@using System.Diagnostics;
-@using NewLife.Common;
+﻿@using NewLife.Common;
 @using NewLife.Cube.Admin;
+@using XCode.DataAccessLayer;
 @{
+    Layout = NewLife.Cube.Setting.Current.Layout;
+
     //ViewBag.Title = "服务器信息";
     var dbs = Model as IList<DbItem>;
 }
@@ -12,7 +14,6 @@
             <th class="text-center">类型</th>
             <th class="text-center">连接字符串</th>
             <th class="text-center">版本</th>
-            <th class="text-center">动态</th>
             <th class="text-center">备份</th>
             <th class="text-center">下载</th>
         </tr>
@@ -20,21 +21,12 @@
     <tbody>
         @foreach (var item in dbs)
         {
+            var dal = DAL.Create(item.Name);
             <tr>
                 <td>@item.Name</td>
                 <td>@item.Type</td>
-                <td>@item.ConnStr</td>
+                <td><span title="@dal.Db.ConnectionString">@item.ConnStr</span></td>
                 <td>@item.Version</td>
-                <td>
-                    @if (item.Dynamic)
-                    {
-                        <text>是，</text>@Html.ActionLink("静态化", "SetStatic", new { Name = item.Name })
-                    }
-                    else
-                    {
-                        <text>否</text>
-                    }
-                </td>
                 <td>@Html.ActionLink("备份", "Backup", new { Name = item.Name })，共 @item.Backups.ToString("n0")个</td>
                 <td class="text-center">@Html.ActionLink("下载", "Download", new { Name = item.Name })</td>
             </tr>

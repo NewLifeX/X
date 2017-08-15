@@ -66,13 +66,13 @@ namespace XCoder
         {
             bindTyps = new List<BindComboxEnumType<T>>();
 
-            foreach(var name in Enum.GetNames(typeof(T)))
+            foreach (var name in Enum.GetNames(typeof(T)))
             {
                 bindTyps.Add(new BindComboxEnumType<T>()
-                                 {
-                                     Name = name,
-                                     Type = (T)Enum.Parse(typeof(T), name)
-                                 });
+                {
+                    Name = name,
+                    Type = (T)Enum.Parse(typeof(T), name)
+                });
             }
         }
 
@@ -85,12 +85,12 @@ namespace XCoder
 
     /// <summary>暂时支持的数据类型,常规的</summary>
     public enum SupportDataType
-    {       
+    {
         Boolean = 3,
-        DateTime = 6,      
+        DateTime = 6,
         Double = 8,
-        Int32 =9,
-        Int64 =10,
+        Int32 = 9,
+        Int64 = 10,
         SByte = 11,
         String = 12
     }
@@ -102,24 +102,24 @@ namespace XCoder
         public String Name { get; set; }
         /// <summary>类型长度</summary>
         public Int32 Length { get; set; }
-        /// <summary>字节数/summary>
-        public Int32 NumOfByte { get; set; }
+        ///// <summary>字节数/summary>
+        //public Int32 NumOfByte { get; set; }
         /// <summary>精度</summary>
         public Int32 Precision { get; set; }
         /// <summary>数据类型</summary>
         public String DataType { get; set; }
 
-        public static List<PrimitiveType> TypeList ;
+        public static List<PrimitiveType> TypeList;
 
         static PrimitiveType()
         {
             TypeList = new List<PrimitiveType>();
-            TypeList.Add(new PrimitiveType() { Name = "bool", Length = 1, NumOfByte = 1, DataType = "System.Boolean", Precision = 1 });
-            TypeList.Add(new PrimitiveType() { Name = "int", Length = 10, NumOfByte = 10, DataType = "System.Int32", Precision = 10 });
-            TypeList.Add(new PrimitiveType() { Name = "double", Length = 22, NumOfByte = 22, DataType = "System.Double", Precision = 22 });
-            TypeList.Add(new PrimitiveType() { Name = "nvarchar", Length = 20, NumOfByte = 20, DataType = "System.String", Precision = 20 });
-            TypeList.Add(new PrimitiveType() { Name = "ntext", Length = 65535, NumOfByte = 65535, DataType = "System.String", Precision = 65535 });
-            TypeList.Add(new PrimitiveType() { Name = "datetime", Length = 20, NumOfByte = 20, DataType = "System.DateTime", Precision = 20 });
+            TypeList.Add(new PrimitiveType() { Name = "bool", Length = 1, DataType = "System.Boolean", Precision = 1 });
+            TypeList.Add(new PrimitiveType() { Name = "int", Length = 10, DataType = "System.Int32", Precision = 10 });
+            TypeList.Add(new PrimitiveType() { Name = "double", Length = 22, DataType = "System.Double", Precision = 22 });
+            TypeList.Add(new PrimitiveType() { Name = "nvarchar", Length = 20, DataType = "System.String", Precision = 20 });
+            TypeList.Add(new PrimitiveType() { Name = "ntext", Length = 65535, DataType = "System.String", Precision = 65535 });
+            TypeList.Add(new PrimitiveType() { Name = "datetime", Length = 20, DataType = "System.DateTime", Precision = 20 });
         }
     }
 }

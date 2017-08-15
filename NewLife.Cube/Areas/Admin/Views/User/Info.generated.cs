@@ -267,7 +267,7 @@ WriteLiteral("                        ");
 
             
             #line 45 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                   Write(Html.ForEditor("SexKind", user.SexKind));
+                   Write(Html.ForEditor("SexKind", user.Sex));
 
             
             #line default

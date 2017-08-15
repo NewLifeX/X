@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Serialization;
 using NewLife.Web;
+using NewLife.Xml;
 using XCode;
 using XCode.Configuration;
 using XCode.Membership;
@@ -34,7 +35,18 @@ namespace NewLife.Cube
             // 强行实例化一次，初始化实体对象
             var entity = new TEntity();
 
-            ViewBag.Title = Entity<TEntity>.Meta.Table.Description + "管理";
+            var title = Entity<TEntity>.Meta.Table.Description + "管理";
+            ViewBag.Title = title;
+        }
+
+        /// <summary>执行后</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuted(ActionExecutedContext filterContext)
+        {
+            base.OnActionExecuted(filterContext);
+
+            var title = ViewBag.Title + "";
+            HttpContext.Items["Title"] = title;
         }
         #endregion
 
@@ -42,7 +54,7 @@ namespace NewLife.Cube
         /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        protected virtual EntityList<TEntity> FindAll(Pager p)
+        protected virtual IEnumerable<TEntity> Search(Pager p)
         {
             // 缓存数据，用于后续导出
             Session[CacheKey] = p;
@@ -57,7 +69,7 @@ namespace NewLife.Cube
 
         /// <summary>导出当前页以后的数据</summary>
         /// <returns></returns>
-        protected virtual EntityList<TEntity> ExportData()
+        protected virtual IEnumerable<TEntity> ExportData()
         {
             // 跳过头部一些页数，导出当前页以及以后的数据
             var p = new Pager(Session[CacheKey] as Pager);
@@ -66,7 +78,7 @@ namespace NewLife.Cube
             // 不要查记录数
             p.TotalCount = -1;
 
-            return FindAll(p);
+            return Search(p);
         }
         #endregion
 
@@ -96,7 +108,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         protected virtual ActionResult IndexView(Pager p)
         {
-            var list = FindAll(p);
+            var list = Search(p);
 
             return View("List", list);
         }
@@ -298,6 +310,9 @@ namespace NewLife.Cube
             // 用于显示的列
             if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
 
+            // 呈现表单前，保存实体对象。提交时优先使用该对象而不是去数据库查找，避免脏写
+            EntityModelBinder.SetEntity(entity);
+
             return View("Form", entity);
         }
         #endregion
@@ -309,14 +324,14 @@ namespace NewLife.Cube
         [DisplayName("导出")]
         public virtual ActionResult ExportXml()
         {
-            //var list = Entity<TEntity>.FindAll();
-            //var xml = list.ToXml();
             var obj = OnExportXml();
             var xml = "";
             if (obj is IEntity)
                 xml = (obj as IEntity).ToXml();
             else if (obj is EntityList<TEntity>)
                 xml = (obj as EntityList<TEntity>).ToXml();
+            else
+                xml = obj.ToXml();
 
             SetAttachment(null, ".xml");
 
@@ -408,20 +423,20 @@ namespace NewLife.Cube
             return null;
         }
 
-        private void ToExcel(string FileType, string FileName, string ExcelContent)
+        private void ToExcel(String FileType, String FileName, String ExcelContent)
         {
-            System.Web.HttpContext.Current.Response.Charset = "UTF-8";
-            System.Web.HttpContext.Current.Response.ContentEncoding = System.Text.Encoding.UTF8;
-            System.Web.HttpContext.Current.Response.AppendHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(FileName, System.Text.Encoding.UTF8).ToString());
-            System.Web.HttpContext.Current.Response.ContentType = FileType;
-            System.IO.StringWriter tw = new System.IO.StringWriter();
-            System.Web.HttpContext.Current.Response.Output.Write(ExcelContent.ToString());
-            System.Web.HttpContext.Current.Response.Flush();
-            System.Web.HttpContext.Current.Response.End();
+            var rs = Response;
+            rs.Charset = "UTF-8";
+            rs.ContentEncoding = Encoding.UTF8;
+            rs.AppendHeader("Content-Disposition", "attachment;filename=" + HttpUtility.UrlEncode(FileName, Encoding.UTF8).ToString());
+            rs.ContentType = FileType;
+            var tw = new System.IO.StringWriter();
+            rs.Output.Write(ExcelContent.ToString());
+            rs.Flush();
+            rs.End();
         }
 
         /// <summary>导出Excel，可重载修改要输出的结果集</summary>
-        /// <param name="ms"></param>
         /// <param name="fs"></param>
         protected virtual String OnExportExcel(List<FieldItem> fs)
         {
@@ -431,10 +446,9 @@ namespace NewLife.Cube
         }
 
         /// <summary>导出Excel，可重载修改要输出的列</summary>
-        /// <param name="ms"></param>
         /// <param name="fs"></param>
         /// <param name="list"></param>
-        protected virtual String OnExportExcel(List<FieldItem> fs, List<TEntity> list)
+        protected virtual String OnExportExcel(List<FieldItem> fs, IEnumerable<TEntity> list)
         {
             var sb = new StringBuilder();
             //下面这句解决中文乱码
@@ -449,7 +463,7 @@ namespace NewLife.Cube
                     var name = fi.DisplayName;
                     if (name.IsNullOrEmpty()) name = fi.Description;
                     if (name.IsNullOrEmpty()) name = fi.Name;
-                    sb.Append(string.Format("<td>{0}</td>", name));
+                    sb.Append(String.Format("<td>{0}</td>", name));
                 }
                 sb.Append("</tr>");
             }
@@ -459,7 +473,7 @@ namespace NewLife.Cube
                 sb.Append("<tr>");
                 foreach (var fi in fs)
                 {
-                    sb.Append(string.Format("<td>{0}</td>", "{0}".F(item[fi.Name])));
+                    sb.Append(String.Format("<td>{0}</td>", "{0}".F(item[fi.Name])));
                 }
                 sb.Append("</tr>");
             }
@@ -501,9 +515,9 @@ namespace NewLife.Cube
             if (!SysConfig.Current.Develop) throw new InvalidOperationException("仅支持开发模式下使用！");
 
             // 视图路径，Areas/区域/Views/控制器/_List_Data.cshtml
-            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], this.GetType().Name.TrimEnd("Controller"));
+            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], GetType().Name.TrimEnd("Controller"));
 
-            var rs = ViewHelper.MakeListDataView(vpath, ListFields);
+            var rs = ViewHelper.MakeListDataView(typeof(TEntity), vpath, ListFields);
 
             Js.Alert("生成列表模版 {0} 成功！".F(vpath));
 
@@ -519,9 +533,9 @@ namespace NewLife.Cube
             if (!SysConfig.Current.Develop) throw new InvalidOperationException("仅支持开发模式下使用！");
 
             // 视图路径，Areas/区域/Views/控制器/_List_Data.cshtml
-            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], this.GetType().Name.TrimEnd("Controller"));
+            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], GetType().Name.TrimEnd("Controller"));
 
-            var rs = ViewHelper.MakeListDataView(vpath, FormFields);
+            var rs = ViewHelper.MakeListDataView(typeof(TEntity), vpath, FormFields);
 
             Js.Alert("生成列表模版 {0} 成功！".F(vpath));
 
@@ -607,11 +621,10 @@ namespace NewLife.Cube
             if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
 
             var txt = (String)ViewBag.HeaderContent;
-            if (txt.IsNullOrEmpty() && ManageProvider.Menu.Current != null) txt = ManageProvider.Menu.Current.Remark;
+            if (txt.IsNullOrEmpty()) txt = ManageProvider.Menu?.Current?.Remark;
             if (txt.IsNullOrEmpty()) txt = GetType().GetDescription();
-            if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
-                txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
-            //txt = "这里是页头内容，你可以通过重载OnActionExecuting然后设置ViewBag.HeaderTitle/HeaderContent来修改，或者给控制器增加Description特性";
+            //if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
+            //    txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
             ViewBag.HeaderContent = txt;
 
             base.OnActionExecuting(filterContext);

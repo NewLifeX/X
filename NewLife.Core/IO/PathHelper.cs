@@ -51,6 +51,9 @@ namespace System.IO
             }
             if (dir.IsNullOrEmpty()) return Path.GetFullPath(path);
 
+            // 处理网络路径
+            if (path.StartsWith(@"\\")) return Path.GetFullPath(path);
+
             // 考虑兼容Linux
             if (!NewLife.Runtime.Mono)
             {
@@ -266,7 +269,7 @@ namespace System.IO
 
             return false;
         }
-#if !__MOBILE__
+#if !__MOBILE__ && !NET4
         /// <summary>解压缩</summary>
         /// <param name="fi"></param>
         /// <param name="destDir"></param>
@@ -331,6 +334,45 @@ namespace System.IO
                 {
                     zf.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
                 }
+            }
+            else
+            {
+                new SevenZip().Compress(fi.FullName, destFile);
+            }
+        }
+#else
+        /// <summary>解压缩</summary>
+        /// <param name="fi"></param>
+        /// <param name="destDir"></param>
+        /// <param name="overwrite">是否覆盖目标同名文件</param>
+        public static void Extract(this FileInfo fi, String destDir, Boolean overwrite = false)
+        {
+            if (destDir.IsNullOrEmpty()) destDir = fi.Name.GetFullPath();
+
+            //ZipFile.ExtractToDirectory(fi.FullName, destDir);
+
+            if (fi.Name.EndsWithIgnoreCase(".zip"))
+            {
+                ZipFile.ExtractToDirectory(fi.FullName, destDir, overwrite, false);
+            }
+            else
+            {
+                new SevenZip().Extract(fi.FullName, destDir);
+            }
+        }
+
+        /// <summary>压缩文件</summary>
+        /// <param name="fi"></param>
+        /// <param name="destFile"></param>
+        public static void Compress(this FileInfo fi, String destFile)
+        {
+            if (destFile.IsNullOrEmpty()) destFile = fi.Name + ".zip";
+
+            if (File.Exists(destFile)) File.Delete(destFile);
+
+            if (destFile.EndsWithIgnoreCase(".zip"))
+            {
+                ZipFile.CompressFile(fi.FullName, destFile);
             }
             else
             {
@@ -428,7 +470,7 @@ namespace System.IO
             return list.ToArray();
         }
 
-#if !__MOBILE__
+#if !__MOBILE__ && !NET4
         /// <summary>压缩</summary>
         /// <param name="di"></param>
         /// <param name="destFile"></param>

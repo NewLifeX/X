@@ -1,4 +1,7 @@
 ﻿@using NewLife.Common;
+@{
+    //var user = ViewBag.User as IUser ?? User.Identity as IUser;
+}
 <div class="btn-group">
     <button data-toggle="dropdown" class="btn btn-info btn-sm btn-sm-force dropdown-toggle" aria-expanded="false">
         高级
@@ -21,10 +24,13 @@
         @*<li>
                 <a href="@Url.Action("ImportJson")">导入Json</a>
             </li>*@
-        <li class="divider"></li>
-        <li>
-            <a href="@Url.Action("Clear")" onclick="return confirm('该操作将删除数据表所有数据并不可恢复！\n确认清空？');">清空数据表</a>
-        </li>
+        @if (SysConfig.Current.Develop && User.IsInRole("管理员"))
+        {
+            <li class="divider"></li>
+            <li>
+                <a href="@Url.Action("Clear")" onclick="return confirm('该操作将删除数据表所有数据并不可恢复！\n确认清空？');">清空数据表</a>
+            </li>
+        }
         @if (SysConfig.Current.Develop)
         {
             <li class="divider"></li>

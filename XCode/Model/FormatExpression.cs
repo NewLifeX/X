@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using XCode.Configuration;
 
 namespace XCode
@@ -21,24 +22,28 @@ namespace XCode
         /// <param name="field"></param>
         /// <param name="format"></param>
         /// <param name="value"></param>
-        public FormatExpression(FieldItem field, String format, String value)
+        public FormatExpression(FieldItem field, String format, String value) : base(value)
         {
             Field = field;
             Format = format;
-            Text = value;
+            //Text = value;
         }
         #endregion
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
-        /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
+        /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override String GetString(Boolean needBracket, IDictionary<String, Object> ps)
+        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
-            if (Field == null || Format.IsNullOrWhiteSpace()) return null;
+            if (Field == null || Format.IsNullOrWhiteSpace()) return;
 
-            if (ps == null) return String.Format(Format, Field.FormatedName, Text);
+            if (ps == null)
+            {
+                builder.AppendFormat(Format, Field.FormatedName, Text);
+                return;
+            }
 
             // 参数化处理
             var name = Field.Name;
@@ -49,7 +54,7 @@ namespace XCode
             ps[name] = Text;
 
             var op = Field.Factory;
-            return String.Format(Format, Field.FormatedName, op.Session.FormatParameterName(name));
+            builder.AppendFormat(Format, Field.FormatedName, op.Session.FormatParameterName(name));
         }
         #endregion
     }

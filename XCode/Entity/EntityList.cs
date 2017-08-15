@@ -162,7 +162,7 @@ namespace XCode
             }
 
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
-            if (value != null && value.GetType().IsIntType())
+            if (value != null && value.GetType().IsInt())
             {
                 // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
                 var v6 = Convert.ToInt64(value);
@@ -203,13 +203,13 @@ namespace XCode
                 if (field != null)
                 {
                     ss[i] = field.Type == typeof(String);
-                    ts[i] = field.Type.IsIntType();
+                    ts[i] = field.Type.IsInt();
                 }
 
                 if (values[i] == null) continue;
 
                 // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
-                ts[i] |= values[i].GetType().IsIntType();
+                ts[i] |= values[i].GetType().IsInt();
                 if (ts[i]) vs[i] = Convert.ToInt64(values[i]);
 
                 ss[i] |= values[i].GetType() == typeof(String);
@@ -260,7 +260,7 @@ namespace XCode
             if (Count < 1) return default(T);
 
             // 特殊处理整数类型，避免出现相同值不同整型而导致结果不同
-            if (value != null && value.GetType().IsIntType())
+            if (value != null && value.GetType().IsInt())
             {
                 // 整型统一转为Int64后再比较，因为即使数值相等，类型不同的对象也是不等的
                 var v6 = Convert.ToInt64(value);

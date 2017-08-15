@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 using NewLife.Common;
-using NewLife.Configuration;
 using NewLife.Log;
-using NewLife.Web;
 using XCode.DataAccessLayer;
 
 namespace NewLife.Cube
@@ -29,9 +28,8 @@ namespace NewLife.Cube
         /// <summary>上下文</summary>
         public static HttpContext Context { get { return HttpContext.Current; } }
 
-        private static String _RunTimeFormat = "查询{0}次，执行{1}次，耗时{2:n0}毫秒";
         /// <summary>执行时间字符串</summary>
-        public static String DbRunTimeFormat { get { return _RunTimeFormat; } set { _RunTimeFormat = value; } }
+        public static String DbRunTimeFormat { get; set; } = "查询{0}次，执行{1}次，耗时{2:n0}毫秒";
 
         const String _QueryTimes = "DAL.QueryTimes";
         const String _ExecuteTimes = "DAL.ExecuteTimes";
@@ -46,13 +44,23 @@ namespace NewLife.Cube
             if (SysConfig.Current.Develop) Context.Items["XCode_SQLList"] = new List<String>();
         }
 
+        private static Boolean _tip;
         /// <summary>获取执行时间和查询次数等信息</summary>
         /// <returns></returns>
         public static String GetInfo()
         {
             var ts = DateTime.Now - HttpContext.Current.Timestamp;
 
-            if (!Context.Items.Contains(_QueryTimes) || !Context.Items.Contains(_ExecuteTimes)) throw new XException("设计错误！需要在web.config中配置{0}", typeof(DbRunTimeModule).FullName);
+            if (!Context.Items.Contains(_QueryTimes) || !Context.Items.Contains(_ExecuteTimes))
+            {
+                //throw new XException("设计错误！需要在web.config中配置{0}", typeof(DbRunTimeModule).FullName);
+                if (!_tip)
+                {
+                    _tip = true;
+                    XTrace.WriteLine("设计错误！需要在web.config中配置{0}", typeof(DbRunTimeModule).FullName);
+                }
+                return null;
+            }
 
             var StartQueryTimes = (Int32)Context.Items[_QueryTimes];
             var StartExecuteTimes = (Int32)Context.Items[_ExecuteTimes];
@@ -63,7 +71,7 @@ namespace NewLife.Cube
             if (SysConfig.Current.Develop)
             {
                 var list = Context.Items["XCode_SQLList"] as List<String>;
-                if (list != null && list.Count > 0) inf += "<br />" + list.Join("<br />" + Environment.NewLine);
+                if (list != null && list.Count > 0) inf += "<br />" + list.Select(e => HttpUtility.HtmlEncode(e)).Join("<br />" + Environment.NewLine);
             }
 
             return inf;

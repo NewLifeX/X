@@ -24,6 +24,12 @@ namespace NewLife.Serialization
         /// <param name="type"></param>
         /// <returns></returns>
         Object Read(String json, Type type);
+
+        /// <summary>类型转换</summary>
+        /// <param name="obj"></param>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
+        Object Convert(Object obj, Type targetType);
     }
 
     /// <summary>Json助手</summary>
@@ -57,6 +63,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static Object ToJsonEntity(this String json, Type type)
         {
+            if (json.IsNullOrEmpty()) return null;
+
             return Default.Read(json, type);
         }
 
@@ -66,6 +74,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static T ToJsonEntity<T>(this String json)
         {
+            if (json.IsNullOrEmpty()) return default(T);
+
             return (T)Default.Read(json, typeof(T));
         }
 
@@ -138,6 +148,18 @@ namespace NewLife.Serialization
 
             return sb.ToString();
         }
+
+        /// <summary>Json类型对象转换实体类</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T Convert<T>(Object obj)
+        {
+            if (obj == null) return default(T);
+            if (obj is T) return (T)obj;
+            if (obj.GetType().As<T>()) return (T)obj;
+
+            return (T)Default.Convert(obj, typeof(T));
+        }
     }
 
 #if !__MOBILE__ && !__CORE__
@@ -167,6 +189,11 @@ namespace NewLife.Serialization
         {
             // 如果有必要，可以实现JavaScriptTypeResolver，然后借助Type.GetTypeEx得到更强的反射类型能力
             return new JavaScriptSerializer().Deserialize(json, type);
+        }
+
+        public Object Convert(Object obj, Type targetType)
+        {
+            return new JavaScriptSerializer().ConvertToType(obj, targetType);
         }
         #endregion
     }
@@ -234,6 +261,11 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
         {
             return _Convert.Invoke("DeserializeObject", json, type);
         }
+
+        public Object Convert(Object obj, Type targetType)
+        {
+            return new JsonReader().ToObject(obj, targetType);
+        }
         #endregion
     }
 #endif
@@ -253,6 +285,10 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
             return new JsonReader().ToObject(json, type);
         }
 
+        public Object Convert(Object obj, Type targetType)
+        {
+            return new JsonReader().ToObject(obj, targetType);
+        }
         #endregion
     }
 }

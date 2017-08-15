@@ -8,13 +8,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Log;
-using NewLife.Threading;
 
 namespace XCoder.FolderInfo
 {
     [DisplayName("文件夹大小统计")]
     public partial class FrmMain : Form
     {
+        /// <summary>业务日志输出</summary>
+        ILog BizLog;
+
         #region 初始化
         public FrmMain()
         {
@@ -25,6 +27,8 @@ namespace XCoder.FolderInfo
 
         private void Form1_Load(Object sender, EventArgs e)
         {
+            var log = TextFileLog.Create(null, "Folder_{0:yyyy_MM_dd}.log");
+            BizLog = txtLog.Combine(log);
             txtLog.UseWinFormControl();
 
             foreach (var item in DriveInfo.GetDrives())
@@ -43,7 +47,7 @@ namespace XCoder.FolderInfo
         #region 构造目录树
         void MakeTree(String path, TreeNode Node)
         {
-            XTrace.WriteLine("展开目录 {0}", path);
+            BizLog.Info("展开目录 {0}", path);
 
             Node.Nodes.Clear();
 
@@ -284,14 +288,14 @@ namespace XCoder.FolderInfo
             // 删除本目录文件
             foreach (var item in di.GetFiles())
             {
-                XTrace.WriteLine("删除 {0}", item.FullName);
+                BizLog.Info("删除 {0}", item.FullName);
                 try
                 {
                     item.Delete();
                 }
                 catch (Exception ex)
                 {
-                    XTrace.WriteException(ex);
+                    BizLog.Error(ex?.GetTrue().ToString());
                 }
             }
             // 递归子目录
@@ -306,7 +310,7 @@ namespace XCoder.FolderInfo
             }
             catch (Exception ex)
             {
-                XTrace.WriteException(ex);
+                BizLog.Error(ex?.GetTrue().ToString());
             }
         }
         #endregion

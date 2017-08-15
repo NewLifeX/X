@@ -52,6 +52,7 @@ namespace ASP
   
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
             
             #line default
@@ -59,8 +60,8 @@ namespace ASP
 WriteLiteral("\r\n");
 
             
-            #line 6 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
- if (ManageProvider.User.Has(PermissionFlags.Insert, PermissionFlags.Update))
+            #line 7 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+ if (user.Has(PermissionFlags.Insert, PermissionFlags.Update))
 {
 
             
@@ -72,19 +73,21 @@ WriteLiteral(" class=\"clearfix form-actions col-sm-12 col-md-12\"");
 
 WriteLiteral(">\r\n        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 257), Tuple.Create("\"", 304)
-, Tuple.Create(Tuple.Create("", 264), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/ClearPassword/")
-, 264), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 307), Tuple.Create("\"", 354)
+, Tuple.Create(Tuple.Create("", 314), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/ClearPassword/")
+, 314), false)
             
-            #line 9 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 291), Tuple.Create<System.Object, System.Int32>(entity["ID"]
+            #line 10 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 341), Tuple.Create<System.Object, System.Int32>(entity["ID"]
             
             #line default
             #line hidden
-, 291), false)
+, 341), false)
 );
 
 WriteLiteral(" class=\"col-xs-1 btn btn-success btn-sm\"");
+
+WriteLiteral(" title=\"数据库为空密码时，任何密码均可登录\"");
 
 WriteLiteral(">清空密码</a>\r\n        <label");
 
@@ -98,22 +101,22 @@ WriteLiteral(" class=\"btn btn-success btn-sm\"");
 
 WriteLiteral("><i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 493), Tuple.Create("\"", 547)
-, Tuple.Create(Tuple.Create("", 501), Tuple.Create("glyphicon", 501), true)
-, Tuple.Create(Tuple.Create(" ", 510), Tuple.Create("glyphicon-", 511), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 569), Tuple.Create("\"", 623)
+, Tuple.Create(Tuple.Create("", 577), Tuple.Create("glyphicon", 577), true)
+, Tuple.Create(Tuple.Create(" ", 586), Tuple.Create("glyphicon-", 587), true)
             
-            #line 11 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
-             , Tuple.Create(Tuple.Create("", 521), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
+            #line 12 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+             , Tuple.Create(Tuple.Create("", 597), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
             
             #line default
             #line hidden
-, 521), false)
+, 597), false)
 );
 
 WriteLiteral("></i><strong>");
 
             
-            #line 11 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+            #line 12 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
                                                                                                                                Write(isNew ? "新增" : "保存");
 
             
@@ -134,7 +137,7 @@ WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 WriteLiteral("></i><strong>取消</strong></button>\r\n    </div>\r\n");
 
             
-            #line 14 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
+            #line 15 "..\..\Areas\Admin\Views\User\_Form_Action.cshtml"
 }
             
             #line default

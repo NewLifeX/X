@@ -58,9 +58,10 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public override Object Convert(Object obj, Type targetType)
         {
-            var reader = new JsonReader();
+            //var reader = new JsonReader();
 
-            return reader.ToObject(obj, targetType);
+            //return reader.ToObject(obj, targetType);
+            return JsonHelper.Default.Convert(obj, targetType);
         }
     }
 }

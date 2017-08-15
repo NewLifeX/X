@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using NewLife;
-using NewLife.Reflection;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 
@@ -56,7 +55,7 @@ namespace XCode.Cache
     {
         #region 设置
         /// <summary>是否调试缓存模块</summary>
-        public static Boolean Debug { get { return Setting.Current.CacheDebug; } }
+        public static Boolean Debug { get; set; }
         #endregion
 
         internal static void WriteLog(String format, params Object[] args)

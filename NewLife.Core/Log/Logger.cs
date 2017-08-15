@@ -167,16 +167,23 @@ namespace NewLife.Log
             sb.AppendFormat("#AppDomain: {0}\r\n", AppDomain.CurrentDomain.FriendlyName);
 
             var fileName = String.Empty;
+#if !__MOBILE__
+            // MonoAndroid无法识别MainModule，致命异常
             try
             {
-                fileName = process.StartInfo.FileName;
-#if !__MOBILE__
-                // MonoAndroid无法识别MainModule，致命异常
-                if (String.IsNullOrWhiteSpace(fileName)) fileName = process.MainModule.FileName;
-#endif
+                fileName = process.MainModule.FileName;
             }
             catch { }
-            if (!String.IsNullOrEmpty(fileName)) sb.AppendFormat("#FileName: {0}\r\n", fileName);
+#endif
+            if (fileName.IsNullOrEmpty() || !fileName.EndsWithIgnoreCase("dotnet.exe"))
+            {
+                try
+                {
+                    fileName = process.StartInfo.FileName;
+                }
+                catch { }
+            }
+            if (!fileName.IsNullOrEmpty()) sb.AppendFormat("#FileName: {0}\r\n", fileName);
 
 #if !__CORE__
             // 应用域目录
@@ -192,16 +199,8 @@ namespace NewLife.Log
             // 命令行不为空，也不是文件名时，才输出
             // 当使用cmd启动程序时，这里就是用户输入的整个命令行，所以可能包含空格和各种符号
             var line = System.Environment.CommandLine;
-            if (!String.IsNullOrEmpty(line))
-            {
-                line = line.Trim().TrimStart('\"');
-                if (!String.IsNullOrEmpty(fileName) && line.StartsWithIgnoreCase(fileName))
-                    line = line.Substring(fileName.Length).TrimStart().TrimStart('\"').TrimStart();
-                if (!String.IsNullOrEmpty(line))
-                {
-                    sb.AppendFormat("#CommandLine: {0}\r\n", line);
-                }
-            }
+            if (!line.IsNullOrEmpty())
+                sb.AppendFormat("#CommandLine: {0}\r\n", line);
 #endif
 
 #if __MOBILE__
@@ -242,6 +241,6 @@ namespace NewLife.Log
 
             return sb.ToString();
         }
-#endregion
+        #endregion
     }
 }

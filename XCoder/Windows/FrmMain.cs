@@ -116,11 +116,7 @@ namespace XCoder
                 Engine = null;
 
                 // 断开的时候再取一次，确保下次能及时得到新的
-                try
-                {
-                    var list = DAL.Create(Config.ConnName).Tables;
-                }
-                catch { }
+                Task.Run(() => DAL.Create(Config.ConnName).Tables);
             }
         }
 
@@ -183,7 +179,7 @@ namespace XCoder
             var list = new List<String>();
             foreach (var item in DAL.ConnStrs)
             {
-                if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
+                if (!String.IsNullOrEmpty(item.Value)) list.Add(item.Key);
             }
 
             // 远程数据库耗时太长，这里先列出来
@@ -308,7 +304,7 @@ namespace XCoder
                     var list = new List<String>();
                     foreach (var elm in DAL.ConnStrs)
                     {
-                        if (!String.IsNullOrEmpty(elm.Value.ConnectionString)) list.Add(elm.Key);
+                        if (!String.IsNullOrEmpty(elm.Value)) list.Add(elm.Key);
                     }
                     list.AddRange(names);
 
@@ -326,7 +322,7 @@ namespace XCoder
             var list = new List<String>();
             foreach (var item in DAL.ConnStrs)
             {
-                if (!String.IsNullOrEmpty(item.Value.ConnectionString)) list.Add(item.Key);
+                if (!String.IsNullOrEmpty(item.Value)) list.Add(item.Key);
             }
 
             var localName = "local_MSSQL";
@@ -343,7 +339,7 @@ namespace XCoder
         {
             foreach (var item in DAL.ConnStrs)
             {
-                if (connstr.EqualIgnoreCase(item.Value.ConnectionString)) return true;
+                if (connstr.EqualIgnoreCase(item.Value)) return true;
             }
             return false;
         }
@@ -367,21 +363,27 @@ namespace XCoder
 
         void LoadTables()
         {
-            try
+            Task.Run(() =>
             {
-                var list = DAL.Create(Config.ConnName).Tables;
-                if (!cbIncludeView.Checked) list = list.Where(t => !t.IsView).ToList();
-                //if (Config.NeedFix) list = Engine.FixTable(list);
-                Engine.Tables = list;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), Text);
-                return;
-            }
+                try
+                {
+                    var list = DAL.Create(Config.ConnName).Tables;
+                    if (!cbIncludeView.Checked) list = list.Where(t => !t.IsView).ToList();
+                    //if (Config.NeedFix) list = Engine.FixTable(list);
+                    Engine.Tables = list;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString(), Text);
+                    return;
+                }
 
-            SetTables(null);
-            SetTables(Engine.Tables);
+                this.Invoke(() =>
+                {
+                    SetTables(null);
+                    SetTables(Engine.Tables);
+                });
+            });
         }
 
         void SetTables(Object source)
@@ -425,9 +427,7 @@ namespace XCoder
         void AutoLoadTables(String name)
         {
             if (String.IsNullOrEmpty(name)) return;
-            //if (!DAL.ConnStrs.ContainsKey(name) || String.IsNullOrEmpty(DAL.ConnStrs[name].ConnectionString)) return;
-            ConnectionStringSettings setting;
-            if (!DAL.ConnStrs.TryGetValue(name, out setting) || setting.ConnectionString.IsNullOrWhiteSpace()) return;
+            if (!DAL.ConnStrs.TryGetValue(name, out var connstr) || connstr.IsNullOrWhiteSpace()) return;
 
             // 异步加载
             Task.Factory.StartNew(() => { var tables = DAL.Create(name).Tables; }).LogException();

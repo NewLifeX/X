@@ -414,6 +414,27 @@ namespace NewLife.Reflection
             return Type.GetTypeCode(type);
         }
 
+        /// <summary>是否整数</summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static Boolean IsInt(this Type type)
+        {
+            switch (type.GetTypeCode())
+            {
+                case TypeCode.SByte:
+                case TypeCode.Byte:
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         ///// <summary>是否能够转为指定基类</summary>
         ///// <typeparam name="T"></typeparam>
         ///// <param name="type"></param>

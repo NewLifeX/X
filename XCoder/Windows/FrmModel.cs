@@ -64,7 +64,7 @@ namespace XCoder
 
             gv.DataSource = table.Columns;
             dgvIndex.DataSource = table.Indexes;
-            dgvRelation.DataSource = table.Relations;
+            //dgvRelation.DataSource = table.Relations;
         }
 
         private void gv_RowEnter(Object sender, DataGridViewCellEventArgs e)
@@ -105,27 +105,27 @@ namespace XCoder
             Type type = Tables[0].GetType();
             if (type == null) return;
 
-            IDataTable table = type.CreateInstance() as IDataTable;
+            var table = type.CreateInstance() as IDataTable;
             if (table == null) return;
 
             Tables.Add(table);
-            table.ID = Tables.Count;
-            table.TableName = "NewTable" + table.ID;
-            table.Description = "新建表" + table.ID;
+            var id = Tables.Count;
+            table.TableName = "NewTable" + id;
+            table.Description = "新建表" + id;
 
             SetTables(Tables, Tables.Count - 1);
         }
 
         private void btnAddColumn_Click(Object sender, EventArgs e)
         {
-            IDataTable table = GetSelectedTable();
+            var table = GetSelectedTable();
             if (table == null) return;
 
-            IDataColumn dc = table.CreateColumn();
+            var dc = table.CreateColumn();
             table.Columns.Add(dc);
-            dc.ID = table.Columns.Count;
-            dc.ColumnName = "Column" + dc.ID;
-            dc.Description = "字段" + dc.ID;
+            var id = table.Columns.Count;
+            dc.ColumnName = "Column" + id;
+            dc.Description = "字段" + id;
 
             gv.DataSource = null;
             gv.DataSource = table.Columns;
@@ -134,10 +134,10 @@ namespace XCoder
 
         private void btnAddIndex_Click(Object sender, EventArgs e)
         {
-            IDataTable table = GetSelectedTable();
+            var table = GetSelectedTable();
             if (table == null) return;
 
-            IDataIndex di = table.CreateIndex();
+            var di = table.CreateIndex();
             table.Indexes.Add(di);
 
             dgvIndex.DataSource = null;
@@ -145,18 +145,18 @@ namespace XCoder
             pgColumn.SelectedObject = di;
         }
 
-        private void btnAddRelation_Click(Object sender, EventArgs e)
-        {
-            IDataTable table = GetSelectedTable();
-            if (table == null) return;
+        //private void btnAddRelation_Click(Object sender, EventArgs e)
+        //{
+        //    IDataTable table = GetSelectedTable();
+        //    if (table == null) return;
 
-            IDataRelation dr = table.CreateRelation();
-            table.Relations.Add(dr);
+        //    IDataRelation dr = table.CreateRelation();
+        //    table.Relations.Add(dr);
 
-            dgvRelation.DataSource = null;
-            dgvRelation.DataSource = table.Relations;
-            pgColumn.SelectedObject = dr;
-        }
+        //    dgvRelation.DataSource = null;
+        //    dgvRelation.DataSource = table.Relations;
+        //    pgColumn.SelectedObject = dr;
+        //}
         #endregion
 
         #region 建表语句
@@ -264,10 +264,7 @@ namespace XCoder
             try
             {
                 var md = dal.Db.CreateMetaData();
-                var set = new NegativeSetting();
-                set.CheckOnly = false;
-                set.NoDelete = false;
-                md.SetTables(set, Tables.ToArray());
+                md.SetTables(Migration.Full, Tables.ToArray());
 
                 MessageBox.Show("成功建立" + Tables.Count + "张数据表！", Text);
             }

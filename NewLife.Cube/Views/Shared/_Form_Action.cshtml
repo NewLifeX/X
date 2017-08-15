@@ -2,8 +2,9 @@
 @{
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 }
-@if (ManageProvider.User.Has(PermissionFlags.Insert, PermissionFlags.Update))
+@if (user.Has(PermissionFlags.Insert, PermissionFlags.Update))
 {
     <div class="clearfix form-actions col-sm-12 col-md-12">
         <label class="control-label col-xs-4 col-sm-5 col-md-5"></label>

@@ -611,6 +611,170 @@ namespace System
 
             return result;
         }
+
+        /// <summary>根据列表项成员计算距离</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="keys"></param>
+        /// <param name="keySelector"></param>
+        /// <returns></returns>
+        public static IEnumerable<KeyValuePair<T, Double>> LCS<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector)
+        {
+            var rs = new List<KeyValuePair<T, Double>>();
+
+            if (list == null || !list.Any()) return rs;
+            if (keys.IsNullOrWhiteSpace()) return rs;
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+
+            var ks = keys.Split(" ").OrderBy(_ => _.Length).ToArray();
+
+            // 计算每个项到关键字的距离
+            foreach (var item in list)
+            {
+                var name = keySelector(item);
+                if (name.IsNullOrEmpty()) continue;
+
+                var dist = LCSDistance(name, ks);
+                if (dist >= 0)
+                {
+                    var val = (Double)dist / name.Length;
+                    rs.Add(new KeyValuePair<T, Double>(item, val));
+                }
+            }
+
+            //return rs.OrderBy(e => e.Value);
+            return rs;
+        }
+
+        /// <summary>在列表项中进行模糊搜索</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="keys"></param>
+        /// <param name="keySelector"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> LCSSearch<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector, Int32 count = -1)
+        {
+            var rs = LCS(list, keys, keySelector);
+
+            if (count >= 0)
+                rs = rs.OrderBy(e => e.Value).Take(count);
+            else
+                rs = rs.OrderBy(e => e.Value);
+
+            return rs.Select(e => e.Key);
+        }
+        #endregion
+
+        #region 字符串模糊匹配
+        /// <summary>模糊匹配</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="keys"></param>
+        /// <param name="keySelector"></param>
+        /// <returns></returns>
+        public static IEnumerable<KeyValuePair<T, Double>> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector)
+        {
+            var rs = new List<KeyValuePair<T, Double>>();
+
+            if (list == null || !list.Any()) return rs;
+            if (keys.IsNullOrWhiteSpace()) return rs;
+            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+
+            var ks = keys.Split(" ").OrderBy(_ => _.Length).ToArray();
+
+            // 计算每个项到关键字的权重
+            foreach (var item in list)
+            {
+                var name = keySelector(item);
+                if (name.IsNullOrEmpty()) continue;
+
+                var dist = ks.Sum(e =>
+                {
+                    var kv = Match(name, e, e.Length);
+                    return kv.Key - kv.Value * 0.5;
+                });
+                if (dist > 0)
+                {
+                    var val = dist / keys.Length;
+                    //var val = dist;
+                    rs.Add(new KeyValuePair<T, Double>(item, val));
+                }
+            }
+
+            return rs;
+        }
+
+        /// <summary>模糊匹配</summary>
+        /// <param name="str"></param>
+        /// <param name="key"></param>
+        /// <param name="maxError"></param>
+        /// <returns></returns>
+        public static KeyValuePair<Int32, Int32> Match(String str, String key, Int32 maxError = 0)
+        {
+            /*
+             * 字符串 abcdef
+             * 少字符 ace      (3, 0)
+             * 多字符 abkcd    (4, 1)
+             * 改字符 abmd     (3, 1)
+             */
+
+            // str下一次要匹配的位置
+            var m = 0;
+            // key下一次要匹配的位置
+            var k = 0;
+
+            // 总匹配数
+            var match = 0;
+            // 跳过次数
+            var skip = 0;
+
+            while (skip <= maxError && k < key.Length)
+            {
+                // 向前逐个匹配
+                for (var i = m; i < str.Length; i++)
+                {
+                    if (str[i] == key[k])
+                    {
+                        k++;
+                        m = i + 1;
+                        match++;
+
+                        // 如果已完全匹配，则结束
+                        if (k == key.Length) break;
+                    }
+                }
+
+                // 如果已完全匹配，则结束
+                if (k == key.Length) break;
+
+                // 没有完全匹配，跳过关键字中的一个字符串，从上一次匹配后面继续找
+                k++;
+                skip++;
+            }
+
+            return new KeyValuePair<Int32, Int32>(match, skip);
+        }
+
+        /// <summary>模糊匹配</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list">列表项</param>
+        /// <param name="keys">关键字</param>
+        /// <param name="keySelector">匹配字符串选择</param>
+        /// <param name="count">获取个数</param>
+        /// <param name="confidence">权重阀值</param>
+        /// <returns></returns>
+        public static IEnumerable<T> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector, Int32 count, Double confidence = 0.5)
+        {
+            var rs = Match(list, keys, keySelector).Where(e => e.Value >= confidence);
+
+            if (count >= 0)
+                rs = rs.OrderByDescending(e => e.Value).Take(count);
+            else
+                rs = rs.OrderByDescending(e => e.Value);
+
+            return rs.Select(e => e.Key);
+        }
         #endregion
 
         #region 文字转语音

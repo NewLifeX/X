@@ -178,8 +178,7 @@ namespace XCode
                 if (item.Name == item.DisplayName && !ContainAttribute(item.Attributes, typeof(DisplayNameAttribute)))
                 {
                     // 添加一个特性
-                    FieldItem fi = null;
-                    if (dic.TryGetValue(item.Name, out fi) && !String.IsNullOrEmpty(fi.Description))
+                    if (dic.TryGetValue(item.Name, out var fi) && !String.IsNullOrEmpty(fi.Description))
                     {
                         var dis = new DisplayNameAttribute(fi.Description);
                         list.Add(TypeDescriptor.CreateProperty(type, item, dis));

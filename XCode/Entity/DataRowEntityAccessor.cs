@@ -110,8 +110,7 @@ namespace XCode
             foreach (DataColumn item in dt.Columns)
             {
                 var name = item.ColumnName;
-                FieldItem fi = null;
-                if (FieldItems.TryGetValue(name, out fi))
+                if (FieldItems.TryGetValue(name, out var fi))
                     ps.Add(fi);
                 else
                     exts.Add(name);

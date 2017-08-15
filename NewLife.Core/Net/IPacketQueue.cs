@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
+#if NET4
+using Task = System.Threading.Tasks.TaskEx;
+#endif
 
 namespace NewLife.Net
 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using XCode.Configuration;
 
 namespace XCode
@@ -33,19 +34,27 @@ namespace XCode
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
-        /// <param name="needBracket">外部是否需要括号。如果外部要求括号，而内部又有Or，则加上括号</param>
+        /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override String GetString(Boolean needBracket, IDictionary<String, Object> ps)
+        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
-            if (Field == null) return null;
+            if (Field == null) return;
 
             var op = Field.Factory;
 
             var fi = Value as FieldItem;
-            if (fi != null) return String.Format("{0}{1}{2}", Field.FormatedName, Action, op.FormatName(fi.ColumnName));
+            if (fi != null)
+            {
+                builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, op.FormatName(fi.ColumnName));
+                return;
+            }
 
-            if (ps == null) return String.Format("{0}{1}{2}", Field.FormatedName, Action, op.FormatValue(Field, Value));
+            if (ps == null)
+            {
+                builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, op.FormatValue(Field, Value));
+                return;
+            }
 
             // 参数化处理
             var name = Field.Name;
@@ -55,7 +64,7 @@ namespace XCode
             // 数值留给字典
             ps[name] = Value;
 
-            return String.Format("{0}{1}{2}", Field.FormatedName, Action, op.Session.FormatParameterName(name));
+            builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, op.Session.FormatParameterName(name));
         }
         #endregion
     }

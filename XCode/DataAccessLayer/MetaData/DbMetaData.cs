@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using NewLife;
-using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
@@ -12,9 +11,8 @@ namespace XCode.DataAccessLayer
     abstract partial class DbMetaData : DisposeBase, IMetaData
     {
         #region 属性
-        private IDatabase _Database;
         /// <summary>数据库</summary>
-        public virtual IDatabase Database { get { return _Database; } set { _Database = value; } }
+        public virtual IDatabase Database { get; set; }
 
         private ICollection<String> _MetaDataCollections;
         /// <summary>所有元数据集合</summary>
@@ -22,21 +20,23 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_MetaDataCollections == null)
+                if (_MetaDataCollections != null) return _MetaDataCollections;
+                lock (this)
                 {
+                    if (_MetaDataCollections != null) return _MetaDataCollections;
+
                     var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
                     var dt = GetSchema(DbMetaDataCollectionNames.MetaDataCollections, null);
-                    if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+                    if (dt?.Rows != null && dt.Rows.Count > 0)
                     {
                         foreach (DataRow dr in dt.Rows)
                         {
-                            String name = "" + dr[0];
-                            if (!String.IsNullOrEmpty(name) && !list.Contains(name)) list.Add(name);
+                            var name = "" + dr[0];
+                            if (!name.IsNullOrEmpty() && !list.Contains(name)) list.Add(name);
                         }
                     }
-                    _MetaDataCollections = list;
+                    return _MetaDataCollections = list;
                 }
-                return _MetaDataCollections;
             }
         }
 
@@ -46,49 +46,28 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ReservedWords == null)
+                if (_ReservedWords != null) return _ReservedWords;
+                lock (this)
                 {
+                    if (_ReservedWords != null) return _ReservedWords;
+
                     var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
                     if (MetaDataCollections.Contains(DbMetaDataCollectionNames.ReservedWords))
                     {
                         var dt = GetSchema(DbMetaDataCollectionNames.ReservedWords, null);
-                        if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
+                        if (dt?.Rows != null && dt.Rows.Count > 0)
                         {
                             foreach (DataRow dr in dt.Rows)
                             {
-                                String name = "" + dr[0];
-                                if (!String.IsNullOrEmpty(name) && !list.Contains(name)) list.Add(name);
+                                var name = "" + dr[0];
+                                if (!name.IsNullOrEmpty() && !list.Contains(name)) list.Add(name);
                             }
                         }
                     }
-                    _ReservedWords = list;
+                    return _ReservedWords = list;
                 }
-                return _ReservedWords;
             }
         }
-
-        //String _ParamPrefix;
-        ///// <summary>参数前缀</summary>
-        //public String ParamPrefix
-        //{
-        //    get
-        //    {
-        //        if (_ParamPrefix == null)
-        //        {
-        //            var dt = GetSchema(DbMetaDataCollectionNames.DataSourceInformation, null);
-        //            if (dt != null && dt.Rows != null && dt.Rows.Count > 0)
-        //            {
-        //                String str = null;
-        //                if (TryGetDataRowValue<String>(dt.Rows[0], DbMetaDataColumnNames.ParameterMarkerPattern, out str) ||
-        //                    TryGetDataRowValue<String>(dt.Rows[0], DbMetaDataColumnNames.ParameterMarkerFormat, out str))
-        //                    _ParamPrefix = str.StartsWith("\\") ? str.Substring(1, 1) : str.Substring(0, 1);
-        //            }
-
-        //            if (_ParamPrefix == null) _ParamPrefix = "";
-        //        }
-        //        return _ParamPrefix;
-        //    }
-        //}
         #endregion
 
         #region GetSchema方法
@@ -119,7 +98,7 @@ namespace XCode.DataAccessLayer
             value = default(T);
             if (dr == null || !dr.Table.Columns.Contains(name) || dr.IsNull(name)) return false;
 
-            Object obj = dr[name];
+            var obj = dr[name];
 
             // 特殊处理布尔类型
             if (Type.GetTypeCode(typeof(T)) == TypeCode.Boolean && obj != null)
@@ -148,16 +127,12 @@ namespace XCode.DataAccessLayer
                     value = (T)obj;
                 else
                 {
-                    if (obj != null)
+                    if (obj != null && obj.GetType().IsInt())
                     {
-                        var tc = Type.GetTypeCode(obj.GetType());
-                        if (tc >= TypeCode.Int16 && tc <= TypeCode.UInt64)
+                        var n = Convert.ToUInt64(obj);
+                        if (n == UInt32.MaxValue && Type.GetTypeCode(typeof(T)) == TypeCode.Int32)
                         {
-                            var n = Convert.ToUInt64(obj);
-                            if (n == UInt32.MaxValue && Type.GetTypeCode(typeof(T)) == TypeCode.Int32)
-                            {
-                                obj = -1;
-                            }
+                            obj = -1;
                         }
                     }
                     value = obj.ChangeType<T>();
@@ -171,12 +146,15 @@ namespace XCode.DataAccessLayer
         /// <summary>获取指定数据行指定字段的值，不存在时返回空</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dr"></param>
-        /// <param name="name">名称</param>
+        /// <param name="names">名称</param>
         /// <returns></returns>
-        protected static T GetDataRowValue<T>(DataRow dr, String name)
+        protected static T GetDataRowValue<T>(DataRow dr, params String[] names)
         {
-            T value = default(T);
-            if (TryGetDataRowValue<T>(dr, name, out value)) return value;
+            foreach (var item in names)
+            {
+                if (TryGetDataRowValue(dr, item, out T value)) return value;
+            }
+
             return default(T);
         }
 
@@ -187,54 +165,6 @@ namespace XCode.DataAccessLayer
         {
             //return Database.FormatKeyWord(keyWord);
             return Database.FormatName(name);
-        }
-
-        /// <summary>检查并获取当前数据库的默认值。如果数据库类型一致，则直接返回false，因为没有修改</summary>
-        /// <param name="dc"></param>
-        /// <param name="oriDefault"></param>
-        /// <returns></returns>
-        protected virtual Boolean CheckAndGetDefault(IDataColumn dc, ref String oriDefault)
-        {
-            // 如果数据库类型等于原始类型，则直接通过
-            if (dc.Table.DbType == Database.DbType) return false;
-
-            // 原始数据库类型
-            var db = DbFactory.Create(dc.Table.DbType);
-            if (db == null) return false;
-
-            var tc = Type.GetTypeCode(dc.DataType);
-            // 特殊处理时间
-            if (tc == TypeCode.DateTime)
-            {
-                if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.DateTimeNow))
-                {
-                    oriDefault = Database.DateTimeNow;
-                    return true;
-                }
-                else
-                {
-                    //// 出现了不支持的时间默认值
-                    //if (DAL.Debug) DAL.WriteLog("出现了{0}不支持的时间默认值：{1}.{2}={3}", Database.DbType, dc.Table.Name, dc.Name, oriDefault);
-
-                    //oriDefault = null;
-                    //return true;
-
-                    return false;
-                }
-            }
-            // 特殊处理Guid
-            else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
-            {
-                // 如果字段类型是Guid，不需要设置默认值，则也说明是Guid字段
-                if (String.IsNullOrEmpty(oriDefault) || oriDefault.EqualIgnoreCase(db.NewGuid) ||
-                   String.IsNullOrEmpty(db.NewGuid) && dc.DataType == typeof(Guid))
-                {
-                    oriDefault = Database.NewGuid;
-                    return true;
-                }
-            }
-
-            return false;
         }
         #endregion
 

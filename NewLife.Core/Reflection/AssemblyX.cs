@@ -131,7 +131,12 @@ namespace NewLife.Reflection
         static AssemblyX()
         {
 #if !__MOBILE__ && !__CORE__
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) => Assembly.ReflectionOnlyLoad(args.Name);
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) =>
+            {
+                var flag = XTrace.Debug && XTrace.Log.Level == LogLevel.Debug;
+                if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
+                return Assembly.ReflectionOnlyLoad(args.Name);
+            };
 #endif
         }
         #endregion
@@ -150,7 +155,7 @@ namespace NewLife.Reflection
                 }
                 catch (ReflectionTypeLoadException ex)
                 {
-                    if (ex.LoaderExceptions != null)
+                    if (ex.LoaderExceptions != null && XTrace.Log.Level == LogLevel.Debug)
                     {
                         XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
                         foreach (var le in ex.LoaderExceptions)
@@ -192,30 +197,19 @@ namespace NewLife.Reflection
             }
         }
 
-        //private IEnumerable<TypeX> _TypeXs;
-        ///// <summary>类型集合，当前程序集的所有类型</summary>
-        //public IEnumerable<TypeX> TypeXs
-        //{
-        //    get
-        //    {
-        //        foreach (var item in Types)
-        //        {
-        //            yield return TypeX.Create(item);
-        //        }
-        //    }
-        //}
-
         /// <summary>是否系统程序集</summary>
-        public Boolean IsSystemAssembly
-        {
-            get
-            {
-                var name = Asm.FullName;
-                if (name.EndsWith("PublicKeyToken=b77a5c561934e089")) return true;
-                if (name.EndsWith("PublicKeyToken=b03f5f7f11d50a3a")) return true;
+        public Boolean IsSystemAssembly { get { return CheckSystem(Asm); } }
 
-                return false;
-            }
+        private static Boolean CheckSystem(Assembly asm)
+        {
+            if (asm == null) return false;
+
+            var name = asm.FullName;
+            if (name.EndsWith("PublicKeyToken=b77a5c561934e089")) return true;
+            if (name.EndsWith("PublicKeyToken=b03f5f7f11d50a3a")) return true;
+            if (name.EndsWith("PublicKeyToken=89845dcd8080cc91")) return true;
+
+            return false;
         }
         #endregion
 
@@ -247,38 +241,38 @@ namespace NewLife.Reflection
             // 如果没有包含圆点，说明其不是FullName
             if (!typeName.Contains("."))
             {
-                try
-                {
-                    var types = Asm.GetTypes();
-                    if (types != null && types.Length > 0)
-                    {
-                        foreach (var item in types)
-                        {
-                            if (item.Name == typeName) return item;
-                        }
-                    }
-                }
-                catch (ReflectionTypeLoadException ex)
-                {
-                    if (XTrace.Debug)
-                    {
-                        //XTrace.WriteException(ex);
-                        XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
+                //try
+                //{
+                //    var types = Asm.GetTypes();
+                //    if (types != null && types.Length > 0)
+                //    {
+                //        foreach (var item in types)
+                //        {
+                //            if (item.Name == typeName) return item;
+                //        }
+                //    }
+                //}
+                //catch (ReflectionTypeLoadException ex)
+                //{
+                //    if (XTrace.Debug)
+                //    {
+                //        //XTrace.WriteException(ex);
+                //        XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
 
-                        foreach (var item in ex.LoaderExceptions)
-                        {
-                            XTrace.WriteException(item);
-                        }
-                    }
+                //        foreach (var item in ex.LoaderExceptions)
+                //        {
+                //            XTrace.WriteException(item);
+                //        }
+                //    }
 
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Debug) XTrace.WriteException(ex);
+                //    return null;
+                //}
+                //catch (Exception ex)
+                //{
+                //    if (XTrace.Debug) XTrace.WriteException(ex);
 
-                    return null;
-                }
+                //    return null;
+                //}
 
                 // 遍历所有类型，包括内嵌类型
                 foreach (var item in Types)
@@ -306,8 +300,7 @@ namespace NewLife.Reflection
         {
             // 如果type是null，则返回所有类型
 
-            List<Type> list = null;
-            if (_plugins.TryGetValue(baseType, out list)) return list;
+            if (_plugins.TryGetValue(baseType, out var list)) return list;
             lock (_plugins)
             {
                 if (_plugins.TryGetValue(baseType, out list)) return list;
@@ -437,9 +430,9 @@ namespace NewLife.Reflection
 
             // 尝试本程序集
             var asms = new[] {
-                AssemblyX.Create(Assembly.GetExecutingAssembly()),
-                AssemblyX.Create(Assembly.GetCallingAssembly()),
-                AssemblyX.Create(Assembly.GetEntryAssembly()) };
+                Create(Assembly.GetExecutingAssembly()),
+                Create(Assembly.GetCallingAssembly()),
+                Create(Assembly.GetEntryAssembly()) };
             var loads = new List<AssemblyX>();
 
             foreach (var asm in asms)
@@ -452,7 +445,7 @@ namespace NewLife.Reflection
             }
 
             // 尝试所有程序集
-            foreach (var asm in AssemblyX.GetAssemblies())
+            foreach (var asm in GetAssemblies())
             {
                 if (loads.Contains(asm)) continue;
                 loads.Add(asm);
@@ -475,7 +468,7 @@ namespace NewLife.Reflection
                     {
                         type = null;
                         var asm2 = Assembly.LoadFile(file);
-                        var type2 = AssemblyX.Create(asm2).GetType(typeName);
+                        var type2 = Create(asm2).GetType(typeName);
                         if (type2 == null) continue;
                         type = type2;
                         if (XTrace.Debug)
@@ -532,21 +525,23 @@ namespace NewLife.Reflection
                     set.Add(basedir);
 #if !__MOBILE__ && !__CORE__
                     if (HttpRuntime.AppDomainId != null) set.Add(HttpRuntime.BinDirectory);
+#else
+                    if (Directory.Exists("bin".GetFullPath())) set.Add("bin".GetFullPath());
+#endif
                     var plugin = Setting.Current.GetPluginPath();
                     if (!set.Contains(plugin)) set.Add(plugin);
-#endif
 
-                    // 增加所有程序集所在目录为搜索目录，便于查找程序集
-                    foreach (var asm in GetAssemblies())
-                    {
-                        // GAC程序集和系统程序集跳过
-                        if (asm.Asm.GlobalAssemblyCache) continue;
-                        if (asm.IsSystemAssembly) continue;
-                        if (String.IsNullOrEmpty(asm.Location)) continue;
+                    //// 增加所有程序集所在目录为搜索目录，便于查找程序集
+                    //foreach (var asm in GetAssemblies())
+                    //{
+                    //    // GAC程序集和系统程序集跳过
+                    //    if (asm.Asm.GlobalAssemblyCache) continue;
+                    //    if (asm.IsSystemAssembly) continue;
+                    //    if (String.IsNullOrEmpty(asm.Location)) continue;
 
-                        var dir = Path.GetDirectoryName(asm.Location).EnsureEnd("\\");
-                        if (!set.Contains(dir)) set.Add(dir);
-                    }
+                    //    var dir = Path.GetDirectoryName(asm.Location).EnsureEnd("\\");
+                    //    if (!set.Contains(dir)) set.Add(dir);
+                    //}
 
                     _AssemblyPaths = set;
                 }
@@ -607,8 +602,16 @@ namespace NewLife.Reflection
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                     loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
+#if !__CORE__
                 var asm = ReflectionOnlyLoadFrom(item, ver);
                 if (asm == null) continue;
+#else
+                var asm = Assembly.LoadFrom(item);
+                if (asm == null) continue;
+#endif
+
+                // 不搜索系统程序集，优化性能
+                if (CheckSystem(asm)) continue;
 
                 // 尽管目录不一样，但这两个可能是相同的程序集
                 // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
@@ -623,13 +626,13 @@ namespace NewLife.Reflection
             }
         }
 
+#if !__CORE__
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="file"></param>
         /// <param name="ver"></param>
         /// <returns></returns>
         public static Assembly ReflectionOnlyLoadFrom(String file, Version ver = null)
         {
-#if !__MOBILE__ && !__CORE__
             // 仅加载.Net文件，并且小于等于当前版本
             var pe = PEImage.Read(file);
             if (pe == null || !pe.IsNet) return null;
@@ -657,7 +660,6 @@ namespace NewLife.Reflection
                     return null;
                 }
             }
-#endif
 
             try
             {
@@ -665,6 +667,7 @@ namespace NewLife.Reflection
             }
             catch { return null; }
         }
+#endif
 
         /// <summary>获取当前应用程序的所有程序集，不包括系统程序集，仅限本目录</summary>
         /// <returns></returns>
@@ -675,34 +678,46 @@ namespace NewLife.Reflection
             var cur = AppDomain.CurrentDomain.BaseDirectory;
             foreach (var asmx in GetAssemblies())
             {
-                if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
-                var file = asmx.Asm.CodeBase;
-                if (String.IsNullOrEmpty(file)) continue;
-                file = file.TrimStart("file:///");
-                file = file.Replace("/", "\\");
-                if (!file.StartsWithIgnoreCase(cur)) continue;
-
-                if (!hs.Contains(file))
+                // 加载程序集列表很容易抛出异常，全部屏蔽
+                try
                 {
-                    hs.Add(file);
-                    list.Add(asmx);
+                    if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
+                    var file = asmx.Asm.CodeBase;
+                    if (String.IsNullOrEmpty(file)) continue;
+                    file = file.TrimStart("file:///");
+                    file = file.Replace("/", "\\");
+                    if (!file.StartsWithIgnoreCase(cur)) continue;
+
+                    if (!hs.Contains(file))
+                    {
+                        hs.Add(file);
+                        list.Add(asmx);
+                    }
                 }
+                catch { }
             }
+#if !__CORE__
             foreach (var asmx in ReflectionOnlyGetAssemblies())
             {
-                if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
-                var file = asmx.Asm.CodeBase;
-                if (String.IsNullOrEmpty(file)) continue;
-                file = file.TrimStart("file:///");
-                file = file.Replace("/", "\\");
-                if (!file.StartsWithIgnoreCase(cur)) continue;
-
-                if (!hs.Contains(file))
+                // 加载程序集列表很容易抛出异常，全部屏蔽
+                try
                 {
-                    hs.Add(file);
-                    list.Add(asmx);
+                    if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
+                    var file = asmx.Asm.CodeBase;
+                    if (String.IsNullOrEmpty(file)) continue;
+                    file = file.TrimStart("file:///");
+                    file = file.Replace("/", "\\");
+                    if (!file.StartsWithIgnoreCase(cur)) continue;
+
+                    if (!hs.Contains(file))
+                    {
+                        hs.Add(file);
+                        list.Add(asmx);
+                    }
                 }
+                catch { }
             }
+#endif
             return list;
         }
         #endregion

@@ -51,7 +51,7 @@ namespace ASP
             
             #line 2 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
   
-    var user = ManageProvider.User;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
     var fact = ObjectContainer.Current.Resolve<IMenuFactory>();
 
@@ -109,16 +109,16 @@ WriteLiteral(" class=\"dropdown-toggle\"");
 
 WriteLiteral(">\r\n                <i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 967), Tuple.Create("\"", 1001)
-, Tuple.Create(Tuple.Create("", 975), Tuple.Create("menu-icon", 975), true)
-, Tuple.Create(Tuple.Create(" ", 984), Tuple.Create("fa", 985), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 995), Tuple.Create("\"", 1029)
+, Tuple.Create(Tuple.Create("", 1003), Tuple.Create("menu-icon", 1003), true)
+, Tuple.Create(Tuple.Create(" ", 1012), Tuple.Create("fa", 1013), true)
             
             #line 26 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create(" ", 987), Tuple.Create<System.Object, System.Int32>(icos[_idx++]
+, Tuple.Create(Tuple.Create(" ", 1015), Tuple.Create<System.Object, System.Int32>(icos[_idx++]
             
             #line default
             #line hidden
-, 988), false)
+, 1016), false)
 );
 
 WriteLiteral("></i>\r\n                <span");

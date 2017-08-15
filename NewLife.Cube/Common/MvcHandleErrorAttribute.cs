@@ -39,7 +39,7 @@ namespace NewLife.Cube
                 ctx.ExceptionHandled = true;
 
                 var vr = new ViewResult();
-                vr.ViewName = "Error";
+                vr.ViewName = "CubeError";
                 vr.ViewBag.Context = ctx;
 
                 ctx.Result = vr;

@@ -83,8 +83,7 @@ namespace XCode
         {
             if (_Additions == null) return false;
 
-            Object obj = null;
-            if (!_Additions.TryGetValue(name, out obj)) return false;
+            if (!_Additions.TryGetValue(name, out var obj)) return false;
 
             if (restore) Entity[name] = obj;
 

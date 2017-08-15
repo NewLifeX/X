@@ -54,7 +54,8 @@ namespace System
 
             var type = value.GetType();
             var item = type.GetField(value.ToString(), BindingFlags.Public | BindingFlags.Static);
-
+			//云飞扬 2017-07-06 传的枚举值可能并不存在，需要判断是否为null
+            if (item == null) return null;
             //var att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
             var att = item.GetCustomAttribute<DescriptionAttribute>(false);
             if (att != null && !String.IsNullOrEmpty(att.Description)) return att.Description;

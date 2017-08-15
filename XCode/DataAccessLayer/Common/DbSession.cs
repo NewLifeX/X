@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -59,7 +58,7 @@ namespace XCode.DataAccessLayer
         public IDatabase Database { get; }
 
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        private DatabaseType DbType { get { return Database.DbType; } }
+        private DatabaseType DbType { get { return Database.Type; } }
 
         /// <summary>工厂</summary>
         private DbProviderFactory Factory { get { return Database.Factory; } }
@@ -79,7 +78,7 @@ namespace XCode.DataAccessLayer
                     {
                         _Conn = Factory.CreateConnection();
                     }
-                    catch (ObjectDisposedException) { this.Dispose(); throw; }
+                    catch (ObjectDisposedException) { Dispose(); throw; }
                     //_Conn.ConnectionString = Database.ConnectionString;
                     checkConnStr();
                     _Conn.ConnectionString = ConnectionString;
@@ -201,11 +200,12 @@ namespace XCode.DataAccessLayer
 
         /// <summary>当异常发生时触发。关闭数据库连接，或者返还连接到连接池。</summary>
         /// <param name="ex"></param>
-        /// <param name="sql"></param>
+        /// <param name="cmd"></param>
         /// <returns></returns>
-        protected virtual XSqlException OnException(Exception ex, String sql)
+        protected virtual XSqlException OnException(Exception ex, DbCommand cmd)
         {
             if (Transaction == null && Opened) Close(); // 强制关闭数据库
+            var sql = GetSql(cmd);
             if (ex != null)
                 return new XSqlException(sql, this, ex);
             else
@@ -252,7 +252,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>提交事务</summary>
         /// <returns>剩下的事务计数</returns>
-        public Int32 Commit()
+        public virtual Int32 Commit()
         {
             var tr = Transaction;
             if (tr == null) throw new XDbSessionException(this, "当前并未开始事务，请用BeginTransaction方法开始新事务！");
@@ -326,11 +326,11 @@ namespace XCode.DataAccessLayer
                 }
                 catch (DbException ex)
                 {
-                    throw OnException(ex, cmd.CommandText);
+                    throw OnException(ex, cmd);
                 }
                 finally
                 {
-                    EndTrace(cmd.CommandText);
+                    EndTrace(cmd);
 
                     AutoClose();
                     cmd.Parameters.Clear();
@@ -402,11 +402,11 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw OnException(ex, cmd.CommandText);
+                throw OnException(ex, cmd);
             }
             finally
             {
-                EndTrace(cmd.CommandText);
+                EndTrace(cmd);
 
                 AutoClose();
                 cmd.Parameters.Clear();
@@ -451,11 +451,11 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw OnException(ex, cmd.CommandText);
+                throw OnException(ex, cmd);
             }
             finally
             {
-                EndTrace(cmd.CommandText);
+                EndTrace(cmd);
 
                 AutoClose();
                 cmd.Parameters.Clear();
@@ -491,10 +491,12 @@ namespace XCode.DataAccessLayer
 
             if (!Opened) Open();
             cmd.Connection = Conn;
-
             cmd.CommandType = type;
             cmd.CommandText = sql;
             if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
+
+            var timeout = Setting.Current.CommandTimeout;
+            if (timeout > 0) cmd.CommandTimeout = timeout;
 
             return cmd;
         }
@@ -624,17 +626,40 @@ namespace XCode.DataAccessLayer
 
         /// <summary>写入SQL到文本中</summary>
         /// <param name="sql"></param>
-        /// <param name="ps"></param>
-        public void WriteSQL(String sql, params IDataParameter[] ps)
+        public void WriteSQL(String sql)
         {
             if (!ShowSQL) return;
 
-            if (ps != null && ps.Length > 0)
+#if !__CORE__
+            // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
+            var context = HttpContext.Current;
+            if (context != null)
+            {
+                var list = context.Items["XCode_SQLList"] as List<String>;
+                if (list != null) list.Add(sql);
+            }
+#endif
+
+            var sqlpath = Setting.Current.SQLPath;
+            if (String.IsNullOrEmpty(sqlpath))
+                WriteLog(sql);
+            else
+            {
+                if (logger == null) logger = TextFileLog.Create(sqlpath);
+                logger.Info(sql);
+            }
+        }
+
+        private String GetSql(DbCommand cmd)
+        {
+            var sql = cmd.CommandText;
+            var ps = cmd.Parameters;
+            if (ps != null && ps.Count > 0)
             {
                 var sb = new StringBuilder(64);
                 sb.Append(sql);
-                sb.Append("[");
-                for (Int32 i = 0; i < ps.Length; i++)
+                sb.Append(" [");
+                for (Int32 i = 0; i < ps.Count; i++)
                 {
                     if (i > 0) sb.Append(", ");
                     var v = ps[i].Value;
@@ -653,49 +678,26 @@ namespace XCode.DataAccessLayer
                         if (sv.Length > 32) sv = String.Format("[{0}]{1}...", sv.Length, sv.Substring(0, 8));
                     }
                     else
-                        sv = "" + v;
+                        sv = "{0}".F(v);
                     sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
                 }
                 sb.Append("]");
                 sql = sb.ToString();
             }
 
-            // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
-            var context = HttpContext.Current;
-            if (context != null)
-            {
-                var list = context.Items["XCode_SQLList"] as List<String>;
-                if (list != null) list.Add(sql);
-            }
-
-            var sqlpath = Setting.Current.SQLPath;
-            if (String.IsNullOrEmpty(sqlpath))
-                WriteLog(sql);
-            else
-            {
-                if (logger == null) logger = TextFileLog.Create(sqlpath);
-                logger.Info(sql);
-            }
+            return sql;
         }
 
         public void WriteSQL(DbCommand cmd)
         {
-            var sql = cmd.CommandText;
-            if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
+            if (!ShowSQL) return;
 
-            IDataParameter[] ps = null;
-            if (cmd.Parameters != null)
-            {
-                var cps = cmd.Parameters;
-                ps = new IDataParameter[cps.Count];
-                //cmd.Parameters.CopyTo(ps, 0);
-                for (Int32 i = 0; i < ps.Length; i++)
-                {
-                    ps[i] = cps[i];
-                }
-            }
+            //var sql = cmd.CommandText;
+            //if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
 
-            WriteSQL(sql, ps);
+            var sql = GetSql(cmd);
+
+            WriteSQL(sql);
         }
 
         /// <summary>输出日志</summary>
@@ -724,13 +726,15 @@ namespace XCode.DataAccessLayer
             _swSql.Start();
         }
 
-        protected void EndTrace(String sql)
+        protected void EndTrace(DbCommand cmd)
         {
             if (_swSql == null) return;
 
             _swSql.Stop();
 
             if (_swSql.ElapsedMilliseconds < Setting.Current.TraceSQLTime) return;
+
+            var sql = GetSql(cmd);
 
             // 同一个SQL只需要报警一次
             if (_trace_sqls.Contains(sql)) return;

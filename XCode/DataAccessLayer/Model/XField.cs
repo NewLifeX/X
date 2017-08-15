@@ -16,12 +16,6 @@ namespace XCode.DataAccessLayer
     class XField : SerializableDataMember, IDataColumn, ICloneable
     {
         #region 属性
-        /// <summary>顺序编号</summary>
-        [XmlAttribute]
-        [DisplayName("编号")]
-        [Description("编号")]
-        public Int32 ID { get; set; }
-
         /// <summary>名称</summary>
         [XmlAttribute]
         [DisplayName("名称")]
@@ -44,7 +38,7 @@ namespace XCode.DataAccessLayer
         [XmlIgnore]
         [DisplayName("字段类型")]
         [Description("字段类型")]
-        public String FieldType { get { return DataType == null ? null : DataType.Name; } set { DataType = value.GetTypeEx(); } }
+        public String FieldType { get { return DataType?.Name; } set { DataType = value.GetTypeEx(); } }
 
         /// <summary>原始数据类型</summary>
         [XmlAttribute]
@@ -76,20 +70,14 @@ namespace XCode.DataAccessLayer
         [Description("长度")]
         public Int32 Length { get; set; }
 
-        /// <summary>字节数</summary>
-        [XmlAttribute]
-        [DisplayName("字节数")]
-        [Description("字节数")]
-        public Int32 NumOfByte { get; set; }
-
         /// <summary>精度</summary>
-        [XmlAttribute]
+        [XmlIgnore]
         [DisplayName("精度")]
         [Description("精度")]
         public Int32 Precision { get; set; }
 
         /// <summary>位数</summary>
-        [XmlAttribute]
+        [XmlIgnore]
         [DisplayName("位数")]
         [Description("位数")]
         public Int32 Scale { get; set; }
@@ -99,42 +87,6 @@ namespace XCode.DataAccessLayer
         [DisplayName("允许空")]
         [Description("允许空")]
         public Boolean Nullable { get; set; }
-
-        /// <summary>是否Unicode</summary>
-        [XmlAttribute]
-        [DisplayName("Unicode")]
-        [Description("Unicode")]
-        public Boolean IsUnicode { get; set; }
-
-        /// <summary>默认值</summary>
-        [XmlAttribute]
-        [DisplayName("默认值")]
-        [Description("默认值")]
-        public String Default { get; set; }
-
-        private String _DisplayName;
-        /// <summary>显示名</summary>
-        [XmlAttribute]
-        [DisplayName("显示名")]
-        [Description("显示名")]
-        public String DisplayName
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(Name, _Description);
-                return _DisplayName;
-            }
-            set
-            {
-                if (!String.IsNullOrEmpty(value)) value = value.Replace("\r\n", "。").Replace("\r", " ").Replace("\n", " ");
-                _DisplayName = value;
-
-                if (String.IsNullOrEmpty(_Description))
-                    _Description = _DisplayName;
-                else if (!_Description.StartsWith(_DisplayName))
-                    _Description = _DisplayName + "。" + _Description;
-            }
-        }
 
         private String _Description;
         /// <summary>描述</summary>
@@ -157,20 +109,31 @@ namespace XCode.DataAccessLayer
         [XmlIgnore]
         public IDataTable Table { get; set; }
 
+        private String _DisplayName;
+        /// <summary>显示名</summary>
+        [XmlAttribute]
+        [DisplayName("显示名")]
+        [Description("显示名")]
+        public String DisplayName
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_DisplayName)) _DisplayName = ModelResolver.Current.GetDisplayName(Name, _Description);
+                return _DisplayName;
+            }
+        }
+
         /// <summary>扩展属性</summary>
         [XmlIgnore]
         [Category("扩展")]
         [DisplayName("扩展属性")]
         [Description("扩展属性")]
-        public IDictionary<String, String> Properties { get; private set; }
+        public IDictionary<String, String> Properties { get; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
-        public XField()
-        {
-            Properties = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-        }
+        public XField() { }
         #endregion
 
         #region 方法
@@ -186,9 +149,9 @@ namespace XCode.DataAccessLayer
         public override String ToString()
         {
             if (!String.IsNullOrEmpty(DisplayName) && DisplayName != Name)
-                return String.Format("ID={0} Name={1} FieldType={2} RawType={3} DisplayName={4}", ID, ColumnName, FieldType, RawType, DisplayName);
+                return String.Format("Name={0} FieldType={1} RawType={2} DisplayName={3}", ColumnName, FieldType, RawType, DisplayName);
             else
-                return String.Format("ID={0} Name={1} FieldType={2} RawType={3}", ID, ColumnName, FieldType, RawType);
+                return String.Format("Name={0} FieldType={1} RawType={2}", ColumnName, FieldType, RawType);
         }
         #endregion
 

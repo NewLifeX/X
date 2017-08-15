@@ -39,7 +39,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         protected override Boolean AuthorizeCore(HttpContextBase httpContext)
         {
-            var user = ManageProvider.User;
+            var user = httpContext.User?.Identity as IUser;
             return user != null;
         }
 
@@ -47,12 +47,10 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
-            //// 基类方法会检查AllowAnonymous
-            //base.OnAuthorization(filterContext);
-            //if (filterContext.Result == null) return;
-
             // 只验证管辖范围
             if (!AreaRegistrationBase.Contains(filterContext.Controller)) return;
+
+            ManageProvider.Provider.SetPrincipal();
 
             var act = filterContext.ActionDescriptor;
 
@@ -71,7 +69,8 @@ namespace NewLife.Cube
             {
                 //HandleUnauthorizedRequest(filterContext);
                 var ctx = filterContext.HttpContext;
-                var rurl = "/Admin/User/Login";
+                var rurl = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/");
+                rurl += "Admin/User/Login";
                 if (ctx.Request.Url != null) rurl += "?returnUrl=" + ctx.Request.Url;
 
                 filterContext.HttpContext.Response.Redirect(rurl, true);
@@ -83,22 +82,27 @@ namespace NewLife.Cube
             var menu = ManageProvider.Menu.Current;
             if (menu != null)
             {
-                var role = (user as IUser).Role;
-                if (role.Has(menu.ID, Permission)) return;
+                var role = user?.Role;
+                if (role != null && role.Has(menu.ID, Permission)) return;
             }
             else
             {
                 XTrace.WriteLine("设计错误！验证权限时无法找到[{0}]的菜单", url);
             }
 
-            var vr = new ViewResult();
-            vr.ViewName = "NoPermission";
+            var res = "[{0}/{1}] {2}".F(act.ControllerDescriptor.ControllerName, act.ActionName, menu != null ? (menu + "") : url);
+            var msg = "访问资源 {0} 需要 {1} 权限".F(res, Permission.GetDescription());
+            LogProvider.Provider.WriteLog("访问", "拒绝", msg);
+
+            var vr = new ViewResult()
+            {
+                ViewName = "NoPermission"
+            };
             vr.ViewBag.Context = filterContext;
-            vr.ViewBag.Resource = menu != null ? (menu + "") : url;
+            vr.ViewBag.Resource = res;
             vr.ViewBag.Permission = Permission;
 
             filterContext.Result = vr;
-
         }
         #endregion
     }

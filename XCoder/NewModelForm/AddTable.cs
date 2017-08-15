@@ -7,7 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 
 using XCode;
-using XCode.DataAccessLayer ;
+using XCode.DataAccessLayer;
 
 namespace XCoder
 {
@@ -27,7 +27,7 @@ namespace XCoder
             combDbType.DataSource = BindComboxEnumType<DatabaseType>.BindTyps;
             //combDbType.DisplayMember = "Name";
             //combDbType.ValueMember = "Type";
-            
+
             CurrentTable = table;
             //绑定Table信息到文本框
             txtTableName.Text = CurrentTable.TableName;
@@ -35,44 +35,44 @@ namespace XCoder
             combDbType.SelectedValue = CurrentTable.DbType;
 
             list = new BindingList<IDataColumn>();
-            
+
             //绑定字段到表格
-            if(CurrentTable.Columns.Count >0 ) dgvColumns.DataSource = CurrentTable.Columns;
+            if (CurrentTable.Columns.Count > 0) dgvColumns.DataSource = CurrentTable.Columns;
 
             BandingDGV();
         }
 
         private void BandingDGV()
         {
-            if (CurrentTable.Columns.Count >0 )
+            if (CurrentTable.Columns.Count > 0)
             {
                 list.Clear();
-                foreach (var item in CurrentTable.Columns )
+                foreach (var item in CurrentTable.Columns)
                 {
                     list.Add(item);
                 }
                 dgvColumns.DataSource = null;
                 dgvColumns.DataSource = list;
             }
-            else  dgvColumns.DataSource = null;
+            else dgvColumns.DataSource = null;
         }
 
         public static BaseForm CreateForm(IDataTable table)
         {
-            AddTable frm = new AddTable(table );
-            frm.Dock = DockStyle.Fill;            
-            return WinFormHelper.CreateForm(frm , "添加表");
+            AddTable frm = new AddTable(table);
+            frm.Dock = DockStyle.Fill;
+            return WinFormHelper.CreateForm(frm, "添加表");
         }
 
         private void toolAddColumns_Click(Object sender, EventArgs e)
         {
             IDataColumn dc = CurrentTable.CreateColumn();
             //CurrentTable.Columns.Add(dc);
-            dc.ID = CurrentTable.Columns.Count + 1;
-            dc.ColumnName = "Column" + dc.ID;
-            dc.Description = "字段" + dc.ID;
+            var id = CurrentTable.Columns.Count + 1;
+            dc.ColumnName = "Column" + id;
+            dc.Description = "字段" + id;
             DialogResult dr = AddField.CreateForm(dc, true).ShowDialog();
-            if (dr != DialogResult.Cancel) 
+            if (dr != DialogResult.Cancel)
             {
                 CurrentTable.Columns.Add(dc);
                 BandingDGV();
@@ -82,13 +82,13 @@ namespace XCoder
         private void toolEidtColumn_Click(Object sender, EventArgs e)
         {
 
-            DataGridViewRow row = dgvColumns.Rows[dgvColumns.CurrentCell.RowIndex ];
+            DataGridViewRow row = dgvColumns.Rows[dgvColumns.CurrentCell.RowIndex];
             if (row == null) return;
 
-            AddField.CreateForm((IDataColumn)row.DataBoundItem , false ).ShowDialog();
+            AddField.CreateForm((IDataColumn)row.DataBoundItem, false).ShowDialog();
 
             BandingDGV();
-        }      
+        }
 
         private void toolStripButton1_Click(Object sender, EventArgs e)
         {
@@ -99,7 +99,7 @@ namespace XCoder
             else
             {
                 ParentForm.Close();
-            }          
+            }
         }
 
         private void toolSave_Click(Object sender, EventArgs e)
@@ -108,7 +108,7 @@ namespace XCoder
             CurrentTable.Description = txtTableRemark.Text.Trim();
             CurrentTable.DbType = (DatabaseType)Enum.Parse(typeof(DatabaseType), combDbType.SelectedValue.ToString());
 
-            BandingDGV();      
+            BandingDGV();
         }
 
         private void toolDelete_Click(Object sender, EventArgs e)

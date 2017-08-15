@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using System.Web.WebPages;
 using NewLife.Cube.Precompiled;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Web;
 using XCode;
 using XCode.Membership;
 
@@ -41,9 +43,6 @@ namespace NewLife.Cube
         {
             XTrace.WriteLine("{0} Start 初始化魔方 {0}", new String('=', 32));
             Assembly.GetExecutingAssembly().WriteVersion();
-
-            //// 注册视图引擎
-            //RazorViewEngineX.Register(ViewEngines.Engines);
 
             // 遍历所有引用了AreaRegistrationBase的程序集
             var list = new List<PrecompiledViewAssembly>();
@@ -88,6 +87,9 @@ namespace NewLife.Cube
             //    constraints: new { controller = "Frontend", action = "Default" }
             //);
 
+            // 自动检查并下载魔方资源
+            Task.Factory.StartNew(CheckContent, TaskCreationOptions.LongRunning).LogException();
+
             XTrace.WriteLine("{0} End   初始化魔方 {0}", new String('=', 32));
         }
 
@@ -123,6 +125,22 @@ namespace NewLife.Cube
             return list;
         }
 
+        static void CheckContent()
+        {
+            var js = "~/Content/Cube.js".GetFullPath();
+            var css = "~/Content/Cube.css".GetFullPath();
+            if (File.Exists(js) && File.Exists(css)) return;
+
+            var url = Setting.Current.PluginServer;
+            if (url.IsNullOrEmpty()) return;
+
+            var wc = new WebClientX(true, true)
+            {
+                Log = XTrace.Log
+            };
+            wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath(), false);
+        }
+
         /// <summary>注册区域</summary>
         /// <param name="context"></param>
         public override void RegisterArea(AreaRegistrationContext context)
@@ -156,7 +174,7 @@ namespace NewLife.Cube
 
             using (var tran = (mf as IEntityOperate).CreateTrans())
             {
-                XTrace.WriteLine("初始化[{0}]的菜单体系", AreaName);
+                XTrace.WriteLine("初始化[{0}]的菜单体系 {1}", AreaName, mf.GetType().Name);
                 mf.ScanController(AreaName, GetType().Assembly, GetType().Namespace + ".Controllers");
 
                 // 更新区域名称为友好中文名
@@ -169,7 +187,7 @@ namespace NewLife.Cube
                     if (!dis.IsNullOrEmpty()) menu.DisplayName = dis;
                     if (!des.IsNullOrEmpty()) menu.Remark = des;
 
-                    menu.Save();
+                    (menu as IEntity).Save();
                 }
 
                 tran.Commit();

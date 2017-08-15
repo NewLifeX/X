@@ -181,11 +181,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Type GetType(String typeName, Boolean isLoadAssembly)
         {
-#if !__CORE__
             return AssemblyX.GetType(typeName, isLoadAssembly);
-#else
-            return Type.GetType(typeName);
-#endif
         }
 
         static BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
@@ -414,7 +410,7 @@ namespace NewLife.Reflection
             catch (Exception ex)
             {
                 //throw new Exception("创建对象失败 type={0} parameters={1}".F(type.FullName, parameters.Join()), ex);
-                throw new Exception("创建对象失败 type={0} parameters={1} {2}".F(type.FullName, parameters.Join(), ex.GetTrue()?.Message));
+                throw new Exception("创建对象失败 type={0} parameters={1} {2}".F(type.FullName, parameters.Join(), ex.GetTrue()?.Message), ex);
             }
         }
 
@@ -603,6 +599,7 @@ namespace NewLife.Reflection
             if (value != null) vtype = value.GetType();
             if (vtype == conversionType) return value;
 
+            conversionType = Nullable.GetUnderlyingType(conversionType) ?? conversionType;
             if (conversionType.IsEnum)
             {
                 if (vtype == typeof(String))

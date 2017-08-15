@@ -110,6 +110,7 @@
     <Compile Include="Areas\Admin\Controllers\MenuController.cs" />
     <Compile Include="Areas\Admin\Controllers\CoreController.cs" />
     <Compile Include="Areas\Admin\Controllers\CubeController.cs" />
+    <Compile Include="Areas\Admin\Controllers\UserOnlineController.cs" />
     <Compile Include="Areas\Admin\Controllers\XCodeController.cs" />
     <Compile Include="Areas\Admin\Controllers\SysController.cs" />
     <Compile Include="Areas\Admin\Controllers\UserController.cs" />
@@ -151,10 +152,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Navbar.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Log\_List_Toolbar.generated.cs">
+    <Compile Include="Areas\Admin\Views\Log\_List_Search.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
+      <DependentUpon>_List_Search.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Views\Role\_Form_Group.generated.cs">
       <AutoGen>True</AutoGen>
@@ -181,10 +182,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Form_Action.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\_List_Toolbar.generated.cs">
+    <Compile Include="Areas\Admin\Views\User\_List_Search.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
+      <DependentUpon>_List_Search.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Views\User\_Login_Forgot.generated.cs">
       <AutoGen>True</AutoGen>
@@ -221,12 +222,13 @@
     <Compile Include="Common\EntityController.cs" />
     <Compile Include="Common\ConfigController.cs" />
     <Compile Include="Common\ViewHelper.cs" />
-    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Common\EntityAuthorizeAttribute.cs" />
     <Compile Include="Common\MvcHandleErrorAttribute.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="PreApplicationStartCode.cs" />
     <Compile Include="Precompiled\AssemblyExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -243,10 +245,20 @@
     <Compile Include="Precompiled\PrecompiledViewAssembly.cs" />
     <Compile Include="Precompiled\PrecompiledViewLocationCache.cs" />
     <Compile Include="Setting.cs" />
+    <Compile Include="Views\CubeHome\Index.generated.cs">
+      <DependentUpon>Index.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Home\Index.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Index.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Shared\_DateRange.generated.cs">
+      <DependentUpon>_DateRange.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Views\Shared\ListTree.generated.cs">
       <DependentUpon>ListTree.cshtml</DependentUpon>
@@ -258,10 +270,10 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Views\Shared\Error.generated.cs">
+    <Compile Include="Views\Shared\CubeError.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Error.cshtml</DependentUpon>
+      <DependentUpon>CubeError.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Shared\Form.generated.cs">
       <AutoGen>True</AutoGen>
@@ -308,16 +320,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Form_Item.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Shared\_Layout.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Layout.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Layout_Header.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Layout_Header.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Shared\_Layout_Nav.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -358,6 +360,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_List_Search.generated.cs">
+      <DependentUpon>_List_Search.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Shared\_List_Toolbar_Search.generated.cs">
       <DependentUpon>_List_Toolbar_Search.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -380,21 +387,21 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Areas\Admin\Views\Db\Index.cshtml">
+    <None Include="Areas\Admin\Views\Db\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <Content Include="index.html" />
     <Content Include="Scripts\ApiClient.js" />
     <Content Include="Scripts\WebSocketX.js" />
-    <Content Include="Areas\Admin\Views\File\Index.cshtml">
+    <None Include="Areas\Admin\Views\File\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\User\_Form_Action.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\User\_Form_Action.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Content\ace\css\ace-fonts.min.css" />
     <None Include="Content\ace\css\ace-ie.min.css" />
     <None Include="Content\ace\css\ace-part2.min.css" />
@@ -466,9 +473,9 @@
     <None Include="Content\js\jquery1x.min.js" />
     <None Include="Content\js\respond.min.js" />
     <Content Include="favicon.ico" />
-    <None Include="Areas\Admin\Views\Log\_List_Toolbar.cshtml">
+    <None Include="Areas\Admin\Views\Log\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
+      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
     </None>
     <None Include="Areas\Admin\Views\Index\_Left_Item.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -482,9 +489,9 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Info.generated.cs</LastGenOutput>
     </None>
-    <None Include="Areas\Admin\Views\User\_List_Toolbar.cshtml">
+    <None Include="Areas\Admin\Views\User\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
+      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
     </None>
     <None Include="Content\bootstrap\fonts\glyphicons-halflings-regular.eot" />
     <None Include="Content\bootstrap\fonts\glyphicons-halflings-regular.ttf" />
@@ -523,6 +530,18 @@
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
     </None>
     <None Include="Areas\Admin\Views\Web.config" />
+    <None Include="Views\Home\Index.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Index.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\CubeHome\Index.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Index.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\Shared\_DateRange.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_DateRange.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\ListTree.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ListTree.generated.cs</LastGenOutput>
@@ -579,7 +598,7 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
-    <None Include="Content\Site.css" />
+    <None Include="Content\Cube.css" />
     <None Include="Scripts\_references.js" />
     <None Include="Views\Shared\_Form_Action.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -597,10 +616,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
     </None>
-    <None Include="Views\Shared\_Layout_Header.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Layout_Header.generated.cs</LastGenOutput>
-    </None>
     <None Include="Views\Shared\_Layout_Nav.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Layout_Nav.generated.cs</LastGenOutput>
@@ -609,6 +624,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_List_Search.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\_List_Toolbar_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar_Search.generated.cs</LastGenOutput>
@@ -621,22 +640,14 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
     </None>
-    <None Include="Views\Home\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </None>
     <None Include="Views\Shared\_LoginPartial.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_LoginPartial.generated.cs</LastGenOutput>
     </None>
-    <None Include="Views\Shared\_Layout.cshtml">
+    <EmbeddedResource Include="Views\Web.config" />
+    <None Include="Views\Shared\CubeError.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Layout.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Web.config" />
-    <None Include="Views\Shared\Error.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Error.generated.cs</LastGenOutput>
+      <LastGenOutput>CubeError.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Shared\_List_Pager.cshtml">
       <Generator>RazorGenerator</Generator>

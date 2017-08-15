@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Net;
+using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife.Collections;
+using NewLife.Model;
 using NewLife.Web;
 using XCode.Cache;
 
 namespace XCode.Membership
 {
     /// <summary>日志</summary>
-    [Serializable]
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public class Log : Log<Log> { }
 
@@ -23,6 +21,10 @@ namespace XCode.Membership
         static Log()
         {
             Meta.Table.DataTable.InsertOnly = true;
+
+            Meta.Modules.Add<TimeModule>();
+            Meta.Modules.Add<UserModule>();
+            Meta.Modules.Add<IPModule>();
         }
 
         /// <summary>已重载。记录当前管理员</summary>
@@ -36,11 +38,13 @@ namespace XCode.Membership
                 // 自动设置当前登录用户
                 if (!Dirtys[__.UserName])
                 {
-                    var user = ManageProvider.User;
-                    if (user != null)
-                    {
-                        UserName = user.ToString();
-                    }
+#if !__CORE__
+                    var user = HttpContext.Current?.User?.Identity as IManageUser;
+#else
+                    var user = ManageProvider.Provider?.Current;
+#endif
+                    //var user = ManageProvider.User;
+                    if (user != null) UserName = user + "";
                 }
             }
 
@@ -80,69 +84,34 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展查询
-        /// <summary>查询</summary>
-        /// <param name="key"></param>
-        /// <param name="adminid"></param>
-        /// <param name="category"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <param name="order"></param>
-        /// <param name="startRowIndex"></param>
-        /// <param name="maximumRows"></param>
-        /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> Search(String key, Int32 adminid, String category, DateTime start, DateTime end, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            if (String.IsNullOrEmpty(order)) order = _.ID.Desc();
-            return FindAll(SearchWhere(key, adminid, category, start, end), order, null, startRowIndex, maximumRows);
-        }
 
         /// <summary>查询</summary>
         /// <param name="key"></param>
-        /// <param name="adminid"></param>
-        /// <param name="category"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <param name="order"></param>
-        /// <param name="startRowIndex"></param>
-        /// <param name="maximumRows"></param>
-        /// <returns></returns>
-        public static Int64 SearchCount(String key, Int32 adminid, String category, DateTime start, DateTime end, String order, Int32 startRowIndex, Int32 maximumRows)
-        {
-            var where = SearchWhere(key, adminid, category, start, end);
-            return FindCount(where, null, null, 0, 0);
-        }
-
-        /// <summary>查询</summary>
-        /// <param name="key"></param>
-        /// <param name="adminid"></param>
-        /// <param name="category"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
-        public static WhereExpression SearchWhere(String key, Int32 adminid, String category, DateTime start, DateTime end)
-        {
-            var exp = new WhereExpression();
-            if (!String.IsNullOrEmpty(key)) exp &= (_.Action == key | _.Remark.Contains(key));
-            if (!String.IsNullOrEmpty(category) && category != "全部") exp &= _.Category == category;
-            if (adminid > 0) exp &= _.CreateUserID == adminid;
-            if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
-            if (end > DateTime.MinValue) exp &= _.CreateTime < end.Date.AddDays(1);
-
-            return exp;
-        }
-
-        /// <summary>查询</summary>
-        /// <param name="key"></param>
-        /// <param name="adminid"></param>
+        /// <param name="userid"></param>
         /// <param name="category"></param>
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> Search(String key, Int32 adminid, String category, DateTime start, DateTime end, Pager p)
+        public static EntityList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, Pager p)
         {
-            return FindAll(SearchWhere(key, adminid, category, start, end), p);
+            var exp = new WhereExpression();
+            //if (!key.IsNullOrEmpty()) exp &= (_.Action == key | _.Remark.Contains(key));
+            if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
+            if (userid >= 0) exp &= _.CreateUserID == userid;
+            if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
+            if (end > DateTime.MinValue) exp &= _.CreateTime < end.Date.AddDays(1);
+
+            // 先精确查询，再模糊
+            if (!key.IsNullOrEmpty())
+            {
+                var list = FindAll(exp & _.Action == key, p);
+                if (list.Count > 0) return list;
+
+                exp &= _.Action.Contains(key) | _.Remark.Contains(key);
+            }
+
+            return FindAll(exp, p);
         }
         #endregion
 
@@ -222,18 +191,6 @@ namespace XCode.Membership
 
     public partial interface ILog
     {
-        ///// <summary>创建</summary>
-        ///// <param name="type"></param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //ILog Create(Type type, String action);
-
-        ///// <summary>写日志</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action">操作</param>
-        ///// <param name="remark">备注</param>
-        //void WriteLog(Type type, String action, String remark);
-
         /// <summary>保存</summary>
         /// <returns></returns>
         Int32 Save();

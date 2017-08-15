@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("6.3.*")]
-[assembly: AssemblyFileVersion("6.3.2017.0526")]
+[assembly: AssemblyVersion("6.4.*")]
+[assembly: AssemblyFileVersion("6.4.2017.0719")]
 
 /*
+ * v6.4.2017.0719   日志模块支持指定文件名格式，便于不同子系统输出日志文件到相同目录
+ * 
  * v6.3.2017.0320   增加7z扩展压缩与解压缩
  * 
  * v6.2.2016.1230   增加定时调度器，支持多调度器来调度TimerX

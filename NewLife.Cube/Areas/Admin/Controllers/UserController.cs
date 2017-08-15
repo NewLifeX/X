@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web.Mvc;
 using System.Web.Security;
@@ -27,9 +28,9 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        protected override EntityList<UserX> FindAll(Pager p)
+        protected override IEnumerable<UserX> Search(Pager p)
         {
-            return UserX.Search(p["Q"], p["RoleID"].ToInt(), null, p);
+            return UserX.Search(p["Q"], p["RoleID"].ToInt(-1), null, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }
 
         /// <summary>表单页视图。</summary>
@@ -56,7 +57,7 @@ namespace NewLife.Cube.Admin.Controllers
                 if (Url.IsLocalUrl(returnUrl))
                     return Redirect(returnUrl);
                 else
-                    return RedirectToAction("Index", "Index");
+                    return RedirectToAction("Index", "Index", new { page = returnUrl });
             }
 
             ViewBag.ReturnUrl = returnUrl;
@@ -85,7 +86,7 @@ namespace NewLife.Cube.Admin.Controllers
                     if (Url.IsLocalUrl(returnUrl))
                         return Redirect(returnUrl);
                     else
-                        return RedirectToAction("Index", "Index");
+                        return RedirectToAction("Index", "Index", new { page = returnUrl });
                 }
 
                 // 如果我们进行到这一步时某个地方出错，则重新显示表单
@@ -164,7 +165,18 @@ namespace NewLife.Cube.Admin.Controllers
         [AllowAnonymous]
         public ActionResult ForgetPassword(String email)
         {
-            throw new NotImplementedException("未实现！");
+            var set = Setting.Current;
+            if (!set.AllowForgot) throw new Exception("禁止取回密码！");
+
+            //throw new NotImplementedException("未实现！");
+            var user = UserX.FindByMail(email);
+            if (user == null)
+            {
+                //throw new Exception("未找到");
+                Js.Alert("未找到用户");
+            }
+
+            return View("Login");
         }
 
         /// <summary>注册</summary>
@@ -177,6 +189,9 @@ namespace NewLife.Cube.Admin.Controllers
         [AllowAnonymous]
         public ActionResult Register(String email, String username, String password, String password2)
         {
+            var set = Setting.Current;
+            if (!set.AllowRegister) throw new Exception("禁止注册！");
+
             try
             {
                 if (String.IsNullOrEmpty(email)) throw new ArgumentNullException("email", "邮箱地址不能为空！");
@@ -185,11 +200,14 @@ namespace NewLife.Cube.Admin.Controllers
                 if (String.IsNullOrEmpty(password2)) throw new ArgumentNullException("password2", "重复密码不能为空！");
                 if (password != password2) throw new ArgumentOutOfRangeException("password2", "两次密码必须一致！");
 
-                var user = new UserX();
-                user.Name = username;
-                user.Password = password.MD5();
-                user.Mail = email;
-                user.Enable = true;
+                var user = new UserX()
+                {
+                    Name = username,
+                    Password = password.MD5(),
+                    Mail = email,
+                    RoleID = set.DefaultRole,
+                    Enable = true
+                };
                 user.Register();
 
                 // 注册成功
@@ -207,6 +225,8 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         public ActionResult ClearPassword(Int32 id)
         {
+            if (ManageProvider.User.RoleName != "管理员") throw new Exception("非法操作！");
+
             // 前面表单可能已经清空密码
             var user = UserX.FindByID(id);
             //user.Password = "nopass";

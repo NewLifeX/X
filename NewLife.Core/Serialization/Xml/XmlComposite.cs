@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -30,27 +29,32 @@ namespace NewLife.Serialization
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
 
             var ms = GetMembers(type);
-            WriteLog("XmlWrite类{0} 共有成员{1}个", type.Name, ms.Count);
+            WriteLog("XmlWrite {0} 成员{1}个", type.Name, ms.Count);
 
             Host.Hosts.Push(value);
 
-            // 获取成员
-            foreach (var member in GetMembers(type))
+            //var xml = Host as Xml;
+            //xml.WriteStart(type);
+            try
             {
-                var mtype = GetMemberType(member);
-                Host.Member = member;
-
-                var v = value.GetValue(member);
-                WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
-
-                if (!Host.Write(v, member.Name, mtype))
+                // 获取成员
+                foreach (var member in GetMembers(type))
                 {
-                    Host.Hosts.Pop();
-                    return false;
+                    var mtype = GetMemberType(member);
+                    Host.Member = member;
+
+                    var v = value.GetValue(member);
+                    WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
+
+                    if (!Host.Write(v, member.Name, mtype)) return false;
                 }
             }
+            finally
+            {
+                //xml.WriteEnd();
 
-            Host.Hosts.Pop();
+                Host.Hosts.Pop();
+            }
 
             return true;
         }
@@ -74,46 +78,60 @@ namespace NewLife.Serialization
             if (!type.As<Object>()) return false;
 
             var reader = Host.GetReader();
+            var xml = Host as Xml;
 
             // 判断类名是否一致
-            var name = reader.Name;
+            var name = xml.CurrentName;
             if (!CheckName(name, type)) return false;
 
             var ms = GetMembers(type);
-            WriteLog("XmlRead类{0} 共有成员{1}个", type.Name, ms.Count);
+            WriteLog("XmlRead {0} 成员{1}个", type.Name, ms.Count);
             var dic = ms.ToDictionary(e => e.Name, e => e);
 
             if (value == null) value = type.CreateInstance();
 
             Host.Hosts.Push(value);
-            reader.ReadStartElement();
 
             try
             {
-                // 获取成员
-                var member = ms[0];
-                while (reader.NodeType != XmlNodeType.None && reader.IsStartElement())
+                if (reader.NodeType == XmlNodeType.Attribute)
                 {
-                    // 找到匹配的元素，否则跳过
-                    if (!dic.TryGetValue(reader.Name, out member) || !member.CanWrite)
+                    foreach (var item in dic)
                     {
-                        reader.Skip();
-                        continue;
+                        var member = item.Value;
+                        var v = reader.GetAttribute(item.Key);
+                        WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
+
+                        value.SetValue(member, v);
                     }
+                }
+                else
+                {
+                    // 获取成员
+                    var member = ms[0];
+                    while (reader.NodeType != XmlNodeType.None && reader.IsStartElement())
+                    {
+                        // 找到匹配的元素，否则跳过
+                        if (!dic.TryGetValue(reader.Name, out member) || !member.CanWrite)
+                        {
+                            reader.Skip();
+                            continue;
+                        }
 
-                    var mtype = GetMemberType(member);
-                    Host.Member = member;
-                    WriteLog("    {0}.{1}", type.Name, member.Name);
+                        var mtype = GetMemberType(member);
+                        Host.Member = member;
 
-                    Object v = null;
-                    if (!Host.TryRead(mtype, ref v)) return false;
+                        var v = value.GetValue(member);
+                        WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
 
-                    value.SetValue(member, v);
+                        if (!Host.TryRead(mtype, ref v)) return false;
+
+                        value.SetValue(member, v);
+                    }
                 }
             }
             finally
             {
-                if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
                 Host.Hosts.Pop();
             }
 
@@ -126,10 +144,13 @@ namespace NewLife.Serialization
             if (type.Name.EqualIgnoreCase(name)) return true;
 
             // 当前正在序列化的成员
-            if (Host.Member != null)
+            var mb = Host.Member;
+            if (mb != null)
             {
-                var elm = Host.Member.GetCustomAttribute<XmlElementAttribute>();
+                var elm = mb.GetCustomAttribute<XmlElementAttribute>();
                 if (elm != null) return elm.ElementName.EqualIgnoreCase(name);
+
+                if (mb.Name.EqualIgnoreCase(name)) return true;
             }
 
             // 检查类型的Root

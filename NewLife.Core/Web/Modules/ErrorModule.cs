@@ -33,7 +33,7 @@ namespace NewLife.Web
             if (ex is CryptographicException && ex.Message.Contains("填充无效")) return false;
 
             // 文件不存在的异常只出现一次
-            if (ex is HttpException && (ex.Message.Contains("文件不存在") || ex.Message.Contains("Not Found")))
+            if (ex is HttpException && (ex.Message.Contains("文件不存在") || ex.Message.Contains("Not Found") || ex.Message.Contains("未找到路径")))
             {
                 var url = HttpContext.Current.Request.RawUrl;
                 if (!String.IsNullOrEmpty(url))
@@ -43,10 +43,7 @@ namespace NewLife.Web
                 }
             }
             // 无效操作，句柄未初始化，不用出现
-            if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化"))
-            {
-                return false;
-            }
+            if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return false;
 
             return true;
         }
@@ -94,21 +91,21 @@ namespace NewLife.Web
 
             XTrace.WriteLine(sb.ToString());
 
-            OnErrorComplete();
+            //OnErrorComplete();
         }
 
-        /// <summary>错误处理完成后执行。一般用于输出友好错误信息</summary>
-        protected virtual void OnErrorComplete()
-        {
-            if (!XTrace.Debug)
-            {
-                var Server = HttpContext.Current.Server;
-                var Response = HttpContext.Current.Response;
+        ///// <summary>错误处理完成后执行。一般用于输出友好错误信息</summary>
+        //protected virtual void OnErrorComplete()
+        //{
+        //    if (!XTrace.Debug)
+        //    {
+        //        var Server = HttpContext.Current.Server;
+        //        var Response = HttpContext.Current.Response;
 
-                Server.ClearError();
-                Response.Write("非常抱歉，服务器遇到错误，请与管理员联系！");
-            }
-        }
+        //        Server.ClearError();
+        //        Response.Write("非常抱歉，服务器遇到错误，请与管理员联系！");
+        //    }
+        //}
         #endregion
     }
 

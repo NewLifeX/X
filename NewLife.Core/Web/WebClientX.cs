@@ -1,14 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Http;
+using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Net;
+using NewLife.Serialization;
+using HttpClientX = System.Net.Http.HttpClient;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Web
 {
@@ -17,7 +25,7 @@ namespace NewLife.Web
     {
         #region 属性
         /// <summary>Cookie容器</summary>
-        public CookieContainer Cookie { get; set; } = new CookieContainer();
+        public IDictionary<String, String> Cookie { get; set; } = new NullableDictionary<String, String>();
 
         /// <summary>可接受类型</summary>
         public String Accept { get; set; }
@@ -28,8 +36,8 @@ namespace NewLife.Web
         /// <summary>引用页面</summary>
         public String Referer { get; set; }
 
-        /// <summary>超时，默认3000毫秒</summary>
-        public Int32 Timeout { get; set; } = 3000;
+        /// <summary>超时，默认15000毫秒</summary>
+        public Int32 Timeout { get; set; } = 15000;
 
         /// <summary>自动解压缩模式。</summary>
         public DecompressionMethods AutomaticDecompression { get; set; }
@@ -40,25 +48,32 @@ namespace NewLife.Web
         /// <summary>编码。网络时代，绝大部分使用utf8编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        private HttpClient _client;
+        /// <summary>请求</summary>
+        public HttpRequestHeaders Request { get; private set; }
+
+        /// <summary>响应</summary>
+        public HttpResponseMessage Response { get; private set; }
+
+        private HttpClientX _client;
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
         public WebClientX()
         {
+            //_client = new HttpClientX();
+            //Request = _client.DefaultRequestHeaders;
         }
 
         /// <summary>初始化常用的东西</summary>
         /// <param name="ie">是否模拟ie</param>
         /// <param name="iscompress">是否压缩</param>
-        public WebClientX(Boolean ie, Boolean iscompress)
+        public WebClientX(Boolean ie, Boolean iscompress) : this()
         {
             if (ie)
             {
                 Accept = "text/html, */*";
                 AcceptLanguage = "zh-CN";
-                //Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
                 var name = "";
                 var asm = Assembly.GetEntryAssembly();
                 if (asm != null) name = asm.GetName().Name;
@@ -70,7 +85,7 @@ namespace NewLife.Web
                     }
                     catch { }
                 }
-                UserAgent = "Mozilla/5.0 (compatible; MSIE 11.0; Windows NT 6.1; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET4.0C; .NET4.0E; {0})".F(name);
+                UserAgent = "Mozilla/5.0 (compatible; MSIE 11.0; Windows NT 10.0; {0})".F(name);
             }
             if (iscompress) AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
         }
@@ -87,166 +102,87 @@ namespace NewLife.Web
 
         #region 核心方法
         /// <summary>创建客户端会话</summary>
-        /// <param name="uri"></param>
         /// <returns></returns>
-        protected virtual HttpClient Create(NetUri uri)
+        public virtual HttpClientX EnsureCreate()
         {
-            var http = uri.CreateRemote() as HttpClient;
-            http.Log = Log;
-            //if (XTrace.Debug)
-            //{
-            //    http.LogSend = true;
-            //    http.LogReceive = true;
-            //}
+            var http = _client;
+            if (http == null)
+            {
+                http = _client = new HttpClientX();
+                Request = http.DefaultRequestHeaders;
+                http.Timeout = new TimeSpan(0, 0, 0, 0, Timeout);
+            }
 
-            var req = http.Request;
-            req.UserAgent = UserAgent;
+            var req = http.DefaultRequestHeaders;
+            if (!UserAgent.IsNullOrEmpty()) req.UserAgent.ParseAdd(UserAgent);
+            if (!Accept.IsNullOrEmpty()) req.Accept.ParseAdd(Accept);
+            if (!AcceptLanguage.IsNullOrEmpty()) req.AcceptLanguage.ParseAdd(AcceptLanguage);
+            if (AutomaticDecompression != DecompressionMethods.None) req.AcceptEncoding.ParseAdd("gzip, deflate");
+            if (!Referer.IsNullOrEmpty()) req.Referrer = new Uri(Referer);
 
-            if (AutomaticDecompression != DecompressionMethods.None) req.Compressed = true;
-
-            //if (!String.IsNullOrEmpty(Accept)) req.Headers[HttpRequestHeader.Accept + ""] = Accept;
-            //if (!String.IsNullOrEmpty(AcceptLanguage)) req.Headers[HttpRequestHeader.AcceptLanguage + ""] = AcceptLanguage;
-            //if (!String.IsNullOrEmpty(Referer)) req.Headers[HttpRequestHeader.Referer + ""] = Referer;
-            req.Accept = Accept;
-            req.AcceptLanguage = AcceptLanguage;
-            req.Referer = Referer;
+            GetCookie();
 
             return http;
         }
 
-        private HttpClient Check(String address)
-        {
-            var uri = new NetUri(address);
-
-            if (_client == null)
-                _client = Create(uri);
-            // 远程主机不同，需要重新建立
-            else if (_client.Remote + "" != uri + "")
-            {
-                _client.Dispose();
-                _client = Create(uri);
-            }
-
-            _client.Request.Url = new Uri(address);
-
-            return _client;
-        }
-
-        /// <summary>下载数据</summary>
+        /// <summary>发送请求，获取响应</summary>
         /// <param name="address"></param>
-        /// <param name="data"></param>
+        /// <param name="content"></param>
         /// <returns></returns>
-        protected virtual Byte[] Get(String address, Byte[] data)
+        public virtual async Task<HttpContent> SendAsync(String address, HttpContent content = null)
         {
             var time = Timeout;
             if (time <= 0) time = 3000;
-            while (true)
-            {
-                var http = Check(address);
-                http.Request.Method = "GET";
 
-                Log.Info("WebClientX.Get {0}", address);
+            var http = EnsureCreate();
 
-                // 发送请求
-                var task = http.SendAsync(data);
-                if (!task.Wait(time)) return null;
-
-                var buf = task.Result?.ToArray();
-                //var pk = await http.SendAsync(data);
-                //var buf = pk.ToArray();
-
-                // 修改引用地址
-                Referer = address;
-
-                // 如果是重定向
-                switch (http.Response.StatusCode)
-                {
-                    case HttpStatusCode.MovedPermanently:
-                    case HttpStatusCode.Redirect:
-                    case HttpStatusCode.RedirectMethod:
-                        var url = http.Response[HttpResponseHeader.Location + ""] + "";
-                        if (!url.IsNullOrEmpty())
-                        {
-                            address = url;
-                            data = null;
-                            continue;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-
-                // 解压缩
-                if (buf != null)
-                {
-                    var enc = http.Response[HttpResponseHeader.ContentEncoding + ""] + "";
-                    if (enc.EqualIgnoreCase("gzip"))
-                    {
-                        var ms = new MemoryStream(buf);
-                        var ms2 = ms.DecompressGZip();
-                        ms2.Position = 0;
-                        buf = ms2.ReadBytes();
-                    }
-                    else if (enc.EqualIgnoreCase("deflate"))
-                    {
-                        buf = buf.Decompress();
-                    }
-                }
-
-                return buf;
-            }
-        }
-
-        /// <summary>异步上传数据</summary>
-        /// <param name="address"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        protected virtual async Task<Byte[]> PostAsync(String address, Byte[] data)
-        {
-            var http = Check(address);
-            http.Request.Method = "POST";
-
-            Log.Info("WebClientX.PostAsync [{0}] {1}", data?.Length, address);
+            Log.Info("{2}.{1} {0}", address, content != null ? "Post" : "Get", GetType().Name);
 
             // 发送请求
-            var rs = await http.SendAsync(data).ConfigureAwait(false);
+#if !NET4
+            var source = new CancellationTokenSource(time);
+#else
+            var source = new CancellationTokenSource();
+#endif
+            var task = content != null ? http.PostAsync(address, content, source.Token) : http.GetAsync(address, source.Token);
+            var rs = await task;
+            Response = rs.EnsureSuccessStatusCode();
+            SetCookie();
 
             // 修改引用地址
             Referer = address;
 
-            // 接收数据
-            return rs?.ToArray();
+            return rs.Content;
         }
 
         /// <summary>下载数据</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public virtual Byte[] DownloadData(String address)
+        public virtual async Task<Byte[]> DownloadDataAsync(String address)
         {
-            return Get(address, new Byte[0]);
+            var rs = await SendAsync(address);
+            return await rs.ReadAsByteArrayAsync();
         }
 
         /// <summary>下载字符串</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public virtual String DownloadString(String address)
+        public virtual async Task<String> DownloadStringAsync(String address)
         {
-            var buf = DownloadData(address);
-            if (buf == null || buf.Length == 0) return null;
-
-            return buf.ToStr(Encoding);
+            var rs = await SendAsync(address);
+            return await rs.ReadAsStringAsync();
         }
 
         /// <summary>下载文件</summary>
         /// <param name="address"></param>
         /// <param name="fileName"></param>
-        public virtual void DownloadFile(String address, String fileName)
+        public virtual async Task DownloadFileAsync(String address, String fileName)
         {
-            var buf = DownloadData(address);
-            if (buf?.Length > 0)
+            var rs = await SendAsync(address);
+            fileName.EnsureDirectory(true);
+            using (var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
-                fileName.EnsureDirectory(true);
-                File.WriteAllBytes(fileName, buf);
+                await rs.CopyToAsync(fs);
             }
         }
 
@@ -255,7 +191,44 @@ namespace NewLife.Web
         /// <param name="data"></param>
         public virtual async Task<Byte[]> UploadDataTaskAsync(String address, Byte[] data)
         {
-            return await PostAsync(address, data).ConfigureAwait(false);
+            var ctx = new ByteArrayContent(data);
+            var rs = await SendAsync(address, ctx).ConfigureAwait(false);
+            return await rs.ReadAsByteArrayAsync();
+        }
+
+        /// <summary>异步上传表单</summary>
+        /// <param name="address"></param>
+        /// <param name="collection"></param>
+        public virtual async Task<String> UploadValuesAsync(String address, IEnumerable<KeyValuePair<String, String>> collection)
+        {
+            var ctx = new FormUrlEncodedContent(collection);
+            var rs = await SendAsync(address, ctx).ConfigureAwait(false);
+            return await rs.ReadAsStringAsync();
+        }
+
+        /// <summary>异步上传字符串</summary>
+        /// <param name="address"></param>
+        /// <param name="data"></param>
+        public virtual async Task<String> UploadStringAsync(String address, String data)
+        {
+            var ctx = new StringContent(data, Encoding, "application/x-www-form-urlencoded");
+
+            var rs = await SendAsync(address, ctx).ConfigureAwait(false);
+            return await rs.ReadAsStringAsync();
+        }
+
+        /// <summary>异步上传Json对象</summary>
+        /// <param name="address"></param>
+        /// <param name="data"></param>
+        public virtual async Task<String> UploadJsonAsync(String address, Object data)
+        {
+            var str = data as String;
+            if (str == null) str = data.ToJson();
+
+            var ctx = new StringContent(str, Encoding, "application/json");
+
+            var rs = await SendAsync(address, ctx).ConfigureAwait(false);
+            return await rs.ReadAsStringAsync();
         }
         #endregion
 
@@ -265,15 +238,7 @@ namespace NewLife.Web
         /// <returns></returns>
         public String GetHtml(String url)
         {
-            var buf = DownloadData(url);
-            Referer = url;
-            if (buf == null || buf.Length == 0) return null;
-
-            // 处理编码
-            var enc = Encoding;
-            //if (ResponseHeaders[HttpResponseHeader.ContentType].Contains("utf-8")) enc = Encoding.UTF8;
-
-            return buf.ToStr(enc);
+            return TaskEx.Run(() => DownloadStringAsync(url)).Result;
         }
 
         /// <summary>获取指定地址的Html，分析所有超链接</summary>
@@ -291,11 +256,11 @@ namespace NewLife.Web
         /// <remarks>
         /// 根据版本或时间降序排序选择
         /// </remarks>
-        /// <param name="url">指定页面</param>
+        /// <param name="urls">指定页面</param>
         /// <param name="name">页面上指定名称的链接</param>
         /// <param name="destdir">要下载到的目标目录</param>
         /// <returns>返回已下载的文件，无效时返回空</returns>
-        public String DownloadLink(String url, String name, String destdir)
+        public String DownloadLink(String urls, String name, String destdir)
         {
             // 一定时间之内，不再重复下载
             var cacheTime = DateTime.Now.AddDays(-1);
@@ -321,27 +286,41 @@ namespace NewLife.Web
 
             // 确保即使联网下载失败，也返回较旧版本
             Link link = null;
-            try
+            Exception lastError = null;
+            foreach (var url in urls.Split(",", ";"))
             {
-                var ls = GetLinks(url);
-                if (ls.Length == 0) return file;
-
-                // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
-                foreach (var item in names)
+                try
                 {
-                    link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                       .Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
-                       .OrderByDescending(e => e.Version)
-                       .OrderByDescending(e => e.Time)
-                       .FirstOrDefault();
-                    if (link != null) break;
+                    var ls = GetLinks(url);
+                    if (ls.Length == 0) return file;
+
+                    // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
+                    foreach (var item in names)
+                    {
+                        link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
+                           .Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
+                           .OrderByDescending(e => e.Version)
+                           .OrderByDescending(e => e.Time)
+                           .FirstOrDefault();
+                        if (link != null) break;
+                    }
                 }
+                catch (WebException ex)
+                {
+                    Log.Error(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                }
+                if (link != null) break;
             }
-            catch (WebException ex)
+            if (link == null)
             {
-                Log.Error(ex.Message);
+                if (lastError != null) throw lastError;
+
+                return file;
             }
-            if (link == null) return file;
 
             var file2 = destdir.CombinePath(link.Name).EnsureDirectory();
 
@@ -369,7 +348,7 @@ namespace NewLife.Web
 
             var sw = new Stopwatch();
             sw.Start();
-            DownloadFile(link.Url, file2);
+            TaskEx.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
             sw.Stop();
 
             if (File.Exists(file2))
@@ -410,12 +389,12 @@ namespace NewLife.Web
         }
 
         /// <summary>分析指定页面指定名称的链接，并下载到目标目录，解压Zip后返回目标文件</summary>
-        /// <param name="url">指定页面</param>
+        /// <param name="urls">提供下载地址的多个目标页面</param>
         /// <param name="name">页面上指定名称的链接</param>
         /// <param name="destdir">要下载到的目标目录</param>
         /// <param name="overwrite">是否覆盖目标同名文件</param>
         /// <returns></returns>
-        public String DownloadLinkAndExtract(String url, String name, String destdir, Boolean overwrite = false)
+        public String DownloadLinkAndExtract(String urls, String name, String destdir, Boolean overwrite = false)
         {
             var file = "";
             var cachedir = Setting.Current.GetPluginCache();
@@ -423,7 +402,7 @@ namespace NewLife.Web
             // 下载
             try
             {
-                file = DownloadLink(url, name, cachedir);
+                file = DownloadLink(urls, name, cachedir);
             }
             catch (Exception ex)
             {
@@ -480,9 +459,48 @@ namespace NewLife.Web
         }
         #endregion
 
+        #region Cookie处理
+        /// <summary>根据Http响应设置本地Cookie</summary>
+        private void SetCookie()
+        {
+            var rs = Response;
+            if (rs == null) return;
+
+            // PSTM=1499740028; expires=Thu, 31-Dec-37 23:55:55 GMT; max-age=2147483647; path=/; domain=.baidu.com
+            var excludes = new HashSet<String>(new String[] { "expires", "max-age", "path", "domain" }, StringComparer.OrdinalIgnoreCase);
+
+            IEnumerable<String> cs = null;
+            if (!rs.Headers.TryGetValues("Set-Cookie", out cs) || !cs.Any()) return;
+
+            foreach (var item in cs.FirstOrDefault().SplitAsDictionary())
+            {
+                if (!excludes.Contains(item.Key))
+                {
+                    Cookie[item.Key] = item.Value;
+                }
+            }
+        }
+
+        /// <summary>从本地获取Cookie并设置到Http请求头</summary>
+        private void GetCookie()
+        {
+            var req = _client.DefaultRequestHeaders;
+            if (req == null) return;
+            if (Cookie == null || Cookie.Count == 0) return;
+
+            var sb = new StringBuilder();
+            foreach (var item in Cookie)
+            {
+                if (sb.Length > 0) sb.Append(";");
+                sb.AppendFormat("{0}={1}", item.Key, item.Value);
+            }
+            req.Add("Cookie", sb.ToString());
+        }
+        #endregion
+
         #region 日志
         /// <summary>日志</summary>
-        public ILog Log { get; set; } = XTrace.Debug ? XTrace.Log : Logger.Null;
+        public ILog Log { get; set; } = Logger.Null;
         #endregion
     }
 }

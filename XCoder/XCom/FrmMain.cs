@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Log;
-using NewLife.Threading;
 using NewLife.Windows;
 using XCoder;
 
@@ -14,6 +13,9 @@ namespace XCom
     [DisplayName("串口调试工具")]
     public partial class FrmMain : Form
     {
+        /// <summary>业务日志输出</summary>
+        ILog BizLog;
+
         #region 窗体
         public FrmMain()
         {
@@ -24,6 +26,10 @@ namespace XCom
 
         private void FrmMain_Load(Object sender, EventArgs e)
         {
+            var log = TextFileLog.Create(null, "Serial_{0:yyyy_MM_dd}.log");
+            BizLog = txtReceive.Combine(log);
+            txtReceive.UseWinFormControl();
+
             txtReceive.SetDefaultStyle(12);
             txtSend.SetDefaultStyle(12);
             numMutilSend.SetDefaultStyle(12);
@@ -67,15 +73,13 @@ namespace XCom
             {
                 var cmd = "AT+SET=00070000000000";
                 st.Send(cmd.GetBytes());
-                //XTrace.WriteLine(cmd);
-                TextControlLog.WriteLog(txtReceive, cmd);
+                BizLog.Info(cmd);
+                //TextControlLog.WriteLog(txtReceive, cmd);
             }
 
             "连接串口{0}".F(st.PortName).SpeechTip();
 
             btnConnect.Text = "关闭";
-
-            BizLog = TextFileLog.Create("SerialLog");
 
             var menu = txtReceive.ContextMenuStrip;
             var mi = menu.Items.Find("日志着色", false).FirstOrDefault() as ToolStripMenuItem;
@@ -108,16 +112,12 @@ namespace XCom
                 Disconnect();
         }
 
-        /// <summary>业务日志输出</summary>
-        ILog BizLog;
-
         void OnReceived(Object sender, StringEventArgs e)
         {
             var line = e.Value;
-            //XTrace.UseWinFormWriteLog(txtReceive, line, 100000);
-            TextControlLog.WriteLog(txtReceive, line);
+            //TextControlLog.WriteLog(txtReceive, line);
 
-            if (BizLog != null) BizLog.Info(line);
+            BizLog?.Info(line);
         }
 
         Int32 _pColor = 0;

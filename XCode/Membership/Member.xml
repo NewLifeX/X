@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.0.6059.32399">
+<Tables Version="9.6.6436.29512" NameSpace="XCode.Membership" ConnName="Membership" Output="">
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称。登录用户名" />
       <Column Name="Password" DataType="String" Description="密码" />
       <Column Name="DisplayName" DataType="String" Description="昵称" />
-      <Column Name="Sex" DataType="Int32" Description="性别。未知、男、女" />
+      <Column Name="Sex" DataType="Int32" Description="性别。未知、男、女" Type="SexKinds" />
       <Column Name="Mail" DataType="String" Description="邮件" />
       <Column Name="Phone" DataType="String" Description="电话" />
       <Column Name="Code" DataType="String" Description="代码。身份证、员工编号等" />
-      <Column Name="RoleID" DataType="Int32" Nullable="False" Description="角色" />
+      <Column Name="RoleID" DataType="Int32" Description="角色" />
       <Column Name="Online" DataType="Boolean" Description="在线" />
       <Column Name="Enable" DataType="Boolean" Description="启用" />
       <Column Name="StartTime" DataType="DateTime" Description="开始时间" />
@@ -28,9 +28,6 @@
       <Index Columns="Name" Unique="True" />
       <Index Columns="RoleID" />
     </Indexes>
-    <Relations>
-      <Relation Column="RoleID" RelationTable="Role" RelationColumn="ID" />
-    </Relations>
   </Table>
   <Table Name="Role" Description="角色" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
@@ -76,9 +73,26 @@
     </Columns>
     <Indexes>
       <Index Columns="Category" />
-      <Index Columns="Category,LinkID" />
-      <Index Columns="Action" />
       <Index Columns="CreateUserID" />
+      <Index Columns="CreateTime" />
+    </Indexes>
+  </Table>
+  <Table Name="UserOnline" Description="用户在线" DbType="SqlServer" RenderGenEntity="true">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="UserID" DataType="Int32" Description="用户" />
+      <Column Name="Name" DataType="String" Master="True" Description="名称" />
+      <Column Name="SessionID" DataType="String" Description="会话。Web的SessionID或Server的会话编号" />
+      <Column Name="Times" DataType="Int32" Description="次数" />
+      <Column Name="Status" DataType="String" Length="200" Description="状态" />
+      <Column Name="OnlineTime" DataType="Int32" Description="在线时间。本次在线总时间，秒" />
+      <Column Name="CreateIP" DataType="String" Description="创建地址" />
+      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="UpdateTime" DataType="DateTime" Description="修改时间" />
+    </Columns>
+    <Indexes>
+      <Index Columns="UserID" />
+      <Index Columns="SessionID" />
       <Index Columns="CreateTime" />
     </Indexes>
   </Table>

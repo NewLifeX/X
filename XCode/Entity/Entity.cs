@@ -25,14 +25,15 @@ namespace XCode
         /// <summary>静态构造</summary>
         static Entity()
         {
-            DAL.WriteDebugLog("开始初始化实体类{0}", Meta.ThisType.Name);
+            DAL.InitLog();
+            //DAL.WriteDebugLog("开始初始化实体类{0}", Meta.ThisType.Name);
 
             EntityFactory.Register(Meta.ThisType, new EntityOperate());
 
             // 1，可以初始化该实体类型的操作工厂
             // 2，CreateOperate将会实例化一个TEntity对象，从而引发TEntity的静态构造函数，
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
 
             ////! 大石头 2011-03-14 以下过程改为异步处理
             ////  已确认，当实体类静态构造函数中使用了EntityFactory.CreateOperate(Type)方法时，可能出现死锁。
@@ -43,7 +44,7 @@ namespace XCode
             //    EntityFactory.CreateOperate(Meta.ThisType, entity);
             //});
 
-            DAL.WriteDebugLog("完成初始化实体类{0}", Meta.ThisType.Name);
+            //DAL.WriteDebugLog("完成初始化实体类{0}", Meta.ThisType.Name);
         }
 
         /// <summary>创建实体。</summary>
@@ -63,6 +64,7 @@ namespace XCode
             //return Activator.CreateInstance(Meta.ThisType) as TEntity;
             var entity = Meta.ThisType.CreateInstance() as TEntity;
             Meta._Modules.Create(entity, forEdit);
+
             return entity;
         }
         #endregion
@@ -88,7 +90,7 @@ namespace XCode
             var list = dreAccessor.LoadData(dt);
             // 设置默认累加字段
             EntityAddition.SetField(list);
-            foreach (EntityBase entity in list)
+            foreach (TEntity entity in list)
             {
                 entity.OnLoad();
             }
@@ -184,13 +186,22 @@ namespace XCode
 
             using (var trans = new EntityTransaction<TEntity>())
             {
-                if (isnew != null && enableValid)
+                if (enableValid)
                 {
-                    Valid(isnew.Value);
-                    Meta._Modules.Valid(this, isnew.Value);
+                    var rt = false;
+                    if (isnew != null)
+                    {
+                        Valid(isnew.Value);
+                        rt = Meta._Modules.Valid(this, isnew.Value);
+                    }
+                    else
+                        rt = Meta._Modules.Delete(this);
+
+                    // 没有更新任何数据
+                    if (!rt) return -1;
                 }
 
-                Int32 rs = func();
+                var rs = func();
 
                 trans.Commit();
 
@@ -261,10 +272,11 @@ namespace XCode
         {
             // 根据索引，判断唯一性
             var table = Meta.Table.DataTable;
-            if (table.Indexes != null && table.Indexes.Count > 0)
+            var dis = table.Indexes;
+            if (dis != null && dis.Count > 0)
             {
                 // 遍历所有索引
-                foreach (var item in table.Indexes)
+                foreach (var item in dis)
                 {
                     // 只处理唯一索引
                     if (!item.Unique) continue;
@@ -277,7 +289,7 @@ namespace XCode
                     if (columns.All(c => c.Identity)) continue;
 
                     // 记录字段是否有更新
-                    Boolean changed = false;
+                    var changed = false;
                     if (!isNew) changed = columns.Any(c => Dirtys[c.Name]);
 
                     // 存在检查
@@ -304,7 +316,7 @@ namespace XCode
             {
                 var sb = new StringBuilder();
                 String name = null;
-                for (Int32 i = 0; i < names.Length; i++)
+                for (var i = 0; i < names.Length; i++)
                 {
                     if (sb.Length > 0) sb.Append("，");
 
@@ -331,8 +343,8 @@ namespace XCode
         {
             // 根据指定键查找所有符合的数据，然后比对。
             // 当然，也可以通过指定键和主键配合，找到拥有指定键，但是不是当前主键的数据，只查记录数。
-            Object[] values = new Object[names.Length];
-            for (Int32 i = 0; i < names.Length; i++)
+            var values = new Object[names.Length];
+            for (var i = 0; i < names.Length; i++)
             {
                 values[i] = this[names[i]];
             }
@@ -346,7 +358,7 @@ namespace XCode
                 //if (IsNullKey) return FindCount(names, values) > 0;
 
                 var exp = new WhereExpression();
-                for (int i = 0; i < names.Length; i++)
+                for (var i = 0; i < names.Length; i++)
                 {
                     var fi = Meta.Table.FindByName(names[i]);
                     exp &= fi == values[i];
@@ -407,7 +419,7 @@ namespace XCode
                 }
             }
 
-            for (int i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 var fi = Meta.Table.FindByName(names[i]);
                 exp &= fi == values[i];
@@ -430,8 +442,8 @@ namespace XCode
         static TEntity FindUnique(Expression where)
         {
             var session = Meta.Session;
-            var ps = Setting.Current.UserParameter ? new Dictionary<String, Object>() : null;
-            var wh = where?.GetString(false, ps);
+            var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
+            var wh = where?.GetString(ps);
 
             var builder = new SelectBuilder();
             builder.Table = session.FormatedTableName;
@@ -447,7 +459,9 @@ namespace XCode
             if (list.Count > 1 && DAL.Debug)
             {
                 DAL.WriteLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", wh);
+#if !__CORE__
                 XTrace.DebugStack(5);
+#endif
             }
             return list[0];
         }
@@ -468,7 +482,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKey(Object key)
         {
-            FieldItem field = Meta.Unique;
+            var field = Meta.Unique;
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求" + Meta.ThisType.FullName + "有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
@@ -483,7 +497,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKeyForEdit(Object key)
         {
-            FieldItem field = Meta.Unique;
+            var field = Meta.Unique;
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKeyForEdit方法要求该表有唯一主键！");
 
             // 参数为空时，返回新实例
@@ -493,18 +507,18 @@ namespace XCode
                 return Meta.Factory.Create(true) as TEntity;
             }
 
-            Type type = field.Type;
+            var type = field.Type;
 
             // 唯一键为自增且参数小于等于0时，返回新实例
             if (Helper.IsNullKey(key, field.Type))
             {
-                if (type.IsIntType() && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
+                if (type.IsInt() && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
 
                 return Meta.Factory.Create(true) as TEntity;
             }
 
             // 此外，一律返回 查找值，即使可能是空。而绝不能在找不到数据的情况下给它返回空，因为可能是找不到数据而已，而返回新实例会导致前端以为这里是新增数据
-            TEntity entity = Find(field.Name, key);
+            var entity = Find(field.Name, key);
 
             // 判断实体
             if (entity == null)
@@ -563,7 +577,7 @@ namespace XCode
         {
             var exp = new WhereExpression();
 
-            for (int i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 var fi = Meta.Table.FindByName(names[i]);
                 exp &= fi == values[i];
@@ -615,16 +629,16 @@ namespace XCode
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
                 // 计算本次查询的结果行数
-                if (!String.IsNullOrEmpty(where?.GetString(false, null))) count = FindCount(where, order, selects, startRowIndex, maximumRows);
+                if (!String.IsNullOrEmpty(where?.GetString(null))) count = FindCount(where, order, selects, startRowIndex, maximumRows);
                 // 游标在中间偏后
                 if (startRowIndex * 2 > count)
                 {
                     var order2 = order;
-                    Boolean bk = false; // 是否跳过
+                    var bk = false; // 是否跳过
 
                     #region 排序倒序
                     // 默认是自增字段的降序
-                    FieldItem fi = Meta.Unique;
+                    var fi = Meta.Unique;
                     if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
 
                     if (!String.IsNullOrEmpty(order2))
@@ -635,14 +649,14 @@ namespace XCode
                         {
                             order2 = order2.Replace(match.Value, match.Value.Replace(",", "★"));
                         }
-                        String[] ss = order2.Split(',');
+                        var ss = order2.Split(',');
                         var sb = new StringBuilder();
-                        foreach (String item in ss)
+                        foreach (var item in ss)
                         {
-                            String fn = item;
-                            String od = "asc";
+                            var fn = item;
+                            var od = "asc";
 
-                            Int32 p = fn.LastIndexOf(" ");
+                            var p = fn.LastIndexOf(" ");
                             if (p > 0)
                             {
                                 od = item.Substring(p).Trim().ToLower();
@@ -712,17 +726,22 @@ namespace XCode
             }
 
             // 验证排序字段，避免非法
+            var orderby = param.OrderBy;
             if (!param.Sort.IsNullOrEmpty())
             {
-                FieldItem st = Meta.Table.FindByName(param.Sort);
-                param.Sort = st != null ? st.Name : null;
+                var st = Meta.Table.FindByName(param.Sort);
+                param.Sort = st?.ColumnName;
+                orderby = param.OrderBy;
+
+                //!!! 恢复排序字段，否则属性名和字段名不一致时前台无法降序
+                param.Sort = st?.Name;
             }
 
             // 采用起始行还是分页
             if (param.StartRow >= 0)
-                return FindAll(where, param.OrderBy, null, param.StartRow, param.PageSize);
+                return FindAll(where, orderby, null, param.StartRow, param.PageSize);
             else
-                return FindAll(where, param.OrderBy, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
+                return FindAll(where, orderby, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
         }
         #endregion
 
@@ -772,8 +791,8 @@ namespace XCode
         public static Int64 FindCount(Expression where, String order = null, String selects = null, Int64 startRowIndex = 0, Int64 maximumRows = 0)
         {
             var session = Meta.Session;
-            var ps = Setting.Current.UserParameter ? new Dictionary<String, Object>() : null;
-            var wh = where?.GetString(false, ps);
+            var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
+            var wh = where?.GetString(ps);
 
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
             if (String.IsNullOrEmpty(wh) && session.LongCount > 10000) return session.LongCount;
@@ -863,7 +882,7 @@ namespace XCode
 
             var ks = keys.Split(" ");
 
-            for (Int32 i = 0; i < ks.Length; i++)
+            for (var i = 0; i < ks.Length; i++)
             {
                 if (!ks[i].IsNullOrWhiteSpace()) exp &= func(ks[i].Trim(), fields);
             }
@@ -878,7 +897,7 @@ namespace XCode
         public static WhereExpression SearchWhereByKey(String key, FieldItem[] fields = null)
         {
             var exp = new WhereExpression();
-            if (String.IsNullOrEmpty(key)) return exp;
+            if (key.IsNullOrEmpty()) return exp;
 
             if (fields == null || fields.Length == 0) fields = Meta.Fields;
             foreach (var item in fields)
@@ -888,7 +907,7 @@ namespace XCode
                 exp |= item.Contains(key);
             }
 
-            return exp.AsChild();
+            return exp;
         }
         #endregion
 
@@ -927,8 +946,9 @@ namespace XCode
         #region 构造SQL语句
         static SelectBuilder CreateBuilder(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows, Boolean needOrderByID = true)
         {
-            var ps = Setting.Current.UserParameter ? new Dictionary<String, Object>() : null;
-            var wh = where?.GetString(false, ps);
+            var session = Meta.Session;
+            var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
+            var wh = where?.GetString(ps);
             var builder = CreateBuilder(wh, order, selects, startRowIndex, maximumRows, needOrderByID);
 
             builder = FixParam(builder, ps);
@@ -949,7 +969,7 @@ namespace XCode
             // 返回所有记录
             if (!needOrderByID && startRowIndex <= 0 && maximumRows <= 0) return builder;
 
-            FieldItem fi = Meta.Unique;
+            var fi = Meta.Table.Identity;
             if (fi != null)
             {
                 builder.Key = Meta.FormatName(fi.ColumnName);
@@ -963,7 +983,7 @@ namespace XCode
                     )
                 {
                     // 数字降序，其它升序
-                    var b = fi.Type.IsIntType();
+                    var b = fi.Type.IsInt();
                     builder.IsDesc = b;
                     // 修正没有设置builder.IsInt导致分页没有选择最佳的MaxMin的BUG，感谢 @RICH(20371423)
                     builder.IsInt = b;
@@ -971,11 +991,11 @@ namespace XCode
                     builder.OrderBy = builder.KeyOrder;
                 }
             }
-            else
-            {
-                // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
-                if (String.IsNullOrEmpty(builder.OrderBy)) builder.Keys = Meta.FieldNames.ToArray();
-            }
+            //else
+            //{
+            //    // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
+            //    if (String.IsNullOrEmpty(builder.OrderBy)) builder.Keys = Meta.FieldNames.ToArray();
+            //}
             return builder;
         }
 
@@ -986,10 +1006,7 @@ namespace XCode
             {
                 foreach (var item in ps)
                 {
-                    var dp = Meta.Session.CreateParameter();
-                    dp.ParameterName = item.Key;
-                    dp.Value = item.Value;
-                    //dp.IsNullable = fi.IsNullable;
+                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Type);
 
                     builder.Parameters.Add(dp);
                 }
@@ -1027,8 +1044,7 @@ namespace XCode
                 // 检查动态增加的字段，返回默认值
                 var f = Meta.Table.FindByName(name) as FieldItem;
 
-                Object obj = null;
-                if (Extends.TryGetValue(name, out obj))
+                if (Extends.TryGetValue(name, out var obj))
                 {
                     if (f != null && f.IsDynamic) return obj.ChangeType(f.Type);
 
@@ -1132,10 +1148,11 @@ namespace XCode
 
             // 优先采用业务主键，也就是唯一索引
             var table = Meta.Table.DataTable;
-            if (table.Indexes != null && table.Indexes.Count > 0)
+            var dis = table.Indexes;
+            if (dis != null && dis.Count > 0)
             {
                 IDataIndex di = null;
-                foreach (var item in table.Indexes)
+                foreach (var item in dis)
                 {
                     if (!item.Unique) continue;
                     if (item.Columns == null || item.Columns.Length < 1) continue;
@@ -1230,25 +1247,25 @@ namespace XCode
             }
         }
 
-        /// <summary>如果字段带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值</summary>
-        /// <param name="fieldName"></param>
-        /// <param name="newValue"></param>
-        /// <returns></returns>
-        protected override Boolean OnPropertyChanging(String fieldName, Object newValue)
-        {
-            // 如果返回true，表示不相同，基类已经设置了脏数据
-            if (base.OnPropertyChanging(fieldName, newValue)) return true;
+        ///// <summary>如果字段带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值</summary>
+        ///// <param name="fieldName"></param>
+        ///// <param name="newValue"></param>
+        ///// <returns></returns>
+        //protected override Boolean OnPropertyChanging(String fieldName, Object newValue)
+        //{
+        //    // 如果返回true，表示不相同，基类已经设置了脏数据
+        //    if (base.OnPropertyChanging(fieldName, newValue)) return true;
 
-            // 如果该字段存在，且带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值
-            FieldItem fi = Meta.Table.FindByName(fieldName);
-            if (fi != null && !String.IsNullOrEmpty(fi.DefaultValue))
-            {
-                Dirtys[fieldName] = true;
-                return true;
-            }
+        //    // 如果该字段存在，且带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值
+        //    FieldItem fi = Meta.Table.FindByName(fieldName);
+        //    if (fi != null && !String.IsNullOrEmpty(fi.DefaultValue))
+        //    {
+        //        Dirtys[fieldName] = true;
+        //        return true;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
         #endregion
     }
 }

@@ -292,6 +292,23 @@ namespace XCode
             return new ConcatExpression(String.Format("{2}({0}) as {1}", name, newName, action));
         }
 
+        /// <summary>作为新的列</summary>
+        /// <param name="field"></param>
+        /// <param name="newName"></param>
+        /// <returns></returns>
+        public static ConcatExpression As(this FieldItem field,String newName)
+        {
+            if (field == null) return null;
+
+            var name = field.FormatedName;
+            if (String.IsNullOrEmpty(newName))
+                newName = name;
+            else
+                newName = field.Factory.FormatName(newName);
+
+            return new ConcatExpression(String.Format("{0} as {1}", name, newName));
+        }
+
         /// <summary>数量</summary>
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>

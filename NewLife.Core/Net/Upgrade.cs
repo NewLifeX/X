@@ -102,7 +102,7 @@ namespace NewLife.Net
                 if (!link.Name.StartsWithIgnoreCase(Name) || !link.Name.Contains(Name)) continue;
 
                 // 第一个时间命中
-                if (link.Time.Year < DateTime.Now.Year + 10)
+                if (link.Time.Year <= DateTime.Now.Year)
                 {
                     list.Add(link);
                 }
@@ -113,7 +113,7 @@ namespace NewLife.Net
             Links = list.OrderByDescending(e => e.Time).ToArray();
 
             // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
-            return Links[0].Time > Compile.AddMinutes(10);
+            return Links[0].Time > Compile.AddMinutes(30);
         }
 
         /// <summary>开始更新</summary>
@@ -134,7 +134,7 @@ namespace NewLife.Net
                 sw.Start();
 
                 var web = CreateClient();
-                web.DownloadFile(link.Url, file.EnsureDirectory());
+                web.DownloadFileAsync(link.Url, file).Wait();
 
                 sw.Stop();
                 WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
@@ -171,19 +171,21 @@ namespace NewLife.Net
             // 解压更新程序包
             if (!file.EndsWithIgnoreCase(".zip")) return false;
 
-            var p = TempPath.CombinePath(Path.GetFileNameWithoutExtension(file));
-            WriteLog("解压缩更新包到临时目录 {0}", p);
+            var dest = TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetFullPath();
+            WriteLog("解压缩更新包到临时目录 {0}", dest);
             //ZipFile.ExtractToDirectory(file, p);
-            file.AsFile().Extract(p, true);
+            file.AsFile().Extract(dest, true);
 
             var updatebat = UpdatePath.CombinePath("update.bat").GetFullPath();
-            MakeBat(updatebat, p, ".".GetFullPath());
+            MakeBat(updatebat, dest, ".".GetFullPath());
 
             // 执行更新程序包
             var si = new ProcessStartInfo();
             si.FileName = updatebat;
+            si.Arguments = ">>update.log";
             si.WorkingDirectory = Path.GetDirectoryName(si.FileName);
-            if (!XTrace.Debug)
+            // 必须创建无窗口进程，否则会等待目标进程完成
+            //if (!XTrace.Debug)
             {
                 si.CreateNoWindow = true;
                 si.WindowStyle = ProcessWindowStyle.Hidden;
@@ -219,15 +221,20 @@ namespace NewLife.Net
 
         void MakeBat(String updatebat, String tmpdir, String curdir)
         {
+            var pid = Process.GetCurrentProcess().Id;
+
             var sb = new StringBuilder();
 
-            // 等待一定时间后，干掉当前进程
-            sb.AppendFormat("ping -n 2 127.0.0.1 >nul");
+            sb.AppendLine("@echo off");
+            sb.AppendLine("echo %time% 等待主程序[PID={0}]退出".F(pid));
+            // 等待2秒(3-1)后，干掉当前进程
+            sb.AppendFormat("ping -n 3 127.0.0.1 >nul");
             sb.AppendLine();
-            sb.AppendFormat("taskkill /F /PID {0}", Process.GetCurrentProcess().Id);
+            sb.AppendFormat("taskkill /F /PID {0}", pid);
             sb.AppendLine();
 
             // 备份配置文件
+            sb.AppendLine("echo %time% 备份配置文件");
             var cfgs = Directory.GetFiles(curdir);
             foreach (var item in cfgs)
             {
@@ -239,11 +246,13 @@ namespace NewLife.Net
             }
 
             // 复制
+            sb.AppendLine("echo %time% 复制更新文件");
             sb.AppendFormat("copy \"{0}\\*.*\" \"{1}\" /y", tmpdir, curdir);
             sb.AppendLine();
             sb.AppendLine("rd \"" + tmpdir + "\" /s /q");
 
             // 还原配置文件
+            sb.AppendLine("echo %time% 还原配置文件");
             foreach (var item in cfgs)
             {
                 if (item.EndsWithIgnoreCase(".config", ".xml"))
@@ -257,6 +266,7 @@ namespace NewLife.Net
             // 启动
             if (AutoStart)
             {
+                sb.AppendLine("echo %time% 启动主程序");
                 var bin = Application.ExecutablePath;
                 sb.AppendFormat("start /D \"{0}\" /I {1}", Path.GetDirectoryName(bin), bin);
                 sb.AppendLine();
@@ -264,26 +274,23 @@ namespace NewLife.Net
 #endif
 
 #if !DEBUG
-            sb.AppendFormat("del \"{0}\" /f/q", updatebat);
-            sb.AppendLine();
+            //sb.AppendFormat("del \"{0}\" /f/q", updatebat);
+            //sb.AppendLine();
 #endif
 
             sb.AppendFormat("ping -n 3 127.0.0.1 >nul");
             sb.AppendLine();
             sb.AppendLine("exit");
 
-            File.WriteAllText(updatebat, sb.ToString(), Encoding.UTF8);
+            if (File.Exists(updatebat)) File.Delete(updatebat);
+            // 批处理文件不能用UTF8编码保存，否则里面的中文会乱码，特别不能用带有BOM的编码输出
+            File.WriteAllText(updatebat, sb.ToString(), Encoding.Default);
         }
         #endregion
 
         #region 日志
-#if DEBUG
-        private ILog _Log = XTrace.Log;
-#else
-        private ILog _Log = Logger.Null;
-#endif
         /// <summary>日志对象</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        public ILog Log { get; set; } = Logger.Null;
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
@@ -291,7 +298,7 @@ namespace NewLife.Net
         public void WriteLog(String format, params Object[] args)
         {
             format = String.Format("[{0}]{1}", Name, format);
-            if (Log != null) Log.Info(format, args);
+            Log?.Info(format, args);
         }
         #endregion
     }

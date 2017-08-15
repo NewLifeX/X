@@ -9,14 +9,8 @@ namespace XCoder
 {
     public partial class NewModel : UserControl
     {
-        private List<IDataTable> _tables;
+        public List<IDataTable> Tables { get; set; }
 
-        public List<IDataTable> Tables
-        {
-            get { return _tables; }
-            set { _tables = value; }
-        }
-        
 
         public NewModel()
         {
@@ -26,7 +20,7 @@ namespace XCoder
 
         public static BaseForm CreateForm()
         {
-            NewModel frm = new NewModel();
+            var frm = new NewModel();
             frm.Dock = DockStyle.Fill;
 
             return WinFormHelper.CreateForm(frm, "添加模型");
@@ -38,15 +32,15 @@ namespace XCoder
             var temp = ModelResolver.Current;
             if (temp == null) return;
 
-            IDataTable current = ObjectContainer.Current.Resolve <IDataTable >();
+            var current = ObjectContainer.Current.Resolve<IDataTable>();
             Tables.Add(current);
-            current.ID = Tables.Count;
-            current.TableName = "NewTable" + current.ID;
-            current.Description = "新建表" + current.ID;
+            var id = Tables.Count;
+            current.TableName = "NewTable" + id;
+            current.Description = "新建表" + id;
             current.DbType = DatabaseType.SqlServer;
             current.Description = "默认说明";
 
-            AddTable.CreateForm(current).ShowDialog() ;
+            AddTable.CreateForm(current).ShowDialog();
 
             dgvTables.DataSource = null;
             dgvTables.DataSource = Tables;
@@ -69,7 +63,7 @@ namespace XCoder
             else
             {
                 ParentForm.Close();
-            }            
+            }
         }
 
         //保存模型
@@ -79,7 +73,7 @@ namespace XCoder
             {
                 MessageBox.Show(Text, "数据库架构为空！", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
-            }            
+            }
             if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
             try
             {

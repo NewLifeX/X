@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using NewLife.Configuration;
 
 namespace XCode.DataAccessLayer
 {

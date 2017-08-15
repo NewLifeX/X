@@ -45,12 +45,16 @@ namespace NewLife.Cube
             return Bootstrap(controller.HttpContext);
         }
 
-        internal static Boolean MakeListDataView(String vpath, List<FieldItem> fields)
+        internal static Boolean MakeListDataView(Type entityType, String vpath, List<FieldItem> fields)
         {
             var tmp = @"@using NewLife;
 @using NewLife.Web;
 @using XCode;
 @using XCode.Configuration;
+@using System.Web.Mvc;
+@using System.Web.Mvc.Ajax;
+@using System.Web.Mvc.Html;
+@using System.Web.Routing;
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
@@ -96,6 +100,9 @@ namespace NewLife.Cube
     </tbody>
 </table>";
             var sb = new StringBuilder();
+
+            sb.AppendFormat("@model IList<{0}>", entityType.FullName);
+            sb.AppendLine();
 
             var ident = new String(' ', 4 * 3);
             sb.Append(tmp.Substring(null, "            @foreach"));
@@ -171,7 +178,7 @@ namespace NewLife.Cube
             sb.Append("                @if");
             sb.Append(tmp.Substring("                @if", null, ps[1]));
 
-            File.WriteAllText(vpath.GetFullPath(), sb.ToString(), Encoding.UTF8);
+            File.WriteAllText(vpath.GetFullPath().EnsureDirectory(true), sb.ToString(), Encoding.UTF8);
 
             return true;
         }

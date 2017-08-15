@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.IO;
 using System.Text.RegularExpressions;
 using NewLife.Reflection;
+using XCode.Common;
 
 namespace XCode.DataAccessLayer
 {
@@ -12,14 +13,14 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
-        public override DatabaseType DbType
+        public override DatabaseType Type
         {
             get { return DatabaseType.Firebird; }
         }
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>提供者工厂</summary>
-        static DbProviderFactory dbProviderFactory
+        static DbProviderFactory DbProviderFactory
         {
             get
             {
@@ -39,15 +40,14 @@ namespace XCode.DataAccessLayer
         /// <summary>工厂</summary>
         public override DbProviderFactory Factory
         {
-            get { return dbProviderFactory; }
+            get { return DbProviderFactory; }
         }
 
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
-            String file;
-            if (!builder.TryGetValue("Database", out file)) return;
+            if (!builder.TryGetValue("Database", out var file)) return;
 
             file = ResolveFile(file);
             builder["Database"] = file;
@@ -115,8 +115,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        /// <summary>当前时间函数</summary>
-        public override String DateTimeNow { get { return "now()"; } }
+        ///// <summary>当前时间函数</summary>
+        //public override String DateTimeNow { get { return "now()"; } }
 
         //protected override string ReservedWordsStr
         //{
@@ -238,15 +238,14 @@ namespace XCode.DataAccessLayer
     {
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
-        protected override List<IDataTable> OnGetTables(ICollection<String> names)
+        protected override List<IDataTable> OnGetTables(String[] names)
         {
-            DataTable dt = GetSchema(_.Tables, new String[] { null, null, null, "TABLE" });
+            var dt = GetSchema(_.Tables, new String[] { null, null, null, "TABLE" });
 
             // 默认列出所有字段
-            DataRow[] rows = OnGetTables(names, dt.Rows);
-            if (rows == null || rows.Length < 1) return null;
+            var rows = dt?.Rows.ToArray();
 
-            return GetTables(rows);
+            return GetTables(rows, names);
         }
 
         protected override String GetFieldType(IDataColumn field)
@@ -255,6 +254,26 @@ namespace XCode.DataAccessLayer
 
             return base.GetFieldType(field);
         }
+
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        {
+            { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
+            //{ typeof(TimeSpan), new String[] { "TIME" } },
+            //{ typeof(SByte), new String[] { "TINYINT" } },
+            { typeof(Byte), new String[] { "TINYINT UNSIGNED" } },
+            { typeof(Int16), new String[] { "SMALLINT" } },
+            //{ typeof(UInt16), new String[] { "SMALLINT UNSIGNED" } },
+            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT" } },
+            //{ typeof(UInt32), new String[] { "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
+            { typeof(Int64), new String[] { "BIGINT" } },
+            //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
+            { typeof(Single), new String[] { "FLOAT" } },
+            { typeof(Double), new String[] { "DOUBLE" } },
+            { typeof(Decimal), new String[] { "DECIMAL" } },
+            { typeof(DateTime), new String[] { "DATE", "DATETIME", "TIMESTAMP" } },
+            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } }
+        };
 
         #region 架构定义
         protected override void CreateDatabase()
@@ -301,13 +320,13 @@ namespace XCode.DataAccessLayer
 
         public override String CreateTableSQL(IDataTable table)
         {
-            String sql = base.CreateTableSQL(table);
+            var sql = base.CreateTableSQL(table);
             if (String.IsNullOrEmpty(sql)) return sql;
 
             //String sqlSeq = String.Format("Create GENERATOR GEN_{0}", table.TableName);
             //return sql + "; " + Environment.NewLine + sqlSeq;
 
-            String sqlSeq = String.Format("Create Sequence SEQ_{0}", table.TableName);
+            var sqlSeq = String.Format("Create Sequence SEQ_{0}", table.TableName);
             //return sql + "; " + Environment.NewLine + sqlSeq;
             // 去掉分号后的空格，Oracle不支持同时执行多个语句
             return sql + ";" + Environment.NewLine + sqlSeq;
@@ -315,13 +334,13 @@ namespace XCode.DataAccessLayer
 
         public override String DropTableSQL(String tableName)
         {
-            String sql = base.DropTableSQL(tableName);
+            var sql = base.DropTableSQL(tableName);
             if (String.IsNullOrEmpty(sql)) return sql;
 
             //String sqlSeq = String.Format("Drop GENERATOR GEN_{0}", tableName);
             //return sql + "; " + Environment.NewLine + sqlSeq;
 
-            String sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
+            var sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
             return sql + "; " + Environment.NewLine + sqlSeq;
         }
 

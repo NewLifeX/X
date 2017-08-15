@@ -34,9 +34,13 @@ namespace NewLife.Http
 
         /// <summary>分析第一行</summary>
         /// <param name="firstLine"></param>
-        protected override void OnParse(String firstLine)
+        protected override Boolean OnParse(String firstLine)
         {
+            if (firstLine.IsNullOrEmpty()) return false;
+
             var ss = firstLine.Split(" ");
+            if (ss.Length < 3) return false;
+
             // 分析请求方法 GET / HTTP/1.1
             if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
             {
@@ -62,7 +66,8 @@ namespace NewLife.Http
             Accept = Headers["Accept"] + "";
             AcceptLanguage = Headers["Accept-Language"] + "";
             Referer = Headers["Referer"] + "";
-            ContentLength = Headers["Content-Length"].ToInt();
+
+            return true;
         }
 
         /// <summary>创建头部</summary>
@@ -104,6 +109,7 @@ namespace NewLife.Http
 
             // 内容长度
             if (length > 0) sb.AppendFormat("Content-Length:{0}\r\n", length);
+            if (!ContentType.IsNullOrEmpty()) sb.AppendFormat("Content-Type:{0}\r\n", ContentType);
 
             if (KeepAlive) sb.AppendLine("Connection:keep-alive");
             if (!Referer.IsNullOrEmpty()) sb.AppendFormat("Referer:{0}\r\n", Referer);
