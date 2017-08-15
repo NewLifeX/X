@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -103,12 +103,12 @@ namespace Test
         {
             //EntityBuilder.Build(@"E:\ZTO\ZTO.GK.Web.Report\GK.Report\GK.Report.xml");
 
-            var list = UserX.Search("mon", 1, true, null);
-            Console.WriteLine(list);
+            //var list = UserX.Search("mon", 1, true, null);
+            //Console.WriteLine(list);
 
-            //Console.WriteLine(UserX.Meta.Count);
-            //Console.Clear();
-            //TestModule.Test();
+            AssemblyX.AssemblyPaths.Add(@"D:\vs\Common7\IDE\");
+            //var type = "SexKind".GetTypeEx(true);
+            //Console.WriteLine(type?.FullName);
         }
 
         class TestModule : EntityModule

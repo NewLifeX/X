@@ -133,9 +133,8 @@ namespace NewLife.Reflection
 #if !__MOBILE__ && !__CORE__
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) =>
             {
-#if DEBUG
-                if (XTrace.Debug) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
-#endif
+                var flag = XTrace.Debug && XTrace.Log.Level == LogLevel.Debug;
+                if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
                 return Assembly.ReflectionOnlyLoad(args.Name);
             };
 #endif
@@ -156,7 +155,7 @@ namespace NewLife.Reflection
                 }
                 catch (ReflectionTypeLoadException ex)
                 {
-                    if (ex.LoaderExceptions != null)
+                    if (ex.LoaderExceptions != null && XTrace.Log.Level == LogLevel.Debug)
                     {
                         XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
                         foreach (var le in ex.LoaderExceptions)
@@ -198,30 +197,19 @@ namespace NewLife.Reflection
             }
         }
 
-        //private IEnumerable<TypeX> _TypeXs;
-        ///// <summary>类型集合，当前程序集的所有类型</summary>
-        //public IEnumerable<TypeX> TypeXs
-        //{
-        //    get
-        //    {
-        //        foreach (var item in Types)
-        //        {
-        //            yield return TypeX.Create(item);
-        //        }
-        //    }
-        //}
-
         /// <summary>是否系统程序集</summary>
-        public Boolean IsSystemAssembly
-        {
-            get
-            {
-                var name = Asm.FullName;
-                if (name.EndsWith("PublicKeyToken=b77a5c561934e089")) return true;
-                if (name.EndsWith("PublicKeyToken=b03f5f7f11d50a3a")) return true;
+        public Boolean IsSystemAssembly { get { return CheckSystem(Asm); } }
 
-                return false;
-            }
+        private static Boolean CheckSystem(Assembly asm)
+        {
+            if (asm == null) return false;
+
+            var name = asm.FullName;
+            if (name.EndsWith("PublicKeyToken=b77a5c561934e089")) return true;
+            if (name.EndsWith("PublicKeyToken=b03f5f7f11d50a3a")) return true;
+            if (name.EndsWith("PublicKeyToken=89845dcd8080cc91")) return true;
+
+            return false;
         }
         #endregion
 
@@ -253,38 +241,38 @@ namespace NewLife.Reflection
             // 如果没有包含圆点，说明其不是FullName
             if (!typeName.Contains("."))
             {
-                try
-                {
-                    var types = Asm.GetTypes();
-                    if (types != null && types.Length > 0)
-                    {
-                        foreach (var item in types)
-                        {
-                            if (item.Name == typeName) return item;
-                        }
-                    }
-                }
-                catch (ReflectionTypeLoadException ex)
-                {
-                    if (XTrace.Debug)
-                    {
-                        //XTrace.WriteException(ex);
-                        XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
+                //try
+                //{
+                //    var types = Asm.GetTypes();
+                //    if (types != null && types.Length > 0)
+                //    {
+                //        foreach (var item in types)
+                //        {
+                //            if (item.Name == typeName) return item;
+                //        }
+                //    }
+                //}
+                //catch (ReflectionTypeLoadException ex)
+                //{
+                //    if (XTrace.Debug)
+                //    {
+                //        //XTrace.WriteException(ex);
+                //        XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
 
-                        foreach (var item in ex.LoaderExceptions)
-                        {
-                            XTrace.WriteException(item);
-                        }
-                    }
+                //        foreach (var item in ex.LoaderExceptions)
+                //        {
+                //            XTrace.WriteException(item);
+                //        }
+                //    }
 
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Debug) XTrace.WriteException(ex);
+                //    return null;
+                //}
+                //catch (Exception ex)
+                //{
+                //    if (XTrace.Debug) XTrace.WriteException(ex);
 
-                    return null;
-                }
+                //    return null;
+                //}
 
                 // 遍历所有类型，包括内嵌类型
                 foreach (var item in Types)
@@ -621,6 +609,9 @@ namespace NewLife.Reflection
                 var asm = Assembly.LoadFrom(item);
                 if (asm == null) continue;
 #endif
+
+                // 不搜索系统程序集，优化性能
+                if (CheckSystem(asm)) continue;
 
                 // 尽管目录不一样，但这两个可能是相同的程序集
                 // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
