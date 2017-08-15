@@ -45,7 +45,7 @@ namespace NewLife.Cube
             return Bootstrap(controller.HttpContext);
         }
 
-        internal static Boolean MakeListDataView(String vpath, List<FieldItem> fields)
+        internal static Boolean MakeListDataView(Type entityType, String vpath, List<FieldItem> fields)
         {
             var tmp = @"@using NewLife;
 @using NewLife.Web;
@@ -100,6 +100,9 @@ namespace NewLife.Cube
     </tbody>
 </table>";
             var sb = new StringBuilder();
+
+            sb.AppendFormat("@model IList<{0}>", entityType.FullName);
+            sb.AppendLine();
 
             var ident = new String(' ', 4 * 3);
             sb.Append(tmp.Substring(null, "            @foreach"));
