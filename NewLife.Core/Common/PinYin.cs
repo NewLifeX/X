@@ -147,6 +147,18 @@ namespace NewLife.Common
             return sb.ToString();
         }
 
+        /// <summary>取拼音第一个字段</summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static String GetFirstOne(String str)
+        {
+            if (String.IsNullOrEmpty(str)) return String.Empty;
+
+            var sb = new StringBuilder(str.Length + 1);
+            var chs = str.ToCharArray();
+            if (chs.Length > 0) sb.Append(GetFirst(chs[0]));
+            return sb.ToString();
+        }
         private static Encoding gb2312;
         /// <summary>获取单字拼音</summary>
         /// <param name="ch"></param>
