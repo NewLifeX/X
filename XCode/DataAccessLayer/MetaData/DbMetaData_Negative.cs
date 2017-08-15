@@ -413,35 +413,36 @@ namespace XCode.DataAccessLayer
                 {
                     var name = item.ColumnName;
                     var fname = FormatName(name);
+                    var type = item.DataType;
                     var field = dbtable.GetColumn(item.ColumnName);
                     if (field == null)
                     {
                         // 如果新增了不允许空的列，则处理一下默认值
                         if (!item.Nullable)
                         {
-                            if (item.DataType == typeof(String))
+                            if (type == typeof(String))
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
                                 sbName.Append(fname);
                                 sbValue.Append("''");
                             }
-                            else if (item.DataType == typeof(Int16) || item.DataType == typeof(Int32) || item.DataType == typeof(Int64) ||
-                                item.DataType == typeof(Single) || item.DataType == typeof(Double) || item.DataType == typeof(Decimal))
+                            else if (type == typeof(Int16) || type == typeof(Int32) || type == typeof(Int64) ||
+                                type == typeof(Single) || type == typeof(Double) || type == typeof(Decimal))
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
                                 sbName.Append(fname);
                                 sbValue.Append("0");
                             }
-                            else if (item.DataType == typeof(DateTime))
+                            else if (type == typeof(DateTime))
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
                                 sbName.Append(fname);
                                 sbValue.Append(Database.FormatDateTime(DateTime.MinValue));
                             }
-                            else if (item.DataType == typeof(Boolean))
+                            else if (type == typeof(Boolean))
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
@@ -458,12 +459,12 @@ namespace XCode.DataAccessLayer
                         // 处理一下非空默认值
                         if (field.Nullable && !item.Nullable)
                         {
-                            if (item.DataType == typeof(String))
+                            if (type == typeof(String))
                                 sbValue.Append("ifnull({0}, \'\')".F(fname));
-                            else if (item.DataType == typeof(Int16) || item.DataType == typeof(Int32) || item.DataType == typeof(Int64) ||
-                               item.DataType == typeof(Single) || item.DataType == typeof(Double) || item.DataType == typeof(Decimal))
+                            else if (type == typeof(Int16) || type == typeof(Int32) || type == typeof(Int64) ||
+                               type == typeof(Single) || type == typeof(Double) || type == typeof(Decimal))
                                 sbValue.Append("ifnull({0}, 0)".F(fname));
-                            else if (item.DataType == typeof(DateTime))
+                            else if (type == typeof(DateTime))
                                 sbValue.Append("ifnull({0}, {1})".F(fname, Database.FormatDateTime(DateTime.MinValue)));
                         }
                         else
@@ -471,7 +472,7 @@ namespace XCode.DataAccessLayer
                             //sbValue.Append(fname);
 
                             // 处理字符串不允许空，ntext不支持+""
-                            if (item.DataType == typeof(String) && !item.Nullable && item.Length > 0 && item.Length < Database.LongTextLength)
+                            if (type == typeof(String) && !item.Nullable && item.Length > 0 && item.Length < Database.LongTextLength)
                                 sbValue.Append(Database.StringConcat(fname, "\'\'"));
                             else
                                 sbValue.Append(fname);

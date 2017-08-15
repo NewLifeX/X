@@ -173,10 +173,13 @@ namespace XCode.Code
                 if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
             }
 
+            var type = dc.Properties["Type"];
+            if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
+
             if (Interface)
-                WriteLine("{0} {1} {{ get; set; }}", dc.DataType.Name, dc.Name);
+                WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
             else
-                WriteLine("public {0} {1} {{ get; set; }}", dc.DataType.Name, dc.Name);
+                WriteLine("public {0} {1} {{ get; set; }}", type, dc.Name);
         }
 
         ///// <summary>属性头部特性</summary>

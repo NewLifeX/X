@@ -584,31 +584,33 @@ namespace XCode.DataAccessLayer
             if (field.RawType.StartsWithIgnoreCase("NUMBER") && field is XField fi)
             {
                 var prec = fi.Precision;
+                Type type = null;
                 if (fi.Scale == 0)
                 {
                     // 0表示长度不限制，为了方便使用，转为最常见的Int32
                     if (prec == 0)
-                        field.DataType = typeof(Int32);
+                        type = typeof(Int32);
                     else if (prec == 1)
-                        field.DataType = typeof(Boolean);
+                        type = typeof(Boolean);
                     else if (prec <= 5)
-                        field.DataType = typeof(Int16);
+                        type = typeof(Int16);
                     else if (prec <= 10)
-                        field.DataType = typeof(Int32);
+                        type = typeof(Int32);
                     else
-                        field.DataType = typeof(Int64);
+                        type = typeof(Int64);
                 }
                 else
                 {
                     if (prec == 0)
-                        field.DataType = typeof(Decimal);
+                        type = typeof(Decimal);
                     else if (prec <= 5)
-                        field.DataType = typeof(Single);
+                        type = typeof(Single);
                     else if (prec <= 10)
-                        field.DataType = typeof(Double);
+                        type = typeof(Double);
                     else
-                        field.DataType = typeof(Decimal);
+                        type = typeof(Decimal);
                 }
+                field.DataType = type;
                 if (prec > 0 && field.RawType.EqualIgnoreCase("NUMBER")) field.RawType += "({0},{1})".F(prec, fi.Scale);
             }
 

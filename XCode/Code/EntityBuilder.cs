@@ -298,8 +298,11 @@ namespace XCode.Code
         {
             var dc = column;
 
+            var type = dc.Properties["Type"];
+            if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
+
             // 字段
-            WriteLine("private {0} _{1};", dc.DataType.Name, dc.Name);
+            WriteLine("private {0} _{1};", type, dc.Name);
 
             // 注释
             var des = dc.Description;
@@ -317,9 +320,9 @@ namespace XCode.Code
             WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\"{3})]", dc.ColumnName, dc.Description, dc.RawType, dc.Master ? ", Master = true" : "");
 
             if (Interface)
-                WriteLine("{0} {1} {{ get; set; }}", dc.DataType.Name, dc.Name);
+                WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
             else
-                WriteLine("public {0} {1} {{ get {{ return _{1}; }} set {{ if (OnPropertyChanging(__.{1}, value)) {{ _{1} = value; OnPropertyChanged(__.{1}); }} }} }}", dc.DataType.Name, dc.Name);
+                WriteLine("public {0} {1} {{ get {{ return _{1}; }} set {{ if (OnPropertyChanging(__.{1}, value)) {{ _{1} = value; OnPropertyChanged(__.{1}); }} }} }}", type, dc.Name);
         }
 
         /// <summary>生成主体</summary>
@@ -375,10 +378,13 @@ namespace XCode.Code
                     var conv = typeof(Convert);
                     foreach (var dc in Table.Columns)
                     {
-                        if (conv.GetMethod("To" + dc.DataType.Name, new Type[] { typeof(Object) }) != null)
-                            WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, dc.DataType.Name);
+                        var type = dc.Properties["Type"];
+                        if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
+
+                        if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
+                            WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, type);
                         else
-                            WriteLine("case __.{0} : _{0} = ({1})Convert.ToInt32(value); break;", dc.Name, dc.DataType.Name);
+                            WriteLine("case __.{0} : _{0} = ({1})Convert.ToInt32(value); break;", dc.Name, type);
                     }
                     WriteLine("default: base[name] = value; break;");
                     WriteLine("}");
@@ -434,8 +440,11 @@ namespace XCode.Code
             var k = Table.Columns.Count;
             foreach (var dc in Table.Columns)
             {
+                var type = dc.Properties["Type"];
+                if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
+
                 WriteLine("/// <summary>{0}</summary>", dc.Description);
-                WriteLine("{0} {1} {{ get; set; }}", dc.DataType.Name, dc.Name);
+                WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
                 if (--k > 0) WriteLine();
             }
             WriteLine("#endregion");
