@@ -598,6 +598,18 @@ namespace XCode.Code
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateIP"));
                 if (dc != null) WriteLine("//if (!Dirtys[nameof({0})]) {0} = WebHelper.UserHost;", dc.Name);
+
+                // 唯一索引检查唯一性
+                var dis = Table.Indexes.Where(e => e.Unique).ToArray();
+                if (dis.Length > 0)
+                {
+                    WriteLine();
+                    WriteLine("// 检查唯一索引");
+                    foreach (var item in dis)
+                    {
+                        WriteLine("//CheckExist(isNew, {0})", Table.GetColumns(item.Columns).Select(e => "__." + e.Name).Join(", "));
+                    }
+                }
             }
             WriteLine("}");
         }
