@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -17,17 +18,31 @@ namespace NewLife.Web
         /// <returns></returns>
         public static Type LoadPlugin(String typeName, String disname, String dll, String linkName, String urls = null)
         {
-            var type = typeName.GetTypeEx(true);
+            var set = Setting.Current;
+            var plug = set.GetPluginPath();
+
+            var file = "";
+            // 尝试加载
+            if (!dll.IsNullOrEmpty())
+            {
+                // 先检查当前目录，再检查插件目录
+                file = dll.GetFullPath();
+                if (!File.Exists(file) && Runtime.IsWeb) file = "Bin".GetFullPath().CombinePath(dll);
+                if (!File.Exists(file)) file = plug.CombinePath(dll);
+
+                if (File.Exists(file))
+                {
+                    try { Assembly.LoadFrom(file); }
+                    catch { }
+                }
+            }
+
+            var type = typeName.GetTypeEx();
             if (type != null) return type;
 
             if (dll.IsNullOrEmpty()) return null;
 
-            // 先检查当前目录，再检查插件目录
-            var file = dll.GetFullPath();
-            if (!File.Exists(file) && Runtime.IsWeb) file = "Bin".GetFullPath().CombinePath(dll);
-            if (!File.Exists(file)) file = Setting.Current.GetPluginPath().CombinePath(dll);
-
-            if (urls.IsNullOrEmpty()) urls = Setting.Current.PluginServer;
+            if (urls.IsNullOrEmpty()) urls = set.PluginServer;
 
             // 如果本地没有数据库，则从网络下载
             if (!File.Exists(file))
@@ -46,8 +61,7 @@ namespace NewLife.Web
                 return null;
             }
 
-            type = typeName.GetTypeEx(true);
-            return type;
+            return Assembly.LoadFrom(file).GetType(typeName);
         }
     }
 }

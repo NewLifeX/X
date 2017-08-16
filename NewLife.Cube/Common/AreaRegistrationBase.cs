@@ -98,7 +98,7 @@ namespace NewLife.Cube
         static List<Assembly> FindAllArea()
         {
             var list = new List<Assembly>();
-            Areas = typeof(AreaRegistrationBase).GetAllSubclasses(true).ToArray();
+            Areas = typeof(AreaRegistrationBase).GetAllSubclasses(false).ToArray();
             foreach (var item in Areas)
             {
                 var asm = item.Assembly;

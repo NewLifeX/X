@@ -208,6 +208,7 @@ namespace NewLife.Reflection
             if (name.EndsWith("PublicKeyToken=b77a5c561934e089")) return true;
             if (name.EndsWith("PublicKeyToken=b03f5f7f11d50a3a")) return true;
             if (name.EndsWith("PublicKeyToken=89845dcd8080cc91")) return true;
+            if (name.EndsWith("PublicKeyToken=31bf3856ad364e35")) return true;
 
             return false;
         }
@@ -666,6 +667,7 @@ namespace NewLife.Reflection
                 return Assembly.ReflectionOnlyLoadFrom(file);
             }
             catch { return null; }
+            //return null;
         }
 #endif
 
