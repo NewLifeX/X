@@ -455,7 +455,7 @@ namespace XCode.DataAccessLayer
             // 列注释
             sql = "Select * From ALL_COL_COMMENTS Where Owner='{0}'".F(owner);
             if (!tableName.IsNullOrEmpty()) sql += " And TABLE_NAME='{0}'".F(tableName);
-            data["ColumnComment"] = Database.CreateSession().Query("Select * From ALL_COL_COMMENTS where Owner='{0}'".F(owner)).Tables[0];
+            data["ColumnComment"] = Database.CreateSession().Query(sql).Tables[0];
 
             var list = GetTables(dt.Rows.ToArray(), names, data);
 
@@ -507,7 +507,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         Boolean CheckSeqExists(String name, IDictionary<String, DataTable> data)
         {
+            // 序列名一定不是关键字，全部大写
+            name = name.ToUpper();
+
             var dt = data?["Sequences"];
+            if (dt?.Rows == null) dt = Database.CreateSession().Query("Select * From ALL_SEQUENCES Where SEQUENCE_OWNER='{0}' And SEQUENCE_NAME='{1}'".F(Owner, name)).Tables[0];
             if (dt?.Rows == null || dt.Rows.Count < 1) return false;
 
             var where = String.Format("SEQUENCE_NAME='{0}'", name);
@@ -759,11 +763,14 @@ namespace XCode.DataAccessLayer
             var sql = sb.ToString();
             if (String.IsNullOrEmpty(sql)) return sql;
 
+            // 如果序列已存在，需要先删除
+            if (CheckSeqExists("SEQ_{0}".F(table.TableName), null)) sb.AppendFormat(";\r\nDrop Sequence SEQ_{0}", table.TableName);
+
             // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
-            var sqlSeq = String.Format("Create Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1 Cache 20", table.TableName);
-            //return sql + "; " + Environment.NewLine + sqlSeq;
+            // 最小值1，从1开始
+            sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1 Cache 20", table.TableName);
             // 去掉分号后的空格，Oracle不支持同时执行多个语句
-            return sql + ";" + Environment.NewLine + sqlSeq;
+            return sb.ToString();
         }
 
         public override String DropTableSQL(String tableName)
