@@ -160,21 +160,22 @@ namespace NewLife.Cube
             //routes.RouteExistingFiles = true;
 
             // 自动检查并添加菜单
-            Task.Factory.StartNew(ScanController).LogException();
+            Task.Run(() => ScanController());
         }
 
         /// <summary>自动扫描控制器，并添加到菜单</summary>
         /// <remarks>默认操作当前注册区域的下一级Controllers命名空间</remarks>
         protected virtual void ScanController()
         {
-            //// 延迟几秒钟等其它地方初始化完成
-            //Thread.Sleep(3000);
+#if DEBUG
+            XTrace.WriteLine("{0}.ScanController", GetType().Name.TrimEnd("AreaRegistration"));
+#endif
             var mf = ManageProvider.Menu;
             if (mf == null) return;
 
             using (var tran = (mf as IEntityOperate).CreateTrans())
             {
-                XTrace.WriteLine("初始化[{0}]的菜单体系 {1}", AreaName, mf.GetType().Name);
+                XTrace.WriteLine("初始化[{0}]的菜单体系", AreaName);
                 mf.ScanController(AreaName, GetType().Assembly, GetType().Namespace + ".Controllers");
 
                 // 更新区域名称为友好中文名

@@ -106,9 +106,15 @@ namespace Test
             //var list = UserX.Search("mon", 1, true, null);
             //Console.WriteLine(list);
 
-            AssemblyX.AssemblyPaths.Add(@"D:\vs\Common7\IDE\");
+            //AssemblyX.AssemblyPaths.Add(@"D:\vs\Common7\IDE\");
             //var type = "SexKind".GetTypeEx(true);
             //Console.WriteLine(type?.FullName);
+
+            var log = new Log();
+            log.Action = "xxx";
+            log.Insert();
+
+            Console.WriteLine(log.ID);
         }
 
         class TestModule : EntityModule
