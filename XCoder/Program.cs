@@ -20,6 +20,8 @@ namespace XCoder
         {
             XTrace.UseWinForm();
 
+            StringHelper.EnableSpeechTip = XConfig.Current.SpeechTip;
+
             // 参数启动
             var args = Environment.GetCommandLineArgs();
             if (args != null && args.Length > 1)

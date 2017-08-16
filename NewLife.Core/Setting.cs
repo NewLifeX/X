@@ -49,10 +49,6 @@ namespace NewLife
         /// <summary>插件缓存目录。默认位于系统盘的X\Cache</summary>
         [Description("插件缓存目录。默认位于系统盘的X\\Cache")]
         public String PluginCache { get; set; } = "";
-
-        /// <summary>语音提示。默认true</summary>
-        [Description("语音提示。默认true")]
-        public Boolean SpeechTip { get; set; } = true;
         #endregion
 
         #region 方法
@@ -94,7 +90,7 @@ namespace NewLife
 
 #if !__MOBILE__
             // 确保缓存目录可用
-            for (Int32 i = 0; i < 2; i++)
+            for (var i = 0; i < 2; i++)
             {
                 try
                 {

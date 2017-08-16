@@ -37,6 +37,10 @@ namespace XCoder
         [Description("日志着色")]
         public Boolean ColorLog { get; set; } = true;
 
+        /// <summary>语音提示。默认true</summary>
+        [Description("语音提示。默认true")]
+        public Boolean SpeechTip { get; set; } = true;
+
         /// <summary>更新服务器</summary>
         [Description("更新服务器")]
         public String UpdateServer { get; set; } = "";

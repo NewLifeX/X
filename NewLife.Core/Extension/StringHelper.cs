@@ -811,18 +811,20 @@ namespace System
             _provider.SpeakAsync(value);
         }
 
+        /// <summary>启用语音提示</summary>
+        public static Boolean EnableSpeechTip { get; set; } = true;
+
         /// <summary>语音提示操作</summary>
         /// <param name="value"></param>
         public static void SpeechTip(this String value)
         {
-            if (Setting.Current.SpeechTip)
+            if (!EnableSpeechTip) return;
+
+            try
             {
-                try
-                {
-                    SpeakAsync(value);
-                }
-                catch { }
+                SpeakAsync(value);
             }
+            catch { }
         }
 #endif
         #endregion
