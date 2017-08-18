@@ -90,7 +90,7 @@ namespace NewLife.Serialization
                     default:
                         {
                             // 名称
-                            var name = ParseString();
+                            var name = ParseName();
 
                             // :
                             if (NextToken() != Token.Colon) throw new XException("在 {0} 需要冒号");
@@ -162,6 +162,111 @@ namespace NewLife.Serialization
             }
 
             throw new XException("在 {0} 的标识符无法识别", index);
+        }
+
+        private String ParseName()
+        {
+            SkipToken(); // "
+
+            _builder.Length = 0;
+
+            var runIndex = -1;
+
+            while (index < _json.Length)
+            {
+                var c = _json[index++];
+
+                if (c == '"')
+                {
+                    if (runIndex != -1)
+                    {
+                        if (_builder.Length == 0)
+                            return _json.Substring(runIndex, index - runIndex - 1);
+
+                        _builder.Append(_json, runIndex, index - runIndex - 1);
+                    }
+                    return _builder.ToString();
+                }
+                else if (c == ':')
+                {
+                    // 如果是没有双引号的名字，则退回一个字符
+                    index--;
+
+                    if (runIndex != -1)
+                    {
+                        if (_builder.Length == 0)
+                            return _json.Substring(runIndex, index + 1 - runIndex - 1);
+
+                        _builder.Append(_json, runIndex, index + 1 - runIndex - 1);
+                    }
+                    return _builder.ToString();
+                }
+
+                if (c != '\\')
+                {
+                    if (runIndex == -1) runIndex = index - 1;
+
+                    continue;
+                }
+
+                if (index == _json.Length) break;
+
+                if (runIndex != -1)
+                {
+                    _builder.Append(_json, runIndex, index - runIndex - 1);
+                    runIndex = -1;
+                }
+
+                switch (_json[index++])
+                {
+                    case '"':
+                        _builder.Append('"');
+                        break;
+
+                    case '\\':
+                        _builder.Append('\\');
+                        break;
+
+                    case '/':
+                        _builder.Append('/');
+                        break;
+
+                    case 'b':
+                        _builder.Append('\b');
+                        break;
+
+                    case 'f':
+                        _builder.Append('\f');
+                        break;
+
+                    case 'n':
+                        _builder.Append('\n');
+                        break;
+
+                    case 'r':
+                        _builder.Append('\r');
+                        break;
+
+                    case 't':
+                        _builder.Append('\t');
+                        break;
+
+                    case 'u':
+                        {
+                            var remainingLength = _json.Length - index;
+                            if (remainingLength < 4) break;
+
+                            // 分析32位十六进制数字
+                            var codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
+                            _builder.Append((Char)codePoint);
+
+                            index += 4;
+                        }
+                        break;
+                }
+            }
+
+            throw new Exception("已到达字符串结尾");
         }
 
         private String ParseString()
@@ -444,6 +549,9 @@ namespace NewLife.Serialization
                         return Token.Null;
                     }
                     break;
+
+                // 默认是没有双引号的key
+                default: index--; return Token.String;
             }
             throw new XException("无法在 {0} 找到Token", --index);
         }
