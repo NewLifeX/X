@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using NewLife.Model;
 
 namespace NewLife.Caching
 {
@@ -8,7 +10,31 @@ namespace NewLife.Caching
     {
         #region 静态默认实现
         /// <summary>默认缓存</summary>
-        public static ICache Default { get; set; } = new MyCache();
+        public static ICache Default { get; set; }
+
+        static Cache()
+        {
+            var ioc = ObjectContainer.Current;
+            ioc.AutoRegister<ICache, MemoryCache>(k => ((ICache)k).Name);
+            Default = ioc.ResolveInstance<ICache>();
+        }
+
+        private static ConcurrentDictionary<String, ICache> _cache = new ConcurrentDictionary<String, ICache>();
+        /// <summary>创建</summary>
+        /// <param name="name">名字</param>
+        /// <returns></returns>
+        public static ICache Create(String name)
+        {
+            if (name == null) name = "";
+
+            return _cache.GetOrAdd(name, k =>
+            {
+                var p = name.IndexOf("://");
+                var id = p >= 0 ? name.Substring(0, p) : name;
+
+                return ObjectContainer.Current.ResolveInstance<ICache>(id);
+            });
+        }
         #endregion
 
         #region 属性

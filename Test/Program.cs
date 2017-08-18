@@ -116,7 +116,8 @@ namespace Test
 
             //Console.WriteLine(log.ID);
 
-            var ic = Cache.Default;
+            //var ic = Cache.Default;
+            var ic = Cache.Create(null);
             ic["aaa"] = 1234;
             ic.Increment("aaa", 6);
 

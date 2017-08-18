@@ -6,14 +6,15 @@ using NewLife.Threading;
 namespace NewLife.Caching
 {
     /// <summary>默认字典缓存</summary>
-    class MyCache : Cache
+    public class MemoryCache : Cache
     {
         #region 属性
         private ConcurrentDictionary<String, CacheItem> _cache;
         #endregion
 
         #region 构造
-        public MyCache()
+        /// <summary>实例化一个内存字典缓存</summary>
+        public MemoryCache()
         {
             _cache = new ConcurrentDictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
             Name = "Memory";
