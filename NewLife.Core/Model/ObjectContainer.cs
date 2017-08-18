@@ -34,35 +34,28 @@ namespace NewLife.Model
         #endregion
 
         #region 对象字典
-        private ConcurrentDictionary<Type, IDictionary<Object, IObjectMap>> Stores { get; } = new ConcurrentDictionary<Type, IDictionary<Object, IObjectMap>>();
+        private ConcurrentDictionary<Type, IDictionary<String, IObjectMap>> Stores { get; } = new ConcurrentDictionary<Type, IDictionary<String, IObjectMap>>();
 
         /// <summary>不存在又不添加时返回空列表</summary>
         /// <param name="type"></param>
         /// <param name="add"></param>
         /// <returns></returns>
-        private IDictionary<Object, IObjectMap> Find(Type type, Boolean add = false)
+        private IDictionary<String, IObjectMap> Find(Type type, Boolean add = false)
         {
             if (Stores.TryGetValue(type, out var dic)) return dic;
 
             if (!add) return null;
 
-            return Stores.GetOrAdd(type, k => new Dictionary<Object, IObjectMap>());
+            return Stores.GetOrAdd(type, k => new Dictionary<String, IObjectMap>(StringComparer.OrdinalIgnoreCase));
         }
 
-        private IObjectMap FindMap(IDictionary<Object, IObjectMap> dic, Object id)
+        private IObjectMap FindMap(IDictionary<String, IObjectMap> dic, Object id)
         {
             if (dic == null || dic.Count <= 0) return null;
 
-            // 名称不能是null，否则字典里面会报错
-            if (id == null) id = String.Empty;
             // 如果找到，直接返回
-            if (dic.TryGetValue(id, out var map) || dic.TryGetValue(id + "", out map)) return map;
+            if (dic.TryGetValue(id + "", out var map)) return map;
 
-            if (id == null || "" + id == String.Empty)
-            {
-                // 如果名称不为空，则试一试找空的
-                if (dic.TryGetValue(String.Empty, out map)) return map;
-            }
             return null;
         }
 
@@ -110,7 +103,7 @@ namespace NewLife.Model
         }
         #endregion
 
-        #region 注册核心
+        #region 注册
         /// <summary>注册</summary>
         /// <param name="from">接口类型</param>
         /// <param name="to">实现类型</param>
@@ -121,12 +114,11 @@ namespace NewLife.Model
         public virtual IObjectContainer Register(Type from, Type to, Object instance, Object id = null, Int32 priority = 0)
         {
             if (from == null) throw new ArgumentNullException(nameof(from));
-            // 名称不能是null，否则字典里面会报错
-            if (id == null) id = String.Empty;
+            var key = id + "";
 
             var dic = Find(from, true);
             Map map = null;
-            if (dic.TryGetValue(id, out var old) || dic.TryGetValue(id + "", out old))
+            if (dic.TryGetValue(key, out var old))
             {
                 map = old as Map;
                 if (map != null)
@@ -143,7 +135,7 @@ namespace NewLife.Model
                 {
                     lock (dic)
                     {
-                        dic.Remove(id);
+                        dic.Remove(key);
                     }
                 }
             }
@@ -156,19 +148,17 @@ namespace NewLife.Model
             if (to != null) map.Type = to;
             if (instance != null) map.Instance = instance;
 
-            if (!dic.ContainsKey(id))
+            if (!dic.ContainsKey(key))
             {
                 lock (dic)
                 {
-                    if (!dic.ContainsKey(id)) dic.Add(id, map);
+                    if (!dic.ContainsKey(key)) dic.Add(key, map);
                 }
             }
 
             return this;
         }
-        #endregion
 
-        #region 注册
         /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
         /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
         /// <param name="from">接口或基类</param>
@@ -259,8 +249,6 @@ namespace NewLife.Model
         public virtual Type ResolveType(Type from, Object id = null)
         {
             if (from == null) throw new ArgumentNullException("from");
-            // 名称不能是null，否则字典里面会报错
-            if (id == null) id = String.Empty;
 
             var map = FindMap(Find(from), id);
             if (map == null) return null;
