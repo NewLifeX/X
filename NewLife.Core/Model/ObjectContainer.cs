@@ -176,18 +176,6 @@ namespace NewLife.Model
         /// <returns></returns>
         public virtual IObjectContainer AutoRegister(Type from, params Type[] excludeTypes)
         {
-            return AutoRegister(from, null, null, 0, excludeTypes);
-        }
-
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
-        /// <param name="from">接口或基类</param>
-        /// <param name="getidCallback">用于从外部类型对象中获取标识的委托</param>
-        /// <param name="id">标识</param>
-        /// <param name="priority">优先级</param>
-        /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
-        /// <returns></returns>
-        public virtual IObjectContainer AutoRegister(Type from, Func<Object, Object> getidCallback = null, Object id = null, Int32 priority = 0, params Type[] excludeTypes)
-        {
             if (from == null) throw new ArgumentNullException(nameof(from));
 
             if (excludeTypes == null) excludeTypes = Type.EmptyTypes;
@@ -204,22 +192,18 @@ namespace NewLife.Model
             {
                 if (Array.IndexOf(excludeTypes, item) < 0)
                 {
-                    // 自动注册的优先级是1，高于默认的0
-                    //Register(from, item, null, null, 1);
                     // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
                     var obj = item.CreateInstance();
-                    // 如果指定了获取ID的委托，并且取得的ID与传入ID不一致，则不承认
-                    if (getidCallback != null && id != getidCallback(obj)) continue;
 
-                    if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}，标识={2}，优先级={3}！", from.FullName, item.FullName, id, priority + 1);
+                    if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}", from.FullName, item.FullName);
 
-                    Register(from, null, obj, id, priority + 1);
+                    Register(from, null, obj);
                     return this;
                 }
             }
 
             // 如果没有注册任何实现，则默认注册第一个排除类型
-            if (excludeTypes.Length > 0) Register(from, excludeTypes[0], null, id, priority);
+            if (excludeTypes.Length > 0) Register(from, excludeTypes[0], null);
 
             return this;
         }
