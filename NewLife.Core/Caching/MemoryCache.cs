@@ -70,14 +70,16 @@ namespace NewLife.Caching
         /// <param name="value">值</param>
         /// <param name="expire">过期时间，秒</param>
         /// <returns></returns>
-        public override Boolean Set<T>(String key, T value, TimeSpan expire)
+        public override Boolean Set<T>(String key, T value, Int32 expire = 0)
         {
+            if (expire <= 0) expire = Expire;
+
             _cache.AddOrUpdate(key,
                 k => new CacheItem(value, expire),
                 (k, item) =>
                 {
                     item.Value = value;
-                    item.ExpiredTime = DateTime.Now.Add(expire);
+                    item.ExpiredTime = DateTime.Now.AddSeconds(expire);
 
                     return item;
                 });
@@ -156,10 +158,10 @@ namespace NewLife.Caching
             /// <summary>是否过期</summary>
             public Boolean Expired { get { return ExpiredTime <= DateTime.Now; } }
 
-            public CacheItem(Object value, TimeSpan expire)
+            public CacheItem(Object value, Int32 expire)
             {
                 Value = value;
-                ExpiredTime = DateTime.Now.Add(expire);
+                ExpiredTime = DateTime.Now.AddSeconds(expire);
             }
         }
         #endregion

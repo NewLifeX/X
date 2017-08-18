@@ -9,6 +9,9 @@ namespace NewLife.Caching
         /// <summary>名称</summary>
         String Name { get; }
 
+        /// <summary>默认缓存时间。默认365*24*3600秒</summary>
+        Int32 Expire { get; set; }
+
         /// <summary>获取和设置缓存，永不过期</summary>
         /// <param name="key"></param>
         /// <returns></returns>

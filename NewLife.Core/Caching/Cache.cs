@@ -41,6 +41,9 @@ namespace NewLife.Caching
         /// <summary>名称</summary>
         public String Name { get; protected set; }
 
+        /// <summary>默认缓存时间。默认365*24*3600秒</summary>
+        public Int32 Expire { get; set; } = 365 * 24 * 3600;
+
         /// <summary>获取和设置缓存，永不过期</summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -64,20 +67,14 @@ namespace NewLife.Caching
         /// <param name="value">值</param>
         /// <param name="expire">过期时间，秒</param>
         /// <returns></returns>
-        public virtual Boolean Set<T>(String key, T value, Int32 expire = 0)
-        {
-            if (expire > 0)
-                return Set(key, value, new TimeSpan(0, 0, expire));
-            else
-                return Set(key, value, new TimeSpan(365, 0, 0, 0));
-        }
+        public abstract Boolean Set<T>(String key, T value, Int32 expire = 0);
 
         /// <summary>设置缓存项</summary>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
         /// <param name="expire">过期时间</param>
         /// <returns></returns>
-        public abstract Boolean Set<T>(String key, T value, TimeSpan expire);
+        public virtual Boolean Set<T>(String key, T value, TimeSpan expire) { return Set(key, value, (Int32)expire.TotalSeconds); }
 
         /// <summary>获取缓存项</summary>
         /// <param name="key">键</param>
