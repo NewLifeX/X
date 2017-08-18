@@ -323,7 +323,7 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex == null ? null : ex.Message);
+            if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion

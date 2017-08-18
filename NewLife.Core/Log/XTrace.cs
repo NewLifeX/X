@@ -426,7 +426,7 @@ namespace NewLife.Log
 
             Type last = null;
             var asm = Assembly.GetEntryAssembly();
-            var entry = asm == null ? null : asm.EntryPoint;
+            var entry = asm?.EntryPoint;
 
             var count = st.FrameCount;
             var sb = new StringBuilder(count * 20);

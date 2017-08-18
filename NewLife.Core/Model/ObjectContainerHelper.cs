@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using NewLife.Model;
-using NewLife.Reflection;
 
 namespace System
 {
@@ -36,26 +35,24 @@ namespace System
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="container">对象容器</param>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public static TInterface Resolve<TInterface>(this IObjectContainer container, Object id = null, Boolean extend = false)
+        public static TInterface Resolve<TInterface>(this IObjectContainer container, Object id = null)
         {
-            return (TInterface)container.Resolve(typeof(TInterface), id, extend);
+            return (TInterface)container.Resolve(typeof(TInterface), id);
         }
 
         /// <summary>解析类型指定名称的实例</summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="container">对象容器</param>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
 #if !DEBUG
-        public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null, Boolean extend = false)
+        public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null)
         {
-            return (TInterface)container.ResolveInstance(typeof(TInterface), id, extend);
+            return (TInterface)container.ResolveInstance(typeof(TInterface), id);
         }
 #else
-        public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null, Boolean extend = false)
+        public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null)
         {
             var obj = container.ResolveInstance(typeof(TInterface), id, extend);
             try
@@ -102,11 +99,10 @@ namespace System
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="container">对象容器</param>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，name为null而找不到时，采用第一个注册项；name不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        public static Type ResolveType<TInterface>(this IObjectContainer container, Object id = null, Boolean extend = false)
+        public static Type ResolveType<TInterface>(this IObjectContainer container, Object id = null)
         {
-            return container.ResolveType(typeof(TInterface), id, extend);
+            return container.ResolveType(typeof(TInterface), id);
         }
     }
 }
