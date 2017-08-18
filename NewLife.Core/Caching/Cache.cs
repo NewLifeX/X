@@ -38,30 +38,33 @@ namespace NewLife.Caching
 
         private static ConcurrentDictionary<String, ICache> _cache = new ConcurrentDictionary<String, ICache>();
         /// <summary>创建缓存实例</summary>
+        /// <param name="set">配置项</param>
+        /// <returns></returns>
+        public static ICache Create(CacheSetting set)
+        {
+            return _cache.GetOrAdd(set.Name, k =>
+            {
+                var id = set.Provider;
+
+                var type = ObjectContainer.Current.ResolveType<ICache>(id);
+                if (type == null) throw new ArgumentNullException(nameof(type), "找不到名为[{0}]的缓存实现".F(id));
+
+                var ic = type.CreateInstance() as ICache;
+                if (ic is Cache ic2) ic2.Init(set);
+
+                return ic;
+            });
+        }
+
+        /// <summary>创建缓存实例</summary>
         /// <param name="name">名字。memory、redis://127.0.0.1:6379?Db=6</param>
         /// <returns></returns>
         public static ICache Create(String name)
         {
             if (name == null) name = "";
 
-            return _cache.GetOrAdd(name, k =>
-            {
-                var p = name.IndexOf("://");
-                var id = "";
-                if (p >= 0)
-                {
-                    id = name.Substring(0, p);
-                    name = name.Substring(p + 3);
-                }
-
-                var type = ObjectContainer.Current.ResolveType<ICache>(id);
-                if (type == null) throw new ArgumentNullException(nameof(type), "找不到名为[{0}]的缓存实现".F(id));
-
-                var ic = type.CreateInstance() as ICache;
-                if (ic is Cache ic2) ic2.Init(name);
-
-                return ic;
-            });
+            var item = CacheConfig.Current.GetOrAdd(name);
+            return Create(item);
         }
         #endregion
 
@@ -86,8 +89,8 @@ namespace NewLife.Caching
 
         #region 方法
         /// <summary>初始化配置</summary>
-        /// <param name="config"></param>
-        protected virtual void Init(String config) { }
+        /// <param name="set"></param>
+        protected virtual void Init(CacheSetting set) { }
 
         /// <summary>是否包含缓存项</summary>
         /// <param name="key"></param>
