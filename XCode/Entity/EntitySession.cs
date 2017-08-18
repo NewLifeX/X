@@ -171,21 +171,23 @@ namespace XCode
         /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
         /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
         /// <returns>如果等待，返回是否收到信号</returns>
-        public Boolean WaitForInitData(Int32 ms = 1000)
+        public Boolean WaitForInitData(Int32 ms = 3000)
         {
             // 已初始化
             if (hasCheckInitData) return true;
 
+            var tid = Thread.CurrentThread.ManagedThreadId;
+
             //!!! 一定一定小心堵塞的是自己
-            if (initThread == Thread.CurrentThread.ManagedThreadId) return true;
+            if (initThread == tid) return true;
 
             if (!Monitor.TryEnter(_wait_lock, ms))
             {
                 //if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1}ms，调用栈：{2}", ThisType.Name, ms, XTrace.GetCaller(1, 8));
-                if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1:n0}ms失败", ThisType.Name, ms);
+                if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1:n0}ms失败 initThread={2}", ThisType.Name, ms, initThread);
                 return false;
             }
-            initThread = Thread.CurrentThread.ManagedThreadId;
+            initThread = tid;
             try
             {
                 // 已初始化
@@ -211,8 +213,13 @@ namespace XCode
                     BeginTrans();
                     try
                     {
-                        var entity = Operate.Default as EntityBase;
-                        if (entity != null) entity.InitData();
+                        if (Operate.Default is EntityBase entity)
+                        {
+                            entity.InitData();
+                            //// 异步执行初始化，只等一会，避免死锁
+                            //var task = TaskEx.Run(() => entity.InitData());
+                            //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
+                        }
 
                         Commit();
                     }

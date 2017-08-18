@@ -24,7 +24,7 @@ namespace NewLife.Net
         public UdpServer Server { get; set; }
 
         /// <summary>底层Socket</summary>
-        Socket ISocket.Client { get { return Server == null ? null : Server.Client; } }
+        Socket ISocket.Client { get { return Server?.Client; } }
 
         /// <summary>数据流</summary>
         public Stream Stream { get; set; }
@@ -35,7 +35,7 @@ namespace NewLife.Net
         {
             get
             {
-                return _Local ?? (_Local = Server == null ? null : Server.Local);
+                return _Local ?? (_Local = Server?.Local);
             }
             set { Server.Local = _Local = value; }
         }
@@ -244,7 +244,7 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         protected virtual void OnError(String action, Exception ex)
         {
-            if (Log != null) Log.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex == null ? null : ex.Message);
+            if (Log != null) Log.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex?.Message);
             if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
         }
         #endregion

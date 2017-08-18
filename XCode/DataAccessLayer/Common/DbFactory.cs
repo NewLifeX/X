@@ -70,28 +70,29 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         internal static Type GetProviderType(String connStr, String provider)
         {
-            if (!String.IsNullOrEmpty(provider))
+            var ioc = XCodeService.Container;
+            if (!provider.IsNullOrEmpty())
             {
                 var n = 0;
-                foreach (var item in XCodeService.Container.ResolveAll(typeof(IDatabase)))
+                foreach (var item in ioc.ResolveAll(typeof(IDatabase)))
                 {
                     n++;
                     if ("" + item.Identity == "") continue;
 
                     var db = item.Instance as IDatabase;
-                    if (db != null && db.Support(provider)) return item.ImplementType;
+                    if (db != null && db.Support(provider)) return item.Type;
                 }
 
                 if (DAL.Debug) DAL.WriteLog("无法从{0}个默认数据库提供者中识别到{1}！", n, provider);
 
                 var type = provider.GetTypeEx(true);
-                if (type != null) XCodeService.Container.Register<IDatabase>(type, provider);
+                if (type != null) ioc.Register<IDatabase>(type, provider);
                 return type;
             }
             else
             {
                 // 这里的默认值来自于上面Reg里面的最后那个
-                return XCodeService.Container.ResolveType<IDatabase>(String.Empty);
+                return ioc.ResolveType<IDatabase>(String.Empty);
             }
         }
         #endregion

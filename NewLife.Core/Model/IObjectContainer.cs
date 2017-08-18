@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using NewLife.Reflection;
 
 namespace NewLife.Model
 {
@@ -52,25 +51,22 @@ namespace NewLife.Model
         /// <summary>解析类型指定名称的实例</summary>
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        Object Resolve(Type from, Object id = null, Boolean extend = false);
+        Object Resolve(Type from, Object id = null);
 
         /// <summary>解析类型指定名称的实例</summary>
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        Object ResolveInstance(Type from, Object id = null, Boolean extend = false);
+        Object ResolveInstance(Type from, Object id = null);
         #endregion
 
         #region 解析类型
         /// <summary>解析接口指定名称的实现类型</summary>
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
-        /// <param name="extend">扩展。若为ture，id为null而找不到时，采用第一个注册项；id不为null而找不到时，采用null注册项</param>
         /// <returns></returns>
-        Type ResolveType(Type from, Object id = null, Boolean extend = false);
+        Type ResolveType(Type from, Object id = null);
 
         /// <summary>解析接口所有已注册的对象映射</summary>
         /// <param name="from">接口类型</param>
@@ -86,7 +82,7 @@ namespace NewLife.Model
         Object Identity { get; }
 
         /// <summary>实现类型</summary>
-        Type ImplementType { get; }
+        Type Type { get; }
 
         /// <summary>对象实例</summary>
         Object Instance { get; }

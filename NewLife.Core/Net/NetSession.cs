@@ -38,7 +38,7 @@ namespace NewLife.Net
         public ISocketServer Server { get; set; }
 
         /// <summary>客户端地址</summary>
-        public NetUri Remote { get { return Session == null ? null : Session.Remote; } }
+        public NetUri Remote { get { return Session?.Remote; } }
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();

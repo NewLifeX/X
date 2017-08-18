@@ -33,7 +33,7 @@ namespace NewLife
 
         /// <summary>初始化</summary>
         /// <param name="innerException"></param>
-        public XException(Exception innerException) : base((innerException != null ? innerException.Message : null), innerException) { }
+        public XException(Exception innerException) : base((innerException?.Message), innerException) { }
 
         ///// <summary>初始化</summary>
         ///// <param name="info"></param>

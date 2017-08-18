@@ -270,32 +270,32 @@ namespace XCode
         /// <param name="isNew">是否新数据</param>
         public virtual void Valid(Boolean isNew)
         {
-            // 根据索引，判断唯一性
-            var table = Meta.Table.DataTable;
-            var dis = table.Indexes;
-            if (dis != null && dis.Count > 0)
-            {
-                // 遍历所有索引
-                foreach (var item in dis)
-                {
-                    // 只处理唯一索引
-                    if (!item.Unique) continue;
+            //// 根据索引，判断唯一性
+            //var table = Meta.Table.DataTable;
+            //var dis = table.Indexes;
+            //if (dis != null && dis.Count > 0)
+            //{
+            //    // 遍历所有索引
+            //    foreach (var item in dis)
+            //    {
+            //        // 只处理唯一索引
+            //        if (!item.Unique) continue;
 
-                    // 需要转为别名，也就是字段名
-                    var columns = table.GetColumns(item.Columns);
-                    if (columns == null || columns.Length < 1) continue;
+            //        // 需要转为别名，也就是字段名
+            //        var columns = table.GetColumns(item.Columns);
+            //        if (columns == null || columns.Length < 1) continue;
 
-                    // 不处理自增
-                    if (columns.All(c => c.Identity)) continue;
+            //        // 不处理自增
+            //        if (columns.All(c => c.Identity)) continue;
 
-                    // 记录字段是否有更新
-                    var changed = false;
-                    if (!isNew) changed = columns.Any(c => Dirtys[c.Name]);
+            //        // 记录字段是否有更新
+            //        var changed = false;
+            //        if (!isNew) changed = columns.Any(c => Dirtys[c.Name]);
 
-                    // 存在检查
-                    if (isNew || changed) CheckExist(isNew, columns.Select(c => c.Name).Distinct().ToArray());
-                }
-            }
+            //        // 存在检查
+            //        if (isNew || changed) CheckExist(isNew, columns.Select(c => c.Name).Distinct().ToArray());
+            //    }
+            //}
         }
 
         /// <summary>根据指定键检查数据，返回数据是否已存在</summary>

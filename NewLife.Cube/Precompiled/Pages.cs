@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Web;
-using System.Web.Hosting;
 
 namespace NewLife.Cube.Precompiled
 {
@@ -17,17 +14,18 @@ namespace NewLife.Cube.Precompiled
         /// <returns></returns>
         public static Boolean IsExistByVirtualPath(String virtualPath)
         {
-            if (virtualPath.StartsWith("~/"))
-                virtualPath = virtualPath.Substring(1); var assembly = Assembly.LoadFrom(HttpContext.Current.Server.MapPath("~/bin") + "\\Falafel.Resources.dll");
-            var result = string.Empty;
-            virtualPath = "Falafel.Resources" + virtualPath.Replace('/', '.'); if (virtualPath.EndsWith("/"))
-            {
+            if (virtualPath.StartsWith("~/")) virtualPath = virtualPath.Substring(1);
+
+            var assembly = Assembly.LoadFrom(HttpContext.Current.Server.MapPath("~/bin") + "\\Falafel.Resources.dll");
+            virtualPath = "Falafel.Resources" + virtualPath.Replace('/', '.');
+
+            var result = String.Empty;
+            if (virtualPath.EndsWith("/"))
                 result = assembly.GetManifestResourceNames().First();
-            }
             else
-            {
                 result = assembly.GetManifestResourceNames().FirstOrDefault(i => i.ToLower() == virtualPath.ToLower());
-            } return string.IsNullOrEmpty(result) ? false : true;
+
+            return !result.IsNullOrEmpty();
         }
 
         /// <summary>根据路径获取页面模版</summary>
@@ -35,8 +33,7 @@ namespace NewLife.Cube.Precompiled
         /// <returns></returns>
         public static String GetByVirtualPath(String virtualPath)
         {
-            if (virtualPath.StartsWith("~/"))
-                virtualPath = virtualPath.Substring(1);
+            if (virtualPath.StartsWith("~/")) virtualPath = virtualPath.Substring(1);
 
             var assembly = Assembly.LoadFrom(HttpContext.Current.Server.MapPath("~/bin") + "\\Falafel.Resources.dll");
             virtualPath = "Falafel.Resources" + virtualPath.Replace('/', '.');
@@ -46,8 +43,7 @@ namespace NewLife.Cube.Precompiled
             {
                 using (var reader = new StreamReader(stream))
                 {
-                    var result = reader.ReadToEnd();
-                    return result;
+                    return reader.ReadToEnd();
                 }
             }
         }

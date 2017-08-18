@@ -290,12 +290,12 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity Add(String name, String pass, Int32 roleid = 1, String display = null)
         {
-            var entity = Find(_.Name == name);
-            if (entity != null) return entity;
+            //var entity = Find(_.Name == name);
+            //if (entity != null) return entity;
 
             if (pass.IsNullOrEmpty()) pass = name;
 
-            entity = new TEntity();
+            var entity = new TEntity();
             entity.Name = name;
             entity.Password = pass.MD5();
             entity.DisplayName = display;
@@ -418,12 +418,21 @@ namespace XCode.Membership
             var ip = WebHelper.UserHost;
             if (!String.IsNullOrEmpty(ip)) LastLoginIP = ip;
 
+            Online = true;
+
             return Update();
         }
 
         /// <summary>注销</summary>
         public virtual void Logout()
         {
+            var user = Current;
+            if (user != null)
+            {
+                user.Online = false;
+                user.SaveAsync();
+            }
+
             Current = null;
             //Thread.CurrentPrincipal = null;
         }

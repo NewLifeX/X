@@ -1,5 +1,6 @@
 ﻿using System.Web.Mvc;
 using System.Web.Routing;
+using NewLife.Log;
 
 namespace NewLife.Cube
 {
@@ -13,10 +14,14 @@ namespace NewLife.Cube
         /// <summary>应用程序启动</summary>
         protected void Application_Start()
         {
+            XTrace.WriteLine("系统启动");
+
             AreaRegistration.RegisterAllAreas();
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             //BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            XTrace.WriteLine("系统启动完成");
         }
     }
 }

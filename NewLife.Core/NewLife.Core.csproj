@@ -57,7 +57,6 @@
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Management" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
@@ -83,7 +82,7 @@
     <Compile Include="Applications\IP\Zip.cs" />
     <Compile Include="Caching\Cache.cs" />
     <Compile Include="Caching\ICache.cs" />
-    <Compile Include="Caching\MyCache.cs" />
+    <Compile Include="Caching\MemoryCache.cs" />
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
