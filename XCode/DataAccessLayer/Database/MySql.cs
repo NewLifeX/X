@@ -351,6 +351,8 @@ namespace XCode.DataAccessLayer
         {
             // MySql没有ntext，映射到text
             if (typeName.EqualIgnoreCase("ntext")) typeName = "text";
+            //2017-08-19 siery修改 MySql没有money，映射到decimal
+            if (typeName.EqualIgnoreCase("money")) typeName = "decimal";
             //field.Table.DbType == DatabaseType.MySql
             if (field.DataType == typeof(String) && field.Length == -1)
             {
