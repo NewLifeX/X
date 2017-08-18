@@ -38,7 +38,7 @@ namespace NewLife.Caching
 
         private static ConcurrentDictionary<String, ICache> _cache = new ConcurrentDictionary<String, ICache>();
         /// <summary>创建缓存实例</summary>
-        /// <param name="name">名字。memory、redis://127.0.0.1</param>
+        /// <param name="name">名字。memory、redis://127.0.0.1:6379?Db=6</param>
         /// <returns></returns>
         public static ICache Create(String name)
         {

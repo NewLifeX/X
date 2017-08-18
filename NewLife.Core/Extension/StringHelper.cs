@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 
 namespace System
@@ -119,7 +120,7 @@ namespace System
         /// <returns></returns>
         public static IDictionary<String, String> SplitAsDictionary(this String value, String nameValueSeparator = "=", params String[] separators)
         {
-            var dic = new Dictionary<String, String>();
+            var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             if (value.IsNullOrWhiteSpace()) return dic;
 
             if (String.IsNullOrEmpty(nameValueSeparator)) nameValueSeparator = "=";
