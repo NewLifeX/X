@@ -100,15 +100,13 @@ namespace NewLife.Collections
         {
             get
             {
-                CacheItem item;
-                if (Items.TryGetValue(key, out item) && (Expire <= 0 || !item.Expired)) return item.Value;
+                if (Items.TryGetValue(key, out var item) && (Expire <= 0 || !item.Expired)) return item.Value;
 
                 return default(TValue);
             }
             set
             {
-                CacheItem item;
-                if (Items.TryGetValue(key, out item))
+                if (Items.TryGetValue(key, out var item))
                 {
                     item.Value = value;
                     //更新当前缓存项的过期时间
@@ -135,8 +133,7 @@ namespace NewLife.Collections
         {
             var exp = Expire;
             var items = Items;
-            CacheItem item;
-            if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
+            if (items.TryGetValue(key, out var item) && (exp <= 0 || !item.Expired)) return item.Value;
 
             // 提前计算，避免因为不同的Key错误锁定了主键
             var value = default(TValue);
@@ -250,11 +247,11 @@ namespace NewLife.Collections
 
                 // 这里先计算，性能很重要
                 var now = DateTime.Now;
-                var exp = now.AddSeconds(-1 * expriod);
+                //var exp = now.AddSeconds(-1 * expriod);
                 foreach (var item in dic.ToArray())
                 {
                     var t = item.Value.ExpiredTime;
-                    if (t < exp)
+                    if (t < now)
                     {
                         // 自动释放对象
                         if (AutoDispose) item.Value.Value.TryDispose();

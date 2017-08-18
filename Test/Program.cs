@@ -110,11 +110,17 @@ namespace Test
             //var type = "SexKind".GetTypeEx(true);
             //Console.WriteLine(type?.FullName);
 
-            var log = new Log();
-            log.Action = "xxx";
-            log.Insert();
+            //var log = new Log();
+            //log.Action = "xxx";
+            //log.Insert();
 
-            Console.WriteLine(log.ID);
+            //Console.WriteLine(log.ID);
+
+            var ic = Cache.Default;
+            ic["aaa"] = 1234;
+            ic.Increment("aaa", 6);
+
+            Console.WriteLine(ic.Get<Int32>("aaa"));
         }
 
         class TestModule : EntityModule
