@@ -47,6 +47,11 @@ namespace NewLife.Caching
         /// <returns></returns>
         T Get<T>(String key);
 
+        /// <summary>移除缓存项</summary>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        Boolean Remove(String key);
+
         /// <summary>批量获取缓存项</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="keys"></param>
@@ -57,11 +62,6 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="values"></param>
         void SetAll<T>(IDictionary<String, T> values);
-
-        /// <summary>移除缓存项</summary>
-        /// <param name="key">键</param>
-        /// <returns></returns>
-        Boolean Remove(String key);
 
         /// <summary>累加，原子操作</summary>
         /// <param name="key"></param>
@@ -74,5 +74,17 @@ namespace NewLife.Caching
         /// <param name="amount"></param>
         /// <returns></returns>
         Int32 Decrement(String key, Int32 amount);
+
+        /// <summary>获取列表</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        IList<T> GetList<T>(String key);
+
+        /// <summary>获取哈希</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        IDictionary<String, T> GetDictionary<T>(String key);
     }
 }

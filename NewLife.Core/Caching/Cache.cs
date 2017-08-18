@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using NewLife.Log;
 using NewLife.Model;
+using NewLife.Reflection;
 
 namespace NewLife.Caching
 {
@@ -10,18 +12,33 @@ namespace NewLife.Caching
     {
         #region 静态默认实现
         /// <summary>默认缓存</summary>
-        public static ICache Default { get; set; }
+        public static ICache Default { get; set; } = new MemoryCache();
 
         static Cache()
         {
+            //// 查找一个外部缓存提供者来作为默认缓存
+            //Default = ObjectContainer.Current.AutoRegister<ICache, MemoryCache>().ResolveInstance<ICache>();
+
             var ioc = ObjectContainer.Current;
-            ioc.AutoRegister<ICache, MemoryCache>(k => ((ICache)k).Name);
-            Default = ioc.ResolveInstance<ICache>();
+            // 遍历所有程序集，自动加载
+            foreach (var item in typeof(ICache).GetAllSubclasses(true))
+            {
+                // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
+                if (item.CreateInstance() is ICache ic)
+                {
+                    var id = ic.Name;
+                    if (id.IsNullOrEmpty()) id = item.Name.TrimEnd("Cache");
+
+                    if (XTrace.Debug) XTrace.WriteLine("发现缓存实现 [{0}] = {1}", id, item.FullName);
+
+                    ioc.Register<ICache>(ic, id);
+                }
+            }
         }
 
         private static ConcurrentDictionary<String, ICache> _cache = new ConcurrentDictionary<String, ICache>();
-        /// <summary>创建</summary>
-        /// <param name="name">名字</param>
+        /// <summary>创建缓存实例</summary>
+        /// <param name="name">名字。memory、redis://127.0.0.1</param>
         /// <returns></returns>
         public static ICache Create(String name)
         {
@@ -30,9 +47,20 @@ namespace NewLife.Caching
             return _cache.GetOrAdd(name, k =>
             {
                 var p = name.IndexOf("://");
-                var id = p >= 0 ? name.Substring(0, p) : name;
+                var id = "";
+                if (p >= 0)
+                {
+                    id = name.Substring(0, p);
+                    name = name.Substring(p + 3);
+                }
 
-                return ObjectContainer.Current.ResolveInstance<ICache>(id);
+                var type = ObjectContainer.Current.ResolveType<ICache>(id);
+                if (type == null) throw new ArgumentNullException(nameof(type), "找不到名为[{0}]的缓存实现".F(id));
+
+                var ic = type.CreateInstance() as ICache;
+                if (ic is Cache ic2) ic2.Init(name);
+
+                return ic;
             });
         }
         #endregion
@@ -57,6 +85,10 @@ namespace NewLife.Caching
         #endregion
 
         #region 方法
+        /// <summary>初始化配置</summary>
+        /// <param name="config"></param>
+        protected virtual void Init(String config) { }
+
         /// <summary>是否包含缓存项</summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -144,6 +176,38 @@ namespace NewLife.Caching
 
                 return v;
             }
+        }
+
+        /// <summary>获取列表</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual IList<T> GetList<T>(String key)
+        {
+            var list = Get<IList<T>>(key);
+            if (list == null)
+            {
+                list = new List<T>();
+                Set(key, list);
+            }
+
+            return list;
+        }
+
+        /// <summary>获取哈希</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual IDictionary<String, T> GetDictionary<T>(String key)
+        {
+            var dic = Get<IDictionary<String, T>>(key);
+            if (dic == null)
+            {
+                dic = new Dictionary<String, T>();
+                Set(key, dic);
+            }
+
+            return dic;
         }
         #endregion
 
