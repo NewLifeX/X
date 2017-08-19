@@ -133,18 +133,19 @@ namespace XCode.Membership
         public static TEntity FindByID(Int32 id)
         {
             if (id <= 0) return null;
-            return Meta.Cache.Entities.Find(__.ID, id);
+
+            return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
         }
 
         /// <summary>根据名字查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name) { return Meta.Cache.Entities.Find(__.Name, name); }
+        public static TEntity FindByName(String name) { return Meta.Cache.Entities.FirstOrDefault(e => e.Name.EqualIgnoreCase(name)); }
 
         /// <summary>根据Url查找</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FindIgnoreCase(__.Url, url); }
+        public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FirstOrDefault(e => e.Url.EqualIgnoreCase(url)); }
 
         /// <summary>根据名字查找，支持路径查找</summary>
         /// <param name="name">名称</param>
@@ -173,7 +174,7 @@ namespace XCode.Membership
             var list = Childs;
             if (list == null || list.Count < 1) return new List<IMenu>();
 
-            list = list.FindAll(_.Visible, true);
+            list = list.Where(e => e.Visible).ToList();
             if (list == null || list.Count < 1) return new List<IMenu>();
 
             return list.ToList().Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();

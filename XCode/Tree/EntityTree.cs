@@ -77,7 +77,7 @@ namespace XCode
         /// <summary>在缓存中查找节点</summary>
         protected static TEntity FindByKeyWithCache(TKey key)
         {
-            return Meta.Session.Cache.Entities.Find(Setting.Key, key);
+            return Meta.Session.Cache.Entities.FirstOrDefault(e => Object.Equals(e[Setting.Key], key));
         }
 
         /// <summary>子孙节点</summary>
@@ -238,7 +238,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static IList<TEntity> FindAllByParent(TKey parentKey)
         {
-            var list = Meta.Session.Cache.Entities.FindAll(Setting.Parent, parentKey) as List<TEntity>;
+            var list = Meta.Session.Cache.Entities.Where(e => Object.Equals(e[Setting.Parent], parentKey)).ToList();
             // 如果是顶级，那么包含所有无头节点，无头节点由错误数据造成
             if (IsNull(parentKey)) list.AddRange(FindAllNoParent());
             // 一个元素不需要排序
@@ -418,7 +418,8 @@ namespace XCode
             TEntity entity = null;
             foreach (var item in keys)
             {
-                entity = list.Find(item, ss[0]);
+                //entity = list.Find(item, ss[0]);
+                entity = list.FirstOrDefault(e => (String)e[item] == ss[0]);
                 if (entity != null) break;
             }
             if (entity == null) return null;
@@ -445,11 +446,11 @@ namespace XCode
 
             // 子级
             var list = Childs;
-            if (list != null && list.Exists(Setting.Key, key)) return true;
+            if (list != null && list.Any(e => Object.Equals(e[Setting.Key], key))) return true;
 
             // 子孙
             list = AllChilds;
-            if (list != null && list.Exists(Setting.Key, key)) return true;
+            if (list != null && list.Any(e => Object.Equals(e[Setting.Key], key))) return true;
 
             return false;
         }
@@ -627,7 +628,7 @@ namespace XCode
             if (!isnull && !pisnull)
             {
                 var list = this.AllChilds;
-                if (list != null && list.Exists(Setting.Key, pkey))
+                if (list != null && list.Any(e => Object.Equals(e[Setting.Key], pkey)))
                     throw new XException("上级[" + pkey + "]是当前节点的子孙节点！");
             }
         }

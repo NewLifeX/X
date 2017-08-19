@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -147,7 +148,7 @@ namespace XCode.Cache
 
             var es = _Entities;
             var fi = Operate.Unique;
-            var e = fi != null ? es.Find(fi.Name, entity[fi.Name]) : null;
+            var e = fi != null ? es.FirstOrDefault(x => x[fi.Name] == entity[fi.Name]) : null;
             if (e == null) return null;
 
             //if (e != entity) e.CopyFrom(entity);
