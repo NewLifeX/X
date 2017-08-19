@@ -87,7 +87,7 @@ namespace XCode
         {
             if (dt == null) return new List<TEntity>();
 
-            var list = dreAccessor.LoadData(dt) as IList<TEntity>;
+            var list = dreAccessor.LoadData<TEntity>(dt);
             // 设置默认累加字段
             EntityAddition.SetField(list.Cast<IEntity>().ToList());
             foreach (var entity in list)

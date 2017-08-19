@@ -15,6 +15,7 @@ namespace XCode
     {
         #region 泛型实例列表扩展
         /// <summary>根据指定项查找</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -25,6 +26,7 @@ namespace XCode
         }
 
         /// <summary>根据指定项查找</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -35,6 +37,7 @@ namespace XCode
         }
 
         /// <summary>根据指定项查找</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -45,6 +48,7 @@ namespace XCode
         }
 
         /// <summary>根据指定项查找</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="name">属性名</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
@@ -55,6 +59,7 @@ namespace XCode
         }
 
         /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="match">条件</param>
         /// <returns></returns>
         [Obsolete("将来不再支持实体列表，请改用list.Where()")]
@@ -64,6 +69,7 @@ namespace XCode
         }
 
         /// <summary>集合是否包含指定项</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="name">名称</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
@@ -75,6 +81,7 @@ namespace XCode
         }
 
         /// <summary>实体列表转为字典。主键为Key</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="valueField">作为Value部分的字段，默认为空表示整个实体对象为值</param>
         /// <returns></returns>
         //[Obsolete("将来不再支持实体列表，请改用Linq")]
@@ -164,6 +171,7 @@ namespace XCode
 
         #region 对象操作
         /// <summary>把整个集合插入到数据库</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public static Int32 Insert<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity
@@ -172,6 +180,7 @@ namespace XCode
         }
 
         /// <summary>把整个集合更新到数据库</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public static Int32 Update<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity
@@ -180,6 +189,7 @@ namespace XCode
         }
 
         /// <summary>把整个保存更新到数据库</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public static Int32 Save<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity
@@ -188,6 +198,7 @@ namespace XCode
         }
 
         /// <summary>把整个保存更新到数据库，保存时不需要验证</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public static Int32 SaveWithoutValid<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity
@@ -196,6 +207,7 @@ namespace XCode
         }
 
         /// <summary>把整个集合从数据库中删除</summary>
+        /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         public static Int32 Delete<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity

@@ -233,7 +233,7 @@ namespace XCode.Membership
         {
             if (id <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
-            return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
+            return Meta.Cache.Entities.ToArray().FirstOrDefault(e => e.ID == id);
         }
 
         /// <summary>根据编号查找角色</summary>
