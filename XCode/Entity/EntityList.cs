@@ -27,7 +27,7 @@ namespace XCode
     /// 后来在.Net 2.0上实现了Linq，该类的对象查询方法将会逐步淡出，建议优先考虑Linq。
     /// </remarks>
     [Serializable]
-    public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IListSource, IEnumerable, ICloneable where T : IEntity
+    public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IEnumerable, ICloneable where T : IEntity
     {
         #region 构造函数
         /// <summary>构造一个实体对象集合</summary>
@@ -453,26 +453,6 @@ namespace XCode
             }
 
             return dic;
-        }
-        #endregion
-
-        #region IListSource接口
-        Boolean IListSource.ContainsListCollection { get { return Count > 0; } }
-
-        IList IListSource.GetList()
-        {
-            // 如果是接口，创建新的集合，否则返回自身
-            if (!typeof(T).IsInterface) return this;
-
-            // 支持空列表
-            // 元素类型
-            var type = EntityType;
-            // 泛型
-            type = typeof(EntityListView<>).MakeGenericType(type);
-
-            // 直接复制集合更快
-            var list = new EntityList<T>(ToArray());
-            return type.CreateInstance(list) as IList;
         }
         #endregion
 

@@ -87,9 +87,6 @@
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
-    <Compile Include="Collections\ListBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Collections\NullableDictionary.cs" />
     <Compile Include="Common\CombGuid.cs" />
     <Compile Include="Common\PinYin.cs" />
