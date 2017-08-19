@@ -87,28 +87,25 @@ namespace XCode
         {
             if (dt == null) return new EntityList<TEntity>();
 
-            var list = dreAccessor.LoadData(dt);
+            var list = dreAccessor.LoadData(dt) as EntityList<TEntity>;
             // 设置默认累加字段
             EntityAddition.SetField(list);
-            foreach (TEntity entity in list)
+            foreach (var entity in list)
             {
                 entity.OnLoad();
             }
-            // 减少一步类型转换
-            var elist = list as EntityList<TEntity>;
-            if (elist != null) elist = new EntityList<TEntity>(list);
 
             // 如果正在使用单对象缓存，则批量进入
             var sc = Meta.SingleCache;
             if (sc.Using)
             {
-                foreach (var item in elist)
+                foreach (var item in list)
                 {
                     sc.Add(item);
                 }
             }
 
-            return elist;
+            return list;
         }
 
         private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }

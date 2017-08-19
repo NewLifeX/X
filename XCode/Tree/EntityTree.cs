@@ -452,26 +452,6 @@ namespace XCode
 
             return false;
         }
-
-        /// <summary>子级键值集合</summary>
-        [XmlIgnore, ScriptIgnore]
-        public List<TKey> ChildKeys { get { return Childs.GetItem<TKey>(Setting.Key); } }
-
-        /// <summary>逗号分隔的子级键值字符串，一般可用于SQL语句中</summary>
-        [XmlIgnore, ScriptIgnore]
-        public String ChildKeyString { get { return ChildKeys.Join(","); } }
-
-        /// <summary>子孙键值集合</summary>
-        [XmlIgnore, ScriptIgnore]
-        public List<TKey> AllChildKeys { get { return AllChilds.GetItem<TKey>(Setting.Key); } }
-
-        /// <summary>我的子孙键值集合，包含自己</summary>
-        [XmlIgnore, ScriptIgnore]
-        public List<TKey> MyAllChildKeys { get { return MyAllChilds.GetItem<TKey>(Setting.Key); } }
-
-        /// <summary>逗号分隔的子孙键值字符串，一般可用于SQL语句中</summary>
-        [XmlIgnore, ScriptIgnore]
-        public String AllChildKeyString { get { return AllChildKeys.Join(","); } }
         #endregion
 
         #region 业务
