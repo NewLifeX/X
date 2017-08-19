@@ -13,7 +13,7 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
-        IEntityList LoadData(DataTable dt);
+        IList<IEntity> LoadData(DataTable dt);
 
         ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
         ///// <param name="dr">数据行</param>
@@ -23,7 +23,7 @@ namespace XCode
         ///// <summary>从数据读写器加载数据。无数据时返回空集合而不是null。</summary>
         ///// <param name="dr">数据读写器</param>
         ///// <returns>实体数组</returns>
-        //IEntityList LoadData(IDataReader dr);
+        //IList<IEntity> LoadData(IDataReader dr);
 
         ///// <summary>从一个数据行对象加载数据。不加载关联对象。</summary>
         ///// <param name="dr">数据读写器</param>
@@ -97,10 +97,10 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
-        public IEntityList LoadData(DataTable dt)
+        public IList<IEntity> LoadData(DataTable dt)
         {
             // 准备好实体列表
-            var list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance(dt.Rows.Count) as IEntityList;
+            var list = typeof(IList<>).MakeGenericType(EntityType).CreateInstance(dt.Rows.Count) as IList<IEntity>;
             if (dt == null || dt.Rows.Count < 1) return list;
 
             // 对应数据表中字段的实体字段
@@ -158,10 +158,10 @@ namespace XCode
         ///// <summary>从数据读写器加载数据。无数据时返回空集合而不是null。</summary>
         ///// <param name="dr">数据读写器</param>
         ///// <returns>实体数组</returns>
-        //public IEntityList LoadData(IDataReader dr)
+        //public IList<IEntity> LoadData(IDataReader dr)
         //{
         //    // 准备好实体列表
-        //    var list = typeof(EntityList<>).MakeGenericType(EntityType).CreateInstance() as IEntityList;
+        //    var list = typeof(IList<>).MakeGenericType(EntityType).CreateInstance() as IList<IEntity>;
         //    if (dr == null) return list;
 
         //    // 先移到第一行，要取字段名等信息

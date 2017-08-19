@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
 using System.Linq;
@@ -249,7 +250,7 @@ namespace XCode.Membership
         /// <param name="isEnable"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p)
+        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p)
         {
             return Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
         }
@@ -262,7 +263,7 @@ namespace XCode.Membership
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
+        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
         {
             var exp = _.LastLogin.Between(start, end);
             if (roleId >= 0) exp &= _.RoleID == roleId;

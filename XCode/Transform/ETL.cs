@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using NewLife.Log;
 using XCode.Membership;
@@ -164,7 +165,7 @@ namespace XCode.Transform
 
             var ext = Extracter;
             //ext.Setting = set;
-            IEntityList list = null;
+            IList<IEntity> list = null;
             try
             {
                 var sw = Stopwatch.StartNew();
@@ -208,7 +209,7 @@ namespace XCode.Transform
 
         /// <summary>处理列表，批量事务提交</summary>
         /// <param name="list"></param>
-        protected virtual void ProcessList(IEntityList list)
+        protected virtual void ProcessList(IList<IEntity> list)
         {
             // 批量事务提交
             var fact = Target;

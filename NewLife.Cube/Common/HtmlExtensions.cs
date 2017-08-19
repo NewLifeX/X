@@ -532,7 +532,7 @@ namespace NewLife.Cube
         /// <param name="optionLabel"></param>
         /// <param name="autoPostback">自动回发</param>
         /// <returns></returns>
-        public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IEntityList list, String optionLabel = null, Boolean autoPostback = false)
+        public static MvcHtmlString ForDropDownList(this HtmlHelper Html, String name, IList<IEntity> list, String optionLabel = null, Boolean autoPostback = false)
         {
             var entity = Html.ViewData.Model as IEntity;
             var selectedValue = entity == null ? WebHelper.Params[name] : entity[name];
@@ -571,7 +571,7 @@ namespace NewLife.Cube
         /// <param name="list"></param>
         /// <param name="autoPostback">自动回发</param>
         /// <returns></returns>
-        public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IEntityList list, Boolean autoPostback = false)
+        public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IList<IEntity> list, Boolean autoPostback = false)
         {
             var entity = Html.ViewData.Model as IEntity;
             var vs = entity == null ? WebHelper.Params[name] : entity[name];

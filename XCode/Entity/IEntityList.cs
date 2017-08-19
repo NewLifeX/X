@@ -6,7 +6,7 @@ using System.Data;
 namespace XCode
 {
     /// <summary>实体列表接口</summary>
-    public interface IEntityList : /*IList, */ IEnumerable, IList<IEntity>
+    public interface IEntityList : IEnumerable, IList<IEntity>
     {
         #region 对象查询
         /// <summary>根据指定项查找</summary>

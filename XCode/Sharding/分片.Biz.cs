@@ -122,7 +122,7 @@ namespace XCode.Sharding
             if (Meta.Count >= 1000)
                 return Find(__.ID, id);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(__.ID, id);
+                return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
 
             // 实体缓存
             //return Meta.SingleCache[id];
@@ -131,23 +131,23 @@ namespace XCode.Sharding
         /// <summary>根据名称查找</summary>
         /// <param name="name">名称</param>
         /// <returns>实体对象</returns>
-        public static EntityList<Shard> FindByName(String name)
+        public static IList<Shard> FindByName(String name)
         {
             if (Meta.Count >= 1000)
                 return FindAll(__.Name, name);
             else // 实体缓存
-                return Meta.Cache.Entities.FindAll(__.Name, name);
+                return Meta.Cache.Entities.Where(e => e.Name == name).ToList();
         }
 
         /// <summary>根据实体类查找</summary>
         /// <param name="entitytype">实体类</param>
         /// <returns>实体对象</returns>
-        public static EntityList<Shard> FindByEntityType(String entitytype)
+        public static IList<Shard> FindByEntityType(String entitytype)
         {
             if (Meta.Count >= 1000)
                 return FindAll(__.EntityType, entitytype);
             else // 实体缓存
-                return Meta.Cache.Entities.FindAll(__.EntityType, entitytype);
+                return Meta.Cache.Entities.Where(e => e.EntityType == entitytype).ToList();
         }
         #endregion
 

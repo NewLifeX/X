@@ -328,8 +328,8 @@ namespace NewLife.Cube
             var xml = "";
             if (obj is IEntity)
                 xml = (obj as IEntity).ToXml();
-            else if (obj is EntityList<TEntity>)
-                xml = (obj as EntityList<TEntity>).ToXml();
+            else if (obj is IList<TEntity>)
+                xml = (obj as IList<TEntity>).ToXml();
             else
                 xml = obj.ToXml();
 

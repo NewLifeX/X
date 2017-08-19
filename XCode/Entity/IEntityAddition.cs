@@ -185,7 +185,7 @@ namespace XCode
         #endregion
 
         #region 静态
-        public static IEntityList SetField(IEntityList list)
+        public static IList<IEntity> SetField(IList<IEntity> list)
         {
             if (list == null || list.Count < 1) return list;
 

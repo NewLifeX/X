@@ -5,6 +5,7 @@
  * 版权：版权所有 (C) 新生命开发团队 2002~2017
 */
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web;
 using NewLife.Data;
@@ -79,9 +80,9 @@ namespace XCode.Membership
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAllByUserID(Int32 userid)
+        public static IList<TEntity> FindAllByUserID(Int32 userid)
         {
-            if (userid <= 0) return new EntityList<TEntity>();
+            if (userid <= 0) return new List<TEntity>();
 
             return FindAll(__.UserID, userid);
         }
@@ -97,7 +98,7 @@ namespace XCode.Membership
         /// <param name="key">关键字</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns>实体集</returns>
-        public static EntityList<TEntity> Search(Int32 userid, DateTime start, DateTime end, String key, PageParameter param)
+        public static IList<TEntity> Search(Int32 userid, DateTime start, DateTime end, String key, PageParameter param)
         {
             // WhereExpression重载&和|运算符，作为And和Or的替代
             // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索，第二个参数可指定要搜索的字段
@@ -187,9 +188,9 @@ namespace XCode.Membership
         /// <summary>删除过期，指定过期时间</summary>
         /// <param name="secTimeout">超时时间，20 * 60秒</param>
         /// <returns></returns>
-        public static EntityList<TEntity> ClearExpire(Int32 secTimeout = 20 * 60)
+        public static IList<TEntity> ClearExpire(Int32 secTimeout = 20 * 60)
         {
-            if (Meta.Count == 0) return new EntityList<TEntity>();
+            if (Meta.Count == 0) return new List<TEntity>();
 
             // 10分钟不活跃将会被删除
             var exp = _.UpdateTime < DateTime.Now.AddSeconds(-secTimeout);

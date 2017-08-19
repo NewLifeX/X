@@ -58,7 +58,7 @@ if(Config.RenderGenEntity){#>
         /// <param name="key">关键字</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns>实体集</returns>
-        public static EntityList<<#=myClassName#>> Search(Int32 userid, DateTime start, DateTime end, String key, PageParameter param)
+        public static IList<<#=myClassName#>> Search(Int32 userid, DateTime start, DateTime end, String key, PageParameter param)
         {
             // WhereExpression重载&和|运算符，作为And和Or的替代
             // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索，第二个参数可指定要搜索的字段

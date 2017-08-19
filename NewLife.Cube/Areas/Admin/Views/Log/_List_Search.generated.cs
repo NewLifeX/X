@@ -79,7 +79,7 @@ WriteLiteral("    ");
 
             
             #line 7 "..\..\Areas\Admin\Views\Log\_List_Search.cshtml"
-Write(Html.ForDropDownList("userid", UserX.FindAllWithCache(), "全部", true));
+Write(Html.ForDropDownList("userid", UserX.FindAllWithCache().Cast<IEntity>().ToList(), "全部", true));
 
             
             #line default

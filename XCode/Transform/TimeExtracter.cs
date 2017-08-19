@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NewLife.Log;
 using XCode;
@@ -90,7 +91,7 @@ namespace XCode.Transform
         #region 抽取数据
         /// <summary>抽取一批数据</summary>
         /// <returns></returns>
-        public virtual IEntityList Fetch()
+        public virtual IList<IEntity> Fetch()
         {
             if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
 
@@ -158,7 +159,7 @@ namespace XCode.Transform
         /// <param name="startRow"></param>
         /// <param name="maxRows"></param>
         /// <returns></returns>
-        protected virtual IEntityList FetchData(DateTime start, DateTime end, Int32 startRow, Int32 maxRows)
+        protected virtual IList<IEntity> FetchData(DateTime start, DateTime end, Int32 startRow, Int32 maxRows)
         {
             var fi = Field;
             var exp = fi.Between(start, end);

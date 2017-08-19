@@ -73,9 +73,9 @@ namespace XCode
         /// <summary>加载记录集。无数据时返回空集合而不是null。</summary>
         /// <param name="ds">记录集</param>
         /// <returns>实体数组</returns>
-        public static EntityList<TEntity> LoadData(DataSet ds)
+        public static IList<TEntity> LoadData(DataSet ds)
         {
-            if (ds == null || ds.Tables.Count < 1) return new EntityList<TEntity>();
+            if (ds == null || ds.Tables.Count < 1) return new List<TEntity>();
 
             return LoadData(ds.Tables[0]);
         }
@@ -83,13 +83,13 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
-        public static EntityList<TEntity> LoadData(DataTable dt)
+        public static IList<TEntity> LoadData(DataTable dt)
         {
-            if (dt == null) return new EntityList<TEntity>();
+            if (dt == null) return new List<TEntity>();
 
-            var list = dreAccessor.LoadData(dt) as EntityList<TEntity>;
+            var list = dreAccessor.LoadData(dt) as IList<TEntity>;
             // 设置默认累加字段
-            EntityAddition.SetField(list);
+            EntityAddition.SetField(list.Cast<IEntity>().ToList());
             foreach (var entity in list)
             {
                 entity.OnLoad();
@@ -373,7 +373,14 @@ namespace XCode
             else
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-                var list = cache.Entities.FindAll(names, values, true);
+                var list = cache.Entities.Where(e =>
+                {
+                    for (int i = 0; i < names.Length; i++)
+                    {
+                        if (e[names[i]] != values[i]) return false;
+                    }
+                    return true;
+                }).ToList();
                 if (IsNullKey) return list.Count > 0;
 
                 if (list == null || list.Count < 1) return false;
@@ -558,19 +565,19 @@ namespace XCode
         #region 静态查询
         /// <summary>获取所有数据。获取大量数据时会非常慢，慎用。没有数据时返回空集合而不是null</summary>
         /// <returns>实体数组</returns>
-        public static EntityList<TEntity> FindAll() { return FindAll("", null, null, 0, 0); }
+        public static IList<TEntity> FindAll() { return FindAll("", null, null, 0, 0); }
 
         /// <summary>根据名称获取数据集。没有数据时返回空集合而不是null</summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
+        public static IList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
         /// <param name="names">属性名称集合</param>
         /// <param name="values">属性值集合</param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(String[] names, Object[] values)
+        public static IList<TEntity> FindAll(String[] names, Object[] values)
         {
             var exp = new WhereExpression();
 
@@ -593,7 +600,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        public static EntityList<TEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
+        public static IList<TEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
         {
             var session = Meta.Session;
 
@@ -611,7 +618,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        public static EntityList<TEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
+        public static IList<TEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
         {
             var session = Meta.Session;
 
@@ -689,7 +696,7 @@ namespace XCode
                         // 最大可用行数改为实际最大可用行数
                         var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
                         //if (max <= 0) return null;
-                        if (max <= 0) return new EntityList<TEntity>();
+                        if (max <= 0) return new List<TEntity>();
                         var start = (Int32)(count - (startRowIndex + maximumRows));
 
                         var builder2 = CreateBuilder(where, order2, selects, start, max);
@@ -711,7 +718,7 @@ namespace XCode
         /// <param name="where">条件，不带Where</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(Expression where, PageParameter param = null)
+        public static IList<TEntity> FindAll(Expression where, PageParameter param = null)
         {
             if (param == null) return FindAll(where, null, null, 0, 0);
 
@@ -719,7 +726,7 @@ namespace XCode
             if (param.TotalCount >= 0)
             {
                 param.TotalCount = FindCount(where, null, null, 0, 0);
-                if (param.TotalCount <= 0) return new EntityList<TEntity>();
+                if (param.TotalCount <= 0) return new List<TEntity>();
             }
 
             // 验证排序字段，避免非法
@@ -746,7 +753,7 @@ namespace XCode
         /// <summary>查找所有缓存。没有数据时返回空集合而不是null</summary>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
+        public static IList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
         #endregion
 
         #region 取总记录数
@@ -840,7 +847,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows)
+        public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows)
         {
             return FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
         }
@@ -860,7 +867,7 @@ namespace XCode
         /// <param name="key"></param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        public static EntityList<TEntity> Search(String key, PageParameter param)
+        public static IList<TEntity> Search(String key, PageParameter param)
         {
             return FindAll(SearchWhereByKeys(key), param);
         }

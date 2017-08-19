@@ -113,8 +113,9 @@ namespace XCode.Membership
             get
             {
                 // 找出所有的必要菜单，如果没有，则表示全部都是必要
-                var list = FindAllWithCache().ToList().Where(e => e.Necessary).ToList();
-                if (list.Count <= 0) list = Meta.Cache.Entities;
+                var list = FindAllWithCache();
+                var list2 = list.Where(e => e.Necessary).ToList();
+                if (list2.Count > 0) list = list2;
 
                 return list.Select(e => e.ID).ToArray();
             }

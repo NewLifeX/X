@@ -77,6 +77,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Entity\EntityExtend.cs" />
+    <Compile Include="Entity\EntityExtension.cs" />
     <Compile Include="Entity\EntityQueue.cs" />
     <Compile Include="Entity\IEntityAddition.cs" />
     <Compile Include="Entity\EntitySession.cs" />
@@ -154,7 +155,6 @@
     <Compile Include="Entity\EntityBase_Interface.cs">
     </Compile>
     <Compile Include="Entity\EntityTransaction.cs" />
-    <Compile Include="Entity\IEntityList.cs" />
     <Compile Include="Entity\IEntityPersistence.cs" />
     <Compile Include="Exceptions\XDbException.cs" />
     <Compile Include="Exceptions\XCodeException.cs" />
@@ -180,7 +180,6 @@
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Cache\EntityCache.cs" />
     <Compile Include="Entity\EntityFactory.cs" />
-    <Compile Include="Entity\EntityList.cs" />
     <Compile Include="Entity\Entity_Meta.cs">
     </Compile>
     <Compile Include="Entity\Entity_Operate.cs">

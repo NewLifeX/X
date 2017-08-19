@@ -93,7 +93,7 @@ namespace XCode.Membership
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, Pager p)
+        public static IList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, Pager p)
         {
             var exp = new WhereExpression();
             //if (!key.IsNullOrEmpty()) exp &= (_.Action == key | _.Remark.Contains(key));
@@ -121,7 +121,7 @@ namespace XCode.Membership
         /// <summary>查找所有类别名</summary>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllCategory()
+        public static IList<TEntity> FindAllCategory()
         {
             return CategoryCache.Entities;
         }

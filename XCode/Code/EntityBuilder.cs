@@ -784,7 +784,7 @@ namespace XCode.Code
                 }
 
                 var rt = GenericType ? "TEntity" : Table.Name;
-                if (!di.Unique) rt = "EntityList<{0}>".F(rt);
+                if (!di.Unique) rt = "IList<{0}>".F(rt);
 
                 WriteLine("/// <returns>{0}</returns>", di.Unique ? "实体对象" : "实体列表");
                 WriteLine("public static {2} FindBy{0}({1})", cs.Select(e => e.Name).Join("And"), cs.Select(e => e.DataType.Name + " " + e.Name.ToLower()).Join(", "), rt);

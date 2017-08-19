@@ -27,7 +27,7 @@ namespace XCode
     /// 后来在.Net 2.0上实现了Linq，该类的对象查询方法将会逐步淡出，建议优先考虑Linq。
     /// </remarks>
     [Serializable]
-    public partial class EntityList<T> : List<T>, IEntityList, IList, IList<IEntity>, IEnumerable, ICloneable where T : IEntity
+    public partial class EntityList<T> : List<T>, IEntityList, IEnumerable, ICloneable where T : IEntity
     {
         #region 构造函数
         /// <summary>构造一个实体对象集合</summary>
