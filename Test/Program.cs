@@ -110,14 +110,8 @@ namespace Test
             //var type = "SexKind".GetTypeEx(true);
             //Console.WriteLine(type?.FullName);
 
-            //var log = new Log();
-            //log.Action = "xxx";
-            //log.Insert();
-
-            //Console.WriteLine(log.ID);
-
             //var ic = Cache.Default;
-            var ic = Cache.Create(null);
+            var ic = Cache.Create("Memory");
             ic["aaa"] = 1234;
             ic.Increment("aaa", 6);
 
