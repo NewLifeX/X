@@ -85,7 +85,7 @@ namespace NewLife.Reflection
             //cfg.Metadata.Authors="新生命开发团队";
             //cfg.Metadata.Owners="新生命开发团队";
             // 清空依赖
-            //cfg.Metadata?.DependencySets?.Clear();
+            cfg.Metadata?.DependencySets?.Clear();
 
             // 自动添加所有文件
             if (cfg.Files == null) cfg.Files = new List<ManifestFile>();
