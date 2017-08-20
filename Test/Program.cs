@@ -101,6 +101,8 @@ namespace Test
 
         static void Test2()
         {
+            EntityBuilder.Build(@"E:\X\NewLife.CMX\Src\NewLife.CMX\\CMX.xml");
+
             EntityAssembly.Debug = true;
             var dal = DAL.Create("Membership");
             var fact = dal.CreateOperate("User");

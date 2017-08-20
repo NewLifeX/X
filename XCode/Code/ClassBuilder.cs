@@ -266,8 +266,8 @@ namespace XCode.Code
         public virtual String Save(String ext = null, Boolean overwrite = true)
         {
             var p = Output;
-            if (Table.Properties.ContainsKey("Output")) p = p.CombinePath(Table.Properties["Output"]);
-            if (Table.Properties.ContainsKey("分类")) p = p.CombinePath(Table.Properties["分类"]);
+            //if (Table.Properties.ContainsKey("Output")) p = p.CombinePath(Table.Properties["Output"]);
+            //if (Table.Properties.ContainsKey("分类")) p = p.CombinePath(Table.Properties["分类"]);
 
             if (ext.IsNullOrEmpty()) ext = ".cs";
 
