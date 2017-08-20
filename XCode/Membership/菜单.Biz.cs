@@ -163,7 +163,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static List<TEntity> FindAllByParentID(Int32 id)
         {
-            return Meta.Cache.Entities.ToList().Where(e => e.ParentID == id).OrderByDescending(e => e.Sort).ThenBy(e => e.ID).ToList();
+            return Meta.Cache.Entities.Where(e => e.ParentID == id).OrderByDescending(e => e.Sort).ThenBy(e => e.ID).ToList();
         }
 
         /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
@@ -177,7 +177,7 @@ namespace XCode.Membership
             list = list.Where(e => e.Visible).ToList();
             if (list == null || list.Count < 1) return new List<IMenu>();
 
-            return list.ToList().Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
+            return list.Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
         }
         #endregion
 
