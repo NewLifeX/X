@@ -101,21 +101,10 @@ namespace Test
 
         static void Test2()
         {
-            //EntityBuilder.Build(@"E:\ZTO\ZTO.GK.Web.Report\GK.Report\GK.Report.xml");
-
-            //var list = UserX.Search("mon", 1, true, null);
-            //Console.WriteLine(list);
-
-            //AssemblyX.AssemblyPaths.Add(@"D:\vs\Common7\IDE\");
-            //var type = "SexKind".GetTypeEx(true);
-            //Console.WriteLine(type?.FullName);
-
-            //var ic = Cache.Default;
-            var ic = Cache.Create("Memory");
-            ic["aaa"] = 1234;
-            ic.Increment("aaa", 6);
-
-            Console.WriteLine(ic.Get<Int32>("aaa"));
+            EntityAssembly.Debug = true;
+            var dal = DAL.Create("Membership");
+            var fact = dal.CreateOperate("User");
+            Console.WriteLine(fact.Count);
         }
 
         class TestModule : EntityModule

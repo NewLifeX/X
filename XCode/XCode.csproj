@@ -56,7 +56,6 @@
     <Compile Include="Attributes\MapAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
     <Compile Include="Attributes\BindRelationAttribute.cs" />
-    <Compile Include="Code\CodeDomHelper.cs" />
     <Compile Include="Code\ClassBuilder.cs" />
     <Compile Include="Code\EntityBuilder.cs" />
     <Compile Include="Common\DataSimulation.cs" />
@@ -110,8 +109,6 @@
     <Compile Include="Cache\EntityDependency.cs" />
     <Compile Include="Cache\IEntityCache.cs" />
     <Compile Include="Code\EntityAssembly.cs" />
-    <Compile Include="Code\EntityClass.cs" />
-    <Compile Include="Code\EntityClassBiz.cs" />
     <Compile Include="Common\Helper.cs" />
     <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />

@@ -141,11 +141,11 @@ namespace XCode.Code
                 str = item.Properties["Output"];
                 if (str.IsNullOrEmpty()) str = output;
                 builder.Output = str;
-                builder.Save();
+                builder.Save(null, true);
 
                 builder.Business = true;
                 builder.Execute();
-                builder.Save();
+                builder.Save(null, false);
 
                 count++;
             }
@@ -219,7 +219,7 @@ namespace XCode.Code
             if (ext.IsNullOrEmpty() && Business)
             {
                 ext = ".Biz.cs";
-                overwrite = false;
+                //overwrite = false;
             }
 
             return base.Save(ext, overwrite);
@@ -267,6 +267,7 @@ namespace XCode.Code
                 us.Add("NewLife.Threading");
                 us.Add("NewLife.Web");
                 us.Add("XCode.Cache");
+                us.Add("XCode.Membership");
             }
         }
         #endregion
@@ -565,7 +566,7 @@ namespace XCode.Code
                     WriteLine("// 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框");
                     foreach (var item in cs)
                     {
-                        WriteLine("if (String.IsNullOrEmpty({0})) throw new ArgumentNullException(nameof({0}), \"{1}不能为空！\");", item.Name, item.DisplayName ?? item.Name);
+                        WriteLine("if (String.IsNullOrEmpty({0})) throw new ArgumentNullException({0}, \"{1}不能为空！\");", NameOf(item.Name), item.DisplayName ?? item.Name);
                     }
                 }
 
@@ -598,24 +599,24 @@ namespace XCode.Code
                     foreach (var item in cs)
                     {
                         if (item.Name.EqualIgnoreCase("CreateUserID"))
-                            WriteLine("if (isNew && !Dirtys[nameof({0})) {0} = user.ID;", item.Name);
+                            WriteLine("if (isNew && !Dirtys[{0}) {0} = user.ID;", NameOf(item.Name));
                         else
-                            WriteLine("if (!Dirtys[nameof({0})]) {0} = user.ID;", item.Name);
+                            WriteLine("if (!Dirtys[{0}]) {0} = user.ID;", NameOf(item.Name));
                     }
                     WriteLine("}*/");
                 }
 
                 var dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateTime"));
-                if (dc != null) WriteLine("//if (isNew && !Dirtys[nameof({0})]) {0} = DateTime.Now;", dc.Name);
+                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {0} = DateTime.Now;", NameOf(dc.Name));
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateTime"));
-                if (dc != null) WriteLine("//if (!Dirtys[nameof({0})]) {0} = DateTime.Now;", dc.Name);
+                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {0} = DateTime.Now;", NameOf(dc.Name));
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateIP"));
-                if (dc != null) WriteLine("//if (isNew && !Dirtys[nameof({0})]) {0} = WebHelper.UserHost;", dc.Name);
+                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {0} = WebHelper.UserHost;", NameOf(dc.Name));
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateIP"));
-                if (dc != null) WriteLine("//if (!Dirtys[nameof({0})]) {0} = WebHelper.UserHost;", dc.Name);
+                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {0} = WebHelper.UserHost;", NameOf(dc.Name));
 
                 // 唯一索引检查唯一性
                 var dis = Table.Indexes.Where(e => e.Unique).ToArray();
@@ -727,7 +728,7 @@ namespace XCode.Code
                     WriteLine("/// <summary>{0}</summary>", dis);
                     WriteLine("[XmlIgnore]");
                     WriteLine("//[ScriptIgnore]");
-                    WriteLine("public {1} {0} {{ get {{ return Extends.Get(nameof({0}), k => {1}.FindBy{3}({2})); }} }}", pname, dt.Name, dc.Name, pk.Name);
+                    WriteLine("public {1} {0} {{ get {{ return Extends.Get({0}, k => {1}.FindBy{3}({2})); }} }}", NameOf(pname), dt.Name, dc.Name, pk.Name);
 
                     // 主字段
                     var master = dt.Master ?? dt.GetColumn("Name");

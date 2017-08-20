@@ -286,7 +286,21 @@ namespace XCode.Code
         }
         #endregion
 
-        #region 日志
+        #region 辅助
+        /// <summary>C#版本</summary>
+        public Version CSharp { get; set; }
+
+        /// <summary>nameof</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected String NameOf(String name)
+        {
+            var v = CSharp;
+            if (v == null || v.Major == 0 || v.Major > 5) return "nameof({0})".F(name);
+
+            return "\"" + name + "\"";
+        }
+
         /// <summary>是否调试</summary>
         public static Boolean Debug { get; set; }
 
