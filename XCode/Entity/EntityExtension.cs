@@ -36,6 +36,16 @@ namespace XCode
             return list.FirstOrDefault(e => (e[name] + "").EqualIgnoreCase(value));
         }
 
+        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="match">条件</param>
+        /// <returns></returns>
+        [Obsolete("将来不再支持实体列表，请改用list.FirstOrDefault()")]
+        public static T Find<T>(this IList<T> list, Predicate<T> match) where T : IEntity
+        {
+            return list.FirstOrDefault(e => match(e));
+        }
+
         /// <summary>根据指定项查找</summary>
         /// <param name="list">实体列表</param>
         /// <param name="name">属性名</param>
@@ -63,7 +73,7 @@ namespace XCode
         /// <param name="match">条件</param>
         /// <returns></returns>
         [Obsolete("将来不再支持实体列表，请改用list.Where()")]
-        public static IList<T> FindAll<T>(this IList<T> list, Predicate<IEntity> match) where T : IEntity
+        public static IList<T> FindAll<T>(this IList<T> list, Predicate<T> match) where T : IEntity
         {
             return list.Where(e => match(e)).ToList();
         }
@@ -248,4 +258,24 @@ namespace XCode
         }
         #endregion
     }
+
+    ///// <summary>实体列表</summary>
+    ///// <typeparam name="T"></typeparam>
+    //public class EntityList<T> : List<T> where T : Entity<T>, new()
+    //{
+    //    public EntityList(IEnumerable<T> collection) : base(collection) { }
+
+    //    #region 类型转换
+    //    ///// <summary>类型转换</summary>
+    //    ///// <param name="obj"></param>
+    //    ///// <returns></returns>
+    //    //public static implicit operator String(FieldItem obj)
+    //    //{
+    //    //    return !obj.Equals(null) ? obj.ColumnName : null;
+    //    //}
+    //    #endregion
+    //}
+
+    ///// <summary>实体接口</summary>
+    //public interface IEntityList : IList<IEntity> { }
 }
