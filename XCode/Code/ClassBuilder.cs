@@ -218,7 +218,7 @@ namespace XCode.Code
                 return;
             }
 
-            if (value == "}") SetIndent(false);
+            if (value[0] == '}') SetIndent(false);
 
             var v = value;
             if (!_Indent.IsNullOrEmpty()) v = _Indent + v;

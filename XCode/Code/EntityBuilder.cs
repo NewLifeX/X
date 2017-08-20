@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -513,17 +514,31 @@ namespace XCode.Code
                 {
                     WriteLine("// 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个");
                     WriteLine("var entity = new TEntity();");
+                    WriteLine();
                 }
 
-                WriteLine();
                 WriteLine("// 累加字典");
                 WriteLine("//Meta.Factory.AdditionalFields.Add(__.Logins);");
 
+                var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
                 WriteLine();
-                WriteLine("// 过滤器");
-                WriteLine("//Meta.Modules.Add<UserModule>();");
-                WriteLine("//Meta.Modules.Add<TimeModule>();");
-                WriteLine("//Meta.Modules.Add<IPModule>();");
+                WriteLine("// 过滤器 UserModule、TimeModule、IPModule");
+                if (ns.Contains("CreateUserID") || ns.Contains("UpdateUserID")) WriteLine("//Meta.Modules.Add<UserModule>();");
+                if (ns.Contains("CreateTime") || ns.Contains("UpdateTime")) WriteLine("//Meta.Modules.Add<TimeModule>();");
+                if (ns.Contains("CreateIP") || ns.Contains("UpdateIP")) WriteLine("//Meta.Modules.Add<IPModule>();");
+
+                // 唯一索引不是主键，又刚好是Master，使用单对象缓存从键
+                var di = Table.Indexes.FirstOrDefault(e => e.Unique && e.Columns.Length == 1 && Table.GetColumn(e.Columns[0]).Master);
+                if (di != null)
+                {
+                    var dc = Table.GetColumn(di.Columns[0]);
+
+                    WriteLine();
+                    WriteLine("// 单对象缓存");
+                    WriteLine("var sc = Meta.SingleCache;");
+                    WriteLine("sc.FindSlaveKeyMethod = k => Find(__.{0}, k);", dc.Name);
+                    WriteLine("sc.GetSlaveKeyMethod = e => e.{0};", dc.Name);
+                }
             }
             WriteLine("}");
         }
@@ -551,9 +566,9 @@ namespace XCode.Code
                     }
                 }
 
-                WriteLine();
-                WriteLine("// 建议先调用基类方法，基类方法会对唯一索引的数据进行验证");
-                WriteLine("base.Valid(isNew);");
+                //WriteLine();
+                //WriteLine("// 建议先调用基类方法，基类方法会对唯一索引的数据进行验证");
+                //WriteLine("base.Valid(isNew);");
 
                 WriteLine();
                 WriteLine("// 在新插入数据或者修改了指定字段时进行修正");
@@ -573,18 +588,18 @@ namespace XCode.Code
                 cs = Table.Columns.Where(e => e.DataType == typeof(Int32) && e.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID")).ToArray();
                 if (cs.Length > 0)
                 {
-                    WriteLine("// 处理当前已登录用户信息");
-                    WriteLine("//var user = ManageProvider.User;");
-                    WriteLine("//if (user != null)");
+                    WriteLine("// 处理当前已登录用户信息，可以由UserModule过滤器代劳");
+                    WriteLine("/*var user = ManageProvider.User;");
+                    WriteLine("if (user != null)");
                     WriteLine("{");
                     foreach (var item in cs)
                     {
                         if (item.Name.EqualIgnoreCase("CreateUserID"))
-                            WriteLine("//if (isNew && !Dirtys[nameof({0})) {0} = user.ID;", item.Name);
+                            WriteLine("if (isNew && !Dirtys[nameof({0})) {0} = user.ID;", item.Name);
                         else
-                            WriteLine("//if (!Dirtys[nameof({0})]) {0} = user.ID;", item.Name);
+                            WriteLine("if (!Dirtys[nameof({0})]) {0} = user.ID;", item.Name);
                     }
-                    WriteLine("}");
+                    WriteLine("}*/");
                 }
 
                 var dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateTime"));
@@ -607,7 +622,8 @@ namespace XCode.Code
                     WriteLine("// 检查唯一索引");
                     foreach (var item in dis)
                     {
-                        WriteLine("//CheckExist(isNew, {0})", Table.GetColumns(item.Columns).Select(e => "__." + e.Name).Join(", "));
+                        //WriteLine("if (!_IsFromDatabase) CheckExist(isNew, {0});", Table.GetColumns(item.Columns).Select(e => "__." + e.Name).Join(", "));
+                        WriteLine("// CheckExist(isNew, {0});", Table.GetColumns(item.Columns).Select(e => "__." + e.Name).Join(", "));
                     }
                 }
             }
@@ -753,15 +769,17 @@ namespace XCode.Code
                         WriteLine("if ({0} <= 0) return null;", name);
                     else if (pk.DataType == typeof(String))
                         WriteLine("if ({0}.IsNullOrEmpty()) return null;", name);
-                    WriteLine();
-                    WriteLine("if (Meta.Count >= 1000)");
-                    WriteLine("    return Find(__.{0}, {1});", pk.Name, name);
-                    WriteLine("else // 实体缓存");
-                    WriteLine("    return Meta.Cache.Entities.Find(__.{0}, {1});", pk.Name, name);
 
                     WriteLine();
                     WriteLine("// 实体缓存");
+                    WriteLine("if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.{0} == {1});", pk.Name, name);
+
+                    WriteLine();
+                    WriteLine("// 单对象缓存");
                     WriteLine("//return Meta.SingleCache[{0}];", name);
+
+                    WriteLine();
+                    WriteLine("return Find(_.{0} == {1});", pk.Name, name);
                 }
                 WriteLine("}");
             }
@@ -773,6 +791,8 @@ namespace XCode.Code
                 if (di.Columns.Length == 1 && pk != null && di.Columns[0].EqualIgnoreCase(pk.Name, pk.ColumnName)) continue;
 
                 var cs = Table.GetColumns(di.Columns);
+                if (cs == null || cs.Length != di.Columns.Length) continue;
+
                 // 只有整数和字符串能生成查询函数
                 if (!cs.All(e => e.DataType.IsInt() || e.DataType == typeof(String))) continue;
 
@@ -783,6 +803,7 @@ namespace XCode.Code
                     WriteLine("/// <param name=\"{0}\">{1}</param>", dc.Name.ToLower(), dc.DisplayName);
                 }
 
+                // 返回类型
                 var rt = GenericType ? "TEntity" : Table.Name;
                 if (!di.Unique) rt = "IList<{0}>".F(rt);
 
@@ -790,23 +811,40 @@ namespace XCode.Code
                 WriteLine("public static {2} FindBy{0}({1})", cs.Select(e => e.Name).Join("And"), cs.Select(e => e.DataType.Name + " " + e.Name.ToLower()).Join(", "), rt);
                 WriteLine("{");
                 {
-                    var act = "Find";
-                    if (!di.Unique) act = "FindAll";
-
-                    if (cs.Length == 1)
+                    var exp = new StringBuilder();
+                    var wh = new StringBuilder();
+                    foreach (var dc in cs)
                     {
-                        var dc = cs[0];
-                        WriteLine("if (Meta.Count >= 1000)");
-                        WriteLine("    return {2}(__.{0}, {1});", dc.Name, dc.Name.ToLower(), act);
-                        WriteLine("else // 实体缓存");
-                        WriteLine("    return Meta.Cache.Entities.{2}(__.{0}, {1});", dc.Name, dc.Name.ToLower(), act);
+                        if (exp.Length > 0) exp.Append(" & ");
+                        exp.AppendFormat("_.{0} == {1}", dc.Name, dc.Name.ToLower());
+
+                        if (wh.Length > 0) wh.Append(" && ");
+                        wh.AppendFormat("e.{0} == {1}", dc.Name, dc.Name.ToLower());
+                    }
+
+                    if (di.Unique)
+                    {
+                        WriteLine("// 实体缓存");
+                        WriteLine("if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => {0});", wh);
+
+                        // 单对象缓存
+                        if (cs.Length == 1 && cs[0].Master)
+                        {
+                            WriteLine();
+                            WriteLine("// 单对象缓存");
+                            WriteLine("//return Meta.SingleCache.GetItemWithSlaveKey({0}) as {1};", cs[0].Name.ToLower(), rt);
+                        }
+
+                        WriteLine();
+                        WriteLine("return Find({0});", exp);
                     }
                     else
                     {
-                        WriteLine("if (Meta.Count >= 1000)");
-                        WriteLine("    return {1}({0});", cs.Select(e => "_.{0} == {1}".F(e.Name, e.Name.ToLower())).Join(" & "), act);
-                        WriteLine("else // 实体缓存");
-                        WriteLine("    return Meta.Cache.Entities.{1}(e => {0});", cs.Select(e => "e.{0} == {1}".F(e.Name, e.Name.ToLower())).Join(" && "), act);
+                        WriteLine("// 实体缓存");
+                        WriteLine("if (Meta.Count < 1000) return Meta.Cache.Entities.Where(e => {0}).ToList();", wh);
+
+                        WriteLine();
+                        WriteLine("return FindAll({0});", exp);
                     }
                 }
                 WriteLine("}");

@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Data;
@@ -29,14 +28,18 @@ namespace XCode.Sharding
         #region 对象操作
         static Shard()
         {
-
             // 累加字典
             //Meta.Factory.AdditionalFields.Add(__.Logins);
 
-            // 过滤器
+            // 过滤器 UserModule、TimeModule、IPModule
             //Meta.Modules.Add<UserModule>();
             //Meta.Modules.Add<TimeModule>();
             //Meta.Modules.Add<IPModule>();
+
+            // 单对象缓存
+            var sc = Meta.SingleCache;
+            sc.FindSlaveKeyMethod = k => Find(__.Name, k);
+            sc.GetSlaveKeyMethod = e => e.Name;
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -49,21 +52,21 @@ namespace XCode.Sharding
             // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
             if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(nameof(Name), "名称不能为空！");
 
-            // 建议先调用基类方法，基类方法会对唯一索引的数据进行验证
-            base.Valid(isNew);
-
             // 在新插入数据或者修改了指定字段时进行修正
-            // 处理当前已登录用户信息
-            //var user = ManageProvider.User;
-            //if (user != null)
+            // 处理当前已登录用户信息，可以由UserModule过滤器代劳
+            /*var user = ManageProvider.User;
+            if (user != null)
             {
-                //if (isNew && !Dirtys[nameof(CreateUserID)) CreateUserID = user.ID;
-                //if (!Dirtys[nameof(UpdateUserID)]) UpdateUserID = user.ID;
-            }
+                if (isNew && !Dirtys[nameof(CreateUserID)) CreateUserID = user.ID;
+                if (!Dirtys[nameof(UpdateUserID)]) UpdateUserID = user.ID;
+            }*/
             //if (isNew && !Dirtys[nameof(CreateTime)]) CreateTime = DateTime.Now;
             //if (!Dirtys[nameof(UpdateTime)]) UpdateTime = DateTime.Now;
             //if (isNew && !Dirtys[nameof(CreateIP)]) CreateIP = WebHelper.UserHost;
             //if (!Dirtys[nameof(UpdateIP)]) UpdateIP = WebHelper.UserHost;
+
+            // 检查唯一索引
+            // CheckExist(isNew, __.Name);
         }
 
         ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -119,35 +122,38 @@ namespace XCode.Sharding
         {
             if (id <= 0) return null;
 
-            if (Meta.Count >= 1000)
-                return Find(__.ID, id);
-            else // 实体缓存
-                return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
-
             // 实体缓存
+            if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
+
+            // 单对象缓存
             //return Meta.SingleCache[id];
+
+            return Find(_.ID == id);
         }
 
         /// <summary>根据名称查找</summary>
         /// <param name="name">名称</param>
         /// <returns>实体对象</returns>
-        public static IList<Shard> FindByName(String name)
+        public static Shard FindByName(String name)
         {
-            if (Meta.Count >= 1000)
-                return FindAll(__.Name, name);
-            else // 实体缓存
-                return Meta.Cache.Entities.Where(e => e.Name == name).ToList();
+            // 实体缓存
+            if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.Name == name);
+
+            // 单对象缓存
+            //return Meta.SingleCache.GetItemWithSlaveKey(name) as Shard;
+
+            return Find(_.Name == name);
         }
 
         /// <summary>根据实体类查找</summary>
         /// <param name="entitytype">实体类</param>
-        /// <returns>实体对象</returns>
+        /// <returns>实体列表</returns>
         public static IList<Shard> FindByEntityType(String entitytype)
         {
-            if (Meta.Count >= 1000)
-                return FindAll(__.EntityType, entitytype);
-            else // 实体缓存
-                return Meta.Cache.Entities.Where(e => e.EntityType == entitytype).ToList();
+            // 实体缓存
+            if (Meta.Count < 1000) return Meta.Cache.Entities.Where(e => e.EntityType == entitytype).ToList();
+
+            return FindAll(_.EntityType == entitytype);
         }
         #endregion
 

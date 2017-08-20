@@ -267,6 +267,9 @@ namespace XCode
         /// <param name="isNew">是否新数据</param>
         public virtual void Valid(Boolean isNew)
         {
+            //// 实体来自数据库时，不要对唯一索引进行校验
+            //if (_IsFromDatabase) return;
+
             //// 根据索引，判断唯一性
             //var table = Meta.Table.DataTable;
             //var dis = table.Indexes;
