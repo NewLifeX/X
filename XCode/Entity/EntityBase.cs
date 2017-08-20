@@ -107,19 +107,6 @@ namespace XCode
         }
         #endregion
 
-        #region 导入导出XML、Json
-        /// <summary>导出XML</summary>
-        /// <returns></returns>
-        public virtual String ToXml() { return this.ToXml(Encoding.UTF8); }
-
-        /// <summary>导出Json</summary>
-        /// <returns></returns>
-        public virtual String ToJson()
-        {
-            return JsonHelper.ToJson(this);
-        }
-        #endregion
-
         #region 克隆
         /// <summary>创建当前对象的克隆对象，仅拷贝基本字段</summary>
         /// <returns></returns>

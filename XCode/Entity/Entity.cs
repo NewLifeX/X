@@ -1099,6 +1099,7 @@ namespace XCode
         /// <summary>导入</summary>
         /// <param name="xml"></param>
         /// <returns></returns>
+        [Obsolete("请使用 xml.ToXmlEntity<TEntity>()")]
         public static TEntity FromXml(String xml)
         {
             if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
@@ -1109,6 +1110,7 @@ namespace XCode
         /// <summary>导入</summary>
         /// <param name="json"></param>
         /// <returns></returns>
+        [Obsolete("请使用 json.ToJsonEntity<TEntity>()")]
         public static TEntity FromJson(String json)
         {
             return json.ToJsonEntity<TEntity>();

@@ -149,18 +149,6 @@ namespace XCode
         Int64 FindCount(Expression where);
         #endregion
 
-        #region 导入导出XML/Json
-        /// <summary>导入</summary>
-        /// <param name="xml"></param>
-        /// <returns></returns>
-        IEntity FromXml(String xml);
-
-        /// <summary>导入</summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        IEntity FromJson(String json);
-        #endregion
-
         #region 事务
         /// <summary>开始事务</summary>
         /// <returns></returns>

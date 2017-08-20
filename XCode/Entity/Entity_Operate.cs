@@ -163,18 +163,6 @@ namespace XCode
             }
             #endregion
 
-            #region 导入导出XML/Json
-            /// <summary>导入</summary>
-            /// <param name="xml"></param>
-            /// <returns></returns>
-            public virtual IEntity FromXml(String xml) { return Entity<TEntity>.FromXml(xml); }
-
-            /// <summary>导入</summary>
-            /// <param name="json"></param>
-            /// <returns></returns>
-            public virtual IEntity FromJson(String json) { return Entity<TEntity>.FromJson(json); }
-            #endregion
-
             #region 事务
             /// <summary>开始事务</summary>
             /// <returns></returns>
@@ -217,7 +205,7 @@ namespace XCode
             #region 一些设置
             /// <summary>是否自增获取自增返回值。默认启用</summary>
             public Boolean AutoIdentity { get; set; } = true;
-            
+
             [ThreadStatic]
             private static Boolean _AllowInsertIdentity;
             /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
@@ -226,10 +214,8 @@ namespace XCode
             /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
             public virtual FieldItem AutoSetGuidField { get; set; }
 
-            [NonSerialized]
-            private ICollection<String> _AdditionalFields;
             /// <summary>默认累加字段</summary>
-            public virtual ICollection<String> AdditionalFields { get { return _AdditionalFields ?? (_AdditionalFields = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } }
+            public virtual ICollection<String> AdditionalFields { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
             #endregion
         }
     }
