@@ -262,8 +262,8 @@ namespace XCode.Code
         /// <summary>输出目录</summary>
         public String Output { get; set; }
 
-        /// <summary>保存文件</summary>
-        public virtual void Save(String ext = null, Boolean overwrite = true)
+        /// <summary>保存文件，返回文件路径</summary>
+        public virtual String Save(String ext = null, Boolean overwrite = true)
         {
             var p = Output;
             if (Table.Properties.ContainsKey("Output")) p = p.CombinePath(Table.Properties["Output"]);
@@ -281,6 +281,8 @@ namespace XCode.Code
             p = p.GetFullPath();
 
             if (!File.Exists(p) || overwrite) File.WriteAllText(p.EnsureDirectory(true), ToString());
+
+            return p;
         }
         #endregion
 

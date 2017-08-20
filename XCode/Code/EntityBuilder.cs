@@ -214,7 +214,7 @@ namespace XCode.Code
         /// <summary>保存</summary>
         /// <param name="ext"></param>
         /// <param name="overwrite"></param>
-        public override void Save(String ext = null, Boolean overwrite = true)
+        public override String Save(String ext = null, Boolean overwrite = true)
         {
             if (ext.IsNullOrEmpty() && Business)
             {
@@ -222,7 +222,7 @@ namespace XCode.Code
                 overwrite = false;
             }
 
-            base.Save(ext, overwrite);
+            return base.Save(ext, overwrite);
         }
 
         /// <summary>生成尾部</summary>
@@ -523,9 +523,12 @@ namespace XCode.Code
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
                 WriteLine();
                 WriteLine("// 过滤器 UserModule、TimeModule、IPModule");
-                if (ns.Contains("CreateUserID") || ns.Contains("UpdateUserID")) WriteLine("//Meta.Modules.Add<UserModule>();");
-                if (ns.Contains("CreateTime") || ns.Contains("UpdateTime")) WriteLine("//Meta.Modules.Add<TimeModule>();");
-                if (ns.Contains("CreateIP") || ns.Contains("UpdateIP")) WriteLine("//Meta.Modules.Add<IPModule>();");
+                if (ns.Contains("CreateUserID") || ns.Contains("UpdateUserID"))
+                    WriteLine("Meta.Modules.Add<UserModule>();");
+                if (ns.Contains("CreateTime") || ns.Contains("UpdateTime"))
+                    WriteLine("Meta.Modules.Add<TimeModule>();");
+                if (ns.Contains("CreateIP") || ns.Contains("UpdateIP"))
+                    WriteLine("Meta.Modules.Add<IPModule>();");
 
                 // 唯一索引不是主键，又刚好是Master，使用单对象缓存从键
                 var di = Table.Indexes.FirstOrDefault(e => e.Unique && e.Columns.Length == 1 && Table.GetColumn(e.Columns[0]).Master);
