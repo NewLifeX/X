@@ -7,7 +7,7 @@ namespace XCode
     /// <summary>实体异常</summary>
     public class EntityException : XException
     {
-          #region 构造
+        #region 构造
         /// <summary>初始化</summary>
         public EntityException() { }
 
@@ -28,11 +28,6 @@ namespace XCode
         /// <summary>初始化</summary>
         /// <param name="innerException"></param>
         public EntityException(Exception innerException) : base((innerException?.Message), innerException) { }
-
-        ///// <summary>初始化</summary>
-        ///// <param name="info"></param>
-        ///// <param name="context"></param>
-        //protected EntityException(SerializationInfo info, StreamingContext context) : base(info, context) { }
         #endregion
-  }
+    }
 }

@@ -8,25 +8,6 @@ namespace XCode.Common
     /// <summary>助手类</summary>
     static class Helper
     {
-        //public static Boolean IsIntType(this Type type)
-        //{
-        //    var code = Type.GetTypeCode(type);
-        //    switch (code)
-        //    {
-        //        case TypeCode.Int16:
-        //        case TypeCode.Int32:
-        //        case TypeCode.Int64:
-        //        case TypeCode.UInt16:
-        //        case TypeCode.UInt32:
-        //        case TypeCode.UInt64:
-        //            return true;
-        //        default:
-        //            break;
-        //    }
-
-        //    return false;
-        //}
-
         /// <summary>指定键是否为空。一般业务系统设计不允许主键为空，包括自增的0和字符串的空</summary>
         /// <param name="key">键值</param>
         /// <param name="type">类型</param>
@@ -71,23 +52,6 @@ namespace XCode.Common
             }
 
             return false;
-        }
-
-        /// <summary>判断两个对象是否相当，特别处理整型</summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
-        public static Boolean EqualTo(this Object left, Object right)
-        {
-            // 空判断
-            if (left == null) return right == null;
-            if (right == null) return false;
-
-            // 如果已经相等，不用做别的处理了
-            if (Object.Equals(left, right)) return true;
-
-            // 特殊处理整型
-            return left.GetType().IsInt() && right.GetType().IsInt() && Convert.ToInt64(left) == Convert.ToInt64(right);
         }
 
         public static DataRow[] ToArray(this DataRowCollection collection)

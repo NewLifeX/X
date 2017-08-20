@@ -148,43 +148,5 @@ namespace Test
                 user.Delete();
             }
         }
-
-        static void Test3()
-        {
-            RedisSetting._.Debug = true;
-
-            var set = RedisSetting.Current;
-            if (set.Items.Count == 0 || set.Items.All(e => e.Name.IsNullOrEmpty()))
-            {
-                set.Items.Add(new RedisSetting.Item { Name = "aaa", Url = "bbb" });
-                set.Items.Add(new RedisSetting.Item { Name = "xxx", Url = "yyy" });
-            }
-            set.Save();
-        }
-    }
-
-    /// <summary>Redis配置</summary>
-    [Description("Redis配置")]
-    [XmlConfigFile("Config/Redis.config", 15000)]
-    public class RedisSetting : XmlConfig<RedisSetting>
-    {
-        #region 属性
-        /// <summary>调试开关。默认true</summary>
-        [Description("调试开关。默认true")]
-        public Boolean Debug { get; set; } = true;
-
-        /// <summary>配置项</summary>
-        [Description("配置项")]
-        public List<Item> Items { get; set; } = new List<Item>();
-        #endregion
-
-        /// <summary>配置项</summary>
-        public class Item
-        {
-            [XmlAttribute]
-            public String Name { get; set; }
-            [XmlAttribute]
-            public String Url { get; set; }
-        }
     }
 }

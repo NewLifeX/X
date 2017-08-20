@@ -16,9 +16,8 @@ namespace XCode
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public class ModelCheckModeAttribute : Attribute
     {
-        private ModelCheckModes _Mode;
         /// <summary>模式</summary>
-        public ModelCheckModes Mode { get { return _Mode; } set { _Mode = value; } }
+        public ModelCheckModes Mode { get; set; }
 
         /// <summary>指定实体类的模型检查模式</summary>
         /// <param name="mode"></param>

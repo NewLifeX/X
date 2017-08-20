@@ -123,8 +123,6 @@ namespace XCode.Cache
         /// <summary>缓存对象</summary>
         class CacheItem
         {
-            //private SingleEntityCache<TKey, TEntity> Cache { get; }
-
             /// <summary>键</summary>
             public TKey Key { get; set; }
 
@@ -142,8 +140,6 @@ namespace XCode.Cache
 
             /// <summary>是否已经过期</summary>
             public Boolean Expired { get { return ExpireTime <= DateTime.Now; } }
-
-            //public CacheItem(SingleEntityCache<TKey, TEntity> sc) { Cache = sc; }
 
             public void SetEntity(TEntity entity, Int32 expire)
             {

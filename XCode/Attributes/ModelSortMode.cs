@@ -16,9 +16,8 @@ namespace XCode
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class ModelSortModeAttribute : Attribute
     {
-        private ModelSortModes _Mode;
         /// <summary>模式</summary>
-        public ModelSortModes Mode { get { return _Mode; } set { _Mode = value; } }
+        public ModelSortModes Mode { get; set; }
 
         /// <summary>指定实体类的模型字段排序模式</summary>
         /// <param name="mode"></param>

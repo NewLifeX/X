@@ -7,23 +7,18 @@ namespace XCode.Exceptions
     [Serializable]
     public class XDbException : XCodeException
     {
-        private IDatabase _Database;
         /// <summary>数据库</summary>
-        public IDatabase Database
-        {
-            get { return _Database; }
-            //set { _Database = value; }
-        }
+        public IDatabase Database { get; }
 
         #region 构造
         /// <summary>初始化</summary>
         /// <param name="db"></param>
-        public XDbException(IDatabase db) { _Database = db; }
+        public XDbException(IDatabase db) { Database = db; }
 
         /// <summary>初始化</summary>
         /// <param name="db"></param>
         /// <param name="message"></param>
-        public XDbException(IDatabase db, String message) : base(message) { _Database = db; }
+        public XDbException(IDatabase db, String message) : base(message) { Database = db; }
 
         /// <summary>初始化</summary>
         /// <param name="db"></param>
@@ -32,7 +27,7 @@ namespace XCode.Exceptions
         public XDbException(IDatabase db, String message, Exception innerException)
             : base(message + (db != null ? "[DB:" + db.ConnName + "/" + db.Type.ToString() + "]" : null), innerException)
         {
-            _Database = db;
+            Database = db;
         }
 
         /// <summary>初始化</summary>
@@ -41,7 +36,7 @@ namespace XCode.Exceptions
         public XDbException(IDatabase db, Exception innerException)
             : base((innerException?.Message) + (db != null ? "[DB:" + db.ConnName + "/" + db.Type.ToString() + "]" : null), innerException)
         {
-            _Database = db;
+            Database = db;
         }
         #endregion
     }

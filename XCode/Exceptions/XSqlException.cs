@@ -10,13 +10,8 @@ namespace XCode.Exceptions
     public class XSqlException : XDbSessionException
     {
         #region 属性
-        private String _Sql;
         /// <summary>SQL语句</summary>
-        public String Sql
-        {
-            get { return _Sql; }
-            private set { _Sql = value; }
-        }
+        public String Sql { get; }
         #endregion
 
         #region 构造
@@ -51,17 +46,6 @@ namespace XCode.Exceptions
         {
             Sql = sql;
         }
-
-        ///// <summary>
-        ///// 初始化
-        ///// </summary>
-        ///// <param name="info"></param>
-        ///// <param name="context"></param>
-        //protected SqlException(SerializationInfo info, StreamingContext context)
-        //    : base(info, context)
-        //{
-        //    Sql = (string)info.GetValue("sql", typeof(string));
-        //}
         #endregion
 
         #region 方法
