@@ -383,7 +383,8 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Field FindByName(String name)
         {
-            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+            //if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+            if (name.IsNullOrEmpty()) return null;
 
             foreach (var item in Fields)
             {
