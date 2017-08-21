@@ -39,6 +39,33 @@ namespace NewLife.Cube
             ViewBag.Title = title;
         }
 
+        /// <summary>动作执行前</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            // 默认加上实体工厂
+            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
+
+            // 默认加上分页给前台
+            var ps = filterContext.ActionParameters.ToNullable();
+            var p = ps["p"] as Pager ?? new Pager();
+            ViewBag.Page = p;
+
+            // 用于显示的列
+            ViewBag.Fields = GetFields(false);
+
+            if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
+
+            var txt = (String)ViewBag.HeaderContent;
+            if (txt.IsNullOrEmpty()) txt = ManageProvider.Menu?.Current?.Remark;
+            if (txt.IsNullOrEmpty()) txt = GetType().GetDescription();
+            //if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
+            //    txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
+            ViewBag.HeaderContent = txt;
+
+            base.OnActionExecuting(filterContext);
+        }
+
         /// <summary>执行后</summary>
         /// <param name="filterContext"></param>
         protected override void OnActionExecuted(ActionExecutedContext filterContext)
@@ -607,27 +634,6 @@ namespace NewLife.Cube
             }
 
             return dic;
-        }
-        #endregion
-
-        #region 默认页头
-        /// <summary>动作执行前</summary>
-        /// <param name="filterContext"></param>
-        protected override void OnActionExecuting(ActionExecutingContext filterContext)
-        {
-            // 默认加上实体工厂
-            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
-
-            if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
-
-            var txt = (String)ViewBag.HeaderContent;
-            if (txt.IsNullOrEmpty()) txt = ManageProvider.Menu?.Current?.Remark;
-            if (txt.IsNullOrEmpty()) txt = GetType().GetDescription();
-            //if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
-            //    txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
-            ViewBag.HeaderContent = txt;
-
-            base.OnActionExecuting(filterContext);
         }
         #endregion
     }
