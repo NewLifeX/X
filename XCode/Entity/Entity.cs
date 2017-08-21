@@ -782,8 +782,8 @@ namespace XCode
             sb.Table = session.FormatedTableName;
             sb.Where = where;
 
-            // MSSQL分组查分组数的时候，必须带上全部selects字段
-            if (session.Dal.DbType == DatabaseType.SqlServer && !sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
+            // 分组查分组数的时候，必须带上全部selects字段
+            if (!sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
 
             return session.QueryCount(sb);
         }
@@ -811,8 +811,8 @@ namespace XCode
             // 提取参数
             builder = FixParam(builder, ps);
 
-            // MSSQL分组查分组数的时候，必须带上全部selects字段
-            if (session.Dal.DbType == DatabaseType.SqlServer && !builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
+            // 分组查分组数的时候，必须带上全部selects字段
+            if (!builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
 
             return session.QueryCount(builder);
         }
