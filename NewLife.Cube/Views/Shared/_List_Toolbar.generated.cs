@@ -80,17 +80,17 @@ WriteLiteral(" class=\"form-inline\"");
 
 WriteLiteral(">\r\n        <form");
 
-WriteAttribute("action", Tuple.Create(" action=\"", 423), Tuple.Create("\"", 466)
+WriteAttribute("action", Tuple.Create(" action=\"", 423), Tuple.Create("\"", 446)
             
             #line 14 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 432), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetFormAction(act))
+, Tuple.Create(Tuple.Create("", 432), Tuple.Create<System.Object, System.Int32>(Html.Raw(act)
             
             #line default
             #line hidden
 , 432), false)
 );
 
-WriteLiteral(" method=\"post\"");
+WriteLiteral(" method=\"get\"");
 
 WriteLiteral(" role=\"form\"");
 
