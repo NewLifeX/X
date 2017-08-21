@@ -436,30 +436,50 @@ namespace XCode.DataAccessLayer
             }
 
             var data = new NullableDictionary<String, DataTable>(StringComparer.OrdinalIgnoreCase);
-            data["Columns"] = GetSchema(_.Columns, new String[] { owner, tableName, null });
-            data["Indexes"] = GetSchema(_.Indexes, new String[] { owner, null, owner, tableName });
-            data["IndexColumns"] = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
+            //data["Columns"] = GetSchema(_.Columns, new String[] { owner, tableName, null });
+            //data["Indexes"] = GetSchema(_.Indexes, new String[] { owner, null, owner, tableName });
+            //data["IndexColumns"] = GetSchema(_.IndexColumns, new String[] { owner, null, owner, tableName, null });
+
+            // 如果表太多，则只要目标表数据
+            var mulTable = "";
+            if (dt.Rows.Count > 10)
+            {
+                var tablenames = dt.Rows.ToArray().Select(e => "'{0}'".F(e["TABLE_NAME"]));
+                mulTable = " And TABLE_NAME in ({0})".F(tablenames.Join(","));
+            }
+
+            // 列和索引
+            data["Columns"] = Get("all_tab_columns", owner, tableName, mulTable);
+            data["Indexes"] = Get("all_indexes", owner, tableName, mulTable);
+            data["IndexColumns"] = Get("all_ind_columns", owner, tableName, mulTable, "Table_Owner");
 
             // 主键
             if (MetaDataCollections.Contains(_.PrimaryKeys)) data["PrimaryKeys"] = GetSchema(_.PrimaryKeys, new String[] { owner, tableName, null });
 
             // 序列
-            var sql = "Select * From ALL_SEQUENCES Where SEQUENCE_OWNER='{0}'".F(owner);
-            data["Sequences"] = Database.CreateSession().Query(sql).Tables[0];
+            data["Sequences"] = Get("all_sequences", owner, null, null, "Sequence_Owner");
 
             // 表注释
-            sql = "Select * From ALL_TAB_COMMENTS Where Owner='{0}'".F(owner);
-            if (!tableName.IsNullOrEmpty()) sql += " And TABLE_NAME='{0}'".F(tableName);
-            data["TableComment"] = Database.CreateSession().Query(sql).Tables[0];
+            data["TableComment"] = Get("all_tab_comments", owner, tableName, mulTable);
 
             // 列注释
-            sql = "Select * From ALL_COL_COMMENTS Where Owner='{0}'".F(owner);
-            if (!tableName.IsNullOrEmpty()) sql += " And TABLE_NAME='{0}'".F(tableName);
-            data["ColumnComment"] = Database.CreateSession().Query(sql).Tables[0];
+            data["ColumnComment"] = Get("all_col_comments", owner, tableName, mulTable);
 
             var list = GetTables(dt.Rows.ToArray(), names, data);
 
             return list;
+        }
+
+        private DataTable Get(String name, String owner, String tableName, String mulTable = null, String ownerName = null)
+        {
+            if (ownerName.IsNullOrEmpty()) ownerName = "Owner";
+            var sql = "Select * From {0} Where {2}='{1}'".F(name, owner, ownerName);
+            if (!tableName.IsNullOrEmpty())
+                sql += " And TABLE_NAME='{0}'".F(tableName);
+            else if (!mulTable.IsNullOrEmpty())
+                sql += mulTable;
+
+            return Database.CreateSession().Query(sql).Tables[0];
         }
 
         protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
