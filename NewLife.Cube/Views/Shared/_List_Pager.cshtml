@@ -3,9 +3,12 @@
     var page = ViewBag.Page as Pager;
     //page.PageUrlTemplate = page.PageUrlTemplate.Replace("{链接}", Url.Action("Index") + "{链接}");
     // 没有总记录数的时候不显示分页，可以认为不启用分页
+
+    var act = ViewBag.Action as String;
+    if (act.IsNullOrEmpty()) { act = Url.Action("Index"); }
 }
 @if (page.TotalCount > 0)
-{<text><form>
+{<text><form action="@act?@page.GetBaseUrl(true, true, false)" method="post" role="form">
     共<span>@page.TotalCount.ToString("n0")</span>条&nbsp;
     每页<span>@page.PageSize</span>条&nbsp;
     当前第<span>@page.PageIndex.ToString("n0")</span>页/共<span>@page.PageCount.ToString("n0")</span>页&nbsp;
