@@ -11,7 +11,7 @@
 }
 <div class="tableTools-container">
     <div class="form-inline">
-        <form action="@act@Html.Raw("?" + page.GetBaseUrl(true, true, true))" method="post" role="form">
+        <form action="@Html.Raw(page.GetFormAction(act))" method="post" role="form">
             @if (user.Has(PermissionFlags.Insert))
             {
                 @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })

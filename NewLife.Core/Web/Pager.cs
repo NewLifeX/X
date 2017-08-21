@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Web;
 using NewLife.Data;
 
 namespace NewLife.Web
@@ -89,8 +91,7 @@ namespace NewLife.Web
         /// <param name="pm"></param>
         public Pager(PageParameter pm) : base(pm)
         {
-            var p = pm as Pager;
-            if (p != null)
+            if (pm is Pager p)
             {
                 foreach (var item in p.Params)
                 {
@@ -102,13 +103,13 @@ namespace NewLife.Web
 
         #region 方法
         /// <summary>获取基础Url，用于附加参数</summary>
+        /// <param name="sb"></param>
         /// <param name="where">查询条件，不包含排序和分页</param>
         /// <param name="order">排序</param>
         /// <param name="page">分页</param>
         /// <returns></returns>
-        public virtual StringBuilder GetBaseUrl(Boolean where, Boolean order, Boolean page)
+        public virtual StringBuilder GetBaseUrl(StringBuilder sb, Boolean where, Boolean order, Boolean page)
         {
-            var sb = new StringBuilder();
             var dic = Params;
             // 先构造基本条件，再排序到分页
             if (where) sb.UrlParamsExcept(dic, _.Sort, _.Desc, _.PageIndex, _.PageSize);
@@ -127,7 +128,8 @@ namespace NewLife.Web
             var desc = true;
             if (Sort.EqualIgnoreCase(name)) desc = !Desc;
 
-            var url = GetBaseUrl(true, false, true);
+            var url = new StringBuilder();
+            GetBaseUrl(url, true, false, true);
             // 默认排序不处理
             if (!name.EqualIgnoreCase(Default.Sort)) url.UrlParam(_.Sort, name);
             if (desc) url.UrlParam(_.Desc, true);
@@ -140,7 +142,8 @@ namespace NewLife.Web
         /// <returns></returns>
         public virtual String GetPageUrl(String name, Int64 index)
         {
-            var url = GetBaseUrl(true, true, false);
+            var url = new StringBuilder();
+            GetBaseUrl(url, true, true, false);
             // 当前在非首页而要跳回首页，不写页面序号
             //if (!(PageIndex > 1 && index == 1)) url.UrlParam(_.PageIndex, index);
             // 还是写一下页面序号，因为页面Url本身就有，如果这里不写，有可能首页的href为空
@@ -182,6 +185,37 @@ namespace NewLife.Web
             }
 
             return name;
+        }
+
+        /// <summary>获取表单提交的Url</summary>
+        /// <param name="action">动作</param>
+        /// <returns></returns>
+        public virtual String GetFormAction(String action = null)
+        {
+            var req = HttpContext.Current?.Request;
+            if (req == null) return action;
+
+            // 表单提交，不需要排序、分页，不需要表单提交上来的数据，只要请求字符串过来的数据
+            var query = req.QueryString;
+            var forms = new HashSet<String>(req.Form.AllKeys, StringComparer.OrdinalIgnoreCase);
+            var excludes = new HashSet<String>(new[] { _.Sort, _.Desc, _.PageIndex, _.PageSize }, StringComparer.OrdinalIgnoreCase);
+
+            var url = new StringBuilder();
+            foreach (var item in query.AllKeys)
+            {
+                // 只要查询字符串，不要表单
+                if (forms.Contains(item)) continue;
+
+                // 排除掉排序和分页
+                if (excludes.Contains(item)) continue;
+
+                url.UrlParam(item, query[item]);
+            }
+
+            if (url.Length == 0) return action;
+            if (!action.Contains('?')) action += '?';
+
+            return action + url.ToString();
         }
         #endregion
     }
