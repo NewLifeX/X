@@ -54,6 +54,10 @@ namespace NewLife.Cube
         /// <summary>用户行为。记录用户所有操作</summary>
         [Description("用户行为。记录用户所有操作")]
         public Boolean WebBehavior { get; set; }
+
+        /// <summary>下拉选择框。使用Bootstrap，美观，但有呈现方面的性能损耗</summary>
+        [Description("下拉选择框。使用Bootstrap，美观，但有呈现方面的性能损耗")]
+        public Boolean BootstrapSelect { get; set; } = true;
         #endregion
 
         #region 方法

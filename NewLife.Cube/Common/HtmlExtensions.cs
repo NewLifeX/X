@@ -485,37 +485,16 @@ namespace NewLife.Cube
         {
             SelectList data = null;
             if (items is IDictionary)
-            {
-                //// 特殊处理字符串字典，把空字符串的key更换为String.Empty
-                //var dic = items as IDictionary<String, String>;
-                //var v = "";
-                //if (dic.TryGetValue("", out v))
-                //{
-                //    dic.Remove("");
-                //    dic["String.Empty"] = v;
-                //}
-
-                //// 特殊处理 optionLabel
-                //if (optionLabel.EqualIgnoreCase("全部", "All") && items is IDictionary<String, String>)
-                //{
-                //    var dic = new Dictionary<String, String>();
-                //    dic.Add(optionLabel, optionLabel);
-                //    foreach (var item in (items as IDictionary<String, String>))
-                //    {
-                //        dic[item.Key] = item.Value;
-                //    }
-                //    items = dic;
-
-                //    optionLabel = null;
-                //}
-
                 data = new SelectList(items, "Key", "Value", selectedValue);
-            }
             else
                 data = new SelectList(items, selectedValue);
 
             var atts = new Dictionary<String, Object>();
-            atts.Add("class", "multiselect");
+            if (Setting.Current.BootstrapSelect)
+                atts.Add("class", "multiselect");
+            else
+                atts.Add("class", "form-control");
+
             // 处理自动回发
             //if (autoPostback) atts.Add("onchange", "$(':submit').click();");
             // 一个页面可能存在多个表单，比如搜索区和分页区
@@ -538,7 +517,11 @@ namespace NewLife.Cube
             var selectedValue = entity == null ? WebHelper.Params[name] : entity[name];
 
             var atts = new Dictionary<String, Object>();
-            atts.Add("class", "multiselect");
+            if (Setting.Current.BootstrapSelect)
+                atts.Add("class", "multiselect");
+            else
+                atts.Add("class", "form-control");
+
             // 处理自动回发
             //if (autoPostback) atts.Add("onchange", "$(':submit').click();");
             if (autoPostback) atts.Add("onchange", "$(this).parents('form').submit();");
@@ -557,7 +540,11 @@ namespace NewLife.Cube
         public static MvcHtmlString ForListBox(this HtmlHelper Html, String name, IDictionary dic, IEnumerable selectedValues, Boolean autoPostback = false)
         {
             var atts = new RouteValueDictionary();
-            atts.Add("class", "multiselect");
+            if (Setting.Current.BootstrapSelect)
+                atts.Add("class", "multiselect");
+            else
+                atts.Add("class", "form-control");
+
             atts.Add("multiple", "");
             // 处理自动回发
             if (autoPostback) atts.Add("onchange", "$(':submit').click();");
@@ -579,7 +566,10 @@ namespace NewLife.Cube
             if (vs is String) vs = (vs as String).SplitAsInt();
 
             var atts = new RouteValueDictionary();
-            atts.Add("class", "multiselect");
+            if (Setting.Current.BootstrapSelect)
+                atts.Add("class", "multiselect");
+            else
+                atts.Add("class", "form-control");
             atts.Add("multiple", "");
             // 处理自动回发
             if (autoPostback) atts.Add("onchange", "$(':submit').click();");
