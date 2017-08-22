@@ -357,6 +357,7 @@ namespace XMessage
             }
             else if (_Server != null)
             {
+                buf = pk.ToArray();
                 Task.Run(async () =>
                 {
                     for (Int32 i = 0; i < count; i++)
