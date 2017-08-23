@@ -8,7 +8,11 @@
 
     var bs = this.Bootstrap();
     bs.Set(item);
+
+    var set = NewLife.Cube.Setting.Current;
+    var cls = set.FormGroupClass;
+    if (cls.IsNullOrEmpty()) { cls = "form-group col-xs-12 col-sm-6 col-lg-4"; }
 }
-<div class="form-group col-sm-12 col-md-12">
+<div class="@cls">
     @Html.Partial("_Form_Item", new Pair(entity, item))
 </div>

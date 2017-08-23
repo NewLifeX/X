@@ -55,6 +55,10 @@ namespace NewLife.Cube
         [Description("用户行为。记录用户所有操作")]
         public Boolean WebBehavior { get; set; }
 
+        /// <summary>表单组样式。大中小屏幕分别3/2/1列</summary>
+        [Description("表单组样式。大中小屏幕分别3/2/1列")]
+        public String FormGroupClass { get; set; } = "form-group col-xs-12 col-sm-6 col-lg-4";
+
         /// <summary>下拉选择框。使用Bootstrap，美观，但有呈现方面的性能损耗</summary>
         [Description("下拉选择框。使用Bootstrap，美观，但有呈现方面的性能损耗")]
         public Boolean BootstrapSelect { get; set; } = true;

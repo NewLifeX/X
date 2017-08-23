@@ -5,21 +5,40 @@
     var pair = Model as Pair;
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
+
+    var err = 0;
+    ModelState st = null;
+    if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null) { err = st.Errors.Count; }
+
+    var des = item.Description.TrimStart(item.DisplayName).TrimStart(",", ".", "，", "。");
+
+    var label = 4;
+    var span = 4;
+    if (err == 0 && des.IsNullOrEmpty())
+    {
+        span = 0;
+    }
+    else if (item.Type == typeof(Boolean) || item.Type.IsEnum)
+    {
+        span += 1;
+    }
+    else if (item.Type == typeof(DateTime))
+    {
+        span += 1;
+    }
+    var input = 12 - label - span;
 }
-<label class="control-label col-xs-2 col-sm-2 col-md-2 col-lg-2">@item.DisplayName</label>
-<div class="input-group col-xs-5 col-sm-5 col-md-5 col-lg-5">
+<label class="control-label col-xs-@label col-sm-@label">@item.DisplayName</label>
+<div class="input-group col-xs-@(input+span) col-sm-@input">
     @Html.ForEditor(item, entity)
 </div>
-@{
-    ModelState st = null;
-}
-@if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null && st.Errors.Count > 0)
+@if (err > 0)
 {
-    <span class="alert alert-danger">
+    <span class="col-sm-@span alert alert-danger">
         @Html.ValidationMessage(item.Name)
     </span>
 }
-else if (!item.Description.IsNullOrEmpty())
+else if (!des.IsNullOrEmpty())
 {
-    <span class="hidden-xs col-md-5">@Html.ForDescription(item)</span>
+    <span class="hidden-xs col-sm-@span">@Html.ForDescription(item)</span>
 }

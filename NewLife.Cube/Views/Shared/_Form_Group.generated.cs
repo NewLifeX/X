@@ -68,19 +68,31 @@ namespace ASP
     var bs = this.Bootstrap();
     bs.Set(item);
 
+    var set = NewLife.Cube.Setting.Current;
+    var cls = set.FormGroupClass;
+    if (cls.IsNullOrEmpty()) { cls = "form-group col-xs-12 col-sm-6 col-lg-4"; }
+
             
             #line default
             #line hidden
 WriteLiteral("\r\n<div");
 
-WriteLiteral(" class=\"form-group col-sm-12 col-md-12\"");
+WriteAttribute("class", Tuple.Create(" class=\"", 403), Tuple.Create("\"", 415)
+            
+            #line 16 "..\..\Views\Shared\_Form_Group.cshtml"
+, Tuple.Create(Tuple.Create("", 411), Tuple.Create<System.Object, System.Int32>(cls
+            
+            #line default
+            #line hidden
+, 411), false)
+);
 
 WriteLiteral(">\r\n");
 
 WriteLiteral("    ");
 
             
-            #line 13 "..\..\Views\Shared\_Form_Group.cshtml"
+            #line 17 "..\..\Views\Shared\_Form_Group.cshtml"
 Write(Html.Partial("_Form_Item", new Pair(entity, item)));
 
             

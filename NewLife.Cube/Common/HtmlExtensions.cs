@@ -396,7 +396,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         public static MvcHtmlString ForDescription(this HtmlHelper Html, FieldItem field)
         {
-            var des = field.Description.TrimStart(field.DisplayName).TrimStart("。");
+            var des = field.Description.TrimStart(field.DisplayName).TrimStart(",", ".", "，", "。");
             if (des.IsNullOrWhiteSpace()) return new MvcHtmlString(null);
 
             if (field.Type == typeof(Boolean))
