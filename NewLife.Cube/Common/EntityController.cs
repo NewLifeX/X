@@ -52,7 +52,7 @@ namespace NewLife.Cube
             ViewBag.Page = p;
 
             // 用于显示的列
-            ViewBag.Fields = GetFields(false);
+            ViewBag.Fields = GetFields(ps.ContainsKey("entity"));
 
             if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
 
@@ -122,10 +122,6 @@ namespace NewLife.Cube
 
             // 缓存数据，用于后续导出
             Session[CacheKey] = p;
-
-            // 用于显示的列
-            var fields = GetFields(false);
-            ViewBag.Fields = fields;
 
             return IndexView(p);
         }

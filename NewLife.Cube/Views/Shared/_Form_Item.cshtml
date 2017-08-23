@@ -12,7 +12,8 @@
 
     var des = item.Description.TrimStart(item.DisplayName).TrimStart(",", ".", "，", "。");
 
-    var label = 4;
+    var total = 12;
+    var label = 3;
     var span = 4;
     if (err == 0 && des.IsNullOrEmpty())
     {
@@ -25,8 +26,9 @@
     else if (item.Type == typeof(DateTime))
     {
         span += 1;
+        total--;
     }
-    var input = 12 - label - span;
+    var input = total - label - span;
 }
 <label class="control-label col-xs-@label col-sm-@label">@item.DisplayName</label>
 <div class="input-group col-xs-@(input+span) col-sm-@input">

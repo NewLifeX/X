@@ -74,7 +74,7 @@ WriteLiteral("\r\n");
 
             
             #line 15 "..\..\Views\Shared\_Form_Footer.cshtml"
- if (cid != null)
+ if (cid != null && !fields.Contains(cid))
 {
     var user = fact.Table.FindByName("CreateUserName") as FieldItem;
     var time = fact.Table.FindByName("CreateTime") as FieldItem;
@@ -182,14 +182,14 @@ WriteLiteral("                <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1462), Tuple.Create("\"", 1473)
+WriteAttribute("title", Tuple.Create(" title=\"", 1487), Tuple.Create("\"", 1498)
             
             #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1470), Tuple.Create<System.Object, System.Int32>(ip
+, Tuple.Create(Tuple.Create("", 1495), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 1470), false)
+, 1495), false)
 );
 
 WriteLiteral(">");
@@ -221,7 +221,7 @@ WriteLiteral("        </div>\r\n    </div>\r\n");
             #line hidden
             
             #line 39 "..\..\Views\Shared\_Form_Footer.cshtml"
- if (uid != null)
+ if (uid != null && !fields.Contains(uid))
 {
     var user = fact.Table.FindByName("UpdateUserName") as FieldItem;
     var time = fact.Table.FindByName("UpdateTime") as FieldItem;
@@ -329,14 +329,14 @@ WriteLiteral("                <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 2397), Tuple.Create("\"", 2408)
+WriteAttribute("title", Tuple.Create(" title=\"", 2447), Tuple.Create("\"", 2458)
             
             #line 58 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2405), Tuple.Create<System.Object, System.Int32>(ip
+, Tuple.Create(Tuple.Create("", 2455), Tuple.Create<System.Object, System.Int32>(ip
             
             #line default
             #line hidden
-, 2405), false)
+, 2455), false)
 );
 
 WriteLiteral(">");
@@ -376,24 +376,24 @@ WriteLiteral("        </div>\r\n    </div>\r\n");
             #line hidden
 WriteLiteral("    <div");
 
-WriteLiteral(" class=\"form-group col-sm-12 col-md-12\"");
+WriteLiteral(" class=\"form-group col-md-12\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-2 col-lg-2\"");
+WriteLiteral(" class=\"control-label col-md-2\"");
 
 WriteLiteral(">");
 
             
             #line 66 "..\..\Views\Shared\_Form_Footer.cshtml"
-                                                                    Write(remark.DisplayName);
+                                         Write(remark.DisplayName);
 
             
             #line default
             #line hidden
 WriteLiteral("</label>\r\n        <div");
 
-WriteLiteral(" class=\"input-group col-xs-5 col-sm-5 col-md-5 col-lg-5\"");
+WriteLiteral(" class=\"input-group col-md-8\"");
 
 WriteLiteral(">\r\n");
 

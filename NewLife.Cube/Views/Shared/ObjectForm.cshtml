@@ -6,8 +6,6 @@
 
     var Obj = Model as Object;
     var pis = ViewBag.Properties as IEnumerable<PropertyInfo>;
-
-    var bs = this.Bootstrap();
 }
 <div class="row">
     <div class="col-md-12">
@@ -27,13 +25,13 @@
                         des = dis.Substring("。");
                         dis = dis.Substring(null, "。");
                     }
-                    <div class="form-group col-sm-12 col-md-@bs.GetGroupWidth()">
-                        <label class="control-label col-xs-2 col-md-@bs.LabelWidth no-padding-left" for="@pi.Name">@(dis ?? pi.Name)</label>
-                        <div class="input-group col-xs-10 col-md-5">
+                    <div class="form-group col-sm-12 col-md-12">
+                        <label class="control-label col-xs-2 col-md-3 no-padding-left" for="@pi.Name">@(dis ?? pi.Name)</label>
+                        <div class="input-group col-xs-10 col-md-4">
                             @Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType)
                             @Html.ValidationMessage(pi.Name)
                         </div>
-                        <span class="hidden-xs col-md-4">&nbsp; @des</span>
+                        <span class="hidden-xs col-md-5">&nbsp; @des</span>
                     </div>
                 }
                 <div class="clearfix form-actions col-sm-12 col-md-12">

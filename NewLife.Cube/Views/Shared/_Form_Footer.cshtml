@@ -12,7 +12,7 @@
     var remark = fact.Table.FindByName("Remark") as FieldItem;
     if (remark == null) { remark = fact.Table.FindByName("Description"); }
 }
-@if (cid != null)
+@if (cid != null && !fields.Contains(cid))
 {
     var user = fact.Table.FindByName("CreateUserName") as FieldItem;
     var time = fact.Table.FindByName("CreateTime") as FieldItem;
@@ -36,7 +36,7 @@
         </div>
     </div>
 }
-@if (uid != null)
+@if (uid != null && !fields.Contains(uid))
 {
     var user = fact.Table.FindByName("UpdateUserName") as FieldItem;
     var time = fact.Table.FindByName("UpdateTime") as FieldItem;
@@ -62,9 +62,9 @@
 }
 @if (remark != null && !fields.Contains(remark))
 {
-    <div class="form-group col-sm-12 col-md-12">
-        <label class="control-label col-xs-2 col-sm-2 col-md-2 col-lg-2">@remark.DisplayName</label>
-        <div class="input-group col-xs-5 col-sm-5 col-md-5 col-lg-5">
+    <div class="form-group col-md-12">
+        <label class="control-label col-md-2">@remark.DisplayName</label>
+        <div class="input-group col-md-8">
             @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
             @Html.ForDescription(remark)
         </div>
