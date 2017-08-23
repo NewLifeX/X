@@ -40,6 +40,10 @@ namespace XCode
         [Description("SQLite默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
         public String SQLiteDbPath { get; set; } = "";
 
+        /// <summary>备份目录。备份数据库时存放的目录</summary>
+        [Description("备份目录。备份数据库时存放的目录")]
+        public String BackupPath { get; set; } = "";
+
         /// <summary>命令超时。查询执行超时时间，默认0秒不限制</summary>
         [Description("命令超时。查询执行超时时间，默认0秒不限制")]
         public Int32 CommandTimeout { get; set; }
@@ -56,8 +60,8 @@ namespace XCode
         [Description("扩展属性过期。默认10秒")]
         public Int32 ExtendExpire { get; set; } = 10;
 
-        /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除</summary>
-        [Description("反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除")]
+        /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，仅新建；Full 完全，修改删除</summary>
+        [Description("反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，仅新建；Full 完全，修改删除")]
         public Migration Migration { get; set; } = Migration.On;
         #endregion
 
@@ -66,6 +70,7 @@ namespace XCode
         protected override void OnLoaded()
         {
             if (SQLiteDbPath.IsNullOrEmpty()) SQLiteDbPath = Runtime.IsWeb ? "..\\Data" : ".";
+            if (BackupPath.IsNullOrEmpty()) BackupPath = Runtime.IsWeb ? "..\\Backup" : "Backup";
 
             base.OnLoaded();
         }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 
 namespace NewLife.Reflection
@@ -44,7 +45,10 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static MethodInfo GetMethodEx(this Type type, String name, params Type[] paramTypes)
         {
-            if (String.IsNullOrEmpty(name)) return null;
+            if (name.IsNullOrEmpty()) return null;
+
+            // 如果其中一个类型参数为空，得用别的办法
+            if (paramTypes.Length > 0 && paramTypes.Any(e => e == null)) return Provider.GetMethods(type, name, paramTypes.Length).FirstOrDefault();
 
             return Provider.GetMethod(type, name, paramTypes);
         }
@@ -56,7 +60,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static MethodInfo[] GetMethodsEx(this Type type, String name, Int32 paramCount = -1)
         {
-            if (String.IsNullOrEmpty(name)) return null;
+            if (name.IsNullOrEmpty()) return null;
 
             return Provider.GetMethods(type, name, paramCount);
         }
@@ -163,17 +167,11 @@ namespace NewLife.Reflection
             var type = GetType(ref target);
 
             // 参数类型数组
-            var list = new List<Type>();
-            foreach (var item in parameters)
-            {
-                Type t = null;
-                if (item != null) t = item.GetType();
-
-                list.Add(t);
-            }
+            var ps = parameters.Select(e => e?.GetType()).ToArray();
 
             // 如果参数数组出现null，则无法精确匹配，可按参数个数进行匹配
-            var method = GetMethodEx(type, name, list.Count == 0 ? null : list.ToArray());
+            var method = ps.Any(e => e == null) ? GetMethodEx(type, name) : GetMethodEx(type, name, ps);
+            if (method == null) method = GetMethodsEx(type, name, ps.Length > 0 ? ps.Length : -1).FirstOrDefault();
             if (method == null) return false;
 
             value = Invoke(target, method, parameters);

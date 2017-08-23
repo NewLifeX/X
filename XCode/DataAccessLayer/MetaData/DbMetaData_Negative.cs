@@ -694,10 +694,7 @@ namespace XCode.DataAccessLayer
                         return true;
                     }
                 case DDLSchema.BackupDatabase:
-                    {
-                        Backup((String)values[0], (String)values[1]);
-                        return true;
-                    }
+                    return Backup((String)values[0], (String)values[1]);
                 default:
                     break;
             }
@@ -849,7 +846,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 操作
-        protected virtual void Backup(String dbname, String file) { throw new NotImplementedException(); }
+        protected virtual String Backup(String dbname, String bakfile) { throw new NotImplementedException(); }
 
         public virtual String CompactDatabase() { throw new NotImplementedException(); }
         #endregion

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.IO;
 using System.Web.Mvc;
-using NewLife.Security;
 using NewLife.Web;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -21,13 +21,16 @@ namespace NewLife.Cube.Admin.Controllers
         public ActionResult Index()
         {
             var list = new List<DbItem>();
+            var dir = XCode.Setting.Current.BackupPath.AsDirectory();
 
             // 读取配置文件
             foreach (var item in DAL.ConnStrs)
             {
-                var di = new DbItem();
-                di.Name = item.Key;
-                di.ConnStr = item.Value;
+                var di = new DbItem
+                {
+                    Name = item.Key,
+                    ConnStr = item.Value
+                };
 
                 var dal = DAL.Create(item.Key);
                 di.Type = dal.DbType;
@@ -37,7 +40,7 @@ namespace NewLife.Cube.Admin.Controllers
                 }
                 catch { }
 
-                di.Backups = Rand.Next(5);
+                if (dir.Exists) di.Backups = dir.GetFiles("{0}_*".F(dal.ConnName), SearchOption.TopDirectoryOnly).Length;
 
                 list.Add(di);
             }
@@ -95,6 +98,9 @@ namespace NewLife.Cube.Admin.Controllers
         [EntityAuthorize(PermissionFlags.Insert)]
         public ActionResult Backup(String name)
         {
+            var dal = DAL.Create(name);
+            var bak = dal.Db.CreateMetaData().SetSchema(DDLSchema.BackupDatabase, dal.ConnName, null);
+
             return Index();
         }
 

@@ -441,11 +441,26 @@ namespace XCode.DataAccessLayer
 
         /// <summary>备份文件到目标文件</summary>
         /// <param name="bakfile"></param>
-        public void Backup(String bakfile)
+        protected override String Backup(String dbname, String bakfile)
         {
-            bakfile = bakfile.GetFullPath().EnsureDirectory();
+            var dbfile = (Database as SQLite).FileName;
 
-            WriteLog("{0}备份SQLite数据库{1}到{2}", Database.ConnName, (Database as SQLite).FileName, bakfile);
+            // 备份文件
+            if (bakfile.IsNullOrEmpty())
+            {
+                var name = dbname;
+                if (name.IsNullOrEmpty()) name = Path.GetFileNameWithoutExtension(dbfile);
+
+                var ext = Path.GetExtension(dbfile);
+                if (ext.IsNullOrEmpty()) ext = ".db";
+
+                bakfile = "{0}_{1:yyyyMMddhhmmss}{2}".F(name, DateTime.Now, ext);
+            }
+            if (!Path.IsPathRooted(bakfile)) bakfile = Setting.Current.BackupPath.CombinePath(bakfile).GetFullPath();
+
+            bakfile = bakfile.EnsureDirectory(true);
+
+            WriteLog("{0}备份SQLite数据库 {1} 到 {2}", Database.ConnName, dbfile, bakfile);
 
             var sw = new Stopwatch();
             sw.Start();
@@ -468,18 +483,32 @@ namespace XCode.DataAccessLayer
 
             // 压缩
             WriteLog("备份文件大小：{0:n0}字节", bakfile.AsFile().Length);
-            if (bakfile.EndsWithIgnoreCase(".zip"))
+            //if (bakfile.EndsWithIgnoreCase(".zip"))
+            //{
+            //    //var rnd = new Random();
+            //    var tmp = Path.GetDirectoryName(bakfile).CombinePath(Rand.Next() + ".tmp");
+            //    File.Move(bakfile, tmp);
+            //    tmp.AsFile().Compress(bakfile);
+            //    File.Delete(tmp);
+            //    WriteLog("压缩后大小：{0:n0}字节", bakfile.AsFile().Length);
+            //}
+            if (!bakfile.EndsWithIgnoreCase(".zip"))
             {
-                //var rnd = new Random();
-                var tmp = Path.GetDirectoryName(bakfile).CombinePath(Rand.Next() + ".tmp");
-                File.Move(bakfile, tmp);
-                tmp.AsFile().Compress(bakfile);
-                File.Delete(tmp);
-                WriteLog("压缩后大小：{0:n0}字节", bakfile.AsFile().Length);
+                var zipfile = Path.ChangeExtension(bakfile, "zip");
+                var fi = bakfile.AsFile();
+                fi.Compress(zipfile);
+                WriteLog("压缩后大小：{0:n0}字节", fi.Length);
+
+                // 删除未备份
+                File.Delete(bakfile);
+
+                bakfile = zipfile;
             }
 
             sw.Stop();
             WriteLog("备份完成，耗时{0:n0}ms", sw.ElapsedMilliseconds);
+
+            return bakfile;
         }
 
         public override String CreateIndexSQL(IDataIndex index)
