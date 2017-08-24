@@ -444,8 +444,9 @@ namespace XCode.DataAccessLayer
             var mulTable = "";
             if (dt.Rows.Count > 10)
             {
-                var tablenames = dt.Rows.ToArray().Select(e => "'{0}'".F(e["TABLE_NAME"]));
-                mulTable = " And TABLE_NAME in ({0})".F(tablenames.Join(","));
+                //var tablenames = dt.Rows.ToArray().Select(e => "'{0}'".F(e["TABLE_NAME"]));
+                //mulTable = " And TABLE_NAME in ({0})".F(tablenames.Join(","));
+                mulTable = " And TABLE_NAME in ({0})".F(names.Join(","));
             }
 
             // 列和索引
