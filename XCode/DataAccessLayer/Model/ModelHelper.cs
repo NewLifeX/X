@@ -252,20 +252,7 @@ namespace XCode.DataAccessLayer
                             var v = reader.GetAttribute("DataType");
                             if (v != null)
                             {
-                                // 加速基础类型识别，忽略大小写
-                                foreach (var item in Enum.GetNames(typeof(TypeCode)))
-                                {
-                                    if (v.EqualIgnoreCase(item))
-                                    {
-                                        dc.DataType = v.GetTypeEx(false);
-                                        if (dc.DataType != null) break;
-                                    }
-                                }
-                                try
-                                {
-                                    if (dc.DataType == null) dc.DataType = v.GetTypeEx();
-                                }
-                                catch { }
+                                dc.DataType = v.GetTypeEx(false);
                                 v = reader.GetAttribute("Length");
                                 if (v != null && Int32.TryParse(v, out var len)) dc.Length = len;
 
@@ -361,13 +348,13 @@ namespace XCode.DataAccessLayer
                 names.Add(pi.Name);
 
                 var v = reader.GetAttribute(pi.Name);
-                if (String.IsNullOrEmpty(v)) continue;
+                if (v.IsNullOrEmpty()) continue;
 
                 if (pi.PropertyType == typeof(String[]))
                 {
                     var ss = v.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                     // 去除前后空格，因为手工修改xml的时候，可能在逗号后加上空格
-                    for (Int32 i = 0; i < ss.Length; i++)
+                    for (var i = 0; i < ss.Length; i++)
                     {
                         ss[i] = ss[i].Trim();
                     }

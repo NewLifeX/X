@@ -618,7 +618,7 @@ namespace NewLife.Reflection
                 }
                 else if (conversionType.As<Type>())
                 {
-                    return GetType((String)value, true);
+                    return GetType((String)value, false);
                 }
 
                 // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型

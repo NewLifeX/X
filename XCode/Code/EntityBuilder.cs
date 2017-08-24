@@ -383,10 +383,13 @@ namespace XCode.Code
                         var type = dc.Properties["Type"];
                         if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
 
-                        if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
-                            WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, type);
-                        else
-                            WriteLine("case __.{0} : _{0} = ({1})Convert.ToInt32(value); break;", dc.Name, type);
+                        if (!type.IsNullOrEmpty())
+                        {
+                            if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
+                                WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, type);
+                            else
+                                WriteLine("case __.{0} : _{0} = ({1})Convert.ToInt32(value); break;", dc.Name, type);
+                        }
                     }
                     WriteLine("default: base[name] = value; break;");
                     WriteLine("}");
