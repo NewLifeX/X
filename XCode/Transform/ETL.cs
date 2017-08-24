@@ -4,6 +4,21 @@ using System.Diagnostics;
 using NewLife.Log;
 using XCode.Membership;
 
+/*
+ * 数据抽取流程：
+ *      Start   启动检查抽取器和抽取设置
+ *      Process 大循环处理
+ *          克隆一份抽取配置，抽取时会滑动到下一批
+ *          Fetch   抽取一批数据，并滑动配置
+ *              ProcessList 处理列表，可异步调用
+ *                  OnProcessList   处理列表，异步调用前，先新增配置项，以免失败
+ *                      ProcessItem 处理实体
+ *                      OnError     处理实体异常
+ *                  ProcessFinished 处理完成，保存统计，异步时修改配置项为成功
+ *              OnError     处理列表异常
+ *      Stop    停止处理
+ */
+
 namespace XCode.Transform
 {
     /// <summary>数据分批统计</summary>
@@ -63,7 +78,7 @@ namespace XCode.Transform
             var ext = Extracter;
             if (ext == null) throw new ArgumentNullException(nameof(Extracter), "没有设置数据抽取器");
 
-            if (ext.Setting == null) ext.Setting = new ExtractSetting();
+            //if (ext.Setting == null) ext.Setting = new ExtractSetting();
             ext.Init();
 
             if (Stat == null) Stat = new ETLStat();
@@ -101,17 +116,13 @@ namespace XCode.Transform
                 _Inited = true;
             }
 
-            var st = Stat;
-            st.Message = null;
+            // 拷贝配置，支持多线程
+            var set2 = set.Clone();
 
             var ext = Extracter;
             IList<IEntity> list = null;
             try
             {
-                // 拷贝配置，支持多线程
-                var set2 = set.Clone();
-                st.Speed = 0;
-
                 var sw = Stopwatch.StartNew();
 
                 // 分批抽取
@@ -127,7 +138,7 @@ namespace XCode.Transform
             }
             catch (Exception ex)
             {
-                ex = OnError(list, ex);
+                ex = OnError(list, set2, ex);
                 if (ex != null) throw ex;
             }
 
@@ -152,8 +163,8 @@ namespace XCode.Transform
         }
 
         /// <summary>处理列表</summary>
-        /// <param name="list"></param>
-        /// <param name="set"></param>
+        /// <param name="list">实体列表</param>
+        /// <param name="set">本批次配置</param>
         protected virtual Int32 OnProcessList(IList<IEntity> list, IExtractSetting set)
         {
             var count = 0;
@@ -167,7 +178,7 @@ namespace XCode.Transform
                 }
                 catch (Exception ex)
                 {
-                    ex = OnError(source, ex);
+                    ex = OnError(source, set, ex);
                     if (ex != null) throw ex;
                 }
             }
@@ -176,8 +187,8 @@ namespace XCode.Transform
         }
 
         /// <summary>处理完成</summary>
-        /// <param name="list"></param>
-        /// <param name="set"></param>
+        /// <param name="list">实体列表</param>
+        /// <param name="set">本批次配置</param>
         /// <param name="fetchCost">抽取数据耗时</param>
         /// <param name="processCost">处理数据耗时</param>
         protected virtual void ProcessFinished(IList<IEntity> list, IExtractSetting set, Int32 success, Int32 fetchCost, Int32 processCost)
@@ -216,9 +227,10 @@ namespace XCode.Transform
         private Exception _lastError;
         /// <summary>处理单个实体遇到错误时如何处理</summary>
         /// <param name="source"></param>
+        /// <param name="set">本批次配置</param>
         /// <param name="ex"></param>
         /// <returns></returns>
-        protected virtual Exception OnError(Object source, Exception ex)
+        protected virtual Exception OnError(Object source, IExtractSetting set, Exception ex)
         {
             // 处理单个实体时的异常，会被外层捕获，需要判断跳过
             if (_lastError == ex) return ex;

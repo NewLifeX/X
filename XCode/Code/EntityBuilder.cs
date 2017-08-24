@@ -518,7 +518,7 @@ namespace XCode.Code
                     WriteLine();
                 }
 
-                WriteLine("// 累加字典");
+                WriteLine("// 累加字段");
                 WriteLine("//Meta.Factory.AdditionalFields.Add(__.Logins);");
 
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);

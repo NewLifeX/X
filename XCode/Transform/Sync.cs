@@ -89,7 +89,7 @@ namespace XCode.Transform
                     }
                     catch (Exception ex)
                     {
-                        ex = OnError(source, ex);
+                        ex = OnError(source, set, ex);
                         if (ex != null) throw ex;
                     }
                 }
