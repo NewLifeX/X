@@ -52,7 +52,7 @@ namespace NewLife.Web
         public String ProxyAddress { get; set; }
 
         /// <summary>网页代理</summary>
-        public WebProxy Proxy { get; set; }
+        public IWebProxy Proxy { get; set; }
 
         /// <summary>请求</summary>
         public HttpRequestHeaders Request { get; private set; }

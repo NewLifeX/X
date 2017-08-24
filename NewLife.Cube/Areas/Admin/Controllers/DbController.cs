@@ -110,9 +110,10 @@ namespace NewLife.Cube.Admin.Controllers
         [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Download(String name)
         {
+            var dal = DAL.Create(name);
+            var xml = DAL.Export(dal.Tables);
 
-
-            return Index();
+            return File(xml.GetBytes(), "application/xml", name + ".xml");
         }
     }
 }

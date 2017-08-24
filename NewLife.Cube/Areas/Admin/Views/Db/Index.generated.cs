@@ -99,7 +99,7 @@ WriteLiteral(">备份</th>\r\n            <th");
 
 WriteLiteral(" class=\"text-center\"");
 
-WriteLiteral(">下载</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
+WriteLiteral(">下载表结构</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
 
             
             #line 22 "..\..\Areas\Admin\Views\Db\Index.cshtml"
@@ -136,14 +136,14 @@ WriteLiteral("</td>\r\n                <td>");
             #line hidden
 WriteLiteral("</td>\r\n                <td><span");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 846), Tuple.Create("\"", 878)
+WriteAttribute("title", Tuple.Create(" title=\"", 849), Tuple.Create("\"", 881)
             
             #line 28 "..\..\Areas\Admin\Views\Db\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 854), Tuple.Create<System.Object, System.Int32>(dal.Db.ConnectionString
+, Tuple.Create(Tuple.Create("", 857), Tuple.Create<System.Object, System.Int32>(dal.Db.ConnectionString
             
             #line default
             #line hidden
-, 854), false)
+, 857), false)
 );
 
 WriteLiteral(">");
