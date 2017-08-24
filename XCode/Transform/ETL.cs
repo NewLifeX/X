@@ -89,7 +89,7 @@ namespace XCode.Transform
         public virtual Boolean Process()
         {
             var set = Extracter.Setting;
-            if (set == null || !set.Enable) return _Inited = false;
+            if (set == null) return _Inited = false;
 
             if (!_Inited)
             {
@@ -97,15 +97,10 @@ namespace XCode.Transform
                 _Inited = true;
             }
 
-            var start = set.Start;
-            var end = set.End;
-            var row = set.Row;
-
             var st = Stat;
             st.Message = null;
 
             var ext = Extracter;
-            //ext.Setting = set;
             IList<IEntity> list = null;
             try
             {
@@ -115,29 +110,16 @@ namespace XCode.Transform
                 // 分批抽取
                 list = ext.Fetch();
                 if (list == null || list.Count == 0) return false;
+                sw.Stop();
+
+                // 拷贝配置，支持多线程
+                var set2 = set.Clone();
 
                 // 批量处理
-                ProcessList(list);
-                sw.Stop();
+                ProcessList(list, set2, (Int32)sw.ElapsedMilliseconds);
 
                 // 当前批数据处理完成，移动到下一块
                 ext.SaveNext();
-
-                // 累计错误清零
-                _Error = 0;
-
-                var count = list.Count;
-                //st.Total += count;
-                st.Times++;
-
-                var ms = sw.ElapsedMilliseconds;
-                st.Speed = ms <= 0 ? 0 : (Int32)(count * 1000 / ms);
-
-                if (ext is TimeExtracter time) end = time.BatchEnd;
-                var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
-                var msg = "共处理{0}行，区间({1}, {2}{3})，{4:n0}ms，{5:n0}tps".F(count, start, row, ends, ms, st.Speed);
-                WriteLog(msg);
-                //LogProvider.Provider.WriteLog(Name, "同步", msg);
             }
             catch (Exception ex)
             {
@@ -148,15 +130,36 @@ namespace XCode.Transform
             return true;
         }
 
-        /// <summary>处理列表，批量事务提交</summary>
-        /// <param name="list"></param>
-        protected virtual void ProcessList(IList<IEntity> list)
+        /// <summary>处理列表，传递批次配置，支持多线程和异步</summary>
+        /// <remarks>
+        /// 子类可以根据需要重载该方法，实现异步处理。
+        /// 异步处理之前，需要先保存配置
+        /// </remarks>
+        /// <param name="list">实体列表</param>
+        /// <param name="set">本批次配置</param>
+        /// <param name="fetchCost">抽取数据耗时</param>
+        protected virtual void ProcessList(IList<IEntity> list, IExtractSetting set, Int32 fetchCost)
         {
+            var sw = Stopwatch.StartNew();
+            var count = OnProcessList(list, set);
+            sw.Stop();
+
+            ProcessFinished(list, set, count, fetchCost, (Int32)sw.ElapsedMilliseconds);
+        }
+
+        /// <summary>处理列表</summary>
+        /// <param name="list"></param>
+        /// <param name="set"></param>
+        protected virtual Int32 OnProcessList(IList<IEntity> list, IExtractSetting set)
+        {
+            var count = 0;
             foreach (var source in list)
             {
                 try
                 {
                     ProcessItem(source);
+
+                    count++;
                 }
                 catch (Exception ex)
                 {
@@ -164,6 +167,37 @@ namespace XCode.Transform
                     if (ex != null) throw ex;
                 }
             }
+
+            return count;
+        }
+
+        /// <summary>处理完成</summary>
+        /// <param name="list"></param>
+        /// <param name="set"></param>
+        /// <param name="fetchCost">抽取数据耗时</param>
+        /// <param name="processCost">处理数据耗时</param>
+        protected virtual void ProcessFinished(IList<IEntity> list, IExtractSetting set, Int32 success, Int32 fetchCost, Int32 processCost)
+        {
+            // 累计错误清零
+            _Error = 0;
+
+            var ext = Extracter;
+            var start = set.Start;
+            var end = set.End;
+            var row = set.Row;
+
+            var st = Stat;
+            var total = list.Count;
+            st.Total += total;
+            st.Success += success;
+            st.Times++;
+
+            st.Speed = processCost <= 0 ? 0 : (Int32)(total * 1000 / processCost);
+            st.FetchSpeed = fetchCost <= 0 ? 0 : (Int32)(total * 1000 / fetchCost);
+
+            if (ext is TimeExtracter time) end = time.BatchEnd;
+            var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
+            WriteLog("共处理{0}行，区间({1}, {2}{3})，{4:n0}ms，{5:n0}tps", total, start, row, ends, processCost, st.Speed);
         }
 
         /// <summary>处理单行数据</summary>

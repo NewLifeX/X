@@ -20,8 +20,8 @@ namespace XCode.Transform
         /// <summary>批大小</summary>
         Int32 BatchSize { get; set; }
 
-        /// <summary>启用</summary>
-        Boolean Enable { get; set; }
+        ///// <summary>启用</summary>
+        //Boolean Enable { get; set; }
     }
 
     /// <summary>数据抽取参数</summary>
@@ -43,8 +43,8 @@ namespace XCode.Transform
         /// <summary>批大小</summary>
         public Int32 BatchSize { get; set; } = 5000;
 
-        /// <summary>启用</summary>
-        public Boolean Enable { get; set; } = true;
+        ///// <summary>启用</summary>
+        //public Boolean Enable { get; set; } = true;
         #endregion
 
         #region 构造
@@ -75,9 +75,20 @@ namespace XCode.Transform
             src.Row = set.Row;
             src.Step = set.Step;
             src.BatchSize = set.BatchSize;
-            src.Enable = set.Enable;
+            //src.Enable = set.Enable;
 
             return src;
+        }
+
+        /// <summary>克隆一份设置参数</summary>
+        /// <param name="src"></param>
+        /// <returns></returns>
+        public static IExtractSetting Clone(this IExtractSetting src)
+        {
+            var set = new ExtractSetting();
+            set.Copy(src);
+
+            return set;
         }
     }
 }

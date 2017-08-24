@@ -71,7 +71,7 @@ namespace XCode.Transform
         /// <summary>实例化时基抽取算法</summary>
         public TimeExtracter()
         {
-            Name = GetType().Name.TrimEnd("Extracter", "Worker");
+            Name = GetType().Name.TrimEnd("Extracter");
         }
         #endregion
 
@@ -97,7 +97,6 @@ namespace XCode.Transform
 
             var set = Setting;
             if (set == null) set = Setting = new ExtractSetting();
-            if (!set.Enable) return null;
 
             // 验证时间段
             var start = set.Start;

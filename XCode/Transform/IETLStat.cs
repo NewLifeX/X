@@ -10,17 +10,23 @@ namespace XCode.Transform
     public interface IETLStat
     {
         #region 性能指标
-        /// <summary>新增总数</summary>
+        /// <summary>总数</summary>
         Int32 Total { get; set; }
 
-        /// <summary>更新总数</summary>
-        Int32 TotalUpdate { get; set; }
+        /// <summary>成功</summary>
+        Int32 Success { get; set; }
+
+        /// <summary>改变数</summary>
+        Int32 Changes { get; set; }
 
         /// <summary>次数</summary>
         Int32 Times { get; set; }
 
         /// <summary>速度</summary>
         Int32 Speed { get; set; }
+
+        /// <summary>抽取速度</summary>
+        Int32 FetchSpeed { get; set; }
 
         /// <summary>错误</summary>
         Int32 Error { get; set; }
@@ -34,17 +40,23 @@ namespace XCode.Transform
     public class ETLStat : IETLStat
     {
         #region 性能指标
-        /// <summary>新增总数</summary>
+        /// <summary>总数</summary>
         public Int32 Total { get; set; }
 
-        /// <summary>更新总数</summary>
-        public Int32 TotalUpdate { get; set; }
+        /// <summary>成功</summary>
+        public Int32 Success { get; set; }
+
+        /// <summary>改变数</summary>
+        public Int32 Changes { get; set; }
 
         /// <summary>次数</summary>
         public Int32 Times { get; set; }
 
         /// <summary>速度</summary>
         public Int32 Speed { get; set; }
+
+        /// <summary>抽取速度</summary>
+        public Int32 FetchSpeed { get; set; }
 
         /// <summary>错误</summary>
         public Int32 Error { get; set; }

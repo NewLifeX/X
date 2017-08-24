@@ -57,10 +57,13 @@ namespace XCode.Transform
         #endregion
 
         #region 数据同步
-        /// <summary>处理列表，批量事务提交</summary>
-        /// <param name="list"></param>
-        protected override void ProcessList(IList<IEntity> list)
+        /// <summary>处理列表，传递批次配置，支持多线程</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="set">本批次配置</param>
+        protected override Int32 OnProcessList(IList<IEntity> list, IExtractSetting set)
         {
+            var count = 0;
+
             // 批量事务提交
             var fact = Target;
             fact?.BeginTransaction();
@@ -81,6 +84,8 @@ namespace XCode.Transform
                         {
                             ProcessItem(source, null, false);
                         }
+
+                        count++;
                     }
                     catch (Exception ex)
                     {
@@ -95,6 +100,8 @@ namespace XCode.Transform
                 fact?.Rollback();
                 throw;
             }
+
+            return count;
         }
 
         /// <summary>处理单行数据</summary>
@@ -138,21 +145,16 @@ namespace XCode.Transform
         /// <param name="isNew"></param>
         protected virtual void SaveItem(IEntity target, Boolean isNew)
         {
-            // 自动保存
-            //if (AutoSave)
-            //{
             var st = Stat;
             if (isNew)
-            {
                 target.Insert();
-                st.Total++;
-            }
             else
             {
                 target.Update();
-                st.TotalUpdate++;
+                st.Changes++;
             }
-            //}
+
+            st.Total++;
         }
         #endregion
     }
