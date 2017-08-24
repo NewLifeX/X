@@ -48,6 +48,12 @@ namespace NewLife.Web
         /// <summary>编码。网络时代，绝大部分使用utf8编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
+        /// <summary>代理服务器地址</summary>
+        public String ProxyAddress { get; set; }
+
+        /// <summary>网页代理</summary>
+        public WebProxy Proxy { get; set; }
+
         /// <summary>请求</summary>
         public HttpRequestHeaders Request { get; private set; }
 
@@ -108,7 +114,14 @@ namespace NewLife.Web
             var http = _client;
             if (http == null)
             {
-                http = _client = new HttpClientX();
+                var p = Proxy;
+                if (p == null && !ProxyAddress.IsNullOrEmpty()) Proxy = p = new WebProxy(ProxyAddress);
+                if (p == null)
+                    http = new HttpClientX();
+                else
+                    http = new HttpClientX(new HttpClientHandler { Proxy = p });
+
+                _client = http;
                 Request = http.DefaultRequestHeaders;
                 http.Timeout = new TimeSpan(0, 0, 0, 0, Timeout);
             }
