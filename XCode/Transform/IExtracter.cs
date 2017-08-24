@@ -37,8 +37,8 @@ namespace XCode.Transform
         /// <returns></returns>
         IList<IEntity> Fetch();
 
-        /// <summary>当前批数据处理完成，移动到下一块</summary>
-        void SaveNext();
+        ///// <summary>当前批数据处理完成，移动到下一块</summary>
+        //void SaveNext();
         #endregion
 
         #region 日志

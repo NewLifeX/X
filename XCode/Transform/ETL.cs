@@ -61,7 +61,8 @@ namespace XCode.Transform
         public virtual void Start()
         {
             var ext = Extracter;
-            if (ext == null) ext = Extracter = new TimeExtracter();
+            if (ext == null) throw new ArgumentNullException(nameof(Extracter), "没有设置数据抽取器");
+
             if (ext.Setting == null) ext.Setting = new ExtractSetting();
             ext.Init();
 
@@ -69,7 +70,10 @@ namespace XCode.Transform
         }
 
         /// <summary>停止</summary>
-        public virtual void Stop() { }
+        public virtual void Stop()
+        {
+            _Inited = false;
+        }
         #endregion
 
         #region 数据转换
@@ -85,15 +89,15 @@ namespace XCode.Transform
         }
 
         /// <summary>抽取并处理一批数据</summary>
-        /// <returns></returns>
-        public virtual Boolean Process()
+        /// <returns>返回抽取数据行数，没有数据返回0，初始化或配置失败返回-1</returns>
+        public virtual Int32 Process()
         {
             var set = Extracter.Setting;
-            if (set == null) return _Inited = false;
+            if (set == null) { _Inited = false; return -1; }
 
             if (!_Inited)
             {
-                if (!Init(set)) return false;
+                if (!Init(set)) return -1;
                 _Inited = true;
             }
 
@@ -104,22 +108,22 @@ namespace XCode.Transform
             IList<IEntity> list = null;
             try
             {
-                var sw = Stopwatch.StartNew();
+                // 拷贝配置，支持多线程
+                var set2 = set.Clone();
                 st.Speed = 0;
+
+                var sw = Stopwatch.StartNew();
 
                 // 分批抽取
                 list = ext.Fetch();
-                if (list == null || list.Count == 0) return false;
+                if (list == null || list.Count == 0) return 0;
                 sw.Stop();
-
-                // 拷贝配置，支持多线程
-                var set2 = set.Clone();
 
                 // 批量处理
                 ProcessList(list, set2, (Int32)sw.ElapsedMilliseconds);
 
-                // 当前批数据处理完成，移动到下一块
-                ext.SaveNext();
+                //// 当前批数据处理完成，移动到下一块
+                //ext.SaveNext();
             }
             catch (Exception ex)
             {
@@ -127,7 +131,7 @@ namespace XCode.Transform
                 if (ex != null) throw ex;
             }
 
-            return true;
+            return list.Count;
         }
 
         /// <summary>处理列表，传递批次配置，支持多线程和异步</summary>
@@ -195,7 +199,7 @@ namespace XCode.Transform
             st.Speed = processCost <= 0 ? 0 : (Int32)(total * 1000 / processCost);
             st.FetchSpeed = fetchCost <= 0 ? 0 : (Int32)(total * 1000 / fetchCost);
 
-            if (ext is TimeExtracter time) end = time.BatchEnd;
+            if (ext is TimeExtracter time) end = time.ActualEnd;
             var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
             WriteLog("共处理{0}行，区间({1}, {2}{3})，{4:n0}ms，{5:n0}tps", total, start, row, ends, processCost, st.Speed);
         }
