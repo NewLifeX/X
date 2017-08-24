@@ -252,7 +252,20 @@ namespace XCode.DataAccessLayer
                             var v = reader.GetAttribute("DataType");
                             if (v != null)
                             {
-                                dc.DataType = v.GetTypeEx();
+                                // 加速基础类型识别，忽略大小写
+                                foreach (var item in Enum.GetNames(typeof(TypeCode)))
+                                {
+                                    if (v.EqualIgnoreCase(item))
+                                    {
+                                        dc.DataType = v.GetTypeEx(false);
+                                        if (dc.DataType != null) break;
+                                    }
+                                }
+                                try
+                                {
+                                    if (dc.DataType == null) dc.DataType = v.GetTypeEx();
+                                }
+                                catch { }
                                 v = reader.GetAttribute("Length");
                                 if (v != null && Int32.TryParse(v, out var len)) dc.Length = len;
 
