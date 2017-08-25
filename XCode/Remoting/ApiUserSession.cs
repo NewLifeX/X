@@ -8,31 +8,9 @@ using XCode.Membership;
 
 namespace XCode.Remoting
 {
-    ///// <summary>带有用户信息的Api会话</summary>
-    //public abstract class ApiUserSession<TOnline, THistory> : ApiUserSession
-    //    where TOnline : IOnline, new()
-    //    where THistory : IHistory, new()
-    //{
-    //    #region 操作历史
-    //    /// <summary>创建在线</summary>
-    //    /// <param name="sessionid"></param>
-    //    /// <returns></returns>
-    //    protected override IOnline CreateOnline(Int32 sessionid) { return new TOnline { SessionID = sessionid }; }
-
-    //    /// <summary>创建历史</summary>
-    //    /// <returns></returns>
-    //    protected override IHistory CreateHistory() { return new THistory(); }
-    //    #endregion
-    //}
-
     /// <summary>带有用户信息的Api会话</summary>
     public abstract class ApiUserSession : ApiSession
     {
-        #region 提供者
-        ///// <summary>管理提供者</summary>
-        //public static IManageProvider Provider { get; set; }
-        #endregion
-
         #region 属性
         /// <summary>当前登录用户</summary>
         public IManageUser Current { get; set; }
@@ -114,7 +92,8 @@ namespace XCode.Remoting
                     else rs = new { Name = u.Name, Key = AuthKey };
                 }
 
-                u.SaveLogin(ns);
+                //u.SaveLogin(ns);
+                SaveLogin(u);
 
                 // 当前设备
                 Current = u;
@@ -145,6 +124,14 @@ namespace XCode.Remoting
             {
                 SaveHistory(act, flag, msg);
             }
+        }
+
+        /// <summary>登录或注册完成后，保存登录信息</summary>
+        /// <param name="user"></param>
+        protected virtual void SaveLogin(IManageUser user)
+        {
+            var ns = Session as NetSession;
+            user.SaveLogin(ns);
         }
 
         /// <summary>生成密钥，默认密码加密密钥，可继承修改</summary>
@@ -195,6 +182,8 @@ namespace XCode.Remoting
             var u = Current;
 
             var olt = Online ?? CreateOnline(ns.ID);
+            olt.Name = Agent;
+            olt.Type = Type;
             olt.SessionID = ns.ID;
             olt.UpdateTime = DateTime.Now;
 
@@ -204,7 +193,11 @@ namespace XCode.Remoting
                 olt.CreateIP = ns?.Remote?.Address + "";
             }
 
-            if (u != null) olt.UserID = u.ID;
+            if (u != null)
+            {
+                olt.UserID = u.ID;
+                if (olt.Name.IsNullOrEmpty()) olt.Name = u + "";
+            }
             olt.SaveAsync();
 
             Online = olt;
