@@ -24,8 +24,8 @@ namespace NewLife.Model
         ///// <summary>创建者</summary>
         //Int32 CreateUserID { get; set; }
 
-        ///// <summary>创建时间</summary>
-        //DateTime CreateTime { get; set; }
+        /// <summary>创建时间</summary>
+        DateTime CreateTime { get; set; }
 
         /// <summary>创建地址</summary>
         String CreateIP { get; set; }

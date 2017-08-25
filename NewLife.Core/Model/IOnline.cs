@@ -9,8 +9,11 @@ namespace NewLife.Model
         /// <summary>会员</summary>
         Int32 UserID { get; set; }
 
-        ///// <summary>名称</summary>
-        //String Name { get; }
+        /// <summary>名称</summary>
+        String Name { get; set; }
+
+        /// <summary>类型</summary>
+        String Type { get; set; }
 
         /// <summary>会话</summary>
         Int32 SessionID { get; set; }
