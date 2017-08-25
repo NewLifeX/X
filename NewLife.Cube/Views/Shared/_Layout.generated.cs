@@ -118,79 +118,49 @@ WriteLiteral("\r\n\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 777), Tuple.Create("\"", 807)
-, Tuple.Create(Tuple.Create("", 784), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap.css")
+WriteAttribute("href", Tuple.Create(" href=\"", 777), Tuple.Create("\"", 825)
+, Tuple.Create(Tuple.Create("", 784), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap.min.css")
 , 784), false)
 );
 
-WriteLiteral(" />\r\n    <link");
+WriteLiteral(" />\r\n    ");
 
-WriteLiteral(" rel=\"stylesheet\"");
+WriteLiteral("\r\n</head>\r\n<body>\r\n    ");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 839), Tuple.Create("\"", 876)
-, Tuple.Create(Tuple.Create("", 846), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch.css")
-, 846), false)
-);
+WriteLiteral("\r\n\r\n    ");
 
-WriteLiteral(" />\r\n</head>\r\n<body>\r\n");
+WriteLiteral("\r\n");
 
 WriteLiteral("    ");
-
-            
-            #line 27 "..\..\Views\Shared\_Layout.cshtml"
-Write(Html.Partial("_Layout_Header"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n\r\n    <div");
-
-WriteLiteral(" class=\"container\"");
-
-WriteLiteral(">\r\n");
-
-WriteLiteral("        ");
 
             
             #line 30 "..\..\Views\Shared\_Layout.cshtml"
-   Write(RenderBody());
+Write(RenderBody());
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n    </div>\r\n\r\n");
+WriteLiteral("\r\n    ");
 
-WriteLiteral("    ");
+WriteLiteral("\r\n\r\n    ");
 
-            
-            #line 33 "..\..\Views\Shared\_Layout.cshtml"
-Write(Html.Partial("_Layout_Footer"));
-
-            
-            #line default
-            #line hidden
 WriteLiteral("\r\n\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 1054), Tuple.Create("\"", 1085)
-, Tuple.Create(Tuple.Create("", 1060), Tuple.Create<System.Object, System.Int32>(Href("~/Scripts/jquery-2.0.3.js")
-, 1060), false)
-);
-
-WriteLiteral("></script>\r\n    <script");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 1109), Tuple.Create("\"", 1137)
-, Tuple.Create(Tuple.Create("", 1115), Tuple.Create<System.Object, System.Int32>(Href("~/Scripts/bootstrap.js")
+WriteAttribute("src", Tuple.Create(" src=\"", 1109), Tuple.Create("\"", 1147)
+, Tuple.Create(Tuple.Create("", 1115), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
 , 1115), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 1161), Tuple.Create("\"", 1196)
-, Tuple.Create(Tuple.Create("", 1167), Tuple.Create<System.Object, System.Int32>(Href("~/Scripts/bootstrap-switch.js")
-, 1167), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 1171), Tuple.Create("\"", 1212)
+, Tuple.Create(Tuple.Create("", 1177), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.js")
+, 1177), false)
 );
 
-WriteLiteral("></script>\r\n");
+WriteLiteral("></script>\r\n    ");
+
+WriteLiteral("\r\n");
 
 WriteLiteral("    ");
 
