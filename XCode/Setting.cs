@@ -24,9 +24,9 @@ namespace XCode
         [Description("SQL目录。设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录")]
         public String SQLPath { get; set; } = "";
 
-        /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认5000毫秒</summary>
-        [Description("SQL执行时间。跟踪SQL执行时间，大于该阀值将输出日志，默认5000毫秒")]
-        public Int32 TraceSQLTime { get; set; } = 5000;
+        /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认1000毫秒</summary>
+        [Description("SQL执行时间。跟踪SQL执行时间，大于该阀值将输出日志，默认1000毫秒")]
+        public Int32 TraceSQLTime { get; set; } = 1000;
 
         /// <summary>连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去</summary>
         [Description("连接映射。连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]

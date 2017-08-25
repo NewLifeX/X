@@ -700,14 +700,18 @@ namespace XCode.DataAccessLayer
             WriteSQL(sql);
         }
 
-        /// <summary>输出日志</summary>
-        /// <param name="msg"></param>
-        public static void WriteLog(String msg) { DAL.WriteLog(msg); }
+        ///// <summary>输出日志</summary>
+        ///// <param name="msg"></param>
+        //public static void WriteLog(String msg) { DAL.WriteLog(msg); }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args) { DAL.WriteLog(format, args); }
+        public static void WriteLog(String format, params Object[] args)
+        {
+            //DAL.WriteLog(format, args);
+            XTrace.WriteLine(format, args);
+        }
         #endregion
 
         #region SQL时间跟踪

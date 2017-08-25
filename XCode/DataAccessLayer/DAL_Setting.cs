@@ -21,7 +21,7 @@ namespace XCode.DataAccessLayer
         {
             if (!Debug) return;
 
-            InitLog();
+            //InitLog();
             XTrace.WriteLine(format, args);
         }
 
@@ -33,7 +33,7 @@ namespace XCode.DataAccessLayer
         {
             if (!Debug) return;
 
-            InitLog();
+            //InitLog();
             XTrace.WriteLine(format, args);
         }
 
