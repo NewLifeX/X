@@ -131,7 +131,7 @@ namespace XCode.Transform
                 sw.Stop();
 
                 // 批量处理
-                ProcessList(list, set2, (Int32)sw.ElapsedMilliseconds);
+                ProcessList(list, set2, sw.Elapsed.TotalMilliseconds);
 
                 //// 当前批数据处理完成，移动到下一块
                 //ext.SaveNext();
@@ -142,7 +142,7 @@ namespace XCode.Transform
                 if (ex != null) throw ex;
             }
 
-            return list.Count;
+            return list == null ? 0 : list.Count;
         }
 
         /// <summary>处理列表，传递批次配置，支持多线程和异步</summary>
@@ -153,13 +153,13 @@ namespace XCode.Transform
         /// <param name="list">实体列表</param>
         /// <param name="set">本批次配置</param>
         /// <param name="fetchCost">抽取数据耗时</param>
-        protected virtual void ProcessList(IList<IEntity> list, IExtractSetting set, Int32 fetchCost)
+        protected virtual void ProcessList(IList<IEntity> list, IExtractSetting set, Double fetchCost)
         {
             var sw = Stopwatch.StartNew();
             var count = OnProcessList(list, set);
             sw.Stop();
 
-            ProcessFinished(list, set, count, fetchCost, (Int32)sw.ElapsedMilliseconds);
+            ProcessFinished(list, set, count, fetchCost, sw.Elapsed.TotalMilliseconds);
         }
 
         /// <summary>处理列表</summary>
@@ -192,7 +192,7 @@ namespace XCode.Transform
         /// <param name="success">成功行数</param>
         /// <param name="fetchCost">抽取数据耗时</param>
         /// <param name="processCost">处理数据耗时</param>
-        protected virtual void ProcessFinished(IList<IEntity> list, IExtractSetting set, Int32 success, Int32 fetchCost, Int32 processCost)
+        protected virtual void ProcessFinished(IList<IEntity> list, IExtractSetting set, Int32 success, Double fetchCost, Double processCost)
         {
             // 累计错误清零
             _Error = 0;
@@ -226,7 +226,7 @@ namespace XCode.Transform
         }
 
         private Exception _lastError;
-        /// <summary>处理单个实体遇到错误时如何处理</summary>
+        /// <summary>遇到错误时如何处理</summary>
         /// <param name="source"></param>
         /// <param name="set">本批次配置</param>
         /// <param name="ex"></param>

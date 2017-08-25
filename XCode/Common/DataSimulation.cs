@@ -128,7 +128,7 @@ namespace XCode.Common
             sw.Stop();
             Console.WriteLine();
             WriteLog("数据写入完毕！");
-            var ms = sw.ElapsedMilliseconds;
+            var ms = sw.Elapsed.TotalMilliseconds;
             WriteLog("{2}插入{3:n0}行数据，耗时：{0:n0}ms 速度：{1:n0}tps", ms, list.Count * 1000L / ms, fact.Session.Dal.DbType, list.Count);
 
             WriteLog("{0} 共有数据：{1:n0}", fact.TableName, fact.Count);
