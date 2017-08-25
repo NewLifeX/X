@@ -208,6 +208,8 @@ namespace NewLife.Threading
             // 控制日志显示
             WriteLogEventArgs.CurrentThreadName = Name == "Default" ? "T" : Name;
 
+            timer.hasSetNext = false;
+
             var sw = new Stopwatch();
             sw.Start();
 
@@ -237,10 +239,16 @@ namespace NewLife.Threading
                 var p = timer.Period;
 
                 timer.Timers++;
-                if (timer.Absolutely)
-                    timer.NextTime = timer.NextTime.AddMilliseconds(p);
-                else
-                    timer.NextTime = DateTime.Now.AddMilliseconds(p);
+
+                // 如果内置设置了下一次时间，则不再递加周期
+                if (!timer.hasSetNext)
+                {
+                    if (timer.Absolutely)
+                        timer.NextTime = timer.NextTime.AddMilliseconds(p);
+                    else
+                        timer.NextTime = DateTime.Now.AddMilliseconds(p);
+                }
+
                 timer.Calling = false;
 
                 // 清理一次性定时器

@@ -119,11 +119,16 @@ namespace NewLife.Threading
         #endregion
 
         #region 方法
+        /// <summary>是否已设置下一次时间</summary>
+        internal Boolean hasSetNext;
+
         /// <summary>设置下一次运行时间</summary>
         /// <param name="ms"></param>
         public void SetNext(Int32 ms)
         {
             NextTime = DateTime.Now.AddMilliseconds(ms);
+
+            hasSetNext = true;
 
             Scheduler.Wake();
         }
