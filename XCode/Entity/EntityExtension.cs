@@ -95,11 +95,11 @@ namespace XCode
         /// <param name="valueField">作为Value部分的字段，默认为空表示整个实体对象为值</param>
         /// <returns></returns>
         //[Obsolete("将来不再支持实体列表，请改用Linq")]
-        public static IDictionary ToDictionary<T>(this IList<T> list, String valueField = null) where T : IEntity
+        public static IDictionary ToDictionary<T>(this IEnumerable<T> list, String valueField = null) where T : IEntity
         {
-            if (list == null || list.Count == 0) return new Dictionary<String, String>();
+            if (list == null || !list.Any()) return new Dictionary<String, String>();
 
-            var type = list[0].GetType();
+            var type = list.First().GetType();
             var fact = EntityFactory.CreateOperate(type);
 
             // 构造主键类型和值类型
@@ -184,7 +184,7 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Insert<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 Insert<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.Insert());
         }
@@ -193,7 +193,7 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Update<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 Update<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.Update());
         }
@@ -202,7 +202,7 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Save<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 Save<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.Save());
         }
@@ -211,7 +211,7 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 SaveWithoutValid<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 SaveWithoutValid<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.SaveWithoutValid());
         }
@@ -220,19 +220,19 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Delete<T>(this IList<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 Delete<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.Delete());
         }
 
-        private static Int32 DoAction<T>(this IList<T> list, Boolean useTransition, Func<T, Int32> func) where T : IEntity
+        private static Int32 DoAction<T>(this IEnumerable<T> list, Boolean useTransition, Func<T, Int32> func) where T : IEntity
         {
-            if (list.Count < 1) return 0;
+            if (!list.Any()) return 0;
 
             var count = 0;
             if (useTransition)
             {
-                var fact = EntityFactory.CreateOperate(list[0].GetType());
+                var fact = EntityFactory.CreateOperate(list.First().GetType());
                 using (var trans = fact.CreateTrans())
                 {
                     count = DoAction(list, func, count);
@@ -248,11 +248,11 @@ namespace XCode
             return count;
         }
 
-        private static Int32 DoAction<T>(this IList<T> list, Func<T, Int32> func, Int32 count) where T : IEntity
+        private static Int32 DoAction<T>(this IEnumerable<T> list, Func<T, Int32> func, Int32 count) where T : IEntity
         {
-            for (var i = 0; i < list.Count; i++)
+            foreach (var item in list)
             {
-                count += func(list[i]);
+                count += func(item);
             }
             return count;
         }
