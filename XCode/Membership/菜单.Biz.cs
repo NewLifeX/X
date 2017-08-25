@@ -193,7 +193,7 @@ namespace XCode.Membership
             entity.Name = name;
             entity.DisplayName = displayName;
             entity.Url = url;
-            entity.ParentID = this.ID;
+            entity.ParentID = ID;
             entity.Parent = this as TEntity;
 
             entity.Visible = ID == 0 || displayName != null;

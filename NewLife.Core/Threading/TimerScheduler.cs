@@ -21,8 +21,7 @@ namespace NewLife.Threading
         /// <returns></returns>
         public static TimerScheduler Create(String name)
         {
-            TimerScheduler ts = null;
-            if (_cache.TryGetValue(name, out ts)) return ts;
+            if (_cache.TryGetValue(name, out var ts)) return ts;
             lock (_cache)
             {
                 if (_cache.TryGetValue(name, out ts)) return ts;
@@ -68,10 +67,12 @@ namespace NewLife.Threading
 
                 if (thread == null)
                 {
-                    thread = new Thread(Process);
-                    //thread.Name = "TimerX";
-                    thread.Name = Name == "Default" ? "T" : Name;
-                    thread.IsBackground = true;
+                    thread = new Thread(Process)
+                    {
+                        //thread.Name = "TimerX";
+                        Name = Name == "Default" ? "T" : Name,
+                        IsBackground = true
+                    };
                     thread.Start();
                 }
 

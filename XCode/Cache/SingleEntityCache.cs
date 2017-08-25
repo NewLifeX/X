@@ -451,15 +451,15 @@ namespace XCode.Cache
         #region 辅助
         internal SingleEntityCache<TKey, TEntity> CopySettingFrom(ISingleEntityCache<TKey, TEntity> ec)
         {
-            this.Expire = ec.Expire;
-            this.MaxEntity = ec.MaxEntity;
+            Expire = ec.Expire;
+            MaxEntity = ec.MaxEntity;
 
-            this.GetKeyMethod = ec.GetKeyMethod;
-            this.FindKeyMethod = ec.FindKeyMethod;
+            GetKeyMethod = ec.GetKeyMethod;
+            FindKeyMethod = ec.FindKeyMethod;
 
-            this.SlaveKeyIgnoreCase = ec.SlaveKeyIgnoreCase;
-            this.GetSlaveKeyMethod = ec.GetSlaveKeyMethod;
-            this.FindSlaveKeyMethod = ec.FindSlaveKeyMethod;
+            SlaveKeyIgnoreCase = ec.SlaveKeyIgnoreCase;
+            GetSlaveKeyMethod = ec.GetSlaveKeyMethod;
+            FindSlaveKeyMethod = ec.FindSlaveKeyMethod;
 
             return this;
         }

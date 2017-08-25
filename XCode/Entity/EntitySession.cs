@@ -409,9 +409,11 @@ namespace XCode
                 // 以连接名和表名为key，因为不同的库不同的表，缓存也不一样
                 if (_singleCache == null)
                 {
-                    var sc = new SingleEntityCache<Object, TEntity>();
-                    sc.ConnName = ConnName;
-                    sc.TableName = TableName;
+                    var sc = new SingleEntityCache<Object, TEntity>
+                    {
+                        ConnName = ConnName,
+                        TableName = TableName
+                    };
 
                     // 从默认会话复制参数
                     if (Default != this) sc.CopySettingFrom(Default.SingleCache);
@@ -473,8 +475,10 @@ namespace XCode
                 // 小于1000的精确查询，大于1000的快速查询
                 if (n >= 0 && n <= 1000L)
                 {
-                    var sb = new SelectBuilder();
-                    sb.Table = FormatedTableName;
+                    var sb = new SelectBuilder
+                    {
+                        Table = FormatedTableName
+                    };
 
                     WaitForInitData();
                     m = Dal.SelectCount(sb);
@@ -494,9 +498,11 @@ namespace XCode
 
                             //if (DAL.Debug) DAL.WriteLog("第一次访问{0}，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数", ThisType.Name);
 
-                            var builder = new SelectBuilder();
-                            builder.Table = FormatedTableName;
-                            builder.OrderBy = Table.Identity.Desc();
+                            var builder = new SelectBuilder
+                            {
+                                Table = FormatedTableName,
+                                OrderBy = Table.Identity.Desc()
+                            };
                             var ds = Dal.Select(builder, 0, 1);
                             if (ds.Tables[0].Rows.Count > 0)
                                 max = Convert.ToInt64(ds.Tables[0].Rows[0][Table.Identity.ColumnName]);
@@ -515,8 +521,10 @@ namespace XCode
                         // 查真实记录数，修正FastCount不够准确的情况
                         if (Dal.DbType != DatabaseType.SQLite) TaskEx.Run(() =>
                         {
-                            var sb = new SelectBuilder();
-                            sb.Table = FormatedTableName;
+                            var sb = new SelectBuilder
+                            {
+                                Table = FormatedTableName
+                            };
 
                             _LastCount = _Count = Dal.SelectCount(sb);
 
@@ -576,7 +584,7 @@ namespace XCode
 
             _singleCache?.Clear(reason);
 
-            Int64 n = _Count;
+            var n = _Count;
             if (n < 0L) return;
 
             // 只有小于等于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
@@ -650,7 +658,7 @@ namespace XCode
         {
             InitData();
 
-            Int32 rs = Dal.Execute(sql, type, ps);
+            var rs = Dal.Execute(sql, type, ps);
             DataChange("Execute " + type);
             return rs;
         }
@@ -664,7 +672,7 @@ namespace XCode
         {
             InitData();
 
-            Int64 rs = Dal.InsertAndGetIdentity(sql, type, ps);
+            var rs = Dal.InsertAndGetIdentity(sql, type, ps);
             DataChange("InsertAndGetIdentity " + type);
             return rs;
         }
@@ -802,14 +810,14 @@ namespace XCode
         #endregion
 
         #region 实体操作
-        private IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
+        private IEntityPersistence Persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存和单对象缓存，增加总计数</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
         public virtual Int32 Insert(IEntity entity)
         {
-            var rs = persistence.Insert(entity);
+            var rs = Persistence.Insert(entity);
 
             // 标记来自数据库
             var e = entity as TEntity;
@@ -845,7 +853,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntity entity)
         {
-            var rs = persistence.Update(entity);
+            var rs = Persistence.Update(entity);
 
             // 标记来自数据库
             var e = entity as TEntity;
@@ -885,7 +893,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Delete(IEntity entity)
         {
-            var rs = persistence.Delete(entity);
+            var rs = Persistence.Delete(entity);
 
             var e = entity as TEntity;
 

@@ -65,11 +65,10 @@ namespace NewLife.Threading
         /// <param name="scheduler">调度器</param>
         public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period, String scheduler = null)
         {
-            if (callback == null) throw new ArgumentNullException(nameof(callback));
             if (dueTime < 0) throw new ArgumentOutOfRangeException(nameof(dueTime));
             //if (period < 0) throw new ArgumentOutOfRangeException("period");
 
-            Callback = callback;
+            Callback = callback ?? throw new ArgumentNullException(nameof(callback));
             State = state;
             Period = period;
 
@@ -87,11 +86,10 @@ namespace NewLife.Threading
         /// <param name="scheduler">调度器</param>
         public TimerX(WaitCallback callback, Object state, DateTime startTime, Int32 period, String scheduler = null)
         {
-            if (callback == null) throw new ArgumentNullException(nameof(callback));
             if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
             //if (period < 0) throw new ArgumentOutOfRangeException("period");
 
-            Callback = callback;
+            Callback = callback ?? throw new ArgumentNullException(nameof(callback));
             State = state;
             Period = period;
             Absolutely = true;

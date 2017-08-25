@@ -132,9 +132,11 @@ namespace XCode.DataAccessLayer
         {
             var ms = new MemoryStream();
 
-            var settings = new XmlWriterSettings();
-            settings.Encoding = new UTF8Encoding(false);
-            settings.Indent = true;
+            var settings = new XmlWriterSettings
+            {
+                Encoding = new UTF8Encoding(false),
+                Indent = true
+            };
 
             var writer = XmlWriter.Create(ms, settings);
             writer.WriteStartDocument();
@@ -173,9 +175,11 @@ namespace XCode.DataAccessLayer
             if (xml.IsNullOrEmpty()) return null;
             if (createTable == null) throw new ArgumentNullException(nameof(createTable));
 
-            var settings = new XmlReaderSettings();
-            settings.IgnoreWhitespace = true;
-            settings.IgnoreComments = true;
+            var settings = new XmlReaderSettings
+            {
+                IgnoreWhitespace = true,
+                IgnoreComments = true
+            };
 
             var reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
             while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read()) return null; }
@@ -460,7 +464,7 @@ namespace XCode.DataAccessLayer
                     {
                         var sb = new StringBuilder();
                         var arr = obj as IEnumerable;
-                        foreach (Object elm in arr)
+                        foreach (var elm in arr)
                         {
                             if (sb.Length > 0) sb.Append(",");
                             sb.Append(elm);

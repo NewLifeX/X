@@ -80,7 +80,7 @@ namespace XCode.DataAccessLayer
                     }
                     catch (ObjectDisposedException) { Dispose(); throw; }
                     //_Conn.ConnectionString = Database.ConnectionString;
-                    checkConnStr();
+                    CheckConnStr();
                     _Conn.ConnectionString = ConnectionString;
                 }
                 return _Conn;
@@ -88,7 +88,7 @@ namespace XCode.DataAccessLayer
             //set { _Conn = value; }
         }
 
-        protected void checkConnStr()
+        protected void CheckConnStr()
         {
             if (ConnectionString.IsNullOrWhiteSpace())
                 throw new XCodeException("[{0}]未指定连接字符串！", Database == null ? "" : Database.ConnName);
@@ -163,8 +163,10 @@ namespace XCode.DataAccessLayer
                 if (b) Close();
 
                 //如果没有打开，则改变链接字符串
-                var builder = new XDbConnectionStringBuilder();
-                builder.ConnectionString = ConnectionString;
+                var builder = new XDbConnectionStringBuilder
+                {
+                    ConnectionString = ConnectionString
+                };
                 var flag = false;
                 if (builder.ContainsKey("Database"))
                 {
@@ -230,7 +232,7 @@ namespace XCode.DataAccessLayer
         /// <returns>剩下的事务计数</returns>
         public virtual Int32 BeginTransaction(IsolationLevel level)
         {
-            if (Disposed) throw new ObjectDisposedException(this.GetType().Name);
+            if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             var tr = Transaction;
             if (tr != null) return tr.Begin().Count;
@@ -444,7 +446,7 @@ namespace XCode.DataAccessLayer
             try
             {
                 BeginTrace();
-                Object rs = cmd.ExecuteScalar();
+                var rs = cmd.ExecuteScalar();
                 if (rs == null || rs == DBNull.Value) return default(T);
                 if (rs is T) return (T)rs;
                 return (T)Reflect.ChangeType(rs, typeof(T));
@@ -544,7 +546,7 @@ namespace XCode.DataAccessLayer
             if (isTrans)
             {
                 conn = Factory.CreateConnection();
-                checkConnStr();
+                CheckConnStr();
                 conn.ConnectionString = ConnectionString;
                 conn.Open();
             }
@@ -635,8 +637,7 @@ namespace XCode.DataAccessLayer
             var context = HttpContext.Current;
             if (context != null)
             {
-                var list = context.Items["XCode_SQLList"] as List<String>;
-                if (list != null) list.Add(sql);
+                if (context.Items["XCode_SQLList"] is List<String> list) list.Add(sql);
             }
 #endif
 
@@ -659,7 +660,7 @@ namespace XCode.DataAccessLayer
                 var sb = new StringBuilder(64);
                 sb.Append(sql);
                 sb.Append(" [");
-                for (Int32 i = 0; i < ps.Count; i++)
+                for (var i = 0; i < ps.Count; i++)
                 {
                     if (i > 0) sb.Append(", ");
                     var v = ps[i].Value;

@@ -145,8 +145,7 @@ namespace NewLife.Reflection
             if (target == null) throw new ArgumentNullException("target");
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            Object value = null;
-            if (TryInvoke(target, name, out value, parameters)) return value;
+            if (TryInvoke(target, name, out var value, parameters)) return value;
 
             var type = GetType(ref target);
             throw new XException("类{0}中找不到名为{1}的方法！", type, name);
@@ -220,8 +219,7 @@ namespace NewLife.Reflection
             if (target == null) throw new ArgumentNullException("target");
             if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
 
-            Object value = null;
-            if (TryGetValue(target, name, out value)) return value;
+            if (TryGetValue(target, name, out var value)) return value;
 
             if (!throwOnError) return null;
 

@@ -80,11 +80,13 @@ namespace Test
                 if (ths < 1) ths = 1;
             }
 
-            var ds = new XCode.Common.DataSimulation<UserOnline>();
-            ds.Log = XTrace.Log;
-            //ds.BatchSize = 10000;
-            ds.Threads = ths;
-            ds.UseSql = true;
+            var ds = new XCode.Common.DataSimulation<UserOnline>
+            {
+                Log = XTrace.Log,
+                //ds.BatchSize = 10000;
+                Threads = ths,
+                UseSql = true
+            };
             ds.Run(100000);
         }
 
@@ -140,9 +142,11 @@ namespace Test
             {
                 EntityModules.Global.Add<TestModule>();
 
-                var user = new UserX();
-                user.Name = "Stone";
-                user.RoleID = 1;
+                var user = new UserX
+                {
+                    Name = "Stone",
+                    RoleID = 1
+                };
                 user.Save();
 
                 user.Name = "大石头";

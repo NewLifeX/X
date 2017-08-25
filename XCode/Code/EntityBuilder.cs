@@ -121,10 +121,12 @@ namespace XCode.Code
             var count = 0;
             foreach (var item in tables)
             {
-                var builder = new EntityBuilder();
-                builder.Table = item;
-                builder.AllTables = tables;
-                builder.GenericType = item.Properties["RenderGenEntity"].ToBoolean();
+                var builder = new EntityBuilder
+                {
+                    Table = item,
+                    AllTables = tables,
+                    GenericType = item.Properties["RenderGenEntity"].ToBoolean()
+                };
 
                 var str = item.Properties["Namespace"];
                 if (str.IsNullOrEmpty()) str = nameSpace;

@@ -87,7 +87,7 @@ namespace XCode
         {
             if (dt == null) return new List<TEntity>();
 
-            var list = dreAccessor.LoadData<TEntity>(dt);
+            var list = DreAccessor.LoadData<TEntity>(dt);
             // 设置默认累加字段
             EntityAddition.SetField(list.Cast<IEntity>().ToList());
             foreach (var entity in list)
@@ -108,11 +108,11 @@ namespace XCode
             return list;
         }
 
-        private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
+        private static IDataRowEntityAccessor DreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
         #endregion
 
         #region 操作
-        private static IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
+        private static IEntityPersistence Persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
 
         /// <summary>插入数据，<see cref="Valid"/>后，在事务中调用<see cref="OnInsert"/>。</summary>
         /// <returns></returns>
@@ -149,7 +149,7 @@ namespace XCode
                 if (names.SequenceEqual(names2))
                 {
                     // 再次查询
-                    var entity = Find(persistence.GetPrimaryCondition(this));
+                    var entity = Find(Persistence.GetPrimaryCondition(this));
                     // 如果目标数据不存在，就没必要删除了
                     if (entity == null) return 0;
 
@@ -217,7 +217,7 @@ namespace XCode
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
             if (IsNullKey) return Insert();
 
-            return FindCount(persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
+            return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
 
         /// <summary>不需要验证的保存，不执行Valid，一般用于快速导入数据</summary>
@@ -378,7 +378,7 @@ namespace XCode
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
                 var list = cache.Entities.Where(e =>
                 {
-                    for (int i = 0; i < names.Length; i++)
+                    for (var i = 0; i < names.Length; i++)
                     {
                         if (e[names[i]] != values[i]) return false;
                     }
@@ -452,10 +452,12 @@ namespace XCode
             var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
 
-            var builder = new SelectBuilder();
-            builder.Table = session.FormatedTableName;
-            // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
-            builder.Where = wh;
+            var builder = new SelectBuilder
+            {
+                Table = session.FormatedTableName,
+                // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
+                Where = wh
+            };
 
             // 提取参数
             builder = FixParam(builder, ps);
@@ -778,9 +780,11 @@ namespace XCode
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
             if (String.IsNullOrEmpty(where) && session.LongCount > 10000) return session.Count;
 
-            var sb = new SelectBuilder();
-            sb.Table = session.FormatedTableName;
-            sb.Where = where;
+            var sb = new SelectBuilder
+            {
+                Table = session.FormatedTableName,
+                Where = where
+            };
 
             // 分组查分组数的时候，必须带上全部selects字段
             if (!sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
@@ -804,9 +808,11 @@ namespace XCode
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
             if (String.IsNullOrEmpty(wh) && session.LongCount > 10000) return session.LongCount;
 
-            var builder = new SelectBuilder();
-            builder.Table = session.FormatedTableName;
-            builder.Where = wh;
+            var builder = new SelectBuilder
+            {
+                Table = session.FormatedTableName,
+                Where = wh
+            };
 
             // 提取参数
             builder = FixParam(builder, ps);
@@ -1042,12 +1048,12 @@ namespace XCode
                 // 匹配字段
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = this.GetType().GetFieldEx("_" + name, true);
+                    var field = GetType().GetFieldEx("_" + name, true);
                     if (field != null) return this.GetValue(field);
                 }
 
                 // 尝试匹配属性
-                var property = this.GetType().GetPropertyEx(name, true);
+                var property = GetType().GetPropertyEx(name, true);
                 if (property != null && property.CanRead) return this.GetValue(property);
 
                 // 检查动态增加的字段，返回默认值
@@ -1072,7 +1078,7 @@ namespace XCode
                 //匹配字段
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = this.GetType().GetFieldEx("_" + name, true);
+                    var field = GetType().GetFieldEx("_" + name, true);
                     if (field != null)
                     {
                         this.SetValue(field, value);
@@ -1081,7 +1087,7 @@ namespace XCode
                 }
 
                 //尝试匹配属性
-                var property = this.GetType().GetPropertyEx(name, true);
+                var property = GetType().GetPropertyEx(name, true);
                 if (property != null && property.CanWrite)
                 {
                     this.SetValue(property, value);
@@ -1089,8 +1095,7 @@ namespace XCode
                 }
 
                 // 检查动态增加的字段，返回默认值
-                var f = Meta.Table.FindByName(name) as FieldItem;
-                if (f != null && f.IsDynamic) value = value.ChangeType(f.Type);
+                if (Meta.Table.FindByName(name) is FieldItem f && f.IsDynamic) value = value.ChangeType(f.Type);
 
                 Extends[name] = value;
             }

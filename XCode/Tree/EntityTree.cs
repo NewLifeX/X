@@ -540,9 +540,9 @@ namespace XCode
             {
                 var s = list.Count - i;
                 // 当前项，排序增加。原来比较实体相等有问题，也许新旧实体类不对应，现在改为比较主键值
-                if (this.EqualTo(list[i])) s += n;
+                if (EqualTo(list[i])) s += n;
                 // 下一项是当前项，排序减少
-                if (i < list.Count - 1 && this.EqualTo(list[i + 1])) s -= n;
+                if (i < list.Count - 1 && EqualTo(list[i + 1])) s -= n;
                 list[i].Sort = s;
             }
             list.Save();
@@ -560,9 +560,9 @@ namespace XCode
             {
                 var s = list.Count - i;
                 // 当前项，排序减少
-                if (this.EqualTo(list[i])) s -= n;
+                if (EqualTo(list[i])) s -= n;
                 // 上一项是当前项，排序增加
-                if (i >= 1 && this.EqualTo(list[i - 1])) s += n;
+                if (i >= 1 && EqualTo(list[i - 1])) s += n;
                 list[i].Sort = s;
             }
             list.Save();
@@ -627,7 +627,7 @@ namespace XCode
             // 编辑状态且设置了父节点时才处理
             if (!isnull && !pisnull)
             {
-                var list = this.AllChilds;
+                var list = AllChilds;
                 if (list != null && list.Any(e => Object.Equals(e[Setting.Key], pkey)))
                     throw new XException("上级[" + pkey + "]是当前节点的子孙节点！");
             }

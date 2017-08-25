@@ -254,11 +254,11 @@ namespace XCode
         /// <returns></returns>
         Boolean IEntity.EqualTo(IEntity entity)
         {
-            if (entity == null || this.GetType() != entity.GetType()) return false;
+            if (entity == null || GetType() != entity.GetType()) return false;
             if (this == entity) return true;
 
             // 判断是否所有主键相等
-            var op = EntityFactory.CreateOperate(this.GetType());
+            var op = EntityFactory.CreateOperate(GetType());
             var ps = op.Table.PrimaryKeys;
             // 如果没有主键，则判断所有字段
             if (ps == null || ps.Length < 1) ps = op.Table.Fields;

@@ -189,6 +189,7 @@ namespace XCode.Transform
         /// <summary>处理完成</summary>
         /// <param name="list">实体列表</param>
         /// <param name="set">本批次配置</param>
+        /// <param name="success">成功行数</param>
         /// <param name="fetchCost">抽取数据耗时</param>
         /// <param name="processCost">处理数据耗时</param>
         protected virtual void ProcessFinished(IList<IEntity> list, IExtractSetting set, Int32 success, Int32 fetchCost, Int32 processCost)

@@ -204,8 +204,8 @@ namespace XCode.Cache
         #region 辅助
         internal EntityCache<TEntity> CopySettingFrom(EntityCache<TEntity> ec)
         {
-            this.Expire = ec.Expire;
-            this.FillListMethod = ec.FillListMethod;
+            Expire = ec.Expire;
+            FillListMethod = ec.FillListMethod;
 
             return this;
         }

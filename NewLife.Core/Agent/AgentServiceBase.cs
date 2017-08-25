@@ -383,8 +383,7 @@ namespace NewLife.Agent
                         var type = item.Value.GetTypeEx();
                         if (type != null)
                         {
-                            var service = type.CreateInstance() as IServer;
-                            if (service != null) AttachServers[item.Key] = service;
+                            if (type.CreateInstance() is IServer service) AttachServers[item.Key] = service;
                         }
                     }
                 }
@@ -399,9 +398,8 @@ namespace NewLife.Agent
                         foreach (var pi in type.GetProperties(true))
                         {
                             var name = String.Format("XAgent.{0}.{1}", item.Key, pi.Name);
-                            Object value = null;
                             // 读取配置，并赋值
-                            if (Config.TryGetConfig(name, pi.PropertyType, out value))
+                            if (Config.TryGetConfig(name, pi.PropertyType, out var value))
                             {
                                 WriteLine("配置：{0} = {1}", name, value);
                                 //PropertyInfoX.Create(pi).SetValue(item.Value, value);
@@ -490,7 +488,7 @@ namespace NewLife.Agent
             if (index < Intervals.Length) time = Intervals[index];
             if (time < 0) return;
 
-            var th = new Thread(workWaper);
+            var th = new Thread(WorkWaper);
             Threads[index] = th;
             //String name = "XAgent_" + index;
             var name = "A" + index;
@@ -504,7 +502,7 @@ namespace NewLife.Agent
 
         /// <summary>线程包装</summary>
         /// <param name="data">线程序号</param>
-        private void workWaper(Object data)
+        private void WorkWaper(Object data)
         {
             var index = (Int32)data;
 
@@ -610,11 +608,13 @@ namespace NewLife.Agent
         /// <summary>开始服务管理线程</summary>
         public void StartManagerThread()
         {
-            ManagerThread = new Thread(ManagerThreadWaper);
-            //ManagerThread.Name = "XAgent_Manager";
-            ManagerThread.Name = "AM";
-            ManagerThread.IsBackground = true;
-            ManagerThread.Priority = ThreadPriority.Highest;
+            ManagerThread = new Thread(ManagerThreadWaper)
+            {
+                //ManagerThread.Name = "XAgent_Manager";
+                Name = "AM",
+                IsBackground = true,
+                Priority = ThreadPriority.Highest
+            };
             ManagerThread.Start();
         }
 
@@ -824,10 +824,12 @@ namespace NewLife.Agent
             //执行重启服务的批处理
             //RunCmd(filename, false, false);
             var p = new Process();
-            var si = new ProcessStartInfo();
-            si.FileName = filename;
-            si.UseShellExecute = true;
-            si.CreateNoWindow = true;
+            var si = new ProcessStartInfo
+            {
+                FileName = filename,
+                UseShellExecute = true,
+                CreateNoWindow = true
+            };
             p.StartInfo = si;
 
             p.Start();

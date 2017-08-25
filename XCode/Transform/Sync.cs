@@ -39,6 +39,7 @@ namespace XCode.Transform
         }
     }
 
+    /// <summary>数据同步</summary>
     public class Sync : ETL
     {
         #region 属性

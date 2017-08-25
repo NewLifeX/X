@@ -126,8 +126,10 @@ namespace XCode.DataAccessLayer
 #if DEBUG
                 XTrace.WriteLine("{0} 设定 {1}", ConnName, value);
 #endif
-                var builder = new XDbConnectionStringBuilder();
-                builder.ConnectionString = value;
+                var builder = new XDbConnectionStringBuilder
+                {
+                    ConnectionString = value
+                };
 
                 OnSetConnectionString(builder);
 
@@ -145,7 +147,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected void checkConnStr()
+        protected void CheckConnStr()
         {
             if (ConnectionString.IsNullOrWhiteSpace())
                 throw new XCodeException("[{0}]未指定连接字符串！", ConnName);
@@ -210,7 +212,7 @@ namespace XCode.DataAccessLayer
 
                 session = OnCreateSession();
 
-                checkConnStr();
+                CheckConnStr();
                 session.ConnectionString = ConnectionString;
 
                 _sessions[tid] = session;
@@ -250,7 +252,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>
         /// <returns></returns>
-        public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(this.Type.ToString().ToLower()); }
+        public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(Type.ToString().ToLower()); }
         #endregion
 
         #region 下载驱动
@@ -568,8 +570,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(name)) return name;
 
             //if (CreateMetaData().ReservedWords.Contains(name)) return FormatKeyWord(name);
-            var md = CreateMetaData() as DbMetaData;
-            if (md != null && md.ReservedWords.Contains(name)) return FormatKeyWord(name);
+            if (CreateMetaData() is DbMetaData md && md.ReservedWords.Contains(name)) return FormatKeyWord(name);
 
             if (IsReservedWord(name)) return FormatKeyWord(name);
 

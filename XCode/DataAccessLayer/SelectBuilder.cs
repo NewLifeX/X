@@ -300,18 +300,20 @@ $";
         /// <returns></returns>
         public SelectBuilder Clone()
         {
-            var sb = new SelectBuilder();
-            sb.Column = Column;
-            sb.Table = Table;
-            // 直接拷贝字段，避免属性set时触发分析代码
-            sb._Where = _Where;
-            sb._OrderBy = _OrderBy;
-            sb.GroupBy = GroupBy;
-            sb.Having = Having;
+            var sb = new SelectBuilder
+            {
+                Column = Column,
+                Table = Table,
+                // 直接拷贝字段，避免属性set时触发分析代码
+                _Where = _Where,
+                _OrderBy = _OrderBy,
+                GroupBy = GroupBy,
+                Having = Having,
 
-            sb.Keys = Keys;
-            sb.IsDescs = IsDescs;
-            sb.IsInt = IsInt;
+                Keys = Keys,
+                IsDescs = IsDescs,
+                IsInt = IsInt
+            };
 
             sb.Parameters.AddRange(Parameters);
 

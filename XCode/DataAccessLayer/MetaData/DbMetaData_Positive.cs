@@ -93,8 +93,8 @@ namespace XCode.DataAccessLayer
             }
 
             var columns = data?["Columns"];
-            var indexes = data != null ? data["Indexes"] : null;
-            var indexColumns = data != null ? data["IndexColumns"] : null;
+            var indexes = data?["Indexes"];
+            var indexColumns = data?["IndexColumns"];
 
             if (columns == null) columns = GetSchema(_.Columns, null);
             if (indexes == null) indexes = GetSchema(_.Indexes, null);

@@ -104,7 +104,7 @@ namespace XCode
         String ICustomTypeDescriptor.GetClassName()
         {
             //return TypeDescriptor.GetClassName(this, true);
-            return this.GetType().FullName;
+            return GetType().FullName;
         }
 
         String ICustomTypeDescriptor.GetComponentName()
@@ -144,12 +144,12 @@ namespace XCode
 
         PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties(Attribute[] attributes)
         {
-            return Fix(this.GetType(), TypeDescriptor.GetProperties(this, attributes, true));
+            return Fix(GetType(), TypeDescriptor.GetProperties(this, attributes, true));
         }
 
         PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties()
         {
-            return Fix(this.GetType(), TypeDescriptor.GetProperties(this, true));
+            return Fix(GetType(), TypeDescriptor.GetProperties(this, true));
         }
 
         Object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd)
