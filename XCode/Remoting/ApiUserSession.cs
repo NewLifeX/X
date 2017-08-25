@@ -8,6 +8,23 @@ using XCode.Membership;
 
 namespace XCode.Remoting
 {
+    ///// <summary>带有用户信息的Api会话</summary>
+    //public abstract class ApiUserSession<TOnline, THistory> : ApiUserSession
+    //    where TOnline : IOnline, new()
+    //    where THistory : IHistory, new()
+    //{
+    //    #region 操作历史
+    //    /// <summary>创建在线</summary>
+    //    /// <param name="sessionid"></param>
+    //    /// <returns></returns>
+    //    protected override IOnline CreateOnline(Int32 sessionid) { return new TOnline { SessionID = sessionid }; }
+
+    //    /// <summary>创建历史</summary>
+    //    /// <returns></returns>
+    //    protected override IHistory CreateHistory() { return new THistory(); }
+    //    #endregion
+    //}
+
     /// <summary>带有用户信息的Api会话</summary>
     public abstract class ApiUserSession : ApiSession
     {
@@ -62,7 +79,7 @@ namespace XCode.Remoting
             // 登录
             Name = user;
 
-            CheckOnline(user);           
+            CheckOnline(user);
 
             var msg = "登录 {0}/{1}".F(user, pass);
             WriteLog(msg);
@@ -145,13 +162,13 @@ namespace XCode.Remoting
             return key;
         }
 
-        /// <summary>查找用户并登录</summary>
+        /// <summary>查找用户并登录，找不到用户是返回空，登录失败则抛出异常</summary>
         /// <param name="user"></param>
         /// <param name="pass"></param>
         /// <returns></returns>
         protected abstract IManageUser CheckUser(String user, String pass);
 
-        /// <summary>注册</summary>
+        /// <summary>注册，登录找不到用户时调用注册，返回空表示禁止注册</summary>
         /// <param name="user"></param>
         /// <param name="pass"></param>
         /// <returns></returns>
@@ -170,7 +187,9 @@ namespace XCode.Remoting
         #endregion
 
         #region 操作历史
-        private void CheckOnline(String name)
+        /// <summary>更新在线信息，登录前、心跳时 调用</summary>
+        /// <param name="name"></param>
+        protected virtual void CheckOnline(String name)
         {
             var ns = Session as NetSession;
             var u = Current;
@@ -200,7 +219,7 @@ namespace XCode.Remoting
         /// <param name="action"></param>
         /// <param name="success"></param>
         /// <param name="content"></param>
-        public void SaveHistory(String action, Boolean success, String content)
+        public virtual void SaveHistory(String action, Boolean success, String content)
         {
             var hi = CreateHistory();
             hi.Name = Agent;
@@ -210,18 +229,20 @@ namespace XCode.Remoting
             var ot = Online;
             if (u != null)
             {
-                hi.UserID = u.ID;
+                if (hi.UserID == 0) hi.UserID = u.ID;
                 if (hi.Name.IsNullOrEmpty()) hi.Name = u + "";
             }
             else if (ot != null)
             {
-                hi.UserID = ot.UserID;
+                if (hi.UserID == 0) hi.UserID = ot.UserID;
                 //if (hi.Name.IsNullOrEmpty()) hi.Name = ot.Name;
             }
+            //if (hi.CreateUserID == 0) hi.CreateUserID = hi.UserID;
 
             hi.Action = action;
             hi.Success = success;
             hi.Remark = content;
+            hi.CreateTime = DateTime.Now;
 
             var sc = Session as NetSession;
             if (sc != null) hi.CreateIP = sc.Remote + "";
