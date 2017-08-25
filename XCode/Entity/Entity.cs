@@ -965,12 +965,14 @@ namespace XCode
 
         static SelectBuilder CreateBuilder(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows, Boolean needOrderByID = true)
         {
-            var builder = new SelectBuilder();
-            builder.Column = selects;
-            builder.Table = Meta.Session.FormatedTableName;
-            builder.OrderBy = order;
-            // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
-            builder.Where = where;
+            var builder = new SelectBuilder
+            {
+                Column = selects,
+                Table = Meta.Session.FormatedTableName,
+                OrderBy = order,
+                // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
+                Where = where
+            };
 
             // XCode对于默认排序的规则：自增主键降序，其它情况默认
             // 返回所有记录

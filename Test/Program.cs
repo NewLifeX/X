@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -101,12 +101,15 @@ namespace Test
 
         static void Test2()
         {
-            EntityBuilder.Build(@"E:\X\NewLife.CMX\Src\NewLife.CMX\\CMX.xml");
+            //EntityBuilder.Build(@"E:\X\NewLife.CMX\Src\NewLife.CMX\\CMX.xml");
 
-            EntityAssembly.Debug = true;
-            var dal = DAL.Create("Membership");
-            var fact = dal.CreateOperate("User");
-            Console.WriteLine(fact.Count);
+            //EntityAssembly.Debug = true;
+            //var dal = DAL.Create("Membership");
+            //var fact = dal.CreateOperate("User");
+            //Console.WriteLine(fact.Count);
+
+            var list = UserX.FindAll();
+            Console.WriteLine(list?.Count);
         }
 
         class TestModule : EntityModule

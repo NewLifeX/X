@@ -440,6 +440,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>备份文件到目标文件</summary>
+        /// <param name="dbname"></param>
         /// <param name="bakfile"></param>
         protected override String Backup(String dbname, String bakfile)
         {
