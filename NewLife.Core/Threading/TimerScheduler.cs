@@ -240,7 +240,7 @@ namespace NewLife.Threading
 
                 timer.Timers++;
 
-                // 如果内置设置了下一次时间，则不再递加周期
+                // 如果内部设置了下一次时间，则不再递加周期
                 if (!timer.hasSetNext)
                 {
                     if (timer.Absolutely)
