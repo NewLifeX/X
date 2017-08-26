@@ -88,8 +88,8 @@ namespace XCode.Remoting
                 {
                     if (!u.Enable) throw Error(4, user + " 已被禁用");
 
-                    if (AuthKey.IsNullOrEmpty()) rs = new { Name = u.Name };
-                    else rs = new { Name = u.Name, Key = AuthKey };
+                    if (AuthKey.IsNullOrEmpty()) rs = new { Name = u + "" };
+                    else rs = new { Name = u + "", Key = AuthKey };
                 }
 
                 //u.SaveLogin(ns);
