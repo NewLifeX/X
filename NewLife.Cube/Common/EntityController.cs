@@ -52,7 +52,7 @@ namespace NewLife.Cube
             ViewBag.Page = p;
 
             // 用于显示的列
-            ViewBag.Fields = GetFields(ps.ContainsKey("entity"));
+            if(!ps.ContainsKey("entity")) ViewBag.Fields = GetFields(false);
 
             if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
 
@@ -331,7 +331,7 @@ namespace NewLife.Cube
         protected virtual ActionResult FormView(TEntity entity)
         {
             // 用于显示的列
-            if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
+            ViewBag.Fields = GetFields(true);
 
             // 呈现表单前，保存实体对象。提交时优先使用该对象而不是去数据库查找，避免脏写
             EntityModelBinder.SetEntity(entity);
