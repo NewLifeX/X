@@ -43,7 +43,7 @@ namespace NewLife.Remoting
         /// <summary>可提供服务的方法</summary>
         public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>();
 
-        private void Register(Object controller, Type type, Boolean requireApi)
+        private void RegisterAll(Object controller, Type type, Boolean requireApi)
         {
             var flag = BindingFlags.Public | BindingFlags.Instance;
             // 如果要求Api特性，则还需要遍历私有方法和静态方法
@@ -66,7 +66,7 @@ namespace NewLife.Remoting
         /// <param name="requireApi">是否要求Api特性</param>
         public void Register<TService>(Boolean requireApi = false) where TService : class, new()
         {
-            Register(null, typeof(TService), requireApi);
+            RegisterAll(null, typeof(TService), requireApi);
         }
 
         /// <summary>注册服务</summary>
@@ -83,12 +83,13 @@ namespace NewLife.Remoting
             {
                 var mi = type.GetMethodEx(method);
                 var act = new ApiAction(mi, type);
+                act.Controller = controller;
 
                 Services[act.Name] = act;
             }
             else
             {
-                Register(controller, type, requireApi);
+                RegisterAll(controller, type, requireApi);
             }
         }
 
@@ -109,7 +110,7 @@ namespace NewLife.Remoting
             }
             else
             {
-                Register(null, type, requireApi);
+                RegisterAll(null, type, requireApi);
             }
         }
 
