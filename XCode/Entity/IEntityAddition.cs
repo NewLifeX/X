@@ -56,18 +56,19 @@ namespace XCode
         /// <returns>是否成功设置累加字段。如果不是第一次设置，并且没有重置数据，那么返回失败</returns>
         public Boolean SetField(String name, Boolean reset = false)
         {
+            var df = _Additions;
             // 检查集合是否为空
-            if (_Additions == null)
+            if (df == null)
             {
                 //_Additions = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
-                _Additions = new Dictionary<String, Object>();
+                _Additions = df = new Dictionary<String, Object>();
             }
 
-            lock (_Additions)
+            lock (df)
             {
-                if (reset || !_Additions.ContainsKey(name))
+                if (reset || !df.ContainsKey(name))
                 {
-                    _Additions[name] = Entity[name];
+                    df[name] = Entity[name];
                     return true;
                 }
                 else
@@ -81,9 +82,9 @@ namespace XCode
         /// <returns>是否成功删除累加字段</returns>
         public Boolean RemoveField(String name, Boolean restore = false)
         {
-            if (_Additions == null) return false;
-
-            if (!_Additions.TryGetValue(name, out var obj)) return false;
+            var df = _Additions;
+            if (df == null) return false;
+            if (!df.TryGetValue(name, out var obj)) return false;
 
             if (restore) Entity[name] = obj;
 
@@ -99,9 +100,10 @@ namespace XCode
         {
             value = null;
             sign = true;
-            if (_Additions == null) return false;
 
-            if (!_Additions.TryGetValue(name, out value)) return false;
+            var df = _Additions;
+            if (df == null) return false;
+            if (!df.TryGetValue(name, out value)) return false;
 
             // 如果原始值是0，不使用累加，因为可能原始数据字段是NULL，导致累加失败
             if (Convert.ToInt64(value) == 0) return false;
@@ -175,11 +177,12 @@ namespace XCode
         /// <summary>清除累加字段数据。Update后调用该方法</summary>
         public void ClearValues()
         {
-            if (_Additions == null) return;
+            var df = _Additions;
+            if (df == null) return;
 
-            foreach (var item in _Additions.Keys.ToArray())
+            foreach (var item in df.Keys.ToArray())
             {
-                _Additions[item] = Entity[item];
+                df[item] = Entity[item];
             }
         }
         #endregion

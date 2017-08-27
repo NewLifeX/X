@@ -120,7 +120,14 @@ namespace XCode
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <returns></returns>
-        protected virtual Int32 OnInsert() { return Meta.Session.Insert(this); }
+        protected virtual Int32 OnInsert()
+        {
+            var rs = Meta.Session.Insert(this);
+            // 设置默认累加字段
+            EntityAddition.SetField(this);
+
+            return rs;
+        }
 
         /// <summary>更新数据，<see cref="Valid"/>后，在事务中调用<see cref="OnUpdate"/>。</summary>
         /// <returns></returns>
