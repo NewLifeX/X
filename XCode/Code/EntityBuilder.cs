@@ -733,7 +733,7 @@ namespace XCode.Code
                     WriteLine("/// <summary>{0}</summary>", dis);
                     WriteLine("[XmlIgnore]");
                     WriteLine("//[ScriptIgnore]");
-                    WriteLine("public {1} {0} {{ get {{ return Extends.Get({0}, k => {1}.FindBy{3}({2})); }} }}", NameOf(pname), dt.Name, dc.Name, pk.Name);
+                    WriteLine("public {1} {1} {{ get {{ return Extends.Get({0}, k => {1}.FindBy{3}({2})); }} }}", NameOf(pname), dt.Name, dc.Name, pk.Name);
 
                     // 主字段
                     var master = dt.Master ?? dt.GetColumn("Name");
