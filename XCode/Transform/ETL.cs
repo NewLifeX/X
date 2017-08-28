@@ -11,9 +11,13 @@ using XCode.Membership;
  *          克隆一份抽取配置，抽取时会滑动到下一批
  *          Fetch   抽取一批数据，并滑动配置
  *              ProcessList 处理列表，可异步调用
- *                  OnProcessList   处理列表，异步调用前，先新增配置项，以免失败
+ *                  OnProcess   处理列表，异步调用前，先新增配置项，以免失败
  *                      ProcessItem 处理实体
  *                      OnError     处理实体异常
+ *                  OnSync      同步列表
+ *                      SyncItem    同步实体
+ *                          GetItem     查找或新建目标对象
+ *                          SaveItem    保存目标对象
  *                  ProcessFinished 处理完成，保存统计，异步时修改配置项为成功
  *              OnError     处理列表异常
  *      Stop    停止处理
@@ -126,15 +130,12 @@ namespace XCode.Transform
                 var sw = Stopwatch.StartNew();
 
                 // 分批抽取
-                list = ext.Fetch();
+                list = Fetch(ext);
                 if (list == null || list.Count == 0) return 0;
                 sw.Stop();
 
                 // 批量处理
                 ProcessList(list, set2, sw.Elapsed.TotalMilliseconds);
-
-                //// 当前批数据处理完成，移动到下一块
-                //ext.SaveNext();
             }
             catch (Exception ex)
             {
@@ -143,6 +144,14 @@ namespace XCode.Transform
             }
 
             return list == null ? 0 : list.Count;
+        }
+
+        /// <summary>抽取一批数据</summary>
+        /// <param name="extracter"></param>
+        /// <returns></returns>
+        protected virtual IList<IEntity> Fetch(IExtracter extracter)
+        {
+            return extracter?.Fetch();
         }
 
         /// <summary>处理列表，传递批次配置，支持多线程和异步</summary>
@@ -156,7 +165,14 @@ namespace XCode.Transform
         protected virtual void ProcessList(IList<IEntity> list, IExtractSetting set, Double fetchCost)
         {
             var sw = Stopwatch.StartNew();
-            var count = OnProcessList(list, set);
+
+            var count = 0;
+            var fact = Target;
+            if (fact != null)
+                count = OnSync(list, set);
+            else
+                count = OnProcess(list, set);
+
             sw.Stop();
 
             ProcessFinished(list, set, count, fetchCost, sw.Elapsed.TotalMilliseconds);
@@ -165,7 +181,7 @@ namespace XCode.Transform
         /// <summary>处理列表</summary>
         /// <param name="list">实体列表</param>
         /// <param name="set">本批次配置</param>
-        protected virtual Int32 OnProcessList(IList<IEntity> list, IExtractSetting set)
+        protected virtual Int32 OnProcess(IList<IEntity> list, IExtractSetting set)
         {
             var count = 0;
             foreach (var source in list)
@@ -250,6 +266,108 @@ namespace XCode.Transform
             WriteError(ex.ToString());
 
             return null;
+        }
+        #endregion
+
+        #region 数据同步
+        /// <summary>目标实体工厂。分批统计时不需要设定</summary>
+        public IEntityOperate Target { get; set; }
+
+        /// <summary>仅插入，不用判断目标是否已有数据</summary>
+        public Boolean InsertOnly { get; set; }
+
+        /// <summary>处理列表，传递批次配置，支持多线程</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="set">本批次配置</param>
+        protected virtual Int32 OnSync(IList<IEntity> list, IExtractSetting set)
+        {
+            var count = 0;
+
+            // 批量事务提交
+            var fact = Target;
+            if (fact == null) throw new ArgumentNullException(nameof(Target));
+
+            fact.BeginTransaction();
+            try
+            {
+                foreach (var source in list)
+                {
+                    try
+                    {
+                        SyncItem(source);
+
+                        count++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ex = OnError(source, set, ex);
+                        if (ex != null) throw ex;
+                    }
+                }
+                fact.Commit();
+            }
+            catch
+            {
+                fact.Rollback();
+                throw;
+            }
+
+            return count;
+        }
+
+        /// <summary>同步单行数据</summary>
+        /// <param name="source">源实体</param>
+        /// <returns></returns>
+        protected virtual IEntity SyncItem(IEntity source)
+        {
+            var isNew = InsertOnly;
+            var target = InsertOnly ? source : GetItem(source, out isNew);
+
+            // 同名字段对拷
+            target?.CopyFrom(source, true);
+
+            SaveItem(target, isNew);
+
+            return target;
+        }
+
+        /// <summary>根据源实体获取目标实体</summary>
+        /// <param name="source">源实体</param>
+        /// <param name="isNew">是否新增</param>
+        /// <returns></returns>
+        protected virtual IEntity GetItem(IEntity source, out Boolean isNew)
+        {
+            var key = source[Extracter.Factory.Unique.Name];
+
+            // 查找目标，如果不存在则创建
+            isNew = false;
+            var fact = Target;
+            var target = fact.FindByKey(key);
+            if (target == null)
+            {
+                target = fact.Create();
+                target[fact.Unique.Name] = key;
+                isNew = true;
+            }
+
+            return target;
+        }
+
+        /// <summary>保存目标实体</summary>
+        /// <param name="target"></param>
+        /// <param name="isNew"></param>
+        protected virtual void SaveItem(IEntity target, Boolean isNew)
+        {
+            var st = Stat;
+            if (isNew)
+                target.Insert();
+            else
+            {
+                target.Update();
+                st.Changes++;
+            }
+
+            st.Total++;
         }
         #endregion
 
