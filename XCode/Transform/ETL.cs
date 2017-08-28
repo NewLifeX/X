@@ -58,6 +58,8 @@ namespace XCode.Transform
 
         /// <summary>统计</summary>
         public IETLStat Stat { get; set; }
+
+        public List<IETLModule> Modules { get; set; } = new List<IETLModule>();
         #endregion
 
         #region 构造
@@ -86,6 +88,8 @@ namespace XCode.Transform
             ext.Init();
 
             if (Stat == null) Stat = new ETLStat();
+
+            Modules.Init(this);
         }
 
         /// <summary>停止</summary>
@@ -111,6 +115,8 @@ namespace XCode.Transform
         /// <returns>返回抽取数据行数，没有数据返回0，初始化或配置失败返回-1</returns>
         public virtual Int32 Process()
         {
+            if (!Modules.Processing()) return -1;
+
             var set = Extracter.Setting;
             if (set == null) { _Inited = false; return -1; }
 
@@ -142,6 +148,8 @@ namespace XCode.Transform
                 ex = OnError(list, set2, ex);
                 if (ex != null) throw ex;
             }
+
+            Modules.Processing();
 
             return list == null ? 0 : list.Count;
         }
@@ -175,7 +183,7 @@ namespace XCode.Transform
 
             sw.Stop();
 
-            ProcessFinished(list, set, count, fetchCost, sw.Elapsed.TotalMilliseconds);
+            OnFinished(list, set, count, fetchCost, sw.Elapsed.TotalMilliseconds);
         }
 
         /// <summary>处理列表</summary>
@@ -208,7 +216,7 @@ namespace XCode.Transform
         /// <param name="success">成功行数</param>
         /// <param name="fetchCost">抽取数据耗时</param>
         /// <param name="processCost">处理数据耗时</param>
-        protected virtual void ProcessFinished(IList<IEntity> list, IExtractSetting set, Int32 success, Double fetchCost, Double processCost)
+        protected virtual void OnFinished(IList<IEntity> list, IExtractSetting set, Int32 success, Double fetchCost, Double processCost)
         {
             // 累计错误清零
             _Error = 0;
@@ -230,6 +238,8 @@ namespace XCode.Transform
             if (ext is TimeExtracter time) end = time.ActualEnd;
             var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
             WriteLog("共处理{0}行，区间({1}, {2}{3})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, start, row, ends, fetchCost, st.FetchSpeed, processCost, st.Speed);
+
+            Modules.OnFinished(list, set, success, fetchCost, processCost);
         }
 
         /// <summary>处理单行数据</summary>
@@ -249,6 +259,8 @@ namespace XCode.Transform
         /// <returns></returns>
         protected virtual Exception OnError(Object source, IExtractSetting set, Exception ex)
         {
+            Modules.OnError(source, set, ex);
+
             // 处理单个实体时的异常，会被外层捕获，需要判断跳过
             if (_lastError == ex) return ex;
 
