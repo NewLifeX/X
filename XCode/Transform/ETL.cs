@@ -213,7 +213,7 @@ namespace XCode.Transform
 
             if (ext is TimeExtracter time) end = time.ActualEnd;
             var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
-            WriteLog("共处理{0}行，区间({1}, {2}{3})，{4:n0}ms，{5:n0}tps", total, start, row, ends, processCost, st.Speed);
+            WriteLog("共处理{0}行，区间({1}, {2}{3})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, start, row, ends, fetchCost, st.FetchSpeed, processCost, st.Speed);
         }
 
         /// <summary>处理单行数据</summary>
