@@ -174,12 +174,7 @@ namespace XCode.Transform
         {
             var sw = Stopwatch.StartNew();
 
-            var count = 0;
-            var fact = Target;
-            if (fact != null)
-                count = OnSync(list, set);
-            else
-                count = OnProcess(list, set);
+            var count = OnProcess(list, set);
 
             sw.Stop();
 
@@ -278,108 +273,6 @@ namespace XCode.Transform
             WriteError(ex.ToString());
 
             return null;
-        }
-        #endregion
-
-        #region 数据同步
-        /// <summary>目标实体工厂。分批统计时不需要设定</summary>
-        public IEntityOperate Target { get; set; }
-
-        /// <summary>仅插入，不用判断目标是否已有数据</summary>
-        public Boolean InsertOnly { get; set; }
-
-        /// <summary>处理列表，传递批次配置，支持多线程</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="set">本批次配置</param>
-        protected virtual Int32 OnSync(IList<IEntity> list, IExtractSetting set)
-        {
-            var count = 0;
-
-            // 批量事务提交
-            var fact = Target;
-            if (fact == null) throw new ArgumentNullException(nameof(Target));
-
-            fact.BeginTransaction();
-            try
-            {
-                foreach (var source in list)
-                {
-                    try
-                    {
-                        SyncItem(source);
-
-                        count++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ex = OnError(source, set, ex);
-                        if (ex != null) throw ex;
-                    }
-                }
-                fact.Commit();
-            }
-            catch
-            {
-                fact.Rollback();
-                throw;
-            }
-
-            return count;
-        }
-
-        /// <summary>同步单行数据</summary>
-        /// <param name="source">源实体</param>
-        /// <returns></returns>
-        protected virtual IEntity SyncItem(IEntity source)
-        {
-            var isNew = InsertOnly;
-            var target = InsertOnly ? source : GetItem(source, out isNew);
-
-            // 同名字段对拷
-            target?.CopyFrom(source, true);
-
-            SaveItem(target, isNew);
-
-            return target;
-        }
-
-        /// <summary>根据源实体获取目标实体</summary>
-        /// <param name="source">源实体</param>
-        /// <param name="isNew">是否新增</param>
-        /// <returns></returns>
-        protected virtual IEntity GetItem(IEntity source, out Boolean isNew)
-        {
-            var key = source[Extracter.Factory.Unique.Name];
-
-            // 查找目标，如果不存在则创建
-            isNew = false;
-            var fact = Target;
-            var target = fact.FindByKey(key);
-            if (target == null)
-            {
-                target = fact.Create();
-                target[fact.Unique.Name] = key;
-                isNew = true;
-            }
-
-            return target;
-        }
-
-        /// <summary>保存目标实体</summary>
-        /// <param name="target"></param>
-        /// <param name="isNew"></param>
-        protected virtual void SaveItem(IEntity target, Boolean isNew)
-        {
-            var st = Stat;
-            if (isNew)
-                target.Insert();
-            else
-            {
-                target.Update();
-                st.Changes++;
-            }
-
-            st.Total++;
         }
         #endregion
 
