@@ -737,7 +737,8 @@ namespace XCode.Code
 
                     // 主字段
                     var master = dt.Master ?? dt.GetColumn("Name");
-                    if (master != null)
+                    // 扩展属性有可能恰巧跟已有字段同名
+                    if (master != null && !dt.Columns.Any(e => e.Name.EqualIgnoreCase(pname + master.Name)))
                     {
                         WriteLine();
                         WriteLine("/// <summary>{0}</summary>", dis);
