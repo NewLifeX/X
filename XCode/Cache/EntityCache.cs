@@ -146,16 +146,23 @@ namespace XCode.Cache
         {
             if (!Using) return null;
 
-            var es = _Entities;
+            var es = _Entities.ToArray();
             var fi = Operate.Unique;
-            var e = fi != null ? es.FirstOrDefault(x => x[fi.Name] == entity[fi.Name]) : null;
+            if (fi == null) return null;
+
+            var e = es.FirstOrDefault(x => x == entity);
+            if (e == null)
+            {
+                var v = entity[fi.Name];
+                e = es.FirstOrDefault(x => x[fi.Name] == v);
+            }
             if (e == null) return null;
 
             //if (e != entity) e.CopyFrom(entity);
             // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
             lock (es)
             {
-                es.Remove(e);
+                _Entities.Remove(e);
             }
 
             return e;
@@ -166,7 +173,6 @@ namespace XCode.Cache
             if (!Using) return null;
 
             var rs = Remove(entity);
-
             Add(entity);
 
             return rs;
