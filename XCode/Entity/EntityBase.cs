@@ -128,6 +128,8 @@ namespace XCode
         /// <returns>实际复制成员数</returns>
         public virtual Int32 CopyFrom(IEntity entity, Boolean setDirty = true)
         {
+            if (entity == this) return 0;
+
             IEntity src = this;
             var nsSrc = EntityFactory.CreateOperate(src.GetType()).FieldNames;
             //if (nsSrc == null || nsSrc.Count < 1) return 0;

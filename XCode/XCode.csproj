@@ -66,6 +66,7 @@
     <Compile Include="Entity\EntityExtend.cs" />
     <Compile Include="Entity\EntityExtension.cs" />
     <Compile Include="Entity\EntityQueue.cs" />
+    <Compile Include="Entity\EntitySplit.cs" />
     <Compile Include="Entity\IEntityAddition.cs" />
     <Compile Include="Entity\EntitySession.cs" />
     <Compile Include="Entity\IEntityModule.cs" />
