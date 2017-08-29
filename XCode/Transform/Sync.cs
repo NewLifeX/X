@@ -258,8 +258,6 @@ namespace XCode.Transform
                 target.Update();
                 st.Changes++;
             }
-
-            st.Total++;
         }
         #endregion
     }

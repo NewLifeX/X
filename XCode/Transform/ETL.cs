@@ -149,7 +149,7 @@ namespace XCode.Transform
                 if (ex != null) throw ex;
             }
 
-            Modules.Processing();
+            Modules.Processed();
 
             return list == null ? 0 : list.Count;
         }
