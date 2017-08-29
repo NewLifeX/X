@@ -81,6 +81,8 @@ namespace XCode.Transform
         /// <summary>开始</summary>
         public virtual void Start()
         {
+            Modules.Start();
+
             var ext = Extracter;
             if (ext == null) throw new ArgumentNullException(nameof(Extracter), "没有设置数据抽取器");
 
@@ -88,14 +90,14 @@ namespace XCode.Transform
             ext.Init();
 
             if (Stat == null) Stat = new ETLStat();
-
-            Modules.Init(this);
         }
 
         /// <summary>停止</summary>
         public virtual void Stop()
         {
             _Inited = false;
+
+            Modules.Stop();
         }
         #endregion
 
@@ -108,6 +110,8 @@ namespace XCode.Transform
         {
             WriteLog("开始处理{0}，区间({1} + {3:n0}, {2})", Name, set.Start, set.End, set.Row);
 
+            Modules.Init();
+
             return true;
         }
 
@@ -115,10 +119,9 @@ namespace XCode.Transform
         /// <returns>返回抽取数据行数，没有数据返回0，初始化或配置失败返回-1</returns>
         public virtual Int32 Process()
         {
-            if (!Modules.Processing()) return -1;
+            if (!Modules.Processing()) { _Inited = false; return -1; }
 
             var set = Extracter.Setting;
-            if (set == null) { _Inited = false; return -1; }
 
             if (!_Inited)
             {
