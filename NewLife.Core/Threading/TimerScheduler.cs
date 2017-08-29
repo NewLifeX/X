@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace NewLife.Threading
@@ -28,6 +27,8 @@ namespace NewLife.Threading
 
                 ts = new TimerScheduler(name);
                 _cache[name] = ts;
+
+                WriteLog("启动定时调度器：{0}", name);
 
                 return ts;
             }
@@ -269,10 +270,7 @@ namespace NewLife.Threading
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return Name;
-        }
+        public override String ToString() { return Name; }
 
         #region 设置
         /// <summary>是否开启调试，输出更多信息</summary>

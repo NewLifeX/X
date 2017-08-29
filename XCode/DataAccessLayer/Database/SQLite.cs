@@ -442,7 +442,8 @@ namespace XCode.DataAccessLayer
         /// <summary>备份文件到目标文件</summary>
         /// <param name="dbname"></param>
         /// <param name="bakfile"></param>
-        protected override String Backup(String dbname, String bakfile)
+        /// <param name="compressed"></param>
+        protected override String Backup(String dbname, String bakfile, Boolean compressed)
         {
             var dbfile = (Database as SQLite).FileName;
 
@@ -455,7 +456,7 @@ namespace XCode.DataAccessLayer
                 var ext = Path.GetExtension(dbfile);
                 if (ext.IsNullOrEmpty()) ext = ".db";
 
-                bakfile = "{0}_{1:yyyyMMddhhmmss}{2}".F(name, DateTime.Now, ext);
+                bakfile = "{0}_{1:yyyyMMddHHmmss}{2}".F(name, DateTime.Now, ext);
             }
             if (!Path.IsPathRooted(bakfile)) bakfile = Setting.Current.BackupPath.CombinePath(bakfile).GetFullPath();
 
@@ -493,7 +494,8 @@ namespace XCode.DataAccessLayer
             //    File.Delete(tmp);
             //    WriteLog("压缩后大小：{0:n0}字节", bakfile.AsFile().Length);
             //}
-            if (!bakfile.EndsWithIgnoreCase(".zip"))
+            //if (!bakfile.EndsWithIgnoreCase(".zip"))
+            if (compressed)
             {
                 var zipfile = Path.ChangeExtension(bakfile, "zip");
                 var fi = bakfile.AsFile();

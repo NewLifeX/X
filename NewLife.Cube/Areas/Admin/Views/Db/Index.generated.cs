@@ -99,16 +99,20 @@ WriteLiteral(">备份</th>\r\n            <th");
 
 WriteLiteral(" class=\"text-center\"");
 
+WriteLiteral(">备份并压缩</th>\r\n            <th");
+
+WriteLiteral(" class=\"text-center\"");
+
 WriteLiteral(">下载表结构</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
 
             
-            #line 22 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 23 "..\..\Areas\Admin\Views\Db\Index.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 22 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 23 "..\..\Areas\Admin\Views\Db\Index.cshtml"
          foreach (var item in dbs)
         {
             var dal = DAL.Create(item.Name);
@@ -119,7 +123,7 @@ WriteLiteral(">下载表结构</th>\r\n        </tr>\r\n    </thead>\r\n    <tbo
 WriteLiteral("            <tr>\r\n                <td>");
 
             
-            #line 26 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 27 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                Write(item.Name);
 
             
@@ -128,7 +132,7 @@ WriteLiteral("            <tr>\r\n                <td>");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 27 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 28 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                Write(item.Type);
 
             
@@ -136,20 +140,20 @@ WriteLiteral("</td>\r\n                <td>");
             #line hidden
 WriteLiteral("</td>\r\n                <td><span");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 849), Tuple.Create("\"", 881)
+WriteAttribute("title", Tuple.Create(" title=\"", 897), Tuple.Create("\"", 929)
             
-            #line 28 "..\..\Areas\Admin\Views\Db\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 857), Tuple.Create<System.Object, System.Int32>(dal.Db.ConnectionString
+            #line 29 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+, Tuple.Create(Tuple.Create("", 905), Tuple.Create<System.Object, System.Int32>(dal.Db.ConnectionString
             
             #line default
             #line hidden
-, 857), false)
+, 905), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 28 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 29 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                                                       Write(item.ConnStr);
 
             
@@ -158,7 +162,7 @@ WriteLiteral(">");
 WriteLiteral("</span></td>\r\n                <td>");
 
             
-            #line 29 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 30 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                Write(item.Version);
 
             
@@ -167,7 +171,7 @@ WriteLiteral("</span></td>\r\n                <td>");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 30 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 31 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                Write(Html.ActionLink("备份", "Backup", new { Name = item.Name }));
 
             
@@ -176,20 +180,29 @@ WriteLiteral("</td>\r\n                <td>");
 WriteLiteral("，共 ");
 
             
-            #line 30 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 31 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                                                                             Write(item.Backups.ToString("n0"));
 
             
             #line default
             #line hidden
-WriteLiteral("个</td>\r\n                <td");
+WriteLiteral("个</td>\r\n                <td>");
+
+            
+            #line 32 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+               Write(Html.ActionLink("备份并压缩", "BackupAndCompress", new { Name = item.Name }));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</td>\r\n                <td");
 
 WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral(">");
 
             
-            #line 31 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 33 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                                    Write(Html.ActionLink("下载", "Download", new { Name = item.Name }));
 
             
@@ -198,7 +211,7 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n            </tr>\r\n");
 
             
-            #line 33 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 35 "..\..\Areas\Admin\Views\Db\Index.cshtml"
         }
 
             

@@ -99,7 +99,23 @@ namespace NewLife.Cube.Admin.Controllers
         public ActionResult Backup(String name)
         {
             var dal = DAL.Create(name);
-            var bak = dal.Db.CreateMetaData().SetSchema(DDLSchema.BackupDatabase, dal.ConnName, null);
+            var bak = dal.Db.CreateMetaData().SetSchema(DDLSchema.BackupDatabase, dal.ConnName, null, false);
+
+            WriteLog("备份", "备份数据库 {0} 到 {1}".F(name, bak));
+
+            return Index();
+        }
+
+        /// <summary>备份并压缩数据库</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Insert)]
+        public ActionResult BackupAndCompress(String name)
+        {
+            var dal = DAL.Create(name);
+            var bak = dal.Db.CreateMetaData().SetSchema(DDLSchema.BackupDatabase, dal.ConnName, null, true);
+
+            WriteLog("备份", "备份数据库 {0} 并压缩到 {1}".F(name, bak));
 
             return Index();
         }
@@ -113,7 +129,16 @@ namespace NewLife.Cube.Admin.Controllers
             var dal = DAL.Create(name);
             var xml = DAL.Export(dal.Tables);
 
+            WriteLog("下载", "下载数据库架构 " + name);
+
             return File(xml.GetBytes(), "application/xml", name + ".xml");
         }
+
+        #region 日志
+        private static void WriteLog(String action, String remark)
+        {
+            LogProvider.Provider.WriteLog(typeof(DbController), action, remark);
+        }
+        #endregion
     }
 }
