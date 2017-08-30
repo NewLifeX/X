@@ -62,6 +62,12 @@ namespace XCode.Transform
         where TSource : Entity<TSource>, new()
     {
         #region 属性
+        /// <summary>来源连接</summary>
+        public String SourceConn { get; set; }
+
+        /// <summary>来源表名</summary>
+        public String SourceTable { get; set; }
+
         /// <summary>目标连接</summary>
         public String TargetConn { get; set; }
 
@@ -71,7 +77,12 @@ namespace XCode.Transform
 
         #region 构造
         /// <summary>实例化数据抽取器</summary>
-        public Sync() : base(Entity<TSource>.Meta.Factory, Entity<TSource>.Meta.Factory) { }
+        public Sync() : base(Entity<TSource>.Meta.Factory, Entity<TSource>.Meta.Factory)
+        {
+            var fact = Entity<TSource>.Meta.Factory;
+            SourceConn = fact.ConnName;
+            SourceTable = fact.TableName;
+        }
         #endregion
 
         /// <summary>启动时检查参数</summary>
@@ -88,6 +99,14 @@ namespace XCode.Transform
             }
 
             base.Start();
+        }
+
+        /// <summary>从来源表查数据</summary>
+        /// <param name="extracter"></param>
+        /// <returns></returns>
+        protected override IList<IEntity> Fetch(IExtracter extracter)
+        {
+            return Target.Split(SourceConn, SourceTable, () => base.Fetch(extracter));
         }
 
         /// <summary>同步数据列表时，在目标表上执行</summary>
