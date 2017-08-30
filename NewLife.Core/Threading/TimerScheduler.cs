@@ -149,6 +149,8 @@ namespace NewLife.Threading
                     {
                         if (!timer.Calling && CheckTime(timer, now))
                         {
+                            // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
+                            timer.Calling = true;
                             if (!timer.Async)
                                 ProcessItem(timer);
                             else
@@ -216,7 +218,7 @@ namespace NewLife.Threading
 
             try
             {
-                timer.Calling = true;
+                //timer.Calling = true;
 
                 timer.Callback(timer.State ?? timer);
             }
