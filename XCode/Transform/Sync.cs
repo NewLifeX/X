@@ -110,12 +110,11 @@ namespace XCode.Transform
         }
 
         /// <summary>同步数据列表时，在目标表上执行</summary>
-        /// <param name="list"></param>
-        /// <param name="set"></param>
+        /// <param name="ctx">数据上下文</param>
         /// <returns></returns>
-        protected override Int32 OnSync(IList<IEntity> list, IExtractSetting set)
+        protected override Int32 OnSync(DataContext ctx)
         {
-            return Target.Split(TargetConn, TargetTable, () => base.OnSync(list, set));
+            return Target.Split(TargetConn, TargetTable, () => base.OnSync(ctx));
         }
 
         /// <summary>处理单行数据</summary>
@@ -172,26 +171,23 @@ namespace XCode.Transform
         /// 子类可以根据需要重载该方法，实现异步处理。
         /// 异步处理之前，需要先保存配置
         /// </remarks>
-        /// <param name="list">实体列表</param>
-        /// <param name="set">本批次配置</param>
-        /// <param name="fetchCost">抽取数据耗时</param>
-        protected override void ProcessList(IList<IEntity> list, IExtractSetting set, Double fetchCost)
+        /// <param name="ctx">数据上下文</param>
+        protected override void ProcessList(DataContext ctx)
         {
             var sw = Stopwatch.StartNew();
-
-            var count = OnSync(list, set);
+            ctx.Success = OnSync(ctx);
 
             sw.Stop();
+            ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
 
-            OnFinished(list, set, count, fetchCost, sw.Elapsed.TotalMilliseconds);
+            OnFinished(ctx);
         }
         #endregion
 
         #region 数据同步
         /// <summary>处理列表，传递批次配置，支持多线程</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="set">本批次配置</param>
-        protected virtual Int32 OnSync(IList<IEntity> list, IExtractSetting set)
+        /// <param name="ctx">数据上下文</param>
+        protected virtual Int32 OnSync(DataContext ctx)
         {
             var count = 0;
 
@@ -202,8 +198,9 @@ namespace XCode.Transform
             fact.BeginTransaction();
             try
             {
-                foreach (var source in list)
+                foreach (var source in ctx.Data)
                 {
+                    ctx.Entity = source;
                     try
                     {
                         SyncItem(source);
@@ -212,7 +209,8 @@ namespace XCode.Transform
                     }
                     catch (Exception ex)
                     {
-                        ex = OnError(source, set, ex);
+                        ctx.Error = ex;
+                        ex = OnError(ctx);
                         if (ex != null) throw ex;
                     }
                 }
@@ -223,6 +221,7 @@ namespace XCode.Transform
                 fact.Rollback();
                 throw;
             }
+            ctx.Entity = null;
 
             return count;
         }

@@ -175,6 +175,7 @@
     <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Model\XCodeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Transform\DataContext.cs" />
     <Compile Include="Transform\IETLModule.cs" />
     <Compile Include="Transform\Sync.cs" />
     <Compile Include="Transform\IETLStat.cs" />

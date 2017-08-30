@@ -20,24 +20,22 @@ namespace XCode.Transform
 
         /// <summary>单批数据处理前</summary>
         /// <returns></returns>
-        Boolean Processing();
+        Boolean Processing(DataContext ctx);
 
         /// <summary>单批数据处理后</summary>
         void Processed();
 
+        /// <summary>抽取完成</summary>
+        /// <param name="ctx">数据上下文</param>
+        void Fetched(DataContext ctx);
+
         /// <summary>实体列表完成后</summary>
-        /// <param name="list"></param>
-        /// <param name="set"></param>
-        /// <param name="success"></param>
-        /// <param name="fetchCost"></param>
-        /// <param name="processCost"></param>
-        void OnFinished(IList<IEntity> list, IExtractSetting set, Int32 success, Double fetchCost, Double processCost);
+        /// <param name="ctx">数据上下文</param>
+        void OnFinished(DataContext ctx);
 
         /// <summary>出错</summary>
-        /// <param name="source"></param>
-        /// <param name="set"></param>
-        /// <param name="ex"></param>
-        void OnError(Object source, IExtractSetting set, Exception ex);
+        /// <param name="ctx">数据上下文</param>
+        void OnError(DataContext ctx);
     }
 
     static class ETLModuleHelper
@@ -66,11 +64,11 @@ namespace XCode.Transform
             }
         }
 
-        public static Boolean Processing(this IEnumerable<IETLModule> list)
+        public static Boolean Processing(this IEnumerable<IETLModule> list, DataContext ctx)
         {
             foreach (var item in list)
             {
-                if (!item.Processing()) return false;
+                if (!item.Processing(ctx)) return false;
             }
 
             return true;
@@ -84,19 +82,27 @@ namespace XCode.Transform
             }
         }
 
-        public static void OnFinished(this IEnumerable<IETLModule> es, IList<IEntity> list, IExtractSetting set, Int32 success, Double fetchCost, Double processCost)
+        public static void Fetched(this IEnumerable<IETLModule> es, DataContext ctx)
         {
             foreach (var item in es)
             {
-                item.OnFinished(list, set, success, fetchCost, processCost);
+                item.Fetched(ctx);
             }
         }
 
-        public static void OnError(this IEnumerable<IETLModule> es, Object source, IExtractSetting set, Exception ex)
+        public static void OnFinished(this IEnumerable<IETLModule> es, DataContext ctx)
         {
             foreach (var item in es)
             {
-                item.OnError(source, set, ex);
+                item.OnFinished(ctx);
+            }
+        }
+
+        public static void OnError(this IEnumerable<IETLModule> es, DataContext ctx)
+        {
+            foreach (var item in es)
+            {
+                item.OnError(ctx);
             }
         }
     }

@@ -120,7 +120,8 @@ namespace XCode.Transform
         /// <returns>返回抽取数据行数，没有数据返回0，初始化或配置失败返回-1</returns>
         public virtual Int32 Process()
         {
-            if (!Modules.Processing()) { _Inited = false; return -1; }
+            var ctx = new DataContext();
+            if (!Modules.Processing(ctx)) { _Inited = false; return -1; }
 
             var set = Extracter.Setting;
 
@@ -131,7 +132,7 @@ namespace XCode.Transform
             }
 
             // 拷贝配置，支持多线程
-            var set2 = set.Clone();
+            ctx.Setting = set.Clone();
 
             var ext = Extracter;
             IList<IEntity> list = null;
@@ -144,12 +145,25 @@ namespace XCode.Transform
                 if (list == null || list.Count == 0) return 0;
                 sw.Stop();
 
+                // 抽取出来后，先保存统计数据再批量处理
+                ctx.Data = list;
+                ctx.FetchCost = sw.Elapsed.TotalMilliseconds;
+
+                var st = Stat;
+                var total = list.Count;
+                st.Total += total;
+                st.Times++;
+                st.FetchSpeed = ctx.FetchCost <= 0 ? 0 : (Int32)(total * 1000 / ctx.FetchCost);
+
+                Modules.Fetched(ctx);
+
                 // 批量处理
-                ProcessList(list, set2, sw.Elapsed.TotalMilliseconds);
+                ProcessList(ctx);
             }
             catch (Exception ex)
             {
-                ex = OnError(list, set2, ex);
+                ctx.Error = ex;
+                ex = OnError(ctx);
                 if (ex != null) throw ex;
             }
 
@@ -171,28 +185,27 @@ namespace XCode.Transform
         /// 子类可以根据需要重载该方法，实现异步处理。
         /// 异步处理之前，需要先保存配置
         /// </remarks>
-        /// <param name="list">实体列表</param>
-        /// <param name="set">本批次配置</param>
-        /// <param name="fetchCost">抽取数据耗时</param>
-        protected virtual void ProcessList(IList<IEntity> list, IExtractSetting set, Double fetchCost)
+        /// <param name="ctx">数据上下文</param>
+        protected virtual void ProcessList(DataContext ctx)
         {
             var sw = Stopwatch.StartNew();
 
-            var count = OnProcess(list, set);
+            ctx.Success = OnProcess(ctx);
 
             sw.Stop();
+            ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
 
-            OnFinished(list, set, count, fetchCost, sw.Elapsed.TotalMilliseconds);
+            OnFinished(ctx);
         }
 
         /// <summary>处理列表</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="set">本批次配置</param>
-        protected virtual Int32 OnProcess(IList<IEntity> list, IExtractSetting set)
+        /// <param name="ctx">数据上下文</param>
+        protected virtual Int32 OnProcess(DataContext ctx)
         {
             var count = 0;
-            foreach (var source in list)
+            foreach (var source in ctx.Data)
             {
+                ctx.Entity = source;
                 try
                 {
                     ProcessItem(source);
@@ -201,65 +214,60 @@ namespace XCode.Transform
                 }
                 catch (Exception ex)
                 {
-                    ex = OnError(source, set, ex);
+                    ctx.Error = ex;
+                    ex = OnError(ctx);
                     if (ex != null) throw ex;
                 }
             }
+            ctx.Entity = null;
 
             return count;
         }
 
         /// <summary>处理完成</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="set">本批次配置</param>
-        /// <param name="success">成功行数</param>
-        /// <param name="fetchCost">抽取数据耗时</param>
-        /// <param name="processCost">处理数据耗时</param>
-        protected virtual void OnFinished(IList<IEntity> list, IExtractSetting set, Int32 success, Double fetchCost, Double processCost)
+        /// <param name="ctx">数据上下文</param>
+        protected virtual void OnFinished(DataContext ctx)
         {
             // 累计错误清零
             _Error = 0;
 
+            var set = ctx.Setting;
             var ext = Extracter;
             var start = set.Start;
             var end = set.End;
             var row = set.Row;
 
             var st = Stat;
-            var total = list.Count;
-            st.Total += total;
-            st.Success += success;
-            st.Times++;
+            var total = ctx.Data.Count;
+            //st.Total += total;
+            st.Success += ctx.Success;
+            //st.Times++;
 
-            st.Speed = processCost <= 0 ? 0 : (Int32)(total * 1000 / processCost);
-            st.FetchSpeed = fetchCost <= 0 ? 0 : (Int32)(total * 1000 / fetchCost);
+            st.Speed = ctx.ProcessCost <= 0 ? 0 : (Int32)(total * 1000 / ctx.ProcessCost);
+            //st.FetchSpeed = fetchCost <= 0 ? 0 : (Int32)(total * 1000 / fetchCost);
 
             if (ext is TimeExtracter time) end = time.ActualEnd;
             var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
-            WriteLog("共处理{0}行，区间({1}, {2}{3})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, start, row, ends, fetchCost, st.FetchSpeed, processCost, st.Speed);
+            WriteLog("共处理{0}行，区间({1}, {2}{3})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, start, row, ends, ctx.FetchCost, st.FetchSpeed, ctx.ProcessCost, st.Speed);
 
-            Modules.OnFinished(list, set, success, fetchCost, processCost);
+            Modules.OnFinished(ctx);
         }
 
         /// <summary>处理单行数据</summary>
         /// <remarks>打开AutoSave时，上层ProcessList会自动保存数据</remarks>
         /// <param name="source">源实体</param>
         /// <returns></returns>
-        protected virtual IEntity ProcessItem(IEntity source)
-        {
-            return source;
-        }
+        protected virtual IEntity ProcessItem(IEntity source) { return source; }
 
         private Exception _lastError;
         /// <summary>遇到错误时如何处理</summary>
-        /// <param name="source"></param>
-        /// <param name="set">本批次配置</param>
-        /// <param name="ex"></param>
+        /// <param name="ctx">数据上下文</param>
         /// <returns></returns>
-        protected virtual Exception OnError(Object source, IExtractSetting set, Exception ex)
+        protected virtual Exception OnError(DataContext ctx)
         {
-            Modules.OnError(source, set, ex);
+            Modules.OnError(ctx);
 
+            var ex = ctx.Error;
             // 处理单个实体时的异常，会被外层捕获，需要判断跳过
             if (_lastError == ex) return ex;
 
