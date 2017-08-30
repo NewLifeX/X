@@ -398,17 +398,17 @@ namespace XCode.DataAccessLayer
         {
             DataTable dt = null;
 
+            // 不缺分大小写，并且不是保留字，才转大写
+            if (names != null)
+            {
+                var db = Database as Oracle;
+                if (db.IgnoreCase) names = names.Select(e => db.IsReservedWord(e) ? e : e.ToUpper()).ToArray();
+            }
+
             // 采用集合过滤，提高效率
             String tableName = null;
             if (names != null && names.Length == 1) tableName = names.FirstOrDefault();
-            if (String.IsNullOrEmpty(tableName))
-                tableName = null;
-            else
-            {
-                // 不缺分大小写，并且不是保留字，才转大写
-                var db = Database as Oracle;
-                if (db.IgnoreCase && !db.IsReservedWord(tableName)) tableName = tableName.ToUpper();
-            }
+            if (tableName.IsNullOrEmpty()) tableName = null;
 
             var owner = Owner;
             //if (owner.IsNullOrEmpty()) owner = UserID;

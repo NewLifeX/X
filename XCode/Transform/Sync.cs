@@ -162,6 +162,7 @@ namespace XCode.Transform
 
         /// <summary>实例化数据抽取器</summary>
         /// <param name="source"></param>
+        /// <param name="target"></param>
         public Sync(IEntityOperate source, IEntityOperate target) : base(source) { Target = target; }
         #endregion
 

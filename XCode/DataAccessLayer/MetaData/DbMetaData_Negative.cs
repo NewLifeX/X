@@ -198,15 +198,18 @@ namespace XCode.DataAccessLayer
                     // 非空字段需要重建表
                     if (!item.Nullable)
                     {
-                        var sql = ReBuildTable(entitytable, dbtable);
-                        if (noDelete)
-                        {
-                            WriteLog("数据表新增非空字段[{0}]，需要重建表，请手工执行：\r\n{1}", item.Name, sql);
-                            return sql;
-                        }
+                        //var sql = ReBuildTable(entitytable, dbtable);
+                        //if (noDelete)
+                        //{
+                        //    WriteLog("数据表新增非空字段[{0}]，需要重建表，请手工执行：\r\n{1}", item.Name, sql);
+                        //    return sql;
+                        //}
 
-                        Database.CreateSession().Execute(sql);
-                        return String.Empty;
+                        //Database.CreateSession().Execute(sql);
+                        //return String.Empty;
+
+                        // 非空字段作为可空字段新增，避开重建表
+                        item.Nullable = true;
                     }
 
                     PerformSchema(sb, onlySql, DDLSchema.AddColumn, item);

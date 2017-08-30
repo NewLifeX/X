@@ -59,6 +59,7 @@ namespace XCode.Transform
         /// <summary>统计</summary>
         public IETLStat Stat { get; set; }
 
+        /// <summary>过滤模块列表</summary>
         public List<IETLModule> Modules { get; set; } = new List<IETLModule>();
         #endregion
 
