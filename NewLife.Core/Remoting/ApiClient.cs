@@ -212,7 +212,7 @@ namespace NewLife.Remoting
             LastInvoke = DateTime.Now;
             try
             {
-                return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, cookie ?? Cookie).ConfigureAwait(false);
+                return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, cookie ?? Cookie);
             }
             catch (ApiException ex)
             {
@@ -224,7 +224,7 @@ namespace NewLife.Remoting
                     if (action != LoginAction && !UserName.IsNullOrEmpty())
                     {
                         await LoginAsync();
-                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, cookie ?? Cookie).ConfigureAwait(false);
+                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, cookie ?? Cookie);
                     }
                 }
 
@@ -242,7 +242,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IMessage IApiSession.CreateMessage(Packet pk) { return Client?.CreateMessage(pk); }
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.SendAsync(msg).ConfigureAwait(false); }
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.SendAsync(msg); }
         #endregion
 
         #region 登录

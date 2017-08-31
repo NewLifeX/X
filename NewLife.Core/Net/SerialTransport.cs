@@ -201,7 +201,7 @@ namespace NewLife.Net
                 Serial.Write(pk.Data, pk.Offset, pk.Count);
             }
 
-            return await task.ConfigureAwait(false);
+            return await task;
         }
 
         /// <summary>接收数据</summary>

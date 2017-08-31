@@ -19,6 +19,7 @@ namespace XCode.Transform
         void Init();
 
         /// <summary>单批数据处理前</summary>
+        /// <param name="ctx">数据上下文</param>
         /// <returns></returns>
         Boolean Processing(DataContext ctx);
 

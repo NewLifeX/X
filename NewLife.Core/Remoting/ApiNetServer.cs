@@ -157,10 +157,10 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null)
         {
-            return await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args, cookie).ConfigureAwait(false);
+            return await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args, cookie);
         }
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Session.SendAsync(msg).ConfigureAwait(false); }
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Session.SendAsync(msg); }
 
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>

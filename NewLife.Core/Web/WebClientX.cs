@@ -205,7 +205,7 @@ namespace NewLife.Web
         public virtual async Task<Byte[]> UploadDataTaskAsync(String address, Byte[] data)
         {
             var ctx = new ByteArrayContent(data);
-            var rs = await SendAsync(address, ctx).ConfigureAwait(false);
+            var rs = await SendAsync(address, ctx);
             return await rs.ReadAsByteArrayAsync();
         }
 
@@ -215,7 +215,7 @@ namespace NewLife.Web
         public virtual async Task<String> UploadValuesAsync(String address, IEnumerable<KeyValuePair<String, String>> collection)
         {
             var ctx = new FormUrlEncodedContent(collection);
-            var rs = await SendAsync(address, ctx).ConfigureAwait(false);
+            var rs = await SendAsync(address, ctx);
             return await rs.ReadAsStringAsync();
         }
 
@@ -226,7 +226,7 @@ namespace NewLife.Web
         {
             var ctx = new StringContent(data, Encoding, "application/x-www-form-urlencoded");
 
-            var rs = await SendAsync(address, ctx).ConfigureAwait(false);
+            var rs = await SendAsync(address, ctx);
             return await rs.ReadAsStringAsync();
         }
 
@@ -240,7 +240,7 @@ namespace NewLife.Web
 
             var ctx = new StringContent(str, Encoding, "application/json");
 
-            var rs = await SendAsync(address, ctx).ConfigureAwait(false);
+            var rs = await SendAsync(address, ctx);
             return await rs.ReadAsStringAsync();
         }
         #endregion

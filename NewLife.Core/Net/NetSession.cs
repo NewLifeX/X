@@ -139,7 +139,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual async Task<Packet> SendAsync(Packet pk)
         {
-            return await Session.SendAsync(pk).ConfigureAwait(false);
+            return await Session.SendAsync(pk);
         }
         #endregion
 

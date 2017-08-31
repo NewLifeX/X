@@ -95,7 +95,7 @@ namespace NewLife.Remoting
         /// <summary>远程调用</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public async Task<IMessage> SendAsync(IMessage msg) { return await Client.SendAsync(msg).ConfigureAwait(false); }
+        public async Task<IMessage> SendAsync(IMessage msg) { return await Client.SendAsync(msg); }
         #endregion
 
         #region 异步接收

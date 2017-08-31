@@ -494,7 +494,7 @@ namespace NewLife.Net
 
             if (pk != null && !SendByQueue(pk, Remote.EndPoint)) return null;
 
-            return await task.ConfigureAwait(false);
+            return await task;
         }
 
         /// <summary>发送消息并等待响应</summary>
@@ -514,7 +514,7 @@ namespace NewLife.Net
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
 
-            return Packet.LoadMessage(await task.ConfigureAwait(false));
+            return Packet.LoadMessage(await task);
         }
 
         /// <summary>消息到达事件</summary>

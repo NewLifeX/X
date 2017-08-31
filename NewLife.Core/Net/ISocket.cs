@@ -241,7 +241,7 @@ namespace NewLife.Net
         public static async Task<Byte[]> SendAsync(this ISocketRemote session, Byte[] buffer)
         {
             var pk = new Packet(buffer);
-            var rs = await session.SendAsync(pk).ConfigureAwait(false);
+            var rs = await session.SendAsync(pk);
             return rs?.ToArray();
         }
         #endregion

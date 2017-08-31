@@ -170,7 +170,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public override async Task<Packet> SendAsync(Packet pk)
         {
-            return await SendAsync(pk, Remote.EndPoint, true).ConfigureAwait(false);
+            return await SendAsync(pk, Remote.EndPoint, true);
         }
 
         /// <summary>发送数据包到目的地址</summary>
@@ -199,7 +199,7 @@ namespace NewLife.Net
 
             if (!wait) return null;
 
-            return await task.ConfigureAwait(false);
+            return await task;
         }
 
         internal override Boolean OnSendAsync(SocketAsyncEventArgs se)

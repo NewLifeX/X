@@ -90,7 +90,7 @@ namespace NewLife.Remoting
             // 过滤器
             host.ExecuteFilter(session, msg, true);
 
-            var rs = await session.SendAsync(msg).ConfigureAwait(false);
+            var rs = await session.SendAsync(msg);
             if (rs == null) return default(TResult);
 
             // 过滤器
