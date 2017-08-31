@@ -91,6 +91,9 @@
     <Reference Include="System.Web.Services" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Areas\AdminMobile\AdminMobileAreaRegistration.cs" />
+    <Compile Include="Areas\AdminMobile\Controllers\IndexController.cs" />
+    <Compile Include="Areas\AdminMobile\Controllers\UserController.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\DbController.cs" />
     <Compile Include="Areas\Admin\Controllers\FileController.cs" />
@@ -213,6 +216,7 @@
     <Compile Include="Common\ViewHelper.cs" />
     <Compile Include="Common\EntityAuthorizeAttribute.cs" />
     <Compile Include="Common\MvcHandleErrorAttribute.cs" />
+    <Compile Include="Common\WeuiJS.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -391,10 +395,58 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Areas\AdminMobile\Views\web.config" />
+    <Content Include="Areas\AdminMobile\Views\User\Login.cshtml" />
+    <Content Include="Areas\AdminMobile\Views\Index\Index.cshtml" />
     <None Include="Areas\Admin\Views\Db\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Content\jweui\css\demos.css" />
+    <Content Include="Content\jweui\css\jquery-weui.css" />
+    <Content Include="Content\jweui\css\jquery-weui.min.css" />
+    <Content Include="Content\jweui\images\icon_nav_actionSheet.png" />
+    <Content Include="Content\jweui\images\icon_nav_article.png" />
+    <Content Include="Content\jweui\images\icon_nav_button.png" />
+    <Content Include="Content\jweui\images\icon_nav_calendar.png" />
+    <Content Include="Content\jweui\images\icon_nav_cell.png" />
+    <Content Include="Content\jweui\images\icon_nav_city.png" />
+    <Content Include="Content\jweui\images\icon_nav_datetime.png" />
+    <Content Include="Content\jweui\images\icon_nav_dialog.png" />
+    <Content Include="Content\jweui\images\icon_nav_icons.png" />
+    <Content Include="Content\jweui\images\icon_nav_msg.png" />
+    <Content Include="Content\jweui\images\icon_nav_new.png" />
+    <Content Include="Content\jweui\images\icon_nav_noti.png" />
+    <Content Include="Content\jweui\images\icon_nav_panel.png" />
+    <Content Include="Content\jweui\images\icon_nav_photo.png" />
+    <Content Include="Content\jweui\images\icon_nav_picker.png" />
+    <Content Include="Content\jweui\images\icon_nav_progress.png" />
+    <Content Include="Content\jweui\images\icon_nav_ptr.png" />
+    <Content Include="Content\jweui\images\icon_nav_search_bar.png" />
+    <Content Include="Content\jweui\images\icon_nav_select.png" />
+    <Content Include="Content\jweui\images\icon_nav_swiper.png" />
+    <Content Include="Content\jweui\images\icon_nav_tab.png" />
+    <Content Include="Content\jweui\images\icon_nav_toast.png" />
+    <Content Include="Content\jweui\images\icon_nav_up.png" />
+    <Content Include="Content\jweui\images\pic_160.png" />
+    <Content Include="Content\jweui\images\pic_article.png" />
+    <Content Include="Content\jweui\images\present.png" />
+    <Content Include="Content\jweui\images\swiper-1.jpg" />
+    <Content Include="Content\jweui\images\swiper-2.jpg" />
+    <Content Include="Content\jweui\images\swiper-3.jpg" />
+    <Content Include="Content\jweui\images\swiper-4.jpg" />
+    <Content Include="Content\jweui\images\vcode.jpg" />
+    <Content Include="Content\jweui\js\city-picker.js" />
+    <Content Include="Content\jweui\js\city-picker.min.js" />
+    <Content Include="Content\jweui\js\jquery-weui.js" />
+    <Content Include="Content\jweui\js\jquery-weui.min.js" />
+    <Content Include="Content\jweui\js\swiper.js" />
+    <Content Include="Content\jweui\js\swiper.min.js" />
+    <Content Include="Content\jweui\lib\fastclick.js" />
+    <Content Include="Content\jweui\lib\jquery-2.1.4.js" />
+    <Content Include="Content\jweui\lib\weui.css" />
+    <Content Include="Content\jweui\lib\weui.min.css" />
+    <Content Include="Content\jweui\lib\zepto.js" />
     <Content Include="index.html" />
     <Content Include="Scripts\ApiClient.js" />
     <Content Include="Scripts\WebSocketX.js" />
@@ -694,7 +746,10 @@
       <LastGenOutput>_List_Pager1.generated.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Areas\AdminMobile\Models\" />
+    <Folder Include="Areas\AdminMobile\Views\Shared\" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
       <SubType>Designer</SubType>

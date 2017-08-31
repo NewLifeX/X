@@ -206,7 +206,7 @@
   <ItemGroup>
     <Content Include="生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>生成实体类.cs</LastGenOutput>
+      <LastGenOutput>生成实体类.log</LastGenOutput>
     </Content>
     <None Include="Membership\生成实体类.log">
       <AutoGen>True</AutoGen>
