@@ -24,14 +24,6 @@ namespace XCode
         /// <returns></returns>
         Boolean Valid(IEntity entity, Boolean isNew);
 
-        ///// <summary>新增实体对象</summary>
-        ///// <param name="entity"></param>
-        //void Insert(IEntity entity);
-
-        ///// <summary>更新实体对象</summary>
-        ///// <param name="entity"></param>
-        //void Update(IEntity entity);
-
         /// <summary>删除实体对象</summary>
         /// <param name="entity"></param>
         Boolean Delete(IEntity entity);
