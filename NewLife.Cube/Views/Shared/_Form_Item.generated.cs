@@ -65,32 +65,92 @@ namespace ASP
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
+    var err = 0;
+    ModelState st = null;
+    if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null) { err = st.Errors.Count; }
+
+    var des = item.Description.TrimStart(item.DisplayName).TrimStart(",", ".", "，", "。");
+
+    var total = 12;
+    var label = 3;
+    var span = 4;
+    if (err == 0 && des.IsNullOrEmpty())
+    {
+        span = 0;
+    }
+    else if (item.Type == typeof(Boolean) || item.Type.IsEnum)
+    {
+        span += 1;
+    }
+    //else if (item.Type == typeof(DateTime))
+    //{
+    //    span += 1;
+    //    total--;
+    //}
+    var input = total - label - span;
+
             
             #line default
             #line hidden
 WriteLiteral("\r\n<label");
 
-WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-2 col-lg-2\"");
+WriteAttribute("class", Tuple.Create(" class=\"", 811), Tuple.Create("\"", 860)
+, Tuple.Create(Tuple.Create("", 819), Tuple.Create("control-label", 819), true)
+, Tuple.Create(Tuple.Create(" ", 832), Tuple.Create("col-xs-", 833), true)
+            
+            #line 33 "..\..\Views\Shared\_Form_Item.cshtml"
+, Tuple.Create(Tuple.Create("", 840), Tuple.Create<System.Object, System.Int32>(label
+            
+            #line default
+            #line hidden
+, 840), false)
+, Tuple.Create(Tuple.Create(" ", 846), Tuple.Create("col-sm-", 847), true)
+            
+            #line 33 "..\..\Views\Shared\_Form_Item.cshtml"
+, Tuple.Create(Tuple.Create("", 854), Tuple.Create<System.Object, System.Int32>(label
+            
+            #line default
+            #line hidden
+, 854), false)
+);
 
 WriteLiteral(">");
 
             
-            #line 9 "..\..\Views\Shared\_Form_Item.cshtml"
-                                                            Write(item.DisplayName);
+            #line 33 "..\..\Views\Shared\_Form_Item.cshtml"
+                                                    Write(item.DisplayName);
 
             
             #line default
             #line hidden
 WriteLiteral("</label>\r\n<div");
 
-WriteLiteral(" class=\"input-group col-xs-5 col-sm-5 col-md-5 col-lg-5\"");
+WriteAttribute("class", Tuple.Create(" class=\"", 893), Tuple.Create("\"", 947)
+, Tuple.Create(Tuple.Create("", 901), Tuple.Create("input-group", 901), true)
+, Tuple.Create(Tuple.Create(" ", 912), Tuple.Create("col-xs-", 913), true)
+            
+            #line 34 "..\..\Views\Shared\_Form_Item.cshtml"
+, Tuple.Create(Tuple.Create("", 920), Tuple.Create<System.Object, System.Int32>(input+span
+            
+            #line default
+            #line hidden
+, 920), false)
+, Tuple.Create(Tuple.Create(" ", 933), Tuple.Create("col-sm-", 934), true)
+            
+            #line 34 "..\..\Views\Shared\_Form_Item.cshtml"
+, Tuple.Create(Tuple.Create("", 941), Tuple.Create<System.Object, System.Int32>(input
+            
+            #line default
+            #line hidden
+, 941), false)
+);
 
 WriteLiteral(">\r\n");
 
 WriteLiteral("    ");
 
             
-            #line 11 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 35 "..\..\Views\Shared\_Form_Item.cshtml"
 Write(Html.ForEditor(item, entity));
 
             
@@ -99,18 +159,8 @@ Write(Html.ForEditor(item, entity));
 WriteLiteral("\r\n</div>\r\n");
 
             
-            #line 13 "..\..\Views\Shared\_Form_Item.cshtml"
-  
-    ModelState st = null;
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
-
-            
-            #line 16 "..\..\Views\Shared\_Form_Item.cshtml"
- if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null && st.Errors.Count > 0)
+            #line 37 "..\..\Views\Shared\_Form_Item.cshtml"
+ if (err > 0)
 {
 
             
@@ -118,14 +168,25 @@ WriteLiteral("\r\n");
             #line hidden
 WriteLiteral("    <span");
 
-WriteLiteral(" class=\"alert alert-danger\"");
+WriteAttribute("class", Tuple.Create(" class=\"", 1021), Tuple.Create("\"", 1060)
+, Tuple.Create(Tuple.Create("", 1029), Tuple.Create("col-sm-", 1029), true)
+            
+            #line 39 "..\..\Views\Shared\_Form_Item.cshtml"
+, Tuple.Create(Tuple.Create("", 1036), Tuple.Create<System.Object, System.Int32>(span
+            
+            #line default
+            #line hidden
+, 1036), false)
+, Tuple.Create(Tuple.Create(" ", 1041), Tuple.Create("alert", 1042), true)
+, Tuple.Create(Tuple.Create(" ", 1047), Tuple.Create("alert-danger", 1048), true)
+);
 
 WriteLiteral(">\r\n");
 
 WriteLiteral("        ");
 
             
-            #line 19 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 40 "..\..\Views\Shared\_Form_Item.cshtml"
    Write(Html.ValidationMessage(item.Name));
 
             
@@ -134,9 +195,9 @@ WriteLiteral("        ");
 WriteLiteral("\r\n    </span>\r\n");
 
             
-            #line 21 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 42 "..\..\Views\Shared\_Form_Item.cshtml"
 }
-else if (!item.Description.IsNullOrEmpty())
+else if (!des.IsNullOrEmpty())
 {
 
             
@@ -144,13 +205,23 @@ else if (!item.Description.IsNullOrEmpty())
             #line hidden
 WriteLiteral("    <span");
 
-WriteLiteral(" class=\"hidden-xs col-md-5\"");
+WriteAttribute("class", Tuple.Create(" class=\"", 1168), Tuple.Create("\"", 1198)
+, Tuple.Create(Tuple.Create("", 1176), Tuple.Create("hidden-xs", 1176), true)
+, Tuple.Create(Tuple.Create(" ", 1185), Tuple.Create("col-sm-", 1186), true)
+            
+            #line 45 "..\..\Views\Shared\_Form_Item.cshtml"
+, Tuple.Create(Tuple.Create("", 1193), Tuple.Create<System.Object, System.Int32>(span
+            
+            #line default
+            #line hidden
+, 1193), false)
+);
 
 WriteLiteral(">");
 
             
-            #line 24 "..\..\Views\Shared\_Form_Item.cshtml"
-                                Write(Html.ForDescription(item));
+            #line 45 "..\..\Views\Shared\_Form_Item.cshtml"
+                                    Write(Html.ForDescription(item));
 
             
             #line default
@@ -158,7 +229,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 25 "..\..\Views\Shared\_Form_Item.cshtml"
+            #line 46 "..\..\Views\Shared\_Form_Item.cshtml"
 }
 
             

@@ -254,13 +254,23 @@ namespace XCode
         /// <summary>升序</summary>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public static ConcatExpression Asc(this FieldItem field) { return field == null ? null : new ConcatExpression(field.FormatedName); }
+        public static ConcatExpression Asc(this FieldItem field)
+        {
+            if (field == null || field.FormatedName.IsNullOrEmpty()) return null;
+
+            return new ConcatExpression(field.FormatedName);
+        }
 
         /// <summary>降序</summary>
         /// <param name="field">字段</param>
         /// <remarks>感谢 树懒（303409914）发现这里的错误</remarks>
         /// <returns></returns>
-        public static ConcatExpression Desc(this FieldItem field) { return field == null ? null : new ConcatExpression(field.FormatedName + " Desc"); }
+        public static ConcatExpression Desc(this FieldItem field)
+        {
+            if (field == null || field.FormatedName.IsNullOrEmpty()) return null;
+
+            return new ConcatExpression(field.FormatedName + " Desc");
+        }
 
         /// <summary>通过参数置顶升序降序</summary>
         /// <param name="field">字段</param>
@@ -296,7 +306,7 @@ namespace XCode
         /// <param name="field"></param>
         /// <param name="newName"></param>
         /// <returns></returns>
-        public static ConcatExpression As(this FieldItem field,String newName)
+        public static ConcatExpression As(this FieldItem field, String newName)
         {
             if (field == null) return null;
 

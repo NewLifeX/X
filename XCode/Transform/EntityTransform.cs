@@ -106,7 +106,7 @@ namespace XCode.Transform
         /// <param name="isDesc">是否降序。默认升序</param>
         /// <param name="getData">用于获取数据的委托</param>
         /// <returns></returns>
-        public Int32 TransformTable(IEntityOperate eop, Int32 count = 0, Boolean? isDesc = null, Func<Int32, Int32, IEntityList> getData = null)
+        public Int32 TransformTable(IEntityOperate eop, Int32 count = 0, Boolean? isDesc = null, Func<Int32, Int32, IList<IEntity>> getData = null)
         {
             var set = Setting.Current;
             //var oldInitData = set.InitData;

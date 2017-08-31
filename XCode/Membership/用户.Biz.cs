@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
 using System.Linq;
@@ -189,7 +190,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.ID, id);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(__.ID, id);
+                return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
 
             // 实体缓存
             //return Meta.SingleCache[id];
@@ -205,7 +206,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Name, name);
             else // 实体缓存
-                return Meta.Cache.Entities.FindIgnoreCase(__.Name, name);
+                return Meta.Cache.Entities.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
         }
 
         /// <summary>根据邮箱地址查找</summary>
@@ -216,7 +217,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Mail, mail);
             else // 实体缓存
-                return Meta.Cache.Entities.FindIgnoreCase(__.Mail, mail);
+                return Meta.Cache.Entities.FirstOrDefault(e => e.Mail.EqualIgnoreCase(mail));
         }
 
         /// <summary>根据手机号码查找</summary>
@@ -227,7 +228,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Phone, phone);
             else // 实体缓存
-                return Meta.Cache.Entities.Find(__.Phone, phone);
+                return Meta.Cache.Entities.FirstOrDefault(e => e.Phone.EqualIgnoreCase(phone));
         }
 
         /// <summary>根据唯一代码查找</summary>
@@ -238,7 +239,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Code, code);
             else // 实体缓存
-                return Meta.Cache.Entities.FindIgnoreCase(__.Code, code);
+                return Meta.Cache.Entities.FirstOrDefault(e => e.Code.EqualIgnoreCase(code));
         }
         #endregion
 
@@ -249,7 +250,7 @@ namespace XCode.Membership
         /// <param name="isEnable"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p)
+        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p)
         {
             return Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
         }
@@ -262,7 +263,7 @@ namespace XCode.Membership
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
+        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
         {
             var exp = _.LastLogin.Between(start, end);
             if (roleId >= 0) exp &= _.RoleID == roleId;

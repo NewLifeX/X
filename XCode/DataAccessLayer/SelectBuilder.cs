@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -19,32 +18,22 @@ namespace XCode.DataAccessLayer
         /// <summary>分页主键</summary>
         public String Key
         {
-            get { return _Keys != null && _Keys.Length > 0 ? _Keys[0] : null; }
-            set { _Keys = new String[] { value }; }
+            get { return Keys != null && Keys.Length > 0 ? Keys[0] : null; }
+            set { Keys = new String[] { value }; }
         }
 
-        private String[] _Keys;
         /// <summary>分页主键组</summary>
-        public String[] Keys
-        {
-            get { return _Keys; }
-            set { _Keys = value; }
-        }
+        public String[] Keys { get; set; }
 
         /// <summary>是否降序</summary>
         public Boolean IsDesc
         {
-            get { return _IsDescs != null && _IsDescs.Length > 0 ? _IsDescs[0] : false; }
-            set { _IsDescs = new Boolean[] { value }; }
+            get { return IsDescs != null && IsDescs.Length > 0 ? IsDescs[0] : false; }
+            set { IsDescs = new Boolean[] { value }; }
         }
 
-        private Boolean[] _IsDescs;
         /// <summary>主键组是否降序</summary>
-        public Boolean[] IsDescs
-        {
-            get { return _IsDescs; }
-            set { _IsDescs = value; }
-        }
+        public Boolean[] IsDescs { get; set; }
 
         /// <summary>是否整数自增主键</summary>
         public Boolean IsInt { get; set; }
@@ -54,9 +43,9 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_Keys == null || _Keys.Length < 1) return null;
+                if (Keys == null || Keys.Length < 1) return null;
 
-                return Join(_Keys, _IsDescs);
+                return Join(Keys, IsDescs);
             }
         }
 
@@ -65,18 +54,18 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_Keys == null || _Keys.Length < 1) return null;
+                if (Keys == null || Keys.Length < 1) return null;
 
                 // 把排序反过来
-                Boolean[] isdescs = new Boolean[_Keys.Length];
-                for (Int32 i = 0; i < isdescs.Length; i++)
+                var isdescs = new Boolean[Keys.Length];
+                for (var i = 0; i < isdescs.Length; i++)
                 {
-                    if (_IsDescs != null && _IsDescs.Length > i)
-                        isdescs[i] = !_IsDescs[i];
+                    if (IsDescs != null && IsDescs.Length > i)
+                        isdescs[i] = !IsDescs[i];
                     else
                         isdescs[i] = true;
                 }
-                return Join(_Keys, isdescs);
+                return Join(Keys, isdescs);
             }
         }
 
@@ -87,7 +76,7 @@ namespace XCode.DataAccessLayer
             {
                 if (String.IsNullOrEmpty(Key)) return false;
 
-                String[] keys = Split(OrderBy, out var isdescs);
+                var keys = Split(OrderBy, out var isdescs);
 
                 return keys != null && keys.Length == 1 && keys[0].EqualIgnoreCase(Key);
             }
@@ -121,13 +110,13 @@ namespace XCode.DataAccessLayer
                 // 里面可能含有分组
                 if (!String.IsNullOrEmpty(_Where))
                 {
-                    String where = _Where.ToLower();
+                    var where = _Where.ToLower();
                     if (where.Contains("group") && where.Contains("by"))
                     {
-                        Match match = reg_gb.Match(_Where);
+                        var match = reg_gb.Match(_Where);
                         if (match != null && match.Success)
                         {
-                            String gb = _Where.Substring(match.Index + match.Length).Trim();
+                            var gb = _Where.Substring(match.Index + match.Length).Trim();
                             if (String.IsNullOrEmpty(GroupBy))
                                 GroupBy = gb;
                             else
@@ -161,7 +150,7 @@ namespace XCode.DataAccessLayer
                 // 分析排序字句，从中分析出分页用的主键
                 if (!String.IsNullOrEmpty(_OrderBy))
                 {
-                    String[] keys = Split(_OrderBy, out var isdescs);
+                    var keys = Split(_OrderBy, out var isdescs);
 
                     if (keys != null && keys.Length > 0)
                     {
@@ -248,7 +237,7 @@ $";
         /// <returns></returns>
         public Boolean Parse(String sql)
         {
-            Match m = regexSelect.Match(sql);
+            var m = regexSelect.Match(sql);
             if (m != null && m.Success)
             {
                 Column = m.Groups["选择列"].Value;
@@ -311,18 +300,20 @@ $";
         /// <returns></returns>
         public SelectBuilder Clone()
         {
-            var sb = new SelectBuilder();
-            sb.Column = Column;
-            sb.Table = Table;
-            // 直接拷贝字段，避免属性set时触发分析代码
-            sb._Where = _Where;
-            sb._OrderBy = _OrderBy;
-            sb.GroupBy = GroupBy;
-            sb.Having = Having;
+            var sb = new SelectBuilder
+            {
+                Column = Column,
+                Table = Table,
+                // 直接拷贝字段，避免属性set时触发分析代码
+                _Where = _Where,
+                _OrderBy = _OrderBy,
+                GroupBy = GroupBy,
+                Having = Having,
 
-            sb.Keys = Keys;
-            sb.IsDescs = IsDescs;
-            sb.IsInt = IsInt;
+                Keys = Keys,
+                IsDescs = IsDescs,
+                IsInt = IsInt
+            };
 
             sb.Parameters.AddRange(Parameters);
 
@@ -359,7 +350,7 @@ $";
                 else
                 {
                     // 检查是否已存在该字段
-                    String[] selects = Column.Split(',');
+                    var selects = Column.Split(',');
                     selects = selects.Concat(columns).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
                     Column = String.Join(",", selects);
                 }
@@ -425,15 +416,15 @@ $";
             {
                 orderby = orderby.Replace(match.Value, match.Value.Replace(",", "★"));
             }
-            String[] ss = orderby.Trim().Split(",");
+            var ss = orderby.Trim().Split(",");
             if (ss == null || ss.Length < 1) return null;
 
-            String[] keys = new String[ss.Length];
+            var keys = new String[ss.Length];
             isdescs = new Boolean[ss.Length];
 
-            for (Int32 i = 0; i < ss.Length; i++)
+            for (var i = 0; i < ss.Length; i++)
             {
-                String[] ss2 = ss[i].Trim().Split(' ');
+                var ss2 = ss[i].Trim().Split(' ');
                 // 拆分名称和排序，不知道是否存在多余一个空格的情况
                 if (ss2 != null && ss2.Length > 0)
                 {
@@ -455,7 +446,7 @@ $";
             if (keys.Length == 1) return isdescs != null && isdescs.Length > 0 && isdescs[0] ? keys[0] + " Desc" : keys[0];
 
             var sb = new StringBuilder();
-            for (Int32 i = 0; i < keys.Length; i++)
+            for (var i = 0; i < keys.Length; i++)
             {
                 if (sb.Length > 0) sb.Append(", ");
 
@@ -463,6 +454,16 @@ $";
                 if (isdescs != null && isdescs.Length > i && isdescs[i]) sb.Append(" Desc");
             }
             return sb.ToString();
+        }
+
+        internal SelectBuilder Top(Int64 top, String keyColumn = null)
+        {
+            var builder = this;
+            if (!String.IsNullOrEmpty(keyColumn)) builder.Column = keyColumn;
+            if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
+            builder.Column = String.Format("Top {0} {1}", top, builder.Column);
+
+            return builder;
         }
         #endregion
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NewLife.Log;
 using XCode;
@@ -62,15 +63,18 @@ namespace XCode.Transform
             }
         }
 
+        /// <summary>本批数据开始时间</summary>
+        public DateTime ActualStart { get; set; }
+
         /// <summary>本批数据结束时间</summary>
-        public DateTime BatchEnd { get; set; }
+        public DateTime ActualEnd { get; set; }
         #endregion
 
         #region 构造
         /// <summary>实例化时基抽取算法</summary>
         public TimeExtracter()
         {
-            Name = GetType().Name.TrimEnd("Extracter", "Worker");
+            Name = GetType().Name.TrimEnd("Extracter");
         }
         #endregion
 
@@ -90,13 +94,13 @@ namespace XCode.Transform
         #region 抽取数据
         /// <summary>抽取一批数据</summary>
         /// <returns></returns>
-        public virtual IEntityList Fetch()
+        public virtual IList<IEntity> Fetch()
         {
             if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
 
             var set = Setting;
-            if (set == null) set = Setting = new ExtractSetting();
-            if (!set.Enable) return null;
+            //if (set == null) set = Setting = new ExtractSetting();
+            if (set == null) throw new ArgumentNullException(nameof(Setting), "没有设置数据抽取配置");
 
             // 验证时间段
             var start = set.Start;
@@ -114,7 +118,9 @@ namespace XCode.Transform
 
             // 区间无效
             if (start >= end) return null;
-            BatchEnd = end;
+
+            ActualStart = start;
+            ActualEnd = end;
 
             var size = set.BatchSize;
             if (size <= 0) size = 1000;
@@ -131,22 +137,22 @@ namespace XCode.Transform
                     // 最大时间行数
                     var maxCount = list.Count(e => (DateTime)e[FieldName] == last);
                     // 以最后时间为起点，跳过若干行。注意可能产生连续分页的情况
-                    if (last == NextStart)
-                        NextRow = set.Row + maxCount;
+                    if (last == set.Start)
+                        set.Row = set.Row + maxCount;
                     else
-                        NextRow = maxCount;
-                    NextStart = last;
+                        set.Row = maxCount;
+                    set.Start = last;
                 }
                 else
                 {
-                    NextStart = last.AddSeconds(1);
-                    NextRow = 0;
+                    set.Start = last.AddSeconds(1);
+                    set.Row = 0;
                 }
             }
             else if (set.Step > 0)
             {
-                NextStart = end;
-                NextRow = 0;
+                set.Start = end;
+                set.Row = 0;
             }
 
             return list;
@@ -158,7 +164,7 @@ namespace XCode.Transform
         /// <param name="startRow"></param>
         /// <param name="maxRows"></param>
         /// <returns></returns>
-        protected virtual IEntityList FetchData(DateTime start, DateTime end, Int32 startRow, Int32 maxRows)
+        protected virtual IList<IEntity> FetchData(DateTime start, DateTime end, Int32 startRow, Int32 maxRows)
         {
             var fi = Field;
             var exp = fi.Between(start, end);
@@ -189,16 +195,16 @@ namespace XCode.Transform
             return list.Count > 0 ? (DateTime)list[0][FieldName] : DateTime.MaxValue;
         }
 
-        private DateTime NextStart { get; set; }
-        private Int32 NextRow { get; set; }
+        //private DateTime NextStart { get; set; }
+        //private Int32 NextRow { get; set; }
 
-        /// <summary>当前批数据处理完成，移动到下一块</summary>
-        public void SaveNext()
-        {
-            var set = Setting;
-            set.Start = NextStart;
-            set.Row = NextRow;
-        }
+        ///// <summary>当前批数据处理完成，移动到下一块</summary>
+        //public void SaveNext()
+        //{
+        //    var set = Setting;
+        //    set.Start = NextStart;
+        //    set.Row = NextRow;
+        //}
         #endregion
 
         #region 日志

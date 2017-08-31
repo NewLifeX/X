@@ -50,7 +50,7 @@ namespace XCode.Cache
         public IDictionary<String, String> FindAllName()
         {
             //var id = _field.Table.Identity;
-            var list = Entities.ToList().Take(MaxRows).ToList();
+            var list = Entities.Take(MaxRows).ToList();
 
             var dic = new Dictionary<String, String>();
             foreach (var entity in list)

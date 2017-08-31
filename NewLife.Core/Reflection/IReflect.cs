@@ -544,8 +544,7 @@ namespace NewLife.Reflection
                 if (pi.GetIndexParameters().Length > 0) continue;
                 if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
-                Object obj = null;
-                if (dic.TryGetValue(pi.Name, out obj))
+                if (dic.TryGetValue(pi.Name, out var obj))
                 {
                     // 基础类型直接拷贝，不考虑深拷贝
                     if (deep && pi.PropertyType.GetTypeCode() == TypeCode.Object)
@@ -618,7 +617,7 @@ namespace NewLife.Reflection
                 }
                 else if (conversionType.As<Type>())
                 {
-                    return GetType((String)value, true);
+                    return GetType((String)value, false);
                 }
 
                 // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型

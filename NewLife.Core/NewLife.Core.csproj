@@ -36,16 +36,6 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NET4|AnyCPU'">
-    <OutputPath>..\..\Bin4\</OutputPath>
-    <DefineConstants>TRACE;NET4</DefineConstants>
-    <DocumentationFile>..\..\Bin4\NewLife.Core.XML</DocumentationFile>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
@@ -87,9 +77,6 @@
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
-    <Compile Include="Collections\ListBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Collections\NullableDictionary.cs" />
     <Compile Include="Common\CombGuid.cs" />
     <Compile Include="Common\PinYin.cs" />

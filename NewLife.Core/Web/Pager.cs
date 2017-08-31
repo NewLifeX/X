@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Web;
 using NewLife.Data;
 
 namespace NewLife.Web
@@ -89,8 +91,7 @@ namespace NewLife.Web
         /// <param name="pm"></param>
         public Pager(PageParameter pm) : base(pm)
         {
-            var p = pm as Pager;
-            if (p != null)
+            if (pm is Pager p)
             {
                 foreach (var item in p.Params)
                 {
@@ -182,6 +183,41 @@ namespace NewLife.Web
             }
 
             return name;
+        }
+
+        /// <summary>获取表单提交的Url</summary>
+        /// <param name="action">动作</param>
+        /// <returns></returns>
+        public virtual String GetFormAction(String action = null)
+        {
+            var req = HttpContext.Current?.Request;
+            if (req == null) return action;
+
+            // 表单提交，不需要排序、分页，不需要表单提交上来的数据，只要请求字符串过来的数据
+            var query = req.QueryString;
+            var forms = new HashSet<String>(req.Form.AllKeys, StringComparer.OrdinalIgnoreCase);
+            var excludes = new HashSet<String>(new[] { _.Sort, _.Desc, _.PageIndex, _.PageSize }, StringComparer.OrdinalIgnoreCase);
+
+            var url = new StringBuilder();
+            foreach (var item in query.AllKeys)
+            {
+                // 只要查询字符串，不要表单
+                if (forms.Contains(item)) continue;
+
+                // 排除掉排序和分页
+                if (excludes.Contains(item)) continue;
+
+                // 内容为空也不要
+                var v = query[item];
+                if (v.IsNullOrEmpty()) continue;
+
+                url.UrlParam(item, v);
+            }
+
+            if (url.Length == 0) return action;
+            if (!action.Contains('?')) action += '?';
+
+            return action + url.ToString();
         }
         #endregion
     }

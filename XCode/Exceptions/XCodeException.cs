@@ -29,11 +29,6 @@ namespace XCode
         /// <summary>初始化</summary>
         /// <param name="innerException"></param>
         public XCodeException(Exception innerException) : base((innerException?.Message), innerException) { }
-
-        ///// <summary>初始化</summary>
-        ///// <param name="info"></param>
-        ///// <param name="context"></param>
-        //protected XCodeException(SerializationInfo info, StreamingContext context) : base(info, context) { }
         #endregion
     }
 }

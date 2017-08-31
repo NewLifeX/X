@@ -27,6 +27,12 @@ namespace ASP
     using System.Web.UI;
     using System.Web.WebPages;
     using NewLife;
+    
+    #line 1 "..\..\Views\Shared\_Layout_Header.cshtml"
+    using NewLife.Common;
+    
+    #line default
+    #line hidden
     using NewLife.Cube;
     using NewLife.Reflection;
     using NewLife.Web;
@@ -43,51 +49,203 @@ namespace ASP
         public override void Execute()
         {
             
-            #line 1 "..\..\Views\Shared\_Layout_Header.cshtml"
- if (ViewBag.HeaderTitle + "" != "" || ViewBag.HeaderContent + "" != "")
-{
+            #line 2 "..\..\Views\Shared\_Layout_Header.cshtml"
+  
+    var cfg = NewLife.Common.SysConfig.Current;
+    var user = ManageProvider.User;
 
             
             #line default
             #line hidden
-WriteLiteral("    <div");
+WriteLiteral("\r\n<div");
 
-WriteLiteral(" class=\"page-header hidden-xs\"");
+WriteLiteral(" class=\"navbar navbar-default\"");
 
-WriteLiteral(">\r\n        <h1>\r\n");
+WriteLiteral(">\r\n    <div");
 
-WriteLiteral("            ");
+WriteLiteral(" class=\"container\"");
+
+WriteLiteral(">\r\n        <div");
+
+WriteLiteral(" class=\"navbar-header\"");
+
+WriteLiteral(">\r\n            <button");
+
+WriteLiteral(" class=\"navbar-toggle\"");
+
+WriteLiteral(" type=\"button\"");
+
+WriteLiteral(" data-toggle=\"collapse\"");
+
+WriteLiteral(" data-target=\".navbar-responsive-collapse\"");
+
+WriteLiteral(">\r\n                <span");
+
+WriteLiteral(" class=\"sr-only\"");
+
+WriteLiteral("></span>\r\n                <span");
+
+WriteLiteral(" class=\"icon-bar\"");
+
+WriteLiteral("></span>\r\n                <span");
+
+WriteLiteral(" class=\"icon-bar\"");
+
+WriteLiteral("></span>\r\n                <span");
+
+WriteLiteral(" class=\"icon-bar\"");
+
+WriteLiteral("></span>\r\n            </button>\r\n            <a");
+
+WriteLiteral(" class=\"navbar-brand\"");
+
+WriteAttribute("href", Tuple.Create(" href=\"", 592), Tuple.Create("\"", 601)
+, Tuple.Create(Tuple.Create("", 599), Tuple.Create<System.Object, System.Int32>(Href("~/")
+, 599), false)
+);
+
+WriteLiteral(">");
 
             
-            #line 5 "..\..\Views\Shared\_Layout_Header.cshtml"
-       Write(ViewBag.HeaderTitle);
+            #line 15 "..\..\Views\Shared\_Layout_Header.cshtml"
+                                         Write(cfg.DisplayName);
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n            <small>\r\n                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-angle-double-right\"");
-
-WriteLiteral("></i>\r\n");
-
-WriteLiteral("                ");
+WriteLiteral("<sub>");
 
             
-            #line 8 "..\..\Views\Shared\_Layout_Header.cshtml"
-           Write(ViewBag.HeaderContent);
+            #line 15 "..\..\Views\Shared\_Layout_Header.cshtml"
+                                                              Write(cfg.Name);
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n            </small>\r\n        </h1>\r\n    </div>\r\n");
+WriteLiteral("</sub></a>\r\n        </div>\r\n        <div");
+
+WriteLiteral(" class=\"navbar-collapse collapse navbar-responsive-collapse\"");
+
+WriteLiteral(">\r\n            <ul");
+
+WriteLiteral(" class=\"nav navbar-nav\"");
+
+WriteLiteral(">\r\n                <li>");
 
             
-            #line 12 "..\..\Views\Shared\_Layout_Header.cshtml"
-}
+            #line 19 "..\..\Views\Shared\_Layout_Header.cshtml"
+               Write(Html.ActionLink("首页", "Index", "Home"));
+
             
             #line default
             #line hidden
+WriteLiteral("</li>\r\n                <li>");
+
+            
+            #line 20 "..\..\Views\Shared\_Layout_Header.cshtml"
+               Write(Html.ActionLink("关于我们", "About", "Home"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</li>\r\n            </ul>\r\n            <ul");
+
+WriteLiteral(" class=\"nav navbar-nav navbar-right\"");
+
+WriteLiteral(">\r\n");
+
+            
+            #line 23 "..\..\Views\Shared\_Layout_Header.cshtml"
+                
+            
+            #line default
+            #line hidden
+            
+            #line 23 "..\..\Views\Shared\_Layout_Header.cshtml"
+                 if (user == null)
+                {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                    <li");
+
+WriteLiteral(" class=\"\"");
+
+WriteLiteral(">");
+
+            
+            #line 25 "..\..\Views\Shared\_Layout_Header.cshtml"
+                            Write(Html.ActionLink("注册", "Register", "Account"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</li>\r\n");
+
+WriteLiteral("                    <li");
+
+WriteLiteral(" class=\"\"");
+
+WriteLiteral(">");
+
+            
+            #line 26 "..\..\Views\Shared\_Layout_Header.cshtml"
+                            Write(Html.ActionLink("登录", "Login", "Account", new { ReturnUrl = ViewContext.HttpContext.Request.Url.PathAndQuery }, null));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</li>\r\n");
+
+            
+            #line 27 "..\..\Views\Shared\_Layout_Header.cshtml"
+                }
+                else
+                {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                    <li");
+
+WriteLiteral(" class=\"\"");
+
+WriteLiteral(">");
+
+            
+            #line 30 "..\..\Views\Shared\_Layout_Header.cshtml"
+                            Write(Html.ActionLink(user + "", "Detail", "Account", new { user.ID }, null));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</li>\r\n");
+
+WriteLiteral("                    <li");
+
+WriteLiteral(" class=\"\"");
+
+WriteLiteral(">");
+
+            
+            #line 31 "..\..\Views\Shared\_Layout_Header.cshtml"
+                            Write(Html.ActionLink("注销", "Logout", "Account", new { ReturnUrl = ViewContext.HttpContext.Request.Url.PathAndQuery }, null));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</li>\r\n");
+
+            
+            #line 32 "..\..\Views\Shared\_Layout_Header.cshtml"
+                }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("            </ul>\r\n        </div>\r\n    </div>\r\n</div>\r\n");
+
         }
     }
 }

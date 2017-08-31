@@ -13,42 +13,7 @@ namespace XCode
     /// <summary>实体工厂</summary>
     public static class EntityFactory
     {
-        #region 创建实体
-        /// <summary>创建指定类型的实例</summary>
-        /// <param name="typeName"></param>
-        /// <returns></returns>
-        public static IEntity Create(String typeName) { return Create(GetEntityType(typeName)); }
-
-        /// <summary>创建指定类型的实例</summary>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        public static IEntity Create(Type type)
-        {
-            if (type == null || type.IsInterface || type.IsAbstract) return null;
-
-            return CreateOperate(type).Create();
-        }
-        #endregion
-
         #region 创建实体操作接口
-        /// <summary>创建实体操作接口</summary>
-        /// <remarks>因为只用来做实体操作，所以只需要一个实例即可</remarks>
-        /// <param name="typeName"></param>
-        /// <returns></returns>
-        public static IEntityOperate CreateOperate(String typeName)
-        {
-            if (String.IsNullOrEmpty(typeName)) return null;
-
-            Type type = GetEntityType(typeName);
-            if (type == null)
-            {
-                DAL.WriteLog("创建实体操作接口时无法找到{0}类！", typeName);
-                return null;
-            }
-
-            return CreateOperate(type);
-        }
-
         private static Dictionary<Type, IEntityOperate> op_cache = new Dictionary<Type, IEntityOperate>();
         /// <summary>创建实体操作接口</summary>
         /// <remarks>
@@ -190,70 +155,6 @@ namespace XCode
 
             return tables;
         }
-
-        static DictionaryCache<String, Type> typeCache = new DictionaryCache<String, Type>();
-        static Type GetEntityType(String typeName)
-        {
-            if (String.IsNullOrEmpty(typeName)) return null;
-
-            return typeCache.GetItem(typeName, GetTypeInternal);
-        }
-
-        private static Type GetTypeInternal(String typeName)
-        {
-            var type = typeName.GetTypeEx(true);
-            if (type != null && type.As<IEntity>()) return type;
-
-            type = null;
-            var entities = LoadEntities();
-            if (entities == null || entities.Count <= 0) return null;
-
-            var p = typeName.LastIndexOf(".");
-            if (p >= typeName.Length - 1) return null;
-
-            // 记录命名空间，命名空间必须精确匹配
-            var ns = "";
-
-            // 先处理带有命名空间的
-            if (p > 0)
-            {
-                foreach (var item in entities)
-                {
-                    if (item.FullName == typeName) return item;
-
-                    // 同时按照不区分大小写查找，遍历完成后如果还没有找到，就返回不区分大小写查找的结果
-                    if (type == null && typeName.EqualIgnoreCase(item.FullName)) type = item;
-                }
-                if (type != null) return type;
-
-                // 去掉前面的命名空间，采用表名匹配
-                ns = typeName.Substring(0, p);
-                typeName = typeName.Substring(p + 1);
-            }
-
-            foreach (var item in entities)
-            {
-                // 命名空间必须匹配，允许不区分大小写
-                if (!String.IsNullOrEmpty(ns) && !ns.EqualIgnoreCase(item.Namespace)) continue;
-
-                if (item.Name == typeName) return item;
-
-                // 同时按照不区分大小写查找，遍历完成后如果还没有找到，就返回不区分大小写查找的结果
-                if (type == null)
-                {
-                    if (typeName.EqualIgnoreCase(item.Name))
-                        type = item;
-                    else
-                    {
-                        // 有可能用于查找的是表名，而表名曾经被格式化（大小写、去前缀等）
-                        var ti = TableItem.Create(item);
-                        if (ti?.DataTable != null && typeName.EqualIgnoreCase(ti.TableName)) type = item;
-                    }
-                }
-            }
-
-            return type;
-        }
         #endregion
 
         #region 确保实体类已初始化
@@ -279,12 +180,6 @@ namespace XCode
                 _hasInited.Add(type);
             }
         }
-        #endregion
-
-        #region 全局实体处理器
-        //private static EntityHandlerManager _Handler;
-        ///// <summary>实体处理器集合</summary>
-        //public static EntityHandlerManager Handler { get { return _Handler ?? (_Handler = new EntityHandlerManager()); } }
         #endregion
     }
 }

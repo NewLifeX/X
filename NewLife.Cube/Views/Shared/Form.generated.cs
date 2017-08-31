@@ -153,14 +153,7 @@ WriteLiteral("\r\n");
             #line hidden
             
             #line 26 "..\..\Views\Shared\Form.cshtml"
-   Write(Html.Partial("_Form_Footer", entity));
-
-            
-            #line default
-            #line hidden
-            
-            #line 26 "..\..\Views\Shared\Form.cshtml"
-                                             
+                                                 
         
             
             #line default

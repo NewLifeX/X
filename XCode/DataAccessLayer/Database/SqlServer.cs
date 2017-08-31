@@ -245,6 +245,19 @@ namespace XCode.DataAccessLayer
         {
             //return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, IsSQL2005, b => CreateSession().QueryCount(b));
 
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows < 1)
+                {
+                    return builder;
+                }
+                else if (builder.KeyIsOrderBy)
+                {
+                    return builder.Clone().Top(maximumRows);
+                }
+            }
+
+            if (builder.Keys == null || builder.Keys.Length < 1) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
             // 如果包含分组，则必须作为子查询
             var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
             //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);

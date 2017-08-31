@@ -20,7 +20,7 @@ namespace NewLife.Cube.Admin.Controllers
         ///// <summary>搜索数据集</summary>
         ///// <param name="p"></param>
         ///// <returns></returns>
-        //protected override EntityList<UserOnline> FindAll(Pager p)
+        //protected override IList<UserOnline> FindAll(Pager p)
         //{
         //    return UserX.Search(p["Q"], p["RoleID"].ToInt(), null, p);
         //}

@@ -118,7 +118,23 @@ namespace NewLife.Model
         /// <param name="session"></param>
         public static void SaveRegister(this IManageUser user, INetSession session)
         {
+            //user.Registers++;
+            user.RegisterTime = DateTime.Now;
+            //user.RegisterIP = ns.Remote.EndPoint.Address + "";
 
+            if (session != null)
+            {
+                user.RegisterIP = session.Remote?.EndPoint?.Address + "";
+                // 销毁时
+                session.OnDisposed += (s, e) =>
+                {
+                    user.Online = false;
+                    user.Save();
+                };
+            }
+
+            user.Online = true;
+            user.Save();
         }
     }
 }

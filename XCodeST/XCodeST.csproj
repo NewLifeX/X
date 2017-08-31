@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\Bin\netstandard2.0\</OutputPath>
+    <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
     <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
@@ -83,9 +83,8 @@
     <Compile Include="..\XCode\Entity\EntityBase.cs" Link="Entity\EntityBase.cs" />
     <Compile Include="..\XCode\Entity\EntityBase_Interface.cs" Link="Entity\EntityBase_Interface.cs" />
     <Compile Include="..\XCode\Entity\EntityExtend.cs" Link="Entity\EntityExtend.cs" />
+    <Compile Include="..\XCode\Entity\EntityExtension.cs" Link="Entity\EntityExtension.cs" />
     <Compile Include="..\XCode\Entity\EntityFactory.cs" Link="Entity\EntityFactory.cs" />
-    <Compile Include="..\XCode\Entity\EntityList.cs" Link="Entity\EntityList.cs" />
-    <Compile Include="..\XCode\Entity\EntityListView.cs" Link="Entity\EntityListView.cs" />
     <Compile Include="..\XCode\Entity\EntityQueue.cs" Link="Entity\EntityQueue.cs" />
     <Compile Include="..\XCode\Entity\EntitySession.cs" Link="Entity\EntitySession.cs" />
     <Compile Include="..\XCode\Entity\EntityTransaction.cs" Link="Entity\EntityTransaction.cs" />
@@ -93,7 +92,6 @@
     <Compile Include="..\XCode\Entity\Entity_Operate.cs" Link="Entity\Entity_Operate.cs" />
     <Compile Include="..\XCode\Entity\IEntity.cs" Link="Entity\IEntity.cs" />
     <Compile Include="..\XCode\Entity\IEntityAddition.cs" Link="Entity\IEntityAddition.cs" />
-    <Compile Include="..\XCode\Entity\IEntityList.cs" Link="Entity\IEntityList.cs" />
     <Compile Include="..\XCode\Entity\IEntityModule.cs" Link="Entity\IEntityModule.cs" />
     <Compile Include="..\XCode\Entity\IEntityOperate.cs" Link="Entity\IEntityOperate.cs" />
     <Compile Include="..\XCode\Entity\IEntityPersistence.cs" Link="Entity\IEntityPersistence.cs" />
@@ -138,7 +136,6 @@
     <Compile Include="..\XCode\Tree\EntityTree.cs" Link="Tree\EntityTree.cs" />
     <Compile Include="..\XCode\Tree\IEntityTree.cs" Link="Tree\IEntityTree.cs" />
     <Compile Include="..\XCode\Tree\IEntityTreeSettting.cs" Link="Tree\IEntityTreeSettting.cs" />
-    <Compile Include="..\XCode\生成实体类.cs" Link="生成实体类.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -12,7 +12,7 @@ using NewLife.Xml;
 namespace XCode.DataAccessLayer
 {
     /// <summary>表模型</summary>
-    [DebuggerDisplay("ID={ID} Name={Name} Description={Description}")]
+    [DebuggerDisplay("{Name} {Description}")]
     [Serializable]
     [DisplayName("表模型")]
     [Description("表模型")]

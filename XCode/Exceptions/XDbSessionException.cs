@@ -7,23 +7,18 @@ namespace XCode.Exceptions
     [Serializable]
     public class XDbSessionException : XDbException
     {
-        private IDbSession _Session;
         /// <summary>数据库会话</summary>
-        public IDbSession Session
-        {
-            get { return _Session; }
-            //set { _Database = value; }
-        }
+        public IDbSession Session { get; }
 
         #region 构造
         /// <summary>初始化</summary>
         /// <param name="session"></param>
-        public XDbSessionException(IDbSession session) : base(session?.Database) { _Session = session; }
+        public XDbSessionException(IDbSession session) : base(session?.Database) { Session = session; }
 
         /// <summary>初始化</summary>
         /// <param name="session"></param>
         /// <param name="message"></param>
-        public XDbSessionException(IDbSession session, String message) : base(session?.Database, message) { _Session = session; }
+        public XDbSessionException(IDbSession session, String message) : base(session?.Database, message) { Session = session; }
 
         /// <summary>初始化</summary>
         /// <param name="session"></param>
@@ -32,7 +27,7 @@ namespace XCode.Exceptions
         public XDbSessionException(IDbSession session, String message, Exception innerException)
             : base(session.Database, message, innerException)
         {
-            _Session = session;
+            Session = session;
         }
 
         /// <summary>初始化</summary>
@@ -41,7 +36,7 @@ namespace XCode.Exceptions
         public XDbSessionException(IDbSession session, Exception innerException)
             : base(session.Database, innerException)
         {
-            _Session = session;
+            Session = session;
         }
         #endregion
     }

@@ -132,9 +132,11 @@ namespace XCode.DataAccessLayer
         {
             var ms = new MemoryStream();
 
-            var settings = new XmlWriterSettings();
-            settings.Encoding = new UTF8Encoding(false);
-            settings.Indent = true;
+            var settings = new XmlWriterSettings
+            {
+                Encoding = new UTF8Encoding(false),
+                Indent = true
+            };
 
             var writer = XmlWriter.Create(ms, settings);
             writer.WriteStartDocument();
@@ -173,9 +175,11 @@ namespace XCode.DataAccessLayer
             if (xml.IsNullOrEmpty()) return null;
             if (createTable == null) throw new ArgumentNullException(nameof(createTable));
 
-            var settings = new XmlReaderSettings();
-            settings.IgnoreWhitespace = true;
-            settings.IgnoreComments = true;
+            var settings = new XmlReaderSettings
+            {
+                IgnoreWhitespace = true,
+                IgnoreComments = true
+            };
 
             var reader = XmlReader.Create(new MemoryStream(Encoding.UTF8.GetBytes(xml)), settings);
             while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read()) return null; }
@@ -252,7 +256,7 @@ namespace XCode.DataAccessLayer
                             var v = reader.GetAttribute("DataType");
                             if (v != null)
                             {
-                                dc.DataType = v.GetTypeEx();
+                                dc.DataType = v.GetTypeEx(false);
                                 v = reader.GetAttribute("Length");
                                 if (v != null && Int32.TryParse(v, out var len)) dc.Length = len;
 
@@ -348,13 +352,13 @@ namespace XCode.DataAccessLayer
                 names.Add(pi.Name);
 
                 var v = reader.GetAttribute(pi.Name);
-                if (String.IsNullOrEmpty(v)) continue;
+                if (v.IsNullOrEmpty()) continue;
 
                 if (pi.PropertyType == typeof(String[]))
                 {
                     var ss = v.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                     // 去除前后空格，因为手工修改xml的时候，可能在逗号后加上空格
-                    for (Int32 i = 0; i < ss.Length; i++)
+                    for (var i = 0; i < ss.Length; i++)
                     {
                         ss[i] = ss[i].Trim();
                     }
@@ -460,7 +464,7 @@ namespace XCode.DataAccessLayer
                     {
                         var sb = new StringBuilder();
                         var arr = obj as IEnumerable;
-                        foreach (Object elm in arr)
+                        foreach (var elm in arr)
                         {
                             if (sb.Length > 0) sb.Append(",");
                             sb.Append(elm);

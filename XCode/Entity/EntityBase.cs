@@ -107,19 +107,6 @@ namespace XCode
         }
         #endregion
 
-        #region 导入导出XML、Json
-        /// <summary>导出XML</summary>
-        /// <returns></returns>
-        public virtual String ToXml() { return this.ToXml(Encoding.UTF8); }
-
-        /// <summary>导出Json</summary>
-        /// <returns></returns>
-        public virtual String ToJson()
-        {
-            return JsonHelper.ToJson(this);
-        }
-        #endregion
-
         #region 克隆
         /// <summary>创建当前对象的克隆对象，仅拷贝基本字段</summary>
         /// <returns></returns>
@@ -141,6 +128,8 @@ namespace XCode
         /// <returns>实际复制成员数</returns>
         public virtual Int32 CopyFrom(IEntity entity, Boolean setDirty = true)
         {
+            if (entity == this) return 0;
+
             IEntity src = this;
             var nsSrc = EntityFactory.CreateOperate(src.GetType()).FieldNames;
             //if (nsSrc == null || nsSrc.Count < 1) return 0;
@@ -267,11 +256,11 @@ namespace XCode
         /// <returns></returns>
         Boolean IEntity.EqualTo(IEntity entity)
         {
-            if (entity == null || this.GetType() != entity.GetType()) return false;
+            if (entity == null || GetType() != entity.GetType()) return false;
             if (this == entity) return true;
 
             // 判断是否所有主键相等
-            var op = EntityFactory.CreateOperate(this.GetType());
+            var op = EntityFactory.CreateOperate(GetType());
             var ps = op.Table.PrimaryKeys;
             // 如果没有主键，则判断所有字段
             if (ps == null || ps.Length < 1) ps = op.Table.Fields;

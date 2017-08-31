@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace XCode
 {
@@ -10,13 +11,13 @@ namespace XCode
         IEntity Parent { get; }
 
         /// <summary>子实体集合</summary>
-        IEntityList Childs { get; }
+        IList<IEntity> Childs { get; }
 
         /// <summary>子孙实体集合。以深度层次树结构输出</summary>
-        IEntityList AllChilds { get; }
+        IList<IEntity> AllChilds { get; }
 
         /// <summary>父亲实体集合。以深度层次树结构输出</summary>
-        IEntityList AllParents { get; }
+        IList<IEntity> AllParents { get; }
 
         /// <summary>深度</summary>
         Int32 Deepth { get; }
@@ -27,7 +28,7 @@ namespace XCode
         /// <summary>获取完整树，包含根节点，排除指定分支。多用于树节点父级选择</summary>
         /// <param name="exclude"></param>
         /// <returns></returns>
-        IEntityList FindAllChildsExcept(IEntityTree exclude);
+        IList<IEntity> FindAllChildsExcept(IEntityTree exclude);
         #endregion
     }
 }

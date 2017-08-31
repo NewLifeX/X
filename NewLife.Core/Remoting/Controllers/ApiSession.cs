@@ -136,6 +136,7 @@ namespace NewLife.Remoting
             var dic = ControllerContext.Current.Parameters;
             // 返回服务器时间
             dic["ServerTime"] = DateTime.Now;
+            dic["ServerSeconds"] = (Int32)(DateTime.Now - new DateTime(1970, 1, 1)).TotalSeconds;
 
             return dic;
         }

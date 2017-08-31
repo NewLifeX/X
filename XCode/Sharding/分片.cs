@@ -11,8 +11,9 @@ namespace XCode.Sharding
     [Serializable]
     [DataObject]
     [Description("分片")]
-    [BindIndex("IX_Shard_Name", false, "Name")]
+    [BindIndex("IU_Shard_Name", true, "Name")]
     [BindIndex("IX_Shard_EntityType", false, "EntityType")]
+    [BindIndex("IX_Shard_UpdateUserID_UpdateTime", false, "UpdateUserID,UpdateTime")]
     [BindTable("Shard", Description = "分片", ConnName = "Shard", DbType = DatabaseType.SqlServer)]
     public partial class Shard : IShard
     {

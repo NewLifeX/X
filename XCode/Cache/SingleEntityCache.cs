@@ -123,8 +123,6 @@ namespace XCode.Cache
         /// <summary>缓存对象</summary>
         class CacheItem
         {
-            //private SingleEntityCache<TKey, TEntity> Cache { get; }
-
             /// <summary>键</summary>
             public TKey Key { get; set; }
 
@@ -142,8 +140,6 @@ namespace XCode.Cache
 
             /// <summary>是否已经过期</summary>
             public Boolean Expired { get { return ExpireTime <= DateTime.Now; } }
-
-            //public CacheItem(SingleEntityCache<TKey, TEntity> sc) { Cache = sc; }
 
             public void SetEntity(TEntity entity, Int32 expire)
             {
@@ -455,15 +451,15 @@ namespace XCode.Cache
         #region 辅助
         internal SingleEntityCache<TKey, TEntity> CopySettingFrom(ISingleEntityCache<TKey, TEntity> ec)
         {
-            this.Expire = ec.Expire;
-            this.MaxEntity = ec.MaxEntity;
+            Expire = ec.Expire;
+            MaxEntity = ec.MaxEntity;
 
-            this.GetKeyMethod = ec.GetKeyMethod;
-            this.FindKeyMethod = ec.FindKeyMethod;
+            GetKeyMethod = ec.GetKeyMethod;
+            FindKeyMethod = ec.FindKeyMethod;
 
-            this.SlaveKeyIgnoreCase = ec.SlaveKeyIgnoreCase;
-            this.GetSlaveKeyMethod = ec.GetSlaveKeyMethod;
-            this.FindSlaveKeyMethod = ec.FindSlaveKeyMethod;
+            SlaveKeyIgnoreCase = ec.SlaveKeyIgnoreCase;
+            GetSlaveKeyMethod = ec.GetSlaveKeyMethod;
+            FindSlaveKeyMethod = ec.FindSlaveKeyMethod;
 
             return this;
         }

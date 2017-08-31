@@ -45,13 +45,9 @@ namespace NewLife.Cube
             }
             else
             {
-                // 表单页，实现了IUserInfo则隐藏创建信息和更新信息
-                //if (Factory.Default is IUserInfo)
-                {
-                    RemoveCreateField();
-                    RemoveUpdateField();
-                    RemoveRemarkField();
-                }
+                //RemoveCreateField();
+                //RemoveUpdateField();
+                //RemoveRemarkField();
             }
 
             // IP地址字段

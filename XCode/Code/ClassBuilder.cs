@@ -218,7 +218,7 @@ namespace XCode.Code
                 return;
             }
 
-            if (value == "}") SetIndent(false);
+            if (value[0] == '}') SetIndent(false);
 
             var v = value;
             if (!_Indent.IsNullOrEmpty()) v = _Indent + v;
@@ -262,12 +262,12 @@ namespace XCode.Code
         /// <summary>输出目录</summary>
         public String Output { get; set; }
 
-        /// <summary>保存文件</summary>
-        public virtual void Save(String ext = null, Boolean overwrite = true)
+        /// <summary>保存文件，返回文件路径</summary>
+        public virtual String Save(String ext = null, Boolean overwrite = true)
         {
             var p = Output;
-            if (Table.Properties.ContainsKey("Output")) p = p.CombinePath(Table.Properties["Output"]);
-            if (Table.Properties.ContainsKey("分类")) p = p.CombinePath(Table.Properties["分类"]);
+            //if (Table.Properties.ContainsKey("Output")) p = p.CombinePath(Table.Properties["Output"]);
+            //if (Table.Properties.ContainsKey("分类")) p = p.CombinePath(Table.Properties["分类"]);
 
             if (ext.IsNullOrEmpty()) ext = ".cs";
 
@@ -281,10 +281,26 @@ namespace XCode.Code
             p = p.GetFullPath();
 
             if (!File.Exists(p) || overwrite) File.WriteAllText(p.EnsureDirectory(true), ToString());
+
+            return p;
         }
         #endregion
 
-        #region 日志
+        #region 辅助
+        /// <summary>C#版本</summary>
+        public Version CSharp { get; set; }
+
+        /// <summary>nameof</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected String NameOf(String name)
+        {
+            var v = CSharp;
+            if (v == null || v.Major == 0 || v.Major > 5) return "nameof({0})".F(name);
+
+            return "\"" + name + "\"";
+        }
+
         /// <summary>是否调试</summary>
         public static Boolean Debug { get; set; }
 

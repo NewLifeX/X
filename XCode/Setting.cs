@@ -24,9 +24,9 @@ namespace XCode
         [Description("SQL目录。设置SQL输出的单独目录，默认为空，SQL输出到当前日志中。生产环境建议输出到站点外单独的SqlLog目录")]
         public String SQLPath { get; set; } = "";
 
-        /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认5000毫秒</summary>
-        [Description("SQL执行时间。跟踪SQL执行时间，大于该阀值将输出日志，默认5000毫秒")]
-        public Int32 TraceSQLTime { get; set; } = 5000;
+        /// <summary>跟踪SQL执行时间，大于该阀值将输出日志，默认1000毫秒</summary>
+        [Description("SQL执行时间。跟踪SQL执行时间，大于该阀值将输出日志，默认1000毫秒")]
+        public Int32 TraceSQLTime { get; set; } = 1000;
 
         /// <summary>连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去</summary>
         [Description("连接映射。连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
@@ -39,6 +39,10 @@ namespace XCode
         /// <summary>SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录</summary>
         [Description("SQLite默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
         public String SQLiteDbPath { get; set; } = "";
+
+        /// <summary>备份目录。备份数据库时存放的目录</summary>
+        [Description("备份目录。备份数据库时存放的目录")]
+        public String BackupPath { get; set; } = "";
 
         /// <summary>命令超时。查询执行超时时间，默认0秒不限制</summary>
         [Description("命令超时。查询执行超时时间，默认0秒不限制")]
@@ -56,8 +60,8 @@ namespace XCode
         [Description("扩展属性过期。默认10秒")]
         public Int32 ExtendExpire { get; set; } = 10;
 
-        /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除</summary>
-        [Description("反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除")]
+        /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，仅新建；Full 完全，修改删除</summary>
+        [Description("反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，仅新建；Full 完全，修改删除")]
         public Migration Migration { get; set; } = Migration.On;
         #endregion
 
@@ -66,6 +70,7 @@ namespace XCode
         protected override void OnLoaded()
         {
             if (SQLiteDbPath.IsNullOrEmpty()) SQLiteDbPath = Runtime.IsWeb ? "..\\Data" : ".";
+            if (BackupPath.IsNullOrEmpty()) BackupPath = Runtime.IsWeb ? "..\\Backup" : "Backup";
 
             base.OnLoaded();
         }

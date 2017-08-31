@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -80,11 +80,13 @@ namespace Test
                 if (ths < 1) ths = 1;
             }
 
-            var ds = new XCode.Common.DataSimulation<UserOnline>();
-            ds.Log = XTrace.Log;
-            //ds.BatchSize = 10000;
-            ds.Threads = ths;
-            ds.UseSql = true;
+            var ds = new XCode.Common.DataSimulation<UserOnline>
+            {
+                Log = XTrace.Log,
+                //ds.BatchSize = 10000;
+                Threads = ths,
+                UseSql = true
+            };
             ds.Run(100000);
         }
 
@@ -101,27 +103,15 @@ namespace Test
 
         static void Test2()
         {
-            //EntityBuilder.Build(@"E:\ZTO\ZTO.GK.Web.Report\GK.Report\GK.Report.xml");
+            //EntityBuilder.Build(@"E:\X\NewLife.CMX\Src\NewLife.CMX\\CMX.xml");
 
-            //var list = UserX.Search("mon", 1, true, null);
-            //Console.WriteLine(list);
+            //EntityAssembly.Debug = true;
+            //var dal = DAL.Create("Membership");
+            //var fact = dal.CreateOperate("User");
+            //Console.WriteLine(fact.Count);
 
-            //AssemblyX.AssemblyPaths.Add(@"D:\vs\Common7\IDE\");
-            //var type = "SexKind".GetTypeEx(true);
-            //Console.WriteLine(type?.FullName);
-
-            //var log = new Log();
-            //log.Action = "xxx";
-            //log.Insert();
-
-            //Console.WriteLine(log.ID);
-
-            //var ic = Cache.Default;
-            var ic = Cache.Create(null);
-            ic["aaa"] = 1234;
-            ic.Increment("aaa", 6);
-
-            Console.WriteLine(ic.Get<Int32>("aaa"));
+            var list = UserX.FindAll();
+            Console.WriteLine(list?.Count);
         }
 
         class TestModule : EntityModule
@@ -152,9 +142,11 @@ namespace Test
             {
                 EntityModules.Global.Add<TestModule>();
 
-                var user = new UserX();
-                user.Name = "Stone";
-                user.RoleID = 1;
+                var user = new UserX
+                {
+                    Name = "Stone",
+                    RoleID = 1
+                };
                 user.Save();
 
                 user.Name = "大石头";
@@ -162,44 +154,6 @@ namespace Test
 
                 user.Delete();
             }
-        }
-
-        static void Test3()
-        {
-            RedisSetting._.Debug = true;
-
-            var set = RedisSetting.Current;
-            if (set.Items.Count == 0 || set.Items.All(e => e.Name.IsNullOrEmpty()))
-            {
-                set.Items.Add(new RedisSetting.Item { Name = "aaa", Url = "bbb" });
-                set.Items.Add(new RedisSetting.Item { Name = "xxx", Url = "yyy" });
-            }
-            set.Save();
-        }
-    }
-
-    /// <summary>Redis配置</summary>
-    [Description("Redis配置")]
-    [XmlConfigFile("Config/Redis.config", 15000)]
-    public class RedisSetting : XmlConfig<RedisSetting>
-    {
-        #region 属性
-        /// <summary>调试开关。默认true</summary>
-        [Description("调试开关。默认true")]
-        public Boolean Debug { get; set; } = true;
-
-        /// <summary>配置项</summary>
-        [Description("配置项")]
-        public List<Item> Items { get; set; } = new List<Item>();
-        #endregion
-
-        /// <summary>配置项</summary>
-        public class Item
-        {
-            [XmlAttribute]
-            public String Name { get; set; }
-            [XmlAttribute]
-            public String Url { get; set; }
         }
     }
 }

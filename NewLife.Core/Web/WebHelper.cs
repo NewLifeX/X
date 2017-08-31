@@ -257,8 +257,7 @@ namespace NewLife.Web
         {
             get
             {
-                var dic = HttpContext.Current.Items["Params"] as IDictionary<String, String>;
-                if (dic != null) return dic;
+                if (HttpContext.Current.Items["Params"] is IDictionary<String, String> dic) return dic;
 
                 var nvss = new NameValueCollection[] { Request.QueryString, Request.Form };
 

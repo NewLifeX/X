@@ -123,7 +123,7 @@ using XCode;
  * 
  * v8.10.2014.0412  增加DAL.CacheExpiration全局设置一级缓存
  * 
- * v8.10.2014.0311  为IEntityList接口增加Page分页方法
+ * v8.10.2014.0311  为IList<IEntity>接口增加Page分页方法
  * 
  * v8.10.2014.0310  SQLite连接字符串支持auto_vacuum，指定是否自动收缩数据库
  * 
@@ -250,7 +250,7 @@ using XCode;
  * 
  * v8.5.2012.0422   修正更改实体类的连接名和表名时没有正确处理架构检查，导致性能低下的BUG
  * 
- * v8.5.2012.0401   IEntityList接口增加ToDataTable等方法
+ * v8.5.2012.0401   IList<IEntity>接口增加ToDataTable等方法
  * 
  * v8.5.2012.0323   Insert和Update时，大字段使用参数传递，至此，XCode完整支持所有数据类型。感谢@老徐（gregorius 279504479）
  *                  修正对默认值的处理的错误，该错误导致创建表时无法使用字符串默认值
@@ -366,7 +366,7 @@ using XCode;
  * 
  * v8.1.2011.1010   FieldItem增加对In操作符的支持
  * 
- * v8.1.2011.1008   IEntityOperate中返回EntityList<IEntity>改为返回IEntityList，直接返回原始的实体类列表
+ * v8.1.2011.1008   IEntityOperate中返回IList<IEntity>改为返回IList<IEntity>，直接返回原始的实体类列表
  * 
  * v8.0.2011.0929   修正IDataTable.Fix中对一对一关系处理的不足
  *                  修改Entity，根据唯一索引查询单对象时不加分页和排序，这使得在SQLite上特别是MySql上有性能提升
@@ -548,7 +548,7 @@ using XCode;
  * v5.6.2010.0909   修改DAL，把QueryTimes和ExecuteTimes改为本线程的查询次数和执行次数
  *                  修改Entity，Meta.Count返回表的总记录数（快速），FindCount()使用普通方法查询真实记录数
  * 
- * v5.5.2010.0903   实体操作接口IEntityOperate返回的实体集合改为EntityList<IEntity>，因为使用操作接口时一般不知道具体类型，如果知道就没必要使用操作接口
+ * v5.5.2010.0903   实体操作接口IEntityOperate返回的实体集合改为IList<IEntity>，因为使用操作接口时一般不知道具体类型，如果知道就没必要使用操作接口
  *                  增加数据连接名映射的配置，允许通过配置修改某一个实体或者某一个连接名实际对应的连接名
  *                  修改实体缓存和单对象缓存，使得缓存的数据因连接名或表名不同而不同，避免不同连接名或表名时缓存串号的问题
  *                  修改实体类结构模型，比如Area:Area<Area>:Entity<Area>，使得实体类可以通过继承实现二次扩展

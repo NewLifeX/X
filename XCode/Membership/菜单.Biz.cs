@@ -113,10 +113,11 @@ namespace XCode.Membership
             get
             {
                 // 找出所有的必要菜单，如果没有，则表示全部都是必要
-                var list = FindAllWithCache().FindAll(__.Necessary, true);
-                if (list.Count <= 0) list = Meta.Cache.Entities;
+                var list = FindAllWithCache();
+                var list2 = list.Where(e => e.Necessary).ToList();
+                if (list2.Count > 0) list = list2;
 
-                return list.GetItem<Int32>(__.ID).ToArray();
+                return list.Select(e => e.ID).ToArray();
             }
         }
 
@@ -132,18 +133,19 @@ namespace XCode.Membership
         public static TEntity FindByID(Int32 id)
         {
             if (id <= 0) return null;
-            return Meta.Cache.Entities.Find(__.ID, id);
+
+            return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
         }
 
         /// <summary>根据名字查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name) { return Meta.Cache.Entities.Find(__.Name, name); }
+        public static TEntity FindByName(String name) { return Meta.Cache.Entities.FirstOrDefault(e => e.Name.EqualIgnoreCase(name)); }
 
         /// <summary>根据Url查找</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FindIgnoreCase(__.Url, url); }
+        public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FirstOrDefault(e => e.Url.EqualIgnoreCase(url)); }
 
         /// <summary>根据名字查找，支持路径查找</summary>
         /// <param name="name">名称</param>
@@ -159,11 +161,9 @@ namespace XCode.Membership
         /// <summary>查找指定菜单的子菜单</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAllByParentID(Int32 id)
+        public static List<TEntity> FindAllByParentID(Int32 id)
         {
-            var list = Meta.Cache.Entities.FindAll(__.ParentID, id);
-            if (list != null && list.Count > 0) list.Sort(new String[] { _.Sort, _.ID }, new Boolean[] { true, false });
-            return list;
+            return Meta.Cache.Entities.Where(e => e.ParentID == id).OrderByDescending(e => e.Sort).ThenBy(e => e.ID).ToList();
         }
 
         /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
@@ -174,10 +174,10 @@ namespace XCode.Membership
             var list = Childs;
             if (list == null || list.Count < 1) return new List<IMenu>();
 
-            list = list.FindAll(_.Visible, true);
+            list = list.Where(e => e.Visible).ToList();
             if (list == null || list.Count < 1) return new List<IMenu>();
 
-            return list.ToList().Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
+            return list.Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
         }
         #endregion
 
@@ -193,7 +193,7 @@ namespace XCode.Membership
             entity.Name = name;
             entity.DisplayName = displayName;
             entity.Url = url;
-            entity.ParentID = this.ID;
+            entity.ParentID = ID;
             entity.Parent = this as TEntity;
 
             entity.Visible = ID == 0 || displayName != null;
@@ -251,79 +251,6 @@ namespace XCode.Membership
         public static void WriteLog(String action, String remark)
         {
             LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
-        }
-        #endregion
-
-        #region 导入导出
-        /// <summary>导出</summary>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        public static String Export(IList<IMenu> list)
-        {
-            return Export(new EntityList<TEntity>(list));
-        }
-
-        /// <summary>导出</summary>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        public static String Export(EntityList<TEntity> list)
-        {
-            return list.ToXml();
-        }
-
-        /// <summary>导入</summary>
-        public virtual void Import()
-        {
-            using (var trans = new EntityTransaction<TEntity>())
-            {
-                //顶级节点根据名字合并
-                if (ParentID == 0)
-                {
-                    var m = Find(__.Name, Name);
-                    if (m != null)
-                    {
-                        this.ID = m.ID;
-                        this.Name = m.Name;
-                        this.DisplayName = m.DisplayName;
-                        this.ParentID = 0;
-                        this.Url = m.Url;
-
-                        this.Update();
-                    }
-                    else
-                        this.Insert();
-                }
-                else
-                {
-                    this.Insert();
-                }
-
-                //更新编号
-                var list = Childs;
-                if (list != null && list.Count > 0)
-                {
-                    foreach (TEntity item in list)
-                    {
-                        item.ParentID = ID;
-
-                        item.Import();
-                    }
-                }
-
-                trans.Commit();
-            }
-        }
-
-        /// <summary>导入</summary>
-        /// <param name="xml"></param>
-        public static void Import(String xml)
-        {
-            var list = new EntityList<TEntity>();
-            list.FromXml(xml);
-            foreach (var item in list)
-            {
-                item.Import();
-            }
         }
         #endregion
 

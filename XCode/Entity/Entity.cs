@@ -73,9 +73,9 @@ namespace XCode
         /// <summary>加载记录集。无数据时返回空集合而不是null。</summary>
         /// <param name="ds">记录集</param>
         /// <returns>实体数组</returns>
-        public static EntityList<TEntity> LoadData(DataSet ds)
+        public static IList<TEntity> LoadData(DataSet ds)
         {
-            if (ds == null || ds.Tables.Count < 1) return new EntityList<TEntity>();
+            if (ds == null || ds.Tables.Count < 1) return new List<TEntity>();
 
             return LoadData(ds.Tables[0]);
         }
@@ -83,39 +83,36 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
-        public static EntityList<TEntity> LoadData(DataTable dt)
+        public static IList<TEntity> LoadData(DataTable dt)
         {
-            if (dt == null) return new EntityList<TEntity>();
+            if (dt == null) return new List<TEntity>();
 
-            var list = dreAccessor.LoadData(dt);
+            var list = DreAccessor.LoadData<TEntity>(dt);
             // 设置默认累加字段
-            EntityAddition.SetField(list);
-            foreach (TEntity entity in list)
+            EntityAddition.SetField(list.Cast<IEntity>().ToList());
+            foreach (var entity in list)
             {
                 entity.OnLoad();
             }
-            // 减少一步类型转换
-            var elist = list as EntityList<TEntity>;
-            if (elist != null) elist = new EntityList<TEntity>(list);
 
             // 如果正在使用单对象缓存，则批量进入
             var sc = Meta.SingleCache;
             if (sc.Using)
             {
-                foreach (var item in elist)
+                foreach (var item in list)
                 {
                     sc.Add(item);
                 }
             }
 
-            return elist;
+            return list;
         }
 
-        private static IDataRowEntityAccessor dreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
+        private static IDataRowEntityAccessor DreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
         #endregion
 
         #region 操作
-        private static IEntityPersistence persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
+        private static IEntityPersistence Persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
 
         /// <summary>插入数据，<see cref="Valid"/>后，在事务中调用<see cref="OnInsert"/>。</summary>
         /// <returns></returns>
@@ -123,7 +120,14 @@ namespace XCode
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <returns></returns>
-        protected virtual Int32 OnInsert() { return Meta.Session.Insert(this); }
+        protected virtual Int32 OnInsert()
+        {
+            var rs = Meta.Session.Insert(this);
+            // 设置默认累加字段
+            EntityAddition.SetField(this);
+
+            return rs;
+        }
 
         /// <summary>更新数据，<see cref="Valid"/>后，在事务中调用<see cref="OnUpdate"/>。</summary>
         /// <returns></returns>
@@ -152,7 +156,7 @@ namespace XCode
                 if (names.SequenceEqual(names2))
                 {
                     // 再次查询
-                    var entity = Find(persistence.GetPrimaryCondition(this));
+                    var entity = Find(Persistence.GetPrimaryCondition(this));
                     // 如果目标数据不存在，就没必要删除了
                     if (entity == null) return 0;
 
@@ -220,7 +224,7 @@ namespace XCode
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
             if (IsNullKey) return Insert();
 
-            return FindCount(persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
+            return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
 
         /// <summary>不需要验证的保存，不执行Valid，一般用于快速导入数据</summary>
@@ -270,6 +274,9 @@ namespace XCode
         /// <param name="isNew">是否新数据</param>
         public virtual void Valid(Boolean isNew)
         {
+            //// 实体来自数据库时，不要对唯一索引进行校验
+            //if (_IsFromDatabase) return;
+
             //// 根据索引，判断唯一性
             //var table = Meta.Table.DataTable;
             //var dis = table.Indexes;
@@ -376,7 +383,14 @@ namespace XCode
             else
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-                var list = cache.Entities.FindAll(names, values, true);
+                var list = cache.Entities.Where(e =>
+                {
+                    for (var i = 0; i < names.Length; i++)
+                    {
+                        if (e[names[i]] != values[i]) return false;
+                    }
+                    return true;
+                }).ToList();
                 if (IsNullKey) return list.Count > 0;
 
                 if (list == null || list.Count < 1) return false;
@@ -445,10 +459,12 @@ namespace XCode
             var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
 
-            var builder = new SelectBuilder();
-            builder.Table = session.FormatedTableName;
-            // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
-            builder.Where = wh;
+            var builder = new SelectBuilder
+            {
+                Table = session.FormatedTableName,
+                // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
+                Where = wh
+            };
 
             // 提取参数
             builder = FixParam(builder, ps);
@@ -561,19 +577,19 @@ namespace XCode
         #region 静态查询
         /// <summary>获取所有数据。获取大量数据时会非常慢，慎用。没有数据时返回空集合而不是null</summary>
         /// <returns>实体数组</returns>
-        public static EntityList<TEntity> FindAll() { return FindAll("", null, null, 0, 0); }
+        public static IList<TEntity> FindAll() { return FindAll("", null, null, 0, 0); }
 
         /// <summary>根据名称获取数据集。没有数据时返回空集合而不是null</summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
+        public static IList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
         /// <param name="names">属性名称集合</param>
         /// <param name="values">属性值集合</param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(String[] names, Object[] values)
+        public static IList<TEntity> FindAll(String[] names, Object[] values)
         {
             var exp = new WhereExpression();
 
@@ -596,7 +612,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        public static EntityList<TEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
+        public static IList<TEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
         {
             var session = Meta.Session;
 
@@ -614,7 +630,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        public static EntityList<TEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
+        public static IList<TEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
         {
             var session = Meta.Session;
 
@@ -692,7 +708,7 @@ namespace XCode
                         // 最大可用行数改为实际最大可用行数
                         var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
                         //if (max <= 0) return null;
-                        if (max <= 0) return new EntityList<TEntity>();
+                        if (max <= 0) return new List<TEntity>();
                         var start = (Int32)(count - (startRowIndex + maximumRows));
 
                         var builder2 = CreateBuilder(where, order2, selects, start, max);
@@ -714,7 +730,7 @@ namespace XCode
         /// <param name="where">条件，不带Where</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        public static EntityList<TEntity> FindAll(Expression where, PageParameter param = null)
+        public static IList<TEntity> FindAll(Expression where, PageParameter param = null)
         {
             if (param == null) return FindAll(where, null, null, 0, 0);
 
@@ -722,7 +738,7 @@ namespace XCode
             if (param.TotalCount >= 0)
             {
                 param.TotalCount = FindCount(where, null, null, 0, 0);
-                if (param.TotalCount <= 0) return new EntityList<TEntity>();
+                if (param.TotalCount <= 0) return new List<TEntity>();
             }
 
             // 验证排序字段，避免非法
@@ -749,7 +765,7 @@ namespace XCode
         /// <summary>查找所有缓存。没有数据时返回空集合而不是null</summary>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
-        public static EntityList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
+        public static IList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
         #endregion
 
         #region 取总记录数
@@ -771,12 +787,14 @@ namespace XCode
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
             if (String.IsNullOrEmpty(where) && session.LongCount > 10000) return session.Count;
 
-            var sb = new SelectBuilder();
-            sb.Table = session.FormatedTableName;
-            sb.Where = where;
+            var sb = new SelectBuilder
+            {
+                Table = session.FormatedTableName,
+                Where = where
+            };
 
-            // MSSQL分组查分组数的时候，必须带上全部selects字段
-            if (session.Dal.DbType == DatabaseType.SqlServer && !sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
+            // 分组查分组数的时候，必须带上全部selects字段
+            if (!sb.GroupBy.IsNullOrEmpty()) sb.Column = selects;
 
             return session.QueryCount(sb);
         }
@@ -797,15 +815,17 @@ namespace XCode
             // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
             if (String.IsNullOrEmpty(wh) && session.LongCount > 10000) return session.LongCount;
 
-            var builder = new SelectBuilder();
-            builder.Table = session.FormatedTableName;
-            builder.Where = wh;
+            var builder = new SelectBuilder
+            {
+                Table = session.FormatedTableName,
+                Where = wh
+            };
 
             // 提取参数
             builder = FixParam(builder, ps);
 
-            // MSSQL分组查分组数的时候，必须带上全部selects字段
-            if (session.Dal.DbType == DatabaseType.SqlServer && !builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
+            // 分组查分组数的时候，必须带上全部selects字段
+            if (!builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
 
             return session.QueryCount(builder);
         }
@@ -843,7 +863,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
-        public static EntityList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows)
+        public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows)
         {
             return FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
         }
@@ -863,7 +883,7 @@ namespace XCode
         /// <param name="key"></param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        public static EntityList<TEntity> Search(String key, PageParameter param)
+        public static IList<TEntity> Search(String key, PageParameter param)
         {
             return FindAll(SearchWhereByKeys(key), param);
         }
@@ -958,12 +978,14 @@ namespace XCode
 
         static SelectBuilder CreateBuilder(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows, Boolean needOrderByID = true)
         {
-            var builder = new SelectBuilder();
-            builder.Column = selects;
-            builder.Table = Meta.Session.FormatedTableName;
-            builder.OrderBy = order;
-            // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
-            builder.Where = where;
+            var builder = new SelectBuilder
+            {
+                Column = selects,
+                Table = Meta.Session.FormatedTableName,
+                OrderBy = order,
+                // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
+                Where = where
+            };
 
             // XCode对于默认排序的规则：自增主键降序，其它情况默认
             // 返回所有记录
@@ -1033,12 +1055,12 @@ namespace XCode
                 // 匹配字段
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = this.GetType().GetFieldEx("_" + name, true);
+                    var field = GetType().GetFieldEx("_" + name, true);
                     if (field != null) return this.GetValue(field);
                 }
 
                 // 尝试匹配属性
-                var property = this.GetType().GetPropertyEx(name, true);
+                var property = GetType().GetPropertyEx(name, true);
                 if (property != null && property.CanRead) return this.GetValue(property);
 
                 // 检查动态增加的字段，返回默认值
@@ -1063,7 +1085,7 @@ namespace XCode
                 //匹配字段
                 if (Meta.FieldNames.Contains(name))
                 {
-                    var field = this.GetType().GetFieldEx("_" + name, true);
+                    var field = GetType().GetFieldEx("_" + name, true);
                     if (field != null)
                     {
                         this.SetValue(field, value);
@@ -1072,7 +1094,7 @@ namespace XCode
                 }
 
                 //尝试匹配属性
-                var property = this.GetType().GetPropertyEx(name, true);
+                var property = GetType().GetPropertyEx(name, true);
                 if (property != null && property.CanWrite)
                 {
                     this.SetValue(property, value);
@@ -1080,8 +1102,7 @@ namespace XCode
                 }
 
                 // 检查动态增加的字段，返回默认值
-                var f = Meta.Table.FindByName(name) as FieldItem;
-                if (f != null && f.IsDynamic) value = value.ChangeType(f.Type);
+                if (Meta.Table.FindByName(name) is FieldItem f && f.IsDynamic) value = value.ChangeType(f.Type);
 
                 Extends[name] = value;
             }
@@ -1092,6 +1113,7 @@ namespace XCode
         /// <summary>导入</summary>
         /// <param name="xml"></param>
         /// <returns></returns>
+        [Obsolete("请使用 xml.ToXmlEntity<TEntity>()")]
         public static TEntity FromXml(String xml)
         {
             if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
@@ -1102,6 +1124,7 @@ namespace XCode
         /// <summary>导入</summary>
         /// <param name="json"></param>
         /// <returns></returns>
+        [Obsolete("请使用 json.ToJsonEntity<TEntity>()")]
         public static TEntity FromJson(String json)
         {
             return json.ToJsonEntity<TEntity>();

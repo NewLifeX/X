@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +29,7 @@ namespace XCode.Cache
         public Int32 Expire { get; set; }
 
         /// <summary>填充数据的方法</summary>
-        public Func<EntityList<TEntity>> FillListMethod { get; set; } = Entity<TEntity>.FindAll;
+        public Func<IList<TEntity>> FillListMethod { get; set; } = Entity<TEntity>.FindAll;
 
         /// <summary>是否等待第一次查询。如果不等待，第一次返回空集合。默认true</summary>
         public Boolean WaitFirst { get; set; } = true;
@@ -50,9 +52,9 @@ namespace XCode.Cache
         /// <summary>当前更新任务</summary>
         private Task _task;
 
-        private EntityList<TEntity> _Entities = new EntityList<TEntity>();
+        private IList<TEntity> _Entities = new List<TEntity>();
         /// <summary>实体集合。无数据返回空集合而不是null</summary>
-        public EntityList<TEntity> Entities
+        public IList<TEntity> Entities
         {
             get
             {
@@ -110,7 +112,7 @@ namespace XCode.Cache
         {
             WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), state + "", Times);
 
-            _Entities = Invoke<Object, EntityList<TEntity>>(s => FillListMethod(), null);
+            _Entities = Invoke<Object, IList<TEntity>>(s => FillListMethod(), null);
 
             ExpiredTime = DateTime.Now.AddSeconds(Expire);
             WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
@@ -144,16 +146,23 @@ namespace XCode.Cache
         {
             if (!Using) return null;
 
-            var es = _Entities;
+            var es = _Entities.ToArray();
             var fi = Operate.Unique;
-            var e = fi != null ? es.Find(fi.Name, entity[fi.Name]) : null;
+            if (fi == null) return null;
+
+            var e = es.FirstOrDefault(x => x == entity);
+            if (e == null)
+            {
+                var v = entity[fi.Name];
+                e = es.FirstOrDefault(x => x[fi.Name] == v);
+            }
             if (e == null) return null;
 
             //if (e != entity) e.CopyFrom(entity);
             // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
             lock (es)
             {
-                es.Remove(e);
+                _Entities.Remove(e);
             }
 
             return e;
@@ -164,7 +173,6 @@ namespace XCode.Cache
             if (!Using) return null;
 
             var rs = Remove(entity);
-
             Add(entity);
 
             return rs;
@@ -196,31 +204,14 @@ namespace XCode.Cache
         #endregion
 
         #region IEntityCache 成员
-        EntityList<IEntity> IEntityCache.Entities { get { return new EntityList<IEntity>(Entities); } }
-
-        /// <summary>根据指定项查找</summary>
-        /// <param name="name">属性名</param>
-        /// <param name="value">属性值</param>
-        /// <returns></returns>
-        public IEntity Find(String name, Object value) { return Entities.Find(name, value); }
-
-        /// <summary>根据指定项查找</summary>
-        /// <param name="name">属性名</param>
-        /// <param name="value">属性值</param>
-        /// <returns></returns>
-        public EntityList<IEntity> FindAll(String name, Object value) { return new EntityList<IEntity>(Entities.FindAll(name, value)); }
-
-        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
-        /// <param name="match">条件</param>
-        /// <returns></returns>
-        public EntityList<IEntity> FindAll(Predicate<IEntity> match) { return new EntityList<IEntity>(Entities.FindAll(e => match(e))); }
+        IList<IEntity> IEntityCache.Entities { get { return new List<IEntity>(Entities); } }
         #endregion
 
         #region 辅助
         internal EntityCache<TEntity> CopySettingFrom(EntityCache<TEntity> ec)
         {
-            this.Expire = ec.Expire;
-            this.FillListMethod = ec.FillListMethod;
+            Expire = ec.Expire;
+            FillListMethod = ec.FillListMethod;
 
             return this;
         }

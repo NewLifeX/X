@@ -46,29 +46,10 @@ namespace System
         /// <param name="container">对象容器</param>
         /// <param name="id">标识</param>
         /// <returns></returns>
-#if !DEBUG
         public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null)
         {
             return (TInterface)container.ResolveInstance(typeof(TInterface), id);
         }
-#else
-        public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null)
-        {
-            var obj = container.ResolveInstance(typeof(TInterface), id, extend);
-            try
-            {
-                return (TInterface)obj;
-            }
-            catch (InvalidCastException ex)
-            {
-                var t = obj.GetType();
-                NewLife.Log.XTrace.WriteLine("ObjectType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
-                t = typeof(TInterface);
-                NewLife.Log.XTrace.WriteLine("InterfaceType：{0} {1}", t.AssemblyQualifiedName, t.Assembly.Location);
-                throw ex;
-            }
-        }
-#endif
 
         /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
         /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>

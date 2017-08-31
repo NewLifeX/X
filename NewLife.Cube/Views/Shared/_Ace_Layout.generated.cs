@@ -52,6 +52,7 @@ namespace ASP
             #line 2 "..\..\Views\Shared\_Ace_Layout.cshtml"
   
     var menu = ManageProvider.Menu.Current;
+    var set = NewLife.Cube.Setting.Current;
 
             
             #line default
@@ -87,7 +88,7 @@ WriteLiteral(" />\r\n    ");
 WriteLiteral("\r\n    <title>");
 
             
-            #line 13 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 14 "..\..\Views\Shared\_Ace_Layout.cshtml"
       Write(ViewBag.Title);
 
             
@@ -96,7 +97,7 @@ WriteLiteral("\r\n    <title>");
 WriteLiteral(" - ");
 
             
-            #line 13 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 14 "..\..\Views\Shared\_Ace_Layout.cshtml"
                        Write(SysConfig.Current.DisplayName);
 
             
@@ -104,9 +105,9 @@ WriteLiteral(" - ");
             #line hidden
 WriteLiteral("</title>\r\n    <link");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 477), Tuple.Create("\"", 497)
-, Tuple.Create(Tuple.Create("", 484), Tuple.Create<System.Object, System.Int32>(Href("~/favicon.ico")
-, 484), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 522), Tuple.Create("\"", 542)
+, Tuple.Create(Tuple.Create("", 529), Tuple.Create<System.Object, System.Int32>(Href("~/favicon.ico")
+, 529), false)
 );
 
 WriteLiteral(" rel=\"shortcut icon\"");
@@ -118,99 +119,116 @@ WriteLiteral(">\r\n\r\n    <!-- 页面内联样式 -->\r\n");
 WriteLiteral("    ");
 
             
-            #line 17 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 18 "..\..\Views\Shared\_Ace_Layout.cshtml"
 Write(RenderSection("css", required: false));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n\r\n    <link");
+WriteLiteral("\r\n\r\n");
+
+            
+            #line 20 "..\..\Views\Shared\_Ace_Layout.cshtml"
+    
+            
+            #line default
+            #line hidden
+            
+            #line 20 "..\..\Views\Shared\_Ace_Layout.cshtml"
+     if (set.BootstrapSelect)
+    {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 636), Tuple.Create("\"", 692)
-, Tuple.Create(Tuple.Create("", 643), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap-multiselect.css")
-, 643), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 723), Tuple.Create("\"", 779)
+, Tuple.Create(Tuple.Create("", 730), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap-multiselect.css")
+, 730), false)
 );
 
-WriteLiteral(@">
-    <!--[if lte IE 9]>
-        <link rel=""stylesheet"" href=""~/Content/ace/css/ace-part2.min.css"" class=""ace-main-stylesheet"" >
-    <![endif]-->
-    <!--[if lte IE 9]>
-        <link rel=""stylesheet"" href=""~/Content/ace/css/ace-ie.min.css"" >
-    <![endif]-->
+WriteLiteral(">\r\n");
 
-    <link");
+            
+            #line 23 "..\..\Views\Shared\_Ace_Layout.cshtml"
+    }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 987), Tuple.Create("\"", 1051)
-, Tuple.Create(Tuple.Create("", 994), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.css")
-, 994), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 818), Tuple.Create("\"", 882)
+, Tuple.Create(Tuple.Create("", 825), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.css")
+, 825), false)
 );
 
 WriteLiteral(">\r\n\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1083), Tuple.Create("\"", 1141)
-, Tuple.Create(Tuple.Create("", 1090), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.css")
-, 1090), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 914), Tuple.Create("\"", 972)
+, Tuple.Create(Tuple.Create("", 921), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.css")
+, 921), false)
 );
 
 WriteLiteral(">\r\n\r\n    <!-- 最后引入基本样式 -->\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1196), Tuple.Create("\"", 1244)
-, Tuple.Create(Tuple.Create("", 1203), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap.min.css")
-, 1203), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 1027), Tuple.Create("\"", 1075)
+, Tuple.Create(Tuple.Create("", 1034), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap.min.css")
+, 1034), false)
 );
 
 WriteLiteral(">\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1274), Tuple.Create("\"", 1325)
-, Tuple.Create(Tuple.Create("", 1281), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/font-awesome.min.css")
-, 1281), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 1105), Tuple.Create("\"", 1156)
+, Tuple.Create(Tuple.Create("", 1112), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/font-awesome.min.css")
+, 1112), false)
 );
 
 WriteLiteral(">\r\n\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1357), Tuple.Create("\"", 1411)
-, Tuple.Create(Tuple.Create("", 1364), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap-theme.min.css")
-, 1364), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 1188), Tuple.Create("\"", 1242)
+, Tuple.Create(Tuple.Create("", 1195), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap-theme.min.css")
+, 1195), false)
 );
 
 WriteLiteral(">\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1441), Tuple.Create("\"", 1500)
-, Tuple.Create(Tuple.Create("", 1448), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap-responsive.min.css")
-, 1448), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 1272), Tuple.Create("\"", 1331)
+, Tuple.Create(Tuple.Create("", 1279), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/css/bootstrap-responsive.min.css")
+, 1279), false)
 );
 
 WriteLiteral(">\r\n\r\n    <!-- 文本字体 -->\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1551), Tuple.Create("\"", 1593)
-, Tuple.Create(Tuple.Create("", 1558), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/css/ace-fonts.min.css")
-, 1558), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 1382), Tuple.Create("\"", 1424)
+, Tuple.Create(Tuple.Create("", 1389), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/css/ace-fonts.min.css")
+, 1389), false)
 );
 
 WriteLiteral(">\r\n    <!-- ace 样式 -->\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1644), Tuple.Create("\"", 1680)
-, Tuple.Create(Tuple.Create("", 1651), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/css/ace.min.css")
-, 1651), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 1475), Tuple.Create("\"", 1511)
+, Tuple.Create(Tuple.Create("", 1482), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/css/ace.min.css")
+, 1482), false)
 );
 
 WriteLiteral(" class=\"ace-main-stylesheet\"");
@@ -221,16 +239,16 @@ WriteLiteral(">\r\n\r\n    <!-- 自定义样式 -->\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1780), Tuple.Create("\"", 1805)
-, Tuple.Create(Tuple.Create("", 1787), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.css")
-, 1787), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 1611), Tuple.Create("\"", 1636)
+, Tuple.Create(Tuple.Create("", 1618), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.css")
+, 1618), false)
 );
 
 WriteLiteral(">\r\n    <!-- JQuery作为一等公民，页面内部随时可能使用 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 1858), Tuple.Create("\"", 1896)
-, Tuple.Create(Tuple.Create("", 1864), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 1864), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 1689), Tuple.Create("\"", 1727)
+, Tuple.Create(Tuple.Create("", 1695), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 1695), false)
 );
 
 WriteLiteral("></script>\r\n</head>\r\n<body>\r\n    <div");
@@ -252,8 +270,8 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 52 "..\..\Views\Shared\_Ace_Layout.cshtml"
-           Write(Html.Partial("_Layout_Nav"));
+            #line 50 "..\..\Views\Shared\_Ace_Layout.cshtml"
+           Write(Html.Partial("_Ace_Layout_Nav"));
 
             
             #line default
@@ -265,7 +283,7 @@ WriteLiteral(" style=\"float: right; margin-left: 40px;\"");
 WriteLiteral(">");
 
             
-            #line 54 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 52 "..\..\Views\Shared\_Ace_Layout.cshtml"
                                                      Write(ViewBag.HeaderContent);
 
             
@@ -284,7 +302,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 58 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 56 "..\..\Views\Shared\_Ace_Layout.cshtml"
            Write(RenderBody());
 
             
@@ -293,13 +311,13 @@ WriteLiteral("                ");
 WriteLiteral("\r\n            </section>\r\n        </div>\r\n");
 
             
-            #line 61 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 59 "..\..\Views\Shared\_Ace_Layout.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 61 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 59 "..\..\Views\Shared\_Ace_Layout.cshtml"
          if (DbRunTimeModule.Enable)
         {
 
@@ -315,7 +333,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 64 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 62 "..\..\Views\Shared\_Ace_Layout.cshtml"
            Write(Html.Raw(DbRunTimeModule.GetInfo()));
 
             
@@ -324,7 +342,7 @@ WriteLiteral("                ");
 WriteLiteral("\r\n            </div>\r\n");
 
             
-            #line 66 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 64 "..\..\Views\Shared\_Ace_Layout.cshtml"
         }
 
             
@@ -332,52 +350,49 @@ WriteLiteral("\r\n            </div>\r\n");
             #line hidden
 WriteLiteral("    </div>\r\n    <!-- 最早引入基本脚本 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2620), Tuple.Create("\"", 2665)
-, Tuple.Create(Tuple.Create("", 2626), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 2626), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2455), Tuple.Create("\"", 2500)
+, Tuple.Create(Tuple.Create("", 2461), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 2461), false)
 );
 
-WriteLiteral("></script>\r\n    <script");
+WriteLiteral("></script>\r\n");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2689), Tuple.Create("\"", 2746)
-, Tuple.Create(Tuple.Create("", 2695), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap-multiselect.min.js")
-, 2695), false)
+            
+            #line 68 "..\..\Views\Shared\_Ace_Layout.cshtml"
+    
+            
+            #line default
+            #line hidden
+            
+            #line 68 "..\..\Views\Shared\_Ace_Layout.cshtml"
+     if (set.BootstrapSelect)
+    {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        <script");
+
+WriteAttribute("src", Tuple.Create(" src=\"", 2566), Tuple.Create("\"", 2623)
+, Tuple.Create(Tuple.Create("", 2572), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap-multiselect.min.js")
+, 2572), false)
 );
 
-WriteLiteral("></script>\r\n\r\n    <!-- ace 设置 -->\r\n    <script");
+WriteLiteral("></script>\r\n");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2793), Tuple.Create("\"", 2826)
-, Tuple.Create(Tuple.Create("", 2799), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
-, 2799), false)
-);
+            
+            #line 71 "..\..\Views\Shared\_Ace_Layout.cshtml"
+    }
 
-WriteLiteral("></script>\r\n    <script");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 2850), Tuple.Create("\"", 2892)
-, Tuple.Create(Tuple.Create("", 2856), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
-, 2856), false)
-);
-
-WriteLiteral("></script>\r\n    <script");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 2916), Tuple.Create("\"", 2955)
-, Tuple.Create(Tuple.Create("", 2922), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-extra.min.js")
-, 2922), false)
-);
-
-WriteLiteral(@"></script>
-
-    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
-    <!--[if lte IE 8]>
-    <script src=""~/Content/js/html5shiv.min.js""></script>
-    <script src=""~/Content/js/respond.min.js""></script>
-    <![endif]-->
-");
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
 
 WriteLiteral("    ");
 
             
-            #line 82 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            #line 73 "..\..\Views\Shared\_Ace_Layout.cshtml"
 Write(RenderSection("scripts", required: false));
 
             
@@ -385,54 +400,153 @@ Write(RenderSection("scripts", required: false));
             #line hidden
 WriteLiteral("\r\n\r\n    <!--日历控件支持-->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3299), Tuple.Create("\"", 3361)
-, Tuple.Create(Tuple.Create("", 3305), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.js")
-, 3305), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2725), Tuple.Create("\"", 2787)
+, Tuple.Create(Tuple.Create("", 2731), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.js")
+, 2731), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3385), Tuple.Create("\"", 3457)
-, Tuple.Create(Tuple.Create("", 3391), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js")
-, 3391), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2811), Tuple.Create("\"", 2883)
+, Tuple.Create(Tuple.Create("", 2817), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js")
+, 2817), false)
 );
 
-WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\'.form_datetime\'" +
-").each(function () {\r\n                var df = $(this).attr(\'dateformat\');\r\n    " +
-"            if (!df) {\r\n                    $(this).attr(\'dateformat\', \'yyyy-mm-" +
-"dd hh:ii:ss\');\r\n                    $(this).width(140);\r\n                }\r\n    " +
-"            else {\r\n                    // 把C#标准格式化替换为控件格式\r\n                    " +
-"df = df.replace(\'mm\', \'ii\').replace(\'MM\', \'mm\').replace(\'HH\', \'hh\');\r\n          " +
-"          $(this).attr(\'dateformat\', df);\r\n\r\n                    // 根据时间日期格式，锁定日" +
-"期输入框宽度\r\n                    if (df.indexOf(\'hh\') >= 0)\r\n                        " +
-"$(this).width(140);\r\n                    else\r\n                        $(this).w" +
-"idth(80);\r\n                }\r\n            });\r\n            $(\"[dateformat]\").eac" +
-"h(function () {\r\n                $(this).datetimepicker({\r\n                    f" +
-"ormat: $(this).attr(\"dateformat\"),\r\n                    autoclose: true,\r\n      " +
-"              language: \"zh-CN\",\r\n                    forceParse: false,\r\n      " +
-"              startView: 2,\r\n                    minView: 2\r\n                });" +
-"\r\n            });\r\n            $(\'.multiselect\').each(function () {\r\n           " +
-"     $(this).multiselect({\r\n                    // 下拉列表仅在列表项比较多时显示过滤框\r\n         " +
-"           enableFiltering: $(this).children().length > 10,\r\n                   " +
-" buttonClass: \'btn btn-white btn-primary\',\r\n                    templates: {\r\n  " +
-"                      button: \'<button type=\"button\" class=\"multiselect dropdown" +
-"-toggle\" data-toggle=\"dropdown\"></button>\',\r\n                        ul: \'<ul cl" +
-"ass=\"multiselect-container dropdown-menu\"></ul>\',\r\n                        filte" +
-"r: \'<li class=\"multiselect-item filter\"><div class=\"input-group\"><span class=\"in" +
-"put-group-addon\"><i class=\"fa fa-search\"></i></span><input class=\"form-control m" +
-"ultiselect-search\" type=\"text\"></div></li>\',\r\n                        filterClea" +
-"rBtn: \'<span class=\"input-group-btn\"><button class=\"btn btn-default btn-white bt" +
-"n-grey multiselect-clear-filter\" type=\"button\"><i class=\"fa fa-times-circle red2" +
-"\"></i></button></span>\',\r\n                        li: \'<li><a href=\"javascript:v" +
-"oid(0);\"><label></label></a></li>\',\r\n                        divider: \'<li class" +
-"=\"multiselect-item divider\"></li>\',\r\n                        liGroup: \'<li class" +
-"=\"multiselect-item group\"><label class=\"multiselect-group\"></label></li>\'\r\n     " +
-"               },\r\n                    filterPlaceholder: \'搜索\',\r\n               " +
-"     nonSelectedText: \'无\',\r\n                    allSelectedText: \'全选\'\r\n         " +
-"       });\r\n            });\r\n            ");
+WriteLiteral(@"></script>
+    <script>
+        $(function () {
+            $('.form_datetime').each(function () {
+                var df = $(this).attr('dateformat');
+                if (!df) {
+                    $(this).attr('dateformat', 'yyyy-mm-dd hh:ii:ss');
+                    $(this).width(140);
+                }
+                else {
+                    // 把C#标准格式化替换为控件格式
+                    df = df.replace('mm', 'ii').replace('MM', 'mm').replace('HH', 'hh');
+                    $(this).attr('dateformat', df);
 
+                    // 根据时间日期格式，锁定日期输入框宽度
+                    if (df.indexOf('hh') >= 0)
+                        $(this).width(140);
+                    else
+                        $(this).width(80);
+                }
+            });
+            $(""[dateformat]"").each(function () {
+                $(this).datetimepicker({
+                    format: $(this).attr(""dateformat""),
+                    autoclose: true,
+                    language: ""zh-CN"",
+                    forceParse: false,
+                    startView: 2,
+                    minView: 2
+                });
+            });
+");
+
+            
+            #line 108 "..\..\Views\Shared\_Ace_Layout.cshtml"
+            
+            
+            #line default
+            #line hidden
+            
+            #line 108 "..\..\Views\Shared\_Ace_Layout.cshtml"
+             if (set.BootstrapSelect) {
+            
+            #line default
+            #line hidden
 WriteLiteral(@"
-            $('tr').dblclick(function () {
+            $('.multiselect').each(function () {
+                $(this).multiselect({
+                    // 下拉列表仅在列表项比较多时显示过滤框
+                    enableFiltering: $(this).children().length > 10,
+                    buttonClass: 'btn btn-white btn-primary',
+                    templates: {
+                        button: '<button");
+
+WriteLiteral(" type=\"button\"");
+
+WriteLiteral(" class=\"multiselect dropdown-toggle\"");
+
+WriteLiteral(" data-toggle=\"dropdown\"");
+
+WriteLiteral("></button>\',\r\n                        ul: \'<ul");
+
+WriteLiteral(" class=\"multiselect-container dropdown-menu\"");
+
+WriteLiteral("></ul>\',\r\n                        filter: \'<li");
+
+WriteLiteral(" class=\"multiselect-item filter\"");
+
+WriteLiteral("><div");
+
+WriteLiteral(" class=\"input-group\"");
+
+WriteLiteral("><span");
+
+WriteLiteral(" class=\"input-group-addon\"");
+
+WriteLiteral("><i");
+
+WriteLiteral(" class=\"fa fa-search\"");
+
+WriteLiteral("></i></span><input");
+
+WriteLiteral(" class=\"form-control multiselect-search\"");
+
+WriteLiteral(" type=\"text\"");
+
+WriteLiteral("></div></li>\',\r\n                        filterClearBtn: \'<span");
+
+WriteLiteral(" class=\"input-group-btn\"");
+
+WriteLiteral("><button");
+
+WriteLiteral(" class=\"btn btn-default btn-white btn-grey multiselect-clear-filter\"");
+
+WriteLiteral(" type=\"button\"");
+
+WriteLiteral("><i");
+
+WriteLiteral(" class=\"fa fa-times-circle red2\"");
+
+WriteLiteral("></i></button></span>\',\r\n                        li: \'<li><a");
+
+WriteLiteral(" href=\"javascript:void(0);\"");
+
+WriteLiteral("><label></label></a></li>\',\r\n                        divider: \'<li");
+
+WriteLiteral(" class=\"multiselect-item divider\"");
+
+WriteLiteral("></li>\',\r\n                        liGroup: \'<li");
+
+WriteLiteral(" class=\"multiselect-item group\"");
+
+WriteLiteral("><label");
+
+WriteLiteral(" class=\"multiselect-group\"");
+
+WriteLiteral("></label></li>\'\r\n                    },\r\n                    filterPlaceholder: \'" +
+"搜索\',\r\n                    nonSelectedText: \'无\',\r\n                    allSelected" +
+"Text: \'全选\'\r\n                });\r\n            });\r\n            ");
+
+            
+            #line 128 "..\..\Views\Shared\_Ace_Layout.cshtml"
+                   }
+            
+            
+            #line default
+            #line hidden
+            
+            #line 131 "..\..\Views\Shared\_Ace_Layout.cshtml"
+                                                                                        
+
+            
+            #line default
+            #line hidden
+WriteLiteral(@"            $('tr').dblclick(function () {
                 var $this = $(this);
                 var row = $this.closest(""tr"");
                 var findcell = row.find('.editcell');
@@ -444,9 +558,9 @@ WriteLiteral(@"
     <!--开关插件-->
     <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 6543), Tuple.Create("\"", 6599)
-, Tuple.Create(Tuple.Create("", 6549), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.js")
-, 6549), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 6046), Tuple.Create("\"", 6102)
+, Tuple.Create(Tuple.Create("", 6052), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.js")
+, 6052), false)
 );
 
 WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\"input[type=chec" +
@@ -454,9 +568,9 @@ WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n         
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 6770), Tuple.Create("\"", 6793)
-, Tuple.Create(Tuple.Create("", 6776), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
-, 6776), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 6273), Tuple.Create("\"", 6296)
+, Tuple.Create(Tuple.Create("", 6279), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
+, 6279), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");

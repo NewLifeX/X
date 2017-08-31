@@ -81,13 +81,6 @@ namespace XCode
         Int32 CopyFrom(IEntity entity, Boolean setDirty = true);
         #endregion
 
-        #region 导入导出XML
-        /// <summary>导出XML</summary>
-        /// <returns></returns>
-        //[Obsolete("该成员在后续版本中将不再被支持！")]
-        String ToXml();
-        #endregion
-
         #region 实体相等
         /// <summary>判断两个实体是否相等。有可能是同一条数据的两个实体对象</summary>
         /// <param name="entity"></param>

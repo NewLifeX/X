@@ -394,7 +394,7 @@ namespace XCode.Configuration
             var f = flag.Value;
             if (f) return Equal(true);
 
-            if (this.Type == typeof(Boolean) && !IsNullable) return Equal(false);
+            if (Type == typeof(Boolean) && !IsNullable) return Equal(false);
 
             return NotEqual(true) | IsNull();
         }
@@ -409,7 +409,7 @@ namespace XCode.Configuration
             var f = flag.Value;
             if (!f) return Equal(false);
 
-            if (this.Type == typeof(Boolean) && !IsNullable) return Equal(true);
+            if (Type == typeof(Boolean) && !IsNullable) return Equal(true);
 
             return NotEqual(false) | IsNull();
         }

@@ -11,7 +11,7 @@ if(Table.Indexes!=null&&Table.Indexes.Count>0){
         String action="Find";
         String IsAll=String.Empty;
         if (!di.Unique){
-            returnType=String.Format("EntityList<{0}>",myClassName);
+            returnType=String.Format("IList<{0}>",myClassName);
             IsAll="All";
             action="FindAll";
         }

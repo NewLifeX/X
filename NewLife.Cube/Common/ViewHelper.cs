@@ -142,14 +142,14 @@ namespace NewLife.Cube
                             sb.Append(@"</td>");
                             break;
                         case TypeCode.DateTime:
-                            sb.AppendFormat(@"<td>@Utility.ToFullString(entity.{0}, """")</td>", item.Name);
+                            sb.AppendFormat(@"<td>@entity.{0}.ToFullString("""")</td>", item.Name);
                             break;
                         case TypeCode.Decimal:
-                            sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
+                            sb.AppendFormat(@"<td class=""text-right"">@entity.{0:n2}</td>", item.Name);
                             break;
                         case TypeCode.Single:
                         case TypeCode.Double:
-                            sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
+                            sb.AppendFormat(@"<td class=""text-right"">@entity.{0:n2}</td>", item.Name);
                             break;
                         case TypeCode.Byte:
                         case TypeCode.Int16:

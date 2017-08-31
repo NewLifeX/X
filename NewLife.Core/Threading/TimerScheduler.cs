@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace NewLife.Threading
@@ -21,14 +20,15 @@ namespace NewLife.Threading
         /// <returns></returns>
         public static TimerScheduler Create(String name)
         {
-            TimerScheduler ts = null;
-            if (_cache.TryGetValue(name, out ts)) return ts;
+            if (_cache.TryGetValue(name, out var ts)) return ts;
             lock (_cache)
             {
                 if (_cache.TryGetValue(name, out ts)) return ts;
 
                 ts = new TimerScheduler(name);
                 _cache[name] = ts;
+
+                WriteLog("启动定时调度器：{0}", name);
 
                 return ts;
             }
@@ -68,10 +68,12 @@ namespace NewLife.Threading
 
                 if (thread == null)
                 {
-                    thread = new Thread(Process);
-                    //thread.Name = "TimerX";
-                    thread.Name = Name == "Default" ? "T" : Name;
-                    thread.IsBackground = true;
+                    thread = new Thread(Process)
+                    {
+                        //thread.Name = "TimerX";
+                        Name = Name == "Default" ? "T" : Name,
+                        IsBackground = true
+                    };
                     thread.Start();
                 }
 
@@ -147,6 +149,8 @@ namespace NewLife.Threading
                     {
                         if (!timer.Calling && CheckTime(timer, now))
                         {
+                            // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
+                            timer.Calling = true;
                             if (!timer.Async)
                                 ProcessItem(timer);
                             else
@@ -207,12 +211,14 @@ namespace NewLife.Threading
             // 控制日志显示
             WriteLogEventArgs.CurrentThreadName = Name == "Default" ? "T" : Name;
 
+            timer.hasSetNext = false;
+
             var sw = new Stopwatch();
             sw.Start();
 
             try
             {
-                timer.Calling = true;
+                //timer.Calling = true;
 
                 timer.Callback(timer.State ?? timer);
             }
@@ -236,10 +242,16 @@ namespace NewLife.Threading
                 var p = timer.Period;
 
                 timer.Timers++;
-                if (timer.Absolutely)
-                    timer.NextTime = timer.NextTime.AddMilliseconds(p);
-                else
-                    timer.NextTime = DateTime.Now.AddMilliseconds(p);
+
+                // 如果内部设置了下一次时间，则不再递加周期
+                if (!timer.hasSetNext)
+                {
+                    if (timer.Absolutely)
+                        timer.NextTime = timer.NextTime.AddMilliseconds(p);
+                    else
+                        timer.NextTime = DateTime.Now.AddMilliseconds(p);
+                }
+
                 timer.Calling = false;
 
                 // 清理一次性定时器
@@ -260,10 +272,7 @@ namespace NewLife.Threading
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return Name;
-        }
+        public override String ToString() { return Name; }
 
         #region 设置
         /// <summary>是否开启调试，输出更多信息</summary>

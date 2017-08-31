@@ -57,12 +57,14 @@ namespace NewLife.Cube.Admin.Controllers
             var inf = GetFile(r) as FileSystemInfo ?? GetDirectory(r);
             if (inf == null) return null;
 
-            var fi = new FileItem();
-            fi.Name = inf.Name;
-            fi.FullName = GetFullName(inf.FullName);
-            fi.Raw = inf.FullName;
-            fi.Directory = inf is DirectoryInfo;
-            fi.LastWrite = inf.LastWriteTime;
+            var fi = new FileItem
+            {
+                Name = inf.Name,
+                FullName = GetFullName(inf.FullName),
+                Raw = inf.FullName,
+                Directory = inf is DirectoryInfo,
+                LastWrite = inf.LastWriteTime
+            };
 
             if (inf is FileInfo)
             {

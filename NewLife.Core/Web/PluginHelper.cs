@@ -49,8 +49,10 @@ namespace NewLife.Web
             {
                 XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", disname ?? dll, urls);
 
-                var client = new WebClientX(true, true);
-                client.Log = XTrace.Log;
+                var client = new WebClientX(true, true)
+                {
+                    Log = XTrace.Log
+                };
                 var dir = Path.GetDirectoryName(file);
                 var file2 = client.DownloadLinkAndExtract(urls, linkName, dir);
                 client.TryDispose();

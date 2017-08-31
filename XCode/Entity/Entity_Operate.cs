@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using XCode.Cache;
 using XCode.Configuration;
 
@@ -70,7 +71,7 @@ namespace XCode
             /// <summary>加载记录集</summary>
             /// <param name="ds">记录集</param>
             /// <returns>实体数组</returns>
-            public virtual IEntityList LoadData(DataSet ds) { return Entity<TEntity>.LoadData(ds); }
+            public virtual IList<IEntity> LoadData(DataSet ds) { return Entity<TEntity>.LoadData(ds).Cast<IEntity>().ToList(); }
             #endregion
 
             #region 查找单个实体
@@ -99,7 +100,7 @@ namespace XCode
             #region 静态查询
             /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>
             /// <returns>实体数组</returns>
-            public virtual IEntityList FindAll() { return Entity<TEntity>.FindAll(); }
+            public virtual IList<IEntity> FindAll() { return Entity<TEntity>.FindAll().Cast<IEntity>().ToList(); }
 
             /// <summary>查询并返回实体对象集合。
             /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
@@ -110,9 +111,9 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IEntityList FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
+            public virtual IList<IEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
             {
-                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows);
+                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
             }
 
             /// <summary>查询并返回实体对象集合。
@@ -124,16 +125,16 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IEntityList FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
+            public virtual IList<IEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
             {
-                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows);
+                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
             }
             #endregion
 
             #region 缓存查询
             /// <summary>查找所有缓存</summary>
             /// <returns></returns>
-            public virtual IEntityList FindAllWithCache() { return Entity<TEntity>.FindAllWithCache(); }
+            public virtual IList<IEntity> FindAllWithCache() { return Entity<TEntity>.FindAllWithCache().Cast<IEntity>().ToList(); }
             #endregion
 
             #region 取总记录数
@@ -160,18 +161,6 @@ namespace XCode
             {
                 return Entity<TEntity>.FindCount(where);
             }
-            #endregion
-
-            #region 导入导出XML/Json
-            /// <summary>导入</summary>
-            /// <param name="xml"></param>
-            /// <returns></returns>
-            public virtual IEntity FromXml(String xml) { return Entity<TEntity>.FromXml(xml); }
-
-            /// <summary>导入</summary>
-            /// <param name="json"></param>
-            /// <returns></returns>
-            public virtual IEntity FromJson(String json) { return Entity<TEntity>.FromJson(json); }
             #endregion
 
             #region 事务
@@ -216,7 +205,7 @@ namespace XCode
             #region 一些设置
             /// <summary>是否自增获取自增返回值。默认启用</summary>
             public Boolean AutoIdentity { get; set; } = true;
-            
+
             [ThreadStatic]
             private static Boolean _AllowInsertIdentity;
             /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
@@ -225,10 +214,8 @@ namespace XCode
             /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
             public virtual FieldItem AutoSetGuidField { get; set; }
 
-            [NonSerialized]
-            private ICollection<String> _AdditionalFields;
             /// <summary>默认累加字段</summary>
-            public virtual ICollection<String> AdditionalFields { get { return _AdditionalFields ?? (_AdditionalFields = new HashSet<String>(StringComparer.OrdinalIgnoreCase)); } }
+            public virtual ICollection<String> AdditionalFields { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
             #endregion
         }
     }

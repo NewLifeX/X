@@ -12,9 +12,9 @@ namespace XCode.Web
     public class EntityGrid : Pager
     {
         #region 属性
-        private IEntityList _DataSource;
+        private IList<IEntity> _DataSource;
         /// <summary>数据源。如果为空，将会自动使用<see cref="Where"/>查询</summary>
-        public IEntityList DataSource
+        public IList<IEntity> DataSource
         {
             get
             {

@@ -6,7 +6,7 @@ using System.Data;
 namespace XCode
 {
     /// <summary>实体列表接口</summary>
-    public interface IEntityList : /*IList, */ IEnumerable, IList<IEntity>
+    public interface IEntityList : IEnumerable, IList<IEntity>
     {
         #region 对象查询
         /// <summary>根据指定项查找</summary>
@@ -44,12 +44,6 @@ namespace XCode
         /// <param name="value">数值</param>
         /// <returns></returns>
         Boolean Exists(String name, Object value);
-
-        /// <summary>分页</summary>
-        /// <param name="startRowIndex">起始索引，0开始</param>
-        /// <param name="maximumRows">最大个数</param>
-        /// <returns></returns>
-        IEntityList Page(Int32 startRowIndex, Int32 maximumRows);
         #endregion
 
         #region 对象操作
@@ -77,74 +71,9 @@ namespace XCode
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
         Int32 Delete(Boolean useTransition);
-
-        /// <summary>设置所有实体中指定项的值</summary>
-        /// <param name="name">名称</param>
-        /// <param name="value">数值</param>
-        IEntityList SetItem(String name, Object value);
-
-        /// <summary>获取所有实体中指定项的值</summary>
-        /// <typeparam name="TResult">指定项的类型</typeparam>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        List<TResult> GetItem<TResult>(String name);
-
-        /// <summary>串联指定成员，方便由实体集合构造用于查询的子字符串</summary>
-        /// <param name="name">名称</param>
-        /// <param name="separator"></param>
-        /// <returns></returns>
-        String Join(String name, String separator);
-
-        /// <summary>串联</summary>
-        /// <param name="separator"></param>
-        /// <returns></returns>
-        String Join(String separator);
-        #endregion
-
-        #region 排序
-        /// <summary>按指定字段排序</summary>
-        /// <param name="name">字段</param>
-        /// <param name="isDesc">是否降序</param>
-        IEntityList Sort(String name, Boolean isDesc);
-
-        /// <summary>按指定字段数组排序</summary>
-        /// <param name="names">字段</param>
-        /// <param name="isDescs">是否降序</param>
-        IEntityList Sort(String[] names, Boolean[] isDescs);
-
-        /// <summary>提升指定实体在当前列表中的位置，加大排序键的值</summary>
-        /// <param name="entity"></param>
-        /// <param name="sortKey"></param>
-        /// <returns></returns>
-        IEntityList Up(IEntity entity, String sortKey);
-
-        /// <summary>降低指定实体在当前列表中的位置，减少排序键的值</summary>
-        /// <param name="entity"></param>
-        /// <param name="sortKey"></param>
-        /// <returns></returns>
-        IEntityList Down(IEntity entity, String sortKey);
         #endregion
 
         #region 导入导出
-        /// <summary>导出Xml文本</summary>
-        /// <returns></returns>
-        String ToXml();
-
-        /// <summary>导入Xml文本</summary>
-        /// <param name="xml"></param>
-        IEntityList FromXml(String xml);
-
-        /// <summary>导出Json</summary>
-        /// <returns></returns>
-        String ToJson();
-
-        ///// <summary>
-        ///// 导入Json
-        ///// </summary>
-        ///// <param name="json"></param>
-        ///// <returns></returns>
-        //IEntityList FromJson(String json);
-
         /// <summary>实体列表转为字典。主键为Key</summary>
         /// <param name="valueField">作为Value部分的字段，默认为空表示整个实体对象为值</param>
         /// <returns></returns>

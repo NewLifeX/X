@@ -7,6 +7,6 @@
 }
 <div class="form-group">
     <label for="RoleID" class="control-label">角色：</label>
-    @Html.ForDropDownList("RoleID", Role.FindAllWithCache(), "全部", true)
+    @Html.ForDropDownList("RoleID", Role.FindAllWithCache().Cast<IEntity>().ToList(), "全部", true)
 </div>
 @Html.Partial("_DateRange")
