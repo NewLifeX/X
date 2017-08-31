@@ -200,11 +200,6 @@
     <Compile Include="Transform\ETL.cs" />
     <Compile Include="Web\UserBehaviorModule..cs" />
     <Compile Include="Web\EntityGrid.cs" />
-    <Compile Include="生成实体类.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>生成实体类.tt</DependentUpon>
-    </Compile>
     <None Include="Cache\readme.md" />
     <Compile Include="Transform\EntityTransform.cs" />
     <Compile Include="Tree\IEntityTreeSettting.cs" />
@@ -226,7 +221,7 @@
   <ItemGroup>
     <Content Include="生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>生成实体类.cs</LastGenOutput>
+      <LastGenOutput>生成实体类.log</LastGenOutput>
     </Content>
     <None Include="Membership\生成实体类.log">
       <AutoGen>True</AutoGen>
