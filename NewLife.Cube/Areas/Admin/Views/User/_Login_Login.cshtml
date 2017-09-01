@@ -1,76 +1,81 @@
 ﻿@{
     var set = NewLife.Cube.Setting.Current;
 }
-<div id="login-box" class="login-box visible widget-box no-border">
-    <div class="widget-body">
-        <div class="widget-main">
-            @if (!set.LoginTip.IsNullOrEmpty())
-            {
-                <h4 class="header blue lighter bigger">
-                    <i class="ace-icon fa fa-coffee green"></i>
-                    @Html.Raw(set.LoginTip)
-                </h4>
+<div class="tab-pane fade in active" id="Login">
+    <!-- Logo-->
+    <div class="row text-center">
+        <i class="glyphicon glyphicon-cloud login-logo center-block"></i>
+    </div>
+    <!-- 登录-->
+    @using (Html.BeginForm("Login", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
+    {
+        @*@Html.ValidationSummary()*@
+        <span class="heading text-primary">用户登录</span>
+        <div class="form-group">
+            <input type="email" class="form-control" id="username" name="username" placeholder="用户名或电子邮件">
+            <i class="glyphicon glyphicon-user"></i>
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control" id="password" name="password" placeholder="密　码">
+            <i class="glyphicon glyphicon-lock"></i>
+            @*<a href="#Forgot" data-toggle="tab" class="glyphicon glyphicon-question-sign"></a>*@
+        </div>
+            <div class="form-group">
+                <div class="main-checkbox">
+                    <input type="checkbox" value="None" id="chk" name="check" />
+                    <label for="chk"></label>
+                </div>
+                <span class="text text-primary">记住我</span>
+                <button type="submit" class="btn btn-default">登录</button>
+            </div>
 
-                <div class="space-6"></div>
-            }
-            @using (Html.BeginForm("Login", "User", new { ReturnUrl = ViewBag.ReturnUrl }))
-            {
-                @Html.ValidationSummary()
-                <fieldset>
-                    <label class="block clearfix">
-                        <span class="block input-icon input-icon-right">
-                            <input name="username" type="text" class="form-control" placeholder="用户名" />
-                            <i class="ace-icon fa fa-user"></i>@Html.ValidationMessage("username")
-                        </span>
-                    </label>
+    }
+    @if (set.AllowRegister || set.AllowForgot)
+    {
+        <div class="row">
 
-                    <label class="block clearfix">
-                        <span class="block input-icon input-icon-right">
-                            <input name="password" type="password" class="form-control" placeholder="密码" />
-                            <i class="ace-icon fa fa-lock"></i>@Html.ValidationMessage("password")
-                        </span>
-                    </label>
 
-                    <div class="space"></div>
+        </div>
 
-                    <div class="clearfix">
-                        <label class="inline">
-                            <input name="remember" type="checkbox" class="ace" value="true" />
-                            <span class="lbl"> 自动登录</span>
-                        </label>
-
-                        <button type="submit" class="width-35 pull-right btn btn-sm btn-primary">
-                            <i class="ace-icon fa fa-key"></i>
-                            <span class="bigger-110">登录</span>
-                        </button>
-                    </div>
-
-                    <div class="space-4"></div>
-                </fieldset>
-            }
-        </div><!-- /.widget-main -->
-        @if (set.AllowRegister || set.AllowForgot)
-        {
-            <div class="toolbar clearfix">
+        <div class="toolbar clearfix text-center">
+            <div class="row" style="padding-top:30px;">
                 @if (set.AllowForgot)
                 {
-                <div>
-                    <a href="#" data-target="#forgot-box" class="forgot-password-link">
-                        <i class="ace-icon fa fa-arrow-left"></i>
+                    <a href="#Forgot" data-toggle="tab">
+                        <i class="glyphicon glyphicon-info-sign"></i>
                         忘记密码？
                     </a>
-                </div>
+
                 }
                 @if (set.AllowRegister)
                 {
-                <div>
-                    <a href="#" data-target="#signup-box" class="user-signup-link">
+
+                    <a href="#Register" data-toggle="tab">                        
+                        <i class="glyphicon glyphicon-menu-right"></i>
                         我要注册
-                        <i class="ace-icon fa fa-arrow-right"></i>
                     </a>
-                </div>
+
                 }
             </div>
-        }
-    </div><!-- /.widget-body -->
-</div><!-- /.login-box -->
+        </div>
+    }
+
+    @if (!set.LoginTip.IsNullOrEmpty())
+    {
+        <h4 class="header blue lighter bigger">
+            <i class="ace-icon fa fa-coffee green"></i>
+
+        </h4>
+
+        <div class="space-6"></div>
+
+        <nav class="navbar navbar-fixed-top">
+            <div class="alert alert-warning alert-dismissible text-center" role="alert" style="margin-bottom:0px;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                @Html.Raw(set.LoginTip)
+            </div>
+        </nav>
+    }
+
+
+</div>
