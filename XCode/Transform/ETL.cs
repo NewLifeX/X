@@ -10,18 +10,20 @@ using XCode.Membership;
  * 数据抽取流程：
  *      Start   启动检查抽取器和抽取设置
  *      Process 大循环处理
+ *          Processing  检查启动
  *          克隆一份抽取配置，抽取时会滑动到下一批
  *          Fetch   抽取一批数据，并滑动配置
- *              ProcessList 处理列表，可异步调用
- *                  OnProcess   处理列表，异步调用前，先新增配置项，以免失败
- *                      ProcessItem 处理实体
- *                      OnError     处理实体异常
- *                  OnSync      同步列表
- *                      SyncItem    同步实体
- *                          GetItem     查找或新建目标对象
- *                          SaveItem    保存目标对象
- *                  ProcessFinished 处理完成，保存统计，异步时修改配置项为成功
- *              OnError     处理列表异常
+ *          ProcessList 处理列表，可异步调用
+ *              OnProcess   处理列表，异步调用前，先新增配置项，以免失败
+ *                  ProcessItem 处理实体
+ *                  OnError     处理实体异常
+ *              OnSync      同步列表
+ *                  SyncItem    同步实体
+ *                      GetItem     查找或新建目标对象
+ *                      SaveItem    保存目标对象
+ *              ProcessFinished 处理完成，保存统计，异步时修改配置项为成功
+ *          OnError     处理列表异常
+ *          Processed   保存进度
  *      Stop    停止处理
  */
 
@@ -163,20 +165,6 @@ namespace XCode.Transform
                 st.FetchSpeed = ctx.FetchSpeed;
 
                 Modules.Fetched(ctx);
-
-                /*
-                 * 并行计算逻辑：
-                 * 1，参数0表示同步
-                 * 2，参数1表示开一个异步任务
-                 * 3，参数n表示开多个异步任务
-                 * 4，检查资源数，不足时等待
-                 */
-
-                // 批量处理
-                if (MaxTask == 0)
-                    ProcessList(ctx);
-                else
-                    Task.Run(() => ProcessListAsync(ctx));
             }
             catch (Exception ex)
             {
@@ -185,7 +173,21 @@ namespace XCode.Transform
                 if (ex != null) throw ex;
             }
 
-            Modules.Processed();
+            /*
+             * 并行计算逻辑：
+             * 1，参数0表示同步
+             * 2，参数1表示开一个异步任务
+             * 3，参数n表示开多个异步任务
+             * 4，检查资源数，不足时等待
+             */
+
+            // 批量处理
+            if (MaxTask == 0)
+                ProcessList(ctx);
+            else
+                Task.Run(() => ProcessListAsync(ctx));
+
+            Modules.Processed(ctx);
 
             return list == null ? 0 : list.Count;
         }
@@ -206,14 +208,23 @@ namespace XCode.Transform
         /// <param name="ctx">数据上下文</param>
         protected virtual void ProcessList(DataContext ctx)
         {
-            var sw = Stopwatch.StartNew();
+            try
+            {
+                var sw = Stopwatch.StartNew();
 
-            ctx.Success = OnProcess(ctx);
+                ctx.Success = OnProcess(ctx);
 
-            sw.Stop();
-            ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
+                sw.Stop();
+                ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
 
-            OnFinished(ctx);
+                OnFinished(ctx);
+            }
+            catch (Exception ex)
+            {
+                ctx.Error = ex;
+                ex = OnError(ctx);
+                if (ex != null) throw ex;
+            }
         }
 
         /// <summary>异步处理列表，传递批次配置</summary>
@@ -232,12 +243,6 @@ namespace XCode.Transform
             try
             {
                 ProcessList(ctx);
-            }
-            catch (Exception ex)
-            {
-                ctx.Error = ex;
-                ex = OnError(ctx);
-                if (ex != null) throw ex;
             }
             finally
             {

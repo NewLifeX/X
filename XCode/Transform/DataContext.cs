@@ -31,6 +31,9 @@ namespace XCode.Transform
         /// <summary>处理异常</summary>
         public Exception Error { get; set; }
 
+        /// <summary>开始时间</summary>
+        public DateTime StartTime { get; set; } = DateTime.Now;
+
         /// <summary>状态对象</summary>
         public Object State { get; set; }
         #endregion

@@ -24,7 +24,8 @@ namespace XCode.Transform
         Boolean Processing(DataContext ctx);
 
         /// <summary>单批数据处理后</summary>
-        void Processed();
+        /// <param name="ctx">数据上下文</param>
+        void Processed(DataContext ctx);
 
         /// <summary>抽取完成</summary>
         /// <param name="ctx">数据上下文</param>
@@ -75,11 +76,11 @@ namespace XCode.Transform
             return true;
         }
 
-        public static void Processed(this IEnumerable<IETLModule> list)
+        public static void Processed(this IEnumerable<IETLModule> list, DataContext ctx)
         {
             foreach (var item in list)
             {
-                item.Processed();
+                item.Processed(ctx);
             }
         }
 
