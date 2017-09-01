@@ -120,6 +120,16 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <returns></returns>
         public abstract Boolean Remove(String key);
+
+        /// <summary>设置缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <param name="expire">过期时间，秒</param>
+        public abstract Boolean SetExpire(String key, TimeSpan expire);
+
+        /// <summary>获取缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public abstract TimeSpan GetExpire(String key);
         #endregion
 
         #region 高级操作

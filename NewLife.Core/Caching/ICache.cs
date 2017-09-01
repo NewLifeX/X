@@ -86,5 +86,15 @@ namespace NewLife.Caching
         /// <param name="key"></param>
         /// <returns></returns>
         IDictionary<String, T> GetDictionary<T>(String key);
+
+        /// <summary>设置缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <param name="expire">过期时间</param>
+        Boolean SetExpire(String key, TimeSpan expire);
+
+        /// <summary>获取缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        TimeSpan GetExpire(String key);
     }
 }

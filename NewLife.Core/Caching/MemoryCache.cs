@@ -96,6 +96,28 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <returns></returns>
         public override Boolean Remove(String key) { return _cache.Remove(key); }
+
+        /// <summary>设置缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <param name="expire">过期时间</param>
+        public override Boolean SetExpire(String key, TimeSpan expire)
+        {
+            if (!_cache.TryGetValue(key, out var item) || item == null) return false;
+
+            item.ExpiredTime = DateTime.Now.Add(expire);
+
+            return true;
+        }
+        
+        /// <summary>获取缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public override TimeSpan GetExpire(String key)
+        {
+            if (!_cache.TryGetValue(key, out var item) || item == null) return TimeSpan.Zero;
+
+            return item.ExpiredTime - DateTime.Now;
+        }
         #endregion
 
         #region 高级操作
