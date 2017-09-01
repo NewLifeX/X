@@ -9,6 +9,7 @@ namespace XCode.Transform
     /// <summary>数据上下文</summary>
     public class DataContext
     {
+        #region 属性
         /// <summary>抽取设置</summary>
         public IExtractSetting Setting { get; set; }
 
@@ -32,5 +33,14 @@ namespace XCode.Transform
 
         /// <summary>状态对象</summary>
         public Object State { get; set; }
+        #endregion
+
+        #region 扩展属性
+        /// <summary>抽取速度</summary>
+        public Int32 FetchSpeed { get => (FetchCost == 0 || Data == null) ? 0 : (Int32)(Data.Count * 1000 / FetchCost); }
+
+        /// <summary>处理速度</summary>
+        public Int32 ProcessSpeed { get => (ProcessCost == 0 || Data == null) ? 0 : (Int32)(Data.Count * 1000 / ProcessCost); }
+        #endregion
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Log;
 using XCode.Membership;
 
@@ -58,6 +60,12 @@ namespace XCode.Transform
 
         /// <summary>统计</summary>
         public IETLStat Stat { get; set; }
+
+        /// <summary>最大并行处理任务数。默认0表示同步，N表示最多可以有N批数据同时处理</summary>
+        public Int32 MaxTask { get; set; }
+
+        /// <summary>当前处理中的任务数</summary>
+        private Int32 _currentTask;
 
         /// <summary>过滤模块列表</summary>
         public List<IETLModule> Modules { get; set; } = new List<IETLModule>();
@@ -150,15 +158,25 @@ namespace XCode.Transform
                 ctx.FetchCost = sw.Elapsed.TotalMilliseconds;
 
                 var st = Stat;
-                var total = list.Count;
-                st.Total += total;
+                st.Total += list.Count;
                 st.Times++;
-                st.FetchSpeed = ctx.FetchCost <= 0 ? 0 : (Int32)(total * 1000 / ctx.FetchCost);
+                st.FetchSpeed = ctx.FetchSpeed;
 
                 Modules.Fetched(ctx);
 
+                /*
+                 * 并行计算逻辑：
+                 * 1，参数0表示同步
+                 * 2，参数1表示开一个异步任务
+                 * 3，参数n表示开多个异步任务
+                 * 4，检查资源数，不足时等待
+                 */
+
                 // 批量处理
-                ProcessList(ctx);
+                if (MaxTask == 0)
+                    ProcessList(ctx);
+                else
+                    Task.Run(() => ProcessListAsync(ctx));
             }
             catch (Exception ex)
             {
@@ -198,6 +216,35 @@ namespace XCode.Transform
             OnFinished(ctx);
         }
 
+        /// <summary>异步处理列表，传递批次配置</summary>
+        /// <param name="ctx">数据上下文</param>
+        protected virtual void ProcessListAsync(DataContext ctx)
+        {
+            //Interlocked.Increment(ref _currentTask);
+            var cur = _currentTask;
+            // 当前任务已达上限，或者出现多线程争夺时，等待一段时间
+            while (cur >= MaxTask || Interlocked.CompareExchange(ref _currentTask, cur + 1, cur) != cur)
+            {
+                Thread.Sleep(100);
+                cur = _currentTask;
+            }
+
+            try
+            {
+                ProcessList(ctx);
+            }
+            catch (Exception ex)
+            {
+                ctx.Error = ex;
+                ex = OnError(ctx);
+                if (ex != null) throw ex;
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _currentTask);
+            }
+        }
+
         /// <summary>处理列表</summary>
         /// <param name="ctx">数据上下文</param>
         protected virtual Int32 OnProcess(DataContext ctx)
@@ -232,23 +279,17 @@ namespace XCode.Transform
             _Error = 0;
 
             var set = ctx.Setting;
-            var ext = Extracter;
-            var start = set.Start;
-            var end = set.End;
-            var row = set.Row;
 
             var st = Stat;
             var total = ctx.Data.Count;
-            //st.Total += total;
             st.Success += ctx.Success;
-            //st.Times++;
 
-            st.Speed = ctx.ProcessCost <= 0 ? 0 : (Int32)(total * 1000 / ctx.ProcessCost);
-            //st.FetchSpeed = fetchCost <= 0 ? 0 : (Int32)(total * 1000 / fetchCost);
+            st.Speed = ctx.ProcessSpeed;
 
-            if (ext is TimeExtracter time) end = time.ActualEnd;
+            var end = set.End;
+            if (Extracter is TimeExtracter ext) end = ext.ActualEnd;
             var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
-            WriteLog("共处理{0}行，区间({1}, {2}{3})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, start, row, ends, ctx.FetchCost, st.FetchSpeed, ctx.ProcessCost, st.Speed);
+            WriteLog("共处理{0}行，区间({1}, {2}{3})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, set.Start, set.Row, ends, ctx.FetchCost, st.FetchSpeed, ctx.ProcessCost, st.Speed);
 
             Modules.OnFinished(ctx);
         }
