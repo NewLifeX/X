@@ -46,6 +46,7 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\IcoHelper.cs" />
@@ -90,6 +91,18 @@
       <DependentUpon>NewModel.cs</DependentUpon>
     </Compile>
     <Compile Include="NewModelForm\WinFormHelper.cs" />
+    <Compile Include="Tools\FrmGPS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\FrmGPS.Designer.cs">
+      <DependentUpon>FrmGPS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\FrmInclude.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\FrmInclude.Designer.cs">
+      <DependentUpon>FrmInclude.cs</DependentUpon>
+    </Compile>
     <Compile Include="Tools\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -225,6 +238,12 @@
     </Compile>
     <EmbeddedResource Include="NewModelForm\BaseForm.resx">
       <DependentUpon>BaseForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\FrmGPS.resx">
+      <DependentUpon>FrmGPS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\FrmInclude.resx">
+      <DependentUpon>FrmInclude.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Tools\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>

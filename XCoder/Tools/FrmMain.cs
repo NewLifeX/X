@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NewLife;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,32 +18,45 @@ namespace XCoder.Tools
         {
             InitializeComponent();
         }
-
-        private void btn_16_latlong_Click(object sender, EventArgs e)
+        private void FrmMain_Load(object sender, EventArgs e)
         {
-            var temp = txt_16_latlong.Text.Trim();
-            var _lat = temp.Substring(0, 8);
-            var _long = temp.Substring(8);
+            var frm = new FrmGPS();
+            ShowForm(frm);
+        }
+        private void btn_Include_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmInclude();
+            ShowForm(frm);
+        }
+        private void btn_gps_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmGPS();
+            ShowForm(frm);
+        }
+        public void ShowForm(Form frm)
+        {
+            frm.TopLevel = false;
+            frm.Dock = DockStyle.Fill;
+            frm.FormBorderStyle = FormBorderStyle.None;
 
-            SetText(_lat, _long);
+            frm.Parent = this;
+
+            var sps = panel2.Controls;
+            foreach (var item in sps)
+            {
+                try
+                {
+                    var mm = item as Form;
+                    if (mm != null) mm.Close();
+                }
+                catch { }
+                item.TryDispose();
+            }
+            sps.Clear();
+            sps.Add(frm);
+            frm.Show();
         }
 
-        private void btn_latlong_Click(object sender, EventArgs e)
-        {
-            var _lat = txt_16_lat.Text.Trim();
-            var _long = txt_16_long.Text.Trim();
-
-            SetText(_lat, _long);
-        }
-
-        private void SetText(string _lat, string _long)
-        {
-            var v_lat = BitConverter.ToSingle(_lat.ToHex(), 0);
-            var v_long = BitConverter.ToSingle(_long.ToHex(), 0);
-
-            txt_lat.Text = v_lat + "";
-            txt_long.Text = v_long + "";
-            txt_latlong.Text = "{0},{1}".F(v_lat, v_long);
-        }
+       
     }
 }
