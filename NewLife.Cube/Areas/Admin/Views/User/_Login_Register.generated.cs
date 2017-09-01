@@ -42,221 +42,190 @@ namespace ASP
         }
         public override void Execute()
         {
-WriteLiteral("<div");
+WriteLiteral("\r\n\r\n<div");
 
 WriteLiteral(" class=\"tab-pane fade\"");
 
 WriteLiteral(" id=\"Register\"");
 
-WriteLiteral(">\r\n    <div");
+WriteLiteral(">\r\n    <!-- Logo-->\r\n    <div");
 
-WriteLiteral(" class=\"widget-body\"");
+WriteLiteral(" class=\"row text-center\"");
 
-WriteLiteral(">\r\n        <div");
+WriteLiteral(">\r\n        <i");
 
-WriteLiteral(" class=\"widget-main\"");
+WriteLiteral(" class=\"glyphicon glyphicon-cloud login-logo center-block\"");
 
-WriteLiteral(">\r\n            <h4");
-
-WriteLiteral(" class=\"header green lighter bigger\"");
-
-WriteLiteral(">\r\n                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-users blue\"");
-
-WriteLiteral("></i>\r\n                新用户注册\r\n            </h4>\r\n\r\n            <div");
-
-WriteLiteral(" class=\"space-6\"");
-
-WriteLiteral("></div>\r\n            <p> 输入你的信息 </p>\r\n\r\n");
+WriteLiteral("></i>\r\n    </div>\r\n    <!-- 登录-->\r\n");
 
             
-            #line 12 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
-            
+            #line 9 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+    
             
             #line default
             #line hidden
             
-            #line 12 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
-             using (Html.BeginForm("Register", "User"))
-            {
+            #line 9 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+     using (Html.BeginForm("Register", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
+    {
+        
+            
+            #line default
+            #line hidden
+            
+            #line 11 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+   Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
-WriteLiteral("                <fieldset>\r\n                    <label");
+            
+            #line 11 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+                                 
 
-WriteLiteral(" class=\"block clearfix\"");
+            
+            #line default
+            #line hidden
+WriteLiteral("        <span");
 
-WriteLiteral(">\r\n                        <span");
+WriteLiteral(" class=\"heading text-primary\"");
 
-WriteLiteral(" class=\"block input-icon input-icon-right\"");
+WriteLiteral(">新用户注册</span>\r\n");
 
-WriteLiteral(">\r\n                            <input");
+WriteLiteral("        <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n            <input");
 
 WriteLiteral(" type=\"email\"");
 
 WriteLiteral(" class=\"form-control\"");
 
+WriteLiteral(" id=\"email\"");
+
 WriteLiteral(" name=\"email\"");
 
-WriteLiteral(" placeholder=\"Email\"");
+WriteLiteral(" placeholder=\"输入你的邮箱地址\"");
 
-WriteLiteral(" />\r\n                            <i");
+WriteLiteral(">\r\n            <i");
 
-WriteLiteral(" class=\"ace-icon fa fa-envelope\"");
+WriteLiteral(" class=\"glyphicon glyphicon-email\"");
 
-WriteLiteral("></i>\r\n                        </span>\r\n                    </label>\r\n\r\n         " +
-"           <label");
+WriteLiteral("></i>\r\n        </div>\r\n");
 
-WriteLiteral(" class=\"block clearfix\"");
+WriteLiteral("        <div");
 
-WriteLiteral(">\r\n                        <span");
+WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(" class=\"block input-icon input-icon-right\"");
-
-WriteLiteral(">\r\n                            <input");
+WriteLiteral(">\r\n            <input");
 
 WriteLiteral(" type=\"text\"");
 
 WriteLiteral(" class=\"form-control\"");
 
+WriteLiteral(" id=\"username\"");
+
 WriteLiteral(" name=\"username\"");
 
 WriteLiteral(" placeholder=\"用户名\"");
 
-WriteLiteral(" />\r\n                            <i");
+WriteLiteral(">\r\n            <i");
 
-WriteLiteral(" class=\"ace-icon fa fa-user\"");
+WriteLiteral(" class=\"glyphicon glyphicon-user\"");
 
-WriteLiteral("></i>\r\n                        </span>\r\n                    </label>\r\n\r\n         " +
-"           <label");
+WriteLiteral("></i>\r\n        </div>\r\n");
 
-WriteLiteral(" class=\"block clearfix\"");
+WriteLiteral("        <div");
 
-WriteLiteral(">\r\n                        <span");
+WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(" class=\"block input-icon input-icon-right\"");
-
-WriteLiteral(">\r\n                            <input");
+WriteLiteral(">\r\n            <input");
 
 WriteLiteral(" type=\"password\"");
 
 WriteLiteral(" class=\"form-control\"");
+
+WriteLiteral(" id=\"password\"");
 
 WriteLiteral(" name=\"password\"");
 
 WriteLiteral(" placeholder=\"密码\"");
 
-WriteLiteral(" />\r\n                            <i");
+WriteLiteral(">\r\n            <i");
 
-WriteLiteral(" class=\"ace-icon fa fa-lock\"");
+WriteLiteral(" class=\"glyphicon glyphicon-user\"");
 
-WriteLiteral("></i>\r\n                        </span>\r\n                    </label>\r\n\r\n         " +
-"           <label");
+WriteLiteral("></i>\r\n        </div>\r\n");
 
-WriteLiteral(" class=\"block clearfix\"");
+WriteLiteral("        <div");
 
-WriteLiteral(">\r\n                        <span");
+WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(" class=\"block input-icon input-icon-right\"");
-
-WriteLiteral(">\r\n                            <input");
+WriteLiteral(">\r\n            <input");
 
 WriteLiteral(" type=\"password\"");
 
 WriteLiteral(" class=\"form-control\"");
 
+WriteLiteral(" id=\"password2\"");
+
 WriteLiteral(" name=\"password2\"");
 
 WriteLiteral(" placeholder=\"重复密码\"");
 
-WriteLiteral(" />\r\n                            <i");
+WriteLiteral(">\r\n            <i");
 
-WriteLiteral(" class=\"ace-icon fa fa-retweet\"");
+WriteLiteral(" class=\"glyphicon glyphicon-user\"");
 
-WriteLiteral("></i>\r\n                        </span>\r\n                    </label>\r\n\r\n         " +
-"           <label");
+WriteLiteral("></i>\r\n        </div>\r\n");
 
-WriteLiteral(" class=\"block\"");
+WriteLiteral("        <div");
 
-WriteLiteral(">\r\n                        <input");
+WriteLiteral(" class=\"form-group text-center\"");
 
-WriteLiteral(" type=\"checkbox\"");
-
-WriteLiteral(" class=\"ace\"");
-
-WriteLiteral(" />\r\n                        <span");
-
-WriteLiteral(" class=\"lbl\"");
-
-WriteLiteral(">\r\n                            我接受\r\n                            <a");
-
-WriteLiteral(" href=\"#\"");
-
-WriteLiteral(">用户协议</a>\r\n                        </span>\r\n                    </label>\r\n\r\n     " +
-"               <div");
-
-WriteLiteral(" class=\"space-24\"");
-
-WriteLiteral("></div>\r\n\r\n                    <div");
-
-WriteLiteral(" class=\"clearfix\"");
-
-WriteLiteral(">\r\n                        <button");
-
-WriteLiteral(" type=\"reset\"");
-
-WriteLiteral(" class=\"width-30 pull-left btn btn-sm\"");
-
-WriteLiteral(">\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-refresh\"");
-
-WriteLiteral("></i>\r\n                            <span");
-
-WriteLiteral(" class=\"bigger-110\"");
-
-WriteLiteral(">重置</span>\r\n                        </button>\r\n\r\n                        <button");
+WriteLiteral(">\r\n            <button");
 
 WriteLiteral(" type=\"submit\"");
 
-WriteLiteral(" class=\"width-65 pull-right btn btn-sm btn-success\"");
+WriteLiteral(" class=\"btn btn-default text-center\"");
 
-WriteLiteral(">\r\n                            <span");
-
-WriteLiteral(" class=\"bigger-110\"");
-
-WriteLiteral(">注册</span>\r\n\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-arrow-right icon-on-right\"");
-
-WriteLiteral("></i>\r\n                        </button>\r\n                    </div>\r\n           " +
-"     </fieldset>\r\n");
+WriteLiteral(">注册</button>\r\n        </div>\r\n");
 
             
-            #line 66 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
-            }
+            #line 32 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+
+    }
 
             
             #line default
             #line hidden
-WriteLiteral("        </div>\r\n\r\n        <div");
+WriteLiteral("    <div");
+
+WriteLiteral(" class=\"toolbar clearfix text-center\"");
+
+WriteLiteral(">\r\n        <div");
+
+WriteLiteral(" class=\"row\"");
+
+WriteLiteral(" style=\"padding-top:30px;\"");
+
+WriteLiteral(">\r\n            <div");
 
 WriteLiteral(" class=\"toolbar center\"");
 
-WriteLiteral(">\r\n            <a");
+WriteLiteral(">\r\n                <a");
 
 WriteLiteral(" href=\"#Login\"");
 
 WriteLiteral(" data-toggle=\"tab\"");
 
-WriteLiteral(">\r\n                <i");
+WriteLiteral(">\r\n                    回到登录\r\n                    <i");
 
-WriteLiteral(" class=\"ace-icon fa fa-arrow-left\"");
+WriteLiteral(" class=\"ace-icon fa fa-arrow-right\"");
 
-WriteLiteral("></i>\r\n                回到登录\r\n            </a>\r\n        </div>\r\n    </div><!-- /.w" +
-"idget-body -->\r\n</div><!-- /.signup-box -->");
+WriteLiteral("></i>\r\n                </a>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</di" +
+"v>");
 
         }
     }

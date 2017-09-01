@@ -1,76 +1,44 @@
-﻿<div class="tab-pane fade" id="Register">
-    <div class="widget-body">
-        <div class="widget-main">
-            <h4 class="header green lighter bigger">
-                <i class="ace-icon fa fa-users blue"></i>
-                新用户注册
-            </h4>
+﻿
 
-            <div class="space-6"></div>
-            <p> 输入你的信息 </p>
-
-            @using (Html.BeginForm("Register", "User"))
-            {
-                <fieldset>
-                    <label class="block clearfix">
-                        <span class="block input-icon input-icon-right">
-                            <input type="email" class="form-control" name="email" placeholder="Email" />
-                            <i class="ace-icon fa fa-envelope"></i>
-                        </span>
-                    </label>
-
-                    <label class="block clearfix">
-                        <span class="block input-icon input-icon-right">
-                            <input type="text" class="form-control" name="username" placeholder="用户名" />
-                            <i class="ace-icon fa fa-user"></i>
-                        </span>
-                    </label>
-
-                    <label class="block clearfix">
-                        <span class="block input-icon input-icon-right">
-                            <input type="password" class="form-control" name="password" placeholder="密码" />
-                            <i class="ace-icon fa fa-lock"></i>
-                        </span>
-                    </label>
-
-                    <label class="block clearfix">
-                        <span class="block input-icon input-icon-right">
-                            <input type="password" class="form-control" name="password2" placeholder="重复密码" />
-                            <i class="ace-icon fa fa-retweet"></i>
-                        </span>
-                    </label>
-
-                    <label class="block">
-                        <input type="checkbox" class="ace" />
-                        <span class="lbl">
-                            我接受
-                            <a href="#">用户协议</a>
-                        </span>
-                    </label>
-
-                    <div class="space-24"></div>
-
-                    <div class="clearfix">
-                        <button type="reset" class="width-30 pull-left btn btn-sm">
-                            <i class="ace-icon fa fa-refresh"></i>
-                            <span class="bigger-110">重置</span>
-                        </button>
-
-                        <button type="submit" class="width-65 pull-right btn btn-sm btn-success">
-                            <span class="bigger-110">注册</span>
-
-                            <i class="ace-icon fa fa-arrow-right icon-on-right"></i>
-                        </button>
-                    </div>
-                </fieldset>
-            }
+<div class="tab-pane fade" id="Register">
+    <!-- Logo-->
+    <div class="row text-center">
+        <i class="glyphicon glyphicon-cloud login-logo center-block"></i>
+    </div>
+    <!-- 登录-->
+    @using (Html.BeginForm("Register", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
+    {
+        @Html.ValidationSummary()
+        <span class="heading text-primary">新用户注册</span>
+        <div class="form-group">
+            <input type="email" class="form-control" id="email" name="email" placeholder="输入你的邮箱地址">
+            <i class="glyphicon glyphicon-email"></i>
+        </div>
+        <div class="form-group">
+            <input type="text" class="form-control" id="username" name="username" placeholder="用户名">
+            <i class="glyphicon glyphicon-user"></i>
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control" id="password" name="password" placeholder="密码">
+            <i class="glyphicon glyphicon-user"></i>
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control" id="password2" name="password2" placeholder="重复密码">
+            <i class="glyphicon glyphicon-user"></i>
+        </div>
+        <div class="form-group text-center">
+            <button type="submit" class="btn btn-default text-center">注册</button>
         </div>
 
-        <div class="toolbar center">
-            <a href="#Login" data-toggle="tab">
-                <i class="ace-icon fa fa-arrow-left"></i>
-                回到登录
-            </a>
+    }
+    <div class="toolbar clearfix text-center">
+        <div class="row" style="padding-top:30px;">
+            <div class="toolbar center">
+                <a href="#Login" data-toggle="tab">
+                    回到登录
+                    <i class="ace-icon fa fa-arrow-right"></i>
+                </a>
+            </div>
         </div>
-    </div><!-- /.widget-body -->
-</div><!-- /.signup-box -->
+    </div>
+</div>

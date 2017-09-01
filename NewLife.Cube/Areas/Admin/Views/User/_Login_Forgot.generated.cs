@@ -48,109 +48,118 @@ WriteLiteral(" class=\"tab-pane fade\"");
 
 WriteLiteral(" id=\"Forgot\"");
 
-WriteLiteral(">\r\n    <div");
+WriteLiteral(">\r\n    <!-- Logo-->\r\n    <div");
 
-WriteLiteral(" class=\"widget-body\"");
+WriteLiteral(" class=\"row text-center\"");
 
-WriteLiteral(">\r\n        <div");
+WriteLiteral(">\r\n        <i");
 
-WriteLiteral(" class=\"widget-main\"");
+WriteLiteral(" class=\"glyphicon glyphicon-cloud login-logo center-block\"");
 
-WriteLiteral(">\r\n            <h4");
-
-WriteLiteral(" class=\"header red lighter bigger\"");
-
-WriteLiteral(">\r\n                <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-key\"");
-
-WriteLiteral("></i>\r\n                取回密码\r\n            </h4>\r\n\r\n            <div");
-
-WriteLiteral(" class=\"space-6\"");
-
-WriteLiteral("></div>\r\n            <p>\r\n                输入你的邮箱地址\r\n            </p>\r\n\r\n");
+WriteLiteral("></i>\r\n    </div>\r\n    <!-- 登录-->\r\n");
 
             
-            #line 14 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
-            
+            #line 7 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
+    
             
             #line default
             #line hidden
             
-            #line 14 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
-             using (Html.BeginForm("ForgetPassword", "User"))
-            {
+            #line 7 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
+     using (Html.BeginForm("ForgetPassword", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
+    {
+        
+            
+            #line default
+            #line hidden
+            
+            #line 9 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
+   Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
-WriteLiteral("                <fieldset>\r\n                    <label");
+            
+            #line 9 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
+                                 
 
-WriteLiteral(" class=\"block clearfix\"");
+            
+            #line default
+            #line hidden
+WriteLiteral("        <span");
 
-WriteLiteral(">\r\n                        <span");
+WriteLiteral(" class=\"heading text-primary\"");
 
-WriteLiteral(" class=\"block input-icon input-icon-right\"");
+WriteLiteral(">取回密码</span>\r\n");
 
-WriteLiteral(">\r\n                            <input");
+WriteLiteral("        <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n            <input");
 
 WriteLiteral(" type=\"email\"");
 
 WriteLiteral(" class=\"form-control\"");
 
+WriteLiteral(" id=\"email\"");
+
 WriteLiteral(" name=\"email\"");
 
-WriteLiteral(" placeholder=\"Email\"");
+WriteLiteral(" placeholder=\"输入你的邮箱地址\"");
 
-WriteLiteral(" />\r\n                            <i");
+WriteLiteral(">\r\n            <i");
 
-WriteLiteral(" class=\"ace-icon fa fa-envelope\"");
+WriteLiteral(" class=\"glyphicon glyphicon-user\"");
 
-WriteLiteral("></i>\r\n                        </span>\r\n                    </label>\r\n\r\n         " +
-"           <div");
+WriteLiteral("></i>\r\n        </div>\r\n");
 
-WriteLiteral(" class=\"clearfix\"");
+WriteLiteral("        <div");
 
-WriteLiteral(">\r\n                        <button");
+WriteLiteral(" class=\"form-group text-center\"");
+
+WriteLiteral(">\r\n            <button");
 
 WriteLiteral(" type=\"submit\"");
 
-WriteLiteral(" class=\"width-35 pull-right btn btn-sm btn-danger\"");
+WriteLiteral(" class=\"btn btn-default text-center\"");
 
-WriteLiteral(">\r\n                            <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-lightbulb-o\"");
-
-WriteLiteral("></i>\r\n                            <span");
-
-WriteLiteral(" class=\"bigger-110\"");
-
-WriteLiteral(">发送</span>\r\n                        </button>\r\n                    </div>\r\n      " +
-"          </fieldset>\r\n");
+WriteLiteral(">发送</button>\r\n        </div>\r\n");
 
             
-            #line 31 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
-            }
+            #line 18 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
+
+    }
 
             
             #line default
             #line hidden
-WriteLiteral("        </div><!-- /.widget-main -->\r\n\r\n        <div");
+WriteLiteral("        <div");
+
+WriteLiteral(" class=\"toolbar clearfix text-center\"");
+
+WriteLiteral(">\r\n            <div");
+
+WriteLiteral(" class=\"row\"");
+
+WriteLiteral(" style=\"padding-top:30px;\"");
+
+WriteLiteral(">\r\n                <div");
 
 WriteLiteral(" class=\"toolbar center\"");
 
-WriteLiteral(">\r\n            <a");
+WriteLiteral(">\r\n                    <a");
 
 WriteLiteral(" href=\"#Login\"");
 
 WriteLiteral(" data-toggle=\"tab\"");
 
-WriteLiteral(">\r\n                回到登录\r\n                <i");
+WriteLiteral(">\r\n                        回到登录\r\n                        <i");
 
 WriteLiteral(" class=\"ace-icon fa fa-arrow-right\"");
 
-WriteLiteral("></i>\r\n            </a>\r\n        </div>\r\n    </div><!-- /.widget-body -->\r\n</div>" +
-"<!-- /.forgot-box -->");
+WriteLiteral("></i>\r\n                    </a>\r\n                </div>\r\n            </div>\r\n    " +
+"    </div>\r\n</div>");
 
         }
     }
