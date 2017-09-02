@@ -179,7 +179,7 @@ namespace NewLife.Net
             }
 
             // 特殊协议端口
-            switch (Protocol.ToLower())
+            switch (Protocol?.ToLower())
             {
                 case "http":
                 case "ws":
