@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Data;
@@ -42,10 +43,7 @@ namespace NewLife.Remoting
         /// <typeparam name="TService"></typeparam>
         public void Register<TService>() where TService : class, new()
         {
-            if (typeof(TService).GetCustomAttribute<ApiAttribute>() == null)
-                Manager.Register<TService>(false);
-            else
-                Manager.Register<TService>(true);
+            Manager.Register<TService>();
         }
 
         /// <summary>注册服务</summary>
@@ -53,7 +51,7 @@ namespace NewLife.Remoting
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
         public void Register(Object controller, String method)
         {
-            Manager.Register(controller, method, false);
+            Manager.Register(controller, method);
         }
 
         /// <summary>注册服务</summary>
@@ -61,7 +59,22 @@ namespace NewLife.Remoting
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
         public void Register(Type type, String method)
         {
-            Manager.Register(type, method, false);
+            Manager.Register(type, method);
+        }
+
+        /// <summary>显示可用服务</summary>
+        protected void ShowService()
+        {
+            var ms = Manager.Services;
+            if (ms.Count > 0)
+            {
+                Log.Info("可用服务{0}个：", ms.Count);
+                var max = ms.Max(e => e.Key.Length);
+                foreach (var item in ms)
+                {
+                    Log.Info("\t{0,-" + (max + 1) + "}{1}\t{2}", item.Key, item.Value, item.Value.Type.FullName);
+                }
+            }
         }
         #endregion
 

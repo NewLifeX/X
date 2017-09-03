@@ -12,21 +12,18 @@ namespace NewLife.Remoting
         IDictionary<String, ApiAction> Services { get; }
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
-        /// <param name="requireApi">是否要求Api特性</param>
         /// <typeparam name="TService"></typeparam>
-        void Register<TService>(Boolean requireApi = false) where TService : class, new();
+        void Register<TService>() where TService : class, new();
 
         /// <summary>注册服务</summary>
         /// <param name="controller">控制器对象</param>
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        /// <param name="requireApi">是否要求Api特性</param>
-        void Register(Object controller, String method, Boolean requireApi);
+        void Register(Object controller, String method);
 
         /// <summary>注册服务</summary>
         /// <param name="type">控制器类型</param>
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        /// <param name="requireApi">是否要求Api特性</param>
-        void Register(Type type, String method, Boolean requireApi);
+        void Register(Type type, String method);
 
         /// <summary>注册服务</summary>
         /// <param name="method">动作</param>
@@ -43,8 +40,11 @@ namespace NewLife.Remoting
         /// <summary>可提供服务的方法</summary>
         public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>();
 
-        private void RegisterAll(Object controller, Type type, Boolean requireApi)
+        private void RegisterAll(Object controller, Type type)
         {
+            // 是否要求Api特性
+            var requireApi = type.GetCustomAttribute<ApiAttribute>() != null;
+
             var flag = BindingFlags.Public | BindingFlags.Instance;
             // 如果要求Api特性，则还需要遍历私有方法和静态方法
             if (requireApi) flag |= BindingFlags.NonPublic | BindingFlags.Static;
@@ -63,17 +63,15 @@ namespace NewLife.Remoting
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
-        /// <param name="requireApi">是否要求Api特性</param>
-        public void Register<TService>(Boolean requireApi = false) where TService : class, new()
+        public void Register<TService>() where TService : class, new()
         {
-            RegisterAll(null, typeof(TService), requireApi);
+            RegisterAll(null, typeof(TService));
         }
 
         /// <summary>注册服务</summary>
         /// <param name="controller">控制器对象</param>
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        /// <param name="requireApi">是否要求Api特性</param>
-        public void Register(Object controller, String method, Boolean requireApi)
+        public void Register(Object controller, String method)
         {
             if (controller == null) throw new ArgumentNullException(nameof(controller));
 
@@ -89,15 +87,14 @@ namespace NewLife.Remoting
             }
             else
             {
-                RegisterAll(controller, type, requireApi);
+                RegisterAll(controller, type);
             }
         }
 
         /// <summary>注册服务</summary>
         /// <param name="type">控制器类型</param>
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        /// <param name="requireApi">是否要求Api特性</param>
-        public void Register(Type type, String method, Boolean requireApi)
+        public void Register(Type type, String method)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
 
@@ -110,7 +107,7 @@ namespace NewLife.Remoting
             }
             else
             {
-                RegisterAll(null, type, requireApi);
+                RegisterAll(null, type);
             }
         }
 

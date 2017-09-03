@@ -103,8 +103,8 @@ namespace NewLife.Remoting
             var rtype = type.Name;
             if (type.As<Task>())
             {
-                if (type.IsGenericType)
-                    rtype = "Void";
+                if (!type.IsGenericType)
+                    rtype = "void";
                 else
                 {
                     type = type.GetGenericArguments()[0];
