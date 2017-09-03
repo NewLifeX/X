@@ -105,7 +105,7 @@ namespace NewLife.Cube.Admin.Controllers
         [AllowAnonymous]
         public ActionResult Logout()
         {
-            ManageProvider.User.Logout();
+            ManageProvider.User?.Logout();
             //ManageProvider.User = null;
 
             return RedirectToAction("Login");
