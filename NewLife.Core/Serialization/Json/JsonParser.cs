@@ -70,7 +70,7 @@ namespace NewLife.Serialization
 
         private Dictionary<String, Object> ParseObject()
         {
-            var dic = new Dictionary<String, Object>();
+            var dic = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
             SkipToken(); // {
 

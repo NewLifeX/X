@@ -178,7 +178,7 @@ namespace NewLife.Serialization
             _depth++;
             if (_depth > 5) throw new Exception("超过了序列化最大深度 " + 5);
 
-            var map = new Dictionary<String, String>();
+            //var map = new Dictionary<String, String>();
             var t = obj.GetType();
 
             var first = true;

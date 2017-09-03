@@ -89,7 +89,6 @@ namespace NewLife.Remoting
 
             var ct = Client;
             if (ct == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
-            //if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
 
             if (Encoder == null) Encoder = new JsonEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
@@ -204,8 +203,6 @@ namespace NewLife.Remoting
             var ss = Client;
             if (ss == null) return default(TResult);
 
-            //if (!Active || !ss) Logined = false;
-
             // 未登录且设置了用户名，并且当前不是登录，则异步登录
             if (!Logined && !UserName.IsNullOrEmpty() && action != LoginAction) await LoginAsync();
 
@@ -273,7 +270,7 @@ namespace NewLife.Remoting
             lock (LoginAction)
             {
                 task = _login;
-                if (task == null) _login = task = OnLoginAsync();
+                if (task == null) task = _login = OnLoginAsync();
             }
 
             try
