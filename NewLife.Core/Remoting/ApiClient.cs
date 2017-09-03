@@ -37,6 +37,9 @@ namespace NewLife.Remoting
         /// <summary>主机</summary>
         IApiHost IApiSession.Host { get { return this; } }
 
+        /// <summary>动作前缀。自动在每个没有/的动作名之前加上</summary>
+        public String ActionPrefix { get; set; }
+
         /// <summary>用户对象。一般用于共享用户信息对象</summary>
         public Object UserState { get; set; }
 
@@ -204,12 +207,15 @@ namespace NewLife.Remoting
             if (ss == null) return default(TResult);
 
             // 未登录且设置了用户名，并且当前不是登录，则异步登录
-            if (!Logined && !UserName.IsNullOrEmpty() && action != LoginAction) await LoginAsync();
+            if (!Logined && !UserName.IsNullOrEmpty() && action != "Login") await LoginAsync();
+
+            var act = action;
+            if (!ActionPrefix.IsNullOrEmpty() && !act.Contains("/")) act = ActionPrefix.EnsureEnd("/") + act;
 
             LastInvoke = DateTime.Now;
             try
             {
-                return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, cookie ?? Cookie);
+                return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, cookie ?? Cookie);
             }
             catch (ApiException ex)
             {
@@ -218,10 +224,10 @@ namespace NewLife.Remoting
                 {
                     Logined = false;
                     // 如果当前不是登录，且设置了用户名，尝试自动登录
-                    if (action != LoginAction && !UserName.IsNullOrEmpty())
+                    if (action != "Login" && !UserName.IsNullOrEmpty())
                     {
                         await LoginAsync();
-                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, action, args, cookie ?? Cookie);
+                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, cookie ?? Cookie);
                     }
                 }
 
@@ -252,13 +258,11 @@ namespace NewLife.Remoting
         /// <summary>是否已登录</summary>
         public Boolean Logined { get; protected set; }
 
-        /// <summary>登录动作名</summary>
-        public String LoginAction { get; set; } = "Login";
-
         /// <summary>登录完成事件</summary>
         public event EventHandler<EventArgs<Object>> OnLogined;
 
         private Task<Object> _login;
+        private Object _login_lock = new Object();
 
         /// <summary>异步登录</summary>
         public virtual async Task<Object> LoginAsync()
@@ -267,7 +271,7 @@ namespace NewLife.Remoting
             var task = _login;
             if (task != null) return await task;
 
-            lock (LoginAction)
+            lock (_login_lock)
             {
                 task = _login;
                 if (task == null) task = _login = OnLoginAsync();
@@ -342,7 +346,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual async Task<Object> OnLogin(Object args)
         {
-            return await InvokeAsync<Object>(LoginAction, args);
+            return await InvokeAsync<Object>("Login", args);
         }
         #endregion
 
@@ -353,9 +357,6 @@ namespace NewLife.Remoting
         /// <summary>服务端与客户端的时间差</summary>
         public TimeSpan Span { get; private set; }
 
-        /// <summary>心跳动作名</summary>
-        public String PingAction { get; set; } = "Ping";
-
         /// <summary>发送心跳</summary>
         /// <param name="args"></param>
         /// <returns>是否收到成功响应</returns>
@@ -364,7 +365,7 @@ namespace NewLife.Remoting
             var dic = args.ToDictionary();
             if (!dic.ContainsKey("Time")) dic["Time"] = DateTime.Now;
 
-            var rs = await InvokeAsync<Object>(PingAction, dic);
+            var rs = await InvokeAsync<Object>("Ping", dic);
             dic = rs.ToDictionary();
 
             // 加权计算延迟
