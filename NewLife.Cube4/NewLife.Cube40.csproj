@@ -134,6 +134,60 @@
     <Compile Include="..\NewLife.Cube\Areas\Admin\Models\FileItem.cs">
       <Link>Areas\Admin\Models\FileItem.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Db\Index.generated.cs">
+      <Link>Areas\Admin\Views\Db\Index.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\File\Index.generated.cs">
+      <Link>Areas\Admin\Views\File\Index.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\Index.generated.cs">
+      <Link>Areas\Admin\Views\Index\Index.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\Main.generated.cs">
+      <Link>Areas\Admin\Views\Index\Main.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\_Left.generated.cs">
+      <Link>Areas\Admin\Views\Index\_Left.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\_Left_Item.generated.cs">
+      <Link>Areas\Admin\Views\Index\_Left_Item.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\_Navbar.generated.cs">
+      <Link>Areas\Admin\Views\Index\_Navbar.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Log\_List_Search.generated.cs">
+      <Link>Areas\Admin\Views\Log\_List_Search.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Role\SetPermission.generated.cs">
+      <Link>Areas\Admin\Views\Role\SetPermission.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Role\_Form_Group.generated.cs">
+      <Link>Areas\Admin\Views\Role\_Form_Group.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\Info.generated.cs">
+      <Link>Areas\Admin\Views\User\Info.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\Login.generated.cs">
+      <Link>Areas\Admin\Views\User\Login.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Form_Action.generated.cs">
+      <Link>Areas\Admin\Views\User\_Form_Action.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_List_Search.generated.cs">
+      <Link>Areas\Admin\Views\User\_List_Search.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Forgot.generated.cs">
+      <Link>Areas\Admin\Views\User\_Login_Forgot.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Login.generated.cs">
+      <Link>Areas\Admin\Views\User\_Login_Login.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Register.generated.cs">
+      <Link>Areas\Admin\Views\User\_Login_Register.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\_ViewStart.generated.cs">
+      <Link>Areas\Admin\Views\_ViewStart.generated.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Common\AreaRegistrationBase.cs">
       <Link>Common\AreaRegistrationBase.cs</Link>
     </Compile>
@@ -230,369 +284,255 @@
     <Compile Include="..\NewLife.Cube\Setting.cs">
       <Link>Setting.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Db\Index.generated.cs">
-      <DependentUpon>Index.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
+    <Compile Include="..\NewLife.Cube\Views\CubeHome\Index.generated.cs">
+      <Link>Views\CubeHome\Index.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\File\Index.generated.cs">
-      <DependentUpon>Index.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
+    <Compile Include="..\NewLife.Cube\Views\Home\Index.generated.cs">
+      <Link>Views\Home\Index.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Index\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\CubeError.generated.cs">
+      <Link>Views\Shared\CubeError.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Index\Main.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Main.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\Form.generated.cs">
+      <Link>Views\Shared\Form.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Index\_Left_Item.generated.cs">
-      <DependentUpon>_Left_Item.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
+    <Compile Include="..\NewLife.Cube\Views\Shared\List.generated.cs">
+      <Link>Views\Shared\List.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Index\_Left.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Left.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\ListTree.generated.cs">
+      <Link>Views\Shared\ListTree.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Index\_Navbar.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Navbar.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\NoPermission.generated.cs">
+      <Link>Views\Shared\NoPermission.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Log\_List_Search.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Search.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\ObjectForm.generated.cs">
+      <Link>Views\Shared\ObjectForm.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Role\_Form_Group.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Form_Group.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Ace_Layout.generated.cs">
+      <Link>Views\Shared\_Ace_Layout.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\Role\SetPermission.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SetPermission.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Ace_Layout_Nav.generated.cs">
+      <Link>Views\Shared\_Ace_Layout_Nav.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\Login.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Login.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_DateRange.generated.cs">
+      <Link>Views\Shared\_DateRange.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\Info.generated.cs">
-      <DependentUpon>Info.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Form_Action.generated.cs">
+      <Link>Views\Shared\_Form_Action.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\_Form_Action.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Form_Action.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Form_Footer.generated.cs">
+      <Link>Views\Shared\_Form_Footer.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\_List_Search.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Search.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Form_Group.generated.cs">
+      <Link>Views\Shared\_Form_Group.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\_Login_Forgot.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Login_Forgot.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Form_Header.generated.cs">
+      <Link>Views\Shared\_Form_Header.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\_Login_Login.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Login_Login.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Form_Item.generated.cs">
+      <Link>Views\Shared\_Form_Item.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\User\_Login_Register.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Login_Register.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Layout.generated.cs">
+      <Link>Views\Shared\_Layout.generated.cs</Link>
     </Compile>
-    <Compile Include="Areas\Admin\Views\_ViewStart.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_ViewStart.cshtml</DependentUpon>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Layout_Footer.generated.cs">
+      <Link>Views\Shared\_Layout_Footer.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Layout_Header.generated.cs">
+      <Link>Views\Shared\_Layout_Header.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_ListTree_Data.generated.cs">
+      <Link>Views\Shared\_ListTree_Data.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Data.generated.cs">
+      <Link>Views\Shared\_List_Data.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Data_Action.generated.cs">
+      <Link>Views\Shared\_List_Data_Action.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Data_Item.generated.cs">
+      <Link>Views\Shared\_List_Data_Item.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Pager.generated.cs">
+      <Link>Views\Shared\_List_Pager.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Pager1.generated.cs">
+      <Link>Views\Shared\_List_Pager1.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Search.generated.cs">
+      <Link>Views\Shared\_List_Search.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Toolbar.generated.cs">
+      <Link>Views\Shared\_List_Toolbar.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Toolbar_Adv.generated.cs">
+      <Link>Views\Shared\_List_Toolbar_Adv.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Toolbar_Search.generated.cs">
+      <Link>Views\Shared\_List_Toolbar_Search.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_LoginPartial.generated.cs">
+      <Link>Views\Shared\_LoginPartial.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\_ViewStart.generated.cs">
+      <Link>Views\_ViewStart.generated.cs</Link>
     </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Views\CubeHome\Index.generated.cs">
-      <DependentUpon>Index.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Home\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Ace_Layout_Nav.generated.cs">
-      <DependentUpon>_Ace_Layout_Nav.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\_DateRange.generated.cs">
-      <DependentUpon>_DateRange.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\ListTree.generated.cs">
-      <DependentUpon>ListTree.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\NoPermission.generated.cs">
-      <DependentUpon>NoPermission.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\CubeError.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CubeError.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\Form.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Form.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\List.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>List.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\ObjectForm.generated.cs">
-      <DependentUpon>ObjectForm.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\_Ace_Layout.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Ace_Layout.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Form_Action.generated.cs">
-      <DependentUpon>_Form_Action.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\_Form_Footer.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Form_Footer.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Form_Group.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Form_Group.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Form_Header.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Form_Header.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Form_Item.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Form_Item.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Layout.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Layout.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Layout_Footer.generated.cs">
-      <DependentUpon>_Layout_Footer.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\_Layout_Header.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Layout_Header.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_ListTree_Data.generated.cs">
-      <DependentUpon>_ListTree_Data.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\_List_Data.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Data.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_List_Data_Action.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Data_Action.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_List_Data_Item.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Data_Item.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_List_Pager.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Pager.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_List_Pager1.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Pager1.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_List_Toolbar.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Toolbar.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_List_Search.generated.cs">
-      <DependentUpon>_List_Search.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\_List_Toolbar_Search.generated.cs">
-      <DependentUpon>_List_Toolbar_Search.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\_List_Toolbar_Adv.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_List_Toolbar_Adv.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_LoginPartial.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_LoginPartial.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\_ViewStart.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_ViewStart.cshtml</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Areas\Admin\Views\Db\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </None>
-    <Content Include="index.html" />
-    <None Include="Areas\Admin\Views\File\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\User\_Form_Action.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
-    </None>
-    <Content Include="favicon.ico" />
-    <None Include="Areas\Admin\Views\Log\_List_Search.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\Index\_Left_Item.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Left_Item.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\User\Login.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Login.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\User\Info.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Info.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\User\_List_Search.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\Role\_Form_Group.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\Role\SetPermission.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>SetPermission.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\User\_Login_Login.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Login_Login.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\User\_Login_Forgot.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Login_Forgot.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\User\_Login_Register.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Login_Register.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Global.asax" />
-    <None Include="Areas\Admin\Views\_ViewStart.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\Web.config" />
-    <None Include="Views\Home\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\CubeHome\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </None>
-    <Content Include="Views\Shared\_DateRange.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_DateRange.generated.cs</LastGenOutput>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Db\Index.cshtml">
+      <Link>Areas\Admin\Views\Db\Index.cshtml</Link>
     </Content>
-    <None Include="Views\Shared\ListTree.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>ListTree.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\NoPermission.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>NoPermission.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\ObjectForm.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>ObjectForm.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Ace_Layout.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Ace_Layout.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\Index\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\Index\_Left.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Left.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\Index\_Navbar.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Navbar.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Areas\Admin\Views\Index\Main.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Main.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\Form.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Form.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\List.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>List.generated.cs</LastGenOutput>
-    </None>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\File\Index.cshtml">
+      <Link>Areas\Admin\Views\File\Index.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\Index.cshtml">
+      <Link>Areas\Admin\Views\Index\Index.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\Main.cshtml">
+      <Link>Areas\Admin\Views\Index\Main.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\_Left.cshtml">
+      <Link>Areas\Admin\Views\Index\_Left.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\_Left_Item.cshtml">
+      <Link>Areas\Admin\Views\Index\_Left_Item.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\_Navbar.cshtml">
+      <Link>Areas\Admin\Views\Index\_Navbar.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Log\_List_Search.cshtml">
+      <Link>Areas\Admin\Views\Log\_List_Search.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Role\SetPermission.cshtml">
+      <Link>Areas\Admin\Views\Role\SetPermission.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Role\_Form_Group.cshtml">
+      <Link>Areas\Admin\Views\Role\_Form_Group.cshtml</Link>
+    </Content>
+    <Content Include="favicon.ico" />
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\Info.cshtml">
+      <Link>Areas\Admin\Views\User\Info.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\Login.cshtml">
+      <Link>Areas\Admin\Views\User\Login.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\_Form_Action.cshtml">
+      <Link>Areas\Admin\Views\User\_Form_Action.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\_List_Search.cshtml">
+      <Link>Areas\Admin\Views\User\_List_Search.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Forgot.cshtml">
+      <Link>Areas\Admin\Views\User\_Login_Forgot.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Login.cshtml">
+      <Link>Areas\Admin\Views\User\_Login_Login.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Register.cshtml">
+      <Link>Areas\Admin\Views\User\_Login_Register.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\_ViewStart.cshtml">
+      <Link>Areas\Admin\Views\_ViewStart.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\CubeHome\Index.cshtml">
+      <Link>Views\CubeHome\Index.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Home\Index.cshtml">
+      <Link>Views\Home\Index.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\CubeError.cshtml">
+      <Link>Views\Shared\CubeError.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\Form.cshtml">
+      <Link>Views\Shared\Form.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\List.cshtml">
+      <Link>Views\Shared\List.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\ListTree.cshtml">
+      <Link>Views\Shared\ListTree.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\NoPermission.cshtml">
+      <Link>Views\Shared\NoPermission.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\ObjectForm.cshtml">
+      <Link>Views\Shared\ObjectForm.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Ace_Layout.cshtml">
+      <Link>Views\Shared\_Ace_Layout.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Ace_Layout_Nav.cshtml">
+      <Link>Views\Shared\_Ace_Layout_Nav.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_DateRange.cshtml">
+      <Link>Views\Shared\_DateRange.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Form_Action.cshtml">
+      <Link>Views\Shared\_Form_Action.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Form_Footer.cshtml">
+      <Link>Views\Shared\_Form_Footer.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Form_Group.cshtml">
+      <Link>Views\Shared\_Form_Group.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Form_Header.cshtml">
+      <Link>Views\Shared\_Form_Header.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Form_Item.cshtml">
+      <Link>Views\Shared\_Form_Item.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Layout.cshtml">
+      <Link>Views\Shared\_Layout.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Layout_Footer.cshtml">
+      <Link>Views\Shared\_Layout_Footer.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Layout_Header.cshtml">
+      <Link>Views\Shared\_Layout_Header.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_ListTree_Data.cshtml">
+      <Link>Views\Shared\_ListTree_Data.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Data.cshtml">
+      <Link>Views\Shared\_List_Data.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Data_Action.cshtml">
+      <Link>Views\Shared\_List_Data_Action.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Data_Item.cshtml">
+      <Link>Views\Shared\_List_Data_Item.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Pager.cshtml">
+      <Link>Views\Shared\_List_Pager.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Pager1.cshtml">
+      <Link>Views\Shared\_List_Pager1.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Search.cshtml">
+      <Link>Views\Shared\_List_Search.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Toolbar.cshtml">
+      <Link>Views\Shared\_List_Toolbar.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Toolbar_Adv.cshtml">
+      <Link>Views\Shared\_List_Toolbar_Adv.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Toolbar_Search.cshtml">
+      <Link>Views\Shared\_List_Toolbar_Search.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_LoginPartial.cshtml">
+      <Link>Views\Shared\_LoginPartial.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\_ViewStart.cshtml">
+      <Link>Views\_ViewStart.cshtml</Link>
+    </Content>
+    <None Include="Global.asax" />
+    <None Include="Areas\Admin\Views\Web.config" />
     <None Include="Properties\PublishProfiles\Cube.pubxml" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
@@ -603,95 +543,7 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
-    <None Include="Views\Shared\_Form_Action.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Form_Action.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Form_Footer.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Form_Footer.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Form_Header.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Form_Header.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Form_Group.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Layout.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Layout.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Ace_Layout_Nav.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Ace_Layout_Nav.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Layout_Footer.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Layout_Footer.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Layout_Header.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Layout_Header.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_ListTree_Data.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
-    </None>
-    <Content Include="Views\Shared\_List_Search.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
-    </Content>
-    <None Include="Views\Shared\_List_Toolbar_Search.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Toolbar_Search.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_List_Toolbar_Adv.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Toolbar_Adv.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\_ViewStart.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_LoginPartial.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_LoginPartial.generated.cs</LastGenOutput>
-    </None>
     <EmbeddedResource Include="Views\Web.config" />
-    <None Include="Views\Shared\CubeError.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>CubeError.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_List_Pager.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Pager.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_List_Data.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_List_Data_Item.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Data_Item.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_List_Data_Action.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Data_Action.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Form_Item.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Form_Item.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_List_Toolbar.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Toolbar.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_List_Pager1.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_List_Pager1.generated.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core40.csproj">
