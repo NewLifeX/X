@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
 using XCode.Membership;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 /*
  * 数据抽取流程：
@@ -185,7 +188,7 @@ namespace XCode.Transform
             if (MaxTask == 0)
                 ProcessList(ctx);
             else
-                Task.Run(() => ProcessListAsync(ctx));
+                TaskEx.Run(() => ProcessListAsync(ctx));
 
             Modules.Processed(ctx);
 

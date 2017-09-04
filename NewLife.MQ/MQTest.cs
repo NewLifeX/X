@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Security;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.MessageQueue
 {
@@ -141,7 +144,7 @@ namespace NewLife.MessageQueue
 
         static async Task OnMessage(Subscriber sb, Message m)
         {
-            await Task.Delay(Rand.Next(200));
+            await TaskEx.Delay(Rand.Next(200));
             XTrace.WriteLine("{0}=>{3} [{1}]: {2} {4}", m.Sender, m.Tag, m.Content, sb.Host.User, sb.User);
         }
     }

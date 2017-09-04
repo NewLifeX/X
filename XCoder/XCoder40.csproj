@@ -11,21 +11,19 @@
     <RootNamespace>XCoder</RootNamespace>
     <AssemblyName>XCoder</AssemblyName>
     <ApplicationIcon>leaf.ico</ApplicationIcon>
-    <TargetFrameworkProfile />
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\XCoder\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <OutputPath>..\..\XCoder4\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <OutputPath>..\..\XCoder\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <OutputPath>..\..\XCoder4\</OutputPath>
+    <DefineConstants>TRACE;NET4</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,15 +32,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NET4|AnyCPU'">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>..\..\XCoder\</OutputPath>
-    <DefineConstants>TRACE;NET4</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -99,6 +88,12 @@
       <DependentUpon>NewModel.cs</DependentUpon>
     </Compile>
     <Compile Include="NewModelForm\WinFormHelper.cs" />
+    <Compile Include="Tools\FrmGPS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\FrmGPS.Designer.cs">
+      <DependentUpon>FrmGPS.cs</DependentUpon>
+    </Compile>
     <Compile Include="Tools\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -235,6 +230,9 @@
     <EmbeddedResource Include="NewModelForm\BaseForm.resx">
       <DependentUpon>BaseForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Tools\FrmGPS.resx">
+      <DependentUpon>FrmGPS.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Tools\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
@@ -300,24 +298,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
-      <Project>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</Project>
-      <Name>NewLife.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NewLife.Net\NewLife.Net.csproj">
-      <Project>{5a8ef50c-3394-4c1e-99f0-33efe8691cb0}</Project>
-      <Name>NewLife.Net</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\XCode\XCode.csproj">
-      <Project>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</Project>
-      <Name>XCode</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\XTemplate\XTemplate.csproj">
-      <Project>{55BA37EE-01A2-438F-A0FB-6B57440BF2F0}</Project>
-      <Name>XTemplate</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Template\页面ExtAspNet\类名.aspx" />
   </ItemGroup>
   <ItemGroup>
@@ -359,6 +339,24 @@
     <EmbeddedResource Include="XRegex\Sample\SQL查询\普通查询.txt" />
     <EmbeddedResource Include="XRegex\Sample\平衡组\算术表达式.txt" />
     <EmbeddedResource Include="XRegex\Sample\网页\最外层嵌套.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core40.csproj">
+      <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
+      <Name>NewLife.Core40</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NewLife.Net\NewLife.Net40.csproj">
+      <Project>{5a8ef50c-3394-4c1e-99f0-33efe8691cb0}</Project>
+      <Name>NewLife.Net40</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\XCode\XCode40.csproj">
+      <Project>{b49aba5a-c5da-45f4-87f1-b435ec51d710}</Project>
+      <Name>XCode40</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\XTemplate\XTemplate40.csproj">
+      <Project>{55ba37ee-01a2-438f-a0fb-6b57440bf2f0}</Project>
+      <Name>XTemplate40</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Threading;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.MessageQueue
 {
@@ -144,7 +147,7 @@ namespace NewLife.MessageQueue
                 ts.Add(item.Dispatch(msg));
             }
             // 一起等待
-            await Task.WhenAll(ts);
+            await TaskEx.WhenAll(ts);
 
             return ts.Count;
         }

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.MessageQueue
 {
@@ -54,7 +57,7 @@ namespace NewLife.MessageQueue
         /// <returns></returns>
         public async Task NoitfyAsync(Message msg)
         {
-            await Task.Run(() => OnMessage(this, msg));
+            await TaskEx.Run(() => OnMessage(this, msg));
         }
     }
 }

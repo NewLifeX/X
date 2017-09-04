@@ -25,10 +25,9 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>15.0</OldToolsVersion>
-    <TargetFrameworkProfile />
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -39,7 +38,6 @@
     <DocumentationFile>Bin\NewLife.Cube.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>Bin\</OutputPath>
@@ -48,17 +46,6 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>Bin\NewLife.Cube.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NET4|AnyCPU'">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>Bin4\</OutputPath>
-    <DefineConstants>TRACE;NET4</DefineConstants>
-    <DocumentationFile>Bin\NewLife.Cube.XML</DocumentationFile>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -69,7 +56,6 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -259,6 +245,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Index.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_Ace_Layout_Nav.generated.cs">
+      <DependentUpon>_Ace_Layout_Nav.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Shared\_DateRange.generated.cs">
       <DependentUpon>_DateRange.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -324,10 +315,20 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Form_Item.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Shared\_Layout_Nav.generated.cs">
+    <Compile Include="Views\Shared\_Layout.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>_Layout_Nav.cshtml</DependentUpon>
+      <DependentUpon>_Layout.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Shared\_Layout_Footer.generated.cs">
+      <DependentUpon>_Layout_Footer.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\Shared\_Layout_Header.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_Layout_Header.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Shared\_ListTree_Data.generated.cs">
       <DependentUpon>_ListTree_Data.cshtml</DependentUpon>
@@ -620,9 +621,21 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
     </None>
-    <None Include="Views\Shared\_Layout_Nav.cshtml">
+    <None Include="Views\Shared\_Layout.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Layout_Nav.generated.cs</LastGenOutput>
+      <LastGenOutput>_Layout.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Shared\_Ace_Layout_Nav.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Ace_Layout_Nav.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Shared\_Layout_Footer.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Layout_Footer.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Shared\_Layout_Header.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Layout_Header.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Shared\_ListTree_Data.cshtml">
       <Generator>RazorGenerator</Generator>

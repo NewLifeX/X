@@ -6,6 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Log;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net.DNS
 {
@@ -110,7 +113,7 @@ namespace NewLife.Net.DNS
             foreach (var item in Parents.ToArray())
             {
                 var nc = new DNSClient(item);
-                Task.Run(() =>
+                TaskEx.Run(() =>
                 {
                     if (nc.Open())
                     {

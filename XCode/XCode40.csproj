@@ -11,10 +11,9 @@
     <RootNamespace>XCode</RootNamespace>
     <AssemblyName>XCode</AssemblyName>
     <SignAssembly>false</SignAssembly>
-    <TargetFrameworkProfile />
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\Bin4\</OutputPath>
     <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
@@ -23,7 +22,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <OutputPath>..\..\Bin4\</OutputPath>
     <DefineConstants>TRACE;NET4</DefineConstants>
     <DocumentationFile>..\..\Bin4\XCode.xml</DocumentationFile>
@@ -31,17 +29,6 @@
     <WarningLevel>2</WarningLevel>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NET4|AnyCPU'">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>..\..\Bin4\</OutputPath>
-    <DefineConstants>TRACE;NET4</DefineConstants>
-    <DocumentationFile>..\..\Bin4\XCode.XML</DocumentationFile>
-    <Optimize>true</Optimize>
-    <WarningLevel>2</WarningLevel>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -67,8 +54,6 @@
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\MapAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
-    <Compile Include="Attributes\BindRelationAttribute.cs" />
-    <Compile Include="Code\CodeDomHelper.cs" />
     <Compile Include="Code\ClassBuilder.cs" />
     <Compile Include="Code\EntityBuilder.cs" />
     <Compile Include="Common\DataSimulation.cs" />
@@ -78,7 +63,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Entity\EntityExtend.cs" />
+    <Compile Include="Entity\EntityExtension.cs" />
     <Compile Include="Entity\EntityQueue.cs" />
+    <Compile Include="Entity\EntitySplit.cs" />
     <Compile Include="Entity\IEntityAddition.cs" />
     <Compile Include="Entity\EntitySession.cs" />
     <Compile Include="Entity\IEntityModule.cs" />
@@ -92,11 +79,6 @@
     <Compile Include="Membership\UserTimeEntity.cs" />
     <Compile Include="Membership\日志.cs" />
     <Compile Include="Membership\日志.Biz.cs">
-    </Compile>
-    <Compile Include="Membership\生成实体类.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>生成实体类.tt</DependentUpon>
     </Compile>
     <Compile Include="Membership\用户.Biz.cs">
     </Compile>
@@ -118,21 +100,13 @@
     <Compile Include="Setting.cs" />
     <Compile Include="Sharding\分片.Biz.cs" />
     <Compile Include="Sharding\分片.cs" />
-    <Compile Include="Sharding\生成实体类.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>生成实体类.tt</DependentUpon>
-    </Compile>
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Sync\SyncManager.cs" />
     <Compile Include="Attributes\ModelCheckModeAttribute.cs" />
     <Compile Include="Attributes\ModelSortMode.cs" />
-    <Compile Include="Cache\EntityDependency.cs" />
     <Compile Include="Cache\IEntityCache.cs" />
     <Compile Include="Code\EntityAssembly.cs" />
-    <Compile Include="Code\EntityClass.cs" />
-    <Compile Include="Code\EntityClassBiz.cs" />
     <Compile Include="Common\Helper.cs" />
     <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
@@ -162,7 +136,6 @@
     <Compile Include="DataAccessLayer\XDbConnectionStringBuilder.cs" />
     <Compile Include="DataAccessLayer\Model\XIndex.cs" />
     <Compile Include="Entity\DataRowEntityAccessor.cs" />
-    <Compile Include="Entity\EntityListView.cs" />
     <Compile Include="Entity\EntityBase_Interface.cs">
     </Compile>
     <Compile Include="Entity\EntityTransaction.cs" />
@@ -185,14 +158,12 @@
     <Compile Include="DataAccessLayer\MetaData\DDLSchema.cs" />
     <Compile Include="DataAccessLayer\Model\XField.cs" />
     <Compile Include="DataAccessLayer\Model\XTable.cs" />
-    <Compile Include="Cache\CacheItem.cs" />
     <Compile Include="Cache\CacheBase.cs" />
     <Compile Include="Entity\DirtyCollection.cs" />
     <Compile Include="Entity\Entity.cs" />
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Cache\EntityCache.cs" />
     <Compile Include="Entity\EntityFactory.cs" />
-    <Compile Include="Entity\EntityList.cs" />
     <Compile Include="Entity\Entity_Meta.cs">
     </Compile>
     <Compile Include="Entity\Entity_Operate.cs">
@@ -204,18 +175,16 @@
     <Compile Include="Model\WhereExpression.cs" />
     <Compile Include="Model\XCodeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Transform\DataContext.cs" />
+    <Compile Include="Transform\IETLModule.cs" />
     <Compile Include="Transform\IETLStat.cs" />
     <Compile Include="Transform\IExtracter.cs" />
+    <Compile Include="Transform\Sync.cs" />
     <Compile Include="Transform\TimeExtracter.cs" />
     <Compile Include="Transform\ExtractSetting.cs" />
     <Compile Include="Transform\ETL.cs" />
     <Compile Include="Web\UserBehaviorModule..cs" />
     <Compile Include="Web\EntityGrid.cs" />
-    <Compile Include="生成实体类.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>生成实体类.tt</DependentUpon>
-    </Compile>
     <None Include="Cache\readme.md" />
     <Compile Include="Transform\EntityTransform.cs" />
     <Compile Include="Tree\IEntityTreeSettting.cs" />

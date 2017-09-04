@@ -11,6 +11,9 @@ using NewLife.Reflection;
 using NewLife.Threading;
 using NewLife.Windows;
 using XCoder;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace XMessage
 {
@@ -30,8 +33,8 @@ namespace XMessage
         #region 窗体
         static FrmMain()
         {
-            //_packets = Task.Run(() => typeof(IPacket).GetAllSubclasses(true).ToArray());
-            _packets = Task.Run(() => typeof(IPacketFactory).GetAllSubclasses(true).ToArray());
+            //_packets = TaskEx.Run(() => typeof(IPacket).GetAllSubclasses(true).ToArray());
+            _packets = TaskEx.Run(() => typeof(IPacketFactory).GetAllSubclasses(true).ToArray());
         }
 
         public FrmMain()
@@ -358,13 +361,13 @@ namespace XMessage
             else if (_Server != null)
             {
                 buf = pk.ToArray();
-                Task.Run(async () =>
+                TaskEx.Run(async () =>
                 {
                     for (Int32 i = 0; i < count; i++)
                     {
                         var cs = await _Server.SendAllAsync(buf);
                         BizLog.Info("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
-                        if (sleep > 0) await Task.Delay(sleep);
+                        if (sleep > 0) await TaskEx.Delay(sleep);
                     }
                 });
             }

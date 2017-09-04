@@ -12,40 +12,27 @@
     <AssemblyName>NewLife.Core</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <BuildPackage>true</BuildPackage>
-    <TargetFrameworkProfile />
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\Bin4\</OutputPath>
     <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <DocumentationFile>..\..\Bin\NewLife.Core.XML</DocumentationFile>
+    <DocumentationFile>..\..\Bin4\NewLife.Core.XML</DocumentationFile>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>..\..\Bin4\</OutputPath>
     <DefineConstants>TRACE;NET4</DefineConstants>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <DocumentationFile>..\..\Bin\NewLife.Core.XML</DocumentationFile>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NET4|AnyCPU'">
-    <OutputPath>..\..\Bin4\</OutputPath>
-    <DefineConstants>TRACE;NET4</DefineConstants>
     <DocumentationFile>..\..\Bin4\NewLife.Core.XML</DocumentationFile>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -54,8 +41,6 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.ServiceProcess" />
@@ -82,14 +67,12 @@
     <Compile Include="Applications\IP\Ip.cs" />
     <Compile Include="Applications\IP\Zip.cs" />
     <Compile Include="Caching\Cache.cs" />
+    <Compile Include="Caching\CacheSetting.cs" />
     <Compile Include="Caching\ICache.cs" />
-    <Compile Include="Caching\MyCache.cs" />
+    <Compile Include="Caching\MemoryCache.cs" />
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
-    <Compile Include="Collections\ListBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Collections\NullableDictionary.cs" />
     <Compile Include="Common\CombGuid.cs" />
     <Compile Include="Common\PinYin.cs" />
@@ -343,7 +326,6 @@
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </EmbeddedResource>
     <Compile Include="Extension\EndPointExtensions.cs" />
-    <None Include="app.config" />
     <None Include="Remoting\ApiServer.cd" />
     <None Include="Remoting\ApiClient.cd" />
     <None Include="X组件.txt" />
