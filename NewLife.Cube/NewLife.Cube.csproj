@@ -91,19 +91,6 @@
     <Reference Include="System.Web.Services" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Areas\AdminMobile\AdminMobileAreaRegistration.cs" />
-    <Compile Include="Areas\AdminMobile\Controllers\IndexController.cs" />
-    <Compile Include="Areas\AdminMobile\Controllers\UserController.cs" />
-    <Compile Include="Areas\AdminMobile\Views\Index\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Areas\AdminMobile\Views\User\Login.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Login.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\DbController.cs" />
     <Compile Include="Areas\Admin\Controllers\FileController.cs" />
@@ -405,15 +392,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Areas\AdminMobile\Views\web.config" />
-    <Content Include="Areas\AdminMobile\Views\User\Login.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Login.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\AdminMobile\Views\Index\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
     <None Include="Areas\Admin\Views\Db\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
@@ -762,10 +740,7 @@
       <LastGenOutput>_List_Pager1.generated.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Areas\AdminMobile\Models\" />
-    <Folder Include="Areas\AdminMobile\Views\Shared\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config">
       <SubType>Designer</SubType>
