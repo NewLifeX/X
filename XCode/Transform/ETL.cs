@@ -188,7 +188,7 @@ namespace XCode.Transform
             if (MaxTask == 0)
                 ProcessList(ctx);
             else
-                TaskEx.Run(() => ProcessListAsync(ctx));
+                ProcessListAsync(ctx);
 
             Modules.Processed(ctx);
 
@@ -234,7 +234,6 @@ namespace XCode.Transform
         /// <param name="ctx">数据上下文</param>
         protected virtual void ProcessListAsync(DataContext ctx)
         {
-            //Interlocked.Increment(ref _currentTask);
             var cur = _currentTask;
             // 当前任务已达上限，或者出现多线程争夺时，等待一段时间
             while (cur >= MaxTask || Interlocked.CompareExchange(ref _currentTask, cur + 1, cur) != cur)
@@ -243,14 +242,17 @@ namespace XCode.Transform
                 cur = _currentTask;
             }
 
-            try
+            Task.Run(() =>
             {
-                ProcessList(ctx);
-            }
-            finally
-            {
-                Interlocked.Decrement(ref _currentTask);
-            }
+                try
+                {
+                    ProcessList(ctx);
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _currentTask);
+                }
+            });
         }
 
         /// <summary>处理列表</summary>
