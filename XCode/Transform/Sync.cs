@@ -182,13 +182,22 @@ namespace XCode.Transform
         /// <param name="ctx">数据上下文</param>
         protected override void ProcessList(DataContext ctx)
         {
-            var sw = Stopwatch.StartNew();
-            ctx.Success = OnSync(ctx);
+            try
+            {
+                var sw = Stopwatch.StartNew();
+                ctx.Success = OnSync(ctx);
 
-            sw.Stop();
-            ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
+                sw.Stop();
+                ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
 
-            OnFinished(ctx);
+                OnFinished(ctx);
+            }
+            catch (Exception ex)
+            {
+                ctx.Error = ex;
+                ex = OnError(ctx);
+                if (ex != null) throw ex;
+            }
         }
         #endregion
 
