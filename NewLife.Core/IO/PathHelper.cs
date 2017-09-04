@@ -470,7 +470,7 @@ namespace System.IO
             return list.ToArray();
         }
 
-#if !__MOBILE__ && !NET4
+#if !__MOBILE__
         /// <summary>压缩</summary>
         /// <param name="di"></param>
         /// <param name="destFile"></param>
@@ -480,10 +480,14 @@ namespace System.IO
 
             if (File.Exists(destFile)) File.Delete(destFile);
 
+#if !NET4
             if (destFile.EndsWithIgnoreCase(".zip"))
                 ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
             else
                 new SevenZip().Compress(di.FullName, destFile);
+#else
+            new SevenZip().Compress(di.FullName, destFile);
+#endif
         }
 #endif
         #endregion

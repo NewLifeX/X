@@ -1,0 +1,46 @@
+﻿@using NewLife.Common;
+@{
+    Layout = null;
+    ViewBag.Title = "登录";
+}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+
+    <title>@ViewBag.Title - @SysConfig.Current.DisplayName</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <!-- 基本样式 -->
+    <link href="~/Content/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- 自定义样式-->
+    <link href="~/Content/Cube.css" rel="stylesheet" />
+
+</head>
+<body>
+    <!--布局容器-->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div class="tab-content">
+                    @Html.Partial("_Login_Login")
+                    @Html.Partial("_Login_Forgot")
+                    @Html.Partial("_Login_Register")
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JQuery作为一等公民，页面内部随时可能使用 -->
+    <script src="~/Content/js/jquery-2.1.3.min.js"></script>
+    <script src="~/Content/bootstrap/js/bootstrap.min.js"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</body>
+</html>

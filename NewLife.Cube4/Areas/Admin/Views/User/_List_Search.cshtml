@@ -1,0 +1,12 @@
+﻿@using NewLife;
+@using NewLife.Web;
+@using XCode;
+@{
+    var fact = ViewBag.Factory as IEntityOperate;
+    var page = ViewBag.Page as Pager;
+}
+<div class="form-group">
+    <label for="RoleID" class="control-label">角色：</label>
+    @Html.ForDropDownList("RoleID", Role.FindAllWithCache().Cast<IEntity>().ToList(), "全部", true)
+</div>
+@Html.Partial("_DateRange")

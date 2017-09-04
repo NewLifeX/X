@@ -1,0 +1,9 @@
+﻿<div class="form-group">
+    <label for="category" class="control-label">类别：</label>
+    @Html.ForDropDownList("category", Log.FindAllCategoryName(), Request["category"], "全部", true)
+</div>
+<div class="form-group">
+    <label for="userid" class="control-label">用户：</label>
+    @Html.ForDropDownList("userid", UserX.FindAllWithCache().Cast<IEntity>().ToList(), "全部", true)
+</div>
+@Html.Partial("_DateRange")

@@ -1,0 +1,72 @@
+﻿@using NewLife.Cube;
+@using XCode.Configuration;
+@{
+    var entity = Model as IEntity;
+    var fact = EntityFactory.CreateOperate(entity.GetType());
+    var fields = ViewBag.Fields as List<FieldItem>;
+
+    var cid = fact.Table.FindByName("CreateUserID") as FieldItem;
+    var uid = fact.Table.FindByName("UpdateUserID") as FieldItem;
+    var cip = fact.Table.FindByName("CreateIP") as FieldItem;
+    var uip = fact.Table.FindByName("UpdateIP") as FieldItem;
+    var remark = fact.Table.FindByName("Remark") as FieldItem;
+    if (remark == null) { remark = fact.Table.FindByName("Description"); }
+}
+@if (cid != null && !fields.Contains(cid))
+{
+    var user = fact.Table.FindByName("CreateUserName") as FieldItem;
+    var time = fact.Table.FindByName("CreateTime") as FieldItem;
+    <div class="form-group col-sm-12 col-md-6">
+        <label class="control-label col-xs-2 col-sm-2 col-md-2">创建</label>
+        <div class="control-label col-xs-8 col-sm-8 col-md-10" style="text-align: left;">
+            @if (user != null)
+                {
+                <span class="text-primary">@entity[user.Name]</span>
+            }
+            @if (time != null)
+                {
+                    var dt = (DateTime)entity[time.Name];
+                <span class="text-success">@dt.ToFullString()</span>
+            }
+            @if (cip != null)
+                {
+                    var ip = entity[cip.Name] + "";
+                <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
+            }
+        </div>
+    </div>
+}
+@if (uid != null && !fields.Contains(uid))
+{
+    var user = fact.Table.FindByName("UpdateUserName") as FieldItem;
+    var time = fact.Table.FindByName("UpdateTime") as FieldItem;
+    <div class="form-group col-sm-12 col-md-6">
+        <label class="control-label col-xs-2 col-sm-2 col-md-2">更新</label>
+        <div class="control-label col-xs-8 col-sm-8 col-md-10" style="text-align: left;">
+            @if (user != null)
+                {
+                <span class="text-primary">@entity[user.Name]</span>
+            }
+            @if (time != null)
+                {
+                    var dt = (DateTime)entity[time.Name];
+                <span class="text-success">@dt.ToFullString()</span>
+            }
+            @if (uip != null)
+                {
+                    var ip = entity[uip.Name] + "";
+                <span class="text-primary" title="@ip">@ip.IPToAddress()</span>
+            }
+        </div>
+    </div>
+}
+@if (remark != null && !fields.Contains(remark))
+{
+    <div class="form-group col-md-12">
+        <label class="control-label col-md-2">@remark.DisplayName</label>
+        <div class="input-group col-md-8">
+            @Html.ForString(remark.Name, (String)entity[remark.Name], -1)
+            @Html.ForDescription(remark)
+        </div>
+    </div>
+}

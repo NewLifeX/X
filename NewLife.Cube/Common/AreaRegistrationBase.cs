@@ -12,6 +12,9 @@ using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Cube
 {
@@ -160,7 +163,7 @@ namespace NewLife.Cube
             //routes.RouteExistingFiles = true;
 
             // 自动检查并添加菜单
-            Task.Run(() => ScanController());
+            TaskEx.Run(() => ScanController());
         }
 
         /// <summary>自动扫描控制器，并添加到菜单</summary>

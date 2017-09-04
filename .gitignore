@@ -20,10 +20,14 @@ bld/
 /NewLife.Cube/Config
 /NewLife.Cube/Plugins
 *.log
-*.config
 *.htm
 *.nuspec
 *.nupkg
 /NewLife.Core.Core/project.lock.json
 /Backup
 /ConsoleApp1
+/NewLife.Cube4/Config
+/NewLife.Cube4/Content
+/NewLife.Cube4/Plugins
+/XCode/Membership/Config
+/XCode/Sharding/Config

@@ -1,0 +1,120 @@
+﻿@model XCode.Membership.IUser
+@using System.Reflection
+@using XCode
+@using XCode.Configuration
+@{
+    var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
+    var user = Model as IUser;
+}
+<div class="row">
+    <div class="col-md-12">
+        <div class="form-horizontal">
+            @if (ViewBag.StatusMessage != null)
+            {
+                <div class="alert alert-success alert-dismissible text-center" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <strong>@ViewBag.StatusMessage</strong>
+                </div>
+            }
+            @using (Html.BeginForm("Info", null, new { id = Model[fact.Unique.Name] }))
+            {
+                @Html.ValidationSummary()
+                <div class="form-group">
+
+                    <label class="control-label col-md-2">名称</label>
+                    <div class="input-group col-md-6">
+                        <input value="@user.Name" class="col-xs-12 col-sm-8 col-md-6 col-lg-4" disabled="disabled" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">密码</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("Password")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">显示名</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("DisplayName")
+                        @Html.ForDescription("DisplayName")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">性别</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("SexKind", user.Sex)
+                        @Html.ForDescription("Sex")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">邮件</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("Mail")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">电话</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("Phone")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">代码</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("Code")
+                        @Html.ForDescription("Code")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">问题</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("Question")
+                        @Html.ForDescription("Question")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">答案</label>
+                    <div class="input-group col-md-6">
+                        @Html.ForEditor("Answer")
+                        @Html.ForDescription("Answer")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">角色</label>
+                    <div class="input-group col-md-2">
+                        @user.RoleName
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">登录次数</label>
+                    <div class="input-group col-md-2">
+                        @user.Logins
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">最后登录</label>
+                    <div class="input-group col-md-2">
+                        @user.LastLogin.ToFullString("")
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">最后登录IP</label>
+                    <div class="input-group col-md-6">
+                        @user.LastLoginIP
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-2">配置信息</label>
+                    <div class="input-group col-md-6">
+                        @user.Profile
+                    </div>
+                </div>
+                <div class="clearfix form-actions">
+                    <label class="control-label col-md-4"></label>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="glyphicon glyphicon-save" )"></i><strong>保存</strong></button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

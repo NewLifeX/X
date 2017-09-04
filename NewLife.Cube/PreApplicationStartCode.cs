@@ -16,6 +16,7 @@ namespace NewLife.Cube
             if (_startWasCalled) return;
             _startWasCalled = true;
 
+#if !NET4
             HttpApplication.RegisterModule(typeof(ErrorModule));
             HttpApplication.RegisterModule(typeof(DbRunTimeModule));
             //HttpApplication.RegisterModule(typeof(ManagerModule));
@@ -27,6 +28,7 @@ namespace NewLife.Cube
                 UserBehaviorModule.WebBehavior = set.WebBehavior;
                 HttpApplication.RegisterModule(typeof(UserBehaviorModule));
             }
+#endif
         }
     }
 }
