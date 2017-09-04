@@ -32,10 +32,13 @@
   <ItemGroup>
     <Compile Include="..\NewLife.Core\Applications\IP\Ip.cs" Link="Applications\IP\Ip.cs" />
     <Compile Include="..\NewLife.Core\Applications\IP\Zip.cs" Link="Applications\IP\Zip.cs" />
+    <Compile Include="..\NewLife.Core\Caching\Cache.cs" Link="Caching\Cache.cs" />
+    <Compile Include="..\NewLife.Core\Caching\CacheSetting.cs" Link="Caching\CacheSetting.cs" />
+    <Compile Include="..\NewLife.Core\Caching\ICache.cs" Link="Caching\ICache.cs" />
+    <Compile Include="..\NewLife.Core\Caching\MemoryCache.cs" Link="Caching\MemoryCache.cs" />
     <Compile Include="..\NewLife.Core\Collections\CollectionHelper.cs" Link="Collections\CollectionHelper.cs" />
     <Compile Include="..\NewLife.Core\Collections\ConcurrentHashSet.cs" Link="Collections\ConcurrentHashSet.cs" />
     <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs" Link="Collections\DictionaryCache.cs" />
-    <Compile Include="..\NewLife.Core\Collections\ListBase.cs" Link="Collections\ListBase.cs" />
     <Compile Include="..\NewLife.Core\Collections\NullableDictionary.cs" Link="Collections\NullableDictionary.cs" />
     <Compile Include="..\NewLife.Core\Common\DisposeBase.cs" Link="Common\DisposeBase.cs" />
     <Compile Include="..\NewLife.Core\Common\IdentityCard.cs" Link="Common\IdentityCard.cs" />

@@ -32,7 +32,6 @@
     <Compile Include="..\XCode\Attributes\ModelCheckModeAttribute.cs" Link="Attributes\ModelCheckModeAttribute.cs" />
     <Compile Include="..\XCode\Attributes\ModelSortMode.cs" Link="Attributes\ModelSortMode.cs" />
     <Compile Include="..\XCode\Cache\CacheBase.cs" Link="Cache\CacheBase.cs" />
-    <Compile Include="..\XCode\Cache\CacheItem.cs" Link="Cache\CacheItem.cs" />
     <Compile Include="..\XCode\Cache\EntityCache.cs" Link="Cache\EntityCache.cs" />
     <Compile Include="..\XCode\Cache\FieldCache.cs" Link="Cache\FieldCache.cs" />
     <Compile Include="..\XCode\Cache\IEntityCache.cs" Link="Cache\IEntityCache.cs" />
@@ -87,6 +86,7 @@
     <Compile Include="..\XCode\Entity\EntityFactory.cs" Link="Entity\EntityFactory.cs" />
     <Compile Include="..\XCode\Entity\EntityQueue.cs" Link="Entity\EntityQueue.cs" />
     <Compile Include="..\XCode\Entity\EntitySession.cs" Link="Entity\EntitySession.cs" />
+    <Compile Include="..\XCode\Entity\EntitySplit.cs" Link="Entity\EntitySplit.cs" />
     <Compile Include="..\XCode\Entity\EntityTransaction.cs" Link="Entity\EntityTransaction.cs" />
     <Compile Include="..\XCode\Entity\Entity_Meta.cs" Link="Entity\Entity_Meta.cs" />
     <Compile Include="..\XCode\Entity\Entity_Operate.cs" Link="Entity\Entity_Operate.cs" />
@@ -127,11 +127,14 @@
     <Compile Include="..\XCode\Setting.cs" Link="Setting.cs" />
     <Compile Include="..\XCode\Sharding\分片.Biz.cs" Link="Sharding\分片.Biz.cs" />
     <Compile Include="..\XCode\Sharding\分片.cs" Link="Sharding\分片.cs" />
+    <Compile Include="..\XCode\Transform\DataContext.cs" Link="Transform\DataContext.cs" />
     <Compile Include="..\XCode\Transform\EntityTransform.cs" Link="Transform\EntityTransform.cs" />
     <Compile Include="..\XCode\Transform\ETL.cs" Link="Transform\ETL.cs" />
     <Compile Include="..\XCode\Transform\ExtractSetting.cs" Link="Transform\ExtractSetting.cs" />
+    <Compile Include="..\XCode\Transform\IETLModule.cs" Link="Transform\IETLModule.cs" />
     <Compile Include="..\XCode\Transform\IETLStat.cs" Link="Transform\IETLStat.cs" />
     <Compile Include="..\XCode\Transform\IExtracter.cs" Link="Transform\IExtracter.cs" />
+    <Compile Include="..\XCode\Transform\Sync.cs" Link="Transform\Sync.cs" />
     <Compile Include="..\XCode\Transform\TimeExtracter.cs" Link="Transform\TimeExtracter.cs" />
     <Compile Include="..\XCode\Tree\EntityTree.cs" Link="Tree\EntityTree.cs" />
     <Compile Include="..\XCode\Tree\IEntityTree.cs" Link="Tree\IEntityTree.cs" />

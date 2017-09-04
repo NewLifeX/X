@@ -185,6 +185,7 @@ namespace NewLife.Web
             return name;
         }
 
+#if !__CORE__
         /// <summary>获取表单提交的Url</summary>
         /// <param name="action">动作</param>
         /// <returns></returns>
@@ -219,6 +220,7 @@ namespace NewLife.Web
 
             return action + url.ToString();
         }
+#endif
         #endregion
     }
 }
