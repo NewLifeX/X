@@ -91,14 +91,22 @@ namespace XCode.Transform
             if (TargetConn.IsNullOrEmpty()) throw new ArgumentNullException(nameof(TargetConn));
             if (TargetTable.IsNullOrEmpty()) throw new ArgumentNullException(nameof(TargetTable));
 
-            // 如果目标表为空，则使用仅插入
-            if (!InsertOnly)
-            {
-                var count = Target.Split(TargetConn, TargetTable, () => Target.Count);
-                if (count == 0) InsertOnly = true;
-            }
-
             base.Start();
+        }
+
+        /// <summary>每一轮启动时</summary>
+        /// <param name="set"></param>
+        /// <returns></returns>
+        protected override Boolean Init(IExtractSetting set)
+        {
+            // 如果目标表为空，则使用仅插入
+            //if (!InsertOnly)
+            //{
+            var count = Target.Split(TargetConn, TargetTable, () => Target.Count);
+            InsertOnly = count == 0;
+            //}
+
+            return base.Init(set);
         }
 
         /// <summary>从来源表查数据</summary>
