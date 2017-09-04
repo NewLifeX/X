@@ -396,52 +396,52 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Content\jweui\css\demos.css" />
-    <Content Include="Content\jweui\css\jquery-weui.css" />
-    <Content Include="Content\jweui\css\jquery-weui.min.css" />
-    <Content Include="Content\jweui\images\icon_nav_actionSheet.png" />
-    <Content Include="Content\jweui\images\icon_nav_article.png" />
-    <Content Include="Content\jweui\images\icon_nav_button.png" />
-    <Content Include="Content\jweui\images\icon_nav_calendar.png" />
-    <Content Include="Content\jweui\images\icon_nav_cell.png" />
-    <Content Include="Content\jweui\images\icon_nav_city.png" />
-    <Content Include="Content\jweui\images\icon_nav_datetime.png" />
-    <Content Include="Content\jweui\images\icon_nav_dialog.png" />
-    <Content Include="Content\jweui\images\icon_nav_icons.png" />
-    <Content Include="Content\jweui\images\icon_nav_msg.png" />
-    <Content Include="Content\jweui\images\icon_nav_new.png" />
-    <Content Include="Content\jweui\images\icon_nav_noti.png" />
-    <Content Include="Content\jweui\images\icon_nav_panel.png" />
-    <Content Include="Content\jweui\images\icon_nav_photo.png" />
-    <Content Include="Content\jweui\images\icon_nav_picker.png" />
-    <Content Include="Content\jweui\images\icon_nav_progress.png" />
-    <Content Include="Content\jweui\images\icon_nav_ptr.png" />
-    <Content Include="Content\jweui\images\icon_nav_search_bar.png" />
-    <Content Include="Content\jweui\images\icon_nav_select.png" />
-    <Content Include="Content\jweui\images\icon_nav_swiper.png" />
-    <Content Include="Content\jweui\images\icon_nav_tab.png" />
-    <Content Include="Content\jweui\images\icon_nav_toast.png" />
-    <Content Include="Content\jweui\images\icon_nav_up.png" />
-    <Content Include="Content\jweui\images\pic_160.png" />
-    <Content Include="Content\jweui\images\pic_article.png" />
-    <Content Include="Content\jweui\images\present.png" />
-    <Content Include="Content\jweui\images\swiper-1.jpg" />
-    <Content Include="Content\jweui\images\swiper-2.jpg" />
-    <Content Include="Content\jweui\images\swiper-3.jpg" />
-    <Content Include="Content\jweui\images\swiper-4.jpg" />
-    <Content Include="Content\jweui\images\vcode.jpg" />
-    <Content Include="Content\jweui\js\city-picker.js" />
-    <Content Include="Content\jweui\js\city-picker.min.js" />
-    <Content Include="Content\jweui\js\jquery-weui.js" />
-    <Content Include="Content\jweui\js\jquery-weui.min.js" />
-    <Content Include="Content\jweui\js\swiper.js" />
-    <Content Include="Content\jweui\js\swiper.min.js" />
-    <Content Include="Content\jweui\lib\fastclick.js" />
-    <Content Include="Content\jweui\lib\jquery-2.1.4.js" />
-    <Content Include="Content\jweui\lib\weui.css" />
-    <Content Include="Content\jweui\lib\weui.min.css" />
-    <Content Include="Content\jweui\lib\zepto.js" />
-    <Content Include="index.html" />
+    <None Include="Content\jweui\css\demos.css" />
+    <None Include="Content\jweui\css\jquery-weui.css" />
+    <None Include="Content\jweui\css\jquery-weui.min.css" />
+    <None Include="Content\jweui\images\icon_nav_actionSheet.png" />
+    <None Include="Content\jweui\images\icon_nav_article.png" />
+    <None Include="Content\jweui\images\icon_nav_button.png" />
+    <None Include="Content\jweui\images\icon_nav_calendar.png" />
+    <None Include="Content\jweui\images\icon_nav_cell.png" />
+    <None Include="Content\jweui\images\icon_nav_city.png" />
+    <None Include="Content\jweui\images\icon_nav_datetime.png" />
+    <None Include="Content\jweui\images\icon_nav_dialog.png" />
+    <None Include="Content\jweui\images\icon_nav_icons.png" />
+    <None Include="Content\jweui\images\icon_nav_msg.png" />
+    <None Include="Content\jweui\images\icon_nav_new.png" />
+    <None Include="Content\jweui\images\icon_nav_noti.png" />
+    <None Include="Content\jweui\images\icon_nav_panel.png" />
+    <None Include="Content\jweui\images\icon_nav_photo.png" />
+    <None Include="Content\jweui\images\icon_nav_picker.png" />
+    <None Include="Content\jweui\images\icon_nav_progress.png" />
+    <None Include="Content\jweui\images\icon_nav_ptr.png" />
+    <None Include="Content\jweui\images\icon_nav_search_bar.png" />
+    <None Include="Content\jweui\images\icon_nav_select.png" />
+    <None Include="Content\jweui\images\icon_nav_swiper.png" />
+    <None Include="Content\jweui\images\icon_nav_tab.png" />
+    <None Include="Content\jweui\images\icon_nav_toast.png" />
+    <None Include="Content\jweui\images\icon_nav_up.png" />
+    <None Include="Content\jweui\images\pic_160.png" />
+    <None Include="Content\jweui\images\pic_article.png" />
+    <None Include="Content\jweui\images\present.png" />
+    <None Include="Content\jweui\images\swiper-1.jpg" />
+    <None Include="Content\jweui\images\swiper-2.jpg" />
+    <None Include="Content\jweui\images\swiper-3.jpg" />
+    <None Include="Content\jweui\images\swiper-4.jpg" />
+    <None Include="Content\jweui\images\vcode.jpg" />
+    <None Include="Content\jweui\js\city-picker.js" />
+    <None Include="Content\jweui\js\city-picker.min.js" />
+    <None Include="Content\jweui\js\jquery-weui.js" />
+    <None Include="Content\jweui\js\jquery-weui.min.js" />
+    <None Include="Content\jweui\js\swiper.js" />
+    <None Include="Content\jweui\js\swiper.min.js" />
+    <None Include="Content\jweui\lib\fastclick.js" />
+    <None Include="Content\jweui\lib\jquery-2.1.4.js" />
+    <None Include="Content\jweui\lib\weui.css" />
+    <None Include="Content\jweui\lib\weui.min.css" />
+    <None Include="Content\jweui\lib\zepto.js" />
+    <None Include="index.html" />
     <Content Include="Scripts\ApiClient.js" />
     <Content Include="Scripts\WebSocketX.js" />
     <None Include="Areas\Admin\Views\File\Index.cshtml">
@@ -522,7 +522,7 @@
     <None Include="Content\js\jquery.validate.min.js" />
     <None Include="Content\js\jquery1x.min.js" />
     <None Include="Content\js\respond.min.js" />
-    <Content Include="favicon.ico" />
+    <None Include="favicon.ico" />
     <None Include="Areas\Admin\Views\Log\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
@@ -588,10 +588,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\_DateRange.cshtml">
+    <None Include="Views\Shared\_DateRange.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_DateRange.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\ListTree.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ListTree.generated.cs</LastGenOutput>
@@ -666,18 +666,18 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\_Layout.cshtml">
+    <None Include="Views\Shared\_Layout.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Layout.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Shared\_Ace_Layout_Nav.cshtml">
+    </None>
+    <None Include="Views\Shared\_Ace_Layout_Nav.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Ace_Layout_Nav.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Shared\_Layout_Footer.cshtml">
+    </None>
+    <None Include="Views\Shared\_Layout_Footer.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Layout_Footer.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\_Layout_Header.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Layout_Header.generated.cs</LastGenOutput>
@@ -686,10 +686,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\_List_Search.cshtml">
+    <None Include="Views\Shared\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\_List_Toolbar_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar_Search.generated.cs</LastGenOutput>

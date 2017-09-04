@@ -248,7 +248,7 @@ namespace XCode.Transform
                 cur = _currentTask;
             }
 
-            Task.Run(() =>
+            TaskEx.Run(() =>
             {
                 try
                 {
