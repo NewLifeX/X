@@ -18,16 +18,16 @@ namespace XCode.Transform
         public Sync() : base(Entity<TSource>.Meta.Factory, Entity<TTarget>.Meta.Factory) { }
         #endregion
 
-        /// <summary>启动时检查参数</summary>
-        public override void Start()
+        /// <summary>每一轮启动时</summary>
+        /// <param name="set"></param>
+        /// <returns></returns>
+        protected override Boolean Init(IExtractSetting set)
         {
             // 如果目标表为空，则使用仅插入
-            if (!InsertOnly)
-            {
-                if (Target.Count == 0) InsertOnly = true;
-            }
+            var count = Target.Count;
+            InsertOnly = count == 0;
 
-            base.Start();
+            return base.Init(set);
         }
 
         /// <summary>处理单行数据</summary>
@@ -100,11 +100,8 @@ namespace XCode.Transform
         protected override Boolean Init(IExtractSetting set)
         {
             // 如果目标表为空，则使用仅插入
-            //if (!InsertOnly)
-            //{
             var count = Target.Split(TargetConn, TargetTable, () => Target.Count);
             InsertOnly = count == 0;
-            //}
 
             return base.Init(set);
         }
@@ -130,7 +127,7 @@ namespace XCode.Transform
         protected override IEntity SyncItem(IEntity source)
         {
             var isNew = InsertOnly;
-            var target = InsertOnly ? source : GetItem(source, out isNew);
+            var target = isNew ? source : GetItem(source, out isNew);
 
             SyncItem(source as TSource, target as TSource, isNew);
 
@@ -199,6 +196,19 @@ namespace XCode.Transform
                 if (ex != null) throw ex;
             }
         }
+
+        /// <summary>抽取数据</summary>
+        /// <param name="extracter"></param>
+        /// <returns></returns>
+        protected override IList<IEntity> Fetch(IExtracter extracter)
+        {
+            var list = base.Fetch(extracter);
+
+            // 如果一批数据为空，可能是追到了尽头
+            if (list == null || list.Count == 0) InsertOnly = false;
+
+            return list;
+        }
         #endregion
 
         #region 数据同步
@@ -249,7 +259,7 @@ namespace XCode.Transform
         protected virtual IEntity SyncItem(IEntity source)
         {
             var isNew = InsertOnly;
-            var target = InsertOnly ? source : GetItem(source, out isNew);
+            var target = isNew ? source : GetItem(source, out isNew);
 
             // 同名字段对拷
             target?.CopyFrom(source, true);
