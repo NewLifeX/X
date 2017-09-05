@@ -124,7 +124,38 @@ WriteAttribute("href", Tuple.Create(" href=\"", 614), Tuple.Create("\"", 639)
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteLiteral(" />\r\n\r\n</head>\r\n<body>\r\n    <!--布局容器-->\r\n    <div");
+WriteLiteral(" />\r\n    <!-- 仅用于过渡期兼容-->\r\n    <style>\r\n        .login-logo { width: 130px; font-" +
+"size: 130px; color: #4CA6FF; margin-top: 50px; }\r\n        .cube-login { backgrou" +
+"nd: #fff; padding-bottom: 40px; border-radius: 15px; text-align: center; }\r\n    " +
+"    .cube-login .heading { display: block; font-size: 24px; font-weight: 700; pa" +
+"dding: 5px 0; margin-bottom: 20px; }\r\n        .cube-login .form-group { padding:" +
+" 0 40px; margin: 0 0 25px 0; position: relative; display: block; }\r\n        .cub" +
+"e-login .form-control { border-radius: 20px; box-shadow: none; padding: 0 20px 0" +
+" 45px; height: 40px; transition: all 0.3s ease 0s; }\r\n        .cube-login .form-" +
+"control:focus { background: #e0e0e0; box-shadow: none; outline: 0 none; }\r\n     " +
+"   .cube-login .form-group i { position: absolute; top: 12px; left: 60px; font-s" +
+"ize: 17px; color: #c8c8c8; transition: all 0.5s ease 0s; }\r\n        .cube-login " +
+".form-group a { position: absolute; top: 12px; right: 0px; font-size: 17px; colo" +
+"r: #c8c8c8; transition: all 0.5s ease 0s; color: #4CA6FF; }\r\n        .cube-login" +
+" .form-control:focus + i { color: #00b4ef; }\r\n        .cube-login .fa-question-c" +
+"ircle { display: inline-block; position: absolute; top: 12px; right: 60px; font-" +
+"size: 20px; color: #808080; transition: all 0.5s ease 0s; }\r\n        .cube-login" +
+" .fa-question-circle:hover { color: #000; }\r\n        .cube-login .main-checkbox " +
+"{ float: left; width: 20px; height: 20px; background: #11a3fc; border-radius: 50" +
+"%; position: relative; margin: 5px 0 0 5px; border: 1px solid #11a3fc; }\r\n      " +
+"  .cube-login .main-checkbox label { width: 20px; height: 20px; position: absolu" +
+"te; top: 0; left: 0; cursor: pointer; }\r\n        .cube-login .main-checkbox labe" +
+"l:after { content: \"\"; width: 10px; height: 5px; position: absolute; top: 5px; l" +
+"eft: 4px; border: 3px solid #fff; border-top: none; border-right: none; backgrou" +
+"nd: transparent; opacity: 0; -webkit-transform: rotate(-45deg); transform: rotat" +
+"e(-45deg); }\r\n        .cube-login .main-checkbox input[type=checkbox] { visibili" +
+"ty: hidden; }\r\n        .cube-login .main-checkbox input[type=checkbox]:checked +" +
+" label:after { opacity: 1; }\r\n        .cube-login .text { float: left; margin-le" +
+"ft: 7px; line-height: 20px; padding-top: 5px; text-transform: capitalize; }\r\n   " +
+"     .cube-login .btn { float: right; font-size: 14px; color: #fff; background: " +
+"#00b4ef; border-radius: 30px; padding: 8px 50px; border: none; text-transform: c" +
+"apitalize; transition: all 0.5s ease 0s; }\r\n    </style>\r\n</head>\r\n<body>\r\n    <" +
+"!--布局容器-->\r\n    <div");
 
 WriteLiteral(" class=\"container\"");
 
@@ -145,7 +176,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                    ");
 
             
-            #line 29 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 49 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Login"));
 
             
@@ -156,7 +187,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 30 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 50 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Forgot"));
 
             
@@ -167,7 +198,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 31 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 51 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Register"));
 
             
@@ -176,16 +207,16 @@ WriteLiteral("                    ");
 WriteLiteral("\r\n                </div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <!-" +
 "- JQuery作为一等公民，页面内部随时可能使用 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 1127), Tuple.Create("\"", 1165)
-, Tuple.Create(Tuple.Create("", 1133), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 1133), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3579), Tuple.Create("\"", 3617)
+, Tuple.Create(Tuple.Create("", 3585), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 3585), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 1189), Tuple.Create("\"", 1234)
-, Tuple.Create(Tuple.Create("", 1195), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 1195), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3641), Tuple.Create("\"", 3686)
+, Tuple.Create(Tuple.Create("", 3647), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 3647), false)
 );
 
 WriteLiteral(@"></script>
