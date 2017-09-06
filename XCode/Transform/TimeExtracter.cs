@@ -54,7 +54,7 @@ namespace XCode.Transform
         {
             get
             {
-                if (_Field == null)
+                if (_Field == null && !FieldName.IsNullOrEmpty())
                 {
                     _Field = Factory.Table.FindByName(FieldName);
                     if (_Field == null) throw new ArgumentNullException(nameof(Field));
@@ -88,6 +88,7 @@ namespace XCode.Transform
                 var fi = Factory.Fields.FirstOrDefault(e => e.Type == typeof(DateTime) && e.Name.StartsWithIgnoreCase("UpdateTime", "Modify", "Modified"));
                 if (fi != null) FieldName = fi.Name;
             }
+            if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
         }
         #endregion
 
