@@ -162,7 +162,7 @@ namespace XMessage
                     svr.LogReceive = cfg.ShowReceive;
 
                     // 加大会话超时时间到1天
-                    svr.SessionTimeout = 24 * 3600;
+                    //svr.SessionTimeout = 24 * 3600;
 
                     svr.SessionPacket = fact;
 

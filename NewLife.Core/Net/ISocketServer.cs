@@ -14,7 +14,7 @@ namespace NewLife.Net
         ///// <summary>基础Socket对象</summary>
         //Socket Server { get; set; }
 
-        /// <summary>会话超时时间。默认30秒</summary>
+        /// <summary>会话超时时间。默认20*60秒</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>

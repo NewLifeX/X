@@ -43,7 +43,7 @@ namespace NewLife.Remoting
             ct.Packet = new DefaultPacket();
 
             // Udp客户端默认超时时间
-            if (ct is UdpServer) (ct as UdpServer).SessionTimeout = 10 * 60;
+            //if (ct is UdpServer) (ct as UdpServer).SessionTimeout = 10 * 60;
 
             // 网络非法断开时，自动恢复
             ct.OnDisposed += (s, e) => { if (Active) { Init(config); Open(); } };

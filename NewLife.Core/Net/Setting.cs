@@ -16,9 +16,9 @@ namespace NewLife.Net
         [Description("网络调试")]
         public Boolean Debug { get; set; }
 
-        /// <summary>会话超时时间。默认30秒</summary>
-        [Description("会话超时时间。默认30秒")]
-        public Int32 SessionTimeout { get; set; } = 30;
+        /// <summary>会话超时时间。默认20*60秒</summary>
+        [Description("会话超时时间。默认20*60秒")]
+        public Int32 SessionTimeout { get; set; } = 20 * 60;
 
         /// <summary>缓冲区大小。默认8k</summary>
         [Description("缓冲区大小。默认8k")]

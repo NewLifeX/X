@@ -220,11 +220,11 @@ namespace NewLife.Net.Application
             server.Port = port;
             server.UseSession = true;
             server.Received += server_Received;
-            // 最大不活跃时间设为10分钟
-            foreach (var item in server.Servers)
-            {
-                item.SessionTimeout = 10 * 60;
-            }
+            //// 最大不活跃时间设为10分钟
+            //foreach (var item in server.Servers)
+            //{
+            //    item.SessionTimeout = 10 * 60;
+            //}
             server.Start();
             server.Log = null;
 
