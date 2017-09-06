@@ -34,21 +34,8 @@ namespace NewLife.Remoting
         public ApiAction(MethodInfo method, Type type)
         {
             if (type == null) type = method.DeclaringType;
-            if (type != null)
-            {
-                var typeName = type.Name.TrimEnd("Controller");
-                var att = type.GetCustomAttribute<ApiAttribute>(true);
-                if (att != null) typeName = att.Name;
+            Name = GetName(type, method);
 
-                var miName = method.Name;
-                att = method.GetCustomAttribute<ApiAttribute>();
-                if (att != null) miName = att.Name;
-
-                if (typeName.IsNullOrEmpty())
-                    Name = miName;
-                else
-                    Name = "{0}/{1}".F(typeName, miName);
-            }
             // 必须同时记录类型和方法，因为有些方法位于继承的不同层次，那样会导致实例化的对象不一致
             Type = type;
             Method = method;
@@ -93,13 +80,36 @@ namespace NewLife.Remoting
             return arr;
         }
 
+        /// <summary>获取名称</summary>
+        /// <param name="type"></param>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        public static String GetName(Type type, MethodInfo method)
+        {
+            if (type == null) type = method.DeclaringType;
+            if (type == null) return null;
+
+            var typeName = type.Name.TrimEnd("Controller");
+            var att = type.GetCustomAttribute<ApiAttribute>(true);
+            if (att != null) typeName = att.Name;
+
+            var miName = method.Name;
+            att = method.GetCustomAttribute<ApiAttribute>();
+            if (att != null) miName = att.Name;
+
+            if (typeName.IsNullOrEmpty() || miName.Contains("/"))
+                return miName;
+            else
+                return "{0}/{1}".F(typeName, miName);
+        }
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override String ToString()
         {
-            //return "{0}\t{1}".F(Method.GetDisplayName() ?? Name, Method);
+            var mi = Method;
 
-            var type = Method.ReturnType;
+            var type = mi.ReturnType;
             var rtype = type.Name;
             if (type.As<Task>())
             {
@@ -111,21 +121,7 @@ namespace NewLife.Remoting
                     rtype = type.Name;
                 }
             }
-
-            var sb = new StringBuilder();
-            sb.AppendFormat("{0} {1}", rtype, Name);
-            sb.Append("(");
-
-            var pis = Method.GetParameters();
-            for (var i = 0; i < pis.Length; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.AppendFormat("{0} {1}", pis[i].ParameterType.Name, pis[i].Name);
-            }
-
-            sb.Append(")");
-
-            return sb.ToString();
+            return "{0} {1}({2})".F(rtype, mi.Name, mi.GetParameters().Select(pi => "{0} {1}".F(pi.ParameterType.Name, pi.Name)).Join(", "));
         }
     }
 }

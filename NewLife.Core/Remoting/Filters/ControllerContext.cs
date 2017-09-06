@@ -13,6 +13,9 @@ namespace NewLife.Remoting
         /// <summary>处理动作</summary>
         public ApiAction Action { get; set; }
 
+        /// <summary>真实动作名称</summary>
+        public String ActionName { get; set; }
+
         /// <summary>会话</summary>
         public IApiSession Session { get; set; }
 
@@ -28,6 +31,7 @@ namespace NewLife.Remoting
         {
             Controller = context.Controller;
             Action = context.Action;
+            ActionName = context.ActionName;
             Session = context.Session;
             Parameters = context.Parameters;
         }

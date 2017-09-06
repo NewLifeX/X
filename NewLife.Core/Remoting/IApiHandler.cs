@@ -80,6 +80,7 @@ namespace NewLife.Remoting
             {
                 Controller = controller,
                 Action = api,
+                ActionName = action,
                 Session = session,
                 Parameters = args
             };

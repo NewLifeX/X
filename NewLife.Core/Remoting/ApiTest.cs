@@ -86,12 +86,14 @@ namespace NewLife.Remoting
 
         //[FF(Name = "类")]
         //[FE(Name = "类")]
+        [Api(null)]
         private class HelloController : IApi
         {
             public IApiSession Session { get; set; }
 
             //[FF(Name = "方法")]
             //[FE(Name = "方法")]
+            [Api("Say")]
             public String Say(String msg)
             {
                 if (msg == "报错") throw new Exception("出错，上一次 " + Session["Last"]);
@@ -101,6 +103,22 @@ namespace NewLife.Remoting
                 var ss = Session.AllSessions;
 
                 return "收到：{0} 在线：{1}".F(msg, ss.Length);
+            }
+
+            [Api("Hello/*")]
+            public String Local()
+            {
+                var ctx = ControllerContext.Current;
+
+                return "本地执行：{0}({1})".F(ctx.Action.Name, ctx.Parameters.Select(e => e.Key).Join(", "));
+            }
+
+            [Api("*")]
+            public String Global()
+            {
+                var ctx = ControllerContext.Current;
+
+                return "全局执行：{0}({1})".F(ctx.Action.Name, ctx.Parameters.Select(e => e.Key).Join(", "));
             }
         }
 

@@ -54,8 +54,10 @@ namespace NewLife.Remoting
                 if (mi.DeclaringType == typeof(Object)) continue;
                 if (requireApi && mi.GetCustomAttribute<ApiAttribute>() == null) continue;
 
-                var act = new ApiAction(mi, type);
-                act.Controller = controller;
+                var act = new ApiAction(mi, type)
+                {
+                    Controller = controller
+                };
 
                 Services[act.Name] = act;
             }
@@ -80,8 +82,10 @@ namespace NewLife.Remoting
             if (!method.IsNullOrEmpty())
             {
                 var mi = type.GetMethodEx(method);
-                var act = new ApiAction(mi, type);
-                act.Controller = controller;
+                var act = new ApiAction(mi, type)
+                {
+                    Controller = controller
+                };
 
                 Services[act.Name] = act;
             }
@@ -125,8 +129,19 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public ApiAction Find(String action)
         {
-            ApiAction mi;
-            return Services.TryGetValue(action, out mi) ? mi : null;
+            if (Services.TryGetValue(action, out var mi)) return mi;
+
+            // 局部模糊匹配
+            if (action.Contains("/"))
+            {
+                var ctrl = action.Substring(null, "/");
+                if (Services.TryGetValue(ctrl + "/*", out mi)) return mi;
+            }
+
+            // 全局模糊匹配
+            if (Services.TryGetValue("*", out mi)) return mi;
+
+            return null;
         }
     }
 }

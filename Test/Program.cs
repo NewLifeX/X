@@ -12,6 +12,7 @@ using System.Xml.Serialization;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -103,15 +104,7 @@ namespace Test
 
         static void Test2()
         {
-            //EntityBuilder.Build(@"E:\X\NewLife.CMX\Src\NewLife.CMX\\CMX.xml");
-
-            //EntityAssembly.Debug = true;
-            //var dal = DAL.Create("Membership");
-            //var fact = dal.CreateOperate("User");
-            //Console.WriteLine(fact.Count);
-
-            var list = UserX.FindAll();
-            Console.WriteLine(list?.Count);
+            //ApiTest.Main();
         }
 
         class TestModule : EntityModule
