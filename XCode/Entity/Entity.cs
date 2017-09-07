@@ -784,8 +784,8 @@ namespace XCode
         {
             var session = Meta.Session;
 
-            // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(where) && session.LongCount > 10000) return session.Count;
+            // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+            if (String.IsNullOrEmpty(where) && session.LongCount > 100000) return session.Count;
 
             var sb = new SelectBuilder
             {
@@ -812,8 +812,8 @@ namespace XCode
             var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
 
-            // 如果总记录数超过一万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(wh) && session.LongCount > 10000) return session.LongCount;
+            // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+            if (String.IsNullOrEmpty(wh) && session.LongCount > 100000) return session.LongCount;
 
             var builder = new SelectBuilder
             {

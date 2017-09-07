@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Security;
@@ -58,6 +59,7 @@ namespace XCode.Common
             // 不必获取自增返回值
             fact.AutoIdentity = false;
 
+            Console.WriteLine();
             // 预热数据表
             WriteLog("{0} 已有数据：{1:n0}", fact.TableName, fact.Count);
 
@@ -66,6 +68,7 @@ namespace XCode.Common
             var qs = new List<String>();
 
             WriteLog("正在准备数据：");
+            var sw = Stopwatch.StartNew();
             var cpu = Environment.ProcessorCount;
             Parallel.For(0, cpu, n =>
             {
@@ -95,12 +98,14 @@ namespace XCode.Common
                     }
                 }
             });
+            sw.Stop();
             Console.WriteLine();
-            WriteLog("数据准备完毕！");
+            var ms = sw.Elapsed.TotalMilliseconds;
+            WriteLog("数据准备完毕！，耗时：{0:n0}ms 速度：{1:n0}tps", ms, list.Count * 1000L / ms);
 
-            var sw = new Stopwatch();
-            sw.Start();
+            sw.Restart();
 
+            Console.WriteLine();
             WriteLog("正在准备写入：");
             var ths = Threads;
             Parallel.For(0, ths, n =>
@@ -112,7 +117,7 @@ namespace XCode.Common
                     if (k % BatchSize == 0)
                     {
                         Console.Write(".");
-                        if (tr != null) tr.Commit();
+                        tr?.Commit();
 
                         tr = fact.CreateTrans();
                     }
@@ -122,15 +127,18 @@ namespace XCode.Common
                     else
                         fact.Session.Execute(qs[i]);
                 }
-                if (tr != null) tr.Commit();
+                tr?.Commit();
             });
 
             sw.Stop();
             Console.WriteLine();
             WriteLog("数据写入完毕！");
-            var ms = sw.Elapsed.TotalMilliseconds;
+            ms = sw.Elapsed.TotalMilliseconds;
             WriteLog("{2}插入{3:n0}行数据，耗时：{0:n0}ms 速度：{1:n0}tps", ms, list.Count * 1000L / ms, fact.Session.Dal.DbType, list.Count);
 
+            fact.Session.ClearCache("SqlInsert");
+            var t = fact.Count;
+            Thread.Sleep(100);
             WriteLog("{0} 共有数据：{1:n0}", fact.TableName, fact.Count);
         }
         #endregion

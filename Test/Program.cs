@@ -44,7 +44,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -76,11 +76,13 @@ namespace Test
                 var db = "Membership.db".GetFullPath();
                 if (File.Exists(db)) File.Delete(db);
 
-                Console.Write("请输入线程数（推荐1）：");
-                ths = Console.ReadLine().ToInt();
-                if (ths < 1) ths = 1;
+                //Console.Write("请输入线程数（推荐1）：");
+                //ths = Console.ReadLine().ToInt();
+                //if (ths < 1) ths = 1;
+                ths = 1;
             }
 
+            //UserOnline.Meta.Modules.Modules.Clear();
             var ds = new XCode.Common.DataSimulation<UserOnline>
             {
                 Log = XTrace.Log,
