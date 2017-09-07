@@ -9,6 +9,10 @@ namespace XCode.DataAccessLayer
         [Description("无效值")]
         None = 0,
 
+        /// <summary>MS的Access文件数据库</summary>
+        [Description("Access文件数据库")]
+        Access,
+
         /// <summary>MS的SqlServer数据库</summary>
         [Description("SqlServer数据库")]
         SqlServer = 2,
@@ -21,9 +25,17 @@ namespace XCode.DataAccessLayer
         [Description("MySql数据库")]
         MySql = 4,
 
+        /// <summary>SqlCe数据库</summary>
+        [Description("SqlCe数据库")]
+        SqlCe,
+
         /// <summary>SQLite数据库</summary>
         [Description("SQLite数据库")]
         SQLite = 6,
+
+        ///// <summary>Firebird数据库</summary>
+        //[Description("Firebird数据库")]
+        //Firebird,
 
         /// <summary>SqlCe数据库</summary>
         [Description("PostgreSQL数据库")]

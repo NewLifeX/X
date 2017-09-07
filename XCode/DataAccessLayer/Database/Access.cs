@@ -266,9 +266,14 @@ namespace XCode.DataAccessLayer
         //    if (TryGetDataRowValue(drDataType, "TypeName", out String typeName)) field.RawType = typeName;
         //}
 
-        protected override List<IDataIndex> GetIndexes(IDataTable table)
+        /// <summary>获取索引</summary>
+        /// <param name="table"></param>
+        /// <param name="indexes">索引</param>
+        /// <param name="indexColumns">索引列</param>
+        /// <returns></returns>
+        protected override List<IDataIndex> GetIndexes(IDataTable table, DataTable indexes, DataTable indexColumns)
         {
-            var list = base.GetIndexes(table);
+            var list = base.GetIndexes(table, indexes, indexColumns);
             if (list != null && list.Count > 0)
             {
                 // Access的索引直接以索引字段的方式排布，所以需要重新组合起来

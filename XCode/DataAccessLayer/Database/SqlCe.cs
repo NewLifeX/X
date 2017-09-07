@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using NewLife;
+using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -221,12 +222,13 @@ namespace XCode.DataAccessLayer
             DataTable dt = null;
             dt = session.Query(_AllTableNameSql).Tables[0];
 
-            _columns = session.Query(_AllColumnSql).Tables[0];
-            _indexes = session.Query(_AllIndexSql).Tables[0];
+            var data = new NullableDictionary<String, DataTable>(StringComparer.OrdinalIgnoreCase);
+            data["Columns"] = session.Query(_AllColumnSql).Tables[0];
+            data["Indexes"] = session.Query(_AllIndexSql).Tables[0];
 
-            //数据类型DBType --〉DotNetType转换
-            if (SqlCe.SqlCeProviderVersion < SQLCEVersion.SQLCE40)
-                DataTypes = CreateSqlCeDataType(session.Query(_DataTypeSql).Tables[0]);
+            ////数据类型DBType --〉DotNetType转换
+            //if (SqlCe.SqlCeProviderVersion < SQLCEVersion.SQLCE40)
+            //    DataTypes = CreateSqlCeDataType(session.Query(_DataTypeSql).Tables[0]);
             #endregion
 
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
@@ -235,12 +237,17 @@ namespace XCode.DataAccessLayer
             var rows = dt.Select("TABLE_TYPE='table'");
             if (rows == null || rows.Length < 1) return null;
 
-            return GetTables(rows, names);
+            return GetTables(rows, names, data);
         }
 
-        protected override List<IDataIndex> GetIndexes(IDataTable table)
+        /// <summary>获取索引</summary>
+        /// <param name="table"></param>
+        /// <param name="indexes">索引</param>
+        /// <param name="indexColumns">索引列</param>
+        /// <returns></returns>
+        protected override List<IDataIndex> GetIndexes(IDataTable table, DataTable indexes, DataTable indexColumns)
         {
-            var list = base.GetIndexes(table);
+            var list = base.GetIndexes(table, indexes, indexColumns);
             if (list != null && list.Count > 0)
             {
                 // SqlCe的索引直接以索引字段的方式排布，所以需要重新组合起来
