@@ -8,7 +8,7 @@ using XCode;
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("新生命数据中间件")]
+[assembly: AssemblyTitle("大数据中间件")]
 [assembly: AssemblyDescription("分布式大数据中间件")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]

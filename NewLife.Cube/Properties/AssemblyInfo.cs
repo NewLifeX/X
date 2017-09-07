@@ -7,7 +7,7 @@ using NewLife.Cube;
 // 有关程序集的常规信息通过下列特性集
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("新生命魔方平台")]
+[assembly: AssemblyTitle("魔方平台")]
 [assembly: AssemblyDescription("Mvc权限管理后台，支持模版视图重载覆盖")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.Admin")]
