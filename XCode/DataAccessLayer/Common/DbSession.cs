@@ -721,7 +721,7 @@ namespace XCode.DataAccessLayer
 
         protected void BeginTrace()
         {
-            if (Setting.Current.TraceSQLTime <= 0) return;
+            if ((Database as DbBase).TraceSQLTime <= 0) return;
 
             if (_swSql == null) _swSql = new Stopwatch();
 
@@ -737,7 +737,7 @@ namespace XCode.DataAccessLayer
 
             _swSql.Stop();
 
-            if (_swSql.ElapsedMilliseconds < Setting.Current.TraceSQLTime) return;
+            if (_swSql.ElapsedMilliseconds < (Database as DbBase).TraceSQLTime) return;
 
             var sql = GetSql(cmd);
 

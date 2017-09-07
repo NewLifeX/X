@@ -49,8 +49,12 @@ namespace XCode.Common
         /// <param name="count"></param>
         public void Run(Int32 count)
         {
+            var set = XCode.Setting.Current;
+            set.TraceSQLTime = 0;
+
             var fact = Factory;
             var pst = XCodeService.Container.ResolveInstance<IEntityPersistence>();
+            var conn = fact.ConnName;
 
             // 关闭SQL日志
             //XCode.Setting.Current.ShowSQL = false;
@@ -72,6 +76,8 @@ namespace XCode.Common
             var cpu = Environment.ProcessorCount;
             Parallel.For(0, cpu, n =>
             {
+                //fact.ConnName = conn + n;
+
                 var k = 0;
                 for (int i = n; i < count; i += cpu, k++)
                 {
@@ -108,38 +114,16 @@ namespace XCode.Common
             Console.WriteLine();
             WriteLog("正在准备写入：");
             var ths = Threads;
-            if (ths > 1)
+            Parallel.For(0, ths, n =>
             {
-                Parallel.For(0, ths, n =>
-                {
-                    var k = 0;
-                    EntityTransaction tr = null;
-                    var dal = fact.Session.Dal;
-                    for (int i = n; i < list.Count; i += ths, k++)
-                    {
-                        if (k % BatchSize == 0)
-                        {
-                            Console.Write(".");
-                            tr?.Commit();
+                //fact.ConnName = conn + n;
 
-                            tr = fact.CreateTrans();
-                        }
-
-                        if (!UseSql)
-                            list[i].Insert();
-                        else
-                            dal.Execute(qs[i]);
-                    }
-                    tr?.Commit();
-                });
-            }
-            else
-            {
+                var k = 0;
                 EntityTransaction tr = null;
                 var dal = fact.Session.Dal;
-                for (int i = 0; i < list.Count; i++)
+                for (int i = n; i < list.Count; i += ths, k++)
                 {
-                    if (i % BatchSize == 0)
+                    if (k % BatchSize == 0)
                     {
                         Console.Write(".");
                         tr?.Commit();
@@ -153,7 +137,7 @@ namespace XCode.Common
                         dal.Execute(qs[i]);
                 }
                 tr?.Commit();
-            }
+            });
 
             sw.Stop();
             Console.WriteLine();

@@ -21,7 +21,9 @@ using NewLife.Xml;
 using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
+using XCode.Demo;
 using XCode.Membership;
+using XCode.Sharding;
 
 namespace Test
 {
@@ -44,7 +46,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -73,8 +75,13 @@ namespace Test
 
             if (ths <= 0)
             {
-                var db = "Membership.db".GetFullPath();
-                if (File.Exists(db)) File.Delete(db);
+                foreach (var item in ".".AsDirectory().GetAllFiles("*.db"))
+                {
+                    item.Delete();
+                }
+
+                //var db = "Membership.db".GetFullPath();
+                //if (File.Exists(db)) File.Delete(db);
 
                 //Console.Write("请输入线程数（推荐1）：");
                 //ths = Console.ReadLine().ToInt();
@@ -82,15 +89,19 @@ namespace Test
                 ths = 1;
             }
 
+            //var set = XCode.Setting.Current;
+            //set.UserParameter = true;
+
             //UserOnline.Meta.Modules.Modules.Clear();
-            var ds = new XCode.Common.DataSimulation<UserOnline>
+            //Shard.Meta.ConnName = "Membership";
+            var ds = new XCode.Common.DataSimulation<DemoEntity>
             {
                 Log = XTrace.Log,
                 //ds.BatchSize = 10000;
                 Threads = ths,
                 UseSql = true
             };
-            ds.Run(100000);
+            ds.Run(400000);
         }
 
         class A

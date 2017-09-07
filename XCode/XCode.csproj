@@ -63,6 +63,8 @@
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Demo\示例.Biz.cs" />
+    <Compile Include="Demo\示例.cs" />
     <Compile Include="Entity\EntityExtend.cs" />
     <Compile Include="Entity\EntityExtension.cs" />
     <Compile Include="Entity\EntityQueue.cs" />
@@ -204,10 +206,22 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Demo\Demo.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <Content Include="Demo\生成实体类.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>生成实体类.log</LastGenOutput>
+    </Content>
     <Content Include="生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.log</LastGenOutput>
     </Content>
+    <None Include="Demo\生成实体类.log">
+      <DependentUpon>生成实体类.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
     <None Include="Membership\生成实体类.log">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
