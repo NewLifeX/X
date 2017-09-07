@@ -222,8 +222,7 @@ namespace XCode.Transform
             var fact = Target;
             if (fact == null) throw new ArgumentNullException(nameof(Target));
 
-            fact.BeginTransaction();
-            try
+            using (var tran = fact.CreateTrans())
             {
                 foreach (var source in ctx.Data)
                 {
@@ -241,12 +240,7 @@ namespace XCode.Transform
                         if (ex != null) throw ex;
                     }
                 }
-                fact.Commit();
-            }
-            catch
-            {
-                fact.Rollback();
-                throw;
+                tran.Commit();
             }
             ctx.Entity = null;
 

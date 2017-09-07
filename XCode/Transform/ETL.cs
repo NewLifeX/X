@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Threading;
 using XCode.Membership;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -104,6 +105,9 @@ namespace XCode.Transform
             ext.Init();
 
             if (Stat == null) Stat = new ETLStat();
+
+            // 指定轮询周期，表示定时执行，而不使用服务
+            if (Period > 0) _timer = new TimerX(Loop, null, 100, Period * 1000, "ETL") { Async = true };
         }
 
         /// <summary>停止</summary>
@@ -111,6 +115,7 @@ namespace XCode.Transform
         {
             _Inited = false;
 
+            _timer.TryDipose();
             Modules.Stop();
         }
         #endregion
@@ -342,6 +347,20 @@ namespace XCode.Transform
             WriteError(ex.ToString());
 
             return null;
+        }
+        #endregion
+
+        #region 调度
+        /// <summary>定时轮询周期。默认0秒表示不打开</summary>
+        public Int32 Period { get; set; }
+
+        private TimerX _timer;
+        void Loop(Object state)
+        {
+            var count = Process();
+
+            // 如果有数据，马上开始下一轮
+            if (count > 0) TimerX.Current.SetNext(-1);
         }
         #endregion
 
