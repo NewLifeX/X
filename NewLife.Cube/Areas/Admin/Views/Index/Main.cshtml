@@ -1,11 +1,17 @@
 ﻿@using System.Diagnostics;
 @using System.Collections;
+@using System.Reflection;
+@using System.Runtime.Versioning;
 @using NewLife.Common;
 @{
     Layout = NewLife.Cube.Setting.Current.Layout;
 
     ViewBag.Title = "服务器信息";
     var Act = ViewBag.Act;
+
+    var asm = Assembly.GetExecutingAssembly();
+    var att = asm.GetCustomAttribute<TargetFrameworkAttribute>();
+    var ver = att.FrameworkDisplayName ?? att.FrameworkName;
 }
 @if (String.IsNullOrEmpty(Act))
 {
@@ -61,7 +67,7 @@
                     .Net 版本：
                 </td>
                 <td class="value">
-                    @Environment.Version
+                    @Environment.Version &nbsp;@ver
                 </td>
             </tr>
             <tr>
@@ -138,6 +144,7 @@
                 <th>文件版本</th>
                 <th>内部版本</th>
                 <th>编译时间</th>
+                <th>描述</th>
             </tr>
         </thead>
         <tbody>
@@ -149,6 +156,7 @@
                     <td>@item.FileVersion</td>
                     <td>@item.Version</td>
                     <td>@item.Compile.ToFullString()</td>
+                    <td>@item.Description</td>
                 </tr>
             }
         </tbody>
