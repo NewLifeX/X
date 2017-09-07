@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife;
@@ -268,6 +269,38 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
+        //delegate Int32 SFunc(IntPtr db, byte[] strSql, IntPtr pvCallback, IntPtr pvParam, ref IntPtr errMsg);
+        //static SFunc sqlite3_exec;
+
+        ///// <summary>执行DbCommand，返回受影响的行数</summary>
+        ///// <param name="cmd">DbCommand</param>
+        ///// <returns></returns>
+        //public override Int32 Execute(DbCommand cmd)
+        //{
+        //    if (cmd.CommandType == CommandType.Text && cmd.Parameters.Count == 0)
+        //    {
+        //        if (sqlite3_exec == null)
+        //        {
+        //            var type = Database.Factory.GetType().Assembly.GetType("System.Data.SQLite.UnsafeNativeMethods");
+        //            var mi = type.GetMethodEx("sqlite3_exec");
+        //            sqlite3_exec = Delegate.CreateDelegate(typeof(SFunc), mi) as SFunc;
+        //        }
+
+        //        if (sqlite3_exec != null)
+        //        {
+        //            var _sql = Conn.GetValue("_sql");
+        //            var db = (IntPtr)_sql.GetValue("_sql").GetValue("handle");
+
+        //            var ptr = IntPtr.Zero;
+        //            var rs = sqlite3_exec(db, cmd.CommandText.GetBytes(), IntPtr.Zero, IntPtr.Zero, ref ptr);
+
+        //            return 1;
+        //        }
+        //    }
+
+        //    return base.Execute(cmd);
+        //}
+
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>

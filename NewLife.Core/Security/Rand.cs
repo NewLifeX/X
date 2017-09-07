@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -23,17 +21,11 @@ namespace NewLife.Security
         {
             if (max <= 0) throw new ArgumentOutOfRangeException("max");
 
-            //var buf = new Byte[4];
-            //_rnd.GetBytes(buf);
-
-            //var n = BitConverter.ToInt32(buf, 0);
-            //if (max == Int32.MaxValue) return n;
-
-            //return (Int32)((Int64)n * max / Int32.MaxValue);
-
             return Next(0, max);
         }
 
+        [ThreadStatic]
+        private static Byte[] _buf;
         /// <summary>返回一个指定范围内的随机数</summary>
         /// <remarks>
         /// 调用平均耗时37.76ns，其中GC耗时77.56%
@@ -45,23 +37,17 @@ namespace NewLife.Security
         {
             if (max <= min) throw new ArgumentOutOfRangeException("max");
 
-            var buf = new Byte[4];
-            _rnd.GetBytes(buf);
+            if (_buf == null) _buf = new Byte[4];
+            _rnd.GetBytes(_buf);
 
-            var n = BitConverter.ToInt32(buf, 0);
+            var n = BitConverter.ToInt32(_buf, 0);
             if (min == Int32.MinValue && max == Int32.MaxValue) return n;
             if (min == 0 && max == Int32.MaxValue) return Math.Abs(n);
             if (min == Int32.MinValue && max == 0) return -Math.Abs(n);
 
             var num = max - min;
-            //return (Int32)(num * Math.Abs(n) / ((Int64)UInt32.MaxValue + 1) + min);
-            return (Int32)((((Int64)num * (UInt32)n) >> 32) + min);
-            //// 不要进行复杂运算，看做是生成从0到(max-min)的随机数，然后再加上min即可
-            //if (num <= (Int64)Int32.MaxValue)
-            //    //return (Int32)(num * Math.Abs(n) / Int32.MaxValue) + min;
-            //    return (Int32)(num * Math.Abs(n) / Int32.MaxValue) + min;
-            //else
-            //    return (Int32)(num * Math.Abs(n) / Int32.MaxValue) + min;
+            // 不要进行复杂运算，看做是生成从0到(max-min)的随机数，然后再加上min即可
+            return (Int32)((num * (UInt32)n >> 32) + min);
         }
 
         /// <summary>返回指定长度随机字节数组</summary>
@@ -88,7 +74,7 @@ namespace NewLife.Security
             {
                 var ch = ' ';
                 if (symbol)
-                    ch = (Char)Next((Int32)' ', 0x7F);
+                    ch = (Char)Next(' ', 0x7F);
                 else
                 {
                     var n = Next(0, 10 + 26 + 26);

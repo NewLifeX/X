@@ -108,13 +108,38 @@ namespace XCode.Common
             Console.WriteLine();
             WriteLog("正在准备写入：");
             var ths = Threads;
-            Parallel.For(0, ths, n =>
+            if (ths > 1)
             {
-                var k = 0;
-                EntityTransaction tr = null;
-                for (int i = n; i < list.Count; i += ths, k++)
+                Parallel.For(0, ths, n =>
                 {
-                    if (k % BatchSize == 0)
+                    var k = 0;
+                    EntityTransaction tr = null;
+                    var dal = fact.Session.Dal;
+                    for (int i = n; i < list.Count; i += ths, k++)
+                    {
+                        if (k % BatchSize == 0)
+                        {
+                            Console.Write(".");
+                            tr?.Commit();
+
+                            tr = fact.CreateTrans();
+                        }
+
+                        if (!UseSql)
+                            list[i].Insert();
+                        else
+                            dal.Execute(qs[i]);
+                    }
+                    tr?.Commit();
+                });
+            }
+            else
+            {
+                EntityTransaction tr = null;
+                var dal = fact.Session.Dal;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (i % BatchSize == 0)
                     {
                         Console.Write(".");
                         tr?.Commit();
@@ -125,10 +150,10 @@ namespace XCode.Common
                     if (!UseSql)
                         list[i].Insert();
                     else
-                        fact.Session.Execute(qs[i]);
+                        dal.Execute(qs[i]);
                 }
                 tr?.Commit();
-            });
+            }
 
             sw.Stop();
             Console.WriteLine();
