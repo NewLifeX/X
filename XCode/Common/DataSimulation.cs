@@ -33,6 +33,9 @@ namespace XCode.Common
 
         /// <summary>直接执行SQL</summary>
         public Boolean UseSql { get; set; }
+
+        /// <summary>分数</summary>
+        public Int32 Score { get; private set; }
         #endregion
 
         #region 构造
@@ -64,6 +67,8 @@ namespace XCode.Common
             fact.AutoIdentity = false;
 
             Console.WriteLine();
+            WriteLog("数据模拟 Count={0:n0} Threads={1} BatchSize={2} UseSql={3}", count, Threads, BatchSize, UseSql);
+
             // 预热数据表
             WriteLog("{0} 已有数据：{1:n0}", fact.TableName, fact.Count);
 
@@ -71,11 +76,12 @@ namespace XCode.Common
             var list = new List<IEntity>();
             var qs = new List<String>();
 
-            WriteLog("正在准备数据：");
-            var sw = Stopwatch.StartNew();
             var cpu = Environment.ProcessorCount;
+            //WriteLog("正在准备数据[CPU={0}]：", cpu);
+            var sw = Stopwatch.StartNew();
             Parallel.For(0, cpu, n =>
             {
+                WriteLog("正在准备数据[CPU={0}]：", n);
                 //fact.ConnName = conn + n;
 
                 var k = 0;
@@ -107,15 +113,16 @@ namespace XCode.Common
             sw.Stop();
             Console.WriteLine();
             var ms = sw.Elapsed.TotalMilliseconds;
-            WriteLog("数据准备完毕！，耗时：{0:n0}ms 速度：{1:n0}tps", ms, list.Count * 1000L / ms);
+            WriteLog("耗时：{0:n0}ms / {1:n0}", ms, list.Count * 1000L / ms);
 
             sw.Restart();
 
             Console.WriteLine();
-            WriteLog("正在准备写入：");
             var ths = Threads;
+            //WriteLog("正在准备写入[Threads={0}]：", ths);
             Parallel.For(0, ths, n =>
             {
+                WriteLog("正在准备写入[Thread={0}]：", n);
                 //fact.ConnName = conn + n;
 
                 var k = 0;
@@ -143,7 +150,10 @@ namespace XCode.Common
             Console.WriteLine();
             WriteLog("数据写入完毕！");
             ms = sw.Elapsed.TotalMilliseconds;
-            WriteLog("{2}插入{3:n0}行数据，耗时：{0:n0}ms 速度：{1:n0}tps", ms, list.Count * 1000L / ms, fact.Session.Dal.DbType, list.Count);
+            var speed = list.Count * 1000L / ms;
+            WriteLog("{2}插入{3:n0}行数据，耗时：{0:n0}ms 速度：{1:n0}tps", ms, speed, fact.Session.Dal.DbType, list.Count);
+
+            Score = (Int32)speed;
 
             fact.Session.ClearCache("SqlInsert");
             var t = fact.Count;
