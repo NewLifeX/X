@@ -147,12 +147,15 @@ namespace NewLife.Xml
         {
             get
             {
-                if (ConfigFile.IsNullOrEmpty() || !File.Exists(ConfigFile)) return false;
+                var cf = ConfigFile;
+                //if (cf.IsNullOrEmpty() || !File.Exists(cf)) return false;
+                // 频繁调用File.Exists的性能损耗巨大
+                if (cf.IsNullOrEmpty()) return false;
 
                 var now = DateTime.Now;
                 if (_.ReloadTime > 0 && expire < now)
                 {
-                    var fi = new FileInfo(ConfigFile);
+                    var fi = new FileInfo(cf);
                     fi.Refresh();
                     expire = now.AddMilliseconds(_.ReloadTime);
 
