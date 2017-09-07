@@ -67,9 +67,8 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private String _DataPath;
         /// <summary>数据目录</summary>
-        public String DataPath { get { return _DataPath; } set { _DataPath = value; } }
+        public String DataPath { get; set; }
 
         const String Application_Name = "Application Name";
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
@@ -665,11 +664,11 @@ namespace XCode.DataAccessLayer
         #region 数据定义
         public override String CreateDatabaseSQL(String dbname, String file)
         {
-            var dataPath = (Database as SqlServer).DataPath;
+            var dp = (Database as SqlServer).DataPath;
 
             if (String.IsNullOrEmpty(file))
             {
-                if (String.IsNullOrEmpty(dataPath)) return String.Format("CREATE DATABASE [{0}]", FormatName(dbname));
+                if (String.IsNullOrEmpty(dp)) return String.Format("CREATE DATABASE [{0}]", FormatName(dbname));
 
                 file = dbname + ".mdf";
             }
@@ -678,7 +677,7 @@ namespace XCode.DataAccessLayer
 
             if (!Path.IsPathRooted(file))
             {
-                if (!String.IsNullOrEmpty(dataPath)) file = Path.Combine(dataPath, file);
+                if (!String.IsNullOrEmpty(dp)) file = Path.Combine(dp, file);
 
                 if (!Path.IsPathRooted(file)) file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file);
             }
