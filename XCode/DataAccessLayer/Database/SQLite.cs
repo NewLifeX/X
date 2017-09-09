@@ -101,6 +101,16 @@ namespace XCode.DataAccessLayer
             // 默认超时时间
             if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";
 
+            // 繁忙超时
+            var busy = Setting.Current.CommandTimeout;
+            if (busy > 0)
+            {
+                // 繁忙超时时间
+                if (!builder.ContainsKey("BusyTimeout")) builder["BusyTimeout"] = busy + "";
+                // 重试次数
+                if (!builder.ContainsKey("PrepareRetries")) builder["PrepareRetries"] = 5 + "";
+            }
+
             DAL.WriteLog(builder.ToString());
         }
         #endregion
