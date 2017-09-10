@@ -397,7 +397,7 @@ namespace XCode.DataAccessLayer
             try
             {
                 if (!Opened) Open();
-                cmd.Connection = Conn;
+                if (cmd.Connection == null) cmd.Connection = Conn;
 
                 BeginTrace();
                 return cmd.ExecuteNonQuery();

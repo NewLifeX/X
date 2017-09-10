@@ -102,13 +102,14 @@ namespace XCode.DataAccessLayer
             if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";
 
             // 繁忙超时
-            var busy = Setting.Current.CommandTimeout;
-            if (busy > 0)
+            //var busy = Setting.Current.CommandTimeout;
+            //if (busy > 0)
             {
-                // 繁忙超时时间
-                if (!builder.ContainsKey("BusyTimeout")) builder["BusyTimeout"] = busy + "";
-                // 重试次数
-                if (!builder.ContainsKey("PrepareRetries")) builder["PrepareRetries"] = 5 + "";
+                // SQLite内部和.Net驱动都有Busy重试机制，多次重试仍然失败，则会出现dabase is locked。通过加大重试次数，减少高峰期出现locked的几率
+                // 繁忙超时时间。出现Busy时，SQLite内部会在该超时时间内多次尝试
+                if (!builder.ContainsKey("BusyTimeout")) builder["BusyTimeout"] = 500 + "";
+                // 重试次数。SQLite.Net驱动在遇到Busy时会多次尝试，每次随机等待1~150ms
+                if (!builder.ContainsKey("PrepareRetries")) builder["PrepareRetries"] = 10 + "";
             }
 
             DAL.WriteLog(builder.ToString());
@@ -324,13 +325,13 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 事务
-        public override Int32 Commit()
-        {
-            lock (Database)
-            {
-                return base.Commit();
-            }
-        }
+        //public override Int32 Commit()
+        //{
+        //    lock (Database)
+        //    {
+        //        return base.Commit();
+        //    }
+        //}
         #endregion
 
         #region 高级
