@@ -95,6 +95,9 @@ namespace NewLife.Net
 
         /// <summary>粘包处理接口</summary>
         public IPacket Packet { get; set; }
+
+        /// <summary>字节超时。数据包间隔，默认20ms</summary>
+        public Int32 ByteTimeout { get; set; } = 20;
         #endregion
 
         #region 构造
@@ -215,24 +218,6 @@ namespace NewLife.Net
 
             return task.Result;
         }
-
-        void WaitMore()
-        {
-            var sp = Serial;
-
-            var ms = 10;
-            var end = DateTime.Now.AddMilliseconds(ms);
-            var count = sp.BytesToRead;
-            while (sp.IsOpen && end > DateTime.Now)
-            {
-                Thread.SpinWait(1);
-                if (count != sp.BytesToRead)
-                {
-                    end = DateTime.Now.AddMilliseconds(ms);
-                    count = sp.BytesToRead;
-                }
-            }
-        }
         #endregion
 
         #region 异步接收
@@ -259,6 +244,25 @@ namespace NewLife.Net
             {
                 //WriteLog("Error " + ex.Message);
                 if (Log != null) Log.Error("DataReceived Error {0}", ex.Message);
+            }
+        }
+
+        void WaitMore()
+        {
+            var sp = Serial;
+
+            var ms = ByteTimeout;
+            var end = DateTime.Now.AddMilliseconds(ms);
+            var count = sp.BytesToRead;
+            while (sp.IsOpen && end > DateTime.Now)
+            {
+                //Thread.SpinWait(1);
+                Thread.Sleep(ms);
+                if (count != sp.BytesToRead)
+                {
+                    end = DateTime.Now.AddMilliseconds(ms);
+                    count = sp.BytesToRead;
+                }
             }
         }
 
