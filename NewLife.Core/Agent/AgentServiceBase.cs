@@ -329,6 +329,9 @@ namespace NewLife.Agent
         /// <summary>各线程活跃状态</summary>
         public Boolean[] Actives { get; private set; }
 
+        /// <summary>等待事件</summary>
+        private AutoResetEvent[] TaskEvents { get; set; }
+
         /// <summary>开始循环工作</summary>
         public virtual void StartWork()
         {
@@ -340,6 +343,7 @@ namespace NewLife.Agent
             try
             {
                 Actives = new Boolean[ThreadCount];
+                TaskEvents = new AutoResetEvent[ThreadCount];
 
                 for (var i = 0; i < ThreadCount; i++)
                 {
@@ -390,6 +394,7 @@ namespace NewLife.Agent
         private void WorkWaper(Object data)
         {
             var index = (Int32)data;
+            var ev = TaskEvents[index] = new AutoResetEvent(false);
 
             while (Actives[index])
             {
@@ -419,7 +424,7 @@ namespace NewLife.Agent
                 }
                 LastActive[index] = DateTime.Now;
 
-                //检查服务是否正在重启
+                // 检查服务是否正在重启
                 if (IsShutdowning)
                 {
                     WriteLine("服务准备重启，" + Thread.CurrentThread.Name + "退出！");
@@ -427,11 +432,15 @@ namespace NewLife.Agent
                 }
 
                 var time = Intervals[0]; //ts[0];
-                //使用专用的时间间隔
+                // 使用专用的时间间隔
                 if (index < Intervals.Length) time = Intervals[index];
 
-                if (!isContinute) Thread.Sleep(time * 1000);
+                //if (!isContinute) Thread.Sleep(time * 1000);
+                if (!isContinute) ev.WaitOne(time * 1000);
             }
+
+            ev.Dispose();
+            TaskEvents[index] = null;
         }
 
         /// <summary>核心工作方法。调度线程会定期调用该方法</summary>
@@ -458,8 +467,10 @@ namespace NewLife.Agent
                 for (var i = 0; i < ThreadCount; i++)
                 {
                     Actives[i] = false;
+                    TaskEvents[i]?.Set();
                 }
 
+                var set = Setting.Current;
                 foreach (var item in Threads)
                 {
                     try
@@ -467,8 +478,7 @@ namespace NewLife.Agent
                         if (item != null && item.IsAlive)
                         {
                             // 等待线程退出
-                            var n = 10;
-                            while (item.IsAlive && n-- > 0) Thread.Sleep(100);
+                            item.Join(set.WaitForExit);
 
                             if (item.IsAlive) item.Abort();
                         }
@@ -545,7 +555,7 @@ namespace NewLife.Agent
                 {
                     CheckActive();
 
-                    //如果某一项检查需要重启服务，则返回true，这里跳出循环，等待服务重启
+                    // 如果某一项检查需要重启服务，则返回true，这里跳出循环，等待服务重启
                     if (CheckMemory()) break;
                     if (CheckThread()) break;
                     if (CheckAutoRestart()) break;
