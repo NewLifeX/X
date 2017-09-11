@@ -232,16 +232,16 @@ namespace NewLife.Agent
 
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             Console.WriteLine();
-            Console.WriteLine("核心：{0}", asm.Version);
+            Console.WriteLine("核心：{0} \t发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Version);
             //Console.WriteLine("文件：{0}", asm.FileVersion);
-            Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
+            //Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
 
             var asm2 = AssemblyX.Create(Assembly.GetEntryAssembly());
             if (asm2 != asm)
             {
-                Console.WriteLine();
-                Console.WriteLine("程序：{0}", asm2.Version);
-                Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm2.Compile);
+                //Console.WriteLine();
+                Console.WriteLine("程序：{0} \t发布：{0:yyyy-MM-dd HH:mm:ss}", asm2.Version);
+                //Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm2.Compile);
             }
 
             Console.ForegroundColor = color;
