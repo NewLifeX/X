@@ -335,7 +335,9 @@ namespace XCode.DataAccessLayer
             //    });
             //}
 
-            var sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}' and UNIQUENESS='UNIQUE'", owner, tableName);
+            //var sql = String.Format("select NUM_ROWS from sys.all_indexes where TABLE_OWNER='{0}' and TABLE_NAME='{1}' and UNIQUENESS='UNIQUE'", owner, tableName);
+            // 某些表没有聚集索引，导致查出来的函数为零
+            var sql = String.Format("select NUM_ROWS from all_tables where OWNER='{0}' and TABLE_NAME='{1}'", owner, tableName);
             return ExecuteScalar<Int64>(sql);
         }
 
