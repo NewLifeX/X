@@ -326,6 +326,9 @@ namespace NewLife.Agent
         /// <summary>线程组</summary>
         private Thread[] Threads { get { return _Threads ?? (_Threads = new Thread[ThreadCount]); } set { _Threads = value; } }
 
+        /// <summary>各线程活跃状态</summary>
+        public Boolean[] Actives { get; private set; }
+
         /// <summary>开始循环工作</summary>
         public virtual void StartWork()
         {
@@ -336,6 +339,8 @@ namespace NewLife.Agent
 
             try
             {
+                Actives = new Boolean[ThreadCount];
+
                 for (var i = 0; i < ThreadCount; i++)
                 {
                     StartWork(i);
@@ -368,6 +373,8 @@ namespace NewLife.Agent
 
             var th = new Thread(WorkWaper);
             Threads[index] = th;
+            Actives[index] = true;
+
             //String name = "XAgent_" + index;
             var name = "A" + index;
             var ns = ThreadNames;
@@ -384,10 +391,10 @@ namespace NewLife.Agent
         {
             var index = (Int32)data;
 
-            while (true)
+            while (Actives[index])
             {
                 var isContinute = false;
-                Active[index] = DateTime.Now;
+                LastActive[index] = DateTime.Now;
 
                 try
                 {
@@ -395,11 +402,13 @@ namespace NewLife.Agent
                 }
                 catch (ThreadAbortException)
                 {
+                    Actives[index] = false;
                     WriteLine("线程" + index + "被取消！");
                     break;
                 }
                 catch (ThreadInterruptedException)
                 {
+                    Actives[index] = false;
                     WriteLine("线程" + index + "中断错误！");
                     break;
                 }
@@ -408,7 +417,7 @@ namespace NewLife.Agent
                     // 确保拦截了所有的异常，保证服务稳定运行
                     WriteLine(ex?.GetTrue() + "");
                 }
-                Active[index] = DateTime.Now;
+                LastActive[index] = DateTime.Now;
 
                 //检查服务是否正在重启
                 if (IsShutdowning)
@@ -439,17 +448,30 @@ namespace NewLife.Agent
         {
             WriteLine("服务停止");
 
-            //停止服务管理线程
+            // 停止服务管理线程
             StopManagerThread();
 
             //if (threads != null && threads.IsAlive) threads.Abort();
             if (Threads != null)
             {
+                // 先停止各个任务，然后才停止线程
+                for (var i = 0; i < ThreadCount; i++)
+                {
+                    Actives[i] = false;
+                }
+
                 foreach (var item in Threads)
                 {
                     try
                     {
-                        if (item != null && item.IsAlive) item.Abort();
+                        if (item != null && item.IsAlive)
+                        {
+                            // 等待线程退出
+                            var n = 10;
+                            while (item.IsAlive && n-- > 0) Thread.Sleep(100);
+
+                            if (item.IsAlive) item.Abort();
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -545,23 +567,23 @@ namespace NewLife.Agent
             }
         }
 
-        private DateTime[] _Active;
+        private DateTime[] _LastActive;
         /// <summary>活动时间</summary>
-        public DateTime[] Active
+        public DateTime[] LastActive
         {
             get
             {
-                if (_Active == null)
+                if (_LastActive == null)
                 {
-                    _Active = new DateTime[ThreadCount];
+                    _LastActive = new DateTime[ThreadCount];
                     for (var i = 0; i < ThreadCount; i++)
                     {
-                        _Active[i] = DateTime.Now;
+                        _LastActive[i] = DateTime.Now;
                     }
                 }
-                return _Active;
+                return _LastActive;
             }
-            set { _Active = value; }
+            set { _LastActive = value; }
         }
 
         /// <summary>检查是否有工作线程死亡</summary>
@@ -586,7 +608,7 @@ namespace NewLife.Agent
 
             for (var i = 0; i < ThreadCount; i++)
             {
-                var ts = DateTime.Now - Active[i];
+                var ts = DateTime.Now - LastActive[i];
                 if (ts.TotalSeconds > max)
                 {
                     WriteLine(Threads[i].Name + "已经" + ts.TotalSeconds + "秒没有活动了，准备重新启动！");
