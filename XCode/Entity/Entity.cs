@@ -52,7 +52,7 @@ namespace XCode
         /// 可以重写改方法以实现实体对象的一些初始化工作。
         /// 切记，写为实例方法仅仅是为了方便重载，所要返回的实例绝对不会是当前实例。
         /// </remarks>
-        /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
+        /// <page name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</page>
         /// <returns></returns>
         //[Obsolete("=>IEntityOperate")]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
@@ -71,7 +71,7 @@ namespace XCode
 
         #region 填充数据
         /// <summary>加载记录集。无数据时返回空集合而不是null。</summary>
-        /// <param name="ds">记录集</param>
+        /// <page name="ds">记录集</page>
         /// <returns>实体数组</returns>
         public static IList<TEntity> LoadData(DataSet ds)
         {
@@ -81,7 +81,7 @@ namespace XCode
         }
 
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
-        /// <param name="dt">数据表</param>
+        /// <page name="dt">数据表</page>
         /// <returns>实体数组</returns>
         public static IList<TEntity> LoadData(DataTable dt)
         {
@@ -237,7 +237,7 @@ namespace XCode
         }
 
         /// <summary>异步保存。实现延迟保存，大事务保存。主要面向日志表和频繁更新的在线记录表</summary>
-        /// <param name="msDelay">延迟保存的时间。默认0ms近实时保存</param>
+        /// <page name="msDelay">延迟保存的时间。默认0ms近实时保存</page>
         /// <remarks>
         /// 调用平均耗时190.86ns，IPModule占38.89%，TimeModule占16.31%，UserModule占7.20%，Valid占14.36%
         /// </remarks>
@@ -271,7 +271,7 @@ namespace XCode
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         /// <remarks>建议重写者调用基类的实现，因为基类根据数据字段的唯一索引进行数据验证。</remarks>
-        /// <param name="isNew">是否新数据</param>
+        /// <page name="isNew">是否新数据</page>
         public virtual void Valid(Boolean isNew)
         {
             //// 实体来自数据库时，不要对唯一索引进行校验
@@ -306,17 +306,17 @@ namespace XCode
         }
 
         /// <summary>根据指定键检查数据，返回数据是否已存在</summary>
-        /// <param name="names"></param>
+        /// <page name="names"></page>
         /// <returns></returns>
         public virtual Boolean Exist(params String[] names) { return Exist(true, names); }
 
         /// <summary>根据指定键检查数据是否已存在，若已存在，抛出ArgumentOutOfRangeException异常</summary>
-        /// <param name="names"></param>
+        /// <page name="names"></page>
         public virtual void CheckExist(params String[] names) { CheckExist(true, names); }
 
         /// <summary>根据指定键检查数据是否已存在，若已存在，抛出ArgumentOutOfRangeException异常</summary>
-        /// <param name="isNew">是否新数据</param>
-        /// <param name="names"></param>
+        /// <page name="isNew">是否新数据</page>
+        /// <page name="names"></page>
         public virtual void CheckExist(Boolean isNew, params String[] names)
         {
             if (Exist(isNew, names))
@@ -343,8 +343,8 @@ namespace XCode
         }
 
         /// <summary>根据指定键检查数据，返回数据是否已存在</summary>
-        /// <param name="isNew">是否新数据</param>
-        /// <param name="names"></param>
+        /// <page name="isNew">是否新数据</page>
+        /// <page name="names"></page>
         /// <returns></returns>
         public virtual Boolean Exist(Boolean isNew, params String[] names)
         {
@@ -406,15 +406,15 @@ namespace XCode
 
         #region 查找单个实体
         /// <summary>根据属性以及对应的值，查找单个实体</summary>
-        /// <param name="name">属性名称</param>
-        /// <param name="value">属性值</param>
+        /// <page name="name">属性名称</page>
+        /// <page name="value">属性值</page>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity Find(String name, Object value) { return Find(new String[] { name }, new Object[] { value }); }
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
-        /// <param name="names">属性名称集合</param>
-        /// <param name="values">属性值集合</param>
+        /// <page name="names">属性名称集合</page>
+        /// <page name="values">属性值集合</page>
         /// <returns></returns>
         public static TEntity Find(String[] names, Object[] values)
         {
@@ -451,7 +451,7 @@ namespace XCode
         /// 如果不确定是否唯一，一定不要调用该方法，否则会返回大量的数据。
         /// <remarks>
         /// </remarks>
-        /// <param name="where">查询条件</param>
+        /// <page name="where">查询条件</page>
         /// <returns></returns>
         static TEntity FindUnique(Expression where)
         {
@@ -483,7 +483,7 @@ namespace XCode
         }
 
         /// <summary>根据条件查找单个实体</summary>
-        /// <param name="where">查询条件</param>
+        /// <page name="where">查询条件</page>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity Find(Expression where)
@@ -493,7 +493,7 @@ namespace XCode
         }
 
         /// <summary>根据主键查找单个实体</summary>
-        /// <param name="key">唯一主键的值</param>
+        /// <page name="key">唯一主键的值</page>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKey(Object key)
@@ -508,7 +508,7 @@ namespace XCode
         }
 
         /// <summary>根据主键查询一个实体对象用于表单编辑</summary>
-        /// <param name="key">唯一主键的值</param>
+        /// <page name="key">唯一主键的值</page>
         /// <returns></returns>
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKeyForEdit(Object key)
@@ -552,8 +552,8 @@ namespace XCode
         }
 
         /// <summary>查询指定字段的最小值</summary>
-        /// <param name="field">指定字段</param>
-        /// <param name="where">条件字句</param>
+        /// <page name="field">指定字段</page>
+        /// <page name="where">条件字句</page>
         /// <returns></returns>
         public static Int32 FindMin(String field, Expression where = null)
         {
@@ -563,8 +563,8 @@ namespace XCode
         }
 
         /// <summary>查询指定字段的最大值</summary>
-        /// <param name="field">指定字段</param>
-        /// <param name="where">条件字句</param>
+        /// <page name="field">指定字段</page>
+        /// <page name="where">条件字句</page>
         /// <returns></returns>
         public static Int32 FindMax(String field, Expression where = null)
         {
@@ -580,14 +580,14 @@ namespace XCode
         public static IList<TEntity> FindAll() { return FindAll("", null, null, 0, 0); }
 
         /// <summary>根据名称获取数据集。没有数据时返回空集合而不是null</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
+        /// <page name="name"></page>
+        /// <page name="value"></page>
         /// <returns></returns>
         public static IList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
-        /// <param name="names">属性名称集合</param>
-        /// <param name="values">属性值集合</param>
+        /// <page name="names">属性名称集合</page>
+        /// <page name="values">属性值集合</page>
         /// <returns></returns>
         public static IList<TEntity> FindAll(String[] names, Object[] values)
         {
@@ -606,11 +606,11 @@ namespace XCode
         /// <remarks>
         /// 最经典的批量查询，看这个Select @selects From Table Where @where Order By @order Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
         /// </remarks>
-        /// <param name="where">条件字句，不带Where</param>
-        /// <param name="order">排序字句，不带Order By</param>
-        /// <param name="selects">查询列，默认null表示所有字段</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <page name="where">条件字句，不带Where</page>
+        /// <page name="order">排序字句，不带Order By</page>
+        /// <page name="selects">查询列，默认null表示所有字段</page>
+        /// <page name="startRowIndex">开始行，0表示第一行</page>
+        /// <page name="maximumRows">最大返回行数，0表示所有行</page>
         /// <returns>实体集</returns>
         public static IList<TEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
         {
@@ -624,11 +624,11 @@ namespace XCode
         /// <remarks>
         /// 最经典的批量查询，看这个Select @selects From Table Where @where Order By @order Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
         /// </remarks>
-        /// <param name="where">条件字句，不带Where</param>
-        /// <param name="order">排序字句，不带Order By</param>
-        /// <param name="selects">查询列，默认null表示所有字段</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <page name="where">条件字句，不带Where</page>
+        /// <page name="order">排序字句，不带Order By</page>
+        /// <page name="selects">查询列，默认null表示所有字段</page>
+        /// <page name="startRowIndex">开始行，0表示第一行</page>
+        /// <page name="maximumRows">最大返回行数，0表示所有行</page>
         /// <returns>实体集</returns>
         public static IList<TEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
         {
@@ -727,37 +727,37 @@ namespace XCode
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
+        /// <page name="where">条件，不带Where</page>
+        /// <page name="page">分页排序参数，同时返回满足条件的总记录数</page>
         /// <returns></returns>
-        public static IList<TEntity> FindAll(Expression where, PageParameter param = null)
+        public static IList<TEntity> FindAll(Expression where, PageParameter page = null)
         {
-            if (param == null) return FindAll(where, null, null, 0, 0);
+            if (page == null) return FindAll(where, null, null, 0, 0);
 
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
-            if (param.TotalCount >= 0)
+            if (page.TotalCount >= 0)
             {
-                param.TotalCount = FindCount(where, null, null, 0, 0);
-                if (param.TotalCount <= 0) return new List<TEntity>();
+                page.TotalCount = FindCount(where, null, null, 0, 0);
+                if (page.TotalCount <= 0) return new List<TEntity>();
             }
 
             // 验证排序字段，避免非法
-            var orderby = param.OrderBy;
-            if (!param.Sort.IsNullOrEmpty())
+            var orderby = page.OrderBy;
+            if (!page.Sort.IsNullOrEmpty())
             {
-                var st = Meta.Table.FindByName(param.Sort);
-                param.Sort = st?.ColumnName;
-                orderby = param.OrderBy;
+                var st = Meta.Table.FindByName(page.Sort);
+                page.Sort = st?.ColumnName;
+                orderby = page.OrderBy;
 
                 //!!! 恢复排序字段，否则属性名和字段名不一致时前台无法降序
-                param.Sort = st?.Name;
+                page.Sort = st?.Name;
             }
 
             // 采用起始行还是分页
-            if (param.StartRow >= 0)
-                return FindAll(where, orderby, null, param.StartRow, param.PageSize);
+            if (page.StartRow >= 0)
+                return FindAll(where, orderby, null, page.StartRow, page.PageSize);
             else
-                return FindAll(where, orderby, null, (param.PageIndex - 1) * param.PageSize, param.PageSize);
+                return FindAll(where, orderby, null, (page.PageIndex - 1) * page.PageSize, page.PageSize);
         }
         #endregion
 
@@ -774,11 +774,11 @@ namespace XCode
         public static Int64 FindCount() { return FindCount("", null, null, 0, 0); }
 
         /// <summary>返回总记录数</summary>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="order">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
-        /// <param name="selects">查询列。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
-        /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <page name="where">条件，不带Where</page>
+        /// <page name="order">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</page>
+        /// <page name="selects">查询列。这里无意义，仅仅为了保持与FindAll相同的方法签名</page>
+        /// <page name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</page>
+        /// <page name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</page>
         /// <returns>总行数</returns>
         public static Int32 FindCount(String where, String order = null, String selects = null, Int64 startRowIndex = 0, Int64 maximumRows = 0)
         {
@@ -800,11 +800,11 @@ namespace XCode
         }
 
         /// <summary>返回总记录数</summary>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="order">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
-        /// <param name="selects">查询列。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
-        /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <page name="where">条件，不带Where</page>
+        /// <page name="order">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</page>
+        /// <page name="selects">查询列。这里无意义，仅仅为了保持与FindAll相同的方法签名</page>
+        /// <page name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</page>
+        /// <page name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</page>
         /// <returns>总行数</returns>
         public static Int64 FindCount(Expression where, String order = null, String selects = null, Int64 startRowIndex = 0, Int64 maximumRows = 0)
         {
@@ -833,11 +833,11 @@ namespace XCode
 
         #region 获取查询SQL
         /// <summary>获取查询SQL。主要用于构造子查询</summary>
-        /// <param name="where">条件，不带Where</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="selects">查询列</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <page name="where">条件，不带Where</page>
+        /// <page name="order">排序，不带Order By</page>
+        /// <page name="selects">查询列</page>
+        /// <page name="startRowIndex">开始行，0表示第一行</page>
+        /// <page name="maximumRows">最大返回行数，0表示所有行</page>
         /// <returns>实体集</returns>
         public static SelectBuilder FindSQL(String where, String order, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
@@ -846,7 +846,7 @@ namespace XCode
         }
 
         /// <summary>获取查询唯一键的SQL。比如Select ID From Table</summary>
-        /// <param name="where"></param>
+        /// <page name="where"></page>
         /// <returns></returns>
         public static SelectBuilder FindSQLWithKey(String where = null)
         {
@@ -857,10 +857,10 @@ namespace XCode
 
         #region 高级查询
         /// <summary>查询满足条件的记录集，分页、排序。没有数据时返回空集合而不是null</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <page name="key">关键字</page>
+        /// <page name="order">排序，不带Order By</page>
+        /// <page name="startRowIndex">开始行，0表示第一行</page>
+        /// <page name="maximumRows">最大返回行数，0表示所有行</page>
         /// <returns>实体集</returns>
         [DataObjectMethod(DataObjectMethodType.Select, true)]
         public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows)
@@ -869,10 +869,10 @@ namespace XCode
         }
 
         /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <page name="key">关键字</page>
+        /// <page name="order">排序，不带Order By</page>
+        /// <page name="startRowIndex">开始行，0表示第一行</page>
+        /// <page name="maximumRows">最大返回行数，0表示所有行</page>
         /// <returns>记录数</returns>
         public static Int32 SearchCount(String key, String order, Int64 startRowIndex, Int64 maximumRows)
         {
@@ -880,18 +880,18 @@ namespace XCode
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
-        /// <param name="key"></param>
-        /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
+        /// <page name="key"></page>
+        /// <page name="page">分页排序参数，同时返回满足条件的总记录数</page>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, PageParameter param)
+        public static IList<TEntity> Search(String key, PageParameter page)
         {
-            return FindAll(SearchWhereByKeys(key), param);
+            return FindAll(SearchWhereByKeys(key), page);
         }
 
         /// <summary>根据空格分割的关键字集合构建查询条件</summary>
-        /// <param name="keys">空格分割的关键字集合</param>
-        /// <param name="fields">要查询的字段，默认为空表示查询所有字符串字段</param>
-        /// <param name="func">处理每一个查询关键字的回调函数</param>
+        /// <page name="keys">空格分割的关键字集合</page>
+        /// <page name="fields">要查询的字段，默认为空表示查询所有字符串字段</page>
+        /// <page name="func">处理每一个查询关键字的回调函数</page>
         /// <returns></returns>
         public static WhereExpression SearchWhereByKeys(String keys, FieldItem[] fields = null, Func<String, FieldItem[], WhereExpression> func = null)
         {
@@ -911,8 +911,8 @@ namespace XCode
         }
 
         /// <summary>构建关键字查询条件</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="fields">要查询的字段，默认为空表示查询所有字符串字段</param>
+        /// <page name="key">关键字</page>
+        /// <page name="fields">要查询的字段，默认为空表示查询所有字符串字段</page>
         /// <returns></returns>
         public static WhereExpression SearchWhereByKey(String key, FieldItem[] fields = null)
         {
@@ -933,14 +933,14 @@ namespace XCode
 
         #region 静态操作
         /// <summary>把一个实体对象持久化到数据库</summary>
-        /// <param name="obj">实体对象</param>
+        /// <page name="obj">实体对象</page>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Insert, true)]
         public static Int32 Insert(TEntity obj) { return obj.Insert(); }
 
         /// <summary>把一个实体对象更新到数据库</summary>
-        /// <param name="obj">实体对象</param>
+        /// <page name="obj">实体对象</page>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Update, true)]
@@ -950,14 +950,14 @@ namespace XCode
         /// 从数据库中删除指定实体对象。
         /// 实体类应该实现该方法的另一个副本，以唯一键或主键作为参数
         /// </summary>
-        /// <param name="obj">实体对象</param>
+        /// <page name="obj">实体对象</page>
         /// <returns>返回受影响的行数，可用于判断被删除了多少行，从而知道操作是否成功</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         [DataObjectMethod(DataObjectMethodType.Delete, true)]
         public static Int32 Delete(TEntity obj) { return obj.Delete(); }
 
         /// <summary>把一个实体对象更新到数据库</summary>
-        /// <param name="obj">实体对象</param>
+        /// <page name="obj">实体对象</page>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Save(TEntity obj) { return obj.Save(); }
@@ -1046,7 +1046,7 @@ namespace XCode
         /// 基类已经实现了通用的快速访问，但是这里仍然重写，以增加控制，
         /// 比如字段名是属性名前面加上_，并且要求是实体字段才允许这样访问，否则一律按属性处理。
         /// </remarks>
-        /// <param name="name">字段名</param>
+        /// <page name="name">字段名</page>
         /// <returns></returns>
         public override Object this[String name]
         {
@@ -1111,7 +1111,7 @@ namespace XCode
 
         #region 导入导出XML/Json
         /// <summary>导入</summary>
-        /// <param name="xml"></param>
+        /// <page name="xml"></page>
         /// <returns></returns>
         [Obsolete("请使用 xml.ToXmlEntity<TEntity>()")]
         public static TEntity FromXml(String xml)
@@ -1122,7 +1122,7 @@ namespace XCode
         }
 
         /// <summary>导入</summary>
-        /// <param name="json"></param>
+        /// <page name="json"></page>
         /// <returns></returns>
         [Obsolete("请使用 json.ToJsonEntity<TEntity>()")]
         public static TEntity FromJson(String json)
@@ -1137,7 +1137,7 @@ namespace XCode
         public override Object Clone() { return CloneEntity(); }
 
         /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>
-        /// <param name="setDirty">是否设置脏数据。默认不设置</param>
+        /// <page name="setDirty">是否设置脏数据。默认不设置</page>
         /// <returns></returns>
         public virtual TEntity CloneEntity(Boolean setDirty = false)
         {
@@ -1156,7 +1156,7 @@ namespace XCode
         }
 
         /// <summary>克隆实体</summary>
-        /// <param name="setDirty"></param>
+        /// <page name="setDirty"></page>
         /// <returns></returns>
         internal protected override IEntity CloneEntityInternal(Boolean setDirty = true) { return CloneEntity(setDirty); }
         #endregion
@@ -1221,7 +1221,7 @@ namespace XCode
 
         #region 脏数据
         /// <summary>设置所有数据的脏属性</summary>
-        /// <param name="isDirty">改变脏属性的属性个数</param>
+        /// <page name="isDirty">改变脏属性的属性个数</page>
         /// <returns></returns>
         protected override Int32 SetDirty(Boolean isDirty)
         {
@@ -1271,8 +1271,8 @@ namespace XCode
         }
 
         ///// <summary>如果字段带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值</summary>
-        ///// <param name="fieldName"></param>
-        ///// <param name="newValue"></param>
+        ///// <page name="fieldName"></page>
+        ///// <page name="newValue"></page>
         ///// <returns></returns>
         //protected override Boolean OnPropertyChanging(String fieldName, Object newValue)
         //{
