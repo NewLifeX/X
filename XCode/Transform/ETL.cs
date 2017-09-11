@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Membership;
@@ -115,7 +116,7 @@ namespace XCode.Transform
         {
             _Inited = false;
 
-            _timer.TryDipose();
+            _timer.TryDispose();
             Modules.Stop();
         }
         #endregion

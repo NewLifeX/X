@@ -7,9 +7,7 @@ using System.Reflection;
 using System.ServiceProcess;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Configuration;
 using NewLife.Log;
-using NewLife.Model;
 using NewLife.Reflection;
 
 namespace NewLife.Agent
@@ -30,8 +28,8 @@ namespace NewLife.Agent
         /// <summary>服务主函数</summary>
         public static void ServiceMain()
         {
-            // 降低进程优先级，提升稳定性
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+            //// 降低进程优先级，提升稳定性
+            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
 
             var service = Instance as TService;
 
@@ -104,7 +102,7 @@ namespace NewLife.Agent
                 #region 命令行
                 XTrace.UseConsole();
 
-                //输出状态
+                // 输出状态
                 service.ShowStatus();
 
                 while (true)
@@ -119,26 +117,26 @@ namespace NewLife.Agent
                     Console.WriteLine();
                     Console.WriteLine();
 
-                    switch ((Int32)(key.KeyChar - '0'))
+                    switch (key.KeyChar)
                     {
-                        case 1:
+                        case '1':
                             //输出状态
                             service.ShowStatus();
 
                             break;
-                        case 2:
+                        case '2':
                             if (service.IsInstalled() == true)
                                 service.Install(false);
                             else
                                 service.Install(true);
                             break;
-                        case 3:
+                        case '3':
                             if (service.IsRunning() == true)
                                 service.ControlService(false);
                             else
                                 service.ControlService(true);
                             break;
-                        case 4:
+                        case '4':
                             #region 单步调试
                             try
                             {
@@ -172,7 +170,7 @@ namespace NewLife.Agent
                             }
                             #endregion
                             break;
-                        case 5:
+                        case '5':
                             #region 循环调试
                             try
                             {
@@ -190,24 +188,12 @@ namespace NewLife.Agent
                             }
                             #endregion
                             break;
-                        case 6:
-                            #region 附加服务
-                            Console.WriteLine("正在附加服务调试……");
-                            service.StartAttachServers();
-
-                            Console.WriteLine("任意键结束附加服务调试！");
-                            Console.ReadKey(true);
-
-                            service.StopAttachServers("按键");
-                            #endregion
-                            break;
-                        case 7:
+                        case '7':
                             if (WatchDogs.Length > 0) CheckWatchDog();
                             break;
-                        //case 8:
-                        //    RunUI();
-                        //    break;
                         default:
+                            // 自定义菜单
+                            if (service._Menus.TryGetValue(key.KeyChar, out var menu)) menu.Callback();
                             break;
                     }
                 }
@@ -294,26 +280,6 @@ namespace NewLife.Agent
             {
                 Console.WriteLine("4 单步调试 -step");
                 Console.WriteLine("5 循环调试 -run");
-
-                var dic = Config.GetConfigByPrefix("XAgent.AttachServer.");
-                if (dic != null && dic.Count > 0)
-                {
-                    var dic2 = new Dictionary<String, String>();
-                    foreach (var item in dic2)
-                    {
-                        if (!item.Key.IsNullOrWhiteSpace() && !item.Value.IsNullOrWhiteSpace()) dic2.Add(item.Key, item.Value);
-                    }
-                    dic = dic2;
-
-                    if (dic != null && dic.Count > 0)
-                    {
-                        Console.WriteLine("6 附加服务调试");
-                        foreach (var item in dic)
-                        {
-                            Console.WriteLine("{0,10} = {1}", item.Key, item.Value);
-                        }
-                    }
-                }
             }
 
             if (WatchDogs.Length > 0)
@@ -321,9 +287,37 @@ namespace NewLife.Agent
                 Console.WriteLine("7 看门狗保护服务 {0}", String.Join(",", WatchDogs));
             }
 
+            if (_Menus.Count > 0)
+            {
+                foreach (var item in _Menus)
+                {
+                    Console.WriteLine("{0} {1}", item.Key, item.Value.Name);
+                }
+            }
+
             Console.WriteLine("0 退出");
 
             Console.ForegroundColor = color;
+        }
+
+        private Dictionary<Char, Menu> _Menus = new Dictionary<Char, Menu>();
+        /// <summary>添加菜单</summary>
+        /// <param name="key"></param>
+        /// <param name="name"></param>
+        /// <param name="callbak"></param>
+        public void AddMenu(Char key, String name, Action callbak)
+        {
+            if (!_Menus.ContainsKey(key))
+            {
+                _Menus.Add(key, new Menu { Key = key, Name = name, Callback = callbak });
+            }
+        }
+
+        class Menu
+        {
+            public Char Key { get; set; }
+            public String Name { get; set; }
+            public Action Callback { get; set; }
         }
         #endregion
 
@@ -331,122 +325,6 @@ namespace NewLife.Agent
         private Thread[] _Threads;
         /// <summary>线程组</summary>
         private Thread[] Threads { get { return _Threads ?? (_Threads = new Thread[ThreadCount]); } set { _Threads = value; } }
-
-        private Dictionary<String, IServer> _AttachServers;
-        /// <summary>附加服务</summary>
-        public Dictionary<String, IServer> AttachServers { get { return _AttachServers ?? (_AttachServers = new Dictionary<String, IServer>()); } /*set { _AttachServers = value; }*/ }
-
-        /// <summary>服务启动事件</summary>
-        /// <param name="args"></param>
-        protected override void OnStart(String[] args)
-        {
-            StartWork();
-
-            // 处理附加服务
-            try
-            {
-                StartAttachServers();
-            }
-            catch (Exception ex)
-            {
-                WriteLine(ex.ToString());
-            }
-        }
-
-        /// <summary>服务停止事件</summary>
-        protected override void OnStop()
-        {
-            StopWork();
-
-            try
-            {
-                StopAttachServers("服务停止");
-            }
-            catch (Exception ex)
-            {
-                WriteLine(ex.ToString());
-            }
-        }
-
-        private void StartAttachServers()
-        {
-            var dic = Config.GetConfigByPrefix("XAgent.AttachServer.");
-            if (dic != null && dic.Count > 0)
-            {
-                // 实例化
-                foreach (var item in dic)
-                {
-                    if (!item.Key.IsNullOrWhiteSpace() && !item.Value.IsNullOrWhiteSpace())
-                    {
-                        WriteLine("");
-                        WriteLine("正在加载：{0} = {1}", item.Key, item.Value);
-                        var type = item.Value.GetTypeEx();
-                        if (type != null)
-                        {
-                            if (type.CreateInstance() is IServer service) AttachServers[item.Key] = service;
-                        }
-                    }
-                }
-
-                // 加载配置。【服务名.属性】的配置方式
-                foreach (var item in AttachServers)
-                {
-                    if (item.Value != null)
-                    {
-                        var type = item.Value.GetType();
-                        // 遍历所有属性，查找指定的设置项
-                        foreach (var pi in type.GetProperties(true))
-                        {
-                            var name = String.Format("XAgent.{0}.{1}", item.Key, pi.Name);
-                            // 读取配置，并赋值
-                            if (Config.TryGetConfig(name, pi.PropertyType, out var value))
-                            {
-                                WriteLine("配置：{0} = {1}", name, value);
-                                //PropertyInfoX.Create(pi).SetValue(item.Value, value);
-                                item.Value.SetValue(pi, value);
-                            }
-                        }
-                    }
-                }
-
-                // 启动
-                foreach (var item in AttachServers)
-                {
-                    if (item.Value != null)
-                    {
-                        WriteLine("启动：{0}", item.Key);
-                        item.Value.Start();
-                    }
-                }
-            }
-        }
-
-        private void StopAttachServers(String reason)
-        {
-            if (AttachServers != null)
-            {
-                foreach (var item in AttachServers.Values)
-                {
-                    if (item != null) item.Stop(reason);
-                }
-            }
-        }
-
-        /// <summary>销毁资源</summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(Boolean disposing)
-        {
-            if (AttachServers != null)
-            {
-                //foreach (var item in AttachServers.Values)
-                //{
-                //    if (item != null && item is IDisposable) (item as IDisposable).Dispose();
-                //}
-                AttachServers.Values.TryDispose();
-            }
-
-            base.Dispose(disposing);
-        }
 
         /// <summary>开始循环工作</summary>
         public virtual void StartWork()
@@ -714,7 +592,7 @@ namespace NewLife.Agent
                     WriteLine(Threads[i].Name + "已经" + ts.TotalSeconds + "秒没有活动了，准备重新启动！");
 
                     StopWork(i);
-                    //等待线程结束
+                    // 等待线程结束
                     Threads[i].Join(5000);
                     StartWork(i);
                 }
@@ -845,10 +723,8 @@ namespace NewLife.Agent
         {
             get
             {
-                if (_WatchDogs == null)
-                {
-                    _WatchDogs = Setting.Current.WatchDog.Split(",", ";");
-                }
+                if (_WatchDogs == null) _WatchDogs = Setting.Current.WatchDog.Split(",", ";");
+
                 return _WatchDogs;
             }
         }
@@ -860,7 +736,6 @@ namespace NewLife.Agent
         /// </remarks>
         public static void CheckWatchDog()
         {
-            //var ss = Config.GetConfigSplit<String>("XAgent.WatchLog", null);
             var ss = WatchDogs;
             if (ss == null || ss.Length < 1) return;
 

@@ -111,11 +111,6 @@ namespace NewLife.Threading
             Scheduler.Add(this);
         }
 
-        public void TryDipose()
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>销毁定时器</summary>
         public void Dispose()
         {
