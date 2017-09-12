@@ -476,17 +476,29 @@ namespace XCode.Membership
                     }
 
                     // 排序
+                    if (controller.Sort == 0)
+                    {
+                        var pi = type.GetPropertyEx("MenuOrder");
+                        if (pi != null) controller.Sort = pi.GetValue(null).ToInt();
+                    }
+
                     ms.Add(controller);
 
                     //controller.Save();
                 }
 
-                // 所有都是新增菜单才排序
-                if (ms.All(m => m.Sort == 0)) ms = ms.OrderByDescending(m => m.Name).ToList();
+                //// 所有都是新增菜单才排序
+                //if (ms.All(m => m.Sort == 0))
+                //{
+                //    ms = ms.OrderByDescending(m => m.Name).ToList();
+                //    for (Int32 i = 0; i < ms.Count; i++)
+                //    {
+                //        ms[i].Sort = i;
+                //    }
+                //}
 
                 for (Int32 i = 0; i < ms.Count; i++)
                 {
-                    ms[i].Sort = i;
                     (ms[i] as IEntity).Save();
                 }
 

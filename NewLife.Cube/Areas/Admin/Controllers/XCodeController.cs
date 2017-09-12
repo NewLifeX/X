@@ -6,5 +6,9 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("数据中间件")]
     public class XCodeController : ConfigController<XCode.Setting>
     {
+        static XCodeController()
+        {
+            MenuOrder = 36;
+        }
     }
 }

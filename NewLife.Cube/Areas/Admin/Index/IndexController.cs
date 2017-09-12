@@ -17,6 +17,14 @@ namespace NewLife.Cube.Admin.Controllers
     [DisplayName("首页")]
     public class IndexController : ControllerBaseX
     {
+        /// <summary>菜单顺序。扫描是会反射读取</summary>
+        protected static Int32 MenuOrder { get; set; }
+
+        static IndexController()
+        {
+            MenuOrder = 10;
+        }
+
         /// <summary>首页</summary>
         /// <returns></returns>
         [EntityAuthorize(PermissionFlags.Detail)]

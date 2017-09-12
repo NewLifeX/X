@@ -52,7 +52,7 @@ namespace NewLife.Cube
             ViewBag.Page = p;
 
             // 用于显示的列
-            if(!ps.ContainsKey("entity")) ViewBag.Fields = GetFields(false);
+            if (!ps.ContainsKey("entity")) ViewBag.Fields = GetFields(false);
 
             if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
 
@@ -607,6 +607,9 @@ namespace NewLife.Cube
         #endregion
 
         #region 权限菜单
+        /// <summary>菜单顺序。扫描是会反射读取</summary>
+        protected static Int32 MenuOrder { get; set; }
+
         /// <summary>自动从实体类拿到显示名</summary>
         /// <param name="menu"></param>
         /// <returns></returns>

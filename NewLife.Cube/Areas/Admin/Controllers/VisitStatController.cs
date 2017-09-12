@@ -13,6 +13,11 @@ namespace NewLife.Cube.Admin.Controllers
     [Description("每个页面每天的访问统计信息")]
     public class VisitStatController : EntityController<VisitStat>
     {
+        static VisitStatController()
+        {
+            MenuOrder = 50;
+        }
+
         /// <summary>搜索数据集</summary>
         /// <param name="p"></param>
         /// <returns></returns>
