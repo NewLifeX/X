@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -114,7 +115,19 @@ namespace NewLife.Remoting
             code = cod.ToInt();
 
             // 是否成功
-            if (code != 0) throw new ApiException(code, result + "");
+            if (code != 0)
+            {
+                var aex = new ApiException(code, result + "");
+                // 支持自定义错误
+                if (result is IDictionary<String, Object> errdata)
+                {
+                    foreach (var item in errdata)
+                    {
+                        aex.Data[item.Key] = item.Value;
+                    }
+                }
+                throw aex;
+            }
 
             if (result == null) return default(TResult);
             if (typeof(TResult) == typeof(Object)) return (TResult)result;
