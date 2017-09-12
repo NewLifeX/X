@@ -519,7 +519,7 @@ namespace XCode
                         else
                             m = Dal.Session.QueryCountFast(TableName);
                         // 查真实记录数，修正FastCount不够准确的情况
-                        TaskEx.Run(() =>
+                        if (m < 10000000) TaskEx.Run(() =>
                         {
                             var sb = new SelectBuilder
                             {

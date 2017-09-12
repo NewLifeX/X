@@ -232,7 +232,7 @@ namespace NewLife.Agent
 
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             Console.WriteLine();
-            Console.WriteLine("核心：{0} \t发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Version);
+            Console.WriteLine("{0}\t版本：{1}\t发布：{2:yyyy-MM-dd HH:mm:ss}", asm.Name, asm.FileVersion, asm.Compile);
             //Console.WriteLine("文件：{0}", asm.FileVersion);
             //Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
 
@@ -240,7 +240,7 @@ namespace NewLife.Agent
             if (asm2 != asm)
             {
                 //Console.WriteLine();
-                Console.WriteLine("程序：{0} \t发布：{0:yyyy-MM-dd HH:mm:ss}", asm2.Version);
+                Console.WriteLine("{0}\t版本：{1}\t发布：{2:yyyy-MM-dd HH:mm:ss}", asm2.Name, asm2.FileVersion, asm2.Compile);
                 //Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm2.Compile);
             }
 
