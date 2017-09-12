@@ -118,10 +118,14 @@ namespace XCode
             var dic = typeof(Dictionary<,>).MakeGenericType(ktype, type).CreateInstance() as IDictionary;
             foreach (var item in list)
             {
-                if (!valueField.IsNullOrEmpty())
-                    dic.Add(item[key.Name], item[valueField]);
-                else
-                    dic.Add(item[key.Name], item);
+                var k = item[key.Name];
+                if (!dic.Contains(k))
+                {
+                    if (!valueField.IsNullOrEmpty())
+                        dic.Add(k, item[valueField]);
+                    else
+                        dic.Add(k, item);
+                }
             }
 
             return dic;
