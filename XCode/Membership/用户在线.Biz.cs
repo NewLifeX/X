@@ -34,6 +34,9 @@ namespace XCode.Membership
             //var sc = Meta.SingleCache;
             //sc.FindSlaveKeyMethod = k => Find(__.SessionID, k);
             //sc.GetSlaveKeyMethod = e => e.SessionID;
+
+            // 关闭SQL日志
+            Meta.Session.Dal.Db.ShowSQL = false;
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>

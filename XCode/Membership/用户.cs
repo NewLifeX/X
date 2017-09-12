@@ -13,7 +13,7 @@ namespace XCode.Membership
     [Description("用户")]
     [BindIndex("IU_User_Name", true, "Name")]
     [BindIndex("IX_User_RoleID", false, "RoleID")]
-    [BindTable("User", Description = "用户", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
+    [BindTable("User", Description = "用户", ConnName = "Membership", DbType = DatabaseType.None)]
     public partial class User<TEntity> : IUser
     {
         #region 属性
@@ -22,7 +22,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 0)]
-        [BindColumn("ID", "编号", "int")]
+        [BindColumn("ID", "编号", "")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
         private String _Name;
@@ -30,7 +30,7 @@ namespace XCode.Membership
         [DisplayName("名称")]
         [Description("名称。登录用户名")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn("Name", "名称。登录用户名", "nvarchar(50)", Master = true)]
+        [BindColumn("Name", "名称。登录用户名", "", Master = true)]
         public String Name { get { return _Name; } set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
 
         private String _Password;
@@ -38,7 +38,7 @@ namespace XCode.Membership
         [DisplayName("密码")]
         [Description("密码")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Password", "密码", "nvarchar(50)")]
+        [BindColumn("Password", "密码", "")]
         public String Password { get { return _Password; } set { if (OnPropertyChanging(__.Password, value)) { _Password = value; OnPropertyChanged(__.Password); } } }
 
         private String _DisplayName;
@@ -46,7 +46,7 @@ namespace XCode.Membership
         [DisplayName("昵称")]
         [Description("昵称")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("DisplayName", "昵称", "nvarchar(50)")]
+        [BindColumn("DisplayName", "昵称", "")]
         public String DisplayName { get { return _DisplayName; } set { if (OnPropertyChanging(__.DisplayName, value)) { _DisplayName = value; OnPropertyChanged(__.DisplayName); } } }
 
         private SexKinds _Sex;
@@ -54,7 +54,7 @@ namespace XCode.Membership
         [DisplayName("性别")]
         [Description("性别。未知、男、女")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Sex", "性别。未知、男、女", "int")]
+        [BindColumn("Sex", "性别。未知、男、女", "")]
         public SexKinds Sex { get { return _Sex; } set { if (OnPropertyChanging(__.Sex, value)) { _Sex = value; OnPropertyChanged(__.Sex); } } }
 
         private String _Mail;
@@ -62,7 +62,7 @@ namespace XCode.Membership
         [DisplayName("邮件")]
         [Description("邮件")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Mail", "邮件", "nvarchar(50)")]
+        [BindColumn("Mail", "邮件", "")]
         public String Mail { get { return _Mail; } set { if (OnPropertyChanging(__.Mail, value)) { _Mail = value; OnPropertyChanged(__.Mail); } } }
 
         private String _Phone;
@@ -70,7 +70,7 @@ namespace XCode.Membership
         [DisplayName("电话")]
         [Description("电话")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Phone", "电话", "nvarchar(50)")]
+        [BindColumn("Phone", "电话", "")]
         public String Phone { get { return _Phone; } set { if (OnPropertyChanging(__.Phone, value)) { _Phone = value; OnPropertyChanged(__.Phone); } } }
 
         private String _Code;
@@ -78,7 +78,7 @@ namespace XCode.Membership
         [DisplayName("代码")]
         [Description("代码。身份证、员工编号等")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Code", "代码。身份证、员工编号等", "nvarchar(50)")]
+        [BindColumn("Code", "代码。身份证、员工编号等", "")]
         public String Code { get { return _Code; } set { if (OnPropertyChanging(__.Code, value)) { _Code = value; OnPropertyChanged(__.Code); } } }
 
         private Int32 _RoleID;
@@ -86,7 +86,7 @@ namespace XCode.Membership
         [DisplayName("角色")]
         [Description("角色")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("RoleID", "角色", "int")]
+        [BindColumn("RoleID", "角色", "")]
         public Int32 RoleID { get { return _RoleID; } set { if (OnPropertyChanging(__.RoleID, value)) { _RoleID = value; OnPropertyChanged(__.RoleID); } } }
 
         private Boolean _Online;
@@ -94,7 +94,7 @@ namespace XCode.Membership
         [DisplayName("在线")]
         [Description("在线")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Online", "在线", "bit")]
+        [BindColumn("Online", "在线", "")]
         public Boolean Online { get { return _Online; } set { if (OnPropertyChanging(__.Online, value)) { _Online = value; OnPropertyChanged(__.Online); } } }
 
         private Boolean _Enable;
@@ -102,7 +102,7 @@ namespace XCode.Membership
         [DisplayName("启用")]
         [Description("启用")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Enable", "启用", "bit")]
+        [BindColumn("Enable", "启用", "")]
         public Boolean Enable { get { return _Enable; } set { if (OnPropertyChanging(__.Enable, value)) { _Enable = value; OnPropertyChanged(__.Enable); } } }
 
         private DateTime _StartTime;
@@ -110,7 +110,7 @@ namespace XCode.Membership
         [DisplayName("开始时间")]
         [Description("开始时间")]
         [DataObjectField(false, false, true, 0)]
-        [BindColumn("StartTime", "开始时间", "datetime")]
+        [BindColumn("StartTime", "开始时间", "")]
         public DateTime StartTime { get { return _StartTime; } set { if (OnPropertyChanging(__.StartTime, value)) { _StartTime = value; OnPropertyChanged(__.StartTime); } } }
 
         private DateTime _EndTime;
@@ -118,7 +118,7 @@ namespace XCode.Membership
         [DisplayName("结束时间")]
         [Description("结束时间")]
         [DataObjectField(false, false, true, 0)]
-        [BindColumn("EndTime", "结束时间", "datetime")]
+        [BindColumn("EndTime", "结束时间", "")]
         public DateTime EndTime { get { return _EndTime; } set { if (OnPropertyChanging(__.EndTime, value)) { _EndTime = value; OnPropertyChanged(__.EndTime); } } }
 
         private Int32 _Logins;
@@ -126,7 +126,7 @@ namespace XCode.Membership
         [DisplayName("登录次数")]
         [Description("登录次数")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Logins", "登录次数", "int")]
+        [BindColumn("Logins", "登录次数", "")]
         public Int32 Logins { get { return _Logins; } set { if (OnPropertyChanging(__.Logins, value)) { _Logins = value; OnPropertyChanged(__.Logins); } } }
 
         private DateTime _LastLogin;
@@ -134,7 +134,7 @@ namespace XCode.Membership
         [DisplayName("最后登录")]
         [Description("最后登录")]
         [DataObjectField(false, false, true, 0)]
-        [BindColumn("LastLogin", "最后登录", "datetime")]
+        [BindColumn("LastLogin", "最后登录", "")]
         public DateTime LastLogin { get { return _LastLogin; } set { if (OnPropertyChanging(__.LastLogin, value)) { _LastLogin = value; OnPropertyChanged(__.LastLogin); } } }
 
         private String _LastLoginIP;
@@ -142,7 +142,7 @@ namespace XCode.Membership
         [DisplayName("最后登录IP")]
         [Description("最后登录IP")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("LastLoginIP", "最后登录IP", "nvarchar(50)")]
+        [BindColumn("LastLoginIP", "最后登录IP", "")]
         public String LastLoginIP { get { return _LastLoginIP; } set { if (OnPropertyChanging(__.LastLoginIP, value)) { _LastLoginIP = value; OnPropertyChanged(__.LastLoginIP); } } }
 
         private DateTime _RegisterTime;
@@ -150,7 +150,7 @@ namespace XCode.Membership
         [DisplayName("注册时间")]
         [Description("注册时间")]
         [DataObjectField(false, false, true, 0)]
-        [BindColumn("RegisterTime", "注册时间", "datetime")]
+        [BindColumn("RegisterTime", "注册时间", "")]
         public DateTime RegisterTime { get { return _RegisterTime; } set { if (OnPropertyChanging(__.RegisterTime, value)) { _RegisterTime = value; OnPropertyChanged(__.RegisterTime); } } }
 
         private String _RegisterIP;
@@ -158,7 +158,7 @@ namespace XCode.Membership
         [DisplayName("注册IP")]
         [Description("注册IP")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("RegisterIP", "注册IP", "nvarchar(50)")]
+        [BindColumn("RegisterIP", "注册IP", "")]
         public String RegisterIP { get { return _RegisterIP; } set { if (OnPropertyChanging(__.RegisterIP, value)) { _RegisterIP = value; OnPropertyChanged(__.RegisterIP); } } }
 
         private String _Question;
@@ -166,7 +166,7 @@ namespace XCode.Membership
         [DisplayName("问题")]
         [Description("问题")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Question", "问题", "nvarchar(50)")]
+        [BindColumn("Question", "问题", "")]
         public String Question { get { return _Question; } set { if (OnPropertyChanging(__.Question, value)) { _Question = value; OnPropertyChanged(__.Question); } } }
 
         private String _Answer;
@@ -174,7 +174,7 @@ namespace XCode.Membership
         [DisplayName("答案")]
         [Description("答案")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Answer", "答案", "nvarchar(50)")]
+        [BindColumn("Answer", "答案", "")]
         public String Answer { get { return _Answer; } set { if (OnPropertyChanging(__.Answer, value)) { _Answer = value; OnPropertyChanged(__.Answer); } } }
 
         private String _Profile;
@@ -182,7 +182,7 @@ namespace XCode.Membership
         [DisplayName("配置信息")]
         [Description("配置信息")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn("Profile", "配置信息", "nvarchar(500)")]
+        [BindColumn("Profile", "配置信息", "")]
         public String Profile { get { return _Profile; } set { if (OnPropertyChanging(__.Profile, value)) { _Profile = value; OnPropertyChanged(__.Profile); } } }
         #endregion
 

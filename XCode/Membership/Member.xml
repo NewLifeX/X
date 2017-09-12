@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.6.6464.23741" NameSpace="XCode.Membership" ConnName="Membership" Output="">
-  <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
+<Tables Version="9.6.6464.25956" NameSpace="XCode.Membership" ConnName="Membership" Output="">
+  <Table Name="User" Description="用户" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称。登录用户名" />
@@ -29,7 +29,7 @@
       <Index Columns="RoleID" />
     </Indexes>
   </Table>
-  <Table Name="Role" Description="角色" DbType="SqlServer" RenderGenEntity="true">
+  <Table Name="Role" Description="角色" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
@@ -41,7 +41,7 @@
       <Index Columns="Name" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Menu" Description="菜单" DbType="SqlServer" BaseType="EntityTree" RenderGenEntity="true">
+  <Table Name="Menu" Description="菜单" BaseType="EntityTree" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
@@ -59,7 +59,7 @@
       <Index Columns="ParentID,Name" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Log" Description="日志" DbType="SqlServer" RenderGenEntity="true">
+  <Table Name="Log" Description="日志" ConnName="Log" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />
@@ -77,7 +77,7 @@
       <Index Columns="CreateTime" />
     </Indexes>
   </Table>
-  <Table Name="UserOnline" Description="用户在线" ConnName="Visit" DbType="SqlServer">
+  <Table Name="UserOnline" Description="用户在线" ConnName="Log">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="UserID" DataType="Int32" Description="用户" />
@@ -97,7 +97,7 @@
       <Index Columns="CreateTime" />
     </Indexes>
   </Table>
-  <Table Name="VisitStat" Description="访问统计" ConnName="Visit" DbType="SqlServer">
+  <Table Name="VisitStat" Description="访问统计" ConnName="Log">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Year" DataType="Int32" Description="年" />

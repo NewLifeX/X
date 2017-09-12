@@ -13,7 +13,7 @@ namespace XCode.Membership
     [Description("访问统计")]
     [BindIndex("IX_VisitStat_Year_Month_Day", false, "Year,Month,Day")]
     [BindIndex("IU_VisitStat_Page_Year_Month_Day", true, "Page,Year,Month,Day")]
-    [BindTable("VisitStat", Description = "访问统计", ConnName = "Visit", DbType = DatabaseType.SqlServer)]
+    [BindTable("VisitStat", Description = "访问统计", ConnName = "Log", DbType = DatabaseType.None)]
     public partial class VisitStat : IVisitStat
     {
         #region 属性
@@ -22,7 +22,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 0)]
-        [BindColumn("ID", "编号", "int")]
+        [BindColumn("ID", "编号", "")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
         private Int32 _Year;
@@ -30,7 +30,7 @@ namespace XCode.Membership
         [DisplayName("年")]
         [Description("年")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Year", "年", "int")]
+        [BindColumn("Year", "年", "")]
         public Int32 Year { get { return _Year; } set { if (OnPropertyChanging(__.Year, value)) { _Year = value; OnPropertyChanged(__.Year); } } }
 
         private Int32 _Month;
@@ -38,7 +38,7 @@ namespace XCode.Membership
         [DisplayName("月")]
         [Description("月")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Month", "月", "int")]
+        [BindColumn("Month", "月", "")]
         public Int32 Month { get { return _Month; } set { if (OnPropertyChanging(__.Month, value)) { _Month = value; OnPropertyChanged(__.Month); } } }
 
         private Int32 _Day;
@@ -46,7 +46,7 @@ namespace XCode.Membership
         [DisplayName("日")]
         [Description("日")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Day", "日", "int")]
+        [BindColumn("Day", "日", "")]
         public Int32 Day { get { return _Day; } set { if (OnPropertyChanging(__.Day, value)) { _Day = value; OnPropertyChanged(__.Day); } } }
 
         private String _Page;
@@ -54,7 +54,7 @@ namespace XCode.Membership
         [DisplayName("页面")]
         [Description("页面")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Page", "页面", "nvarchar(50)")]
+        [BindColumn("Page", "页面", "")]
         public String Page { get { return _Page; } set { if (OnPropertyChanging(__.Page, value)) { _Page = value; OnPropertyChanged(__.Page); } } }
 
         private String _Title;
@@ -62,7 +62,7 @@ namespace XCode.Membership
         [DisplayName("标题")]
         [Description("标题")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Title", "标题", "nvarchar(50)", Master = true)]
+        [BindColumn("Title", "标题", "", Master = true)]
         public String Title { get { return _Title; } set { if (OnPropertyChanging(__.Title, value)) { _Title = value; OnPropertyChanged(__.Title); } } }
 
         private Int32 _Times;
@@ -70,7 +70,7 @@ namespace XCode.Membership
         [DisplayName("次数")]
         [Description("次数")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Times", "次数", "int")]
+        [BindColumn("Times", "次数", "")]
         public Int32 Times { get { return _Times; } set { if (OnPropertyChanging(__.Times, value)) { _Times = value; OnPropertyChanged(__.Times); } } }
 
         private Int32 _Users;
@@ -78,7 +78,7 @@ namespace XCode.Membership
         [DisplayName("用户")]
         [Description("用户")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Users", "用户", "int")]
+        [BindColumn("Users", "用户", "")]
         public Int32 Users { get { return _Users; } set { if (OnPropertyChanging(__.Users, value)) { _Users = value; OnPropertyChanged(__.Users); } } }
 
         private Int32 _IPs;
@@ -86,7 +86,7 @@ namespace XCode.Membership
         [DisplayName("IP")]
         [Description("IP")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("IPs", "IP", "int")]
+        [BindColumn("IPs", "IP", "")]
         public Int32 IPs { get { return _IPs; } set { if (OnPropertyChanging(__.IPs, value)) { _IPs = value; OnPropertyChanged(__.IPs); } } }
 
         private Int32 _Error;
@@ -94,7 +94,7 @@ namespace XCode.Membership
         [DisplayName("错误")]
         [Description("错误")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Error", "错误", "int")]
+        [BindColumn("Error", "错误", "")]
         public Int32 Error { get { return _Error; } set { if (OnPropertyChanging(__.Error, value)) { _Error = value; OnPropertyChanged(__.Error); } } }
 
         private Int64 _Cost;
@@ -102,7 +102,7 @@ namespace XCode.Membership
         [DisplayName("耗时")]
         [Description("耗时。毫秒")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Cost", "耗时。毫秒", "bigint")]
+        [BindColumn("Cost", "耗时。毫秒", "")]
         public Int64 Cost { get { return _Cost; } set { if (OnPropertyChanging(__.Cost, value)) { _Cost = value; OnPropertyChanged(__.Cost); } } }
 
         private DateTime _CreateTime;
@@ -110,7 +110,7 @@ namespace XCode.Membership
         [DisplayName("创建时间")]
         [Description("创建时间")]
         [DataObjectField(false, false, true, 0)]
-        [BindColumn("CreateTime", "创建时间", "datetime")]
+        [BindColumn("CreateTime", "创建时间", "")]
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
         private DateTime _UpdateTime;
@@ -118,7 +118,7 @@ namespace XCode.Membership
         [DisplayName("更新时间")]
         [Description("更新时间")]
         [DataObjectField(false, false, true, 0)]
-        [BindColumn("UpdateTime", "更新时间", "datetime")]
+        [BindColumn("UpdateTime", "更新时间", "")]
         public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
 
         private String _Remark;
@@ -126,7 +126,7 @@ namespace XCode.Membership
         [DisplayName("详细信息")]
         [Description("详细信息")]
         [DataObjectField(false, false, true, 500)]
-        [BindColumn("Remark", "详细信息", "nvarchar(500)")]
+        [BindColumn("Remark", "详细信息", "")]
         public String Remark { get { return _Remark; } set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
         #endregion
 
