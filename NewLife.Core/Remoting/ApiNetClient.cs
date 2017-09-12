@@ -104,8 +104,7 @@ namespace NewLife.Remoting
             var msg = e.Message;
             if (msg.Reply) return;
 
-            var ac = Provider as ApiClient;
-            if (ac != null) ac.LastActive = DateTime.Now;
+            if (Provider is ApiClient ac) ac.LastActive = DateTime.Now;
 
             //var host = this.GetService<IApiHost>();
             var host = Provider as IApiHost;

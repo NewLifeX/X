@@ -48,8 +48,7 @@ namespace NewLife.Extension
             try
             {
                 var synth = _type.CreateInstance(new Object[0]);
-                var vs = synth.Invoke("GetInstalledVoices") as IList;
-                if (vs != null && vs.Count > 0)
+                if (synth.Invoke("GetInstalledVoices") is IList vs && vs.Count > 0)
                 {
                     var flag = false;
                     foreach (var item in vs)

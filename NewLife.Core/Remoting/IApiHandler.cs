@@ -42,8 +42,7 @@ namespace NewLife.Remoting
             if (controller is IApi) (controller as IApi).Session = session;
 
             // 服务端需要检查登录授权
-            var svrHost = Host as ApiServer;
-            if (svrHost != null && !svrHost.Anonymous)
+            if (Host is ApiServer svrHost && !svrHost.Anonymous)
             {
                 if (controller.GetType().GetCustomAttribute<AllowAnonymousAttribute>() == null &&
                     api.Method.GetCustomAttribute<AllowAnonymousAttribute>() == null)

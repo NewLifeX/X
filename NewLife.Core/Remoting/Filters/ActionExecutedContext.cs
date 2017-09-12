@@ -25,8 +25,7 @@ namespace NewLife.Remoting
         public ActionExecutedContext(ControllerContext context) : base(context)
         {
             // 可能发生了异常
-            var etx = context as ExceptionContext;
-            if (etx != null)
+            if (context is ExceptionContext etx)
             {
                 Exception = etx.Exception;
                 ExceptionHandled = etx.ExceptionHandled;

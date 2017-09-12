@@ -239,8 +239,7 @@ namespace NewLife.Log
         {
             var clg = _Log as TextControlLog;
             var ftl = _Log as TextFileLog;
-            var cmp = _Log as CompositeLog;
-            if (cmp != null)
+            if (_Log is CompositeLog cmp)
             {
                 ftl = cmp.Get<TextFileLog>();
                 clg = cmp.Get<TextControlLog>();

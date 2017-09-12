@@ -48,8 +48,7 @@ namespace NewLife.Windows
             // 挂载定时器
             _timer = new TimerX(OnCheck, null, 300, 300);
 
-            var frm = Parent as Form;
-            if (frm != null)
+            if (Parent is Form frm)
             {
                 frm.FormClosing += frm_FormClosing;
             }

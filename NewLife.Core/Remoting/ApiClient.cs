@@ -159,8 +159,7 @@ namespace NewLife.Remoting
 
             WriteLog("{0} SetRemote {1}", type.Name, nu);
 
-            var ac = type.CreateInstance() as IApiClient;
-            if (ac != null)
+            if (type.CreateInstance() is IApiClient ac)
             {
                 ac.Provider = this;
                 ac.Log = Log;

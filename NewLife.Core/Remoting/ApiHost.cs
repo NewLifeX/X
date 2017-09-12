@@ -207,7 +207,7 @@ namespace NewLife.Remoting
                 {
                     code = aex.Code;
                     if (ex.Data != null && ex.Data.Count > 0)
-                        result = ex.Data;
+                        result = ex.Data.ToDictionary();
                     else
                         result = ex?.Message;
                 }

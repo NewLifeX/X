@@ -176,14 +176,13 @@ namespace NewLife.Remoting
                     session["Controller"] = ts = new NullableDictionary<Type, Object>();
 
                     // 析构时销毁所有从属控制器
-                    var sd = session as IDisposable2;
-                    if (sd != null) sd.OnDisposed += (s, e) =>
-                    {
-                        foreach (var item in ts)
-                        {
-                            item.Value.TryDispose();
-                        }
-                    };
+                    if (session is IDisposable2 sd) sd.OnDisposed += (s, e) =>
+                      {
+                          foreach (var item in ts)
+                          {
+                              item.Value.TryDispose();
+                          }
+                      };
                 }
 
                 controller = ts[api.Type];

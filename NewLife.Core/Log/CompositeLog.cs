@@ -65,8 +65,7 @@ namespace NewLife.Log
                     if (item is TLog) return item as TLog;
 
                     // 递归获取内层日志
-                    var cmp = item as CompositeLog;
-                    if (cmp != null)
+                    if (item is CompositeLog cmp)
                     {
                         var log = cmp.Get<TLog>();
                         if (log != null) return log;

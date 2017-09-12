@@ -7,8 +7,7 @@ namespace NewLife.Remoting
     {
         public override Boolean Init(Object config)
         {
-            var uri = config as NetUri;
-            if (uri != null)
+            if (config is NetUri uri)
                 Client = uri.CreateRemote();
             else if (config is Uri)
                 Client = ((Uri)config).CreateRemote();

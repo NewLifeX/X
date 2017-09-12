@@ -93,8 +93,7 @@ namespace NewLife.Web
             if (String.IsNullOrEmpty(str)) return;
 
             // 尝试找到页面，并在页面上写上信息
-            var lt = page.FindControl("RunTime") as Literal;
-            if (lt != null)
+            if (page.FindControl("RunTime") is Literal lt)
                 lt.Text = str;
             else
                 Response.Write(str);
