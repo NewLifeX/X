@@ -55,6 +55,7 @@
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\MapAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
+    <Compile Include="Cache\DataCache.cs" />
     <Compile Include="Code\ClassBuilder.cs" />
     <Compile Include="Code\EntityBuilder.cs" />
     <Compile Include="Common\DataSimulation.cs" />
@@ -95,6 +96,8 @@
     <Compile Include="Membership\角色.Biz.cs">
     </Compile>
     <Compile Include="Membership\角色.cs" />
+    <Compile Include="Membership\访问统计.Biz.cs" />
+    <Compile Include="Membership\访问统计.cs" />
     <Compile Include="Model\ConcatExpression.cs" />
     <Compile Include="Model\Expression.cs" />
     <Compile Include="Model\FormatExpression.cs" />

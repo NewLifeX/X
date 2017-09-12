@@ -68,9 +68,8 @@ namespace NewLife.Web
             set { Context.Items["HasWrite"] = value; }
         }
 
-        private static String _RunTimeFormat = "页面执行时间{0}毫秒！";
         /// <summary>执行时间字符串</summary>
-        public static String RunTimeFormat { get { return _RunTimeFormat; } set { _RunTimeFormat = value; } }
+        public static String RunTimeFormat { get; set; } = "页面执行时间{0}毫秒！";
 
         /// <summary>输出运行时间</summary>
         void WriteRunTime(Object sender, EventArgs e)

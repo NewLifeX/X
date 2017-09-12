@@ -15,6 +15,14 @@ namespace NewLife.Cube.Admin.Controllers
     [EntityAuthorize(PermissionFlags.Detail)]
     public class DbController : ControllerBaseX
     {
+        /// <summary>菜单顺序。扫描是会反射读取</summary>
+        protected static Int32 MenuOrder { get; set; }
+
+        static DbController()
+        {
+            MenuOrder = 26;
+        }
+
         /// <summary>数据库列表</summary>
         /// <returns></returns>
         [EntityAuthorize(PermissionFlags.Detail)]

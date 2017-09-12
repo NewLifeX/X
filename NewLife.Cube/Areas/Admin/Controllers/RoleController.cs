@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Web.Mvc;
 using XCode;
 using XCode.Membership;
@@ -15,6 +14,8 @@ namespace NewLife.Cube.Admin.Controllers
     {
         static RoleController()
         {
+            MenuOrder = 90;
+
             FormFields.RemoveField("Remark");
         }
 

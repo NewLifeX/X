@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Web;
 using System.Web.UI;
 using NewLife.Log;
+using NewLife.Model;
+using NewLife.Web;
 using XCode.Membership;
 
 namespace XCode.Web
@@ -19,32 +22,83 @@ namespace XCode.Web
         void IHttpModule.Init(HttpApplication context)
         {
             context.PostRequestHandlerExecute += OnPost;
+            context.Error += OnPost;
         }
         #endregion
 
         /// <summary>Web在线</summary>
         public static Boolean WebOnline { get; set; }
 
-        /// <summary>Web在线</summary>
+        /// <summary>访问记录</summary>
         public static Boolean WebBehavior { get; set; }
 
-        /// <summary>输出运行时间</summary>
         void OnPost(Object sender, EventArgs e)
         {
+            if (!WebOnline && !WebBehavior) return;
+
+            var ctx = HttpContext.Current;
+            if (ctx == null) return;
+
+            var req = ctx.Request;
+            if (req == null) return;
+
+            var user = ctx.User?.Identity as IManageUser;
+            var userid = user != null ? user.ID : 0;
+
+            var ip = WebHelper.UserHost;
+
             try
             {
-                //var set = Setting.Current;
+                var page = GetPage(req);
+                var msg = GetMessage(ctx, req);
 
                 // 统计网页状态
-                if (WebOnline) UserOnline.SetWebStatus();
+                if (WebOnline && ctx.Session != null) UserOnline.SetWebStatus(ctx.Session.SessionID, page, msg, user, ip);
 
                 // 记录用户访问的Url
-                if (WebBehavior) SaveBehavior();
+                if (WebBehavior) SaveBehavior(ctx, req, userid, ip, page, msg);
             }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
             }
+        }
+
+        String GetMessage(HttpContext ctx, HttpRequest req)
+        {
+            var title = GetTitle(ctx, req);
+            var msg = "{0} {1}".F(req.HttpMethod, req.RawUrl);
+            if (!title.IsNullOrEmpty()) msg = title + " " + msg;
+
+            var err = ctx.Error?.Message;
+            if (!err.IsNullOrEmpty()) msg += " " + err;
+
+            return msg;
+        }
+
+        String GetTitle(HttpContext ctx, HttpRequest req)
+        {
+            var title = ctx.Items["Title"] + "";
+            if (title.IsNullOrEmpty())
+            {
+                if (ctx.Handler is Page page) title = page.Title;
+            }
+
+            return title;
+        }
+
+        String GetPage(HttpRequest req)
+        {
+            var p = req.Path;
+            if (p.IsNullOrEmpty()) return null;
+
+            var ss = p.Split('/');
+            if (ss.Length == 0) return p;
+
+            // 如果最后一段是数字，则可能是参数，需要去掉
+            if (ss[ss.Length - 1].ToInt() > 0) p = "/" + ss.Take(ss.Length - 1).Join("/");
+
+            return p;
         }
 
         /// <summary>忽略的后缀</summary>
@@ -53,37 +107,21 @@ namespace XCode.Web
             ".woff", ".woff2", ".svg", ".ttf", ".otf", ".eot"   // 字体
         };
 
-        void SaveBehavior()
+        void SaveBehavior(HttpContext ctx, HttpRequest req, Int32 userid, String ip, String page, String msg)
         {
-            var ctx = HttpContext.Current;
-            if (ctx == null) return;
-
-            var req = ctx.Request;
-            if (req == null) return;
-
-            var p = req.Path;
-            if (p.IsNullOrEmpty()) return;
+            if (page.IsNullOrEmpty()) return;
 
             // 过滤后缀
-            var ext = Path.GetExtension(p);
+            var ext = Path.GetExtension(page);
             if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
 
-            var title = ctx.Items["Title"] + "";
-            //if (title.IsNullOrEmpty())
-            //{
-            //    var route = ctx.Handler as MvcHandler;
-            //    if (route != null) title = route + "";
-            //}
-
-            if (title.IsNullOrEmpty())
-            {
-                var page = ctx.Handler as Page;
-                if (page != null) title = page.Title;
-            }
-
-            var msg = "{0} {1}".F(req.HttpMethod, req.RawUrl);
-            if (!title.IsNullOrEmpty()) msg = title + " " + msg;
             LogProvider.Provider.WriteLog("访问", "记录", msg);
+
+            var title = GetTitle(ctx, req);
+            var ts = DateTime.Now - ctx.Timestamp;
+
+            // 访问统计
+            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, userid, ip, ctx.Error?.Message);
         }
     }
 }

@@ -13,6 +13,8 @@ namespace NewLife.Cube.Admin.Controllers
     {
         static MenuController()
         {
+            MenuOrder = 80;
+
             //// 过滤要显示的字段
             //var names = "ID,TreeNodeName,DisplayName,Url,Sort,Visible,Necessary".Split(",");
             //var fs = Menu.Meta.AllFields;

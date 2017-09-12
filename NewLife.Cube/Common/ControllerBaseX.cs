@@ -21,6 +21,7 @@ namespace NewLife.Cube
             var dic = new Dictionary<MethodInfo, Int32>();
 
             var type = GetType();
+
             // 添加该类型下的所有Action
             foreach (var method in type.GetMethods())
             {
