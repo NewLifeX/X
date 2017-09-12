@@ -24,6 +24,7 @@
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Times"))">次数</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Users"))">用户</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("IPs"))">IP</a></th>
+            <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Error"))">错误</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Cost"))">耗时</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("CreateTime"))">创建时间</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("UpdateTime"))">更新时间</a></th>
@@ -49,6 +50,7 @@
                 <td class="text-right">@entity.Times.ToString("n0")</td>
                 <td class="text-right">@entity.Users.ToString("n0")</td>
                 <td class="text-right">@entity.IPs.ToString("n0")</td>
+                <td class="text-right">@entity.Error.ToString("n0")</td>
                 <td class="text-right">@entity.AvgCost.ToString("n0") ms</td>
                 <td>@entity.CreateTime.ToFullString("")</td>
                 <td>@entity.UpdateTime.ToFullString("")</td>

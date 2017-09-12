@@ -39,12 +39,11 @@ namespace XCode.Membership
                 if (!Dirtys[__.UserName])
                 {
 #if !__CORE__
-                    var user = HttpContext.Current?.User?.Identity as IManageUser;
 #else
                     var user = ManageProvider.Provider?.Current;
 #endif
                     //var user = ManageProvider.User;
-                    if (user != null) UserName = user + "";
+                    if (HttpContext.Current?.User?.Identity is IManageUser user) UserName = user + "";
                 }
             }
 

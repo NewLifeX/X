@@ -1,25 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Xml.Serialization;
-using NewLife;
 using NewLife.Data;
-using NewLife.Log;
-using NewLife.Model;
-using NewLife.Reflection;
-using NewLife.Threading;
-using NewLife.Web;
 using XCode;
 using XCode.Cache;
-using XCode.Configuration;
-using XCode.DataAccessLayer;
-using XCode.Membership;
 
 namespace XCode.Membership
 {
@@ -34,6 +19,7 @@ namespace XCode.Membership
             df.Add(__.Times);
             df.Add(__.Users);
             df.Add(__.IPs);
+            df.Add(__.Error);
 
             // 过滤器 UserModule、TimeModule、IPModule
             Meta.Modules.Add<TimeModule>();
@@ -44,7 +30,13 @@ namespace XCode.Membership
             {
                 var ss = k.Split(new Char[] { '#' }, StringSplitOptions.None);
                 var ds = ss[1].SplitAsInt("_");
-                return Find(_.Page == ss[0] & _.Year == ds[0] & _.Month == ds[1] & _.Day == ds[2]);
+                var exp = _.Year == ds[0] & _.Month == ds[1] & _.Day == ds[2];
+                if (ss[0].IsNullOrEmpty())
+                    exp &= _.Page.IsNullOrEmpty();
+                else
+                    exp &= _.Page == ss[0];
+
+                return Find(exp);
             };
             sc.GetSlaveKeyMethod = e => "{0}#{1}_{2}_{3}".F(e.Page, e.Year, e.Month, e.Day);
         }
@@ -154,26 +146,27 @@ namespace XCode.Membership
         /// <param name="cost"></param>
         /// <param name="userid"></param>
         /// <param name="ip"></param>
+        /// <param name="err"></param>
         /// <returns></returns>
-        public static VisitStat Add(String page, String title, Int32 cost, Int32 userid, String ip)
+        public static VisitStat Add(String page, String title, Int32 cost, Int32 userid, String ip, String err)
         {
             var now = DateTime.Now;
 
             // 今天
-            var st = Add(page, now.Year, now.Month, now.Day, title, cost, userid, ip);
-            Add(null, now.Year, now.Month, now.Day, title, cost, userid, ip);
+            var st = Add(page, now.Year, now.Month, now.Day, title, cost, userid, ip, err);
+            Add(null, now.Year, now.Month, now.Day, null, cost, userid, ip, err);
 
             // 本月
-            Add(page, now.Year, now.Month, 0, title, cost, userid, ip);
-            Add(null, now.Year, now.Month, 0, title, cost, userid, ip);
+            Add(page, now.Year, now.Month, 0, title, cost, userid, ip, err);
+            Add(null, now.Year, now.Month, 0, null, cost, userid, ip, err);
 
             // 今年
-            Add(page, now.Year, 0, 0, title, cost, userid, ip);
-            Add(null, now.Year, 0, 0, title, cost, userid, ip);
+            Add(page, now.Year, 0, 0, title, cost, userid, ip, err);
+            Add(null, now.Year, 0, 0, null, cost, userid, ip, err);
 
             // 全部
-            Add(page, 0, 0, 0, title, cost, userid, ip);
-            Add(null, 0, 0, 0, title, cost, userid, ip);
+            Add(page, 0, 0, 0, title, cost, userid, ip, err);
+            Add(null, 0, 0, 0, null, cost, userid, ip, err);
 
             return st;
         }
@@ -187,8 +180,9 @@ namespace XCode.Membership
         /// <param name="cost"></param>
         /// <param name="userid"></param>
         /// <param name="ip"></param>
+        /// <param name="err"></param>
         /// <returns></returns>
-        public static VisitStat Add(String page, Int32 year, Int32 month, Int32 day, String title, Int32 cost, Int32 userid, String ip)
+        public static VisitStat Add(String page, Int32 year, Int32 month, Int32 day, String title, Int32 cost, Int32 userid, String ip, String err)
         {
             var st = FindByPage(page, year, month, day);
             if (st == null)
@@ -207,6 +201,7 @@ namespace XCode.Membership
             st.Title = title;
             st.Times++;
             st.Cost += cost;
+            if (!err.IsNullOrEmpty()) st.Error++;
 
             if (userid > 0 || !ip.IsNullOrEmpty())
             {
@@ -224,7 +219,7 @@ namespace XCode.Membership
                 }
                 // 如果超长，砍掉前面
                 var ds = ss as IEnumerable<String>;
-                Int32 k = 1;
+                var k = 1;
                 while (true)
                 {
                     var str = ds.Join(",");
@@ -238,7 +233,7 @@ namespace XCode.Membership
                 }
             }
 
-            st.SaveAsync(5000);
+            st.SaveAsync(1000);
 
             return st;
         }

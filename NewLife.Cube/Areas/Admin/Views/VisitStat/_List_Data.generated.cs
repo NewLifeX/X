@@ -247,14 +247,30 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1402), Tuple.Create("\"", 1443)
+WriteAttribute("href", Tuple.Create(" href=\"", 1402), Tuple.Create("\"", 1444)
             
             #line 27 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1409), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Cost"))
+, Tuple.Create(Tuple.Create("", 1409), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Error"))
             
             #line default
             #line hidden
 , 1409), false)
+);
+
+WriteLiteral(">错误</a></th>\r\n            <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral("><a");
+
+WriteAttribute("href", Tuple.Create(" href=\"", 1497), Tuple.Create("\"", 1538)
+            
+            #line 28 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 1504), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Cost"))
+            
+            #line default
+            #line hidden
+, 1504), false)
 );
 
 WriteLiteral(">耗时</a></th>\r\n            <th");
@@ -263,14 +279,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1496), Tuple.Create("\"", 1543)
+WriteAttribute("href", Tuple.Create(" href=\"", 1591), Tuple.Create("\"", 1638)
             
-            #line 28 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1503), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("CreateTime"))
+            #line 29 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 1598), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("CreateTime"))
             
             #line default
             #line hidden
-, 1503), false)
+, 1598), false)
 );
 
 WriteLiteral(">创建时间</a></th>\r\n            <th");
@@ -279,26 +295,26 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1598), Tuple.Create("\"", 1645)
+WriteAttribute("href", Tuple.Create(" href=\"", 1693), Tuple.Create("\"", 1740)
             
-            #line 29 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1605), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("UpdateTime"))
+            #line 30 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 1700), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("UpdateTime"))
             
             #line default
             #line hidden
-, 1605), false)
+, 1700), false)
 );
 
 WriteLiteral(">更新时间</a></th>\r\n");
 
             
-            #line 30 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 31 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 30 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 31 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
              if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
 
@@ -312,7 +328,7 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">操作</th>\r\n");
 
             
-            #line 33 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 34 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
             }
 
             
@@ -321,13 +337,13 @@ WriteLiteral(">操作</th>\r\n");
 WriteLiteral("        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
 
             
-            #line 37 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 38 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 37 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 38 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
          foreach (var entity in Model)
         {
             var y = entity.Year > 0 ? entity.Year + "" : "全部";
@@ -344,7 +360,7 @@ WriteLiteral(" class=\"text-center hidden-md hidden-sm hidden-xs\"");
 WriteLiteral(">");
 
             
-            #line 43 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 44 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                                                                  Write(entity.ID);
 
             
@@ -357,7 +373,7 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 44 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 45 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                                   Write(y);
 
             
@@ -370,7 +386,7 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 45 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 46 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                                   Write(m);
 
             
@@ -383,7 +399,7 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 46 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 47 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                                   Write(d);
 
             
@@ -392,7 +408,7 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 47 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 48 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                Write(entity.Page);
 
             
@@ -401,7 +417,7 @@ WriteLiteral("</td>\r\n                <td>");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 48 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 49 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                Write(entity.Title);
 
             
@@ -414,7 +430,7 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 49 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 50 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                                   Write(entity.Times.ToString("n0"));
 
             
@@ -427,7 +443,7 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 50 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 51 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                                   Write(entity.Users.ToString("n0"));
 
             
@@ -440,7 +456,7 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 51 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 52 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                                   Write(entity.IPs.ToString("n0"));
 
             
@@ -453,7 +469,20 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 52 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 53 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+                                  Write(entity.Error.ToString("n0"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</td>\r\n                <td");
+
+WriteLiteral(" class=\"text-right\"");
+
+WriteLiteral(">");
+
+            
+            #line 54 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                                   Write(entity.AvgCost.ToString("n0"));
 
             
@@ -462,7 +491,7 @@ WriteLiteral(">");
 WriteLiteral(" ms</td>\r\n                <td>");
 
             
-            #line 53 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 55 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                Write(entity.CreateTime.ToFullString(""));
 
             
@@ -471,7 +500,7 @@ WriteLiteral(" ms</td>\r\n                <td>");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 54 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 56 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                Write(entity.UpdateTime.ToFullString(""));
 
             
@@ -480,13 +509,13 @@ WriteLiteral("</td>\r\n                <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 55 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 57 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 55 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 57 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                  if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
@@ -502,7 +531,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 58 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 60 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                    Write(Html.Partial("_List_Data_Action", (Object)entity));
 
             
@@ -511,7 +540,7 @@ WriteLiteral("                        ");
 WriteLiteral("\r\n                    </td>\r\n");
 
             
-            #line 60 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 62 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
                 }
 
             
@@ -520,7 +549,7 @@ WriteLiteral("\r\n                    </td>\r\n");
 WriteLiteral("            </tr>\r\n");
 
             
-            #line 62 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
+            #line 64 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
         }
 
             

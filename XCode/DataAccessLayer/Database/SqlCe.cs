@@ -388,12 +388,12 @@ namespace XCode.DataAccessLayer
                 "ORDER BY TABLE_NAME, INDEX_NAME, ORDINAL_POSITION";
 
 
-        private readonly String _DataTypeSql =
-                "SELECT     TYPE_NAME as typename, DATA_TYPE as ProviderDbType,TYPE_NAME as datatype, COLUMN_SIZE as ColumnSize, LITERAL_PREFIX as LiteralPrefix, " +
-                "           LITERAL_SUFFIX as LiteralSuffix, CREATE_PARAMS as CreateParameters, IS_NULLABLE as IsNullable, CASE_SENSITIVE as IsCaseSensitive, " +
-                "           SEARCHABLE as IsSearchable, UNSIGNED_ATTRIBUTE as IsUnsigned, FIXED_PREC_SCALE, AUTO_UNIQUE_VALUE, LOCAL_TYPE_NAME,  " +
-                "           MINIMUM_SCALE as MinimumScale, MAXIMUM_SCALE as MaximumScale, GUID , TYPELIB , VERSION , IS_LONG as IsLong, BEST_MATCH as IsBestMatch, IS_FIXEDLENGTH as IsFixedLength  " +
-                " FROM      INFORMATION_SCHEMA.PROVIDER_TYPES ";
+        //private readonly String _DataTypeSql =
+        //        "SELECT     TYPE_NAME as typename, DATA_TYPE as ProviderDbType,TYPE_NAME as datatype, COLUMN_SIZE as ColumnSize, LITERAL_PREFIX as LiteralPrefix, " +
+        //        "           LITERAL_SUFFIX as LiteralSuffix, CREATE_PARAMS as CreateParameters, IS_NULLABLE as IsNullable, CASE_SENSITIVE as IsCaseSensitive, " +
+        //        "           SEARCHABLE as IsSearchable, UNSIGNED_ATTRIBUTE as IsUnsigned, FIXED_PREC_SCALE, AUTO_UNIQUE_VALUE, LOCAL_TYPE_NAME,  " +
+        //        "           MINIMUM_SCALE as MinimumScale, MAXIMUM_SCALE as MaximumScale, GUID , TYPELIB , VERSION , IS_LONG as IsLong, BEST_MATCH as IsBestMatch, IS_FIXEDLENGTH as IsFixedLength  " +
+        //        " FROM      INFORMATION_SCHEMA.PROVIDER_TYPES ";
         #endregion
 
         /// <summary>数据类型映射</summary>

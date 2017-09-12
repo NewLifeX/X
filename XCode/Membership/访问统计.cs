@@ -89,6 +89,14 @@ namespace XCode.Membership
         [BindColumn("IPs", "IP", "int")]
         public Int32 IPs { get { return _IPs; } set { if (OnPropertyChanging(__.IPs, value)) { _IPs = value; OnPropertyChanged(__.IPs); } } }
 
+        private Int32 _Error;
+        /// <summary>错误</summary>
+        [DisplayName("错误")]
+        [Description("错误")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Error", "错误", "int")]
+        public Int32 Error { get { return _Error; } set { if (OnPropertyChanging(__.Error, value)) { _Error = value; OnPropertyChanged(__.Error); } } }
+
         private Int64 _Cost;
         /// <summary>耗时。毫秒</summary>
         [DisplayName("耗时")]
@@ -141,6 +149,7 @@ namespace XCode.Membership
                     case __.Times : return _Times;
                     case __.Users : return _Users;
                     case __.IPs : return _IPs;
+                    case __.Error : return _Error;
                     case __.Cost : return _Cost;
                     case __.CreateTime : return _CreateTime;
                     case __.UpdateTime : return _UpdateTime;
@@ -161,6 +170,7 @@ namespace XCode.Membership
                     case __.Times : _Times = Convert.ToInt32(value); break;
                     case __.Users : _Users = Convert.ToInt32(value); break;
                     case __.IPs : _IPs = Convert.ToInt32(value); break;
+                    case __.Error : _Error = Convert.ToInt32(value); break;
                     case __.Cost : _Cost = Convert.ToInt64(value); break;
                     case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
                     case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
@@ -201,6 +211,9 @@ namespace XCode.Membership
 
             /// <summary>IP</summary>
             public static readonly Field IPs = FindByName(__.IPs);
+
+            /// <summary>错误</summary>
+            public static readonly Field Error = FindByName(__.Error);
 
             /// <summary>耗时。毫秒</summary>
             public static readonly Field Cost = FindByName(__.Cost);
@@ -247,6 +260,9 @@ namespace XCode.Membership
             /// <summary>IP</summary>
             public const String IPs = "IPs";
 
+            /// <summary>错误</summary>
+            public const String Error = "Error";
+
             /// <summary>耗时。毫秒</summary>
             public const String Cost = "Cost";
 
@@ -292,6 +308,9 @@ namespace XCode.Membership
 
         /// <summary>IP</summary>
         Int32 IPs { get; set; }
+
+        /// <summary>错误</summary>
+        Int32 Error { get; set; }
 
         /// <summary>耗时。毫秒</summary>
         Int64 Cost { get; set; }

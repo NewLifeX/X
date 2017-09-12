@@ -115,15 +115,17 @@ namespace XCode.Membership
         #region 业务
         /// <summary>设置会话状态</summary>
         /// <param name="sessionid"></param>
+        /// <param name="page"></param>
         /// <param name="status"></param>
         /// <param name="userid"></param>
         /// <param name="name"></param>
         /// <param name="ip"></param>
         /// <returns></returns>
-        public static UserOnline SetStatus(String sessionid, String status, Int32 userid = 0, String name = null, String ip = null)
+        public static UserOnline SetStatus(String sessionid, String page, String status, Int32 userid = 0, String name = null, String ip = null)
         {
             var entity = FindBySessionID(sessionid) ?? new UserOnline();
             entity.SessionID = sessionid;
+            entity.Page = page;
             entity.Status = status;
 
             entity.Times++;
@@ -151,9 +153,13 @@ namespace XCode.Membership
         private static TimerX _timer;
 
         /// <summary>设置网页会话状态</summary>
+        /// <param name="sessionid"></param>
+        /// <param name="page"></param>
         /// <param name="status"></param>
+        /// <param name="user"></param>
+        /// <param name="ip"></param>
         /// <returns></returns>
-        public static UserOnline SetWebStatus(String status = null)
+        public static UserOnline SetWebStatus(String sessionid, String page, String status, IManageUser user, String ip)
         {
             // 网页使用一个定时器来清理过期
             if (_timer == null)
@@ -164,20 +170,12 @@ namespace XCode.Membership
                 }
             }
 
-            var ctx = HttpContext.Current;
-            var ss = ctx.Session;
-            if (ss == null) return null;
-
-            if (status.IsNullOrEmpty()) status = ctx.Request.Url.PathAndQuery;
-            var ip = WebHelper.UserHost;
-
-            var user = ctx.User?.Identity as IManageUser;
-            if (user == null) return SetStatus(ss.SessionID, status, 0, null, ip);
+            if (user == null) return SetStatus(sessionid, page, status, 0, null, ip);
 
             user.Online = true;
             (user as IEntity).SaveAsync();
 
-            return SetStatus(ss.SessionID, status, user.ID, user + "", ip);
+            return SetStatus(sessionid, page, status, user.ID, user + "", ip);
         }
 #endif
 

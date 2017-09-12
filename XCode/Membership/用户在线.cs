@@ -58,6 +58,14 @@ namespace XCode.Membership
         [BindColumn("Times", "次数", "int")]
         public Int32 Times { get { return _Times; } set { if (OnPropertyChanging(__.Times, value)) { _Times = value; OnPropertyChanged(__.Times); } } }
 
+        private String _Page;
+        /// <summary>页面</summary>
+        [DisplayName("页面")]
+        [Description("页面")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("Page", "页面", "nvarchar(50)")]
+        public String Page { get { return _Page; } set { if (OnPropertyChanging(__.Page, value)) { _Page = value; OnPropertyChanged(__.Page); } } }
+
         private String _Status;
         /// <summary>状态</summary>
         [DisplayName("状态")]
@@ -114,6 +122,7 @@ namespace XCode.Membership
                     case __.Name : return _Name;
                     case __.SessionID : return _SessionID;
                     case __.Times : return _Times;
+                    case __.Page : return _Page;
                     case __.Status : return _Status;
                     case __.OnlineTime : return _OnlineTime;
                     case __.CreateIP : return _CreateIP;
@@ -131,6 +140,7 @@ namespace XCode.Membership
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.SessionID : _SessionID = Convert.ToString(value); break;
                     case __.Times : _Times = Convert.ToInt32(value); break;
+                    case __.Page : _Page = Convert.ToString(value); break;
                     case __.Status : _Status = Convert.ToString(value); break;
                     case __.OnlineTime : _OnlineTime = Convert.ToInt32(value); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
@@ -160,6 +170,9 @@ namespace XCode.Membership
 
             /// <summary>次数</summary>
             public static readonly Field Times = FindByName(__.Times);
+
+            /// <summary>页面</summary>
+            public static readonly Field Page = FindByName(__.Page);
 
             /// <summary>状态</summary>
             public static readonly Field Status = FindByName(__.Status);
@@ -197,6 +210,9 @@ namespace XCode.Membership
             /// <summary>次数</summary>
             public const String Times = "Times";
 
+            /// <summary>页面</summary>
+            public const String Page = "Page";
+
             /// <summary>状态</summary>
             public const String Status = "Status";
 
@@ -233,6 +249,9 @@ namespace XCode.Membership
 
         /// <summary>次数</summary>
         Int32 Times { get; set; }
+
+        /// <summary>页面</summary>
+        String Page { get; set; }
 
         /// <summary>状态</summary>
         String Status { get; set; }

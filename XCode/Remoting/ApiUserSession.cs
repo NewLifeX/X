@@ -237,8 +237,7 @@ namespace XCode.Remoting
             hi.Remark = content;
             hi.CreateTime = DateTime.Now;
 
-            var sc = Session as NetSession;
-            if (sc != null) hi.CreateIP = sc.Remote + "";
+            if (Session is NetSession sc) hi.CreateIP = sc.Remote + "";
 
             hi.SaveAsync();
         }

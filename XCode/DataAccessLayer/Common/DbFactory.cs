@@ -79,8 +79,7 @@ namespace XCode.DataAccessLayer
                     n++;
                     if ("" + item.Identity == "") continue;
 
-                    var db = item.Instance as IDatabase;
-                    if (db != null && db.Support(provider)) return item.Type;
+                    if (item.Instance is IDatabase db && db.Support(provider)) return item.Type;
                 }
 
                 if (DAL.Debug) DAL.WriteLog("无法从{0}个默认数据库提供者中识别到{1}！", n, provider);
