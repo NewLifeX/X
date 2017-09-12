@@ -91,6 +91,8 @@
     <Compile Include="Membership\角色.Biz.cs">
     </Compile>
     <Compile Include="Membership\角色.cs" />
+    <Compile Include="Membership\访问统计.Biz.cs" />
+    <Compile Include="Membership\访问统计.cs" />
     <Compile Include="Model\ConcatExpression.cs" />
     <Compile Include="Model\Expression.cs" />
     <Compile Include="Model\FormatExpression.cs" />

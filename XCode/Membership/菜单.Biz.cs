@@ -10,7 +10,9 @@ using NewLife;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
-#if !NET4
+#if NET4
+using System.Threading.Tasks;
+#else
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
