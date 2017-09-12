@@ -4,6 +4,7 @@ using System.IO;
 using System.Web;
 using System.Web.UI;
 using NewLife.Log;
+using NewLife.Web;
 using XCode.Membership;
 
 namespace XCode.Web
@@ -84,6 +85,14 @@ namespace XCode.Web
             var msg = "{0} {1}".F(req.HttpMethod, req.RawUrl);
             if (!title.IsNullOrEmpty()) msg = title + " " + msg;
             LogProvider.Provider.WriteLog("访问", "记录", msg);
+
+            var user = ManageProvider.User;
+            var userid = user != null ? user.ID : 0;
+
+            var ts = DateTime.Now - HttpContext.Current.Timestamp;
+
+            // 访问统计
+            VisitStat.Add(p, title, (Int32)ts.TotalMilliseconds, userid, WebHelper.UserHost);
         }
     }
 }

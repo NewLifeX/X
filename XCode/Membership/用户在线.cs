@@ -14,8 +14,8 @@ namespace XCode.Membership
     [BindIndex("IX_UserOnline_UserID", false, "UserID")]
     [BindIndex("IX_UserOnline_SessionID", false, "SessionID")]
     [BindIndex("IX_UserOnline_CreateTime", false, "CreateTime")]
-    [BindTable("UserOnline", Description = "用户在线", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
-    public partial class UserOnline<TEntity> : IUserOnline
+    [BindTable("UserOnline", Description = "用户在线", ConnName = "Visit", DbType = DatabaseType.SqlServer)]
+    public partial class UserOnline : IUserOnline
     {
         #region 属性
         private Int32 _ID;
