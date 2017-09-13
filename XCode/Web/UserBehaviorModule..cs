@@ -21,8 +21,17 @@ namespace XCode.Web
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {
+            context.AcquireRequestState += OnSession;
+            //context.PreRequestHandlerExecute += OnSession;
             context.PostRequestHandlerExecute += OnPost;
             context.Error += OnPost;
+        }
+
+        private void OnSession(Object sender, EventArgs e)
+        {
+            // 会话状态已创建一个会话 ID，但由于响应已被应用程序刷新而无法保存它
+            // 避免后面使用SessionID时报错
+            var sid = HttpContext.Current?.Session?.SessionID;
         }
         #endregion
 
@@ -83,6 +92,11 @@ namespace XCode.Web
             {
                 if (ctx.Handler is Page page) title = page.Title;
             }
+
+            // 有些标题是 Description，需要截断处理
+            if (title.Contains(",")) title = title.Substring(null, ",");
+            if (title.Contains("，")) title = title.Substring(null, "，");
+            if (title.Contains("。")) title = title.Substring(null, "。");
 
             return title;
         }
