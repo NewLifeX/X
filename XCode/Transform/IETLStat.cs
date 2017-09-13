@@ -22,11 +22,11 @@ namespace XCode.Transform
         /// <summary>次数</summary>
         Int32 Times { get; set; }
 
-        /// <summary>速度</summary>
-        Int32 Speed { get; set; }
+        ///// <summary>速度</summary>
+        //Int32 Speed { get; set; }
 
-        /// <summary>抽取速度</summary>
-        Int32 FetchSpeed { get; set; }
+        ///// <summary>抽取速度</summary>
+        //Int32 FetchSpeed { get; set; }
 
         /// <summary>错误</summary>
         Int32 Error { get; set; }
@@ -52,11 +52,11 @@ namespace XCode.Transform
         /// <summary>次数</summary>
         public Int32 Times { get; set; }
 
-        /// <summary>速度</summary>
-        public Int32 Speed { get; set; }
+        ///// <summary>速度</summary>
+        //public Int32 Speed { get; set; }
 
-        /// <summary>抽取速度</summary>
-        public Int32 FetchSpeed { get; set; }
+        ///// <summary>抽取速度</summary>
+        //public Int32 FetchSpeed { get; set; }
 
         /// <summary>错误</summary>
         public Int32 Error { get; set; }
