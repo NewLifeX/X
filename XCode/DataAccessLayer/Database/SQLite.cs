@@ -107,7 +107,7 @@ namespace XCode.DataAccessLayer
             {
                 // SQLite内部和.Net驱动都有Busy重试机制，多次重试仍然失败，则会出现dabase is locked。通过加大重试次数，减少高峰期出现locked的几率
                 // 繁忙超时时间。出现Busy时，SQLite内部会在该超时时间内多次尝试
-                if (!builder.ContainsKey("BusyTimeout")) builder["BusyTimeout"] = 500 + "";
+                if (!builder.ContainsKey("BusyTimeout")) builder["BusyTimeout"] = 50 + "";
                 // 重试次数。SQLite.Net驱动在遇到Busy时会多次尝试，每次随机等待1~150ms
                 if (!builder.ContainsKey("PrepareRetries")) builder["PrepareRetries"] = 10 + "";
             }
