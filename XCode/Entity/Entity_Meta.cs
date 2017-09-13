@@ -11,6 +11,12 @@ namespace XCode
         /// <summary>实体元数据</summary>
         public static class Meta
         {
+            static Meta()
+            {
+                // 避免实际应用中，直接调用Entity.Meta的静态方法时，没有引发TEntity的静态构造函数。
+                var entity = new TEntity();
+            }
+
             #region 主要属性
             /// <summary>实体类型</summary>
             public static Type ThisType { get { return typeof(TEntity); } }
