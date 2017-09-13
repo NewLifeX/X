@@ -22,10 +22,11 @@ namespace NewLife.Cube
             //HttpApplication.RegisterModule(typeof(ManagerModule));
 
             var set = Setting.Current;
-            if (set.WebOnline || set.WebBehavior)
+            if (set.WebOnline || set.WebBehavior || set.WebStatistics)
             {
                 UserBehaviorModule.WebOnline = set.WebOnline;
                 UserBehaviorModule.WebBehavior = set.WebBehavior;
+                UserBehaviorModule.WebStatistics = set.WebStatistics;
                 HttpApplication.RegisterModule(typeof(UserBehaviorModule));
             }
 #endif

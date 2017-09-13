@@ -201,7 +201,7 @@ namespace XCode.Membership
                 st.Insert();
             }
 
-            st.Title = title;
+            if (!title.IsNullOrEmpty()) st.Title = title;
             st.Times++;
             st.Cost += cost;
             if (!err.IsNullOrEmpty()) st.Error++;

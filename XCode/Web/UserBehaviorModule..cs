@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
 using NewLife.Log;
@@ -41,9 +43,12 @@ namespace XCode.Web
         /// <summary>访问记录</summary>
         public static Boolean WebBehavior { get; set; }
 
+        /// <summary>访问统计</summary>
+        public static Boolean WebStatistics { get; set; }
+
         void OnPost(Object sender, EventArgs e)
         {
-            if (!WebOnline && !WebBehavior) return;
+            if (!WebOnline && !WebBehavior && !WebStatistics) return;
 
             var ctx = HttpContext.Current;
             if (ctx == null) return;
@@ -51,38 +56,49 @@ namespace XCode.Web
             var req = ctx.Request;
             if (req == null) return;
 
-            var user = ctx.User?.Identity as IManageUser;
-            var userid = user != null ? user.ID : 0;
+            var user = ctx.User?.Identity as IManageUser ?? ManageProvider.User as IManageUser;
 
+            var sid = ctx.Session?.SessionID;
             var ip = WebHelper.UserHost;
 
-            try
-            {
-                var page = GetPage(req);
-                var msg = GetMessage(ctx, req);
+            var page = GetPage(req);
+            var title = GetTitle(ctx, req);
+            var msg = GetMessage(ctx, req, title);
 
-                // 统计网页状态
-                if (WebOnline && ctx.Session != null) UserOnline.SetWebStatus(ctx.Session.SessionID, page, msg, user, ip);
-
-                // 记录用户访问的Url
-                if (WebBehavior) SaveBehavior(ctx, req, userid, ip, page, msg);
-            }
-            catch (Exception ex)
+            Task.Run(() =>
             {
-                XTrace.WriteException(ex);
-            }
+                try
+                {
+                    // 统计网页状态
+                    if (WebOnline && !sid.IsNullOrEmpty()) UserOnline.SetWebStatus(sid, page, msg, user, ip);
+
+                    // 记录用户访问的Url
+                    if (WebBehavior) SaveBehavior(user, ip, page, msg);
+
+                    // 每个页面的访问统计
+                    if (WebStatistics) SaveStatistics(ctx, user, ip, page, title);
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            });
         }
 
-        String GetMessage(HttpContext ctx, HttpRequest req)
+        String GetMessage(HttpContext ctx, HttpRequest req, String title)
         {
-            var title = GetTitle(ctx, req);
-            var msg = "{0} {1}".F(req.HttpMethod, req.RawUrl);
-            if (!title.IsNullOrEmpty()) msg = title + " " + msg;
+            var sb = new StringBuilder(256);
+
+            if (!title.IsNullOrEmpty()) sb.Append(title + " ");
+            sb.AppendFormat("{0} {1}", req.HttpMethod, req.RawUrl);
 
             var err = ctx.Error?.Message;
-            if (!err.IsNullOrEmpty()) msg += " " + err;
+            if (!err.IsNullOrEmpty()) sb.Append(" " + err);
 
-            return msg;
+            var ts = DateTime.Now - ctx.Timestamp;
+            sb.AppendFormat(" {0:n0}ms", ts.TotalMilliseconds);
+
+            return sb.ToString();
         }
 
         String GetTitle(HttpContext ctx, HttpRequest req)
@@ -121,7 +137,7 @@ namespace XCode.Web
             ".woff", ".woff2", ".svg", ".ttf", ".otf", ".eot"   // 字体
         };
 
-        void SaveBehavior(HttpContext ctx, HttpRequest req, Int32 userid, String ip, String page, String msg)
+        void SaveBehavior(IManageUser user, String ip, String page, String msg)
         {
             if (page.IsNullOrEmpty()) return;
 
@@ -129,13 +145,15 @@ namespace XCode.Web
             var ext = Path.GetExtension(page);
             if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
 
-            LogProvider.Provider.WriteLog("访问", "记录", msg);
+            LogProvider.Provider.WriteLog("访问", "记录", msg, user.ID, user + "", ip);
+        }
 
-            var title = GetTitle(ctx, req);
+        void SaveStatistics(HttpContext ctx, IManageUser user, String ip, String page, String title)
+        {
             var ts = DateTime.Now - ctx.Timestamp;
 
             // 访问统计
-            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, userid, ip, ctx.Error?.Message);
+            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, user.ID, ip, ctx.Error?.Message);
         }
     }
 }

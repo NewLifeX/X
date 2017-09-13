@@ -12,16 +12,22 @@ namespace XCode.Membership
         /// <param name="category">类型</param>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
-        public abstract void WriteLog(String category, String action, String remark);
+        /// <param name="userid">用户</param>
+        /// <param name="name">名称</param>
+        /// <param name="ip">地址</param>
+        public abstract void WriteLog(String category, String action, String remark, Int32 userid = 0, String name = null, String ip = null);
 
         /// <summary>写日志</summary>
         /// <param name="type">类型</param>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
-        public virtual void WriteLog(Type type, String action, String remark)
+        /// <param name="userid">用户</param>
+        /// <param name="name">名称</param>
+        /// <param name="ip">地址</param>
+        public virtual void WriteLog(Type type, String action, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
-            var name = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
-            WriteLog(name, action, remark);
+            var cat = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
+            WriteLog(cat, action, remark, userid, name, ip);
         }
 
         /// <summary>输出实体对象日志</summary>
@@ -89,7 +95,10 @@ namespace XCode.Membership
         /// <param name="category">类型</param>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
-        public override void WriteLog(String category, String action, String remark)
+        /// <param name="userid">用户</param>
+        /// <param name="name">名称</param>
+        /// <param name="ip">地址</param>
+        public override void WriteLog(String category, String action, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
             if (!Enable) return;
 
@@ -106,6 +115,10 @@ namespace XCode.Membership
                 var fi = factory.Table.Identity;
                 if (fi != null) log.LinkID = remark.Substring("ID=", ",").ToInt();
             }
+
+            if (userid > 0) log.CreateUserID = userid;
+            if (!name.IsNullOrEmpty()) log.UserName = name;
+            if (!ip.IsNullOrEmpty()) log.CreateIP = ip;
 
             log.Remark = remark;
             log.SaveAsync();
