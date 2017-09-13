@@ -36,11 +36,11 @@ namespace XCode.Transform
         {
             var target = GetItem(source, out var isNew);
 
-            SyncItem(source as TSource, target as TTarget, isNew);
+            var rs = SyncItem(source as TSource, target as TTarget, isNew);
 
-            SaveItem(target, isNew);
+            if (rs != null) SaveItem(rs, isNew);
 
-            return target;
+            return rs;
         }
 
         /// <summary>处理单行数据</summary>
@@ -129,11 +129,11 @@ namespace XCode.Transform
             var isNew = InsertOnly;
             var target = isNew ? source : GetItem(source, out isNew);
 
-            SyncItem(source as TSource, target as TSource, isNew);
+            var rs = SyncItem(source as TSource, target as TSource, isNew);
 
-            SaveItem(target, isNew);
+            if (rs != null) SaveItem(rs, isNew);
 
-            return target;
+            return rs;
         }
 
         /// <summary>处理单行数据</summary>
@@ -229,9 +229,9 @@ namespace XCode.Transform
                     ctx.Entity = source;
                     try
                     {
-                        SyncItem(source);
+                        var rs = SyncItem(source);
 
-                        count++;
+                        if (rs != null) count++;
                     }
                     catch (Exception ex)
                     {
@@ -290,6 +290,8 @@ namespace XCode.Transform
         /// <param name="isNew"></param>
         protected virtual void SaveItem(IEntity target, Boolean isNew)
         {
+            if (target == null) return;
+
             var st = Stat;
             if (isNew)
                 target.Insert();
