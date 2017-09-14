@@ -11,6 +11,7 @@ using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Threading;
 using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
@@ -114,12 +115,21 @@ namespace XCode.DataAccessLayer
             var tid = Thread.CurrentThread.ManagedThreadId;
             if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
 
+            // 记录最后活跃时间。不管是否真的打开了链接
+            //_LastActive = DateTime.Now;
+
             var conn = Conn;
             if (conn != null && conn.State == ConnectionState.Closed)
             {
                 try
                 {
                     conn.Open();
+
+                    // 检测并关闭连接
+                    if (_timer == null) _timer = new TimerX(OnTimer, null, 1000, 1000);
+
+                    // 正在工作，禁止定时关闭
+                    _running = true;
                 }
                 catch (DbException)
                 {
@@ -127,6 +137,9 @@ namespace XCode.DataAccessLayer
                     throw;
                 }
             }
+
+            //// 指定时间后关闭
+            //if (_timer == null) _timer.SetNext(5000);
         }
 
         /// <summary>关闭</summary>
@@ -147,7 +160,27 @@ namespace XCode.DataAccessLayer
         /// <summary>自动关闭。启用事务后，不关闭连接。</summary>
         public void AutoClose()
         {
-            if (Transaction == null && Opened) Close();
+            // 延迟关闭
+            //if (Transaction == null && Opened) Close();
+
+            // 记录最后活跃时间
+            _LastActive = DateTime.Now;
+            // 不再处理，允许关闭
+            if (Transaction == null && Opened) _running = false;
+        }
+
+        private Boolean _running;
+        private DateTime _LastActive;
+        private TimerX _timer;
+        private void OnTimer(Object state)
+        {
+            // 正在工作，禁止定时关闭
+            if (_running) return;
+            // 没有链接不关闭
+            if (!Opened || _Conn == null) return;
+
+            // 指定时间后关闭
+            if (_LastActive.AddSeconds(10) < DateTime.Now) Close();
         }
 
         /// <summary>数据库名</summary>

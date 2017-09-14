@@ -11,6 +11,7 @@ using System.Web;
 using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Threading;
 using NewLife.Web;
 
 namespace XCode.DataAccessLayer
