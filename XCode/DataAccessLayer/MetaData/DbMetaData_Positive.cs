@@ -413,7 +413,17 @@ namespace XCode.DataAccessLayer
                 if (!dbtype.IsNullOrEmpty())
                 {
                     // 修正原始类型
-                    if (dbtype.Contains("{0}")) field.RawType = dbtype.F(field.Length);
+                    if (dbtype.Contains("{0}"))
+                    {
+                        // 某些字段有精度需要格式化
+                        if (dbtype.Contains("{1}"))
+                        {
+                            if (field is XField xf)
+                                field.RawType = dbtype.F(xf.Precision, xf.Scale);
+                        }
+                        else
+                            field.RawType = dbtype.F(field.Length);
+                    }
 
                     return item.Key;
                 }
