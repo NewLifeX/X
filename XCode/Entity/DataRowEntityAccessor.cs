@@ -53,9 +53,11 @@ namespace XCode
             var ps = new List<FieldItem>();
             // 数据表中找不到对应的实体字段的数据字段
             var exts = new List<String>();
+            var ti = Entity<T>.Meta.Table;
             foreach (DataColumn item in dt.Columns)
             {
-                var fi = Entity<T>.Meta.Fields.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(item.ColumnName));
+                //var fi = Entity<T>.Meta.Fields.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(item.ColumnName));
+                var fi = ti.FindByName(item.ColumnName) as FieldItem;
                 if (fi != null)
                     ps.Add(fi);
                 else

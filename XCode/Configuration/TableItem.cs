@@ -38,9 +38,6 @@ namespace XCode.Configuration
                 return null;
             }
         }
-
-        /// <summary>模型检查模式</summary>
-        private ModelCheckModeAttribute _ModelCheckMode;
         #endregion
 
         #region 属性
@@ -141,30 +138,25 @@ namespace XCode.Configuration
         #endregion
 
         #region 扩展属性
-        private FieldItem[] _Fields;
         /// <summary>数据字段</summary>
         [XmlArray]
         [Description("数据字段")]
-        public FieldItem[] Fields { get { return _Fields; } }
+        public FieldItem[] Fields { get; private set; }
 
-        private FieldItem[] _AllFields;
         /// <summary>所有字段</summary>
         [XmlIgnore]
-        public FieldItem[] AllFields { get { return _AllFields; } }
+        public FieldItem[] AllFields { get; private set; }
 
-        private FieldItem _Identity;
         /// <summary>标识列</summary>
         [XmlIgnore]
-        public FieldItem Identity { get { return _Identity; } }
+        public FieldItem Identity { get; private set; }
 
-        private FieldItem[] _PrimaryKeys;
         /// <summary>主键</summary>
         [XmlIgnore]
-        public FieldItem[] PrimaryKeys { get { return _PrimaryKeys; } }
+        public FieldItem[] PrimaryKeys { get; private set; }
 
-        private FieldItem _Master;
         /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
-        public FieldItem Master { get { return _Master; } }
+        public FieldItem Master { get; private set; }
 
         private ICollection<String> _FieldNames;
         /// <summary>字段名集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
@@ -194,13 +186,12 @@ namespace XCode.Configuration
             }
         }
 
-        private IDataTable _DataTable;
         /// <summary>数据表架构</summary>
         [XmlIgnore]
-        public IDataTable DataTable { get { return _DataTable; } }
+        public IDataTable DataTable { get; private set; }
 
         /// <summary>模型检查模式</summary>
-        public ModelCheckModes ModelCheckMode { get { return _ModelCheckMode != null ? _ModelCheckMode.Mode : ModelCheckModes.CheckAllTablesWhenInit; } }
+        public ModelCheckModes ModelCheckMode { get; } = ModelCheckModes.CheckAllTablesWhenInit;
         #endregion
 
         #region 构造
@@ -213,7 +204,8 @@ namespace XCode.Configuration
             _Indexes = type.GetCustomAttributes<BindIndexAttribute>(true).ToArray();
             //_Relations = type.GetCustomAttributes<BindRelationAttribute>(true).ToArray();
             _Description = type.GetCustomAttribute<DescriptionAttribute>(true);
-            _ModelCheckMode = type.GetCustomAttribute<ModelCheckModeAttribute>(true);
+            var att = type.GetCustomAttribute<ModelCheckModeAttribute>(true);
+            if (att != null) ModelCheckMode = att.Mode;
 
             InitFields();
         }
@@ -234,7 +226,7 @@ namespace XCode.Configuration
         {
             var bt = _Table;
             var table = DAL.CreateTable();
-            _DataTable = table;
+            DataTable = table;
             table.TableName = bt.Name;
             table.Name = EntityType.Name;
             table.DbType = bt.DbType;
@@ -261,8 +253,8 @@ namespace XCode.Configuration
                 }
 
                 if (fi.PrimaryKey) pkeys.Add(fi);
-                if (fi.IsIdentity) _Identity = fi;
-                if (fi.Master) _Master = fi;
+                if (fi.IsIdentity) Identity = fi;
+                if (fi.Master) Master = fi;
             }
             // 先完成allfields才能专门处理
             foreach (var item in allfields)
@@ -302,9 +294,9 @@ namespace XCode.Configuration
             }
 
             // 不允许为null
-            _AllFields = allfields.ToArray();
-            _Fields = fields.ToArray();
-            _PrimaryKeys = pkeys.ToArray();
+            AllFields = allfields.ToArray();
+            Fields = fields.ToArray();
+            PrimaryKeys = pkeys.ToArray();
         }
 
         /// <summary>获取属性，保证基类属性在前</summary>
@@ -378,6 +370,8 @@ namespace XCode.Configuration
         #endregion
 
         #region 方法
+        private Dictionary<String, Field> _all = new Dictionary<String, Field>(StringComparer.OrdinalIgnoreCase);
+
         /// <summary>根据名称查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
@@ -385,6 +379,24 @@ namespace XCode.Configuration
         {
             //if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
             if (name.IsNullOrEmpty()) return null;
+
+            // 借助字典，快速搜索数据列
+            if (_all.Count == 0)
+            {
+                foreach (var item in Fields)
+                {
+                    if (!_all.ContainsKey(item.Name))
+                        _all.Add(item.Name, item as Field);
+                }
+                foreach (var item in AllFields)
+                {
+                    if (!_all.ContainsKey(item.Name))
+                        _all.Add(item.Name, item as Field);
+                    else if (!item.ColumnName.IsNullOrEmpty() && !_all.ContainsKey(item.ColumnName))
+                        _all.Add(item.ColumnName, item as Field);
+                }
+            }
+            if (_all.TryGetValue(name, out var f)) return f;
 
             foreach (var item in Fields)
             {
@@ -428,11 +440,11 @@ namespace XCode.Configuration
 
             var list = new List<FieldItem>(Fields);
             list.Add(f);
-            _Fields = list.ToArray();
+            Fields = list.ToArray();
 
             list = new List<FieldItem>(AllFields);
             list.Add(f);
-            _AllFields = list.ToArray();
+            AllFields = list.ToArray();
 
             var dc = DataTable.CreateColumn();
             f.Fill(dc);
