@@ -383,17 +383,23 @@ namespace XCode.Configuration
             // 借助字典，快速搜索数据列
             if (_all.Count == 0)
             {
-                foreach (var item in Fields)
+                lock (_all)
                 {
-                    if (!_all.ContainsKey(item.Name))
-                        _all.Add(item.Name, item as Field);
-                }
-                foreach (var item in AllFields)
-                {
-                    if (!_all.ContainsKey(item.Name))
-                        _all.Add(item.Name, item as Field);
-                    else if (!item.ColumnName.IsNullOrEmpty() && !_all.ContainsKey(item.ColumnName))
-                        _all.Add(item.ColumnName, item as Field);
+                    if (_all.Count == 0)
+                    {
+                        foreach (var item in Fields)
+                        {
+                            if (!_all.ContainsKey(item.Name))
+                                _all.Add(item.Name, item as Field);
+                        }
+                        foreach (var item in AllFields)
+                        {
+                            if (!_all.ContainsKey(item.Name))
+                                _all.Add(item.Name, item as Field);
+                            else if (!item.ColumnName.IsNullOrEmpty() && !_all.ContainsKey(item.ColumnName))
+                                _all.Add(item.ColumnName, item as Field);
+                        }
+                    }
                 }
             }
             if (_all.TryGetValue(name, out var f)) return f;
