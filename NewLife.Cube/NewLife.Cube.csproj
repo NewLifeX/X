@@ -607,7 +607,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
     </None>
-    <None Include="Areas\Admin\Views\Web.config" />
     <None Include="Views\Home\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
@@ -734,7 +733,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_LoginPartial.generated.cs</LastGenOutput>
     </None>
-    <EmbeddedResource Include="Views\Web.config" />
     <None Include="Views\Shared\CubeError.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>CubeError.generated.cs</LastGenOutput>
