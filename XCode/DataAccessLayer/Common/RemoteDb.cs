@@ -112,6 +112,7 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
+                    session.Close();
                     session.DatabaseName = dbname;
                 }
             }
