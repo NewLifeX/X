@@ -244,6 +244,7 @@ namespace XCode.Cache
         }
 
         /// <summary>尝试向两个字典加入数据</summary>
+        /// <param name="key"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
         private Boolean TryAdd(TKey key, TEntity entity)

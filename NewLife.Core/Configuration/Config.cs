@@ -13,6 +13,7 @@ namespace NewLife.Configuration
     /// <remarks>
     /// 一定要注意的是：ConfigurationManager.AppSettings会获取当前应用的设置，如果子目录里面的web.config有设置，则会获取最近的设置。
     /// </remarks>
+    [Obsolete("=>XmlConfig")]
     public static class Config
     {
         #region 属性
