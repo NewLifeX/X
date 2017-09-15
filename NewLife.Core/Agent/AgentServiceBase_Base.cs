@@ -31,6 +31,13 @@ namespace NewLife.Agent
 
             DisplayName = ServiceName;
             Description = ServiceName + "服务";
+
+            CanStop = true;
+            CanShutdown = true;
+            CanPauseAndContinue = true;
+            CanHandlePowerEvent = true;
+            CanHandleSessionChangeEvent = true;
+            AutoLog = true;
         }
         #endregion
 
