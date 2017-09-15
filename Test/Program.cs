@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using NewLife.Agent;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
@@ -43,8 +44,9 @@ namespace Test
                 //Thread.Sleep(5000);
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
-                var key = Console.ReadKey(true);
-                if (key.Key != ConsoleKey.C) break;
+                //var key = Console.ReadKey(true);
+                //if (key.Key != ConsoleKey.C) break;
+                break;
             }
         }
 
@@ -102,9 +104,7 @@ namespace Test
         {
             //ApiTest.Main();
 
-            var ex = new ApiException(301, "xxx");
-            ex.Data["type"] = 1;
-            Console.WriteLine(ex);
+            AgentService.ServiceMain();
         }
 
         class TestModule : EntityModule
