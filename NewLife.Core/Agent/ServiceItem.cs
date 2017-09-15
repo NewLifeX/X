@@ -70,13 +70,15 @@ namespace NewLife.Agent
         /// <summary>停止工作项</summary>
         public void Stop(String reason)
         {
+            var th = Thread;
+            if (th == null) return;
+
             WriteLine("停止线程[{0}/{1}] LastActive={2} {3}", Index, Name, LastActive, reason);
 
             Active = false;
             Event?.Set();
 
             var set = Setting.Current;
-            var th = Thread;
             try
             {
                 if (th != null && th.IsAlive)
@@ -91,6 +93,7 @@ namespace NewLife.Agent
             {
                 WriteLine(ex.ToString());
             }
+            Thread = null;
         }
 
         /// <summary>线程包装</summary>
@@ -177,7 +180,7 @@ namespace NewLife.Agent
 
                 Stop("MaxActive");
                 // 等待线程结束
-                Thread.Join(100);
+                Thread?.Join(100);
                 Start("MaxActive");
             }
         }

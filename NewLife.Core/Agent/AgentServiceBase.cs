@@ -508,10 +508,10 @@ namespace NewLife.Agent
                     if (CheckAutoRestart()) break;
 
                     // 检查看门狗
-                    //CheckWatchDog();
-                    if (WatchDogs.Length > 0) Task.Factory.StartNew(CheckWatchDog);
+                    CheckWatchDog();
+                    //if (WatchDogs.Length > 0) Task.Factory.StartNew(CheckWatchDog);
 
-                    Thread.Sleep(60 * 1000);
+                    Thread.Sleep(10 * 1000);
                 }
                 catch (ThreadAbortException)
                 {
@@ -551,7 +551,7 @@ namespace NewLife.Agent
             {
                 WriteLine("当前进程占用内存 {0:n0}M，超过阀值 {1:n0}M，准备重新启动！", cur, max);
 
-                Restart();
+                Restart("MaxMemory");
 
                 return true;
             }
@@ -571,7 +571,7 @@ namespace NewLife.Agent
             {
                 WriteLine("当前进程总线程 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.Threads.Count, max);
 
-                Restart();
+                Restart("MaxThread");
 
                 return true;
             }
@@ -591,7 +591,7 @@ namespace NewLife.Agent
             {
                 WriteLine("当前进程句柄 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.HandleCount, max);
 
-                Restart();
+                Restart("MaxHandle");
 
                 return true;
             }
@@ -614,7 +614,7 @@ namespace NewLife.Agent
             {
                 WriteLine("服务已运行 {0:n0}分钟，达到预设重启时间（{1:n0}分钟），准备重启！", ts.TotalMinutes, auto);
 
-                Restart();
+                Restart("AutoRestart");
 
                 return true;
             }
@@ -623,7 +623,8 @@ namespace NewLife.Agent
         }
 
         /// <summary>重启服务</summary>
-        public void Restart()
+        /// <param name="reason"></param>
+        public void Restart(String reason)
         {
             WriteLine("重启服务！");
 
@@ -640,7 +641,7 @@ namespace NewLife.Agent
             // 准备重启服务，等待所有工作线程返回
             foreach (var item in Items)
             {
-                item.Stop(nameof(Restart));
+                item.Stop(reason);
             }
 
             //执行重启服务的批处理

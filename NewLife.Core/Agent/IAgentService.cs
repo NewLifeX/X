@@ -24,6 +24,7 @@ namespace NewLife.Agent
         void Stop();
 
         /// <summary>重启服务</summary>
-        void Restart();
+        /// <param name="reason"></param>
+        void Restart(String reason);
     }
 }

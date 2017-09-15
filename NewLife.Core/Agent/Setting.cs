@@ -50,9 +50,9 @@ namespace NewLife.Agent
         [Description("自动重启时间，单位：分。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0分，表示无限")]
         public Int32 AutoRestart { get; set; }
 
-        /// <summary>等待退出。停止服务时，等待每个线程完成当前工作的退出时间，默认3000ms</summary>
-        [Description("等待退出。停止服务时，等待每个线程完成当前工作的退出时间，默认3000ms")]
-        public Int32 WaitForExit { get; set; } = 3000;
+        /// <summary>等待退出。停止服务时，等待每个线程完成当前工作的退出时间，默认5000ms</summary>
+        [Description("等待退出。停止服务时，等待每个线程完成当前工作的退出时间，默认5000ms")]
+        public Int32 WaitForExit { get; set; } = 5000;
 
         /// <summary>看门狗，保护其它服务，每分钟检查一次。多个服务名逗号分隔</summary>
         [Description("看门狗，保护其它服务，每分钟检查一次。多个服务名逗号分隔")]
