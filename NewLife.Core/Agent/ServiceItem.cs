@@ -48,11 +48,13 @@ namespace NewLife.Agent
 
         #region 方法
         /// <summary>启动工作项</summary>
-        public void Start()
+        public void Start(String reason)
         {
             // 可以通过设置任务的时间间隔小于0来关闭指定任务
             var time = Interval;
             if (time < 0) return;
+
+            WriteLine("启动线程[{0}/{1}] Interval={2} {3}", Index, Name, time, reason);
 
             var th = Thread = new Thread(WorkWaper);
 
@@ -66,8 +68,10 @@ namespace NewLife.Agent
         }
 
         /// <summary>停止工作项</summary>
-        public void Stop()
+        public void Stop(String reason)
         {
+            WriteLine("停止线程[{0}/{1}] LastActive={2} {3}", Index, Name, LastActive, reason);
+
             Active = false;
             Event?.Set();
 
@@ -151,12 +155,15 @@ namespace NewLife.Agent
         /// <summary>检查是否有工作线程死亡</summary>
         public void CheckActive()
         {
+            // 如果工作线程没有启动，则不用检查
+            if (!Active) return;
+
             var th = Thread;
             if (th != null && !th.IsAlive)
             {
                 WriteLine(th.Name + "处于停止状态，准备重新启动！");
 
-                Start();
+                Start("CheckActive");
             }
 
             // 是否检查最大活动时间
@@ -168,10 +175,10 @@ namespace NewLife.Agent
             {
                 WriteLine("{0}已经{1:n0}秒没有活动了，准备重新启动！", Name, ts.TotalSeconds);
 
-                Stop();
+                Stop("MaxActive");
                 // 等待线程结束
                 Thread.Join(100);
-                Start();
+                Start("MaxActive");
             }
         }
         #endregion

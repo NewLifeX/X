@@ -331,17 +331,24 @@ namespace NewLife.Agent
         {
             EventLog.WriteEntry("服务启动 共[{0:n0}]个工作线程".F(ThreadCount), EventLogEntryType.Information);
 
-            StartWork();
+            StartWork("服务启动");
         }
 
         /// <summary>服务停止事件</summary>
         protected override void OnStop()
         {
-            StopWork();
+            StopWork("服务停止");
         }
 
         /// <summary>开始循环工作</summary>
         public virtual void StartWork()
+        {
+            StartWork(nameof(StartWork));
+        }
+
+        /// <summary>开始工作</summary>
+        /// <param name="reason"></param>
+        protected virtual void StartWork(String reason)
         {
             // 依赖服务检测
             this.PreStartWork();
@@ -364,7 +371,8 @@ namespace NewLife.Agent
                     ss[i] = new ServiceItem(i, null, time);
                     ss[i].Callback = Work;
 
-                    StartWork(i);
+                    //StartWork(i);
+                    ss[i].Start(reason);
                 }
 
                 // 启动服务管理线程
@@ -379,15 +387,15 @@ namespace NewLife.Agent
             }
         }
 
-        /// <summary>开始循环工作</summary>
-        /// <param name="index">线程序号</param>
-        public virtual void StartWork(Int32 index)
-        {
-            var ss = Items;
-            if (index < 0 || index >= ss.Length) throw new ArgumentOutOfRangeException(nameof(index));
+        ///// <summary>开始循环工作</summary>
+        ///// <param name="index">线程序号</param>
+        //public virtual void StartWork(Int32 index)
+        //{
+        //    var ss = Items;
+        //    if (index < 0 || index >= ss.Length) throw new ArgumentOutOfRangeException(nameof(index));
 
-            ss[index].Start();
-        }
+        //    ss[index].Start(nameof(StartWork));
+        //}
 
         /// <summary>核心工作方法。调度线程会定期调用该方法</summary>
         /// <param name="index">线程序号</param>
@@ -401,6 +409,13 @@ namespace NewLife.Agent
         /// </remarks>
         public virtual void StopWork()
         {
+            StopWork(nameof(StopWork));
+        }
+
+        /// <summary>停止服务</summary>
+        /// <param name="reason"></param>
+        protected virtual void StopWork(String reason)
+        {
             WriteLine("服务停止");
 
             // 停止服务管理线程
@@ -409,19 +424,19 @@ namespace NewLife.Agent
             var ss = Items;
             if (ss != null)
             {
-                // 先停止各个任务，然后才停止线程
-                foreach (var item in ss)
-                {
-                    item.Active = false;
-                    item.Event?.Set();
-                }
+                //// 先停止各个任务，然后才停止线程
+                //foreach (var item in ss)
+                //{
+                //    item.Active = false;
+                //    item.Event?.Set();
+                //}
 
                 // 等待各个工作线程退出
                 var set = Setting.Current;
                 var ts = new List<Task>();
                 foreach (var item in ss)
                 {
-                    ts.Add(Task.Run(() => item.Stop()));
+                    ts.Add(Task.Run(() => item.Stop(reason)));
                 }
                 Task.WaitAll(ts.ToArray(), set.WaitForExit);
             }
@@ -429,15 +444,15 @@ namespace NewLife.Agent
             //Interactive.Hide();
         }
 
-        /// <summary>停止循环工作</summary>
-        /// <param name="index">线程序号</param>
-        public virtual void StopWork(Int32 index)
-        {
-            if (index < 0 || index >= ThreadCount) throw new ArgumentOutOfRangeException("index");
+        ///// <summary>停止循环工作</summary>
+        ///// <param name="index">线程序号</param>
+        //public virtual void StopWork(Int32 index)
+        //{
+        //    if (index < 0 || index >= ThreadCount) throw new ArgumentOutOfRangeException("index");
 
-            var item = Items[index];
-            item.Stop();
-        }
+        //    var item = Items[index];
+        //    item.Stop(nameof(StopWork));
+        //}
         #endregion
 
         #region 服务维护线程
@@ -604,7 +619,7 @@ namespace NewLife.Agent
             // 准备重启服务，等待所有工作线程返回
             foreach (var item in Items)
             {
-                item.Stop();
+                item.Stop(nameof(Restart));
             }
 
             //执行重启服务的批处理
@@ -628,21 +643,31 @@ namespace NewLife.Agent
         /// <summary>暂停命令发送到服务的服务控制管理器 (SCM) 时执行。 指定当服务就会暂停时要执行的操作。</summary>
         protected override void OnPause()
         {
-            WriteLine("OnPause");
+            WriteLine(nameof(OnPause));
+
+            foreach (var item in Items)
+            {
+                item.Stop(nameof(OnPause));
+            }
         }
 
         /// <summary>继续命令发送到服务的服务控制管理器 (SCM) 运行。 指定当某个服务后继续正常工作正在暂停时要执行的操作。</summary>
         protected override void OnContinue()
         {
-            WriteLine("OnContinue");
+            WriteLine(nameof(OnContinue));
+
+            foreach (var item in Items)
+            {
+                item.Start(nameof(OnContinue));
+            }
         }
 
         /// <summary>在系统关闭时执行。 指定在系统关闭之前应该发生什么。</summary>
         protected override void OnShutdown()
         {
-            WriteLine("OnShutdown");
+            WriteLine(nameof(OnShutdown));
 
-            OnStop();
+            StopWork(nameof(OnShutdown));
         }
 
         /// <summary>在计算机的电源状态已发生更改时执行。 这适用于便携式计算机，当他们进入挂起模式，这不是系统关闭相同。</summary>
@@ -650,7 +675,7 @@ namespace NewLife.Agent
         /// <returns></returns>
         protected override Boolean OnPowerEvent(PowerBroadcastStatus powerStatus)
         {
-            WriteLine("OnPowerEvent " + powerStatus);
+            WriteLine(nameof(OnPowerEvent) + " " + powerStatus);
 
             switch (powerStatus)
             {
@@ -683,7 +708,7 @@ namespace NewLife.Agent
         /// <param name="changeDescription"></param>
         protected override void OnSessionChange(SessionChangeDescription changeDescription)
         {
-            WriteLine("OnSessionChange SessionId={0} Reason={1}", changeDescription.SessionId, changeDescription.Reason);
+            WriteLine(nameof(OnSessionChange) + " SessionId={0} Reason={1}", changeDescription.SessionId, changeDescription.Reason);
         }
         #endregion
 
