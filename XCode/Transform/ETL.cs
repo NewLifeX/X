@@ -185,6 +185,8 @@ namespace XCode.Transform
                 ex = OnError(ctx);
                 if (ex != null) throw ex;
             }
+            // 抛出异常后，可能数据列表为空
+            if (list == null || list.Count == 0) return 0;
 
             /*
              * 并行计算逻辑：
