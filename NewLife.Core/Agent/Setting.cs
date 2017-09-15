@@ -28,19 +28,23 @@ namespace NewLife.Agent
 
         /// <summary>工作线程间隔，单位：秒。不同工作线程的时间间隔用逗号或分号隔开。可以通过设置任务的时间间隔小于0来关闭指定任务</summary>
         [Description("工作线程间隔，单位：秒。不同工作线程的时间间隔用逗号或分号隔开。可以通过设置任务的时间间隔小于0来关闭指定任务")]
-        public String Intervals { get; set; } = "3";
+        public String Intervals { get; set; } = "5";
 
         /// <summary>最大活动时间，单位：秒。超过最大活动时间都还没有响应的线程将会被重启，防止线程执行时间过长。默认0秒，表示无限</summary>
         [Description("最大活动时间，单位：秒。超过最大活动时间都还没有响应的线程将会被重启，防止线程执行时间过长。默认0秒，表示无限")]
-        public Int32 MaxActive { get; set; }
+        public Int32 MaxActive { get; set; } = 3600;
 
         /// <summary>最大占用内存，单位： M。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限</summary>
         [Description("最大占用内存，单位： M。超过最大占用时，整个服务进程将会重启，以释放资源。默认0秒，表示无限")]
-        public Int32 MaxMemory { get; set; }
+        public Int32 MaxMemory { get; set; } = 8096;
 
-        /// <summary>最大总线程数，单位：个。超过最大占用时，整个服务进程将会重启，以释放资源。默认0个，表示无限</summary>
-        [Description("最大总线程数，单位：个。超过最大占用时，整个服务进程将会重启，以释放资源。默认0个，表示无限")]
-        public Int32 MaxThread { get; set; }
+        /// <summary>最大线程数，单位：个。超过最大占用时，整个服务进程将会重启，以释放资源。默认0个，表示无限</summary>
+        [Description("最大线程数，单位：个。超过最大占用时，整个服务进程将会重启，以释放资源。默认0个，表示无限")]
+        public Int32 MaxThread { get; set; } = 1000;
+
+        /// <summary>最大句柄数，单位：个。超过最大占用时，整个服务进程将会重启，以释放资源。默认0个，表示无限</summary>
+        [Description("最大句柄数，单位：个。超过最大占用时，整个服务进程将会重启，以释放资源。默认0个，表示无限")]
+        public Int32 MaxHandle { get; set; } = 1000;
 
         /// <summary>自动重启时间，单位：分。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0分，表示无限</summary>
         [Description("自动重启时间，单位：分。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0分，表示无限")]

@@ -504,6 +504,7 @@ namespace NewLife.Agent
                     // 如果某一项检查需要重启服务，则返回true，这里跳出循环，等待服务重启
                     if (CheckMemory()) break;
                     if (CheckThread()) break;
+                    if (CheckHandle()) break;
                     if (CheckAutoRestart()) break;
 
                     // 检查看门狗
@@ -569,6 +570,26 @@ namespace NewLife.Agent
             if (p.Threads.Count > max)
             {
                 WriteLine("当前进程总线程 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.Threads.Count, max);
+
+                Restart();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>检查服务进程的句柄数是否超标</summary>
+        /// <returns></returns>
+        protected virtual Boolean CheckHandle()
+        {
+            var max = Setting.Current.MaxHandle;
+            if (max <= 0) return false;
+
+            var p = Process.GetCurrentProcess();
+            if (p.HandleCount > max)
+            {
+                WriteLine("当前进程句柄 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.HandleCount, max);
 
                 Restart();
 
