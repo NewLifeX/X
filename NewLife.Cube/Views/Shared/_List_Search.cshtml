@@ -1,1 +1,12 @@
-﻿
+﻿@using NewLife;
+@using NewLife.Web;
+@using NewLife.Cube;
+@using XCode;
+@{
+    var fact = ViewBag.Factory as IEntityOperate;
+    var fi = fact.MasterTime;
+}
+@if (fi != null)
+{
+    @Html.Partial("_DateRange")
+}
