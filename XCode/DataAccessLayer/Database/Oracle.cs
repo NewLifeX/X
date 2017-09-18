@@ -444,7 +444,7 @@ namespace XCode.DataAccessLayer
 
             // 如果表太多，则只要目标表数据
             var mulTable = "";
-            if (dt.Rows.Count > 10)
+            if (dt.Rows.Count > 10 && names != null && names.Length > 0)
             {
                 //var tablenames = dt.Rows.ToArray().Select(e => "'{0}'".F(e["TABLE_NAME"]));
                 //mulTable = " And TABLE_NAME in ({0})".F(tablenames.Join(","));
