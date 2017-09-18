@@ -607,44 +607,58 @@ namespace XCode.DataAccessLayer
 
         protected override void FixField(IDataColumn field, DataRow drColumn)
         {
-            base.FixField(field, drColumn);
+            var dr = drColumn;
 
-            // 处理数字类型
-            if (field.RawType.StartsWithIgnoreCase("NUMBER") && field is XField fi)
+            // 长度
+            //field.Length = GetDataRowValue<Int32>(dr, "CHAR_LENGTH", "DATA_LENGTH");
+            field.Length = GetDataRowValue<Int32>(dr, "DATA_LENGTH");
+
+            if (field is XField fi)
             {
-                var prec = fi.Precision;
-                Type type = null;
-                if (fi.Scale == 0)
+                // 精度 与 位数
+                fi.Precision = GetDataRowValue<Int32>(dr, "DATA_PRECISION");
+                fi.Scale = GetDataRowValue<Int32>(dr, "DATA_SCALE");
+                if (field.Length == 0) field.Length = fi.Precision;
+
+                // 处理数字类型
+                if (field.RawType.StartsWithIgnoreCase("NUMBER"))
                 {
-                    // 0表示长度不限制，为了方便使用，转为最常见的Int32
-                    if (prec == 0)
-                        type = typeof(Int32);
-                    else if (prec == 1)
-                        type = typeof(Boolean);
-                    else if (prec <= 5)
-                        type = typeof(Int16);
-                    else if (prec <= 10)
-                        type = typeof(Int32);
+                    var prec = fi.Precision;
+                    Type type = null;
+                    if (fi.Scale == 0)
+                    {
+                        // 0表示长度不限制，为了方便使用，转为最常见的Int32
+                        if (prec == 0)
+                            type = typeof(Int32);
+                        else if (prec == 1)
+                            type = typeof(Boolean);
+                        else if (prec <= 5)
+                            type = typeof(Int16);
+                        else if (prec <= 10)
+                            type = typeof(Int32);
+                        else
+                            type = typeof(Int64);
+                    }
                     else
-                        type = typeof(Int64);
+                    {
+                        if (prec == 0)
+                            type = typeof(Decimal);
+                        else if (prec <= 5)
+                            type = typeof(Single);
+                        else if (prec <= 10)
+                            type = typeof(Double);
+                        else
+                            type = typeof(Decimal);
+                    }
+                    field.DataType = type;
+                    if (prec > 0 && field.RawType.EqualIgnoreCase("NUMBER")) field.RawType += "({0},{1})".F(prec, fi.Scale);
                 }
-                else
-                {
-                    if (prec == 0)
-                        type = typeof(Decimal);
-                    else if (prec <= 5)
-                        type = typeof(Single);
-                    else if (prec <= 10)
-                        type = typeof(Double);
-                    else
-                        type = typeof(Decimal);
-                }
-                field.DataType = type;
-                if (prec > 0 && field.RawType.EqualIgnoreCase("NUMBER")) field.RawType += "({0},{1})".F(prec, fi.Scale);
             }
 
             // 长度
             if (TryGetDataRowValue(drColumn, "LENGTHINCHARS", out Int32 len) && len > 0) field.Length = len;
+
+            base.FixField(field, drColumn);
         }
 
         protected override String GetFieldType(IDataColumn field)
