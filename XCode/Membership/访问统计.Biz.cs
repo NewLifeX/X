@@ -128,7 +128,6 @@ namespace XCode.Membership
 
         /// <summary>查找所有</summary>
         /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static IList<VisitStat> FindAllPage()
         {
             return PageCache.Entities;

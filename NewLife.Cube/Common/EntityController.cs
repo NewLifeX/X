@@ -86,7 +86,7 @@ namespace NewLife.Cube
             // 缓存数据，用于后续导出
             Session[CacheKey] = p;
 
-            return Entity<TEntity>.Search(p["Q"], p);
+            return Entity<TEntity>.Search(p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p["Q"], p);
         }
 
         /// <summary>查找单行数据</summary>

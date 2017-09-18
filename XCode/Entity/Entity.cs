@@ -409,7 +409,6 @@ namespace XCode
         /// <param name="name">属性名称</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity Find(String name, Object value) { return Find(new String[] { name }, new Object[] { value }); }
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
@@ -485,7 +484,6 @@ namespace XCode
         /// <summary>根据条件查找单个实体</summary>
         /// <param name="where">查询条件</param>
         /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity Find(Expression where)
         {
             var list = FindAll(where, null, null, 0, 1);
@@ -495,7 +493,6 @@ namespace XCode
         /// <summary>根据主键查找单个实体</summary>
         /// <param name="key">唯一主键的值</param>
         /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKey(Object key)
         {
             var field = Meta.Unique;
@@ -510,7 +507,6 @@ namespace XCode
         /// <summary>根据主键查询一个实体对象用于表单编辑</summary>
         /// <param name="key">唯一主键的值</param>
         /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static TEntity FindByKeyForEdit(Object key)
         {
             var field = Meta.Unique;
@@ -764,7 +760,6 @@ namespace XCode
         #region 缓存查询
         /// <summary>查找所有缓存。没有数据时返回空集合而不是null</summary>
         /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static IList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
         #endregion
 
@@ -862,7 +857,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        [DataObjectMethod(DataObjectMethodType.Select, true)]
+        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
         public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows)
         {
             return FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
@@ -874,6 +869,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
+        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
         public static Int32 SearchCount(String key, String order, Int64 startRowIndex, Int64 maximumRows)
         {
             return (Int32)FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
@@ -881,11 +877,43 @@ namespace XCode
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
-        /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
+        /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, PageParameter param)
+        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
+        public static IList<TEntity> Search(String key, PageParameter page)
         {
-            return FindAll(SearchWhereByKeys(key), param);
+            return FindAll(SearchWhereByKeys(key), page);
+        }
+
+        /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
+        /// <param name="start">开始时间</param>
+        /// <param name="end">结束时间</param>
+        /// <param name="key">关键字</param>
+        /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
+        /// <returns></returns>
+        public static IList<TEntity> Search(DateTime start, DateTime end, String key, PageParameter page)
+        {
+            var df = Meta.Factory.Default as TEntity;
+            return FindAll(df.SearchWhere(start, end, key, page), page);
+        }
+
+        /// <summary>构造高级查询条件</summary>
+        /// <param name="start">开始时间</param>
+        /// <param name="end">结束时间</param>
+        /// <param name="key">关键字</param>
+        /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
+        /// <returns></returns>
+        protected virtual WhereExpression SearchWhere(DateTime start, DateTime end, String key, PageParameter page)
+        {
+            var exp = SearchWhereByKeys(key);
+
+            if (start > DateTime.MinValue || end > DateTime.MinValue)
+            {
+                var fi = Meta.Factory.MasterTime;
+                if (fi != null) exp &= fi.Between(start, end);
+            }
+
+            return exp;
         }
 
         /// <summary>根据空格分割的关键字集合构建查询条件</summary>
@@ -936,14 +964,12 @@ namespace XCode
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        [DataObjectMethod(DataObjectMethodType.Insert, true)]
         public static Int32 Insert(TEntity obj) { return obj.Insert(); }
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        [DataObjectMethod(DataObjectMethodType.Update, true)]
         public static Int32 Update(TEntity obj) { return obj.Update(); }
 
         /// <summary>
@@ -953,7 +979,6 @@ namespace XCode
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数，可用于判断被删除了多少行，从而知道操作是否成功</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        [DataObjectMethod(DataObjectMethodType.Delete, true)]
         public static Int32 Delete(TEntity obj) { return obj.Delete(); }
 
         /// <summary>把一个实体对象更新到数据库</summary>

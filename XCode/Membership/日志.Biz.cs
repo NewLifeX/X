@@ -122,7 +122,6 @@ namespace XCode.Membership
 
         /// <summary>查找所有类别名</summary>
         /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static IList<TEntity> FindAllCategory()
         {
             return CategoryCache.Entities;
