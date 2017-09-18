@@ -85,7 +85,7 @@ namespace XCode.Transform
             // 自动找时间字段
             if (FieldName.IsNullOrEmpty())
             {
-                var fi = Factory.Fields.FirstOrDefault(e => e.Type == typeof(DateTime) && e.Name.StartsWithIgnoreCase("UpdateTime", "Modify", "Modified"));
+                var fi = Factory.MasterTime;
                 if (fi != null) FieldName = fi.Name;
             }
             if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");

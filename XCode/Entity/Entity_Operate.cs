@@ -62,6 +62,14 @@ namespace XCode
             public virtual Int32 Count { get { return Session.Count; } }
             #endregion
 
+            #region 构造
+            /// <summary>构造实体工厂</summary>
+            public EntityOperate()
+            {
+                MasterTime = Meta.Fields.FirstOrDefault(e => e.Type == typeof(DateTime) && e.Name.StartsWithIgnoreCase("UpdateTime", "Modify", "Modified"));
+            }
+            #endregion
+
             #region 创建实体、填充数据
             /// <summary>创建一个实体对象</summary>
             /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
@@ -216,6 +224,9 @@ namespace XCode
 
             /// <summary>默认累加字段</summary>
             public virtual ICollection<String> AdditionalFields { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+
+            /// <summary>主时间字段。代表当前数据行更新时间</summary>
+            public FieldItem MasterTime { get; }
             #endregion
         }
     }
