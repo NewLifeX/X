@@ -88,14 +88,22 @@ namespace XCode.Code
                 connName = atts["ConnName"];
             if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty()) connName = nameSpace.Split(".").LastOrDefault(e => !e.EqualIgnoreCase("Entity"));
 
+            // 基类
+            var baseClass = "";
+            if (!baseClass.IsNullOrEmpty())
+                atts["BaseClass"] = baseClass;
+            else
+                baseClass = atts["BaseClass"];
+
             XTrace.WriteLine("代码生成源：{0}", xmlFile);
 
-            var rs = BuildTables(tables, output, nameSpace, connName);
+            var rs = BuildTables(tables, output, nameSpace, connName, baseClass);
 
             // 确保输出空特性
             if (atts["Output"].IsNullOrEmpty()) atts["Output"] = "";
             if (atts["NameSpace"].IsNullOrEmpty()) atts["NameSpace"] = "";
             if (atts["ConnName"].IsNullOrEmpty()) atts["ConnName"] = "";
+            if (atts["BaseClass"].IsNullOrEmpty()) atts["BaseClass"] = "Entity";
 
             // 保存模型文件
             var xml2 = ModelHelper.ToXml(tables, atts);
@@ -109,14 +117,15 @@ namespace XCode.Code
         /// <param name="output">输出目录</param>
         /// <param name="nameSpace">命名空间</param>
         /// <param name="connName">连接名</param>
-        public static Int32 BuildTables(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null)
+        /// <param name="baseClass">基类</param>
+        public static Int32 BuildTables(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null, String baseClass = null)
         {
             if (tables == null || tables.Count == 0) return 0;
 
             // 连接名
             if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
 
-            XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3}", tables.Count, output, nameSpace, connName);
+            XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3} 基类：{4}", tables.Count, output, nameSpace, connName, baseClass);
 
             var count = 0;
             foreach (var item in tables)
@@ -128,18 +137,26 @@ namespace XCode.Code
                     GenericType = item.Properties["RenderGenEntity"].ToBoolean()
                 };
 
+                // 命名空间
                 var str = item.Properties["Namespace"];
                 if (str.IsNullOrEmpty()) str = nameSpace;
                 builder.Namespace = str;
 
+                // 连接名
                 str = item.ConnName;
                 if (str.IsNullOrEmpty()) str = connName;
                 builder.ConnName = str;
+
+                // 基类
+                str = item.Properties["BaseClass"];
+                if (str.IsNullOrEmpty()) str = baseClass;
+                builder.BaseClass = str;
 
                 if (Debug) builder.Log = XTrace.Log;
 
                 builder.Execute();
 
+                // 输出目录
                 str = item.Properties["Output"];
                 if (str.IsNullOrEmpty()) str = output;
                 builder.Output = str;
