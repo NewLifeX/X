@@ -182,7 +182,7 @@ namespace XCode.Remoting
             var u = Current;
 
             var olt = Online ?? CreateOnline(ns.ID);
-            olt.Name = Agent;
+            olt.Name = Name;
             olt.Type = Type;
             olt.SessionID = ns.ID;
             olt.UpdateTime = DateTime.Now;
@@ -215,7 +215,7 @@ namespace XCode.Remoting
         public virtual void SaveHistory(String action, Boolean success, String content)
         {
             var hi = CreateHistory();
-            hi.Name = Agent;
+            hi.Name = Name;
             hi.Type = Type;
 
             var u = Current;
