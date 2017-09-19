@@ -493,16 +493,20 @@ namespace XCode.DataAccessLayer
             var dt = data?["PrimaryKeys"];
             if (dt != null && dt.Rows.Count > 0)
             {
-                // 找到主键所在索引，这个索引的列才是主键
-                if (TryGetDataRowValue(dt.Rows[0], _.IndexName, out String name) && !String.IsNullOrEmpty(name))
+                var drs = dt.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
+                if (drs != null && drs.Length > 0)
                 {
-                    var di = table.Indexes.FirstOrDefault(i => i.Name == name);
-                    if (di != null)
+                    // 找到主键所在索引，这个索引的列才是主键
+                    if (TryGetDataRowValue(drs[0], _.IndexName, out String name) && !String.IsNullOrEmpty(name))
                     {
-                        di.PrimaryKey = true;
-                        foreach (var dc in table.Columns)
+                        var di = table.Indexes.FirstOrDefault(i => i.Name == name);
+                        if (di != null)
                         {
-                            dc.PrimaryKey = di.Columns.Contains(dc.ColumnName);
+                            di.PrimaryKey = true;
+                            foreach (var dc in table.Columns)
+                            {
+                                dc.PrimaryKey = di.Columns.Contains(dc.ColumnName);
+                            }
                         }
                     }
                 }
