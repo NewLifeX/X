@@ -194,6 +194,10 @@ namespace XCode.DataAccessLayer
                 // 如果还没有主键，把第一个索引作为主键
                 //if (di == null) di = dis.FirstOrDefault(e => e.Columns.Length == 1);
 
+                // 从索引修正主键
+                if (di == null) di = dis.FirstOrDefault(e => e.PrimaryKey);
+                if (di == null) di = dis.FirstOrDefault(e => e.Unique);
+
                 if (di != null)
                 {
                     var pks2 = table.GetColumns(di.Columns);
