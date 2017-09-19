@@ -523,7 +523,7 @@ namespace XCode.DataAccessLayer
                 // 不好判断自增列表，只能硬编码
                 var dc = table.GetColumn("ID");
                 if (dc == null) dc = table.Columns.FirstOrDefault(e => e.PrimaryKey && e.DataType.IsInt());
-                if (dc != null) dc.Identity = true;
+                if (dc != null && dc.DataType.IsInt()) dc.Identity = true;
             }
         }
 
