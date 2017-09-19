@@ -192,7 +192,7 @@ namespace XCode.DataAccessLayer
                 // 在索引中找唯一索引作为主键
                 if (di == null) di = dis.FirstOrDefault(e => e.Unique && e.Columns.Length == 1);
                 // 如果还没有主键，把第一个索引作为主键
-                if (di == null) di = dis.FirstOrDefault(e => e.Columns.Length == 1);
+                //if (di == null) di = dis.FirstOrDefault(e => e.Columns.Length == 1);
 
                 if (di != null)
                 {
