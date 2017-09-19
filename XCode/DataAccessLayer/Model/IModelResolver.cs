@@ -230,7 +230,6 @@ namespace XCode.DataAccessLayer
             var dis = table.Indexes;
             dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0);
 
-            // 主要针对MSSQL2000
             foreach (var di in dis)
             {
                 if (di.Columns == null) continue;
@@ -239,7 +238,8 @@ namespace XCode.DataAccessLayer
                 if (dcs == null || dcs.Length <= 0) continue;
 
                 if (!di.Unique) di.Unique = dcs.All(dc => dc.Identity);
-                if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey);
+                // 刚好该索引所有字段都是主键时，修正主键
+                if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey) && di.Columns.Length == table.Columns.Count(e => e.PrimaryKey);
             }
 
             // 干掉自增列的索引
