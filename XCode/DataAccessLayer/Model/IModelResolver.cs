@@ -215,7 +215,7 @@ namespace XCode.DataAccessLayer
                     {
                         di = table.CreateIndex();
                         di.Columns = new String[] { dc.ColumnName };
-                        di.Computed = true;
+                        //di.Computed = true;
                     }
                     // 不管是不是原来有的索引，都要唯一
                     di.Unique = true;

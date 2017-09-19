@@ -36,11 +36,11 @@ namespace XCode.DataAccessLayer
         [Description("主键")]
         public Boolean PrimaryKey { get; set; }
 
-        /// <summary>是否计算出来的，而不是数据库内置的</summary>
-        [XmlAttribute]
-        [DisplayName("计算")]
-        [Description("是否计算出来的，而不是数据库内置的")]
-        public Boolean Computed { get; set; }
+        ///// <summary>是否计算出来的，而不是数据库内置的</summary>
+        //[XmlAttribute]
+        //[DisplayName("计算")]
+        //[Description("是否计算出来的，而不是数据库内置的")]
+        //public Boolean Computed { get; set; }
         #endregion
 
         #region 扩展属性

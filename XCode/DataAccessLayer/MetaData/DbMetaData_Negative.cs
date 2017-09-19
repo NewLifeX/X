@@ -303,7 +303,7 @@ namespace XCode.DataAccessLayer
                 foreach (var item in dbdis.ToArray())
                 {
                     // 计算的索引不需要删除
-                    if (item.Computed) continue;
+                    //if (item.Computed) continue;
 
                     // 主键的索引不能删
                     if (item.PrimaryKey) continue;
@@ -327,7 +327,7 @@ namespace XCode.DataAccessLayer
 
                     var di = ModelHelper.GetIndex(dbtable, item.Columns);
                     // 计算出来的索引，也表示没有，需要创建
-                    if (di != null && di.Unique == item.Unique && !di.Computed) continue;
+                    if (di != null && di.Unique == item.Unique) continue;
                     //// 如果这个索引的唯一字段是主键，则无需建立索引
                     //if (item.Columns.Length == 1 && entitytable.GetColumn(item.Columns[0]).PrimaryKey) continue;
                     // 如果索引全部就是主键，无需创建索引
@@ -337,8 +337,8 @@ namespace XCode.DataAccessLayer
 
                     if (di == null)
                         edis.Add(item.Clone(dbtable));
-                    else
-                        di.Computed = false;
+                    //else
+                    //    di.Computed = false;
                 }
             }
             #endregion
@@ -608,7 +608,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in table.Indexes)
                 {
-                    if (item.PrimaryKey || item.Computed) continue;
+                    if (item.PrimaryKey) continue;
                     // 如果索引全部就是主键，无需创建索引
                     if (table.GetColumns(item.Columns).All(e => e.PrimaryKey)) continue;
 
