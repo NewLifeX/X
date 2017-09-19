@@ -151,7 +151,7 @@ namespace XCode.Configuration
         [XmlIgnore]
         public FieldItem Identity { get; private set; }
 
-        /// <summary>主键</summary>
+        /// <summary>主键。不会返回null</summary>
         [XmlIgnore]
         public FieldItem[] PrimaryKeys { get; private set; }
 

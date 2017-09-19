@@ -522,7 +522,7 @@ namespace XCode
             var type = field.Type;
 
             // 唯一键为自增且参数小于等于0时，返回新实例
-            if (Helper.IsNullKey(key, field.Type))
+            if (Helper.IsNullKey(key, type))
             {
                 if (type.IsInt() && !field.IsIdentity && DAL.Debug) DAL.WriteLog("{0}的{1}字段是整型主键，你是否忘记了设置自增？", Meta.TableName, field.ColumnName);
 

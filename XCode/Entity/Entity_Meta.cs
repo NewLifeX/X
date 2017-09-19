@@ -88,7 +88,7 @@ namespace XCode
                 get
                 {
                     if (Table.Identity != null) return Table.Identity;
-                    if (Table.PrimaryKeys != null && Table.PrimaryKeys.Length > 0) return Table.PrimaryKeys[0];
+                    if (Table.PrimaryKeys.Length == 1) return Table.PrimaryKeys[0];
                     return null;
                 }
             }

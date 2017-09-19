@@ -276,7 +276,7 @@ namespace XCode.DataAccessLayer
         /// <summary>检查表说明和索引</summary>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>
-        /// <param name="onlySql"></param>
+        /// <param name="mode"></param>
         /// <returns></returns>
         protected virtual String CheckTableDescriptionAndIndex(IDataTable entitytable, IDataTable dbtable, Migration mode)
         {
