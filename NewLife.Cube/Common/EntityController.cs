@@ -92,7 +92,30 @@ namespace NewLife.Cube
         /// <summary>查找单行数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        protected virtual TEntity Find(Object key) { return Entity<TEntity>.FindByKeyForEdit(key); }
+        protected virtual TEntity Find(Object key)
+        {
+            var fact = Factory;
+            if (fact.Unique == null)
+            {
+                var pks = fact.Table.PrimaryKeys;
+                if (pks.Length > 0)
+                {
+                    var vs = (key + "").Split(new[] { '_' }, StringSplitOptions.None);
+                    if (vs.Length > 0)
+                    {
+                        var exp = new WhereExpression();
+                        for (var i = 0; i < pks.Length && i < vs.Length; i++)
+                        {
+                            exp &= pks[i].Equal(vs[i]);
+                        }
+
+                        return Entity<TEntity>.Find(exp);
+                    }
+                }
+            }
+
+            return Entity<TEntity>.FindByKeyForEdit(key);
+        }
 
         /// <summary>导出当前页以后的数据</summary>
         /// <returns></returns>

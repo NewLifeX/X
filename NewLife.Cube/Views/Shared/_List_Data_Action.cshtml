@@ -2,7 +2,8 @@
     var fact = ViewBag.Factory as IEntityOperate;
     var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
     var entity = Model as IEntity;
-    var key = fact.Unique != null ? entity[fact.Unique] : 0;
+    var pks = fact.Table.PrimaryKeys;
+    var key = fact.Unique != null ? entity[fact.Unique.Name] : (pks.Length > 0 ? pks.Select(e => entity[e.Name]).Join("_") : "");
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
     var ajax = true;

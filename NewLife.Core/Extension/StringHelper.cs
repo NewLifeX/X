@@ -169,7 +169,7 @@ namespace System
             var sb = new StringBuilder();
             if (value != null)
             {
-                if (func == null) func = obj => obj + "";
+                if (func == null) func = obj => "{0}".F(obj);
                 foreach (var item in value)
                 {
                     sb.Separate(separator).Append(func(item));

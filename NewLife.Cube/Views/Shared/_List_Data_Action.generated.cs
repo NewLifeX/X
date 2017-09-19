@@ -48,7 +48,8 @@ namespace ASP
     var fact = ViewBag.Factory as IEntityOperate;
     var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
     var entity = Model as IEntity;
-    var key = fact.Unique != null ? entity[fact.Unique] : 0;
+    var pks = fact.Table.PrimaryKeys;
+    var key = fact.Unique != null ? entity[fact.Unique.Name] : (pks.Length > 0 ? pks.Select(e => entity[e.Name]).Join("_") : "");
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
     var ajax = true;
@@ -63,7 +64,7 @@ namespace ASP
 WriteLiteral("\r\n");
 
             
-            #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 15 "..\..\Views\Shared\_List_Data_Action.cshtml"
  if (user.Has(PermissionFlags.Update))
 {
 
@@ -79,20 +80,20 @@ WriteLiteral(" style=\"color: blue;\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 17 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 18 "..\..\Views\Shared\_List_Data_Action.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 18 "..\..\Views\Shared\_List_Data_Action.cshtml"
 Write(Html.ActionLink("编辑", "Edit", new { id = @key }, new { @class = "editcell" }));
 
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 18 "..\..\Views\Shared\_List_Data_Action.cshtml"
                                                                                   
 }
 else if (user.Has(PermissionFlags.Detail))
@@ -110,20 +111,20 @@ WriteLiteral(" style=\"color: blue;\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 22 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 23 "..\..\Views\Shared\_List_Data_Action.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 22 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 23 "..\..\Views\Shared\_List_Data_Action.cshtml"
 Write(Html.ActionLink("查看", "Detail", new { id = @key }, new { @class = "editcell" }));
 
             
             #line default
             #line hidden
             
-            #line 22 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 23 "..\..\Views\Shared\_List_Data_Action.cshtml"
                                                                                     
 }
 
@@ -131,7 +132,7 @@ Write(Html.ActionLink("查看", "Detail", new { id = @key }, new { @class = "edi
             #line default
             #line hidden
             
-            #line 24 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 25 "..\..\Views\Shared\_List_Data_Action.cshtml"
  if (user.Has(PermissionFlags.Delete))
 {
     if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
@@ -149,7 +150,7 @@ WriteLiteral(" style=\"color: green;\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 29 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 30 "..\..\Views\Shared\_List_Data_Action.cshtml"
         if (ajax)
         {
             
@@ -157,14 +158,14 @@ WriteLiteral("></i>\r\n");
             #line default
             #line hidden
             
-            #line 31 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 32 "..\..\Views\Shared\_List_Data_Action.cshtml"
        Write(Html.ActionLink("恢复", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认恢复？');" }));
 
             
             #line default
             #line hidden
             
-            #line 31 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 32 "..\..\Views\Shared\_List_Data_Action.cshtml"
                                                                                                                                                           
         }
         else
@@ -174,14 +175,14 @@ WriteLiteral("></i>\r\n");
             #line default
             #line hidden
             
-            #line 35 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 36 "..\..\Views\Shared\_List_Data_Action.cshtml"
        Write(Html.ActionLink("恢复", "Delete", new { id = @key }, new { onclick = "return confirm('确认恢复？');" }));
 
             
             #line default
             #line hidden
             
-            #line 35 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 36 "..\..\Views\Shared\_List_Data_Action.cshtml"
                                                                                                              
         }
     }
@@ -200,7 +201,7 @@ WriteLiteral(" style=\"color: red;\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 41 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 42 "..\..\Views\Shared\_List_Data_Action.cshtml"
         if (ajax)
         {
             
@@ -208,14 +209,14 @@ WriteLiteral("></i>\r\n");
             #line default
             #line hidden
             
-            #line 43 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 44 "..\..\Views\Shared\_List_Data_Action.cshtml"
        Write(Html.ActionLink("删除", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认删除？');" }));
 
             
             #line default
             #line hidden
             
-            #line 43 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 44 "..\..\Views\Shared\_List_Data_Action.cshtml"
                                                                                                                                                           
         }
         else
@@ -225,14 +226,14 @@ WriteLiteral("></i>\r\n");
             #line default
             #line hidden
             
-            #line 47 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 48 "..\..\Views\Shared\_List_Data_Action.cshtml"
        Write(Html.ActionLink("删除", "Delete", new { id = @key }, new { onclick = "return confirm('确认删除？');" }));
 
             
             #line default
             #line hidden
             
-            #line 47 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 48 "..\..\Views\Shared\_List_Data_Action.cshtml"
                                                                                                              
         }
     }
