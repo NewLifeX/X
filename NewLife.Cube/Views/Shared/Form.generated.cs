@@ -69,6 +69,8 @@ namespace ASP
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
 
+    var rv = entity.GetRouteKey();
+
             
             #line default
             #line hidden
@@ -81,7 +83,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 14 "..\..\Views\Shared\Form.cshtml"
+            #line 16 "..\..\Views\Shared\Form.cshtml"
 Write(Html.Partial("_Form_Header", entity));
 
             
@@ -90,83 +92,90 @@ Write(Html.Partial("_Form_Header", entity));
 WriteLiteral("\r\n");
 
             
-            #line 15 "..\..\Views\Shared\Form.cshtml"
+            #line 17 "..\..\Views\Shared\Form.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 15 "..\..\Views\Shared\Form.cshtml"
-     using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
+            #line 17 "..\..\Views\Shared\Form.cshtml"
+     using (Html.BeginForm((isNew ? "Add" : "Edit"), null, rv))
     {
         
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\Form.cshtml"
+            #line 19 "..\..\Views\Shared\Form.cshtml"
    Write(Html.AntiForgeryToken());
 
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\Form.cshtml"
+            #line 19 "..\..\Views\Shared\Form.cshtml"
                                 
         
             
             #line default
             #line hidden
             
-            #line 18 "..\..\Views\Shared\Form.cshtml"
+            #line 20 "..\..\Views\Shared\Form.cshtml"
    Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
             
-            #line 18 "..\..\Views\Shared\Form.cshtml"
+            #line 20 "..\..\Views\Shared\Form.cshtml"
                                  
         foreach (var item in fields)
         {
-            if (!item.PrimaryKey)
-            {
-                
+            
             
             #line default
             #line hidden
             
             #line 23 "..\..\Views\Shared\Form.cshtml"
-           Write(Html.Partial("_Form_Group", new Pair(Model, item)));
-
-            
-            #line default
-            #line hidden
-            
-            #line 23 "..\..\Views\Shared\Form.cshtml"
-                                                                   
-            }
-        }
+                                                                                                     
+    if (!item.IsIdentity)
+    {
         
             
             #line default
             #line hidden
             
             #line 26 "..\..\Views\Shared\Form.cshtml"
-                                                 
+   Write(Html.Partial("_Form_Group", new Pair(Model, item)));
+
+            
+            #line default
+            #line hidden
+            
+            #line 26 "..\..\Views\Shared\Form.cshtml"
+                                                           
+        }
+    }
+    
+            
+            #line default
+            #line hidden
+            
+            #line 29 "..\..\Views\Shared\Form.cshtml"
+                                             
         
             
             #line default
             #line hidden
             
-            #line 27 "..\..\Views\Shared\Form.cshtml"
+            #line 30 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Action", entity));
 
             
             #line default
             #line hidden
             
-            #line 27 "..\..\Views\Shared\Form.cshtml"
+            #line 30 "..\..\Views\Shared\Form.cshtml"
                                              
     }
 

@@ -100,17 +100,13 @@ namespace NewLife.Cube
                 var pks = fact.Table.PrimaryKeys;
                 if (pks.Length > 0)
                 {
-                    var vs = (key + "").Split(new[] { '_' }, StringSplitOptions.None);
-                    if (vs.Length > 0)
+                    var exp = new WhereExpression();
+                    foreach (var item in pks)
                     {
-                        var exp = new WhereExpression();
-                        for (var i = 0; i < pks.Length && i < vs.Length; i++)
-                        {
-                            exp &= pks[i].Equal(vs[i]);
-                        }
-
-                        return Entity<TEntity>.Find(exp);
+                        exp &= item.Equal(Request[item.Name]);
                     }
+
+                    return Entity<TEntity>.Find(exp);
                 }
             }
 

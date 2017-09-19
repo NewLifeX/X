@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
+using XCode;
 using XCode.Configuration;
 
 namespace NewLife.Cube
@@ -43,6 +45,30 @@ namespace NewLife.Cube
         public static Bootstrap Bootstrap(this Controller controller)
         {
             return Bootstrap(controller.HttpContext);
+        }
+
+        /// <summary>获取路由Key</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public static RouteValueDictionary GetRouteKey(this IEntity entity)
+        {
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var pks = fact.Table.PrimaryKeys;
+
+            var rv = new RouteValueDictionary();
+            if (fact.Unique != null)
+            {
+                rv["id"] = entity[fact.Unique.Name];
+            }
+            else if (pks.Length > 0)
+            {
+                foreach (var item in pks)
+                {
+                    rv[item.Name] = "{0}".F(entity[item.Name]);
+                }
+            }
+
+            return rv;
         }
 
         internal static Boolean MakeListDataView(Type entityType, String vpath, List<FieldItem> fields)

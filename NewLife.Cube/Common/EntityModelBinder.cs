@@ -24,12 +24,36 @@ namespace NewLife.Cube
                 if (fact != null)
                 {
                     var rvs = controllerContext.RouteData.Values;
+                    var pks = fact.Table.PrimaryKeys;
                     var uk = fact.Unique;
+
+                    IEntity entity = null;
                     if (uk != null && rvs[uk.Name] != null)
                     {
                         // 查询实体对象用于编辑
-                        var entity = GetEntity(fact.EntityType, rvs[uk.Name]) ?? fact.FindByKeyForEdit(rvs[uk.Name]) ?? fact.Create();
+                        entity = GetEntity(fact.EntityType, rvs[uk.Name]) ?? fact.FindByKeyForEdit(rvs[uk.Name]) ?? fact.Create();
+                    }
+                    else if (pks.Length > 0)
+                    {
+                        // 查询实体对象用于编辑
+                        var vs = pks.Select(e => rvs[e.Name]).ToArray();
+                        entity = GetEntity(fact.EntityType, vs);
+                        if (entity == null)
+                        {
+                            var req = controllerContext.HttpContext.Request;
+                            var exp = new WhereExpression();
+                            foreach (var item in pks)
+                            {
+                                exp &= item.Equal(req[item.Name]);
+                            }
 
+                            entity = fact.Find(exp);
+                        }
+                        if (entity == null) entity = fact.Create();
+                    }
+
+                    if (entity != null)
+                    {
                         var fs = controllerContext.HttpContext.Request.Form;
                         // 提前填充动态字段的扩展属性
                         foreach (var item in fact.Fields)
@@ -47,9 +71,9 @@ namespace NewLife.Cube
             return base.CreateModel(controllerContext, bindingContext, modelType);
         }
 
-        private static String GetCacheKey(Type type, Object key)
+        private static String GetCacheKey(Type type, params Object[] keys)
         {
-            return "CubeModel_{0}_{1}".F(type.FullName, key);
+            return "CubeModel_{0}_{1}".F(type.FullName, keys.Join("_"));
         }
 
         /// <summary>呈现表单前，保存实体对象。提交时优先使用该对象而不是去数据库查找，避免脏写</summary>
@@ -58,15 +82,23 @@ namespace NewLife.Cube
         {
             var ctx = HttpContext.Current;
             var fact = EntityFactory.CreateOperate(entity.GetType());
+
+            var ckey = "";
+            var pks = fact.Table.PrimaryKeys;
             var uk = fact.Unique;
-            var ckey = GetCacheKey(entity.GetType(), entity[uk.Name]);
+            if (uk != null)
+                ckey = GetCacheKey(entity.GetType(), entity[uk.Name]);
+            else if (pks.Length > 0)
+                ckey = GetCacheKey(entity.GetType(), pks.Select(e => entity[e.Name]).ToArray());
+
             ctx.Session[ckey] = entity;
         }
 
-        private static IEntity GetEntity(Type type, Object key)
+        private static IEntity GetEntity(Type type, params Object[] keys)
         {
             var ctx = HttpContext.Current;
-            var ckey = GetCacheKey(type, key);
+            var ckey = GetCacheKey(type, keys);
+
             return ctx.Session[ckey] as IEntity;
         }
     }

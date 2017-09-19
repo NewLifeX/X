@@ -1,9 +1,11 @@
-﻿@{
+﻿@using System.Text;
+@{
     var fact = ViewBag.Factory as IEntityOperate;
     var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
     var entity = Model as IEntity;
-    var pks = fact.Table.PrimaryKeys;
-    var key = fact.Unique != null ? entity[fact.Unique.Name] : (pks.Length > 0 ? pks.Select(e => entity[e.Name]).Join("_") : "");
+
+    var rv = entity.GetRouteKey();
+
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
     var ajax = true;
@@ -15,12 +17,12 @@
 @if (user.Has(PermissionFlags.Update))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-    @Html.ActionLink("编辑", "Edit", new { id = @key }, new { @class = "editcell" })
+    <a href="@Url.Action("Edit", rv)" class="editcell">编辑</a>
 }
 else if (user.Has(PermissionFlags.Detail))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
-    @Html.ActionLink("查看", "Detail", new { id = @key }, new { @class = "editcell" })
+    <a href="@Url.Action("Detail", rv)" class="editcell">查看</a>
 }
 @if (user.Has(PermissionFlags.Delete))
 {
@@ -29,11 +31,11 @@ else if (user.Has(PermissionFlags.Detail))
         <i class="glyphicon glyphicon-transfer" style="color: green;"></i>
         if (ajax)
         {
-            @Html.ActionLink("恢复", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认恢复？');" })
+            <a href="@Url.Action("DeleteAjax", rv)" data_action="delete" data_ajax="1" onclick="return confirm('确认恢复？');">恢复</a>
         }
         else
         {
-            @Html.ActionLink("恢复", "Delete", new { id = @key }, new { onclick = "return confirm('确认恢复？');" })
+            <a href="@Url.Action("Delete", rv)" onclick="return confirm('确认恢复？');">恢复</a>
         }
     }
     else
@@ -41,11 +43,11 @@ else if (user.Has(PermissionFlags.Detail))
         <i class="glyphicon glyphicon-remove" style="color: red;"></i>
         if (ajax)
         {
-            @Html.ActionLink("删除", "DeleteAjax", new { id = @key }, new { data_action = "delete", data_ajax = "1", onclick = "return confirm('确认删除？');" })
+            <a href="@Url.Action("DeleteAjax", rv)" data_action="delete" data_ajax="1" onclick="return confirm('确认删除？');">删除</a>
         }
         else
         {
-            @Html.ActionLink("删除", "Delete", new { id = @key }, new { onclick = "return confirm('确认删除？');" })
+            <a href="@Url.Action("Delete", rv)" onclick="return confirm('确认删除？');">删除</a>
         }
     }
 }
