@@ -80,7 +80,7 @@ namespace NewLife.Agent
                 else if (cmd == "-run") //循环执行任务
                 {
                     var service2 = new TService();
-                    service2.StartWork();
+                    service2.StartWork("-run");
                     Console.ReadKey(true);
                     return;
                 }
@@ -175,12 +175,12 @@ namespace NewLife.Agent
                             try
                             {
                                 Console.WriteLine("正在循环调试……");
-                                service.StartWork();
+                                service.StartWork("循环开始");
 
                                 Console.WriteLine("任意键结束循环调试！");
                                 Console.ReadKey(true);
 
-                                service.StopWork();
+                                service.StopWork("循环停止");
                             }
                             catch (Exception ex)
                             {
@@ -341,6 +341,7 @@ namespace NewLife.Agent
         }
 
         /// <summary>开始循环工作</summary>
+        [Obsolete("=>StartWork(String reason)")]
         public virtual void StartWork()
         {
             StartWork(nameof(StartWork));
@@ -354,7 +355,7 @@ namespace NewLife.Agent
             this.PreStartWork();
 
             var count = ThreadCount;
-            WriteLine("服务启动 共[{0:n0}]个工作线程", count);
+            WriteLine("服务启动 共[{0:n0}]个工作线程 {1}", count, reason);
 
             try
             {
@@ -387,16 +388,6 @@ namespace NewLife.Agent
             }
         }
 
-        ///// <summary>开始循环工作</summary>
-        ///// <param name="index">线程序号</param>
-        //public virtual void StartWork(Int32 index)
-        //{
-        //    var ss = Items;
-        //    if (index < 0 || index >= ss.Length) throw new ArgumentOutOfRangeException(nameof(index));
-
-        //    ss[index].Start(nameof(StartWork));
-        //}
-
         /// <summary>核心工作方法。调度线程会定期调用该方法</summary>
         /// <param name="index">线程序号</param>
         /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
@@ -407,6 +398,7 @@ namespace NewLife.Agent
         /// 只能停止循环而已，如果已经有一批任务在处理，
         /// 则内部需要捕获ThreadAbortException异常，否则无法停止任务处理。
         /// </remarks>
+        [Obsolete("=>StopWork(String reason)")]
         public virtual void StopWork()
         {
             StopWork(nameof(StopWork));
@@ -443,16 +435,6 @@ namespace NewLife.Agent
 
             //Interactive.Hide();
         }
-
-        ///// <summary>停止循环工作</summary>
-        ///// <param name="index">线程序号</param>
-        //public virtual void StopWork(Int32 index)
-        //{
-        //    if (index < 0 || index >= ThreadCount) throw new ArgumentOutOfRangeException("index");
-
-        //    var item = Items[index];
-        //    item.Stop(nameof(StopWork));
-        //}
         #endregion
 
         #region 服务维护线程
