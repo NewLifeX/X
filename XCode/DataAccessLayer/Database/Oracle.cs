@@ -815,30 +815,35 @@ namespace XCode.DataAccessLayer
             var sql = sb.ToString();
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            // 如果序列已存在，需要先删除
-            if (CheckSeqExists("SEQ_{0}".F(table.TableName), null)) sb.AppendFormat(";\r\nDrop Sequence SEQ_{0}", table.TableName);
+            // 有些表没有自增字段
+            var id = table.Columns.FirstOrDefault(e => e.Identity);
+            if (id != null)
+            {
+                // 如果序列已存在，需要先删除
+                if (CheckSeqExists("SEQ_{0}".F(table.TableName), null)) sb.AppendFormat(";\r\nDrop Sequence SEQ_{0}", table.TableName);
 
-            // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
-            // @大石头 在PLSQL里面，创建序列从1开始时，nextval得到从1开始，而ADO.Net这里从1开始时，nextval只会得到2
-            //sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
+                // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
+                // @大石头 在PLSQL里面，创建序列从1开始时，nextval得到从1开始，而ADO.Net这里从1开始时，nextval只会得到2
+                //sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
 
-            /*
-             * Oracle从 11.2.0.1 版本开始，提供了一个“延迟段创建”特性：
-             * 当我们创建了新的表(table)和序列(sequence)，在插入(insert)语句时，序列会跳过第一个值(1)。
-             * 所以结果是插入的序列值从 2(序列的第二个值) 开始， 而不是 1开始。
-             * 
-             * 更改数据库的“延迟段创建”特性为false（需要有相应的权限）
-             * ALTER SYSTEM SET deferred_segment_creation=FALSE; 
-             * 
-             * 第二种解决办法
-             * 创建表时让seqment立即执行，如： 
-             * CREATE TABLE tbl_test(
-             *   test_id NUMBER PRIMARY KEY, 
-             *   test_name VARCHAR2(20)
-             * )
-             * SEGMENT CREATION IMMEDIATE;
-             */
-            sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1", table.TableName);
+                /*
+                 * Oracle从 11.2.0.1 版本开始，提供了一个“延迟段创建”特性：
+                 * 当我们创建了新的表(table)和序列(sequence)，在插入(insert)语句时，序列会跳过第一个值(1)。
+                 * 所以结果是插入的序列值从 2(序列的第二个值) 开始， 而不是 1开始。
+                 * 
+                 * 更改数据库的“延迟段创建”特性为false（需要有相应的权限）
+                 * ALTER SYSTEM SET deferred_segment_creation=FALSE; 
+                 * 
+                 * 第二种解决办法
+                 * 创建表时让seqment立即执行，如： 
+                 * CREATE TABLE tbl_test(
+                 *   test_id NUMBER PRIMARY KEY, 
+                 *   test_name VARCHAR2(20)
+                 * )
+                 * SEGMENT CREATION IMMEDIATE;
+                 */
+                sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1", table.TableName);
+            }
 
             // 去掉分号后的空格，Oracle不支持同时执行多个语句
             return sb.ToString();
