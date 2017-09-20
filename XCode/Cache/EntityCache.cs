@@ -90,7 +90,10 @@ namespace XCode.Cache
                 }
             }
             // 第一次所有线程一起等待结果
-            if (Times == 1 && WaitFirst && _task != null) _task.Wait(5000);
+            if (Times == 1 && WaitFirst && _task != null)
+            {
+                if (!_task.Wait(5000)) WriteLog("{0}缓存初始化超时，当前线程可能取得空数据", ToString());
+            }
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
