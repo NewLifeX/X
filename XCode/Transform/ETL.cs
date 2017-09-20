@@ -167,7 +167,7 @@ namespace XCode.Transform
                 var sw = Stopwatch.StartNew();
 
                 // 分批抽取
-                list = Fetch(ext, set);
+                list = Fetch(ctx, ext, set);
                 if (list == null || list.Count == 0) return 0;
                 sw.Stop();
 
@@ -213,10 +213,11 @@ namespace XCode.Transform
         }
 
         /// <summary>抽取一批数据</summary>
+        /// <param name="ctx">数据上下文</param>
         /// <param name="extracter"></param>
         /// <param name="set">设置</param>
         /// <returns></returns>
-        internal protected virtual IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
+        internal protected virtual IList<IEntity> Fetch(DataContext ctx, IExtracter extracter, IExtractSetting set)
         {
             return extracter?.Fetch(set);
         }
@@ -227,13 +228,14 @@ namespace XCode.Transform
         /// 异步处理之前，需要先保存配置
         /// </remarks>
         /// <param name="ctx">数据上下文</param>
-        internal protected virtual void ProcessList(DataContext ctx)
+        internal protected void ProcessList(DataContext ctx)
         {
             try
             {
                 var sw = Stopwatch.StartNew();
 
-                ctx.Success = OnProcess(ctx);
+                var rs = OnProcess(ctx);
+                ctx.Success = rs == null ? 0 : rs.Count;
 
                 sw.Stop();
                 ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
@@ -250,7 +252,7 @@ namespace XCode.Transform
 
         /// <summary>异步处理列表，传递批次配置</summary>
         /// <param name="ctx">数据上下文</param>
-        internal protected virtual void ProcessListAsync(DataContext ctx)
+        internal protected void ProcessListAsync(DataContext ctx)
         {
             var cur = _currentTask;
             // 当前任务已达上限，或者出现多线程争夺时，等待一段时间
@@ -275,17 +277,16 @@ namespace XCode.Transform
 
         /// <summary>批量处理数据列表，可重载打开事务保护</summary>
         /// <param name="ctx">数据上下文</param>
-        protected virtual Int32 OnProcess(DataContext ctx)
+        protected virtual IList<IEntity> OnProcess(DataContext ctx)
         {
-            var count = 0;
+            var list = new List<IEntity>();
             foreach (var source in ctx.Data)
             {
                 ctx.Entity = source;
                 try
                 {
-                    ProcessItem(source);
-
-                    count++;
+                    var rs = ProcessItem(ctx, source);
+                    if (rs != null) list.Add(rs);
                 }
                 catch (Exception ex)
                 {
@@ -296,7 +297,7 @@ namespace XCode.Transform
             }
             ctx.Entity = null;
 
-            return count;
+            return list;
         }
 
         /// <summary>处理完成</summary>
@@ -323,10 +324,10 @@ namespace XCode.Transform
         }
 
         /// <summary>处理单行数据</summary>
-        /// <remarks>打开AutoSave时，上层ProcessList会自动保存数据</remarks>
+        /// <param name="ctx">数据上下文</param>
         /// <param name="source">源实体</param>
         /// <returns></returns>
-        protected virtual IEntity ProcessItem(IEntity source) { return source; }
+        protected virtual IEntity ProcessItem(DataContext ctx, IEntity source) { return source; }
 
         private Exception _lastError;
         /// <summary>遇到错误时如何处理</summary>

@@ -31,8 +31,9 @@ namespace XCode.Transform
         }
 
         /// <summary>处理单行数据</summary>
+        /// <param name="ctx">数据上下文</param>
         /// <param name="source">源实体</param>
-        protected override IEntity SyncItem(IEntity source)
+        protected override IEntity ProcessItem(DataContext ctx, IEntity source)
         {
             var target = GetItem(source, out var isNew);
 
@@ -107,25 +108,27 @@ namespace XCode.Transform
         }
 
         /// <summary>从来源表查数据</summary>
+        /// <param name="ctx">数据上下文</param>
         /// <param name="extracter"></param>
         /// <param name="set">设置</param>
         /// <returns></returns>
-        internal protected override IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
+        internal protected override IList<IEntity> Fetch(DataContext ctx, IExtracter extracter, IExtractSetting set)
         {
-            return Target.Split(SourceConn, SourceTable, () => base.Fetch(extracter, set));
+            return Target.Split(SourceConn, SourceTable, () => base.Fetch(ctx, extracter, set));
         }
 
         /// <summary>同步数据列表时，在目标表上执行</summary>
         /// <param name="ctx">数据上下文</param>
         /// <returns></returns>
-        protected override Int32 OnSync(DataContext ctx)
+        protected override IList<IEntity> OnProcess(DataContext ctx)
         {
-            return Target.Split(TargetConn, TargetTable, () => base.OnSync(ctx));
+            return Target.Split(TargetConn, TargetTable, () => base.OnProcess(ctx));
         }
 
         /// <summary>处理单行数据</summary>
+        /// <param name="ctx">数据上下文</param>
         /// <param name="source">源实体</param>
-        protected override IEntity SyncItem(IEntity source)
+        protected override IEntity ProcessItem(DataContext ctx, IEntity source)
         {
             var isNew = InsertOnly;
             var target = isNew ? source : GetItem(source, out isNew);
@@ -165,47 +168,21 @@ namespace XCode.Transform
         /// <summary>实例化数据抽取器</summary>
         public Sync() : base() { }
 
-        /// <summary>实例化数据抽取器</summary>
+        /// <summary>实例化数据同步</summary>
         /// <param name="source"></param>
         /// <param name="target"></param>
         public Sync(IEntityOperate source, IEntityOperate target) : base(source) { Target = target; }
         #endregion
 
         #region 数据处理
-        /// <summary>处理列表，传递批次配置，支持多线程和异步</summary>
-        /// <remarks>
-        /// 子类可以根据需要重载该方法，实现异步处理。
-        /// 异步处理之前，需要先保存配置
-        /// </remarks>
-        /// <param name="ctx">数据上下文</param>
-        internal protected override void ProcessList(DataContext ctx)
-        {
-            try
-            {
-                var sw = Stopwatch.StartNew();
-
-                ctx.Success = OnSync(ctx);
-
-                sw.Stop();
-                ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
-
-                OnFinished(ctx);
-            }
-            catch (Exception ex)
-            {
-                ctx.Error = ex;
-                ex = OnError(ctx);
-                if (ex != null) throw ex;
-            }
-        }
-
         /// <summary>抽取数据</summary>
+        /// <param name="ctx">数据上下文</param>
         /// <param name="extracter"></param>
         /// <param name="set">设置</param>
         /// <returns></returns>
-        internal protected override IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
+        internal protected override IList<IEntity> Fetch(DataContext ctx, IExtracter extracter, IExtractSetting set)
         {
-            var list = base.Fetch(extracter, set);
+            var list = base.Fetch(ctx, extracter, set);
 
             // 如果一批数据为空，可能是追到了尽头
             if (list == null || list.Count == 0) InsertOnly = false;
@@ -217,43 +194,27 @@ namespace XCode.Transform
         #region 数据同步
         /// <summary>处理列表，带事务保护，传递批次配置，支持多线程</summary>
         /// <param name="ctx">数据上下文</param>
-        protected virtual Int32 OnSync(DataContext ctx)
+        protected override IList<IEntity> OnProcess(DataContext ctx)
         {
-            var count = 0;
-
             // 批量事务提交
             var fact = Target;
             if (fact == null) throw new ArgumentNullException(nameof(Target));
 
             using (var tran = fact.CreateTrans())
             {
-                foreach (var source in ctx.Data)
-                {
-                    ctx.Entity = source;
-                    try
-                    {
-                        var rs = SyncItem(source);
+                var rs = base.OnProcess(ctx);
 
-                        if (rs != null) count++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ctx.Error = ex;
-                        ex = OnError(ctx);
-                        if (ex != null) throw ex;
-                    }
-                }
                 tran.Commit();
-            }
-            ctx.Entity = null;
 
-            return count;
+                return rs;
+            }
         }
 
         /// <summary>同步单行数据</summary>
+        /// <param name="ctx">数据上下文</param>
         /// <param name="source">源实体</param>
         /// <returns></returns>
-        protected virtual IEntity SyncItem(IEntity source)
+        protected override IEntity ProcessItem(DataContext ctx, IEntity source)
         {
             var isNew = InsertOnly;
             var target = isNew ? source : GetItem(source, out isNew);
