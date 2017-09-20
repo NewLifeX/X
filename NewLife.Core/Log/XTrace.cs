@@ -272,9 +272,11 @@ namespace NewLife.Log
         {
             if (control == null || log == null) return log;
 
-            var clg = new TextControlLog();
-            clg.Control = control;
-            clg.MaxLines = maxLines;
+            var clg = new TextControlLog
+            {
+                Control = control,
+                MaxLines = maxLines
+            };
 
             return new CompositeLog(log, clg);
         }
@@ -338,11 +340,12 @@ namespace NewLife.Log
                     var process = Process.GetCurrentProcess();
 
                     // MINIDUMP_EXCEPTION_INFORMATION 信息的初始化
-                    var mei = new MinidumpExceptionInfo();
-
-                    mei.ThreadId = (UInt32)GetCurrentThreadId();
-                    mei.ExceptionPointers = Marshal.GetExceptionPointers();
-                    mei.ClientPointers = 1;
+                    var mei = new MinidumpExceptionInfo
+                    {
+                        ThreadId = GetCurrentThreadId(),
+                        ExceptionPointers = Marshal.GetExceptionPointers(),
+                        ClientPointers = 1
+                    };
 
                     //这里调用的Win32 API
                     var fileHandle = stream.SafeFileHandle.DangerousGetHandle();

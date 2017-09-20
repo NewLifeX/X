@@ -108,10 +108,11 @@ namespace XCode.Transform
 
         /// <summary>从来源表查数据</summary>
         /// <param name="extracter"></param>
+        /// <param name="set">设置</param>
         /// <returns></returns>
-        protected override IList<IEntity> Fetch(IExtracter extracter)
+        protected override IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
         {
-            return Target.Split(SourceConn, SourceTable, () => base.Fetch(extracter));
+            return Target.Split(SourceConn, SourceTable, () => base.Fetch(extracter, set));
         }
 
         /// <summary>同步数据列表时，在目标表上执行</summary>
@@ -199,10 +200,11 @@ namespace XCode.Transform
 
         /// <summary>抽取数据</summary>
         /// <param name="extracter"></param>
+        /// <param name="set">设置</param>
         /// <returns></returns>
-        protected override IList<IEntity> Fetch(IExtracter extracter)
+        protected override IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
         {
-            var list = base.Fetch(extracter);
+            var list = base.Fetch(extracter, set);
 
             // 如果一批数据为空，可能是追到了尽头
             if (list == null || list.Count == 0) InsertOnly = false;

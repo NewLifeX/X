@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Collections;
 
 namespace XCode.Transform
 {
@@ -34,8 +35,16 @@ namespace XCode.Transform
         /// <summary>开始时间</summary>
         public DateTime StartTime { get; set; } = DateTime.Now;
 
-        /// <summary>状态对象</summary>
-        public Object State { get; set; }
+        ///// <summary>状态对象</summary>
+        //public Object State { get; set; }
+        #endregion
+
+        #region 索引器
+        private static IDictionary<String, Object> _Items = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>用户数据</summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public Object this[String item] { get => _Items[item]; set => _Items[item] = value; }
         #endregion
 
         #region 扩展属性

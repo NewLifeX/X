@@ -14,8 +14,8 @@ namespace XCode.Transform
         /// <summary>名称</summary>
         String Name { get; set; }
 
-        /// <summary>设置</summary>
-        IExtractSetting Setting { get; set; }
+        ///// <summary>设置</summary>
+        //IExtractSetting Setting { get; set; }
 
         /// <summary>实体工厂</summary>
         IEntityOperate Factory { get; set; }
@@ -34,11 +34,9 @@ namespace XCode.Transform
 
         #region 抽取数据
         /// <summary>抽取一批数据</summary>
+        /// <param name="set">设置</param>
         /// <returns></returns>
-        IList<IEntity> Fetch();
-
-        ///// <summary>当前批数据处理完成，移动到下一块</summary>
-        //void SaveNext();
+        IList<IEntity> Fetch(IExtractSetting set);
         #endregion
 
         #region 日志

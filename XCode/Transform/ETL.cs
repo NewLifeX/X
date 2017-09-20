@@ -59,6 +59,9 @@ namespace XCode.Transform
         /// <summary>数据源抽取器</summary>
         public IExtracter Extracter { get; set; }
 
+        /// <summary>数据源抽取设置</summary>
+        public IExtractSetting Setting { get; set; }
+
         /// <summary>最大错误数，连续发生多个错误时停止</summary>
         public Int32 MaxError { get; set; }
 
@@ -145,7 +148,7 @@ namespace XCode.Transform
             var ctx = new DataContext();
             if (!Modules.Processing(ctx)) { _Inited = false; return -1; }
 
-            var set = Extracter.Setting;
+            var set = ctx.Setting ?? Setting;
 
             // 最后一次处理之前，重新启动
             if (!_Inited || _Last != null && (set.Start < _Last.Start || set.Start == _Last.Start && set.Row < _Last.Row))
@@ -164,7 +167,7 @@ namespace XCode.Transform
                 var sw = Stopwatch.StartNew();
 
                 // 分批抽取
-                list = Fetch(ext);
+                list = Fetch(ext, set);
                 if (list == null || list.Count == 0) return 0;
                 sw.Stop();
 
@@ -211,10 +214,11 @@ namespace XCode.Transform
 
         /// <summary>抽取一批数据</summary>
         /// <param name="extracter"></param>
+        /// <param name="set">设置</param>
         /// <returns></returns>
-        protected virtual IList<IEntity> Fetch(IExtracter extracter)
+        protected virtual IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
         {
-            return extracter?.Fetch();
+            return extracter?.Fetch(set);
         }
 
         /// <summary>处理列表，传递批次配置，支持多线程和异步</summary>
