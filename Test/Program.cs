@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using NewLife.Agent;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Threading;
 using XCode;
+using XCode.DataAccessLayer;
 using XCode.Membership;
 
 namespace Test
@@ -44,8 +46,8 @@ namespace Test
                 //Thread.Sleep(5000);
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
-                //var key = Console.ReadKey(true);
-                //if (key.Key != ConsoleKey.C) break;
+                var key = Console.ReadKey(true);
+                if (key.Key != ConsoleKey.C) break;
                 break;
             }
         }
@@ -104,7 +106,20 @@ namespace Test
         {
             //ApiTest.Main();
 
-            AgentService.ServiceMain();
+            //AgentService.ServiceMain();
+
+            foreach (var item in DAL.ConnStrs)
+            {
+                Task.Run(() =>
+                {
+                    var dal = DAL.Create(item.Key);
+                    var meta = dal.Db.CreateMetaData();
+                    var mds = meta.MetaDataCollections;
+                    var rds = meta.ReservedWords;
+                    XTrace.WriteLine("{0}/{1}.MetaDataCollections={2}", dal.ConnName, dal.DbType, mds.Join(","));
+                    XTrace.WriteLine("{0}/{1}.ReservedWords={2}", dal.ConnName, dal.DbType, rds.Join(","));
+                });
+            }
         }
 
         class TestModule : EntityModule

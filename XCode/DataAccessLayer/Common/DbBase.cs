@@ -205,21 +205,22 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDbSession CreateSession()
         {
-            if (_sessions == null) _sessions = new Dictionary<Int32, IDbSession>();
+            var ss = _sessions;
+            if (ss == null) ss = _sessions = new Dictionary<Int32, IDbSession>();
 
             var tid = Thread.CurrentThread.ManagedThreadId;
             // 会话可能已经被销毁
-            if (_sessions.TryGetValue(tid, out var session) && session != null && !session.Disposed) return session;
-            lock (_sessions)
+            if (ss.TryGetValue(tid, out var session) && session != null && !session.Disposed) return session;
+            lock (ss)
             {
-                if (_sessions.TryGetValue(tid, out session) && session != null && !session.Disposed) return session;
+                if (ss.TryGetValue(tid, out session) && session != null && !session.Disposed) return session;
 
                 session = OnCreateSession();
 
                 CheckConnStr();
                 session.ConnectionString = ConnectionString;
 
-                _sessions[tid] = session;
+                ss[tid] = session;
 
                 return session;
             }
@@ -573,10 +574,16 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(name)) return name;
 
-            //if (CreateMetaData().ReservedWords.Contains(name)) return FormatKeyWord(name);
-            if (CreateMetaData() is DbMetaData md && md.ReservedWords.Contains(name)) return FormatKeyWord(name);
-
-            if (IsReservedWord(name)) return FormatKeyWord(name);
+            // 优先使用内置关键字
+            var rws = ReservedWords;
+            if (rws.Count > 0)
+            {
+                if (rws.ContainsKey(name)) return FormatKeyWord(name);
+            }
+            else
+            {
+                if (CreateMetaData() is DbMetaData md && md.ReservedWords.Contains(name)) return FormatKeyWord(name);
+            }
 
             return name;
         }
