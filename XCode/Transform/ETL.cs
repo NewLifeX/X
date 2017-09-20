@@ -216,7 +216,7 @@ namespace XCode.Transform
         /// <param name="extracter"></param>
         /// <param name="set">设置</param>
         /// <returns></returns>
-        protected virtual IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
+        internal protected virtual IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
         {
             return extracter?.Fetch(set);
         }
@@ -227,7 +227,7 @@ namespace XCode.Transform
         /// 异步处理之前，需要先保存配置
         /// </remarks>
         /// <param name="ctx">数据上下文</param>
-        protected virtual void ProcessList(DataContext ctx)
+        internal protected virtual void ProcessList(DataContext ctx)
         {
             try
             {
@@ -250,7 +250,7 @@ namespace XCode.Transform
 
         /// <summary>异步处理列表，传递批次配置</summary>
         /// <param name="ctx">数据上下文</param>
-        protected virtual void ProcessListAsync(DataContext ctx)
+        internal protected virtual void ProcessListAsync(DataContext ctx)
         {
             var cur = _currentTask;
             // 当前任务已达上限，或者出现多线程争夺时，等待一段时间
@@ -273,7 +273,7 @@ namespace XCode.Transform
             });
         }
 
-        /// <summary>处理列表</summary>
+        /// <summary>批量处理数据列表，可重载打开事务保护</summary>
         /// <param name="ctx">数据上下文</param>
         protected virtual Int32 OnProcess(DataContext ctx)
         {

@@ -110,7 +110,7 @@ namespace XCode.Transform
         /// <param name="extracter"></param>
         /// <param name="set">设置</param>
         /// <returns></returns>
-        protected override IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
+        internal protected override IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
         {
             return Target.Split(SourceConn, SourceTable, () => base.Fetch(extracter, set));
         }
@@ -178,11 +178,12 @@ namespace XCode.Transform
         /// 异步处理之前，需要先保存配置
         /// </remarks>
         /// <param name="ctx">数据上下文</param>
-        protected override void ProcessList(DataContext ctx)
+        internal protected override void ProcessList(DataContext ctx)
         {
             try
             {
                 var sw = Stopwatch.StartNew();
+
                 ctx.Success = OnSync(ctx);
 
                 sw.Stop();
@@ -202,7 +203,7 @@ namespace XCode.Transform
         /// <param name="extracter"></param>
         /// <param name="set">设置</param>
         /// <returns></returns>
-        protected override IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
+        internal protected override IList<IEntity> Fetch(IExtracter extracter, IExtractSetting set)
         {
             var list = base.Fetch(extracter, set);
 
@@ -214,7 +215,7 @@ namespace XCode.Transform
         #endregion
 
         #region 数据同步
-        /// <summary>处理列表，传递批次配置，支持多线程</summary>
+        /// <summary>处理列表，带事务保护，传递批次配置，支持多线程</summary>
         /// <param name="ctx">数据上下文</param>
         protected virtual Int32 OnSync(DataContext ctx)
         {
