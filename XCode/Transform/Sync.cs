@@ -295,7 +295,7 @@ namespace XCode.Transform
             var st = Stat;
             if (isNew)
                 target.Insert();
-            else
+            else if (target.Dirtys.Count > 0)
             {
                 target.Update();
                 st.Changes++;
