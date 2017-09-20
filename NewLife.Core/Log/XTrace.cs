@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -180,9 +181,9 @@ namespace NewLife.Log
                 _Log = clg;
         }
 #endif
-#endregion
+        #endregion
 
-            #region 拦截WinForm异常
+        #region 拦截WinForm异常
 #if __MOBILE__
 #elif __CORE__
 #else
@@ -278,10 +279,10 @@ namespace NewLife.Log
             return new CompositeLog(log, clg);
         }
 #endif
-            #endregion
+        #endregion
 
-            #region 属性
-            /// <summary>是否调试。</summary>
+        #region 属性
+        /// <summary>是否调试。</summary>
         public static Boolean Debug { get; set; } = Setting.Current.Debug;
 
         /// <summary>文本日志目录</summary>
@@ -495,7 +496,11 @@ namespace NewLife.Log
             var asmx = AssemblyX.Create(asm);
             if (asmx != null)
             {
-                WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
+                var ver = "";
+                var tar = asm.GetCustomAttribute<TargetFrameworkAttribute>();
+                if (tar != null) ver = tar.FrameworkDisplayName ?? tar.FrameworkName;
+
+                WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss} {3}", asmx.Name, asmx.FileVersion, asmx.Compile, ver);
                 var att = asmx.Asm.GetCustomAttribute<AssemblyCopyrightAttribute>();
                 WriteLine("{0} {1}", asmx.Title, att?.Copyright);
             }

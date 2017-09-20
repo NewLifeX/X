@@ -132,6 +132,7 @@ namespace NewLife.Log
         {
             var process = System.Diagnostics.Process.GetCurrentProcess();
             var name = String.Empty;
+            var ver = "";
             var asm = Assembly.GetEntryAssembly();
             if (asm != null)
             {
@@ -152,6 +153,9 @@ namespace NewLife.Log
                     var att = asm.GetCustomAttribute<AssemblyDescriptionAttribute>();
                     if (att != null) name = att.Description;
                 }
+
+                var tar = asm.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
+                if (tar != null) ver = tar.FrameworkDisplayName ?? tar.FrameworkName;
             }
             if (String.IsNullOrEmpty(name))
             {
@@ -226,7 +230,7 @@ namespace NewLife.Log
             sb.AppendFormat("#ApplicationType: {0}\r\n", apptype);
 
 #if !__CORE__
-            sb.AppendFormat("#CLR: {0}\r\n", System.Environment.Version);
+            sb.AppendFormat("#CLR: {0}, {1}\r\n", System.Environment.Version, ver);
 #endif
 
 #if __MOBILE__
