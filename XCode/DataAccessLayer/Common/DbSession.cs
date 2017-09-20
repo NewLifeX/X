@@ -125,11 +125,11 @@ namespace XCode.DataAccessLayer
                 {
                     conn.Open();
 
-                    // 检测并关闭连接
-                    if (_timer == null) _timer = new TimerX(OnTimer, null, 1000, 1000);
+                    //// 检测并关闭连接
+                    //if (_timer == null) _timer = new TimerX(OnTimer, null, 1000, 1000);
 
-                    // 正在工作，禁止定时关闭
-                    _running = true;
+                    //// 正在工作，禁止定时关闭
+                    //_running = true;
                 }
                 catch (DbException)
                 {
@@ -161,27 +161,27 @@ namespace XCode.DataAccessLayer
         public void AutoClose()
         {
             // 延迟关闭
-            //if (Transaction == null && Opened) Close();
+            if (Transaction == null && Opened) Close();
 
-            // 记录最后活跃时间
-            _LastActive = DateTime.Now;
-            // 不再处理，允许关闭
-            if (Transaction == null && Opened) _running = false;
+            //// 记录最后活跃时间
+            //_LastActive = DateTime.Now;
+            //// 不再处理，允许关闭
+            //if (Transaction == null && Opened) _running = false;
         }
 
-        private Boolean _running;
-        private DateTime _LastActive;
-        private TimerX _timer;
-        private void OnTimer(Object state)
-        {
-            // 正在工作，禁止定时关闭
-            if (_running) return;
-            // 没有链接不关闭
-            if (!Opened || _Conn == null) return;
+        //private Boolean _running;
+        //private DateTime _LastActive;
+        //private TimerX _timer;
+        //private void OnTimer(Object state)
+        //{
+        //    // 正在工作，禁止定时关闭
+        //    if (_running) return;
+        //    // 没有链接不关闭
+        //    if (!Opened || _Conn == null) return;
 
-            // 指定时间后关闭
-            if (_LastActive.AddSeconds(10) < DateTime.Now) Close();
-        }
+        //    // 指定时间后关闭
+        //    if (_LastActive.AddSeconds(10) < DateTime.Now) Close();
+        //}
 
         /// <summary>数据库名</summary>
         public String DatabaseName
