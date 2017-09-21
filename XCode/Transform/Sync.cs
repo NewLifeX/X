@@ -35,7 +35,9 @@ namespace XCode.Transform
         /// <param name="source">源实体</param>
         protected override IEntity ProcessItem(DataContext ctx, IEntity source)
         {
-            var target = GetItem(source, out var isNew);
+            var isNew = InsertOnly;
+            var target = isNew ? source : GetItem(source, out isNew);
+            //var target = GetItem(source, out var isNew);
 
             var rs = SyncItem(source as TSource, target as TTarget, isNew);
 
