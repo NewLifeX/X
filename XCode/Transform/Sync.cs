@@ -36,8 +36,8 @@ namespace XCode.Transform
         protected override IEntity ProcessItem(DataContext ctx, IEntity source)
         {
             var isNew = InsertOnly;
-            var target = isNew ? source : GetItem(source, out isNew);
-            //var target = GetItem(source, out var isNew);
+            //var target = GetItem(source, ref isNew);
+            var target = isNew && source is TTarget ? source : GetItem(source, ref isNew);
 
             var rs = SyncItem(source as TSource, target as TTarget, isNew);
 
@@ -133,7 +133,7 @@ namespace XCode.Transform
         protected override IEntity ProcessItem(DataContext ctx, IEntity source)
         {
             var isNew = InsertOnly;
-            var target = isNew ? source : GetItem(source, out isNew);
+            var target = isNew && Target.EntityType == Extracter.Factory.EntityType ? source : GetItem(source, ref isNew);
 
             var rs = SyncItem(source as TSource, target as TSource, isNew);
 
@@ -219,7 +219,7 @@ namespace XCode.Transform
         protected override IEntity ProcessItem(DataContext ctx, IEntity source)
         {
             var isNew = InsertOnly;
-            var target = isNew ? source : GetItem(source, out isNew);
+            var target = isNew ? source : GetItem(source, ref isNew);
 
             // 同名字段对拷
             target?.CopyFrom(source, true);
@@ -233,14 +233,13 @@ namespace XCode.Transform
         /// <param name="source">源实体</param>
         /// <param name="isNew">是否新增</param>
         /// <returns></returns>
-        protected virtual IEntity GetItem(IEntity source, out Boolean isNew)
+        protected virtual IEntity GetItem(IEntity source, ref Boolean isNew)
         {
             var key = source[Extracter.Factory.Unique.Name];
 
             // 查找目标，如果不存在则创建
-            isNew = false;
             var fact = Target;
-            var target = fact.FindByKey(key);
+            var target = isNew ? null : fact.FindByKey(key);
             if (target == null)
             {
                 target = fact.Create();
