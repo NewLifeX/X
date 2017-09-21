@@ -256,7 +256,7 @@ namespace XCode
         {
             foreach (var item in list)
             {
-                count += func(item);
+                if (item != null) count += func(item);
             }
             return count;
         }
