@@ -246,7 +246,10 @@ namespace XCode.DataAccessLayer
     internal class SQLiteSession : FileDbSession
     {
         #region 构造函数
-        public SQLiteSession(IDatabase db) : base(db) { }
+        public SQLiteSession(IDatabase db) : base(db)
+        {
+            DelayClose = 10000;
+        }
         #endregion
 
         #region 方法

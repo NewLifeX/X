@@ -169,22 +169,23 @@ namespace XCode.DataAccessLayer
         /// <summary>拥有者</summary>
         public virtual String Owner { get; set; }
 
-        private String _ServerVersion;
+        internal protected String _ServerVersion;
         /// <summary>数据库服务器版本</summary>
         public virtual String ServerVersion
         {
             get
             {
-                if (_ServerVersion != null) return _ServerVersion;
+                var ver = _ServerVersion;
+                if (ver != null) return ver;
                 _ServerVersion = String.Empty;
 
                 var session = CreateSession();
                 if (!session.Opened) session.Open();
                 try
                 {
-                    _ServerVersion = session.Conn.ServerVersion;
+                    ver =  _ServerVersion = session.Conn.ServerVersion;
 
-                    return _ServerVersion;
+                    return ver;
                 }
                 finally { session.AutoClose(); }
             }
@@ -199,14 +200,14 @@ namespace XCode.DataAccessLayer
 
         #region 方法
         /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
-        private Dictionary<Int32, IDbSession> _sessions;
+        private Dictionary<Int32, IDbSession> _sessions = new Dictionary<Int32, IDbSession>();
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
         public IDbSession CreateSession()
         {
             var ss = _sessions;
-            if (ss == null) ss = _sessions = new Dictionary<Int32, IDbSession>();
+            //if (ss == null) ss = _sessions = new Dictionary<Int32, IDbSession>();
 
             var tid = Thread.CurrentThread.ManagedThreadId;
             // 会话可能已经被销毁

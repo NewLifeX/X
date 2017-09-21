@@ -11,17 +11,18 @@ namespace XCode.DataAccessLayer
         /// <summary>系统数据库名</summary>
         public virtual String SystemDatabaseName { get { return "master"; } }
 
-        private String _ServerVersion;
+        //private String _ServerVersion;
         /// <summary>数据库服务器版本</summary>
         public override String ServerVersion
         {
             get
             {
-                if (_ServerVersion != null) return _ServerVersion;
+                var ver = _ServerVersion;
+                if (ver != null) return ver;
                 _ServerVersion = String.Empty;
 
                 var session = CreateSession() as RemoteDbSession;
-                _ServerVersion = session.ProcessWithSystem(s =>
+                ver = _ServerVersion = session.ProcessWithSystem(s =>
                 {
                     if (!session.Opened) session.Open();
                     try
@@ -34,7 +35,7 @@ namespace XCode.DataAccessLayer
                     }
                 }) as String;
 
-                return _ServerVersion;
+                return ver;
             }
         }
 
