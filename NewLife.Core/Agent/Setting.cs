@@ -44,7 +44,7 @@ namespace NewLife.Agent
 
         /// <summary>最大句柄数，单位：个。超过最大占用时，整个服务进程将会重启，以释放资源。默认0个，表示无限</summary>
         [Description("最大句柄数，单位：个。超过最大占用时，整个服务进程将会重启，以释放资源。默认0个，表示无限")]
-        public Int32 MaxHandle { get; set; } = 1000;
+        public Int32 MaxHandle { get; set; } = 10000;
 
         /// <summary>自动重启时间，单位：分。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0分，表示无限</summary>
         [Description("自动重启时间，单位：分。到达自动重启时间时，整个服务进程将会重启，以释放资源。默认0分，表示无限")]
