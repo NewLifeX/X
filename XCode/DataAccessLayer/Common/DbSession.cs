@@ -335,7 +335,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DataSet Query(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            return Query(OnCreateCommand(sql, type, ps));
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                return Query(cmd);
+            }
         }
 
         /// <summary>执行DbCommand，返回记录集</summary>
@@ -416,7 +419,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            return Execute(OnCreateCommand(sql, type, ps));
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                return Execute(cmd);
+            }
         }
 
         /// <summary>执行DbCommand，返回受影响的行数</summary>
@@ -455,7 +461,11 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            return Execute(sql, type, ps);
+            //return Execute(sql, type, ps);
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                return ExecuteScalar<Int64>(cmd);
+            }
         }
 
         /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
@@ -466,9 +476,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            var cmd = OnCreateCommand(sql, type, ps);
-            cmd.Transaction = Transaction?.Check(false);
-            return ExecuteScalar<T>(cmd);
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                cmd.Transaction = Transaction?.Check(false);
+                return ExecuteScalar<T>(cmd);
+            }
         }
 
         protected virtual T ExecuteScalar<T>(DbCommand cmd)

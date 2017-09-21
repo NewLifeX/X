@@ -258,7 +258,7 @@ namespace XCode.DataAccessLayer
         public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             sql += ";Select LAST_INSERT_ID()";
-            return ExecuteScalar<Int64>(CreateCommand(sql, type, ps));
+            return base.InsertAndGetIdentity(sql, type, ps);
         }
         #endregion
     }
