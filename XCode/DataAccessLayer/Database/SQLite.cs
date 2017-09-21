@@ -497,7 +497,8 @@ namespace XCode.DataAccessLayer
             var dbfile = (Database as SQLite).FileName;
 
             // 备份文件
-            if (bakfile.IsNullOrEmpty())
+            var bf = bakfile;
+            if (bf.IsNullOrEmpty())
             {
                 var name = dbname;
                 if (name.IsNullOrEmpty()) name = Path.GetFileNameWithoutExtension(dbfile);
@@ -505,26 +506,29 @@ namespace XCode.DataAccessLayer
                 var ext = Path.GetExtension(dbfile);
                 if (ext.IsNullOrEmpty()) ext = ".db";
 
-                bakfile = "{0}_{1:yyyyMMddHHmmss}{2}".F(name, DateTime.Now, ext);
+                if (compressed)
+                    bf = "{0}{1}".F(name, ext);
+                else
+                    bf = "{0}_{1:yyyyMMddHHmmss}{2}".F(name, DateTime.Now, ext);
             }
-            if (!Path.IsPathRooted(bakfile)) bakfile = Setting.Current.BackupPath.CombinePath(bakfile).GetFullPath();
+            if (!Path.IsPathRooted(bf)) bf = Setting.Current.BackupPath.CombinePath(bf).GetFullPath();
 
-            bakfile = bakfile.EnsureDirectory(true);
+            bf = bf.EnsureDirectory(true);
 
-            WriteLog("{0}备份SQLite数据库 {1} 到 {2}", Database.ConnName, dbfile, bakfile);
+            WriteLog("{0}备份SQLite数据库 {1} 到 {2}", Database.ConnName, dbfile, bf);
 
             var sw = new Stopwatch();
             sw.Start();
 
             // 删除已有文件
-            if (File.Exists(bakfile)) File.Delete(bakfile);
+            if (File.Exists(bf)) File.Delete(bf);
 
             using (var session = Database.CreateSession())
             using (var conn = Database.Factory.CreateConnection())
             {
                 session.Open();
 
-                conn.ConnectionString = "Data Source={0}".F(bakfile);
+                conn.ConnectionString = "Data Source={0}".F(bf);
                 conn.Open();
 
                 //var method = conn.GetType().GetMethodEx("BackupDatabase");
@@ -533,34 +537,26 @@ namespace XCode.DataAccessLayer
             }
 
             // 压缩
-            WriteLog("备份文件大小：{0:n0}字节", bakfile.AsFile().Length);
-            //if (bakfile.EndsWithIgnoreCase(".zip"))
-            //{
-            //    //var rnd = new Random();
-            //    var tmp = Path.GetDirectoryName(bakfile).CombinePath(Rand.Next() + ".tmp");
-            //    File.Move(bakfile, tmp);
-            //    tmp.AsFile().Compress(bakfile);
-            //    File.Delete(tmp);
-            //    WriteLog("压缩后大小：{0:n0}字节", bakfile.AsFile().Length);
-            //}
-            //if (!bakfile.EndsWithIgnoreCase(".zip"))
+            WriteLog("备份文件大小：{0:n0}字节", bf.AsFile().Length);
             if (compressed)
             {
-                var zipfile = Path.ChangeExtension(bakfile, "zip");
-                var fi = bakfile.AsFile();
+                var zipfile = Path.ChangeExtension(bf, "zip");
+                if (bakfile.IsNullOrEmpty()) zipfile = zipfile.TrimEnd(".zip") + "_{0:yyyyMMddHHmmss}.zip".F(DateTime.Now);
+
+                var fi = bf.AsFile();
                 fi.Compress(zipfile);
                 WriteLog("压缩后大小：{0:n0}字节", fi.Length);
 
                 // 删除未备份
-                File.Delete(bakfile);
+                File.Delete(bf);
 
-                bakfile = zipfile;
+                bf = zipfile;
             }
 
             sw.Stop();
             WriteLog("备份完成，耗时{0:n0}ms", sw.ElapsedMilliseconds);
 
-            return bakfile;
+            return bf;
         }
 
         public override String CreateIndexSQL(IDataIndex index)
