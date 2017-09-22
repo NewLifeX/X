@@ -477,6 +477,8 @@ namespace NewLife.Agent
         /// <param name="data"></param>
         protected virtual void ManagerThreadWaper(Object data)
         {
+            // 暂停一会，等待各个任务线程完全启动
+            Thread.Sleep(2 * 1000);
             while (true)
             {
                 try
