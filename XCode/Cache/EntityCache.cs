@@ -98,6 +98,28 @@ namespace XCode.Cache
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
         }
+
+        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
+        /// <param name="match">条件</param>
+        /// <returns></returns>
+        public TEntity Find(Predicate<TEntity> match)
+        {
+            var list = Entities;
+            if (list is List<TEntity> list2) return list2.Find(match);
+
+            return list.FirstOrDefault(e => match(e));
+        }
+
+        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
+        /// <param name="match">条件</param>
+        /// <returns></returns>
+        public IList<TEntity> FindAll(Predicate<TEntity> match)
+        {
+            var list = Entities;
+            if (list is List<TEntity> list2) return list2.FindAll(match);
+
+            return list.Where(e => match(e)).ToList();
+        }
         #endregion
 
         #region 缓存操作

@@ -799,7 +799,7 @@ namespace XCode.Code
 
                     WriteLine();
                     WriteLine("// 实体缓存");
-                    WriteLine("if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.{0} == {1});", pk.Name, name);
+                    WriteLine("if (Meta.Count < 1000) return Meta.Cache.Find(e => e.{0} == {1});", pk.Name, name);
 
                     WriteLine();
                     WriteLine("// 单对象缓存");
@@ -852,7 +852,7 @@ namespace XCode.Code
                     if (di.Unique)
                     {
                         WriteLine("// 实体缓存");
-                        WriteLine("if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => {0});", wh);
+                        WriteLine("if (Meta.Count < 1000) return Meta.Cache.Find(e => {0});", wh);
 
                         // 单对象缓存
                         if (cs.Length == 1 && cs[0].Master)
@@ -868,7 +868,7 @@ namespace XCode.Code
                     else
                     {
                         WriteLine("// 实体缓存");
-                        WriteLine("if (Meta.Count < 1000) return Meta.Cache.Entities.Where(e => {0}).ToList();", wh);
+                        WriteLine("if (Meta.Count < 1000) return Meta.Cache.FindAll(e => {0});", wh);
 
                         WriteLine();
                         WriteLine("return FindAll({0});", exp);
