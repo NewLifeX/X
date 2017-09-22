@@ -95,10 +95,10 @@ namespace XCoder
                 if (obj is IDataTable)
                 {
                     var sql = "select * from " + (obj as IDataTable).TableName;
-                    var cmd = ss.CreateCommand(sql);
                     DataTable dt = null;
                     try
                     {
+                        using (var cmd = ss.CreateCommand(sql))
                         using (var reader = cmd.ExecuteReader(CommandBehavior.KeyInfo | CommandBehavior.SchemaOnly))
                         {
                             dt = reader.GetSchemaTable();

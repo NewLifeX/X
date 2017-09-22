@@ -11,6 +11,7 @@ using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Threading;
 using XCode.Exceptions;
 
 namespace XCode.DataAccessLayer
@@ -37,10 +38,13 @@ namespace XCode.DataAccessLayer
                 //if (Trans != null) Rollback();
                 // 在嵌套事务中，Rollback只能减少嵌套层数，而_Trans.Rollback能让事务马上回滚
                 if (Opened) Transaction?.Rollback();
-                if (_Conn != null) Close();
-                if (_Conn != null)
+
+                var conn = _Conn;
+                if (conn != null)
                 {
-                    var conn = _Conn;
+                    //Close();
+                    if (conn.State != ConnectionState.Closed) conn.Close();
+
                     _Conn = null;
                     conn.Dispose();
                 }
@@ -72,18 +76,19 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_Conn == null)
+                var conn = _Conn;
+                if (conn == null)
                 {
                     try
                     {
-                        _Conn = Factory.CreateConnection();
+                        conn = _Conn = Factory.CreateConnection();
                     }
                     catch (ObjectDisposedException) { Dispose(); throw; }
                     //_Conn.ConnectionString = Database.ConnectionString;
                     CheckConnStr();
-                    _Conn.ConnectionString = ConnectionString;
+                    conn.ConnectionString = ConnectionString;
                 }
-                return _Conn;
+                return conn;
             }
             //set { _Conn = value; }
         }
@@ -108,6 +113,9 @@ namespace XCode.DataAccessLayer
         /// <summary>连接是否已经打开</summary>
         public Boolean Opened { get { return _Conn != null && _Conn.State != ConnectionState.Closed; } }
 
+        ///// <summary>延迟关闭时间。默认0毫秒</summary>
+        //public Int32 DelayClose { get; set; }
+
         /// <summary>打开</summary>
         public virtual void Open()
         {
@@ -119,10 +127,19 @@ namespace XCode.DataAccessLayer
             {
                 try
                 {
+                    //// 正在工作，禁止定时关闭
+                    //_running = true;
+                    //_NextClose = DateTime.MinValue;
+
                     conn.Open();
+
+                    //// 检测并关闭连接
+                    //if (DelayClose > 0 && _timer == null) _timer = new TimerX(OnTimer, null, 1000, 1000);
                 }
                 catch (DbException)
                 {
+                    //_running = false;
+
                     DAL.WriteLog("Open错误：{0}", conn.ConnectionString);
                     throw;
                 }
@@ -130,8 +147,11 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>关闭</summary>
-        public virtual void Close()
+        public void Close()
         {
+            var tid = Thread.CurrentThread.ManagedThreadId;
+            if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
+
             var conn = _Conn;
             if (conn != null)
             {
@@ -145,10 +165,45 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>自动关闭。启用事务后，不关闭连接。</summary>
-        public void AutoClose()
+        public virtual void AutoClose()
         {
-            if (Transaction == null && Opened) Close();
+            if (Transaction != null || !Opened) return;
+
+            //// 延迟关闭
+            //if (DelayClose == 0)
+            //{
+            Close();
+            //}
+            //else
+            //{
+            //    //if (_running) DAL.WriteLog("可以关闭线程{0}的连接[{1}]", ThreadID, Database.ConnName);
+            //    // 记录最后活跃时间
+            //    _NextClose = DateTime.Now.AddMilliseconds(DelayClose);
+            //    // 不再处理，允许关闭
+            //    _running = false;
+            //}
         }
+
+        //private Boolean _running;
+        //private DateTime _NextClose;
+        //private TimerX _timer;
+        //private void OnTimer(Object state)
+        //{
+        //    // 正在工作，禁止定时关闭
+        //    if (_running) return;
+        //    // 没有链接不关闭
+        //    if (!Opened) return;
+
+        //    // 指定时间后关闭
+        //    if (_NextClose > DateTime.MinValue && _NextClose < DateTime.Now)
+        //    {
+        //        _NextClose = DateTime.MinValue;
+        //        //DAL.WriteLog("关闭线程{0}的连接[{1}]", ThreadID, Database.ConnName);
+
+        //        var conn = _Conn;
+        //        if (conn != null && conn.State != ConnectionState.Closed) conn.Close();
+        //    }
+        //}
 
         /// <summary>数据库名</summary>
         public String DatabaseName
@@ -302,7 +357,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DataSet Query(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            return Query(OnCreateCommand(sql, type, ps));
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                return Query(cmd);
+            }
         }
 
         /// <summary>执行DbCommand，返回记录集</summary>
@@ -318,7 +376,7 @@ namespace XCode.DataAccessLayer
                 try
                 {
                     if (!Opened) Open();
-                    cmd.Connection = Conn;
+                    if (cmd.Connection == null) cmd.Connection = Conn;
                     da.SelectCommand = cmd;
 
                     var ds = new DataSet();
@@ -383,7 +441,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            return Execute(OnCreateCommand(sql, type, ps));
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                return Execute(cmd);
+            }
         }
 
         /// <summary>执行DbCommand，返回受影响的行数</summary>
@@ -422,7 +483,11 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            return Execute(sql, type, ps);
+            //return Execute(sql, type, ps);
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                return ExecuteScalar<Int64>(cmd);
+            }
         }
 
         /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
@@ -433,9 +498,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            var cmd = OnCreateCommand(sql, type, ps);
-            cmd.Transaction = Transaction?.Check(false);
-            return ExecuteScalar<T>(cmd);
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                cmd.Transaction = Transaction?.Check(false);
+                return ExecuteScalar<T>(cmd);
+            }
         }
 
         protected virtual T ExecuteScalar<T>(DbCommand cmd)
@@ -556,9 +623,12 @@ namespace XCode.DataAccessLayer
                 conn = Conn;
             }
 
+            // 连接未打开
+            if (conn.State == ConnectionState.Closed) return null;
+
             try
             {
-                DataTable dt;
+                DataTable dt = null;
 
                 var sw = new Stopwatch();
                 sw.Start();
@@ -568,18 +638,12 @@ namespace XCode.DataAccessLayer
                     if (String.IsNullOrEmpty(collectionName))
                     {
                         WriteSQL("[" + Database.ConnName + "]GetSchema");
-                        if (conn.State != ConnectionState.Closed) //ahuang 2013。06。25 当数据库连接字符串有误
-                            dt = conn.GetSchema();
-                        else
-                            dt = null;
+                        dt = conn.GetSchema();
                     }
                     else
                     {
                         WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\")");
-                        if (conn.State != ConnectionState.Closed)
-                            dt = conn.GetSchema(collectionName);
-                        else
-                            dt = null;
+                        dt = conn.GetSchema(collectionName);
                     }
                 }
                 else
@@ -594,10 +658,7 @@ namespace XCode.DataAccessLayer
                             sb.AppendFormat("\"{0}\"", item);
                     }
                     WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\"" + sb + ")");
-                    if (conn.State != ConnectionState.Closed)
-                        dt = conn.GetSchema(collectionName, restrictionValues);
-                    else
-                        dt = null;
+                    dt = conn.GetSchema(collectionName, restrictionValues);
                 }
 
                 sw.Stop();

@@ -413,33 +413,6 @@ namespace XCode.Configuration
 
             return NotEqual(false) | IsNull();
         }
-
-        /// <summary>时间专用区间函数</summary>
-        /// <param name="start">起始时间，大于等于</param>
-        /// <param name="end">结束时间，小于。如果是日期，则加一天</param>
-        /// <returns></returns>
-        public Expression Between(DateTime start, DateTime end)
-        {
-            if (start <= DateTime.MinValue || start >= DateTime.MaxValue)
-            {
-                if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return null;
-
-                // 如果只有日期，则加一天，表示包含这一天
-                if (end == end.Date) end = end.AddDays(1);
-
-                return this < end;
-            }
-            else
-            {
-                var exp = this >= start;
-                if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
-
-                // 如果只有日期，则加一天，表示包含这一天
-                if (end == end.Date) end = end.AddDays(1);
-
-                return exp & this < end;
-            }
-        }
         #endregion
 
         #region 重载运算符

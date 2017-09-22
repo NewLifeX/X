@@ -212,8 +212,7 @@ namespace NewLife.Net
             if (SessionPacket != null) server.SessionPacket = SessionPacket;
 
             // 处理UDP最大并发接收
-            var udp = server as UdpServer;
-            if (udp != null)
+            if (server is UdpServer udp)
             {
                 udp.MaxAsync = Environment.ProcessorCount * 16 / 10;
                 // Udp服务器不能关闭自己，但是要关闭会话

@@ -132,7 +132,6 @@ namespace XCode
             }
 
             //_Running = true;
-            //Task.Factory.StartNew(Process, list).LogException();
             if (list.Count > 0) Process(list);
         }
 

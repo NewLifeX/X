@@ -50,16 +50,18 @@ namespace XCode
             if (dt == null || dt.Rows.Count < 1) return list;
 
             // 对应数据表中字段的实体字段
-            var ps = new List<FieldItem>();
+            var ps = new Dictionary<DataColumn, FieldItem>();
             // 数据表中找不到对应的实体字段的数据字段
-            var exts = new List<String>();
+            var exts = new Dictionary<DataColumn, String>();
+            var ti = Entity<T>.Meta.Table;
             foreach (DataColumn item in dt.Columns)
             {
-                var fi = Entity<T>.Meta.Fields.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(item.ColumnName));
+                //var fi = Entity<T>.Meta.Fields.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(item.ColumnName));
+                var fi = ti.FindByName(item.ColumnName) as FieldItem;
                 if (fi != null)
-                    ps.Add(fi);
+                    ps.Add(item, fi);
                 else
-                    exts.Add(item.ColumnName);
+                    exts.Add(item, item.ColumnName);
             }
 
             // 遍历每一行数据，填充成为实体
@@ -68,10 +70,10 @@ namespace XCode
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
                 var entity = Entity<T>.Meta.Factory.Create() as T;
                 foreach (var item in ps)
-                    SetValue(entity, item.Name, item.Type, dr[item]);
+                    SetValue(entity, item.Value.Name, item.Value.Type, dr[item.Key]);
 
                 foreach (var item in exts)
-                    SetValue(entity, item, null, dr[item]);
+                    SetValue(entity, item.Value, null, dr[item.Key]);
 
                 list.Add(entity);
             }

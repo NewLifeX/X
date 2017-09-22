@@ -52,7 +52,7 @@ namespace NewLife.Cube
             ViewBag.Page = p;
 
             // 用于显示的列
-            if(!ps.ContainsKey("entity")) ViewBag.Fields = GetFields(false);
+            if (!ps.ContainsKey("entity")) ViewBag.Fields = GetFields(false);
 
             if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
 
@@ -86,13 +86,32 @@ namespace NewLife.Cube
             // 缓存数据，用于后续导出
             Session[CacheKey] = p;
 
-            return Entity<TEntity>.Search(p["Q"], p);
+            return Entity<TEntity>.Search(p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p["Q"], p);
         }
 
         /// <summary>查找单行数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        protected virtual TEntity Find(Object key) { return Entity<TEntity>.FindByKeyForEdit(key); }
+        protected virtual TEntity Find(Object key)
+        {
+            var fact = Factory;
+            if (fact.Unique == null)
+            {
+                var pks = fact.Table.PrimaryKeys;
+                if (pks.Length > 0)
+                {
+                    var exp = new WhereExpression();
+                    foreach (var item in pks)
+                    {
+                        exp &= item.Equal(Request[item.Name]);
+                    }
+
+                    return Entity<TEntity>.Find(exp);
+                }
+            }
+
+            return Entity<TEntity>.FindByKeyForEdit(key);
+        }
 
         /// <summary>导出当前页以后的数据</summary>
         /// <returns></returns>
@@ -607,6 +626,9 @@ namespace NewLife.Cube
         #endregion
 
         #region 权限菜单
+        /// <summary>菜单顺序。扫描是会反射读取</summary>
+        protected static Int32 MenuOrder { get; set; }
+
         /// <summary>自动从实体类拿到显示名</summary>
         /// <param name="menu"></param>
         /// <returns></returns>

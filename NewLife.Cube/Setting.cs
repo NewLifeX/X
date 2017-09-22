@@ -49,11 +49,15 @@ namespace NewLife.Cube
 
         /// <summary>用户在线。记录用户在线状态</summary>
         [Description("用户在线。记录用户在线状态")]
-        public Boolean WebOnline { get; set; }
+        public Boolean WebOnline { get; set; } = true;
 
         /// <summary>用户行为。记录用户所有操作</summary>
         [Description("用户行为。记录用户所有操作")]
         public Boolean WebBehavior { get; set; }
+
+        /// <summary>访问统计。统计页面访问量</summary>
+        [Description("访问统计。统计页面访问量")]
+        public Boolean WebStatistics { get; set; } = true;
 
         /// <summary>表单组样式。大中小屏幕分别3/2/1列</summary>
         [Description("表单组样式。大中小屏幕分别3/2/1列")]

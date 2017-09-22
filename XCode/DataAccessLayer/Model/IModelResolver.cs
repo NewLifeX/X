@@ -192,7 +192,11 @@ namespace XCode.DataAccessLayer
                 // 在索引中找唯一索引作为主键
                 if (di == null) di = dis.FirstOrDefault(e => e.Unique && e.Columns.Length == 1);
                 // 如果还没有主键，把第一个索引作为主键
-                if (di == null) di = dis.FirstOrDefault(e => e.Columns.Length == 1);
+                //if (di == null) di = dis.FirstOrDefault(e => e.Columns.Length == 1);
+
+                // 从索引修正主键
+                if (di == null) di = dis.FirstOrDefault(e => e.PrimaryKey);
+                if (di == null) di = dis.FirstOrDefault(e => e.Unique);
 
                 if (di != null)
                 {
@@ -215,7 +219,7 @@ namespace XCode.DataAccessLayer
                     {
                         di = table.CreateIndex();
                         di.Columns = new String[] { dc.ColumnName };
-                        di.Computed = true;
+                        //di.Computed = true;
                     }
                     // 不管是不是原来有的索引，都要唯一
                     di.Unique = true;
@@ -230,7 +234,6 @@ namespace XCode.DataAccessLayer
             var dis = table.Indexes;
             dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0);
 
-            // 主要针对MSSQL2000
             foreach (var di in dis)
             {
                 if (di.Columns == null) continue;
@@ -239,7 +242,8 @@ namespace XCode.DataAccessLayer
                 if (dcs == null || dcs.Length <= 0) continue;
 
                 if (!di.Unique) di.Unique = dcs.All(dc => dc.Identity);
-                if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey);
+                // 刚好该索引所有字段都是主键时，修正主键
+                if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey) && di.Columns.Length == table.Columns.Count(e => e.PrimaryKey);
             }
 
             // 干掉自增列的索引

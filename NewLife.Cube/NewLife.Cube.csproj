@@ -94,6 +94,7 @@
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\DbController.cs" />
     <Compile Include="Areas\Admin\Controllers\FileController.cs" />
+    <Compile Include="Areas\Admin\Controllers\VisitStatController.cs" />
     <Compile Include="Areas\Admin\Controllers\RoleController.cs" />
     <Compile Include="Areas\Admin\Controllers\LogController.cs" />
     <Compile Include="Areas\Admin\Controllers\MenuController.cs" />
@@ -156,6 +157,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SetPermission.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\UserOnline\_List_Data.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_List_Data.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Views\User\Login.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -190,6 +196,16 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>_Login_Register.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\VisitStat\_List_Data.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_List_Data.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\VisitStat\_List_Search.generated.cs">
+      <DependentUpon>_List_Search.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Areas\Admin\Views\_ViewStart.generated.cs">
       <AutoGen>True</AutoGen>
@@ -396,6 +412,18 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Areas\Admin\Views\UserOnline\_List_Data.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\VisitStat\_List_Data.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\VisitStat\_List_Search.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Content\jweui\css\demos.css" />
     <None Include="Content\jweui\css\jquery-weui.css" />
     <None Include="Content\jweui\css\jquery-weui.min.css" />
@@ -579,7 +607,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
     </None>
-    <None Include="Areas\Admin\Views\Web.config" />
     <None Include="Views\Home\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
@@ -706,7 +733,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_LoginPartial.generated.cs</LastGenOutput>
     </None>
-    <EmbeddedResource Include="Views\Web.config" />
     <None Include="Views\Shared\CubeError.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>CubeError.generated.cs</LastGenOutput>

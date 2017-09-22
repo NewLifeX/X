@@ -132,6 +132,7 @@ namespace NewLife.Log
         {
             var process = System.Diagnostics.Process.GetCurrentProcess();
             var name = String.Empty;
+            var ver = "";
             var asm = Assembly.GetEntryAssembly();
             if (asm != null)
             {
@@ -152,6 +153,9 @@ namespace NewLife.Log
                     var att = asm.GetCustomAttribute<AssemblyDescriptionAttribute>();
                     if (att != null) name = att.Description;
                 }
+
+                var tar = asm.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
+                if (tar != null) ver = tar.FrameworkDisplayName ?? tar.FrameworkName;
             }
             if (String.IsNullOrEmpty(name))
             {
@@ -203,20 +207,30 @@ namespace NewLife.Log
                 sb.AppendFormat("#CommandLine: {0}\r\n", line);
 #endif
 
+            var apptype = "";
 #if __MOBILE__
 #if __ANDROID__
-            sb.AppendFormat("#ApplicationType: {0}\r\n", "Android");
+            apptype = "Android";
 #elif __IOS__
-            sb.AppendFormat("#ApplicationType: {0}\r\n", "iOS");
+            apptype = "iOS";
 #else
-            sb.AppendFormat("#ApplicationType: {0}\r\n", "Mobile");
+            apptype = "Mobile";
 #endif
 #else
-            sb.AppendFormat("#ApplicationType: {0}\r\n", Runtime.IsWeb ? "Web" : (Runtime.IsConsole ? "Console" : "WinForm"));
+            if (Runtime.IsWeb)
+                apptype = "Web";
+            else if (!Environment.UserInteractive)
+                apptype = "Service";
+            else if (Runtime.IsConsole)
+                apptype = "Console";
+            else
+                apptype = "WinForm";
 #endif
 
+            sb.AppendFormat("#ApplicationType: {0}\r\n", apptype);
+
 #if !__CORE__
-            sb.AppendFormat("#CLR: {0}\r\n", System.Environment.Version);
+            sb.AppendFormat("#CLR: {0}, {1}\r\n", System.Environment.Version, ver);
 #endif
 
 #if __MOBILE__
@@ -229,7 +243,7 @@ namespace NewLife.Log
 #endif
 #else
 #if !__CORE__
-            sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Runtime.OSName, Environment.UserName, Environment.MachineName);
+            sb.AppendFormat("#OS: {0}, {3}, {1}/{2}\r\n", Runtime.OSName, Environment.UserName, Environment.MachineName, Environment.OSVersion);
             sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", Runtime.AvailableMemory, Runtime.PhysicalMemory);
 #endif
 #endif

@@ -16,6 +16,8 @@ namespace NewLife.Cube.Admin.Controllers
     {
         static UserController()
         {
+            MenuOrder = 100;
+
             ListFields.RemoveField("Phone");
             ListFields.RemoveField("Code");
             ListFields.RemoveField("StartTime");

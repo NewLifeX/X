@@ -83,8 +83,7 @@ namespace NewLife.Web
         /// <returns></returns>
         protected virtual void OnWriteScript(String script, Boolean addScriptTags)
         {
-            var page = HttpContext.Current.Handler as Page;
-            if (page != null && page.ClientScript != null)
+            if (HttpContext.Current.Handler is Page page && page.ClientScript != null)
                 page.ClientScript.RegisterStartupScript(page.GetType(), script, script, addScriptTags);
             else
             {

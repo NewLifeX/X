@@ -228,7 +228,11 @@ namespace XCode.DataAccessLayer
         #region 关键字
         protected override String ReservedWordsStr
         {
-            get { return "Sort,Level,ALL,ALTER,AND,ANY,AS,ASC,BETWEEN,BY,CHAR,CHECK,CLUSTER,COMPRESS,CONNECT,CREATE,DATE,DECIMAL,DEFAULT,DELETE,DESC,DISTINCT,DROP,ELSE,EXCLUSIVE,EXISTS,FLOAT,FOR,FROM,GRANT,GROUP,HAVING,IDENTIFIED,IN,INDEX,INSERT,INTEGER,INTERSECT,INTO,IS,LIKE,LOCK,LONG,MINUS,MODE,NOCOMPRESS,NOT,NOWAIT,NULL,NUMBER,OF,ON,OPTION,OR,ORDER,PCTFREE,PRIOR,PUBLIC,RAW,RENAME,RESOURCE,REVOKE,SELECT,SET,SHARE,SIZE,SMALLINT,START,SYNONYM,TABLE,THEN,TO,TRIGGER,UNION,UNIQUE,UPDATE,VALUES,VARCHAR,VARCHAR2,VIEW,WHERE,WITH,User,Online"; }
+            get
+            {
+                return "ALL,ALTER,AND,ANY,AS,ASC,BETWEEN,BY,CHAR,CHECK,CLUSTER,COMPRESS,CONNECT,CREATE,DATE,DECIMAL,DEFAULT,DELETE,DESC,DISTINCT,DROP,ELSE,EXCLUSIVE,EXISTS,FLOAT,FOR,FROM,GRANT,GROUP,HAVING,IDENTIFIED,IN,INDEX,INSERT,INTEGER,INTERSECT,INTO,IS,LIKE,LOCK,LONG,MINUS,MODE,NOCOMPRESS,NOT,NOWAIT,NULL,NUMBER,OF,ON,OPTION,OR,ORDER,PCTFREE,PRIOR,PUBLIC,RAW,RENAME,RESOURCE,REVOKE,SELECT,SET,SHARE,SIZE,SMALLINT,START,SYNONYM,TABLE,THEN,TO,TRIGGER,UNION,UNIQUE,UPDATE,VALUES,VARCHAR,VARCHAR2,VIEW,WHERE,WITH," +
+                  "Sort,Level,User,Online";
+            }
         }
 
         /// <summary>格式化关键字</summary>
@@ -444,7 +448,7 @@ namespace XCode.DataAccessLayer
 
             // 如果表太多，则只要目标表数据
             var mulTable = "";
-            if (dt.Rows.Count > 10)
+            if (dt.Rows.Count > 10 && names != null && names.Length > 0)
             {
                 //var tablenames = dt.Rows.ToArray().Select(e => "'{0}'".F(e["TABLE_NAME"]));
                 //mulTable = " And TABLE_NAME in ({0})".F(tablenames.Join(","));
@@ -493,16 +497,20 @@ namespace XCode.DataAccessLayer
             var dt = data?["PrimaryKeys"];
             if (dt != null && dt.Rows.Count > 0)
             {
-                // 找到主键所在索引，这个索引的列才是主键
-                if (TryGetDataRowValue(dt.Rows[0], _.IndexName, out String name) && !String.IsNullOrEmpty(name))
+                var drs = dt.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
+                if (drs != null && drs.Length > 0)
                 {
-                    var di = table.Indexes.FirstOrDefault(i => i.Name == name);
-                    if (di != null)
+                    // 找到主键所在索引，这个索引的列才是主键
+                    if (TryGetDataRowValue(drs[0], _.IndexName, out String name) && !String.IsNullOrEmpty(name))
                     {
-                        di.PrimaryKey = true;
-                        foreach (var dc in table.Columns)
+                        var di = table.Indexes.FirstOrDefault(i => i.Name == name);
+                        if (di != null)
                         {
-                            dc.PrimaryKey = di.Columns.Contains(dc.ColumnName);
+                            di.PrimaryKey = true;
+                            foreach (var dc in table.Columns)
+                            {
+                                dc.PrimaryKey = di.Columns.Contains(dc.ColumnName);
+                            }
                         }
                     }
                 }
@@ -519,7 +527,7 @@ namespace XCode.DataAccessLayer
                 // 不好判断自增列表，只能硬编码
                 var dc = table.GetColumn("ID");
                 if (dc == null) dc = table.Columns.FirstOrDefault(e => e.PrimaryKey && e.DataType.IsInt());
-                if (dc != null) dc.Identity = true;
+                if (dc != null && dc.DataType.IsInt()) dc.Identity = true;
             }
         }
 
@@ -607,44 +615,58 @@ namespace XCode.DataAccessLayer
 
         protected override void FixField(IDataColumn field, DataRow drColumn)
         {
-            base.FixField(field, drColumn);
+            var dr = drColumn;
 
-            // 处理数字类型
-            if (field.RawType.StartsWithIgnoreCase("NUMBER") && field is XField fi)
+            // 长度
+            //field.Length = GetDataRowValue<Int32>(dr, "CHAR_LENGTH", "DATA_LENGTH");
+            field.Length = GetDataRowValue<Int32>(dr, "DATA_LENGTH");
+
+            if (field is XField fi)
             {
-                var prec = fi.Precision;
-                Type type = null;
-                if (fi.Scale == 0)
+                // 精度 与 位数
+                fi.Precision = GetDataRowValue<Int32>(dr, "DATA_PRECISION");
+                fi.Scale = GetDataRowValue<Int32>(dr, "DATA_SCALE");
+                if (field.Length == 0) field.Length = fi.Precision;
+
+                // 处理数字类型
+                if (field.RawType.StartsWithIgnoreCase("NUMBER"))
                 {
-                    // 0表示长度不限制，为了方便使用，转为最常见的Int32
-                    if (prec == 0)
-                        type = typeof(Int32);
-                    else if (prec == 1)
-                        type = typeof(Boolean);
-                    else if (prec <= 5)
-                        type = typeof(Int16);
-                    else if (prec <= 10)
-                        type = typeof(Int32);
+                    var prec = fi.Precision;
+                    Type type = null;
+                    if (fi.Scale == 0)
+                    {
+                        // 0表示长度不限制，为了方便使用，转为最常见的Int32
+                        if (prec == 0)
+                            type = typeof(Int32);
+                        else if (prec == 1)
+                            type = typeof(Boolean);
+                        else if (prec <= 5)
+                            type = typeof(Int16);
+                        else if (prec <= 10)
+                            type = typeof(Int32);
+                        else
+                            type = typeof(Int64);
+                    }
                     else
-                        type = typeof(Int64);
+                    {
+                        if (prec == 0)
+                            type = typeof(Decimal);
+                        else if (prec <= 5)
+                            type = typeof(Single);
+                        else if (prec <= 10)
+                            type = typeof(Double);
+                        else
+                            type = typeof(Decimal);
+                    }
+                    field.DataType = type;
+                    if (prec > 0 && field.RawType.EqualIgnoreCase("NUMBER")) field.RawType += "({0},{1})".F(prec, fi.Scale);
                 }
-                else
-                {
-                    if (prec == 0)
-                        type = typeof(Decimal);
-                    else if (prec <= 5)
-                        type = typeof(Single);
-                    else if (prec <= 10)
-                        type = typeof(Double);
-                    else
-                        type = typeof(Decimal);
-                }
-                field.DataType = type;
-                if (prec > 0 && field.RawType.EqualIgnoreCase("NUMBER")) field.RawType += "({0},{1})".F(prec, fi.Scale);
             }
 
             // 长度
             if (TryGetDataRowValue(drColumn, "LENGTHINCHARS", out Int32 len) && len > 0) field.Length = len;
+
+            base.FixField(field, drColumn);
         }
 
         protected override String GetFieldType(IDataColumn field)
@@ -797,30 +819,35 @@ namespace XCode.DataAccessLayer
             var sql = sb.ToString();
             if (String.IsNullOrEmpty(sql)) return sql;
 
-            // 如果序列已存在，需要先删除
-            if (CheckSeqExists("SEQ_{0}".F(table.TableName), null)) sb.AppendFormat(";\r\nDrop Sequence SEQ_{0}", table.TableName);
+            // 有些表没有自增字段
+            var id = table.Columns.FirstOrDefault(e => e.Identity);
+            if (id != null)
+            {
+                // 如果序列已存在，需要先删除
+                if (CheckSeqExists("SEQ_{0}".F(table.TableName), null)) sb.AppendFormat(";\r\nDrop Sequence SEQ_{0}", table.TableName);
 
-            // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
-            // @大石头 在PLSQL里面，创建序列从1开始时，nextval得到从1开始，而ADO.Net这里从1开始时，nextval只会得到2
-            //sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
+                // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
+                // @大石头 在PLSQL里面，创建序列从1开始时，nextval得到从1开始，而ADO.Net这里从1开始时，nextval只会得到2
+                //sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
 
-            /*
-             * Oracle从 11.2.0.1 版本开始，提供了一个“延迟段创建”特性：
-             * 当我们创建了新的表(table)和序列(sequence)，在插入(insert)语句时，序列会跳过第一个值(1)。
-             * 所以结果是插入的序列值从 2(序列的第二个值) 开始， 而不是 1开始。
-             * 
-             * 更改数据库的“延迟段创建”特性为false（需要有相应的权限）
-             * ALTER SYSTEM SET deferred_segment_creation=FALSE; 
-             * 
-             * 第二种解决办法
-             * 创建表时让seqment立即执行，如： 
-             * CREATE TABLE tbl_test(
-             *   test_id NUMBER PRIMARY KEY, 
-             *   test_name VARCHAR2(20)
-             * )
-             * SEGMENT CREATION IMMEDIATE;
-             */
-            sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1", table.TableName);
+                /*
+                 * Oracle从 11.2.0.1 版本开始，提供了一个“延迟段创建”特性：
+                 * 当我们创建了新的表(table)和序列(sequence)，在插入(insert)语句时，序列会跳过第一个值(1)。
+                 * 所以结果是插入的序列值从 2(序列的第二个值) 开始， 而不是 1开始。
+                 * 
+                 * 更改数据库的“延迟段创建”特性为false（需要有相应的权限）
+                 * ALTER SYSTEM SET deferred_segment_creation=FALSE; 
+                 * 
+                 * 第二种解决办法
+                 * 创建表时让seqment立即执行，如： 
+                 * CREATE TABLE tbl_test(
+                 *   test_id NUMBER PRIMARY KEY, 
+                 *   test_name VARCHAR2(20)
+                 * )
+                 * SEGMENT CREATION IMMEDIATE;
+                 */
+                sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1", table.TableName);
+            }
 
             // 去掉分号后的空格，Oracle不支持同时执行多个语句
             return sb.ToString();

@@ -151,8 +151,7 @@ namespace XCode.DataAccessLayer
         protected virtual void DropDatabase()
         {
             //首先关闭数据库
-            var db = Database as DbBase;
-            if (db != null)
+            if (Database is DbBase db)
                 db.ReleaseSession();
             else
                 Database.CreateSession().Dispose();

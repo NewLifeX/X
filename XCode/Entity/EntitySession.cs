@@ -371,7 +371,7 @@ namespace XCode
                     if (dal.Db.Migration > Migration.ReadOnly || def != this)
                         CheckTable();
                     else
-                        Task.Factory.StartNew(CheckTable).LogException();
+                        ThreadPool.UnsafeQueueUserWorkItem(s => CheckTable(), null);
                 }
 
                 _hasCheckModel = true;
@@ -519,7 +519,7 @@ namespace XCode
                         else
                             m = Dal.Session.QueryCountFast(TableName);
                         // 查真实记录数，修正FastCount不够准确的情况
-                        TaskEx.Run(() =>
+                        if (m < 10000000) TaskEx.Run(() =>
                         {
                             var sb = new SelectBuilder
                             {

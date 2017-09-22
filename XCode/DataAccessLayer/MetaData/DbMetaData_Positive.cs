@@ -224,8 +224,8 @@ namespace XCode.DataAccessLayer
                 if (field.DataType == null)
                     WriteLog("无法识别{0}.{1}的类型{2}！", table.TableName, field.ColumnName, field.RawType);
                 // 非字符串字段，长度没有意义
-                else if (field.DataType != typeof(String))
-                    field.Length = 0;
+                //else if (field.DataType != typeof(String))
+                //    field.Length = 0;
 
                 field.Fix();
                 list.Add(field);
@@ -413,7 +413,17 @@ namespace XCode.DataAccessLayer
                 if (!dbtype.IsNullOrEmpty())
                 {
                     // 修正原始类型
-                    if (dbtype.Contains("{0}")) field.RawType = dbtype.F(field.Length);
+                    if (dbtype.Contains("{0}"))
+                    {
+                        // 某些字段有精度需要格式化
+                        if (dbtype.Contains("{1}"))
+                        {
+                            if (field is XField xf)
+                                field.RawType = dbtype.F(xf.Precision, xf.Scale);
+                        }
+                        else
+                            field.RawType = dbtype.F(field.Length);
+                    }
 
                     return item.Key;
                 }

@@ -222,7 +222,8 @@ namespace NewLife.Agent
                 }
             }
             // 2.配置文件的依赖
-            var scConfig = Config.GetConfigSplit<String>("XAgent.ServicesDependedOn", ",", Config.GetConfigSplit<String>("ServicesDependedOn", ",", null));
+            //var scConfig = Config.GetConfigSplit("XAgent.ServicesDependedOn", ",", Config.GetConfigSplit<String>("ServicesDependedOn", ",", null));
+            var scConfig = Setting.Current.ServicesDependedOn.Split(",");
             if (scConfig != null)
             {
                 foreach (var item in scConfig)

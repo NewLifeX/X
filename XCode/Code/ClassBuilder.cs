@@ -243,8 +243,7 @@ namespace XCode.Code
         {
             _Indent = null;
 
-            var sw = Writer as StringWriter;
-            if (sw != null)
+            if (Writer is StringWriter sw)
             {
                 sw.GetStringBuilder().Clear();
             }

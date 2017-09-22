@@ -1,10 +1,11 @@
-﻿
-using System;
+﻿using System;
+using System.Threading;
+using NewLife.Security;
 
 namespace NewLife.Agent
 {
     /// <summary>代理服务例子。自定义服务程序可参照该类实现。</summary>
-    class AgentService : AgentServiceBase<AgentService>
+    public class AgentService : AgentServiceBase<AgentService>
     {
         #region 属性
         #endregion
@@ -29,7 +30,9 @@ namespace NewLife.Agent
         public override System.Boolean Work(System.Int32 index)
         {
             // XAgent讲开启ThreadCount个线程，0<index<ThreadCount，本函数即为每个任务线程的主函数，间隔Interval循环调用
-            //WriteLine("任务{0}，当前时间：{1}", index, DateTime.Now);
+            var ms = Rand.Next(3000, 20000);
+            WriteLine("任务{0}，当前时间：{1} 睡眠：{2:n0}ms", index, DateTime.Now, ms);
+            Thread.Sleep(ms);
 
             return false;
         }

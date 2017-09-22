@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using XCode.Cache;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -60,6 +61,14 @@ namespace XCode
 
             /// <summary>总记录数</summary>
             public virtual Int32 Count { get { return Session.Count; } }
+            #endregion
+
+            #region 构造
+            /// <summary>构造实体工厂</summary>
+            public EntityOperate()
+            {
+                MasterTime = GetMasterTime();
+            }
             #endregion
 
             #region 创建实体、填充数据
@@ -216,6 +225,34 @@ namespace XCode
 
             /// <summary>默认累加字段</summary>
             public virtual ICollection<String> AdditionalFields { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+
+            /// <summary>主时间字段。代表当前数据行更新时间</summary>
+            public FieldItem MasterTime { get; }
+
+            private FieldItem GetMasterTime()
+            {
+                var fis = Meta.Fields.Where(e => e.Type == typeof(DateTime)).ToArray();
+                if (fis.Length == 0) return null;
+
+                var dt = Meta.Table.DataTable;
+
+                // 时间作为主键
+                var fi = fis.FirstOrDefault(e => e.PrimaryKey);
+                if (fi != null) return fi;
+
+                // 第一个时间日期索引字段
+                foreach (var di in dt.Indexes.OrderBy(e => e.Columns.Length).OrderByDescending(e => e.Unique).ThenByDescending(e => e.PrimaryKey))
+                {
+                    if (di.Columns == null || di.Columns.Length == 0) continue;
+
+                    fi = fis.FirstOrDefault(e => di.Columns[0].EqualIgnoreCase(e.Name, e.ColumnName));
+                    if (fi != null) return fi;
+                }
+
+                fi = fis.FirstOrDefault(e => e.Name.StartsWithIgnoreCase("UpdateTime", "Modify", "Modified"));
+
+                return fi;
+            }
             #endregion
         }
     }

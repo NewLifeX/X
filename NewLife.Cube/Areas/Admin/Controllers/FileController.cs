@@ -14,6 +14,14 @@ namespace NewLife.Cube.Admin.Controllers
     [EntityAuthorize(PermissionFlags.Detail)]
     public class FileController : ControllerBaseX
     {
+        /// <summary>菜单顺序。扫描是会反射读取</summary>
+        protected static Int32 MenuOrder { get; set; }
+
+        static FileController()
+        {
+            MenuOrder = 28;
+        }
+
         #region 基础
         private String Root { get { return "../".GetFullPath(); } }
 

@@ -36,8 +36,8 @@ namespace XCode.Transform
         /// <summary>名称</summary>
         public String Name { get; set; }
 
-        /// <summary>设置</summary>
-        public IExtractSetting Setting { get; set; }
+        ///// <summary>设置</summary>
+        //public IExtractSetting Setting { get; set; }
 
         /// <summary>实体工厂</summary>
         public IEntityOperate Factory { get; set; }
@@ -85,7 +85,7 @@ namespace XCode.Transform
             // 自动找时间字段
             if (FieldName.IsNullOrEmpty())
             {
-                var fi = Factory.Fields.FirstOrDefault(e => e.Type == typeof(DateTime) && e.Name.StartsWithIgnoreCase("UpdateTime", "Modify", "Modified"));
+                var fi = Factory.MasterTime;
                 if (fi != null) FieldName = fi.Name;
             }
             if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
@@ -94,14 +94,15 @@ namespace XCode.Transform
 
         #region 抽取数据
         /// <summary>抽取一批数据</summary>
+        /// <param name="set">设置</param>
         /// <returns></returns>
-        public virtual IList<IEntity> Fetch()
+        public virtual IList<IEntity> Fetch(IExtractSetting set)
         {
             if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
 
-            var set = Setting;
+            //var set = Setting;
             //if (set == null) set = Setting = new ExtractSetting();
-            if (set == null) throw new ArgumentNullException(nameof(Setting), "没有设置数据抽取配置");
+            if (set == null) throw new ArgumentNullException(nameof(set), "没有设置数据抽取配置");
 
             // 验证时间段
             var start = set.Start;
@@ -132,6 +133,8 @@ namespace XCode.Transform
             if (list.Count > 0)
             {
                 var last = (DateTime)list.Last()[FieldName];
+                // 有可能时间字段为空
+                if (last <= DateTime.MinValue) last = list.Max(e => (DateTime)e[FieldName]);
                 // 满一批，后续还有数据
                 if (list.Count >= size)
                 {

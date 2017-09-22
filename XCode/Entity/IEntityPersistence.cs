@@ -437,8 +437,7 @@ namespace XCode
 
             if (sb != null) sb.Append(dp.ParameterName);
 
-            var dbp = dp as DbParameter;
-            if (dbp != null) dbp.IsNullable = fi.IsNullable;
+            if (dp is DbParameter dbp) dbp.IsNullable = fi.IsNullable;
 
             return dp;
         }

@@ -107,7 +107,7 @@ namespace XCode.DataAccessLayer
             {
                 // SQLite内部和.Net驱动都有Busy重试机制，多次重试仍然失败，则会出现dabase is locked。通过加大重试次数，减少高峰期出现locked的几率
                 // 繁忙超时时间。出现Busy时，SQLite内部会在该超时时间内多次尝试
-                if (!builder.ContainsKey("BusyTimeout")) builder["BusyTimeout"] = 500 + "";
+                //if (!builder.ContainsKey("BusyTimeout")) builder["BusyTimeout"] = 50 + "";
                 // 重试次数。SQLite.Net驱动在遇到Busy时会多次尝试，每次随机等待1~150ms
                 if (!builder.ContainsKey("PrepareRetries")) builder["PrepareRetries"] = 10 + "";
             }
@@ -193,6 +193,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
+        protected override String ReservedWordsStr
+        {
+            get { return "ABORT,ACTION,ADD,AFTER,ALL,ALTER,ANALYZE,AND,AS,ASC,ATTACH,AUTOINCREMENT,BEFORE,BEGIN,BETWEEN,BY,CASCADE,CASE,CAST,CHECK,COLLATE,COLUMN,COMMIT,CONFLICT,CONSTRAINT,CREATE,CROSS,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,DATABASE,DEFAULT,DEFERRABLE,DEFERRED,DELETE,DESC,DETACH,DISTINCT,DROP,EACH,ELSE,END,ESCAPE,EXCEPT,EXCLUSIVE,EXISTS,EXPLAIN,FAIL,FOR,FOREIGN,FROM,FULL,GLOB,GROUP,HAVING,IF,IGNORE,IMMEDIATE,IN,INDEX,INDEXED,INITIALLY,INNER,INSERT,INSTEAD,INTERSECT,INTO,IS,ISNULL,JOIN,KEY,LEFT,LIKE,LIMIT,MATCH,NATURAL,NO,NOT,NOTNULL,NULL,OF,OFFSET,ON,OR,ORDER,OUTER,PLAN,PRAGMA,PRIMARY,QUERY,RAISE,RECURSIVE,REFERENCES,REGEXP,REINDEX,RELEASE,RENAME,REPLACE,RESTRICT,RIGHT,ROLLBACK,ROW,SAVEPOINT,SELECT,SET,TABLE,TEMP,TEMPORARY,THEN,TO,TRANSACTION,TRIGGER,UNION,UNIQUE,UPDATE,USING,VACUUM,VALUES,VIEW,VIRTUAL,WHEN,WHERE,WITH,WITHOUT"; }
+        }
+
         /// <summary>格式化关键字</summary>
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
@@ -241,7 +246,10 @@ namespace XCode.DataAccessLayer
     internal class SQLiteSession : FileDbSession
     {
         #region 构造函数
-        public SQLiteSession(IDatabase db) : base(db) { }
+        public SQLiteSession(IDatabase db) : base(db)
+        {
+            //DelayClose = 10000;
+        }
         #endregion
 
         #region 方法
@@ -276,6 +284,12 @@ namespace XCode.DataAccessLayer
             // 当从SQLite中删除数据时，数据文件大小不会减小，当重新插入数据时，
             // 将使用那块“空白”空间，打开自动清理后，删除数据后，会自动清理“空白”空间
             if ((Database as SQLite).AutoVacuum) Execute("PRAGMA auto_vacuum = 1");
+        }
+
+        /// <summary>不关闭连接</summary>
+        public override void AutoClose()
+        {
+            //base.AutoClose();
         }
         #endregion
 
@@ -320,7 +334,7 @@ namespace XCode.DataAccessLayer
         public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             sql += ";Select last_insert_rowid() newid";
-            return ExecuteScalar<Int64>(CreateCommand(sql, type, ps));
+            return base.InsertAndGetIdentity(sql, type, ps);
         }
         #endregion
 
@@ -492,7 +506,8 @@ namespace XCode.DataAccessLayer
             var dbfile = (Database as SQLite).FileName;
 
             // 备份文件
-            if (bakfile.IsNullOrEmpty())
+            var bf = bakfile;
+            if (bf.IsNullOrEmpty())
             {
                 var name = dbname;
                 if (name.IsNullOrEmpty()) name = Path.GetFileNameWithoutExtension(dbfile);
@@ -500,26 +515,29 @@ namespace XCode.DataAccessLayer
                 var ext = Path.GetExtension(dbfile);
                 if (ext.IsNullOrEmpty()) ext = ".db";
 
-                bakfile = "{0}_{1:yyyyMMddHHmmss}{2}".F(name, DateTime.Now, ext);
+                if (compressed)
+                    bf = "{0}{1}".F(name, ext);
+                else
+                    bf = "{0}_{1:yyyyMMddHHmmss}{2}".F(name, DateTime.Now, ext);
             }
-            if (!Path.IsPathRooted(bakfile)) bakfile = Setting.Current.BackupPath.CombinePath(bakfile).GetFullPath();
+            if (!Path.IsPathRooted(bf)) bf = Setting.Current.BackupPath.CombinePath(bf).GetFullPath();
 
-            bakfile = bakfile.EnsureDirectory(true);
+            bf = bf.EnsureDirectory(true);
 
-            WriteLog("{0}备份SQLite数据库 {1} 到 {2}", Database.ConnName, dbfile, bakfile);
+            WriteLog("{0}备份SQLite数据库 {1} 到 {2}", Database.ConnName, dbfile, bf);
 
             var sw = new Stopwatch();
             sw.Start();
 
             // 删除已有文件
-            if (File.Exists(bakfile)) File.Delete(bakfile);
+            if (File.Exists(bf)) File.Delete(bf);
 
             using (var session = Database.CreateSession())
             using (var conn = Database.Factory.CreateConnection())
             {
                 session.Open();
 
-                conn.ConnectionString = "Data Source={0}".F(bakfile);
+                conn.ConnectionString = "Data Source={0}".F(bf);
                 conn.Open();
 
                 //var method = conn.GetType().GetMethodEx("BackupDatabase");
@@ -528,34 +546,26 @@ namespace XCode.DataAccessLayer
             }
 
             // 压缩
-            WriteLog("备份文件大小：{0:n0}字节", bakfile.AsFile().Length);
-            //if (bakfile.EndsWithIgnoreCase(".zip"))
-            //{
-            //    //var rnd = new Random();
-            //    var tmp = Path.GetDirectoryName(bakfile).CombinePath(Rand.Next() + ".tmp");
-            //    File.Move(bakfile, tmp);
-            //    tmp.AsFile().Compress(bakfile);
-            //    File.Delete(tmp);
-            //    WriteLog("压缩后大小：{0:n0}字节", bakfile.AsFile().Length);
-            //}
-            //if (!bakfile.EndsWithIgnoreCase(".zip"))
+            WriteLog("备份文件大小：{0:n0}字节", bf.AsFile().Length);
             if (compressed)
             {
-                var zipfile = Path.ChangeExtension(bakfile, "zip");
-                var fi = bakfile.AsFile();
+                var zipfile = Path.ChangeExtension(bf, "zip");
+                if (bakfile.IsNullOrEmpty()) zipfile = zipfile.TrimEnd(".zip") + "_{0:yyyyMMddHHmmss}.zip".F(DateTime.Now);
+
+                var fi = bf.AsFile();
                 fi.Compress(zipfile);
                 WriteLog("压缩后大小：{0:n0}字节", fi.Length);
 
                 // 删除未备份
-                File.Delete(bakfile);
+                File.Delete(bf);
 
-                bakfile = zipfile;
+                bf = zipfile;
             }
 
             sw.Stop();
             WriteLog("备份完成，耗时{0:n0}ms", sw.ElapsedMilliseconds);
 
-            return bakfile;
+            return bf;
         }
 
         public override String CreateIndexSQL(IDataIndex index)

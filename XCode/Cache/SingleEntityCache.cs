@@ -224,20 +224,30 @@ namespace XCode.Cache
                 // 开始更新数据，然后加入缓存
                 TEntity entity = null;
                 if (dic == Entities)
-                    entity = Invoke(FindKeyMethod, (TKey)(Object)key);
+                {
+                    var mkey = (TKey)(Object)key;
+                    entity = Invoke(FindKeyMethod, mkey);
+                    TryAdd(mkey, entity);
+                }
                 else
+                {
                     entity = Invoke(FindSlaveKeyMethod, key + "");
-
-                if (entity != null) TryAdd(entity);
+                    if (entity != null)
+                    {
+                        var mkey = GetKeyMethod(entity);
+                        TryAdd(mkey, entity);
+                    }
+                }
 
                 return entity;
             }
         }
 
         /// <summary>尝试向两个字典加入数据</summary>
+        /// <param name="key"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        private Boolean TryAdd(TEntity entity)
+        private Boolean TryAdd(TKey key, TEntity entity)
         {
             //if (!Using)
             {
@@ -254,10 +264,9 @@ namespace XCode.Cache
 
             var item = new CacheItem();
 
-            var skey = GetSlaveKeyMethod?.Invoke(entity);
+            var skey = entity == null ? null : GetSlaveKeyMethod?.Invoke(entity);
 
-            var mkey = GetKeyMethod(entity);
-            item.Key = mkey;
+            item.Key = key;
             item.SlaveKey = skey;
             item.SetEntity(entity, Expire);
 
@@ -265,17 +274,16 @@ namespace XCode.Cache
             var es = Entities;
             lock (es)
             {
-                if (!es.ContainsKey(mkey))
+                if (!es.ContainsKey(key))
                 {
                     // 如果满了，删除前面一个
                     while (MaxEntity > 0 && es.Count >= MaxEntity)
                     {
-                        var key = es.Keys.First();
-                        RemoveKey(key);
-                        //WriteLog("单对象缓存满，删除{0}", key);
+                        RemoveKey(es.Keys.First());
+                        WriteLog("单对象缓存满，删除{0}", key);
                     }
 
-                    es.Add(mkey, item);
+                    es.Add(key, item);
                     success = true;
                 }
             }
@@ -310,7 +318,7 @@ namespace XCode.Cache
 
             // 异步更新缓存
             //var tid = Thread.CurrentThread.ManagedThreadId;
-            if (item.Expired) TaskEx.Run(() =>
+            if (item.Expired) ThreadPool.UnsafeQueueUserWorkItem(s =>
             {
                 // 先修改过期时间
                 item.ExpireTime = DateTime.Now.AddSeconds(Expire);
@@ -319,10 +327,10 @@ namespace XCode.Cache
                 var entity = Invoke(FindKeyMethod, item.Key);
                 if (entity != null)
                     item.SetEntity(entity, Expire);
-                else
+                else if (item.Entity != null)
                     // 数据库查不到，说明该数据可能已经被删除
                     RemoveKey(item.Key);
-            });
+            }, null);
 
             return item.Entity;
         }
@@ -350,7 +358,7 @@ namespace XCode.Cache
             CacheItem item = null;
             lock (es)
             {
-                if (!es.TryGetValue(key, out item) || item == null) return TryAdd(entity);
+                if (!es.TryGetValue(key, out item) || item == null) return TryAdd(key, entity);
 
                 item.SetEntity(entity, Expire);
 

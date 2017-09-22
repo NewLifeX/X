@@ -8,11 +8,13 @@
     var fields = ViewBag.Fields as List<FieldItem>;
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
+
+    var rv = entity.GetRouteKey();
 }
 
 <div class="form-horizontal">
     @Html.Partial("_Form_Header", entity)
-    @using (Html.BeginForm((isNew ? "Add" : "Edit"), null, new { id = Model[fact.Unique.Name] }))
+    @using (Html.BeginForm((isNew ? "Add" : "Edit"), null, rv))
     {
         @Html.AntiForgeryToken()
         @Html.ValidationSummary()

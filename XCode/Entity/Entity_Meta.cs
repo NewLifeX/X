@@ -11,6 +11,12 @@ namespace XCode
         /// <summary>实体元数据</summary>
         public static class Meta
         {
+            static Meta()
+            {
+                // 避免实际应用中，直接调用Entity.Meta的静态方法时，没有引发TEntity的静态构造函数。
+                var entity = new TEntity();
+            }
+
             #region 主要属性
             /// <summary>实体类型</summary>
             public static Type ThisType { get { return typeof(TEntity); } }
@@ -34,8 +40,9 @@ namespace XCode
             #endregion
 
             #region 基本属性
+            private static Lazy<TableItem> _Table = new Lazy<TableItem>(() => TableItem.Create(ThisType));
             /// <summary>表信息</summary>
-            public static TableItem Table { get { return TableItem.Create(ThisType); } }
+            public static TableItem Table { get => _Table.Value; }
 
             [ThreadStatic]
             private static String _ConnName;
@@ -81,8 +88,9 @@ namespace XCode
             {
                 get
                 {
-                    if (Table.Identity != null) return Table.Identity;
-                    if (Table.PrimaryKeys != null && Table.PrimaryKeys.Length > 0) return Table.PrimaryKeys[0];
+                    var dt = Table;
+                    if (dt.Identity != null) return dt.Identity;
+                    if (dt.PrimaryKeys.Length == 1) return dt.PrimaryKeys[0];
                     return null;
                 }
             }

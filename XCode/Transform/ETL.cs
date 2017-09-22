@@ -59,6 +59,9 @@ namespace XCode.Transform
         /// <summary>数据源抽取器</summary>
         public IExtracter Extracter { get; set; }
 
+        /// <summary>数据源抽取设置</summary>
+        public IExtractSetting Setting { get; set; }
+
         /// <summary>最大错误数，连续发生多个错误时停止</summary>
         public Int32 MaxError { get; set; }
 
@@ -145,7 +148,7 @@ namespace XCode.Transform
             var ctx = new DataContext();
             if (!Modules.Processing(ctx)) { _Inited = false; return -1; }
 
-            var set = Extracter.Setting;
+            var set = ctx.Setting ?? Setting;
 
             // 最后一次处理之前，重新启动
             if (!_Inited || _Last != null && (set.Start < _Last.Start || set.Start == _Last.Start && set.Row < _Last.Row))
@@ -164,7 +167,7 @@ namespace XCode.Transform
                 var sw = Stopwatch.StartNew();
 
                 // 分批抽取
-                list = Fetch(ext);
+                list = Fetch(ctx, ext, set);
                 if (list == null || list.Count == 0) return 0;
                 sw.Stop();
 
@@ -175,7 +178,7 @@ namespace XCode.Transform
                 var st = Stat;
                 st.Total += list.Count;
                 st.Times++;
-                st.FetchSpeed = ctx.FetchSpeed;
+                //st.FetchSpeed = ctx.FetchSpeed;
 
                 Modules.Fetched(ctx);
             }
@@ -185,6 +188,8 @@ namespace XCode.Transform
                 ex = OnError(ctx);
                 if (ex != null) throw ex;
             }
+            // 抛出异常后，可能数据列表为空
+            if (list == null || list.Count == 0) return 0;
 
             /*
              * 并行计算逻辑：
@@ -208,11 +213,13 @@ namespace XCode.Transform
         }
 
         /// <summary>抽取一批数据</summary>
+        /// <param name="ctx">数据上下文</param>
         /// <param name="extracter"></param>
+        /// <param name="set">设置</param>
         /// <returns></returns>
-        protected virtual IList<IEntity> Fetch(IExtracter extracter)
+        internal protected virtual IList<IEntity> Fetch(DataContext ctx, IExtracter extracter, IExtractSetting set)
         {
-            return extracter?.Fetch();
+            return extracter?.Fetch(set);
         }
 
         /// <summary>处理列表，传递批次配置，支持多线程和异步</summary>
@@ -221,13 +228,14 @@ namespace XCode.Transform
         /// 异步处理之前，需要先保存配置
         /// </remarks>
         /// <param name="ctx">数据上下文</param>
-        protected virtual void ProcessList(DataContext ctx)
+        internal protected void ProcessList(DataContext ctx)
         {
             try
             {
                 var sw = Stopwatch.StartNew();
 
-                ctx.Success = OnProcess(ctx);
+                var rs = OnProcess(ctx);
+                ctx.Success = rs == null ? 0 : rs.Count;
 
                 sw.Stop();
                 ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
@@ -244,7 +252,7 @@ namespace XCode.Transform
 
         /// <summary>异步处理列表，传递批次配置</summary>
         /// <param name="ctx">数据上下文</param>
-        protected virtual void ProcessListAsync(DataContext ctx)
+        internal protected void ProcessListAsync(DataContext ctx)
         {
             var cur = _currentTask;
             // 当前任务已达上限，或者出现多线程争夺时，等待一段时间
@@ -254,7 +262,7 @@ namespace XCode.Transform
                 cur = _currentTask;
             }
 
-            TaskEx.Run(() =>
+            ThreadPool.UnsafeQueueUserWorkItem(s =>
             {
                 try
                 {
@@ -264,22 +272,21 @@ namespace XCode.Transform
                 {
                     Interlocked.Decrement(ref _currentTask);
                 }
-            });
+            }, null);
         }
 
-        /// <summary>处理列表</summary>
+        /// <summary>批量处理数据列表，可重载打开事务保护</summary>
         /// <param name="ctx">数据上下文</param>
-        protected virtual Int32 OnProcess(DataContext ctx)
+        protected virtual IList<IEntity> OnProcess(DataContext ctx)
         {
-            var count = 0;
+            var list = new List<IEntity>();
             foreach (var source in ctx.Data)
             {
                 ctx.Entity = source;
                 try
                 {
-                    ProcessItem(source);
-
-                    count++;
+                    var rs = ProcessItem(ctx, source);
+                    if (rs != null) list.Add(rs);
                 }
                 catch (Exception ex)
                 {
@@ -290,7 +297,7 @@ namespace XCode.Transform
             }
             ctx.Entity = null;
 
-            return count;
+            return list;
         }
 
         /// <summary>处理完成</summary>
@@ -306,21 +313,21 @@ namespace XCode.Transform
             var total = ctx.Data.Count;
             st.Success += ctx.Success;
 
-            st.Speed = ctx.ProcessSpeed;
+            //st.Speed = ctx.ProcessSpeed;
 
             var end = set.End;
             if (Extracter is TimeExtracter ext) end = ext.ActualEnd;
             var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
-            WriteLog("共处理{0}行，区间({1}, {2}{3})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, set.Start, set.Row, ends, ctx.FetchCost, st.FetchSpeed, ctx.ProcessCost, st.Speed);
+            WriteLog("共处理{0}行，区间({1}, {2}{3})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, set.Start, set.Row, ends, ctx.FetchCost, ctx.FetchSpeed, ctx.ProcessCost, ctx.ProcessSpeed);
 
             Modules.OnFinished(ctx);
         }
 
         /// <summary>处理单行数据</summary>
-        /// <remarks>打开AutoSave时，上层ProcessList会自动保存数据</remarks>
+        /// <param name="ctx">数据上下文</param>
         /// <param name="source">源实体</param>
         /// <returns></returns>
-        protected virtual IEntity ProcessItem(IEntity source) { return source; }
+        protected virtual IEntity ProcessItem(DataContext ctx, IEntity source) { return source; }
 
         private Exception _lastError;
         /// <summary>遇到错误时如何处理</summary>

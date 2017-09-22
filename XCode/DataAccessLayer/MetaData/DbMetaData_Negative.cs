@@ -171,8 +171,8 @@ namespace XCode.DataAccessLayer
             {
                 var sql = CheckColumnsChange(entitytable, dbtable, mode);
                 if (!String.IsNullOrEmpty(sql)) sql += ";";
-                sql += CheckTableDescriptionAndIndex(entitytable, dbtable, onlySql);
-                if (!sql.IsNullOrEmpty() && onlySql) WriteLog("只检查不对数据库进行操作,请手工使用以下语句修改表：" + Environment.NewLine + sql);
+                sql += CheckTableDescriptionAndIndex(entitytable, dbtable, mode);
+                if (!sql.IsNullOrEmpty()) WriteLog("只检查不对数据库进行操作,请手工使用以下语句修改表：" + Environment.NewLine + sql);
             }
         }
 
@@ -254,7 +254,7 @@ namespace XCode.DataAccessLayer
 
                 if (IsColumnTypeChanged(item, dbf))
                 {
-                    WriteLog("字段{0}.{1}类型需要由{2}改变为{3}", entitytable.Name, item.Name, dbf.DataType, item.DataType);
+                    WriteLog("字段{0}.{1}类型需要由数据库的{2}改变为实体的{3}", entitytable.Name, item.Name, dbf.DataType, item.DataType);
                     PerformSchema(sb, noDelete, DDLSchema.AlterColumn, item, dbf);
                 }
                 if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, noDelete, DDLSchema.AlterColumn, item, dbf);
@@ -262,10 +262,10 @@ namespace XCode.DataAccessLayer
                 if (item.Description + "" != dbf.Description + "")
                 {
                     // 先删除旧注释
-                    if (dbf.Description != null) PerformSchema(sb, noDelete, DDLSchema.DropColumnDescription, dbf);
+                    //if (dbf.Description != null) PerformSchema(sb, noDelete, DDLSchema.DropColumnDescription, dbf);
 
                     // 加上新注释
-                    if (!item.Description.IsNullOrEmpty()) PerformSchema(sb, noDelete, DDLSchema.AddColumnDescription, item);
+                    if (!item.Description.IsNullOrEmpty()) PerformSchema(sb, onlySql, DDLSchema.AddColumnDescription, item);
                 }
             }
             #endregion
@@ -276,10 +276,13 @@ namespace XCode.DataAccessLayer
         /// <summary>检查表说明和索引</summary>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>
-        /// <param name="onlySql"></param>
+        /// <param name="mode"></param>
         /// <returns></returns>
-        protected virtual String CheckTableDescriptionAndIndex(IDataTable entitytable, IDataTable dbtable, Boolean onlySql)
+        protected virtual String CheckTableDescriptionAndIndex(IDataTable entitytable, IDataTable dbtable, Migration mode)
         {
+            var onlySql = mode <= Migration.ReadOnly;
+            var noDelete = mode < Migration.Full;
+
             var sb = new StringBuilder();
 
             #region 表说明
@@ -300,7 +303,7 @@ namespace XCode.DataAccessLayer
                 foreach (var item in dbdis.ToArray())
                 {
                     // 计算的索引不需要删除
-                    if (item.Computed) continue;
+                    //if (item.Computed) continue;
 
                     // 主键的索引不能删
                     if (item.PrimaryKey) continue;
@@ -308,7 +311,7 @@ namespace XCode.DataAccessLayer
                     var di = ModelHelper.GetIndex(entitytable, item.Columns);
                     if (di != null && di.Unique == item.Unique) continue;
 
-                    PerformSchema(sb, onlySql, DDLSchema.DropIndex, item);
+                    PerformSchema(sb, noDelete, DDLSchema.DropIndex, item);
                     dbdis.Remove(item);
                 }
             }
@@ -324,7 +327,7 @@ namespace XCode.DataAccessLayer
 
                     var di = ModelHelper.GetIndex(dbtable, item.Columns);
                     // 计算出来的索引，也表示没有，需要创建
-                    if (di != null && di.Unique == item.Unique && !di.Computed) continue;
+                    if (di != null && di.Unique == item.Unique) continue;
                     //// 如果这个索引的唯一字段是主键，则无需建立索引
                     //if (item.Columns.Length == 1 && entitytable.GetColumn(item.Columns[0]).PrimaryKey) continue;
                     // 如果索引全部就是主键，无需创建索引
@@ -334,8 +337,8 @@ namespace XCode.DataAccessLayer
 
                     if (di == null)
                         edis.Add(item.Clone(dbtable));
-                    else
-                        di.Computed = false;
+                    //else
+                    //    di.Computed = false;
                 }
             }
             #endregion
@@ -605,7 +608,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in table.Indexes)
                 {
-                    if (item.PrimaryKey || item.Computed) continue;
+                    if (item.PrimaryKey) continue;
                     // 如果索引全部就是主键，无需创建索引
                     if (table.GetColumns(item.Columns).All(e => e.PrimaryKey)) continue;
 

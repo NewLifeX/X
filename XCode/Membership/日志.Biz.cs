@@ -25,6 +25,9 @@ namespace XCode.Membership
             Meta.Modules.Add<TimeModule>();
             Meta.Modules.Add<UserModule>();
             Meta.Modules.Add<IPModule>();
+
+            // 关闭SQL日志
+            Meta.Session.Dal.Db.ShowSQL = false;
         }
 
         /// <summary>已重载。记录当前管理员</summary>
@@ -39,12 +42,11 @@ namespace XCode.Membership
                 if (!Dirtys[__.UserName])
                 {
 #if !__CORE__
-                    var user = HttpContext.Current?.User?.Identity as IManageUser;
 #else
                     var user = ManageProvider.Provider?.Current;
 #endif
                     //var user = ManageProvider.User;
-                    if (user != null) UserName = user + "";
+                    if (HttpContext.Current?.User?.Identity is IManageUser user) UserName = user + "";
                 }
             }
 
@@ -120,7 +122,6 @@ namespace XCode.Membership
 
         /// <summary>查找所有类别名</summary>
         /// <returns></returns>
-        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public static IList<TEntity> FindAllCategory()
         {
             return CategoryCache.Entities;

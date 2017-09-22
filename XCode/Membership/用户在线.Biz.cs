@@ -16,17 +16,13 @@ using NewLife.Web;
 namespace XCode.Membership
 {
     /// <summary>用户在线</summary>
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class UserOnline : UserOnline<UserOnline> { }
-
-    /// <summary>用户在线</summary>
-    public partial class UserOnline<TEntity> : Entity<TEntity> where TEntity : UserOnline<TEntity>, new()
+    public partial class UserOnline : Entity<UserOnline>
     {
         #region 对象操作
         static UserOnline()
         {
             // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
-            TEntity entity = new TEntity();
+            UserOnline entity = new UserOnline();
 
             Meta.Modules.Add<TimeModule>();
             Meta.Modules.Add<IPModule>();
@@ -38,6 +34,9 @@ namespace XCode.Membership
             //var sc = Meta.SingleCache;
             //sc.FindSlaveKeyMethod = k => Find(__.SessionID, k);
             //sc.GetSlaveKeyMethod = e => e.SessionID;
+
+            // 关闭SQL日志
+            Meta.Session.Dal.Db.ShowSQL = false;
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -58,7 +57,7 @@ namespace XCode.Membership
         /// <summary>根据会话编号查找</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static TEntity FindByID(Int32 id)
+        public static UserOnline FindByID(Int32 id)
         {
             if (id <= 0) return null;
 
@@ -69,20 +68,20 @@ namespace XCode.Membership
         /// <summary>根据会话编号查找</summary>
         /// <param name="sessionid"></param>
         /// <returns></returns>
-        public static TEntity FindBySessionID(String sessionid)
+        public static UserOnline FindBySessionID(String sessionid)
         {
             if (sessionid.IsNullOrEmpty()) return null;
 
-            //return Meta.SingleCache.GetItemWithSlaveKey(sessionid) as TEntity;
+            //return Meta.SingleCache.GetItemWithSlaveKey(sessionid) as UserOnline;
             return Find(__.SessionID, sessionid);
         }
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public static IList<TEntity> FindAllByUserID(Int32 userid)
+        public static IList<UserOnline> FindAllByUserID(Int32 userid)
         {
-            if (userid <= 0) return new List<TEntity>();
+            if (userid <= 0) return new List<UserOnline>();
 
             return FindAll(__.UserID, userid);
         }
@@ -98,7 +97,7 @@ namespace XCode.Membership
         /// <param name="key">关键字</param>
         /// <param name="param">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns>实体集</returns>
-        public static IList<TEntity> Search(Int32 userid, DateTime start, DateTime end, String key, PageParameter param)
+        public static IList<UserOnline> Search(Int32 userid, DateTime start, DateTime end, String key, PageParameter param)
         {
             // WhereExpression重载&和|运算符，作为And和Or的替代
             // SearchWhereByKeys系列方法用于构建针对字符串字段的模糊搜索，第二个参数可指定要搜索的字段
@@ -119,15 +118,17 @@ namespace XCode.Membership
         #region 业务
         /// <summary>设置会话状态</summary>
         /// <param name="sessionid"></param>
+        /// <param name="page"></param>
         /// <param name="status"></param>
         /// <param name="userid"></param>
         /// <param name="name"></param>
         /// <param name="ip"></param>
         /// <returns></returns>
-        public static TEntity SetStatus(String sessionid, String status, Int32 userid = 0, String name = null, String ip = null)
+        public static UserOnline SetStatus(String sessionid, String page, String status, Int32 userid = 0, String name = null, String ip = null)
         {
-            var entity = FindBySessionID(sessionid) ?? new TEntity();
+            var entity = FindBySessionID(sessionid) ?? new UserOnline();
             entity.SessionID = sessionid;
+            entity.Page = page;
             entity.Status = status;
 
             entity.Times++;
@@ -155,42 +156,38 @@ namespace XCode.Membership
         private static TimerX _timer;
 
         /// <summary>设置网页会话状态</summary>
+        /// <param name="sessionid"></param>
+        /// <param name="page"></param>
         /// <param name="status"></param>
+        /// <param name="user"></param>
+        /// <param name="ip"></param>
         /// <returns></returns>
-        public static TEntity SetWebStatus(String status = null)
+        public static UserOnline SetWebStatus(String sessionid, String page, String status, IManageUser user, String ip)
         {
             // 网页使用一个定时器来清理过期
             if (_timer == null)
             {
-                lock (typeof(TEntity))
+                lock (typeof(UserOnline))
                 {
                     if (_timer == null) _timer = new TimerX(s => ClearExpire(), null, 0, 30 * 1000) { Async = true };
                 }
             }
 
-            var ctx = HttpContext.Current;
-            var ss = ctx.Session;
-            if (ss == null) return null;
-
-            if (status.IsNullOrEmpty()) status = ctx.Request.Url.PathAndQuery;
-            var ip = WebHelper.UserHost;
-
-            var user = ctx.User?.Identity as IManageUser;
-            if (user == null) return SetStatus(ss.SessionID, status, 0, null, ip);
+            if (user == null) return SetStatus(sessionid, page, status, 0, null, ip);
 
             user.Online = true;
             (user as IEntity).SaveAsync();
 
-            return SetStatus(ss.SessionID, status, user.ID, user + "", ip);
+            return SetStatus(sessionid, page, status, user.ID, user + "", ip);
         }
 #endif
 
         /// <summary>删除过期，指定过期时间</summary>
         /// <param name="secTimeout">超时时间，20 * 60秒</param>
         /// <returns></returns>
-        public static IList<TEntity> ClearExpire(Int32 secTimeout = 20 * 60)
+        public static IList<UserOnline> ClearExpire(Int32 secTimeout = 20 * 60)
         {
-            if (Meta.Count == 0) return new List<TEntity>();
+            if (Meta.Count == 0) return new List<UserOnline>();
 
             // 10分钟不活跃将会被删除
             var exp = _.UpdateTime < DateTime.Now.AddSeconds(-secTimeout);
@@ -210,6 +207,6 @@ namespace XCode.Membership
 
             return list;
         }
-#endregion
+        #endregion
     }
 }

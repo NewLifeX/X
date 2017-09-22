@@ -201,9 +201,21 @@ namespace NewLife.Remoting
             catch (Exception ex)
             {
                 ex = ex.GetTrue();
-                var aex = ex as ApiException;
-                code = aex != null ? aex.Code : 500;
-                result = ex?.Message;
+
+                // 支持自定义错误
+                if (ex is ApiException aex)
+                {
+                    code = aex.Code;
+                    if (ex.Data != null && ex.Data.Count > 0)
+                        result = ex.Data.ToDictionary();
+                    else
+                        result = ex?.Message;
+                }
+                else
+                {
+                    code = 500;
+                    result = ex?.Message;
+                }
             }
 
             // 编码响应数据包

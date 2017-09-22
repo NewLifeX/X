@@ -299,6 +299,9 @@ namespace XCode.DataAccessLayer
 
             if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
 
+            // 修正
+            table.Fix();
+
             return table;
         }
 

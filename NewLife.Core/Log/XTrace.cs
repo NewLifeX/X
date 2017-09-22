@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -180,9 +181,9 @@ namespace NewLife.Log
                 _Log = clg;
         }
 #endif
-#endregion
+        #endregion
 
-            #region 拦截WinForm异常
+        #region 拦截WinForm异常
 #if __MOBILE__
 #elif __CORE__
 #else
@@ -239,8 +240,7 @@ namespace NewLife.Log
         {
             var clg = _Log as TextControlLog;
             var ftl = _Log as TextFileLog;
-            var cmp = _Log as CompositeLog;
-            if (cmp != null)
+            if (_Log is CompositeLog cmp)
             {
                 ftl = cmp.Get<TextFileLog>();
                 clg = cmp.Get<TextControlLog>();
@@ -272,17 +272,19 @@ namespace NewLife.Log
         {
             if (control == null || log == null) return log;
 
-            var clg = new TextControlLog();
-            clg.Control = control;
-            clg.MaxLines = maxLines;
+            var clg = new TextControlLog
+            {
+                Control = control,
+                MaxLines = maxLines
+            };
 
             return new CompositeLog(log, clg);
         }
 #endif
-            #endregion
+        #endregion
 
-            #region 属性
-            /// <summary>是否调试。</summary>
+        #region 属性
+        /// <summary>是否调试。</summary>
         public static Boolean Debug { get; set; } = Setting.Current.Debug;
 
         /// <summary>文本日志目录</summary>
@@ -338,11 +340,12 @@ namespace NewLife.Log
                     var process = Process.GetCurrentProcess();
 
                     // MINIDUMP_EXCEPTION_INFORMATION 信息的初始化
-                    var mei = new MinidumpExceptionInfo();
-
-                    mei.ThreadId = (UInt32)GetCurrentThreadId();
-                    mei.ExceptionPointers = Marshal.GetExceptionPointers();
-                    mei.ClientPointers = 1;
+                    var mei = new MinidumpExceptionInfo
+                    {
+                        ThreadId = GetCurrentThreadId(),
+                        ExceptionPointers = Marshal.GetExceptionPointers(),
+                        ClientPointers = 1
+                    };
 
                     //这里调用的Win32 API
                     var fileHandle = stream.SafeFileHandle.DangerousGetHandle();
@@ -496,7 +499,11 @@ namespace NewLife.Log
             var asmx = AssemblyX.Create(asm);
             if (asmx != null)
             {
-                WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss}", asmx.Name, asmx.FileVersion, asmx.Compile);
+                var ver = "";
+                var tar = asm.GetCustomAttribute<TargetFrameworkAttribute>();
+                if (tar != null) ver = tar.FrameworkDisplayName ?? tar.FrameworkName;
+
+                WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss} {3}", asmx.Name, asmx.FileVersion, asmx.Compile, ver);
                 var att = asmx.Asm.GetCustomAttribute<AssemblyCopyrightAttribute>();
                 WriteLine("{0} {1}", asmx.Title, att?.Copyright);
             }

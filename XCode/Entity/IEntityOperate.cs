@@ -200,6 +200,9 @@ namespace XCode
 
         /// <summary>默认累加字段</summary>
         ICollection<String> AdditionalFields { get; }
+
+        /// <summary>主时间字段。代表当前数据行更新时间</summary>
+        FieldItem MasterTime { get; }
         #endregion
     }
 }

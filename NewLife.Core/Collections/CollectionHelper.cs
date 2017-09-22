@@ -74,15 +74,13 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public static IDictionary<String, Object> ToDictionary(this Object target)
         {
-            var dic = target as IDictionary<String, Object>;
-            if (dic != null) return dic;
+            if (target is IDictionary<String, Object> dic) return dic;
 
             dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
             if (target != null)
             {
                 // 修正字符串字典的支持问题
-                var dic2 = target as IDictionary;
-                if (dic2 != null)
+                if (target is IDictionary dic2)
                 {
                     foreach (DictionaryEntry item in dic2)
                     {

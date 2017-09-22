@@ -52,8 +52,22 @@ namespace NewLife.Remoting
         /// <summary>抛出异常</summary>
         /// <param name="errCode"></param>
         /// <param name="msg"></param>
+        /// <param name="result"></param>
         /// <returns></returns>
-        protected ApiException Error(Int32 errCode, String msg) { return new ApiException(errCode, msg); }
+        protected ApiException Error(Int32 errCode, String msg, Object result = null)
+        {
+            var ex = new ApiException(errCode, msg);
+            if (result != null)
+            {
+                // 支持自定义类型
+                foreach (var item in result.ToDictionary())
+                {
+                    ex.Data[item.Key] = item.Value;
+                }
+            }
+
+            return ex;
+        }
         #endregion
 
         #region 登录

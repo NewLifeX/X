@@ -13,7 +13,7 @@ namespace XCode.Membership
     [Description("菜单")]
     [BindIndex("IX_Menu_Name", false, "Name")]
     [BindIndex("IU_Menu_ParentID_Name", true, "ParentID,Name")]
-    [BindTable("Menu", Description = "菜单", ConnName = "Membership", DbType = DatabaseType.SqlServer)]
+    [BindTable("Menu", Description = "菜单", ConnName = "Membership", DbType = DatabaseType.None)]
     public partial class Menu<TEntity> : IMenu
     {
         #region 属性
@@ -22,7 +22,7 @@ namespace XCode.Membership
         [DisplayName("编号")]
         [Description("编号")]
         [DataObjectField(true, true, false, 0)]
-        [BindColumn("ID", "编号", "int")]
+        [BindColumn("ID", "编号", "")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
         private String _Name;
@@ -30,7 +30,7 @@ namespace XCode.Membership
         [DisplayName("名称")]
         [Description("名称")]
         [DataObjectField(false, false, false, 50)]
-        [BindColumn("Name", "名称", "nvarchar(50)", Master = true)]
+        [BindColumn("Name", "名称", "", Master = true)]
         public String Name { get { return _Name; } set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
 
         private String _DisplayName;
@@ -38,7 +38,7 @@ namespace XCode.Membership
         [DisplayName("显示名")]
         [Description("显示名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("DisplayName", "显示名", "nvarchar(50)")]
+        [BindColumn("DisplayName", "显示名", "")]
         public String DisplayName { get { return _DisplayName; } set { if (OnPropertyChanging(__.DisplayName, value)) { _DisplayName = value; OnPropertyChanged(__.DisplayName); } } }
 
         private Int32 _ParentID;
@@ -46,7 +46,7 @@ namespace XCode.Membership
         [DisplayName("父编号")]
         [Description("父编号")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("ParentID", "父编号", "int")]
+        [BindColumn("ParentID", "父编号", "")]
         public Int32 ParentID { get { return _ParentID; } set { if (OnPropertyChanging(__.ParentID, value)) { _ParentID = value; OnPropertyChanged(__.ParentID); } } }
 
         private String _Url;
@@ -54,7 +54,7 @@ namespace XCode.Membership
         [DisplayName("链接")]
         [Description("链接")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("Url", "链接", "nvarchar(200)")]
+        [BindColumn("Url", "链接", "")]
         public String Url { get { return _Url; } set { if (OnPropertyChanging(__.Url, value)) { _Url = value; OnPropertyChanged(__.Url); } } }
 
         private Int32 _Sort;
@@ -62,7 +62,7 @@ namespace XCode.Membership
         [DisplayName("排序")]
         [Description("排序")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Sort", "排序", "int")]
+        [BindColumn("Sort", "排序", "")]
         public Int32 Sort { get { return _Sort; } set { if (OnPropertyChanging(__.Sort, value)) { _Sort = value; OnPropertyChanged(__.Sort); } } }
 
         private String _Icon;
@@ -78,7 +78,7 @@ namespace XCode.Membership
         [DisplayName("是否可见")]
         [Description("是否可见")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Visible", "是否可见", "bit")]
+        [BindColumn("Visible", "是否可见", "")]
         public Boolean Visible { get { return _Visible; } set { if (OnPropertyChanging(__.Visible, value)) { _Visible = value; OnPropertyChanged(__.Visible); } } }
 
         private Boolean _Necessary;
@@ -86,7 +86,7 @@ namespace XCode.Membership
         [DisplayName("必要的菜单")]
         [Description("必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Necessary", "必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", "bit")]
+        [BindColumn("Necessary", "必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", "")]
         public Boolean Necessary { get { return _Necessary; } set { if (OnPropertyChanging(__.Necessary, value)) { _Necessary = value; OnPropertyChanged(__.Necessary); } } }
 
         private String _Permission;
@@ -94,7 +94,7 @@ namespace XCode.Membership
         [DisplayName("权限子项")]
         [Description("权限子项。逗号分隔，每个权限子项名值竖线分隔")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("Permission", "权限子项。逗号分隔，每个权限子项名值竖线分隔", "nvarchar(200)")]
+        [BindColumn("Permission", "权限子项。逗号分隔，每个权限子项名值竖线分隔", "")]
         public String Permission { get { return _Permission; } set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } } }
 
         private String _Remark;
@@ -102,7 +102,7 @@ namespace XCode.Membership
         [DisplayName("备注")]
         [Description("备注")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("Remark", "备注", "nvarchar(200)")]
+        [BindColumn("Remark", "备注", "")]
         public String Remark { get { return _Remark; } set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
         #endregion
 

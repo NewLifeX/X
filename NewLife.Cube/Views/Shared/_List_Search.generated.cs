@@ -26,11 +26,31 @@ namespace ASP
     using System.Web.Security;
     using System.Web.UI;
     using System.Web.WebPages;
+    
+    #line 1 "..\..\Views\Shared\_List_Search.cshtml"
     using NewLife;
+    
+    #line default
+    #line hidden
+    
+    #line 3 "..\..\Views\Shared\_List_Search.cshtml"
     using NewLife.Cube;
+    
+    #line default
+    #line hidden
     using NewLife.Reflection;
+    
+    #line 2 "..\..\Views\Shared\_List_Search.cshtml"
     using NewLife.Web;
+    
+    #line default
+    #line hidden
+    
+    #line 4 "..\..\Views\Shared\_List_Search.cshtml"
     using XCode;
+    
+    #line default
+    #line hidden
     using XCode.Membership;
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "2.0.0.0")]
@@ -42,6 +62,39 @@ namespace ASP
         }
         public override void Execute()
         {
+            
+            #line 5 "..\..\Views\Shared\_List_Search.cshtml"
+  
+    var fact = ViewBag.Factory as IEntityOperate;
+    var fi = fact.MasterTime;
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+            
+            #line 9 "..\..\Views\Shared\_List_Search.cshtml"
+ if (fi != null)
+{
+    
+            
+            #line default
+            #line hidden
+            
+            #line 11 "..\..\Views\Shared\_List_Search.cshtml"
+Write(Html.Partial("_DateRange"));
+
+            
+            #line default
+            #line hidden
+            
+            #line 11 "..\..\Views\Shared\_List_Search.cshtml"
+                               
+}
+            
+            #line default
+            #line hidden
         }
     }
 }

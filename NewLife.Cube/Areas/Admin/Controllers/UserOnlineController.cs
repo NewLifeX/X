@@ -13,9 +13,10 @@ namespace NewLife.Cube.Admin.Controllers
     [Description("已登录系统的用户，操作情况。")]
     public class UserOnlineController : EntityController<UserOnline>
     {
-        //static UserOnlineController()
-        //{
-        //}
+        static UserOnlineController()
+        {
+            MenuOrder = 60;
+        }
 
         ///// <summary>搜索数据集</summary>
         ///// <param name="p"></param>

@@ -290,8 +290,7 @@ namespace NewLife.Serialization
 
         Int32 GetFieldSize()
         {
-            var member = Member as MemberInfo;
-            if (member != null)
+            if (Member is MemberInfo member)
             {
                 // 获取FieldSizeAttribute特性
                 var att = member.GetCustomAttribute<FieldSizeAttribute>();

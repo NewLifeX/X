@@ -772,8 +772,7 @@ namespace NewLife
             }
             else if (type == typeof(Byte[]))
             {
-                var bs = value as Byte[];
-                if (bs != null && bs.Length == _SizeOfGuid)
+                if (value is Byte[] bs && bs.Length == _SizeOfGuid)
                 {
                     result = new CombGuid(bs, sequentialType, true);
                     return true;

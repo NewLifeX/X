@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
 using NewLife.Log;
+using NewLife.Model;
+using NewLife.Web;
 using XCode.Membership;
 
 namespace XCode.Web
@@ -18,33 +23,112 @@ namespace XCode.Web
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {
+            context.AcquireRequestState += OnSession;
+            //context.PreRequestHandlerExecute += OnSession;
             context.PostRequestHandlerExecute += OnPost;
+            context.Error += OnPost;
+        }
+
+        private void OnSession(Object sender, EventArgs e)
+        {
+            // 会话状态已创建一个会话 ID，但由于响应已被应用程序刷新而无法保存它
+            // 避免后面使用SessionID时报错
+            var sid = HttpContext.Current?.Session?.SessionID;
         }
         #endregion
 
         /// <summary>Web在线</summary>
         public static Boolean WebOnline { get; set; }
 
-        /// <summary>Web在线</summary>
+        /// <summary>访问记录</summary>
         public static Boolean WebBehavior { get; set; }
 
-        /// <summary>输出运行时间</summary>
+        /// <summary>访问统计</summary>
+        public static Boolean WebStatistics { get; set; }
+
         void OnPost(Object sender, EventArgs e)
         {
-            try
-            {
-                //var set = Setting.Current;
+            if (!WebOnline && !WebBehavior && !WebStatistics) return;
 
-                // 统计网页状态
-                if (WebOnline) UserOnline.SetWebStatus();
+            var ctx = HttpContext.Current;
+            if (ctx == null) return;
 
-                // 记录用户访问的Url
-                if (WebBehavior) SaveBehavior();
-            }
-            catch (Exception ex)
+            var req = ctx.Request;
+            if (req == null) return;
+
+            var user = ctx.User?.Identity as IManageUser ?? ManageProvider.User as IManageUser;
+
+            var sid = ctx.Session?.SessionID;
+            var ip = WebHelper.UserHost;
+
+            var page = GetPage(req);
+            var title = GetTitle(ctx, req);
+            var msg = GetMessage(ctx, req, title);
+
+            Task.Run(() =>
             {
-                XTrace.WriteException(ex);
+                try
+                {
+                    // 统计网页状态
+                    if (WebOnline && !sid.IsNullOrEmpty()) UserOnline.SetWebStatus(sid, page, msg, user, ip);
+
+                    // 记录用户访问的Url
+                    if (WebBehavior) SaveBehavior(user, ip, page, msg);
+
+                    // 每个页面的访问统计
+                    if (WebStatistics) SaveStatistics(ctx, user, ip, page, title);
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            });
+        }
+
+        String GetMessage(HttpContext ctx, HttpRequest req, String title)
+        {
+            var sb = new StringBuilder(256);
+
+            if (!title.IsNullOrEmpty()) sb.Append(title + " ");
+            sb.AppendFormat("{0} {1}", req.HttpMethod, req.RawUrl);
+
+            var err = ctx.Error?.Message;
+            if (!err.IsNullOrEmpty()) sb.Append(" " + err);
+
+            var ts = DateTime.Now - ctx.Timestamp;
+            sb.AppendFormat(" {0:n0}ms", ts.TotalMilliseconds);
+
+            return sb.ToString();
+        }
+
+        String GetTitle(HttpContext ctx, HttpRequest req)
+        {
+            var title = ctx.Items["Title"] + "";
+            if (title.IsNullOrEmpty())
+            {
+                if (ctx.Handler is Page page) title = page.Title;
             }
+
+            // 有些标题是 Description，需要截断处理
+            if (title.Contains(",")) title = title.Substring(null, ",");
+            if (title.Contains("，")) title = title.Substring(null, "，");
+            if (title.Contains("。")) title = title.Substring(null, "。");
+
+            return title;
+        }
+
+        String GetPage(HttpRequest req)
+        {
+            var p = req.Path;
+            if (p.IsNullOrEmpty()) return null;
+
+            var ss = p.Split('/');
+            if (ss.Length == 0) return p;
+
+            // 如果最后一段是数字，则可能是参数，需要去掉
+            if (ss[ss.Length - 1].ToInt() > 0) p = "/" + ss.Take(ss.Length - 1).Join("/");
+
+            return p;
         }
 
         /// <summary>忽略的后缀</summary>
@@ -53,37 +137,24 @@ namespace XCode.Web
             ".woff", ".woff2", ".svg", ".ttf", ".otf", ".eot"   // 字体
         };
 
-        void SaveBehavior()
+        void SaveBehavior(IManageUser user, String ip, String page, String msg)
         {
-            var ctx = HttpContext.Current;
-            if (ctx == null) return;
-
-            var req = ctx.Request;
-            if (req == null) return;
-
-            var p = req.Path;
-            if (p.IsNullOrEmpty()) return;
+            if (page.IsNullOrEmpty()) return;
 
             // 过滤后缀
-            var ext = Path.GetExtension(p);
+            var ext = Path.GetExtension(page);
             if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
 
-            var title = ctx.Items["Title"] + "";
-            //if (title.IsNullOrEmpty())
-            //{
-            //    var route = ctx.Handler as MvcHandler;
-            //    if (route != null) title = route + "";
-            //}
+            LogProvider.Provider.WriteLog("访问", "记录", msg, user.ID, user + "", ip);
+        }
 
-            if (title.IsNullOrEmpty())
-            {
-                var page = ctx.Handler as Page;
-                if (page != null) title = page.Title;
-            }
+        void SaveStatistics(HttpContext ctx, IManageUser user, String ip, String page, String title)
+        {
+            var ts = DateTime.Now - ctx.Timestamp;
 
-            var msg = "{0} {1}".F(req.HttpMethod, req.RawUrl);
-            if (!title.IsNullOrEmpty()) msg = title + " " + msg;
-            LogProvider.Provider.WriteLog("访问", "记录", msg);
+            // 访问统计
+            var userid = user != null ? user.ID : 0;
+            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, userid, ip, ctx.Error?.Message);
         }
     }
 }

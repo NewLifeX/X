@@ -1,29 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
-using NewLife.Caching;
+using NewLife.Agent;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
-using NewLife.Security;
-using NewLife.Serialization;
 using NewLife.Threading;
-using NewLife.Web;
-using NewLife.Xml;
 using XCode;
-using XCode.Code;
 using XCode.DataAccessLayer;
-using XCode.Demo;
 using XCode.Membership;
-using XCode.Sharding;
 
 namespace Test
 {
@@ -46,7 +33,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -62,46 +49,47 @@ namespace Test
                 GC.WaitForPendingFinalizers();
                 var key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
+                break;
             }
         }
 
         private static Int32 ths = 0;
         static void Test1()
         {
-            Console.Title = "SQLite极速插入测试 之 天下无贼 v2.0 " + AssemblyX.Entry.Compile.ToFullString();
+            //Console.Title = "SQLite极速插入测试 之 天下无贼 v2.0 " + AssemblyX.Entry.Compile.ToFullString();
 
-            //Console.WriteLine(DateTime.Now.ToFullString());
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
+            ////Console.WriteLine(DateTime.Now.ToFullString());
+            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
 
-            if (ths <= 0)
-            {
-                foreach (var item in ".".AsDirectory().GetAllFiles("*.db"))
-                {
-                    item.Delete();
-                }
+            //if (ths <= 0)
+            //{
+            //    foreach (var item in ".".AsDirectory().GetAllFiles("*.db"))
+            //    {
+            //        item.Delete();
+            //    }
 
-                //var db = "Membership.db".GetFullPath();
-                //if (File.Exists(db)) File.Delete(db);
+            //    //var db = "Membership.db".GetFullPath();
+            //    //if (File.Exists(db)) File.Delete(db);
 
-                //Console.Write("请输入线程数（推荐1）：");
-                //ths = Console.ReadLine().ToInt();
-                //if (ths < 1) ths = 1;
-                ths = 1;
-            }
+            //    //Console.Write("请输入线程数（推荐1）：");
+            //    //ths = Console.ReadLine().ToInt();
+            //    //if (ths < 1) ths = 1;
+            //    ths = 1;
+            //}
 
-            //var set = XCode.Setting.Current;
-            //set.UserParameter = true;
+            ////var set = XCode.Setting.Current;
+            ////set.UserParameter = true;
 
-            //UserOnline.Meta.Modules.Modules.Clear();
-            //Shard.Meta.ConnName = "Membership";
-            var ds = new XCode.Common.DataSimulation<DemoEntity>
-            {
-                Log = XTrace.Log,
-                //ds.BatchSize = 10000;
-                Threads = ths,
-                UseSql = true
-            };
-            ds.Run(400000);
+            ////UserOnline.Meta.Modules.Modules.Clear();
+            ////Shard.Meta.ConnName = "Membership";
+            //var ds = new XCode.Common.DataSimulation<DemoEntity>
+            //{
+            //    Log = XTrace.Log,
+            //    //ds.BatchSize = 10000;
+            //    Threads = ths,
+            //    UseSql = true
+            //};
+            //ds.Run(400000);
         }
 
         class A
@@ -117,7 +105,28 @@ namespace Test
 
         static void Test2()
         {
+            var list = new List<Int32>();
+            var n = list.Find(e => true);
+
+            var list2 = list as IList<Int32>;
+            var k = list2.Find(e => true);
+
             //ApiTest.Main();
+
+            //AgentService.ServiceMain();
+
+            foreach (var item in DAL.ConnStrs)
+            {
+                Task.Run(() =>
+                {
+                    var dal = DAL.Create(item.Key);
+                    var meta = dal.Db.CreateMetaData();
+                    var mds = meta.MetaDataCollections;
+                    var rds = meta.ReservedWords;
+                    XTrace.WriteLine("{0}/{1}.MetaDataCollections={2}", dal.ConnName, dal.DbType, mds.Join(","));
+                    XTrace.WriteLine("{0}/{1}.ReservedWords={2}", dal.ConnName, dal.DbType, rds.Join(","));
+                });
+            }
         }
 
         class TestModule : EntityModule

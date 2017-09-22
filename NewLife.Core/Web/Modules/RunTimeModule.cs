@@ -68,9 +68,8 @@ namespace NewLife.Web
             set { Context.Items["HasWrite"] = value; }
         }
 
-        private static String _RunTimeFormat = "页面执行时间{0}毫秒！";
         /// <summary>执行时间字符串</summary>
-        public static String RunTimeFormat { get { return _RunTimeFormat; } set { _RunTimeFormat = value; } }
+        public static String RunTimeFormat { get; set; } = "页面执行时间{0}毫秒！";
 
         /// <summary>输出运行时间</summary>
         void WriteRunTime(Object sender, EventArgs e)
@@ -93,8 +92,7 @@ namespace NewLife.Web
             if (String.IsNullOrEmpty(str)) return;
 
             // 尝试找到页面，并在页面上写上信息
-            var lt = page.FindControl("RunTime") as Literal;
-            if (lt != null)
+            if (page.FindControl("RunTime") is Literal lt)
                 lt.Text = str;
             else
                 Response.Write(str);

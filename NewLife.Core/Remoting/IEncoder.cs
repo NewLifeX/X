@@ -89,8 +89,7 @@ namespace NewLife.Remoting
         public virtual Byte[] Encode(Int32 code, Object result, IDictionary<String, Object> cookie)
         {
             // 不支持序列化异常
-            var ex = result as Exception;
-            if (ex != null) result = ex.GetTrue()?.Message;
+            if (result is Exception ex) result = ex.GetTrue()?.Message;
 
             var obj = new { code, result };
             return Encode(obj.ToDictionary().Merge(cookie));

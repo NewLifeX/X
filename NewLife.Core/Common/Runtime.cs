@@ -130,7 +130,7 @@ namespace NewLife
                 var is64 = Is64BitOperatingSystem;
                 var sys = "";
 
-        #region Win32
+                #region Win32
                 if (os.Platform == PlatformID.Win32Windows)
                 {
                     // 非NT系统
@@ -154,7 +154,7 @@ namespace NewLife
                     }
                     sys = "Windows " + sys;
                 }
-        #endregion
+                #endregion
                 else if (os.Platform == PlatformID.Win32NT)
                 {
                     sys = GetNTName(vs);

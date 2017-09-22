@@ -14,6 +14,9 @@ namespace NewLife.Cube
         /// <summary>要展现和修改的对象</summary>
         protected abstract TObject Value { get; set; }
 
+        /// <summary>菜单顺序。扫描是会反射读取</summary>
+        protected static Int32 MenuOrder { get; set; }
+
         /// <summary>动作执行前</summary>
         /// <param name="filterContext"></param>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
