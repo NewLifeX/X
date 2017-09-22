@@ -153,7 +153,8 @@ namespace XCode.Web
             var ts = DateTime.Now - ctx.Timestamp;
 
             // 访问统计
-            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, user.ID, ip, ctx.Error?.Message);
+            var userid = user != null ? user.ID : 0;
+            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, userid, ip, ctx.Error?.Message);
         }
     }
 }
