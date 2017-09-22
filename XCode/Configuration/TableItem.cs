@@ -379,6 +379,8 @@ namespace XCode.Configuration
         {
             //if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
             if (name.IsNullOrEmpty()) return null;
+            // 特殊处理行号
+            if (name.EqualIgnoreCase("RowNumber")) return null;
 
             // 借助字典，快速搜索数据列
             if (_all.Count == 0)
