@@ -40,8 +40,9 @@ namespace XCode
             #endregion
 
             #region 基本属性
+            private static Lazy<TableItem> _Table = new Lazy<TableItem>(() => TableItem.Create(ThisType));
             /// <summary>表信息</summary>
-            public static TableItem Table { get { return TableItem.Create(ThisType); } }
+            public static TableItem Table { get => _Table.Value; }
 
             [ThreadStatic]
             private static String _ConnName;
@@ -87,8 +88,9 @@ namespace XCode
             {
                 get
                 {
-                    if (Table.Identity != null) return Table.Identity;
-                    if (Table.PrimaryKeys.Length == 1) return Table.PrimaryKeys[0];
+                    var dt = Table;
+                    if (dt.Identity != null) return dt.Identity;
+                    if (dt.PrimaryKeys.Length == 1) return dt.PrimaryKeys[0];
                     return null;
                 }
             }
