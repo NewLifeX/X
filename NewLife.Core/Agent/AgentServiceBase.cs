@@ -491,7 +491,6 @@ namespace NewLife.Agent
 
                     // 检查看门狗
                     CheckWatchDog();
-                    //if (WatchDogs.Length > 0) Task.Factory.StartNew(CheckWatchDog);
 
                     Thread.Sleep(10 * 1000);
                 }

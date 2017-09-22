@@ -262,7 +262,7 @@ namespace XCode.Transform
                 cur = _currentTask;
             }
 
-            TaskEx.Run(() =>
+            ThreadPool.UnsafeQueueUserWorkItem(s =>
             {
                 try
                 {
@@ -272,7 +272,7 @@ namespace XCode.Transform
                 {
                     Interlocked.Decrement(ref _currentTask);
                 }
-            });
+            }, null);
         }
 
         /// <summary>批量处理数据列表，可重载打开事务保护</summary>
