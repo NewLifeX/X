@@ -42,7 +42,9 @@ namespace XCode.DataAccessLayer
                 var conn = _Conn;
                 if (conn != null)
                 {
-                    Close();
+                    //Close();
+                    if (conn.State != ConnectionState.Closed) conn.Close();
+
                     _Conn = null;
                     conn.Dispose();
                 }
@@ -111,8 +113,8 @@ namespace XCode.DataAccessLayer
         /// <summary>连接是否已经打开</summary>
         public Boolean Opened { get { return _Conn != null && _Conn.State != ConnectionState.Closed; } }
 
-        /// <summary>延迟关闭时间。默认0毫秒</summary>
-        public Int32 DelayClose { get; set; }
+        ///// <summary>延迟关闭时间。默认0毫秒</summary>
+        //public Int32 DelayClose { get; set; }
 
         /// <summary>打开</summary>
         public virtual void Open()
@@ -125,18 +127,18 @@ namespace XCode.DataAccessLayer
             {
                 try
                 {
-                    // 正在工作，禁止定时关闭
-                    _running = true;
-                    _NextClose = DateTime.MinValue;
+                    //// 正在工作，禁止定时关闭
+                    //_running = true;
+                    //_NextClose = DateTime.MinValue;
 
                     conn.Open();
 
-                    // 检测并关闭连接
-                    if (DelayClose > 0 && _timer == null) _timer = new TimerX(OnTimer, null, 1000, 1000);
+                    //// 检测并关闭连接
+                    //if (DelayClose > 0 && _timer == null) _timer = new TimerX(OnTimer, null, 1000, 1000);
                 }
                 catch (DbException)
                 {
-                    _running = false;
+                    //_running = false;
 
                     DAL.WriteLog("Open错误：{0}", conn.ConnectionString);
                     throw;
@@ -163,46 +165,45 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>自动关闭。启用事务后，不关闭连接。</summary>
-        public void AutoClose()
+        public virtual void AutoClose()
         {
             if (Transaction != null || !Opened) return;
 
-            // 延迟关闭
-            if (DelayClose == 0)
-            {
-                Close();
-            }
-            else
-            {
-                if (_running) DAL.WriteLog("可以关闭线程{0}的连接[{1}]", ThreadID, Database.ConnName);
-                // 记录最后活跃时间
-                _NextClose = DateTime.Now.AddMilliseconds(DelayClose);
-                // 不再处理，允许关闭
-                _running = false;
-            }
+            //// 延迟关闭
+            //if (DelayClose == 0)
+            //{
+            Close();
+            //}
+            //else
+            //{
+            //    //if (_running) DAL.WriteLog("可以关闭线程{0}的连接[{1}]", ThreadID, Database.ConnName);
+            //    // 记录最后活跃时间
+            //    _NextClose = DateTime.Now.AddMilliseconds(DelayClose);
+            //    // 不再处理，允许关闭
+            //    _running = false;
+            //}
         }
 
-        private Boolean _running;
-        private DateTime _NextClose;
-        private TimerX _timer;
-        private void OnTimer(Object state)
-        {
-            // 正在工作，禁止定时关闭
-            if (_running) return;
-            // 没有链接不关闭
-            if (!Opened) return;
+        //private Boolean _running;
+        //private DateTime _NextClose;
+        //private TimerX _timer;
+        //private void OnTimer(Object state)
+        //{
+        //    // 正在工作，禁止定时关闭
+        //    if (_running) return;
+        //    // 没有链接不关闭
+        //    if (!Opened) return;
 
-            // 指定时间后关闭
-            if (_NextClose > DateTime.MinValue && _NextClose < DateTime.Now)
-            {
-                _NextClose = DateTime.MinValue;
-                //Close();
-                DAL.WriteLog("关闭线程{0}的连接[{1}]", ThreadID, Database.ConnName);
+        //    // 指定时间后关闭
+        //    if (_NextClose > DateTime.MinValue && _NextClose < DateTime.Now)
+        //    {
+        //        _NextClose = DateTime.MinValue;
+        //        //DAL.WriteLog("关闭线程{0}的连接[{1}]", ThreadID, Database.ConnName);
 
-                var conn = _Conn;
-                if (conn != null && conn.State != ConnectionState.Closed) conn.Close();
-            }
-        }
+        //        var conn = _Conn;
+        //        if (conn != null && conn.State != ConnectionState.Closed) conn.Close();
+        //    }
+        //}
 
         /// <summary>数据库名</summary>
         public String DatabaseName

@@ -248,7 +248,7 @@ namespace XCode.DataAccessLayer
         #region 构造函数
         public SQLiteSession(IDatabase db) : base(db)
         {
-            DelayClose = 10000;
+            //DelayClose = 10000;
         }
         #endregion
 
@@ -284,6 +284,12 @@ namespace XCode.DataAccessLayer
             // 当从SQLite中删除数据时，数据文件大小不会减小，当重新插入数据时，
             // 将使用那块“空白”空间，打开自动清理后，删除数据后，会自动清理“空白”空间
             if ((Database as SQLite).AutoVacuum) Execute("PRAGMA auto_vacuum = 1");
+        }
+
+        /// <summary>不关闭连接</summary>
+        public override void AutoClose()
+        {
+            //base.AutoClose();
         }
         #endregion
 
