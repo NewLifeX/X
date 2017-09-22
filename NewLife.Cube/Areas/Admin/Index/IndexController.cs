@@ -63,7 +63,7 @@ namespace NewLife.Cube.Admin.Controllers
             catch { }
 
             ViewBag.WebServerName = name;
-
+            
             ViewBag.MyAsms = AssemblyX.GetMyAssemblies().OrderBy(e => e.Name).OrderByDescending(e => e.Compile).ToArray();
 
             var Asms = AssemblyX.GetAssemblies(null).ToArray();

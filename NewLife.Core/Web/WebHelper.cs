@@ -319,13 +319,15 @@ namespace NewLife.Web
 
         /// <summary>获取整型参数</summary>
         /// <param name="name">名称</param>
+        /// <param name="defaultint"></param>
         /// <returns></returns>
-        public static Int32 RequestInt(String name) { return Request[name].ToInt(); }
+        public static Int32 RequestInt(String name, int defaultint = 0) { return Request[name].ToInt(defaultint); }
 
         /// <summary>获取长整型参数</summary>
         /// <param name="name">名称</param>
+        /// <param name="defaultint"></param>
         /// <returns></returns>
-        public static Int64 RequestLong(String name) { return Request[name].ToLong(); }
+        public static Int64 RequestLong(String name, int defaultint = 0) { return Request[name].ToLong(defaultint); }
 
         /// <summary>接收布尔值</summary>
         /// <param name="name">名称</param>

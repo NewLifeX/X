@@ -65,6 +65,14 @@ namespace XCode.Membership
         [BindColumn("Sort", "排序", "int")]
         public Int32 Sort { get { return _Sort; } set { if (OnPropertyChanging(__.Sort, value)) { _Sort = value; OnPropertyChanged(__.Sort); } } }
 
+        private String _Icon;
+        /// <summary>图标</summary>
+        [DisplayName("图标")]
+        [Description("图标")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("Icon", "图标", "nvarchar(50)")]
+        public String Icon { get { return _Icon; } set { if (OnPropertyChanging(__.Icon, value)) { _Icon = value; OnPropertyChanged(__.Icon); } } }
+
         private Boolean _Visible;
         /// <summary>是否可见</summary>
         [DisplayName("是否可见")]
@@ -114,6 +122,7 @@ namespace XCode.Membership
                     case __.ParentID : return _ParentID;
                     case __.Url : return _Url;
                     case __.Sort : return _Sort;
+                    case __.Icon : return _Icon;
                     case __.Visible : return _Visible;
                     case __.Necessary : return _Necessary;
                     case __.Permission : return _Permission;
@@ -131,6 +140,7 @@ namespace XCode.Membership
                     case __.ParentID : _ParentID = Convert.ToInt32(value); break;
                     case __.Url : _Url = Convert.ToString(value); break;
                     case __.Sort : _Sort = Convert.ToInt32(value); break;
+                    case __.Icon : _Icon = Convert.ToString(value); break;
                     case __.Visible : _Visible = Convert.ToBoolean(value); break;
                     case __.Necessary : _Necessary = Convert.ToBoolean(value); break;
                     case __.Permission : _Permission = Convert.ToString(value); break;
@@ -162,6 +172,9 @@ namespace XCode.Membership
 
             /// <summary>排序</summary>
             public static readonly Field Sort = FindByName(__.Sort);
+
+            /// <summary>图标</summary>
+            public static readonly Field Icon = FindByName(__.Icon);
 
             /// <summary>是否可见</summary>
             public static readonly Field Visible = FindByName(__.Visible);
@@ -199,6 +212,9 @@ namespace XCode.Membership
             /// <summary>排序</summary>
             public const String Sort = "Sort";
 
+            /// <summary>图标</summary>
+            public const String Icon = "Icon";
+
             /// <summary>是否可见</summary>
             public const String Visible = "Visible";
 
@@ -235,6 +251,9 @@ namespace XCode.Membership
 
         /// <summary>排序</summary>
         Int32 Sort { get; set; }
+
+        /// <summary>图标</summary>
+        String Icon { get; set; }
 
         /// <summary>是否可见</summary>
         Boolean Visible { get; set; }
