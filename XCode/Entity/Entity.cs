@@ -217,12 +217,21 @@ namespace XCode
         /// <returns></returns>
         public override Int32 Save()
         {
-            //优先使用自增字段判断
+            // 优先使用自增字段判断
             var fi = Meta.Table.Identity;
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
             if (IsNullKey) return Insert();
+
+            // 来自数据库直接Update
+            if (_IsFromDatabase)
+            {
+                //var uq = Meta.Unique;
+                //if (uq != null && !Dirtys[uq.Name]) return Update();
+                var pks = Meta.Table.PrimaryKeys;
+                if (pks.Length > 0 && pks.All(e => !Dirtys[e.Name])) return Update();
+            }
 
             return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
