@@ -280,7 +280,7 @@ namespace XCode.Cache
                     while (MaxEntity > 0 && es.Count >= MaxEntity)
                     {
                         RemoveKey(es.Keys.First());
-                        //WriteLog("单对象缓存满，删除{0}", key);
+                        WriteLog("单对象缓存满，删除{0}", key);
                     }
 
                     es.Add(key, item);
@@ -318,7 +318,7 @@ namespace XCode.Cache
 
             // 异步更新缓存
             //var tid = Thread.CurrentThread.ManagedThreadId;
-            if (item.Expired) TaskEx.Run(() =>
+            if (item.Expired) ThreadPool.UnsafeQueueUserWorkItem(s =>
             {
                 // 先修改过期时间
                 item.ExpireTime = DateTime.Now.AddSeconds(Expire);
@@ -330,7 +330,7 @@ namespace XCode.Cache
                 else if (item.Entity != null)
                     // 数据库查不到，说明该数据可能已经被删除
                     RemoveKey(item.Key);
-            });
+            }, null);
 
             return item.Entity;
         }

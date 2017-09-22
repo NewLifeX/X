@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -104,6 +105,12 @@ namespace Test
 
         static void Test2()
         {
+            var list = new List<Int32>();
+            var n = list.Find(e => true);
+
+            var list2 = list as IList<Int32>;
+            var k = list2.Find(e => true);
+
             //ApiTest.Main();
 
             //AgentService.ServiceMain();

@@ -166,7 +166,6 @@ namespace XCode
 
         /// <summary>树形节点名，根据深度带全角空格前缀</summary>
         [DisplayName("节点名")]
-        [XmlIgnore, ScriptIgnore]
         public virtual String TreeNodeName
         {
             get

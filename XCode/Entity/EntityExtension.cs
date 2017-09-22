@@ -36,15 +36,15 @@ namespace XCode
             return list.FirstOrDefault(e => (e[name] + "").EqualIgnoreCase(value));
         }
 
-        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="match">条件</param>
-        /// <returns></returns>
-        [Obsolete("将来不再支持实体列表，请改用list.FirstOrDefault()")]
-        public static T Find<T>(this IList<T> list, Predicate<T> match) where T : IEntity
-        {
-            return list.FirstOrDefault(e => match(e));
-        }
+        ///// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
+        ///// <param name="list">实体列表</param>
+        ///// <param name="match">条件</param>
+        ///// <returns></returns>
+        //[Obsolete("将来不再支持实体列表，请改用list.FirstOrDefault()")]
+        //public static T Find<T>(this IList<T> list, Predicate<T> match) where T : IEntity
+        //{
+        //    return list.FirstOrDefault(e => match(e));
+        //}
 
         /// <summary>根据指定项查找</summary>
         /// <param name="list">实体列表</param>
@@ -68,15 +68,15 @@ namespace XCode
             return list.Where(e => (e[name] + "").EqualIgnoreCase(value)).ToList();
         }
 
-        /// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="match">条件</param>
-        /// <returns></returns>
-        [Obsolete("将来不再支持实体列表，请改用list.Where()")]
-        public static IList<T> FindAll<T>(this IList<T> list, Predicate<T> match) where T : IEntity
-        {
-            return list.Where(e => match(e)).ToList();
-        }
+        ///// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
+        ///// <param name="list">实体列表</param>
+        ///// <param name="match">条件</param>
+        ///// <returns></returns>
+        //[Obsolete("将来不再支持实体列表，请改用list.Where()")]
+        //public static IList<T> FindAll<T>(this IList<T> list, Predicate<T> match) where T : IEntity
+        //{
+        //    return list.Where(e => match(e)).ToList();
+        //}
 
         /// <summary>集合是否包含指定项</summary>
         /// <param name="list">实体列表</param>
@@ -130,57 +130,6 @@ namespace XCode
 
             return dic;
         }
-        #endregion
-
-        #region 实体列表接口扩展
-        ///// <summary>根据指定项查找</summary>
-        ///// <param name="name">属性名</param>
-        ///// <param name="value">属性值</param>
-        ///// <returns></returns>
-        //[Obsolete("将来不再支持实体列表，请改用Linq")]
-        //public static IEntity Find(this IList<IEntity> list, String name, Object value)
-        //{
-        //    return list.FirstOrDefault(e => e[name] == value);
-        //}
-
-        ///// <summary>根据指定项查找</summary>
-        ///// <param name="name">属性名</param>
-        ///// <param name="value">属性值</param>
-        ///// <returns></returns>
-        //[Obsolete("将来不再支持实体列表，请改用Linq")]
-        //public static IEntity FindIgnoreCase(this IList<IEntity> list, String name, String value)
-        //{
-        //    return list.FirstOrDefault(e => (e[name] + "").EqualIgnoreCase(value));
-        //}
-
-        ///// <summary>根据指定项查找</summary>
-        ///// <param name="name">属性名</param>
-        ///// <param name="value">属性值</param>
-        ///// <returns></returns>
-        //[Obsolete("将来不再支持实体列表，请改用Linq")]
-        //public static IList<IEntity> FindAll(this IList<IEntity> list, String name, Object value)
-        //{
-        //    return list.Where(e => e[name] == value).ToList();
-        //}
-
-        ///// <summary>根据指定项查找</summary>
-        ///// <param name="name">属性名</param>
-        ///// <param name="value">属性值</param>
-        ///// <returns></returns>
-        //[Obsolete("将来不再支持实体列表，请改用Linq")]
-        //public static IList<IEntity> FindAllIgnoreCase(this IList<IEntity> list, String name, String value)
-        //{
-        //    return list.Where(e => (e[name] + "").EqualIgnoreCase(value)).ToList();
-        //}
-
-        ///// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
-        ///// <param name="match">条件</param>
-        ///// <returns></returns>
-        //[Obsolete("将来不再支持实体列表，请改用Linq")]
-        //public static IList<IEntity> FindAll(this IList<IEntity> list, Predicate<IEntity> match)
-        //{
-        //    return list.Where(e => match(e)).ToList();
-        //}
         #endregion
 
         #region 对象操作
