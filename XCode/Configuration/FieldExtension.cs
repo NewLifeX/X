@@ -9,6 +9,7 @@ namespace XCode
     {
         #region 时间复杂运算
         /// <summary>时间专用区间函数</summary>
+        /// <param name="fi"></param>
         /// <param name="start">起始时间，大于等于</param>
         /// <param name="end">结束时间，小于。如果是日期，则加一天</param>
         /// <returns></returns>
