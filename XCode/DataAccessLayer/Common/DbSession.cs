@@ -797,9 +797,9 @@ namespace XCode.DataAccessLayer
             if (_swSql == null) return;
 
             _swSql.Stop();
-
+            
             if (_swSql.ElapsedMilliseconds < (Database as DbBase).TraceSQLTime) return;
-
+            
             var sql = GetSql(cmd);
 
             // 同一个SQL只需要报警一次
@@ -810,7 +810,8 @@ namespace XCode.DataAccessLayer
 
                 _trace_sqls.Add(sql);
             }
-
+            SQLRunEvent obj = new SQLRunEvent() { Sql = sql, RunTime = _swSql.ElapsedMilliseconds };
+            EventBus.Instance.Publish(obj);
             XTrace.WriteLine("SQL耗时较长，建议优化 {0:n0}毫秒 {1}", _swSql.ElapsedMilliseconds, sql);
         }
         #endregion
