@@ -36,7 +36,9 @@
     <!-- 文本字体 -->
     <link rel="stylesheet" href="~/Content/ace/css/ace-fonts.min.css">
     <!-- ace 样式 -->
-    <link rel="stylesheet" href="~/Content/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style">
+    <link rel="stylesheet" href="~/Content/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style">    
+    @*artdialog style*@
+    <link href="~/Content/artDialog/css/ui-dialog.css" rel="stylesheet" />
 
     <!-- 自定义样式 -->
     <link rel="stylesheet" href="~/Content/Cube.css">
@@ -145,7 +147,10 @@
             $("input[type=checkbox]").bootstrapSwitch();
         })
     </script>
-
+    
+    @*artDialog*@
+    <script src="~/Content/artDialog/dist/dialog-plus-min.js"></script>
+    <script src="~/Content/artDialog/dist/dialog.new.life.js"></script>
     @*模态窗Ajax删除提示*@
     <script src="~/Content/Cube.js"></script>
 </body>

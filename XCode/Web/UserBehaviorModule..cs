@@ -145,7 +145,7 @@ namespace XCode.Web
             var ext = Path.GetExtension(page);
             if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
 
-            LogProvider.Provider.WriteLog("访问", "记录", msg, user.ID, user + "", ip);
+            LogProvider.Provider.WriteLog("访问", "记录", msg, user?.ID ?? 0, user + "", ip);
         }
 
         void SaveStatistics(HttpContext ctx, IManageUser user, String ip, String page, String title)
@@ -153,8 +153,7 @@ namespace XCode.Web
             var ts = DateTime.Now - ctx.Timestamp;
 
             // 访问统计
-            var userid = user != null ? user.ID : 0;
-            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, userid, ip, ctx.Error?.Message);
+            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, user?.ID ?? 0, ip, ctx.Error?.Message);
         }
     }
 }

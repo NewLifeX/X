@@ -5,17 +5,17 @@
     window.tips = parent['tips'] || function (msg, modal, time, jumpUrl) { alert(msg); location.reload(); };
 
     //为所有data-action加上事件
-    $('[data-action]').each(function () {
+    $('[data_action]').each(function () {
         $(this).data('click', this.onclick);
         this.onclick = null;
     });
 
-    $(document).on('click', '[data-action]', function (e) {
-
+    $(document).on('click', '[data_action]', function (e) {
+        
         var that = $(this),
             oldClick = that.data('click');
-        isAjax = that.data('ajax');
-        action = that.data('action');
+        isAjax = that.attr('data_ajax');
+        action = that.attr('data_action');
         if (!!isAjax) {
             //如果标志为ajax，阻止默认事件，
             this.onclick = null;
