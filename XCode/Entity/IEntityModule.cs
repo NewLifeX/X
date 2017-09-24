@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NewLife.Collections;
 
 namespace XCode
@@ -58,25 +59,27 @@ namespace XCode
         /// <summary>添加实体模块</summary>
         /// <param name="module"></param>
         /// <returns></returns>
-        public virtual Boolean Add(IEntityModule module)
+        public virtual void Add(IEntityModule module)
         {
-            // 未指定实体类型表示全局模块，不需要初始化
-            if (EntityType != null && !module.Init(EntityType)) return false;
-
-            Modules.Add(module);
-
-            return true;
+            // 异步添加实体模块，避免死锁。实体类一般在静态构造函数里面添加模块，如果这里同步初始化会非常危险
+            Task.Run(() => AddAsync(module));
         }
 
         /// <summary>添加实体模块</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public virtual IEntityModule Add<T>() where T : IEntityModule, new()
+        public virtual void Add<T>() where T : IEntityModule, new()
         {
-            var module = new T();
-            if (Add(module)) return null;
+            Add(new T());
+        }
 
-            return module;
+        private void AddAsync(IEntityModule module)
+        {
+            // 未指定实体类型表示全局模块，不需要初始化
+            var type = EntityType;
+            if (type != null && !module.Init(type)) return;
+
+            Modules.Add(module);
         }
 
         /// <summary>创建实体时执行模块</summary>
