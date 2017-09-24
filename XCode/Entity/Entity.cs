@@ -26,9 +26,9 @@ namespace XCode
         static Entity()
         {
             DAL.InitLog();
-            //DAL.WriteDebugLog("开始初始化实体类{0}", Meta.ThisType.Name);
+            //DAL.WriteDebugLog("开始初始化实体类{0}", typeof(TEntity).Name);
 
-            EntityFactory.Register(Meta.ThisType, new EntityOperate());
+            EntityFactory.Register(typeof(TEntity), new EntityOperate());
 
             // 1，可以初始化该实体类型的操作工厂
             // 2，CreateOperate将会实例化一个TEntity对象，从而引发TEntity的静态构造函数，
@@ -41,10 +41,10 @@ namespace XCode
             ////  不确定这样子是否带来后遗症
             //ThreadPool.QueueUserWorkItem(delegate
             //{
-            //    EntityFactory.CreateOperate(Meta.ThisType, entity);
+            //    EntityFactory.CreateOperate(typeof(TEntity), entity);
             //});
 
-            //DAL.WriteDebugLog("完成初始化实体类{0}", Meta.ThisType.Name);
+            //DAL.WriteDebugLog("完成初始化实体类{0}", typeof(TEntity).Name);
         }
 
         /// <summary>创建实体。</summary>
@@ -61,8 +61,8 @@ namespace XCode
             //return new TEntity();
             // new TEntity会被编译为Activator.CreateInstance<TEntity>()，还不如Activator.CreateInstance()呢
             // Activator.CreateInstance()有缓存功能，而泛型的那个没有
-            //return Activator.CreateInstance(Meta.ThisType) as TEntity;
-            var entity = Meta.ThisType.CreateInstance() as TEntity;
+            //return Activator.CreateInstance(typeof(TEntity)) as TEntity;
+            var entity = typeof(TEntity).CreateInstance() as TEntity;
             Meta._Modules.Create(entity, forEdit);
 
             return entity;
@@ -108,7 +108,7 @@ namespace XCode
             return list;
         }
 
-        private static IDataRowEntityAccessor DreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(Meta.ThisType); } }
+        private static IDataRowEntityAccessor DreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(typeof(TEntity)); } }
         #endregion
 
         #region 操作
@@ -344,7 +344,7 @@ namespace XCode
                 }
 
                 name = Meta.Table.Description;
-                if (String.IsNullOrEmpty(name)) name = Meta.ThisType.Name;
+                if (String.IsNullOrEmpty(name)) name = typeof(TEntity).Name;
                 sb.AppendFormat(" 的{0}已存在！", name);
 
                 throw new ArgumentOutOfRangeException(String.Join(",", names), this[names[0]], sb.ToString());
@@ -505,7 +505,7 @@ namespace XCode
         public static TEntity FindByKey(Object key)
         {
             var field = Meta.Unique;
-            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求" + Meta.ThisType.FullName + "有唯一主键！");
+            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求" + typeof(TEntity).FullName + "有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
             if (Helper.IsNullKey(key, field.Type)) return null;
@@ -524,7 +524,7 @@ namespace XCode
             // 参数为空时，返回新实例
             if (key == null)
             {
-                //IEntityOperate factory = EntityFactory.CreateOperate(Meta.ThisType);
+                //IEntityOperate factory = EntityFactory.CreateOperate(typeof(TEntity));
                 return Meta.Factory.Create(true) as TEntity;
             }
 
@@ -1250,7 +1250,7 @@ namespace XCode
             else if (fs.Contains("ID"))
                 return this["ID"] + "";
             else
-                return "实体" + Meta.ThisType.Name;
+                return "实体" + typeof(TEntity).Name;
         }
         #endregion
 
