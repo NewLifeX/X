@@ -35,7 +35,7 @@ namespace NewLife.Cube
             // 强行实例化一次，初始化实体对象
             var entity = new TEntity();
 
-            var title = Entity<TEntity>.Meta.Table.Description + "管理";
+            var title = Entity<TEntity>.Meta.Table.DataTable.DisplayName + "管理";
             ViewBag.Title = title;
         }
 
@@ -59,6 +59,7 @@ namespace NewLife.Cube
             var txt = (String)ViewBag.HeaderContent;
             if (txt.IsNullOrEmpty()) txt = ManageProvider.Menu?.Current?.Remark;
             if (txt.IsNullOrEmpty()) txt = GetType().GetDescription();
+            if (txt.IsNullOrEmpty()) txt = Entity<TEntity>.Meta.Table.Description;
             //if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
             //    txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
             ViewBag.HeaderContent = txt;
