@@ -392,14 +392,14 @@ namespace XCode
             else
             {
                 // 如果是空主键，则采用直接判断记录数的方式，以加快速度
-                var list = cache.Entities.Where(e =>
+                var list = cache.FindAll(e =>
                 {
                     for (var i = 0; i < names.Length; i++)
                     {
                         if (e[names[i]] != values[i]) return false;
                     }
                     return true;
-                }).ToList();
+                });
                 if (IsNullKey) return list.Count > 0;
 
                 if (list == null || list.Count < 1) return false;

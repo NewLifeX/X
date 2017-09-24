@@ -66,7 +66,7 @@ namespace XCode.Sharding
             if (id <= 0) return null;
 
             // 实体缓存
-            if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.ID == id);
 
             // 单对象缓存
             //return Meta.SingleCache[id];
@@ -80,7 +80,7 @@ namespace XCode.Sharding
         public static Shard FindByName(String name)
         {
             // 实体缓存
-            if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.Name == name);
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Name == name);
 
             // 单对象缓存
             //return Meta.SingleCache.GetItemWithSlaveKey(name) as Shard;
@@ -94,7 +94,7 @@ namespace XCode.Sharding
         public static IList<Shard> FindByEntityType(String entitytype)
         {
             // 实体缓存
-            if (Meta.Count < 1000) return Meta.Cache.Entities.Where(e => e.EntityType == entitytype).ToList();
+            if (Meta.Count < 1000) return Meta.Cache.FindAll(e => e.EntityType == entitytype);
 
             return FindAll(_.EntityType == entitytype);
         }

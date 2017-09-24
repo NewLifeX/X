@@ -75,7 +75,7 @@ namespace XCode.Membership
             if (id <= 0) return null;
 
             //// 实体缓存
-            //if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
+            //if (Meta.Count < 1000) return Meta.Cache.Find(e => e.ID == id);
 
             // 单对象缓存
             return Meta.SingleCache[id];
@@ -92,7 +92,7 @@ namespace XCode.Membership
         public static VisitStat FindByPage(String page, Int32 year, Int32 month, Int32 day)
         {
             //// 实体缓存
-            //if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.Year == year && e.Month == month && e.Day == day);
+            //if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Year == year && e.Month == month && e.Day == day);
 
             //return Find(_.Year == year & _.Month == month & _.Day == day);
 
