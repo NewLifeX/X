@@ -14,8 +14,8 @@
         
         var that = $(this),
             oldClick = that.data('click');
-        isAjax = that.attr('data-ajax');
-        action = that.attr('data-action');
+        isAjax = that.data('ajax');
+        action = that.data('action');
         if (!!isAjax) {
             //如果标志为ajax，阻止默认事件，
             this.onclick = null;
