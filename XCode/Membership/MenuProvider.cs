@@ -24,7 +24,7 @@ namespace XCode.Membership
         #region 静态属性
         static MenuProvider()
         {
-            ObjectContainer.Current.AutoRegister<MenuProvider, DefaultLogProvider>();
+            ObjectContainer.Current.AutoRegister<MenuProvider, DefaultMenuProvider>();
         }
 
         private static MenuProvider _Provider;
