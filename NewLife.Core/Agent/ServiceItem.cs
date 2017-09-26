@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using NewLife.Log;
 
@@ -63,8 +64,8 @@ namespace NewLife.Agent
             th.Priority = ThreadPriority.AboveNormal;
             th.Start(Index);
 
-            Active = true;
-            LastActive = DateTime.Now;
+            //Active = true;
+            //LastActive = DateTime.Now;
         }
 
         /// <summary>停止工作项</summary>
@@ -103,11 +104,15 @@ namespace NewLife.Agent
             var index = (Int32)data;
             var ev = Event = new AutoResetEvent(false);
 
+            Active = true;
+            var set = Setting.Current;
+
             while (true)
             {
                 var isContinute = false;
                 LastActive = DateTime.Now;
 
+                var sw = Stopwatch.StartNew();
                 try
                 {
                     isContinute = Callback(Index);
@@ -129,7 +134,10 @@ namespace NewLife.Agent
                     // 确保拦截了所有的异常，保证服务稳定运行
                     WriteLine(ex?.GetTrue() + "");
                 }
+                sw.Stop();
                 LastActive = DateTime.Now;
+
+                if (set.Debug && set.WaitForExit > 0 && sw.ElapsedMilliseconds > set.WaitForExit) WriteLine("工作任务耗时较长 {0:n0}ms > {1:n0}ms，需要调整业务缩小耗时，以确保任务得到可靠保护", sw.ElapsedMilliseconds, set.WaitForExit);
 
                 // 检查服务是否正在重启
                 if (!Active)
