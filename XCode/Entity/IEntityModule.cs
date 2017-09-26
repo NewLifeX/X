@@ -43,7 +43,7 @@ namespace XCode
         public Type EntityType { get; set; }
 
         /// <summary>模块集合</summary>
-        public List<IEntityModule> Modules { get; set; } = new List<IEntityModule>();
+        public IEntityModule[] Modules { get; set; } = new IEntityModule[0];
         #endregion
 
         #region 构造
@@ -79,7 +79,13 @@ namespace XCode
             var type = EntityType;
             if (type != null && !module.Init(type)) return;
 
-            Modules.Add(module);
+            lock (this)
+            {
+                var list = new List<IEntityModule>(Modules);
+                list.Add(module);
+
+                Modules = list.ToArray();
+            }
         }
 
         /// <summary>创建实体时执行模块</summary>
@@ -127,7 +133,13 @@ namespace XCode
         #endregion
 
         #region IEnumerable<IEntityModule> 成员
-        IEnumerator<IEntityModule> IEnumerable<IEntityModule>.GetEnumerator() { return Modules.GetEnumerator(); }
+        IEnumerator<IEntityModule> IEnumerable<IEntityModule>.GetEnumerator()
+        {
+            foreach (var item in Modules)
+            {
+                yield return item;
+            }
+        }
         #endregion
 
         #region IEnumerable 成员
