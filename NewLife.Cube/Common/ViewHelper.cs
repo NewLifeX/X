@@ -184,14 +184,20 @@ namespace NewLife.Cube
                         case TypeCode.UInt16:
                         case TypeCode.UInt32:
                         case TypeCode.UInt64:
-                            //特殊处理枚举
+                            // 特殊处理枚举
                             if (item.Type.IsEnum)
                                 sb.AppendFormat(@"<td class=""text-center"">@entity.{0}</td>", item.Name);
                             else
                                 sb.AppendFormat(@"<td class=""text-right"">@entity.{0}.ToString(""n0"")</td>", item.Name);
                             break;
                         case TypeCode.String:
-                            sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
+                            if (item.Map != null && item.Map.Provider != null)
+                            {
+                                var prv = item.Map.Provider;
+                                sb.AppendFormat(@"<td><a href=""~/{1}?{2}=@entity.{3}"">@entity.{0}</a></td>", item.Name, prv.EntityType.Name, prv.Key, item.OriField?.Name);
+                            }
+                            else
+                                sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
                             break;
                         default:
                             sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
