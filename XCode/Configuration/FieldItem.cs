@@ -346,6 +346,28 @@ namespace XCode.Configuration
 
         /// <summary>In操作。直接使用字符串可能有注入风险</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        /// <param name="child">逗号分割的数据。可能有注入风险</param>
+        /// <returns></returns>
+        public Expression In(String child)
+        {
+            if (child == null) return new Expression();
+
+            return CreateFormat("{0} In({1})", child);
+        }
+
+        /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        /// <param name="child">数值</param>
+        /// <returns></returns>
+        public Expression NotIn(String child)
+        {
+            if (child == null) return new Expression();
+
+            return CreateFormat("{0} Not In ({1})", child);
+        }
+
+        /// <summary>In操作。直接使用字符串可能有注入风险</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="builder">逗号分割的数据。可能有注入风险</param>
         /// <returns></returns>
         public Expression In(SelectBuilder builder)
