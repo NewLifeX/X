@@ -107,7 +107,7 @@ namespace Test
         static void Test2()
         {
             var bm = new BaiduMap();
-            var kv = bm.GetGeocoderAsync("华腾路555号").Result;
+            var kv = bm.GetGeocoderAsync("新府中路1650号").Result;
             Console.WriteLine("{0}, {1}", kv.Key, kv.Value);
         }
 
