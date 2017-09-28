@@ -106,9 +106,17 @@ namespace Test
 
         static void Test2()
         {
-            var bm = new BaiduMap();
-            var kv = bm.GetGeocoderAsync("新府中路1650号").Result;
-            Console.WriteLine("{0}, {1}", kv.Key, kv.Value);
+            //var bm = new BaiduMap();
+            //var kv = bm.GetGeocoderAsync("新府中路1650号").Result;
+            //Console.WriteLine("{0}, {1}", kv.Key, kv.Value);
+            //Console.WriteLine();
+
+            var am = new AMap();
+            var rs = am.GetGeocoderAsync("新府中路1650号").Result;
+            foreach (var item in rs)
+            {
+                Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
+            }
         }
 
         class TestModule : EntityModule
