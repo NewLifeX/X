@@ -112,7 +112,9 @@ namespace Test
             //Console.WriteLine();
 
             var am = new AMap();
-            var rs = am.GetGeocoderAsync("新府中路1650号").Result;
+            var org = am.GetGeoAsync("新府中路1650号").Result;
+            var dst = am.GetGeoAsync("广西容县高中").Result;
+            var rs = am.GetDistanceAsync(org, dst, 1).Result;
             foreach (var item in rs)
             {
                 Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
