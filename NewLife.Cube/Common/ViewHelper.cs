@@ -194,7 +194,7 @@ namespace NewLife.Cube
                             if (item.Map != null && item.Map.Provider != null)
                             {
                                 var prv = item.Map.Provider;
-                                sb.AppendFormat(@"<td><a href=""~/{1}?{2}=@entity.{3}"">@entity.{0}</a></td>", item.Name, prv.EntityType.Name, prv.Key, item.OriField?.Name);
+                                sb.AppendFormat(@"<td><a href=""{1}?{2}=@entity.{3}"">@entity.{0}</a></td>", item.Name, prv.EntityType.Name, prv.Key, item.OriField?.Name);
                             }
                             else
                                 sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);

@@ -8,6 +8,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Threading;
+using NewLife.Web;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -105,28 +106,9 @@ namespace Test
 
         static void Test2()
         {
-            var list = new List<Int32>();
-            var n = list.Find(e => true);
-
-            var list2 = list as IList<Int32>;
-            var k = list2.Find(e => true);
-
-            //ApiTest.Main();
-
-            //AgentService.ServiceMain();
-
-            foreach (var item in DAL.ConnStrs)
-            {
-                Task.Run(() =>
-                {
-                    var dal = DAL.Create(item.Key);
-                    var meta = dal.Db.CreateMetaData();
-                    var mds = meta.MetaDataCollections;
-                    var rds = meta.ReservedWords;
-                    XTrace.WriteLine("{0}/{1}.MetaDataCollections={2}", dal.ConnName, dal.DbType, mds.Join(","));
-                    XTrace.WriteLine("{0}/{1}.ReservedWords={2}", dal.ConnName, dal.DbType, rds.Join(","));
-                });
-            }
+            var bm = new BaiduMap();
+            var kv = bm.GetGeocoderAsync("华腾路555号").Result;
+            Console.WriteLine("{0}, {1}", kv.Key, kv.Value);
         }
 
         class TestModule : EntityModule
