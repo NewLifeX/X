@@ -78,7 +78,7 @@ namespace NewLife.Web
             var rs = new KeyValuePair<Double, Double>();
             var url = GeoCoderUrl.F(address, city);
 
-            var html = await GetStringAsync(GeoCoderUrl.F(address, city));
+            var html = await GetStringAsync(url);
             if (html.IsNullOrEmpty()) return rs;
 
             var geo = html.ToJsonEntity<Geocoder>();
