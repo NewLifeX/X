@@ -237,7 +237,7 @@ namespace XCode.Membership
                 }
             }
 
-            st.SaveAsync(1000);
+            st.SaveAsync(5000);
 
             return st;
         }
