@@ -116,19 +116,20 @@ namespace XCode.Membership
                 var key = "Admin";
                 var ss = HttpContext.Current?.Session;
                 if (ss == null) return null;
+                var ms = HttpContext.Current.Items;
 
                 // 从Session中获取
                 if (ss[key] is TEntity entity) return entity;
 
                 // 设置一个陷阱，避免重复计算Cookie
-                if (ss[key] != null) return null;
+                if (ms[key] != null) return null;
 
                 // 从Cookie中获取
                 entity = GetCookie(key);
                 if (entity != null)
                     ss[key] = entity;
                 else
-                    ss[key] = "1";
+                    ms[key] = "1";
 
                 return entity;
 #else

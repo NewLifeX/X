@@ -20,7 +20,7 @@ namespace NewLife.Cube
 
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             //BundleConfig.RegisterBundles(BundleTable.Bundles);
-            XCode.Cache.CacheBase.Debug = true;
+            //XCode.Cache.CacheBase.Debug = true;
 
             XTrace.WriteLine("系统启动完成");
         }

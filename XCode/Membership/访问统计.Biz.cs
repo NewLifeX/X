@@ -40,8 +40,10 @@ namespace XCode.Membership
             };
             sc.GetSlaveKeyMethod = e => "{0}#{1}_{2}_{3}".F(e.Page, e.Year, e.Month, e.Day);
 
+#if !DEBUG
             // 关闭SQL日志
             Meta.Session.Dal.Db.ShowSQL = false;
+#endif
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
