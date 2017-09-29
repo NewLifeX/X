@@ -211,13 +211,21 @@ namespace XCode.Cache
             Interlocked.Increment(ref Success);
 
             // 获取 或 添加
-            var rs = Object.ReferenceEquals(dic, Entities) ? dic.GetOrAdd(key, CreateItem) : dic.GetOrAdd(key, CreateSlaveItem);
-            if (rs == null) return null;
+            CacheItem item = null;
+            if (!dic.TryGetValue(key, out item))
+            {
+                item = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
+                // 不要缓存空值
+                if (item == null) return null;
+
+                // 尝试添加，即使多线程并发，这里宁可多浪费点时间，也不要带来锁定
+                dic.TryAdd(key, item);
+            }
 
             // 异步更新缓存
-            if (rs.Expired) ThreadPool.UnsafeQueueUserWorkItem(UpdateData, rs);
+            if (item.Expired) ThreadPool.UnsafeQueueUserWorkItem(UpdateData, item);
 
-            return rs.Entity;
+            return item.Entity;
         }
 
         private CacheItem CreateItem<TKey2>(TKey2 key)
