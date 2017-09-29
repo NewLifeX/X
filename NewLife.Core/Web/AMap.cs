@@ -9,6 +9,9 @@ using NewLife.Serialization;
 namespace NewLife.Web
 {
     /// <summary>高德地图</summary>
+    /// <remarks>
+    /// 参考地址 http://lbs.amap.com/api/webservice/guide/api/georegeo/#geo
+    /// </remarks>
     public class AMap
     {
         #region 属性
