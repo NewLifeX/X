@@ -740,10 +740,10 @@ namespace XCode
             if (page == null) return FindAll(where, null, null, 0, 0);
 
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
-            if (page.TotalCount >= 0)
+            if (page.RetrieveTotalCount)
             {
-                page.TotalCount = FindCount(where, null, null, 0, 0);
-                if (page.TotalCount <= 0) return new List<TEntity>();
+                var rows = page.TotalCount = FindCount(where, null, null, 0, 0);
+                if (rows <= 0) return new List<TEntity>();
             }
 
             // 验证排序字段，避免非法
@@ -1051,7 +1051,7 @@ namespace XCode
             {
                 // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
 
-                if (String.IsNullOrEmpty(builder.OrderBy)) builder.Key = Meta.FormatName( Meta.Table.PrimaryKeys.First().ColumnName);
+                if (String.IsNullOrEmpty(builder.OrderBy)) builder.Key = Meta.FormatName(Meta.Table.PrimaryKeys.First().ColumnName);
             }
             return builder;
         }

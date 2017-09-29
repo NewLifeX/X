@@ -123,7 +123,8 @@ namespace NewLife.Cube
             p.StartRow = (p.PageIndex - 1) * p.PageSize;
             p.PageSize = 100000;
             // 不要查记录数
-            p.TotalCount = -1;
+            //p.TotalCount = -1;
+            p.RetrieveTotalCount = false;
 
             return Search(p);
         }
@@ -151,6 +152,9 @@ namespace NewLife.Cube
         /// <returns></returns>
         protected virtual ActionResult IndexView(Pager p)
         {
+            // 需要总记录数来分页
+            p.RetrieveTotalCount = true;
+
             var list = Search(p);
 
             return View("List", list);
