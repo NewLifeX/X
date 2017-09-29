@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -93,27 +94,22 @@ namespace XCode.Cache
             // 找到所有严重过期的缓存项
             var exp = DateTime.Now.AddSeconds(-600);
             var list = new List<CacheItem>();
-            lock (es)
+            foreach (var item in es)
             {
-                foreach (var item in es)
-                {
-                    if (item.Value.ExpireTime < exp) list.Add(item.Value);
-                }
-                foreach (var item in list)
-                {
-                    es.Remove(item.Key);
-                }
+                if (item.Value.ExpireTime < exp) list.Add(item.Value);
             }
+            foreach (var item in list)
+            {
+                es.Remove(item.Key);
+            }
+
             // 删除从表
             var ses = _SlaveEntities;
             if (ses != null && list.Count > 0)
             {
-                lock (ses)
+                foreach (var item in list)
                 {
-                    foreach (var item in list)
-                    {
-                        if (!item.SlaveKey.IsNullOrEmpty()) ses.Remove(item.SlaveKey);
-                    }
+                    if (!item.SlaveKey.IsNullOrEmpty()) ses.Remove(item.SlaveKey);
                 }
             }
         }
@@ -135,9 +131,6 @@ namespace XCode.Cache
             /// <summary>缓存过期时间</summary>
             public DateTime ExpireTime { get; set; }
 
-            ///// <summary>下一次保存的时间</summary>
-            //public DateTime NextSave { get; set; }
-
             /// <summary>是否已经过期</summary>
             public Boolean Expired { get { return ExpireTime <= DateTime.Now; } }
 
@@ -152,24 +145,26 @@ namespace XCode.Cache
 
         #region 单对象缓存
         /// <summary>单对象缓存</summary>
-        private Dictionary<TKey, CacheItem> Entities = new Dictionary<TKey, CacheItem>();
+        private ConcurrentDictionary<TKey, CacheItem> Entities = new ConcurrentDictionary<TKey, CacheItem>();
 
-        private Dictionary<String, CacheItem> _SlaveEntities;
+        private ConcurrentDictionary<String, CacheItem> _SlaveEntities;
         /// <summary>单对象缓存，从键查询使用</summary>
-        private Dictionary<String, CacheItem> SlaveEntities
+        private ConcurrentDictionary<String, CacheItem> SlaveEntities
         {
             get
             {
                 if (_SlaveEntities == null)
                 {
-                    Dictionary<String, CacheItem> dic;
-                    if (SlaveKeyIgnoreCase)
-                        dic = new Dictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
-                    else
-                        dic = new Dictionary<String, CacheItem>();
-
-                    if (Interlocked.CompareExchange(ref _SlaveEntities, dic, null) != null)
-                        dic = null;
+                    lock (this)
+                    {
+                        if (_SlaveEntities == null)
+                        {
+                            if (SlaveKeyIgnoreCase)
+                                _SlaveEntities = new ConcurrentDictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
+                            else
+                                _SlaveEntities = new ConcurrentDictionary<String, CacheItem>();
+                        }
+                    }
                 }
                 return _SlaveEntities;
             }
@@ -189,8 +184,8 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                var name = "<{0},{1}>({2})".F(typeof(TKey).Name, typeof(TEntity).Name, Entities.Count);
-                sb.AppendFormat("单对象缓存{0,-20}", name);
+                var name = "<{0}>({1})".F(typeof(TEntity).Name, Entities.Count);
+                sb.AppendFormat("对象缓存{0,-20}", name);
                 sb.AppendFormat("总次数{0,7:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Success, (Double)Success / Total);
 
@@ -205,7 +200,7 @@ namespace XCode.Cache
         /// <returns></returns>
         public TEntity this[TKey key] { get { return GetItem(Entities, key); } set { Add(key, value); } }
 
-        private TEntity GetItem<TKey2>(IDictionary<TKey2, CacheItem> dic, TKey2 key)
+        private TEntity GetItem<TKey2>(ConcurrentDictionary<TKey2, CacheItem> dic, TKey2 key)
         {
             // 为空的key，直接返回null，不进行缓存查找
             if (key == null) return null;
@@ -213,41 +208,45 @@ namespace XCode.Cache
             // 更新统计信息
             CheckShowStatics(ref Total, ShowStatics);
 
-            // 如果找到项，返回
-            // 如果TryGetValue获取成功，item为空说明同一时间别的线程已做删除操作
-            if (dic.TryGetValue(key, out var item) && item != null && !item.Expired) return GetData(item);
-            lock (dic)
-            {
-                // 再次尝试获取
-                if (dic.TryGetValue(key, out item) && item != null) return GetData(item);
+            Interlocked.Increment(ref Success);
 
-                // 开始更新数据，然后加入缓存
-                TEntity entity = null;
-                if (dic == Entities)
-                {
-                    var mkey = (TKey)(Object)key;
-                    entity = Invoke(FindKeyMethod, mkey);
-                    TryAdd(mkey, entity);
-                }
-                else
-                {
-                    entity = Invoke(FindSlaveKeyMethod, key + "");
-                    if (entity != null)
-                    {
-                        var mkey = GetKeyMethod(entity);
-                        TryAdd(mkey, entity);
-                    }
-                }
+            // 获取 或 添加
+            var rs = Object.ReferenceEquals(dic, Entities) ? dic.GetOrAdd(key, CreateItem) : dic.GetOrAdd(key, CreateSlaveItem);
+            if (rs == null) return null;
 
-                return entity;
-            }
+            // 异步更新缓存
+            if (rs.Expired) ThreadPool.UnsafeQueueUserWorkItem(UpdateData, rs);
+
+            return rs.Entity;
         }
 
-        /// <summary>尝试向两个字典加入数据</summary>
+        private CacheItem CreateItem<TKey2>(TKey2 key)
+        {
+            Interlocked.Decrement(ref Success);
+
+            // 开始更新数据，然后加入缓存
+            var mkey = (TKey)(Object)key;
+            var entity = Invoke(FindKeyMethod, mkey);
+            return AddItem(mkey, entity);
+        }
+
+        private CacheItem CreateSlaveItem<TKey2>(TKey2 key)
+        {
+            Interlocked.Decrement(ref Success);
+
+            // 开始更新数据，然后加入缓存
+            var entity = Invoke(FindSlaveKeyMethod, key + "");
+            if (entity == null) return null;
+
+            var mkey = GetKeyMethod(entity);
+            return AddItem(mkey, entity);
+        }
+
+        /// <summary>向两个字典加入数据</summary>
         /// <param name="key"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
-        private Boolean TryAdd(TKey key, TEntity entity)
+        private CacheItem AddItem(TKey key, TEntity entity)
         {
             //if (!Using)
             {
@@ -262,41 +261,34 @@ namespace XCode.Cache
                 }
             }
 
-            var item = new CacheItem();
-
             var skey = entity == null ? null : GetSlaveKeyMethod?.Invoke(entity);
 
-            item.Key = key;
-            item.SlaveKey = skey;
+            var item = new CacheItem
+            {
+                Key = key,
+                SlaveKey = skey
+            };
             item.SetEntity(entity, Expire);
 
-            var success = false;
             var es = Entities;
-            lock (es)
-            {
-                if (!es.ContainsKey(key))
-                {
-                    // 如果满了，删除前面一个
-                    while (MaxEntity > 0 && es.Count >= MaxEntity)
-                    {
-                        RemoveKey(es.Keys.First());
-                        WriteLog("单对象缓存满，删除{0}", key);
-                    }
+            // 新增或更新
+            es[key] = item;
 
-                    es.Add(key, item);
-                    success = true;
-                }
+            // 如果满了，删除前面一个
+            while (MaxEntity > 0 && es.Count >= MaxEntity)
+            {
+                RemoveKey(es.Keys.First());
+                WriteLog("单对象缓存满，删除{0}", key);
             }
-            if (success && !skey.IsNullOrWhiteSpace())
+
+            if (!skey.IsNullOrWhiteSpace())
             {
                 var ses = SlaveEntities;
-                lock (ses)
-                {
-                    // 新增或更新
-                    ses[skey] = item;
-                }
+                // 新增或更新
+                ses[skey] = item;
             }
-            return success;
+
+            return item;
         }
 
         /// <summary>根据从键获取实体数据</summary>
@@ -304,35 +296,20 @@ namespace XCode.Cache
         /// <returns></returns>
         public TEntity GetItemWithSlaveKey(String slaveKey) { return GetItem(SlaveEntities, slaveKey); }
 
-        /// <summary>内部处理返回对象。
-        /// 把对象传进来，而不是只传键值然后查找，是为了避免别的线程移除该项
-        /// </summary>
-        /// <remarks>此方法只做更新操作，不再进行缓存新增操作</remarks>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        private TEntity GetData(CacheItem item)
+        private void UpdateData(Object state)
         {
-            if (item == null) return null;
+            var item = state as CacheItem;
 
-            Interlocked.Increment(ref Success);
+            // 先修改过期时间
+            item.ExpireTime = DateTime.Now.AddSeconds(Expire);
 
-            // 异步更新缓存
-            //var tid = Thread.CurrentThread.ManagedThreadId;
-            if (item.Expired) ThreadPool.UnsafeQueueUserWorkItem(s =>
-            {
-                // 先修改过期时间
-                item.ExpireTime = DateTime.Now.AddSeconds(Expire);
-
-                // 更新过期缓存，在原连接名表名里面获取
-                var entity = Invoke(FindKeyMethod, item.Key);
-                if (entity != null)
-                    item.SetEntity(entity, Expire);
-                else if (item.Entity != null)
-                    // 数据库查不到，说明该数据可能已经被删除
-                    RemoveKey(item.Key);
-            }, null);
-
-            return item.Entity;
+            // 更新过期缓存，在原连接名表名里面获取
+            var entity = Invoke(FindKeyMethod, item.Key);
+            if (entity != null)
+                item.SetEntity(entity, Expire);
+            else if (item.Entity != null)
+                // 数据库查不到，说明该数据可能已经被删除
+                RemoveKey(item.Key);
         }
         #endregion
 
@@ -353,37 +330,20 @@ namespace XCode.Cache
         /// <returns></returns>
         Boolean Add(TKey key, TEntity entity)
         {
-            var es = Entities;
-            // 如果找到项，返回
-            CacheItem item = null;
-            lock (es)
-            {
-                if (!es.TryGetValue(key, out item) || item == null) return TryAdd(key, entity);
+            AddItem(key, entity);
 
-                item.SetEntity(entity, Expire);
-
-                return false;
-            }
+            return true;
         }
 
         /// <summary>移除指定项</summary>
         /// <param name="key">键值</param>
         private void RemoveKey(TKey key)
         {
-            var es = Entities;
-            if (!es.TryGetValue(key, out var item)) return;
-            lock (es)
-            {
-                if (!es.TryGetValue(key, out item)) return;
+            Entities.TryRemove(key, out var item);
 
-                es.Remove(key);
-            }
             if (item != null && !item.SlaveKey.IsNullOrWhiteSpace())
             {
-                lock (SlaveEntities)
-                {
-                    SlaveEntities.Remove(item.SlaveKey);
-                }
+                SlaveEntities.TryRemove(item.SlaveKey, out item);
             }
         }
 
@@ -409,12 +369,9 @@ namespace XCode.Cache
             if (es == null) return;
 
             // 不要清空单对象缓存，而是设为过期
-            lock (es)
+            foreach (var item in es)
             {
-                foreach (var item in es)
-                {
-                    item.Value.ExpireTime = DateTime.Now.AddSeconds(-1);
-                }
+                item.Value.ExpireTime = DateTime.Now.AddSeconds(-1);
             }
 
             Using = false;
@@ -425,7 +382,7 @@ namespace XCode.Cache
         /// <summary>获取数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        IEntity ISingleEntityCache.this[Object key] { get { return GetItem(Entities, (TKey)key); } }
+        IEntity ISingleEntityCache.this[Object key] { get { return this[(TKey)key]; } }
 
         /// <summary>根据从键获取实体数据</summary>
         /// <param name="slaveKey"></param>
