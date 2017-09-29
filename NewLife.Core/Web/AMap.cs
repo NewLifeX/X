@@ -94,9 +94,11 @@ namespace NewLife.Web
         #endregion
 
         #region 计算距离
-        private String DistanceUrl = "http://restapi.amap.com/v3/distance?origins={0},{1}&destination={2},{3}&output=json";
+        private String DistanceUrl = "http://restapi.amap.com/v3/distance?origins={0},{1}&destination={2},{3}&type=1&output=json";
         /// <summary>计算距离和驾车时间</summary>
         /// <remarks>
+        /// http://lbs.amap.com/api/webservice/guide/api/direction
+        /// 
         /// type:
         /// 0：直线距离
         /// 1：驾车导航距离（仅支持国内坐标）。
@@ -104,6 +106,9 @@ namespace NewLife.Web
         /// 此策略和driving接口的 strategy = 4策略一致
         /// 2：公交规划距离（仅支持同城坐标）
         /// 3：步行规划距离（仅支持5km之间的距离）
+        /// 
+        /// distance    路径距离，单位：米
+        /// duration    预计行驶时间，单位：秒
         /// </remarks>
         /// <param name="origin"></param>
         /// <param name="destination"></param>
