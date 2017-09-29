@@ -430,8 +430,7 @@ namespace XCode
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10秒</summary>
         public Int32 Count { get { return (Int32)LongCount; } }
 
-        /// <summary>上一次记录数，用于衡量缓存策略，不受缓存清空</summary>
-        private Int64? _LastCount;
+        private DateTime _NextCount;
         /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
         private Int64 _Count = -2L;
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
@@ -456,97 +455,24 @@ namespace XCode
                 // 如果有缓存，则考虑返回吧
                 if (n >= 0)
                 {
-                    // 等于0的时候也应该缓存，否则会一直查询这个表
-                    if (n < 1000L) return n;
+                    var now = DateTime.Now;
+                    if (_NextCount < now)
+                    {
+                        _NextCount = now.AddSeconds(60);
+                        Task.Run(() => LongCount = GetCount(_Count));
+                    }
 
-#if !__CORE__
-                    // 大于1000，使用HttpCache
-                    var k = (Int64?)HttpRuntime.Cache[key];
-                    if (k != null && k.HasValue) return k.Value;
-#endif
+                    return n;
                 }
-                // 来到这里，有可能是第一次访问，静态字段没有缓存，也有可能是大于1000的缓存过期
+                // 来到这里，是第一次访问
 
                 if (n < -1 && DAL.Debug) DAL.WriteLog("{0}.Count 快速计算表记录数（非精确）[{1}/{2}]", ThisType.Name, TableName, ConnName);
 
                 CheckModel();
 
-                var m = 0L;
-                // 小于1000的精确查询，大于1000的快速查询
-                if (n >= 0 && n <= 1000L)
-                {
-                    var sb = new SelectBuilder
-                    {
-                        Table = FormatedTableName
-                    };
-
-                    WaitForInitData();
-                    m = Dal.SelectCount(sb);
-                }
-                else
-                {
-                    // 第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数
-                    var max = 0L;
-                    if (Dal.DbType == DatabaseType.SQLite && Table.Identity != null)
-                    {
-                        // 除第一次外，将依据上一次记录数决定是否使用最大ID
-                        if (_LastCount == null)
-                        {
-                            // 先查一下最大值
-                            //max = Entity<TEntity>.FindMax(Table.Identity.ColumnName);
-                            // 依赖关系FindMax=>FindAll=>Query=>InitData=>Meta.Count，所以不能使用
-
-                            //if (DAL.Debug) DAL.WriteLog("第一次访问{0}，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数", ThisType.Name);
-
-                            var builder = new SelectBuilder
-                            {
-                                Table = FormatedTableName,
-                                OrderBy = Table.Identity.Desc()
-                            };
-                            var ds = Dal.Select(builder, 0, 1);
-                            if (ds.Tables[0].Rows.Count > 0)
-                                max = Convert.ToInt64(ds.Tables[0].Rows[0][Table.Identity.ColumnName]);
-                        }
-                        else
-                            max = _LastCount.Value;
-                    }
-
-                    // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
-                    if (max < 500000)
-                    {
-                        if (n > 0)
-                            m = n;
-                        else
-                            m = Dal.Session.QueryCountFast(TableName);
-                        // 查真实记录数，修正FastCount不够准确的情况
-                        if (m < 10000000) TaskEx.Run(() =>
-                        {
-                            var sb = new SelectBuilder
-                            {
-                                Table = FormatedTableName
-                            };
-
-                            _LastCount = _Count = Dal.SelectCount(sb);
-
-                            AddCache(key, _Count);
-                        }).LogException();
-                    }
-                    else
-                    {
-                        m = max;
-
-                        // 异步查询弥补不足，千万数据以内
-                        if (max < 10000000) TaskEx.Run(() =>
-                        {
-                            _LastCount = _Count = Dal.Session.QueryCountFast(TableName);
-
-                            AddCache(key, _Count);
-                        }).LogException();
-                    }
-                }
+                var m = GetCount(n);
 
                 _Count = m;
-                _LastCount = m;
 
                 AddCache(key, m);
 
@@ -559,13 +485,67 @@ namespace XCode
             {
                 if (value == 0)
                 {
-                    _LastCount = null;
                     _Count = 0;
 #if !__CORE__
                     HttpRuntime.Cache.Remove(CacheKey);
 #endif
                 }
             }
+        }
+
+        private Int64 GetCount(Int64 count)
+        {
+            // 小于1000的精确查询，大于1000的快速查询
+            if (count >= 0 && count <= 1000L)
+            {
+                var sb = new SelectBuilder
+                {
+                    Table = FormatedTableName
+                };
+
+                WaitForInitData();
+                return Dal.SelectCount(sb);
+            }
+
+            // 第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数
+            if (count < 0 && Dal.DbType == DatabaseType.SQLite && Table.Identity != null)
+            {
+                var builder = new SelectBuilder
+                {
+                    Table = FormatedTableName,
+                    OrderBy = Table.Identity.Desc()
+                };
+                var ds = Dal.Select(builder, 0, 1);
+                if (ds.Tables[0].Rows.Count > 0)
+                    count = Convert.ToInt64(ds.Tables[0].Rows[0][Table.Identity.ColumnName]);
+            }
+
+            // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
+            if (count < 500000)
+            {
+                if (count <= 0) count = Dal.Session.QueryCountFast(TableName);
+
+                // 查真实记录数，修正FastCount不够准确的情况
+                if (count < 10000000) TaskEx.Run(() =>
+                {
+                    var sb = new SelectBuilder
+                    {
+                        Table = FormatedTableName
+                    };
+
+                    LongCount = Dal.SelectCount(sb);
+                }).LogException();
+            }
+            else
+            {
+                // 异步查询弥补不足，千万数据以内
+                if (count < 10000000) TaskEx.Run(() =>
+                {
+                    LongCount = Dal.Session.QueryCountFast(TableName);
+                }).LogException();
+            }
+
+            return count;
         }
 
         private void AddCache(String key, Int64 count)
