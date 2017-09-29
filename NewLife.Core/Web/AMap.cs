@@ -94,7 +94,7 @@ namespace NewLife.Web
         #endregion
 
         #region 计算距离
-        private String DistanceUrl = "http://restapi.amap.com/v3/distance?origins={0},{1}&destination={2},{3}&type=1&output=json";
+        private String DistanceUrl = "http://restapi.amap.com/v3/distance?origins={0},{1}&destination={2},{3}&type={4}&output=json";
         /// <summary>计算距离和驾车时间</summary>
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/direction
@@ -119,7 +119,7 @@ namespace NewLife.Web
             if (origin == null || origin.Longitude < 1 && origin.Latitude < 1) throw new ArgumentNullException(nameof(origin));
             if (destination == null || destination.Longitude < 1 && destination.Latitude < 1) throw new ArgumentNullException(nameof(destination));
 
-            var html = await GetStringAsync(DistanceUrl.F(origin.Longitude, origin.Latitude, destination.Longitude, destination.Latitude));
+            var html = await GetStringAsync(DistanceUrl.F(origin.Longitude, origin.Latitude, destination.Longitude, destination.Latitude, type));
             if (html.IsNullOrEmpty()) return null;
 
             var dic = new JsonParser(html).Decode() as IDictionary<String, Object>;
