@@ -392,7 +392,7 @@ namespace XCode.Transform
         /// <summary>写错误日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteError(String format, params Object[] args)
+        public virtual void WriteError(String format, params Object[] args)
         {
             Log?.Error(Name + " " + format, args);
 
