@@ -352,7 +352,7 @@ namespace XCode.Transform
             st.Error++;
             st.Message = ex.Message;
 
-            WriteError(ex.ToString());
+            if (ShowError) WriteError(ex.ToString());
 
             return null;
         }
@@ -388,6 +388,9 @@ namespace XCode.Transform
 
             Provider?.WriteLog(Name, "处理", format.F(args));
         }
+
+        /// <summary>显示错误日志。默认true</summary>
+        public Boolean ShowError { get; set; } = true;
 
         /// <summary>写错误日志</summary>
         /// <param name="format"></param>
