@@ -26,7 +26,7 @@ namespace XCode
         public DAL Dal { get; set; }
 
         /// <summary>周期。默认1000毫秒，根据繁忙程度动态调节，尽量靠近每次持久化1000个对象</summary>
-        public Int32 Period { get; set; }
+        public Int32 Period { get; set; } = 1000;
 
         /// <summary>完成事件。</summary>
         public event EventHandler<EventArgs<IEntity, Int32>> Completed;
@@ -39,8 +39,6 @@ namespace XCode
         public EntityQueue()
         {
             Entities = new HashSet<IEntity>();
-
-            Period = 1000;
         }
         #endregion
 
@@ -84,7 +82,7 @@ namespace XCode
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period, "EQ");
+                    if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
                 }
             }
 
@@ -182,9 +180,9 @@ namespace XCode
                 p = p * 1000 / list.Count;
 
             // 最小间隔100毫秒
-            if (p < 100) p = 100;
+            if (p < 500) p = 500;
             // 最大间隔3秒
-            if (p > 3000) p = 3000;
+            if (p > 5000) p = 5000;
 
             if (p != Period)
             {
