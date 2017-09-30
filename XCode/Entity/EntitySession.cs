@@ -465,15 +465,25 @@ namespace XCode
 
                     return n;
                 }
-                // 来到这里，是第一次访问
 
-                if (n < -1 && DAL.Debug) DAL.WriteLog("{0}.Count 快速计算表记录数（非精确）[{1}/{2}]", ThisType.Name, TableName, ConnName);
+                // 来到这里，是第一次访问
 
                 CheckModel();
 
-                var m = GetCount(n);
+                // 从配置读取
+                var dc = DataCache.Current;
+                if (n < 0)
+                {
+                    if (dc.Counts.TryGetValue(key, out var c)) n = c;
+                }
 
+                if (DAL.Debug) DAL.WriteLog("{0}.Count 快速计算表记录数（非精确）[{1}/{2}] 参考值 {3:n0}", ThisType.Name, TableName, ConnName, n);
+
+                var m = GetCount(n);
                 _Count = m;
+
+                dc.Counts[key] = m;
+                dc.SaveAsync();
 
                 _NextCount = now.AddSeconds(60);
 
@@ -486,6 +496,10 @@ namespace XCode
             {
                 _Count = value;
                 _NextCount = DateTime.Now.AddSeconds(60);
+
+                var dc = DataCache.Current;
+                dc.Counts[CacheKey] = value;
+                dc.SaveAsync();
             }
         }
 
@@ -554,7 +568,7 @@ namespace XCode
             //_Count = -1L;
         }
 
-        String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }
+        String CacheKey { get { return String.Format("{0}_{1}_{2}", ConnName, TableName, ThisType.Name); } }
         #endregion
 
         #region 数据库操作
