@@ -28,9 +28,6 @@ namespace XCode.Cache
         #region 属性
         /// <summary>名称</summary>
         public String Name { get; set; } = "XCode数据缓存，用于加速各实体类启动";
-
-        /// <summary>每个表总记录数</summary>
-        public Dictionary<String, Int64> Counts { get; set; } = new Dictionary<String, Int64>();
         #endregion
 
         #region 方法
@@ -83,6 +80,13 @@ namespace XCode.Cache
         #endregion
 
         #region 总记录数
+        /// <summary>每个表总记录数</summary>
+        public IDictionary<String, Int64> Counts { get; set; } = new Dictionary<String, Int64>();
+        #endregion
+
+        #region 字段缓存
+        /// <summary>字段缓存，每个缓存项的值</summary>
+        public IDictionary<String, Dictionary<String, String>> FieldCache { get; set; } = new Dictionary<String, Dictionary<String, String>>();
         #endregion
     }
 }
