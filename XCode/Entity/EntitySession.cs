@@ -451,14 +451,15 @@ namespace XCode
 
                 // 当前缓存的值
                 var n = _Count;
+                var now = DateTime.Now;
 
                 // 如果有缓存，则考虑返回吧
                 if (n >= 0)
                 {
-                    var now = DateTime.Now;
                     if (_NextCount < now)
                     {
                         _NextCount = now.AddSeconds(60);
+                        // 异步更新
                         Task.Run(() => LongCount = GetCount(_Count));
                     }
 
@@ -474,7 +475,7 @@ namespace XCode
 
                 _Count = m;
 
-                AddCache(key, m);
+                _NextCount = now.AddSeconds(60);
 
                 // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
                 WaitForInitData();
@@ -483,29 +484,26 @@ namespace XCode
             }
             private set
             {
-                if (value == 0)
-                {
-                    _Count = 0;
-#if !__CORE__
-                    HttpRuntime.Cache.Remove(CacheKey);
-#endif
-                }
+                _Count = value;
+                _NextCount = DateTime.Now.AddSeconds(60);
             }
         }
 
         private Int64 GetCount(Int64 count)
         {
-            // 小于1000的精确查询，大于1000的快速查询
-            if (count >= 0 && count <= 1000L)
-            {
-                var sb = new SelectBuilder
-                {
-                    Table = FormatedTableName
-                };
+            //if (count >= 0)
+            //{
+            //    // 小于1000的精确查询，大于1000的快速查询
+            //    if (count <= 1000L)
+            //    {
+            //        var builder = new SelectBuilder
+            //        {
+            //            Table = FormatedTableName
+            //        };
 
-                WaitForInitData();
-                return Dal.SelectCount(sb);
-            }
+            //        return Dal.SelectCount(builder);
+            //    }
+            //}
 
             // 第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数
             if (count < 0 && Dal.DbType == DatabaseType.SQLite && Table.Identity != null)
@@ -526,34 +524,23 @@ namespace XCode
                 if (count <= 0) count = Dal.Session.QueryCountFast(TableName);
 
                 // 查真实记录数，修正FastCount不够准确的情况
-                if (count < 10000000) TaskEx.Run(() =>
+                if (count < 10000000)
                 {
-                    var sb = new SelectBuilder
+                    var builder = new SelectBuilder
                     {
                         Table = FormatedTableName
                     };
 
-                    LongCount = Dal.SelectCount(sb);
-                }).LogException();
+                    count = Dal.SelectCount(builder);
+                }
             }
             else
             {
                 // 异步查询弥补不足，千万数据以内
-                if (count < 10000000) TaskEx.Run(() =>
-                {
-                    LongCount = Dal.Session.QueryCountFast(TableName);
-                }).LogException();
+                if (count < 10000000) count = Dal.Session.QueryCountFast(TableName);
             }
 
             return count;
-        }
-
-        private void AddCache(String key, Int64 count)
-        {
-            if (count < 1000) return;
-#if !__CORE__
-            HttpRuntime.Cache.Insert(key, count, null, DateTime.Now.AddSeconds(10), System.Web.Caching.Cache.NoSlidingExpiration);
-#endif
         }
 
         /// <summary>清除缓存</summary>
@@ -564,16 +551,7 @@ namespace XCode
 
             _singleCache?.Clear(reason);
 
-            var n = _Count;
-            if (n < 0L) return;
-
-            // 只有小于等于1000时才清空_Count，因为大于1000时它要作为HttpCache的见证
-            if (n < 1000L)
-                _Count = -1L;
-#if !__CORE__
-            else
-                HttpRuntime.Cache.Remove(CacheKey);
-#endif
+            //_Count = -1L;
         }
 
         String CacheKey { get { return String.Format("{0}_{1}_{2}_Count", ConnName, TableName, ThisType.Name); } }
