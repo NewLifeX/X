@@ -680,11 +680,18 @@ namespace NewLife.Reflection
 
             if (baseType.IsAssignableFrom(type)) return true;
 
+            // 接口
+            if (baseType.IsInterface)
+            {
+                if (type.GetInterface(baseType.Name) != null) return true;
+                if (type.GetInterfaces().Any(e => e.IsGenericType && baseType.IsGenericTypeDefinition ? e.GetGenericTypeDefinition() == baseType : e == baseType)) return true;
+            }
+
             // 判断是否子类时，支持只反射加载的程序集
             if (type.Assembly.ReflectionOnly)
             {
                 // 反射加载时，需要特殊处理接口
-                if (baseType.IsInterface && type.GetInterface(baseType.Name) != null) return true;
+                //if (baseType.IsInterface && type.GetInterface(baseType.Name) != null) return true;
                 while (type != typeof(Object))
                 {
                     if (type.FullName == baseType.FullName &&
