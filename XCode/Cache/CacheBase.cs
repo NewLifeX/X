@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using NewLife;
+using NewLife.Log;
 using NewLife.Threading;
 using XCode.DataAccessLayer;
 
@@ -60,7 +62,7 @@ namespace XCode.Cache
 
         internal static void WriteLog(String format, params Object[] args)
         {
-            if (Debug) DAL.WriteLog(format, args);
+            if (Debug) XTrace.WriteLine(format, args);
         }
 
         /// <summary>检查并显示统计信息</summary>
@@ -75,9 +77,10 @@ namespace XCode.Cache
             // 加入列表
             if (total < 10)
             {
-                lock (_dic)
+                var key = show?.Target?.GetType().FullName;
+                if (key != null && !_dic.ContainsKey(key))
                 {
-                    if (!_dic.ContainsKey(show.Target)) _dic[show.Target] = show;
+                    _dic.TryAdd(key, show);
                 }
             }
 
@@ -92,7 +95,7 @@ namespace XCode.Cache
         }
 
         private static TimerX _timer;
-        private static Dictionary<Object, Action> _dic = new Dictionary<Object, Action>();
+        private static ConcurrentDictionary<String, Action> _dic = new ConcurrentDictionary<String, Action>();
         private static Boolean NextShow;
 
         private static void Check(Object state)
@@ -101,9 +104,9 @@ namespace XCode.Cache
 
             NextShow = false;
 
-            foreach (var item in _dic.ToValueArray())
+            foreach (var item in _dic)
             {
-                item();
+                item.Value();
             }
         }
     }

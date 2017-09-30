@@ -91,13 +91,51 @@ namespace XCode.Cache
             var es = Entities;
             if (es == null) return;
 
+            // 过期时间升序，用于缓存满以后删除
+            var slist = new SortedList<DateTime, IList<CacheItem>>();
+
+            // 超出个数
+            var over = es.Count - MaxEntity;
+            if (MaxEntity <= 0 || over < 0) slist = null;
+
             // 找到所有严重过期的缓存项
             var exp = DateTime.Now.AddSeconds(-600);
             var list = new List<CacheItem>();
             foreach (var item in es)
             {
-                if (item.Value.ExpireTime < exp) list.Add(item.Value);
+                var ci = item.Value;
+                if (ci.ExpireTime < exp)
+                    list.Add(ci);
+                else if (slist != null)
+                {
+                    IList<CacheItem> ss = null;
+                    if (!slist.TryGetValue(ci.ExpireTime, out ss))
+                        slist.Add(ci.ExpireTime, ss = new List<CacheItem>());
+
+                    ss.Add(ci);
+                }
             }
+
+            // 如果满了，删除前面
+            if (slist != null)
+            {
+                over = es.Count - list.Count - MaxEntity;
+                if (over > 0)
+                {
+                    for (int i = 0; i < slist.Count && over > 0; i++)
+                    {
+                        var ss = slist.Values[i];
+                        if (ss != null && ss.Count > 0)
+                        {
+                            over -= ss.Count;
+                            list.AddRange(ss);
+                        }
+                    }
+
+                    WriteLog("对象缓存<{1}>满，删除[{0}]个", list.Count, typeof(TEntity).Name);
+                }
+            }
+
             foreach (var item in list)
             {
                 es.Remove(item.Key);
@@ -281,12 +319,12 @@ namespace XCode.Cache
             // 新增或更新
             es[key] = item;
 
-            // 如果满了，删除前面一个
-            while (MaxEntity > 0 && es.Count >= MaxEntity)
-            {
-                RemoveKey(es.Keys.First());
-                WriteLog("单对象缓存满，删除{0}", key);
-            }
+            //// 如果满了，删除前面一个
+            //while (MaxEntity > 0 && es.Count >= MaxEntity)
+            //{
+            //    RemoveKey(es.Keys.First());
+            //    WriteLog("单对象缓存满，删除{0}", key);
+            //}
 
             if (!skey.IsNullOrWhiteSpace())
             {
