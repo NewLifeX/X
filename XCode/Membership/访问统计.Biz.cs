@@ -40,8 +40,10 @@ namespace XCode.Membership
             };
             sc.GetSlaveKeyMethod = e => "{0}#{1}_{2}_{3}".F(e.Page, e.Year, e.Month, e.Day);
 
+#if !DEBUG
             // 关闭SQL日志
             Meta.Session.Dal.Db.ShowSQL = false;
+#endif
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -75,7 +77,7 @@ namespace XCode.Membership
             if (id <= 0) return null;
 
             //// 实体缓存
-            //if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
+            //if (Meta.Count < 1000) return Meta.Cache.Find(e => e.ID == id);
 
             // 单对象缓存
             return Meta.SingleCache[id];
@@ -92,7 +94,7 @@ namespace XCode.Membership
         public static VisitStat FindByPage(String page, Int32 year, Int32 month, Int32 day)
         {
             //// 实体缓存
-            //if (Meta.Count < 1000) return Meta.Cache.Entities.FirstOrDefault(e => e.Year == year && e.Month == month && e.Day == day);
+            //if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Year == year && e.Month == month && e.Day == day);
 
             //return Find(_.Year == year & _.Month == month & _.Day == day);
 
@@ -235,7 +237,7 @@ namespace XCode.Membership
                 }
             }
 
-            st.SaveAsync(1000);
+            st.SaveAsync(5000);
 
             return st;
         }

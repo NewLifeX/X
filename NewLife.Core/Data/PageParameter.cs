@@ -7,7 +7,7 @@ namespace NewLife.Data
     {
         #region 核心属性
         private String _Sort;
-        /// <summary>排序字段</summary>
+        /// <summary>获取 或 设置 排序字段</summary>
         public virtual String Sort
         {
             get { return _Sort; }
@@ -38,23 +38,24 @@ namespace NewLife.Data
             }
         }
 
-        /// <summary>是否降序</summary>
+        /// <summary>获取 或 设置 是否降序</summary>
         public virtual Boolean Desc { get; set; }
 
         private Int32 _PageIndex = 1;
-        /// <summary>页面索引</summary>
+        /// <summary>获取 或 设置 页面索引</summary>
+        /// <remarks>如果设定了开始行，分页时将不再使用PageIndex</remarks>
         public virtual Int32 PageIndex { get { return _PageIndex; } set { _PageIndex = value > 1 ? value : 1; } }
 
         private Int32 _PageSize = 20;
-        /// <summary>页面大小</summary>
+        /// <summary>获取 或 设置 页面大小</summary>
         public virtual Int32 PageSize { get { return _PageSize; } set { _PageSize = value > 1 ? value : 20; } }
         #endregion
 
         #region 扩展属性
-        /// <summary>总记录数</summary>
+        /// <summary>获取 或 设置 总记录数</summary>
         public virtual Int64 TotalCount { get; set; }
 
-        /// <summary>页数</summary>
+        /// <summary>获取 页数</summary>
         public virtual Int64 PageCount
         {
             get
@@ -65,7 +66,7 @@ namespace NewLife.Data
             }
         }
 
-        /// <summary>组合起来的排序字句</summary>
+        /// <summary>获取 组合起来的排序字句</summary>
         public virtual String OrderBy
         {
             get
@@ -79,19 +80,11 @@ namespace NewLife.Data
         }
 
         /// <summary>获取 或 设置 开始行</summary>
+        /// <remarks>如果设定了开始行，分页时将不再使用PageIndex</remarks>
         public virtual Int64 StartRow { get; set; } = -1;
-        //{
-        //    get
-        //    {
-        //        // 负数表示直接开始行
-        //        return _PageIndex > 0 ? (_PageIndex - 1) * PageSize : (0 - _PageIndex);
-        //    }
-        //    set
-        //    {
-        //        // 直接指定具体起始行
-        //        _PageIndex = 0 - value;
-        //    }
-        //}
+
+        /// <summary>获取 或 设置 是否获取总记录数</summary>
+        public Boolean RetrieveTotalCount { get; set; }
         #endregion
 
         #region 构造函数

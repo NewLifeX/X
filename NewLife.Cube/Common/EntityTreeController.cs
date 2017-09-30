@@ -115,7 +115,7 @@ namespace NewLife.Cube
         protected static TEntity FindByID(Int32 id)
         {
             var key = EntityTree<TEntity>.Meta.Unique.Name;
-            return EntityTree<TEntity>.Meta.Cache.Entities.FirstOrDefault(e => (Int32)e[key] == id);
+            return EntityTree<TEntity>.Meta.Cache.Find(e => (Int32)e[key] == id);
         }
     }
 }

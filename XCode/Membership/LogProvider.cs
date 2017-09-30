@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using NewLife.Model;
+using NewLife.Reflection;
 
 namespace XCode.Membership
 {
@@ -26,7 +27,13 @@ namespace XCode.Membership
         /// <param name="ip">地址</param>
         public virtual void WriteLog(Type type, String action, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
-            var cat = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
+            var cat = "";
+            if (type.As<IEntity>())
+            {
+                var fact = EntityFactory.CreateOperate(type);
+                if (fact != null) cat = fact.Table.DataTable.DisplayName;
+            }
+            if (cat.IsNullOrEmpty()) cat = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
             WriteLog(cat, action, remark, userid, name, ip);
         }
 

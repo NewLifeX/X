@@ -705,7 +705,7 @@ namespace XCode.Code
             }
             WriteLine("//    entity.Insert();");
             WriteLine();
-            WriteLine("//    if (XTrace.Debug) XTrace.WriteLine(\"完成初始化{0}[{1}]数据！\"", name, Table.DisplayName);
+            WriteLine("//    if (XTrace.Debug) XTrace.WriteLine(\"完成初始化{0}[{1}]数据！\");", name, Table.DisplayName);
             WriteLine("//}");
         }
 

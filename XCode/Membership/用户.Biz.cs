@@ -116,19 +116,20 @@ namespace XCode.Membership
                 var key = "Admin";
                 var ss = HttpContext.Current?.Session;
                 if (ss == null) return null;
+                var ms = HttpContext.Current.Items;
 
                 // 从Session中获取
                 if (ss[key] is TEntity entity) return entity;
 
                 // 设置一个陷阱，避免重复计算Cookie
-                if (ss[key] != null) return null;
+                if (ms[key] != null) return null;
 
                 // 从Cookie中获取
                 entity = GetCookie(key);
                 if (entity != null)
                     ss[key] = entity;
                 else
-                    ss[key] = "1";
+                    ms[key] = "1";
 
                 return entity;
 #else
@@ -190,7 +191,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.ID, id);
             else // 实体缓存
-                return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
+                return Meta.Cache.Find(e => e.ID == id);
 
             // 实体缓存
             //return Meta.SingleCache[id];
@@ -206,7 +207,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Name, name);
             else // 实体缓存
-                return Meta.Cache.Entities.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+                return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
         }
 
         /// <summary>根据邮箱地址查找</summary>
@@ -217,7 +218,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Mail, mail);
             else // 实体缓存
-                return Meta.Cache.Entities.FirstOrDefault(e => e.Mail.EqualIgnoreCase(mail));
+                return Meta.Cache.Find(e => e.Mail.EqualIgnoreCase(mail));
         }
 
         /// <summary>根据手机号码查找</summary>
@@ -228,7 +229,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Phone, phone);
             else // 实体缓存
-                return Meta.Cache.Entities.FirstOrDefault(e => e.Phone.EqualIgnoreCase(phone));
+                return Meta.Cache.Find(e => e.Phone.EqualIgnoreCase(phone));
         }
 
         /// <summary>根据唯一代码查找</summary>
@@ -239,7 +240,7 @@ namespace XCode.Membership
             if (Meta.Count >= 1000)
                 return Find(__.Code, code);
             else // 实体缓存
-                return Meta.Cache.Entities.FirstOrDefault(e => e.Code.EqualIgnoreCase(code));
+                return Meta.Cache.Find(e => e.Code.EqualIgnoreCase(code));
         }
         #endregion
 

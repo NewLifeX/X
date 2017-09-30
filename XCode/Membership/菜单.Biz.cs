@@ -137,18 +137,18 @@ namespace XCode.Membership
         {
             if (id <= 0) return null;
 
-            return Meta.Cache.Entities.FirstOrDefault(e => e.ID == id);
+            return Meta.Cache.Find(e => e.ID == id);
         }
 
         /// <summary>根据名字查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name) { return Meta.Cache.Entities.FirstOrDefault(e => e.Name.EqualIgnoreCase(name)); }
+        public static TEntity FindByName(String name) { return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name)); }
 
         /// <summary>根据Url查找</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static TEntity FindByUrl(String url) { return Meta.Cache.Entities.FirstOrDefault(e => e.Url.EqualIgnoreCase(url)); }
+        public static TEntity FindByUrl(String url) { return Meta.Cache.Find(e => e.Url.EqualIgnoreCase(url)); }
 
         /// <summary>根据名字查找，支持路径查找</summary>
         /// <param name="name">名称</param>
@@ -166,7 +166,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static List<TEntity> FindAllByParentID(Int32 id)
         {
-            return Meta.Cache.Entities.Where(e => e.ParentID == id).OrderByDescending(e => e.Sort).ThenBy(e => e.ID).ToList();
+            return Meta.Cache.FindAll(e => e.ParentID == id).OrderByDescending(e => e.Sort).ThenBy(e => e.ID).ToList();
         }
 
         /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>

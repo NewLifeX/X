@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using XCode;
 using XCode.Cache;
 using XCode.Configuration;
@@ -45,27 +46,49 @@ namespace XCode.Cache
             }
         }
 
+        private Task<Dictionary<String, String>> _task;
         /// <summary>获取所有类别名称</summary>
         /// <returns></returns>
         public IDictionary<String, String> FindAllName()
         {
-            //var id = _field.Table.Identity;
-            var list = Entities.Take(MaxRows).ToList();
+            var key = "{0}_{1}".F(typeof(TEntity).Name, _field?.Name);
+            var dc = DataCache.Current;
 
-            var dic = new Dictionary<String, String>();
-            foreach (var entity in list)
+            if (_task == null || _task.IsOK()) _task = Task.Run(() =>
             {
-                var k = entity[_field.Name] + "";
-                var v = k;
-                if (GetDisplay != null)
+                //var id = _field.Table.Identity;
+                var list = Entities.Take(MaxRows).ToList();
+
+                var dic = new Dictionary<String, String>();
+                foreach (var entity in list)
                 {
-                    v = GetDisplay(entity);
-                    if (v.IsNullOrEmpty()) v = "[{0}]".F(k);
+                    var k = entity[_field.Name] + "";
+                    var v = k;
+                    if (GetDisplay != null)
+                    {
+                        v = GetDisplay(entity);
+                        if (v.IsNullOrEmpty()) v = "[{0}]".F(k);
+                    }
+
+                    dic[k] = DisplayFormat.F(v, entity[_Unique.Name]);
                 }
 
-                dic[k] = DisplayFormat.F(v, entity[_Unique.Name]);
-            }
-            return dic;
+                // 更新缓存
+                if (dic.Count > 0)
+                {
+                    dc.FieldCache[key] = dic;
+                    dc.SaveAsync();
+                }
+
+                _task = null;
+
+                return dic;
+            });
+
+            // 优先从缓存读取
+            if (dc.FieldCache.TryGetValue(key, out var rs)) return rs;
+
+            return _task.Result;
         }
 
         #region 辅助

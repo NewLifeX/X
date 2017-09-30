@@ -158,15 +158,15 @@ WriteLiteral(">\r\n                    <input");
 
 WriteLiteral(" type=\"checkbox\"");
 
-WriteLiteral(" value=\"None\"");
+WriteLiteral(" value=\"true\"");
 
-WriteLiteral(" id=\"chk\"");
+WriteLiteral(" id=\"remember\"");
 
-WriteLiteral(" name=\"check\"");
+WriteLiteral(" name=\"remember\"");
 
 WriteLiteral(" />\r\n                    <label");
 
-WriteLiteral(" for=\"chk\"");
+WriteLiteral(" for=\"remember\"");
 
 WriteLiteral("></label>\r\n                </div>\r\n                <span");
 

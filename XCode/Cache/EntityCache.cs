@@ -218,9 +218,9 @@ namespace XCode.Cache
             {
                 var sb = new StringBuilder();
                 var type = GetType();
-                sb.AppendFormat("{0}<{1,-20}>", type.GetDisplayName() ?? type.Name, typeof(TEntity).Name);
-                //sb.Append(ToString());
-                sb.AppendFormat(" 总次数{0,7:n0}", Total);
+                var name = "{2}<{0}>({1})".F(typeof(TEntity).Name, Entities.Count, type.GetDisplayName() ?? type.Name);
+                sb.AppendFormat("{0,-24}", name);
+                sb.AppendFormat("总次数{0,7:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Success, (Double)Success / Total);
 
                 XTrace.WriteLine(sb.ToString());

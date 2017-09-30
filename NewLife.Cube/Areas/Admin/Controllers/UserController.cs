@@ -85,10 +85,12 @@ namespace NewLife.Cube.Admin.Controllers
                     FormsAuthentication.SetAuthCookie(username, remember ?? false);
                     //FormsAuthentication.RedirectFromLoginPage(provider.Current + "", true);
 
-                    if (Url.IsLocalUrl(returnUrl))
-                        return Redirect(returnUrl);
-                    else
-                        return RedirectToAction("Index", "Index", new { page = returnUrl });
+                    if (Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
+
+                    // 不要嵌入自己
+                    if (returnUrl.EndsWithIgnoreCase("/Admin", "/Admin/User/Login")) returnUrl = null;
+
+                    return RedirectToAction("Index", "Index", new { page = returnUrl });
                 }
 
                 // 如果我们进行到这一步时某个地方出错，则重新显示表单

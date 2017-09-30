@@ -184,8 +184,9 @@ namespace NewLife.Serialization
 
             if (obj == null) obj = type.CreateInstance();
 
-            var circount = 0;
-            if (_circobj.TryGetValue(obj, out circount) == false)
+            if (type.IsGenericType && type.As<IDictionary>()) return CreateDic(dic, type, obj);
+
+            if (_circobj.TryGetValue(obj, out var circount) == false)
             {
                 circount = _circobj.Count + 1;
                 _circobj.Add(obj, circount);
@@ -196,8 +197,7 @@ namespace NewLife.Serialization
             foreach (var item in dic)
             {
                 var v = item.Value;
-                PropertyInfo pi;
-                if (!props.TryGetValue(item.Key, out pi))
+                if (!props.TryGetValue(item.Key, out var pi))
                 {
                     // 可能有小写
                     pi = props.Values.Where(e => e.Name.EqualIgnoreCase(item.Key)).FirstOrDefault();
@@ -228,10 +228,10 @@ namespace NewLife.Serialization
                     val = CreateArray((IList<Object>)v, pt, pt.GetElementTypeEx());
                 else if (pt.As<IList>())
                     val = CreateGenericList((IList<Object>)v, pt, pt.GetElementTypeEx());
-                else if (pt.IsGenericType && typeof(Dictionary<,>).IsAssignableFrom(pt.GetGenericTypeDefinition()))
-                    val = CreateStringKeyDictionary(vdic, pt, pt.GetGenericArguments());
+                else if (pt.IsGenericType && typeof(IDictionary<,>).IsAssignableFrom(pt.GetGenericTypeDefinition()))
+                    val = CreateStringKeyDictionary(vdic, pt, obj.GetValue(pi));
                 else if (pt.As<IDictionary>())
-                    val = CreateDictionary((IList<Object>)v, pt, pt.GetGenericArguments());
+                    val = CreateDictionary((IList<Object>)v, pt, obj.GetValue(pi));
                 else if (pt == typeof(NameValueCollection))
                     val = CreateNV(vdic);
                 else if (pt == typeof(StringDictionary))
@@ -265,6 +265,24 @@ namespace NewLife.Serialization
             var nv = new NameValueCollection();
             foreach (var item in dic)
                 nv.Add(item.Key, (String)item.Value);
+
+            return nv;
+        }
+
+        private Object CreateDic(IDictionary<String, Object> dic, Type type, Object obj)
+        {
+            var nv = obj as IDictionary;
+            if (type.IsGenericType && type.GetGenericArguments().Length >= 2)
+            {
+                var tval = type.GetGenericArguments()[1];
+                foreach (var item in dic)
+                    nv.Add(item.Key, item.Value.ChangeType(tval));
+            }
+            else
+            {
+                foreach (var item in dic)
+                    nv.Add(item.Key, item.Value);
+            }
 
             return nv;
         }
@@ -379,9 +397,16 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        private Object CreateStringKeyDictionary(IDictionary<String, Object> dic, Type pt, Type[] types)
+        private Object CreateStringKeyDictionary(IDictionary<String, Object> dic, Type type, Object obj)
         {
-            var rs = pt.CreateInstance() as IDictionary;
+            var types = type.GetGenericArguments();
+            if (obj == null)
+            {
+                if (type.IsInterface) type = typeof(Dictionary<,>).MakeGenericType(types[0], types[1]);
+                obj = type.CreateInstance();
+            }
+            var rs = obj as IDictionary;
+
             Type tkey = null;
             Type tval = null;
             if (types != null)
@@ -395,8 +420,8 @@ namespace NewLife.Serialization
                 var key = item.Key;
                 Object val = null;
 
-                if (item.Value is IDictionary<String, Object>)
-                    val = Parse((IDictionary<String, Object>)item.Value, tval, null);
+                if (item.Value is IDictionary<String, Object> vdic)
+                    val = Parse(vdic, tval, null);
 
                 else if (types != null && tval.IsArray)
                 {
@@ -417,9 +442,10 @@ namespace NewLife.Serialization
             return rs;
         }
 
-        private Object CreateDictionary(IList<Object> list, Type pt, Type[] types)
+        private Object CreateDictionary(IList<Object> list, Type type, Object obj)
         {
-            var dic = pt.CreateInstance() as IDictionary;
+            var types = type.GetGenericArguments();
+            var dic = (obj ?? type.CreateInstance()) as IDictionary;
             Type tkey = null;
             Type tval = null;
             if (types != null)

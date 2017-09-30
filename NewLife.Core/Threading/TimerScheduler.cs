@@ -50,6 +50,9 @@ namespace NewLife.Threading
         /// <summary>定时器个数</summary>
         public Int32 Count { get; private set; }
 
+        /// <summary>最大耗时。超过时报警告日志，默认500ms</summary>
+        public Int32 MaxCost { get; set; } = 500;
+
         private Thread thread;
 
         private HashSet<TimerX> timers = new HashSet<TimerX>();
@@ -236,7 +239,7 @@ namespace NewLife.Threading
                 else
                     timer.Cost = (timer.Cost + d) / 2;
 
-                if (d > 500 && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms，建议使用异步任务Async=true", timer, d);
+                if (d > MaxCost && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms，建议使用异步任务Async=true", timer, d);
 
                 // 再次读取周期，因为任何函数可能会修改
                 var p = timer.Period;

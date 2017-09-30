@@ -145,7 +145,7 @@ namespace XCode.Web
             var ext = Path.GetExtension(page);
             if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
 
-            LogProvider.Provider.WriteLog("访问", "记录", msg, user?.ID ?? 0, user + "", ip);
+            LogProvider.Provider?.WriteLog("访问", "记录", msg, user?.ID ?? 0, user + "", ip);
         }
 
         void SaveStatistics(HttpContext ctx, IManageUser user, String ip, String page, String title)

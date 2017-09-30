@@ -340,12 +340,12 @@ namespace NewLife.Agent
             StopWork("服务停止");
         }
 
-        /// <summary>开始循环工作</summary>
-        [Obsolete("=>StartWork(String reason)")]
-        public virtual void StartWork()
-        {
-            StartWork(nameof(StartWork));
-        }
+        ///// <summary>开始循环工作</summary>
+        //[Obsolete("=>StartWork(String reason)")]
+        //public virtual void StartWork()
+        //{
+        //    StartWork(nameof(StartWork));
+        //}
 
         /// <summary>开始工作</summary>
         /// <param name="reason"></param>
@@ -393,16 +393,16 @@ namespace NewLife.Agent
         /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
         public virtual Boolean Work(Int32 index) { return false; }
 
-        /// <summary>停止循环工作</summary>
-        /// <remarks>
-        /// 只能停止循环而已，如果已经有一批任务在处理，
-        /// 则内部需要捕获ThreadAbortException异常，否则无法停止任务处理。
-        /// </remarks>
-        [Obsolete("=>StopWork(String reason)")]
-        public virtual void StopWork()
-        {
-            StopWork(nameof(StopWork));
-        }
+        ///// <summary>停止循环工作</summary>
+        ///// <remarks>
+        ///// 只能停止循环而已，如果已经有一批任务在处理，
+        ///// 则内部需要捕获ThreadAbortException异常，否则无法停止任务处理。
+        ///// </remarks>
+        //[Obsolete("=>StopWork(String reason)")]
+        //public virtual void StopWork()
+        //{
+        //    StopWork(nameof(StopWork));
+        //}
 
         /// <summary>停止服务</summary>
         /// <param name="reason"></param>

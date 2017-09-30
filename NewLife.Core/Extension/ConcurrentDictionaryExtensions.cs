@@ -18,8 +18,7 @@ namespace System
         /// <returns></returns>
         public static Boolean Remove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key)
         {
-            TValue value;
-            return dict.TryRemove(key, out value);
+            return dict.TryRemove(key, out var value);
         }
     }
 }

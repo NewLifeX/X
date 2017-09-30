@@ -77,7 +77,7 @@ namespace XCode
         /// <summary>在缓存中查找节点</summary>
         protected static TEntity FindByKeyWithCache(TKey key)
         {
-            return Meta.Session.Cache.Entities.FirstOrDefault(e => Object.Equals(e[Setting.Key], key));
+            return Meta.Session.Cache.Find(e => Object.Equals(e[Setting.Key], key));
         }
 
         /// <summary>子孙节点</summary>
@@ -237,7 +237,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static IList<TEntity> FindAllByParent(TKey parentKey)
         {
-            var list = Meta.Session.Cache.Entities.Where(e => Object.Equals(e[Setting.Parent], parentKey)).ToList();
+            var list = Meta.Session.Cache.FindAll(e => Object.Equals(e[Setting.Parent], parentKey)).ToList();
             // 如果是顶级，那么包含所有无头节点，无头节点由错误数据造成
             if (IsNull(parentKey)) list.AddRange(FindAllNoParent());
             // 一个元素不需要排序
@@ -262,7 +262,7 @@ namespace XCode
         public static IList<TEntity> FindAllNoParent()
         {
             // 有父节点的跳过，父节点为空的跳过
-            return Meta.Session.Cache.Entities.Where(e => !IsNull((TKey)e[Setting.Parent]) && e.Parent == null).ToList();
+            return Meta.Session.Cache.FindAll(e => !IsNull((TKey)e[Setting.Parent]) && e.Parent == null);
         }
 
         /// <summary>查找指定键的所有子节点，以深度层次树结构输出，包括当前节点作为根节点。空父节点返回顶级列表，无效父节点返回空列表</summary>

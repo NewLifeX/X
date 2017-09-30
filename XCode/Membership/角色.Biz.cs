@@ -248,7 +248,7 @@ namespace XCode.Membership
         {
             if (String.IsNullOrEmpty(name) || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
-            return Meta.Cache.Entities.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+            return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
         }
         #endregion
 

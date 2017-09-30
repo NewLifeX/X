@@ -8,6 +8,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Threading;
+using NewLife.Web;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -105,27 +106,18 @@ namespace Test
 
         static void Test2()
         {
-            var list = new List<Int32>();
-            var n = list.Find(e => true);
+            //var bm = new BaiduMap();
+            //var kv = bm.GetGeocoderAsync("新府中路1650号").Result;
+            //Console.WriteLine("{0}, {1}", kv.Key, kv.Value);
+            //Console.WriteLine();
 
-            var list2 = list as IList<Int32>;
-            var k = list2.Find(e => true);
-
-            //ApiTest.Main();
-
-            //AgentService.ServiceMain();
-
-            foreach (var item in DAL.ConnStrs)
+            var am = new AMap();
+            var org = am.GetGeoAsync("新府中路1650号").Result;
+            var dst = am.GetGeoAsync("广西容县高中").Result;
+            var rs = am.GetDistanceAsync(org, dst, 1).Result;
+            foreach (var item in rs)
             {
-                Task.Run(() =>
-                {
-                    var dal = DAL.Create(item.Key);
-                    var meta = dal.Db.CreateMetaData();
-                    var mds = meta.MetaDataCollections;
-                    var rds = meta.ReservedWords;
-                    XTrace.WriteLine("{0}/{1}.MetaDataCollections={2}", dal.ConnName, dal.DbType, mds.Join(","));
-                    XTrace.WriteLine("{0}/{1}.ReservedWords={2}", dal.ConnName, dal.DbType, rds.Join(","));
-                });
+                Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
             }
         }
 

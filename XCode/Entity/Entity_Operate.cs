@@ -67,7 +67,7 @@ namespace XCode
             /// <summary>构造实体工厂</summary>
             public EntityOperate()
             {
-                MasterTime = GetMasterTime();
+                //MasterTime = GetMasterTime();
             }
             #endregion
 
@@ -226,8 +226,22 @@ namespace XCode
             /// <summary>默认累加字段</summary>
             public virtual ICollection<String> AdditionalFields { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
+            private Boolean _MasterTime_;
+            private FieldItem _MasterTime;
             /// <summary>主时间字段。代表当前数据行更新时间</summary>
-            public FieldItem MasterTime { get; }
+            public FieldItem MasterTime
+            {
+                get
+                {
+                    if (!_MasterTime_)
+                    {
+                        _MasterTime = GetMasterTime();
+                        _MasterTime_ = true;
+                    }
+
+                    return _MasterTime;
+                }
+            }
 
             private FieldItem GetMasterTime()
             {

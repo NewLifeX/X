@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
@@ -17,7 +17,7 @@ namespace XCode
         private ICollection<IEntity> Entities { get; set; }
 
         /// <summary>需要延迟保存的实体队列</summary>
-        private IDictionary<IEntity, DateTime> DelayEntities { get; } = new Dictionary<IEntity, DateTime>();
+        private ConcurrentDictionary<IEntity, DateTime> DelayEntities { get; } = new ConcurrentDictionary<IEntity, DateTime>();
 
         /// <summary>调试开关，默认false</summary>
         public Boolean Debug { get; set; }
@@ -26,7 +26,7 @@ namespace XCode
         public DAL Dal { get; set; }
 
         /// <summary>周期。默认1000毫秒，根据繁忙程度动态调节，尽量靠近每次持久化1000个对象</summary>
-        public Int32 Period { get; set; }
+        public Int32 Period { get; set; } = 1000;
 
         /// <summary>完成事件。</summary>
         public event EventHandler<EventArgs<IEntity, Int32>> Completed;
@@ -39,8 +39,6 @@ namespace XCode
         public EntityQueue()
         {
             Entities = new HashSet<IEntity>();
-
-            Period = 1000;
         }
         #endregion
 
@@ -69,14 +67,7 @@ namespace XCode
             else
             {
                 var dic = DelayEntities;
-                if (dic.ContainsKey(entity)) return false;
-
-                lock (dic)
-                {
-                    if (dic.ContainsKey(entity)) return false;
-
-                    dic[entity] = DateTime.Now.AddMilliseconds(msDelay);
-                }
+                dic.TryAdd(entity, DateTime.Now.AddMilliseconds(msDelay));
             }
 
             // 放到锁里面，避免重入
@@ -84,7 +75,7 @@ namespace XCode
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period, "EQ");
+                    if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
                 }
             }
 
@@ -100,18 +91,15 @@ namespace XCode
             var dic = DelayEntities;
             if (dic.Count > 0)
             {
-                lock (dic)
+                var now = DateTime.Now;
+                foreach (var item in dic)
                 {
-                    var now = DateTime.Now;
-                    foreach (var item in dic)
-                    {
-                        if (item.Value < now) list.Add(item.Key);
-                    }
-                    // 从列表删除过期
-                    foreach (var item in list)
-                    {
-                        dic.Remove(item);
-                    }
+                    if (item.Value < now) list.Add(item.Key);
+                }
+                // 从列表删除过期
+                foreach (var item in list)
+                {
+                    dic.Remove(item);
                 }
             }
 
@@ -144,8 +132,7 @@ namespace XCode
             if (Debug) XTrace.WriteLine("实体队列[{0}]\t准备持久化{1}个对象", dal.ConnName, list.Count);
 
             var rs = new List<Int32>();
-            var sw = new Stopwatch();
-            if (Debug) sw.Start();
+            var sw = Stopwatch.StartNew();
 
             // 开启事务保存
             dal.BeginTransaction();
@@ -153,14 +140,17 @@ namespace XCode
             {
                 foreach (var item in list)
                 {
-                    //rs.Add(item.Save());
-                    // 加入队列时已经Valid一次，这里不需要再次Valid
-                    rs.Add(item.SaveWithoutValid());
+                    try
+                    {
+                        // 加入队列时已经Valid一次，这里不需要再次Valid
+                        rs.Add(item.SaveWithoutValid());
+                    }
+                    catch { }
                 }
 
                 dal.Commit();
 
-                if (Debug) sw.Stop();
+                sw.Stop();
             }
             catch
             {
@@ -182,9 +172,9 @@ namespace XCode
                 p = p * 1000 / list.Count;
 
             // 最小间隔100毫秒
-            if (p < 100) p = 100;
+            if (p < 500) p = 500;
             // 最大间隔3秒
-            if (p > 3000) p = 3000;
+            if (p > 5000) p = 5000;
 
             if (p != Period)
             {

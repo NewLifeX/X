@@ -26,8 +26,10 @@ namespace XCode.Membership
             Meta.Modules.Add<UserModule>();
             Meta.Modules.Add<IPModule>();
 
+#if !DEBUG
             // 关闭SQL日志
             Meta.Session.Dal.Db.ShowSQL = false;
+#endif
         }
 
         /// <summary>已重载。记录当前管理员</summary>
