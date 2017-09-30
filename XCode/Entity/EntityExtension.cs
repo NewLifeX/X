@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Reflection;
 using XCode.Configuration;
@@ -203,7 +201,9 @@ namespace XCode
 
         private static Int32 DoAction<T>(this IEnumerable<T> list, Func<T, Int32> func, Int32 count) where T : IEntity
         {
-            foreach (var item in list)
+            // 加锁拷贝，避免遍历时出现多线程冲突
+            var arr = list is ICollection<T> cs ? cs.ToArray() : list.ToArray();
+            foreach (var item in arr)
             {
                 if (item != null) count += func(item);
             }
@@ -211,24 +211,4 @@ namespace XCode
         }
         #endregion
     }
-
-    ///// <summary>实体列表</summary>
-    ///// <typeparam name="T"></typeparam>
-    //public class EntityList<T> : List<T> where T : Entity<T>, new()
-    //{
-    //    public EntityList(IEnumerable<T> collection) : base(collection) { }
-
-    //    #region 类型转换
-    //    ///// <summary>类型转换</summary>
-    //    ///// <param name="obj"></param>
-    //    ///// <returns></returns>
-    //    //public static implicit operator String(FieldItem obj)
-    //    //{
-    //    //    return !obj.Equals(null) ? obj.ColumnName : null;
-    //    //}
-    //    #endregion
-    //}
-
-    ///// <summary>实体接口</summary>
-    //public interface IEntityList : IList<IEntity> { }
 }

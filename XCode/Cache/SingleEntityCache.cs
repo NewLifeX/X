@@ -211,8 +211,7 @@ namespace XCode.Cache
             Interlocked.Increment(ref Success);
 
             // 获取 或 添加
-            CacheItem item = null;
-            if (!dic.TryGetValue(key, out item))
+            if (!dic.TryGetValue(key, out var item))
             {
                 item = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
                 // 不要缓存空值
