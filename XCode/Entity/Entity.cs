@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -99,10 +100,14 @@ namespace XCode
             var sc = Meta.SingleCache;
             if (sc.Using)
             {
-                foreach (var item in list)
+                // 查询列表异步加入对象缓存
+                ThreadPool.UnsafeQueueUserWorkItem(s =>
                 {
-                    sc.Add(item);
-                }
+                    foreach (var item in list)
+                    {
+                        sc.Add(item);
+                    }
+                }, null);
             }
 
             return list;
