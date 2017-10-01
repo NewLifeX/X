@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Agent;
 using NewLife.Log;
@@ -111,13 +112,19 @@ namespace Test
             //Console.WriteLine("{0}, {1}", kv.Key, kv.Value);
             //Console.WriteLine();
 
-            var am = new AMap();
-            var org = am.GetGeoAsync("新府中路1650号").Result;
-            var dst = am.GetGeoAsync("广西容县高中").Result;
-            var rs = am.GetDistanceAsync(org, dst, 1).Result;
-            foreach (var item in rs)
+            //var am = new AMap();
+            //var org = am.GetGeoAsync("新府中路1650号").Result;
+            //var dst = am.GetGeoAsync("广西容县高中").Result;
+            //var rs = am.GetDistanceAsync(org, dst, 1).Result;
+            //foreach (var item in rs)
+            //{
+            //    Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
+            //}
+
+            for (int i = 0; i < 100; i++)
             {
-                Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
+                XTrace.WriteLine("{0}", TimerX.Now);
+                Thread.Sleep(200);
             }
         }
 
