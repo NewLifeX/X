@@ -67,7 +67,7 @@ namespace XCode
             else
             {
                 var dic = DelayEntities;
-                dic.TryAdd(entity, DateTime.Now.AddMilliseconds(msDelay));
+                dic.TryAdd(entity, TimerX.Now.AddMilliseconds(msDelay));
             }
 
             // 放到锁里面，避免重入
@@ -91,7 +91,7 @@ namespace XCode
             var dic = DelayEntities;
             if (dic.Count > 0)
             {
-                var now = DateTime.Now;
+                var now = TimerX.Now;
                 foreach (var item in dic)
                 {
                     if (item.Value < now) list.Add(item.Key);

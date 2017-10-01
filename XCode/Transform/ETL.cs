@@ -318,7 +318,7 @@ namespace XCode.Transform
             var end = set.End;
             if (Extracter is TimeExtracter ext) end = ext.ActualEnd;
             var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
-            WriteLog("共处理{0}行，区间({1}, {2}{3})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, set.Start, set.Row, ends, ctx.FetchCost, ctx.FetchSpeed, ctx.ProcessCost, ctx.ProcessSpeed);
+            WriteLog("共处理{0}行，区间({1}, {2})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, set.Start, set.Row, ends, ctx.FetchCost, ctx.FetchSpeed, ctx.ProcessCost, ctx.ProcessSpeed);
 
             Modules.OnFinished(ctx);
         }

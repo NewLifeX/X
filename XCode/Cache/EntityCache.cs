@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace XCode.Cache
 {
@@ -69,7 +70,7 @@ namespace XCode.Cache
             // 更新统计信息
             CheckShowStatics(ref Total, ShowStatics);
 
-            var sec = (DateTime.Now - ExpiredTime).TotalSeconds;
+            var sec = (TimerX.Now - ExpiredTime).TotalSeconds;
             if (sec < 0)
             {
                 Interlocked.Increment(ref Success);
@@ -127,7 +128,7 @@ namespace XCode.Cache
         {
             // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
             // 设置时间放在获取缓存之前，让其它线程不要空等
-            if (Times > 0) ExpiredTime = DateTime.Now.AddSeconds(Expire);
+            if (Times > 0) ExpiredTime = TimerX.Now.AddSeconds(Expire);
             Times++;
 
             return Task.Factory.StartNew(FillWaper, reason);
@@ -139,7 +140,7 @@ namespace XCode.Cache
 
             _Entities = Invoke<Object, IList<TEntity>>(s => FillListMethod(), null);
 
-            ExpiredTime = DateTime.Now.AddSeconds(Expire);
+            ExpiredTime = TimerX.Now.AddSeconds(Expire);
             WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
         }
 

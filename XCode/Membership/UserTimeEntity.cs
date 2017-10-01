@@ -7,6 +7,7 @@ using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Model;
+using NewLife.Threading;
 using NewLife.Web;
 
 namespace XCode.Membership
@@ -122,10 +123,10 @@ namespace XCode.Membership
 
             var fs = GetFieldNames(entity.GetType());
 
-            if (isNew) SetNoDirtyItem(fs, entity, __.CreateTime, DateTime.Now);
+            if (isNew) SetNoDirtyItem(fs, entity, __.CreateTime, TimerX.Now);
 
             // 不管新建还是更新，都改变更新时间
-            SetNoDirtyItem(fs, entity, __.UpdateTime, DateTime.Now);
+            SetNoDirtyItem(fs, entity, __.UpdateTime, TimerX.Now);
 
             return true;
         }

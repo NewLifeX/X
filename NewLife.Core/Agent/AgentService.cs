@@ -29,7 +29,7 @@ namespace NewLife.Agent
         /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
         public override System.Boolean Work(System.Int32 index)
         {
-            // XAgent讲开启ThreadCount个线程，0<index<ThreadCount，本函数即为每个任务线程的主函数，间隔Interval循环调用
+            // XAgent将开启ThreadCount个线程，0<index<ThreadCount，本函数即为每个任务线程的主函数，间隔Interval循环调用
             var ms = Rand.Next(3000, 20000);
             WriteLine("任务{0}，当前时间：{1} 睡眠：{2:n0}ms", index, DateTime.Now, ms);
             Thread.Sleep(ms);

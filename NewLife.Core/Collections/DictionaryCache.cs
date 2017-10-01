@@ -82,12 +82,12 @@ namespace NewLife.Collections
             public DateTime ExpiredTime { get; set; }
 
             /// <summary>是否过期</summary>
-            public Boolean Expired { get { return ExpiredTime <= DateTime.Now; } }
+            public Boolean Expired { get { return ExpiredTime <= TimerX.Now; } }
 
             public CacheItem(TValue value, Int32 seconds)
             {
                 Value = value;
-                if (seconds > 0) ExpiredTime = DateTime.Now.AddSeconds(seconds);
+                if (seconds > 0) ExpiredTime = TimerX.Now.AddSeconds(seconds);
             }
         }
         #endregion
@@ -110,7 +110,7 @@ namespace NewLife.Collections
                 {
                     item.Value = value;
                     //更新当前缓存项的过期时间
-                    item.ExpiredTime = DateTime.Now.AddSeconds(Expire);
+                    item.ExpiredTime = TimerX.Now.AddSeconds(Expire);
                 }
                 else
                 {
@@ -147,7 +147,7 @@ namespace NewLife.Collections
                 {
                     if (item != null)
                     {
-                        item.ExpiredTime = DateTime.Now.AddSeconds(exp);
+                        item.ExpiredTime = TimerX.Now.AddSeconds(exp);
                         // 异步更新缓存
                         if (func != null) Task.Run(() => { item.Value = func(key); });
 
@@ -246,7 +246,7 @@ namespace NewLife.Collections
                 }
 
                 // 这里先计算，性能很重要
-                var now = DateTime.Now;
+                var now = TimerX.Now;
                 //var exp = now.AddSeconds(-1 * expriod);
                 foreach (var item in dic.ToArray())
                 {

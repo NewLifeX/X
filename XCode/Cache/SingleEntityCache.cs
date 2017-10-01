@@ -112,7 +112,7 @@ namespace XCode.Cache
             if (MaxEntity <= 0 || over < 0) slist = null;
 
             // 找到所有很久未访问的缓存项，10倍
-            var exp = DateTime.Now.AddSeconds(-10 * Expire);
+            var exp = TimerX.Now.AddSeconds(-10 * Expire);
             var list = new List<CacheItem>();
             foreach (var item in es)
             {

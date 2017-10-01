@@ -11,6 +11,7 @@ using System.Web;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
+using NewLife.Threading;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -451,7 +452,7 @@ namespace XCode
 
                 // 当前缓存的值
                 var n = _Count;
-                var now = DateTime.Now;
+                var now = TimerX.Now;
 
                 // 如果有缓存，则考虑返回吧
                 if (n >= 0)
@@ -495,7 +496,7 @@ namespace XCode
             private set
             {
                 _Count = value;
-                _NextCount = DateTime.Now.AddSeconds(60);
+                _NextCount = TimerX.Now.AddSeconds(60);
 
                 var dc = DataCache.Current;
                 dc.Counts[CacheKey] = value;

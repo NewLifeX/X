@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using NewLife.Data;
+using NewLife.Threading;
 using XCode;
 using XCode.Cache;
 
@@ -154,7 +155,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static VisitStat Add(String page, String title, Int32 cost, Int32 userid, String ip, String err)
         {
-            var now = DateTime.Now;
+            var now = TimerX.Now;
 
             // 今天
             var st = Add(page, now.Year, now.Month, now.Day, title, cost, userid, ip, err);
