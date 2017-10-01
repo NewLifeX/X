@@ -145,7 +145,7 @@ namespace XCode.Cache
                         }
                     }
 
-                    WriteLog("对象缓存<{1}>满，删除[{0}]个", list.Count, typeof(TEntity).Name);
+                    XTrace.WriteLine("对象缓存<{0}>满，{1:n0}>{2:n0}，删除[{3:n0}]个", typeof(TEntity).Name, es.Count, MaxEntity, list.Count);
                 }
             }
 
