@@ -87,10 +87,16 @@ namespace XCode.Cache
             // 启动定时器
             if (_timer == null)
             {
-                var ms = 60 * 60 * 1000;
-                if (DAL.Debug) ms = 10 * 60 * 1000;
-                if (Debug) ms = 1 * 60 * 1000;
-                _timer = new TimerX(Check, null, 10000, ms);
+                lock (typeof(CacheBase))
+                {
+                    if (_timer == null)
+                    {
+                        var ms = 60 * 60 * 1000;
+                        if (DAL.Debug) ms = 10 * 60 * 1000;
+                        if (Debug) ms = 1 * 60 * 1000;
+                        _timer = new TimerX(Check, null, 10000, ms);
+                    }
+                }
             }
         }
 
