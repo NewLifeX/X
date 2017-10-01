@@ -70,7 +70,7 @@ namespace XCode.Membership
         [DisplayName("图标")]
         [Description("图标")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Icon", "图标", "nvarchar(50)")]
+        [BindColumn("Icon", "图标", "")]
         public String Icon { get { return _Icon; } set { if (OnPropertyChanging(__.Icon, value)) { _Icon = value; OnPropertyChanged(__.Icon); } } }
 
         private Boolean _Visible;
