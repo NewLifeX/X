@@ -192,6 +192,7 @@ namespace XCode.Cache
             {
                 Entity = entity;
                 ExpireTime = TimerX.Now.AddSeconds(expire);
+                VisitTime = ExpireTime;
             }
         }
         #endregion
