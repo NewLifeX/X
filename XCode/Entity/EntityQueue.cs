@@ -14,7 +14,7 @@ namespace XCode
     {
         #region 属性
         /// <summary>需要近实时保存的实体队列</summary>
-        private ICollection<IEntity> Entities { get; set; }
+        private ConcurrentDictionary<IEntity, IEntity> Entities { get; set; } = new ConcurrentDictionary<IEntity, IEntity>();
 
         /// <summary>需要延迟保存的实体队列</summary>
         private ConcurrentDictionary<IEntity, DateTime> DelayEntities { get; } = new ConcurrentDictionary<IEntity, DateTime>();
@@ -36,10 +36,7 @@ namespace XCode
 
         #region 构造
         /// <summary>实例化实体队列</summary>
-        public EntityQueue()
-        {
-            Entities = new HashSet<IEntity>();
-        }
+        public EntityQueue() { }
         #endregion
 
         #region 方法
@@ -51,23 +48,13 @@ namespace XCode
         {
             if (msDelay <= 0)
             {
-                // 避免重复加入队列
-                var es = Entities;
-                if (es.Contains(entity)) return false;
-
-                lock (this)
-                {
-                    es = Entities;
-                    // 避免重复加入队列
-                    if (es.Contains(entity)) return false;
-
-                    es.Add(entity);
-                }
+                var dic = Entities;
+                dic.TryAdd(entity, entity);
             }
             else
             {
                 var dic = DelayEntities;
-                dic.TryAdd(entity, TimerX.Now.AddMilliseconds(msDelay));
+                dic.AddOrUpdate(entity, TimerX.Now.AddMilliseconds(msDelay), (e, t) => t);
             }
 
             // 放到锁里面，避免重入
@@ -84,8 +71,6 @@ namespace XCode
 
         private void Work(Object state)
         {
-            //if (_Running) return;
-
             var list = new List<IEntity>();
             // 检查是否有延迟保存
             var dic = DelayEntities;
@@ -107,23 +92,14 @@ namespace XCode
             var es = Entities;
             if (es.Count > 0)
             {
-                lock (this)
-                {
-                    // 为了速度，不拷贝，直接创建一个新的集合
-                    es = Entities;
-                    if (es.Count > 0)
-                    {
-                        Entities = new HashSet<IEntity>();
-                        list.AddRange(es);
-                    }
-                }
+                // 为了速度，不拷贝，直接创建一个新的集合
+                Entities = new ConcurrentDictionary<IEntity, IEntity>();
+                list.AddRange(es.Keys);
             }
 
-            //_Running = true;
             if (list.Count > 0) Process(list);
         }
 
-        //private Boolean _Running;
         private void Process(Object state)
         {
             var list = state as ICollection<IEntity>;
@@ -149,8 +125,6 @@ namespace XCode
                 }
 
                 dal.Commit();
-
-                sw.Stop();
             }
             catch
             {
@@ -159,7 +133,7 @@ namespace XCode
             }
             finally
             {
-                //_Running = false;
+                sw.Stop();
             }
 
             // 根据繁忙程度动态调节
@@ -171,9 +145,9 @@ namespace XCode
             else
                 p = p * 1000 / list.Count;
 
-            // 最小间隔100毫秒
+            // 最小间隔
             if (p < 500) p = 500;
-            // 最大间隔3秒
+            // 最大间隔
             if (p > 5000) p = 5000;
 
             if (p != Period)
