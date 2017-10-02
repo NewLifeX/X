@@ -27,6 +27,7 @@ namespace XCode.Membership
 
             // 单对象缓存从键
             var sc = Meta.SingleCache;
+            if (sc.Expire < 20 * 60) sc.Expire = 20 * 60;
             sc.FindSlaveKeyMethod = k =>
             {
                 var ss = k.Split(new Char[] { '#' }, StringSplitOptions.None);

@@ -195,7 +195,7 @@ namespace NewLife.Log
         protected virtual void WriteFile(Object state)
         {
             var writer = LogWriter;
-            if (_Logs.Count == 0)
+            if (_Logs.IsEmpty)
             {
                 // 连续5秒没日志，就关闭
                 var now = TimerX.Now;

@@ -29,9 +29,10 @@ namespace XCode.Membership
             df.Add(__.Times);
             df.Add(__.OnlineTime);
 
-            //var sc = Meta.SingleCache;
-            //sc.FindSlaveKeyMethod = k => Find(__.SessionID, k);
-            //sc.GetSlaveKeyMethod = e => e.SessionID;
+            var sc = Meta.SingleCache;
+            if (sc.Expire < 20 * 60) sc.Expire = 20 * 60;
+            sc.FindSlaveKeyMethod = k => Find(__.SessionID, k);
+            sc.GetSlaveKeyMethod = e => e.SessionID;
 
 #if !DEBUG
             // 关闭SQL日志
@@ -61,8 +62,8 @@ namespace XCode.Membership
         {
             if (id <= 0) return null;
 
-            //return Meta.SingleCache[id];
-            return Find(__.ID, id);
+            return Meta.SingleCache[id];
+            //return Find(__.ID, id);
         }
 
         /// <summary>根据会话编号查找</summary>
@@ -72,8 +73,8 @@ namespace XCode.Membership
         {
             if (sessionid.IsNullOrEmpty()) return null;
 
-            //return Meta.SingleCache.GetItemWithSlaveKey(sessionid) as UserOnline;
-            return Find(__.SessionID, sessionid);
+            return Meta.SingleCache.GetItemWithSlaveKey(sessionid) as UserOnline;
+            //return Find(__.SessionID, sessionid);
         }
 
         /// <summary>根据用户编号查找</summary>
@@ -176,7 +177,7 @@ namespace XCode.Membership
             if (user == null) return SetStatus(sessionid, page, status, 0, null, ip);
 
             user.Online = true;
-            (user as IEntity).SaveAsync();
+            (user as IEntity).SaveAsync(1000);
 
             return SetStatus(sessionid, page, status, user.ID, user + "", ip);
         }

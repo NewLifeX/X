@@ -82,7 +82,7 @@ namespace NewLife.Net
         /// <summary>关闭所有</summary>
         public void CloseAll()
         {
-            if (_dic.Count < 1) return;
+            if (_dic.IsEmpty) return;
 
             foreach (var item in _dic.ToValueArray())
             {
@@ -93,7 +93,7 @@ namespace NewLife.Net
         /// <summary>移除不活动的会话</summary>
         void RemoveNotAlive(Object state)
         {
-            if (_dic.Count < 1) return;
+            if (_dic.IsEmpty) return;
 
             var timeout = 30;
             if (Server != null) timeout = Server.SessionTimeout;

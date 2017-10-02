@@ -36,7 +36,10 @@ namespace XCode
 
         #region 构造
         /// <summary>实例化实体队列</summary>
-        public EntityQueue() { }
+        public EntityQueue()
+        {
+            _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
+        }
         #endregion
 
         #region 方法
@@ -54,16 +57,8 @@ namespace XCode
             else
             {
                 var dic = DelayEntities;
-                dic.AddOrUpdate(entity, TimerX.Now.AddMilliseconds(msDelay), (e, t) => t);
-            }
-
-            // 放到锁里面，避免重入
-            if (_Timer == null)
-            {
-                lock (this)
-                {
-                    if (_Timer == null) _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
-                }
+                //dic.AddOrUpdate(entity, TimerX.Now.AddMilliseconds(msDelay), (e, t) => t);
+                dic.TryAdd(entity, TimerX.Now.AddMilliseconds(msDelay));
             }
 
             return true;
@@ -74,7 +69,7 @@ namespace XCode
             var list = new List<IEntity>();
             // 检查是否有延迟保存
             var dic = DelayEntities;
-            if (dic.Count > 0)
+            if (!dic.IsEmpty)
             {
                 var now = TimerX.Now;
                 foreach (var item in dic)
@@ -90,7 +85,7 @@ namespace XCode
 
             // 检查是否有近实时保存
             var es = Entities;
-            if (es.Count > 0)
+            if (!es.IsEmpty)
             {
                 // 为了速度，不拷贝，直接创建一个新的集合
                 Entities = new ConcurrentDictionary<IEntity, IEntity>();

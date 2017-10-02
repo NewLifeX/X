@@ -82,7 +82,7 @@ namespace NewLife.MessageQueue
             var rs = cs.Remove(userState);
 
             // 如果没有订阅者，则删除消费者
-            if (rs && cs.Subscribers.Count == 0) Consumers.Remove(user);
+            if (rs && cs.Subscribers.IsEmpty) Consumers.Remove(user);
 
             return rs;
         }
@@ -119,7 +119,7 @@ namespace NewLife.MessageQueue
 
         private async void Push(Object state)
         {
-            if (Queue.Count == 0) return;
+            if (Queue.IsEmpty) return;
 
             var ss = Consumers.ToValueArray();
             if (ss.Count == 0) return;

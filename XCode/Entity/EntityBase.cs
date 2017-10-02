@@ -185,7 +185,7 @@ namespace XCode
         protected virtual Int32 SetDirty(Boolean isDirty)
         {
             var ds = _Dirtys;
-            if (ds == null || ds.Count < 1) return 0;
+            if (ds == null || ds.IsEmpty) return 0;
 
             Int32 count = 0;
             foreach (String item in ds.Keys)
