@@ -826,6 +826,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_trace_sqls.Contains(sql)) return;
 
+                if (_trace_sqls.Count >= 1000) _trace_sqls.Clear();
                 _trace_sqls.Add(sql);
             }
             SQLRunEvent obj = new SQLRunEvent() { Sql = sql, RunTime = _swSql.ElapsedMilliseconds };

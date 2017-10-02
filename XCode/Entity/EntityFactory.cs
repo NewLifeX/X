@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,7 +15,7 @@ namespace XCode
     public static class EntityFactory
     {
         #region 创建实体操作接口
-        private static Dictionary<Type, IEntityOperate> op_cache = new Dictionary<Type, IEntityOperate>();
+        private static ConcurrentDictionary<Type, IEntityOperate> _factories = new ConcurrentDictionary<Type, IEntityOperate>();
         /// <summary>创建实体操作接口</summary>
         /// <remarks>
         /// 因为只用来做实体操作，所以只需要一个实例即可。
@@ -29,13 +30,15 @@ namespace XCode
             // 有可能有子类直接继承实体类，这里需要找到继承泛型实体类的那一层
             while (!type.BaseType.IsGenericType) type = type.BaseType;
 
+            if (_factories.TryGetValue(type, out var factory)) return factory;
+
             // 确保实体类已被初始化，实际上，因为实体类静态构造函数中会注册IEntityOperate，所以下面的委托按理应该再也不会被执行了
-            EnsureInit(type);
+            // 先实例化，在锁里面添加到列表但不实例化，避免实体类的实例化过程中访问CreateOperate导致死锁产生
+            type.CreateInstance();
 
-            //return op_cache.GetItem(type, key => { throw new XCodeException("无法创建{0}的实体操作接口！", key); });
+            if (!_factories.TryGetValue(type, out factory)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
 
-            if (!op_cache.TryGetValue(type, out var eop)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
-            return eop;
+            return factory;
         }
 
         /// <summary>根据类型创建实体工厂</summary>
@@ -48,40 +51,13 @@ namespace XCode
 
         /// <summary>使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗</summary>
         /// <param name="type">类型</param>
-        /// <param name="entity"></param>
+        /// <param name="factory"></param>
         /// <returns></returns>
-        public static IEntityOperate Register(Type type, IEntityOperate entity)
+        public static IEntityOperate Register(Type type, IEntityOperate factory)
         {
-            if (entity == null) return CreateOperate(type);
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
 
-            // 重新使用判断，减少锁争夺
-            var eop = entity;
-            if (op_cache.TryGetValue(type, out eop) && eop != null)
-            {
-                var opType = eop.GetType();
-                var enType = entity.GetType();
-
-                // 如果类型相同，或者opType从enType继承，则直接返回，保证缓存使用末端实体操作者opType
-                if (opType == enType || enType.IsAssignableFrom(opType)) return eop;
-            }
-            lock (op_cache)
-            // op_cache曾经是两次非常严重的死锁的核心所在
-            // 事实上，不管怎么样处理，只要这里还锁定op_cache，那么实体类静态构造函数和CreateOperate方法，就有可能导致死锁产生
-            //lock ("op_cache" + type.FullName)
-            {
-                if (op_cache.TryGetValue(type, out eop) && eop != null)
-                {
-                    var opType = eop.GetType();
-                    var enType = entity.GetType();
-
-                    // 如果类型相同，或者opType从enType继承，则直接返回，保证缓存使用末端实体操作者opType
-                    if (opType == enType || enType.IsAssignableFrom(opType)) return eop;
-                }
-
-                op_cache[type] = entity;
-
-                return entity;
-            }
+            return _factories.AddOrUpdate(type, factory, (t, f) => f);
         }
         #endregion
 
@@ -154,31 +130,6 @@ namespace XCode
             }
 
             return tables;
-        }
-        #endregion
-
-        #region 确保实体类已初始化
-        static ICollection<Type> _hasInited = new HashSet<Type>();
-        /// <summary>确保实体类已经执行完静态构造函数，因为那里实在是太容易导致死锁了</summary>
-        /// <remarks>
-        /// 调用平均耗时2.27ns
-        /// </remarks>
-        /// <param name="type">类型</param>
-        internal static void EnsureInit(Type type)
-        {
-            if (_hasInited.Contains(type)) return;
-            // 先实例化，在锁里面添加到列表但不实例化，避免实体类的实例化过程中访问CreateOperate导致死锁产生
-            type.CreateInstance();
-            lock (_hasInited)
-            // 如果这里锁定_hasInited，还是有可能死锁，因为可能实体类A的静态构造函数中可能导致调用另一个实体类的EnsureInit
-            // 其实我们这里加锁的目的，本来就是为了避免重复添加同一个type而已
-            //lock ("_hasInited" + type.FullName)
-            {
-                if (_hasInited.Contains(type)) return;
-
-                //type.CreateInstance();
-                _hasInited.Add(type);
-            }
         }
         #endregion
     }

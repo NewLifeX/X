@@ -67,7 +67,6 @@ namespace XCode.DataAccessLayer
             return dal;
         }
 
-        private static Object _connStrs_lock = new Object();
         private static Dictionary<String, String> _connStrs;
         private static Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
         /// <summary>链接字符串集合</summary>
@@ -79,7 +78,7 @@ namespace XCode.DataAccessLayer
             get
             {
                 if (_connStrs != null) return _connStrs;
-                lock (_connStrs_lock)
+                lock (_connTypes)
                 {
                     if (_connStrs != null) return _connStrs;
                     var cs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -141,8 +140,6 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        static Object lockObj = new Object();
-
         /// <summary>添加连接字符串</summary>
         /// <param name="connName">连接名</param>
         /// <param name="connStr">连接字符串</param>
@@ -152,7 +149,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
             //2016.01.04 @宁波-小董，加锁解决大量分表分库多线程带来的提供者无法识别错误
-            lock (lockObj)
+            lock (_connTypes)
             {
                 if (type == null) type = DbFactory.GetProviderType(connStr, provider);
 
@@ -162,10 +159,6 @@ namespace XCode.DataAccessLayer
                 _connTypes[connName] = type ?? throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
             }
         }
-
-        /// <summary>获取所有已注册的连接名</summary>
-        /// <returns></returns>
-        public static IEnumerable<String> GetNames() { return ConnStrs.Keys; }
         #endregion
 
         #region 属性
@@ -207,15 +200,11 @@ namespace XCode.DataAccessLayer
             {
                 if (_ConnStr != value)
                 {
-                    //2016.01.04 @宁波-小董，加锁解决大量分表分库多线程带来的提供者无法识别错误
-                    lock (this)
-                    {
-                        _ConnStr = value;
-                        _ProviderType = null;
-                        _Db = null;
+                    _ConnStr = value;
+                    _ProviderType = null;
+                    _Db = null;
 
-                        AddConnStr(ConnName, _ConnStr, null, null);
-                    }
+                    AddConnStr(ConnName, _ConnStr, null, null);
                 }
             }
         }
