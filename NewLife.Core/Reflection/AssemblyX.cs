@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -292,7 +293,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         internal List<Type> FindPlugins<TPlugin>() { return FindPlugins(typeof(TPlugin)); }
 
-        private Dictionary<Type, List<Type>> _plugins = new Dictionary<Type, List<Type>>();
+        private ConcurrentDictionary<Type, List<Type>> _plugins = new ConcurrentDictionary<Type, List<Type>>();
         /// <summary>查找插件，带缓存</summary>
         /// <param name="baseType">类型</param>
         /// <returns></returns>
@@ -302,22 +303,18 @@ namespace NewLife.Reflection
             // 如果type是null，则返回所有类型
 
             if (_plugins.TryGetValue(baseType, out var list)) return list;
-            lock (_plugins)
+
+            list = new List<Type>();
+            foreach (var item in Types)
             {
-                if (_plugins.TryGetValue(baseType, out list)) return list;
-
-                list = new List<Type>();
-                foreach (var item in Types)
-                {
-                    if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
-                    if (item != baseType && item.As(baseType)) list.Add(item);
-                }
-                if (list.Count <= 0) list = null;
-
-                _plugins.Add(baseType, list);
-
-                return list;
+                if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
+                if (item != baseType && item.As(baseType)) list.Add(item);
             }
+            if (list.Count <= 0) list = null;
+
+            _plugins.TryAdd(baseType, list);
+
+            return list;
         }
 
         /// <summary>查找所有非系统程序集中的所有插件</summary>

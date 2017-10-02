@@ -242,8 +242,10 @@ namespace NewLife.Net
             if (base.OnReceive(pk, remote)) return true;
 
             // 分析处理
-            var e = new ReceivedEventArgs(pk);
-            e.UserState = remote;
+            var e = new ReceivedEventArgs(pk)
+            {
+                UserState = remote
+            };
 
             // 为该连接单独创建一个会话，方便直接通信
             var session = CreateSession(remote);
@@ -341,14 +343,16 @@ namespace NewLife.Net
                 session = sessions.Get(remoteEP + "");
                 if (session != null) return session;
 
-                var us = new UdpSession(this, remoteEP);
-                us.Log = Log;
-                us.LogSend = LogSend;
-                us.LogReceive = LogReceive;
-                // UDP不好分会话统计
-                //us.StatSend.Parent = StatSend;
-                //us.StatReceive.Parent = StatReceive;
-                us.Packet = SessionPacket?.Create();
+                var us = new UdpSession(this, remoteEP)
+                {
+                    Log = Log,
+                    LogSend = LogSend,
+                    LogReceive = LogReceive,
+                    // UDP不好分会话统计
+                    //us.StatSend.Parent = StatSend;
+                    //us.StatReceive.Parent = StatReceive;
+                    Packet = SessionPacket?.Create()
+                };
 
                 session = us;
                 if (sessions.Add(session))
