@@ -235,7 +235,7 @@ namespace XCode.Transform
                 var sw = Stopwatch.StartNew();
 
                 var rs = OnProcess(ctx);
-                ctx.Success = rs == null ? 0 : rs.Count;
+                if (rs != null && ctx.Success == 0) ctx.Success = rs.Count;
 
                 sw.Stop();
                 ctx.ProcessCost = sw.Elapsed.TotalMilliseconds;
