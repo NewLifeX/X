@@ -169,6 +169,16 @@ namespace XCode.DataAccessLayer
         {
             if (Transaction != null || !Opened) return;
 
+            // 检查是否支持自动关闭
+            if (_EnableAutoClose != null)
+            {
+                if (!_EnableAutoClose.Value) return;
+            }
+            else
+            {
+                if (!Database.AutoClose) return;
+            }
+
             //// 延迟关闭
             //if (DelayClose == 0)
             //{
@@ -182,6 +192,14 @@ namespace XCode.DataAccessLayer
             //    // 不再处理，允许关闭
             //    _running = false;
             //}
+        }
+
+        private Boolean? _EnableAutoClose;
+        /// <summary>设置自动关闭。启用、禁用、继承</summary>
+        /// <param name="enable"></param>
+        public void SetAutoClose(Boolean? enable)
+        {
+            _EnableAutoClose = enable;
         }
 
         //private Boolean _running;
@@ -797,9 +815,9 @@ namespace XCode.DataAccessLayer
             if (_swSql == null) return;
 
             _swSql.Stop();
-            
+
             if (_swSql.ElapsedMilliseconds < (Database as DbBase).TraceSQLTime) return;
-            
+
             var sql = GetSql(cmd);
 
             // 同一个SQL只需要报警一次

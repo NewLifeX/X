@@ -51,6 +51,10 @@ namespace XCode.DataAccessLayer
         /// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
         /// </summary>
         void AutoClose();
+
+        /// <summary>设置自动关闭。启用、禁用、继承</summary>
+        /// <param name="enable"></param>
+        void SetAutoClose(Boolean? enable);
         #endregion
 
         #region 事务
