@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -126,6 +127,12 @@ namespace Test
             //    XTrace.WriteLine("{0}", TimerX.Now);
             //    Thread.Sleep(200);
             //}
+
+            var dic = new ConcurrentDictionary<Int32, String>();
+            dic.TryAdd(11, "111");
+            dic.TryAdd(22, "222");
+            var cs = dic.ToValueArray();
+            Console.WriteLine(cs);
 
             var u = UserX.FindByName("admin");
             Console.WriteLine(u);

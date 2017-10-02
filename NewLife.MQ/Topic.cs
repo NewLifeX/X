@@ -77,8 +77,7 @@ namespace NewLife.MessageQueue
         public Boolean Remove(String user, Object userState)
         {
             //if (!Consumers.Remove(user)) return false;
-            Consumer cs = null;
-            if (!Consumers.TryGetValue(user, out cs)) return false;
+            if (!Consumers.TryGetValue(user, out var cs)) return false;
 
             var rs = cs.Remove(userState);
 
@@ -123,7 +122,7 @@ namespace NewLife.MessageQueue
             if (Queue.Count == 0) return;
 
             var ss = Consumers.ToValueArray();
-            if (ss.Length == 0) return;
+            if (ss.Count == 0) return;
 
             // 消息出列
             Message msg = null;
@@ -138,7 +137,7 @@ namespace NewLife.MessageQueue
             }
         }
 
-        private async Task<Int32> Dispatch(Message msg, Consumer[] ss)
+        private async Task<Int32> Dispatch(Message msg, IEnumerable<Consumer> ss)
         {
             var ts = new List<Task>();
             // 向每一个订阅者推送消息

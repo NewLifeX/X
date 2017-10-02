@@ -45,12 +45,14 @@ namespace NewLife.Net
         {
             var now = DateTime.Now;
 
-            var qi = new Item();
-            qi.Owner = owner;
-            qi.Request = request;
-            qi.Remote = remote;
-            qi.EndTime = now.AddMilliseconds(msTimeout);
-            qi.Source = new TaskCompletionSource<Packet>();
+            var qi = new Item
+            {
+                Owner = owner,
+                Request = request,
+                Remote = remote,
+                EndTime = now.AddMilliseconds(msTimeout),
+                Source = new TaskCompletionSource<Packet>()
+            };
 
             // 加锁处理，更安全
             var qs = Items;

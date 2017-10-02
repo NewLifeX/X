@@ -475,8 +475,10 @@ namespace NewLife.Net
 
             Console.ResetColor();
 
-            var sp = new SerialTransport();
-            sp.PortName = name;
+            var sp = new SerialTransport
+            {
+                PortName = name
+            };
 
             return sp;
         }

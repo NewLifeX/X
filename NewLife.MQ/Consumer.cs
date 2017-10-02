@@ -36,13 +36,14 @@ namespace NewLife.MessageQueue
             if (user == null) user = "";
             if (Subscribers.ContainsKey(user)) return false;
 
-            var scb = new Subscriber(user, tag, onMessage);
-            scb.Host = this;
+            var scb = new Subscriber(user, tag, onMessage)
+            {
+                Host = this
+            };
             Subscribers[user] = scb;
 
             // 自动删除
-            var dp = user as IDisposable2;
-            if (dp != null) dp.OnDisposed += (s, e) => Remove(user);
+            if (user is IDisposable2 dp) dp.OnDisposed += (s, e) => Remove(user);
 
             return true;
         }
@@ -64,10 +65,10 @@ namespace NewLife.MessageQueue
         {
             // 向其中一个订阅者推送消息
             var ss = Subscribers.ToValueArray();
-            for (int i = 0; i < ss.Length; i++)
+            for (var i = 0; i < ss.Count; i++)
             {
                 var idx = _next + i;
-                if (idx >= ss.Length) idx = 0;
+                if (idx >= ss.Count) idx = 0;
 
                 var item = ss[idx];
                 if (item.IsMatch(msg))
