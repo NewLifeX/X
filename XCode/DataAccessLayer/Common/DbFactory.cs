@@ -29,6 +29,8 @@ namespace XCode.DataAccessLayer
                 .Reg<Oracle>()
                 .Reg<MySql>()
                 .Reg<PostgreSQL>()
+                .Reg<Access>()
+                .Reg<SqlCe>()
                 .Reg<SQLite>(String.Empty);
             // SQLite作为默认实现
         }
