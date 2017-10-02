@@ -79,7 +79,7 @@ namespace NewLife.Cube
 
             // 根据请求Url定位资源菜单
             var url = filterContext.HttpContext.Request.AppRelativeCurrentExecutionFilePath;
-            var menu = ManageProvider.Menu.Current;
+            var menu = ManageProvider.Menu?.Current;
             if (menu != null)
             {
                 var role = user?.Role;

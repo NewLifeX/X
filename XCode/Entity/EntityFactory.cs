@@ -57,7 +57,10 @@ namespace XCode
         {
             if (factory == null) throw new ArgumentNullException(nameof(factory));
 
-            return _factories.AddOrUpdate(type, factory, (t, f) => f);
+            //return _factories.AddOrUpdate(type, factory, (t, f) => f);
+            _factories[type] = factory;
+
+            return factory;
         }
         #endregion
 

@@ -251,8 +251,8 @@ namespace NewLife.Log
         {
             var e = WriteLogEventArgs.Current.Set(level);
             // 特殊处理异常对象
-            if (args != null && args.Length == 1 && args[0] is Exception && (String.IsNullOrEmpty(format) || format == "{0}"))
-                e = e.Set(null, args[0] as Exception);
+            if (args != null && args.Length == 1 && args[0] is Exception ex && (format.IsNullOrEmpty() || format == "{0}"))
+                e = e.Set(null, ex);
             else
                 e = e.Set(Format(format, args), null);
 
