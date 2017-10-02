@@ -93,7 +93,7 @@ namespace XCode.Cache
             // 第一次所有线程一起等待结果
             if (Times == 1 && WaitFirst && _task != null)
             {
-                if (!_task.Wait(5000)) WriteLog("{0}缓存初始化超时，当前线程可能取得空数据", ToString());
+                if (!_task.Wait(5000)) XTrace.WriteLine("{0}缓存初始化超时，当前线程可能取得空数据", ToString());
             }
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
@@ -149,11 +149,11 @@ namespace XCode.Cache
         {
             if (!Using) return;
 
-            lock (this)
-            {
-                // 直接执行异步更新，明明白白，确保任何情况下数据最新，并且不影响其它任务的性能
-                UpdateCacheAsync(reason);
-            }
+            //lock (this)
+            //{
+            // 直接执行异步更新，明明白白，确保任何情况下数据最新，并且不影响其它任务的性能
+            UpdateCacheAsync(reason);
+            //}
         }
 
         private IEntityOperate Operate = Entity<TEntity>.Meta.Factory;
@@ -172,15 +172,15 @@ namespace XCode.Cache
         {
             if (!Using) return null;
 
-            var es = _Entities.ToArray();
+            var es = _Entities;
             var fi = Operate.Unique;
             if (fi == null) return null;
 
-            var e = es.FirstOrDefault(x => x == entity);
+            var e = es.Find(x => x == entity);
             if (e == null)
             {
                 var v = entity[fi.Name];
-                e = es.FirstOrDefault(x => x[fi.Name] == v);
+                e = es.Find(x => x[fi.Name] == v);
             }
             if (e == null) return null;
 
@@ -188,7 +188,7 @@ namespace XCode.Cache
             // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
             lock (es)
             {
-                _Entities.Remove(e);
+                es.Remove(e);
             }
 
             return e;
