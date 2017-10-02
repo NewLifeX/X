@@ -79,7 +79,7 @@ namespace XCode
             var type = EntityType;
             if (type != null && !module.Init(type)) return;
 
-            lock (this)
+            lock (Modules)
             {
                 var list = new List<IEntityModule>(Modules);
                 list.Add(module);

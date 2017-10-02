@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Concurrent;
+using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Reflection;
@@ -37,9 +38,11 @@ namespace System.Collections.Generic
         /// <param name="collection"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public static TKey[] ToKeyArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0)
+        public static ICollection<TKey> ToKeyArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0)
         {
             if (collection == null) return null;
+
+            if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Keys;
 
             if (collection.Count == 0) return new TKey[0];
             lock (collection)
@@ -56,9 +59,11 @@ namespace System.Collections.Generic
         /// <param name="collection"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public static TValue[] ToValueArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0)
+        public static ICollection<TValue> ToValueArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0)
         {
             if (collection == null) return null;
+
+            if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Values;
 
             if (collection.Count == 0) return new TValue[0];
             lock (collection)

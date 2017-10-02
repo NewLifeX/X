@@ -121,53 +121,14 @@ namespace Test
             //    Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
             //}
 
-            for (int i = 0; i < 100; i++)
-            {
-                XTrace.WriteLine("{0}", TimerX.Now);
-                Thread.Sleep(200);
-            }
-        }
+            //for (int i = 0; i < 100; i++)
+            //{
+            //    XTrace.WriteLine("{0}", TimerX.Now);
+            //    Thread.Sleep(200);
+            //}
 
-        class TestModule : EntityModule
-        {
-            protected override Boolean OnInit(Type entityType)
-            {
-                return entityType == typeof(UserX);
-            }
-
-            protected override Boolean OnValid(IEntity entity, Boolean isNew)
-            {
-                if (isNew)
-                    XTrace.WriteLine("新增实体 " + entity.GetType().Name);
-                else
-                    XTrace.WriteLine("更新实体 " + entity.GetType().Name);
-
-                return base.OnValid(entity, isNew);
-            }
-
-            protected override Boolean OnDelete(IEntity entity)
-            {
-                XTrace.WriteLine("删除实体 " + entity.GetType().Name);
-
-                return base.OnDelete(entity);
-            }
-
-            public static void Test()
-            {
-                EntityModules.Global.Add<TestModule>();
-
-                var user = new UserX
-                {
-                    Name = "Stone",
-                    RoleID = 1
-                };
-                user.Save();
-
-                user.Name = "大石头";
-                user.Update();
-
-                user.Delete();
-            }
+            var u = UserX.FindByName("admin");
+            Console.WriteLine(u);
         }
     }
 }
