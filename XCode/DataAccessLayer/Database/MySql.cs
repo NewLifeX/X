@@ -325,7 +325,7 @@ namespace XCode.DataAccessLayer
 
         public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
-            String sql = base.FieldClause(field, onlyDefine);
+            var sql = base.FieldClause(field, onlyDefine);
             // 加上注释
             if (!String.IsNullOrEmpty(field.Description)) sql = String.Format("{0} COMMENT '{1}'", sql, field.Description);
             return sql;

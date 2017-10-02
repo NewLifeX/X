@@ -81,8 +81,10 @@ namespace XCode
 
             lock (Modules)
             {
-                var list = new List<IEntityModule>(Modules);
-                list.Add(module);
+                var list = new List<IEntityModule>(Modules)
+                {
+                    module
+                };
 
                 Modules = list.ToArray();
             }

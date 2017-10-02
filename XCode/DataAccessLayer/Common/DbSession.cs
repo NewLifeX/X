@@ -829,7 +829,7 @@ namespace XCode.DataAccessLayer
                 if (_trace_sqls.Count >= 1000) _trace_sqls.Clear();
                 _trace_sqls.Add(sql);
             }
-            SQLRunEvent obj = new SQLRunEvent() { Sql = sql, RunTime = _swSql.ElapsedMilliseconds };
+            var obj = new SQLRunEvent() { Sql = sql, RunTime = _swSql.ElapsedMilliseconds };
             EventBus.Instance.Publish(obj);
             XTrace.WriteLine("SQL耗时较长，建议优化 {0:n0}毫秒 {1}", _swSql.ElapsedMilliseconds, sql);
         }

@@ -297,12 +297,14 @@ namespace XCode.Membership
 
             if (pass.IsNullOrEmpty()) pass = name;
 
-            var entity = new TEntity();
-            entity.Name = name;
-            entity.Password = pass.MD5();
-            entity.DisplayName = display;
-            entity.RoleID = roleid;
-            entity.Enable = true;
+            var entity = new TEntity
+            {
+                Name = name,
+                Password = pass.MD5(),
+                DisplayName = display,
+                RoleID = roleid,
+                Enable = true
+            };
 
             entity.Save();
 
@@ -365,7 +367,7 @@ namespace XCode.Membership
                     var p = password;
                     if (!String.IsNullOrEmpty(p))
                     {
-                        for (Int32 i = 0; i < hashTimes; i++)
+                        for (var i = 0; i < hashTimes; i++)
                         {
                             p = p.MD5();
                         }
@@ -375,7 +377,7 @@ namespace XCode.Membership
                 else
                 {
                     var p = user.Password;
-                    for (Int32 i = 0; i > hashTimes; i--)
+                    for (var i = 0; i > hashTimes; i--)
                     {
                         p = p.MD5();
                     }
@@ -389,7 +391,7 @@ namespace XCode.Membership
                     var p = password;
                     if (!String.IsNullOrEmpty(p))
                     {
-                        for (Int32 i = 0; i < hashTimes; i++)
+                        for (var i = 0; i < hashTimes; i++)
                         {
                             p = p.MD5();
                         }

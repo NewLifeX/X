@@ -7,11 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web;
 using NewLife.Data;
 using NewLife.Model;
 using NewLife.Threading;
-using NewLife.Web;
 
 namespace XCode.Membership
 {
@@ -22,7 +20,7 @@ namespace XCode.Membership
         static UserOnline()
         {
             // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
-            UserOnline entity = new UserOnline();
+            var entity = new UserOnline();
 
             Meta.Modules.Add<TimeModule>();
             Meta.Modules.Add<IPModule>();

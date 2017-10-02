@@ -113,8 +113,10 @@ namespace NewLife.Log
                 try
                 {
                     var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-                    writer = new StreamWriter(stream, Encoding.UTF8);
-                    writer.AutoFlush = true;
+                    writer = new StreamWriter(stream, Encoding.UTF8)
+                    {
+                        AutoFlush = true
+                    };
                 }
                 catch { }
             }
@@ -129,8 +131,10 @@ namespace NewLife.Log
                     try
                     {
                         var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-                        writer = new StreamWriter(stream, Encoding.UTF8);
-                        writer.AutoFlush = true;
+                        writer = new StreamWriter(stream, Encoding.UTF8)
+                        {
+                            AutoFlush = true
+                        };
                         break;
                     }
                     catch

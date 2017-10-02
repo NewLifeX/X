@@ -94,8 +94,10 @@ namespace XCode.Cache
                 if (period > 60 * 1000) period = 60 * 1000;
 
                 // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
-                _Timer = new TimerX(CheckExpire, null, period, period, "SC");
-                _Timer.Async = true;
+                _Timer = new TimerX(CheckExpire, null, period, period, "SC")
+                {
+                    Async = true
+                };
             }
         }
 
@@ -121,8 +123,7 @@ namespace XCode.Cache
                     list.Add(ci);
                 else if (slist != null)
                 {
-                    IList<CacheItem> ss = null;
-                    if (!slist.TryGetValue(ci.VisitTime, out ss))
+                    if (!slist.TryGetValue(ci.VisitTime, out var ss))
                         slist.Add(ci.VisitTime, ss = new List<CacheItem>());
 
                     ss.Add(ci);
@@ -135,7 +136,7 @@ namespace XCode.Cache
                 over = es.Count - list.Count - MaxEntity;
                 if (over > 0)
                 {
-                    for (int i = 0; i < slist.Count && over > 0; i++)
+                    for (var i = 0; i < slist.Count && over > 0; i++)
                     {
                         var ss = slist.Values[i];
                         if (ss != null && ss.Count > 0)

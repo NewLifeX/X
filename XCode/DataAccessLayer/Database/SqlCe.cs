@@ -216,9 +216,11 @@ namespace XCode.DataAccessLayer
             DataTable dt = null;
             dt = session.Query(_AllTableNameSql).Tables[0];
 
-            var data = new NullableDictionary<String, DataTable>(StringComparer.OrdinalIgnoreCase);
-            data["Columns"] = session.Query(_AllColumnSql).Tables[0];
-            data["Indexes"] = session.Query(_AllIndexSql).Tables[0];
+            var data = new NullableDictionary<String, DataTable>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Columns"] = session.Query(_AllColumnSql).Tables[0],
+                ["Indexes"] = session.Query(_AllIndexSql).Tables[0]
+            };
 
             ////数据类型DBType --〉DotNetType转换
             //if (SqlCe.SqlCeProviderVersion < SQLCEVersion.SQLCE40)
