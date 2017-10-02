@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -69,25 +70,11 @@ namespace XCode.DataAccessLayer
             var ss = _sessions;
             if (ss != null)
             {
-                // 不要清空，否则可能引起CreateSession中的_sessions[tid] = session;报null异常
-                //_sessions = null;
-
-                List<IDbSession> list = null;
-                // 销毁本数据库的所有数据库会话
-                // 复制后再销毁，避免销毁导致异常，也降低加锁时间避免死锁
-                lock (ss)
+                foreach (var item in ss)
                 {
-                    list = ss.Values.ToList();
-                    ss.Clear();
+                    item.TryDispose();
                 }
-                foreach (var item in list)
-                {
-                    try
-                    {
-                        if (item != null) item.Dispose();
-                    }
-                    catch { }
-                }
+                ss.Clear();
             }
         }
         #endregion
@@ -183,7 +170,7 @@ namespace XCode.DataAccessLayer
                 if (!session.Opened) session.Open();
                 try
                 {
-                    ver =  _ServerVersion = session.Conn.ServerVersion;
+                    ver = _ServerVersion = session.Conn.ServerVersion;
 
                     return ver;
                 }
@@ -200,31 +187,32 @@ namespace XCode.DataAccessLayer
 
         #region 方法
         /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
-        private Dictionary<Int32, IDbSession> _sessions = new Dictionary<Int32, IDbSession>();
+        private ConcurrentDictionary<Int32, IDbSession> _sessions = new ConcurrentDictionary<Int32, IDbSession>();
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
         public IDbSession CreateSession()
         {
             var ss = _sessions;
-            //if (ss == null) ss = _sessions = new Dictionary<Int32, IDbSession>();
 
             var tid = Thread.CurrentThread.ManagedThreadId;
             // 会话可能已经被销毁
             if (ss.TryGetValue(tid, out var session) && session != null && !session.Disposed) return session;
-            lock (ss)
+
+            session = OnCreateSession();
+
+            CheckConnStr();
+            session.ConnectionString = ConnectionString;
+
+            //ss[tid] = session;
+            var sn = ss.GetOrAdd(tid, session);
+            if (sn != session)
             {
-                if (ss.TryGetValue(tid, out session) && session != null && !session.Disposed) return session;
-
-                session = OnCreateSession();
-
-                CheckConnStr();
-                session.ConnectionString = ConnectionString;
-
-                ss[tid] = session;
-
-                return session;
+                session.Dispose();
+                session = sn;
             }
+
+            return session;
         }
 
         /// <summary>创建数据库会话</summary>
@@ -757,6 +745,9 @@ namespace XCode.DataAccessLayer
         {
             return ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
         }
+
+        /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
+        public Boolean AutoClose { get; set; } = true;
         #endregion
 
         #region 辅助函数
