@@ -191,29 +191,29 @@ namespace XCode
                 if (!isnew.Value) throw new XCodeException("只写的日志型数据禁止修改！");
             }
 
-            using (var trans = new EntityTransaction<TEntity>())
+            //using (var trans = new EntityTransaction<TEntity>())
+            //{
+            if (enableValid)
             {
-                if (enableValid)
+                var rt = false;
+                if (isnew != null)
                 {
-                    var rt = false;
-                    if (isnew != null)
-                    {
-                        Valid(isnew.Value);
-                        rt = Meta._Modules.Valid(this, isnew.Value);
-                    }
-                    else
-                        rt = Meta._Modules.Delete(this);
-
-                    // 没有更新任何数据
-                    if (!rt) return -1;
+                    Valid(isnew.Value);
+                    rt = Meta._Modules.Valid(this, isnew.Value);
                 }
+                else
+                    rt = Meta._Modules.Delete(this);
 
-                var rs = func();
-
-                trans.Commit();
-
-                return rs;
+                // 没有更新任何数据
+                if (!rt) return -1;
             }
+
+            var rs = func();
+
+            //trans.Commit();
+
+            return rs;
+            //}
         }
 
         /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
