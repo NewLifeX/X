@@ -5,6 +5,7 @@ using System.Linq;
 using NewLife;
 using NewLife.Reflection;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -135,7 +136,7 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Insert<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 Insert<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.Insert());
         }
@@ -144,7 +145,7 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Update<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 Update<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.Update());
         }
@@ -153,7 +154,7 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Save<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 Save<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.Save());
         }
@@ -162,7 +163,7 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 SaveWithoutValid<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 SaveWithoutValid<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.SaveWithoutValid());
         }
@@ -171,29 +172,44 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Delete<T>(this IEnumerable<T> list, Boolean useTransition = true) where T : IEntity
+        public static Int32 Delete<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
             return DoAction(list, useTransition, e => e.Delete());
         }
 
-        private static Int32 DoAction<T>(this IEnumerable<T> list, Boolean useTransition, Func<T, Int32> func) where T : IEntity
+        private static Int32 DoAction<T>(this IEnumerable<T> list, Boolean? useTransition, Func<T, Int32> func) where T : IEntity
         {
             if (!list.Any()) return 0;
 
+            var fact = EntityFactory.CreateOperate(list.First().GetType());
+
+            // SQLite 批操作默认使用事务，其它数据库默认不使用事务
+            if (useTransition == null) useTransition = fact.Session.Dal.DbType == DatabaseType.SQLite;
+
+            // 禁用自动关闭连接，提升批操作性能
+            var ss = fact.Session.Dal.Session;
+            ss.SetAutoClose(false);
+
             var count = 0;
-            if (useTransition)
+            try
             {
-                var fact = EntityFactory.CreateOperate(list.First().GetType());
-                using (var trans = fact.CreateTrans())
+                if (useTransition != null && useTransition.Value)
+                {
+                    using (var trans = fact.CreateTrans())
+                    {
+                        count = DoAction(list, func, count);
+
+                        trans.Commit();
+                    }
+                }
+                else
                 {
                     count = DoAction(list, func, count);
-
-                    trans.Commit();
                 }
             }
-            else
+            finally
             {
-                count = DoAction(list, func, count);
+                ss.SetAutoClose(null);
             }
 
             return count;

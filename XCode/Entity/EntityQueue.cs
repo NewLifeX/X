@@ -106,7 +106,8 @@ namespace XCode
             var sw = Stopwatch.StartNew();
 
             // 开启事务保存
-            dal.BeginTransaction();
+            var useTrans = dal.DbType == DatabaseType.SQLite;
+            if (useTrans) dal.BeginTransaction();
             try
             {
                 foreach (var item in list)
@@ -119,11 +120,11 @@ namespace XCode
                     catch { }
                 }
 
-                dal.Commit();
+                if (useTrans) dal.Commit();
             }
             catch
             {
-                dal.Rollback();
+                if (useTrans) dal.Rollback();
                 throw;
             }
             finally
