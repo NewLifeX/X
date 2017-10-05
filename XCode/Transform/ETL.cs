@@ -268,6 +268,10 @@ namespace XCode.Transform
                 {
                     ProcessList(ctx);
                 }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
                 finally
                 {
                     Interlocked.Decrement(ref _currentTask);

@@ -361,13 +361,20 @@ namespace XCode.Cache
             // 先修改过期时间
             item.ExpireTime = TimerX.Now.AddSeconds(Expire);
 
-            // 更新过期缓存，在原连接名表名里面获取
-            var entity = Invoke(FindKeyMethod, item.Key);
-            if (entity != null)
-                item.SetEntity(entity, Expire);
-            else if (item.Entity != null)
-                // 数据库查不到，说明该数据可能已经被删除
-                RemoveKey(item.Key);
+            try
+            {
+                // 更新过期缓存，在原连接名表名里面获取
+                var entity = Invoke(FindKeyMethod, item.Key);
+                if (entity != null)
+                    item.SetEntity(entity, Expire);
+                else if (item.Entity != null)
+                    // 数据库查不到，说明该数据可能已经被删除
+                    RemoveKey(item.Key);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
         }
         #endregion
 

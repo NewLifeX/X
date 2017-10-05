@@ -103,9 +103,16 @@ namespace XCode
                 // 查询列表异步加入对象缓存
                 ThreadPool.UnsafeQueueUserWorkItem(s =>
                 {
-                    foreach (var item in list)
+                    try
                     {
-                        sc.Add(item);
+                        foreach (var item in list)
+                        {
+                            sc.Add(item);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
                     }
                 }, null);
             }
