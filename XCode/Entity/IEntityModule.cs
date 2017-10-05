@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Collections;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace XCode
 {
@@ -62,7 +65,7 @@ namespace XCode
         public virtual void Add(IEntityModule module)
         {
             // 异步添加实体模块，避免死锁。实体类一般在静态构造函数里面添加模块，如果这里同步初始化会非常危险
-            Task.Run(() => AddAsync(module));
+            TaskEx.Run(() => AddAsync(module));
         }
 
         /// <summary>添加实体模块</summary>

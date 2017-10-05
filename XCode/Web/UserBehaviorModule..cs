@@ -10,6 +10,9 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Web;
 using XCode.Membership;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace XCode.Web
 {
@@ -65,7 +68,7 @@ namespace XCode.Web
             var title = GetTitle(ctx, req);
             var msg = GetMessage(ctx, req, title);
 
-            Task.Run(() =>
+            TaskEx.Run(() =>
             {
                 try
                 {

@@ -55,7 +55,7 @@ namespace XCode.Membership
             SavePermission();
             if (Icon.IsNullOrWhiteSpace()) Icon = "&#xe63f;";
             // 更改日志保存顺序，先保存才能获取到id
-            String action = "添加";
+            var action = "添加";
             var isNew = IsNullKey;
             if (!isNew)
             {
@@ -68,7 +68,7 @@ namespace XCode.Membership
                 LogProvider.Provider.WriteLog(action, this);
             }
 
-            Int32 result = base.Save();
+            var result = base.Save();
 
             if (isNew) LogProvider.Provider.WriteLog(action, this);
 
@@ -105,7 +105,7 @@ namespace XCode.Membership
 
         #region 扩展属性
         /// <summary></summary>
-        public string Url2 => Url?.Replace("~", "");
+        public String Url2 => Url?.Replace("~", "");
         /// <summary>父菜单名</summary>
         [XmlIgnore, ScriptIgnore]
         public virtual String ParentMenuName { get { return Parent?.Name; } set { } }
@@ -155,7 +155,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity FindForName(String name)
         {
-            TEntity entity = FindByName(name);
+            var entity = FindByName(name);
             if (entity != null) return entity;
 
             return Root.FindByPath(name, _.Name, _.DisplayName);
@@ -192,14 +192,16 @@ namespace XCode.Membership
         /// <returns></returns>
         public TEntity Add(String name, String displayName, String url)
         {
-            var entity = new TEntity();
-            entity.Name = name;
-            entity.DisplayName = displayName;
-            entity.Url = url;
-            entity.ParentID = ID;
-            entity.Parent = this as TEntity;
+            var entity = new TEntity
+            {
+                Name = name,
+                DisplayName = displayName,
+                Url = url,
+                ParentID = ID,
+                Parent = this as TEntity,
 
-            entity.Visible = ID == 0 || displayName != null;
+                Visible = ID == 0 || displayName != null
+            };
 
             entity.Save();
 
@@ -326,7 +328,7 @@ namespace XCode.Membership
                         if (ss[0] == "~") max++;
 
                         // 寻找当前所属菜单，路径倒序，从最长Url路径查起
-                        for (Int32 i = max; i > 0 && menu == null; i--)
+                        for (var i = max; i > 0 && menu == null; i--)
                         {
                             var url = ss.Take(i).Join("/");
                             menu = FindByUrl(url);
@@ -500,7 +502,7 @@ namespace XCode.Membership
                 //    }
                 //}
 
-                for (Int32 i = 0; i < ms.Count; i++)
+                for (var i = 0; i < ms.Count; i++)
                 {
                     (ms[i] as IEntity).Save();
                 }

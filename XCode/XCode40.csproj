@@ -54,14 +54,18 @@
     <Compile Include="Attributes\BindIndexAttribute.cs" />
     <Compile Include="Attributes\MapAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
+    <Compile Include="Cache\DataCache.cs" />
     <Compile Include="Code\ClassBuilder.cs" />
     <Compile Include="Code\EntityBuilder.cs" />
     <Compile Include="Common\DataSimulation.cs" />
     <Compile Include="Configuration\FieldExtension.cs" />
     <Compile Include="DataAccessLayer\Common\ITransaction.cs" />
+    <Compile Include="DataAccessLayer\Database\Access.cs" />
+    <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataAccessLayer\MSPageSplit.cs" />
     <Compile Include="Entity\EntityExtend.cs" />
     <Compile Include="Entity\EntityExtension.cs" />
     <Compile Include="Entity\EntityQueue.cs" />
@@ -70,6 +74,13 @@
     <Compile Include="Entity\EntitySession.cs" />
     <Compile Include="Entity\IEntityModule.cs" />
     <Compile Include="Entity\IEntitySession.cs" />
+    <Compile Include="Events\ActionDelegatedEventHandler.cs" />
+    <Compile Include="Events\EventBus.cs" />
+    <Compile Include="Events\HandlesAsynchronouslyAttribute.cs" />
+    <Compile Include="Events\IEvent.cs" />
+    <Compile Include="Events\IEventHandler.cs" />
+    <Compile Include="Events\SQLRunEvent.cs" />
+    <Compile Include="Events\SqlRunEventHandler.cs" />
     <Compile Include="Exceptions\EntityException.cs" />
     <Compile Include="Cache\FieldCache.cs" />
     <Compile Include="Membership\LogEntity.cs" />

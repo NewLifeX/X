@@ -468,7 +468,7 @@ namespace XCode
                     {
                         _NextCount = now.AddSeconds(60);
                         // 异步更新
-                        Task.Run(() => LongCount = GetCount(_Count));
+                        TaskEx.Run(() => LongCount = GetCount(_Count));
                     }
 
                     return n;
