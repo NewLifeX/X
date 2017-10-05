@@ -45,7 +45,7 @@ namespace XCode.DataAccessLayer
                 builder[Server_Key] = IPAddress.Loopback.ToString();
             }
             if (!builder.ContainsKey(CharSet)) builder[CharSet] = "utf8";
-            if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
+            //if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
         }
         #endregion
 
