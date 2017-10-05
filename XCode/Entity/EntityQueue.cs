@@ -100,7 +100,7 @@ namespace XCode
             var list = state as ICollection<IEntity>;
             var dal = Dal;
 
-            if (Debug) XTrace.WriteLine("实体队列[{0}]\t准备持久化{1}个对象", dal.ConnName, list.Count);
+            if (Debug || list.Count > 10000) XTrace.WriteLine("实体队列[{0}]\t准备持久化{1}个对象", dal.ConnName, list.Count);
 
             var rs = new List<Int32>();
             var sw = Stopwatch.StartNew();
@@ -152,7 +152,7 @@ namespace XCode
                 _Timer.Period = p;
             }
 
-            if (Debug) XTrace.WriteLine("实体队列[{0}]\t共耗时 {1:n0}毫秒\t周期 {2:n0}毫秒", dal.ConnName, sw.ElapsedMilliseconds, p);
+            if (Debug || list.Count > 10000) XTrace.WriteLine("实体队列[{0}]\t共耗时 {1:n0}毫秒\t周期 {2:n0}毫秒", dal.ConnName, sw.ElapsedMilliseconds, p);
 
             if (Completed != null)
             {

@@ -58,6 +58,9 @@ namespace XCode.Cache
         #region 设置
         /// <summary>是否调试缓存模块</summary>
         public static Boolean Debug { get; set; }
+
+        /// <summary>显示统计信息的周期。默认60*60s，DAL.Debug=true时10*60s，Debug=true时60s</summary>
+        public static Int32 Period { get; set; }
         #endregion
 
         internal static void WriteLog(String format, params Object[] args)
@@ -91,9 +94,13 @@ namespace XCode.Cache
                 {
                     if (_timer == null)
                     {
-                        var ms = 60 * 60 * 1000;
-                        if (DAL.Debug) ms = 10 * 60 * 1000;
-                        if (Debug) ms = 1 * 60 * 1000;
+                        var ms = Period * 1000;
+                        if (ms == 0)
+                        {
+                            ms = 60 * 60 * 1000;
+                            if (DAL.Debug) ms = 10 * 60 * 1000;
+                            if (Debug) ms = 1 * 60 * 1000;
+                        }
                         _timer = new TimerX(Check, null, 10000, ms);
                     }
                 }
