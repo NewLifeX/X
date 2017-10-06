@@ -217,6 +217,8 @@ namespace XCode.DataAccessLayer
         public void SetAutoClose(Boolean? enable)
         {
             _EnableAutoClose = enable;
+
+            if (enable == null || enable.Value) AutoClose();
         }
 
         //private Boolean _running;

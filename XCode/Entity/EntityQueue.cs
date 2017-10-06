@@ -99,17 +99,20 @@ namespace XCode
         {
             var list = state as ICollection<IEntity>;
             var dal = Dal;
+            var useTrans = dal.DbType == DatabaseType.SQLite;
 
-            if (Debug || list.Count > 10000) XTrace.WriteLine("实体队列[{0}]\t准备持久化{1}个对象", dal.ConnName, list.Count);
+            if (Debug || list.Count > 10000) XTrace.WriteLine($"实体队列[{dal.ConnName}]\t准备持久化 {list.Count:n0} 个对象，事务:{useTrans}");
 
             var rs = new List<Int32>();
             var sw = Stopwatch.StartNew();
 
             // 开启事务保存
-            var useTrans = dal.DbType == DatabaseType.SQLite;
             if (useTrans) dal.BeginTransaction();
             try
             {
+                // 禁用自动关闭连接
+                dal.Session.SetAutoClose(false);
+
                 foreach (var item in list)
                 {
                     try
@@ -130,6 +133,7 @@ namespace XCode
             finally
             {
                 sw.Stop();
+                dal.Session.SetAutoClose(null);
             }
 
             // 根据繁忙程度动态调节
@@ -154,9 +158,9 @@ namespace XCode
 
             if (Debug || list.Count > 10000)
             {
-                var ms = sw.ElapsedMilliseconds;
-                var speed = ms == 0 ? 0 : list.Count / ms;
-                XTrace.WriteLine($"实体队列[{dal.ConnName}]\t耗时 {ms:n0}ms\t速度 {speed}tps\t周期 {p:n0}ms");
+                var ms = sw.Elapsed.TotalMilliseconds;
+                var speed = ms == 0 ? 0 : list.Count * 1000 / ms;
+                XTrace.WriteLine($"实体队列[{dal.ConnName}]\t耗时 {ms:n0}ms\t速度 {speed:n0}tps\t周期 {p:n0}ms");
             }
 
             if (Completed != null)
@@ -167,6 +171,9 @@ namespace XCode
                     Completed(this, new EventArgs<IEntity, Int32>(item, rs[k++]));
                 }
             }
+
+            // 马上再来一次，以便于连续处理数据
+            _Timer.SetNext(-1);
         }
         #endregion
     }

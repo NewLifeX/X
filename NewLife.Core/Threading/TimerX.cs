@@ -123,7 +123,7 @@ namespace NewLife.Threading
         internal Boolean hasSetNext;
 
         /// <summary>设置下一次运行时间</summary>
-        /// <param name="ms"></param>
+        /// <param name="ms">小于等于0表示马上调度</param>
         public void SetNext(Int32 ms)
         {
             NextTime = DateTime.Now.AddMilliseconds(ms);
