@@ -257,7 +257,7 @@ namespace NewLife.Caching
         /// 读取 4,000,000 项，256 线程，耗时 238ms 速度 16,806,722 ops
         /// 赋值 4,000,000 项，256 线程，耗时 1,786ms 速度 2,239,641 ops
         /// </remarks>
-        public virtual void PerformanceTest()
+        public virtual void Bench()
         {
             var cpu = Environment.ProcessorCount;
             XTrace.WriteLine($"{Name}性能测试，逻辑处理器 {cpu:n0} 个");
@@ -265,25 +265,25 @@ namespace NewLife.Caching
             var times = 10_000;
 
             // 单线程
-            PerformanceTest(times, 1);
+            BenchOne(times, 1);
 
             // 多线程
-            if (cpu != 2) PerformanceTest(times * 2, 2);
-            if (cpu != 4) PerformanceTest(times * 4, 4);
-            if (cpu != 8) PerformanceTest(times * 8, 8);
+            if (cpu != 2) BenchOne(times * 2, 2);
+            if (cpu != 4) BenchOne(times * 4, 4);
+            if (cpu != 8) BenchOne(times * 8, 8);
 
             // CPU个数
-            PerformanceTest(times * cpu, cpu);
+            BenchOne(times * cpu, cpu);
 
             // 最大
-            if (cpu < 64) PerformanceTest(times * cpu, 64);
-            if (cpu < 256) PerformanceTest(times * cpu, 256);
+            if (cpu < 64) BenchOne(times * cpu, 64);
+            if (cpu < 256) BenchOne(times * cpu, 256);
         }
 
         /// <summary>使用指定线程测试指定次数</summary>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        public virtual void PerformanceTest(Int64 times, Int32 threads)
+        public virtual void BenchOne(Int64 times, Int32 threads)
         {
             if (threads <= 0) threads = Environment.ProcessorCount;
             if (times <= 0) times = threads * 1_000;
@@ -294,17 +294,17 @@ namespace NewLife.Caching
             Set(key, 0);
 
             // 读取测试
-            PerformanceGet(key, times, threads);
+            BenchGet(key, times, threads);
 
             // 赋值测试
-            PerformanceSet(key, times, threads);
+            BenchSet(key, times, threads);
         }
 
         /// <summary>读取测试</summary>
         /// <param name="key">键</param>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        protected virtual void PerformanceGet(String key, Int64 times, Int32 threads)
+        protected virtual void BenchGet(String key, Int64 times, Int32 threads)
         {
             var v = Get<Int32>(key);
             var sw = Stopwatch.StartNew();
@@ -326,7 +326,7 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        protected virtual void PerformanceSet(String key, Int64 times, Int32 threads)
+        protected virtual void BenchSet(String key, Int64 times, Int32 threads)
         {
             var v = Get<Int32>(key);
             var sw = Stopwatch.StartNew();

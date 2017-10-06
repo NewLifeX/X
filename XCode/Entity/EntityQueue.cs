@@ -152,7 +152,12 @@ namespace XCode
                 _Timer.Period = p;
             }
 
-            if (Debug || list.Count > 10000) XTrace.WriteLine("实体队列[{0}]\t共耗时 {1:n0}毫秒\t周期 {2:n0}毫秒", dal.ConnName, sw.ElapsedMilliseconds, p);
+            if (Debug || list.Count > 10000)
+            {
+                var ms = sw.ElapsedMilliseconds;
+                var speed = ms == 0 ? 0 : list.Count / ms;
+                XTrace.WriteLine($"实体队列[{dal.ConnName}]\t耗时 {ms:n0}ms\t速度 {speed}tps\t周期 {p:n0}ms");
+            }
 
             if (Completed != null)
             {

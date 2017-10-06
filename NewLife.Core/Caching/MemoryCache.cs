@@ -209,11 +209,11 @@ namespace NewLife.Caching
         /// <summary>使用指定线程测试指定次数</summary>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        public override void PerformanceTest(Int64 times, Int32 threads)
+        public override void BenchOne(Int64 times, Int32 threads)
         {
             times *= 100;
 
-            base.PerformanceTest(times, threads);
+            base.BenchOne(times, threads);
         }
         #endregion
     }
