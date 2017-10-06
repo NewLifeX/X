@@ -140,17 +140,17 @@ namespace XCode
                 }
             }
 
-            // 不影响脏数据的状态
-            var ds = entity.Dirtys;
-            Boolean? b = null;
-            if (ds.ContainsKey(name)) b = ds[name];
+            //// 不影响脏数据的状态
+            //var ds = entity.Dirtys;
+            //Boolean? b = null;
+            //if (ds.ContainsKey(name)) b = ds[name];
 
             entity[name] = value == DBNull.Value ? null : value;
 
-            if (b != null)
-                ds[name] = b.Value;
-            else
-                ds.Remove(name);
+            //if (b != null)
+            //    ds[name] = b.Value;
+            //else
+            //    ds.Remove(name);
         }
         #endregion
     }
