@@ -108,7 +108,7 @@ namespace NewLife.Caching
 
             return true;
         }
-        
+
         /// <summary>获取缓存项有效期</summary>
         /// <param name="key">键</param>
         /// <returns></returns>
@@ -202,6 +202,18 @@ namespace NewLife.Caching
                 var t = item.Value.ExpiredTime;
                 if (t < now) _cache.Remove(item.Key);
             }
+        }
+        #endregion
+
+        #region 性能测试
+        /// <summary>使用指定线程测试指定次数</summary>
+        /// <param name="times">次数</param>
+        /// <param name="threads">线程</param>
+        public override void PerformanceTest(Int64 times, Int32 threads)
+        {
+            times *= 100;
+
+            base.PerformanceTest(times, threads);
         }
         #endregion
     }
