@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Agent;
@@ -52,7 +53,6 @@ namespace Test
                 GC.WaitForPendingFinalizers();
                 var key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
-                break;
             }
         }
 
@@ -128,14 +128,29 @@ namespace Test
             //    Thread.Sleep(200);
             //}
 
-            var dic = new ConcurrentDictionary<Int32, String>();
-            dic.TryAdd(11, "111");
-            dic.TryAdd(22, "222");
-            var cs = dic.ToValueArray();
-            Console.WriteLine(cs);
+            //var dic = new ConcurrentDictionary<Int32, String>();
+            //dic.TryAdd(11, "111");
+            //dic.TryAdd(22, "222");
+            //var cs = dic.ToValueArray();
+            //Console.WriteLine(cs);
 
             var u = UserX.FindByName("admin");
             Console.WriteLine(u);
+
+            var ss = UserX.Meta.Session.Dal.Session;
+            ss.ShowSQL = true;
+            ss.SetAutoClose(true);
+
+            //var rs = ss.QueryAsync("Select * From User").Result;
+            //Console.WriteLine(rs);
+
+            var ts = new List<Task<DataResult>>();
+            for (var i = 0; i < 16; i++)
+            {
+                ts.Add(ss.QueryAsync("Select * From User"));
+            }
+            var dts = Task.WhenAll(ts).Result;
+            Console.WriteLine(dts.Length);
         }
     }
 }

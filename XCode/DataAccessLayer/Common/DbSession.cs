@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
@@ -43,7 +44,7 @@ namespace XCode.DataAccessLayer
                 if (conn != null)
                 {
                     //Close();
-                    if (conn.State != ConnectionState.Closed) conn.Close();
+                    //if (conn.State != ConnectionState.Closed) conn.Close();
 
                     _Conn = null;
                     conn.Dispose();
@@ -111,7 +112,23 @@ namespace XCode.DataAccessLayer
 
         #region 打开/关闭
         /// <summary>连接是否已经打开</summary>
-        public Boolean Opened { get { return _Conn != null && _Conn.State != ConnectionState.Closed; } }
+        public Boolean Opened
+        {
+            get
+            {
+                var conn = _Conn;
+                if (conn == null) return false;
+
+                try
+                {
+                    return conn.State != ConnectionState.Closed;
+                }
+                catch (ObjectDisposedException)
+                {
+                    return false;
+                }
+            }
+        }
 
         ///// <summary>延迟关闭时间。默认0毫秒</summary>
         //public Int32 DelayClose { get; set; }
@@ -586,6 +603,140 @@ namespace XCode.DataAccessLayer
             if (timeout > 0) cmd.CommandTimeout = timeout;
 
             return cmd;
+        }
+        #endregion
+
+        #region 异步操作
+        /// <summary>异步打开</summary>
+        /// <returns></returns>
+        public virtual async Task OpenAsync()
+        {
+            var tid = Thread.CurrentThread.ManagedThreadId;
+            if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
+
+            var conn = Conn;
+            if (conn == null || conn.State != ConnectionState.Closed) return;
+
+            await conn.OpenAsync();
+        }
+
+        public virtual async Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd)
+        {
+            cmd.Transaction = Transaction?.Check(false);
+            QueryTimes++;
+
+            try
+            {
+                if (!Opened) await OpenAsync();
+                if (cmd.Connection == null) cmd.Connection = Conn;
+
+                WriteSQL(cmd);
+                BeginTrace();
+                var reader = await cmd.ExecuteReaderAsync();
+
+                return reader;
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                EndTrace(cmd);
+
+                AutoClose();
+                //cmd.Parameters.Clear();
+            }
+        }
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public virtual async Task<DataResult> QueryAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            var ds = new DataResult();
+            ds.Rows = new List<Object[]>();
+
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                var reader = await ExecuteReaderAsync(cmd);
+
+                var fieldCount = reader.FieldCount;
+
+                ds.Names = new String[fieldCount];
+                ds.Types = new Type[fieldCount];
+                for (int i = 0; i < fieldCount; i++)
+                {
+                    ds.Names[i] = reader.GetName(i);
+                    ds.Types[i] = reader.GetFieldType(i);
+                }
+
+                while (await reader.ReadAsync())
+                {
+                    var row = new Object[fieldCount];
+                    reader.GetValues(row);
+
+                    ds.Rows.Add(row);
+                }
+            }
+
+            return ds;
+        }
+
+        public virtual async Task<Int32> ExecuteNonQueryAsync(DbCommand cmd)
+        {
+            cmd.Transaction = Transaction?.Check(true);
+            ExecuteTimes++;
+            WriteSQL(cmd);
+            try
+            {
+                if (!Opened) await OpenAsync();
+                if (cmd.Connection == null) cmd.Connection = Conn;
+
+                BeginTrace();
+                return await cmd.ExecuteNonQueryAsync();
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                EndTrace(cmd);
+
+                AutoClose();
+                //cmd.Parameters.Clear();
+            }
+        }
+
+        public virtual async Task<T> ExecuteScalarAsync<T>(DbCommand cmd)
+        {
+            QueryTimes++;
+
+            WriteSQL(cmd);
+            try
+            {
+                BeginTrace();
+
+                var rs = await cmd.ExecuteScalarAsync();
+                if (rs == null || rs == DBNull.Value) return default(T);
+                if (rs is T) return (T)rs;
+
+                return (T)Reflect.ChangeType(rs, typeof(T));
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                EndTrace(cmd);
+
+                AutoClose();
+                //cmd.Parameters.Clear();
+            }
         }
         #endregion
 
