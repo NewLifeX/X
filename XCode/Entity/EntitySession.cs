@@ -667,7 +667,8 @@ namespace XCode
                 return;
             }
 
-            ClearCache(reason);
+            // 实体添删改时，有修改缓存，数据变更事件里不需要再次清空
+            //ClearCache(reason);
 
             _OnDataChange?.Invoke(ThisType);
         }
