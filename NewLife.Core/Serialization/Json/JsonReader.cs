@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -13,31 +12,42 @@ namespace NewLife.Serialization
     internal class JsonReader
     {
         #region 属性
+        /// <summary>是否使用UTC时间</summary>
         public Boolean UseUTCDateTime { get; set; }
 
         #endregion
 
         #region 构造
-        public JsonReader()
-        {
-            UseUTCDateTime = false;
-        }
+        //public JsonReader() { }
         #endregion
 
         #region 转换方法
+        /// <summary>读取Json到指定类型</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public T ToObject<T>(String json)
         {
             return (T)ToObject(json, typeof(T));
         }
 
+        /// <summary>读取Json到指定类型</summary>
+        /// <param name="json"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public Object ToObject(String json, Type type)
         {
+            // 解码得到字典或列表
             var obj = new JsonParser(json).Decode();
             if (obj == null) return null;
 
             return ToObject(obj, type);
         }
 
+        /// <summary>Json字典或列表转为具体类型对象</summary>
+        /// <param name="jobj"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public Object ToObject(Object jobj, Type type)
         {
             Type typeDef = null;
@@ -45,29 +55,28 @@ namespace NewLife.Serialization
 
             if (jobj is IDictionary)
             {
-                if (type != null && typeDef == typeof(IDictionary<,>)) // 字典
+                if (type.IsDictionary()) // 字典
                     return RootDictionary(jobj, type);
                 else
                     return Parse(jobj as IDictionary<String, Object>, type, null);
             }
-            else if (jobj is IList<Object>)
+            else if (jobj is IList<Object> vlist)
             {
-                if (type != null && typeDef == typeof(Dictionary<,>)) // 名值格式
+                if (type.IsDictionary()) // 名值格式
                     return RootDictionary(jobj, type);
-                else if (type != null && typeDef == typeof(List<>)) // 泛型列表
-                    return RootList(jobj, type);
+                else if (type.IsList()) // 泛型列表
+                    return RootList(vlist, type);
                 else
                 {
                     var elmType = type.GetElementTypeEx();
                     //return (jobj as IList<Object>).Select(e => e.ChangeType(elmType)).ToArray();
-                    var src = jobj as IList<Object>;
-                    var arr = Array.CreateInstance(elmType, src.Count);
-                    for (var i = 0; i < src.Count; i++)
+                    var arr = Array.CreateInstance(elmType, vlist.Count);
+                    for (var i = 0; i < vlist.Count; i++)
                     {
                         if (Type.GetTypeCode(elmType) != TypeCode.Object)
-                            arr.SetValue(src[i].ChangeType(elmType), i);
+                            arr.SetValue(vlist[i].ChangeType(elmType), i);
                         else
-                            arr.SetValue(ToObject(src[i], elmType), i);
+                            arr.SetValue(ToObject(vlist[i], elmType), i);
                     }
 
                     return arr;
@@ -89,21 +98,7 @@ namespace NewLife.Serialization
         #region 辅助
         private Object ChangeType(Object value, Type type)
         {
-            if (type == typeof(Int32))
-                return (Int32)((Int64)value);
-
-            else if (type == typeof(Int64))
-                return (Int64)value;
-
-            else if (type == typeof(String))
-                return (String)value;
-
-            else if (type.IsEnum)
-                return Enum.Parse(type, value + "");
-
-            else if (type == typeof(DateTime))
-                return CreateDateTime(value);
-
+            // 支持可空类型
             if (type.IsGenericType && type.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
             {
                 if (value == null) return value;
@@ -111,31 +106,57 @@ namespace NewLife.Serialization
                 type = type.GetGenericArguments()[0];
             }
 
+            if (type == typeof(Int32)) return (Int32)((Int64)value); if (type == typeof(Int64)) return (Int64)value;
+            if (type == typeof(String)) return (String)value;
+
+            if (type.IsEnum) return Enum.Parse(type, value + "");
+            if (type == typeof(DateTime)) return CreateDateTime(value);
+
             if (type == typeof(Guid)) return new Guid((String)value);
 
             return Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
         }
 
-        private Object RootList(Object obj, Type type)
+        /// <summary>转为泛型列表</summary>
+        /// <param name="vlist"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private Object RootList(IList<Object> vlist, Type type)
         {
-            var types = type.GetGenericArguments();
+            var elmType = type.GetGenericArguments().FirstOrDefault();
+
+            // 处理一下type是IList<>的情况
+            if (type.IsInterface) type = typeof(List<>).MakeGenericType(elmType);
+
+            // 创建列表
             var list = type.CreateInstance() as IList;
-            foreach (var item in (IList)obj)
+            foreach (var item in vlist)
             {
                 var value = item;
-                if (item is IDictionary<String, Object>)
-                    value = Parse(item as IDictionary<String, Object>, types[0], null);
+                // 列表元素可能是字典或内层列表
+                if (item is IDictionary<String, Object> dic)
+                    value = Parse(dic, elmType, null);
+                else if (item is IList<Object> vlist2)
+                    value = RootList(vlist2, elmType);
                 else
-                    value = ChangeType(item, types[0]);
+                    value = ChangeType(item, elmType);
 
                 list.Add(value);
             }
             return list;
         }
 
+        /// <summary>转为泛型字典</summary>
+        /// <param name="obj"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private Object RootDictionary(Object obj, Type type)
         {
             var types = type.GetGenericArguments();
+
+            // 处理一下type是Dictionary<,>的情况
+            if (type.IsInterface) type = typeof(Dictionary<,>).MakeGenericType(types[0], types[1]);
+
             Type tkey = null;
             Type tval = null;
             if (types != null)
@@ -158,12 +179,12 @@ namespace NewLife.Serialization
                         val = CreateArray((IList<Object>)kv.Value, tval, tval.GetElementType());
 
                     else if (kv.Value is IList)
-                        val = CreateGenericList((IList<Object>)kv.Value, tval, tkey);
+                        val = CreateGenericList((IList<Object>)kv.Value, tval, types[0]);
 
                     else
                         val = ChangeType(kv.Value, tval);
 
-                    var key = ChangeType(kv.Key, tkey);
+                    var key = ChangeType(kv.Key, types[0]);
                     dic.Add(key, val);
                 }
 
@@ -176,6 +197,11 @@ namespace NewLife.Serialization
 
         private Dictionary<Object, Int32> _circobj = new Dictionary<Object, Int32>();
         private Dictionary<Int32, Object> _cirrev = new Dictionary<Int32, Object>();
+        /// <summary>字典转复杂对象，反射属性赋值</summary>
+        /// <param name="dic"></param>
+        /// <param name="type"></param>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         internal Object Parse(IDictionary<String, Object> dic, Type type, Object obj)
         {
             if (type == typeof(NameValueCollection)) return CreateNV(dic);
@@ -210,6 +236,7 @@ namespace NewLife.Serialization
                 Object val = null;
 
                 var vdic = v as IDictionary<String, Object>;
+                var vlist = v as IList<Object>;
 
                 var pt = pi.PropertyType;
                 // 支持可空类型
@@ -224,14 +251,17 @@ namespace NewLife.Serialization
                     val = new Guid((String)v);
                 else if (pt == typeof(Byte[]))
                     val = Convert.FromBase64String((String)v);
+                // 数组
                 else if (pt.IsArray)
-                    val = CreateArray((IList<Object>)v, pt, pt.GetElementTypeEx());
-                else if (pt.As<IList>())
-                    val = CreateGenericList((IList<Object>)v, pt, pt.GetElementTypeEx());
-                else if (pt.IsGenericType && typeof(IDictionary<,>).IsAssignableFrom(pt.GetGenericTypeDefinition()))
+                    val = CreateArray(vlist, pt, pt.GetElementTypeEx());
+                // 泛型列表
+                else if (pt.IsList())
+                    val = CreateGenericList(vlist, pt, pt.GetElementTypeEx());
+                // 泛型字典
+                else if (pt.IsDictionary())
                     val = CreateStringKeyDictionary(vdic, pt, obj.GetValue(pi));
                 else if (pt.As<IDictionary>())
-                    val = CreateDictionary((IList<Object>)v, pt, obj.GetValue(pi));
+                    val = CreateDictionary(vlist, pt, obj.GetValue(pi));
                 else if (pt == typeof(NameValueCollection))
                     val = CreateNV(vdic);
                 else if (pt == typeof(StringDictionary))
@@ -310,6 +340,9 @@ namespace NewLife.Serialization
             return num;
         }
 
+        /// <summary>创建时间</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         private DateTime CreateDateTime(Object value)
         {
             if (value is DateTime) return (DateTime)value;
