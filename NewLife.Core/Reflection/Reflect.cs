@@ -436,7 +436,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Boolean IsList(this Type type)
         {
-            return type != null && type.IsGenericTypeDefinition && typeof(IList<>).IsAssignableFrom(type.GetGenericTypeDefinition());
+            return type != null && type.IsGenericType && typeof(IList<>).IsAssignableFrom(type.GetGenericTypeDefinition());
         }
 
         /// <summary>是否泛型字典</summary>
@@ -444,7 +444,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Boolean IsDictionary(this Type type)
         {
-            return type != null && type.IsGenericTypeDefinition && typeof(IDictionary<,>).IsAssignableFrom(type.GetGenericTypeDefinition());
+            return type != null && type.IsGenericType && typeof(IDictionary<,>).IsAssignableFrom(type.GetGenericTypeDefinition());
         }
 
         ///// <summary>是否能够转为指定基类</summary>

@@ -264,7 +264,7 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
 
         public Object Convert(Object obj, Type targetType)
         {
-            return new JsonReader().ToObject(obj, targetType);
+            return new JsonReader().ToObject(obj, targetType, null);
         }
         #endregion
     }
@@ -282,12 +282,12 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
 
         public Object Read(String json, Type type)
         {
-            return new JsonReader().ToObject(json, type);
+            return new JsonReader().Read(json, type);
         }
 
         public Object Convert(Object obj, Type targetType)
         {
-            return new JsonReader().ToObject(obj, targetType);
+            return new JsonReader().ToObject(obj, targetType, null);
         }
         #endregion
     }
