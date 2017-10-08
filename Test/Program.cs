@@ -11,6 +11,7 @@ using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
+using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
 using XCode;
@@ -153,8 +154,32 @@ namespace Test
             //var dts = Task.WhenAll(ts).Result;
             //Console.WriteLine(dts.Length);
 
-            var ch = Cache.Default as Cache;
-            ch.Bench();
+            //var ch = Cache.Default as Cache;
+            //ch.Bench();
+
+            var now = DateTime.Now;
+            var dic = new Dictionary<DateTime, Int32>();
+            dic[now] = 123;
+
+            now = now.AddSeconds(12);
+            dic[now] = 123;
+
+            now = now.AddSeconds(12);
+            dic[now] = 123;
+
+            now = now.AddSeconds(12);
+            dic[now] = 123;
+
+            var js = dic.ToJson(true);
+            Console.WriteLine(js);
+
+            var dic2 = new Dictionary<Int32, Int32>();
+            dic2[123] = 12;
+            dic2[456] = 45;
+            dic2[789] = 78;
+
+            js = dic2.ToJson(true);
+            Console.WriteLine(js);
         }
     }
 }
