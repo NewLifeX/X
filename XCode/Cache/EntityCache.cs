@@ -91,7 +91,7 @@ namespace XCode.Cache
                 }
             }
             // 第一次所有线程一起等待结果
-            if (Times == 1 && WaitFirst && _task != null)
+            if (Times == 1 && WaitFirst && _task != null && _task.Id != Task.CurrentId)
             {
                 if (!_task.Wait(5000)) XTrace.WriteLine("{0}缓存初始化超时，当前线程可能取得空数据", ToString());
             }
