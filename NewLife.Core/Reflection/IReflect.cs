@@ -676,6 +676,10 @@ namespace NewLife.Reflection
         public Boolean As(Type type, Type baseType)
         {
             if (type == null) return false;
+
+            // 如果基类是泛型定义
+            if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
+
             if (type == baseType) return true;
 
             if (baseType.IsAssignableFrom(type)) return true;
