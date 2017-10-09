@@ -233,7 +233,8 @@ namespace NewLife.Serialization
                 return Convert.FromBase64String(value + "");
             }
 
-            return Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
+            //return Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
+            return value.ChangeType(type);
         }
 
         private StringDictionary CreateSD(IDictionary<String, Object> dic)

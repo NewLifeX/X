@@ -43,9 +43,9 @@
                     域名地址：
                 </td>
                 <td class="value">
-                    @Request.ServerVariables["SERVER_NAME"]，
-                    @Request.ServerVariables["LOCAl_ADDR"]:@Request.ServerVariables["Server_Port"]
-                    &nbsp;[@Request.ServerVariables["REMOTE_HOST"]]
+                    <span title="SERVER_NAME">@Request.ServerVariables["SERVER_NAME"]</span>，
+                    <span title="LOCAl_ADDR">@Request.ServerVariables["LOCAl_ADDR"]:@Request.ServerVariables["Server_Port"]</span>
+                    &nbsp;<span title="REMOTE_HOST">[@Request.ServerVariables["REMOTE_HOST"]]</span>
                     <a href="@Url.Action("Main/ServerVar")" target="_blank" title="点击打开服务器变量列表">服务器变量列表</a>
                 </td>
                 <td class="name">

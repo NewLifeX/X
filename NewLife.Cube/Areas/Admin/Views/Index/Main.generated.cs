@@ -167,24 +167,28 @@ WriteLiteral(">\r\n                    域名地址：\r\n                </td>\
 
 WriteLiteral(" class=\"value\"");
 
-WriteLiteral(">\r\n");
+WriteLiteral(">\r\n                    <span");
 
-WriteLiteral("                    ");
+WriteLiteral(" title=\"SERVER_NAME\"");
+
+WriteLiteral(">");
 
             
             #line 46 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-               Write(Request.ServerVariables["SERVER_NAME"]);
+                                         Write(Request.ServerVariables["SERVER_NAME"]);
 
             
             #line default
             #line hidden
-WriteLiteral("，\r\n");
+WriteLiteral("</span>，\r\n                    <span");
 
-WriteLiteral("                    ");
+WriteLiteral(" title=\"LOCAl_ADDR\"");
+
+WriteLiteral(">");
 
             
             #line 47 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-               Write(Request.ServerVariables["LOCAl_ADDR"]);
+                                        Write(Request.ServerVariables["LOCAl_ADDR"]);
 
             
             #line default
@@ -193,30 +197,34 @@ WriteLiteral(":");
 
             
             #line 47 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-                                                      Write(Request.ServerVariables["Server_Port"]);
+                                                                               Write(Request.ServerVariables["Server_Port"]);
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                    &nbsp;[");
+WriteLiteral("</span>\r\n                    &nbsp;<span");
+
+WriteLiteral(" title=\"REMOTE_HOST\"");
+
+WriteLiteral(">[");
 
             
             #line 48 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-                      Write(Request.ServerVariables["REMOTE_HOST"]);
+                                                Write(Request.ServerVariables["REMOTE_HOST"]);
 
             
             #line default
             #line hidden
-WriteLiteral("]\r\n                    <a");
+WriteLiteral("]</span>\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1670), Tuple.Create("\"", 1706)
+WriteAttribute("href", Tuple.Create(" href=\"", 1768), Tuple.Create("\"", 1804)
             
             #line 49 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-, Tuple.Create(Tuple.Create("", 1677), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/ServerVar")
+, Tuple.Create(Tuple.Create("", 1775), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/ServerVar")
             
             #line default
             #line hidden
-, 1677), false)
+, 1775), false)
 );
 
 WriteLiteral(" target=\"_blank\"");
@@ -273,14 +281,14 @@ WriteLiteral("                    ");
             #line hidden
 WriteLiteral("\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2233), Tuple.Create("\"", 2268)
+WriteAttribute("href", Tuple.Create(" href=\"", 2331), Tuple.Create("\"", 2366)
             
             #line 64 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-, Tuple.Create(Tuple.Create("", 2240), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/Assembly")
+, Tuple.Create(Tuple.Create("", 2338), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/Assembly")
             
             #line default
             #line hidden
-, 2240), false)
+, 2338), false)
 );
 
 WriteLiteral(" target=\"_blank\"");
@@ -473,14 +481,14 @@ WriteLiteral("M\r\n                    GC: ");
             #line hidden
 WriteLiteral("M\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 4074), Tuple.Create("\"", 4115)
+WriteAttribute("href", Tuple.Create(" href=\"", 4172), Tuple.Create("\"", 4213)
             
             #line 112 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-, Tuple.Create(Tuple.Create("", 4081), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/ProcessModules")
+, Tuple.Create(Tuple.Create("", 4179), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/ProcessModules")
             
             #line default
             #line hidden
-, 4081), false)
+, 4179), false)
 );
 
 WriteLiteral(" target=\"_blank\"");
@@ -555,14 +563,14 @@ WriteLiteral(" 分钟，SessionID：");
             #line hidden
 WriteLiteral("\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 4733), Tuple.Create("\"", 4767)
+WriteAttribute("href", Tuple.Create(" href=\"", 4831), Tuple.Create("\"", 4865)
             
             #line 127 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-, Tuple.Create(Tuple.Create("", 4740), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/Session")
+, Tuple.Create(Tuple.Create("", 4838), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/Session")
             
             #line default
             #line hidden
-, 4740), false)
+, 4838), false)
 );
 
 WriteLiteral(" target=\"_blank\"");
@@ -599,14 +607,14 @@ WriteLiteral(" 个，可用：");
             #line hidden
 WriteLiteral("KB\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 5090), Tuple.Create("\"", 5122)
+WriteAttribute("href", Tuple.Create(" href=\"", 5188), Tuple.Create("\"", 5220)
             
             #line 134 "..\..\Areas\Admin\Views\Index\Main.cshtml"
-, Tuple.Create(Tuple.Create("", 5097), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/Cache")
+, Tuple.Create(Tuple.Create("", 5195), Tuple.Create<System.Object, System.Int32>(Url.Action("Main/Cache")
             
             #line default
             #line hidden
-, 5097), false)
+, 5195), false)
 );
 
 WriteLiteral(" target=\"_blank\"");
