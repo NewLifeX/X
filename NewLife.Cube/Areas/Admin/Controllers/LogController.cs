@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Web;
-using XCode;
 using XCode.Membership;
 using XLog = XCode.Membership.Log;
 
@@ -80,7 +79,7 @@ namespace NewLife.Cube.Admin.Controllers
         [DisplayName("清空")]
         public override ActionResult Clear()
         {
-            if (!SysConfig.Current.Develop || !Setting.Current.Debug || UserX.Current.Role.Name != "管理员") throw new Exception("不允许删除日志");
+            if (!SysConfig.Current.Develop || !Setting.Current.Debug || ManageProvider.User?.Role?.Name != "管理员") throw new Exception("不允许删除日志");
 
             return base.Clear();
         }

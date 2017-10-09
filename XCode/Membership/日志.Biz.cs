@@ -44,7 +44,7 @@ namespace XCode.Membership
                 if (!Dirtys[__.UserName])
                 {
 #if !__CORE__
-                    var user = HttpContext.Current?.User?.Identity is IManageUser;
+                    var user = HttpContext.Current?.User?.Identity as IManageUser;
 #else
                     var user = ManageProvider.Provider?.Current;
 #endif
