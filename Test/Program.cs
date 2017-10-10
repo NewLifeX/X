@@ -16,6 +16,7 @@ using NewLife.Threading;
 using NewLife.Web;
 using NewLife.Yun;
 using XCode;
+using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
@@ -40,7 +41,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -135,6 +136,12 @@ namespace Test
             dv = am.GetDistanceAsync(org2.Location, dst2.Location).Result;
             Console.WriteLine("{0}:\t{1}", dv.Distance, dv.Duration);
 
+        }
+
+        static void Test3()
+        {
+            var f = @"E:\X\NewLife.CMX\Src\NewLife.CMX\CMX.xml";
+            EntityBuilder.Build(f);
         }
     }
 }

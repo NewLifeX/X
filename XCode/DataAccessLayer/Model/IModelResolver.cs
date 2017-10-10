@@ -246,8 +246,11 @@ namespace XCode.DataAccessLayer
                 if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey) && di.Columns.Length == table.Columns.Count(e => e.PrimaryKey);
             }
 
+            // 干掉无效索引
+            dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0 || di.Columns.Length != table.GetColumns(di.Columns).Length);
+
             // 干掉自增列的索引
-            dis.RemoveAll(di => di.Columns.Length == 1 && table.GetColumn(di.Columns[0]).Identity);
+            dis.RemoveAll(di => di.Columns.Length == 1 && table.GetColumn(di.Columns[0]) != null && table.GetColumn(di.Columns[0]).Identity);
         }
         #endregion
 
