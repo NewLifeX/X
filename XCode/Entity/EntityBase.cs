@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife.IO;
 using NewLife.Reflection;
-using NewLife.Serialization;
-using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.Model;
