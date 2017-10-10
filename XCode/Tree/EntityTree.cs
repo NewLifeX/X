@@ -32,7 +32,7 @@ namespace XCode
         static EntityTree()
         {
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
 
             // 更方便实体树子类重载树形设置
             if (Setting == null) Setting = new EntityTreeSetting<TEntity> { Factory = Meta.Factory };
@@ -112,7 +112,7 @@ namespace XCode
             {
                 if (IsNullKey) return 0;
 
-                Int32 _Deepth = 1;
+                var _Deepth = 1;
                 var list = AllParents;
                 if (list != null && list.Count > 0) _Deepth += list.Count;
                 return _Deepth;
@@ -174,7 +174,7 @@ namespace XCode
                 var v = "";
                 if (!String.IsNullOrEmpty(key)) v = this[key] + "";
 
-                Int32 d = Deepth;
+                var d = Deepth;
                 if (d <= 0) return String.Empty;
 
                 return new String('　', (d - 1) * 2) + v;
@@ -191,7 +191,7 @@ namespace XCode
                 var v = "";
                 if (!String.IsNullOrEmpty(key)) v = this[key] + "";
 
-                Int32 d = Deepth;
+                var d = Deepth;
                 if (d <= 0) return "|- 根";
 
                 return new String('　', d) + "|- " + v;
@@ -213,7 +213,7 @@ namespace XCode
                     if (!String.IsNullOrEmpty(key)) v = this[key] + "";
                 }
 
-                Int32 d = Deepth;
+                var d = Deepth;
                 if (d <= 0) return "|- 根";
 
                 return new String('　', d) + "|- " + v;
@@ -343,7 +343,7 @@ namespace XCode
                 if (childs == null || childs.Count < 1) continue;
 
                 // 反向入队
-                for (Int32 i = childs.Count - 1; i >= 0; i--)
+                for (var i = childs.Count - 1; i >= 0; i--)
                 {
                     // 已计算到结果的，不再处理
                     if (list.Contains(childs[i])) continue;
@@ -505,7 +505,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 BatchSave(Boolean saveSelf)
         {
-            Int32 count = 0;
+            var count = 0;
 
             using (var trans = new EntityTransaction<TEntity>())
             {

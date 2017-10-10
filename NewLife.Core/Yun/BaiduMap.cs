@@ -106,8 +106,10 @@ namespace NewLife.Yun
                 point.Latitude = ds["lat"].ToDouble();
             }
 
-            var addr = new GeoAddress();
-            addr.Address = rs["formatted_address"] + "";
+            var addr = new GeoAddress
+            {
+                Address = rs["formatted_address"] + ""
+            };
             if (rs["addressComponent"] is IDictionary<String, Object> component)
             {
                 var reader = new JsonReader();

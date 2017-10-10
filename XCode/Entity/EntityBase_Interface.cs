@@ -170,7 +170,7 @@ namespace XCode
                 dic.Add(item.Name, item);
             }
 
-            Boolean hasChanged = false;
+            var hasChanged = false;
             var list = new List<PropertyDescriptor>();
             foreach (PropertyDescriptor item in pdc)
             {
