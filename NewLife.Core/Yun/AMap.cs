@@ -23,7 +23,7 @@ namespace NewLife.Yun
         }
         #endregion
 
-        #region 地址转坐标
+        #region 地址编码
         private String GeoCoderUrl = "http://restapi.amap.com/v3/geocode/geo?address={0}&city={1}&output=json";
         /// <summary>查询地址的经纬度坐标</summary>
         /// <param name="address"></param>
@@ -52,21 +52,32 @@ namespace NewLife.Yun
         /// <param name="address"></param>
         /// <param name="city"></param>
         /// <returns></returns>
-        public async Task<GeoPoint> GetGeoAsync(String address, String city = null)
+        public async Task<GeoAddress> GetGeoAsync(String address, String city = null)
         {
             var rs = await GetGeocoderAsync(address, city);
             if (rs == null || rs.Count == 0) return null;
 
+            var point = new GeoPoint();
+
             var ds = (rs["location"] + "").Split(",");
-            if (ds == null || ds.Length < 2) return null;
-
-            var gp = new GeoPoint
+            if (ds != null && ds.Length >= 2)
             {
-                Longitude = ds[0].ToDouble(),
-                Latitude = ds[1].ToDouble()
-            };
+                point.Longitude = ds[0].ToDouble();
+                point.Latitude = ds[1].ToDouble();
+            }
 
-            return gp;
+            var addr = new GeoAddress();
+
+            var reader = new JsonReader();
+            reader.ToObject(rs, null, addr);
+
+            addr.Code = rs["adcode"].ToInt();
+            addr.Town = rs["township"] + "";
+            addr.StreetNumber = rs["number"] + "";
+
+            addr.Location = point;
+
+            return addr;
         }
         #endregion
 

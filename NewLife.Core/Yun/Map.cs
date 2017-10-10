@@ -29,11 +29,11 @@ namespace NewLife.Yun
         /// <returns></returns>
         Task<IDictionary<String, Object>> GetGeocoderAsync(String address, String city = null);
 
-        /// <summary>查询地址获取坐标</summary>
-        /// <param name="address"></param>
-        /// <param name="city"></param>
-        /// <returns></returns>
-        Task<GeoPoint> GetGeoAsync(String address, String city = null);
+        ///// <summary>查询地址获取坐标</summary>
+        ///// <param name="address"></param>
+        ///// <param name="city"></param>
+        ///// <returns></returns>
+        //Task<GeoPoint> GetGeoAsync(String address, String city = null);
         #endregion
 
         #region 逆地址编码

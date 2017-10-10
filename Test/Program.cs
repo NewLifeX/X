@@ -114,19 +114,19 @@ namespace Test
             var bm = new BaiduMap();
             bm.Log = XTrace.Log;
             var gp = bm.GetGeoAsync("新府中路1650号").Result;
-            Console.WriteLine("{0}, {1}", gp.Longitude, gp.Latitude);
+            Console.WriteLine(gp);
 
-            var rs = bm.GetGeocoderAsync(gp).Result;
-            Console.WriteLine(rs);
+            var addr = bm.GetGeoAsync(gp).Result;
+            Console.WriteLine(addr);
 
-            //var am = new AMap();
-            //var org = am.GetGeoAsync("新府中路1650号").Result;
-            //var dst = am.GetGeoAsync("广西容县高中").Result;
-            //var rs = am.GetDistanceAsync(org, dst, 1).Result;
-            //foreach (var item in rs)
-            //{
-            //    Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
-            //}
+            var am = new AMap();
+            var org = am.GetGeoAsync("新府中路1650号").Result;
+            var dst = am.GetGeoAsync("广西容县高中").Result;
+            var rs = am.GetDistanceAsync(org.Location, dst.Location, 1).Result;
+            foreach (var item in rs)
+            {
+                Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
+            }
 
         }
     }

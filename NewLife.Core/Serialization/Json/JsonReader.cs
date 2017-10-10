@@ -51,6 +51,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Object ToObject(Object jobj, Type type, Object target)
         {
+            if (type == null && target != null) type = target.GetType();
+
             // Json对象是字典，目标类型可以是字典或复杂对象
             if (jobj is IDictionary<String, Object> vdic)
             {
@@ -67,6 +69,8 @@ namespace NewLife.Serialization
                 if (type.IsArray) return ParseArray(vlist, type, target);
                 // 复杂键值的字典，也可能保存为Json数组
                 if (type.IsDictionary()) return CreateDictionary(vlist, type, target);
+
+                if (vlist.Count == 0) return target;
 
                 throw new InvalidCastException($"Json数组无法转为目标类型[{type.FullName}]，仅支持数组和List<T>/IList<T>");
             }
@@ -233,7 +237,8 @@ namespace NewLife.Serialization
                 return Convert.FromBase64String(value + "");
             }
 
-            //return Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
+            if (type.GetTypeCode() == TypeCode.Object) return null;
+
             return value.ChangeType(type);
         }
 
