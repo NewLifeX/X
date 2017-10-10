@@ -7,8 +7,6 @@
     var page = ViewBag.Page as Pager;
     var fields = ViewBag.Fields as List<FieldItem>;
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
-
-    var list = Model as List<IEntity>;
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
@@ -25,7 +23,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (IEntityTree entity in list)
+        @foreach (IEntityTree entity in Model)
         {
             var p = entity.Parent as IEntityTree;
             if (p == null)
