@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NewLife.Data;
 using NewLife.Log;
+using NewLife.Serialization;
 using NewLife.Web;
 
 namespace NewLife.Yun
@@ -94,6 +94,18 @@ namespace NewLife.Yun
             url += KeyName + "=" + AppKey;
 
             return await _Client.DownloadStringAsync(url);
+        }
+
+        /// <summary>远程调用</summary>
+        /// <param name="url">目标Url</param>
+        /// <param name="result">结果字段</param>
+        /// <returns></returns>
+        public virtual async Task<T> InvokeAsync<T>(String url, String result)
+        {
+            var html = await GetStringAsync(url);
+            if (html.IsNullOrEmpty()) return default(T);
+
+            return (T)new JsonParser(html).Decode();
         }
         #endregion
 

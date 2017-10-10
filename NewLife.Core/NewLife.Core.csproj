@@ -318,6 +318,7 @@
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Net\SerialPortConfig.cs" />
     <Compile Include="Windows\ControlHelper.cs" />
+    <Compile Include="Yun\Driving.cs" />
     <Compile Include="Yun\Map.cs" />
     <EmbeddedResource Include="Windows\MySpeech.cs" />
     <Compile Include="Windows\SerialPortList.cs">

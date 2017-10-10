@@ -119,14 +119,17 @@ namespace Test
             var addr = bm.GetGeoAsync(gp).Result;
             Console.WriteLine(addr);
 
+            var org = bm.GetGeoAsync("新府中路1650号").Result;
+            var dst = bm.GetGeoAsync("广西容县高中").Result;
+            var dv = bm.GetDistanceAsync(org, dst).Result;
+            Console.WriteLine("{0}:\t{1}", dv.Distance, dv.Duration);
+
             var am = new AMap();
-            var org = am.GetGeoAsync("新府中路1650号").Result;
-            var dst = am.GetGeoAsync("广西容县高中").Result;
-            var rs = am.GetDistanceAsync(org.Location, dst.Location, 1).Result;
-            foreach (var item in rs)
-            {
-                Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
-            }
+            am.Log = XTrace.Log;
+            var org2 = am.GetGeoAsync("新府中路1650号").Result;
+            var dst2 = am.GetGeoAsync("广西容县高中").Result;
+            dv = am.GetDistanceAsync(org2.Location, dst2.Location).Result;
+            Console.WriteLine("{0}:\t{1}", dv.Distance, dv.Duration);
 
         }
     }
