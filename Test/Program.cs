@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -110,10 +110,9 @@ namespace Test
 
         static void Test2()
         {
-            //var bm = new BaiduMap();
-            //var kv = bm.GetGeocoderAsync("新府中路1650号").Result;
-            //Console.WriteLine("{0}, {1}", kv.Key, kv.Value);
-            //Console.WriteLine();
+            var bm = new BaiduMap();
+            var gp = bm.GetGeoAsync("新府中路1650号").Result;
+            Console.WriteLine("{0}, {1}", gp.Longitude, gp.Latitude);
 
             //var am = new AMap();
             //var org = am.GetGeoAsync("新府中路1650号").Result;
@@ -124,62 +123,6 @@ namespace Test
             //    Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
             //}
 
-            //for (int i = 0; i < 100; i++)
-            //{
-            //    XTrace.WriteLine("{0}", TimerX.Now);
-            //    Thread.Sleep(200);
-            //}
-
-            //var dic = new ConcurrentDictionary<Int32, String>();
-            //dic.TryAdd(11, "111");
-            //dic.TryAdd(22, "222");
-            //var cs = dic.ToValueArray();
-            //Console.WriteLine(cs);
-
-            //var u = UserX.FindByName("admin");
-            //Console.WriteLine(u);
-
-            //var ss = UserX.Meta.Session.Dal.Session;
-            //ss.ShowSQL = true;
-            //ss.SetAutoClose(true);
-
-            ////var rs = ss.QueryAsync("Select * From User").Result;
-            ////Console.WriteLine(rs);
-
-            //var ts = new List<Task<DataResult>>();
-            //for (var i = 0; i < 16; i++)
-            //{
-            //    ts.Add(ss.QueryAsync("Select * From User"));
-            //}
-            //var dts = Task.WhenAll(ts).Result;
-            //Console.WriteLine(dts.Length);
-
-            //var ch = Cache.Default as Cache;
-            //ch.Bench();
-
-            var now = DateTime.Now;
-            var dic = new Dictionary<DateTime, Int32>();
-            dic[now] = 123;
-
-            now = now.AddSeconds(12);
-            dic[now] = 123;
-
-            now = now.AddSeconds(12);
-            dic[now] = 123;
-
-            now = now.AddSeconds(12);
-            dic[now] = 123;
-
-            var js = dic.ToJson(true);
-            Console.WriteLine(js);
-
-            var dic2 = new Dictionary<Int32, Int32>();
-            dic2[123] = 12;
-            dic2[456] = 45;
-            dic2[789] = 78;
-
-            js = dic2.ToJson(true);
-            Console.WriteLine(js);
         }
     }
 }
