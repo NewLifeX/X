@@ -6,33 +6,20 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Serialization;
 
-namespace NewLife.Web
+namespace NewLife.Yun
 {
     /// <summary>高德地图</summary>
     /// <remarks>
     /// 参考地址 http://lbs.amap.com/api/webservice/guide/api/georegeo/#geo
     /// </remarks>
-    public class AMap
+    public class AMap : Map, IMap
     {
-        #region 属性
-        /// <summary>应用密钥</summary>
-        public String AppKey { get; set; } = "99ac084eb7dd8015fe0ff4404fa800da";
-        #endregion
-
-        #region 方法
-        private WebClientX _Client;
-        private async Task<String> GetStringAsync(String url)
+        #region 构造
+        /// <summary>高德地图</summary>
+        public AMap()
         {
-            if (AppKey.IsNullOrEmpty()) throw new ArgumentNullException(nameof(AppKey));
-
-            if (_Client == null) _Client = new WebClientX();
-
-            if (url.Contains("?"))
-                url += "&key=" + AppKey;
-            else
-                url += "?key=" + AppKey;
-
-            return await _Client.DownloadStringAsync(url);
+            AppKey = "99ac084eb7dd8015fe0ff4404fa800da";
+            KeyName = "key";
         }
         #endregion
 
@@ -42,7 +29,7 @@ namespace NewLife.Web
         /// <param name="address"></param>
         /// <param name="city"></param>
         /// <returns></returns>
-        public async Task<IDictionary<String, String>> GetGeocoderAsync(String address, String city = null)
+        public async Task<IDictionary<String, Object>> GetGeocoderAsync(String address, String city = null)
         {
             if (address.IsNullOrEmpty()) throw new ArgumentNullException(nameof(address));
 
@@ -58,19 +45,7 @@ namespace NewLife.Web
             var arr = dic["geocodes"] as IList;
             if (arr == null || arr.Count == 0) return null;
 
-            var geo = arr[0] as IDictionary<String, Object>;
-            var rs = new Dictionary<String, String>();
-            foreach (var item in geo)
-            {
-                var v = item.Value;
-                if (v is ICollection cs && cs.Count == 0) continue;
-
-                if (v is IList vs) v = vs.Join(",");
-
-                rs[item.Key] = v + "";
-            }
-
-            return rs;
+            return arr[0] as IDictionary<String, Object>;
         }
 
         /// <summary>查询地址获取坐标</summary>
@@ -85,9 +60,11 @@ namespace NewLife.Web
             var ds = (rs["location"] + "").Split(",");
             if (ds == null || ds.Length < 2) return null;
 
-            var gp = new GeoPoint();
-            gp.Longitude = ds[0].ToDouble();
-            gp.Latitude = ds[1].ToDouble();
+            var gp = new GeoPoint
+            {
+                Longitude = ds[0].ToDouble(),
+                Latitude = ds[1].ToDouble()
+            };
 
             return gp;
         }

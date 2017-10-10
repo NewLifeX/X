@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NewLife.Data
 {
@@ -16,5 +12,9 @@ namespace NewLife.Data
         /// <summary>纬度</summary>
         public Double Latitude { get; set; }
         #endregion
+
+        /// <summary>已重载</summary>
+        /// <returns></returns>
+        public override String ToString() => $"({Longitude}, {Latitude})";
     }
 }

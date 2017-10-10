@@ -14,6 +14,7 @@ using NewLife.Remoting;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
+using NewLife.Yun;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -111,8 +112,12 @@ namespace Test
         static void Test2()
         {
             var bm = new BaiduMap();
+            bm.Log = XTrace.Log;
             var gp = bm.GetGeoAsync("新府中路1650号").Result;
             Console.WriteLine("{0}, {1}", gp.Longitude, gp.Latitude);
+
+            var rs = bm.GetGeocoderAsync(gp).Result;
+            Console.WriteLine(rs);
 
             //var am = new AMap();
             //var org = am.GetGeoAsync("新府中路1650号").Result;
