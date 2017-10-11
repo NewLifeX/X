@@ -133,5 +133,62 @@ namespace NewLife.Yun
             return rs;
         }
         #endregion
+
+        #region 行政区划
+        //private String url3 = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=all&output=json";
+        private String url3 = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=base&output=json";
+        /// <summary>行政区划</summary>
+        /// <remarks>
+        /// http://lbs.amap.com/api/webservice/guide/api/district
+        /// </remarks>
+        /// <param name="keywords"></param>
+        /// <param name="subdistrict"></param>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        public async Task<IList<GeoArea>> GetDistrictAsync(String keywords, Int32 subdistrict = 1, Int32 code = 0)
+        {
+            if (keywords.IsNullOrEmpty()) throw new ArgumentNullException(nameof(keywords));
+
+            var url = url3.F(keywords, subdistrict, code);
+
+            var list = await InvokeAsync<IList<Object>>(url, "districts");
+            if (list == null || list.Count == 0) return null;
+
+            var geo = list.FirstOrDefault() as IDictionary<String, Object>;
+            if (geo == null) return null;
+
+            var addrs = GetArea(geo, 0);
+
+            return addrs;
+        }
+
+        private IList<GeoArea> GetArea(IDictionary<String, Object> geo, Int32 parentCode)
+        {
+            if (geo == null || geo.Count == 0) return null;
+
+            var addrs = new List<GeoArea>();
+
+            var root = new GeoArea();
+            new JsonReader().ToObject(geo, null, root);
+            root.Code = geo["adcode"].ToInt();
+            if (parentCode > 0) root.ParentCode = parentCode;
+
+            addrs.Add(root);
+
+            if (geo["districts"] is IList<Object> childs && childs.Count > 0)
+            {
+                foreach (var item in childs)
+                {
+                    if (item is IDictionary<String, Object> geo2)
+                    {
+                        var rs = GetArea(geo2, root.Code);
+                        if (rs != null && rs.Count > 0) addrs.AddRange(rs);
+                    }
+                }
+            }
+
+            return addrs;
+        }
+        #endregion
     }
 }
