@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using NewLife.Collections;
 
 namespace NewLife.Serialization
 {
@@ -70,7 +71,7 @@ namespace NewLife.Serialization
 
         private Dictionary<String, Object> ParseObject()
         {
-            var dic = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+            var dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
             SkipToken(); // {
 
