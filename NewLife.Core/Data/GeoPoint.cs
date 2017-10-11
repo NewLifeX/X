@@ -13,6 +13,20 @@ namespace NewLife.Data
         public Double Latitude { get; set; }
         #endregion
 
+        #region 构造
+        /// <summary>经纬度坐标</summary>
+        public GeoPoint() { }
+
+        /// <summary>经纬度坐标</summary>
+        /// <param name="location"></param>
+        public GeoPoint(String location)
+        {
+            var ss = location.Split(",");
+            Longitude = ss[0].ToDouble();
+            Latitude = ss[1].ToDouble();
+        }
+        #endregion
+
         /// <summary>已重载</summary>
         /// <returns></returns>
         public override String ToString() => $"{Longitude},{Latitude}";

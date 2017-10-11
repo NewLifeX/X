@@ -42,7 +42,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 地址编码
-        private String GeoCoderUrl = "http://api.map.baidu.com/geocoder/v2/?address={0}&city={1}&coord_type=wgs84&output=json";
+        private String GeoCoderUrl = "http://api.map.baidu.com/geocoder/v2/?address={0}&city={1}&ret_coordtype=wgs84&output=json";
         /// <summary>查询地址的经纬度坐标</summary>
         /// <param name="address"></param>
         /// <param name="city"></param>
@@ -60,7 +60,7 @@ namespace NewLife.Yun
         /// <param name="address"></param>
         /// <param name="city"></param>
         /// <returns></returns>
-        public async Task<GeoPoint> GetGeoAsync(String address, String city = null)
+        public async Task<GeoAddress> GetGeoAsync(String address, String city = null)
         {
             var rs = await GetGeocoderAsync(address, city);
             if (rs == null || rs.Count == 0) return null;
@@ -74,12 +74,16 @@ namespace NewLife.Yun
                 Latitude = ds["lat"].ToDouble()
             };
 
-            return gp;
+            var geo = new GeoAddress();
+            geo.Location = gp;
+            geo.Level = rs["level"] + "";
+
+            return geo;
         }
         #endregion
 
         #region 逆地址编码
-        private String url2 = "http://api.map.baidu.com/geocoder/v2/?location={0},{1}&coord_type=wgs84&output=json";
+        private String url2 = "http://api.map.baidu.com/geocoder/v2/?location={0},{1}&extensions_town=true&latest_admin=1&coord_type=wgs84&output=json";
         /// <summary>根据坐标获取地址</summary>
         /// <param name="point"></param>
         /// <returns></returns>
@@ -116,6 +120,7 @@ namespace NewLife.Yun
                 reader.ToObject(component, null, addr);
 
                 addr.Code = component["adcode"].ToInt();
+                addr.Township = component["town"] + "";
                 addr.StreetNumber = component["street_number"] + "";
             }
 

@@ -28,13 +28,16 @@ namespace NewLife.Data
         public String District { get; set; }
 
         /// <summary>乡镇</summary>
-        public String Town { get; set; }
+        public String Township { get; set; }
 
         /// <summary>街道</summary>
         public String Street { get; set; }
 
         /// <summary></summary>
         public String StreetNumber { get; set; }
+
+        /// <summary>级别</summary>
+        public String Level { get; set; }
         #endregion
 
         /// <summary>已重载。</summary>

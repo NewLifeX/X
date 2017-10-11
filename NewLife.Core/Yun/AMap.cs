@@ -81,7 +81,7 @@ namespace NewLife.Yun
             reader.ToObject(rs, null, addr);
 
             addr.Code = rs["adcode"].ToInt();
-            addr.Town = rs["township"] + "";
+            addr.Township = rs["township"] + "";
             addr.StreetNumber = rs["number"] + "";
 
             addr.Location = point;
