@@ -658,8 +658,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual async Task<DataResult> QueryAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            var ds = new DataResult();
-            ds.Rows = new List<Object[]>();
+            var ds = new DataResult
+            {
+                Rows = new List<Object[]>()
+            };
 
             using (var cmd = OnCreateCommand(sql, type, ps))
             {
@@ -669,7 +671,7 @@ namespace XCode.DataAccessLayer
 
                 ds.Names = new String[fieldCount];
                 ds.Types = new Type[fieldCount];
-                for (int i = 0; i < fieldCount; i++)
+                for (var i = 0; i < fieldCount; i++)
                 {
                     ds.Names[i] = reader.GetName(i);
                     ds.Types[i] = reader.GetFieldType(i);

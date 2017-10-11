@@ -57,8 +57,7 @@ namespace XCode
             foreach (DataColumn item in dt.Columns)
             {
                 //var fi = Entity<T>.Meta.Fields.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(item.ColumnName));
-                var fi = ti.FindByName(item.ColumnName) as FieldItem;
-                if (fi != null)
+                if (ti.FindByName(item.ColumnName) is FieldItem fi)
                     ps.Add(item, fi);
                 else
                     exts.Add(item, item.ColumnName);

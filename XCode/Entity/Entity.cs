@@ -156,35 +156,7 @@ namespace XCode
         /// 如果需要避开该机制，请清空脏数据。
         /// </remarks>
         /// <returns></returns>
-        public override Int32 Delete()
-        {
-            if (HasDirty)
-            {
-                // 是否有且仅有主键有脏数据
-                var names = Meta.Table.PrimaryKeys.Select(f => f.Name).OrderBy(k => k).ToArray();
-                // 脏数据里面是否存在非主键且为true的
-                var names2 = Dirtys.Where(d => d.Value).Select(d => d.Key).OrderBy(k => k).ToArray();
-                // 序列相等，符合条件
-                if (names.SequenceEqual(names2))
-                {
-                    // 再次查询
-                    var entity = Find(Persistence.GetPrimaryCondition(this));
-                    // 如果目标数据不存在，就没必要删除了
-                    if (entity == null) return 0;
-
-                    // 复制脏数据和扩展数据
-                    foreach (var item in names)
-                    {
-                        entity.Dirtys[item] = true;
-                    }
-                    Extends.CopyTo(entity.Extends);
-
-                    return entity.DoAction(OnDelete, null);
-                }
-            }
-
-            return DoAction(OnDelete, null);
-        }
+        public override Int32 Delete() { return DoAction(OnDelete, null); }
 
         /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
         /// <returns></returns>
@@ -1314,26 +1286,6 @@ namespace XCode
                 return false;
             }
         }
-
-        ///// <summary>如果字段带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值</summary>
-        ///// <param name="fieldName"></param>
-        ///// <param name="newValue"></param>
-        ///// <returns></returns>
-        //protected override Boolean OnPropertyChanging(String fieldName, Object newValue)
-        //{
-        //    // 如果返回true，表示不相同，基类已经设置了脏数据
-        //    if (base.OnPropertyChanging(fieldName, newValue)) return true;
-
-        //    // 如果该字段存在，且带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值
-        //    FieldItem fi = Meta.Table.FindByName(fieldName);
-        //    if (fi != null && !String.IsNullOrEmpty(fi.DefaultValue))
-        //    {
-        //        Dirtys[fieldName] = true;
-        //        return true;
-        //    }
-
-        //    return false;
-        //}
         #endregion
     }
 }

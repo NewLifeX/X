@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife.IO;
 using NewLife.Reflection;
-using NewLife.Serialization;
-using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.Model;
@@ -136,7 +131,7 @@ namespace XCode
             var nsDes = EntityFactory.CreateOperate(entity.GetType()).FieldNames;
             if (nsDes == null || nsDes.Count < 1) return 0;
 
-            Int32 n = 0;
+            var n = 0;
             foreach (var item in nsDes)
             {
                 if (nsSrc.Contains(item))
@@ -187,8 +182,8 @@ namespace XCode
             var ds = _Dirtys;
             if (ds == null || ds.IsEmpty) return 0;
 
-            Int32 count = 0;
-            foreach (String item in ds.Keys)
+            var count = 0;
+            foreach (var item in ds.Keys)
             {
                 if (ds[item] != isDirty)
                 {
