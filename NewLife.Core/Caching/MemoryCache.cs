@@ -20,9 +20,6 @@ namespace NewLife.Caching
         {
             _cache = new ConcurrentDictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
             Name = "Memory";
-
-            var period = 60;
-            clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
         }
 
         /// <summary>销毁</summary>
@@ -45,6 +42,17 @@ namespace NewLife.Caching
         #endregion
 
         #region 方法
+        /// <summary>初始化配置</summary>
+        /// <param name="set"></param>
+        protected override void Init(CacheSetting set)
+        {
+            if (clearTimer == null)
+            {
+                var period = 60;
+                clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
+            }
+        }
+
         /// <summary>获取和设置缓存，永不过期</summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -118,7 +126,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return TimeSpan.Zero;
 
-            return item.ExpiredTime - TimerX.Now;
+            return item.ExpiredTime - DateTime.Now;
         }
         #endregion
 
@@ -295,11 +303,17 @@ namespace NewLife.Caching
         void RemoveNotAlive(Object state)
         {
             // 这里先计算，性能很重要
-            var now = TimerX.Now;
+            var now = DateTime.Now;
+            var list = new List<String>();
             foreach (var item in _cache)
             {
                 var t = item.Value.ExpiredTime;
-                if (t < now) _cache.Remove(item.Key);
+                if (t < now) list.Add(item.Key);
+            }
+
+            foreach (var item in list)
+            {
+                _cache.Remove(item);
             }
         }
         #endregion

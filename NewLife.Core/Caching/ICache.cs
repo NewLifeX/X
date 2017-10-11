@@ -6,6 +6,7 @@ namespace NewLife.Caching
     /// <summary>缓存接口</summary>
     public interface ICache
     {
+        #region 属性
         /// <summary>名称</summary>
         String Name { get; }
 
@@ -22,7 +23,9 @@ namespace NewLife.Caching
 
         /// <summary>所有键</summary>
         ICollection<String> Keys { get; }
+        #endregion
 
+        #region 基础操作
         /// <summary>是否包含缓存项</summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -52,6 +55,18 @@ namespace NewLife.Caching
         /// <returns></returns>
         Boolean Remove(String key);
 
+        /// <summary>设置缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <param name="expire">过期时间</param>
+        Boolean SetExpire(String key, TimeSpan expire);
+
+        /// <summary>获取缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        TimeSpan GetExpire(String key);
+        #endregion
+
+        #region 高级操作
         /// <summary>批量获取缓存项</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="keys"></param>
@@ -98,15 +113,6 @@ namespace NewLife.Caching
         /// <param name="key"></param>
         /// <returns></returns>
         IDictionary<String, T> GetDictionary<T>(String key);
-
-        /// <summary>设置缓存项有效期</summary>
-        /// <param name="key">键</param>
-        /// <param name="expire">过期时间</param>
-        Boolean SetExpire(String key, TimeSpan expire);
-
-        /// <summary>获取缓存项有效期</summary>
-        /// <param name="key">键</param>
-        /// <returns></returns>
-        TimeSpan GetExpire(String key);
+        #endregion
     }
 }

@@ -97,7 +97,7 @@ namespace NewLife.Caching
         }
         #endregion
 
-        #region 方法
+        #region 基础操作
         /// <summary>初始化配置</summary>
         /// <param name="set"></param>
         protected virtual void Init(CacheSetting set) { }
