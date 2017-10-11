@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
+using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace NewLife.Caching
@@ -142,28 +144,64 @@ namespace NewLife.Caching
         /// <param name="key"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public override Int32 Increment(String key, Int32 amount)
+        public override Int64 Increment(String key, Int64 amount)
         {
-            if (!_cache.TryGetValue(key, out var item) || item == null) return -1;
+            if (!_cache.TryGetValue(key, out var item) || item == null)
+            {
+                item = new CacheItem(0, Expire);
+                item = _cache.GetOrAdd(key, item);
+            }
 
-            var v = (Int32)item.Value + amount;
-            item.Value = v;
+            // 原子操作
+            return (Int64)item.Inc(amount);
+        }
 
-            return v;
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public override Double Increment(String key, Double amount)
+        {
+            if (!_cache.TryGetValue(key, out var item) || item == null)
+            {
+                item = new CacheItem(0, Expire);
+                item = _cache.GetOrAdd(key, item);
+            }
+
+            // 原子操作
+            return (Double)item.Inc(amount);
         }
 
         /// <summary>递减，原子操作</summary>
         /// <param name="key"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public override Int32 Decrement(String key, Int32 amount)
+        public override Int64 Decrement(String key, Int64 amount)
         {
-            if (!_cache.TryGetValue(key, out var item) || item == null) return -1;
+            if (!_cache.TryGetValue(key, out var item) || item == null)
+            {
+                item = new CacheItem(0, Expire);
+                item = _cache.GetOrAdd(key, item);
+            }
 
-            var v = (Int32)item.Value - amount;
-            item.Value = v;
+            // 原子操作
+            return (Int64)item.Dec(amount);
+        }
 
-            return v;
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public override Double Decrement(String key, Double amount)
+        {
+            if (!_cache.TryGetValue(key, out var item) || item == null)
+            {
+                item = new CacheItem(0, Expire);
+                item = _cache.GetOrAdd(key, item);
+            }
+
+            // 原子操作
+            return (Double)item.Dec(amount);
         }
         #endregion
 
@@ -171,8 +209,9 @@ namespace NewLife.Caching
         /// <summary>缓存项</summary>
         class CacheItem
         {
+            private Object _Value;
             /// <summary>数值</summary>
-            public Object Value { get; set; }
+            public Object Value { get { return _Value; } set { _Value = value; } }
 
             /// <summary>过期时间</summary>
             public DateTime ExpiredTime { get; set; }
@@ -184,6 +223,66 @@ namespace NewLife.Caching
             {
                 Value = value;
                 ExpiredTime = TimerX.Now.AddSeconds(expire);
+            }
+
+            public Object Inc(Object amount)
+            {
+                var code = amount.GetType().GetTypeCode();
+                // 原子操作
+                Object newValue = null;
+                Object oldValue = null;
+                do
+                {
+                    oldValue = _Value;
+                    switch (code)
+                    {
+                        case TypeCode.Int32:
+                            newValue = (Int32)oldValue + (Int32)amount;
+                            break;
+                        case TypeCode.Int64:
+                            newValue = (Int64)oldValue + (Int64)amount;
+                            break;
+                        case TypeCode.Single:
+                            newValue = (Single)oldValue + (Single)amount;
+                            break;
+                        case TypeCode.Double:
+                            newValue = (Double)oldValue + (Double)amount;
+                            break;
+                    }
+                } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
+
+                //Interlocked.Increment(ref _Value);
+
+                return newValue;
+            }
+
+            public Object Dec(Object amount)
+            {
+                var code = amount.GetType().GetTypeCode();
+                // 原子操作
+                Object newValue = null;
+                Object oldValue = null;
+                do
+                {
+                    oldValue = _Value;
+                    switch (code)
+                    {
+                        case TypeCode.Int32:
+                            newValue = (Int32)oldValue - (Int32)amount;
+                            break;
+                        case TypeCode.Int64:
+                            newValue = (Int64)oldValue - (Int64)amount;
+                            break;
+                        case TypeCode.Single:
+                            newValue = (Single)oldValue - (Single)amount;
+                            break;
+                        case TypeCode.Double:
+                            newValue = (Double)oldValue - (Double)amount;
+                            break;
+                    }
+                } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
+
+                return newValue;
             }
         }
         #endregion

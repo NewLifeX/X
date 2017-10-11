@@ -124,8 +124,10 @@ namespace Test
             //var dv = bm.GetDistanceAsync(org, dst).Result;
             //Console.WriteLine("{0}:\t{1}", dv.Distance, dv.Duration);
 
-            var am = new AMap();
-            am.Log = XTrace.Log;
+            var am = new AMap
+            {
+                Log = XTrace.Log
+            };
             //var org2 = am.GetGeoAsync("新府中路1650号").Result;
             //var dst2 = am.GetGeoAsync("广西容县高中").Result;
             //dv = am.GetDistanceAsync(org2.Location, dst2.Location).Result;

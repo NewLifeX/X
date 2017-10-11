@@ -48,6 +48,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 日志
+        /// <summary>日志</summary>
         ILog Log { get; set; }
         #endregion
     }

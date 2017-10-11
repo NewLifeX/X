@@ -67,13 +67,25 @@ namespace NewLife.Caching
         /// <param name="key"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        Int32 Increment(String key, Int32 amount);
+        Int64 Increment(String key, Int64 amount);
+
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        Double Increment(String key, Double amount);
 
         /// <summary>递减，原子操作</summary>
         /// <param name="key"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        Int32 Decrement(String key, Int32 amount);
+        Int64 Decrement(String key, Int64 amount);
+
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        Double Decrement(String key, Double amount);
 
         /// <summary>获取列表</summary>
         /// <typeparam name="T"></typeparam>

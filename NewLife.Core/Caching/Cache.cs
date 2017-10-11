@@ -173,11 +173,27 @@ namespace NewLife.Caching
         /// <param name="key"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public virtual Int32 Increment(String key, Int32 amount)
+        public virtual Int64 Increment(String key, Int64 amount)
         {
             lock (this)
             {
-                var v = Get<Int32>(key);
+                var v = Get<Int64>(key);
+                v += amount;
+                Set(key, v);
+
+                return v;
+            }
+        }
+
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public virtual Double Increment(String key, Double amount)
+        {
+            lock (this)
+            {
+                var v = Get<Double>(key);
                 v += amount;
                 Set(key, v);
 
@@ -189,11 +205,27 @@ namespace NewLife.Caching
         /// <param name="key"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public virtual Int32 Decrement(String key, Int32 amount)
+        public virtual Int64 Decrement(String key, Int64 amount)
         {
             lock (this)
             {
-                var v = Get<Int32>(key);
+                var v = Get<Int64>(key);
+                v -= amount;
+                Set(key, v);
+
+                return v;
+            }
+        }
+
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public virtual Double Decrement(String key, Double amount)
+        {
+            lock (this)
+            {
+                var v = Get<Double>(key);
                 v -= amount;
                 Set(key, v);
 

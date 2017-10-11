@@ -433,8 +433,7 @@ namespace NewLife.Serialization
                 return Double.Parse(s, NumberFormatInfo.InvariantInfo);
             }
 
-            Int64 num;
-            return CreateLong(out num, _json, startIndex, index - startIndex);
+            return CreateLong(out var num, _json, startIndex, index - startIndex);
         }
 
         private Token LookAhead()
