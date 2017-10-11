@@ -201,7 +201,16 @@ namespace XCode.Membership
                     Day = day,
                 };
 
-                st.Insert();
+                // 避免多线程冲突
+                try
+                {
+                    st.Insert();
+                }
+                catch
+                {
+                    var tmp = FindByPage(page, year, month, day);
+                    if (tmp != null) st = tmp;
+                }
             }
 
             if (!title.IsNullOrEmpty()) st.Title = title;
