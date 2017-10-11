@@ -142,7 +142,7 @@ namespace NewLife.Caching
         public abstract TimeSpan GetExpire(String key);
         #endregion
 
-        #region 高级操作
+        #region 集合操作
         /// <summary>批量获取缓存项</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="keys"></param>
@@ -166,70 +166,6 @@ namespace NewLife.Caching
             foreach (var item in values)
             {
                 Set(item.Key, item.Value);
-            }
-        }
-
-        /// <summary>累加，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        public virtual Int64 Increment(String key, Int64 amount)
-        {
-            lock (this)
-            {
-                var v = Get<Int64>(key);
-                v += amount;
-                Set(key, v);
-
-                return v;
-            }
-        }
-
-        /// <summary>累加，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        public virtual Double Increment(String key, Double amount)
-        {
-            lock (this)
-            {
-                var v = Get<Double>(key);
-                v += amount;
-                Set(key, v);
-
-                return v;
-            }
-        }
-
-        /// <summary>递减，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        public virtual Int64 Decrement(String key, Int64 amount)
-        {
-            lock (this)
-            {
-                var v = Get<Int64>(key);
-                v -= amount;
-                Set(key, v);
-
-                return v;
-            }
-        }
-
-        /// <summary>递减，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        public virtual Double Decrement(String key, Double amount)
-        {
-            lock (this)
-            {
-                var v = Get<Double>(key);
-                v -= amount;
-                Set(key, v);
-
-                return v;
             }
         }
 
@@ -263,6 +199,72 @@ namespace NewLife.Caching
             }
 
             return dic;
+        }
+        #endregion
+
+        #region 高级操作
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        public virtual Int64 Increment(String key, Int64 value)
+        {
+            lock (this)
+            {
+                var v = Get<Int64>(key);
+                v += value;
+                Set(key, v);
+
+                return v;
+            }
+        }
+
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        public virtual Double Increment(String key, Double value)
+        {
+            lock (this)
+            {
+                var v = Get<Double>(key);
+                v += value;
+                Set(key, v);
+
+                return v;
+            }
+        }
+
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        public virtual Int64 Decrement(String key, Int64 value)
+        {
+            lock (this)
+            {
+                var v = Get<Int64>(key);
+                v -= value;
+                Set(key, v);
+
+                return v;
+            }
+        }
+
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        public virtual Double Decrement(String key, Double value)
+        {
+            lock (this)
+            {
+                var v = Get<Double>(key);
+                v -= value;
+                Set(key, v);
+
+                return v;
+            }
         }
         #endregion
 

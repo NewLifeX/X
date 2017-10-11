@@ -66,7 +66,7 @@ namespace NewLife.Caching
         TimeSpan GetExpire(String key);
         #endregion
 
-        #region 高级操作
+        #region 集合操作
         /// <summary>批量获取缓存项</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="keys"></param>
@@ -77,30 +77,6 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="values"></param>
         void SetAll<T>(IDictionary<String, T> values);
-
-        /// <summary>累加，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        Int64 Increment(String key, Int64 amount);
-
-        /// <summary>累加，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        Double Increment(String key, Double amount);
-
-        /// <summary>递减，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        Int64 Decrement(String key, Int64 amount);
-
-        /// <summary>递减，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        Double Decrement(String key, Double amount);
 
         /// <summary>获取列表</summary>
         /// <typeparam name="T"></typeparam>
@@ -113,6 +89,32 @@ namespace NewLife.Caching
         /// <param name="key"></param>
         /// <returns></returns>
         IDictionary<String, T> GetDictionary<T>(String key);
+        #endregion
+
+        #region 高级操作
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        Int64 Increment(String key, Int64 value);
+
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        Double Increment(String key, Double value);
+
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        Int64 Decrement(String key, Int64 value);
+
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        Double Decrement(String key, Double value);
         #endregion
     }
 }

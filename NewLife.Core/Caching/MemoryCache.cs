@@ -53,23 +53,6 @@ namespace NewLife.Caching
             }
         }
 
-        /// <summary>获取和设置缓存，永不过期</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public override Object this[String key]
-        {
-            get
-            {
-                if (!_cache.TryGetValue(key, out var item) || item == null) return null;
-
-                return item.Value;
-            }
-            set
-            {
-                Set(key, value);
-            }
-        }
-
         /// <summary>是否包含缓存项</summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -100,7 +83,12 @@ namespace NewLife.Caching
         /// <summary>获取缓存项</summary>
         /// <param name="key">键</param>
         /// <returns></returns>
-        public override T Get<T>(String key) { return (T)this[key]; }
+        public override T Get<T>(String key)
+        {
+            if (!_cache.TryGetValue(key, out var item) || item == null) return default(T);
+
+            return (T)item.Value;
+        }
 
         /// <summary>移除缓存项</summary>
         /// <param name="key">键</param>
@@ -131,28 +119,27 @@ namespace NewLife.Caching
         #endregion
 
         #region 高级操作
-        /// <summary>批量获取缓存项</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="keys"></param>
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override IDictionary<String, T> GetAll<T>(params String[] keys)
+        public override Int64 Increment(String key, Int64 value)
         {
-            var dic = new Dictionary<String, T>();
-            foreach (var key in keys)
+            if (!_cache.TryGetValue(key, out var item) || item == null)
             {
-                if (!_cache.TryGetValue(key, out var item) || item == null) continue;
-
-                dic[key] = (T)item.Value;
+                item = new CacheItem(0, Expire);
+                item = _cache.GetOrAdd(key, item);
             }
 
-            return dic;
+            // 原子操作
+            return (Int64)item.Inc(value);
         }
 
         /// <summary>累加，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Int64 Increment(String key, Int64 amount)
+        public override Double Increment(String key, Double value)
         {
             if (!_cache.TryGetValue(key, out var item) || item == null)
             {
@@ -161,30 +148,14 @@ namespace NewLife.Caching
             }
 
             // 原子操作
-            return (Int64)item.Inc(amount);
-        }
-
-        /// <summary>累加，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        public override Double Increment(String key, Double amount)
-        {
-            if (!_cache.TryGetValue(key, out var item) || item == null)
-            {
-                item = new CacheItem(0, Expire);
-                item = _cache.GetOrAdd(key, item);
-            }
-
-            // 原子操作
-            return (Double)item.Inc(amount);
+            return (Double)item.Inc(value);
         }
 
         /// <summary>递减，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Int64 Decrement(String key, Int64 amount)
+        public override Int64 Decrement(String key, Int64 value)
         {
             if (!_cache.TryGetValue(key, out var item) || item == null)
             {
@@ -193,14 +164,14 @@ namespace NewLife.Caching
             }
 
             // 原子操作
-            return (Int64)item.Dec(amount);
+            return (Int64)item.Dec(value);
         }
 
         /// <summary>递减，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Double Decrement(String key, Double amount)
+        public override Double Decrement(String key, Double value)
         {
             if (!_cache.TryGetValue(key, out var item) || item == null)
             {
@@ -209,7 +180,7 @@ namespace NewLife.Caching
             }
 
             // 原子操作
-            return (Double)item.Dec(amount);
+            return (Double)item.Dec(value);
         }
         #endregion
 
@@ -233,9 +204,9 @@ namespace NewLife.Caching
                 ExpiredTime = TimerX.Now.AddSeconds(expire);
             }
 
-            public Object Inc(Object amount)
+            public Object Inc(Object value)
             {
-                var code = amount.GetType().GetTypeCode();
+                var code = value.GetType().GetTypeCode();
                 // 原子操作
                 Object newValue = null;
                 Object oldValue = null;
@@ -245,16 +216,16 @@ namespace NewLife.Caching
                     switch (code)
                     {
                         case TypeCode.Int32:
-                            newValue = (Int32)oldValue + (Int32)amount;
+                            newValue = (Int32)oldValue + (Int32)value;
                             break;
                         case TypeCode.Int64:
-                            newValue = (Int64)oldValue + (Int64)amount;
+                            newValue = (Int64)oldValue + (Int64)value;
                             break;
                         case TypeCode.Single:
-                            newValue = (Single)oldValue + (Single)amount;
+                            newValue = (Single)oldValue + (Single)value;
                             break;
                         case TypeCode.Double:
-                            newValue = (Double)oldValue + (Double)amount;
+                            newValue = (Double)oldValue + (Double)value;
                             break;
                     }
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
@@ -264,9 +235,9 @@ namespace NewLife.Caching
                 return newValue;
             }
 
-            public Object Dec(Object amount)
+            public Object Dec(Object value)
             {
-                var code = amount.GetType().GetTypeCode();
+                var code = value.GetType().GetTypeCode();
                 // 原子操作
                 Object newValue = null;
                 Object oldValue = null;
@@ -276,16 +247,16 @@ namespace NewLife.Caching
                     switch (code)
                     {
                         case TypeCode.Int32:
-                            newValue = (Int32)oldValue - (Int32)amount;
+                            newValue = (Int32)oldValue - (Int32)value;
                             break;
                         case TypeCode.Int64:
-                            newValue = (Int64)oldValue - (Int64)amount;
+                            newValue = (Int64)oldValue - (Int64)value;
                             break;
                         case TypeCode.Single:
-                            newValue = (Single)oldValue - (Single)amount;
+                            newValue = (Single)oldValue - (Single)value;
                             break;
                         case TypeCode.Double:
-                            newValue = (Double)oldValue - (Double)amount;
+                            newValue = (Double)oldValue - (Double)value;
                             break;
                     }
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
