@@ -94,7 +94,7 @@ namespace System
         /// <returns></returns>
         public virtual Int32 ToInt(Object value, Int32 defaultValue)
         {
-            if (value == null) return defaultValue;
+            if (value == null || value == DBNull.Value) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
             if (value is String str)
@@ -139,7 +139,7 @@ namespace System
         /// <returns></returns>
         public virtual Int64 ToLong(Object value, Int64 defaultValue)
         {
-            if (value == null) return defaultValue;
+            if (value == null || value == DBNull.Value) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
             if (value is String str)
@@ -167,7 +167,7 @@ namespace System
         /// <returns></returns>
         public virtual Double ToDouble(Object value, Double defaultValue)
         {
-            if (value == null) return defaultValue;
+            if (value == null || value == DBNull.Value) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
             if (value is String str)
@@ -217,7 +217,7 @@ namespace System
         /// <returns></returns>
         public virtual Boolean ToBoolean(Object value, Boolean defaultValue)
         {
-            if (value == null) return defaultValue;
+            if (value == null || value == DBNull.Value) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
             if (value is String str)
@@ -249,7 +249,7 @@ namespace System
         /// <returns></returns>
         public virtual DateTime ToDateTime(Object value, DateTime defaultValue)
         {
-            if (value == null) return defaultValue;
+            if (value == null || value == DBNull.Value) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
             if (value is String str)
