@@ -138,6 +138,7 @@ namespace NewLife.Remoting
 
             // Api解码消息得到Action和参数
             var msg = e.Message;
+            if (msg == null) return;
             if (msg.Reply) return;
 
             var rs = _Host.Process(this, msg);
