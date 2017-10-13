@@ -1003,6 +1003,9 @@ namespace XCode
                 Where = where
             };
 
+            // 使用默认选择列
+            if (builder.Column.IsNullOrEmpty()) builder.Column = Meta.Factory.Selects;
+
             // XCode对于默认排序的规则：自增主键降序，其它情况默认
             // 返回所有记录
             if (!needOrderByID && startRowIndex <= 0 && maximumRows <= 0) return builder;
