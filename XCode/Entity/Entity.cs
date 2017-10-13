@@ -456,6 +456,9 @@ namespace XCode
                 Where = wh
             };
 
+            // 使用默认选择列
+            if (builder.Column.IsNullOrEmpty()) builder.Column = Meta.Factory.Selects;
+
             // 提取参数
             builder = FixParam(builder, ps);
 
