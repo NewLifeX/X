@@ -80,22 +80,22 @@ namespace NewLife.Agent
                     service.ControlService(false);
                     return;
                 }
-                else if (cmd == "-run") //循环执行任务
-                {
-                    var service2 = new TService();
-                    service2.StartWork("-run");
-                    Console.ReadKey(true);
-                    return;
-                }
-                else if (cmd == "-step") //单步执行任务
-                {
-                    var service2 = new TService();
-                    for (var i = 0; i < service2.ThreadCount; i++)
-                    {
-                        service2.Work(i);
-                    }
-                    return;
-                }
+                //else if (cmd == "-run") //循环执行任务
+                //{
+                //    var service2 = new TService();
+                //    service2.StartWork("-run");
+                //    Console.ReadKey(true);
+                //    return;
+                //}
+                //else if (cmd == "-step") //单步执行任务
+                //{
+                //    var service2 = new TService();
+                //    for (var i = 0; i < service2.ThreadCount; i++)
+                //    {
+                //        service2.Work(i);
+                //    }
+                //    return;
+                //}
                 #endregion
             }
             else
@@ -328,27 +328,8 @@ namespace NewLife.Agent
         /// <summary>任务项</summary>
         public ServiceItem[] Items { get; private set; }
 
-        /// <summary>服务启动事件</summary>
-        /// <param name="args"></param>
-        protected override void OnStart(String[] args)
-        {
-            EventLog.WriteEntry("服务启动 共[{0:n0}]个工作线程".F(ThreadCount), EventLogEntryType.Information);
-
-            StartWork("服务启动");
-        }
-
-        /// <summary>服务停止事件</summary>
-        protected override void OnStop()
-        {
-            StopWork("服务停止");
-        }
-
-        ///// <summary>开始循环工作</summary>
-        //[Obsolete("=>StartWork(String reason)")]
-        //public virtual void StartWork()
-        //{
-        //    StartWork(nameof(StartWork));
-        //}
+        /// <summary>任务调度器</summary>
+        public JobSchedule Schedule { get; } = new JobSchedule();
 
         /// <summary>开始工作</summary>
         /// <param name="reason"></param>
@@ -357,8 +338,10 @@ namespace NewLife.Agent
             // 依赖服务检测
             this.PreStartWork();
 
-            var count = ThreadCount;
-            WriteLine("服务启动 共[{0:n0}]个工作线程 {1}", count, reason);
+            var tcount = ThreadCount;
+            var sch = Schedule;
+            var count = tcount + sch.Count;
+            WriteLog("服务启动 共[{0:n0}]个工作线程 {1}", count, reason);
 
             try
             {
@@ -372,10 +355,20 @@ namespace NewLife.Agent
                     // 使用专用的时间间隔
                     if (i < vs.Length) time = vs[i];
 
-                    ss[i] = new ServiceItem(i, null, time)
+                    if (i < tcount)
+                        ss[i] = new ServiceItem(i, null, time)
+                        {
+                            Callback = Work
+                        };
+                    else
                     {
-                        Callback = Work
-                    };
+                        var job = Schedule.Jobs[i - tcount];
+                        if (job is JobBase jb) jb.Log = Log;
+                        ss[i] = new ServiceItem(i, null, time)
+                        {
+                            Job = job
+                        };
+                    }
 
                     //StartWork(i);
                     ss[i].Start(reason);
@@ -389,7 +382,8 @@ namespace NewLife.Agent
             }
             catch (Exception ex)
             {
-                WriteLine(ex.ToString());
+                //WriteLog(ex.ToString());
+                Log?.Error(ex.GetTrue()?.ToString());
             }
         }
 
@@ -398,22 +392,11 @@ namespace NewLife.Agent
         /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
         public virtual Boolean Work(Int32 index) { return false; }
 
-        ///// <summary>停止循环工作</summary>
-        ///// <remarks>
-        ///// 只能停止循环而已，如果已经有一批任务在处理，
-        ///// 则内部需要捕获ThreadAbortException异常，否则无法停止任务处理。
-        ///// </remarks>
-        //[Obsolete("=>StopWork(String reason)")]
-        //public virtual void StopWork()
-        //{
-        //    StopWork(nameof(StopWork));
-        //}
-
         /// <summary>停止服务</summary>
         /// <param name="reason"></param>
         protected virtual void StopWork(String reason)
         {
-            WriteLine("服务停止");
+            WriteLog("服务停止");
 
             // 停止服务管理线程
             StopManagerThread();
@@ -473,7 +456,8 @@ namespace NewLife.Agent
                 }
                 catch (Exception ex)
                 {
-                    WriteLine(ex.ToString());
+                    //WriteLine(ex.ToString());
+                    Log?.Error(ex.GetTrue()?.ToString());
                 }
             }
         }
@@ -507,7 +491,8 @@ namespace NewLife.Agent
                 }
                 catch (Exception ex)
                 {
-                    WriteLine(ex.ToString());
+                    //WriteLine(ex.ToString());
+                    Log?.Error(ex.GetTrue()?.ToString());
                 }
             }
         }
@@ -537,7 +522,7 @@ namespace NewLife.Agent
             cur = cur / 1024 / 1024;
             if (cur > max)
             {
-                WriteLine("当前进程占用内存 {0:n0}M，超过阀值 {1:n0}M，准备重新启动！", cur, max);
+                WriteLog("当前进程占用内存 {0:n0}M，超过阀值 {1:n0}M，准备重新启动！", cur, max);
 
                 Restart("MaxMemory");
 
@@ -557,7 +542,7 @@ namespace NewLife.Agent
             var p = Process.GetCurrentProcess();
             if (p.Threads.Count > max)
             {
-                WriteLine("当前进程总线程 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.Threads.Count, max);
+                WriteLog("当前进程总线程 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.Threads.Count, max);
 
                 Restart("MaxThread");
 
@@ -577,7 +562,7 @@ namespace NewLife.Agent
             var p = Process.GetCurrentProcess();
             if (p.HandleCount > max)
             {
-                WriteLine("当前进程句柄 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.HandleCount, max);
+                WriteLog("当前进程句柄 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.HandleCount, max);
 
                 Restart("MaxHandle");
 
@@ -600,7 +585,7 @@ namespace NewLife.Agent
             var ts = DateTime.Now - Start;
             if (ts.TotalMinutes > auto)
             {
-                WriteLine("服务已运行 {0:n0}分钟，达到预设重启时间（{1:n0}分钟），准备重启！", ts.TotalMinutes, auto);
+                WriteLog("服务已运行 {0:n0}分钟，达到预设重启时间（{1:n0}分钟），准备重启！", ts.TotalMinutes, auto);
 
                 Restart("AutoRestart");
 
@@ -614,7 +599,7 @@ namespace NewLife.Agent
         /// <param name="reason"></param>
         public void Restart(String reason)
         {
-            WriteLine("重启服务！");
+            WriteLog("重启服务！");
 
             // 在临时目录生成重启服务的批处理文件
             var filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "重启.bat");
@@ -650,10 +635,25 @@ namespace NewLife.Agent
         #endregion
 
         #region 服务高级功能
+        /// <summary>服务启动事件</summary>
+        /// <param name="args"></param>
+        protected override void OnStart(String[] args)
+        {
+            EventLog.WriteEntry("服务启动 共[{0:n0}]个工作线程".F(ThreadCount), EventLogEntryType.Information);
+
+            StartWork("服务启动");
+        }
+
+        /// <summary>服务停止事件</summary>
+        protected override void OnStop()
+        {
+            StopWork("服务停止");
+        }
+
         /// <summary>暂停命令发送到服务的服务控制管理器 (SCM) 时执行。 指定当服务就会暂停时要执行的操作。</summary>
         protected override void OnPause()
         {
-            WriteLine(nameof(OnPause));
+            WriteLog(nameof(OnPause));
 
             foreach (var item in Items)
             {
@@ -664,7 +664,7 @@ namespace NewLife.Agent
         /// <summary>继续命令发送到服务的服务控制管理器 (SCM) 运行。 指定当某个服务后继续正常工作正在暂停时要执行的操作。</summary>
         protected override void OnContinue()
         {
-            WriteLine(nameof(OnContinue));
+            WriteLog(nameof(OnContinue));
 
             foreach (var item in Items)
             {
@@ -675,7 +675,7 @@ namespace NewLife.Agent
         /// <summary>在系统关闭时执行。 指定在系统关闭之前应该发生什么。</summary>
         protected override void OnShutdown()
         {
-            WriteLine(nameof(OnShutdown));
+            WriteLog(nameof(OnShutdown));
 
             StopWork(nameof(OnShutdown));
         }
@@ -685,7 +685,7 @@ namespace NewLife.Agent
         /// <returns></returns>
         protected override Boolean OnPowerEvent(PowerBroadcastStatus powerStatus)
         {
-            WriteLine(nameof(OnPowerEvent) + " " + powerStatus);
+            WriteLog(nameof(OnPowerEvent) + " " + powerStatus);
 
             switch (powerStatus)
             {
@@ -718,7 +718,7 @@ namespace NewLife.Agent
         /// <param name="changeDescription"></param>
         protected override void OnSessionChange(SessionChangeDescription changeDescription)
         {
-            WriteLine(nameof(OnSessionChange) + " SessionId={0} Reason={1}", changeDescription.SessionId, changeDescription.Reason);
+            WriteLog(nameof(OnSessionChange) + " SessionId={0} Reason={1}", changeDescription.SessionId, changeDescription.Reason);
         }
         #endregion
 
@@ -750,7 +750,7 @@ namespace NewLife.Agent
                 // 注意：IsServiceRunning返回三种状态，null表示未知
                 if (ServiceHelper.IsServiceRunning(item) == false)
                 {
-                    WriteLine("发现服务{0}被关闭，准备启动！", item);
+                    XTrace.WriteLine("发现服务{0}被关闭，准备启动！", item);
 
                     ServiceHelper.RunCmd("net start " + item, false, true);
                 }

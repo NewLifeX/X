@@ -31,11 +31,24 @@ namespace NewLife.Agent
         {
             // XAgent将开启ThreadCount个线程，0<index<ThreadCount，本函数即为每个任务线程的主函数，间隔Interval循环调用
             var ms = Rand.Next(3000, 20000);
-            WriteLine("任务{0}，当前时间：{1} 睡眠：{2:n0}ms", index, DateTime.Now, ms);
+            WriteLog("任务{0}，当前时间：{1} 睡眠：{2:n0}ms", index, DateTime.Now, ms);
             Thread.Sleep(ms);
 
             return false;
         }
         #endregion
+    }
+
+    /// <summary>计划任务例子</summary>
+    public class AgentJob : JobBase
+    {
+        /// <summary>执行任务</summary>
+        /// <param name="context"></param>
+        public override void Execute(JobContext context)
+        {
+            var ms = Rand.Next(3000, 20000);
+            WriteLog("任务{0}，当前时间：{1} 睡眠：{2:n0}ms", context, DateTime.Now, ms);
+            Thread.Sleep(ms);
+        }
     }
 }

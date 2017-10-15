@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -111,13 +111,17 @@ namespace Test
 
         static void Test2()
         {
-            //var bm = new BaiduMap();
-            //bm.Log = XTrace.Log;
-            //var gp = bm.GetGeoAsync("新府中路1650号").Result;
-            //Console.WriteLine(gp);
+            var addr = "容县容西镇移动营业厅";
+            var city = "玉林";
 
-            //var addr = bm.GetGeoAsync(gp).Result;
-            //Console.WriteLine(addr);
+            var bm = new BaiduMap();
+            bm.Log = XTrace.Log;
+
+            var gp = bm.GetGeoAsync(addr, city).Result;
+            Console.WriteLine(gp);
+
+            var geo = bm.GetGeoAsync(gp).Result;
+            Console.WriteLine(geo);
 
             //var org = bm.GetGeoAsync("新府中路1650号").Result;
             //var dst = bm.GetGeoAsync("广西容县高中").Result;
@@ -128,13 +132,17 @@ namespace Test
             {
                 Log = XTrace.Log
             };
+
+            geo = am.GetGeoAsync(addr, city).Result;
+            Console.WriteLine(geo);
+
             //var org2 = am.GetGeoAsync("新府中路1650号").Result;
             //var dst2 = am.GetGeoAsync("广西容县高中").Result;
             //dv = am.GetDistanceAsync(org2.Location, dst2.Location).Result;
             //Console.WriteLine("{0}:\t{1}", dv.Distance, dv.Duration);
 
-            var addrs = am.GetDistrictAsync("广西", 1, 450000).Result;
-            Console.WriteLine(addrs);
+            //var addrs = am.GetDistrictAsync("广西", 1, 450000).Result;
+            //Console.WriteLine(addrs);
         }
     }
 }

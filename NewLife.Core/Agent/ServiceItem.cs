@@ -18,6 +18,9 @@ namespace NewLife.Agent
         /// <summary>任务委托</summary>
         public Func<Int32, Boolean> Callback { get; set; }
 
+        /// <summary>工作任务</summary>
+        public IJob Job { get; set; }
+
         /// <summary>线程</summary>
         public Thread Thread { get; private set; }
 
@@ -115,7 +118,10 @@ namespace NewLife.Agent
                 var sw = Stopwatch.StartNew();
                 try
                 {
-                    isContinute = Callback(Index);
+                    if (Callback != null)
+                        isContinute = Callback(Index);
+                    else if (Job != null)
+                        Job.Execute(null);
                 }
                 catch (ThreadAbortException)
                 {

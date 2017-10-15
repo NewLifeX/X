@@ -91,20 +91,32 @@ namespace NewLife.Agent
         }
 
         #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = XTrace.Log;
+
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(format, args);
+        }
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        [Obsolete("=>WriteLog")]
         public static void WriteLine(String format, params Object[] args)
         {
             if (XTrace.Debug) XTrace.WriteLine(format, args);
         }
 
-        /// <summary>写日志</summary>
-        /// <param name="msg"></param>
-        public static void WriteLine(String msg)
-        {
-            if (XTrace.Debug) XTrace.WriteLine(msg);
-        }
+        ///// <summary>写日志</summary>
+        ///// <param name="msg"></param>
+        //public static void WriteLine(String msg)
+        //{
+        //    if (XTrace.Debug) XTrace.WriteLine(msg);
+        //}
         #endregion
 
         #region 运行UI

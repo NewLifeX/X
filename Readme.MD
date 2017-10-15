@@ -5,6 +5,7 @@
 QQ群：1600800  
 
 ## 项目源码位置
+`注意：X组件具有15年漫长历史，源码库保留有2010年以来所有修改记录，并一直保持更新，请确保获取得到最新版本源代码`  
 国内 http://git.NewLifeX.com/NewLife/X  
 国外 https://github.com/NewLifeX/X  
 
@@ -34,8 +35,8 @@ Android版核心库，共用代码，供Xamarin Android开发使用
 ### iOS库 NewLife.iOS
 iOS版核心库，共用代码，供Xamarin iOS开发使用
 
-### 数据映射框架 NewLife.XCode
-ORM组件，主要亮点：  
+### [数据中间件 NewLife.XCode]http://git.newlifex.com/NewLife/XDoc/Blob/master/XCode/Readme.MD
+主要特点：  
 1，设计极致的缓存，超高性能  
 2，反向工程，根据实体类主动建立数据库表结构并初始化数据，支持8种数据库  
 3，无限分表分库，支持任意数据库，无需修改业务代码  
