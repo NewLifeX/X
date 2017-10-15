@@ -1,14 +1,20 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Agent;
+using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
+using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
+using NewLife.Yun;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -34,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -50,7 +56,6 @@ namespace Test
                 GC.WaitForPendingFinalizers();
                 var key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
-                break;
             }
         }
 
@@ -107,60 +112,29 @@ namespace Test
         static void Test2()
         {
             //var bm = new BaiduMap();
-            //var kv = bm.GetGeocoderAsync("新府中路1650号").Result;
-            //Console.WriteLine("{0}, {1}", kv.Key, kv.Value);
-            //Console.WriteLine();
+            //bm.Log = XTrace.Log;
+            //var gp = bm.GetGeoAsync("新府中路1650号").Result;
+            //Console.WriteLine(gp);
 
-            var am = new AMap();
-            var org = am.GetGeoAsync("新府中路1650号").Result;
-            var dst = am.GetGeoAsync("广西容县高中").Result;
-            var rs = am.GetDistanceAsync(org, dst, 1).Result;
-            foreach (var item in rs)
+            //var addr = bm.GetGeoAsync(gp).Result;
+            //Console.WriteLine(addr);
+
+            //var org = bm.GetGeoAsync("新府中路1650号").Result;
+            //var dst = bm.GetGeoAsync("广西容县高中").Result;
+            //var dv = bm.GetDistanceAsync(org, dst).Result;
+            //Console.WriteLine("{0}:\t{1}", dv.Distance, dv.Duration);
+
+            var am = new AMap
             {
-                Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
-            }
-        }
+                Log = XTrace.Log
+            };
+            //var org2 = am.GetGeoAsync("新府中路1650号").Result;
+            //var dst2 = am.GetGeoAsync("广西容县高中").Result;
+            //dv = am.GetDistanceAsync(org2.Location, dst2.Location).Result;
+            //Console.WriteLine("{0}:\t{1}", dv.Distance, dv.Duration);
 
-        class TestModule : EntityModule
-        {
-            protected override Boolean OnInit(Type entityType)
-            {
-                return entityType == typeof(UserX);
-            }
-
-            protected override Boolean OnValid(IEntity entity, Boolean isNew)
-            {
-                if (isNew)
-                    XTrace.WriteLine("新增实体 " + entity.GetType().Name);
-                else
-                    XTrace.WriteLine("更新实体 " + entity.GetType().Name);
-
-                return base.OnValid(entity, isNew);
-            }
-
-            protected override Boolean OnDelete(IEntity entity)
-            {
-                XTrace.WriteLine("删除实体 " + entity.GetType().Name);
-
-                return base.OnDelete(entity);
-            }
-
-            public static void Test()
-            {
-                EntityModules.Global.Add<TestModule>();
-
-                var user = new UserX
-                {
-                    Name = "Stone",
-                    RoleID = 1
-                };
-                user.Save();
-
-                user.Name = "大石头";
-                user.Update();
-
-                user.Delete();
-            }
+            var addrs = am.GetDistrictAsync("广西", 1, 450000).Result;
+            Console.WriteLine(addrs);
         }
     }
 }

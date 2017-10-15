@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
+using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace NewLife.Caching
@@ -18,9 +20,6 @@ namespace NewLife.Caching
         {
             _cache = new ConcurrentDictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
             Name = "Memory";
-
-            var period = 60;
-            clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
         }
 
         /// <summary>销毁</summary>
@@ -43,20 +42,14 @@ namespace NewLife.Caching
         #endregion
 
         #region 方法
-        /// <summary>获取和设置缓存，永不过期</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public override Object this[String key]
+        /// <summary>初始化配置</summary>
+        /// <param name="set"></param>
+        protected override void Init(CacheSetting set)
         {
-            get
+            if (clearTimer == null)
             {
-                if (!_cache.TryGetValue(key, out var item) || item == null) return null;
-
-                return item.Value;
-            }
-            set
-            {
-                Set(key, value);
+                var period = 60;
+                clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
             }
         }
 
@@ -90,7 +83,12 @@ namespace NewLife.Caching
         /// <summary>获取缓存项</summary>
         /// <param name="key">键</param>
         /// <returns></returns>
-        public override T Get<T>(String key) { return (T)this[key]; }
+        public override T Get<T>(String key)
+        {
+            if (!_cache.TryGetValue(key, out var item) || item == null) return default(T);
+
+            return (T)item.Value;
+        }
 
         /// <summary>移除缓存项</summary>
         /// <param name="key">键</param>
@@ -108,7 +106,7 @@ namespace NewLife.Caching
 
             return true;
         }
-        
+
         /// <summary>获取缓存项有效期</summary>
         /// <param name="key">键</param>
         /// <returns></returns>
@@ -121,49 +119,68 @@ namespace NewLife.Caching
         #endregion
 
         #region 高级操作
-        /// <summary>批量获取缓存项</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="keys"></param>
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override IDictionary<String, T> GetAll<T>(params String[] keys)
+        public override Int64 Increment(String key, Int64 value)
         {
-            var dic = new Dictionary<String, T>();
-            foreach (var key in keys)
+            if (!_cache.TryGetValue(key, out var item) || item == null)
             {
-                if (!_cache.TryGetValue(key, out var item) || item == null) continue;
-
-                dic[key] = (T)item.Value;
+                item = new CacheItem(0, Expire);
+                item = _cache.GetOrAdd(key, item);
             }
 
-            return dic;
+            // 原子操作
+            return (Int64)item.Inc(value);
         }
 
         /// <summary>累加，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Int32 Increment(String key, Int32 amount)
+        public override Double Increment(String key, Double value)
         {
-            if (!_cache.TryGetValue(key, out var item) || item == null) return -1;
+            if (!_cache.TryGetValue(key, out var item) || item == null)
+            {
+                item = new CacheItem(0, Expire);
+                item = _cache.GetOrAdd(key, item);
+            }
 
-            var v = (Int32)item.Value + amount;
-            item.Value = v;
-
-            return v;
+            // 原子操作
+            return (Double)item.Inc(value);
         }
 
         /// <summary>递减，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Int32 Decrement(String key, Int32 amount)
+        public override Int64 Decrement(String key, Int64 value)
         {
-            if (!_cache.TryGetValue(key, out var item) || item == null) return -1;
+            if (!_cache.TryGetValue(key, out var item) || item == null)
+            {
+                item = new CacheItem(0, Expire);
+                item = _cache.GetOrAdd(key, item);
+            }
 
-            var v = (Int32)item.Value - amount;
-            item.Value = v;
+            // 原子操作
+            return (Int64)item.Dec(value);
+        }
 
-            return v;
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        public override Double Decrement(String key, Double value)
+        {
+            if (!_cache.TryGetValue(key, out var item) || item == null)
+            {
+                item = new CacheItem(0, Expire);
+                item = _cache.GetOrAdd(key, item);
+            }
+
+            // 原子操作
+            return (Double)item.Dec(value);
         }
         #endregion
 
@@ -171,19 +188,80 @@ namespace NewLife.Caching
         /// <summary>缓存项</summary>
         class CacheItem
         {
+            private Object _Value;
             /// <summary>数值</summary>
-            public Object Value { get; set; }
+            public Object Value { get { return _Value; } set { _Value = value; } }
 
             /// <summary>过期时间</summary>
             public DateTime ExpiredTime { get; set; }
 
             /// <summary>是否过期</summary>
-            public Boolean Expired { get { return ExpiredTime <= DateTime.Now; } }
+            public Boolean Expired { get { return ExpiredTime <= TimerX.Now; } }
 
             public CacheItem(Object value, Int32 expire)
             {
                 Value = value;
-                ExpiredTime = DateTime.Now.AddSeconds(expire);
+                ExpiredTime = TimerX.Now.AddSeconds(expire);
+            }
+
+            public Object Inc(Object value)
+            {
+                var code = value.GetType().GetTypeCode();
+                // 原子操作
+                Object newValue = null;
+                Object oldValue = null;
+                do
+                {
+                    oldValue = _Value;
+                    switch (code)
+                    {
+                        case TypeCode.Int32:
+                            newValue = (Int32)oldValue + (Int32)value;
+                            break;
+                        case TypeCode.Int64:
+                            newValue = (Int64)oldValue + (Int64)value;
+                            break;
+                        case TypeCode.Single:
+                            newValue = (Single)oldValue + (Single)value;
+                            break;
+                        case TypeCode.Double:
+                            newValue = (Double)oldValue + (Double)value;
+                            break;
+                    }
+                } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
+
+                //Interlocked.Increment(ref _Value);
+
+                return newValue;
+            }
+
+            public Object Dec(Object value)
+            {
+                var code = value.GetType().GetTypeCode();
+                // 原子操作
+                Object newValue = null;
+                Object oldValue = null;
+                do
+                {
+                    oldValue = _Value;
+                    switch (code)
+                    {
+                        case TypeCode.Int32:
+                            newValue = (Int32)oldValue - (Int32)value;
+                            break;
+                        case TypeCode.Int64:
+                            newValue = (Int64)oldValue - (Int64)value;
+                            break;
+                        case TypeCode.Single:
+                            newValue = (Single)oldValue - (Single)value;
+                            break;
+                        case TypeCode.Double:
+                            newValue = (Double)oldValue - (Double)value;
+                            break;
+                    }
+                } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
+
+                return newValue;
             }
         }
         #endregion
@@ -197,11 +275,29 @@ namespace NewLife.Caching
         {
             // 这里先计算，性能很重要
             var now = DateTime.Now;
+            var list = new List<String>();
             foreach (var item in _cache)
             {
                 var t = item.Value.ExpiredTime;
-                if (t < now) _cache.Remove(item.Key);
+                if (t < now) list.Add(item.Key);
             }
+
+            foreach (var item in list)
+            {
+                _cache.Remove(item);
+            }
+        }
+        #endregion
+
+        #region 性能测试
+        /// <summary>使用指定线程测试指定次数</summary>
+        /// <param name="times">次数</param>
+        /// <param name="threads">线程</param>
+        public override void BenchOne(Int64 times, Int32 threads)
+        {
+            times *= 100;
+
+            base.BenchOne(times, threads);
         }
         #endregion
     }

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
@@ -43,7 +44,7 @@ namespace XCode.DataAccessLayer
                 if (conn != null)
                 {
                     //Close();
-                    if (conn.State != ConnectionState.Closed) conn.Close();
+                    //if (conn.State != ConnectionState.Closed) conn.Close();
 
                     _Conn = null;
                     conn.Dispose();
@@ -111,7 +112,23 @@ namespace XCode.DataAccessLayer
 
         #region 打开/关闭
         /// <summary>连接是否已经打开</summary>
-        public Boolean Opened { get { return _Conn != null && _Conn.State != ConnectionState.Closed; } }
+        public Boolean Opened
+        {
+            get
+            {
+                var conn = _Conn;
+                if (conn == null) return false;
+
+                try
+                {
+                    return conn.State != ConnectionState.Closed;
+                }
+                catch (ObjectDisposedException)
+                {
+                    return false;
+                }
+            }
+        }
 
         ///// <summary>延迟关闭时间。默认0毫秒</summary>
         //public Int32 DelayClose { get; set; }
@@ -169,6 +186,16 @@ namespace XCode.DataAccessLayer
         {
             if (Transaction != null || !Opened) return;
 
+            // 检查是否支持自动关闭
+            if (_EnableAutoClose != null)
+            {
+                if (!_EnableAutoClose.Value) return;
+            }
+            else
+            {
+                if (!Database.AutoClose) return;
+            }
+
             //// 延迟关闭
             //if (DelayClose == 0)
             //{
@@ -182,6 +209,16 @@ namespace XCode.DataAccessLayer
             //    // 不再处理，允许关闭
             //    _running = false;
             //}
+        }
+
+        private Boolean? _EnableAutoClose;
+        /// <summary>设置自动关闭。启用、禁用、继承</summary>
+        /// <param name="enable"></param>
+        public void SetAutoClose(Boolean? enable)
+        {
+            _EnableAutoClose = enable;
+
+            if (enable == null || enable.Value) AutoClose();
         }
 
         //private Boolean _running;
@@ -571,6 +608,142 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 异步操作
+        /// <summary>异步打开</summary>
+        /// <returns></returns>
+        public virtual async Task OpenAsync()
+        {
+            var tid = Thread.CurrentThread.ManagedThreadId;
+            if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
+
+            var conn = Conn;
+            if (conn == null || conn.State != ConnectionState.Closed) return;
+
+            await conn.OpenAsync();
+        }
+
+        public virtual async Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd)
+        {
+            cmd.Transaction = Transaction?.Check(false);
+            QueryTimes++;
+
+            try
+            {
+                if (!Opened) await OpenAsync();
+                if (cmd.Connection == null) cmd.Connection = Conn;
+
+                WriteSQL(cmd);
+                BeginTrace();
+                var reader = await cmd.ExecuteReaderAsync();
+
+                return reader;
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                EndTrace(cmd);
+
+                AutoClose();
+                //cmd.Parameters.Clear();
+            }
+        }
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public virtual async Task<DataResult> QueryAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            var ds = new DataResult
+            {
+                Rows = new List<Object[]>()
+            };
+
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                var reader = await ExecuteReaderAsync(cmd);
+
+                var fieldCount = reader.FieldCount;
+
+                ds.Names = new String[fieldCount];
+                ds.Types = new Type[fieldCount];
+                for (var i = 0; i < fieldCount; i++)
+                {
+                    ds.Names[i] = reader.GetName(i);
+                    ds.Types[i] = reader.GetFieldType(i);
+                }
+
+                while (await reader.ReadAsync())
+                {
+                    var row = new Object[fieldCount];
+                    reader.GetValues(row);
+
+                    ds.Rows.Add(row);
+                }
+            }
+
+            return ds;
+        }
+
+        public virtual async Task<Int32> ExecuteNonQueryAsync(DbCommand cmd)
+        {
+            cmd.Transaction = Transaction?.Check(true);
+            ExecuteTimes++;
+            WriteSQL(cmd);
+            try
+            {
+                if (!Opened) await OpenAsync();
+                if (cmd.Connection == null) cmd.Connection = Conn;
+
+                BeginTrace();
+                return await cmd.ExecuteNonQueryAsync();
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                EndTrace(cmd);
+
+                AutoClose();
+                //cmd.Parameters.Clear();
+            }
+        }
+
+        public virtual async Task<T> ExecuteScalarAsync<T>(DbCommand cmd)
+        {
+            QueryTimes++;
+
+            WriteSQL(cmd);
+            try
+            {
+                BeginTrace();
+
+                var rs = await cmd.ExecuteScalarAsync();
+                if (rs == null || rs == DBNull.Value) return default(T);
+                if (rs is T) return (T)rs;
+
+                return (T)Reflect.ChangeType(rs, typeof(T));
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                EndTrace(cmd);
+
+                AutoClose();
+                //cmd.Parameters.Clear();
+            }
+        }
+        #endregion
+
         #region 高级
         /// <summary>清空数据表，标识归零</summary>
         /// <param name="tableName"></param>
@@ -797,9 +970,9 @@ namespace XCode.DataAccessLayer
             if (_swSql == null) return;
 
             _swSql.Stop();
-            
+
             if (_swSql.ElapsedMilliseconds < (Database as DbBase).TraceSQLTime) return;
-            
+
             var sql = GetSql(cmd);
 
             // 同一个SQL只需要报警一次
@@ -808,10 +981,14 @@ namespace XCode.DataAccessLayer
             {
                 if (_trace_sqls.Contains(sql)) return;
 
+                if (_trace_sqls.Count >= 1000) _trace_sqls.Clear();
                 _trace_sqls.Add(sql);
             }
-            SQLRunEvent obj = new SQLRunEvent() { Sql = sql, RunTime = _swSql.ElapsedMilliseconds };
+
+#if !__CORE__
+            var obj = new SQLRunEvent() { Sql = sql, RunTime = _swSql.ElapsedMilliseconds };
             EventBus.Instance.Publish(obj);
+#endif
             XTrace.WriteLine("SQL耗时较长，建议优化 {0:n0}毫秒 {1}", _swSql.ElapsedMilliseconds, sql);
         }
         #endregion

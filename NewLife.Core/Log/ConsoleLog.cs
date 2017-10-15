@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace NewLife.Log
 {
@@ -53,7 +53,7 @@ namespace NewLife.Log
             Console.WriteLine(msg);
         }
 
-        static Dictionary<Int32, ConsoleColor> dic = new Dictionary<Int32, ConsoleColor>();
+        static ConcurrentDictionary<Int32, ConsoleColor> dic = new ConcurrentDictionary<Int32, ConsoleColor>();
         static ConsoleColor[] colors = new ConsoleColor[] {
             ConsoleColor.Green, ConsoleColor.Cyan, ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.Yellow,
             ConsoleColor.DarkGreen, ConsoleColor.DarkCyan, ConsoleColor.DarkMagenta, ConsoleColor.DarkRed, ConsoleColor.DarkYellow };
@@ -61,25 +61,7 @@ namespace NewLife.Log
         {
             if (threadid == 1) return ConsoleColor.Gray;
 
-            // 好像因为dic.TryGetValue也会引发线程冲突，真是悲剧！
-            lock (dic)
-            {
-                ConsoleColor cc;
-                var key = threadid;
-                if (!dic.TryGetValue(key, out cc))
-                {
-                    //lock (dic)
-                    {
-                        //if (!dic.TryGetValue(key, out cc))
-                        {
-                            cc = colors[dic.Count % colors.Length];
-                            dic[key] = cc;
-                        }
-                    }
-                }
-
-                return cc;
-            }
+            return dic.GetOrAdd(threadid, k => colors[dic.Count % colors.Length]);
         }
 
         /// <summary>已重载。</summary>

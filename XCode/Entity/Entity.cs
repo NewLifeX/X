@@ -103,9 +103,16 @@ namespace XCode
                 // 查询列表异步加入对象缓存
                 ThreadPool.UnsafeQueueUserWorkItem(s =>
                 {
-                    foreach (var item in list)
+                    try
                     {
-                        sc.Add(item);
+                        foreach (var item in list)
+                        {
+                            sc.Add(item);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
                     }
                 }, null);
             }
@@ -149,35 +156,7 @@ namespace XCode
         /// 如果需要避开该机制，请清空脏数据。
         /// </remarks>
         /// <returns></returns>
-        public override Int32 Delete()
-        {
-            if (HasDirty)
-            {
-                // 是否有且仅有主键有脏数据
-                var names = Meta.Table.PrimaryKeys.Select(f => f.Name).OrderBy(k => k).ToArray();
-                // 脏数据里面是否存在非主键且为true的
-                var names2 = Dirtys.Where(d => d.Value).Select(d => d.Key).OrderBy(k => k).ToArray();
-                // 序列相等，符合条件
-                if (names.SequenceEqual(names2))
-                {
-                    // 再次查询
-                    var entity = Find(Persistence.GetPrimaryCondition(this));
-                    // 如果目标数据不存在，就没必要删除了
-                    if (entity == null) return 0;
-
-                    // 复制脏数据和扩展数据
-                    foreach (var item in names)
-                    {
-                        entity.Dirtys[item] = true;
-                    }
-                    Extends.CopyTo(entity.Extends);
-
-                    return entity.DoAction(OnDelete, null);
-                }
-            }
-
-            return DoAction(OnDelete, null);
-        }
+        public override Int32 Delete() { return DoAction(OnDelete, null); }
 
         /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
         /// <returns></returns>
@@ -191,29 +170,29 @@ namespace XCode
                 if (!isnew.Value) throw new XCodeException("只写的日志型数据禁止修改！");
             }
 
-            using (var trans = new EntityTransaction<TEntity>())
+            //using (var trans = new EntityTransaction<TEntity>())
+            //{
+            if (enableValid)
             {
-                if (enableValid)
+                var rt = false;
+                if (isnew != null)
                 {
-                    var rt = false;
-                    if (isnew != null)
-                    {
-                        Valid(isnew.Value);
-                        rt = Meta._Modules.Valid(this, isnew.Value);
-                    }
-                    else
-                        rt = Meta._Modules.Delete(this);
-
-                    // 没有更新任何数据
-                    if (!rt) return -1;
+                    Valid(isnew.Value);
+                    rt = Meta._Modules.Valid(this, isnew.Value);
                 }
+                else
+                    rt = Meta._Modules.Delete(this);
 
-                var rs = func();
-
-                trans.Commit();
-
-                return rs;
+                // 没有更新任何数据
+                if (!rt) return -1;
             }
+
+            var rs = func();
+
+            //trans.Commit();
+
+            return rs;
+            //}
         }
 
         /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
@@ -476,6 +455,9 @@ namespace XCode
                 // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
                 Where = wh
             };
+
+            // 使用默认选择列
+            if (builder.Column.IsNullOrEmpty()) builder.Column = Meta.Factory.Selects;
 
             // 提取参数
             builder = FixParam(builder, ps);
@@ -1024,6 +1006,9 @@ namespace XCode
                 Where = where
             };
 
+            // 使用默认选择列
+            if (builder.Column.IsNullOrEmpty()) builder.Column = Meta.Factory.Selects;
+
             // XCode对于默认排序的规则：自增主键降序，其它情况默认
             // 返回所有记录
             if (!needOrderByID && startRowIndex <= 0 && maximumRows <= 0) return builder;
@@ -1307,26 +1292,6 @@ namespace XCode
                 return false;
             }
         }
-
-        ///// <summary>如果字段带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值</summary>
-        ///// <param name="fieldName"></param>
-        ///// <param name="newValue"></param>
-        ///// <returns></returns>
-        //protected override Boolean OnPropertyChanging(String fieldName, Object newValue)
-        //{
-        //    // 如果返回true，表示不相同，基类已经设置了脏数据
-        //    if (base.OnPropertyChanging(fieldName, newValue)) return true;
-
-        //    // 如果该字段存在，且带有默认值，则需要设置脏数据，因为显然用户想设置该字段，而不是采用数据库的默认值
-        //    FieldItem fi = Meta.Table.FindByName(fieldName);
-        //    if (fi != null && !String.IsNullOrEmpty(fi.DefaultValue))
-        //    {
-        //        Dirtys[fieldName] = true;
-        //        return true;
-        //    }
-
-        //    return false;
-        //}
         #endregion
     }
 }

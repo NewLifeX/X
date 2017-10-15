@@ -61,6 +61,7 @@
     <Compile Include="..\NewLife.Core\Extension\ConcurrentDictionaryExtensions.cs" Link="Extension\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="..\NewLife.Core\Extension\EndPointExtensions.cs" Link="Extension\EndPointExtensions.cs" />
     <Compile Include="..\NewLife.Core\Extension\EnumHelper.cs" Link="Extension\EnumHelper.cs" />
+    <Compile Include="..\NewLife.Core\Extension\ListExtension.cs" Link="Extension\ListExtension.cs" />
     <Compile Include="..\NewLife.Core\Extension\SpeakProvider.cs" Link="Extension\SpeakProvider.cs" />
     <Compile Include="..\NewLife.Core\Extension\StringHelper.cs" Link="Extension\StringHelper.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpBase.cs" Link="Http\HttpBase.cs" />

@@ -63,6 +63,7 @@
     <Compile Include="Agent\IAgentService.cs" />
     <Compile Include="Agent\ServiceControl.cs" />
     <Compile Include="Agent\ServiceHelper.cs" />
+    <Compile Include="Agent\ServiceItem.cs" />
     <Compile Include="Agent\Setting.cs" />
     <Compile Include="Applications\IP\Ip.cs" />
     <Compile Include="Applications\IP\Zip.cs" />
@@ -86,10 +87,12 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Data\BinaryTree.cs" />
+    <Compile Include="Data\GeoPoint.cs" />
     <Compile Include="Data\IFilter.cs" />
     <Compile Include="Data\Packet.cs" />
     <Compile Include="Extension\BitHelper.cs" />
     <Compile Include="Extension\ConcurrentDictionaryExtensions.cs" />
+    <Compile Include="Extension\ListExtension.cs" />
     <Compile Include="Extension\SpeakProvider.cs" />
     <Compile Include="Http\HttpBase.cs" />
     <Compile Include="Http\HttpClient.cs" />
@@ -291,6 +294,8 @@
     <Compile Include="Threading\TimerScheduler.cs" />
     <Compile Include="Threading\VoidTaskResult.cs" />
     <Compile Include="Threading\YieldAwaitable.cs" />
+    <Compile Include="Web\AMap.cs" />
+    <Compile Include="Web\BaiduMap.cs" />
     <Compile Include="Web\Js.cs" />
     <Compile Include="Web\Link.cs" />
     <Compile Include="Web\Modules\ErrorModule.cs" />

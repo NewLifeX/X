@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace XCode.Cache
 {
@@ -69,7 +70,7 @@ namespace XCode.Cache
             // 更新统计信息
             CheckShowStatics(ref Total, ShowStatics);
 
-            var sec = (DateTime.Now - ExpiredTime).TotalSeconds;
+            var sec = (TimerX.Now - ExpiredTime).TotalSeconds;
             if (sec < 0)
             {
                 Interlocked.Increment(ref Success);
@@ -90,9 +91,9 @@ namespace XCode.Cache
                 }
             }
             // 第一次所有线程一起等待结果
-            if (Times == 1 && WaitFirst && _task != null)
+            if (Times == 1 && WaitFirst && _task != null && _task.Id != Task.CurrentId)
             {
-                if (!_task.Wait(5000)) WriteLog("{0}缓存初始化超时，当前线程可能取得空数据", ToString());
+                if (!_task.Wait(5000)) XTrace.WriteLine("{0}缓存初始化超时，当前线程可能取得空数据", ToString());
             }
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
@@ -127,7 +128,7 @@ namespace XCode.Cache
         {
             // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
             // 设置时间放在获取缓存之前，让其它线程不要空等
-            if (Times > 0) ExpiredTime = DateTime.Now.AddSeconds(Expire);
+            if (Times > 0) ExpiredTime = TimerX.Now.AddSeconds(Expire);
             Times++;
 
             return Task.Factory.StartNew(FillWaper, reason);
@@ -139,7 +140,7 @@ namespace XCode.Cache
 
             _Entities = Invoke<Object, IList<TEntity>>(s => FillListMethod(), null);
 
-            ExpiredTime = DateTime.Now.AddSeconds(Expire);
+            ExpiredTime = TimerX.Now.AddSeconds(Expire);
             WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
         }
 
@@ -148,11 +149,11 @@ namespace XCode.Cache
         {
             if (!Using) return;
 
-            lock (this)
-            {
-                // 直接执行异步更新，明明白白，确保任何情况下数据最新，并且不影响其它任务的性能
-                UpdateCacheAsync(reason);
-            }
+            //lock (this)
+            //{
+            // 直接执行异步更新，明明白白，确保任何情况下数据最新，并且不影响其它任务的性能
+            UpdateCacheAsync(reason);
+            //}
         }
 
         private IEntityOperate Operate = Entity<TEntity>.Meta.Factory;
@@ -171,15 +172,15 @@ namespace XCode.Cache
         {
             if (!Using) return null;
 
-            var es = _Entities.ToArray();
+            var es = _Entities;
             var fi = Operate.Unique;
             if (fi == null) return null;
 
-            var e = es.FirstOrDefault(x => x == entity);
+            var e = es.Find(x => x == entity);
             if (e == null)
             {
                 var v = entity[fi.Name];
-                e = es.FirstOrDefault(x => x[fi.Name] == v);
+                e = es.Find(x => x[fi.Name] == v);
             }
             if (e == null) return null;
 
@@ -187,7 +188,7 @@ namespace XCode.Cache
             // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
             lock (es)
             {
-                _Entities.Remove(e);
+                es.Remove(e);
             }
 
             return e;
@@ -218,10 +219,10 @@ namespace XCode.Cache
             {
                 var sb = new StringBuilder();
                 var type = GetType();
-                var name = "{2}<{0}>({1})".F(typeof(TEntity).Name, Entities.Count, type.GetDisplayName() ?? type.Name);
+                var name = "{2}<{0}>({1:n0})".F(typeof(TEntity).Name, Entities.Count, type.GetDisplayName() ?? type.Name);
                 sb.AppendFormat("{0,-24}", name);
-                sb.AppendFormat("总次数{0,7:n0}", Total);
-                if (Success > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Success, (Double)Success / Total);
+                sb.AppendFormat("总次数{0,11:n0}", Total);
+                if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
 
                 XTrace.WriteLine(sb.ToString());
             }

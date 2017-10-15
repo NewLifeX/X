@@ -40,8 +40,10 @@ namespace NewLife.IP
                     var url = Setting.Current.PluginServer;
                     XTrace.WriteLine("没有找到IP数据库，准备联网获取 {0}", url);
 
-                    var client = new WebClientX();
-                    client.Log = XTrace.Log;
+                    var client = new WebClientX
+                    {
+                        Log = XTrace.Log
+                    };
                     var file = client.DownloadLink(url, "ip.gz", dir.GetFullPath());
 
                     if (File.Exists(file))
@@ -133,8 +135,7 @@ namespace NewLife.IP
             var buf = new Byte[4];
             for (var i = 0; i < 4; i++)
             {
-                var n = 0;
-                if (i < ss.Length && Int32.TryParse(ss[i], out n))
+                if (i < ss.Length && Int32.TryParse(ss[i], out var n))
                 {
                     buf[3 - i] = (Byte)n;
                 }

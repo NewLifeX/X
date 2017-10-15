@@ -6,6 +6,7 @@ namespace NewLife.Caching
     /// <summary>缓存接口</summary>
     public interface ICache
     {
+        #region 属性
         /// <summary>名称</summary>
         String Name { get; }
 
@@ -22,7 +23,9 @@ namespace NewLife.Caching
 
         /// <summary>所有键</summary>
         ICollection<String> Keys { get; }
+        #endregion
 
+        #region 基础操作
         /// <summary>是否包含缓存项</summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -52,6 +55,18 @@ namespace NewLife.Caching
         /// <returns></returns>
         Boolean Remove(String key);
 
+        /// <summary>设置缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <param name="expire">过期时间</param>
+        Boolean SetExpire(String key, TimeSpan expire);
+
+        /// <summary>获取缓存项有效期</summary>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        TimeSpan GetExpire(String key);
+        #endregion
+
+        #region 集合操作
         /// <summary>批量获取缓存项</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="keys"></param>
@@ -62,18 +77,6 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="values"></param>
         void SetAll<T>(IDictionary<String, T> values);
-
-        /// <summary>累加，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        Int32 Increment(String key, Int32 amount);
-
-        /// <summary>递减，原子操作</summary>
-        /// <param name="key"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        Int32 Decrement(String key, Int32 amount);
 
         /// <summary>获取列表</summary>
         /// <typeparam name="T"></typeparam>
@@ -86,15 +89,32 @@ namespace NewLife.Caching
         /// <param name="key"></param>
         /// <returns></returns>
         IDictionary<String, T> GetDictionary<T>(String key);
+        #endregion
 
-        /// <summary>设置缓存项有效期</summary>
+        #region 高级操作
+        /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
-        /// <param name="expire">过期时间</param>
-        Boolean SetExpire(String key, TimeSpan expire);
-
-        /// <summary>获取缓存项有效期</summary>
-        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
         /// <returns></returns>
-        TimeSpan GetExpire(String key);
+        Int64 Increment(String key, Int64 value);
+
+        /// <summary>累加，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        Double Increment(String key, Double value);
+
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        Int64 Decrement(String key, Int64 value);
+
+        /// <summary>递减，原子操作</summary>
+        /// <param name="key">键</param>
+        /// <param name="value">变化量</param>
+        /// <returns></returns>
+        Double Decrement(String key, Double value);
+        #endregion
     }
 }

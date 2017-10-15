@@ -85,7 +85,7 @@ namespace XCode.Common
                 //fact.ConnName = conn + n;
 
                 var k = 0;
-                for (int i = n; i < count; i += cpu, k++)
+                for (Int32 i = n; i < count; i += cpu, k++)
                 {
                     if (k % BatchSize == 0) Console.Write(".");
 
@@ -128,7 +128,7 @@ namespace XCode.Common
                 var k = 0;
                 EntityTransaction tr = null;
                 var dal = fact.Session.Dal;
-                for (int i = n; i < list.Count; i += ths, k++)
+                for (Int32 i = n; i < list.Count; i += ths, k++)
                 {
                     if (k % BatchSize == 0)
                     {

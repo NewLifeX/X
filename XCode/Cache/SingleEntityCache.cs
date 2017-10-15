@@ -86,6 +86,21 @@ namespace XCode.Cache
         }
 
         private TimerX _Timer;
+        private void StartTimer()
+        {
+            if (_Timer == null)
+            {
+                var period = Expire * 1000;
+                if (period > 60 * 1000) period = 60 * 1000;
+
+                // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
+                _Timer = new TimerX(CheckExpire, null, period, period, "SC")
+                {
+                    Async = true
+                };
+            }
+        }
+
         private void CheckExpire(Object state)
         {
             var es = Entities;
@@ -98,19 +113,18 @@ namespace XCode.Cache
             var over = es.Count - MaxEntity;
             if (MaxEntity <= 0 || over < 0) slist = null;
 
-            // 找到所有严重过期的缓存项
-            var exp = DateTime.Now.AddSeconds(-600);
+            // 找到所有很久未访问的缓存项，10倍
+            var exp = TimerX.Now.AddSeconds(-10 * Expire);
             var list = new List<CacheItem>();
             foreach (var item in es)
             {
                 var ci = item.Value;
-                if (ci.ExpireTime < exp)
+                if (ci.VisitTime < exp)
                     list.Add(ci);
                 else if (slist != null)
                 {
-                    IList<CacheItem> ss = null;
-                    if (!slist.TryGetValue(ci.ExpireTime, out ss))
-                        slist.Add(ci.ExpireTime, ss = new List<CacheItem>());
+                    if (!slist.TryGetValue(ci.VisitTime, out var ss))
+                        slist.Add(ci.VisitTime, ss = new List<CacheItem>());
 
                     ss.Add(ci);
                 }
@@ -122,7 +136,7 @@ namespace XCode.Cache
                 over = es.Count - list.Count - MaxEntity;
                 if (over > 0)
                 {
-                    for (int i = 0; i < slist.Count && over > 0; i++)
+                    for (var i = 0; i < slist.Count && over > 0; i++)
                     {
                         var ss = slist.Values[i];
                         if (ss != null && ss.Count > 0)
@@ -132,7 +146,7 @@ namespace XCode.Cache
                         }
                     }
 
-                    WriteLog("对象缓存<{1}>满，删除[{0}]个", list.Count, typeof(TEntity).Name);
+                    XTrace.WriteLine("对象缓存<{0}>满，{1:n0}>{2:n0}，删除[{3:n0}]个", typeof(TEntity).Name, es.Count, MaxEntity, list.Count);
                 }
             }
 
@@ -166,17 +180,20 @@ namespace XCode.Cache
             /// <summary>实体</summary>
             public TEntity Entity { get; set; }
 
+            /// <summary>访问时间</summary>
+            public DateTime VisitTime { get; set; }
+
             /// <summary>缓存过期时间</summary>
             public DateTime ExpireTime { get; set; }
 
             /// <summary>是否已经过期</summary>
-            public Boolean Expired { get { return ExpireTime <= DateTime.Now; } }
+            public Boolean Expired { get { return ExpireTime <= TimerX.Now; } }
 
             public void SetEntity(TEntity entity, Int32 expire)
             {
                 Entity = entity;
-                ExpireTime = DateTime.Now.AddSeconds(expire);
-                //NextSave = ExpireTime;
+                ExpireTime = TimerX.Now.AddSeconds(expire);
+                VisitTime = ExpireTime;
             }
         }
         #endregion
@@ -222,10 +239,10 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = new StringBuilder();
-                var name = "<{0}>({1})".F(typeof(TEntity).Name, Entities.Count);
+                var name = "<{0}>({1:n0})".F(typeof(TEntity).Name, Entities.Count);
                 sb.AppendFormat("对象缓存{0,-20}", name);
-                sb.AppendFormat("总次数{0,7:n0}", Total);
-                if (Success > 0) sb.AppendFormat("，命中{0,7:n0}（{1,6:P02}）", Success, (Double)Success / Total);
+                sb.AppendFormat("总次数{0,11:n0}", Total);
+                if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
 
                 XTrace.WriteLine(sb.ToString());
             }
@@ -258,6 +275,8 @@ namespace XCode.Cache
                 // 尝试添加，即使多线程并发，这里宁可多浪费点时间，也不要带来锁定
                 dic.TryAdd(key, item);
             }
+            // 最后访问时间
+            item.VisitTime = TimerX.Now;
 
             // 异步更新缓存
             if (item.Expired) ThreadPool.UnsafeQueueUserWorkItem(UpdateData, item);
@@ -297,13 +316,7 @@ namespace XCode.Cache
             {
                 Using = true;
                 //WriteLog("单对象缓存首次使用 {0} {1}", typeof(TEntity).FullName, XTrace.GetCaller(1, 16));
-
-                if (_Timer == null)
-                {
-                    // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
-                    _Timer = new TimerX(CheckExpire, null, Expire * 1000, Expire * 1000, "SC");
-                    _Timer.Async = true;
-                }
+                StartTimer();
             }
 
             var skey = entity == null ? null : GetSlaveKeyMethod?.Invoke(entity);
@@ -346,15 +359,22 @@ namespace XCode.Cache
             var item = state as CacheItem;
 
             // 先修改过期时间
-            item.ExpireTime = DateTime.Now.AddSeconds(Expire);
+            item.ExpireTime = TimerX.Now.AddSeconds(Expire);
 
-            // 更新过期缓存，在原连接名表名里面获取
-            var entity = Invoke(FindKeyMethod, item.Key);
-            if (entity != null)
-                item.SetEntity(entity, Expire);
-            else if (item.Entity != null)
-                // 数据库查不到，说明该数据可能已经被删除
-                RemoveKey(item.Key);
+            try
+            {
+                // 更新过期缓存，在原连接名表名里面获取
+                var entity = Invoke(FindKeyMethod, item.Key);
+                if (entity != null)
+                    item.SetEntity(entity, Expire);
+                else if (item.Entity != null)
+                    // 数据库查不到，说明该数据可能已经被删除
+                    RemoveKey(item.Key);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
         }
         #endregion
 
@@ -414,9 +434,10 @@ namespace XCode.Cache
             if (es == null) return;
 
             // 不要清空单对象缓存，而是设为过期
+            var now = TimerX.Now;
             foreach (var item in es)
             {
-                item.Value.ExpireTime = DateTime.Now.AddSeconds(-1);
+                item.Value.ExpireTime = now.AddSeconds(-1);
             }
 
             Using = false;

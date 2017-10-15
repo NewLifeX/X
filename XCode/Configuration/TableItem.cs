@@ -23,9 +23,6 @@ namespace XCode.Configuration
         /// <summary>绑定索引特性</summary>
         private BindIndexAttribute[] _Indexes;
 
-        ///// <summary>绑定关系特性</summary>
-        //private BindRelationAttribute[] _Relations;
-
         private DescriptionAttribute _Description;
         /// <summary>说明</summary>
         public String Description
@@ -370,7 +367,7 @@ namespace XCode.Configuration
         #endregion
 
         #region 方法
-        private Dictionary<String, Field> _all = new Dictionary<String, Field>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<String, Field> _all;
 
         /// <summary>根据名称查找</summary>
         /// <param name="name">名称</param>
@@ -383,26 +380,25 @@ namespace XCode.Configuration
             if (name.EqualIgnoreCase("RowNumber")) return null;
 
             // 借助字典，快速搜索数据列
-            if (_all.Count == 0)
+            if (_all == null)
             {
-                lock (_all)
+                var dic = new Dictionary<String, Field>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var item in Fields)
                 {
-                    if (_all.Count == 0)
-                    {
-                        foreach (var item in Fields)
-                        {
-                            if (!_all.ContainsKey(item.Name))
-                                _all.Add(item.Name, item as Field);
-                        }
-                        foreach (var item in AllFields)
-                        {
-                            if (!_all.ContainsKey(item.Name))
-                                _all.Add(item.Name, item as Field);
-                            else if (!item.ColumnName.IsNullOrEmpty() && !_all.ContainsKey(item.ColumnName))
-                                _all.Add(item.ColumnName, item as Field);
-                        }
-                    }
+                    if (!dic.ContainsKey(item.Name))
+                        dic.Add(item.Name, item as Field);
                 }
+                foreach (var item in AllFields)
+                {
+                    if (!dic.ContainsKey(item.Name))
+                        dic.Add(item.Name, item as Field);
+                    else if (!item.ColumnName.IsNullOrEmpty() && !dic.ContainsKey(item.ColumnName))
+                        dic.Add(item.ColumnName, item as Field);
+                }
+
+                // 宁可重复计算，也要避免锁
+                _all = dic;
             }
             if (_all.TryGetValue(name, out var f)) return f;
 

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 using NewLife;
 
 namespace XCode.DataAccessLayer
@@ -51,6 +54,10 @@ namespace XCode.DataAccessLayer
         /// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
         /// </summary>
         void AutoClose();
+
+        /// <summary>设置自动关闭。启用、禁用、继承</summary>
+        /// <param name="enable"></param>
+        void SetAutoClose(Boolean? enable);
         #endregion
 
         #region 事务
@@ -145,6 +152,19 @@ namespace XCode.DataAccessLayer
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
         DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+        #endregion
+
+        #region 异步操作
+        /// <summary>异步打开</summary>
+        /// <returns></returns>
+        Task OpenAsync();
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        Task<DataResult> QueryAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
         #endregion
 
         #region 高级

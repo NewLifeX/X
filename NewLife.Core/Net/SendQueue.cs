@@ -105,7 +105,7 @@ namespace NewLife.Net
             if (Session.Client == null || Session.Disposed) return;
 
             var qu = _SendQueue;
-            if (qu.Count == 0) return;
+            if (qu.IsEmpty) return;
 
             // 如果没有在发送，就开始发送
             if (Interlocked.CompareExchange(ref _Sending, 1, 0) != 0) return;

@@ -452,7 +452,7 @@ namespace NewLife.Net
         #endregion
 
         #region 会话
-        private IDictionary<Int32, INetSession> _Sessions = new ConcurrentDictionary<Int32, INetSession>();
+        private ConcurrentDictionary<Int32, INetSession> _Sessions = new ConcurrentDictionary<Int32, INetSession>();
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
         public IDictionary<Int32, INetSession> Sessions { get { return _Sessions; } }
 
@@ -472,22 +472,13 @@ namespace NewLife.Net
             {
                 tc.Log = Log;
 
-                //var dic = Sessions;
-                //lock (dic)
-                //{
                 if (session.Host == null) session.Host = this;
                 session.OnDisposed += (s, e) =>
                 {
-                    //var dic2 = Sessions;
-                    //lock (dic2)
-                    //{
-                    //    dic2.Remove((s as INetSession).ID);
-                    //}
                     var id = (s as INetSession).ID;
-                    if (id > 0) Sessions.Remove(id);
+                    if (id > 0) _Sessions.Remove(id);
                 };
-                Sessions[session.ID] = session;
-                //}
+                _Sessions.TryAdd(session.ID, session);
             }
         }
 
@@ -519,8 +510,7 @@ namespace NewLife.Net
                 //var dic = Sessions;
                 //lock (dic)
                 //{
-                INetSession ns = null;
-                if (!Sessions.TryGetValue(sessionid, out ns)) return null;
+                if (!Sessions.TryGetValue(sessionid, out var ns)) return null;
                 return ns;
                 //}
             }
@@ -698,10 +688,12 @@ namespace NewLife.Net
         /// <returns></returns>
         protected override INetSession CreateSession(ISocketSession session)
         {
-            var ns = new TSession();
-            ns.Host = this;
-            ns.Server = session.Server;
-            ns.Session = session;
+            var ns = new TSession
+            {
+                Host = this,
+                Server = session.Server,
+                Session = session
+            };
 
             return ns;
         }

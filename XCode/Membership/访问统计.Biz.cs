@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using NewLife.Data;
+using NewLife.Threading;
 using XCode;
 using XCode.Cache;
 
@@ -26,6 +27,7 @@ namespace XCode.Membership
 
             // 单对象缓存从键
             var sc = Meta.SingleCache;
+            if (sc.Expire < 20 * 60) sc.Expire = 20 * 60;
             sc.FindSlaveKeyMethod = k =>
             {
                 var ss = k.Split(new Char[] { '#' }, StringSplitOptions.None);
@@ -154,7 +156,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static VisitStat Add(String page, String title, Int32 cost, Int32 userid, String ip, String err)
         {
-            var now = DateTime.Now;
+            var now = TimerX.Now;
 
             // 今天
             var st = Add(page, now.Year, now.Month, now.Day, title, cost, userid, ip, err);
@@ -199,7 +201,16 @@ namespace XCode.Membership
                     Day = day,
                 };
 
-                st.Insert();
+                // 避免多线程冲突
+                try
+                {
+                    st.Insert();
+                }
+                catch
+                {
+                    var tmp = FindByPage(page, year, month, day);
+                    if (tmp != null) st = tmp;
+                }
             }
 
             if (!title.IsNullOrEmpty()) st.Title = title;

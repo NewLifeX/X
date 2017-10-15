@@ -267,6 +267,9 @@ namespace XCode
 
                 return fi;
             }
+
+            /// <summary>默认选择的字段</summary>
+            public String Selects { get; set; }
             #endregion
         }
     }

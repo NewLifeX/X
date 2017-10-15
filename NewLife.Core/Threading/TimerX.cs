@@ -123,7 +123,7 @@ namespace NewLife.Threading
         internal Boolean hasSetNext;
 
         /// <summary>设置下一次运行时间</summary>
-        /// <param name="ms"></param>
+        /// <param name="ms">小于等于0表示马上调度</param>
         public void SetNext(Int32 ms)
         {
             NextTime = DateTime.Now.AddMilliseconds(ms);
@@ -143,6 +143,33 @@ namespace NewLife.Threading
         {
             var timer = new TimerX(callback, null, ms, 0);
             return timer;
+        }
+
+        private static TimerX _NowTimer;
+        private static DateTime _Now;
+        /// <summary>当前时间。定时读取系统时间，避免频繁读取系统时间造成性能瓶颈</summary>
+        public static DateTime Now
+        {
+            get
+            {
+                if (_NowTimer == null)
+                {
+                    lock (TimerScheduler.Default)
+                    {
+                        if (_NowTimer == null)
+                        {
+                            _NowTimer = new TimerX(CopyNow, null, 0, 500);
+                        }
+                    }
+                }
+
+                return _Now;
+            }
+        }
+
+        private static void CopyNow(Object state)
+        {
+            _Now = DateTime.Now;
         }
         #endregion
 

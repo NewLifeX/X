@@ -10,7 +10,7 @@ namespace NewLife.Collections
         /// <summary>实例化一个可空字典</summary>
         public NullableDictionary() { }
 
-        /// <summary>置顶比较器实例化一个可空字典</summary>
+        /// <summary>指定比较器实例化一个可空字典</summary>
         /// <param name="comparer"></param>
         public NullableDictionary(IEqualityComparer<TKey> comparer) : base(comparer) { }
 
@@ -26,8 +26,7 @@ namespace NewLife.Collections
         {
             get
             {
-                TValue v;
-                if (TryGetValue(item, out v)) return v;
+                if (TryGetValue(item, out var v)) return v;
 
                 return default(TValue);
             }

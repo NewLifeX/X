@@ -148,6 +148,9 @@ namespace XCode.DataAccessLayer
         /// <param name="ps"></param>
         /// <returns></returns>
         IDataParameter[] CreateParameters(IDictionary<String, Object> ps);
+
+        /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
+        Boolean AutoClose { get; set; }
         #endregion
     }
 }

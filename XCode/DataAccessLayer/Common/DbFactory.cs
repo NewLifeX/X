@@ -29,6 +29,10 @@ namespace XCode.DataAccessLayer
                 .Reg<Oracle>()
                 .Reg<MySql>()
                 .Reg<PostgreSQL>()
+#if !__CORE__
+                .Reg<Access>()
+                .Reg<SqlCe>()
+#endif
                 .Reg<SQLite>(String.Empty);
             // SQLite作为默认实现
         }
@@ -49,9 +53,9 @@ namespace XCode.DataAccessLayer
                 throw;
             }
         }
-        #endregion
+#endregion
 
-        #region 默认提供者
+#region 默认提供者
         private static DictionaryCache<Type, IDatabase> defaultDbs2 = new DictionaryCache<Type, IDatabase>();
         /// <summary>根据名称获取默认提供者</summary>
         /// <param name="dbType"></param>
@@ -61,9 +65,9 @@ namespace XCode.DataAccessLayer
             if (dbType == null) return null;
             return defaultDbs2.GetItem(dbType, dt => (IDatabase)dt.CreateInstance());
         }
-        #endregion
+#endregion
 
-        #region 方法
+#region 方法
         /// <summary>从提供者和连接字符串猜测数据库处理器</summary>
         /// <param name="connStr"></param>
         /// <param name="provider"></param>
@@ -94,6 +98,6 @@ namespace XCode.DataAccessLayer
                 return ioc.ResolveType<IDatabase>(String.Empty);
             }
         }
-        #endregion
+#endregion
     }
 }

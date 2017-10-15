@@ -111,6 +111,8 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Data\BinaryTree.cs" />
+    <Compile Include="Data\GeoArea.cs" />
+    <Compile Include="Data\GeoAddress.cs" />
     <Compile Include="Data\GeoPoint.cs" />
     <Compile Include="Data\IFilter.cs" />
     <Compile Include="Data\Packet.cs" />
@@ -298,8 +300,8 @@
     <Compile Include="Threading\TaskHelper.cs" />
     <Compile Include="Threading\TimerX.cs" />
     <Compile Include="Threading\TimerScheduler.cs" />
-    <Compile Include="Web\AMap.cs" />
-    <Compile Include="Web\BaiduMap.cs" />
+    <Compile Include="Yun\AMap.cs" />
+    <Compile Include="Yun\BaiduMap.cs" />
     <Compile Include="Web\Js.cs" />
     <Compile Include="Web\Link.cs" />
     <Compile Include="Web\Modules\ErrorModule.cs" />
@@ -317,6 +319,8 @@
     <Compile Include="Web\WebHelper.cs" />
     <Compile Include="Net\SerialPortConfig.cs" />
     <Compile Include="Windows\ControlHelper.cs" />
+    <Compile Include="Yun\Driving.cs" />
+    <Compile Include="Yun\Map.cs" />
     <EmbeddedResource Include="Windows\MySpeech.cs" />
     <Compile Include="Windows\SerialPortList.cs">
       <SubType>UserControl</SubType>

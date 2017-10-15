@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -11,7 +11,7 @@ namespace NewLife.Net
     class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
     {
         #region 属性
-        Dictionary<String, ISocketSession> _dic = new Dictionary<String, ISocketSession>();
+        ConcurrentDictionary<String, ISocketSession> _dic = new ConcurrentDictionary<String, ISocketSession>();
 
         /// <summary>服务端</summary>
         public ISocketServer Server { get; private set; }
@@ -28,13 +28,15 @@ namespace NewLife.Net
         {
             Server = server;
             ClearPeriod = 1000;
+
+            clearTimer = new TimerX(RemoveNotAlive, null, ClearPeriod, ClearPeriod) { Async = true };
         }
 
         protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
 
-            if (clearTimer != null) clearTimer.Dispose();
+            clearTimer.TryDispose();
 
             CloseAll();
         }
@@ -53,15 +55,9 @@ namespace NewLife.Net
 
                 var key = session.Remote.EndPoint + "";
                 if (_dic.ContainsKey(key)) return false;
-                lock (_dic)
-                {
-                    if (_dic.ContainsKey(key)) return false;
 
-                    session.OnDisposed += (s, e) => { lock (_dic) { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); } };
-                    _dic.Add(key, session);
-
-                    if (clearTimer == null) clearTimer = new TimerX(RemoveNotAlive, null, ClearPeriod, ClearPeriod);
-                }
+                session.OnDisposed += (s, e) => { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); };
+                _dic.TryAdd(key, session);
             }
 
             return true;
@@ -77,35 +73,18 @@ namespace NewLife.Net
             {
                 tc.Log = Server.Log;
 
-                ISocketSession session = null;
-                if (!_dic.TryGetValue(key, out session)) return null;
+                if (!_dic.TryGetValue(key, out var session)) return null;
 
-                // 加锁后获取，本方法平均执行时间143.48ns
-                lock (_dic)
-                {
-                    if (!_dic.TryGetValue(key, out session)) return null;
-
-                    return session;
-                }
+                return session;
             }
         }
 
         /// <summary>关闭所有</summary>
         public void CloseAll()
         {
-            if (_dic.Count < 1) return;
+            if (_dic.IsEmpty) return;
 
-            // 必须先复制到数组，因为会话销毁的时候，会自动从集合中删除，从而引起集合枚举失败
-            ISocketSession[] ns = null;
-            lock (_dic)
-            {
-                if (_dic.Count < 1) return;
-
-                //_dic.Values.CopyTo(ns, 0);
-                ns = _dic.Values.ToArray();
-                _dic.Clear();
-            }
-            foreach (var item in ns)
+            foreach (var item in _dic.ToValueArray())
             {
                 if (item != null && !item.Disposed) item.TryDispose();
             }
@@ -114,7 +93,7 @@ namespace NewLife.Net
         /// <summary>移除不活动的会话</summary>
         void RemoveNotAlive(Object state)
         {
-            if (_dic.Count < 1) return;
+            if (_dic.IsEmpty) return;
 
             var timeout = 30;
             if (Server != null) timeout = Server.SessionTimeout;
@@ -125,27 +104,20 @@ namespace NewLife.Net
             {
                 tc.Log = Server.Log;
 
-                lock (_dic)
+                foreach (var elm in _dic)
                 {
-                    if (_dic.Count < 1) return;
-
-                    // 这里可能有问题，曾经见到，_list有元素，但是value为null，这里居然没有进行遍历而直接跳过
-                    // 操作这个字典的时候，必须加锁，否则就会数据错乱，成了这个样子，无法枚举
-                    foreach (var elm in _dic)
+                    var item = elm.Value;
+                    // 判断是否已超过最大不活跃时间
+                    if (item == null || item.Disposed || timeout > 0 && IsNotAlive(item, timeout))
                     {
-                        var item = elm.Value;
-                        // 判断是否已超过最大不活跃时间
-                        if (item == null || item.Disposed || timeout > 0 && IsNotAlive(item, timeout))
-                        {
-                            keys.Add(elm.Key);
-                            values.Add(elm.Value);
-                        }
+                        keys.Add(elm.Key);
+                        values.Add(elm.Value);
                     }
-                    // 从会话集合里删除这些键值，现在在锁内部，操作安全
-                    foreach (var item in keys)
-                    {
-                        _dic.Remove(item);
-                    }
+                }
+                // 从会话集合里删除这些键值，现在在锁内部，操作安全
+                foreach (var item in keys)
+                {
+                    _dic.Remove(item);
                 }
             }
             // 已经离开了锁，慢慢释放各个会话
@@ -188,8 +160,7 @@ namespace NewLife.Net
 
         Boolean IDictionary<String, ISocketSession>.Remove(String key)
         {
-            ISocketSession session;
-            if (!_dic.TryGetValue(key, out session)) return false;
+            if (!_dic.TryGetValue(key, out var session)) return false;
 
             //session.Close();
             session.Dispose();

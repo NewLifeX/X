@@ -32,6 +32,7 @@
     <Compile Include="..\XCode\Attributes\ModelCheckModeAttribute.cs" Link="Attributes\ModelCheckModeAttribute.cs" />
     <Compile Include="..\XCode\Attributes\ModelSortMode.cs" Link="Attributes\ModelSortMode.cs" />
     <Compile Include="..\XCode\Cache\CacheBase.cs" Link="Cache\CacheBase.cs" />
+    <Compile Include="..\XCode\Cache\DataCache.cs" Link="Cache\DataCache.cs" />
     <Compile Include="..\XCode\Cache\EntityCache.cs" Link="Cache\EntityCache.cs" />
     <Compile Include="..\XCode\Cache\FieldCache.cs" Link="Cache\FieldCache.cs" />
     <Compile Include="..\XCode\Cache\IEntityCache.cs" Link="Cache\IEntityCache.cs" />

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using NewLife.Collections;
 
 namespace NewLife.Serialization
 {
@@ -70,7 +71,7 @@ namespace NewLife.Serialization
 
         private Dictionary<String, Object> ParseObject()
         {
-            var dic = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+            var dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
             SkipToken(); // {
 
@@ -432,8 +433,7 @@ namespace NewLife.Serialization
                 return Double.Parse(s, NumberFormatInfo.InvariantInfo);
             }
 
-            Int64 num;
-            return CreateLong(out num, _json, startIndex, index - startIndex);
+            return CreateLong(out var num, _json, startIndex, index - startIndex);
         }
 
         private Token LookAhead()

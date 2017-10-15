@@ -254,18 +254,20 @@ namespace NewLife.Net
         /// <summary>粘包测试</summary>
         public static void Test()
         {
-            var svr = new NetServer();
-            svr.Port = 777;
-            svr.SessionPacket = new PacketFactory { Offset = 0, Size = 0 };
-            svr.Log = Log.XTrace.Log;
-            //svr.LogSend = true;
-            svr.LogReceive = true;
+            var svr = new NetServer
+            {
+                Port = 777,
+                SessionPacket = new PacketFactory { Offset = 0, Size = 0 },
+                Log = Log.XTrace.Log,
+                //svr.LogSend = true;
+                LogReceive = true
+            };
             svr.Received += (s, e) => (s as INetSession).Send(e.Packet);
             svr.Start();
 
             // 凑齐10个带有长度的数据帧一起发出
             var ms = new MemoryStream();
-            for (Int32 i = 0; i < 5; i++)
+            for (var i = 0; i < 5; i++)
             {
                 var size = i < 4 ? Security.Rand.Next(1400) : Security.Rand.Next(2000, 30000);
                 var str = Security.Rand.NextString(size);

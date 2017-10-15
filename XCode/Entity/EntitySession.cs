@@ -11,6 +11,7 @@ using System.Web;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
+using NewLife.Threading;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -371,7 +372,14 @@ namespace XCode
                     if (dal.Db.Migration > Migration.ReadOnly || def != this)
                         CheckTable();
                     else
-                        ThreadPool.UnsafeQueueUserWorkItem(s => CheckTable(), null);
+                        ThreadPool.UnsafeQueueUserWorkItem(s =>
+                        {
+                            try { CheckTable(); }
+                            catch (Exception ex)
+                            {
+                                XTrace.WriteException(ex);
+                            }
+                        }, null);
                 }
 
                 _hasCheckModel = true;
@@ -451,7 +459,7 @@ namespace XCode
 
                 // 当前缓存的值
                 var n = _Count;
-                var now = DateTime.Now;
+                var now = TimerX.Now;
 
                 // 如果有缓存，则考虑返回吧
                 if (n >= 0)
@@ -460,7 +468,7 @@ namespace XCode
                     {
                         _NextCount = now.AddSeconds(60);
                         // 异步更新
-                        Task.Run(() => LongCount = GetCount(_Count));
+                        TaskEx.Run(() => LongCount = GetCount(_Count));
                     }
 
                     return n;
@@ -495,7 +503,7 @@ namespace XCode
             private set
             {
                 _Count = value;
-                _NextCount = DateTime.Now.AddSeconds(60);
+                _NextCount = TimerX.Now.AddSeconds(60);
 
                 var dc = DataCache.Current;
                 dc.Counts[CacheKey] = value;
@@ -659,7 +667,8 @@ namespace XCode
                 return;
             }
 
-            ClearCache(reason);
+            // 实体添删改时，有修改缓存，数据变更事件里不需要再次清空
+            //ClearCache(reason);
 
             _OnDataChange?.Invoke(ThisType);
         }

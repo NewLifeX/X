@@ -20,53 +20,42 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType Type
-        {
-            get { return DatabaseType.SqlCe; }
-        }
+        public override DatabaseType Type => DatabaseType.SqlCe;
 
-        private static DbProviderFactory _dbProviderFactory;
-        /// <summary>SqlCe提供者工厂</summary>
-        static DbProviderFactory DbProviderFactory
+        private static DbProviderFactory _Factory;
+        /// <summary>工厂</summary>
+        public override DbProviderFactory Factory
         {
             get
             {
-                if (_dbProviderFactory == null)
+                if (_Factory == null)
                 {
                     lock (typeof(SqlCe))
                     {
-                        if (_dbProviderFactory == null) _dbProviderFactory = GetProviderFactory("System.Data.SqlServerCe.dll", "System.Data.SqlServerCe.SqlCeProviderFactory");
+                        if (_Factory == null) _Factory = GetProviderFactory("System.Data.SqlServerCe.dll", "System.Data.SqlServerCe.SqlCeProviderFactory");
 
-                        if (_dbProviderFactory != null)
+                        if (_Factory != null)
                         {
-                            using (var conn = _dbProviderFactory.CreateConnection())
+                            using (var conn = _Factory.CreateConnection())
                             {
                                 if (conn.ServerVersion.StartsWith("4"))
-                                    _SqlCeProviderVersion = SQLCEVersion.SQLCE40;
+                                    SqlCeProviderVersion = SQLCEVersion.SQLCE40;
                                 else
-                                    _SqlCeProviderVersion = SQLCEVersion.SQLCE35;
+                                    SqlCeProviderVersion = SQLCEVersion.SQLCE35;
                             }
                         }
                     }
                 }
 
-                return _dbProviderFactory;
+                return _Factory;
             }
         }
 
-        /// <summary>工厂</summary>
-        public override DbProviderFactory Factory
-        {
-            get { return DbProviderFactory; }
-        }
-
-        private static SQLCEVersion _SqlCeProviderVersion = SQLCEVersion.SQLCE40;
         /// <summary>SqlCe提供者版本</summary>
-        public static SQLCEVersion SqlCeProviderVersion { get { return _SqlCeProviderVersion; } }
+        public static SQLCEVersion SqlCeProviderVersion { get; set; } = SQLCEVersion.SQLCE40;
 
-        private SQLCEVersion _SqlCeVer = SQLCEVersion.SQLCE40;
         /// <summary>SqlCe版本,默认4.0</summary>
-        public SQLCEVersion SqlCeVer { get { return _SqlCeVer; } set { _SqlCeVer = value; } }
+        public SQLCEVersion SqlCeVer { get; set; } = SQLCEVersion.SQLCE40;
 
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
@@ -227,9 +216,11 @@ namespace XCode.DataAccessLayer
             DataTable dt = null;
             dt = session.Query(_AllTableNameSql).Tables[0];
 
-            var data = new NullableDictionary<String, DataTable>(StringComparer.OrdinalIgnoreCase);
-            data["Columns"] = session.Query(_AllColumnSql).Tables[0];
-            data["Indexes"] = session.Query(_AllIndexSql).Tables[0];
+            var data = new NullableDictionary<String, DataTable>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Columns"] = session.Query(_AllColumnSql).Tables[0],
+                ["Indexes"] = session.Query(_AllIndexSql).Tables[0]
+            };
 
             ////数据类型DBType --〉DotNetType转换
             //if (SqlCe.SqlCeProviderVersion < SQLCEVersion.SQLCE40)

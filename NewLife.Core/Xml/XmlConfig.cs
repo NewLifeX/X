@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Log;
+using NewLife.Threading;
 #if NET4
 using Task = System.Threading.Tasks.TaskEx;
 #endif
@@ -152,7 +153,7 @@ namespace NewLife.Xml
                 // 频繁调用File.Exists的性能损耗巨大
                 if (cf.IsNullOrEmpty()) return false;
 
-                var now = DateTime.Now;
+                var now = TimerX.Now;
                 if (_.ReloadTime > 0 && expire < now)
                 {
                     var fi = new FileInfo(cf);
@@ -182,8 +183,8 @@ namespace NewLife.Xml
                     lastWrite = fi.LastWriteTime;
                 }
                 else
-                    lastWrite = DateTime.Now;
-                expire = DateTime.Now.AddMilliseconds(_.ReloadTime);
+                    lastWrite = TimerX.Now;
+                expire = TimerX.Now.AddMilliseconds(_.ReloadTime);
             }
         }
 

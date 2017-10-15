@@ -148,7 +148,7 @@ namespace XCode.Code
         protected virtual void BuildItems()
         {
             WriteLine("#region 属性");
-            for (int i = 0; i < Table.Columns.Count; i++)
+            for (Int32 i = 0; i < Table.Columns.Count; i++)
             {
                 if (i > 0) WriteLine();
                 BuildItem(Table.Columns[i]);

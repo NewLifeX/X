@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
-using System.Threading;
 using NewLife.Collections;
+using NewLife.Threading;
 
 namespace NewLife.Log
 {
@@ -27,6 +28,8 @@ namespace NewLife.Log
                 FileFormat = fileFormat;
             else
                 FileFormat = Setting.Current.LogFileFormat;
+
+            _Timer = new TimerX(WriteFile, null, 1000, 1000) { Async = true };
         }
 
         static DictionaryCache<String, TextFileLog> cache = new DictionaryCache<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
@@ -99,7 +102,7 @@ namespace NewLife.Log
         private StreamWriter LogWriter;
 
         /// <summary>初始化日志记录文件</summary>
-        private void InitLog()
+        private StreamWriter InitLog()
         {
             var path = LogPath.EnsureDirectory(false);
 
@@ -110,8 +113,10 @@ namespace NewLife.Log
                 try
                 {
                     var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-                    writer = new StreamWriter(stream, Encoding.UTF8);
-                    writer.AutoFlush = true;
+                    writer = new StreamWriter(stream, Encoding.UTF8)
+                    {
+                        AutoFlush = true
+                    };
                 }
                 catch { }
             }
@@ -126,8 +131,10 @@ namespace NewLife.Log
                     try
                     {
                         var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-                        writer = new StreamWriter(stream, Encoding.UTF8);
-                        writer.AutoFlush = true;
+                        writer = new StreamWriter(stream, Encoding.UTF8)
+                        {
+                            AutoFlush = true
+                        };
                         break;
                     }
                     catch
@@ -156,51 +163,83 @@ namespace NewLife.Log
                 //WriteHead(writer);
                 writer.Write(GetHead());
             }
-            LogWriter = writer;
+            return LogWriter = writer;
         }
 
-        /// <summary>停止日志</summary>
-        protected virtual void CloseWriter(Object obj)
-        {
-            var writer = LogWriter;
-            if (writer == null) return;
-            lock (Log_Lock)
-            {
-                try
-                {
-                    if (writer == null) return;
-                    writer.Dispose();
-                    LogWriter = null;
-                }
-                catch { }
-            }
-        }
+        ///// <summary>停止日志</summary>
+        //protected virtual void CloseWriter(Object obj)
+        //{
+        //    var writer = LogWriter;
+        //    if (writer == null) return;
+        //    lock (Log_Lock)
+        //    {
+        //        try
+        //        {
+        //            if (writer == null) return;
+        //            writer.Dispose();
+        //            LogWriter = null;
+        //        }
+        //        catch { }
+        //    }
+        //}
         #endregion
 
         #region 异步写日志
-        private Timer _Timer;
-        private Object Log_Lock = new Object();
+        private TimerX _Timer;
+        private ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
+        private DateTime _NextClose;
+        //private Object Log_Lock = new Object();
 
-        /// <summary>使用线程池线程异步执行日志写入动作</summary>
-        /// <param name="e"></param>
-        protected virtual void PerformWriteLog(WriteLogEventArgs e)
+        /// <summary>写文件</summary>
+        /// <param name="state"></param>
+        protected virtual void WriteFile(Object state)
         {
-            lock (Log_Lock)
+            var writer = LogWriter;
+            if (_Logs.IsEmpty)
             {
-                try
+                // 连续5秒没日志，就关闭
+                var now = TimerX.Now;
+                if (_NextClose < now)
                 {
-                    // 初始化日志读写器
-                    if (LogWriter == null) InitLog();
-                    // 写日志
-                    LogWriter.WriteLine(e.ToString());
-                    // 声明自动关闭日志读写器的定时器。无限延长时间，实际上不工作
-                    if (_Timer == null) _Timer = new Timer(CloseWriter, null, Timeout.Infinite, Timeout.Infinite);
-                    // 改变定时器为5秒后触发一次。如果5秒内有多次写日志操作，估计定时器不会触发，直到空闲五秒为止
-                    _Timer.Change(5000, Timeout.Infinite);
+                    LogWriter = null;
+                    writer.TryDispose();
+
+                    _NextClose = now.AddSeconds(5);
                 }
-                catch { }
+
+                return;
+            }
+
+            // 初始化日志读写器
+            if (writer == null) writer = InitLog();
+
+            while (_Logs.TryDequeue(out var str))
+            {
+                // 写日志
+                writer.WriteLine(str);
             }
         }
+
+        ///// <summary>使用线程池线程异步执行日志写入动作</summary>
+        ///// <param name="e"></param>
+        //protected virtual void PerformWriteLog(WriteLogEventArgs e)
+        //{
+        //    lock (Log_Lock)
+        //    {
+        //        try
+        //        {
+        //            // 初始化日志读写器
+        //            if (LogWriter == null) InitLog();
+        //            // 写日志
+        //            LogWriter.WriteLine(e.ToString());
+        //            // 声明自动关闭日志读写器的定时器。无限延长时间，实际上不工作
+        //            if (_Timer == null) _Timer = new Timer(CloseWriter, null, Timeout.Infinite, Timeout.Infinite);
+        //            // 改变定时器为5秒后触发一次。如果5秒内有多次写日志操作，估计定时器不会触发，直到空闲五秒为止
+        //            _Timer.Change(5000, Timeout.Infinite);
+        //        }
+        //        catch { }
+        //    }
+        //}
         #endregion
 
         #region 写日志
@@ -212,10 +251,13 @@ namespace NewLife.Log
         {
             var e = WriteLogEventArgs.Current.Set(level);
             // 特殊处理异常对象
-            if (args != null && args.Length == 1 && args[0] is Exception && (String.IsNullOrEmpty(format) || format == "{0}"))
-                PerformWriteLog(e.Set(null, args[0] as Exception));
+            if (args != null && args.Length == 1 && args[0] is Exception ex && (format.IsNullOrEmpty() || format == "{0}"))
+                e = e.Set(null, ex);
             else
-                PerformWriteLog(e.Set(Format(format, args), null));
+                e = e.Set(Format(format, args), null);
+
+            // 推入队列，异步写日志
+            _Logs.Enqueue(e.ToString());
         }
         #endregion
 

@@ -52,8 +52,7 @@ namespace NewLife.MessageQueue
                 });
             }
 
-            Topic tp = null;
-            Topics.TryGetValue(topic, out tp);
+            Topics.TryGetValue(topic, out var tp);
 
             return tp;
         }
