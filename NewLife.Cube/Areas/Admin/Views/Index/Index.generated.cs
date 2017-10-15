@@ -199,7 +199,7 @@ WriteAttribute("src", Tuple.Create(" src=\"", 1886), Tuple.Create("\"", 1924)
 
 WriteLiteral("></script>\r\n</head>\r\n<body");
 
-WriteLiteral(" class=\"no-skin\"");
+WriteLiteral(" class=\"skin-3 no-skin\"");
 
 WriteLiteral(" style=\"overflow: hidden;\"");
 
@@ -293,14 +293,14 @@ WriteLiteral(" id=\"main\"");
 
 WriteLiteral(" name=\"main\"");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3596), Tuple.Create("\"", 3615)
+WriteAttribute("src", Tuple.Create(" src=\"", 3603), Tuple.Create("\"", 3622)
             
             #line 87 "..\..\Areas\Admin\Views\Index\Index.cshtml"
-                                               , Tuple.Create(Tuple.Create("", 3602), Tuple.Create<System.Object, System.Int32>(ViewBag.Main
+                                               , Tuple.Create(Tuple.Create("", 3609), Tuple.Create<System.Object, System.Int32>(ViewBag.Main
             
             #line default
             #line hidden
-, 3602), false)
+, 3609), false)
 );
 
 WriteLiteral("></iframe>\r\n                </div>\r\n                <!-- /.page-content -->\r\n    " +
@@ -319,53 +319,53 @@ WriteLiteral(" class=\"ace-icon fa fa-angle-double-up icon-only bigger-110\"");
 WriteLiteral("></i>\r\n        </a>\r\n    </div>\r\n    <!-- /.main-container -->\r\n    <!-- basic sc" +
 "ripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 4025), Tuple.Create("\"", 4070)
-, Tuple.Create(Tuple.Create("", 4031), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 4031), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4032), Tuple.Create("\"", 4077)
+, Tuple.Create(Tuple.Create("", 4038), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 4038), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 4094), Tuple.Create("\"", 4136)
-, Tuple.Create(Tuple.Create("", 4100), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
-, 4100), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4101), Tuple.Create("\"", 4143)
+, Tuple.Create(Tuple.Create("", 4107), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-ui.custom.min.js")
+, 4107), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 4160), Tuple.Create("\"", 4207)
-, Tuple.Create(Tuple.Create("", 4166), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
-, 4166), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4167), Tuple.Create("\"", 4214)
+, Tuple.Create(Tuple.Create("", 4173), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery.ui.touch-punch.min.js")
+, 4173), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <!-- ace scripts -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 4259), Tuple.Create("\"", 4301)
-, Tuple.Create(Tuple.Create("", 4265), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
-, 4265), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4266), Tuple.Create("\"", 4308)
+, Tuple.Create(Tuple.Create("", 4272), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace-elements.min.js")
+, 4272), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 4325), Tuple.Create("\"", 4358)
-, Tuple.Create(Tuple.Create("", 4331), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
-, 4331), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4332), Tuple.Create("\"", 4365)
+, Tuple.Create(Tuple.Create("", 4338), Tuple.Create<System.Object, System.Int32>(Href("~/Content/ace/js/ace.min.js")
+, 4338), false)
 );
 
 WriteLiteral("></script>\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 4401), Tuple.Create("\"", 4450)
-, Tuple.Create(Tuple.Create("", 4407), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
-, 4407), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4408), Tuple.Create("\"", 4457)
+, Tuple.Create(Tuple.Create("", 4414), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
+, 4414), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 4474), Tuple.Create("\"", 4523)
-, Tuple.Create(Tuple.Create("", 4480), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
-, 4480), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 4481), Tuple.Create("\"", 4530)
+, Tuple.Create(Tuple.Create("", 4487), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
+, 4487), false)
 );
 
 WriteLiteral("></script>\r\n\r\n    <script");
