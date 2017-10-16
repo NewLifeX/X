@@ -44,6 +44,8 @@ namespace NewLife.Agent
 
             if (Args.Length > 1)
             {
+                service.Log = XTrace.Log;
+
                 #region 命令
                 var cmd = Args[1].ToLower();
                 if (cmd == "-s")  //启动服务
@@ -104,6 +106,7 @@ namespace NewLife.Agent
 
                 #region 命令行
                 XTrace.UseConsole();
+                service.Log = XTrace.Log;
 
                 // 输出状态
                 service.ShowStatus();

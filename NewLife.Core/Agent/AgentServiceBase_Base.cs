@@ -92,7 +92,7 @@ namespace NewLife.Agent
 
         #region 日志
         /// <summary>日志</summary>
-        public ILog Log { get; set; } = XTrace.Log;
+        public ILog Log { get; set; } = Logger.Null;
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
