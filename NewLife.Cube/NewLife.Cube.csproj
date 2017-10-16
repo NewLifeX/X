@@ -359,6 +359,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Data_Action.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_List_Data_Item_First.generated.cs">
+      <DependentUpon>_List_Data_Item_First.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Shared\_List_Data_Item.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -711,6 +716,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_List_Data_Item_First.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Data_Item_First.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Search.generated.cs</LastGenOutput>

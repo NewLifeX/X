@@ -25,6 +25,7 @@
     <tbody>
         @foreach (IEntityTree entity in Model)
         {
+            var FirstFlag = 0;
             var p = entity.Parent as IEntityTree;
             if (p == null)
             {
@@ -34,12 +35,21 @@
             <tr>
                 @foreach (var item in fields)
                 {
-                    @Html.Partial("_List_Data_Item", new Pair(entity, item))
+                    if (FirstFlag == 0)
+                    {
+                        @Html.Partial("_List_Data_Item_First", new Pair(entity, item))
+                    }
+                    else
+                    {
+                        @Html.Partial("_List_Data_Item", new Pair(entity, item))
+                    }
+
+                    FirstFlag++;
                 }
                 <td class="text-center">
                     @if (p != null && p.Childs != null && p.Childs.Count > 0 && entity != p.Childs[0])
                     {
-                        <a href="@Url.Action("Up", new { id })"><span class="glyphicon glyphicon-arrow-up" style="color: green;"></span></a>
+                    <a href="@Url.Action("Up", new { id })"><span class="glyphicon glyphicon-arrow-up" style="color: green;"></span></a>
                     }
                 </td>
                 <td class="text-center">
