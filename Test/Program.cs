@@ -120,7 +120,7 @@ namespace Test
             var gp = bm.GetGeoAsync(addr, city).Result;
             Console.WriteLine(gp);
 
-            var geo = bm.GetGeoAsync(gp).Result;
+            var geo = bm.GetGeoAsync(gp.Location).Result;
             Console.WriteLine(geo);
 
             //var org = bm.GetGeoAsync("新府中路1650号").Result;

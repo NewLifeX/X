@@ -1286,7 +1286,7 @@ namespace XCode
 
                 foreach (var item in Meta.FieldNames)
                 {
-                    if (ds[item]) return true;
+                    if (ds.TryGetValue(item, out var flag) && flag) return true;
                 }
 
                 return false;
