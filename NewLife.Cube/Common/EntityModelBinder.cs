@@ -45,7 +45,7 @@ namespace NewLife.Cube
                             var exp = new WhereExpression();
                             foreach (var item in pks)
                             {
-                                exp &= item.Equal(req[item.Name]);
+                                exp &= item.Equal(req[item.Name].ChangeType(item.Type));
                             }
 
                             entity = fact.Find(exp);
