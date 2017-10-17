@@ -27,7 +27,7 @@ namespace NewLife.Agent
         /// <summary>核心工作方法。调度线程会定期调用该方法</summary>
         /// <param name="index">线程序号</param>
         /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
-        public override System.Boolean Work(System.Int32 index)
+        public override Boolean Work(Int32 index)
         {
             // XAgent将开启ThreadCount个线程，0<index<ThreadCount，本函数即为每个任务线程的主函数，间隔Interval循环调用
             var ms = Rand.Next(3000, 20000);

@@ -393,7 +393,11 @@ namespace NewLife.Agent
         /// <summary>核心工作方法。调度线程会定期调用该方法</summary>
         /// <param name="index">线程序号</param>
         /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
-        public virtual Boolean Work(Int32 index) { return false; }
+        public virtual Boolean Work(Int32 index)
+        {
+            //return false;
+            throw new NotImplementedException("工作任务需要重载 Boolean Work(Int32 index)");
+        }
 
         /// <summary>停止服务</summary>
         /// <param name="reason"></param>
