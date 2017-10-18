@@ -293,6 +293,40 @@ namespace System
             return des.ReadBytes(len);
         }
 
+        private static DateTime _dt1970 = new DateTime(1970, 1, 1);
+        /// <summary>写入Unix格式时间，1970年以来秒数</summary>
+        /// <param name="stream"></param>
+        /// <param name="dt"></param>
+        /// <param name="baseYear"></param>
+        /// <returns></returns>
+        public static Stream WriteDateTime(this Stream stream, DateTime dt, Int32 baseYear = 1970)
+        {
+            var seconds = -1;
+            if (dt.Year >= baseYear)
+            {
+                var bdt = baseYear == 1970 ? _dt1970 : new DateTime(baseYear, 1, 1);
+                seconds = (Int32)(dt - bdt).TotalSeconds;
+            }
+
+            stream.Write(seconds.GetBytes());
+
+            return stream;
+        }
+
+        /// <summary>读取Unix格式时间，1970年以来秒数</summary>
+        /// <param name="stream"></param>
+        /// <param name="baseYear"></param>
+        /// <returns></returns>
+        public static DateTime ReadDateTime(this Stream stream, Int32 baseYear = 1970)
+        {
+            var bdt = baseYear == 1970 ? _dt1970 : new DateTime(baseYear, 1, 1);
+
+            var seconds = (Int32)stream.ReadBytes(4).ToUInt32();
+            if (seconds <= 0) return bdt;
+
+            return bdt.AddSeconds(seconds);
+        }
+
         /// <summary>复制数组</summary>
         /// <param name="src">源数组</param>
         /// <param name="offset">起始位置</param>
@@ -1210,6 +1244,6 @@ namespace System
 
             return Convert.FromBase64String(data);
         }
-#endregion
+        #endregion
     }
 }
