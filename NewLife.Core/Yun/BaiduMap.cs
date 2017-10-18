@@ -19,6 +19,7 @@ namespace NewLife.Yun
         {
             AppKey = "C73357a276668f8b0563d3f936475007";
             KeyName = "ak";
+            CoordType = "wgs84ll";
         }
         #endregion
 
@@ -42,7 +43,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 地址编码
-        private String GeoCoderUrl = "http://api.map.baidu.com/geocoder/v2/?address={0}&city={1}&ret_coordtype=wgs84&output=json";
+        private String _geoUrl = "http://api.map.baidu.com/geocoder/v2/?address={0}&city={1}&ret_coordtype={2}&output=json";
         /// <summary>查询地址的经纬度坐标</summary>
         /// <param name="address"></param>
         /// <param name="city"></param>
@@ -51,16 +52,17 @@ namespace NewLife.Yun
         {
             if (address.IsNullOrEmpty()) throw new ArgumentNullException(nameof(address));
 
-            var url = GeoCoderUrl.F(address, city);
+            var url = _geoUrl.F(address, city, CoordType);
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "result");
         }
 
         /// <summary>查询地址获取坐标</summary>
-        /// <param name="address"></param>
-        /// <param name="city"></param>
+        /// <param name="address">地址</param>
+        /// <param name="city">城市</param>
+        /// <param name="formatAddress">是否格式化地址</param>
         /// <returns></returns>
-        public async Task<GeoAddress> GetGeoAsync(String address, String city = null)
+        public async Task<GeoAddress> GetGeoAsync(String address, String city = null, Boolean formatAddress = false)
         {
             var rs = await GetGeocoderAsync(address, city);
             if (rs == null || rs.Count == 0) return null;
@@ -74,16 +76,20 @@ namespace NewLife.Yun
                 Latitude = ds["lat"].ToDouble()
             };
 
-            var geo = new GeoAddress();
-            geo.Location = gp;
-            geo.Level = rs["level"] + "";
+            if (formatAddress) return await GetGeoAsync(gp);
+
+            var geo = new GeoAddress
+            {
+                Location = gp,
+                Level = rs["level"] + ""
+            };
 
             return geo;
         }
         #endregion
 
         #region 逆地址编码
-        private String url2 = "http://api.map.baidu.com/geocoder/v2/?location={0},{1}&extensions_town=true&latest_admin=1&coord_type=wgs84&output=json";
+        private String _regeoUrl = "http://api.map.baidu.com/geocoder/v2/?location={0},{1}&extensions_town=true&latest_admin=1&coord_type={2}&output=json";
         /// <summary>根据坐标获取地址</summary>
         /// <param name="point"></param>
         /// <returns></returns>
@@ -91,7 +97,7 @@ namespace NewLife.Yun
         {
             if (point.Longitude < 0.1 || point.Latitude < 0.1) throw new ArgumentNullException(nameof(point));
 
-            var url = url2.F(point.Latitude, point.Longitude);
+            var url = _regeoUrl.F(point.Latitude, point.Longitude, CoordType);
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "result");
         }
@@ -131,7 +137,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 路径规划
-        private String DistanceUrl = "http://api.map.baidu.com/routematrix/v2/driving?origins={0},{1}&destinations={2},{3}&tactics={4}&coord_type=wgs84&output=json";
+        private String _distanceUrl = "http://api.map.baidu.com/routematrix/v2/driving?origins={0},{1}&destinations={2},{3}&tactics={4}&coord_type={5}&output=json";
         /// <summary>计算距离和驾车时间</summary>
         /// <remarks>
         /// http://lbsyun.baidu.com/index.php?title=webapi/route-matrix-api-v2
@@ -145,7 +151,7 @@ namespace NewLife.Yun
             if (origin == null || origin.Longitude < 1 && origin.Latitude < 1) throw new ArgumentNullException(nameof(origin));
             if (destination == null || destination.Longitude < 1 && destination.Latitude < 1) throw new ArgumentNullException(nameof(destination));
 
-            var url = DistanceUrl.F(origin.Latitude, origin.Longitude, destination.Latitude, destination.Longitude, type);
+            var url = _distanceUrl.F(origin.Latitude, origin.Longitude, destination.Latitude, destination.Longitude, type, CoordType);
 
             var list = await InvokeAsync<IList<Object>>(url, "result");
             if (list == null || list.Count == 0) return null;

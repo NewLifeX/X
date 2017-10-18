@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Serialization;
 using NewLife.Web;
@@ -29,18 +30,24 @@ namespace NewLife.Yun
         /// <returns></returns>
         Task<IDictionary<String, Object>> GetGeocoderAsync(String address, String city = null);
 
-        ///// <summary>查询地址获取坐标</summary>
-        ///// <param name="address"></param>
-        ///// <param name="city"></param>
-        ///// <returns></returns>
-        //Task<GeoPoint> GetGeoAsync(String address, String city = null);
+        /// <summary>查询地址获取坐标</summary>
+        /// <param name="address">地址</param>
+        /// <param name="city">城市</param>
+        /// <param name="formatAddress">是否格式化地址</param>
+        /// <returns></returns>
+        Task<GeoAddress> GetGeoAsync(String address, String city = null, Boolean formatAddress = false);
         #endregion
 
         #region 逆地址编码
-        ///// <summary>根据坐标获取地址</summary>
-        ///// <param name="point"></param>
-        ///// <returns></returns>
-        //Task<IDictionary<String, Object>> GetGeocoderAsync(GeoPoint point);
+        /// <summary>根据坐标获取地址</summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        Task<IDictionary<String, Object>> GetGeocoderAsync(GeoPoint point);
+
+        /// <summary>根据坐标获取地址</summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        Task<GeoAddress> GetGeoAsync(GeoPoint point);
         #endregion
 
         #region 路径规划
@@ -62,6 +69,9 @@ namespace NewLife.Yun
 
         /// <summary>应用密码参数名</summary>
         protected String KeyName { get; set; } = "key";
+
+        /// <summary>坐标系</summary>
+        public String CoordType { get; set; }
         #endregion
 
         #region 构造

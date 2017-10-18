@@ -19,6 +19,7 @@ namespace NewLife.Yun
         {
             AppKey = "99ac084eb7dd8015fe0ff4404fa800da";
             KeyName = "key";
+            //CoordType = "wgs84ll";
         }
         #endregion
 
@@ -42,7 +43,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 地址编码
-        private String GeoCoderUrl = "http://restapi.amap.com/v3/geocode/geo?address={0}&city={1}&output=json";
+        private String _geoUrl = "http://restapi.amap.com/v3/geocode/geo?address={0}&city={1}&output=json";
         /// <summary>查询地址的经纬度坐标</summary>
         /// <param name="address"></param>
         /// <param name="city"></param>
@@ -51,29 +52,32 @@ namespace NewLife.Yun
         {
             if (address.IsNullOrEmpty()) throw new ArgumentNullException(nameof(address));
 
-            var url = GeoCoderUrl.F(address, city);
+            var url = _geoUrl.F(address, city);
 
             var list = await InvokeAsync<IList<Object>>(url, "geocodes");
             return list.FirstOrDefault() as IDictionary<String, Object>;
         }
 
         /// <summary>查询地址获取坐标</summary>
-        /// <param name="address"></param>
-        /// <param name="city"></param>
+        /// <param name="address">地址</param>
+        /// <param name="city">城市</param>
+        /// <param name="formatAddress">是否格式化地址。高德地图默认已经格式化地址</param>
         /// <returns></returns>
-        public async Task<GeoAddress> GetGeoAsync(String address, String city = null)
+        public async Task<GeoAddress> GetGeoAsync(String address, String city = null, Boolean formatAddress = false)
         {
             var rs = await GetGeocoderAsync(address, city);
             if (rs == null || rs.Count == 0) return null;
 
-            var point = new GeoPoint();
+            var gp = new GeoPoint();
 
             var ds = (rs["location"] + "").Split(",");
             if (ds != null && ds.Length >= 2)
             {
-                point.Longitude = ds[0].ToDouble();
-                point.Latitude = ds[1].ToDouble();
+                gp.Longitude = ds[0].ToDouble();
+                gp.Latitude = ds[1].ToDouble();
             }
+
+            if (formatAddress) return await GetGeoAsync(gp);
 
             var addr = new GeoAddress();
 
@@ -84,6 +88,61 @@ namespace NewLife.Yun
             addr.Township = rs["township"] + "";
             addr.StreetNumber = rs["number"] + "";
 
+            addr.Location = gp;
+
+            return addr;
+        }
+        #endregion
+
+        #region 逆地址编码
+        private String _regeoUrl = "http://restapi.amap.com/v3/geocode/regeo?location={0},{1}&extensions=base&output=json";
+        /// <summary>根据坐标获取地址</summary>
+        /// <remarks>
+        /// http://lbs.amap.com/api/webservice/guide/api/georegeo/#regeo
+        /// </remarks>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public async Task<IDictionary<String, Object>> GetGeocoderAsync(GeoPoint point)
+        {
+            if (point.Longitude < 0.1 || point.Latitude < 0.1) throw new ArgumentNullException(nameof(point));
+
+            var url = _regeoUrl.F(point.Longitude, point.Latitude);
+
+            return await InvokeAsync<IDictionary<String, Object>>(url, "regeocode");
+        }
+
+        /// <summary>根据坐标获取地址</summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public async Task<GeoAddress> GetGeoAsync(GeoPoint point)
+        {
+            var rs = await GetGeocoderAsync(point);
+            if (rs == null || rs.Count == 0) return null;
+
+            var addr = new GeoAddress
+            {
+                Address = rs["formatted_address"] + ""
+            };
+            addr.Location = new GeoPoint
+            {
+                Longitude = point.Longitude,
+                Latitude = point.Latitude
+            };
+            if (rs["addressComponent"] is IDictionary<String, Object> component)
+            {
+                var reader = new JsonReader();
+                reader.ToObject(component, null, addr);
+
+                addr.Code = component["adcode"].ToInt();
+                addr.Township = component["town"] + "";
+
+                if (rs["street_number"] is IDictionary<String, Object> sn && sn.Count > 0)
+                {
+                    addr.Street = sn["street"] + "";
+                    addr.StreetNumber = component["street_number"] + "";
+                }
+            }
+
             addr.Location = point;
 
             return addr;
@@ -91,7 +150,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 路径规划
-        private String DistanceUrl = "http://restapi.amap.com/v3/distance?origins={0},{1}&destination={2},{3}&type={4}&output=json";
+        private String _distanceUrl = "http://restapi.amap.com/v3/distance?origins={0},{1}&destination={2},{3}&type={4}&output=json";
         /// <summary>计算距离和驾车时间</summary>
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/direction
@@ -116,7 +175,7 @@ namespace NewLife.Yun
             if (origin == null || origin.Longitude < 1 && origin.Latitude < 1) throw new ArgumentNullException(nameof(origin));
             if (destination == null || destination.Longitude < 1 && destination.Latitude < 1) throw new ArgumentNullException(nameof(destination));
 
-            var url = DistanceUrl.F(origin.Longitude, origin.Latitude, destination.Longitude, destination.Latitude, type);
+            var url = _distanceUrl.F(origin.Longitude, origin.Latitude, destination.Longitude, destination.Latitude, type);
 
             var list = await InvokeAsync<IList<Object>>(url, "results");
             if (list == null || list.Count == 0) return null;
@@ -136,7 +195,7 @@ namespace NewLife.Yun
 
         #region 行政区划
         //private String url3 = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=all&output=json";
-        private String url3 = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=base&output=json";
+        private String _areaUrl = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=base&output=json";
         /// <summary>行政区划</summary>
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/district
@@ -149,7 +208,7 @@ namespace NewLife.Yun
         {
             if (keywords.IsNullOrEmpty()) throw new ArgumentNullException(nameof(keywords));
 
-            var url = url3.F(keywords, subdistrict, code);
+            var url = _areaUrl.F(keywords, subdistrict, code);
 
             var list = await InvokeAsync<IList<Object>>(url, "districts");
             if (list == null || list.Count == 0) return null;

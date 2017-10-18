@@ -30,6 +30,9 @@ namespace NewLife.Data
         /// <summary>乡镇</summary>
         public String Township { get; set; }
 
+        /// <summary>乡镇编码</summary>
+        public String Towncode { get; set; }
+
         /// <summary>街道</summary>
         public String Street { get; set; }
 
