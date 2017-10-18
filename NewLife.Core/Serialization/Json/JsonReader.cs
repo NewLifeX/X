@@ -198,7 +198,7 @@ namespace NewLife.Serialization
 
                 var pt = pi.PropertyType;
                 if (pt.GetTypeCode() != TypeCode.Object)
-                    target.SetValue(pi, ToObject(v, pt, null));
+                    target.SetValue(pi, ChangeType(v, pt));
                 else
                 {
                     var orig = target.GetValue(pi);
@@ -221,8 +221,9 @@ namespace NewLife.Serialization
                 type = type.GetGenericArguments()[0];
             }
 
-            if (type == typeof(Int32)) return (Int32)((Int64)value); if (type == typeof(Int64)) return (Int64)value;
-            if (type == typeof(String)) return (String)value;
+            if (type == typeof(Int32)) return value.ToInt();
+            if (type == typeof(Int64)) return value.ToLong();
+            if (type == typeof(String)) return value as String;
 
             if (type.IsEnum) return Enum.Parse(type, value + "");
             if (type == typeof(DateTime)) return CreateDateTime(value);
