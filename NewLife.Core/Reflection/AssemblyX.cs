@@ -138,6 +138,12 @@ namespace NewLife.Reflection
                 if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
                 return Assembly.ReflectionOnlyLoad(args.Name);
             };
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                var flag = XTrace.Debug && XTrace.Log.Level == LogLevel.Debug;
+                if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
+                return OnResolve(args.Name);
+            };
 #endif
         }
         #endregion
@@ -731,6 +737,24 @@ namespace NewLife.Reflection
             }
 #endif
             return list;
+        }
+
+        /// <summary>在对程序集的解析失败时发生</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private static Assembly OnResolve(String name)
+        {
+            foreach (var item in GetAssemblies())
+            {
+                if (item.Asm.FullName == name) return item.Asm;
+            }
+
+            foreach (var item in ReflectionOnlyGetAssemblies())
+            {
+                if (item.Asm.FullName == name) return item.Asm;
+            }
+
+            return null;
         }
         #endregion
 
