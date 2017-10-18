@@ -36,5 +36,9 @@ namespace NewLife.Model
         /// <summary>从数据库中删除该对象</summary>
         /// <returns></returns>
         Int32 Delete();
+
+        /// <summary>保存</summary>
+        /// <returns></returns>
+        Int32 Save();
     }
 }
