@@ -61,9 +61,9 @@ namespace NewLife.Caching
         /// <summary>添加缓存项</summary>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
-        public override Boolean Set<T>(String key, T value, Int32 expire = 0)
+        public override Boolean Set<T>(String key, T value, Int32 expire = -1)
         {
             if (expire <= 0) expire = Expire;
 
