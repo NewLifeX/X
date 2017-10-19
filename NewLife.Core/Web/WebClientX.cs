@@ -491,8 +491,7 @@ namespace NewLife.Web
             // 开始下载文件，注意要提前建立目录，否则会报错
             file2 = file2.EnsureDirectory();
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
             TaskEx.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
             sw.Stop();
 

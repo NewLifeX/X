@@ -55,7 +55,7 @@ namespace NewLife.Threading
 
         private Thread thread;
 
-        private HashSet<TimerX> timers = new HashSet<TimerX>();
+        private TimerX[] Timers = new TimerX[0];
         #endregion
 
         /// <summary>把定时器加入队列</summary>
@@ -64,9 +64,14 @@ namespace NewLife.Threading
         {
             WriteLog("Timer.Add {0}ms {1}", timer.Period, timer);
 
-            lock (timers)
+            lock (this)
             {
-                timers.Add(timer);
+                var list = new List<TimerX>(Timers);
+                if (list.Contains(timer)) return;
+                list.Add(timer);
+
+                Timers = list.ToArray();
+
                 Count++;
 
                 if (thread == null)
@@ -94,11 +99,14 @@ namespace NewLife.Threading
 
             WriteLog("Timer.Remove {0}", timer);
 
-            lock (timers)
+            lock (this)
             {
-                if (timers.Contains(timer))
+                var list = new List<TimerX>(Timers);
+                if (list.Contains(timer))
                 {
-                    timers.Remove(timer);
+                    list.Remove(timer);
+                    Timers = list.ToArray();
+
                     Count--;
                 }
             }
@@ -126,20 +134,18 @@ namespace NewLife.Threading
             while (true)
             {
                 // 准备好定时器列表
-                TimerX[] arr = null;
-                lock (timers)
-                {
-                    // 如果没有任务，则销毁线程
-                    if (timers.Count == 0 && period == 60000)
-                    {
-                        WriteLog("没有可用任务，销毁线程");
-                        var th = thread;
-                        thread = null;
-                        th.Abort();
-                        break;
-                    }
+                var arr = Timers;
 
-                    arr = timers.ToArray();
+                // 如果没有任务，则销毁线程
+                if (arr.Length == 0 && period == 60000)
+                {
+                    WriteLog("没有可用任务，销毁线程");
+
+                    var th = thread;
+                    thread = null;
+                    th.Abort();
+
+                    break;
                 }
 
                 try
@@ -155,11 +161,11 @@ namespace NewLife.Threading
                             // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
                             timer.Calling = true;
                             if (!timer.Async)
-                                ProcessItem(timer);
+                                Execute(timer);
                             else
                                 //Task.Factory.StartNew(() => ProcessItem(timer));
                                 // 不需要上下文流动
-                                ThreadPool.UnsafeQueueUserWorkItem(ProcessItem, timer);
+                                ThreadPool.UnsafeQueueUserWorkItem(Execute, timer);
                         }
                     }
                 }
@@ -206,7 +212,7 @@ namespace NewLife.Threading
 
         /// <summary>处理每一个定时器</summary>
         /// <param name="state"></param>
-        private void ProcessItem(Object state)
+        private void Execute(Object state)
         {
             var timer = state as TimerX;
             TimerX.Current = timer;
@@ -216,8 +222,7 @@ namespace NewLife.Threading
 
             timer.hasSetNext = false;
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             try
             {

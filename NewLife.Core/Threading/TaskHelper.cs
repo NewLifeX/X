@@ -81,8 +81,7 @@ namespace System.Threading.Tasks
             if (log == null) log = XTrace.Log;
             if (log == Logger.Null || !log.Enable) return task;
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             return task.ContinueWith(t =>
             {
@@ -103,8 +102,7 @@ namespace System.Threading.Tasks
             if (log == null) log = XTrace.Log;
             if (log == Logger.Null || !log.Enable) return task;
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             return task.ContinueWith(t =>
             {

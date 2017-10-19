@@ -252,8 +252,7 @@ namespace XCode
             DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.Type, Setting.Current.Migration == Migration.ReadOnly ? "异步" : "同步");
 #endif
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             try
             {

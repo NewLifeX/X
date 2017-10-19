@@ -47,8 +47,7 @@ namespace XCoder
 
             Task.Factory.StartNew(() =>
             {
-                var sw = new Stopwatch();
-                sw.Start();
+                var sw = Stopwatch.StartNew();
 
                 String msg = null;
                 DataTable dt = null;
@@ -82,8 +81,7 @@ namespace XCoder
 
             Task.Factory.StartNew(() =>
             {
-                var sw = new Stopwatch();
-                sw.Start();
+                var sw = Stopwatch.StartNew();
 
                 String msg = null;
                 try

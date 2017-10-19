@@ -220,8 +220,7 @@ namespace NewLife.Log
                 gen[i] = GC.CollectionCount(i);
             }
 
-            var watch = new Stopwatch();
-            watch.Start();
+            var watch = Stopwatch.StartNew();
             cpuCycles = GetCycleCount();
             threadTime = GetCurrentThreadTimes();
 
@@ -324,8 +323,7 @@ namespace NewLife.Log
             var cursorVisible = Console.CursorVisible;
             Console.CursorVisible = false;
 #endif
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
             while (true)
             {
                 try

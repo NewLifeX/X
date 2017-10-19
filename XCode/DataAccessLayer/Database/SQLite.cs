@@ -532,8 +532,7 @@ namespace XCode.DataAccessLayer
 
             WriteLog("{0}备份SQLite数据库 {1} 到 {2}", Database.ConnName, dbfile, bf);
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             // 删除已有文件
             if (File.Exists(bf)) File.Delete(bf);

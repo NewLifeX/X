@@ -34,13 +34,12 @@ namespace Test
 #endif
             while (true)
             {
-                var sw = new Stopwatch();
-                sw.Start();
+                var sw = Stopwatch.StartNew();
 #if !DEBUG
                 try
                 {
 #endif
-                    Test2();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -143,6 +142,22 @@ namespace Test
 
             //var addrs = am.GetDistrictAsync("广西", 1, 450000).Result;
             //Console.WriteLine(addrs);
+        }
+
+        private static TimerX _timer;
+        static void Test3()
+        {
+            if (_timer == null) _timer = new TimerX(s =>
+            {
+                Console.WriteLine();
+                XTrace.WriteLine("start");
+                Parallel.For(0, 3, k =>
+                {
+                    Thread.Sleep(300);
+                    XTrace.WriteLine("pfor {0}", k);
+                });
+                XTrace.WriteLine("end");
+            }, null, 1000, 5000);
         }
     }
 }

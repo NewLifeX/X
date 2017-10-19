@@ -153,8 +153,7 @@ namespace XCoder
 
         void DetectFile()
         {
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             var n = 0;
             var ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
@@ -249,8 +248,7 @@ namespace XCoder
                 var dal = DAL.Create(item);
                 if (dal.DbType != DatabaseType.SqlServer) return;
 
-                var sw = new Stopwatch();
-                sw.Start();
+                var sw = Stopwatch.StartNew();
 
                 DataTable dt = null;
 

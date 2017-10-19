@@ -803,8 +803,7 @@ namespace XCode.DataAccessLayer
             {
                 DataTable dt = null;
 
-                var sw = new Stopwatch();
-                sw.Start();
+                var sw = Stopwatch.StartNew();
 
                 if (restrictionValues == null || restrictionValues.Length < 1)
                 {

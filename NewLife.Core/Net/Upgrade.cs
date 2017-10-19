@@ -130,8 +130,7 @@ namespace NewLife.Net
             {
                 WriteLog("准备下载 {0} 到 {1}", link.Url, file);
 
-                var sw = new Stopwatch();
-                sw.Start();
+                var sw = Stopwatch.StartNew();
 
                 var web = CreateClient();
                 web.DownloadFileAsync(link.Url, file).Wait();

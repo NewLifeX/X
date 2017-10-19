@@ -78,8 +78,7 @@ namespace NewLife.Net.Stress
                 Console.WriteLine("准备就绪！任意键开始……");
                 Console.ReadKey(true);
 
-                sw = new Stopwatch();
-                sw.Start();
+                var sw = Stopwatch.StartNew();
                 timerShowStatus = new TimerX(ShowStatus, null, 1000, 1000);
 
                 stress.Start();

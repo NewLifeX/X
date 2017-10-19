@@ -413,8 +413,7 @@ namespace XCode.DataAccessLayer
         {
             WriteLog("开始检查连接[{0}/{1}]的数据库架构……", ConnName, DbType);
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             try
             {
