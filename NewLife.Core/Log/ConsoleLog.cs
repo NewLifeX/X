@@ -22,29 +22,33 @@ namespace NewLife.Log
                 ConsoleWriteLog(e);
                 return;
             }
-#if !__MOBILE__
-            var cc = Console.ForegroundColor;
-            switch (level)
-            {
-                case LogLevel.Warn:
-                    cc = ConsoleColor.Yellow;
-                    break;
-                case LogLevel.Error:
-                case LogLevel.Fatal:
-                    cc = ConsoleColor.Red;
-                    break;
-                default:
-                    cc = GetColor(e.ThreadID);
-                    break;
-            }
 
-            var old = Console.ForegroundColor;
-            Console.ForegroundColor = cc;
-#endif
-            ConsoleWriteLog(e);
+            lock (this)
+            {
 #if !__MOBILE__
-            Console.ForegroundColor = old;
+                var cc = Console.ForegroundColor;
+                switch (level)
+                {
+                    case LogLevel.Warn:
+                        cc = ConsoleColor.Yellow;
+                        break;
+                    case LogLevel.Error:
+                    case LogLevel.Fatal:
+                        cc = ConsoleColor.Red;
+                        break;
+                    default:
+                        cc = GetColor(e.ThreadID);
+                        break;
+                }
+
+                var old = Console.ForegroundColor;
+                Console.ForegroundColor = cc;
 #endif
+                ConsoleWriteLog(e);
+#if !__MOBILE__
+                Console.ForegroundColor = old;
+#endif
+            }
         }
 
         private void ConsoleWriteLog(WriteLogEventArgs e)
