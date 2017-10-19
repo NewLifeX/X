@@ -180,7 +180,7 @@ namespace XCode.Cache
             if (e == null)
             {
                 var v = entity[fi.Name];
-                e = es.Find(x => x[fi.Name] == v);
+                e = es.Find(x => Object.Equals(x[fi.Name], v));
             }
             if (e == null) return null;
 
