@@ -105,12 +105,12 @@ namespace XCode.Remoting
                 olt.SaveAsync();
 
                 // 销毁时
-                ns.OnDisposed += (s, e) =>
-                {
-                    Online.Delete();
+                //ns.OnDisposed += (s, e) =>
+                //{
+                //    Online.Delete();
 
-                    SaveHistory("Logout", true, null);
-                };
+                //    SaveHistory("Logout", true, null);
+                //};
 
                 return rs;
             }
