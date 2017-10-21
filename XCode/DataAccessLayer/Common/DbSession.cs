@@ -609,6 +609,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 异步操作
+#if !NET4
         /// <summary>异步打开</summary>
         /// <returns></returns>
         public virtual async Task OpenAsync()
@@ -742,6 +743,7 @@ namespace XCode.DataAccessLayer
                 //cmd.Parameters.Clear();
             }
         }
+#endif
         #endregion
 
         #region 高级

@@ -155,6 +155,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 异步操作
+#if !NET4
         /// <summary>异步打开</summary>
         /// <returns></returns>
         Task OpenAsync();
@@ -165,6 +166,7 @@ namespace XCode.DataAccessLayer
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
         Task<DataResult> QueryAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+#endif
         #endregion
 
         #region 高级
