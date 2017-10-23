@@ -268,7 +268,7 @@ namespace NewLife.Web
             if (AutomaticDecompression != DecompressionMethods.None) req.AcceptEncoding.ParseAdd("gzip, deflate");
             if (!Referer.IsNullOrEmpty()) req.Referrer = new Uri(Referer);
 
-            GetCookie();
+            GetCookie(http);
 
             return http;
         }
@@ -627,10 +627,11 @@ namespace NewLife.Web
         }
 
         /// <summary>从本地获取Cookie并设置到Http请求头</summary>
-        private void GetCookie()
+        private void GetCookie(HttpClientX http)
         {
-            var req = _client.DefaultRequestHeaders;
+            var req = http.DefaultRequestHeaders;
             if (req == null) return;
+
             if (Cookie == null || Cookie.Count == 0) return;
 
             var sb = new StringBuilder();
