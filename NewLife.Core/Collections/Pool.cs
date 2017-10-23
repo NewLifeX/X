@@ -25,6 +25,10 @@ namespace NewLife.Collections
 
         /// <summary>空闲对象过期清理时间。默认60s</summary>
         public Int32 Expire { get; set; } = 60;
+
+        private ConcurrentStack<Item> _stack = new ConcurrentStack<Item>();
+        private BlockingCollection<Item> _free;
+        private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
         #endregion
 
         #region 构造
@@ -45,10 +49,6 @@ namespace NewLife.Collections
         #endregion
 
         #region 内嵌
-        private ConcurrentStack<Item> _stack = new ConcurrentStack<Item>();
-        private BlockingCollection<Item> _free;
-        private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
-
         class Item
         {
             /// <summary>数值</summary>
