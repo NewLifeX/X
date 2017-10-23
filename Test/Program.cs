@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Agent;
 using NewLife.Caching;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
@@ -147,17 +148,30 @@ namespace Test
         private static TimerX _timer;
         static void Test3()
         {
-            if (_timer == null) _timer = new TimerX(s =>
+            //if (_timer == null) _timer = new TimerX(s =>
+            //{
+            //    Console.WriteLine();
+            //    XTrace.WriteLine("start");
+            //    Parallel.For(0, 3, k =>
+            //    {
+            //        Thread.Sleep(300);
+            //        XTrace.WriteLine("pfor {0}", k);
+            //    });
+            //    XTrace.WriteLine("end");
+            //}, null, 1000, 5000);
+
+            var list = new LinkList<Int32>();
+            list.Add(123);
+            list.Add(456);
+            list.Add(789);
+
+            Console.WriteLine(list.Contains(456));
+            list.Remove(456);
+
+            foreach (var item in list)
             {
-                Console.WriteLine();
-                XTrace.WriteLine("start");
-                Parallel.For(0, 3, k =>
-                {
-                    Thread.Sleep(300);
-                    XTrace.WriteLine("pfor {0}", k);
-                });
-                XTrace.WriteLine("end");
-            }, null, 1000, 5000);
+                Console.WriteLine(item);
+            }
         }
     }
 }
