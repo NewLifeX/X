@@ -101,7 +101,6 @@
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
-    <Compile Include="Collections\InterlockedStack.cs" />
     <Compile Include="Collections\LinkList.cs" />
     <Compile Include="Collections\NullableDictionary.cs" />
     <Compile Include="Collections\Pool.cs" />

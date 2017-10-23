@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Agent;
@@ -12,6 +13,7 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
+using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
@@ -160,18 +162,65 @@ namespace Test
             //    XTrace.WriteLine("end");
             //}, null, 1000, 5000);
 
-            var list = new LinkList<Int32>();
-            list.Add(123);
-            list.Add(456);
-            list.Add(789);
+            //var list = new LinkList<Int32>();
+            //list.Add(123);
+            //list.Add(456);
+            //list.Add(789);
 
-            Console.WriteLine(list.Contains(456));
-            list.Remove(456);
+            //Console.WriteLine(list.Contains(456));
+            //list.Remove(456);
 
-            foreach (var item in list)
+            //foreach (var item in list)
+            //{
+            //    Console.WriteLine(item);
+            //}
+
+            var pool = new Pool<TcpClient>();
+            pool.Log = XTrace.Log;
+            Task.Run(() =>
             {
-                Console.WriteLine(item);
-            }
+                var st = new Stack<TcpClient>();
+                for (var i = 0; i < 4; i++)
+                {
+                    st.Push(pool.Acquire());
+                    Thread.Sleep(500);
+                }
+                Thread.Sleep(100);
+                for (var i = 0; i < 4; i++)
+                {
+                    pool.Release(st.Pop());
+                    Thread.Sleep(500);
+                }
+            });
+            Task.Run(() =>
+            {
+                Thread.Sleep(1900);
+                var st = new Stack<TcpClient>();
+                for (var i = 0; i < 4; i++)
+                {
+                    st.Push(pool.Acquire());
+                    Thread.Sleep(500);
+                }
+                Thread.Sleep(1000);
+                for (var i = 0; i < 4; i++)
+                {
+                    pool.Release(st.Pop());
+                    Thread.Sleep(500);
+                }
+            });
+            //Parallel.For(0, 2, k =>
+            //{
+            //    var st = new Stack<TcpClient>();
+            //    for (var i = 0; i < 10; i++)
+            //    {
+            //        if (st.Count == 0 || Rand.Next(2) == 0)
+            //            st.Push(pool.Acquire());
+            //        else
+            //            pool.Release(st.Pop());
+
+            //        Thread.Sleep(Rand.Next(200, 3000));
+            //    }
+            //});
         }
     }
 }

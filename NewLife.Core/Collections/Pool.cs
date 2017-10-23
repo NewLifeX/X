@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Linq;
 using NewLife.Reflection;
 using NewLife.Threading;
+using System.Threading;
+using NewLife.Log;
 
 namespace NewLife.Collections
 {
@@ -20,32 +22,28 @@ namespace NewLife.Collections
         /// <summary>最大个数。默认100</summary>
         public Int32 Max { get; set; } = 100;
 
-        /// <summary>最小个数。默认0</summary>
-        public Int32 Min { get; set; }
+        /// <summary>最小个数。默认1</summary>
+        public Int32 Min { get; set; } = 1;
 
         /// <summary>空闲对象过期清理时间。默认60s</summary>
         public Int32 Expire { get; set; } = 60;
 
-        private ConcurrentStack<Item> _stack = new ConcurrentStack<Item>();
-        private BlockingCollection<Item> _free;
+        private ConcurrentStack<Item> _free = new ConcurrentStack<Item>();
         private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
         #endregion
 
         #region 构造
-        /// <summary>实例化一个对象池</summary>
-        public Pool()
-        {
-            _free = new BlockingCollection<Item>(_stack);
-        }
+        ///// <summary>实例化一个对象池</summary>
+        //public Pool() { }
 
-        /// <summary>销毁</summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
-        {
-            base.OnDispose(disposing);
+        ///// <summary>销毁</summary>
+        ///// <param name="disposing"></param>
+        //protected override void OnDispose(Boolean disposing)
+        //{
+        //    base.OnDispose(disposing);
 
-            _timer.TryDispose();
-        }
+        //    _timer.TryDispose();
+        //}
         #endregion
 
         #region 内嵌
@@ -61,26 +59,30 @@ namespace NewLife.Collections
 
         #region 主方法
         /// <summary>申请</summary>
-        /// <param name="msTimerout">超时时间。默认1000ms</param>
         /// <returns></returns>
-        public T Acquire(Int32 msTimerout = 1000)
+        public T Acquire()
         {
             // 从空闲集合借一个
-            if (!_free.TryTake(out var pi))
+            if (!_free.TryPop(out var pi))
             {
                 // 借不到，增加
-                if (_busy.Count < Max)
+                if (_busy.Count >= Max)
                 {
-                    pi = new Item
-                    {
-                        Value = Create(),
-                    };
+                    WriteLog("Acquire Max");
+
+                    return default(T);
                 }
-                else
+
+                pi = new Item
                 {
-                    // 池满，等待
-                    if (!_free.TryTake(out pi, msTimerout)) return default(T);
-                }
+                    Value = Create(),
+                };
+
+                WriteLog("Acquire Create");
+            }
+            else
+            {
+                FreeCount = _free.Count;
             }
 
             // 附加业务
@@ -92,11 +94,12 @@ namespace NewLife.Collections
             // 加入繁忙集合
             _busy.TryAdd(pi.Value, pi);
 
-            FreeCount = _free.Count;
             BusyCount = _busy.Count;
 
-            // 启动定期清理的定时器
-            StartTimer();
+            WriteLog("Acquire Free={0} Busy={1}", FreeCount, BusyCount);
+
+            //// 启动定期清理的定时器
+            //StartTimer();
 
             return pi.Value;
         }
@@ -105,7 +108,14 @@ namespace NewLife.Collections
         /// <param name="value"></param>
         public void Release(T value)
         {
-            if (!_busy.TryRemove(value, out var pi)) return;
+            if (!_busy.TryRemove(value, out var pi))
+            {
+                WriteLog("Release Error");
+
+                return;
+            }
+
+            BusyCount = _busy.Count;
 
             // 附加业务
             OnRelease(pi.Value);
@@ -113,10 +123,15 @@ namespace NewLife.Collections
             // 更新过期时间
             pi.ExpireTime = DateTime.Now.AddSeconds(Expire);
 
-            _free.TryAdd(pi);
+            // 如果空闲数不足最小值，则返回到空闲队列
+            if (FreeCount < Min)
+            {
+                _free.Push(pi);
 
-            FreeCount = _free.Count;
-            BusyCount = _busy.Count;
+                FreeCount = _free.Count;
+            }
+
+            WriteLog("Release Free={0} Busy={1}", FreeCount, BusyCount);
         }
         #endregion
 
@@ -135,35 +150,66 @@ namespace NewLife.Collections
         #endregion
 
         #region 定期清理
-        private TimerX _timer;
+        //private TimerX _timer;
 
-        private void StartTimer()
+        //private void StartTimer()
+        //{
+        //    if (_timer != null) return;
+        //    lock (this)
+        //    {
+        //        if (_timer != null) return;
+
+        //        _timer = new TimerX(Work, null, 10000, 10000);
+        //    }
+        //}
+
+        //private void Work(Object state)
+        //{
+        //    // 总数小于等于最小个数时不处理
+        //    if (FreeCount + BusyCount <= Min) return;
+
+        //    // 没有空闲时也不处理
+        //    if (_free.IsEmpty) return;
+
+        //    // 遍历并干掉过期项
+        //    var now = DateTime.Now;
+        //    // 有多少个过期
+        //    var count = _free.Count(e => e.ExpireTime < now);
+        //    if (count > 0)
+        //    {
+        //        var arr = new T[count];
+        //        if (_free.TryPopRange(arr, _free.Count - count, count))
+        //        {
+
+        //        }
+        //    }
+
+        //    // 栈是FILO结构，过期的都在前面
+        //    while (st.TryPeek(out var pi) && pi.ExpireTime < now)
+        //    {
+        //        st.TryPop(out pi);
+        //    }
+        //}
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        private String _Prefix;
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
         {
-            if (_timer != null) return;
-            lock (this)
+            if (Log == null) return;
+
+            if (_Prefix == null)
             {
-                if (_timer != null) return;
-
-                _timer = new TimerX(Work, null, 10000, 10000);
+                _Prefix = $"Pool<{typeof(T).Name}>.";
             }
-        }
 
-        private void Work(Object state)
-        {
-            // 总数小于等于最小个数时不处理
-            if (FreeCount + BusyCount <= Min) return;
-
-            // 没有空闲时也不处理
-            var st = _stack;
-            if (st.Count == 0) return;
-
-            // 遍历并干掉过期项
-            var now = DateTime.Now;
-            // 栈是FILO结构，过期的都在前面
-            while (st.TryPeek(out var pi) && pi.ExpireTime < now)
-            {
-                st.TryPop(out pi);
-            }
+            Log.Info(_Prefix + format, args);
         }
         #endregion
     }
