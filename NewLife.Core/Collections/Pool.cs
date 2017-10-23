@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Linq;
+using System.Collections.Concurrent;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
-using System.Threading;
-using NewLife.Log;
 
 namespace NewLife.Collections
 {
@@ -28,7 +27,13 @@ namespace NewLife.Collections
         /// <summary>空闲对象过期清理时间。默认60s</summary>
         public Int32 Expire { get; set; } = 60;
 
+        /// <summary>基础空闲集合。只保存最小个数，最热部分</summary>
         private ConcurrentStack<Item> _free = new ConcurrentStack<Item>();
+
+        /// <summary>扩展空闲集合。保存最小个数以外部分</summary>
+        private ConcurrentQueue<Item> _free2 = new ConcurrentQueue<Item>();
+
+        /// <summary>借出去的放在这</summary>
         private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
         #endregion
 
@@ -63,7 +68,7 @@ namespace NewLife.Collections
         public T Acquire()
         {
             // 从空闲集合借一个
-            if (!_free.TryPop(out var pi))
+            if (!_free.TryPop(out var pi) && !_free2.TryDequeue(out pi))
             {
                 // 借不到，增加
                 if (_busy.Count >= Max)
@@ -82,7 +87,7 @@ namespace NewLife.Collections
             }
             else
             {
-                FreeCount = _free.Count;
+                FreeCount = _free.Count + _free2.Count;
             }
 
             // 附加业务
@@ -98,8 +103,8 @@ namespace NewLife.Collections
 
             WriteLog("Acquire Free={0} Busy={1}", FreeCount, BusyCount);
 
-            //// 启动定期清理的定时器
-            //StartTimer();
+            // 启动定期清理的定时器
+            StartTimer();
 
             return pi.Value;
         }
@@ -123,13 +128,13 @@ namespace NewLife.Collections
             // 更新过期时间
             pi.ExpireTime = DateTime.Now.AddSeconds(Expire);
 
-            // 如果空闲数不足最小值，则返回到空闲队列
+            // 如果空闲数不足最小值，则返回到基础空闲集合
             if (FreeCount < Min)
-            {
                 _free.Push(pi);
+            else
+                _free2.Enqueue(pi);
 
-                FreeCount = _free.Count;
-            }
+            FreeCount = _free.Count + _free2.Count;
 
             WriteLog("Release Free={0} Busy={1}", FreeCount, BusyCount);
         }
@@ -150,46 +155,42 @@ namespace NewLife.Collections
         #endregion
 
         #region 定期清理
-        //private TimerX _timer;
+        private TimerX _timer;
 
-        //private void StartTimer()
-        //{
-        //    if (_timer != null) return;
-        //    lock (this)
-        //    {
-        //        if (_timer != null) return;
+        private void StartTimer()
+        {
+            if (_timer != null) return;
+            lock (this)
+            {
+                if (_timer != null) return;
 
-        //        _timer = new TimerX(Work, null, 10000, 10000);
-        //    }
-        //}
+                _timer = new TimerX(Work, null, 10000, 10000);
+            }
+        }
 
-        //private void Work(Object state)
-        //{
-        //    // 总数小于等于最小个数时不处理
-        //    if (FreeCount + BusyCount <= Min) return;
+        private void Work(Object state)
+        {
+            // 总数小于等于最小个数时不处理
+            if (FreeCount + BusyCount <= Min) return;
 
-        //    // 没有空闲时也不处理
-        //    if (_free.IsEmpty) return;
+            // 没有空闲时也不处理
+            if (_free.IsEmpty) return;
 
-        //    // 遍历并干掉过期项
-        //    var now = DateTime.Now;
-        //    // 有多少个过期
-        //    var count = _free.Count(e => e.ExpireTime < now);
-        //    if (count > 0)
-        //    {
-        //        var arr = new T[count];
-        //        if (_free.TryPopRange(arr, _free.Count - count, count))
-        //        {
+            // 遍历并干掉过期项
+            var now = DateTime.Now;
+            var count = 0;
+            while (_free2.TryPeek(out var pi) && pi.ExpireTime < now)
+            {
+                _free2.TryDequeue(out pi);
+                count++;
+            }
 
-        //        }
-        //    }
-
-        //    // 栈是FILO结构，过期的都在前面
-        //    while (st.TryPeek(out var pi) && pi.ExpireTime < now)
-        //    {
-        //        st.TryPop(out pi);
-        //    }
-        //}
+            if (count > 0)
+            {
+                FreeCount = _free.Count + _free2.Count;
+                WriteLog("Release Free={0} Busy={1} 清除过期对象 {2:n0} 项", FreeCount, BusyCount, count);
+            }
+        }
         #endregion
 
         #region 日志
