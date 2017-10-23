@@ -102,6 +102,7 @@
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
     <Compile Include="Collections\NullableDictionary.cs" />
+    <Compile Include="Collections\Pool.cs" />
     <Compile Include="Common\CombGuid.cs" />
     <Compile Include="Common\PinYin.cs" />
     <Compile Include="Common\Runtime.cs" />
