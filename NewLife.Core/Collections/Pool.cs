@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace NewLife.Collections
 {
     /// <summary>对象池。主要用于数据库连接池和网络连接池</summary>
     /// <typeparam name="T"></typeparam>
-    public class Pool<T> where T : class
+    public class Pool<T> : DisposeBase where T : class
     {
         #region 属性
         /// <summary>空闲个数</summary>
@@ -26,10 +28,25 @@ namespace NewLife.Collections
         #endregion
 
         #region 构造
+        /// <summary>实例化一个对象池</summary>
+        public Pool()
+        {
+            _free = new BlockingCollection<Item>(_stack);
+        }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
+
+            _timer.TryDispose();
+        }
         #endregion
 
         #region 内嵌
-        private BlockingCollection<Item> _free = new BlockingCollection<Item>();
+        private ConcurrentStack<Item> _stack = new ConcurrentStack<Item>();
+        private BlockingCollection<Item> _free;
         private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
 
         class Item
@@ -78,6 +95,9 @@ namespace NewLife.Collections
             FreeCount = _free.Count;
             BusyCount = _busy.Count;
 
+            // 启动定期清理的定时器
+            StartTimer();
+
             return pi.Value;
         }
 
@@ -112,6 +132,39 @@ namespace NewLife.Collections
         /// <summary>释放时</summary>
         /// <param name="value"></param>
         protected virtual void OnRelease(T value) { }
+        #endregion
+
+        #region 定期清理
+        private TimerX _timer;
+
+        private void StartTimer()
+        {
+            if (_timer != null) return;
+            lock (this)
+            {
+                if (_timer != null) return;
+
+                _timer = new TimerX(Work, null, 10000, 10000);
+            }
+        }
+
+        private void Work(Object state)
+        {
+            // 总数小于等于最小个数时不处理
+            if (FreeCount + BusyCount <= Min) return;
+
+            // 没有空闲时也不处理
+            var st = _stack;
+            if (st.Count == 0) return;
+
+            // 遍历并干掉过期项
+            var now = DateTime.Now;
+            // 栈是FILO结构，过期的都在前面
+            while (st.TryPeek(out var pi) && pi.ExpireTime < now)
+            {
+                st.TryPop(out pi);
+            }
+        }
         #endregion
     }
 }
