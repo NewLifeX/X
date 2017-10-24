@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Concurrent;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -19,13 +18,13 @@ namespace NewLife.Collections
         public Int32 BusyCount { get; private set; }
 
         /// <summary>最大个数。默认100</summary>
-        public Int32 Max { get; set; } = 100;
+        public Int32 Max { get; set; } = 4;
 
         /// <summary>最小个数。默认1</summary>
         public Int32 Min { get; set; } = 1;
 
-        /// <summary>空闲对象过期清理时间。默认60s</summary>
-        public Int32 Expire { get; set; } = 60;
+        /// <summary>空闲对象过期清理时间。默认10s</summary>
+        public Int32 Expire { get; set; } = 10;
 
         /// <summary>基础空闲集合。只保存最小个数，最热部分</summary>
         private ConcurrentStack<Item> _free = new ConcurrentStack<Item>();
@@ -41,14 +40,14 @@ namespace NewLife.Collections
         ///// <summary>实例化一个对象池</summary>
         //public Pool() { }
 
-        ///// <summary>销毁</summary>
-        ///// <param name="disposing"></param>
-        //protected override void OnDispose(Boolean disposing)
-        //{
-        //    base.OnDispose(disposing);
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
 
-        //    _timer.TryDispose();
-        //}
+            _timer.TryDispose();
+        }
         #endregion
 
         #region 内嵌
@@ -101,10 +100,9 @@ namespace NewLife.Collections
 
             BusyCount = _busy.Count;
 
+#if DEBUG
             WriteLog("Acquire Free={0} Busy={1}", FreeCount, BusyCount);
-
-            // 启动定期清理的定时器
-            StartTimer();
+#endif
 
             return pi.Value;
         }
@@ -113,6 +111,8 @@ namespace NewLife.Collections
         /// <param name="value"></param>
         public void Release(T value)
         {
+            if (value == null) return;
+
             if (!_busy.TryRemove(value, out var pi))
             {
                 WriteLog("Release Error");
@@ -125,18 +125,33 @@ namespace NewLife.Collections
             // 附加业务
             OnRelease(pi.Value);
 
-            // 更新过期时间
-            pi.ExpireTime = DateTime.Now.AddSeconds(Expire);
+            var exp = Expire;
+
+            // 确保空闲队列个数最少是CPU个数
+            var min = Environment.ProcessorCount;
+            if (min < Min) min = Min;
 
             // 如果空闲数不足最小值，则返回到基础空闲集合
-            if (FreeCount < Min)
+            if (FreeCount < min)
+            {
                 _free.Push(pi);
+                // 基础空闲集合，有效期翻倍
+                exp *= 2;
+            }
             else
                 _free2.Enqueue(pi);
 
+            // 更新过期时间
+            pi.ExpireTime = DateTime.Now.AddSeconds(exp);
+
             FreeCount = _free.Count + _free2.Count;
 
+            // 启动定期清理的定时器
+            StartTimer();
+
+#if DEBUG
             WriteLog("Release Free={0} Busy={1}", FreeCount, BusyCount);
+#endif
         }
         #endregion
 
@@ -152,6 +167,10 @@ namespace NewLife.Collections
         /// <summary>释放时</summary>
         /// <param name="value"></param>
         protected virtual void OnRelease(T value) { }
+
+        /// <summary>销毁时触发</summary>
+        /// <param name="value"></param>
+        protected virtual void OnDestroy(T value) { }
         #endregion
 
         #region 定期清理
@@ -164,7 +183,7 @@ namespace NewLife.Collections
             {
                 if (_timer != null) return;
 
-                _timer = new TimerX(Work, null, 10000, 10000);
+                _timer = new TimerX(Work, null, 5000, 5000);
             }
         }
 
@@ -173,16 +192,32 @@ namespace NewLife.Collections
             // 总数小于等于最小个数时不处理
             if (FreeCount + BusyCount <= Min) return;
 
-            // 没有空闲时也不处理
-            if (_free.IsEmpty) return;
-
             // 遍历并干掉过期项
             var now = DateTime.Now;
             var count = 0;
-            while (_free2.TryPeek(out var pi) && pi.ExpireTime < now)
+
+            if (!_free2.IsEmpty)
             {
-                _free2.TryDequeue(out pi);
-                count++;
+                // 移除扩展空闲集合里面的超时项
+                while (_free2.TryPeek(out var pi) && pi.ExpireTime < now)
+                {
+                    // 取出来销毁
+                    if (_free2.TryDequeue(out pi)) OnDestroy(pi.Value);
+
+                    count++;
+                }
+            }
+
+            if (!_free.IsEmpty)
+            {
+                // 基础空闲集合
+                while (_free.Count > Min && _free.TryPeek(out var pi) && pi.ExpireTime < now)
+                {
+                    // 取出来销毁
+                    if (_free.TryPop(out pi)) OnDestroy(pi.Value);
+
+                    count++;
+                }
             }
 
             if (count > 0)
