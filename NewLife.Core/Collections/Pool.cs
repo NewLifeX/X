@@ -96,19 +96,22 @@ namespace NewLife.Collections
                 // 从空闲集合借一个
                 if (!_free.TryPop(out pi) && !_free2.TryDequeue(out pi))
                 {
+                    // 超出最大值后，抛出异常
+                    var count = _busy.Count;
+                    if (count >= Max)
+                    {
+                        var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
+
+                        WriteLog("Acquire Max " + msg);
+
+                        throw new Exception($"Pool<{typeof(T).Name}>{msg}");
+                    }
+
                     // 借不到，增加
                     pi = new Item
                     {
                         Value = OnCreate(),
                     };
-
-                    // 超出最大值后，不进入繁忙队列，直接新建返回
-                    if (_busy.Count >= Max)
-                    {
-                        WriteLog("Acquire Max");
-
-                        return pi;
-                    }
 
                     WriteLog("Acquire Create");
                 }
