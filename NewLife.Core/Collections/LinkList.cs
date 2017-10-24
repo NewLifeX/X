@@ -178,7 +178,6 @@ namespace NewLife.Collections
 
         #region 节点
         /// <summary>双链表节点</summary>
-        /// <typeparam name="T"></typeparam>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected class Node
         {
