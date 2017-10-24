@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
@@ -11,6 +12,9 @@ namespace NewLife.Collections
     public class Pool<T> : DisposeBase where T : class
     {
         #region 属性
+        /// <summary>名称</summary>
+        public String Name { get; set; }
+
         /// <summary>空闲个数</summary>
         public Int32 FreeCount { get; private set; }
 
@@ -37,8 +41,15 @@ namespace NewLife.Collections
         #endregion
 
         #region 构造
-        ///// <summary>实例化一个对象池</summary>
-        //public Pool() { }
+        /// <summary>实例化一个对象池</summary>
+        public Pool()
+        {
+            var str = GetType().Name;
+            if (str != "Pool")
+                Name = str;
+            else
+                Name = $"Pool<{typeof(T).Name}>";
+        }
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
@@ -90,9 +101,13 @@ namespace NewLife.Collections
         /// <returns></returns>
         private Item OnAcquire()
         {
+            Interlocked.Increment(ref _Total);
+
             Item pi = null;
+            var flag = false;
             while (true)
             {
+                flag = false;
                 // 从空闲集合借一个
                 if (!_free.TryPop(out pi) && !_free2.TryDequeue(out pi))
                 {
@@ -104,7 +119,7 @@ namespace NewLife.Collections
 
                         WriteLog("Acquire Max " + msg);
 
-                        throw new Exception($"Pool<{typeof(T).Name}>{msg}");
+                        throw new Exception(Name + " " + msg);
                     }
 
                     // 借不到，增加
@@ -113,16 +128,19 @@ namespace NewLife.Collections
                         Value = OnCreate(),
                     };
 
-                    WriteLog("Acquire Create");
+                    WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, BusyCount);
                 }
                 else
                 {
                     FreeCount = _free.Count + _free2.Count;
+                    flag = true;
                 }
 
                 // 抛弃无效对象
                 if (OnAcquire(pi.Value)) break;
             }
+
+            if (flag) Interlocked.Increment(ref _Success);
 
             // 更新过期时间
             pi.ExpireTime = DateTime.Now.AddSeconds(Expire);
@@ -255,16 +273,28 @@ namespace NewLife.Collections
             if (count > 0)
             {
                 FreeCount = _free.Count + _free2.Count;
-                WriteLog("Release Free={0} Busy={1} 清除过期对象 {2:n0} 项", FreeCount, BusyCount, count);
+
+                var p = Total == 0 ? 0 : (Double)Success / Total;
+
+                WriteLog("Release Free={0} Busy={1} 清除过期对象 {2:n0} 项。总请求 {3:n0} 次，命中 {4:p2}", FreeCount, BusyCount, count, Total, p);
             }
         }
+        #endregion
+
+        #region 统计
+        private Int32 _Total;
+        /// <summary>总请求数</summary>
+        public Int32 Total { get => _Total; }
+
+        private Int32 _Success;
+        /// <summary>成功数</summary>
+        public Int32 Success { get => _Success; }
         #endregion
 
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
 
-        private String _Prefix;
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
@@ -272,12 +302,7 @@ namespace NewLife.Collections
         {
             if (Log == null) return;
 
-            if (_Prefix == null)
-            {
-                _Prefix = $"Pool<{typeof(T).Name}>.";
-            }
-
-            Log.Info(_Prefix + format, args);
+            Log.Info(Name + "." + format, args);
         }
         #endregion
     }

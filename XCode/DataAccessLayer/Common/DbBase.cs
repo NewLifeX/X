@@ -154,10 +154,8 @@ namespace XCode.DataAccessLayer
                         Factory = Factory,
                         ConnectionString = ConnectionString,
                         Min = 0,
-#if DEBUG
-                        Log = XTrace.Log
-#endif
                     };
+                    if (DAL.Debug) _Pool.Log = XTrace.Log;
                 }
                 return _Pool;
             }
