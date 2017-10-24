@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using NewLife.Collections;
 using NewLife.Log;
 
 namespace XCode.DataAccessLayer
@@ -82,6 +82,9 @@ namespace XCode.DataAccessLayer
         private Int32 ID { get; set; }
 
         IDbSession _Session;
+
+        /// <summary>连接对象</summary>
+        public DbConnection Conn { get; private set; }
         #endregion
 
         #region 构造
@@ -91,8 +94,8 @@ namespace XCode.DataAccessLayer
             Level = level;
             Count = 1;
 
-            //Log = Setting.Current.TransactionDebug ? XTrace.Log : Logger.Null;
-            Log = Logger.Null;
+            // 打开事务后，由事务管理连接
+            Conn = _Session.Database.Pool.Acquire();
         }
         #endregion
 
@@ -113,10 +116,10 @@ namespace XCode.DataAccessLayer
 
             if (_Tran != null) return _Tran;
 
-            var ss = _Session;
-            if (!ss.Opened) ss.Open();
+            //var ss = _Session;
+            //if (!ss.Opened) ss.Open();
 
-            _Tran = ss.Conn.BeginTransaction(Level);
+            _Tran = Conn.BeginTransaction(Level);
 
             Level = _Tran.IsolationLevel;
             ID = ++_gid;
@@ -158,6 +161,9 @@ namespace XCode.DataAccessLayer
                 {
                     _Tran = null;
                     Completed?.Invoke(this, new TransactionEventArgs(true, Executes));
+
+                    // 把连接归还给对象池
+                    _Session.Database.Pool.Release(Conn);
                 }
             }
 
@@ -186,6 +192,9 @@ namespace XCode.DataAccessLayer
                 {
                     _Tran = null;
                     Completed?.Invoke(this, new TransactionEventArgs(false, Executes));
+
+                    // 把连接归还给对象池
+                    _Session.Database.Pool.Release(Conn);
                 }
             }
 
@@ -195,7 +204,7 @@ namespace XCode.DataAccessLayer
 
         #region 日志
         /// <summary>日志</summary>
-        public ILog Log { get; set; }
+        public ILog Log { get; set; } = Logger.Null;
         #endregion
     }
 }

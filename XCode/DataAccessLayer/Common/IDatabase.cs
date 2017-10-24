@@ -42,6 +42,9 @@ namespace XCode.DataAccessLayer
         /// <summary>链接字符串</summary>
         String ConnectionString { get; set; }
 
+        /// <summary>连接池</summary>
+        ConnectionPool Pool { get; }
+
         /// <summary>拥有者</summary>
         String Owner { get; set; }
 

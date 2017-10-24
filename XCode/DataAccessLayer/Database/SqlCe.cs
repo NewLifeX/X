@@ -183,10 +183,10 @@ namespace XCode.DataAccessLayer
                 return rs;
             }
             catch { Rollback(true); throw; }
-            finally
-            {
-                AutoClose();
-            }
+            //finally
+            //{
+            //    AutoClose();
+            //}
         }
 
         /// <summary>返回数据源的架构信息</summary>

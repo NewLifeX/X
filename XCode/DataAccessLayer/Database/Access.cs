@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NewLife.IO;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -168,17 +167,20 @@ namespace XCode.DataAccessLayer
     internal class AccessSession : FileDbSession
     {
         #region 构造函数
-        public AccessSession(IDatabase db) : base(db) { }
+        public AccessSession(IDatabase db) : base(db)
+        {
+            Access.CheckSupport();
+        }
         #endregion
 
         #region 方法
-        /// <summary>打开。已重写，为了建立数据库</summary>
-        public override void Open()
-        {
-            Access.CheckSupport();
+        ///// <summary>打开。已重写，为了建立数据库</summary>
+        //public override void Open()
+        //{
+        //    Access.CheckSupport();
 
-            base.Open();
-        }
+        //    base.Open();
+        //}
         #endregion
 
         #region 基本方法 查询/执行
@@ -198,10 +200,10 @@ namespace XCode.DataAccessLayer
                 return rs;
             }
             catch { Rollback(true); throw; }
-            finally
-            {
-                AutoClose();
-            }
+            //finally
+            //{
+            //    AutoClose();
+            //}
         }
         #endregion
     }

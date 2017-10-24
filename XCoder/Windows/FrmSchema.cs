@@ -31,10 +31,10 @@ namespace XCoder
 
         public static FrmSchema Create(IDatabase db)
         {
-            if (db == null) throw new ArgumentNullException("db");
-
-            FrmSchema frm = new FrmSchema();
-            frm.Db = db;
+            var frm = new FrmSchema
+            {
+                Db = db ?? throw new ArgumentNullException("db")
+            };
 
             return frm;
         }
@@ -64,7 +64,7 @@ namespace XCoder
                 if (!(data is IList))
                 {
                     var list = new List<Object>();
-                    foreach (Object item in data)
+                    foreach (var item in data)
                     {
                         list.Add(item);
                     }
@@ -83,10 +83,10 @@ namespace XCoder
 
         private void cbTables_SelectedIndexChanged(Object sender, EventArgs e)
         {
-            ComboBox cb = sender as ComboBox;
+            var cb = sender as ComboBox;
             if (cb == null) return;
 
-            Object obj = cb.SelectedItem;
+            var obj = cb.SelectedItem;
             if (obj == null) return;
 
             try
@@ -111,7 +111,9 @@ namespace XCoder
                     obj = dt;
                 }
                 else if (obj is String)
+                {
                     obj = ss.GetSchema((String)obj, null);
+                }
                 gv.DataSource = obj;
                 gv.Update();
             }

@@ -141,6 +141,28 @@ namespace XCode.DataAccessLayer
                 throw new XCodeException("[{0}]未指定连接字符串！", ConnName);
         }
 
+        private ConnectionPool _Pool;
+        /// <summary>连接池</summary>
+        public ConnectionPool Pool
+        {
+            get
+            {
+                if (_Pool == null)
+                {
+                    _Pool = new ConnectionPool
+                    {
+                        Factory = Factory,
+                        ConnectionString = ConnectionString,
+                        Min = 0,
+#if DEBUG
+                        Log = XTrace.Log
+#endif
+                    };
+                }
+                return _Pool;
+            }
+        }
+
         protected virtual String DefaultConnectionString { get { return String.Empty; } }
 
         /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>
@@ -164,17 +186,23 @@ namespace XCode.DataAccessLayer
             {
                 var ver = _ServerVersion;
                 if (ver != null) return ver;
+
                 _ServerVersion = String.Empty;
 
-                var session = CreateSession();
-                if (!session.Opened) session.Open();
-                try
-                {
-                    ver = _ServerVersion = session.Conn.ServerVersion;
+                //var session = CreateSession();
+                //if (!session.Opened) session.Open();
+                //try
+                //{
+                //    ver = _ServerVersion = session.Conn.ServerVersion;
 
-                    return ver;
+                //    return ver;
+                //}
+                //finally { session.AutoClose(); }
+
+                using (var pi = Pool.AcquireItem())
+                {
+                    return _ServerVersion = pi.Value.ServerVersion;
                 }
-                finally { session.AutoClose(); }
             }
         }
 

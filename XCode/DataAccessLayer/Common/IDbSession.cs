@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
 
@@ -156,9 +153,9 @@ namespace XCode.DataAccessLayer
 
         #region 异步操作
 #if !NET4
-        /// <summary>异步打开</summary>
-        /// <returns></returns>
-        Task OpenAsync();
+        ///// <summary>异步打开</summary>
+        ///// <returns></returns>
+        //Task OpenAsync();
 
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>

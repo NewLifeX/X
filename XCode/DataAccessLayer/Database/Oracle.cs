@@ -363,10 +363,10 @@ namespace XCode.DataAccessLayer
                 return rs;
             }
             catch { Rollback(true); throw; }
-            finally
-            {
-                AutoClose();
-            }
+            //finally
+            //{
+            //    AutoClose();
+            //}
         }
         #endregion
     }

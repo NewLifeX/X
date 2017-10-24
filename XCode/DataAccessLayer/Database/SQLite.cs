@@ -259,25 +259,25 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        public override void Open()
-        {
-            try
-            {
-                base.Open();
+        //public override void Open()
+        //{
+        //    try
+        //    {
+        //        base.Open();
 
-                //if ((Database as SQLite).CheckInit())
-                //{
-                //    Execute("PRAGMA temp_store=memory");
-                //    //ss.Execute("PRAGMA temp_store_directory='{0}'".F(".".GetFullPath()));
-                //}
-            }
-            catch (Exception ex)
-            {
-                if (!ex.Message.Contains(" malformed")) throw;
+        //        //if ((Database as SQLite).CheckInit())
+        //        //{
+        //        //    Execute("PRAGMA temp_store=memory");
+        //        //    //ss.Execute("PRAGMA temp_store_directory='{0}'".F(".".GetFullPath()));
+        //        //}
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (!ex.Message.Contains(" malformed")) throw;
 
-                throw new XCodeException("数据库文件损坏 {0}".F((Database as SQLite).FileName), ex);
-            }
-        }
+        //        throw new XCodeException("数据库文件损坏 {0}".F((Database as SQLite).FileName), ex);
+        //    }
+        //}
 
         protected override void CreateDatabase()
         {
@@ -537,17 +537,18 @@ namespace XCode.DataAccessLayer
             // 删除已有文件
             if (File.Exists(bf)) File.Delete(bf);
 
-            using (var session = Database.CreateSession())
+            //using (var session = Database.CreateSession())
+            using (var pi = Database.Pool.AcquireItem())
             using (var conn = Database.Factory.CreateConnection())
             {
-                session.Open();
+                //session.Open();
 
                 conn.ConnectionString = "Data Source={0}".F(bf);
                 conn.Open();
 
                 //var method = conn.GetType().GetMethodEx("BackupDatabase");
                 // 借助BackupDatabase函数可以实现任意两个SQLite之间倒数据，包括内存数据库
-                session.Conn.Invoke("BackupDatabase", conn, "main", "main", -1, null, 0);
+                pi.Value.Invoke("BackupDatabase", conn, "main", "main", -1, null, 0);
             }
 
             // 压缩
