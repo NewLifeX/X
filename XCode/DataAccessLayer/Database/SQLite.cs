@@ -99,7 +99,7 @@ namespace XCode.DataAccessLayer
             }
 
             // 默认超时时间
-            if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";
+            //if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";
 
             // 繁忙超时
             //var busy = Setting.Current.CommandTimeout;
