@@ -1037,9 +1037,12 @@ namespace XCode
             }
             else
             {
-                // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保能够分页
-
-                if (String.IsNullOrEmpty(builder.OrderBy)) builder.Key = Meta.FormatName(Meta.Table.PrimaryKeys.First().ColumnName);
+                // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保MSSQL能够分页
+                if (builder.OrderBy.IsNullOrEmpty())
+                {
+                    var pks = Meta.Table.PrimaryKeys;
+                    if (pks != null && pks.Length > 0) builder.Key = Meta.FormatName(pks[0].ColumnName);
+                }
             }
             return builder;
         }
