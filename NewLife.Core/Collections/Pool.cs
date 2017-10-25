@@ -34,6 +34,9 @@ namespace NewLife.Collections
         /// <summary>完全空闲清理时间。最小个数之下的资源草果空闲时间是被清理，默认0s永不清理</summary>
         public Int32 AllIdleTime { get; set; } = 0;
 
+        /// <summary>申请等待时间。池满时等待的时间，默认1000ms</summary>
+        public Int32 WaitTime { get; set; } = 1000;
+
         /// <summary>基础空闲集合。只保存最小个数，最热部分</summary>
         private ConcurrentStack<Item> _free = new ConcurrentStack<Item>();
 
@@ -112,9 +115,11 @@ namespace NewLife.Collections
             var sw = Stopwatch.StartNew();
             Interlocked.Increment(ref _Total);
 
+            if (msTimeout <= 0) msTimeout = WaitTime;
+            var end = DateTime.Now.AddMilliseconds(msTimeout);
+
             Item pi = null;
             var flag = false;
-            var end = DateTime.Now.AddMilliseconds(msTimeout);
             while (true)
             {
                 flag = false;
