@@ -65,9 +65,9 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
-        /// <summary>平均耗时</summary>
-        [Map(__.Cost)]
-        public Int32 AvgCost { get { return (Int32)(Times == 0 ? 0 : Cost / Times); } }
+        ///// <summary>平均耗时</summary>
+        //[Map(__.Cost)]
+        //public Int32 AvgCost { get { return (Int32)(Times == 0 ? 0 : Cost / Times); } }
         #endregion
 
         #region 扩展查询
@@ -215,7 +215,12 @@ namespace XCode.Membership
 
             if (!title.IsNullOrEmpty()) st.Title = title;
             st.Times++;
-            st.Cost += cost;
+
+            if (st.Cost == 0)
+                st.Cost = cost;
+            else
+                st.Cost = (st.Cost * 3 + cost) / 4;
+
             if (!err.IsNullOrEmpty()) st.Error++;
 
             if (userid > 0 || !ip.IsNullOrEmpty())

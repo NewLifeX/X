@@ -483,7 +483,7 @@ WriteLiteral(">");
 
             
             #line 54 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-                                  Write(entity.AvgCost.ToString("n0"));
+                                  Write(entity.Cost.ToString("n0"));
 
             
             #line default

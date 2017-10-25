@@ -97,13 +97,13 @@ namespace XCode.Membership
         [BindColumn("Error", "错误", "")]
         public Int32 Error { get { return _Error; } set { if (OnPropertyChanging(__.Error, value)) { _Error = value; OnPropertyChanged(__.Error); } } }
 
-        private Int64 _Cost;
+        private Int32 _Cost;
         /// <summary>耗时。毫秒</summary>
         [DisplayName("耗时")]
         [Description("耗时。毫秒")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Cost", "耗时。毫秒", "")]
-        public Int64 Cost { get { return _Cost; } set { if (OnPropertyChanging(__.Cost, value)) { _Cost = value; OnPropertyChanged(__.Cost); } } }
+        public Int32 Cost { get { return _Cost; } set { if (OnPropertyChanging(__.Cost, value)) { _Cost = value; OnPropertyChanged(__.Cost); } } }
 
         private DateTime _CreateTime;
         /// <summary>创建时间</summary>
@@ -171,7 +171,7 @@ namespace XCode.Membership
                     case __.Users : _Users = Convert.ToInt32(value); break;
                     case __.IPs : _IPs = Convert.ToInt32(value); break;
                     case __.Error : _Error = Convert.ToInt32(value); break;
-                    case __.Cost : _Cost = Convert.ToInt64(value); break;
+                    case __.Cost : _Cost = Convert.ToInt32(value); break;
                     case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
                     case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
                     case __.Remark : _Remark = Convert.ToString(value); break;
@@ -313,7 +313,7 @@ namespace XCode.Membership
         Int32 Error { get; set; }
 
         /// <summary>耗时。毫秒</summary>
-        Int64 Cost { get; set; }
+        Int32 Cost { get; set; }
 
         /// <summary>创建时间</summary>
         DateTime CreateTime { get; set; }
