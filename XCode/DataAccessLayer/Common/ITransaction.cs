@@ -29,9 +29,10 @@ namespace XCode.DataAccessLayer
         event EventHandler<TransactionEventArgs> Completed;
 
         /// <summary>获取事务</summary>
+        /// <param name="cmd">命令</param>
         /// <param name="execute">是否执行增删改</param>
         /// <returns></returns>
-        DbTransaction Check(Boolean execute);
+        DbTransaction Check(DbCommand cmd, Boolean execute);
 
         /// <summary>增加事务计数</summary>
         /// <returns></returns>
@@ -105,10 +106,14 @@ namespace XCode.DataAccessLayer
         public DbTransaction Tran { get { return _Tran; } }
 
         /// <summary>获取事务</summary>
+        /// <param name="cmd">命令</param>
         /// <param name="execute">是否执行增删改</param>
         /// <returns></returns>
-        public DbTransaction Check(Boolean execute)
+        public DbTransaction Check(DbCommand cmd, Boolean execute)
         {
+            cmd.Transaction = _Tran;
+            if (cmd.Connection == null) cmd.Connection = Conn;
+
             // 不要为查询打开事务
             if (!execute) return _Tran;
 
@@ -120,6 +125,8 @@ namespace XCode.DataAccessLayer
             //if (!ss.Opened) ss.Open();
 
             _Tran = Conn.BeginTransaction(Level);
+            cmd.Transaction = _Tran;
+            if (cmd.Connection == null) cmd.Connection = Conn;
 
             Level = _Tran.IsolationLevel;
             ID = ++_gid;

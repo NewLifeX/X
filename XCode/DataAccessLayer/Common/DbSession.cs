@@ -307,15 +307,16 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DataSet Query(DbCommand cmd)
         {
-            cmd.Transaction = Transaction?.Check(false);
+            Transaction?.Check(cmd, false);
+
             QueryTimes++;
             WriteSQL(cmd);
+
             using (var da = Factory.CreateDataAdapter())
             using (var pi = Database.Pool.AcquireItem())
             {
                 try
                 {
-
                     //if (!Opened) Open();
                     if (cmd.Connection == null) cmd.Connection = pi.Value;
                     da.SelectCommand = cmd;
@@ -393,7 +394,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Int32 Execute(DbCommand cmd)
         {
-            cmd.Transaction = Transaction?.Check(true);
+            Transaction?.Check(cmd, true);
+
             ExecuteTimes++;
             WriteSQL(cmd);
 
@@ -445,15 +447,15 @@ namespace XCode.DataAccessLayer
         {
             using (var cmd = OnCreateCommand(sql, type, ps))
             {
-                cmd.Transaction = Transaction?.Check(false);
                 return ExecuteScalar<T>(cmd);
             }
         }
 
         protected virtual T ExecuteScalar<T>(DbCommand cmd)
         {
-            QueryTimes++;
+            Transaction?.Check(cmd, false);
 
+            QueryTimes++;
             WriteSQL(cmd);
 
             using (var pi = Database.Pool.AcquireItem())
@@ -496,7 +498,7 @@ namespace XCode.DataAccessLayer
         public virtual DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             var cmd = OnCreateCommand(sql, type, ps);
-            cmd.Transaction = Transaction?.Check(true);
+            Transaction?.Check(cmd, true);
 
             return cmd;
         }
@@ -541,8 +543,10 @@ namespace XCode.DataAccessLayer
 
         public virtual async Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd)
         {
-            cmd.Transaction = Transaction?.Check(false);
+            Transaction?.Check(cmd, false);
+
             QueryTimes++;
+            WriteSQL(cmd);
 
             using (var pi = Database.Pool.AcquireItem())
             {
@@ -551,7 +555,6 @@ namespace XCode.DataAccessLayer
                     //if (!Opened) await OpenAsync();
                     if (cmd.Connection == null) cmd.Connection = pi.Value;
 
-                    WriteSQL(cmd);
                     BeginTrace();
 
                     return await cmd.ExecuteReaderAsync();
@@ -610,7 +613,8 @@ namespace XCode.DataAccessLayer
 
         public virtual async Task<Int32> ExecuteNonQueryAsync(DbCommand cmd)
         {
-            cmd.Transaction = Transaction?.Check(true);
+            Transaction?.Check(cmd, true);
+
             ExecuteTimes++;
             WriteSQL(cmd);
 
