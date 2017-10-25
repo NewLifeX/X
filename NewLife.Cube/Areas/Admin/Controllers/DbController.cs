@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NewLife.Web;
 using XCode.DataAccessLayer;
@@ -32,7 +33,7 @@ namespace NewLife.Cube.Admin.Controllers
             var dir = XCode.Setting.Current.BackupPath.AsDirectory();
 
             // 读取配置文件
-            foreach (var item in DAL.ConnStrs)
+            foreach (var item in DAL.ConnStrs.ToArray())
             {
                 var di = new DbItem
                 {
@@ -42,11 +43,16 @@ namespace NewLife.Cube.Admin.Controllers
 
                 var dal = DAL.Create(item.Key);
                 di.Type = dal.DbType;
-                try
+
+                var t = Task.Run(() =>
                 {
-                    di.Version = dal.Db.ServerVersion;
-                }
-                catch { }
+                    try
+                    {
+                        return dal.Db.ServerVersion;
+                    }
+                    catch { return null; }
+                });
+                if (t.Wait(300)) di.Version = t.Result;
 
                 if (dir.Exists) di.Backups = dir.GetFiles("{0}_*".F(dal.ConnName), SearchOption.TopDirectoryOnly).Length;
 
