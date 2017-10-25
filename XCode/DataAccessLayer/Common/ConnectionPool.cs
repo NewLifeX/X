@@ -60,11 +60,11 @@ namespace XCode.DataAccessLayer
             catch { return false; }
         }
 
-        /// <summary>销毁时关闭连接</summary>
-        /// <param name="value"></param>
-        protected override void OnDestroy(DbConnection value)
-        {
-            value?.Close();
-        }
+        ///// <summary>销毁时关闭连接</summary>
+        ///// <param name="value"></param>
+        //protected override void OnDestroy(DbConnection value)
+        //{
+        //    value?.Close();
+        //}
     }
 }
