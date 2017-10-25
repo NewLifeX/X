@@ -645,6 +645,47 @@ namespace NewLife.Web
 #endif
         #endregion
 
+        #region 连接池
+        private static WebClientPool _Pool;
+        /// <summary>默认连接池</summary>
+        public static Pool<WebClientX> Pool
+        {
+            get
+            {
+                if (_Pool == null)
+                {
+                    _Pool = new WebClientPool
+                    {
+                        Name = "WebClientPool",
+                        Min = 2,
+                        AllIdleTime = 600
+                    };
+                }
+
+                return _Pool;
+            }
+        }
+
+        /// <summary>访问地址获取字符串</summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public static async Task<String> GetStringAsync(String address)
+        {
+            using (var pi = Pool.AcquireItem())
+            {
+                return await pi.Value.DownloadStringAsync(address);
+            }
+        }
+
+        class WebClientPool : Pool<WebClientX>
+        {
+            protected override WebClientX Create()
+            {
+                return new WebClientX();
+            }
+        }
+        #endregion
+
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
