@@ -147,7 +147,7 @@ namespace NewLife.Collections
                     // 借不到，增加
                     pi = new Item
                     {
-                        Value = OnCreate(),
+                        Value = Create(),
                     };
 
                     WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, BusyCount);
@@ -235,9 +235,21 @@ namespace NewLife.Collections
         #endregion
 
         #region 重载
+        /// <summary>创建实例时触发。外部可用于自定义创建对象</summary>
+        public event EventHandler<EventArgs<T>> OnCreate;
+
         /// <summary>创建实例</summary>
         /// <returns></returns>
-        protected virtual T OnCreate() { return typeof(T).CreateInstance() as T; }
+        protected virtual T Create()
+        {
+            if (OnCreate != null)
+            {
+                var e = new EventArgs<T>(default(T));
+                OnCreate(this, e);
+                if (e.Arg != null) return e.Arg;
+            }
+            return typeof(T).CreateInstance() as T;
+        }
 
         /// <summary>申请时，返回是否有效。无效资源将会被抛弃</summary>
         /// <param name="value"></param>

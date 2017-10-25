@@ -18,7 +18,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>创建时连接数据库</summary>
         /// <returns></returns>
-        protected override DbConnection OnCreate()
+        protected override DbConnection Create()
         {
             var conn = Factory.CreateConnection();
             conn.ConnectionString = ConnectionString;
