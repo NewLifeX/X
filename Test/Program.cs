@@ -177,12 +177,13 @@ namespace Test
 
             var pool = new Pool<TcpClient>();
             pool.Log = XTrace.Log;
+            pool.Max = 4;
             Task.Run(() =>
             {
                 var st = new Stack<TcpClient>();
                 for (var i = 0; i < 4; i++)
                 {
-                    st.Push(pool.Acquire());
+                    st.Push(pool.Acquire(3000));
                     Thread.Sleep(500);
                 }
                 Thread.Sleep(100);
@@ -198,7 +199,7 @@ namespace Test
                 var st = new Stack<TcpClient>();
                 for (var i = 0; i < 4; i++)
                 {
-                    st.Push(pool.Acquire());
+                    st.Push(pool.Acquire(2000));
                     Thread.Sleep(500);
                 }
                 Thread.Sleep(1000);

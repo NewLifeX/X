@@ -45,6 +45,7 @@ namespace NewLife.Collections
         public Pool()
         {
             var str = GetType().Name;
+            if (str.Contains("`")) str = str.Substring(null, "`");
             if (str != "Pool")
                 Name = str;
             else
@@ -78,33 +79,37 @@ namespace NewLife.Collections
 
         #region 主方法
         /// <summary>申请</summary>
+        /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到对象将抛出异常</param>
         /// <returns></returns>
-        public T Acquire()
+        public T Acquire(Int32 msTimeout = 0)
         {
-            var pi = OnAcquire();
+            var pi = OnAcquire(msTimeout);
             if (pi == null) return default(T);
 
             return pi.Value;
         }
 
         /// <summary>申请对象包装项，Dispose时自动归还到池中</summary>
+        /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到对象将抛出异常</param>
         /// <returns></returns>
-        public PoolItem<T> AcquireItem()
+        public PoolItem<T> AcquireItem(Int32 msTimeout = 0)
         {
-            var pi = OnAcquire();
+            var pi = OnAcquire(msTimeout);
             if (pi == null) return null;
 
             return new PoolItem<T>(this, pi.Value);
         }
 
         /// <summary>申请</summary>
+        /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到对象将抛出异常</param>
         /// <returns></returns>
-        private Item OnAcquire()
+        private Item OnAcquire(Int32 msTimeout = 0)
         {
             Interlocked.Increment(ref _Total);
 
             Item pi = null;
             var flag = false;
+            var end = DateTime.Now.AddMilliseconds(msTimeout);
             while (true)
             {
                 flag = false;
@@ -115,6 +120,13 @@ namespace NewLife.Collections
                     var count = _busy.Count;
                     if (count >= Max)
                     {
+                        // 如果超时时间未到，等一会重试
+                        if (msTimeout > 0 && DateTime.Now < end)
+                        {
+                            Thread.Sleep(10);
+                            continue;
+                        }
+
                         var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
 
                         WriteLog("Acquire Max " + msg);
