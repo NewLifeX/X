@@ -80,20 +80,18 @@ namespace XCode.Membership
 
                     role.Save();
                 }
-
-                CheckRole();
-
-                return;
             }
+            else
+            {
+                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
 
-            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
+                Add("管理员", true, "默认拥有全部最高权限，由系统工程师使用，安装配置整个系统");
+                Add("高级用户", true, "业务管理人员，可以管理业务模块，可以分配授权用户等级");
+                Add("普通用户", true, "普通业务人员，可以使用系统常规业务模块功能");
+                Add("游客", true, "新注册用户默认属于游客组");
 
-            Add("管理员", true, "默认拥有全部最高权限，由系统工程师使用，安装配置整个系统");
-            Add("高级用户", true, "业务管理人员，可以管理业务模块，可以分配授权用户等级");
-            Add("普通用户", true, "普通业务人员，可以使用系统常规业务模块功能");
-            Add("游客", true, "新注册用户默认属于游客组");
-
-            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
+            }
 
             CheckRole();
         }
@@ -102,13 +100,13 @@ namespace XCode.Membership
         static void CheckRole()
         {
             // InitData中用缓存将会导致二次调用InitData，从而有一定几率死锁
-            var rs = FindAll();
-            var list = rs.ToList();
+            var list = FindAll();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
             var eopMenu = ManageProvider.GetFactory<IMenu>();
-            var ids = eopMenu.FindAllWithCache().Select(e => (Int32)e["ID"]).ToArray();
-            foreach (var role in rs)
+            var menus = eopMenu.FindAll().Cast<IMenu>().ToList();
+            var ids = menus.Select(e => (Int32)e["ID"]).ToArray();
+            foreach (var role in list)
             {
                 if (!role.CheckValid(ids))
                 {
@@ -118,35 +116,38 @@ namespace XCode.Membership
             }
 
             // 所有角色都有权进入管理平台，否则无法使用后台
-            var menu = eopMenu.EntityType.GetValue("Root", false) as IMenu;
-            menu = menu.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase("Admin"));
+            //var menu = eopMenu.EntityType.GetValue("Root", false) as IMenu;
+            //menu = menu.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase("Admin"));
+            var menu = menus.FirstOrDefault(e => e.Name == "Admin");
             if (menu != null)
             {
-                foreach (var role in rs)
+                foreach (var role in list)
                 {
                     role.Set(menu.ID, PermissionFlags.Detail);
-                    //role.Save();
                 }
             }
-            rs.Save();
+            list.Save();
 
-            var sys = list.LastOrDefault(e => e.IsSystem);
+            // 系统角色
+            var sys = list.Where(e => e.IsSystem).OrderBy(e => e.ID).FirstOrDefault();
             if (sys == null) return;
 
             // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
             var count = 0;
-            var nes = eopMenu.EntityType.GetValue("Necessaries", false) as Int32[];
-            foreach (var item in nes)
+            //var nes = eopMenu.EntityType.GetValue("Necessaries", false) as Int32[];
+            foreach (var item in menus)
             {
-                if (!list.Any(e => e.Has(item, PermissionFlags.Detail)))
+                if (item.Visible && !list.Any(e => e.Has(item.ID, PermissionFlags.Detail)))
                 {
                     count++;
-                    sys.Set(item, PermissionFlags.All);
+                    sys.Set(item.ID, PermissionFlags.All);
+
+                    XTrace.WriteLine("没有任何角色拥有菜单[{0}]的权限", item.Name);
                 }
             }
             if (count > 0)
             {
-                XTrace.WriteLine("共有{0}个必要菜单，没有任何角色拥有权限，准备授权第一系统角色[{1}]拥有其完全管理权！", count, sys);
+                XTrace.WriteLine("共有{0}个菜单，没有任何角色拥有权限，准备授权第一系统角色[{1}]拥有其完全管理权！", count, sys);
                 sys.Save();
 
                 // 更新缓存

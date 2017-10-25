@@ -106,6 +106,7 @@ namespace XCode.Membership
         #region 扩展属性
         /// <summary></summary>
         public String Url2 => Url?.Replace("~", "");
+
         /// <summary>父菜单名</summary>
         [XmlIgnore, ScriptIgnore]
         public virtual String ParentMenuName { get { return Parent?.Name; } set { } }

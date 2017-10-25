@@ -454,7 +454,7 @@ namespace XCode.Membership
                 var role = list.FirstOrDefault(e => e.Name == "游客");
 
                 // 最后一个非系统角色
-                if (role == null) role = list.LastOrDefault(e => !e.IsSystem);
+                if (role == null) role = list.Where(e => !e.IsSystem).OrderBy(e => e.ID).LastOrDefault();
                 // 没有非系统角色，随便一个啦
                 if (role == null) role = list.LastOrDefault();
 
