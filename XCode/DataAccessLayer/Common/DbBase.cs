@@ -151,9 +151,13 @@ namespace XCode.DataAccessLayer
                 {
                     _Pool = new ConnectionPool
                     {
+                        Name = ConnName + "Pool",
                         Factory = Factory,
                         ConnectionString = ConnectionString,
-                        Min = 0,
+                        Min = 2,
+                        Max = 1000,
+                        IdleTime = 10,
+                        AllIdleTime = 600
                     };
                     if (DAL.Debug) _Pool.Log = XTrace.Log;
                 }
