@@ -535,9 +535,11 @@ namespace XCode.Membership
             {
                 if (RoleID <= 0) return null;
 
-                var role = ManageProvider.Get<IRole>();
+                //var role = ManageProvider.Get<IRole>();
 
-                return role.FindByID(RoleID);
+                //return role.FindByID(RoleID);
+
+                return Extends.Get(nameof(Role), k => ManageProvider.Get<IRole>()?.FindByID(RoleID));
             }
         }
 
