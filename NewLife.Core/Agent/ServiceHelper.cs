@@ -244,15 +244,16 @@ namespace NewLife.Agent
         /// <param name="args"></param>
         public static void WriteLine(String format, params Object[] args)
         {
-            if (XTrace.Debug) XTrace.WriteLine(format, args);
+            var set = Setting.Current;
+            if (set.Debug) XTrace.WriteLine(format, args);
         }
 
-        /// <summary>写日志</summary>
-        /// <param name="msg"></param>
-        public static void WriteLine(String msg)
-        {
-            if (XTrace.Debug) XTrace.WriteLine(msg);
-        }
+        ///// <summary>写日志</summary>
+        ///// <param name="msg"></param>
+        //public static void WriteLine(String msg)
+        //{
+        //    if (XTrace.Debug) XTrace.WriteLine(msg);
+        //}
         #endregion
     }
 }

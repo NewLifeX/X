@@ -124,7 +124,8 @@ namespace NewLife.Agent
         /// <param name="msg"></param>
         public static void WriteLine(String msg)
         {
-            if (XTrace.Debug) XTrace.WriteLine(msg);
+            var set = Setting.Current;
+            if (set.Debug) XTrace.WriteLine(msg);
         }
     }
 }

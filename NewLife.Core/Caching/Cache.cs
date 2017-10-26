@@ -31,7 +31,8 @@ namespace NewLife.Caching
                     var id = ic.Name;
                     if (id.IsNullOrEmpty()) id = item.Name.TrimEnd("Cache");
 
-                    if (XTrace.Debug) XTrace.WriteLine("发现缓存实现 [{0}] = {1}", id, item.FullName);
+                    /*if (XTrace.Debug)*/
+                    XTrace.WriteLine("发现缓存实现 [{0}] = {1}", id, item.FullName);
 
                     ioc.Register<ICache>(ic, id);
                 }

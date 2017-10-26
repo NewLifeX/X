@@ -108,7 +108,8 @@ namespace NewLife.Agent
         [Obsolete("=>WriteLog")]
         public static void WriteLine(String format, params Object[] args)
         {
-            if (XTrace.Debug) XTrace.WriteLine(format, args);
+            var set = Setting.Current;
+            if (set.Debug) XTrace.WriteLine(format, args);
         }
 
         ///// <summary>写日志</summary>
