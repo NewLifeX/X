@@ -93,7 +93,7 @@ namespace XCode.Cache
             // 第一次所有线程一起等待结果
             if (Times == 1 && WaitFirst && _task != null && _task.Id != Task.CurrentId)
             {
-                if (!_task.Wait(5000)) XTrace.WriteLine("{0}缓存初始化超时，当前线程可能取得空数据", ToString());
+                if (!_task.Wait(5000)) XTrace.WriteLine("{0}缓存初始化超时[Task={1}]，当前线程可能取得空数据", ToString(), _task.Id);
             }
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
@@ -223,6 +223,7 @@ namespace XCode.Cache
                 sb.AppendFormat("{0,-24}", name);
                 sb.AppendFormat("总次数{0,11:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
+                sb.AppendFormat("\t[{0}]", typeof(TEntity).FullName);
 
                 XTrace.WriteLine(sb.ToString());
             }

@@ -105,7 +105,7 @@ namespace XCode
                 {
                     try
                     {
-                        foreach (var item in list)
+                        foreach (var item in list.ToArray())
                         {
                             sc.Add(item);
                         }

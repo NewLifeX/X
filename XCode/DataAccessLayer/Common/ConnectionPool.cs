@@ -27,9 +27,9 @@ namespace XCode.DataAccessLayer
             {
                 conn.Open();
             }
-            catch (DbException)
+            catch (DbException ex)
             {
-                DAL.WriteLog("Open错误：{0}", conn.ConnectionString);
+                DAL.WriteLog("Open错误：[{0}]{1}", ex?.GetTrue()?.Message, conn.ConnectionString);
                 throw;
             }
 
