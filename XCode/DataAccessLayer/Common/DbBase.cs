@@ -154,10 +154,6 @@ namespace XCode.DataAccessLayer
                         Name = ConnName + "Pool",
                         Factory = Factory,
                         ConnectionString = ConnectionString,
-                        Min = 2,
-                        Max = 1000,
-                        IdleTime = 10,
-                        AllIdleTime = 60
                     };
                     if (DAL.Debug) _Pool.Log = XTrace.Log;
                 }

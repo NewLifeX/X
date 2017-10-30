@@ -155,6 +155,7 @@ namespace NewLife.Collections
                         Value = Create(),
                     };
 
+                    if (BusyCount == 0) WriteLog($"Init Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s WaitTime={WaitTime}ms");
                     WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, BusyCount + 1);
                 }
 

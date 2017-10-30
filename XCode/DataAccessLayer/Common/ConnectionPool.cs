@@ -6,6 +6,13 @@ using NewLife.Collections;
 namespace XCode.DataAccessLayer
 {
     /// <summary>连接池</summary>
+    /// <remarks>
+    /// 默认设置：
+    /// 1，最小连接为CPU个数，最小2个最大8个
+    /// 2，最大连接1000
+    /// 3，空闲时间10s
+    /// 4，完全空闲时间60s
+    /// </remarks>
     public class ConnectionPool : Pool<DbConnection>
     {
         #region 属性
@@ -15,6 +22,19 @@ namespace XCode.DataAccessLayer
         /// <summary>连接字符串</summary>
         public String ConnectionString { get; set; }
         #endregion
+
+        /// <summary>实例化一个连接池</summary>
+        public ConnectionPool()
+        {
+            Min = Environment.ProcessorCount;
+            if (Min < 2) Min = 2;
+            if (Min > 8) Min = 8;
+
+            Max = 1000;
+
+            IdleTime = 10;
+            AllIdleTime = 60;
+        }
 
         /// <summary>创建时连接数据库</summary>
         /// <returns></returns>
