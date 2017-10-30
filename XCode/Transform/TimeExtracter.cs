@@ -135,6 +135,8 @@ namespace XCode.Transform
                 var last = (DateTime)list.Last()[FieldName];
                 // 有可能时间字段为空
                 if (last <= DateTime.MinValue) last = list.Max(e => (DateTime)e[FieldName]);
+                // 有可能时间超出区间
+                if (last <= start) last = list.Max(e => (DateTime)e[FieldName]);
                 // 满一批，后续还有数据
                 if (list.Count >= size)
                 {

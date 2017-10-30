@@ -157,7 +157,7 @@ namespace XCode.DataAccessLayer
                         Min = 2,
                         Max = 1000,
                         IdleTime = 10,
-                        AllIdleTime = 600
+                        AllIdleTime = 60
                     };
                     if (DAL.Debug) _Pool.Log = XTrace.Log;
                 }
