@@ -658,7 +658,7 @@ namespace NewLife.Web
                     {
                         Name = "WebClientPool",
                         Min = 2,
-                        AllIdleTime = 600
+                        AllIdleTime = 60
                     };
                 }
 
