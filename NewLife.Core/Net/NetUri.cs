@@ -202,8 +202,7 @@ namespace NewLife.Net
             if (p >= 0)
             {
                 var pt = uri.Substring(p + 1);
-                var port = 0;
-                if (Int32.TryParse(pt, out port))
+                if (Int32.TryParse(pt, out var port))
                 {
                     Port = port;
                     uri = uri.Substring(0, p);
@@ -227,8 +226,7 @@ namespace NewLife.Net
 
             try
             {
-                IPAddress addr = null;
-                if (IPAddress.TryParse(hostname, out addr)) return addr;
+                if (IPAddress.TryParse(hostname, out var addr)) return addr;
 
                 var hostAddresses = Dns.GetHostAddresses(hostname);
                 if (hostAddresses == null || hostAddresses.Length < 1) return null;

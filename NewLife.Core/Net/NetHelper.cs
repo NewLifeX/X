@@ -522,8 +522,7 @@ namespace System
             // 过滤IPv4/IPv6端口
             if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
 
-            IPAddress ip = null;
-            if (!IPAddress.TryParse(addr, out ip)) return null;
+            if (!IPAddress.TryParse(addr, out var ip)) return null;
 
             return ip.GetAddress();
         }
@@ -698,10 +697,8 @@ namespace System
         /// <returns></returns>
         public static ISocketClient CreateRemote(this Uri uri)
         {
-            if (uri == null) throw new ArgumentNullException(nameof(uri));
-
             var http = new HttpClient();
-            http.Request.Url = uri;
+            http.Request.Url = uri ?? throw new ArgumentNullException(nameof(uri));
             http.Remote = new NetUri(uri + "");
 
             switch (uri.Scheme.ToLower())
