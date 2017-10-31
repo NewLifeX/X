@@ -134,9 +134,9 @@ namespace NewLife.Web
 
             return html;
         }
-#endregion
+        #endregion
 
-#region 辅助
+        #region 辅助
         /// <summary>替换地址模版参数</summary>
         /// <param name="url"></param>
         /// <returns></returns>
@@ -153,23 +153,28 @@ namespace NewLife.Web
             return url;
         }
 
-        private WebClientX _Client;
+        /// <summary>最后一次请求的响应内容</summary>
+        public String LastHtml { get; set; }
+
+        //private WebClientX _Client;
         /// <summary>创建客户端</summary>
         /// <param name="url">路径</param>
         /// <returns></returns>
         protected virtual async Task<String> Request(String url)
         {
-            if (_Client == null)
-            {
-                _Client = new WebClientX();
-                _Client.Log = Log;
-            }
+            //if (_Client == null)
+            //{
+            //    _Client = new WebClientX();
+            //    _Client.Log = Log;
+            //}
 
-            return await _Client.DownloadStringAsync(url);
+            //return await _Client.DownloadStringAsync(url);
+
+            return LastHtml = await WebClientX.GetStringAsync(url);
         }
-#endregion
+        #endregion
 
-#region 日志
+        #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
 
@@ -180,6 +185,6 @@ namespace NewLife.Web
         {
             Log?.Info(format, args);
         }
-#endregion
+        #endregion
     }
 }
