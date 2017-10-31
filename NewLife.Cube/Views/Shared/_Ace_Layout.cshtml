@@ -36,7 +36,7 @@
     <!-- 文本字体 -->
     <link rel="stylesheet" href="~/Content/ace/css/ace-fonts.min.css">
     <!-- ace 样式 -->
-    <link rel="stylesheet" href="~/Content/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style">    
+    <link rel="stylesheet" href="~/Content/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style">
     @*artdialog style*@
     <link href="~/Content/artDialog/css/ui-dialog.css" rel="stylesheet" />
 
@@ -96,6 +96,41 @@
                     else
                         $(this).width(80);
                 }
+
+                //根据日期格式自动推算日期选择view显示的范围
+                var sv = 2;
+                var mv = 2;
+                var autoView = $(this).attr('autoView');
+                if (autoView != 'false') {
+                    df = $(this).attr('dateformat');
+                    if (df.indexOf('ii') >= 0) {
+                        mv = 0;
+                        if (df.indexOf('dd') >= 0) {
+                            sv = 2;
+                        } else {
+                            sv = 1;
+                        }
+                    } else if (df.indexOf('hh') >= 0) {
+                        mv = 1;
+                        if (df.indexOf('dd') >= 0) {
+                            sv = 2;
+                        } else {
+                            sv = 1;
+                        }
+                    } else if (df.indexOf('dd') >= 0) {
+                        mv = 2;
+                        sv = 2;
+                    } else if (df.indexOf('mm') >= 0) {
+                        mv = 3;
+                        sv = 3;
+                    } else if (df.indexOf('yyyy') >= 0) {
+                        mv = 4;
+                        sv = 4;
+                    }
+                }
+
+                $(this).attr('startview', sv);
+                $(this).attr('minview', mv);
             });
             $("[dateformat]").each(function () {
                 $(this).datetimepicker({
@@ -103,8 +138,8 @@
                     autoclose: true,
                     language: "zh-CN",
                     forceParse: false,
-                    startView: 2,
-                    minView: 2
+                    startView: parseInt($(this).attr('startview')),
+                    minView: parseInt($(this).attr('minview'))
                 });
             });
             @if (set.BootstrapSelect) {<text>
@@ -147,7 +182,7 @@
             $("input[type=checkbox]").bootstrapSwitch();
         })
     </script>
-    
+
     @*artDialog*@
     <script src="~/Content/artDialog/dist/dialog-plus-min.js"></script>
     <script src="~/Content/artDialog/dist/dialog.new.life.js"></script>
