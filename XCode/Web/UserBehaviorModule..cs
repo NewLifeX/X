@@ -95,7 +95,7 @@ namespace XCode.Web
             if (!title.IsNullOrEmpty()) sb.Append(title + " ");
             sb.AppendFormat("{0} {1}", req.HttpMethod, req.RawUrl);
 
-            var err = ctx.Error?.Message;
+            var err = GetError(ctx)?.Message;
             if (!err.IsNullOrEmpty()) sb.Append(" " + err);
 
             var ts = DateTime.Now - ctx.Timestamp;
@@ -156,7 +156,18 @@ namespace XCode.Web
             var ts = DateTime.Now - ctx.Timestamp;
 
             // 访问统计
-            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, user?.ID ?? 0, ip, ctx.Error?.Message);
+            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, user?.ID ?? 0, ip, GetError(ctx)?.Message);
+        }
+
+        /// <summary>获取错误，排除HttpException</summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        Exception GetError(HttpContext ctx)
+        {
+            var ex = ctx?.Error;
+            if (ex != null && ex is HttpException && ex.InnerException != null) ex = ex.InnerException;
+
+            return ex;
         }
     }
 }
