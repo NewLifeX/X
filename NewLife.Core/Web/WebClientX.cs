@@ -51,6 +51,9 @@ namespace NewLife.Web
         /// <summary>编码。网络时代，绝大部分使用utf8编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
+        /// <summary>保持连接</summary>
+        public Boolean KeepAlive { get; set; }
+
         /// <summary>代理服务器地址</summary>
         public String ProxyAddress { get; set; }
 
@@ -277,6 +280,7 @@ namespace NewLife.Web
             if (!AcceptLanguage.IsNullOrEmpty()) req.AcceptLanguage.ParseAdd(AcceptLanguage);
             if (AutomaticDecompression != DecompressionMethods.None) req.AcceptEncoding.ParseAdd("gzip, deflate");
             if (!Referer.IsNullOrEmpty()) req.Referrer = new Uri(Referer);
+            if (KeepAlive) req.Connection.ParseAdd("keep-alive");
 
             GetCookie(http);
 
