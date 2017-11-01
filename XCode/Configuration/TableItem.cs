@@ -73,13 +73,19 @@ namespace XCode.Configuration
         {
             get
             {
-                if (String.IsNullOrEmpty(_ConnName))
+                if (_ConnName.IsNullOrEmpty())
                 {
-                    String connName = null;
-                    if (_Table != null) connName = _Table.ConnName;
+                    var connName = _Table?.ConnName;
 
-                    var str = FindConnMap(connName, EntityType.Name);
-                    _ConnName = String.IsNullOrEmpty(str) ? connName : str;
+                    var str = FindConnMap(connName, EntityType);
+                    if (!str.IsNullOrEmpty())
+                    {
+                        DAL.WriteLog($"实体 {EntityType.FullName}/{connName} 映射到 {str}");
+
+                        connName = str;
+                    }
+
+                    _ConnName = connName;
                 }
                 return _ConnName;
             }
@@ -100,9 +106,9 @@ namespace XCode.Configuration
                     if (_ConnMaps != null) return _ConnMaps;
 
                     var list = new List<String>();
-                    //String str = Config.GetMutilConfig<String>(null, "XCode.ConnMaps", "XCodeConnMaps");
                     var str = Setting.Current.ConnMaps;
                     if (String.IsNullOrEmpty(str)) return _ConnMaps = list;
+
                     var ss = str.Split(",");
                     foreach (var item in ss)
                     {
@@ -118,17 +124,19 @@ namespace XCode.Configuration
 
         /// <summary>根据连接名和类名查找连接名映射</summary>
         /// <param name="connName"></param>
-        /// <param name="className"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        private static String FindConnMap(String connName, String className)
+        private static String FindConnMap(String connName, Type type)
         {
             var name1 = connName + "#";
-            var name2 = className + "@";
+            var name2 = type.FullName + "@";
+            var name3 = type.Name + "@";
 
             foreach (var item in ConnMaps)
             {
                 if (item.StartsWith(name1)) return item.Substring(name1.Length);
                 if (item.StartsWith(name2)) return item.Substring(name2.Length);
+                if (item.StartsWith(name3)) return item.Substring(name3.Length);
             }
             return null;
         }
