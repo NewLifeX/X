@@ -251,10 +251,20 @@ namespace NewLife.Web
             {
                 var p = Proxy;
                 if (p == null && !ProxyAddress.IsNullOrEmpty()) Proxy = p = new WebProxy(ProxyAddress);
-                if (p == null)
-                    http = new HttpClientX();
+
+                var handler = new HttpClientHandler();
+                if (p != null)
+                {
+                    handler.UseProxy = false;
+                    handler.Proxy = p;
+                }
                 else
-                    http = new HttpClientX(new HttpClientHandler { Proxy = p });
+                {
+                    handler.UseProxy = false;
+                    handler.Proxy = null;
+                }
+
+                http = new HttpClientX(handler);
 
                 _client = http;
                 Request = http.DefaultRequestHeaders;
