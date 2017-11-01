@@ -121,14 +121,53 @@ WriteLiteral("\r\n");
             #line hidden
             
             #line 20 "..\..\Views\Shared\Form.cshtml"
-   Write(Html.ValidationSummary());
+                                     
+        //解决主键为(0长度字符串"")的异常信息无法显示问题
 
             
             #line default
             #line hidden
+WriteLiteral("        <ul>\r\n");
+
             
-            #line 20 "..\..\Views\Shared\Form.cshtml"
-                                 
+            #line 23 "..\..\Views\Shared\Form.cshtml"
+            
+            
+            #line default
+            #line hidden
+            
+            #line 23 "..\..\Views\Shared\Form.cshtml"
+             foreach (var item in ViewData.ModelState.Values)
+            {
+                foreach (var error in item.Errors)
+                {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                    <li>");
+
+            
+            #line 27 "..\..\Views\Shared\Form.cshtml"
+                   Write(error.Exception);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</li>\r\n");
+
+            
+            #line 28 "..\..\Views\Shared\Form.cshtml"
+                }
+            }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        </ul>\r\n");
+
+            
+            #line 31 "..\..\Views\Shared\Form.cshtml"
         foreach (var item in fields)
         {
             
@@ -136,7 +175,7 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 23 "..\..\Views\Shared\Form.cshtml"
+            #line 33 "..\..\Views\Shared\Form.cshtml"
                                                                                                      
     if (!item.IsIdentity)
     {
@@ -145,14 +184,14 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 26 "..\..\Views\Shared\Form.cshtml"
+            #line 36 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Group", new Pair(Model, item)));
 
             
             #line default
             #line hidden
             
-            #line 26 "..\..\Views\Shared\Form.cshtml"
+            #line 36 "..\..\Views\Shared\Form.cshtml"
                                                            
         }
     }
@@ -161,21 +200,21 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 29 "..\..\Views\Shared\Form.cshtml"
+            #line 39 "..\..\Views\Shared\Form.cshtml"
                                              
         
             
             #line default
             #line hidden
             
-            #line 30 "..\..\Views\Shared\Form.cshtml"
+            #line 40 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Action", entity));
 
             
             #line default
             #line hidden
             
-            #line 30 "..\..\Views\Shared\Form.cshtml"
+            #line 40 "..\..\Views\Shared\Form.cshtml"
                                              
     }
 

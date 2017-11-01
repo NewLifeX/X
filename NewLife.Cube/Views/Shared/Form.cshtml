@@ -17,7 +17,17 @@
     @using (Html.BeginForm((isNew ? "Add" : "Edit"), null, rv))
     {
         @Html.AntiForgeryToken()
-        @Html.ValidationSummary()
+        @*@Html.ValidationSummary()*@
+        //解决主键为(0长度字符串"")的异常信息无法显示问题
+        <ul>
+            @foreach (var item in ViewData.ModelState.Values)
+            {
+                foreach (var error in item.Errors)
+                {
+                    <li>@error.Exception</li>
+                }
+            }
+        </ul>
         foreach (var item in fields)
         {
             @*2017-08-25 siery 修改判断主键为自增类型才隐藏。主要解决非自增主键新增时候无法显示问题。旧版本可以重载Views/Shared/Form.cshtml解决*@
