@@ -714,7 +714,12 @@ namespace XCode.DataAccessLayer
             dp.ParameterName = FormatParameterName(name);
             dp.Value = value;
 
-            if (type == null) type = value?.GetType();
+            if (type == null)
+            {
+                type = value?.GetType();
+                // 参数可能是数组
+                if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
+            }
 
             if (dp.DbType == DbType.AnsiString)
             {
