@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using NewLife;
 using NewLife.Reflection;
@@ -128,6 +129,48 @@ namespace XCode
             }
 
             return dic;
+        }
+
+        /// <summary>从实体对象创建参数</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        public static IDataParameter[] CreateParameter<T>(this T entity) where T : IEntity
+        {
+            var dps = new List<IDataParameter>();
+            if (entity == null) return dps.ToArray();
+
+            var type = entity.GetType();
+            var fact = EntityFactory.CreateOperate(type);
+            var db = fact.Session.Dal.Db;
+
+            foreach (var item in fact.Fields)
+            {
+                dps.Add(db.CreateParameter(item.ColumnName ?? item.Name, entity[item.Name], item.Type));
+            }
+
+            return dps.ToArray();
+        }
+
+        /// <summary>从实体列表创建参数</summary>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        public static IDataParameter[] CreateParameters<T>(this IEnumerable<T> list) where T : IEntity
+        {
+            var dps = new List<IDataParameter>();
+            if (list == null || !list.Any()) return dps.ToArray();
+
+            var type = list.First().GetType();
+            var fact = EntityFactory.CreateOperate(type);
+            var db = fact.Session.Dal.Db;
+
+            foreach (var item in fact.Fields)
+            {
+                var vs = list.Select(e => e[item.Name]).ToArray();
+                dps.Add(db.CreateParameter(item.ColumnName ?? item.Name, vs, item.Type));
+            }
+
+            return dps.ToArray();
         }
         #endregion
 
