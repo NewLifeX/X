@@ -508,7 +508,7 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        protected DbCommand OnCreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        protected virtual DbCommand OnCreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             var cmd = Factory?.CreateCommand();
             if (cmd == null) return null;

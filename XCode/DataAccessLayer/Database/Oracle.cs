@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -367,6 +368,33 @@ namespace XCode.DataAccessLayer
             //{
             //    AutoClose();
             //}
+        }
+
+        /// <summary>重载支持批量操作</summary>
+        /// <param name="sql"></param>
+        /// <param name="type"></param>
+        /// <param name="ps"></param>
+        /// <returns></returns>
+        protected override DbCommand OnCreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            var cmd = base.OnCreateCommand(sql, type, ps);
+            if (cmd == null) return null;
+
+            // 如果参数Value都是数组，那么就是批量操作
+            if (ps != null && ps.Length > 0 && ps.All(p => p.Value is IList))
+            {
+                var arr = ps.First().Value as IList;
+                cmd.SetValue("ArrayBindCount", arr.Count);
+                cmd.SetValue("BindByName", true);
+
+                // 超时时间放大10倍
+                if (cmd.CommandTimeout > 0)
+                    cmd.CommandTimeout *= 10;
+                else
+                    cmd.CommandTimeout = 120;
+            }
+
+            return cmd;
         }
         #endregion
     }
