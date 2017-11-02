@@ -181,7 +181,11 @@ namespace XCode
         {
             if (!list.Any()) return 0;
 
-            var fact = EntityFactory.CreateOperate(list.First().GetType());
+            // 避免列表内实体对象为空
+            var entity = list.First(e => e != null);
+            if (entity == null) return 0;
+
+            var fact = EntityFactory.CreateOperate(entity.GetType());
 
             // SQLite 批操作默认使用事务，其它数据库默认不使用事务
             if (useTransition == null) useTransition = fact.Session.Dal.DbType == DatabaseType.SQLite;
