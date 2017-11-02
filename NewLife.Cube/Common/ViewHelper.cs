@@ -103,7 +103,7 @@ namespace NewLife.Cube
             }
             @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
-                <th class=""text-center"">操作</th>
+                <th class=""text-center"" style=""min-width:100px;"">操作</th>
             }
         </tr>
     </thead>
@@ -137,9 +137,26 @@ namespace NewLife.Cube
             {
                 // 缩进
                 sb.Append(ident);
-                var css = "";
-                if (item.PrimaryKey) css = " hidden-md hidden-sm hidden-xs";
-                sb.AppendFormat(@"<th class=""text-center{2}""><a href=""@Html.Raw(page.GetSortUrl(""{1}""))"">{0}</a></th>", item.DisplayName ?? item.Name, item.OriField?.Name ?? item.Name, css);
+
+                var name = item.OriField?.Name ?? item.Name;
+                var des = item.DisplayName ?? item.Name;
+
+                // 样式
+                if (item.PrimaryKey)
+                    sb.Append(@"<th class=""text-center hidden-md hidden-sm hidden-xs""");
+                else
+                    sb.Append(@"<th class=""text-center""");
+
+                // 固定宽度
+                if (item.Type == typeof(DateTime))
+                    sb.AppendFormat(@" style=""min-width:134px;""");
+
+                // 备注
+                if (!item.Description.IsNullOrEmpty() && item.Description != des) sb.AppendFormat(@" title=""{0}""", item.Description);
+
+                // 内容
+                sb.AppendFormat(@"><a href=""@Html.Raw(page.GetSortUrl(""{1}""))"">{0}</a></th>", des, name);
+
                 sb.AppendLine();
             }
 
