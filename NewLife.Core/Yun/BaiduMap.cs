@@ -171,5 +171,45 @@ namespace NewLife.Yun
             return rs;
         }
         #endregion
+
+        #region 地址检索
+        private String _placeUrl = "http://api.map.baidu.com/place/v2/search?output=json";
+        /// <summary>行政区划区域检索</summary>
+        /// <remarks>
+        /// http://lbsyun.baidu.com/index.php?title=webapi/guide/webservice-placeapi
+        /// </remarks>
+        /// <param name="query"></param>
+        /// <param name="tag"></param>
+        /// <param name="region"></param>
+        /// <param name="formatAddress"></param>
+        /// <returns></returns>
+        public async Task<GeoAddress> PlaceSearchAsync(String query, String tag, String region, Boolean formatAddress = true)
+        {
+            var url = _placeUrl + $"&query={query}&tag={tag}&region={region}&city_limit=true&ret_coordtype={CoordType}";
+
+            var list = await InvokeAsync<IList<Object>>(url, "results");
+            if (list == null || list.Count == 0) return null;
+
+            var rs = list.FirstOrDefault() as IDictionary<String, Object>;
+            if (rs == null) return null;
+
+            var geo = new GeoAddress();
+
+            if (rs["location"] is IDictionary<String, Object> ds && ds.Count >= 2)
+            {
+                var point = new GeoPoint();
+                point.Longitude = ds["lng"].ToDouble();
+                point.Latitude = ds["lat"].ToDouble();
+
+                geo.Location = point;
+            }
+
+            if (formatAddress) geo = await GetGeoAsync(geo.Location);
+
+            geo.Address = rs["address"] + "";
+
+            return geo;
+        }
+        #endregion
     }
 }

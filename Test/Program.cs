@@ -42,7 +42,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -113,11 +113,16 @@ namespace Test
 
         static void Test2()
         {
-            var addr = "容县容西镇移动营业厅";
-            var city = "玉林";
+            //var addr = "容县容西镇移动营业厅";
+            //var city = "玉林";
+            var addr = "欣昌北小区八栋9号楼7号网点";
+            var city = "吉林";
 
             var bm = new BaiduMap();
             bm.Log = XTrace.Log;
+
+            var p = bm.PlaceSearchAsync(addr, null, city, true).Result;
+            Console.WriteLine(p);
 
             var gp = bm.GetGeoAsync(addr, city).Result;
             Console.WriteLine(gp);
@@ -151,9 +156,9 @@ namespace Test
         static void Test3()
         {
             //var db = DbFactory.GetDefault("Oracle".GetTypeEx());
-            var dal = DAL.Create("Oracle");
-            var dp = dal.Db.CreateParameter("name", new[] { DateTime.Now, DateTime.MinValue, DateTime.MaxValue });
-            dal.Session.Execute("xxxx", System.Data.CommandType.Text, dp);
+            //var dal = DAL.Create("Oracle");
+            //var dp = dal.Db.CreateParameter("name", new[] { DateTime.Now, DateTime.MinValue, DateTime.MaxValue });
+            //dal.Session.Execute("xxxx", System.Data.CommandType.Text, dp);
 
             //if (_timer == null) _timer = new TimerX(s =>
             //{
