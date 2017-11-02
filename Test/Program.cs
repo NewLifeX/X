@@ -150,6 +150,11 @@ namespace Test
         private static TimerX _timer;
         static void Test3()
         {
+            //var db = DbFactory.GetDefault("Oracle".GetTypeEx());
+            var dal = DAL.Create("Oracle");
+            var dp = dal.Db.CreateParameter("name", new[] { DateTime.Now, DateTime.MinValue, DateTime.MaxValue });
+            dal.Session.Execute("xxxx", System.Data.CommandType.Text, dp);
+
             //if (_timer == null) _timer = new TimerX(s =>
             //{
             //    Console.WriteLine();
@@ -175,40 +180,40 @@ namespace Test
             //    Console.WriteLine(item);
             //}
 
-            var pool = new Pool<TcpClient>();
-            pool.Log = XTrace.Log;
-            pool.Max = 4;
-            Task.Run(() =>
-            {
-                var st = new Stack<TcpClient>();
-                for (var i = 0; i < 4; i++)
-                {
-                    st.Push(pool.Acquire(3000));
-                    Thread.Sleep(500);
-                }
-                Thread.Sleep(100);
-                for (var i = 0; i < 4; i++)
-                {
-                    pool.Release(st.Pop());
-                    Thread.Sleep(500);
-                }
-            });
-            Task.Run(() =>
-            {
-                Thread.Sleep(1900);
-                var st = new Stack<TcpClient>();
-                for (var i = 0; i < 4; i++)
-                {
-                    st.Push(pool.Acquire(2000));
-                    Thread.Sleep(500);
-                }
-                Thread.Sleep(1000);
-                for (var i = 0; i < 4; i++)
-                {
-                    pool.Release(st.Pop());
-                    Thread.Sleep(500);
-                }
-            });
+            //var pool = new Pool<TcpClient>();
+            //pool.Log = XTrace.Log;
+            //pool.Max = 4;
+            //Task.Run(() =>
+            //{
+            //    var st = new Stack<TcpClient>();
+            //    for (var i = 0; i < 4; i++)
+            //    {
+            //        st.Push(pool.Acquire(3000));
+            //        Thread.Sleep(500);
+            //    }
+            //    Thread.Sleep(100);
+            //    for (var i = 0; i < 4; i++)
+            //    {
+            //        pool.Release(st.Pop());
+            //        Thread.Sleep(500);
+            //    }
+            //});
+            //Task.Run(() =>
+            //{
+            //    Thread.Sleep(1900);
+            //    var st = new Stack<TcpClient>();
+            //    for (var i = 0; i < 4; i++)
+            //    {
+            //        st.Push(pool.Acquire(2000));
+            //        Thread.Sleep(500);
+            //    }
+            //    Thread.Sleep(1000);
+            //    for (var i = 0; i < 4; i++)
+            //    {
+            //        pool.Release(st.Pop());
+            //        Thread.Sleep(500);
+            //    }
+            //});
             //Parallel.For(0, 2, k =>
             //{
             //    var st = new Stack<TcpClient>();

@@ -712,17 +712,19 @@ namespace XCode.DataAccessLayer
 
             var dp = Factory.CreateParameter();
             dp.ParameterName = FormatParameterName(name);
-            dp.Value = value;
+            dp.Direction = ParameterDirection.Input;
 
-            if (type == null)
+            try
             {
-                type = value?.GetType();
-                // 参数可能是数组
-                if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
-            }
+                if (type == null)
+                {
+                    type = value?.GetType();
+                    // 参数可能是数组
+                    if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
+                }
 
-            if (dp.DbType == DbType.AnsiString)
-            {
+                //if (dp.DbType == DbType.AnsiString)
+                //{
                 // 写入数据类型
                 switch (type.GetTypeCode())
                 {
@@ -763,7 +765,13 @@ namespace XCode.DataAccessLayer
                         break;
                     default:
                         break;
+                        //}
                 }
+                dp.Value = value;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"创建字段{name}/{type.Name}的参数时出错", ex);
             }
 
             return dp;

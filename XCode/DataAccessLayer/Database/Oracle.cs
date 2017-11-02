@@ -205,12 +205,21 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override IDataParameter CreateParameter(String name, Object value, Type type = null)
         {
-            if (type == null) type = value?.GetType();
+            if (type == null)
+            {
+                type = value?.GetType();
+                // 参数可能是数组
+                if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
+            }
 
             if (type == typeof(Boolean))
             {
+                if (value is IEnumerable<Object> list)
+                    value = (value as IEnumerable<Object>).Select(e => e.ToBoolean() ? 1 : 0).ToArray();
+                else
+                    value = value.ToBoolean() ? 1 : 0;
+
                 type = typeof(Int32);
-                value = value.ToBoolean() ? 1 : 0;
             }
 
             var dp = base.CreateParameter(name, value, type);
