@@ -214,11 +214,11 @@ namespace NewLife.Yun
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/district
         /// </remarks>
-        /// <param name="keywords"></param>
-        /// <param name="subdistrict"></param>
-        /// <param name="code"></param>
+        /// <param name="keywords">查询关键字</param>
+        /// <param name="subdistrict">设置显示下级行政区级数</param>
+        /// <param name="code">按照指定行政区划进行过滤，填入后则只返回该省/直辖市信息</param>
         /// <returns></returns>
-        public async Task<IList<GeoArea>> GetDistrictAsync(String keywords, Int32 subdistrict = 1, Int32 code = 0)
+        public async Task<IList<GeoArea>> GetAreaAsync(String keywords, Int32 subdistrict = 1, Int32 code = 0)
         {
             if (keywords.IsNullOrEmpty()) throw new ArgumentNullException(nameof(keywords));
 

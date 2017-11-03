@@ -152,6 +152,10 @@ namespace XCoder.Yun
                     {
                         result = await bd.PlaceSearchAsync(cfg.Address, null, cfg.City, cfg.FormatAddress);
                     }
+                    else if (map is AMap am && method.Name == nameof(am.GetAreaAsync))
+                    {
+                        result = (await am.GetAreaAsync(cfg.City))?.ToArray();
+                    }
                     else
                     {
                         var ps = new Dictionary<String, Object>();
