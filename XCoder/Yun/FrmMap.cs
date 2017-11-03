@@ -71,6 +71,7 @@ namespace XCoder.Yun
             txtAddress.Text = cfg.Address;
             txtCity.Text = cfg.City;
             txtLocation.Text = cfg.Location;
+            txtLocation2.Text = cfg.Location2;
             chkFormatAddress.Checked = cfg.FormatAddress;
 
             //cbMap.SelectedValue = cfg.Map;
@@ -85,6 +86,7 @@ namespace XCoder.Yun
             cfg.Address = txtAddress.Text;
             cfg.City = txtCity.Text;
             cfg.Location = txtLocation.Text;
+            cfg.Location2 = txtLocation2.Text;
             cfg.FormatAddress = chkFormatAddress.Checked;
 
             cfg.Map = (cbMap.SelectedItem as Type)?.Name;
@@ -122,6 +124,7 @@ namespace XCoder.Yun
             {
                 Object result = null;
                 var point = new GeoPoint(cfg.Location);
+                var point2 = new GeoPoint(cfg.Location2);
                 try
                 {
                     var im = map as IMap;
@@ -143,7 +146,7 @@ namespace XCoder.Yun
                     }
                     else if (method.Name == nameof(im.GetDistanceAsync))
                     {
-                        result = await im.GetDistanceAsync(point, point);
+                        result = await im.GetDistanceAsync(point, point2);
                     }
                     else if (map is BaiduMap bd && method.Name == nameof(bd.PlaceSearchAsync))
                     {

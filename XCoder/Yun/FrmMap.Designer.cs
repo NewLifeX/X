@@ -49,6 +49,8 @@
             this.label3 = new System.Windows.Forms.Label();
             this.txtLocation = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.label7 = new System.Windows.Forms.Label();
+            this.txtLocation2 = new System.Windows.Forms.TextBox();
             this.gbReceive.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -166,7 +168,7 @@
             // 
             // btnInvoke
             // 
-            this.btnInvoke.Location = new System.Drawing.Point(574, 65);
+            this.btnInvoke.Location = new System.Drawing.Point(559, 8);
             this.btnInvoke.Name = "btnInvoke";
             this.btnInvoke.Size = new System.Drawing.Size(67, 29);
             this.btnInvoke.TabIndex = 23;
@@ -217,7 +219,7 @@
             // 
             this.txtLocation.Location = new System.Drawing.Point(63, 73);
             this.txtLocation.Name = "txtLocation";
-            this.txtLocation.Size = new System.Drawing.Size(256, 21);
+            this.txtLocation.Size = new System.Drawing.Size(211, 21);
             this.txtLocation.TabIndex = 37;
             // 
             // button1
@@ -227,11 +229,29 @@
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
             // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(299, 77);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(65, 12);
+            this.label7.TabIndex = 39;
+            this.label7.Text = "第二坐标：";
+            // 
+            // txtLocation2
+            // 
+            this.txtLocation2.Location = new System.Drawing.Point(370, 73);
+            this.txtLocation2.Name = "txtLocation2";
+            this.txtLocation2.Size = new System.Drawing.Size(211, 21);
+            this.txtLocation2.TabIndex = 40;
+            // 
             // FrmMap
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(670, 488);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.txtLocation2);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.cbCoordtype);
             this.Controls.Add(this.cbMethod);
@@ -281,5 +301,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtLocation;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox txtLocation2;
     }
 }

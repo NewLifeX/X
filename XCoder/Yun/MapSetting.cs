@@ -36,6 +36,10 @@ namespace XCoder.Yun
         [Description("坐标")]
         public String Location { get; set; }
 
+        /// <summary>坐标2</summary>
+        [Description("坐标2")]
+        public String Location2 { get; set; }
+
         /// <summary>格式化地址</summary>
         [Description("格式化地址")]
         public Boolean FormatAddress { get; set; } = true;

@@ -158,7 +158,9 @@ namespace NewLife.Yun
             if (destination == null || destination.Longitude < 1 && destination.Latitude < 1) throw new ArgumentNullException(nameof(destination));
 
             if (type <= 0) type = 13;
-            var url = _distanceUrl.F(origin.Latitude, origin.Longitude, destination.Latitude, destination.Longitude, type, CoordType);
+            var coord = CoordType;
+            if (coord.Length > 6) coord = coord.TrimEnd("ll");
+            var url = _distanceUrl.F(origin.Latitude, origin.Longitude, destination.Latitude, destination.Longitude, type, coord);
 
             var list = await InvokeAsync<IList<Object>>(url, "result");
             if (list == null || list.Count == 0) return null;
