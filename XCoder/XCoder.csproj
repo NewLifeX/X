@@ -69,6 +69,13 @@
     <Compile Include="FrmMDI.Designer.cs">
       <DependentUpon>FrmMDI.cs</DependentUpon>
     </Compile>
+    <Compile Include="IXForm.cs" />
+    <Compile Include="Yun\FrmMap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Yun\FrmMap.Designer.cs">
+      <DependentUpon>FrmMap.cs</DependentUpon>
+    </Compile>
     <Compile Include="NewModelForm\AddField.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -152,12 +159,6 @@
     <Compile Include="XNet\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
-    <Compile Include="Map\FrmMain.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Map\FrmMain.designer.cs">
-      <DependentUpon>FrmMain.cs</DependentUpon>
-    </Compile>
     <EmbeddedResource Include="FileEncoding\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
@@ -166,6 +167,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmMDI.resx">
       <DependentUpon>FrmMDI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Yun\FrmMap.resx">
+      <DependentUpon>FrmMap.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="NewModelForm\AddField.resx">
       <DependentUpon>AddField.cs</DependentUpon>
@@ -356,9 +360,6 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="XNet\FrmMain.resx">
-      <DependentUpon>FrmMain.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Map\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="数据库命名规范.txt" />

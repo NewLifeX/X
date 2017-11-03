@@ -16,7 +16,7 @@ using XCoder;
 namespace XApi
 {
     [DisplayName("Api调试")]
-    public partial class FrmMain : Form
+    public partial class FrmMain : Form, IXForm
     {
         ApiServer _Server;
         ApiClient _Client;

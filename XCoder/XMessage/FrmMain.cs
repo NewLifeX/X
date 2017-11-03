@@ -18,7 +18,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace XMessage
 {
     [DisplayName("消息调试工具")]
-    public partial class FrmMain : Form
+    public partial class FrmMain : Form, IXForm
     {
         NetServer _Server;
         ISocketClient _Client;

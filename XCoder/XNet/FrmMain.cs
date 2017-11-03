@@ -21,7 +21,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace XNet
 {
     [DisplayName("网络调试工具")]
-    public partial class FrmMain : Form
+    public partial class FrmMain : Form, IXForm
     {
         NetServer _Server;
         ISocketClient _Client;

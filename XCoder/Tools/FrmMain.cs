@@ -12,7 +12,7 @@ using System.Windows.Forms;
 namespace XCoder.Tools
 {
     [DisplayName("小工具")]
-    public partial class FrmMain : Form
+    public partial class FrmMain : Form, IXForm
     {
         public FrmMain()
         {

@@ -8,7 +8,7 @@ using NewLife.IO;
 namespace XCoder.FileEncoding
 {
     [DisplayName("文件编码工具")]
-    public partial class FrmMain : Form
+    public partial class FrmMain : Form, IXForm
     {
         public FrmMain()
         {

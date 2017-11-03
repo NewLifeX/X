@@ -15,7 +15,7 @@ namespace XCoder
 
         public FrmMDI()
         {
-            _load = Task<Type[]>.Factory.StartNew(() => typeof(Form).GetAllSubclasses(true).Where(e => e.Name == "FrmMain").ToArray());
+            _load = Task<Type[]>.Factory.StartNew(() => typeof(IXForm).GetAllSubclasses(true).ToArray());
 
             InitializeComponent();
 

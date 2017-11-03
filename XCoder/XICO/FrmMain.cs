@@ -11,7 +11,7 @@ using XCoder;
 namespace XICO
 {
     [DisplayName("图标水印处理工具")]
-    public partial class FrmMain : Form
+    public partial class FrmMain : Form, IXForm
     {
         #region 窗口初始化
         public FrmMain()

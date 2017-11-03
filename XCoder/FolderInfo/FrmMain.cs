@@ -12,7 +12,7 @@ using NewLife.Log;
 namespace XCoder.FolderInfo
 {
     [DisplayName("文件夹大小统计")]
-    public partial class FrmMain : Form
+    public partial class FrmMain : Form, IXForm
     {
         /// <summary>业务日志输出</summary>
         ILog BizLog;

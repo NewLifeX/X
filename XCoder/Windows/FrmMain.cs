@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -14,7 +13,6 @@ using System.Windows.Forms;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
-using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XTemplate.Templating;
 #if !NET4
@@ -24,7 +22,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace XCoder
 {
     [DisplayName("数据建模工具")]
-    public partial class FrmMain : Form
+    public partial class FrmMain : Form, IXForm
     {
         #region 属性
         /// <summary>配置</summary>

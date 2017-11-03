@@ -11,10 +11,10 @@ using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Yun;
 
-namespace XCoder.Maps
+namespace XCoder.Yun
 {
     [DisplayName("地图接口")]
-    public partial class FrmMain : Form
+    public partial class FrmMap : Form, IXForm
     {
         /// <summary>业务日志输出</summary>
         ILog BizLog;
@@ -23,7 +23,7 @@ namespace XCoder.Maps
         //IDictionary<String, String> Methods = new Dictionary<String, String>();
 
         #region 窗体
-        public FrmMain()
+        public FrmMap()
         {
             InitializeComponent();
 
@@ -64,7 +64,7 @@ namespace XCoder.Maps
             var method = cbMethod.SelectedItem as MethodInfo;
             if (method == null) return;
 
-            var map = type.CreateInstance() as Map;
+            var map = type.CreateInstance() as NewLife.Yun.Map;
             map.Log = XTrace.Log;
             map.CoordType = cbCoordtype.SelectedItem + "";
 
