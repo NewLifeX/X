@@ -78,15 +78,16 @@ namespace NewLife.Yun
                 Latitude = ds["lat"].ToDouble()
             };
 
-            if (formatAddress) return await GetGeoAsync(gp);
-
             var geo = new GeoAddress
             {
                 Location = gp,
-                Precise = rs["precise"].ToBoolean(),
-                Confidence = rs["confidence"].ToInt(),
-                Level = rs["level"] + "",
             };
+
+            if (formatAddress) geo = await GetGeoAsync(gp);
+
+            geo.Precise = rs["precise"].ToBoolean();
+            geo.Confidence = rs["confidence"].ToInt();
+            geo.Level = rs["level"] + "";
 
             return geo;
         }

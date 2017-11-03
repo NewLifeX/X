@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Windows;
+using NewLife.Serialization;
 using NewLife.Yun;
-using XCoder;
 
-namespace XCoder.Map
+namespace XCoder.Maps
 {
     [DisplayName("地图接口")]
     public partial class FrmMain : Form
@@ -59,8 +58,73 @@ namespace XCoder.Map
         #region 收发数据
         private void btnInvoke_Click(Object sender, EventArgs e)
         {
-            var btn = sender as Button;
+            var type = cbMap.SelectedItem as Type;
+            if (type == null) return;
 
+            var method = cbMethod.SelectedItem as MethodInfo;
+            if (method == null) return;
+
+            var map = type.CreateInstance() as Map;
+            map.Log = XTrace.Log;
+            map.CoordType = cbCoordtype.SelectedItem + "";
+
+            // 准备参数
+            var addr = txtAddress.Text;
+            var city = txtCity.Text;
+            var point = new GeoPoint(txtLocation.Text);
+
+            var mps = method.GetParameters();
+
+            Task.Run(async () =>
+            {
+                Object result = null;
+                try
+                {
+                    var im = map as IMap;
+                    if (method.Name == nameof(im.GetGeocoderAsync) && mps.Length == 2)
+                    {
+                        result = await im.GetGeocoderAsync(addr, city);
+                    }
+                    else if (method.Name == nameof(im.GetGeocoderAsync) && mps.Length == 1)
+                    {
+                        result = await im.GetGeocoderAsync(point);
+                    }
+                    else if (method.Name == nameof(im.GetGeoAsync) && mps.Length == 3)
+                    {
+                        result = await im.GetGeoAsync(addr, city, true);
+                    }
+                    else if (method.Name == nameof(im.GetGeoAsync) && mps.Length == 1)
+                    {
+                        result = await im.GetGeoAsync(point);
+                    }
+                    else
+                    {
+                        var ps = new Dictionary<String, Object>();
+                        if (mps.Any(k => k.Name.EqualIgnoreCase("address"))) ps["address"] = addr;
+                        if (mps.Any(k => k.Name.EqualIgnoreCase("city"))) ps["city"] = city;
+
+                        var task = map.InvokeWithParams(method, ps) as Task;
+                        await task;
+
+                        result = task.GetValue("Result");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                    return;
+                }
+
+                this.Invoke(() =>
+                {
+                    pgResult.SelectedObject = result;
+                });
+
+                //XTrace.WriteLine(map.LastUrl);
+
+                var js = new JsonParser(map.LastString).Decode();
+                XTrace.WriteLine(js.ToJson(true));
+            });
         }
         #endregion
 
@@ -79,10 +143,10 @@ namespace XCoder.Map
             {
                 if (item.DeclaringType != type) continue;
 
-                var name = item.Name;
+                //var name = item.Name;
                 //Methods.Add(name, name);
 
-                cb.Items.Add(name);
+                cb.Items.Add(item);
             }
             if (cb.Items.Count > 0) cb.SelectedIndex = 0;
 

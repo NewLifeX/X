@@ -1,4 +1,4 @@
-﻿namespace XCoder.Map
+﻿namespace XCoder.Maps
 {
     partial class FrmMain
     {
@@ -33,7 +33,7 @@
             this.btnInvoke = new System.Windows.Forms.Button();
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
-            this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
+            this.pgResult = new System.Windows.Forms.PropertyGrid();
             this.cbMap = new System.Windows.Forms.ComboBox();
             this.txtAddress = new System.Windows.Forms.TextBox();
             this.txtCity = new System.Windows.Forms.TextBox();
@@ -44,6 +44,8 @@
             this.cbMethod = new System.Windows.Forms.ComboBox();
             this.label6 = new System.Windows.Forms.Label();
             this.cbCoordtype = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtLocation = new System.Windows.Forms.TextBox();
             this.gbReceive.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -52,10 +54,9 @@
             this.gbReceive.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbReceive.Controls.Add(this.txtReceive);
-            this.gbReceive.Location = new System.Drawing.Point(2, 71);
+            this.gbReceive.Location = new System.Drawing.Point(2, 108);
             this.gbReceive.Name = "gbReceive";
-            this.gbReceive.Size = new System.Drawing.Size(465, 415);
+            this.gbReceive.Size = new System.Drawing.Size(465, 378);
             this.gbReceive.TabIndex = 4;
             this.gbReceive.TabStop = false;
             // 
@@ -65,7 +66,7 @@
             this.txtReceive.HideSelection = false;
             this.txtReceive.Location = new System.Drawing.Point(3, 17);
             this.txtReceive.Name = "txtReceive";
-            this.txtReceive.Size = new System.Drawing.Size(459, 395);
+            this.txtReceive.Size = new System.Drawing.Size(459, 358);
             this.txtReceive.TabIndex = 1;
             this.txtReceive.Text = "";
             // 
@@ -79,15 +80,15 @@
             this.btnInvoke.UseVisualStyleBackColor = true;
             this.btnInvoke.Click += new System.EventHandler(this.btnInvoke_Click);
             // 
-            // propertyGrid1
+            // pgResult
             // 
-            this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.pgResult.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.propertyGrid1.LineColor = System.Drawing.SystemColors.ControlDark;
-            this.propertyGrid1.Location = new System.Drawing.Point(473, 79);
-            this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(194, 404);
-            this.propertyGrid1.TabIndex = 5;
+            this.pgResult.LineColor = System.Drawing.SystemColors.ControlDark;
+            this.pgResult.Location = new System.Drawing.Point(473, 108);
+            this.pgResult.Name = "pgResult";
+            this.pgResult.Size = new System.Drawing.Size(194, 375);
+            this.pgResult.TabIndex = 5;
             // 
             // cbMap
             // 
@@ -105,6 +106,7 @@
             this.txtAddress.Name = "txtAddress";
             this.txtAddress.Size = new System.Drawing.Size(256, 21);
             this.txtAddress.TabIndex = 7;
+            this.txtAddress.Text = "陆家嘴银城中路501号";
             // 
             // txtCity
             // 
@@ -112,6 +114,7 @@
             this.txtCity.Name = "txtCity";
             this.txtCity.Size = new System.Drawing.Size(75, 21);
             this.txtCity.TabIndex = 8;
+            this.txtCity.Text = "上海";
             // 
             // label1
             // 
@@ -176,11 +179,29 @@
             this.cbCoordtype.Size = new System.Drawing.Size(77, 20);
             this.cbCoordtype.TabIndex = 16;
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(18, 77);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(41, 12);
+            this.label3.TabIndex = 18;
+            this.label3.Text = "坐标：";
+            // 
+            // txtLocation
+            // 
+            this.txtLocation.Location = new System.Drawing.Point(63, 73);
+            this.txtLocation.Name = "txtLocation";
+            this.txtLocation.Size = new System.Drawing.Size(256, 21);
+            this.txtLocation.TabIndex = 19;
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(670, 488);
+            this.gbReceive.Controls.Add(this.txtReceive);
+
             this.Controls.Add(this.label6);
             this.Controls.Add(this.cbCoordtype);
             this.Controls.Add(this.cbMethod);
@@ -191,14 +212,18 @@
             this.Controls.Add(this.txtCity);
             this.Controls.Add(this.txtAddress);
             this.Controls.Add(this.cbMap);
-            this.Controls.Add(this.propertyGrid1);
+            this.Controls.Add(this.pgResult);
             this.Controls.Add(this.btnInvoke);
             this.Controls.Add(this.gbReceive);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.txtLocation);
+
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "地图接口";
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.gbReceive.ResumeLayout(false);
+            this.gbReceive.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -211,7 +236,7 @@
         private System.Windows.Forms.RichTextBox txtReceive;
         private System.Windows.Forms.FontDialog fontDialog1;
         private System.Windows.Forms.ColorDialog colorDialog1;
-        private System.Windows.Forms.PropertyGrid propertyGrid1;
+        private System.Windows.Forms.PropertyGrid pgResult;
         private System.Windows.Forms.ComboBox cbMap;
         private System.Windows.Forms.TextBox txtAddress;
         private System.Windows.Forms.TextBox txtCity;
@@ -222,6 +247,8 @@
         private System.Windows.Forms.ComboBox cbMethod;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ComboBox cbCoordtype;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtLocation;
     }
 }
 
