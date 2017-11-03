@@ -41,6 +41,10 @@ namespace XCoder.Yun
             // 加载保存的颜色
             UIConfig.Apply(txtReceive);
 
+            LoadConfig();
+
+            var cfg = Setting;
+
             var cb = cbMap;
             cb.Items.Clear();
             cb.DisplayMember = "Name";
@@ -50,8 +54,44 @@ namespace XCoder.Yun
                 //Maps[name] = item;
                 //cb.Items.Add(name);
                 cb.Items.Add(item);
+
+                if (cfg.Map == item.Name) cb.SelectedItem = item;
             }
-            if (cb.Items.Count > 0) cb.SelectedIndex = 0;
+            //if (cb.Items.Count > 0) cb.SelectedText = cfg.Map;
+        }
+        #endregion
+
+        #region 配置
+        MapSetting Setting;
+
+        void LoadConfig()
+        {
+            var cfg = Setting = MapSetting.Current;
+
+            txtAddress.Text = cfg.Address;
+            txtCity.Text = cfg.City;
+            txtLocation.Text = cfg.Location;
+            chkFormatAddress.Checked = cfg.FormatAddress;
+
+            //cbMap.SelectedValue = cfg.Map;
+            //cbMethod.SelectedValue = cfg.Method;
+            //cbCoordtype.SelectedValue = cfg.Coordtype;
+        }
+
+        void SaveConfig()
+        {
+            var cfg = Setting = MapSetting.Current;
+
+            cfg.Address = txtAddress.Text;
+            cfg.City = txtCity.Text;
+            cfg.Location = txtLocation.Text;
+            cfg.FormatAddress = chkFormatAddress.Checked;
+
+            cfg.Map = (cbMap.SelectedItem as Type)?.Name;
+            cfg.Method = (cbMethod.SelectedItem as MethodInfo)?.Name;
+            cfg.Coordtype = cbCoordtype.SelectedItem as String;
+
+            cfg.Save();
         }
         #endregion
 
@@ -64,26 +104,30 @@ namespace XCoder.Yun
             var method = cbMethod.SelectedItem as MethodInfo;
             if (method == null) return;
 
+            SaveConfig();
+            var cfg = Setting;
+
             var map = type.CreateInstance() as NewLife.Yun.Map;
             map.Log = XTrace.Log;
-            map.CoordType = cbCoordtype.SelectedItem + "";
+            map.CoordType = cfg.Coordtype;
 
             // 准备参数
-            var addr = txtAddress.Text;
-            var city = txtCity.Text;
-            var point = new GeoPoint(txtLocation.Text);
+            //var addr = txtAddress.Text;
+            //var city = txtCity.Text;
+            //var point = new GeoPoint(txtLocation.Text);
 
             var mps = method.GetParameters();
 
             Task.Run(async () =>
             {
                 Object result = null;
+                var point = new GeoPoint(cfg.Location);
                 try
                 {
                     var im = map as IMap;
                     if (method.Name == nameof(im.GetGeocoderAsync) && mps.Length == 2)
                     {
-                        result = await im.GetGeocoderAsync(addr, city);
+                        result = await im.GetGeocoderAsync(cfg.Address, cfg.City);
                     }
                     else if (method.Name == nameof(im.GetGeocoderAsync) && mps.Length == 1)
                     {
@@ -91,7 +135,7 @@ namespace XCoder.Yun
                     }
                     else if (method.Name == nameof(im.GetGeoAsync) && mps.Length == 3)
                     {
-                        result = await im.GetGeoAsync(addr, city, true);
+                        result = await im.GetGeoAsync(cfg.Address, cfg.City, cfg.FormatAddress);
                     }
                     else if (method.Name == nameof(im.GetGeoAsync) && mps.Length == 1)
                     {
@@ -100,8 +144,8 @@ namespace XCoder.Yun
                     else
                     {
                         var ps = new Dictionary<String, Object>();
-                        if (mps.Any(k => k.Name.EqualIgnoreCase("address"))) ps["address"] = addr;
-                        if (mps.Any(k => k.Name.EqualIgnoreCase("city"))) ps["city"] = city;
+                        if (mps.Any(k => k.Name.EqualIgnoreCase("address"))) ps["address"] = cfg.Address;
+                        if (mps.Any(k => k.Name.EqualIgnoreCase("city"))) ps["city"] = cfg.City;
 
                         var task = map.InvokeWithParams(method, ps) as Task;
                         await task;
@@ -111,13 +155,22 @@ namespace XCoder.Yun
                 }
                 catch (Exception ex)
                 {
-                    XTrace.WriteException(ex);
+                    ex = ex.GetTrue();
+                    if (ex.GetType() == typeof(Exception))
+                        XTrace.WriteLine(ex.Message);
+                    else
+                        XTrace.WriteException(ex);
                     return;
                 }
 
                 this.Invoke(() =>
                 {
                     pgResult.SelectedObject = result;
+
+                    if (result is GeoAddress addr)
+                        txtLocation.Text = addr.Location + "";
+                    else if (result is GeoPoint gp)
+                        txtLocation.Text = gp + "";
                 });
 
                 //XTrace.WriteLine(map.LastUrl);
@@ -135,6 +188,8 @@ namespace XCoder.Yun
             var type = cbMap.SelectedItem as Type;
             if (type == null) return;
 
+            var cfg = Setting;
+
             var cb = cbMethod;
             cb.Items.Clear();
             //Methods.Clear();
@@ -147,8 +202,9 @@ namespace XCoder.Yun
                 //Methods.Add(name, name);
 
                 cb.Items.Add(item);
+                if (cfg.Method == item.Name) cb.SelectedItem = item;
             }
-            if (cb.Items.Count > 0) cb.SelectedIndex = 0;
+            //if (cb.Items.Count > 0) cb.SelectedIndex = 0;
 
             cb = cbCoordtype;
             cb.Items.Clear();
@@ -165,7 +221,9 @@ namespace XCoder.Yun
 
             cb.Items.Add("gcj02ll");
             cb.Items.Add("wgs84ll");
-            cb.SelectedIndex = 0;
+
+            //cb.SelectedIndex = 0;
+            cb.SelectedItem = cfg.Coordtype;
         }
     }
 }

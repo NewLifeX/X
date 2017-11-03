@@ -79,18 +79,25 @@ namespace NewLife.Yun
                 gp.Latitude = ds[1].ToDouble();
             }
 
-            if (formatAddress) return await GetGeoAsync(gp);
-
             var addr = new GeoAddress();
 
-            var reader = new JsonReader();
-            reader.ToObject(rs, null, addr);
+            if (formatAddress)
+            {
+                addr = await GetGeoAsync(gp);
+                if (addr.Level.IsNullOrEmpty()) addr.Level = rs["level"] + "";
+            }
+            else
+            {
+                var reader = new JsonReader();
+                reader.ToObject(rs, null, addr);
 
-            addr.Code = rs["adcode"].ToInt();
-            addr.Township = rs["township"] + "";
-            addr.StreetNumber = rs["number"] + "";
+                addr.Code = rs["adcode"].ToInt();
 
-            addr.Location = gp;
+                if (rs["township"] is IList<Object> ts && ts.Count > 0) addr.Township = ts[0] + "";
+                if (rs["number"] is IList<Object> ns && ns.Count > 0) addr.StreetNumber = ns[0] + "";
+
+                addr.Location = gp;
+            }
 
             return addr;
         }
@@ -136,12 +143,16 @@ namespace NewLife.Yun
                 reader.ToObject(component, null, addr);
 
                 addr.Code = component["adcode"].ToInt();
-                addr.Township = component["town"] + "";
+                addr.Township = component["township"] + "";
 
-                if (rs["street_number"] is IDictionary<String, Object> sn && sn.Count > 0)
+                // 去掉乡镇代码后面多余的0
+                var tcode = addr.Towncode;
+                if (!tcode.IsNullOrEmpty() && tcode.Length > 6 + 3) addr.Towncode = tcode.TrimEnd("000");
+
+                if (component["streetNumber"] is IDictionary<String, Object> sn && sn.Count > 0)
                 {
                     addr.Street = sn["street"] + "";
-                    addr.StreetNumber = component["street_number"] + "";
+                    addr.StreetNumber = sn["number"] + "";
                 }
             }
 

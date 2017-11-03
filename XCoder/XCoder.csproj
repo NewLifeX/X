@@ -159,6 +159,7 @@
     <Compile Include="XNet\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="Yun\MapSetting.cs" />
     <EmbeddedResource Include="FileEncoding\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>

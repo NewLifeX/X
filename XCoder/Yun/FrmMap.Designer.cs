@@ -35,7 +35,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.cbFormatAddress = new System.Windows.Forms.CheckBox();
+            this.chkFormatAddress = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txtAddress = new System.Windows.Forms.TextBox();
             this.cbMap = new System.Windows.Forms.ComboBox();
@@ -115,17 +115,17 @@
             this.label2.TabIndex = 30;
             this.label2.Text = "城市：";
             // 
-            // cbFormatAddress
+            // chkFormatAddress
             // 
-            this.cbFormatAddress.AutoSize = true;
-            this.cbFormatAddress.Checked = true;
-            this.cbFormatAddress.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbFormatAddress.Location = new System.Drawing.Point(482, 46);
-            this.cbFormatAddress.Name = "cbFormatAddress";
-            this.cbFormatAddress.Size = new System.Drawing.Size(84, 16);
-            this.cbFormatAddress.TabIndex = 38;
-            this.cbFormatAddress.Text = "格式化地址";
-            this.cbFormatAddress.UseVisualStyleBackColor = true;
+            this.chkFormatAddress.AutoSize = true;
+            this.chkFormatAddress.Checked = true;
+            this.chkFormatAddress.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkFormatAddress.Location = new System.Drawing.Point(482, 46);
+            this.chkFormatAddress.Name = "chkFormatAddress";
+            this.chkFormatAddress.Size = new System.Drawing.Size(84, 16);
+            this.chkFormatAddress.TabIndex = 38;
+            this.chkFormatAddress.Text = "格式化地址";
+            this.chkFormatAddress.UseVisualStyleBackColor = true;
             // 
             // label1
             // 
@@ -247,6 +247,7 @@
             this.Controls.Add(this.gbReceive);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.txtLocation);
+            this.Controls.Add(this.chkFormatAddress);
             this.Name = "FrmMap";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "地图接口";
@@ -266,7 +267,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.CheckBox cbFormatAddress;
+        private System.Windows.Forms.CheckBox chkFormatAddress;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtAddress;
         private System.Windows.Forms.ComboBox cbMap;
