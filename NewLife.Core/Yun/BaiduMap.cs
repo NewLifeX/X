@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using NewLife.Data;
@@ -11,6 +12,7 @@ namespace NewLife.Yun
     /// <remarks>
     /// 参考手册 http://lbsyun.baidu.com/index.php?title=webapi/guide/webservice-geocoding
     /// </remarks>
+    [DisplayName("百度地图")]
     public class BaiduMap : Map, IMap
     {
         #region 构造
@@ -81,7 +83,9 @@ namespace NewLife.Yun
             var geo = new GeoAddress
             {
                 Location = gp,
-                Level = rs["level"] + ""
+                Precise = rs["precise"].ToBoolean(),
+                Confidence = rs["confidence"].ToInt(),
+                Level = rs["level"] + "",
             };
 
             return geo;
@@ -118,7 +122,8 @@ namespace NewLife.Yun
 
             var addr = new GeoAddress
             {
-                Address = rs["formatted_address"] + ""
+                Address = rs["formatted_address"] + "",
+                Confidence = rs["confidence"].ToInt(),
             };
             if (rs["addressComponent"] is IDictionary<String, Object> component)
             {
@@ -206,6 +211,7 @@ namespace NewLife.Yun
 
             if (formatAddress) geo = await GetGeoAsync(geo.Location);
 
+            geo.Name = rs["name"] + "";
             geo.Address = rs["address"] + "";
 
             return geo;

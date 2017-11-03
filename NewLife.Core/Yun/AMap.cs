@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using NewLife.Data;
@@ -11,6 +12,7 @@ namespace NewLife.Yun
     /// <remarks>
     /// 参考地址 http://lbs.amap.com/api/webservice/guide/api/georegeo/#geo
     /// </remarks>
+    [DisplayName("高德地图")]
     public class AMap : Map, IMap
     {
         #region 构造

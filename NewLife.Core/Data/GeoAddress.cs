@@ -6,6 +6,9 @@ namespace NewLife.Data
     public class GeoAddress
     {
         #region 属性
+        /// <summary>名称</summary>
+        public String Name { get; set; }
+
         /// <summary>坐标</summary>
         public GeoPoint Location { get; set; }
 
@@ -41,6 +44,12 @@ namespace NewLife.Data
 
         /// <summary>级别</summary>
         public String Level { get; set; }
+
+        /// <summary>精确打点</summary>
+        public Boolean Precise { get; set; }
+
+        /// <summary>可信度。[0-100]</summary>
+        public Int32 Confidence { get; set; }
         #endregion
 
         /// <summary>已重载。</summary>
