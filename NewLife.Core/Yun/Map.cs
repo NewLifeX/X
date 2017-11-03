@@ -123,7 +123,7 @@ namespace NewLife.Yun
         /// <param name="url">目标Url</param>
         /// <param name="result">结果字段</param>
         /// <returns></returns>
-        public virtual async Task<T> InvokeAsync<T>(String url, String result)
+        protected virtual async Task<T> InvokeAsync<T>(String url, String result)
         {
             LastResult = null;
 
@@ -137,8 +137,7 @@ namespace NewLife.Yun
             return (T)rs;
         }
         #endregion
-
-
+        
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;

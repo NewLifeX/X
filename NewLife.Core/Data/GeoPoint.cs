@@ -21,9 +21,15 @@ namespace NewLife.Data
         /// <param name="location"></param>
         public GeoPoint(String location)
         {
-            var ss = location.Split(",");
-            Longitude = ss[0].ToDouble();
-            Latitude = ss[1].ToDouble();
+            if (!location.IsNullOrEmpty())
+            {
+                var ss = location.Split(",");
+                if (ss.Length >= 2)
+                {
+                    Longitude = ss[0].ToDouble();
+                    Latitude = ss[1].ToDouble();
+                }
+            }
         }
         #endregion
 

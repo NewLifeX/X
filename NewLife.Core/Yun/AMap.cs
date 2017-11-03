@@ -30,7 +30,7 @@ namespace NewLife.Yun
         /// <param name="url">目标Url</param>
         /// <param name="result">结果字段</param>
         /// <returns></returns>
-        public override async Task<T> InvokeAsync<T>(String url, String result)
+        protected override async Task<T> InvokeAsync<T>(String url, String result)
         {
             var dic = await base.InvokeAsync<IDictionary<String, Object>>(url, result);
             if (dic == null || dic.Count == 0) return default(T);
