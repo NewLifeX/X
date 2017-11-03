@@ -115,8 +115,12 @@ namespace Test
         {
             //var addr = "容县容西镇移动营业厅";
             //var city = "玉林";
-            var addr = "欣昌北小区八栋9号楼7号网点";
-            var city = "吉林";
+            //var addr = "欣昌北小区八栋9号楼7号网点";
+            //var city = "吉林";
+            //var addr = "柳姜线华家街道";
+            //var city = "大连";
+            var addr = "石河子市11小区93栋16号";
+            var city = "石河子";
 
             var bm = new BaiduMap();
             bm.Log = XTrace.Log;

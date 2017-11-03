@@ -72,6 +72,15 @@ namespace NewLife.Yun
 
         /// <summary>坐标系</summary>
         public String CoordType { get; set; }
+
+        /// <summary>最后网址</summary>
+        public String LastUrl { get; private set; }
+
+        /// <summary>最后响应</summary>
+        public String LastString { get; private set; }
+
+        /// <summary>最后结果</summary>
+        public IDictionary<String, Object> LastResult { get; private set; }
         #endregion
 
         #region 构造
@@ -104,7 +113,10 @@ namespace NewLife.Yun
 
             url += KeyName + "=" + AppKey;
 
-            return await _Client.DownloadStringAsync(url);
+            LastUrl = url;
+            LastString = null;
+
+            return LastString = await _Client.DownloadStringAsync(url);
         }
 
         /// <summary>远程调用</summary>
@@ -113,10 +125,16 @@ namespace NewLife.Yun
         /// <returns></returns>
         public virtual async Task<T> InvokeAsync<T>(String url, String result)
         {
+            LastResult = null;
+
             var html = await GetStringAsync(url);
             if (html.IsNullOrEmpty()) return default(T);
 
-            return (T)new JsonParser(html).Decode();
+            var rs = new JsonParser(html).Decode();
+
+            LastResult = (IDictionary<String, Object>)rs;
+
+            return (T)rs;
         }
         #endregion
 
