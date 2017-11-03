@@ -163,6 +163,7 @@
             this.pgResult.LineColor = System.Drawing.SystemColors.ControlDark;
             this.pgResult.Location = new System.Drawing.Point(386, 108);
             this.pgResult.Name = "pgResult";
+            this.pgResult.PropertySort = System.Windows.Forms.PropertySort.NoSort;
             this.pgResult.Size = new System.Drawing.Size(281, 375);
             this.pgResult.TabIndex = 25;
             // 
