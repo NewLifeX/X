@@ -141,6 +141,14 @@ namespace XCoder.Yun
                     {
                         result = await im.GetGeoAsync(point);
                     }
+                    else if (method.Name == nameof(im.GetDistanceAsync))
+                    {
+                        result = await im.GetDistanceAsync(point, point);
+                    }
+                    else if (map is BaiduMap bd && method.Name == nameof(bd.PlaceSearchAsync))
+                    {
+                        result = await bd.PlaceSearchAsync(cfg.Address, null, cfg.City, cfg.FormatAddress);
+                    }
                     else
                     {
                         var ps = new Dictionary<String, Object>();

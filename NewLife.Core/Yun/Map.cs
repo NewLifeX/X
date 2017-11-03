@@ -51,7 +51,12 @@ namespace NewLife.Yun
         #endregion
 
         #region 路径规划
-
+        /// <summary>计算距离和驾车时间</summary>
+        /// <param name="origin"></param>
+        /// <param name="destination"></param>
+        /// <param name="type">路径计算的方式和方法</param>
+        /// <returns></returns>
+        Task<Driving> GetDistanceAsync(GeoPoint origin, GeoPoint destination, Int32 type = 0);
         #endregion
 
         #region 日志
@@ -137,7 +142,7 @@ namespace NewLife.Yun
             return (T)rs;
         }
         #endregion
-        
+
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
