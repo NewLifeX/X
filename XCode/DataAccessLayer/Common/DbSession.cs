@@ -146,41 +146,21 @@ namespace XCode.DataAccessLayer
             if (enable == null || enable.Value) AutoClose();
         }
 
+        private String _DatabaseName;
         /// <summary>数据库名</summary>
         public String DatabaseName
         {
-            get { return Conn?.Database; }
-            set
+            get
             {
-                if (DatabaseName == value) return;
+                if (_DatabaseName == null)
+                {
+                    using (var pi = Database.Pool.AcquireItem())
+                    {
+                        _DatabaseName = pi.Value.Database;
+                    }
+                }
 
-                // 因为MSSQL多次出现因连接字符串错误而导致的报错，连接字符串变错设置变空了，这里统一关闭连接，采用保守做法修改字符串
-                var b = Opened;
-                if (b) Close();
-
-                // 如果没有打开，则改变链接字符串
-                var builder = new XDbConnectionStringBuilder
-                {
-                    ConnectionString = ConnectionString
-                };
-                var flag = false;
-                if (builder.ContainsKey("Database"))
-                {
-                    builder["Database"] = value;
-                    flag = true;
-                }
-                else if (builder.ContainsKey("Initial Catalog"))
-                {
-                    builder["Initial Catalog"] = value;
-                    flag = true;
-                }
-                if (flag)
-                {
-                    var connStr = builder.ToString();
-                    ConnectionString = connStr;
-                    Conn.ConnectionString = connStr;
-                }
-                if (b) Open();
+                return _DatabaseName;
             }
         }
 

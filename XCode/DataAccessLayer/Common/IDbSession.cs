@@ -23,7 +23,7 @@ namespace XCode.DataAccessLayer
         DbConnection Conn { get; }
 
         /// <summary>数据库名</summary>
-        String DatabaseName { get; set; }
+        String DatabaseName { get; }
 
         /// <summary>查询次数</summary>
         Int32 QueryTimes { get; set; }

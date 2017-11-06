@@ -39,6 +39,34 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        private String _User;
+        /// <summary>用户名UserID</summary>
+        public String User
+        {
+            get
+            {
+                if (_User != null) return _User;
+
+                var connStr = ConnectionString;
+
+                if (String.IsNullOrEmpty(connStr)) return null;
+
+                var ocsb = Factory.CreateConnectionStringBuilder();
+                ocsb.ConnectionString = connStr;
+
+                if (ocsb.ContainsKey("User ID"))
+                    _User = (String)ocsb["User ID"];
+                else if (ocsb.ContainsKey("User"))
+                    _User = (String)ocsb["User"];
+                else if (ocsb.ContainsKey("uid"))
+                    _User = (String)ocsb["uid"];
+                else
+                    _User = String.Empty;
+
+                return _User;
+            }
+        }
+
         protected override String DefaultConnectionString
         {
             get
@@ -99,28 +127,52 @@ namespace XCode.DataAccessLayer
         #region 系统权限处理
         public Object ProcessWithSystem(Func<IDbSession, Object> callback)
         {
-            var session = this;
-            var dbname = session.DatabaseName;
+            var dbname = DatabaseName;
             var sysdbname = SystemDatabaseName;
 
-            //如果指定了数据库名，并且不是master，则切换到master
-            if (!String.IsNullOrEmpty(dbname) && !dbname.EqualIgnoreCase(sysdbname))
+            // 如果指定了数据库名，并且不是master，则切换到master
+            if (!dbname.IsNullOrEmpty() && !dbname.EqualIgnoreCase(sysdbname))
             {
-                session.DatabaseName = sysdbname;
-                try
+                using (var conn = Database.Factory.CreateConnection())
                 {
-                    return callback(session);
-                }
-                finally
-                {
-                    session.Close();
-                    session.DatabaseName = dbname;
+                    conn.ConnectionString = ConnectionString;
+
+                    OpenDatabase(conn, sysdbname);
+
+                    return callback(this);
                 }
             }
             else
             {
-                return callback(session);
+                return callback(this);
             }
+        }
+
+        private static void OpenDatabase(IDbConnection conn, String dbName)
+        {
+            // 如果没有打开，则改变链接字符串
+            var builder = new XDbConnectionStringBuilder
+            {
+                ConnectionString = conn.ConnectionString
+            };
+            var flag = false;
+            if (builder.ContainsKey("Database"))
+            {
+                builder["Database"] = dbName;
+                flag = true;
+            }
+            else if (builder.ContainsKey("Initial Catalog"))
+            {
+                builder["Initial Catalog"] = dbName;
+                flag = true;
+            }
+            if (flag)
+            {
+                var connStr = builder.ToString();
+                conn.ConnectionString = connStr;
+            }
+
+            conn.Open();
         }
         #endregion
     }
