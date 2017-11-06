@@ -39,31 +39,6 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private String _UserID;
-        /// <summary>用户名UserID</summary>
-        public String UserID
-        {
-            get
-            {
-                if (_UserID != null) return _UserID;
-                //_UserID = String.Empty;
-
-                var connStr = ConnectionString;
-
-                if (String.IsNullOrEmpty(connStr)) return null;
-
-                var ocsb = Factory.CreateConnectionStringBuilder();
-                ocsb.ConnectionString = connStr;
-
-                if (ocsb.ContainsKey("User ID"))
-                    _UserID = (String)ocsb["User ID"];
-                else
-                    _UserID = String.Empty;
-
-                return _UserID;
-            }
-        }
-
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
@@ -278,10 +253,10 @@ namespace XCode.DataAccessLayer
         public Boolean NeedAnalyzeStatistics(String tableName)
         {
             var owner = Owner;
-            if (owner.IsNullOrEmpty()) owner = UserID;
+            if (owner.IsNullOrEmpty()) owner = User;
 
             // 非当前用户，不支持统计
-            if (!owner.EqualIgnoreCase(UserID)) return false;
+            if (!owner.EqualIgnoreCase(User)) return false;
 
             var key = String.Format("{0}.{1}", owner, tableName);
             if (!cache.TryGetValue(key, out var dt))
@@ -328,7 +303,7 @@ namespace XCode.DataAccessLayer
             tableName = tableName.ToUpper();
 
             var owner = (Database as Oracle).Owner;
-            if (owner.IsNullOrEmpty()) owner = (Database as Oracle).UserID;
+            if (owner.IsNullOrEmpty()) owner = (Database as Oracle).User;
             //var owner = (Database as Oracle).Owner.ToUpper();
             owner = owner.ToUpper();
 
@@ -422,14 +397,14 @@ namespace XCode.DataAccessLayer
             get
             {
                 var owner = Database.Owner;
-                if (owner.IsNullOrEmpty()) owner = (Database as Oracle).UserID;
+                if (owner.IsNullOrEmpty()) owner = (Database as Oracle).User;
 
                 return owner.ToUpper();
             }
         }
 
         /// <summary>用户名</summary>
-        public String UserID { get { return (Database as Oracle).UserID.ToUpper(); } }
+        public String UserID { get { return (Database as Oracle).User.ToUpper(); } }
 
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
