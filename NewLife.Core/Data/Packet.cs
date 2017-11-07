@@ -66,6 +66,21 @@ namespace NewLife.Data
             }
         }
 
+        /// <summary>截取</summary>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public Packet Sub(Int32 offset, Int32 count = -1)
+        {
+            offset += Offset;
+
+            if (count < 0 || offset + count > Count) count = Count - offset;
+
+            if (count < 0) count = 0;
+
+            return new Packet(Data, offset, count);
+        }
+
         /// <summary>返回字节数组。如果是完整数组直接返回，否则截取</summary>
         /// <remarks>不一定是全新数据，如果需要全新数据请克隆</remarks>
         /// <returns></returns>

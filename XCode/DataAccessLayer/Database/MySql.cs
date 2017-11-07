@@ -249,10 +249,10 @@ namespace XCode.DataAccessLayer
             base.FixTable(table, dr, data);
         }
 
-        protected override Boolean IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
-        {
-            return base.IsColumnChanged(entityColumn, dbColumn, entityDb);
-        }
+        //protected override Boolean IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
+        //{
+        //    return base.IsColumnChanged(entityColumn, dbColumn, entityDb);
+        //}
 
         protected override void FixField(IDataColumn field, DataRow dr)
         {

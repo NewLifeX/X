@@ -4,13 +4,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
+using NewLife;
 using NewLife.Agent;
 using NewLife.Caching;
 using NewLife.Collections;
+using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -113,39 +120,54 @@ namespace Test
 
         static void Test2()
         {
-            //var addr = "容县容西镇移动营业厅";
-            //var city = "玉林";
-            //var addr = "欣昌北小区八栋9号楼7号网点";
-            //var city = "吉林";
-            //var addr = "柳姜线华家街道";
-            //var city = "大连";
-            var addr = "石河子市11小区93栋16号";
-            var city = "石河子";
+            var url = "http://www.baidu.com";
 
-            var bm = new BaiduMap();
-            bm.Log = XTrace.Log;
+            var client = new TinyHttpClient();
+            var rs = client.GetAsync(url).Result;
+            Console.WriteLine(rs);
 
-            var p = bm.PlaceSearchAsync(addr, null, city, true).Result;
-            Console.WriteLine(p);
+            //var client = new NewLife.Http.HttpClient();
+            //client.Remote = new NetUri(url);
+            //client.Request.Url = new Uri(url);
+            //client.Open();
 
-            var gp = bm.GetGeoAsync(addr, city).Result;
-            Console.WriteLine(gp);
+            //var pk = new Packet(new Byte[0]);
+            //var rs = client.SendAsync(pk).Result;
+            //Console.WriteLine(rs.ToStr());
 
-            var geo = bm.GetGeoAsync(gp.Location).Result;
-            Console.WriteLine(geo);
+            ////var addr = "容县容西镇移动营业厅";
+            ////var city = "玉林";
+            ////var addr = "欣昌北小区八栋9号楼7号网点";
+            ////var city = "吉林";
+            ////var addr = "柳姜线华家街道";
+            ////var city = "大连";
+            //var addr = "石河子市11小区93栋16号";
+            //var city = "石河子";
 
-            //var org = bm.GetGeoAsync("新府中路1650号").Result;
-            //var dst = bm.GetGeoAsync("广西容县高中").Result;
-            //var dv = bm.GetDistanceAsync(org, dst).Result;
-            //Console.WriteLine("{0}:\t{1}", dv.Distance, dv.Duration);
+            //var bm = new BaiduMap();
+            //bm.Log = XTrace.Log;
 
-            var am = new AMap
-            {
-                Log = XTrace.Log
-            };
+            //var p = bm.PlaceSearchAsync(addr, null, city, true).Result;
+            //Console.WriteLine(p);
 
-            geo = am.GetGeoAsync(addr, city).Result;
-            Console.WriteLine(geo);
+            //var gp = bm.GetGeoAsync(addr, city).Result;
+            //Console.WriteLine(gp);
+
+            //var geo = bm.GetGeoAsync(gp.Location).Result;
+            //Console.WriteLine(geo);
+
+            ////var org = bm.GetGeoAsync("新府中路1650号").Result;
+            ////var dst = bm.GetGeoAsync("广西容县高中").Result;
+            ////var dv = bm.GetDistanceAsync(org, dst).Result;
+            ////Console.WriteLine("{0}:\t{1}", dv.Distance, dv.Duration);
+
+            //var am = new AMap
+            //{
+            //    Log = XTrace.Log
+            //};
+
+            //geo = am.GetGeoAsync(addr, city).Result;
+            //Console.WriteLine(geo);
 
             //var org2 = am.GetGeoAsync("新府中路1650号").Result;
             //var dst2 = am.GetGeoAsync("广西容县高中").Result;
