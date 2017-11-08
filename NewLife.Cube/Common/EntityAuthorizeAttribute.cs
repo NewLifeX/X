@@ -71,7 +71,9 @@ namespace NewLife.Cube
                 var ctx = filterContext.HttpContext;
                 var rurl = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/");
                 rurl += "Admin/User/Login";
-                if (ctx.Request.Url != null) rurl += "?returnUrl=" + ctx.Request.Url;
+
+                var retUrl = ctx.Request.Url?.PathAndQuery;
+                if (!retUrl.IsNullOrEmpty() && retUrl != "/") rurl += "?returnUrl=" + retUrl;
 
                 filterContext.HttpContext.Response.Redirect(rurl, true);
                 return;

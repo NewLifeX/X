@@ -53,6 +53,7 @@ namespace ASP
   
     var cfg = NewLife.Common.SysConfig.Current;
     var user = ManageProvider.User;
+    var retUrl = Request.Url.PathAndQuery;
 
             
             #line default
@@ -99,15 +100,15 @@ WriteLiteral("></span>\r\n            </button>\r\n            <a");
 
 WriteLiteral(" class=\"navbar-brand\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 592), Tuple.Create("\"", 601)
-, Tuple.Create(Tuple.Create("", 599), Tuple.Create<System.Object, System.Int32>(Href("~/")
-, 599), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 636), Tuple.Create("\"", 645)
+, Tuple.Create(Tuple.Create("", 643), Tuple.Create<System.Object, System.Int32>(Href("~/")
+, 643), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 15 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 16 "..\..\Views\Shared\_Layout_Header.cshtml"
                                          Write(cfg.DisplayName);
 
             
@@ -116,7 +117,7 @@ WriteLiteral(">");
 WriteLiteral("<sub>");
 
             
-            #line 15 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 16 "..\..\Views\Shared\_Layout_Header.cshtml"
                                                               Write(cfg.Name);
 
             
@@ -133,7 +134,7 @@ WriteLiteral(" class=\"nav navbar-nav\"");
 WriteLiteral(">\r\n                <li>");
 
             
-            #line 19 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 20 "..\..\Views\Shared\_Layout_Header.cshtml"
                Write(Html.ActionLink("首页", "Index", "Home"));
 
             
@@ -142,7 +143,7 @@ WriteLiteral(">\r\n                <li>");
 WriteLiteral("</li>\r\n                <li>");
 
             
-            #line 20 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 21 "..\..\Views\Shared\_Layout_Header.cshtml"
                Write(Html.ActionLink("关于我们", "About", "Home"));
 
             
@@ -155,13 +156,13 @@ WriteLiteral(" class=\"nav navbar-nav navbar-right\"");
 WriteLiteral(">\r\n");
 
             
-            #line 23 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 24 "..\..\Views\Shared\_Layout_Header.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 23 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 24 "..\..\Views\Shared\_Layout_Header.cshtml"
                  if (user == null)
                 {
 
@@ -175,7 +176,7 @@ WriteLiteral(" class=\"\"");
 WriteLiteral(">");
 
             
-            #line 25 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 26 "..\..\Views\Shared\_Layout_Header.cshtml"
                             Write(Html.ActionLink("注册", "Register", "Account"));
 
             
@@ -190,8 +191,8 @@ WriteLiteral(" class=\"\"");
 WriteLiteral(">");
 
             
-            #line 26 "..\..\Views\Shared\_Layout_Header.cshtml"
-                            Write(Html.ActionLink("登录", "Login", "Account", new { ReturnUrl = ViewContext.HttpContext.Request.Url.PathAndQuery }, null));
+            #line 27 "..\..\Views\Shared\_Layout_Header.cshtml"
+                            Write(Html.ActionLink("登录", "Login", "Account", new { ReturnUrl = retUrl }, null));
 
             
             #line default
@@ -199,7 +200,7 @@ WriteLiteral(">");
 WriteLiteral("</li>\r\n");
 
             
-            #line 27 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 28 "..\..\Views\Shared\_Layout_Header.cshtml"
                 }
                 else
                 {
@@ -214,7 +215,7 @@ WriteLiteral(" class=\"\"");
 WriteLiteral(">");
 
             
-            #line 30 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 31 "..\..\Views\Shared\_Layout_Header.cshtml"
                             Write(Html.ActionLink(user + "", "Detail", "Account", new { user.ID }, null));
 
             
@@ -229,8 +230,8 @@ WriteLiteral(" class=\"\"");
 WriteLiteral(">");
 
             
-            #line 31 "..\..\Views\Shared\_Layout_Header.cshtml"
-                            Write(Html.ActionLink("注销", "Logout", "Account", new { ReturnUrl = ViewContext.HttpContext.Request.Url.PathAndQuery }, null));
+            #line 32 "..\..\Views\Shared\_Layout_Header.cshtml"
+                            Write(Html.ActionLink("注销", "Logout", "Account", new { ReturnUrl = retUrl }, null));
 
             
             #line default
@@ -238,7 +239,7 @@ WriteLiteral(">");
 WriteLiteral("</li>\r\n");
 
             
-            #line 32 "..\..\Views\Shared\_Layout_Header.cshtml"
+            #line 33 "..\..\Views\Shared\_Layout_Header.cshtml"
                 }
 
             

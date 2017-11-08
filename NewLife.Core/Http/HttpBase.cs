@@ -103,8 +103,10 @@ namespace NewLife.Http
         {
             var len = data != null ? data.Count : 0;
 
-            var rs = new Packet(BuildHeader(len).GetBytes());
-            rs.Next = data;
+            var rs = new Packet(BuildHeader(len).GetBytes())
+            {
+                Next = data
+            };
 
             return rs;
         }

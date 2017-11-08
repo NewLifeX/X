@@ -1,17 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Web;
-#if !__CORE__
-using System.Web.UI;
-using System.Web.UI.HtmlControls;
-using System.Web.UI.WebControls;
-#endif
 using NewLife.Collections;
-using NewLife.Reflection;
 
 namespace NewLife.Web
 {
@@ -69,38 +61,6 @@ namespace NewLife.Web
 #endif
         #endregion
 
-        #region 输入检查
-#if !__CORE__
-        /// <summary>检查控件值是否为空，若为空，显示错误信息，并聚焦到控件上</summary>
-        /// <param name="control">要检查的控件</param>
-        /// <param name="errmsg">错误信息。若为空，将使用ToolTip</param>
-        /// <returns></returns>
-        public static Boolean CheckEmptyAndFocus(Control control, String errmsg)
-        {
-            if (control == null) throw new ArgumentNullException("control");
-
-            if (control is WebControl && String.IsNullOrEmpty(errmsg)) errmsg = (control as WebControl).ToolTip;
-
-            if (control is TextBox)
-            {
-                var box = control as TextBox;
-                if (!String.IsNullOrEmpty(box.Text)) return true;
-            }
-            else if (control is ListControl)
-            {
-                var box = control as ListControl;
-                if (!String.IsNullOrEmpty(box.Text)) return true;
-            }
-            else
-                throw new XException("暂时不支持{0}控件！", control.GetType());
-
-            control.Focus();
-            if (!String.IsNullOrEmpty(errmsg)) Alert(errmsg);
-            return false;
-        }
-#endif
-        #endregion
-
         #region 用户主机
         [ThreadStatic]
         private static String _UserHost;
@@ -110,25 +70,27 @@ namespace NewLife.Web
             get
             {
 #if !__CORE__
-                if (HttpContext.Current != null)
+                var ctx = HttpContext.Current;
+                if (ctx != null)
                 {
-                    var str = (String)HttpContext.Current.Items["UserHostAddress"];
+                    var str = (String)ctx.Items["UserHostAddress"];
                     if (!String.IsNullOrEmpty(str)) return str;
 
-                    if (Request != null)
+                    var req = ctx.Request;
+                    if (req != null)
                     {
-                        if (str.IsNullOrEmpty()) str = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-                        if (str.IsNullOrEmpty()) str = Request.ServerVariables["X-Real-IP"];
-                        if (str.IsNullOrEmpty()) str = Request.ServerVariables["X-Forwarded-For"];
-                        if (str.IsNullOrEmpty()) str = Request.ServerVariables["REMOTE_ADDR"];
-                        if (str.IsNullOrEmpty()) str = Request.UserHostName;
-                        if (str.IsNullOrEmpty()) str = Request.UserHostAddress;
+                        if (str.IsNullOrEmpty()) str = req.ServerVariables["HTTP_X_FORWARDED_FOR"];
+                        if (str.IsNullOrEmpty()) str = req.ServerVariables["X-Real-IP"];
+                        if (str.IsNullOrEmpty()) str = req.ServerVariables["X-Forwarded-For"];
+                        if (str.IsNullOrEmpty()) str = req.ServerVariables["REMOTE_ADDR"];
+                        if (str.IsNullOrEmpty()) str = req.UserHostName;
+                        if (str.IsNullOrEmpty()) str = req.UserHostAddress;
 
                         //// 加上浏览器端口
                         //var port = Request.ServerVariables["REMOTE_PORT"];
                         //if (!port.IsNullOrEmpty()) str += ":" + port;
 
-                        HttpContext.Current.Items["UserHostAddress"] = str;
+                        ctx.Items["UserHostAddress"] = str;
 
                         return str;
                     }
@@ -141,126 +103,25 @@ namespace NewLife.Web
             {
                 _UserHost = value;
 #if !__CORE__
-                if (HttpContext.Current != null)
-                {
-                    HttpContext.Current.Items["UserHostAddress"] = value;
-                }
+                var ctx = HttpContext.Current;
+                if (ctx != null) ctx.Items["UserHostAddress"] = value;
 #endif
             }
         }
-
-#if !__CORE__
-        /// <summary>页面文件名</summary>
-        public static String PageName { get { return Path.GetFileName(Request.FilePath); } }
-#endif
         #endregion
 
 #if !__CORE__
-        #region 导出Excel
-        /// <summary>导出Excel</summary>
-        /// <param name="gv"></param>
-        /// <param name="filename"></param>
-        /// <param name="max"></param>
-        public static void ExportExcel(GridView gv, String filename, Int32 max)
-        {
-            ExportExcel(gv, filename, max, Encoding.UTF8);
-        }
-
-        /// <summary>导出Excel</summary>
-        /// <param name="gv"></param>
-        /// <param name="filename"></param>
-        /// <param name="max"></param>
-        /// <param name="encoding"></param>
-        public static void ExportExcel(GridView gv, String filename, Int32 max, Encoding encoding)
-        {
-            //var Request = HttpContext.Current.Request;
-            //var Response = HttpContext.Current.Response;
-
-            //去掉所有列的排序
-            foreach (var item in gv.Columns)
-            {
-                if (item is DataControlField) (item as DataControlField).SortExpression = null;
-            }
-            if (max > 0) gv.PageSize = max;
-            gv.DataBind();
-
-            // 新建页面
-            var page = new Page();
-            var form = new HtmlForm();
-
-            page.EnableEventValidation = false;
-            page.Controls.Add(form);
-            form.Controls.Add(gv);
-
-            Response.Clear();
-            Response.Buffer = true;
-            Response.Charset = encoding.WebName;
-            Response.ContentEncoding = encoding;
-            /*
-             * 按照RFC2231的定义， 多语言编码的Content-Disposition应该这么定义：
-             * Content-Disposition: attachment; filename*="utf8''%e6%94%b6%e6%ac%be%e7%ae%a1%e7%90%86.xls"
-             * filename后面的等号之前要加 *
-             * filename的值用单引号分成三段，分别是字符集(utf8)、语言(空)和urlencode过的文件名。
-             * 最好加上双引号，否则文件名中空格后面的部分在Firefox中显示不出来
-             */
-            var cd = String.Format("attachment;filename=\"{0}\"", filename);
-            if (Request.UserAgent.Contains("MSIE"))
-                cd = String.Format("attachment;filename=\"{0}\"", HttpUtility.UrlEncode(filename, encoding));
-            else if (Request.UserAgent.Contains("Firefox"))
-                cd = String.Format("attachment;filename*=\"{0}''{1}\"", encoding.WebName, HttpUtility.UrlEncode(filename, encoding));
-
-            Response.AppendHeader("Content-Disposition", cd);
-            Response.ContentType = "application/ms-excel";
-
-            var sw = new StringWriter();
-            var htw = new HtmlTextWriter(sw);
-            page.RenderControl(htw);
-
-            var html = sw.ToString();
-            //if (html.StartsWith("<div>")) html = html.SubString("<div>".Length);
-            //if (html.EndsWith("</div>")) html = html.SubString(0, html.Length - "</div>".Length);
-
-            html = String.Format("<meta http-equiv=\"content-type\" content=\"application/ms-excel; charset={0}\"/>", encoding.WebName) + Environment.NewLine + html;
-
-            Response.Output.Write(html);
-
-            //var wd = new WebDownload(html, encoding);
-            //wd.Mode = WebDownload.DispositionMode.Attachment;
-            //wd.Render();
-
-            Response.Flush();
-            Response.End();
-        }
-        #endregion
-
         #region Http请求
-        /// <summary>Http请求</summary>
-        public static HttpRequest Request
-        {
-            get
-            {
-                if (HttpContext.Current == null) return null;
-
-                try
-                {
-                    return HttpContext.Current.Request;
-                }
-                catch //(Exception ex)
-                {
-                    return null;
-                }
-                //return HttpContext.Current != null ? HttpContext.Current.Request : null;
-            }
-        }
-
         /// <summary>返回请求字符串和表单的名值字段，过滤空值和ViewState，同名时优先表单</summary>
         public static IDictionary<String, String> Params
         {
             get
             {
-                if (HttpContext.Current.Items["Params"] is IDictionary<String, String> dic) return dic;
+                var ctx = HttpContext.Current;
+                if (ctx.Items["Params"] is IDictionary<String, String> dic) return dic;
 
-                var nvss = new NameValueCollection[] { Request.QueryString, Request.Form };
+                var req = ctx.Request;
+                var nvss = new NameValueCollection[] { req.QueryString, req.Form };
 
                 // 这里必须用可空字典，否则直接通过索引查不到数据时会抛出异常
                 dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -284,136 +145,10 @@ namespace NewLife.Web
                         dic[item] = value.Trim();
                     }
                 }
-                HttpContext.Current.Items["Params"] = dic;
+                ctx.Items["Params"] = dic;
 
                 return dic;
             }
-        }
-
-        /// <summary>把Http请求的数据反射填充到目标对象</summary>
-        /// <param name="target">要反射搜索的目标对象，比如页面Page</param>
-        /// <returns></returns>
-        public static Int32 Fill(Object target)
-        {
-            if (target == null) return 0;
-
-            var count = 0;
-            var type = target.GetType();
-            var nvs = new NameValueCollection[] { Request.QueryString, Request.Form };
-
-            // 精确搜索属性、字段，模糊搜索属性、字段
-            foreach (var nv in nvs)
-            {
-                foreach (var item in nv.AllKeys)
-                {
-                    var member = type.GetMemberEx(item, true);
-                    if (member != null && (member is FieldInfo || member is PropertyInfo))
-                    {
-                        count++;
-                        target.SetValue(member, nv[item]);
-                    }
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>获取整型参数</summary>
-        /// <param name="name">名称</param>
-        /// <param name="defaultint"></param>
-        /// <returns></returns>
-        public static Int32 RequestInt(String name, int defaultint = 0) { return Request[name].ToInt(defaultint); }
-
-        /// <summary>获取长整型参数</summary>
-        /// <param name="name">名称</param>
-        /// <param name="defaultint"></param>
-        /// <returns></returns>
-        public static Int64 RequestLong(String name, int defaultint = 0) { return Request[name].ToLong(defaultint); }
-
-        /// <summary>接收布尔值</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public static Boolean RequestBool(String name) { return Request[name].ToBoolean(); }
-
-        /// <summary>接收时间</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public static DateTime RequestDateTime(String name) { return Request[name].ToDateTime(); }
-
-        /// <summary>接收Double</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public static Double RequestDouble(String name) { return Request[name].ToDouble(); }
-        #endregion
-
-        #region Http响应
-        /// <summary>Http响应</summary>
-        public static HttpResponse Response { get { return HttpContext.Current?.Response; } }
-        #endregion
-
-        #region Cookie
-        /// <summary>写入Cookie</summary>
-        /// <param name="name">名称</param>
-        /// <param name="value">值</param>
-        public static void WriteCookie(String name, String value)
-        {
-            var cookie = Request.Cookies[name];
-            if (cookie == null) cookie = new HttpCookie(name);
-
-            cookie.Value = value;
-            Response.AppendCookie(cookie);
-        }
-
-        /// <summary>写入Cookie</summary>
-        /// <param name="name">名称</param>
-        /// <param name="key">键</param>
-        /// <param name="value">值</param>
-        public static void WriteCookie(String name, String key, String value)
-        {
-            var cookie = Request.Cookies[name];
-            if (cookie == null) cookie = new HttpCookie(name);
-
-            cookie[key] = value;
-            Response.AppendCookie(cookie);
-        }
-
-        /// <summary>写入Cookie</summary>
-        /// <param name="name">名称</param>
-        /// <param name="value">值</param>
-        /// <param name="expires">过期时间，单位秒</param>
-        public static void WriteCookie(String name, String value, Int32 expires)
-        {
-            var cookie = Request.Cookies[name];
-            if (cookie == null) cookie = new HttpCookie(name);
-
-            cookie.Value = value;
-            cookie.Expires = DateTime.Now.AddSeconds(expires);
-            Response.AppendCookie(cookie);
-        }
-
-        /// <summary>读取Cookie</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public static String ReadCookie(String name)
-        {
-            var cookies = Request.Cookies;
-            if (cookies == null) return null;
-            if (cookies[name] == null) return "";
-
-            return cookies[name].Value + "";
-        }
-
-        /// <summary>读取Cookie</summary>
-        /// <param name="name">名称</param>
-        /// <param name="key">键</param>
-        /// <returns></returns>
-        public static String ReadCookie(String name, String key)
-        {
-            var cookies = Request.Cookies;
-            if (cookies == null) return null;
-            if (cookies[name] == null || cookies[name][key] == null) return "";
-
-            return cookies[name][key] + "";
         }
         #endregion
 #endif

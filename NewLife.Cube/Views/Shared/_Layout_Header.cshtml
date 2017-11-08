@@ -2,6 +2,7 @@
 @{
     var cfg = NewLife.Common.SysConfig.Current;
     var user = ManageProvider.User;
+    var retUrl = Request.Url.PathAndQuery;
 }
 <div class="navbar navbar-default">
     <div class="container">
@@ -23,12 +24,12 @@
                 @if (user == null)
                 {
                     <li class="">@Html.ActionLink("注册", "Register", "Account")</li>
-                    <li class="">@Html.ActionLink("登录", "Login", "Account", new { ReturnUrl = ViewContext.HttpContext.Request.Url.PathAndQuery }, null)</li>
+                    <li class="">@Html.ActionLink("登录", "Login", "Account", new { ReturnUrl = retUrl }, null)</li>
                 }
                 else
                 {
                     <li class="">@Html.ActionLink(user + "", "Detail", "Account", new { user.ID }, null)</li>
-                    <li class="">@Html.ActionLink("注销", "Logout", "Account", new { ReturnUrl = ViewContext.HttpContext.Request.Url.PathAndQuery }, null)</li>
+                    <li class="">@Html.ActionLink("注销", "Logout", "Account", new { ReturnUrl = retUrl }, null)</li>
                 }
             </ul>
         </div>

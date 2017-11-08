@@ -102,8 +102,7 @@ namespace System
             var list = new List<Int32>();
             foreach (var item in ss)
             {
-                var id = 0;
-                if (!Int32.TryParse(item.Trim(), out id)) continue;
+                if (!Int32.TryParse(item.Trim(), out var id)) continue;
 
                 // 本意只是拆分字符串然后转为数字，不应该过滤重复项
                 //if (!list.Contains(id))

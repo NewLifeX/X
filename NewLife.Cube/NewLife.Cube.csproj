@@ -399,11 +399,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Toolbar_Adv.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Shared\_LoginPartial.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_LoginPartial.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\_ViewStart.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -735,10 +730,6 @@
     <None Include="Views\_ViewStart.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_LoginPartial.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_LoginPartial.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Shared\CubeError.cshtml">
       <Generator>RazorGenerator</Generator>

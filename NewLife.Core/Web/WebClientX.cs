@@ -628,8 +628,7 @@ namespace NewLife.Web
             // PSTM=1499740028; expires=Thu, 31-Dec-37 23:55:55 GMT; max-age=2147483647; path=/; domain=.baidu.com
             var excludes = new HashSet<String>(new String[] { "expires", "max-age", "path", "domain" }, StringComparer.OrdinalIgnoreCase);
 
-            IEnumerable<String> cs = null;
-            if (!rs.Headers.TryGetValues("Set-Cookie", out cs) || !cs.Any()) return;
+            if (!rs.Headers.TryGetValues("Set-Cookie", out var cs) || !cs.Any()) return;
 
             foreach (var item in cs.FirstOrDefault().SplitAsDictionary())
             {
